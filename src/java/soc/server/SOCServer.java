@@ -5505,6 +5505,7 @@ public class SOCServer extends Server
         //D.ebugPrintln("ga.isSeatVacant(mes.getPlayerNumber()) = "+ga.isSeatVacant(mes.getPlayerNumber()));
         /**
          * make sure a person isn't sitting here already;
+         * can't sit at a vacant seat after everyone has placed 1st settlement+road;
          * if a robot is sitting there, dismiss the robot.
          */
         ga.takeMonitor();
@@ -8964,6 +8965,7 @@ public class SOCServer extends Server
      */
     private void joinGame(SOCGame gameData, StringConnection c, boolean isReset, boolean isTakingOver)
     {
+        boolean hasRobot = false;  // If game's already started, true if a bot is seated (and can be taken over)
         String gameName = gameData.getName();
         if (! isReset)
         {
@@ -8985,9 +8987,12 @@ public class SOCServer extends Server
             {
                 SOCPlayer pl = gameData.getPlayer(i);
                 String plName = pl.getName();
-                if ((plName != null) && (!gameData.isSeatVacant(i)))
+                if ((plName != null) && ! gameData.isSeatVacant(i))
                 {
-                    c.put(SOCSitDown.toCmd(gameName, plName, i, pl.isRobot()));
+                    final boolean isRobot = pl.isRobot();
+                    if (isRobot)
+                        hasRobot = true;
+                    c.put(SOCSitDown.toCmd(gameName, plName, i, isRobot));
                 }
             }
 
@@ -9300,6 +9305,14 @@ public class SOCServer extends Server
             return;
         }
         messageToGame(gameName, new SOCJoinGame((String)c.getData(), "", "dummyhost", gameName));
+
+        if ((! isReset) && gameData.getGameState() >= SOCGame.START2A)
+        {
+            if (hasRobot)
+                messageToPlayer(c, gameName, /*I*/"This game has started. To play, take over a robot."/*18N*/ );
+            else
+                messageToPlayer(c, gameName, /*I*/"This game has started, no new players can sit down."/*18N*/ );
+        }
     }
 
     /**

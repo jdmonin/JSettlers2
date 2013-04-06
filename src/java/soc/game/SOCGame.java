@@ -1395,6 +1395,11 @@ public class SOCGame implements Serializable, Cloneable
      * How many seats are vacant and available for players?
      * Based on {@link #isSeatVacant(int)}, and game
      * option "PL" (maximum players) or {@link #maxPlayers}.
+     *<P>
+     * Once the game has started and everyone already has placed their
+     * first settlement and road (gamestate is &gt;= {@link #START2A}}),
+     * no one new can sit down at a vacant seat, so this method returns 0.
+     * <em>(added in v2.0.00)</em>
      *
      * @return number of available vacant seats
      * @see #isSeatVacant(int)
@@ -1402,6 +1407,9 @@ public class SOCGame implements Serializable, Cloneable
      */
     public int getAvailableSeatCount()
     {
+        if (gameState >= START2A)
+            return 0;
+
         int availSeats;
         if (isGameOptionDefined("PL"))
             availSeats = getGameOptionIntValue("PL");
