@@ -226,6 +226,8 @@ public interface PlayerClientListener
     void gameStarted();
 
     /**
+     * Update interface after game state has changed.
+     * Please call after {@link SOCGame#setGameState(int)}.
      * @param gameState One of the codes from SOCGame, such as {@link soc.game.SOCGame#NEW}
      */
     void gameStateChanged(int gameState);

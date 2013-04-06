@@ -3445,13 +3445,14 @@ public class SOCPlayerClient
         if (ga != null)
         {
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            if (ga.getGameState() == SOCGame.NEW && mes.getState() != SOCGame.NEW)
+            final boolean gameStarted = (ga.getGameState() == SOCGame.NEW && mes.getState() != SOCGame.NEW);
+            final int newState = mes.getState();
+
+            ga.setGameState(newState);
+            if (gameStarted)
             {
                 pcl.gameStarted();
             }
-
-            final int newState = mes.getState();
-            ga.setGameState(newState);
             pcl.gameStateChanged(newState);
         }
     }
