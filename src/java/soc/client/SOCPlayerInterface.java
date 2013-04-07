@@ -1619,6 +1619,9 @@ public class SOCPlayerInterface extends Frame
      * Game play is starting (leaving state {@link SOCGame#NEW}).
      * Remove the start buttons and robot-lockout buttons.
      * Next move is for players to make their starting placements.
+     *<P>
+     * Call {@link SOCGame#setGameState(int)} before calling this method.
+     * Call this method before calling {@link #updateAtGameState()}.
      */
     public void startGame()
     {
@@ -1856,13 +1859,13 @@ public class SOCPlayerInterface extends Frame
      * Or, if the player must discard resources or pick free resources from the gold hex,
      * calls {@link #discardOrPickTimerSet(boolean)}.
      *<P>
-     * Please call after {@link SOCGame#setGameState(int)}.
+     * Please call {@link SOCGame#setGameState(int)} first. <BR>
      * If the game is now starting, please call in this order:
-     *<code>
-     *   playerInterface.{@link #startGame()};
+     *<code><pre>
      *   game.setGameState(newState);
+     *   playerInterface.{@link #startGame()};
      *   playerInterface.updateAtGameState();
-     *</code>
+     *</pre></code>
      */
     public void updateAtGameState()
     {

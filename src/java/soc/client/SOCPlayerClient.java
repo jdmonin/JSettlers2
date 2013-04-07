@@ -3431,7 +3431,13 @@ public class SOCPlayerClient
     protected void handleSTARTGAME(SOCStartGame mes)
     {
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
-        pcl.gameStarted();
+        final SOCGame ga = games.get(mes.getGame());
+        if ((pcl == null) || (ga == null))
+            return;
+
+        if (ga.getGameState() == SOCGame.NEW)
+            // skip this call if handleGAMESTATE already called it
+            pcl.gameStarted();
     }
 
     /**
@@ -3451,6 +3457,7 @@ public class SOCPlayerClient
             ga.setGameState(newState);
             if (gameStarted)
             {
+                // call here, not just in handleSTARTGAME, in case we joined a game in progress
                 pcl.gameStarted();
             }
             pcl.gameStateChanged(newState);
