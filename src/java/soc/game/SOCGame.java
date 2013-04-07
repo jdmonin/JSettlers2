@@ -1320,6 +1320,13 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Add a new player sitting at a certain seat, or sit them again in their same seat (rejoining after a disconnect).
+     * Called at server and at client.
+     *<P>
+     * If the game just started, players are placing their first settlement and road
+     * (gamestate is &lt; {@link #START2A}), and the new player sits at a vacant seat,
+     * check and update the first player number or last player number if necessary.
+     * If the new player's {@code pn} is less than {@link #getCurrentPlayerNumber()},
+     * they already missed their first settlement and road placement but will get their second one.
      *<P>
      * Once the game has started and everyone already has placed their
      * first settlement and road (gamestate is &gt;= {@link #START2A}),
@@ -1342,7 +1349,8 @@ public class SOCGame implements Serializable, Cloneable
         if (! SOCMessage.isSingleLineAndSafe(name))
             throw new IllegalArgumentException("name");
 
-        if (seats[pn] == VACANT)
+        final boolean wasVacant = (seats[pn] == VACANT);
+        if (wasVacant)
         {
             if (0 == getAvailableSeatCount())  // will be 0 in state >= START2A
                 throw new IllegalStateException("Game is full");
@@ -1358,6 +1366,15 @@ public class SOCGame implements Serializable, Cloneable
 
         if ((gameState > NEW) && (gameState < OVER))
         {
+            if (wasVacant && (gameState < START2A))
+            {
+                // Still placing first initial settlement + road; check first/last player number
+                if (pn > lastPlayerNumber)
+                    setFirstPlayer(firstPlayerNumber);  // recalc lastPlayerNumber
+                else if (pn < firstPlayerNumber)
+                    setFirstPlayer(pn);  // too late for first settlement, but can place their 2nd
+            }
+
             allOriginalPlayers = false;
         }
     }
