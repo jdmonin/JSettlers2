@@ -1319,13 +1319,18 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * add a new player
+     * Add a new player sitting at a certain seat, or sit them again in their same seat (rejoining after a disconnect).
+     *<P>
+     * Once the game has started and everyone already has placed their
+     * first settlement and road (gamestate is &gt;= {@link #START2A}),
+     * no one new can sit down at a vacant seat.
+     * <em>(added in v2.0.00)</em>
      *
      * @param name  the player's name; must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param pn    the player's requested player number; the seat number at which they would sit
      * @throws IllegalStateException if player is already sitting in
      *              another seat in this game, or if there are no open seats
-     *              (based on seats[] == OCCUPIED, and game option "PL" or MAXPLAYERS)
+     *              (based on seats[] == OCCUPIED, and game option "PL" or {@link #maxPlayers})
      *               via {@link #getAvailableSeatCount()}
      * @throws IllegalArgumentException if name fails {@link SOCMessage#isSingleLineAndSafe(String)}.
      *           This exception was added in 1.1.07.
@@ -1336,9 +1341,10 @@ public class SOCGame implements Serializable, Cloneable
     {
         if (! SOCMessage.isSingleLineAndSafe(name))
             throw new IllegalArgumentException("name");
+
         if (seats[pn] == VACANT)
         {
-            if (0 == getAvailableSeatCount())
+            if (0 == getAvailableSeatCount())  // will be 0 in state >= START2A
                 throw new IllegalStateException("Game is full");
         }
         SOCPlayer already = getPlayer(name);
@@ -3346,6 +3352,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             currentPlayerNumber = Math.abs(rand.nextInt() % maxPlayers);
         } while (isSeatVacant(currentPlayerNumber));
+
         setFirstPlayer(currentPlayerNumber);
     }
 
@@ -3363,12 +3370,11 @@ public class SOCGame implements Serializable, Cloneable
             lastPlayerNumber = -1;
             return;
         }
-        lastPlayerNumber = pn - 1;
 
+        lastPlayerNumber = pn - 1;  // start before firstPlayerNumber, and we'll loop backwards
         if (lastPlayerNumber < 0)
-        {
             lastPlayerNumber = maxPlayers - 1;
-        }
+
         while (isSeatVacant (lastPlayerNumber))
         {
             --lastPlayerNumber;
