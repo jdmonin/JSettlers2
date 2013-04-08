@@ -27,7 +27,7 @@ import soc.game.SOCGame;  // for javadoc's use
 /**
  * This message communicates the current state of the game.
  *<P>
- * For some states, such as {@link SOCGame#WAITING_FOR_CHOICE},
+ * For some states, such as {@link SOCGame#WAITING_FOR_ROB_CHOOSE_PLAYER},
  * another message (such as {@link SOCChoosePlayerRequest}) will
  * follow to prompt the current player.  For others, such as
  * {@link SOCGame#WAITING_FOR_DISCOVERY} or

@@ -5988,7 +5988,7 @@ public class SOCServer extends Server
                 }
 
                 sendGameState(ga);
-                    // For WAITING_FOR_CHOICE, sendGameState also sends messages
+                    // For WAITING_FOR_ROB_CHOOSE_PLAYER, sendGameState also sends messages
                     // with victim info to prompt the client to choose.
                     // For WAITING_FOR_ROB_CLOTH_OR_RESOURCE, no need to recalculate
                     // victims there, just send the prompt from here:
@@ -6696,7 +6696,8 @@ public class SOCServer extends Server
                  */
                 if ((ga.getGameState() != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
                 {
-                    sendGameState(ga);  // if state is WAITING_FOR_CHOICE (_SC_PIRI), also sends CHOOSEPLAYERREQUEST
+                    sendGameState(ga);
+                        // if state is WAITING_FOR_ROB_CHOOSE_PLAYER (_SC_PIRI), also sends CHOOSEPLAYERREQUEST
                 } else {
                     endGameTurn(ga, player, true);  // already did ga.takeMonitor()
                 }
@@ -7175,7 +7176,7 @@ public class SOCServer extends Server
                     sendGameState(ga);
                     break;
 
-                case SOCGame.WAITING_FOR_CHOICE:
+                case SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER:
                     if ((choice == SOCChoosePlayer.CHOICE_NO_PLAYER) && ga.canChoosePlayer(-1))
                     {
                         ga.choosePlayerForRobbery(-1);  // state becomes PLAY1
@@ -9610,7 +9611,7 @@ public class SOCServer extends Server
      * State {@link SOCGame#WAITING_FOR_DISCARDS}:
      * If a 7 is rolled, will also say who must discard (in a GAMETEXTMSG).
      *<P>
-     * State {@link SOCGame#WAITING_FOR_CHOICE}:
+     * State {@link SOCGame#WAITING_FOR_ROB_CHOOSE_PLAYER}:
      * If current player must choose which player to rob,
      * will also prompt their client to choose (in a CHOOSEPLAYERREQUEST).
      *<P>
@@ -9733,7 +9734,7 @@ public class SOCServer extends Server
             messageFormatToGame(gname, true, "{0} will move the pirate ship.", player.getName());
             break;
 
-        case SOCGame.WAITING_FOR_CHOICE:
+        case SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER:
             /**
              * get the choices from the game
              */
