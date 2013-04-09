@@ -19,7 +19,6 @@
  **/
 package soc.client;
 
-import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Checkbox;
 import java.awt.Choice;
@@ -188,7 +187,7 @@ public class NewGameOptionsFrame extends Frame
                     ? "New Game options: Practice game"
                     : "New Game options"));
 
-        setLayout(new BorderLayout());
+        setLayout(new FlowLayout(FlowLayout.LEFT, 4, 4));  // include padding insets around edges of frame
 
         this.gameDisplay = gd;
         SOCPlayerClient cli = gd.getClient();
@@ -337,7 +336,7 @@ public class NewGameOptionsFrame extends Frame
 
         // Final assembly setup
         bp.validate();
-        add(bp, BorderLayout.CENTER);
+        add(bp);
     }
 
     private final static Color LABEL_TXT_COLOR = new Color(252, 251, 243); // off-white
@@ -502,7 +501,7 @@ public class NewGameOptionsFrame extends Frame
                 Label blank = new Label();
                 gbc.gridwidth = 1;
                 gbl.setConstraints(blank, gbc);
-                add(blank);
+                bp.add(blank);
                 scenInfo = new Button(/*I*/"Scenario Info..."/*18N*/);
                 scenInfo.addActionListener(this);
                 scenInfo.addKeyListener(this);
