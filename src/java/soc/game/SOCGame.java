@@ -7388,6 +7388,23 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Seat lock states for lock/unlock.
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 2.0.00
+     */
+    public static enum SeatLockState
+    {
+        /** Seat not locked */
+        UNLOCKED,
+
+        /** Seat locked */
+        LOCKED,
+
+        /** On reset, a robot will not take this seat */
+        CLEAR_ON_RESET
+    }
+
+    /**
      * Dice roll result, for reporting from {@link SOCGame#rollDice()}.
      * Each game has 1 instance of this object, which is updated each turn.
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
