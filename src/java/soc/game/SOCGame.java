@@ -452,10 +452,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public static final int VACANT = 0, OCCUPIED = 1;
 
-    /**
-     * seatLock states
-     */
-    public static final boolean LOCKED = true, UNLOCKED = false;
+    // for seatLock states, see SeatLockState enum javadoc.
 
     /**
      * {@link #boardResetVotes} per-player states: no vote sent; yes; no.
@@ -758,9 +755,9 @@ public class SOCGame implements Serializable, Cloneable
     private int[] seats;
 
     /**
-     * the states if the locks for the player's seats
+     * the states of the locks for the player's seats
      */
-    private boolean[] seatLocks;
+    private SeatLockState[] seatLocks;
 
     /**
      * the number of the current player
@@ -1133,14 +1130,14 @@ public class SOCGame implements Serializable, Cloneable
 
         players = new SOCPlayer[maxPlayers];
         seats = new int[maxPlayers];
-        seatLocks = new boolean[maxPlayers];
+        seatLocks = new SeatLockState[maxPlayers];
         boardResetVotes = new int[maxPlayers];
 
         for (int i = 0; i < maxPlayers; i++)
         {
             players[i] = new SOCPlayer(i, this);
             seats[i] = VACANT;
-            seatLocks[i] = UNLOCKED;
+            seatLocks[i] = SeatLockState.UNLOCKED;
         }
 
         currentPlayerNumber = -1;
@@ -1455,7 +1452,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void lockSeat(final int pn)
     {
-        seatLocks[pn] = LOCKED;
+        seatLocks[pn] = SeatLockState.LOCKED;
     }
 
     /**
@@ -1465,7 +1462,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void unlockSeat(final int pn)
     {
-        seatLocks[pn] = UNLOCKED;
+        seatLocks[pn] = SeatLockState.UNLOCKED;
     }
 
     /**
@@ -1475,7 +1472,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean isSeatLocked(final int pn)
     {
-        return (seatLocks[pn] == LOCKED);
+        return (seatLocks[pn] == SeatLockState.LOCKED);
     }
 
     /**
@@ -6944,7 +6941,7 @@ public class SOCGame implements Serializable, Cloneable
             {
                 cp.seats[i] = seats[i];  // reset in case addPlayer cleared VACANT for non-in-use player position
                 if (cp.seats[i] == VACANT)
-                    cp.seatLocks[i] = true;
+                    cp.seatLocks[i] = SeatLockState.LOCKED;
             }
         }
 
@@ -7389,18 +7386,29 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Seat lock states for lock/unlock.
+     * Note different meanings while game is forming
+     * (gameState {@link SOCGame#NEW NEW}) versus already active.
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 2.0.00
      */
     public static enum SeatLockState
     {
-        /** Seat not locked */
+        /** Seat not locked.
+         *  If game is forming, if this seat is empty when the game starts, a bot can sit here.
+         *  If game is active, a newly-joining player can take over a bot in this seat.
+         */
         UNLOCKED,
 
-        /** Seat locked */
+        /** Seat is locked.
+         *  If game is forming, a bot will not sit here when the game starts.
+         *  If game is active, a newly-joining player can't take over a bot in this seat.
+         */
         LOCKED,
 
-        /** On reset, a robot will not take this seat */
+        /** If this active game is reset, a robot will not take this seat, it will be left vacant.
+         *  Useful for resetting a game to play again with fewer robots, if a robot is currently sitting here.
+         *  Not a valid seat lock state if game is still forming.
+         */
         CLEAR_ON_RESET
     }
 
