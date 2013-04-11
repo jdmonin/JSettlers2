@@ -44,7 +44,7 @@ in "docs/users" directory. These can be put on a JSettlers server for
 its users using the applet.
 
 Currently, this README is the only technical documentation for running
-the client or server, setup and other issues. Over time other more
+the client or server, setup and other issues. Over time, more docs
 will be written. If you are interested in helping write documentation
 please contact the development team from the SourceForge site.
 
@@ -157,6 +157,11 @@ something like the following in the chat display:
 
 Now click on the "Sit Here" button and press "Start Game".  The robot
 players should automatically join the game and start playing.
+
+To play again with the same game options and players, click "Quit", then "Reset Board".
+If other people are in the game, they will be asked to vote on the reset; any player can reject it.
+If bots are in your game, and you want to reset with fewer or no bots, click the bot's Lock button
+before clicking Quit/Reset and it won't rejoin the reset game.
 
 If you want other people to access your server, tell them your server
 IP address and port number (in this case 8880).  They can run the
