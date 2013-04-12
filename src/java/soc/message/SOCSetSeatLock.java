@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2010,2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,11 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
 import java.util.StringTokenizer;
+
+import soc.game.SOCGame.SeatLockState;
 
 
 /**
@@ -44,16 +46,17 @@ public class SOCSetSeatLock extends SOCMessage
     /**
      * The state of the lock
      */
-    private boolean state;
+    private SeatLockState state;
 
     /**
      * Create a SetSeatLock message.
      *
      * @param ga  the name of the game
      * @param pn  the number of the changing player
-     * @param st  the state of the lock
+     * @param st  the state of the lock; remember that versions before v2.0.00 won't recognize
+     *    {@link SeatLockState#CLEAR_ON_RESET}.
      */
-    public SOCSetSeatLock(String ga, int pn, boolean st)
+    public SOCSetSeatLock(String ga, int pn, SeatLockState st)
     {
         messageType = SETSEATLOCK;
         game = ga;
@@ -80,7 +83,7 @@ public class SOCSetSeatLock extends SOCMessage
     /**
      * @return the state of the lock
      */
-    public boolean getLockState()
+    public SeatLockState getLockState()
     {
         return state;
     }
@@ -101,11 +104,16 @@ public class SOCSetSeatLock extends SOCMessage
      * @param ga  the name of the game
      * @param pn  the number of the changing player
      * @param st  the state of the lock
-     * @return the command string
+     * @return the command string.  For backwards compatibility,
+     *     seatLockState will be "true" for LOCKED, "false" for UNLOCKED, or "clear" for CLEAR_ON_RESET.
+     *     Versions before v2.0.00 won't recognize {@code "clear"}.
      */
-    public static String toCmd(String ga, int pn, boolean st)
+    public static String toCmd(String ga, int pn, SeatLockState st)
     {
-        return SETSEATLOCK + sep + ga + sep2 + pn + sep2 + st;
+        return SETSEATLOCK + sep + ga + sep2 + pn + sep2 +
+            ((st == SeatLockState.LOCKED) ? "true"
+             : (st == SeatLockState.UNLOCKED) ? "false"
+             : "clear");   // st == SeatLockState.CLEAR_ON_RESET
     }
 
     /**
@@ -118,7 +126,7 @@ public class SOCSetSeatLock extends SOCMessage
     {
         String ga; // the game name
         int pn; // the number of the changing player
-        boolean ls; // the state of the lock
+        final SeatLockState ls; // the state of the lock
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -126,7 +134,15 @@ public class SOCSetSeatLock extends SOCMessage
         {
             ga = st.nextToken();
             pn = Integer.parseInt(st.nextToken());
-            ls = (Boolean.valueOf(st.nextToken())).booleanValue();
+            final String lockst = st.nextToken();
+            if (lockst.equals("true"))
+                ls = SeatLockState.LOCKED;
+            else if (lockst.equals("false"))
+                ls = SeatLockState.UNLOCKED;
+            else if (lockst.equals("clear"))
+                ls = SeatLockState.CLEAR_ON_RESET;
+            else
+                return null;
         }
         catch (Exception e)
         {
