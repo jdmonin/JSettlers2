@@ -4153,15 +4153,7 @@ public class SOCPlayerClient
 
         if (ga != null)
         {
-            if (mes.getLockState() == true)
-            {
-                ga.lockSeat(mes.getPlayerNumber());
-            }
-            else
-            {
-                ga.unlockSeat(mes.getPlayerNumber());
-            }
-
+            ga.setSeatLock(mes.getPlayerNumber(), mes.getLockState());
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
             pcl.seatLockUpdated();
         }
@@ -5010,15 +5002,16 @@ public class SOCPlayerClient
     }
 
     /**
-     * the user is locking a seat
+     * The user is locking or unlocking a seat.
      *
      * @param ga  the game
      * @param pn  the seat number
-     * @param lock  Lock the seat, or unlock?
+     * @param sl  new seat lock state; remember that servers older than v2.0.00 won't recognize {@code CLEAR_ON_RESET}
+     * @since 2.0.00
      */
-    public void lockSeat(SOCGame ga, int pn, final boolean lock)
+    public void setSeatLock(SOCGame ga, int pn, SOCGame.SeatLockState sl)
     {
-        put(SOCSetSeatLock.toCmd(ga.getName(), pn, lock), ga.isPractice);
+        put(SOCSetSeatLock.toCmd(ga.getName(), pn, sl), ga.isPractice);
     }
 
     /**

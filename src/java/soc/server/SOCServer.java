@@ -5520,7 +5520,9 @@ public class SOCServer extends Server
             } else {
                 SOCPlayer seatedPlayer = ga.getPlayer(mes.getPlayerNumber());
 
-                if (seatedPlayer.isRobot() && (!ga.isSeatLocked(mes.getPlayerNumber())) && (ga.getCurrentPlayerNumber() != mes.getPlayerNumber()))
+                if (seatedPlayer.isRobot()
+                    && (ga.getSeatLock(mes.getPlayerNumber()) != SOCGame.SeatLockState.LOCKED)
+                    && (ga.getCurrentPlayerNumber() != mes.getPlayerNumber()))
                 {
                     /**
                      * boot the robot out of the game
@@ -6046,9 +6048,11 @@ public class SOCServer extends Server
                 //
                 for (int i = 0; i < ga.maxPlayers; i++)
                 {
-                    if (ga.isSeatVacant(i))
+                    final SOCGame.SeatLockState sls = ga.getSeatLock(i);
+
+                    if (ga.isSeatVacant(i) || (sls == SOCGame.SeatLockState.CLEAR_ON_RESET))
                     {
-                        if (ga.isSeatLocked(i))
+                        if (sls != SOCGame.SeatLockState.UNLOCKED)  // count CLEAR_ON_RESET as locked
                         {
                             anyLocked = true;
                         }
@@ -6215,7 +6219,7 @@ public class SOCServer extends Server
 
         for (int i = 0; (i < ga.maxPlayers) && (seatsOpen > 0); i++)
         {
-            if (ga.isSeatVacant(i) && ! ga.isSeatLocked(i))
+            if (ga.isSeatVacant(i) && (ga.getSeatLock(i) == SOCGame.SeatLockState.UNLOCKED))
             {
                 /**
                  * fetch a robot player
@@ -8372,24 +8376,31 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
-        SOCGame ga = gameList.getGameData(mes.getGame());
+        final String gaName = mes.getGame();
+        final SOCGame.SeatLockState sl = mes.getLockState();
+        SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
             return;
+
+        if ((sl == SOCGame.SeatLockState.CLEAR_ON_RESET) && (ga.clientVersionLowest < 2000))
+        {
+            // TODO decide what to tell older clients;
+            // the robots can recognize this state,
+            // so we shouldn't lose the functionality.
+        }
 
         SOCPlayer player = ga.getPlayer((String) c.getData());
         if (player == null)
             return;
 
-        if (mes.getLockState() == true)
+        try
         {
-            ga.lockSeat(mes.getPlayerNumber());
+            ga.setSeatLock(mes.getPlayerNumber(), sl);
+            messageToGame(gaName, mes);
         }
-        else
-        {
-            ga.unlockSeat(mes.getPlayerNumber());
+        catch (IllegalStateException e) {
+            messageToPlayer(c, gaName, /*I*/"Cannot set that lock right now."/*18N*/ );
         }
-
-        messageToGame(mes.getGame(), mes);
     }
 
     /**
@@ -9000,7 +9011,7 @@ public class SOCServer extends Server
             /**
              * send the seat lock information
              */
-            messageToPlayer(c, new SOCSetSeatLock(gameName, i, gameData.isSeatLocked(i)));
+            messageToPlayer(c, new SOCSetSeatLock(gameName, i, gameData.getSeatLock(i)));
         }
 
         c.put(getBoardLayoutMessage(gameData).toCmd());

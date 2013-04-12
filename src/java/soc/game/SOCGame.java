@@ -1446,33 +1446,37 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * locks a seat, so no one can take it
-     *
+     * Get a seat's lock state.
      * @param pn the number of the seat
+     * @since 2.0.00
      */
-    public void lockSeat(final int pn)
+    public SeatLockState getSeatLock(final int pn)
     {
-        seatLocks[pn] = SeatLockState.LOCKED;
+        return seatLocks[pn];
     }
 
     /**
-     * unlocks a seat
+     * Lock or unlock a seat, or mark a bot's seat to be cleared on reset.
+     * The meaning of "locked" is different when the game is still forming
+     * (gameState {@link #NEW}) versus when the game is active.
+     * For details, see the javadocs for {@link SeatLockState#LOCKED},
+     * {@link SeatLockState#UNLOCKED UNLOCKED} and {@link SeatLockState#CLEAR_ON_RESET CLEAR_ON_RESET}.
+     *<P>
+     * Before v2.0.00, this was {@code lockSeat(pn}} and {@code unlockSeat(pn)}.
      *
      * @param pn the number of the seat
+     * @param sl  the new lock state for this seat
+     * @throws IllegalStateException if the game is still forming
+     *     but {@code sl} is {@link SeatLockState#CLEAR_ON_RESET}
+     * @since 2.0.00
      */
-    public void unlockSeat(final int pn)
+    public void setSeatLock(final int pn, final SeatLockState sl)
+        throws IllegalStateException
     {
-        seatLocks[pn] = SeatLockState.UNLOCKED;
-    }
+        if ((sl == SeatLockState.CLEAR_ON_RESET) && (gameState == NEW))
+            throw new IllegalStateException();
 
-    /**
-     * @return true if this seat is locked
-     *
-     * @param pn the number of the seat
-     */
-    public boolean isSeatLocked(final int pn)
-    {
-        return (seatLocks[pn] == SeatLockState.LOCKED);
+        seatLocks[pn] = sl;
     }
 
     /**
@@ -6941,7 +6945,7 @@ public class SOCGame implements Serializable, Cloneable
             {
                 cp.seats[i] = seats[i];  // reset in case addPlayer cleared VACANT for non-in-use player position
                 if (cp.seats[i] == VACANT)
-                    cp.seatLocks[i] = SeatLockState.LOCKED;
+                    cp.seatLocks[i] = SeatLockState.CLEAR_ON_RESET;
             }
         }
 
@@ -7408,6 +7412,10 @@ public class SOCGame implements Serializable, Cloneable
         /** If this active game is reset, a robot will not take this seat, it will be left vacant.
          *  Useful for resetting a game to play again with fewer robots, if a robot is currently sitting here.
          *  Not a valid seat lock state if game is still forming.
+         *<P>
+         *  This feature was added in v2.0.00; before that version, the seat lock state was
+         *  boolean (UNLOCKED or LOCKED).  Game resets included all robots unless their seat
+         *  was LOCKED at the time of reset.
          */
         CLEAR_ON_RESET
     }

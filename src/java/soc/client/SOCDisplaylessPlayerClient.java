@@ -1822,14 +1822,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         if (ga != null)
         {
-            if (mes.getLockState() == true)
-            {
-                ga.lockSeat(mes.getPlayerNumber());
-            }
-            else
-            {
-                ga.unlockSeat(mes.getPlayerNumber());
-            }
+            ga.setSeatLock(mes.getPlayerNumber(), mes.getLockState());
         }
     }
 
@@ -2273,25 +2266,16 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user is locking a seat
+     * The user is locking or unlocking a seat.
      *
      * @param ga  the game
      * @param pn  the seat number
+     * @param sl  new seat lock state; remember that servers older than v2.0.00 won't recognize {@code CLEAR_ON_RESET}
+     * @since 2.0.00
      */
-    public void lockSeat(SOCGame ga, int pn)
+    public void setSeatLock(SOCGame ga, int pn, SOCGame.SeatLockState sl)
     {
-        put(SOCSetSeatLock.toCmd(ga.getName(), pn, true));
-    }
-
-    /**
-     * the user is unlocking a seat
-     *
-     * @param ga  the game
-     * @param pn  the seat number
-     */
-    public void unlockSeat(SOCGame ga, int pn)
-    {
-        put(SOCSetSeatLock.toCmd(ga.getName(), pn, false));
+        put(SOCSetSeatLock.toCmd(ga.getName(), pn, sl));
     }
 
     /** destroy the applet */

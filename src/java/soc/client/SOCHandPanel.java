@@ -123,8 +123,19 @@ public class SOCHandPanel extends Panel
     protected static final String ROLL_OR_PLAY_CARD = "Roll or Play Card";
     protected static final String OFFERBUTTIP_ENA = "Send trade offer to other players";
     protected static final String OFFERBUTTIP_DIS = "To offer a trade, first click resources";
-    protected static final String ROBOTLOCKBUTTIP_L = "Lock to prevent a human from taking over this robot.";
-    protected static final String ROBOTLOCKBUTTIP_U = "Unlock to allow a human to take over this robot.";
+    private static final String ROBOTLOCKBUT_U = /*I*/"Unlocked"/*18N*/;
+    private static final String ROBOTLOCKBUT_L = /*I*/"Locked"/*18N*/;
+    private static final String ROBOTLOCKBUT_M = /*I*/"Marked"/*18N*/;  // C is for lockstate Clear on Reset
+    private static final String ROBOTLOCKBUTTIP_L
+        = /*I*/"Click to mark or unlock; is locked to prevent a human from taking over this robot."/*18N*/;
+    private static final String ROBOTLOCKBUTTIP_U
+        = /*I*/"Click to lock or mark; is unlocked, a human can take over this robot."/*18N*/;
+    private static final String ROBOTLOCKBUTTIP_M
+        = /*I*/"Click to unmark; is marked to remove this robot if the game is reset."/*18N*/;
+    private static final String ROBOTLOCKBUTTIP_L_OLD
+        = /*I*/"Click to unlock; is locked to prevent a human from taking over this robot."/*18N*/;
+    private static final String ROBOTLOCKBUTTIP_U_OLD
+        = /*I*/"Click to lock; is unlocked, a human can take over this robot."/*18N*/;
 
     /**
      * Show that a non-client player is discarding resources after 7 is rolled.
@@ -165,6 +176,7 @@ public class SOCHandPanel extends Panel
      * ({@link #LOCKSEAT} / {@link #UNLOCKSEAT}, when {@link #sitButIsLock} true.)
      * Disappears when the game begins.
      * @see #renameSitButLock()
+     * @see #sittingRobotLockBut
      */
     protected Button sitBut;
 
@@ -184,6 +196,11 @@ public class SOCHandPanel extends Panel
     /** Seat lock/unlock shown in robot handpanels during game play,
      *  to prevent/allow humans to join and take over a robot's seat.
      *  Used during different game states than {@link #sitBut}.
+     *<P>
+     *  Labels are {@link #ROBOTLOCKBUT_U}, {@link #ROBOTLOCKBUT_L}, {@link #ROBOTLOCKBUT_M}.
+     *  Tooltip is {@link #robotLockButTip}.
+     *  Click method is {@link #clickRobotSeatLockButton(soc.game.SOCGame.SeatLockState)}.
+     *  @see #sitBut
      */
     protected Button sittingRobotLockBut;
 
@@ -191,6 +208,7 @@ public class SOCHandPanel extends Panel
      *  "Sit Here" button is labeled as "Lock".  Humans can use this to
      *  lock robots out of that seat, so as to start a game with fewer
      *  players and some vacant seats.
+     *<P>
      *  Set by {@link #renameSitButLock()}, cleared elsewhere.
      *  This affects {@link #sitBut} and not {@link #sittingRobotLockBut}.
      *  @see #addPlayer(String)
@@ -308,6 +326,7 @@ public class SOCHandPanel extends Panel
      * non-null only if a robot is sitting there.
      * @see #ROBOTLOCKBUTTIP_L
      * @see #ROBOTLOCKBUTTIP_U
+     * @see #ROBOTLOCKBUTTIP_M
      * @since 1.1.12
      */
     protected AWTToolTip robotLockButTip;
@@ -675,7 +694,7 @@ public class SOCHandPanel extends Panel
         add(developmentSq);
         developmentSq.setTooltipText("Amount in hand");
 
-        sittingRobotLockBut = new Button(UNLOCKSEAT);
+        sittingRobotLockBut = new Button(ROBOTLOCKBUT_U);  // button text will change soon in updateSeatLockButton()
         sittingRobotLockBut.addActionListener(this);
         sittingRobotLockBut.setEnabled(interactive);
         add(sittingRobotLockBut);
@@ -843,11 +862,13 @@ public class SOCHandPanel extends Panel
 
         if (target == LOCKSEAT)
         {
-            client.getGameManager().lockSeat(game, playerNumber, true);
+            // Seat Lock while game forming (gamestate NEW); see below for ROBOTLOCKBUT_L etc
+            client.getGameManager().setSeatLock(game, playerNumber, SOCGame.SeatLockState.LOCKED);
         }
         else if (target == UNLOCKSEAT)
         {
-            client.getGameManager().lockSeat(game, playerNumber, false);
+            // Unlock while game forming
+            client.getGameManager().setSeatLock(game, playerNumber, SOCGame.SeatLockState.UNLOCKED);
         }
         else if (target == TAKEOVER)
         {
@@ -924,6 +945,19 @@ public class SOCHandPanel extends Panel
                 bankGet = null;
                 bankUndoBut.setEnabled(false);
             }
+        }
+        else if (target == ROBOTLOCKBUT_L)
+        {
+            // Seat Lock while game in progress; see above for UNLOCKSEAT etc
+            clickRobotSeatLockButton(SOCGame.SeatLockState.LOCKED);
+        }
+        else if (target == ROBOTLOCKBUT_U)
+        {
+            clickRobotSeatLockButton(SOCGame.SeatLockState.UNLOCKED);
+        }
+        else if (target == ROBOTLOCKBUT_M)
+        {
+            clickRobotSeatLockButton(SOCGame.SeatLockState.CLEAR_ON_RESET);
         }
         else if (target == SEND)
         {
@@ -1080,6 +1114,35 @@ public class SOCHandPanel extends Panel
         bankGet = null;
         bankUndoBut.setEnabled(false);
     }
+
+    /**
+     * During game play, handle a click on a sitting robot's Lock/Unlock/Mark button, 
+     * ask the server to advance to the next seat lock state.
+     * Called from {@link #actionPerformed(ActionEvent)}.
+     * @param current  Current lock state/button label
+     * @since 2.0.00
+     */
+    private final void clickRobotSeatLockButton(SOCGame.SeatLockState current)
+    {
+        final SOCGame.SeatLockState slNext;
+        switch (current)
+        {
+        case UNLOCKED:  slNext = SOCGame.SeatLockState.LOCKED;  break;
+
+        case CLEAR_ON_RESET:  slNext = SOCGame.SeatLockState.UNLOCKED;  break;
+
+        default:  // == case LOCKED:
+            if (game.isPractice || (client.sVersion >= 2000))
+                slNext = SOCGame.SeatLockState.CLEAR_ON_RESET;
+            else
+                slNext = SOCGame.SeatLockState.UNLOCKED;  // old servers don't support CLEAR_ON_RESET
+
+            break;
+        }
+
+        client.getGameManager().setSeatLock(game, playerNumber, slNext);
+    }
+
 
     /**
      * Handle a click on the "play card" button, or double-click
@@ -1250,22 +1313,33 @@ public class SOCHandPanel extends Panel
      */
     public void addSittingRobotLockBut()
     {
-        D.ebugPrintln("*** addSeatLockBut() ***");
-        D.ebugPrintln("seatLockBut = " + sittingRobotLockBut);
-
-            final String tipText;
-            if (game.isSeatLocked(playerNumber))
-            {
-                sittingRobotLockBut.setLabel(UNLOCKSEAT);
-                tipText = ROBOTLOCKBUTTIP_U;
-            }
-            else
-            {
-                sittingRobotLockBut.setLabel(LOCKSEAT);
+        final String lbl, tipText;
+        switch (game.getSeatLock(playerNumber))
+        {
+        case LOCKED:
+            lbl = ROBOTLOCKBUT_L;
+            if (game.isPractice || (client.sVersion >= 2000))
                 tipText = ROBOTLOCKBUTTIP_L;
-            }
+            else
+                tipText = ROBOTLOCKBUTTIP_L_OLD;
+            break;
 
-            sittingRobotLockBut.setVisible(true);
+        case CLEAR_ON_RESET:
+            lbl = ROBOTLOCKBUT_M;
+            tipText = ROBOTLOCKBUTTIP_M;
+            break;
+
+        default:  // == case UNLOCKED:
+            lbl = ROBOTLOCKBUT_U;
+            if (game.isPractice || (client.sVersion >= 2000))
+                tipText = ROBOTLOCKBUTTIP_U;
+            else
+                tipText = ROBOTLOCKBUTTIP_U_OLD;
+            break;
+        }
+
+        sittingRobotLockBut.setLabel(lbl);
+        sittingRobotLockBut.setVisible(true);
 
         if (robotLockButTip != null)
             robotLockButTip.setTip(tipText);
@@ -1655,7 +1729,7 @@ public class SOCHandPanel extends Panel
             D.ebugPrintln("**** SOCHandPanel.addPlayer(name) ****");
             D.ebugPrintln("player.getPlayerNumber() = " + playerNumber);
             D.ebugPrintln("player.isRobot() = " + player.isRobot());
-            D.ebugPrintln("game.isSeatLocked(" + playerNumber + ") = " + game.isSeatLocked(playerNumber));
+            D.ebugPrintln("player.getSeatLock(" + playerNumber + ") = " + game.getSeatLock(playerNumber));
             D.ebugPrintln("game.getPlayer(client.getNickname()) = " + game.getPlayer(client.getNickname()));
 
             knightsSq.setTooltipText("Size of this opponent's army");
@@ -1665,7 +1739,8 @@ public class SOCHandPanel extends Panel
             // because it may not have been set at this point.
             // Use game.getPlayer(client.getNickname()) instead:
 
-            if (player.isRobot() && (game.getPlayer(client.getNickname()) == null) && (! game.isSeatLocked(playerNumber)))
+            if (player.isRobot() && (game.getPlayer(client.getNickname()) == null)
+                && (game.getSeatLock(playerNumber) != SOCGame.SeatLockState.LOCKED))
             {
                 addTakeOverBut();
             }
@@ -2055,7 +2130,7 @@ public class SOCHandPanel extends Panel
         if (game.getGameState() != SOCGame.NEW)
             return;  // TODO consider IllegalStateException
         final String buttonText, ttipText;
-        if (game.isSeatLocked(playerNumber))
+        if (game.getSeatLock(playerNumber) == SOCGame.SeatLockState.LOCKED)
         {
             buttonText = UNLOCKSEAT;  // actionPerformed target becomes UNLOCKSEAT
             ttipText = UNLOCKSEATTIP;
@@ -2261,7 +2336,7 @@ public class SOCHandPanel extends Panel
     
                 if (clientAlreadySat)
                     sittingRobotLockBut.setVisible(hideTradeMsg);
-                else if (! game.isSeatLocked(playerNumber))
+                else if (game.getSeatLock(playerNumber) != SOCGame.SeatLockState.LOCKED)
                     takeOverBut.setVisible(hideTradeMsg);
             }
 
@@ -2451,7 +2526,7 @@ public class SOCHandPanel extends Panel
      */
     public void updateTakeOverButton()
     {
-        if (( ! game.isSeatLocked(playerNumber)) &&
+        if ((game.getSeatLock(playerNumber) != SOCGame.SeatLockState.LOCKED) &&
             (game.getCurrentPlayerNumber() != playerNumber))
         {
             takeOverBut.setLabel(TAKEOVER);
@@ -2487,18 +2562,34 @@ public class SOCHandPanel extends Panel
      */
     public void updateSeatLockButton()
     {
-        final boolean isLocked = game.isSeatLocked(playerNumber);
-        final String tipText;
-        if (isLocked)
+        final SOCGame.SeatLockState sl = game.getSeatLock(playerNumber);
+
+        final String lbl, tipText;
+        switch (sl)
         {
-            sittingRobotLockBut.setLabel(UNLOCKSEAT);
-            tipText = ROBOTLOCKBUTTIP_U;
+        case LOCKED:
+            lbl = ROBOTLOCKBUT_L;
+            if (game.isPractice || (client.sVersion >= 2000))
+                tipText = ROBOTLOCKBUTTIP_L;
+            else
+                tipText = ROBOTLOCKBUTTIP_L_OLD;
+            break;
+
+        case CLEAR_ON_RESET:
+            lbl = ROBOTLOCKBUT_M;
+            tipText = ROBOTLOCKBUTTIP_M;
+            break;
+
+        default:  // == case UNLOCKED:
+            lbl = ROBOTLOCKBUT_U;
+            if (game.isPractice || (client.sVersion >= 2000))
+                tipText = ROBOTLOCKBUTTIP_U;
+            else
+                tipText = ROBOTLOCKBUTTIP_U_OLD;
+            break;
         }
-        else
-        {
-            sittingRobotLockBut.setLabel(LOCKSEAT);
-            tipText = ROBOTLOCKBUTTIP_L;
-        }
+
+        sittingRobotLockBut.setLabel(lbl);
         if (robotLockButTip != null)
         {
             final String prevTip = robotLockButTip.getTip();
@@ -2512,7 +2603,7 @@ public class SOCHandPanel extends Panel
 
             boolean noPlayer = (player == null) || (player.getName() == null);
             final String buttonText, ttipText;
-            if (isLocked)
+            if (sl == SOCGame.SeatLockState.LOCKED)
             {
                 buttonText = UNLOCKSEAT;
                 ttipText = UNLOCKSEATTIP;
@@ -2537,6 +2628,7 @@ public class SOCHandPanel extends Panel
                 sitButTip = new AWTToolTip(ttipText, sitBut);
             else
                 sitButTip.setTip(ttipText);
+
             repaint();
         }
     }
