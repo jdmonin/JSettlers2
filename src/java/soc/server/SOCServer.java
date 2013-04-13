@@ -8463,18 +8463,24 @@ public class SOCServer extends Server
         if (numHuman < 2)
         {
             // Are there robots? Go ahead and reset if so.
-            boolean hadRobot = false;
+            boolean hadRobot = false, hadUnlockedRobot = false;
             for (int i = robotConns.length-1; i>=0; --i)
             {
                 if (robotConns[i] != null)
                 {
                     hadRobot = true;
-                    break;
+                    if (ga.getSeatLock(i) == SOCGame.SeatLockState.UNLOCKED)
+                    {
+                        hadUnlockedRobot = true;
+                        break;
+                    }
                 }
             }
-            if (hadRobot)
+            if (hadUnlockedRobot)
             {
                 resetBoardAndNotify(gaName, reqPN);
+            } else if (hadRobot) {
+                messageToPlayer(c, gaName, /*I*/"Please unlock at least one bot, so you will have an opponent."/*18N*/ );
             } else {
                 messageToGameUrgent(gaName, "Everyone has left this game. Please start a new game with players or bots.");
             }
