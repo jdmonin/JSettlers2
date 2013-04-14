@@ -1520,7 +1520,13 @@ public class SOCServer extends Server
                          * make the request
                          */
                         D.ebugPrintln("@@@ JOIN GAME REQUEST for " + (String) robotConn.getData());
-    
+
+                        if (ga.getSeatLock(playerNumber) != SOCGame.SeatLockState.UNLOCKED)
+                        {
+                            // make sure bot can sit
+                            ga.setSeatLock(playerNumber, SOCGame.SeatLockState.UNLOCKED);
+                            messageToGameWithMon(gm, new SOCSetSeatLock(gm, playerNumber, SOCGame.SeatLockState.UNLOCKED));
+                        }
                         robotConn.put(SOCJoinGameRequest.toCmd(gm, playerNumber, ga.getGameOptions()));
     
                         /**
