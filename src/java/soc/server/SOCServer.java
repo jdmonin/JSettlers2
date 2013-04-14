@@ -8382,21 +8382,24 @@ public class SOCServer extends Server
         if (ga == null)
             return;
 
-        if ((sl == SOCGame.SeatLockState.CLEAR_ON_RESET) && (ga.clientVersionLowest < 2000))
-        {
-            // TODO decide what to tell older clients;
-            // the robots can recognize this state,
-            // so we shouldn't lose the functionality.
-        }
-
         SOCPlayer player = ga.getPlayer((String) c.getData());
         if (player == null)
             return;
 
         try
         {
-            ga.setSeatLock(mes.getPlayerNumber(), sl);
-            messageToGame(gaName, mes);
+            final int pn = mes.getPlayerNumber();
+            ga.setSeatLock(pn, sl);
+            if ((sl != SOCGame.SeatLockState.CLEAR_ON_RESET) || (ga.clientVersionLowest >= 2000))
+            {
+                messageToGame(gaName, mes);
+            } else {
+                // older clients won't recognize that lock state
+                messageToGameForVersions
+                    (ga, 2000, Integer.MAX_VALUE, mes, true);
+                messageToGameForVersions
+                    (ga, -1, 1999, new SOCSetSeatLock(gaName, pn, SOCGame.SeatLockState.LOCKED), true);                
+            }
         }
         catch (IllegalStateException e) {
             messageToPlayer(c, gaName, /*I*/"Cannot set that lock right now."/*18N*/ );
@@ -9017,7 +9020,11 @@ public class SOCServer extends Server
             /**
              * send the seat lock information
              */
-            messageToPlayer(c, new SOCSetSeatLock(gameName, i, gameData.getSeatLock(i)));
+            final SOCGame.SeatLockState sl = gameData.getSeatLock(i);
+            if ((sl != SOCGame.SeatLockState.CLEAR_ON_RESET) || (c.getVersion() >= 2000))
+                messageToPlayer(c, new SOCSetSeatLock(gameName, i, sl));
+            else
+                messageToPlayer(c, new SOCSetSeatLock(gameName, i, SOCGame.SeatLockState.LOCKED));  // old client
         }
 
         c.put(getBoardLayoutMessage(gameData).toCmd());
