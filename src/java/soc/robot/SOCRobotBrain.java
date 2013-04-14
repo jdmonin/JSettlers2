@@ -1511,33 +1511,52 @@ public class SOCRobotBrain extends Thread
                                 {
                                     final boolean canGrowArmy;
 
-                                    SOCPlayer laPlayer = game.getPlayerWithLargestArmy();
-
-                                    if (((laPlayer != null) && (laPlayer.getPlayerNumber() != ourPlayerNumber)) || (laPlayer == null))
+                                    if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
                                     {
-                                        int larmySize;
+                                        // Play whenever we have one and someone else has resources
 
-                                        if (laPlayer == null)
+                                        boolean anyOpponentHasRsrcs = false;
+                                        for (int pn = 0; pn < game.maxPlayers; ++pn)
                                         {
-                                            larmySize = 3;
-                                        }
-                                        else
-                                        {
-                                            larmySize = laPlayer.getNumKnights() + 1;
+                                            if ((pn == ourPlayerNumber) || game.isSeatVacant(pn))
+                                                continue;
+
+                                            if (game.getPlayer(pn).getResources().getTotal() > 0)
+                                            {
+                                                anyOpponentHasRsrcs = true;
+                                                break;
+                                            }
                                         }
 
-                                        canGrowArmy =
-                                            ((ourPlayerData.getNumKnights()
-                                              + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT)
-                                              + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT))
-                                              >= larmySize);
+                                        canGrowArmy = anyOpponentHasRsrcs;
 
                                     } else {
-                                        canGrowArmy = false;
+
+                                        final SOCPlayer laPlayer = game.getPlayerWithLargestArmy();
+
+                                        if ((laPlayer == null) || (laPlayer.getPlayerNumber() != ourPlayerNumber))
+                                        {
+                                            final int larmySize;
+
+                                            if (laPlayer == null)
+                                                larmySize = 3;
+                                            else
+                                                larmySize = laPlayer.getNumKnights() + 1;
+
+                                            canGrowArmy =
+                                                ((ourPlayerData.getNumKnights()
+                                                  + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT)
+                                                  + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT))
+                                                  >= larmySize);
+
+                                        } else {
+                                            canGrowArmy = false;
+                                        }
                                     }
 
                                     if (canGrowArmy
-                                            && game.canPlayKnight(ourPlayerNumber)  // has an old KNIGHT devcard, etc
+                                            && game.canPlayKnight(ourPlayerNumber)  // has an old KNIGHT devcard, etc;
+                                                  // for _SC_PIRI, also checks if # of warships ships less than # of ships
                                             && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT))
                                         {
                                             /**
@@ -2156,6 +2175,7 @@ public class SOCRobotBrain extends Thread
                  */
                 if ((ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT) > 0)
                     && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT)
+                    && (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))  // scenario has no robber; wait until after roll
                     && ! ourPlayerData.getNumbers().hasNoResourcesForHex(game.getBoard().getRobberHex()))
                 {
                     playKnightCard();  // sets expectPLACING_ROBBER, waitingForGameState
