@@ -1509,6 +1509,8 @@ public class SOCRobotBrain extends Thread
                                  */
                                 if ((game.getGameState() == SOCGame.PLAY1) && ! ourPlayerData.hasPlayedDevCard())
                                 {
+                                    final boolean canGrowArmy;
+
                                     SOCPlayer laPlayer = game.getPlayerWithLargestArmy();
 
                                     if (((laPlayer != null) && (laPlayer.getPlayerNumber() != ourPlayerNumber)) || (laPlayer == null))
@@ -1524,10 +1526,17 @@ public class SOCRobotBrain extends Thread
                                             larmySize = laPlayer.getNumKnights() + 1;
                                         }
 
-                                        if ( ((ourPlayerData.getNumKnights()
+                                        canGrowArmy =
+                                            ((ourPlayerData.getNumKnights()
                                               + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT)
                                               + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT))
-                                              >= larmySize)
+                                              >= larmySize);
+
+                                    } else {
+                                        canGrowArmy = false;
+                                    }
+
+                                    if (canGrowArmy
                                             && game.canPlayKnight(ourPlayerNumber)  // has an old KNIGHT devcard, etc
                                             && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT))
                                         {
@@ -1537,7 +1546,6 @@ public class SOCRobotBrain extends Thread
                                              */
                                             playKnightCard();  // sets expectPLACING_ROBBER, waitingForGameState
                                         }
-                                    }
                                 }
 
                                 /**
