@@ -2933,7 +2933,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * For drawing the player's permitted sea edges for ships, draw
      * a line covering the middle 60% of this edge on the board (leaves out 20% on each end).
-     * For efficiency, the player color and line stroke should be set before calling this method.
+     * For efficiency, the player color and line stroke must be set before calling this method.
      * @param edge  Edge coordinate
      * @since 2.0.00
      */
@@ -3618,6 +3618,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
             }
 
+            // All ports
+            drawPorts_LargeBoard(g);
+
             // For scenario _SC_PIRI, check for the Pirate Path and Lone Settlement locations.
             // Draw path only if the pirate fleet is still on the board
             // Draw our player's permitted sea edges for ships, if restricted
@@ -3661,9 +3664,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         ((Graphics2D) g).setStroke(prevStroke);
                 }
             }
-
-            // All ports
-            drawPorts_LargeBoard(g);
 
             // For scenario _SC_CLVI, draw the cloth villages
             HashMap<Integer, SOCVillage> villages = ((SOCBoardLarge) board).getVillages();
