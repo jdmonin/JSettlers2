@@ -1506,65 +1506,15 @@ public class SOCRobotBrain extends Thread
                                  * largest army, play the knight.
                                  * If we're in SPECIAL_BUILDING (not PLAY1),
                                  * can't trade or play development cards.
+                                 *
+                                 * In scenario _SC_PIRI (which has no robber and
+                                 * no largest army), play one whenever we have
+                                 * it, someone else has resources, and we can
+                                 * convert a ship to a warship.
                                  */
                                 if ((game.getGameState() == SOCGame.PLAY1) && ! ourPlayerData.hasPlayedDevCard())
                                 {
-                                    final boolean canGrowArmy;
-
-                                    if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
-                                    {
-                                        // Play whenever we have one and someone else has resources
-
-                                        boolean anyOpponentHasRsrcs = false;
-                                        for (int pn = 0; pn < game.maxPlayers; ++pn)
-                                        {
-                                            if ((pn == ourPlayerNumber) || game.isSeatVacant(pn))
-                                                continue;
-
-                                            if (game.getPlayer(pn).getResources().getTotal() > 0)
-                                            {
-                                                anyOpponentHasRsrcs = true;
-                                                break;
-                                            }
-                                        }
-
-                                        canGrowArmy = anyOpponentHasRsrcs;
-
-                                    } else {
-
-                                        final SOCPlayer laPlayer = game.getPlayerWithLargestArmy();
-
-                                        if ((laPlayer == null) || (laPlayer.getPlayerNumber() != ourPlayerNumber))
-                                        {
-                                            final int larmySize;
-
-                                            if (laPlayer == null)
-                                                larmySize = 3;
-                                            else
-                                                larmySize = laPlayer.getNumKnights() + 1;
-
-                                            canGrowArmy =
-                                                ((ourPlayerData.getNumKnights()
-                                                  + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT)
-                                                  + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT))
-                                                  >= larmySize);
-
-                                        } else {
-                                            canGrowArmy = false;
-                                        }
-                                    }
-
-                                    if (canGrowArmy
-                                            && game.canPlayKnight(ourPlayerNumber)  // has an old KNIGHT devcard, etc;
-                                                  // for _SC_PIRI, also checks if # of warships ships less than # of ships
-                                            && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT))
-                                        {
-                                            /**
-                                             * play a knight card
-                                             * (or, in scenario _SC_PIRI, a Convert to Warship card)
-                                             */
-                                            playKnightCard();  // sets expectPLACING_ROBBER, waitingForGameState
-                                        }
+                                    considerPlayKnightCard();  // might set expectPLACING_ROBBER and waitingForGameState
                                 }
 
                                 /**
@@ -1911,6 +1861,82 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * If we haven't played a dev card yet this turn, and we have a knight, and we can get
+     * largest army, play the knight. Must be our turn and gameState {@code PLAY1}.
+     * {@link SOCPlayer#hasPlayedDevCard() ourPlayerData.hasPlayedDevCard()} must be false.
+     *<P>
+     * In scenario {@code _SC_PIRI} (which has no robber and no largest army), play one
+     * whenever we have it, someone else has resources, and we can convert a ship to a warship.
+     *<P>
+     * If we call {@link #playKnightCard()}, it sets the flags
+     * {@code expectPLACING_ROBBER} and {@code waitingForGameState}.
+     *
+     * @see #rollOrPlayKnightOrExpectDice()
+     * @since 2.0.00
+     */
+    private void considerPlayKnightCard()
+    {
+        final boolean canGrowArmy;
+
+        if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        {
+            // Play whenever we have one and someone else has resources
+
+            boolean anyOpponentHasRsrcs = false;
+            for (int pn = 0; pn < game.maxPlayers; ++pn)
+            {
+                if ((pn == ourPlayerNumber) || game.isSeatVacant(pn))
+                    continue;
+
+                if (game.getPlayer(pn).getResources().getTotal() > 0)
+                {
+                    anyOpponentHasRsrcs = true;
+                    break;
+                }
+            }
+
+            canGrowArmy = anyOpponentHasRsrcs;
+
+        } else {
+
+            final SOCPlayer laPlayer = game.getPlayerWithLargestArmy();
+
+            if ((laPlayer == null) || (laPlayer.getPlayerNumber() != ourPlayerNumber))
+            {
+                final int larmySize;
+
+                if (laPlayer == null)
+                    larmySize = 3;
+                else
+                    larmySize = laPlayer.getNumKnights() + 1;
+
+                canGrowArmy =
+                    ((ourPlayerData.getNumKnights()
+                      + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT)
+                      + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT))
+                      >= larmySize);
+
+            } else {
+                canGrowArmy = false;  // we already have largest army
+
+                // TODO Should we defend it if another player is close to taking it from us?
+            }
+        }
+
+        if (canGrowArmy
+            && game.canPlayKnight(ourPlayerNumber)  // has an old KNIGHT devcard, etc;
+                  // for _SC_PIRI, also checks if # of warships ships less than # of ships
+            && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT))
+        {
+            /**
+             * play a knight card
+             * (or, in scenario _SC_PIRI, a Convert to Warship card)
+             */
+            playKnightCard();  // sets expectPLACING_ROBBER, waitingForGameState
+        }
+    }
+
+    /**
      * If it's our turn and we have an expect flag set
      * (such as {@link #expectPLACING_SETTLEMENT}), then
      * call {@link SOCRobotClient#putPiece(SOCGame, SOCPlayingPiece) client.putPiece}.
@@ -2148,6 +2174,8 @@ public class SOCRobotBrain extends Thread
         counter = 0;
         client.playDevCard(game, SOCDevCardConstants.KNIGHT);
         pause(1500);
+        // TODO _SC_PIRI: Should instead expect warship conversion SOCPlayerElement(SCENARIO_WARSHIP_COUNT)
+        //   message, or rejection if we're wrong
     }
 
     /**
@@ -2158,7 +2186,12 @@ public class SOCRobotBrain extends Thread
      *<P>
      * Clears {@link #expectPLAY} to false.
      * Sets either {@link #expectDICERESULT}, or {@link #expectPLACING_ROBBER} and {@link #waitingForGameState}.
+     *<P>
+     * In scenario {@code _SC_PIRI}, don't play a Knight card before dice roll, because the scenario has
+     * no robber: Playing before the roll won't un-block any of our resource hexes, and it might put us
+     * over 7 resources.
      *
+     * @see #considerPlayKnightCard()
      * @since 1.1.08
      */
     private void rollOrPlayKnightOrExpectDice()
