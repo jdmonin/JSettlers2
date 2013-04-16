@@ -789,6 +789,11 @@ public class SOCPlayerTracker
      * Adds to or updates {@link #possibleSettlements} at <tt>targetRoad</tt>'s nodes, if potential.
      * If <tt>level</tt> &gt; 0, calls itself recursively to go more levels out from the current pieces,
      * adding/updating {@link #possibleRoads} and {@link #possibleSettlements}.
+     *<P>
+     * <b>Scenario {@code _SC_PIRI}</b>: Ships in this scenario never expand east (never away from the
+     * pirate fortress). Scenario rules require the route to be as short as possible.  Even if a human
+     * player might want to do so, it couldn't interfere with the bot's own route, so we don't track
+     * that possibility.
      *
      * @param targetRoad   the possible road
      * @param player    the player who owns the original road
@@ -874,20 +879,34 @@ public class SOCPlayerTracker
         if (level > 0)
         {
             //
-            // check for new possible roads
+            // check for new possible roads or ships
             //
             Vector<SOCPossibleRoad> newPossibleRoads = new Vector<SOCPossibleRoad>();
             Vector<SOCPossibleRoad> roadsToExpand = new Vector<SOCPossibleRoad>();
 
+            // ships in _SC_PIRI never expand east
+            final boolean isShipInSC_PIRI = game.isGameOptionSet(SOCGameOption.K_SC_PIRI) && ! targetRoad.isRoadNotShip();
+
             //D.ebugPrintln("$$$ checking roads adjacent to "+Integer.toHexString(targetRoad.getCoordinates()));
             //
-            // check adjacent edges to road
+            // check adjacent edges to road or ship
             //
             Enumeration<Integer> adjEdgesEnum = board.getAdjacentEdgesToEdge(tgtRoadEdge).elements();
             while (adjEdgesEnum.hasMoreElements())
             {
                 Integer adjEdge = adjEdgesEnum.nextElement();
                 final int edge = adjEdge.intValue();
+
+                if (isShipInSC_PIRI)
+                {
+                    final int tgtEdgeCol = tgtRoadEdge & 0xFF, adjEdgeCol = edge & 0xFF;
+                    if ((adjEdgeCol > tgtEdgeCol)  // adjacent goes north/south from eastern node of diagonal target edge
+                        || ((adjEdgeCol == tgtEdgeCol) && ((tgtRoadEdge & 0x100) != 0)))
+                            // adjacent goes northeast/southeast from vertical target edge (tgtRoadEdge is on odd row)
+                    {
+                        continue;  // <--- Ignore this eastern adjacent edge ---
+                    }
+                }
 
                 //D.ebugPrintln("$$$ edge "+Integer.toHexString(adjEdge.intValue())+" is legal:"+dummy.isPotentialRoad(adjEdge.intValue()));
                 //
@@ -902,7 +921,6 @@ public class SOCPlayerTracker
                 // If true, this edge transitions
                 // between ships <-> roads, at a
                 // coastal settlement
-                //
                 boolean edgeRequiresCoastalSettlement = false;
 
                 if ((! edgeIsPotentialRoute)
