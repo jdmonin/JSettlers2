@@ -2165,6 +2165,10 @@ public class SOCRobotBrain extends Thread
      * In scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, play a "Convert to Warship" card.
      * Sets {@link #expectPLACING_ROBBER}, {@link #waitingForGameState}.
      * Calls {@link SOCRobotClient#playDevCard(SOCGame, int) client.playDevCard}({@link SOCDevCardConstants#KNIGHT KNIGHT}).
+     *<P>
+     * In scenario {@code _SC_PIRI}, the server response messages are different, but we
+     * still use those two flag fields; see {@link #expectPLACING_ROBBER} javadoc.
+     *
      * @since 2.0.00
      */
     private void playKnightCard()
@@ -2174,8 +2178,6 @@ public class SOCRobotBrain extends Thread
         counter = 0;
         client.playDevCard(game, SOCDevCardConstants.KNIGHT);
         pause(1500);
-        // TODO _SC_PIRI: Should instead expect warship conversion SOCPlayerElement(SCENARIO_WARSHIP_COUNT)
-        //   message, or rejection if we're wrong
     }
 
     /**
