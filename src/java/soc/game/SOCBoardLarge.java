@@ -190,7 +190,8 @@ import soc.util.IntPair;
  * Rows increase going north to south, Columns increase west to east.
  *<P>
  * Vertical edge coordinates are at the edge's center
- * (between two hex coordinates, to the west and east of the edge).
+ * (between two hex coordinates, which are to the west and east of
+ * the edge); vertical edge row coordinates are odd like hexes.
  * Otherwise, edges get the coordinate of the node at their western end.
  *<P>
  * The first few rows of nodes are: <pre>
