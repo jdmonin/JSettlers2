@@ -6023,6 +6023,9 @@ public class SOCServer extends Server
      * handle "start game" message.  Game state must be NEW, or this message is ignored.
      * {@link #readyGameAskRobotsJoin(SOCGame, StringConnection[]) Ask some robots} to fill
      * empty seats, or {@link #startGame(SOCGame) begin the game} if no robots needed.
+     *<P>
+     * Called when clients have sat at a new game and a client asks to start it,
+     * not called during game board reset.
      *
      * @param c  the connection that sent the message
      * @param mes  the messsage
@@ -6054,18 +6057,16 @@ public class SOCServer extends Server
                 //
                 for (int i = 0; i < ga.maxPlayers; i++)
                 {
-                    final SOCGame.SeatLockState sls = ga.getSeatLock(i);
-
-                    if (ga.isSeatVacant(i) || (sls == SOCGame.SeatLockState.CLEAR_ON_RESET))
+                    if (ga.isSeatVacant(i))
                     {
-                        if (sls != SOCGame.SeatLockState.UNLOCKED)  // count CLEAR_ON_RESET as locked
-                        {
-                            anyLocked = true;
-                        }
-                        else
+                        if (ga.getSeatLock(i) == SOCGame.SeatLockState.UNLOCKED)
                         {
                             seatsFull = false;
                             ++numEmpty;
+                        }
+                        else
+                        {
+                            anyLocked = true;
                         }
                     }
                     else
@@ -6089,25 +6090,25 @@ public class SOCServer extends Server
 
                 if (seatsFull && (numPlayers < 2))
                 {
-                    seatsFull = false;
+                    // Don't start the game; client must have more humans sit or unlock some seats for bots.
+
+                    seatsFull = false;  // must be true to start game
                     numEmpty = 3;
                     String m = "Sorry, the only player cannot lock all seats.";
                     messageToGame(gn, m);
                 }
-                else if (!seatsFull)
+                else if (! seatsFull)
                 {
+                    // Look for some bots, set seatsFull if we find them
+
                     if (robots.isEmpty())
                     {
                         if (numPlayers < SOCGame.MINPLAYERS)
-                        {
                             messageFormatToGame(gn, true,
                                 "No robots on this server, please fill at least {0} seats before starting.",
                                 SOCGame.MINPLAYERS);
-                        }
                         else
-                        {
                             seatsFull = true;  // Enough players to start game.
-                        }
                     }
                     else
                     {
