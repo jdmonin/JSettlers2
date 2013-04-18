@@ -5509,26 +5509,29 @@ public class SOCServer extends Server
            }
          */
         //D.ebugPrintln("ga.isSeatVacant(mes.getPlayerNumber()) = "+ga.isSeatVacant(mes.getPlayerNumber()));
+
         /**
          * make sure a person isn't sitting here already;
          * can't sit at a vacant seat after everyone has placed 1st settlement+road;
          * if a robot is sitting there, dismiss the robot.
          */
+        final int pn = mes.getPlayerNumber();
+
         ga.takeMonitor();
 
         try
         {
-            if (ga.isSeatVacant(mes.getPlayerNumber()))
+            if (ga.isSeatVacant(pn))
             {
                 gameIsFull = (1 > ga.getAvailableSeatCount());
                 if (gameIsFull)
                     canSit = false;
             } else {
-                SOCPlayer seatedPlayer = ga.getPlayer(mes.getPlayerNumber());
+                SOCPlayer seatedPlayer = ga.getPlayer(pn);
 
                 if (seatedPlayer.isRobot()
-                    && (ga.getSeatLock(mes.getPlayerNumber()) != SOCGame.SeatLockState.LOCKED)
-                    && (ga.getCurrentPlayerNumber() != mes.getPlayerNumber()))
+                    && (ga.getSeatLock(pn) != SOCGame.SeatLockState.LOCKED)
+                    && (ga.getCurrentPlayerNumber() != pn))
                 {
                     /**
                      * boot the robot out of the game
@@ -5578,7 +5581,7 @@ public class SOCServer extends Server
         //D.ebugPrintln("canSit 2 = "+canSit);
         if (canSit)
         {
-            sitDown(ga, c, mes.getPlayerNumber(), mes.isRobot(), false);
+            sitDown(ga, c, pn, mes.isRobot(), false);
         }
         else
         {
@@ -5653,7 +5656,8 @@ public class SOCServer extends Server
                     SOCRoad rd = new SOCRoad(player, coord, null);
 
                     if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.START3B)
-                        || (gameState == SOCGame.PLACING_ROAD) || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
+                        || (gameState == SOCGame.PLACING_ROAD)
+                        || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
                     {
                         if (player.isPotentialRoad(coord) && (player.getNumPieces(SOCPlayingPiece.ROAD) >= 1))
                         {
@@ -5821,7 +5825,8 @@ public class SOCServer extends Server
                     SOCShip sh = new SOCShip(player, coord, null);
 
                     if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.START3B)
-                        || (gameState == SOCGame.PLACING_SHIP) || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
+                        || (gameState == SOCGame.PLACING_SHIP)
+                        || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
                     {
                         // Place it if we can; canPlaceShip checks potentials and pirate ship location
                         if (ga.canPlaceShip(player, coord) && (player.getNumPieces(SOCPlayingPiece.SHIP) >= 1))
