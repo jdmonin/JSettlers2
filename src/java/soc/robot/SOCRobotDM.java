@@ -547,6 +547,7 @@ public class SOCRobotDM
    * (and only if we're at 5 VP or more).
    *
    * @param buildingETAs  the etas for building something
+   * @see #smartGameStrategy(int[])
    */
   protected void dumbFastGameStrategy(final int[] buildingETAs)
   {
@@ -1273,6 +1274,7 @@ public class SOCRobotDM
    * it's chosen from {@link #goodSettlements} or {{@link #threatenedSettlements}.
    *
    * @param buildingETAs  the etas for building something
+   * @see #dumbFastGameStrategy(int[])
    */
   protected void smartGameStrategy(final int[] buildingETAs)
   {
@@ -1685,7 +1687,10 @@ public class SOCRobotDM
       D.ebugPrintln("###   WITH A SCORE OF "+favoriteRoad.getScore());
     }
 
-    int pick = -1;  // piece type, if any, pushed onto buildingPlan
+    int pick = -1;  // piece type, if any, to be pushed onto buildingPlan;
+         // use ROAD for road or ship, use MAXPLUSONE for dev card
+
+    float pickScore = 0f;  // getScore() of picked piece
 
     ///
     /// if the best settlement can wait, and the best road can wait,
@@ -1707,8 +1712,7 @@ public class SOCRobotDM
     {
       D.ebugPrintln("### PICKED FAVORITE CITY");
       pick = SOCPlayingPiece.CITY;
-      D.ebugPrintln("$ PUSHING "+favoriteCity);
-      buildingPlan.push(favoriteCity);
+      pickScore = favoriteCity.getScore();
     }
 
     ///
@@ -1725,17 +1729,16 @@ public class SOCRobotDM
     {
       D.ebugPrintln("### PICKED FAVORITE ROAD");
       pick = SOCPlayingPiece.ROAD;
-      D.ebugPrintln("$ PUSHING "+favoriteRoad);
-      buildingPlan.push(favoriteRoad);
+      pickScore = favoriteRoad.getScore();
     }
     else if ((favoriteSettlement != null)
              && (ourPlayerData.getNumPieces(SOCPlayingPiece.SETTLEMENT) > 0))
     {
       D.ebugPrintln("### PICKED FAVORITE SETTLEMENT");
       pick = SOCPlayingPiece.SETTLEMENT;
-      D.ebugPrintln("$ PUSHING "+favoriteSettlement);
-      buildingPlan.push(favoriteSettlement);
+      pickScore = favoriteSettlement.getScore();
     }
+
     ///
     /// if buying a card is better than building...
     ///
@@ -1758,23 +1761,40 @@ public class SOCRobotDM
       }
 
       if ((pick == -1) ||
-	  ((pick == SOCPlayingPiece.CITY) &&
-	   (devCardScore > favoriteCity.getScore())) ||
-	  (((pick == SOCPlayingPiece.ROAD) || (pick == SOCPlayingPiece.SHIP)) &&  // TODO may not be accurate to combine ships,roads here
-	   (devCardScore > favoriteRoad.getScore())) ||
-	  ((pick == SOCPlayingPiece.SETTLEMENT) &&
-	   (devCardScore > favoriteSettlement.getScore()))) {
+	  (devCardScore > pickScore))
+      {
 	D.ebugPrintln("### BUY DEV CARD");
-
-	if (pick != -1) {
-	  buildingPlan.pop();
-	  D.ebugPrintln("$ POPPED OFF SOMETHING");
-	}
-
-	D.ebugPrintln("$ PUSHING "+possibleCard);
-	buildingPlan.push(possibleCard);
+	pick = SOCPlayingPiece.MAXPLUSONE;
+	pickScore = devCardScore;
       }
     }
+
+    //
+    // push our picked piece onto buildingPlan
+    //
+    switch (pick)
+    {
+    case SOCPlayingPiece.ROAD:
+        D.ebugPrintln("$ PUSHING " + favoriteRoad);
+        buildingPlan.push(favoriteRoad);
+        break;
+
+    case SOCPlayingPiece.SETTLEMENT:
+        D.ebugPrintln("$ PUSHING " + favoriteSettlement);
+        buildingPlan.push(favoriteSettlement);
+        break;
+
+    case SOCPlayingPiece.CITY:
+        D.ebugPrintln("$ PUSHING " + favoriteCity);
+        buildingPlan.push(favoriteCity);
+        break;
+
+    case SOCPlayingPiece.MAXPLUSONE:
+        D.ebugPrintln("$ PUSHING " + possibleCard);
+        buildingPlan.push(possibleCard);
+        break;
+    }
+
   }
 
 
