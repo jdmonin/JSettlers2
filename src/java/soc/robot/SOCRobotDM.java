@@ -258,6 +258,22 @@ public class SOCRobotDM
    * Calls either {@link #smartGameStrategy(int[])} or {@link #dumbFastGameStrategy(int[])}.
    * Both of these will check whether this is our normal turn, or if
    * it's the 6-player board's {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
+   *<P>
+   * Some details:
+   *<UL>
+   * <LI> Make a new {@link SOCBuildingSpeedEstimate} based on our current dice numbers
+   * <LI> Get building piece type ETAs based on {@link SOCBuildingSpeedEstimate#getEstimatesFromNowFast(SOCResourceSet, boolean[])}
+   *        with our current resources and ports
+   * <LI> Clear lists threatened and good settlements and roads
+   * <LI> Set favoriteRoad, favoriteSettlement, favoriteCity to null
+   * <LI> If {@code SMART_STRATEGY}, update all {@link SOCPlayerTracker#updateWinGameETAs(HashMap)}
+   * <LI> Get each player's win ETA from their tracker; find leading player (shortest win ETA)
+   * <LI> Reset score and threats for each of our possible pieces in our tracker
+   *    <BR>&nbsp;
+   * <LI><B>Call smartGameStrategy or dumbFastGameStrategy</B> using building piece type ETAs
+   *    <BR>&nbsp;
+   * <LI> If {@code SMART_STRATEGY} and we have a Road Building card, plan and push 2 roads onto {@code buildingPlan}
+   *</UL>
    *
    * @param strategy  an integer that determines which strategy is used (SMART_STRATEGY | FAST_STRATEGY)
    */
@@ -527,7 +543,8 @@ public class SOCRobotDM
    * Possible cities and settlements are looked at first.
    * (If one is chosen, its {@link SOCPossibleSettlement#getNecessaryRoads()}
    * will also be chosen here.)  Then, Knights or Dev Cards.
-   * Only then would roads or ships be looked at, for Longest Route. 
+   * Only then would roads or ships be looked at, for Longest Route
+   * (and only if we're at 5 VP or more).
    *
    * @param buildingETAs  the etas for building something
    */
@@ -934,14 +951,19 @@ public class SOCRobotDM
   }
 
   /**
-   * score all possible settlements by getting their speedup total
-   * calculate ETA by finding shortest path and then using a
-   * SOCBuildingSpeedEstimate to find the ETA
+   * For each possible settlement in our {@link SOCPlayerTracker},
+   * calculate its ETA and its {@link SOCPossibleSettlement#getRoadPath() getRoadPath()}.
    *<P>
    * Each {@link SOCPossibleSettlement#getRoadPath()} is calculated
-   * here from its {@link SOCPossibleSettlement#getNecessaryRoads()}.
+   * here by finding the shortest path among its {@link SOCPossibleSettlement#getNecessaryRoads()}.
+   *<P>
+   * Calculates ETA by using our current SOCBuildingSpeedEstimate on the resources
+   * needed to buy the settlement plus roads for its shortest path's length.
    *
    * @param settlementETA  eta for building a settlement from now
+   * @param ourBSE  Current building speed estimate, from our {@code SOCPlayer#getNumbers()}
+   *
+   * @see #scorePossibleSettlements(int, int)
    */
   protected void scoreSettlementsForDumb(final int settlementETA, SOCBuildingSpeedEstimate ourBSE)
   {
@@ -1761,6 +1783,8 @@ public class SOCRobotDM
    * from {@link #ourPlayerTracker}{@link SOCPlayerTracker#getPossibleSettlements() .getPossibleSettlements()}
    * into {@link #threatenedSettlements} and {@link #goodSettlements};
    * calculate those settlements' {@link SOCPossiblePiece#getScore()}s
+   *
+   * @see #scoreSettlementsForDumb(int, SOCBuildingSpeedEstimate)
    */
   protected void scorePossibleSettlements(final int settlementETA, final int leadersCurrentWGETA)
   {
