@@ -838,7 +838,7 @@ public class SOCRobotNegotiator
                         (! game.isSeatVacant(i)) &&
                         (game.getPlayer(i).getResources().getTotal() >= getResourceSet.getTotal()))
                     {
-                        SOCPlayerTracker tracker = playerTrackers.get(new Integer(i));
+                        final SOCPlayerTracker tracker = playerTrackers.get(Integer.valueOf(i));
 
                         if ((tracker != null) && (tracker.getWinGameETA() >= WIN_GAME_CUTOFF))
                         {
@@ -857,13 +857,13 @@ public class SOCRobotNegotiator
                 ///
                 /// it's not our turn, just offer to the player who's turn it is
                 ///
-                int curpn = game.getCurrentPlayerNumber();
+                final int curpn = game.getCurrentPlayerNumber();
 
                 if (isSellingResource[curpn][neededResource] && (game.getPlayer(curpn).getResources().getTotal() >= getResourceSet.getTotal()))
                 {
                     D.ebugPrintln("** isSellingResource[" + curpn + "][" + neededResource + "] = " + isSellingResource[curpn][neededResource]);
 
-                    SOCPlayerTracker tracker = playerTrackers.get(new Integer(curpn));
+                    final SOCPlayerTracker tracker = playerTrackers.get(Integer.valueOf(curpn));
 
                     if ((tracker != null) && (tracker.getWinGameETA() >= WIN_GAME_CUTOFF))
                     {
@@ -959,7 +959,7 @@ public class SOCRobotNegotiator
      * @return if we want to accept, reject, or make a counter offer
      *     ( {@link #ACCEPT_OFFER}, {@link #REJECT_OFFER}, or {@link #COUNTER_OFFER} )
      */
-    public int considerOffer2(SOCTradeOffer offer, int receiverNum)
+    public int considerOffer2(SOCTradeOffer offer, final int receiverNum)
     {
         ///
         /// This version should be faster
@@ -982,7 +982,7 @@ public class SOCRobotNegotiator
             return response;
         }
 
-        int senderNum = offer.getFrom();
+        final int senderNum = offer.getFrom();
 
         D.ebugPrintln("senderNum = " + senderNum);
         D.ebugPrintln("receiverNum = " + receiverNum);
@@ -993,14 +993,14 @@ public class SOCRobotNegotiator
 
         D.ebugPrintln("targetPieces[" + receiverNum + "] = " + receiverTargetPiece);
 
-        SOCPlayerTracker receiverPlayerTracker = playerTrackers.get(new Integer(receiverNum));
+        SOCPlayerTracker receiverPlayerTracker = playerTrackers.get(Integer.valueOf(receiverNum));
 
         if (receiverPlayerTracker == null)
         {
             return response;
         }
 
-        SOCPlayerTracker senderPlayerTracker = playerTrackers.get(new Integer(senderNum));
+        SOCPlayerTracker senderPlayerTracker = playerTrackers.get(Integer.valueOf(senderNum));
 
         if (senderPlayerTracker == null)
         {

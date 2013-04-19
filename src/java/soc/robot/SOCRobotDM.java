@@ -400,7 +400,7 @@ public class SOCRobotDM
 	HashMap<Integer, SOCPlayerTracker> trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRoad, game, playerTrackers);
 	SOCPlayerTracker.updateWinGameETAs(trackersCopy);
 
-	SOCPlayerTracker ourPlayerTrackerCopy = trackersCopy.get(new Integer(ourPlayerNumber));
+	SOCPlayerTracker ourPlayerTrackerCopy = trackersCopy.get(Integer.valueOf(ourPlayerNumber));
 
 	int ourCurrentWGETACopy = ourPlayerTrackerCopy.getWinGameETA();
 	D.ebugPrintln("ourCurrentWGETACopy = "+ourCurrentWGETACopy);
@@ -1174,7 +1174,7 @@ public class SOCRobotDM
             int j = board.getAdjacentEdgeToNode(coord, dir);
             if (pl.isLegalRoad(j))
             {
-                Integer edge = new Integer(j);
+                final Integer edge = new Integer(j);
                 boolean match = false;
 
                 for (Enumeration<Integer> ev = visited.elements(); ev.hasMoreElements(); )
@@ -1569,7 +1569,7 @@ public class SOCRobotDM
     if (ourPlayerData.getNumPieces(SOCPlayingPiece.CITY) > 0)
     {
       HashMap<Integer, SOCPlayerTracker> trackersCopy = SOCPlayerTracker.copyPlayerTrackers(playerTrackers);
-      SOCPlayerTracker ourTrackerCopy = trackersCopy.get(new Integer(ourPlayerNumber));
+      SOCPlayerTracker ourTrackerCopy = trackersCopy.get(Integer.valueOf(ourPlayerNumber));
       int originalWGETAs[] = new int[game.maxPlayers];
       int WGETAdiffs[] = new int[game.maxPlayers];
       Vector<SOCPlayerTracker> leaders = new Vector<SOCPlayerTracker>();
@@ -1908,7 +1908,7 @@ public class SOCRobotDM
       trackersCopy = SOCPlayerTracker.copyPlayerTrackers(playerTrackers);
       tmpCity = new SOCCity(ourPlayerData, posPiece.getCoordinates(), null);
       game.putTempPiece(tmpCity);
-      SOCPlayerTracker trackerCopy = trackersCopy.get(new Integer(ourPlayerNumber));
+      SOCPlayerTracker trackerCopy = trackersCopy.get(Integer.valueOf(ourPlayerNumber));
       if (trackerCopy != null) {
 	trackerCopy.addOurNewCity(tmpCity);
       }
