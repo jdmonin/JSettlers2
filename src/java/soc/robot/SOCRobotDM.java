@@ -377,155 +377,7 @@ public class SOCRobotDM
 	ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2 &&
 	ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) > 0)
     {
-      SOCPossibleRoad secondFavoriteRoad = null;
-      Enumeration<SOCPossibleRoad> threatenedRoadEnum;
-      Enumeration<SOCPossibleRoad> goodRoadEnum;
-      D.ebugPrintln("*** making a plan for road building");
-
-      ///
-      /// we need to pick two roads
-      ///
-      if (favoriteRoad != null)
-      {
-	//
-	//  pretend to put the favorite road down,
-	//  and then score the new pos roads
-	//
-	SOCRoad tmpRoad;
-	if (favoriteRoad instanceof SOCPossibleShip)
-	    tmpRoad = new SOCShip(ourPlayerData, favoriteRoad.getCoordinates(), null);
-	else
-	    tmpRoad = new SOCRoad(ourPlayerData, favoriteRoad.getCoordinates(), null);
-
-	HashMap<Integer, SOCPlayerTracker> trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRoad, game, playerTrackers);
-	SOCPlayerTracker.updateWinGameETAs(trackersCopy);
-
-	SOCPlayerTracker ourPlayerTrackerCopy = trackersCopy.get(Integer.valueOf(ourPlayerNumber));
-
-	int ourCurrentWGETACopy = ourPlayerTrackerCopy.getWinGameETA();
-	D.ebugPrintln("ourCurrentWGETACopy = "+ourCurrentWGETACopy);
-
-	int leadersCurrentWGETACopy = ourCurrentWGETACopy;
-	Iterator<SOCPlayerTracker> trackersCopyIter = trackersCopy.values().iterator();
-	while (trackersCopyIter.hasNext())
-	{
-	  SOCPlayerTracker tracker = trackersCopyIter.next();
-	  int wgeta = tracker.getWinGameETA();
-	  if (wgeta < leadersCurrentWGETACopy) {
-	    leadersCurrentWGETACopy = wgeta;
-	  }
-	}
-
-	Enumeration<SOCPossiblePiece> newPosEnum = favoriteRoad.getNewPossibilities().elements();
-	while (newPosEnum.hasMoreElements())
-	{
-	  SOCPossiblePiece newPos = newPosEnum.nextElement();
-	  if (newPos instanceof SOCPossibleRoad)
-	  {
-	    newPos.resetScore();
-	    // float wgetaScore = getWinGameETABonusForRoad
-	    //   ((SOCPossibleRoad)newPos, currentBuildingETAs[SOCBuildingSpeedEstimate.ROAD], leadersCurrentWGETACopy, trackersCopy);
-
-
-	    D.ebugPrintln("$$$ new pos road at "+Integer.toHexString(newPos.getCoordinates()));  // +" has a score of "+newPos.getScore());
-
-	    if (favoriteRoad.getCoordinates() != newPos.getCoordinates())
-	    {
-	      if (secondFavoriteRoad == null) {
-		secondFavoriteRoad = (SOCPossibleRoad) newPos;
-	      } else {
-		if (newPos.getScore() > secondFavoriteRoad.getScore()) {
-		  secondFavoriteRoad = (SOCPossibleRoad) newPos;
-		}
-	      }
-	    }
-	  }
-	}
-
-	threatenedRoadEnum = threatenedRoads.elements();
-	while (threatenedRoadEnum.hasMoreElements())
-	{
-	  SOCPossibleRoad threatenedRoad = threatenedRoadEnum.nextElement();
-	  D.ebugPrintln("$$$ threatened road at "+Integer.toHexString(threatenedRoad.getCoordinates()));
-
-	  //
-	  // see how building this piece impacts our winETA
-	  //
-	  threatenedRoad.resetScore();
-	  // float wgetaScore = getWinGameETABonusForRoad
-	  //   (threatenedRoad, currentBuildingETAs[SOCBuildingSpeedEstimate.ROAD], leadersCurrentWGETA, playerTrackers);
-
-	  D.ebugPrintln("$$$  final score = 0");  // +threatenedRoad.getScore());
-
-	  if (favoriteRoad.getCoordinates() != threatenedRoad.getCoordinates())
-	  {
-	    if (secondFavoriteRoad == null) {
-	      secondFavoriteRoad = threatenedRoad;
-	    } else {
-	      if (threatenedRoad.getScore() > secondFavoriteRoad.getScore()) {
-	      secondFavoriteRoad = threatenedRoad;
-	      }
-	    }
-	  }
-	}
-
-	goodRoadEnum = goodRoads.elements();
-	while (goodRoadEnum.hasMoreElements())
-	{
-	  SOCPossibleRoad goodRoad = goodRoadEnum.nextElement();
-	  D.ebugPrintln("$$$ good road at "+Integer.toHexString(goodRoad.getCoordinates()));
-	  //
-	  // see how building this piece impacts our winETA
-	  //
-	  goodRoad.resetScore();
-	  // float wgetaScore = getWinGameETABonusForRoad
-	  //   (goodRoad, currentBuildingETAs[SOCBuildingSpeedEstimate.ROAD], leadersCurrentWGETA, playerTrackers);
-
-	  D.ebugPrintln("$$$  final score = 0");  // +goodRoad.getScore());
-
-	  if (favoriteRoad.getCoordinates() != goodRoad.getCoordinates())
-	  {
-	    if (secondFavoriteRoad == null) {
-	      secondFavoriteRoad = goodRoad;
-	    } else {
-	      if (goodRoad.getScore() > secondFavoriteRoad.getScore()) {
-		secondFavoriteRoad = goodRoad;
-	      }
-	    }
-	  }
-	}
-
-	SOCPlayerTracker.undoTryPutPiece(tmpRoad, game);
-
-	if (! buildingPlan.empty())
-	{
-	  SOCPossiblePiece planPeek = buildingPlan.peek();
-	  if ((planPeek == null) ||
-	      (! (planPeek instanceof SOCPossibleRoad)))
-	  {
-	    if (secondFavoriteRoad != null)
-	    {
-	      D.ebugPrintln("### SECOND FAVORITE ROAD IS AT "+Integer.toHexString(secondFavoriteRoad.getCoordinates()));
-	      D.ebugPrintln("###   WITH A SCORE OF "+secondFavoriteRoad.getScore());
-	      D.ebugPrintln("$ PUSHING "+secondFavoriteRoad);
-	      buildingPlan.push(secondFavoriteRoad);
-	      D.ebugPrintln("$ PUSHING "+favoriteRoad);
-	      buildingPlan.push(favoriteRoad);
-	    }
-	  }
-	  else if (secondFavoriteRoad != null)
-	  {
-	    SOCPossiblePiece tmp = buildingPlan.pop();
-	    D.ebugPrintln("$ POPPED OFF");
-	    D.ebugPrintln("### SECOND FAVORITE ROAD IS AT "+Integer.toHexString(secondFavoriteRoad.getCoordinates()));
-	    D.ebugPrintln("###   WITH A SCORE OF "+secondFavoriteRoad.getScore());
-	    D.ebugPrintln("$ PUSHING "+secondFavoriteRoad);
-	    buildingPlan.push(secondFavoriteRoad);
-	    D.ebugPrintln("$ PUSHING "+tmp);
-	    buildingPlan.push(tmp);
-	  }
-	}
-      }
+        planRoadBuildingTwoRoads();
     }
 
     //long endTime = System.currentTimeMillis();
@@ -1056,6 +908,171 @@ public class SOCRobotDM
       }
       D.ebugPrintln("Settlement ETA = "+posSet.getETA());
     }
+  }
+
+  /**
+   * For {@link #planStuff(int)}, if we have a road building card, make sure we build two roads first.
+   * Pick 2 good potential roads, and push them onto {@link #buildingPlan}.
+   *<P>
+   * Call only when our {@code SOCPlayer}:
+   *<UL>
+   * <LI> Has 2 more more road pieces left
+   * <LI> Has an old {@link SOCDevCardConstants#ROADS} card to play
+   * <LI> ! {@link SOCPlayer#hasPlayedDevCard() hasPlayedDevCard()}
+   *</UL>
+   * @since 2.0.00
+   */
+  private final void planRoadBuildingTwoRoads()
+  {
+      SOCPossibleRoad secondFavoriteRoad = null;
+      Enumeration<SOCPossibleRoad> threatenedRoadEnum;
+      Enumeration<SOCPossibleRoad> goodRoadEnum;
+      D.ebugPrintln("*** making a plan for road building");
+
+      ///
+      /// we need to pick two roads
+      ///
+      if (favoriteRoad != null)
+      {
+        //
+        //  pretend to put the favorite road down,
+        //  and then score the new pos roads
+        //
+        final SOCRoad tmpRoad;
+        if (favoriteRoad instanceof SOCPossibleShip)
+            tmpRoad = new SOCShip(ourPlayerData, favoriteRoad.getCoordinates(), null);
+        else
+            tmpRoad = new SOCRoad(ourPlayerData, favoriteRoad.getCoordinates(), null);
+
+        HashMap<Integer, SOCPlayerTracker> trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRoad, game, playerTrackers);
+        SOCPlayerTracker.updateWinGameETAs(trackersCopy);
+
+        SOCPlayerTracker ourPlayerTrackerCopy = trackersCopy.get(Integer.valueOf(ourPlayerNumber));
+
+        final int ourCurrentWGETACopy = ourPlayerTrackerCopy.getWinGameETA();
+        D.ebugPrintln("ourCurrentWGETACopy = "+ourCurrentWGETACopy);
+
+        int leadersCurrentWGETACopy = ourCurrentWGETACopy;
+        Iterator<SOCPlayerTracker> trackersCopyIter = trackersCopy.values().iterator();
+        while (trackersCopyIter.hasNext())
+        {
+          SOCPlayerTracker tracker = trackersCopyIter.next();
+          int wgeta = tracker.getWinGameETA();
+          if (wgeta < leadersCurrentWGETACopy) {
+            leadersCurrentWGETACopy = wgeta;
+          }
+        }
+
+        Enumeration<SOCPossiblePiece> newPosEnum = favoriteRoad.getNewPossibilities().elements();
+        while (newPosEnum.hasMoreElements())
+        {
+          SOCPossiblePiece newPos = newPosEnum.nextElement();
+          if (newPos instanceof SOCPossibleRoad)
+          {
+            newPos.resetScore();
+            // float wgetaScore = getWinGameETABonusForRoad
+            //   ((SOCPossibleRoad)newPos, currentBuildingETAs[SOCBuildingSpeedEstimate.ROAD], leadersCurrentWGETACopy, trackersCopy);
+
+
+            D.ebugPrintln("$$$ new pos road at "+Integer.toHexString(newPos.getCoordinates()));  // +" has a score of "+newPos.getScore());
+
+            if (favoriteRoad.getCoordinates() != newPos.getCoordinates())
+            {
+              if (secondFavoriteRoad == null) {
+                secondFavoriteRoad = (SOCPossibleRoad) newPos;
+              } else {
+                if (newPos.getScore() > secondFavoriteRoad.getScore()) {
+                  secondFavoriteRoad = (SOCPossibleRoad) newPos;
+                }
+              }
+            }
+          }
+        }
+
+        threatenedRoadEnum = threatenedRoads.elements();
+        while (threatenedRoadEnum.hasMoreElements())
+        {
+          SOCPossibleRoad threatenedRoad = threatenedRoadEnum.nextElement();
+          D.ebugPrintln("$$$ threatened road at "+Integer.toHexString(threatenedRoad.getCoordinates()));
+
+          //
+          // see how building this piece impacts our winETA
+          //
+          threatenedRoad.resetScore();
+          // float wgetaScore = getWinGameETABonusForRoad
+          //   (threatenedRoad, currentBuildingETAs[SOCBuildingSpeedEstimate.ROAD], leadersCurrentWGETA, playerTrackers);
+
+          D.ebugPrintln("$$$  final score = 0");  // +threatenedRoad.getScore());
+
+          if (favoriteRoad.getCoordinates() != threatenedRoad.getCoordinates())
+          {
+            if (secondFavoriteRoad == null) {
+              secondFavoriteRoad = threatenedRoad;
+            } else {
+              if (threatenedRoad.getScore() > secondFavoriteRoad.getScore()) {
+              secondFavoriteRoad = threatenedRoad;
+              }
+            }
+          }
+        }
+
+        goodRoadEnum = goodRoads.elements();
+        while (goodRoadEnum.hasMoreElements())
+        {
+          SOCPossibleRoad goodRoad = goodRoadEnum.nextElement();
+          D.ebugPrintln("$$$ good road at "+Integer.toHexString(goodRoad.getCoordinates()));
+          //
+          // see how building this piece impacts our winETA
+          //
+          goodRoad.resetScore();
+          // float wgetaScore = getWinGameETABonusForRoad
+          //   (goodRoad, currentBuildingETAs[SOCBuildingSpeedEstimate.ROAD], leadersCurrentWGETA, playerTrackers);
+
+          D.ebugPrintln("$$$  final score = 0");  // +goodRoad.getScore());
+
+          if (favoriteRoad.getCoordinates() != goodRoad.getCoordinates())
+          {
+            if (secondFavoriteRoad == null) {
+              secondFavoriteRoad = goodRoad;
+            } else {
+              if (goodRoad.getScore() > secondFavoriteRoad.getScore()) {
+                secondFavoriteRoad = goodRoad;
+              }
+            }
+          }
+        }
+
+        SOCPlayerTracker.undoTryPutPiece(tmpRoad, game);
+
+        if (! buildingPlan.empty())
+        {
+          SOCPossiblePiece planPeek = buildingPlan.peek();
+          if ((planPeek == null) ||
+              (! (planPeek instanceof SOCPossibleRoad)))
+          {
+            if (secondFavoriteRoad != null)
+            {
+              D.ebugPrintln("### SECOND FAVORITE ROAD IS AT "+Integer.toHexString(secondFavoriteRoad.getCoordinates()));
+              D.ebugPrintln("###   WITH A SCORE OF "+secondFavoriteRoad.getScore());
+              D.ebugPrintln("$ PUSHING "+secondFavoriteRoad);
+              buildingPlan.push(secondFavoriteRoad);
+              D.ebugPrintln("$ PUSHING "+favoriteRoad);
+              buildingPlan.push(favoriteRoad);
+            }
+          }
+          else if (secondFavoriteRoad != null)
+          {
+            SOCPossiblePiece tmp = buildingPlan.pop();
+            D.ebugPrintln("$ POPPED OFF");
+            D.ebugPrintln("### SECOND FAVORITE ROAD IS AT "+Integer.toHexString(secondFavoriteRoad.getCoordinates()));
+            D.ebugPrintln("###   WITH A SCORE OF "+secondFavoriteRoad.getScore());
+            D.ebugPrintln("$ PUSHING "+secondFavoriteRoad);
+            buildingPlan.push(secondFavoriteRoad);
+            D.ebugPrintln("$ PUSHING "+tmp);
+            buildingPlan.push(tmp);
+          }
+        }
+      }    
   }
 
   /**
