@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2011-2012 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2011-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.robot;
 
@@ -28,6 +28,7 @@ import java.util.Vector;
 
 /**
  * Pieces that a player might build.
+ *<P>
  * Although it's not a board piece type, {@link SOCPossibleCard} is a type here
  * because the player could buy them as part of a building plan.
  *
@@ -190,7 +191,7 @@ public abstract class SOCPossiblePiece
     }
 
     /**
-     * add to score
+     * add to score, from {@link SOCRobotDM#getETABonus(int, int, float)}
      *
      * @param amt  the amount to add
      */
@@ -210,7 +211,8 @@ public abstract class SOCPossiblePiece
     }
 
     /**
-     * @return the score
+     * @return the ETA bonus score
+     * @see SOCRobotDM#getETABonus(int, int, float)
      */
     public float getScore()
     {

@@ -427,15 +427,15 @@ public class SOCRobotDM
 	    //   ((SOCPossibleRoad)newPos, currentBuildingETAs[SOCBuildingSpeedEstimate.ROAD], leadersCurrentWGETACopy, trackersCopy);
 
 
-	    D.ebugPrintln("$$$ new pos road at "+Integer.toHexString(newPos.getCoordinates())+" has a score of "+newPos.getScore());
+	    D.ebugPrintln("$$$ new pos road at "+Integer.toHexString(newPos.getCoordinates()));  // +" has a score of "+newPos.getScore());
 
 	    if (favoriteRoad.getCoordinates() != newPos.getCoordinates())
 	    {
 	      if (secondFavoriteRoad == null) {
-		secondFavoriteRoad = (SOCPossibleRoad)newPos;
+		secondFavoriteRoad = (SOCPossibleRoad) newPos;
 	      } else {
 		if (newPos.getScore() > secondFavoriteRoad.getScore()) {
-		  secondFavoriteRoad = (SOCPossibleRoad)newPos;
+		  secondFavoriteRoad = (SOCPossibleRoad) newPos;
 		}
 	      }
 	    }
@@ -455,7 +455,7 @@ public class SOCRobotDM
 	  // float wgetaScore = getWinGameETABonusForRoad
 	  //   (threatenedRoad, currentBuildingETAs[SOCBuildingSpeedEstimate.ROAD], leadersCurrentWGETA, playerTrackers);
 
-	  D.ebugPrintln("$$$  final score = "+threatenedRoad.getScore());
+	  D.ebugPrintln("$$$  final score = 0");  // +threatenedRoad.getScore());
 
 	  if (favoriteRoad.getCoordinates() != threatenedRoad.getCoordinates())
 	  {
@@ -481,7 +481,7 @@ public class SOCRobotDM
 	  // float wgetaScore = getWinGameETABonusForRoad
 	  //   (goodRoad, currentBuildingETAs[SOCBuildingSpeedEstimate.ROAD], leadersCurrentWGETA, playerTrackers);
 
-	  D.ebugPrintln("$$$  final score = "+goodRoad.getScore());
+	  D.ebugPrintln("$$$  final score = 0");  // +goodRoad.getScore());
 
 	  if (favoriteRoad.getCoordinates() != goodRoad.getCoordinates())
 	  {
@@ -2348,10 +2348,11 @@ public class SOCRobotDM
 
 
   /**
-   * calc eta bonus
+   * Calc the weighted ETA bonus for a move, adjusting {@code bonus} for {@code eta} and our {@code etaBonusFactor}.
    *
+   * @param eta  the building ETA
    * @param leadWGETA  the wgeta of the leader
-   * @param eta  the building eta
+   * @param bonus  Base bonus, before weight adjustment
    * @return the eta bonus
    */
   public float getETABonus(final int eta, final int leadWGETA, final float bonus)
