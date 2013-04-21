@@ -2367,12 +2367,14 @@ public class SOCRobotDM
   /**
    * Calc the weighted ETA bonus for a move, adjusting {@code bonus} for {@code eta} and our {@code etaBonusFactor}.
    *
-   * @param eta  the building ETA
-   * @param leadWGETA  the wgeta of the leader
-   * @param bonus  Base bonus, before weight adjustment
-   * @return the eta bonus
+   * @param eta  the current building ETA for a building type.
+   *          From {@link SOCBuildingSpeedEstimate#getEstimatesFromNowFast(SOCResourceSet, boolean[])}.
+   * @param leadWGETA  the WGETA (Win Game ETA) of the leader
+   * @param bonus  Base WGETA bonus, before weight adjustment.
+   *          From {@link #calcWGETABonus(HashMap, HashMap)}, {@link #calcWGETABonusAux(int[], HashMap, Vector)}, etc.
+   * @return the weighted ETA bonus
    */
-  public float getETABonus(final int eta, final int leadWGETA, final float bonus)
+  float getETABonus(final int eta, final int leadWGETA, final float bonus)
   {
     D.ebugPrintln("**** getETABonus ****");
     //return Math.round(etaBonusFactor * ((100f * ((float)(maxGameLength - leadWGETA - eta) / (float)maxGameLength)) * (1.0f - ((float)leadWGETA / (float)maxGameLength))));
