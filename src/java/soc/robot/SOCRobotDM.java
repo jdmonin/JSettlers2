@@ -754,6 +754,12 @@ public class SOCRobotDM
           }
       }
 
+      if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+      {
+          if (scenarioGameStrategyPlan(bestETA, false, forSpecialBuildingPhase))
+              return;  // <--- Early return: Scenario-specific buildingPlan was pushed ---
+      }
+
       //
       // pick something to build
       //
@@ -1786,6 +1792,12 @@ public class SOCRobotDM
       }
     }
 
+    if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+    {
+        if (scenarioGameStrategyPlan(pickScore, true, forSpecialBuildingPhase))
+            return;  // <--- Early return: Scenario-specific buildingPlan was pushed ---
+    }
+
     //
     // push our picked piece onto buildingPlan
     //
@@ -1814,8 +1826,33 @@ public class SOCRobotDM
 
   }
 
-
   /**
+   * For some game scenarios (currently {@link SOCGameOption#K_SC_PIRI _SC_PIRI}), evaluate and plan any
+   * special move.  If the scenario-specific move would score higher than the currently picked building plan
+   * from {@link #smartGameStrategy(int[])} or {@link #dumbFastGameStrategy(int[])}, push those scenario-specific
+   * moves onto {@link #buildingPlan}.
+   *<P>
+   * Example of such a move: For {@code _SC_PIRI}, each player must build ships out west to their
+   * pirate fortress, upgrading them to warships to defend against the pirate fleet and build strength
+   * to attack and defeat the fortress.
+   *
+   * @param scoreOrETA  Current plan's score for {@code SMART_STRATEGY} or ETA for {@code FAST_STRATEGY}.
+   * @param isScoreNotETA  True if {@code scoreOrETA} is a score and not a building ETA
+   * @param forSpecialBuildingPhase  True if we're in the {@link SOCGame#SPECIAL_BUILDING} Phase, not our full turn
+   * @return  True if a Scenario-specific buildingPlan was pushed
+   * @since 2.0.00
+   */
+  private final boolean scenarioGameStrategyPlan
+      (final float scoreOrETA, final boolean isScoreNotETA, final boolean forSpecialBuildingPhase)
+  {
+    // TODO evaluate game status (current VP, etc); calc scenario-specific options and scores
+
+    // TODO if it scores highly: Pick a scenario building plan, push it, return true
+
+    return false;
+  }
+
+/**
    * Score possible settlements for for the smart game strategy ({@link #SMART_STRATEGY}),
    * from {@link #ourPlayerTracker}{@link SOCPlayerTracker#getPossibleSettlements() .getPossibleSettlements()}
    * into {@link #threatenedSettlements} and {@link #goodSettlements};
