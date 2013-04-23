@@ -2446,6 +2446,25 @@ public class SOCServer extends Server
     }
 
     /**
+     * Send a formatted {@link SOCGameTextMsg} game text message to a player.
+     * Standardizes construction of strings with arguments, to aid with internationalization.
+     * Equivalent to: {@link #messageToPlayer(StringConnection, String, String) messageToPlayer}(c, ga,
+     * {@link MessageFormat MessageFormat}.format(fmt, args));
+     *
+     * @param c   the player connection
+     * @param ga  game name
+     * @param fmt the message text to send, to be formatted as in {@link MessageFormat}:
+     *            Placeholders for {@code args} are <tt>{0}</tt> etc, single-quotes must be doubled.
+     * @param args  Any parameters within {@code txt}'s placeholders
+     * @since 2.0.00
+     * @see #messageFormatToGame(String, boolean, String, Object...)
+     */
+    public void messageFormatToPlayer(StringConnection c, final String ga, final String fmt, final Object ... args)
+    {
+        messageToPlayer(c, ga, MessageFormat.format(fmt, args));
+    }
+
+    /**
      * Send a message to the given game.
      * <b>Locks:</b> Takes, releases {@link SOCGameList#takeMonitorForGame(String)}.
      *
@@ -2619,12 +2638,13 @@ public class SOCServer extends Server
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
      *                True unless caller already holds that monitor.
      * @param txt the message text to send, to be formatted as in {@link MessageFormat}:
-     *            Placeholders for {@code args} are <tt>"{0}"</tt> etc, single-quotes must be doubled.  If
+     *            Placeholders for {@code args} are <tt>{0}</tt> etc, single-quotes must be doubled.  If
      *            text begins with ">>>", the client should consider this
      *            an urgent message, and draw the user's attention in some way.
      *            (See {@link #messageToGameUrgent(String, String)})
      * @param args  Any parameters within {@code txt}'s placeholders
      * @see #messageToGame(String, String)
+     * @see #messageFormatToPlayer(StringConnection, String, String, Object...)
      * @since 2.0.00
      */
     public void messageFormatToGame(final String ga, final boolean takeMon, final String txt, final Object ... args)
