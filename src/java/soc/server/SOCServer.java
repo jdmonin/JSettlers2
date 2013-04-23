@@ -5987,12 +5987,9 @@ public class SOCServer extends Server
 
                 else
                 {
-                    StringBuffer msgtext = new StringBuffer(player.getName());
-                    msgtext.append(" moved the ");
-                    if (isPirate)
-                        msgtext.append("pirate");
-                    else
-                        msgtext.append("robber");
+                    StringBuffer msgtext = new StringBuffer();
+                    msgtext.append(MessageFormat.format(/*I*/"{0} moved {1}."/*18N*/,
+                         player.getName(), (isPirate) ? /*I*/"the pirate"/*18N*/ : /*I*/"the robber"/*18N*/ ));
 
                     /** no victim */
                     if (victims.size() == 0)
@@ -6000,21 +5997,20 @@ public class SOCServer extends Server
                         /**
                          * just say it was moved; nothing is stolen
                          */
-                        msgtext.append(".");
                     }
                     else if (ga.getGameState() == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE)
                     {
                         /**
                          * only one possible victim, they have both clay and resources
                          */
-                        msgtext.append(", must choose to steal cloth or steal resources.");
+                        msgtext.append(/*I*/" Must choose to steal cloth or steal resources."/*18N*/ );
                     }
                     else
                     {
                         /**
                          * else, the player needs to choose a victim
                          */
-                        msgtext.append(", must choose a victim.");
+                        msgtext.append(/*I*/" Must choose a victim."/*18N*/ );
                     }
 
                     messageToGame(gaName, msgtext.toString());
@@ -6033,7 +6029,9 @@ public class SOCServer extends Server
             }
             else
             {
-                messageToPlayer(c, gaName, "You can't move the " + ((coord < 0) ? "pirate." : "robber."));
+                messageFormatToPlayer
+                    (c, gaName, /*I*/"You can''t move {0}."/*18N*/,
+                     ((coord < 0) ? /*I*/"the pirate"/*18N*/ : /*I*/"the robber"/*18N*/ ));
             }
         }
         catch (Exception e)
