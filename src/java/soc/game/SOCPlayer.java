@@ -74,6 +74,13 @@ import java.util.Vector;
 public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 {
     /**
+     * Number of ships a player can build (15) if {@link SOCGame#hasSeaBoard}.
+     * @see #getNumPieces(int)
+     * @since 2.0.00
+     */
+    public static final int SHIP_COUNT = 15;
+
+    /**
      * the name of the player
      */
     private String name;
@@ -631,7 +638,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         numPieces[SOCPlayingPiece.SETTLEMENT] = 5;
         numPieces[SOCPlayingPiece.CITY] = 4;
         if (ga.hasSeaBoard)
-            numPieces[SOCPlayingPiece.SHIP] = 15;
+            numPieces[SOCPlayingPiece.SHIP] = SHIP_COUNT;
         else
             numPieces[SOCPlayingPiece.SHIP] = 0;
 
@@ -1007,8 +1014,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * @return the number of pieces not in play for a particular type of piece
+     * Get the number of one piece type not in play and available to place.
+     * At the start of the game, for example, <tt>getNumPieces({@link SOCPlayingPiece#CITY})</tt> == 4.
+     * On the sea board, each player starts with {@link #SHIP_COUNT} ships.
      *
+     * @return the number of pieces not in play for a particular type of piece
      * @param ptype the type of piece; matches SOCPlayingPiece constants,
      *   such as {@link SOCPlayingPiece#ROAD}, {@link SOCPlayingPiece#SETTLEMENT}.
      * @see #getPieces()
