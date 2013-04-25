@@ -280,6 +280,8 @@ public class OpeningBuildStrategy {
                             }
                         }
                     }
+
+                    // because of addition, speed might be as much as (bestSpeed - 1) + bestSpeed
                 }
                 catch (CutoffExceededException e)
                 {
@@ -472,6 +474,8 @@ public class OpeningBuildStrategy {
                         }
                     }
                 }
+
+                // because of addition, speed might be as much as (bestSpeed - 1) + bestSpeed
             }
             catch (CutoffExceededException e)
             {
