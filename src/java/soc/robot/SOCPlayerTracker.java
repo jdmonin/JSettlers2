@@ -38,7 +38,6 @@ import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 
-import soc.util.CutoffExceededException;
 import soc.util.Pair;
 import soc.util.Queue;
 
@@ -2186,17 +2185,9 @@ public class SOCPlayerTracker
 
         D.ebugPrintln("===  recalcLongestRoadETA for player " + playerNumber);
 
-        int roadETA;
+        final int roadETA;
         SOCBuildingSpeedEstimate bse = new SOCBuildingSpeedEstimate(player.getNumbers());
-
-        try
-        {
-            roadETA = bse.calculateRollsFast(SOCGame.EMPTY_RESOURCES, SOCGame.ROAD_SET, 500, player.getPortFlags()).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            roadETA = 500;
-        }
+        roadETA = bse.calculateRollsFast(SOCGame.EMPTY_RESOURCES, SOCGame.ROAD_SET, 500, player.getPortFlags());
 
         roadsToGo = 500;
         longestRoadETA = 500;

@@ -30,8 +30,6 @@ import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
 
-import soc.util.CutoffExceededException;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -932,17 +930,8 @@ public class SOCRobotNegotiator
         ourResourcesCopy.subtract(giveSet);
         ourResourcesCopy.add(getSet);
 
-        int offerBuildingTime = 1000;
-
-        try
-        {
-            SOCResSetBuildTimePair offerBuildingTimePair = estimate.calculateRollsFast(ourResourcesCopy, targetResources, 1000, player.getPortFlags());
-            offerBuildingTime = offerBuildingTimePair.getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            ;
-        }
+        final int offerBuildingTime =
+            estimate.calculateRollsFast(ourResourcesCopy, targetResources, 1000, player.getPortFlags());
 
         D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
         D.ebugPrintln("*** ourResourcesCopy = " + ourResourcesCopy);

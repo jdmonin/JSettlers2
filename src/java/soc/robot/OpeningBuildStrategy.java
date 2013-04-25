@@ -3,7 +3,7 @@
  * This file copyright (C) 2008 Eli McGowan <http://sourceforge.net/users/emcgowan>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
- * Portions of this file copyright (C) 2009-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -181,10 +181,10 @@ public class OpeningBuildStrategy {
 
             try
             {
-                speed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, 300, ports).getRolls();
-                speed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, 300, ports).getRolls();
-                speed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, 300, ports).getRolls();
-                speed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, 300, ports).getRolls();
+                speed += estimate.calculateRollsAndRsrcFast(emptySet, SOCGame.SETTLEMENT_SET, 300, ports).getRolls();
+                speed += estimate.calculateRollsAndRsrcFast(emptySet, SOCGame.CITY_SET, 300, ports).getRolls();
+                speed += estimate.calculateRollsAndRsrcFast(emptySet, SOCGame.CARD_SET, 300, ports).getRolls();
+                speed += estimate.calculateRollsAndRsrcFast(emptySet, SOCGame.ROAD_SET, 300, ports).getRolls();
             }
             catch (CutoffExceededException e) {}
 
@@ -263,19 +263,19 @@ public class OpeningBuildStrategy {
 
                 try
                 {
-                    speed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, bestSpeed, ports).getRolls();
+                    speed += estimate.calculateRollsAndRsrcFast(emptySet, SOCGame.SETTLEMENT_SET, bestSpeed, ports).getRolls();
 
                     if (speed < bestSpeed)
                     {
-                        speed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, bestSpeed, ports).getRolls();
+                        speed += estimate.calculateRollsAndRsrcFast(emptySet, SOCGame.CITY_SET, bestSpeed, ports).getRolls();
 
                         if (speed < bestSpeed)
                         {
-                            speed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, bestSpeed, ports).getRolls();
+                            speed += estimate.calculateRollsAndRsrcFast(emptySet, SOCGame.CARD_SET, bestSpeed, ports).getRolls();
 
                             if (speed < bestSpeed)
                             {
-                                speed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, bestSpeed, ports).getRolls();
+                                speed += estimate.calculateRollsAndRsrcFast(emptySet, SOCGame.ROAD_SET, bestSpeed, ports).getRolls();
                                 allTheWay = true;
                             }
                         }
@@ -348,43 +348,12 @@ public class OpeningBuildStrategy {
         estimate.recalculateEstimates(playerNumbers);
 
         int firstSpeed = 0;
-        int cutoff = 100;
+        final int cutoff = 100;
 
-        try
-        {
-            firstSpeed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, cutoff, ports).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            firstSpeed += cutoff;
-        }
-
-        try
-        {
-            firstSpeed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, cutoff, ports).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            firstSpeed += cutoff;
-        }
-
-        try
-        {
-            firstSpeed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, cutoff, ports).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            firstSpeed += cutoff;
-        }
-
-        try
-        {
-            firstSpeed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, cutoff, ports).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            firstSpeed += cutoff;
-        }
+        firstSpeed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, cutoff, ports);
+        firstSpeed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, cutoff, ports);
+        firstSpeed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, cutoff, ports);
+        firstSpeed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, cutoff, ports);
 
         playerNumbers.clear();
         playerNumbers.updateNumbers(secondSettlement, board);
@@ -401,41 +370,10 @@ public class OpeningBuildStrategy {
 
         int secondSpeed = 0;
 
-        try
-        {
-            secondSpeed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, bestSpeed, ports).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            secondSpeed += cutoff;
-        }
-
-        try
-        {
-            secondSpeed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, bestSpeed, ports).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            secondSpeed += cutoff;
-        }
-
-        try
-        {
-            secondSpeed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, bestSpeed, ports).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            secondSpeed += cutoff;
-        }
-
-        try
-        {
-            secondSpeed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, bestSpeed, ports).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            secondSpeed += cutoff;
-        }
+        secondSpeed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, bestSpeed, ports);
+        secondSpeed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, bestSpeed, ports);
+        secondSpeed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, bestSpeed, ports);
+        secondSpeed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, bestSpeed, ports);
 
         if (firstSpeed > secondSpeed)
         {
@@ -518,19 +456,19 @@ public class OpeningBuildStrategy {
 
             try
             {
-                speed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, bestSpeed, ports).getRolls();
+                speed += estimate.calculateRollsAndRsrcFast(emptySet, SOCGame.SETTLEMENT_SET, bestSpeed, ports).getRolls();
 
                 if (speed < bestSpeed)
                 {
-                    speed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, bestSpeed, ports).getRolls();
+                    speed += estimate.calculateRollsAndRsrcFast(emptySet, SOCGame.CITY_SET, bestSpeed, ports).getRolls();
 
                     if (speed < bestSpeed)
                     {
-                        speed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, bestSpeed, ports).getRolls();
+                        speed += estimate.calculateRollsAndRsrcFast(emptySet, SOCGame.CARD_SET, bestSpeed, ports).getRolls();
 
                         if (speed < bestSpeed)
                         {
-                            speed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, bestSpeed, ports).getRolls();
+                            speed += estimate.calculateRollsAndRsrcFast(emptySet, SOCGame.ROAD_SET, bestSpeed, ports).getRolls();
                         }
                     }
                 }
