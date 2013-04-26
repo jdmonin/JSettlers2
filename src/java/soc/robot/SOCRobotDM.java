@@ -563,8 +563,7 @@ public class SOCRobotDM
       ///
       int knightsToBuy = 0;
       if ((ourPlayerData.getNumKnights() +
-	   ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT) +
-	   ourPlayerData.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT))
+	   ourPlayerData.getDevCards().getAmount(SOCDevCardConstants.KNIGHT))  // OLD + NEW knights
 	  < laSize)
       {
 	knightsToBuy = laSize - (ourPlayerData.getNumKnights() +

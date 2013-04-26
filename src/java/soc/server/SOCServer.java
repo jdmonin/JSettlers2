@@ -9999,7 +9999,7 @@ public class SOCServer extends Server
                     if (! SOCDevCard.isVPCard(devCardType))
                         continue;
 
-                    if ((devCards.getAmount(SOCDevCardSet.OLD, devCardType) > 0) || (devCards.getAmount(SOCDevCardSet.NEW, devCardType) > 0))
+                    if (devCards.getAmount(devCardType) > 0)
                     {
                         if (vpCardCount > 0)
                         {

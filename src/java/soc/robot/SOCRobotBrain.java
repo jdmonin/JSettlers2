@@ -1912,8 +1912,7 @@ public class SOCRobotBrain extends Thread
 
                 canGrowArmy =
                     ((ourPlayerData.getNumKnights()
-                      + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT)
-                      + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT))
+                      + ourPlayerData.getDevCards().getAmount(SOCDevCardConstants.KNIGHT))
                       >= larmySize);
 
             } else {

@@ -2293,7 +2293,7 @@ public class SOCPlayerTracker
         ///
         knightsToBuy = 0;
 
-        if ((player.getNumKnights() + player.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT) + player.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT)) < laSize)
+        if ((player.getNumKnights() + player.getDevCards().getAmount(SOCDevCardConstants.KNIGHT)) < laSize)  // OLD + NEW knights
         {
             knightsToBuy = laSize - (player.getNumKnights() + player.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT));
         }
@@ -3371,8 +3371,7 @@ public class SOCPlayerTracker
                         knightsToBuy = 0;
 
                         if ((player.getNumKnights()
-                            + player.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT)
-                            + player.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT)) < laSize)
+                            + player.getDevCards().getAmount(SOCDevCardConstants.KNIGHT)) < laSize)  // OLD + NEW knights
                         {
                             knightsToBuy = laSize -
                                 (player.getNumKnights() + player.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT));
