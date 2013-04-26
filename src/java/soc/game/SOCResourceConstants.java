@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -132,18 +132,30 @@ public class SOCResourceConstants
      * such as "a clay" or "an ore".
      *
      * @param rtype Resource type, such as {@link #CLAY} or {@link #SHEEP}.
-     * @return Lowercase resource name, or "a null" if rtype is out of range
+     * @return Lowercase resource name, or {@code null} if rtype is out of range
      *              ({@link #CLAY} - {@link #WOOD})
      * @since 1.1.08
      */
     public static String aResName(final int rtype)
     {
-        StringBuffer sb = new StringBuffer();
-        if (rtype == ORE)
-            sb.append("an ");
-        else
-            sb.append("a ");
-        sb.append(resName(rtype));
-        return sb.toString();
+        String tname;
+        switch (rtype)
+        {
+        case CLAY:
+            tname = /*I*/"a clay"/*18N*/;  break;
+        case ORE:
+            tname = /*I*/"an ore"/*18N*/;  break;
+        case SHEEP:
+            tname = /*I*/"a sheep"/*18N*/; break;
+        case WHEAT:
+            tname = /*I*/"a wheat"/*18N*/; break;
+        case WOOD:
+            tname = /*I*/"a wood"/*18N*/;  break;
+        default:
+            // Should not happen
+            tname = null;
+        }
+        return tname;
     }
+
 }

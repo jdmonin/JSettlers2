@@ -9591,23 +9591,19 @@ public class SOCServer extends Server
             return;  // <--- early return: cloth is announced to entire game ---
         }
 
-        StringBuffer mes = new StringBuffer(" stole ");  // " stole a sheep resource from "
         SOCPlayerElement gainRsrc = null;
         SOCPlayerElement loseRsrc = null;
         SOCPlayerElement gainUnknown;
         SOCPlayerElement loseUnknown;
 
-        final String aResource = SOCResourceConstants.aResName(rsrc);
-        mes.append(aResource);  // "a clay"
+        final String aResource = SOCResourceConstants.aResName(rsrc);  // "a clay"
 
         // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP.
         gainRsrc = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, rsrc, 1);
         loseRsrc = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, rsrc, 1);
 
-        mes.append(" resource from ");
-
         /**
-         * send the game messages
+         * send the game data messages
          */
         StringConnection peCon = getConnection(peName);
         StringConnection viCon = getConnection(viName);
@@ -9630,12 +9626,10 @@ public class SOCServer extends Server
          * "peName stole a sheep resource from you."
          * "peName stole a resource from viName."
          */
-        messageToPlayer(peCon, gaName,
-            "You" + mes.toString() + viName + '.');
-        messageToPlayer(viCon, gaName,
-            peName + mes.toString() + "you.");
+        messageFormatToPlayer(peCon, gaName, /*I*/"You stole {0} resource from {1}."/*18N*/, aResource, viName);
+        messageFormatToPlayer(viCon, gaName, /*I*/"{0} stole {1} resource from you."/*18N*/, peName, aResource);
         messageToGameExcept(gaName, exceptions, new SOCGameTextMsg(gaName, SERVERNAME,
-            peName + " stole a resource from " + viName), true);
+            MessageFormat.format(/*I*/"{0} stole a resource from {1}."/*18N*/, peName, viName)), true);
     }
 
     /**
