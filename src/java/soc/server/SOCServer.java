@@ -2666,8 +2666,10 @@ public class SOCServer extends Server
      *
      * @param gn  the name of the game
      * @param ex  the excluded connection, or null
-     * @param txt the message text to send. If
-     *            text begins with ">>>", the client should consider this
+     * @param txt the message text to send. <P>
+     *            If you need to format the message (with placeholders for i18n),
+     *            call {@link MessageFormat MessageFormat}.format(fmt, args) on it first. <P>
+     *            If text begins with ">>>", the client should consider this
      *            an urgent message, and draw the user's attention in some way.
      *            (See {@link #messageToGameUrgent(String, String)})
      * @param takeMon Should this method take and release
@@ -9629,7 +9631,7 @@ public class SOCServer extends Server
         messageFormatToPlayer(peCon, gaName, /*I*/"You stole {0} resource from {1}."/*18N*/, aResource, viName);
         messageFormatToPlayer(viCon, gaName, /*I*/"{0} stole {1} resource from you."/*18N*/, peName, aResource);
         messageToGameExcept(gaName, exceptions, new SOCGameTextMsg(gaName, SERVERNAME,
-            MessageFormat.format(/*I*/"{0} stole a resource from {1}."/*18N*/, peName, viName)), true);
+            MessageFormat.format( /*I*/"{0} stole a resource from {1}."/*18N*/, peName, viName)), true);
     }
 
     /**
