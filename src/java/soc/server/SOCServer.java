@@ -9964,7 +9964,8 @@ public class SOCServer extends Server
                 }
             }
         }
-        msg = ">>> " + winPl.getName() + " has won the game with " + winPl.getTotalVP() + " points.";
+        msg = ">>> " + MessageFormat.format
+            ( /*I*/"{0} has won the game with {1} points."/*18N*/, winPl.getName(), winPl.getTotalVP());
         messageToGameUrgent(gname, msg);
         
         /// send a message with the revealed final scores
@@ -10058,25 +10059,20 @@ public class SOCServer extends Server
             Date gstart = ga.getStartTime();
             if (gstart != null)
             {
-                StringBuffer sb = new StringBuffer();  // game duration
+                final String gameDuration;
                 long gameSeconds = ((now.getTime() - gstart.getTime())+500L) / 1000L;
-                long gameMinutes = gameSeconds/60L;
+                final long gameMinutes = gameSeconds / 60L;
                 gameSeconds = gameSeconds % 60L;
-                sb.append(gameMinutes);
+
                 if (gameSeconds == 0)
-                {
-                    sb.append(" minutes");
-                } else if (gameSeconds == 1)
-                {
-                    sb.append(" minutes 1 second");
-                } else {
-                    sb.append(" minutes ");
-                    sb.append(gameSeconds);
-                    sb.append(" seconds");
-                }
+                    gameDuration = MessageFormat.format( /*I*/"{0} minutes"/*18N*/, gameMinutes);
+                else if (gameSeconds == 1)
+                    gameDuration = MessageFormat.format( /*I*/"{0} minutes 1 second"/*18N*/, gameMinutes);
+                else
+                    gameDuration = MessageFormat.format( /*I*/"{0} minutes {1} seconds"/*18N*/, gameMinutes, gameSeconds);
                 messageFormatToGame
-                    (gname, true, "This game was {0} rounds, and took {1}.",
-                     ga.getRoundCount(), sb);
+                    (gname, true, /*I*/"This game was {0} rounds, and took {1}."/*18N*/,
+                     ga.getRoundCount(), gameDuration);
 
                 // Ignore possible "1 minutes"; that game is too short to worry about.
             }
@@ -10089,9 +10085,9 @@ public class SOCServer extends Server
              */
             String connMsg;
             if ((strSocketName != null) && (strSocketName.equals(PRACTICE_STRINGPORT)))
-                connMsg = "You have been practicing ";
+                connMsg = /*I*/"You have been practicing {0} minutes."/*18N*/;
             else
-                connMsg = "You have been connected ";
+                connMsg = /*I*/"You have been connected {0} minutes."/*18N*/;
 
             for (int i = 0; i < ga.maxPlayers; i++)
             {
@@ -10124,15 +10120,9 @@ public class SOCServer extends Server
                         messageToPlayer(plConn, new SOCPlayerStats(pl, SOCPlayerStats.STYPE_RES_ROLL));
                     }
 
-                    long connTime = plConn.getConnectTime().getTime();
-                    long connMinutes = (((now.getTime() - connTime)) + 30000L) / 60000L;
-                    StringBuffer cLengthMsg = new StringBuffer(connMsg);
-                    cLengthMsg.append(connMinutes);
-                    if (connMinutes == 1)
-                        cLengthMsg.append(" minute.");
-                    else
-                        cLengthMsg.append(" minutes.");
-                    messageToPlayer(plConn, gname, cLengthMsg.toString());
+                    final long connTime = plConn.getConnectTime().getTime();
+                    final long connMinutes = (((now.getTime() - connTime)) + 30000L) / 60000L;
+                    messageFormatToPlayer(plConn, gname, connMsg, connMinutes);  // "You have been connected # minutes."
 
                     // Send client's win-loss count for this session,
                     // if more than 1 game has been played
