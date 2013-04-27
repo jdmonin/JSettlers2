@@ -6790,6 +6790,7 @@ public class SOCServer extends Server
                 throw new IllegalArgumentException("player not found in game");
             }
 
+            final int gstate = ga.getGameState();
             final SOCResourceSet rsrcs = mes.getResources();
             if (ga.canPickGoldHexResources(pn, rsrcs))
             {
@@ -6807,7 +6808,6 @@ public class SOCServer extends Server
                  * send the new state, or end turn if was marked earlier as forced
                  * -- for gold during initial placement, current player might also change.
                  */
-                final int gstate = ga.getGameState();
                 if ((gstate != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
                 {
                     if (! fromInitPlace)
@@ -6873,7 +6873,12 @@ public class SOCServer extends Server
             else
             {
                 messageToPlayer(c, gn, "You can't pick that many resources.");
-                messageToPlayer(c, new SOCPickResourcesRequest(gn, player.getNeedToPickGoldHexResources()));
+                final int npick = player.getNeedToPickGoldHexResources();
+                if ((npick > 0) && (gstate < SOCGame.OVER))
+                    messageToPlayer(c, new SOCPickResourcesRequest(gn, npick));
+                else
+                    messageToPlayer(c, new SOCPlayerElement
+                        (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, 0));
             }
         }
         catch (Throwable e)
