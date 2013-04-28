@@ -10200,10 +10200,11 @@ public class SOCServer extends Server
         final String gaName = ga.getName();
         final SOCTradeOffer offer = ga.getPlayer(offering).getCurrentOffer();
 
-        StringBuffer giveDesc = new StringBuffer();  // will fill with "2 sheep", etc
-        reportRsrcGainLoss(gaName, offer.getGiveSet(), true, offering, accepting, giveDesc, null);
+        StringBuffer giveDesc = new StringBuffer();  // reportRsrc will fill with "2 sheep, 1 wheat"
         StringBuffer getDesc = new StringBuffer();
+        reportRsrcGainLoss(gaName, offer.getGiveSet(), true, offering, accepting, giveDesc, null);
         reportRsrcGainLoss(gaName, offer.getGetSet(), false, offering, accepting, getDesc, null);
+
         messageFormatToGame(gaName, true, "{0} gave {1} for {2} from {3}.",
             ga.getPlayer(offering).getName(), giveDesc, getDesc, ga.getPlayer(accepting).getName());
     }
@@ -10225,24 +10226,25 @@ public class SOCServer extends Server
 
         final String gaName = ga.getName();
         final int    cpn    = ga.getCurrentPlayerNumber();
-        StringBuffer message = new StringBuffer (ga.getPlayer(cpn).getName());
-        message.append(" traded ");
-        reportRsrcGainLoss(gaName, give, true, cpn, -1, message, null);
-        message.append(" for ");
-        reportRsrcGainLoss(gaName, get, false, cpn, -1, message, null);
+
+        StringBuffer giveDesc = new StringBuffer(),  // reportRsrc will fill with "2 sheep, 1 wheat"
+                     getDesc  = new StringBuffer();
+        reportRsrcGainLoss(gaName, give, true, cpn, -1, giveDesc, null);
+        reportRsrcGainLoss(gaName, get, false, cpn, -1, getDesc, null);
 
         final int giveTotal = give.getTotal(),
-            getTotal = get.getTotal();
+                  getTotal = get.getTotal();
+        final String tradeFrom;
         if ((giveTotal / getTotal) == 4)
-        {
-            message.append(" from the bank.");  // 4:1 trade
-        }
+            tradeFrom = /*I*/"the bank"/*18N*/;  // 4:1 trade
         else
-        {
-            message.append(" from a port.");    // 3:1 or 2:1 trade
-        }
+            tradeFrom = /*I*/"a port"/*18N*/;    // 3:1 or 2:1 trade
+
+        StringBuffer message = new StringBuffer();
+        message.append(MessageFormat.format
+            ( /*I*/"{0} traded {1} for {2} from {3}."/*18N*/, ga.getPlayer(cpn).getName(), giveDesc, getDesc, tradeFrom));
         if (giveTotal < getTotal)
-            message.append(" (Undo previous trade)");
+            message.append( /*I*/" (Undo previous trade)"/*18N*/ );
 
         messageToGame(gaName, message.toString());
     }
@@ -10297,6 +10299,7 @@ public class SOCServer extends Server
             final int amt = rset.getAmount(res);
             if (amt <= 0)
                 continue;
+
             if (playerConn != null)
                 messageToPlayer(playerConn, new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt));
             else
@@ -10307,9 +10310,8 @@ public class SOCServer extends Server
             {
                 if (needComma)
                     message.append(", ");
-                message.append(amt);
-                message.append(" ");
-                message.append(SOCResourceConstants.resName(res));
+                message.append
+                    (MessageFormat.format( /*I*/"{0,number} {1}"/*18N*/, amt, SOCResourceConstants.resName(res))); // "3 clay"
                 needComma = true;
             }
         }
