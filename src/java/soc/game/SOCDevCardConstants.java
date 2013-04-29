@@ -35,7 +35,7 @@ package soc.game;
  *<P>
  * If you add values here, be sure to update javadocs at
  * server.giveDevCard,  .handleGAMETEXTMSG and .sendGameStateOVER ,
- * and handpanel.updateDevCards .
+ * and the code in SOCDevCard.getCardTypeName and handpanel.updateDevCards .
  * If you add VP card types, update {@link SOCDevCard#isVPCard(int)}
  * and {@link SOCDevCardSet#getNumVPCards()}.
  *<P>
@@ -43,6 +43,8 @@ package soc.game;
  * were swapped to make room for new card types.  For compatibility with
  * older versions, constants {@link #KNIGHT_FOR_VERS_1_X} and
  * {@link #UNKNOWN_FOR_VERS_1_X} were added.  See {@link #VERSION_FOR_NEW_TYPES}.
+ *
+ * @see SOCDevCard#getCardTypeName(int, SOCGame, boolean)
  */
 public interface SOCDevCardConstants
 {

@@ -9996,7 +9996,7 @@ public class SOCServer extends Server
 
             if (devCards.getNumVPCards() > 0)
             {
-                msg = pl.getName() + " has";
+                msg = pl.getName() + " has ";
                 int vpCardCount = 0;
 
                 for (int devCardType = SOCDevCardConstants.MIN_KNOWN;
@@ -10012,43 +10012,16 @@ public class SOCServer extends Server
                         {
                             if ((devCards.getNumVPCards() - vpCardCount) == 1)
                             {
-                                msg += " and";
+                                msg += " and ";
                             }
                             else if ((devCards.getNumVPCards() - vpCardCount) > 0)
                             {
-                                msg += ",";
+                                msg += ", ";
                             }
                         }
 
                         vpCardCount++;
-
-                        switch (devCardType)
-                        {
-                        case SOCDevCardConstants.CAP:
-                            msg += " a Gov.House (+1VP)";
-
-                            break;
-
-                        case SOCDevCardConstants.LIB:
-                            msg += " a Market (+1VP)";
-
-                            break;
-
-                        case SOCDevCardConstants.UNIV:
-                            msg += " a University (+1VP)";
-
-                            break;
-
-                        case SOCDevCardConstants.TEMP:
-                            msg += " a Temple (+1VP)";
-
-                            break;
-
-                        case SOCDevCardConstants.TOW:
-                            msg += " a Chapel (+1VP)";
-
-                            break;
-                        }
+                        msg += SOCDevCard.getCardTypeName(devCardType, ga, true);  // "a Gov.House (+1VP)";
                     }
                 }  // for each devcard type
 
@@ -11208,7 +11181,7 @@ public class SOCServer extends Server
         dcSet.add(1, SOCDevCardSet.NEW, cardType);
 
         int pnum = pl.getPlayerNumber();
-        String outMes = "### " + name + " gets a " + cardType + " card.";
+        String outMes = "### " + name + " gets " + SOCDevCard.getCardTypeName(cardType, game, true) + " card.";
         if ((cardType != SOCDevCardConstants.KNIGHT) || (game.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
         {
             messageToGame(game.getName(), new SOCDevCardAction(game.getName(), pnum, SOCDevCardAction.DRAW, cardType));

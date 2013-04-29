@@ -2013,16 +2013,6 @@ public class SOCHandPanel extends Panel
                             SOCDevCardConstants.TEMP,
                             SOCDevCardConstants.TOW,
                             SOCDevCardConstants.UNIV };
-        String[] cardNames = {"Year of Plenty",
-                              (game.isGameOptionSet(SOCGameOption.K_SC_PIRI)
-                                  ? "Warship" : "Soldier"),
-                              "Monopoly",
-                              "Road Building",
-                              "Gov. House (1VP)",
-                              "Market (1VP)",
-                              "Temple (1VP)",
-                              "Chapel (1VP)",
-                              "University (1VP)"};
         boolean hasOldCards = false;
 
         synchronized (cardList.getTreeLock())
@@ -2033,22 +2023,23 @@ public class SOCHandPanel extends Panel
             // add items to the list for each new and old card, of each type
             for (int i = 0; i < cardTypes.length; i++)
             {
-                int numOld = cards.getAmount(SOCDevCardSet.OLD, cardTypes[i]);
-                int numNew = cards.getAmount(SOCDevCardSet.NEW, cardTypes[i]);
+                final int ctype = cardTypes[i];
+                int numOld = cards.getAmount(SOCDevCardSet.OLD, ctype);
+                int numNew = cards.getAmount(SOCDevCardSet.NEW, ctype);
                 if (numOld > 0)
                     hasOldCards = true;
 
                 for (int j = 0; j < numOld; j++)
                 {
-                    cardList.add(cardNames[i]);
-                    cardListItems.add(new SOCDevCard(cardTypes[i], false));
+                    cardList.add(SOCDevCard.getCardTypeName(ctype, game, false));
+                    cardListItems.add(new SOCDevCard(ctype, false));
                 }
                 for (int j = 0; j < numNew; j++)
                 {
                     // VP cards are valid immediately, so don't mark them new
                     String prefix = (SOCDevCard.isVPCard(i)) ? "" : /*I*/"*NEW* "/*18N*/;
-                    cardList.add(prefix + cardNames[i]);
-                    cardListItems.add(new SOCDevCard(cardTypes[i], true));
+                    cardList.add(prefix + SOCDevCard.getCardTypeName(ctype, game, false));
+                    cardListItems.add(new SOCDevCard(ctype, true));
                 }
             }
         }
