@@ -745,7 +745,7 @@ public class SOCRobotDM
 
       if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
       {
-          if (scenarioGameStrategyPlan(bestETA, false, forSpecialBuildingPhase))
+          if (scenarioGameStrategyPlan(bestETA, -1f, false, (choice == LA_CHOICE), ourBSE, 0, forSpecialBuildingPhase))
               return;  // <--- Early return: Scenario-specific buildingPlan was pushed ---
       }
 
@@ -1753,6 +1753,7 @@ public class SOCRobotDM
     //
     // see how buying a card improves our win game ETA
     //
+    float devCardScore = 0;
     if ((game.getNumDevCards() > 0) && ! forSpecialBuildingPhase)
     {
       if ((brain != null) && (brain.getDRecorder().isOn())) {
@@ -1761,7 +1762,7 @@ public class SOCRobotDM
       }
 
       possibleCard = getDevCardScore(buildingETAs[SOCBuildingSpeedEstimate.CARD], leadersCurrentWGETA);
-      float devCardScore = possibleCard.getScore();
+      devCardScore = possibleCard.getScore();
       D.ebugPrintln("### DEV CARD SCORE: "+devCardScore);
       if ((brain != null) && (brain.getDRecorder().isOn())) {
 	brain.getDRecorder().stopRecording();
@@ -1778,7 +1779,8 @@ public class SOCRobotDM
 
     if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
     {
-        if (scenarioGameStrategyPlan(pickScore, true, forSpecialBuildingPhase))
+        if (scenarioGameStrategyPlan(pickScore, devCardScore, true, (pick == SOCPlayingPiece.MAXPLUSONE),
+              new SOCBuildingSpeedEstimate(ourPlayerData.getNumbers()), leadersCurrentWGETA, forSpecialBuildingPhase))
             return;  // <--- Early return: Scenario-specific buildingPlan was pushed ---
     }
 
@@ -1820,16 +1822,86 @@ public class SOCRobotDM
    * pirate fortress, upgrading them to warships to defend against the pirate fleet and build strength
    * to attack and defeat the fortress.
    *
-   * @param scoreOrETA  Current plan's score for {@code SMART_STRATEGY} or ETA for {@code FAST_STRATEGY}.
-   * @param isScoreNotETA  True if {@code scoreOrETA} is a score and not a building ETA
+   * @param bestScoreOrETA  Current plan's score for {@code SMART_STRATEGY} or ETA for {@code FAST_STRATEGY}.
+   * @param cardScoreOrETA  Score or ETA to buy a card if known, or -1.
+   *          {@code smartGameStrategy} should always calculate this if the move makes sense,
+   *          {@code dumbFastGameStrategy} skips it and calculates the ETA for several cards.
+   * @param isScoreNotETA  True if {@code bestScoreOrETA} is a score and not a building ETA;
+   *          higher scores are better, lower ETAs are better
+   * @param bestPlanIsDevCard  True if the current best plan is to buy a dev card
+   * @param ourBSE  Our player's current {@link SOCBuildingSpeedEstimate} with our {@link SOCPlayer#getNumbers()} 
+   * @param leadersCurrentWGETA  For {@code SMART_STRATEGY}, the game leader's Win Game ETA from
+   *          {@link SOCPlayerTracker#getWinGameETA()}.  Unused here (0) for {@code FAST_STRATEGY}.
    * @param forSpecialBuildingPhase  True if we're in the {@link SOCGame#SPECIAL_BUILDING} Phase, not our full turn
    * @return  True if a Scenario-specific buildingPlan was pushed
+   * @throws IllegalArgumentException if {@code smartGameStrategy} didn't calculate {@code cardScoreOrETA} and it's -1
    * @since 2.0.00
    */
   private final boolean scenarioGameStrategyPlan
-      (final float scoreOrETA, final boolean isScoreNotETA, final boolean forSpecialBuildingPhase)
+      (final float bestScoreOrETA, float cardScoreOrETA, final boolean isScoreNotETA,
+       final boolean bestPlanIsDevCard, final SOCBuildingSpeedEstimate ourBSE, final int leadersCurrentWGETA,
+       final boolean forSpecialBuildingPhase)
+      throws IllegalArgumentException
   {
-    // TODO evaluate game status (current VP, etc); calc scenario-specific options and scores
+    if (ourPlayerData.getTotalVP() < 4)
+    {
+      return false;  // <--- Early return: We don't have 4 VP, don't use resources to build out to sea yet ---
+    }
+
+    // evaluate game status (current VP, etc); calc scenario-specific options and scores
+    //    If bestPlanIsDevCard, don't recalc cardScoreOrETA for buying a warship card
+
+    float shipScoreOrETA;
+    int shipETA;
+    int shipsBuilt = SOCPlayer.SHIP_COUNT - ourPlayerData.getNumPieces(SOCPlayingPiece.SHIP);
+
+    if (shipsBuilt >= 6)
+    {
+        // Enough ships already built for defense (since max dice is 6)
+        //    TODO later in game, need more ships, to build out to pirate fortress
+        shipETA = 100;
+        shipScoreOrETA = 0f;
+    } else {
+        // Calculate ETA to buy and build another ship
+        shipETA = ourBSE.calculateRollsFast
+          (ourPlayerData.getResources(), SOCGame.SHIP_SET, 100, ourPlayerData.getPortFlags());
+        if (! isScoreNotETA)
+        {
+            shipScoreOrETA = shipETA;
+        } else {
+            shipScoreOrETA = (100.0f / game.maxPlayers);
+            shipScoreOrETA += getETABonus(shipETA, leadersCurrentWGETA, shipScoreOrETA);  // TODO double-check params here
+        }
+    }
+
+    final int warshipCardsBought =
+        ourPlayerData.getDevCards().getAmount(SOCDevCardConstants.KNIGHT);
+
+    if (warshipCardsBought > 0)
+    {
+        // Enough already bought for now
+        cardScoreOrETA = 100;
+    }
+    else if (cardScoreOrETA < 0)
+    {
+        if (isScoreNotETA)
+            throw new IllegalArgumentException("cardScoreOrETA");  // should already be calculated
+
+        if (game.getNumDevCards() > 0)
+        {
+            cardScoreOrETA = ourBSE.calculateRollsFast
+              (ourPlayerData.getResources(), SOCGame.CARD_SET, 100, ourPlayerData.getPortFlags());
+        } else {
+            cardScoreOrETA = 100;
+        }
+    }
+
+    System.err.println("L1848 bot " + ourPlayerData.getName() + (isScoreNotETA ? ": score " : ": ETA ") + bestScoreOrETA
+        + "  card " + cardScoreOrETA + ", ship " + shipScoreOrETA);
+
+    // TODO use shipScoreOrETA, shipsBuilt, warshipCardsBought, cardScoreOrETA
+
+    // Weight it for VP or time; ideally we at least have more warships than cities
 
     // TODO if it scores highly: Pick a scenario building plan, push it, return true
 
