@@ -1085,6 +1085,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Get this player's roads and ships on the board.  Chronological order.
+     * Note that if a ship is moved on the board, it may go to the end of this list.
      * @return the list of roads/ships in play
      */
     public Vector<SOCRoad> getRoads()

@@ -3062,6 +3062,10 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Trade routes can branch, so it may be that more than one ship
      * could be moved.  The game limits players to one move per turn.
+     *<P>
+     * <B>Scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}:</B><br>
+     * Ship movement options are limited, because the route can't branch
+     * and only a few sea edges are legal for placement.
      *
      * @param pn   Player number
      * @param fromEdge  Edge coordinate to move the ship from; must contain this player's ship.
