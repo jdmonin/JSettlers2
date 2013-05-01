@@ -28,6 +28,7 @@ import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
+import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCLRPathData;
@@ -147,6 +148,13 @@ public class SOCPlayerTracker
     protected SOCSettlement pendingInitSettlement;
 
     /**
+     * For scenario {@code _SC_PIRI}, the player's ship closest to the Fortress (the ship farthest west).
+     * {@code null} otherwise.  Updated by {@link #updateScenario_SC_PIRI_closestShipToFortress(SOCShip, boolean)}.
+     * @since 2.0.00
+     */
+    private SOCShip scen_SC_PIRI_closestShipToFortress;
+
+    /**
      * monitor for synchronization
      */
     boolean inUse;
@@ -194,6 +202,7 @@ public class SOCPlayerTracker
         largestArmyETA = pt.getLargestArmyETA();
         knightsToBuy = pt.getKnightsToBuy();
         pendingInitSettlement = pt.getPendingInitSettlement();
+        scen_SC_PIRI_closestShipToFortress = pt.scen_SC_PIRI_closestShipToFortress;
 
         //D.ebugPrintln(">>>>> Copying SOCPlayerTracker for player number "+player.getPlayerNumber());
         //
@@ -781,6 +790,12 @@ public class SOCPlayerTracker
         }
 
         dummy.destroyPlayer();
+
+        //
+        // in scenario _SC_PIRI, update the closest ship to our fortress
+        //
+        if ((road instanceof SOCShip) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            updateScenario_SC_PIRI_closestShipToFortress((SOCShip) road, true);
     }
 
     /**
@@ -1079,6 +1094,131 @@ public class SOCPlayerTracker
             removeFromNecessaryRoads(pr);
             removeDependents(pr);
         }
+    }
+
+    /**
+     * For scenario {@code _SC_PIRI}, get the player's ship closest to the Fortress (the ship farthest west).
+     * Updated by {@link #updateScenario_SC_PIRI_closestShipToFortress(SOCShip, boolean)}.
+     * @return the closest ship in scenario {@code _SC_PIRI}; {@code null} otherwise.
+     * @see #getScenario_SC_PIRI_shipDistanceToFortress(SOCShip)
+     * @since 2.0.00
+     */
+    public SOCShip getScenario_SC_PIRI_closestShipToFortress()
+    {
+        return scen_SC_PIRI_closestShipToFortress;
+    }
+
+    /**
+     * For scenario {@code _SC_PIRI}, update the player's ship closest to the Fortress.
+     * Assumes no ship will ever be west of the fortress (smaller column number).
+     * Call after adding or removing the ship from our player's {@link SOCPlayer#getRoads()}.
+     * @param ship  Ship that was added or removed, or {@code null} to check all ships after removal
+     * @param shipAdded  True if {@code ship} was added; false if {@code ship} or any other ship was removed
+     * @throws IllegalArgumentException if {@code shipAdded} is true, but null {@code ship}
+     * @since 2.0.00
+     */
+    void updateScenario_SC_PIRI_closestShipToFortress(final SOCShip ship, final boolean shipAdded)
+        throws IllegalArgumentException
+    {
+        if (shipAdded && (ship == null))
+            throw new IllegalArgumentException();
+
+        if (scen_SC_PIRI_closestShipToFortress == null)
+        {
+            if (shipAdded)
+                scen_SC_PIRI_closestShipToFortress = ship;  // closest by default
+
+            return;  // <--- Early return: no other ships to compare ---
+        }
+
+        // assert scen_SC_PIRI_closestShipToFortress != null
+
+        if (! shipAdded)
+        {
+            // A ship has been removed.  If we know what ship, and
+            // it's not the closest ship, we don't need to do anything.
+
+            if ((ship != null) && (ship.getCoordinates() != scen_SC_PIRI_closestShipToFortress.getCoordinates()))
+                return;  // <--- Early return: Not the closest ship ---
+        }
+
+        final SOCFortress fort = player.getFortress();  // may be null towards end of game
+            // If fort's null, we can still compare columns, just not rows, of ship coordinates.
+        final int fortR;
+        if (fort != null)
+        {
+            final int fortNode = fort.getCoordinates();
+            fortR = fortNode >> 8;
+        } else {
+            fortR = -1;
+        }
+
+        if (shipAdded)
+        {
+            final int shipEdge = ship.getCoordinates(),
+                      prevShipEdge = scen_SC_PIRI_closestShipToFortress.getCoordinates();
+            final int shipR = shipEdge >> 8, shipC = shipEdge & 0xFF,
+                      prevR = prevShipEdge >> 8, prevC = prevShipEdge & 0xFF;
+            if ((shipC < prevC)
+                || ((shipC == prevC) && (fortR != -1)
+                    && (Math.abs(shipR - fortR) < Math.abs(prevR - fortR))))
+            {
+                scen_SC_PIRI_closestShipToFortress = ship;
+            }
+        } else {
+            // A ship has been removed.  We don't know which one.
+            // So, check all ships for distance from fortress.
+
+            Enumeration<SOCRoad> roadAndShipEnum = player.getRoads().elements();
+
+            SOCShip closest = null;
+            int closeR = -1, closeC = -1;
+            while (roadAndShipEnum.hasMoreElements())
+            {
+                final SOCRoad rs = roadAndShipEnum.nextElement();
+                if (! (rs instanceof SOCShip))
+                    continue;
+
+                final int shipEdge = rs.getCoordinates();
+                final int shipR = shipEdge >> 8, shipC = shipEdge & 0xFF;
+
+                if ((closest == null)
+                    || (shipC < closeC)
+                    || ((shipC == closeC) && (fortR != -1)
+                        && (Math.abs(shipR - fortR) < Math.abs(closeR - fortR))))
+                {
+                    closest = (SOCShip) rs;
+                    closeR = shipR;
+                    closeC = shipC;
+                }
+            }
+
+            scen_SC_PIRI_closestShipToFortress = closest;  // null if no ships
+        }
+    }
+
+    /**
+     * Get the distance from the {@code SOCFortress} of this player's closest ship.
+     * Since ships aren't placed diagonally, this is the distance along rows + columns.
+     * The edge (r,c) has node (r,c) as its left end, at distance 0.
+     * @param ship  Any ship, including {@link #getScenario_SC_PIRI_closestShipToFortress()}
+     * @return row distance + column distance based on piece coordinates;
+     *     or 0 if no fortress which would mean the fortress was reached
+     *     (distance 0) and defeated already.
+     * @since 2.0.00
+     */
+    public int getScenario_SC_PIRI_shipDistanceToFortress(final SOCShip ship)
+    {
+        final SOCFortress fort = player.getFortress();  // may be null towards end of game
+        if (fort == null)
+            return 0;
+
+        final int fortNode = fort.getCoordinates(),
+                  shipEdge = ship.getCoordinates();
+        final int fortR = fortNode >> 8, fortC = fortNode & 0xFF,
+                  shipR = shipEdge >> 8, shipC = shipEdge & 0xFF;
+
+        return Math.abs(fortR - shipR) + Math.abs(fortC - shipC);
     }
 
     /**
