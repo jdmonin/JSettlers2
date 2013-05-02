@@ -1097,7 +1097,7 @@ public class SOCPlayerTracker
     }
 
     /**
-     * For scenario {@code _SC_PIRI}, get the player's ship closest to the Fortress (the ship farthest west).
+     * For scenario {@code _SC_PIRI}, get the player's ship closest to their Fortress (the ship farthest west).
      * Updated by {@link #updateScenario_SC_PIRI_closestShipToFortress(SOCShip, boolean)}.
      * @return the closest ship in scenario {@code _SC_PIRI}; {@code null} otherwise.
      * @see #getScenario_SC_PIRI_shipDistanceToFortress(SOCShip)
@@ -1109,11 +1109,12 @@ public class SOCPlayerTracker
     }
 
     /**
-     * For scenario {@code _SC_PIRI}, update the player's ship closest to the Fortress.
+     * For scenario {@code _SC_PIRI}, update the player's ship closest to their Fortress.
      * Assumes no ship will ever be west of the fortress (smaller column number).
-     * Call after adding or removing the ship from our player's {@link SOCPlayer#getRoads()}.
+     * Must be called after adding or removing a ship from our player's {@link SOCPlayer#getRoads()}.
      * @param ship  Ship that was added or removed, or {@code null} to check all ships after removal
      * @param shipAdded  True if {@code ship} was added; false if {@code ship} or any other ship was removed
+     *            or if we're updating Closest Ship without adding or removing a ship
      * @throws IllegalArgumentException if {@code shipAdded} is true, but null {@code ship}
      * @since 2.0.00
      */
@@ -1123,7 +1124,7 @@ public class SOCPlayerTracker
         if (shipAdded && (ship == null))
             throw new IllegalArgumentException();
 
-        if (scen_SC_PIRI_closestShipToFortress == null)
+        if ((scen_SC_PIRI_closestShipToFortress == null) && (ship != null))
         {
             if (shipAdded)
                 scen_SC_PIRI_closestShipToFortress = ship;  // closest by default
@@ -1131,27 +1132,21 @@ public class SOCPlayerTracker
             return;  // <--- Early return: no other ships to compare ---
         }
 
-        // assert scen_SC_PIRI_closestShipToFortress != null
-
         if (! shipAdded)
         {
             // A ship has been removed.  If we know what ship, and
             // it's not the closest ship, we don't need to do anything.
 
-            if ((ship != null) && (ship.getCoordinates() != scen_SC_PIRI_closestShipToFortress.getCoordinates()))
+            if ((ship != null) && (scen_SC_PIRI_closestShipToFortress != null)
+                && (ship.getCoordinates() != scen_SC_PIRI_closestShipToFortress.getCoordinates()))
                 return;  // <--- Early return: Not the closest ship ---
         }
 
         final SOCFortress fort = player.getFortress();  // may be null towards end of game
             // If fort's null, we can still compare columns, just not rows, of ship coordinates.
-        final int fortR;
-        if (fort != null)
-        {
-            final int fortNode = fort.getCoordinates();
-            fortR = fortNode >> 8;
-        } else {
-            fortR = -1;
-        }
+        final int fortR = (fort != null)
+            ? (fort.getCoordinates() >> 8)
+            : -1;
 
         if (shipAdded)
         {
@@ -1198,8 +1193,8 @@ public class SOCPlayerTracker
     }
 
     /**
-     * Get the distance from the {@code SOCFortress} of this player's closest ship.
-     * Since ships aren't placed diagonally, this is the distance along rows + columns.
+     * For scenario {@code _SC_PIRI}, get the distance of this player's closest ship from their
+     * {@code SOCFortress}. Since ships aren't placed diagonally, this is the distance along rows + columns.
      * The edge (r,c) has node (r,c) as its left end, at distance 0.
      * @param ship  Any ship, including {@link #getScenario_SC_PIRI_closestShipToFortress()}
      * @return row distance + column distance based on piece coordinates;
@@ -1219,6 +1214,57 @@ public class SOCPlayerTracker
                   shipR = shipEdge >> 8, shipC = shipEdge & 0xFF;
 
         return Math.abs(fortR - shipR) + Math.abs(fortC - shipC);
+    }
+
+    /**
+     * For scenario {@code _SC_PIRI}, get the player's next potential ship towards their Fortress.
+     * If fortress was already defeated, or they have no boats, returns {@code null}.
+     *<P>
+     * This is calculated every time, not cached, because potential-ships list may change often.
+     * Calls {@link #updateScenario_SC_PIRI_closestShipToFortress(SOCShip, boolean)} if closest ship not known.
+     *
+     * @return Next potential ship, or {@code null}
+     * @since 2.0.00
+     */
+    SOCPossibleShip recalcScenario_SC_PIRI_nextPotentialShip()
+    {
+        final SOCFortress fort = player.getFortress();  // may be null towards end of game
+        if (fort == null)
+            return null;  // <--- Early return: already defeated fortress ---
+        final int fortR = fort.getCoordinates() >> 8;
+
+        if (scen_SC_PIRI_closestShipToFortress == null)
+            updateScenario_SC_PIRI_closestShipToFortress(null, false);
+
+        final SOCShip closest = scen_SC_PIRI_closestShipToFortress;
+        if (closest == null)
+            return null;  // <--- Early return: no ships ---
+        final Vector<Integer> closestAdjacs =
+            ((SOCBoardLarge) player.getGame().getBoard()).getAdjacentEdgesToEdge(closest.getCoordinates());
+
+        SOCPossibleShip nextShip = null;
+        int nextR = -1, nextC = -1;
+        for (Integer edge : closestAdjacs)
+        {
+            final SOCPossibleRoad rs = possibleRoads.get(edge);
+            if ((rs == null) || ! (rs instanceof SOCPossibleShip))
+                continue;
+
+            final int shipEdge = rs.getCoordinates();
+            final int shipR = shipEdge >> 8, shipC = shipEdge & 0xFF;
+
+            if ((nextShip == null)
+                || (shipC < nextC)
+                || ((shipC == nextC)
+                    && (Math.abs(shipR - fortR) < Math.abs(nextR - fortR))))
+            {
+                nextShip = (SOCPossibleShip) rs;
+                nextR = shipR;
+                nextC = shipC;
+            }
+        }
+
+        return nextShip;
     }
 
     /**
