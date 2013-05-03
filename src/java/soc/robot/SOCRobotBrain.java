@@ -2475,21 +2475,15 @@ public class SOCRobotBrain extends Thread
             break;
 
         case SOCPlayingPiece.SETTLEMENT:
-
-            SOCSettlement se = new SOCSettlement(pl, coord, null);
-            game.putPiece(se);
+            game.putPiece(new SOCSettlement(pl, coord, null));
             break;
 
         case SOCPlayingPiece.CITY:
-
-            SOCCity ci = new SOCCity(pl, coord, null);
-            game.putPiece(ci);
+            game.putPiece(new SOCCity(pl, coord, null));
             break;
 
         case SOCPlayingPiece.VILLAGE:
-
-            SOCVillage vi = new SOCVillage(coord, game.getBoard());
-            game.putPiece(vi);
+            game.putPiece(new SOCVillage(coord, game.getBoard()));
             break;
         }
     }

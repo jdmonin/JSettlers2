@@ -1432,6 +1432,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * handle the "put piece" message
+     *<P>
+     * See also {@code SOCRobotBrain.handlePUTPIECE_updateGameData(SOCPutPiece)}.
      * @param mes  the message
      */
     protected void handlePUTPIECE(SOCPutPiece mes)
@@ -1441,31 +1443,24 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga != null)
         {
             SOCPlayer pl = ga.getPlayer(mes.getPlayerNumber());
+            final int coord = mes.getCoordinates();
 
             switch (mes.getPieceType())
             {
             case SOCPlayingPiece.ROAD:
-
-                SOCRoad rd = new SOCRoad(pl, mes.getCoordinates(), null);
-                ga.putPiece(rd);
+                ga.putPiece(new SOCRoad(pl, coord, null));
                 break;
 
             case SOCPlayingPiece.SETTLEMENT:
-
-                SOCSettlement se = new SOCSettlement(pl, mes.getCoordinates(), null);
-                ga.putPiece(se);
+                ga.putPiece(new SOCSettlement(pl, coord, null));
                 break;
 
             case SOCPlayingPiece.CITY:
-
-                SOCCity ci = new SOCCity(pl, mes.getCoordinates(), null);
-                ga.putPiece(ci);
+                ga.putPiece(new SOCCity(pl, coord, null));
                 break;
 
             case SOCPlayingPiece.VILLAGE:
-
-                SOCVillage vi = new SOCVillage(mes.getCoordinates(), ga.getBoard());
-                ga.putPiece(vi);
+                ga.putPiece(new SOCVillage(coord, ga.getBoard()));
                 break;
 
             }
