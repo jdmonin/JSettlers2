@@ -67,8 +67,6 @@ import soc.message.SOCSetTurn;
 import soc.message.SOCSitDown;  // for javadoc
 import soc.message.SOCTurn;
 
-import soc.server.SOCServer;
-
 import soc.util.CappedQueue;
 import soc.util.DebugRecorder;
 import soc.util.Queue;
@@ -3642,7 +3640,7 @@ public class SOCRobotBrain extends Thread
      *  but won't leave the game if we've failed too many times.
      *  The brain's run loop should make that decision.
      *
-     * @param mes Cancelmessage from server, including piece type
+     * @param mes  Cancel message from server, including piece type
      */
     protected void cancelWrongPiecePlacement(SOCCancelBuildRequest mes)
     {
@@ -3651,6 +3649,7 @@ public class SOCRobotBrain extends Thread
         {
             waitingForDevCard = false;
         } else {
+            waitingForGameState = false;
             whatWeFailedToBuild = whatWeWantToBuild;
             ++failedBuildingAttempts;
         }
@@ -3722,7 +3721,6 @@ public class SOCRobotBrain extends Thread
              */
             whatWeWantToBuild = null;
             buildingPlan.clear();
-            waitingForGameState = false;
         }
 
         /**
@@ -3752,6 +3750,7 @@ public class SOCRobotBrain extends Thread
                 // special building, currently in state PLACING_* ;
                 // get our resources back, get state PLAY1 or SPECIALBUILD
                 waitingForGameState = true;
+                expectPLAY1 = true;
                 client.cancelBuildRequest(game, mes.getPieceType());
             }
         }
