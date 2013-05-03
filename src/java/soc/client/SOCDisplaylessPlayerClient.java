@@ -1459,6 +1459,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 ga.putPiece(new SOCCity(pl, coord, null));
                 break;
 
+            case SOCPlayingPiece.FORTRESS:
+                ga.putPiece(new SOCFortress(pl, coord, ga.getBoard()));
+                break;
+
             case SOCPlayingPiece.VILLAGE:
                 ga.putPiece(new SOCVillage(coord, ga.getBoard()));
                 break;

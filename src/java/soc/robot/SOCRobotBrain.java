@@ -29,6 +29,7 @@ import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
+import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
@@ -2480,6 +2481,10 @@ public class SOCRobotBrain extends Thread
 
         case SOCPlayingPiece.CITY:
             game.putPiece(new SOCCity(pl, coord, null));
+            break;
+
+        case SOCPlayingPiece.FORTRESS:
+            game.putPiece(new SOCFortress(pl, coord, null));
             break;
 
         case SOCPlayingPiece.VILLAGE:
