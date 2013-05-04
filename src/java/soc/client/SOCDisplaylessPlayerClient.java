@@ -547,8 +547,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * a player built something
              */
             case SOCMessage.PUTPIECE:
-                handlePUTPIECE((SOCPutPiece) mes);
-
+                {
+                    final SOCPutPiece ppm = (SOCPutPiece) mes;
+                    handlePUTPIECE(ppm, games.get(ppm.getGame()));
+                }
                 break;
 
             /**
@@ -1433,19 +1435,22 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * handle the "put piece" message
      *<P>
-     * See also {@code SOCRobotBrain.handlePUTPIECE_updateGameData(SOCPutPiece)}.
+     * This method is public static for access by
+     * {@code SOCRobotBrain.handlePUTPIECE_updateGameData(SOCPutPiece)}.
      * @param mes  the message
+     * @param ga  Message's game from {@link SOCPutPiece#getGame()}; if {@code null}, message is ignored
      */
-    protected void handlePUTPIECE(SOCPutPiece mes)
+    public static void handlePUTPIECE(final SOCPutPiece mes, SOCGame ga)
     {
-        SOCGame ga = games.get(mes.getGame());
-
         if (ga != null)
         {
-            SOCPlayer pl = ga.getPlayer(mes.getPlayerNumber());
+            final int pieceType = mes.getPieceType();
             final int coord = mes.getCoordinates();
+            final SOCPlayer pl = (pieceType != SOCPlayingPiece.VILLAGE)
+                ? ga.getPlayer(mes.getPlayerNumber())
+                : null;
 
-            switch (mes.getPieceType())
+            switch (pieceType)
             {
             case SOCPlayingPiece.ROAD:
                 ga.putPiece(new SOCRoad(pl, coord, null));

@@ -2444,13 +2444,7 @@ public class SOCRobotBrain extends Thread
      */
     private void handlePUTPIECE_updateGameData(SOCPutPiece mes)
     {
-        final int coord = mes.getCoordinates();
-        final int pieceType = mes.getPieceType();
-        final SOCPlayer pl = (pieceType != SOCPlayingPiece.VILLAGE)
-            ? game.getPlayer(mes.getPlayerNumber())
-            : null;
-
-        switch (pieceType)
+        switch (mes.getPieceType())
         {
         case SOCPlayingPiece.SHIP:  // fall through to ROAD
         case SOCPlayingPiece.ROAD:
@@ -2467,28 +2461,10 @@ public class SOCRobotBrain extends Thread
                 if (se != null)
                     trackNewSettlement(se, false);
             }
-            SOCRoad rd;
-            if (pieceType == SOCPlayingPiece.ROAD)
-                rd = new SOCRoad(pl, coord, null);
-            else
-                rd = new SOCShip(pl, coord, null);
-            game.putPiece(rd);
-            break;
+            // fall through to default
 
-        case SOCPlayingPiece.SETTLEMENT:
-            game.putPiece(new SOCSettlement(pl, coord, null));
-            break;
-
-        case SOCPlayingPiece.CITY:
-            game.putPiece(new SOCCity(pl, coord, null));
-            break;
-
-        case SOCPlayingPiece.FORTRESS:
-            game.putPiece(new SOCFortress(pl, coord, null));
-            break;
-
-        case SOCPlayingPiece.VILLAGE:
-            game.putPiece(new SOCVillage(coord, game.getBoard()));
+        default:
+            SOCDisplaylessPlayerClient.handlePUTPIECE(mes, game);
             break;
         }
     }

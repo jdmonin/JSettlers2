@@ -1419,7 +1419,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle the "put piece" message
      * @param mes  the message
      */
-    @Override
     protected void handlePUTPIECE(SOCPutPiece mes)
     {
         CappedQueue<SOCMessage> brainQ = brainQs.get(mes.getGame());
