@@ -1836,6 +1836,17 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Has any player built a city?
+     * Used with house-rule {@link SOCGameOption game option} {@code "N7C"}.
+     * @return  True if {@link #putPiece}({@link SOCCity}) has been called
+     * @since 2.0.00
+     */
+    public boolean hasBuiltCity()
+    {
+        return hasBuiltCity;
+    }
+
+    /**
      * @return the current dice result
      */
     public int getCurrentDice()
