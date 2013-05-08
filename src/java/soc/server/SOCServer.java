@@ -10624,8 +10624,10 @@ public class SOCServer extends Server
      * Complete steps 3 - n of the board-reset process
      * outlined in {@link #resetBoardAndNotify(String, int)},
      * after any robots have left the old game.
-     * @param reBoard
-     * @param reGame
+     * @param reBoard  Board reset data, from {@link SOCGameListAtServer#resetBoard(String)}
+     *                   or {@link SOCGame#boardResetOngoingInfo reGame.boardResetOngoingInfo}
+     * @param reGame   The new game created by the reset, with gamestate {@link SOCGame#NEW NEW}
+     *                   or {@link SOCGame#READY_RESET_WAIT_ROBOT_DISMISS READY_RESET_WAIT_ROBOT_DISMISS}
      * @since 1.1.07
      */
     private void resetBoardAndNotify_finish(SOCGameBoardReset reBoard, SOCGame reGame)
