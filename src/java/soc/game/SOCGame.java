@@ -4657,6 +4657,7 @@ public class SOCGame implements Serializable, Cloneable
         if ((gameState == PLAY) && (currentDice == 7))
         {
             rollDice_update7gameState();  // from win vs pirate fleet at dice roll (SC_PIRI)
+                // -- may set gameState to WAITING_FOR_DISCARDS, etc; see javadoc. 
         } else {
             for (int i = 0; i < maxPlayers; i++)
             {

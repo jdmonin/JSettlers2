@@ -6796,7 +6796,7 @@ public class SOCServer extends Server
                 throw new IllegalArgumentException("player not found in game");
             }
 
-            final int gstate = ga.getGameState();
+            int gstate = ga.getGameState();
             final SOCResourceSet rsrcs = mes.getResources();
             if (ga.canPickGoldHexResources(pn, rsrcs))
             {
@@ -6804,6 +6804,7 @@ public class SOCServer extends Server
                 final boolean fromPirateFleet = ga.isPickResourceIncludingPirateFleet(pn);
 
                 ga.pickGoldHexResources(pn, rsrcs);
+                gstate = ga.getGameState();
 
                 /**
                  * tell everyone what the player gained
