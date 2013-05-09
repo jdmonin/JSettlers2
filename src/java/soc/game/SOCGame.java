@@ -3178,6 +3178,9 @@ public class SOCGame implements Serializable, Cloneable
      * undo the putting of a temporary or initial piece
      * or a ship being moved.
      * If state is START2B or START3B and resources were given, they will be returned.
+     *<P>
+     * If a ship is removed in scenario {@code _SC_PIRI}, makes sure its player's
+     * {@link SOCPlayer#getNumWarships()} is never more than the number of their ships on the board.
      *
      * @param pp  the piece to remove from the board
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
@@ -5146,7 +5149,8 @@ public class SOCGame implements Serializable, Cloneable
      * This can happen at most once per turn: Attacking the fortress always ends the player's turn.
      * Assumes {@link #canAttackPirateFortress()} called first, to validate and get the {@code adjacent} ship.
      *<P>
-     * Before calling, call {@link SOCPlayer#getFortress()} so that you can get its new strength afterwards.
+     * Before calling, call {@link SOCPlayer#getFortress()} so that you can get its new strength afterwards,
+     * and call {@link SOCPlayer#getNumWarships()} in case the player doesn't win and the ship they lose is a warship.
      *<P>
      * The player's fleet strength ({@link SOCPlayer#getNumWarships()}) will be compared to a pirate defense
      * strength of 1 to 6 (random).  Players lose 1 ship on a tie, 2 ships if defeated by the pirates.

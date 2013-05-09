@@ -2918,6 +2918,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *           for removing settlements or cities.
      * It does update potential road lists.
      * For roads, updates {@link #roadNodes} and {@link #roadNodeGraph}.
+     *<P>
+     * If a ship is removed in scenario {@code _SC_PIRI}, makes sure our {@link #getNumWarships()}
+     * is never more than the number of ships on the board.
      *
      * @param piece  Our player's piece, to be removed from the board
      * @param replacementPiece  Piece that's replacing this piece; usually null unless player is upgrading to a city.
@@ -2963,6 +2966,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 case SOCPlayingPiece.ROAD:
                     roads.removeElement(p);
                     numPieces[ptype]++;
+
+                    if (ptype == SOCPlayingPiece.SHIP)
+                    {
+                        final int shipsPlaced = SHIP_COUNT - numPieces[ptype];
+                        if (numWarships > shipsPlaced)
+                            numWarships = shipsPlaced;
+                    }
 
                     int[] edgeNodeCoords = new int[2];  // will hold edge's adjacent nodes
 
