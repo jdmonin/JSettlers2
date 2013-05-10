@@ -13,6 +13,7 @@ CONTENTS
 - Tips for debugging
 - Setup instructions for JSettlers as an Eclipse project
 	(although you may use any IDE you want)
+- Build setup and output
 - Current partially-done work
 - Current TODO list
 - Coding Style
@@ -129,6 +130,34 @@ Java applications:
   socserver-sqlite  soc.server.SOCServer
      arguments: -o NT=t -o NT=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.startrobots=7
                 -Djsettlers.allow.debug=Y 44203 20 dbuser dbpass
+
+
+Build Setup and Output
+----------------------
+Before building, make sure you have the Java Development Kit version 5 or later.
+If you simply want to run the client and server, you only need the Java Runtime (JRE).
+If you wish to maintain a user database for your server, you need MySQL or PostgreSQL
+installed and configured, or the sqlite jdbc driver for a file-based local database.
+
+This package was designed to build with eclipse, or with the ANT tool available
+from http://ant.apache.org tools.  We assume you have installed it correctly.
+
+Check the "build.properties" file. There may be build variables you
+may want to change locally. These can also be changed from the command
+line if calling ant that way, by passing a "-Dname=value" parameter.
+
+There are several build targets, here are the most useful ones:
+
+ build      Create project jar files. (default)
+ clean      Cleans the project of all generated files
+ compile    Compile class files into "target/classes"
+ dist       Build distribution tarballs and zips.
+ javadoc    Creates JavaDoc files in "target/docs/api"
+ src        Create a tarball of the source tree
+
+All files created by building are in the "target" directory, including
+JARs, Java .class files, and JavaDoc files. Distribution tarballs, zip
+files, and installation files are placed in "dist".
 
 
 If you want to configure a sqlite database for testing
