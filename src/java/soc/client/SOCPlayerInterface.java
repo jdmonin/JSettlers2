@@ -1207,8 +1207,8 @@ public class SOCPlayerInterface extends Frame
                 }
             }
 
-            String msg = s + '\n';
-            if (!doLocalCommand(msg))
+            final String msg = s + '\n';
+            if (! doLocalCommand(msg))
                 client.getGameManager().sendText(game, msg);
 
             if (sOverflow != null)
@@ -1232,6 +1232,9 @@ public class SOCPlayerInterface extends Frame
      */
     private boolean doLocalCommand(String cmd)
     {
+        if (cmd.charAt(0) != '\\')
+            return false;
+
         if (cmd.startsWith("\\ignore "))
         {
             String name = cmd.substring(8);
