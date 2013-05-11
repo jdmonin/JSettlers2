@@ -4798,6 +4798,8 @@ public class SOCServer extends Server
         if (ga == null)
             return;  // <---- early return: no game by that name ----
 
+        final String plName = (String) c.getData();
+
         //currentGameEventRecord.setSnapshot(ga);
         ///
         /// command to add time to a game
@@ -4888,7 +4890,7 @@ public class SOCServer extends Server
         // 1.1.07: all practice games are debug mode, for ease of debugging;
         //         not much use for a chat window in a practice game anyway.
         //
-        else if ((allowDebugUser && c.getData().equals("debug")) || (c instanceof LocalStringConnection))
+        else if ((allowDebugUser && plName.equals("debug")) || (c instanceof LocalStringConnection))
         {
             if (cmdTxtUC.startsWith("RSRCS:"))
             {
@@ -4902,10 +4904,12 @@ public class SOCServer extends Server
             {
                 if (! ((cmdText.charAt(0) == '*')
                         && processDebugCommand(c, ga.getName(), cmdText)))
-                //
-                // Send the message to the members of the game
-                //
-                messageToGame(gaName, new SOCGameTextMsg(gaName, (String) c.getData(), cmdText));
+                {
+                    //
+                    // Send the message to the members of the game
+                    //
+                    messageToGame(gaName, new SOCGameTextMsg(gaName, plName, cmdText));
+                }
             }
         }
         else
@@ -4913,7 +4917,7 @@ public class SOCServer extends Server
             //
             // Send the message to the members of the game
             //
-            messageToGame(gaName, new SOCGameTextMsg(gaName, (String) c.getData(), cmdText));
+            messageToGame(gaName, new SOCGameTextMsg(gaName, plName, cmdText));
         }
 
         //saveCurrentGameEventRecord(gameTextMsgMes.getGame());
