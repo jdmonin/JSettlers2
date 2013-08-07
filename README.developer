@@ -249,9 +249,9 @@ Current TODO list
 		put the message into brainQ, but only update game fields/
 		methods, into SOCDisplayless if possible.
 	- Refactor: SOCGameOption static methods to check and change values within a set
-	- Some way to mark bot seats so they are locked out when the board is reset after a game
-		Possibly right-click the robot icon for a menu/popup to set this
-		So, you could reset to start a new game with fewer/no bots
+	- refactor: name of dev-cards consolidate
+	- refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
+		current SOCResourceConstants.CLAY vs SOCPlayerElement.CLAY
 	- At board reset, game observers not currently handled properly
 	- Property for read-only database use without errors
 	- Game "owner" with extra powers (kick out player, etc)
@@ -266,9 +266,7 @@ Current TODO list
 		- robot support
 	- Refactor: combine the cli/displayless/robot endturn-like methods
 		ex. search for ga.setCurrentDice(0), or newToOld, or ga.resetVoteClear
-	- refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
-		current SOCResourceConstants.CLAY vs SOCPlayerElement.CLAY
-	- refactor: name of dev-cards consolidate
+
 
 
 Coding Style
