@@ -109,29 +109,11 @@ Setup instructions for JSettlers as an Eclipse project
 
 - choose File -> New -> Project... -> Java Project from Existing Ant Buildfile.
 - Browse to jsettlers-1.1.xx-src/build.xml, select the "javac" task in target "compile".
-- You'll need to build once before you run it, to create version.info from resources/version.info.in.
+  Check "Link to the buildfile in the file system", hit Finish.
 - Project -> Properties: Resource: Text file encoding: UTF-8
+- You'll need to build once before you run it, to create version.info from resources/version.info.in.
 
-See below for how to set up the coding style in Eclipse.
-
-In my Eclipse project, I've created these debug/run configurations for testing:
-
-Java applet: soc.client.SOCPlayerClient$SOCApplet
-   width 600, height 340
-   parameters: PORT = 44203
-
-Java applications:
-  cli-noargs  soc.client.SOCPlayerClient
-  robot1      soc.robot.SOCRobotClient
-     arguments: localhost 44203 robot1 r1
-  robot2      soc.robot.SOCRobotClient
-     arguments: localhost 44203 robot2 r2
-  socserver   soc.server.SOCServer
-     arguments: -o NT=t -o PL=5 -Djsettlers.startrobots=7 -Djsettlers.client.maxcreategames=2
-                -Djsettlers.allow.debug=Y 44203 20 dbuser dbpass
-  socserver-sqlite  soc.server.SOCServer
-     arguments: -o NT=t -o NT=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.startrobots=7
-                -Djsettlers.allow.debug=Y 44203 20 dbuser dbpass
+Continue reading to see how to set up the builds and the coding style in Eclipse.
 
 
 Build Setup and Output
@@ -160,6 +142,28 @@ There are several build targets, here are the most useful ones:
 All files created by building are in the "target" directory, including
 JARs, Java .class files, and JavaDoc files. Distribution tarballs, zip
 files, and installation files are placed in "dist".
+
+
+Recommended debug/run configurations for testing
+------------------------------------------------
+  In my Eclipse project, I've created these debug/run configurations:
+
+Java applet: soc.client.SOCPlayerClient$SOCApplet
+   width 600, height 340
+   parameters: PORT = 44203
+
+Java applications:
+  cli-noargs  soc.client.SOCPlayerClient
+  robot1      soc.robot.SOCRobotClient
+     arguments: localhost 44203 robot1 r1
+  robot2      soc.robot.SOCRobotClient
+     arguments: localhost 44203 robot2 r2
+  socserver   soc.server.SOCServer
+     arguments: -o NT=t -o PL=5 -Djsettlers.startrobots=7 -Djsettlers.client.maxcreategames=2
+                -Djsettlers.allow.debug=Y 44203 20 dbuser dbpass
+  socserver-sqlite  soc.server.SOCServer
+     arguments: -o NT=t -o NT=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.startrobots=7
+                -Djsettlers.allow.debug=Y 44203 20 dbuser dbpass
 
 
 If you want to configure a sqlite database for testing
@@ -271,6 +275,8 @@ Current TODO list
 
 Coding Style
 ------------
+Scroll down a bit if you just want to see how to set up the style in Eclipse.
+
 This is the project's coding style, based on the original authors' style.
 Although we may not agree with every detail of it, for consistency's sake,
 please keep the conventions of the code that's already there.
@@ -330,11 +336,12 @@ Here's how to set up the coding style in Eclipse:
 	project properties -> java compiler -> configure workspace settings
 	  compiler compliance level: 1.5
 
-	prefs -> java -> code style -> formatter -> Click "Configure Project Specific Settings"
+	prefs -> java -> code style -> formatter
+		Click "Enable Project Specific Settings", then New
 		{
-		based on Eclipse built-in standard
-
-		Profile name: 'jsettlers' (apply)
+		Profile name: 'jsettlers'
+		"based on Eclipse built-in standard"
+		[X] Open the edit dialog now
 
 		(Indentation)
 		Tab policy: Spaces only
