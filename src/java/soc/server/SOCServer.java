@@ -34,6 +34,7 @@ import soc.server.genericServer.LocalStringConnection;
 import soc.server.genericServer.Server;
 import soc.server.genericServer.StringConnection;
 
+import soc.util.I18n;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;  // used in javadoc
 import soc.util.SOCRobotParameters;
@@ -10012,9 +10013,7 @@ public class SOCServer extends Server
 
             if (devCards.getNumVPCards() > 0)
             {
-                msg = pl.getName() + " has ";
-                int vpCardCount = 0;
-
+                ArrayList<String> vpCardNames = new ArrayList<String>();
                 for (int devCardType = SOCDevCardConstants.MIN_KNOWN;
                          devCardType < SOCDevCardConstants.MAXPLUSONE;
                          devCardType++)
@@ -10022,26 +10021,15 @@ public class SOCServer extends Server
                     if (! SOCDevCard.isVPCard(devCardType))
                         continue;
 
-                    if (devCards.getAmount(devCardType) > 0)
-                    {
-                        if (vpCardCount > 0)
-                        {
-                            if ((devCards.getNumVPCards() - vpCardCount) == 1)
-                            {
-                                msg += " and ";
-                            }
-                            else if ((devCards.getNumVPCards() - vpCardCount) > 0)
-                            {
-                                msg += ", ";
-                            }
-                        }
+                    if (devCards.getAmount(devCardType) <= 0)
+                        continue;
 
-                        vpCardCount++;
-                        msg += SOCDevCard.getCardTypeName(devCardType, ga, true);  // "a Gov.House (+1VP)";
-                    }
+                    vpCardNames.add(SOCDevCard.getCardTypeName(devCardType, ga, true));  // "a Gov.House (+1VP)";
+
                 }  // for each devcard type
 
-                messageToGame(gname, msg);
+                messageToGame(gname, MessageFormat.format
+                    ( /*I*/"{0} has {1}."/*18N*/, pl.getName(), I18n.listItems(vpCardNames)));
 
             }  // if devcards
         }  // for each player
