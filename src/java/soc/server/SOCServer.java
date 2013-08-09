@@ -51,6 +51,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -509,6 +510,14 @@ public class SOCServer extends Server
     protected int numberOfUsers;
 
     /**
+     * Client version count stats since startup (includes bots).
+     * Incremented from {@link #handleVERSION(StringConnection, SOCVersion)};
+     * currently assumes single-threaded access to this map.
+     * @since 2.0.00
+     */
+    protected HashMap<Integer, Integer> clientPastVersionStats;
+
+    /**
      * server robot pinger
      */
     SOCServerRobotPinger serverRobotPinger;
@@ -768,6 +777,7 @@ public class SOCServer extends Server
         numberOfGamesStarted = 0;
         numberOfGamesFinished = 0;
         numberOfUsers = 0;
+        clientPastVersionStats = new HashMap<Integer, Integer>();
         serverRobotPinger = new SOCServerRobotPinger(this, robots);
         serverRobotPinger.start();
         gameTimeoutChecker = new SOCGameTimeoutChecker(this);
@@ -4443,6 +4453,14 @@ public class SOCServer extends Server
                     (SOCStatusMessage.SV_OK_DEBUG_MODE_ON, cvers,
                      "Debugging is On.  Welcome to Java Settlers of Catan!"));                    
 
+        // Increment version stats; currently assumes single-threaded access to the map.
+        // We don't know yet if client is a bot, so bots are included in the stats.
+        final Integer cversObj = Integer.valueOf(cvers);
+        final int prevCount;
+        Integer prevCObj = clientPastVersionStats.get(cversObj);
+        prevCount = (prevCObj != null) ? prevCObj.intValue() : 0;
+        clientPastVersionStats.put(cversObj, Integer.valueOf(1 + prevCount));
+
         // This client version is OK to connect
         return true;
     }
@@ -4854,6 +4872,20 @@ public class SOCServer extends Server
             messageToPlayer(c, gaName, "> Free Memory: " + rt.freeMemory());
             messageToPlayer(c, gaName, "> Version: "
                 + Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum());
+
+            if (! clientPastVersionStats.isEmpty())
+            {
+                if (clientPastVersionStats.size() == 1)
+                {
+                    messageToPlayer(c, gaName, "> Client versions since startup: all "
+                            + Version.version(clientPastVersionStats.keySet().iterator().next()));
+                } else {
+                    // TODO sort it
+                    messageToPlayer(c, gaName, "> Client versions since startup: (includes bots)");
+                    for (Integer v : clientPastVersionStats.keySet())
+                        messageToPlayer(c, gaName, ">   " + Version.version(v) + ": " + clientPastVersionStats.get(v));
+                }
+            }
 
             processDebugCommand_checktime(c, gaName, ga);
         }
