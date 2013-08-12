@@ -5340,6 +5340,10 @@ public class SOCPlayerClient
          * Hostname we're connected to, or null
          */
         private String host;
+
+        /**
+         * TCP port we're connected to; default is {@link #SOC_PORT_DEFAULT}.
+         */
         private int port = SOC_PORT_DEFAULT;
         
         /**
@@ -5496,7 +5500,7 @@ public class SOCPlayerClient
             return true;
         }
 
-        /** Port number of the tcp server we're a client of */
+        /** Port number of the tcp server we're a client of; default is {@link #SOC_PORT_DEFAULT}. */
         public int getPort()
         {
             return port;
@@ -5525,6 +5529,8 @@ public class SOCPlayerClient
          * Before 1.1.06, the server's response was first,
          * and version was sent in reply to server's version.
          *
+         * @param chost  Server host to connect to, or {@code null} for localhost
+         * @param port   Server TCP port to connect to; the default server port is {@link ClientNetwork#SOC_PORT_DEFAULT}.
          * @throws IllegalStateException if already connected
          * @see soc.server.SOCServer#newConnection1(StringConnection)
          */
