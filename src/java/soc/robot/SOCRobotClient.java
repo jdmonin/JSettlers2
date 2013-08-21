@@ -122,6 +122,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     private static final int DEBUGRANDOMPAUSE_SECONDS = 12;
 
     /**
+     * The security cookie value; required by server v1.1.19 and higher.
+     * @since 1.1.19
+     */
+    private String cookie = null;
+
+    /**
      * the thread that reads incoming messages
      */
     private Thread readerRobot;
@@ -255,7 +261,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             //resetThread = new SOCRobotResetThread(this);
             //resetThread.start();
             put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
-            put(SOCImARobot.toCmd(nickname, SOCImARobot.RBCLASS_BUILTIN));
+            put(SOCImARobot.toCmd(nickname, cookie, SOCImARobot.RBCLASS_BUILTIN));
         }
         catch (Exception e)
         {
@@ -295,7 +301,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             //resetThread = new SOCRobotResetThread(this);
             //resetThread.start();
             put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
-            put(SOCImARobot.toCmd(nickname, SOCImARobot.RBCLASS_BUILTIN));
+            put(SOCImARobot.toCmd(nickname, cookie, SOCImARobot.RBCLASS_BUILTIN));
         }
         catch (Exception e)
         {
