@@ -353,6 +353,14 @@ public class SOCServer extends Server
     private long srvShutPasswordExpire;
 
     /**
+     * Randomly generated cookie string required for robot clients to connect
+     * and identify as bots using {@link SOCImARobot}.
+     * It isn't sent encrypted and is a weak "shared secret".
+     * @since 1.1.19
+     */
+    private final String robotCookie = generateRobotCookie();
+
+    /**
      * A list of robot {@link StringConnection}s connected to this server.
      * @see SOCPlayerLocalRobotRunner#robotClients
      */
@@ -909,6 +917,35 @@ public class SOCServer extends Server
                 System.err.println("Not starting robots: Bad number format, ignoring property " + PROP_JSETTLERS_STARTROBOTS);
             }
         }
+    }
+
+    /**
+     * The 16 hex characters to use in {@link #generateRobotCookie()}.
+     * @since 1.1.19
+     */
+    private final static char[] GENERATEROBOTCOOKIE_HEX
+        = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+
+    /**
+     * Generate and return a string to use for {@link #robotCookie}.
+     * Currently a lowercase hex string; format or length does not have to be compatible
+     * between versions.  The contents are randomly generated for each server run.
+     * @return Robot connect cookie contents to use for this server
+     * @since 1.1.19
+     */
+    private final String generateRobotCookie()
+    {
+        byte[] rnd = new byte[16];
+        rand.nextBytes(rnd);
+        char[] rndChars = new char[2 * 16];
+        int ic = 0;  // index into rndChars
+        for (int i = 0; i < 16; ++i)
+        {
+            final int byt = rnd[i] & 0xFF;
+            rndChars[ic] = GENERATEROBOTCOOKIE_HEX[byt >>> 4];  ++ic;
+            rndChars[ic] = GENERATEROBOTCOOKIE_HEX[byt & 0x0F];  ++ic;
+        }
+        return new String(rndChars);
     }
 
     /**
@@ -2055,7 +2092,7 @@ public class SOCServer extends Server
             for (int i = 0; i < numFast; ++i)
             {
                 String rname = "droid " + (i+1);
-                SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port);
+                SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
                     // includes yield() and sleep(75 ms) this thread.
             }
 
@@ -2076,7 +2113,7 @@ public class SOCServer extends Server
             for (int i = 0; i < numSmart; ++i)
             {
                 String rname = "robot " + (i+1+numFast);
-                SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port);
+                SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
                     // includes yield() and sleep(75 ms) this thread.
             }
 
@@ -4690,6 +4727,8 @@ public class SOCServer extends Server
      * Handle the "I'm a robot" message.
      * Robots send their {@link SOCVersion} before sending this message.
      * Their version is checked here, must equal server's version.
+     * For stability and control, the cookie in this message must
+     * match this server's {@link #robotCookie}.
      *<P>
      * Sometimes a bot disconnects and quickly reconnects.  In that case
      * this method removes the disconnect/reconnect messages from
@@ -4702,6 +4741,18 @@ public class SOCServer extends Server
     {
         if (c == null)
             return;
+
+        /**
+         * Check the cookie given by this bot.
+         */
+        if (! robotCookie.equals(mes.getCookie()))
+        {
+            String rejectMsg = "Cookie contents do not match the running server.";
+            c.put(new SOCRejectConnection(rejectMsg).toCmd());
+            c.disconnectSoft();
+            System.out.println("Rejected robot " + mes.getNickname() + ": Wrong cookie");
+            return;  // <--- Early return: Robot client didn't send our cookie value ---
+        }
 
         /**
          * Check the reported version; if none, assume 1000 (1.0.00)
@@ -11663,6 +11714,7 @@ public class SOCServer extends Server
          * @param rname  Name of robot
          * @param strSocketName  Server's stringport socket name, or null
          * @param port    Server's tcp port, if <tt>strSocketName</tt> is null
+         * @param cookie  Cookie for robot connections to server
          * @since 1.1.09
          * @see SOCServer#setupLocalRobots(int, int)
          * @throws ClassNotFoundException  if a robot class, or SOCDisplaylessClient,
@@ -11670,14 +11722,14 @@ public class SOCServer extends Server
          * @throws LinkageError  for same reason as ClassNotFoundException
          */
         public static void createAndStartRobotClientThread
-            (final String rname, final String strSocketName, final int port)
+            (final String rname, final String strSocketName, final int port, final String cookie)
             throws ClassNotFoundException, LinkageError
         {
             SOCRobotClient rcli;
             if (strSocketName != null)
-                rcli = new SOCRobotClient(strSocketName, rname, "pw");
+                rcli = new SOCRobotClient(strSocketName, rname, "pw", cookie);
             else
-                rcli = new SOCRobotClient("localhost", port, rname, "pw");
+                rcli = new SOCRobotClient("localhost", port, rname, "pw", cookie);
             Thread rth = new Thread(new SOCPlayerLocalRobotRunner(rcli));
             rth.setDaemon(true);
             rth.start();  // run() will add to robotClients
