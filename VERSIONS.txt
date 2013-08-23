@@ -42,6 +42,10 @@ new features, until 2.0.00 is ready.
 
     > 1.1.19 (build OV20130xxx)
 - Bots connecting require a security cookie, randomly generated at server startup.
+     The built-in bots started automatically by SOCServer will know the cookie value.
+     To set the cookie to a given value, set the jsettlers.bots.cookie parameter.
+     To print the cookie value in order to connect other bots, use -Djsettlers.bots.showcookie=Y
+     when starting the server.
 
     > 1.1.18 (build OV20130402)
 - Reset board: Keep player chat text; Confirm before restarting after end of a practice game
