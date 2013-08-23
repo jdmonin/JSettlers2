@@ -15,6 +15,9 @@ The server may be configured to use a database to store account
 information and game stats (details below).  A client applet to
 create user accounts is also provided.
 
+If you're upgrading from an earlier version of JSettlers, check
+VERSIONS.txt for new features, bug fixes, and config changes.
+
 JSettlers is an open-source project licensed under the GPL. The
 project is hosted at http://sourceforge.net/projects/jsettlers2
 and at http://nand.net/jsettlers/devel/ .  Questions, bugs, and
