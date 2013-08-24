@@ -10267,32 +10267,15 @@ public class SOCServer extends Server
                         if (wins > 0)
                         {
                             if (losses == 0)
-                            {
-                                // losses == 0, so wins must be >= 2
                                 winLossMsg = MessageFormat.format
-                                    ( /*I*/"You have won {0,number} games since connecting."/*18N*/, wins);
-                            }
-                            else if (losses == 1)
-                            {
-                                // win(s) and 1 loss
-                                if (wins == 1)
-                                    winLossMsg = /*I*/"You have won 1 game and lost 1 game since connecting."/*18N*/;
-                                else
-                                    winLossMsg = MessageFormat.format
-                                        ( /*I*/"You have won {0,number} games and lost 1 game since connecting."/*18N*/, wins);
-                            } else {
-                                // win(s) and losses
-                                if (wins == 1)
-                                    winLossMsg = MessageFormat.format
-                                        ( /*I*/"You have won 1 game and lost {0,number} games since connecting."/*18N*/, losses);
-                                else
-                                    winLossMsg = MessageFormat.format
-                                        ( /*I*/"You have won {0,number} games and lost {1,number} games since connecting."/*18N*/, wins, losses);
-                            }
+                                    (/*I*/"You have won {0,choice, 1#1 game|1<{0,number} games} since connecting."/*18N*/, wins);
+                            else
+                                winLossMsg = MessageFormat.format
+                                    (/*I*/"You have won {0,choice, 1#1 game|1<{0,number} games} and lost {1,choice, 1#1 game|1<{1,number} games} since connecting."/*18N*/
+                                     , wins, losses);
                         } else {
-                            // wins == 0, so losses must be >= 2
                             winLossMsg = MessageFormat.format
-                                ( /*I*/"You have lost {0,number} games since connecting."/*18N*/, losses);
+                                (/*I*/"You have lost {0,choice, 1#1 game|1<{0,number} games} since connecting."/*18N*/, losses);
                         }
                         messageToPlayer(plConn, gname, winLossMsg);
                     }
