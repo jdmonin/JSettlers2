@@ -133,13 +133,13 @@ public class SOCGameListAtServer extends SOCGameList
 
         if ((members != null) && (!members.contains(conn)))
         {
-            System.err.println("L139: game " + gaName + " add " + conn);  // JM TEMP
             final boolean firstMember = members.isEmpty();
             members.addElement(conn);
 
             // Check version range
             SOCGame ga = getGameData(gaName);
             final int cliVers = conn.getVersion();
+            System.err.println("L139: game " + gaName + " add " + conn +" v=" + conn.getVersion());  // JM TEMP
             if (firstMember)
             {
                 ga.clientVersionLowest = cliVers;
