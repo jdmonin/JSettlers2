@@ -514,7 +514,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * The board is configured for 6-player layout (and is {@link #isRotated});
-     * set in constructor by checking {@link SOCBoard#getBoardEncodingFormat()}.
+     * set in constructor by checking {@link SOCBoard#getBoardEncodingFormat()}
+     * &lt;= {@link SOCBoard#BOARD_ENCODING_6PLAYER} and {@link SOCGame#maxPlayers} &gt; 4.
+     *<P>
      * The entire coordinate system is land, except the rightmost hexes are unused
      * (7D-DD-D7 row).
      * The 6-player mode uses {@link #hexX_6pl} instead of {@link #hexX_st} for coordinates.
@@ -3158,7 +3160,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int[] ROW_START_HEXNUM = { 0, 4, 9, 15, 22, 28, 33 };
 
     /**
-     * for the 6-player board, draw the ring of surrounding water/ports.
+     * for the 6-player board (if {@link #is6player}), draw the ring of surrounding water/ports.
      * This is outside the coordinate system, and doesn't have hex numbers,
      * and so can't be drawn in the standard drawHex loop.
      * @since 1.1.08
