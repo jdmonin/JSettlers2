@@ -509,6 +509,7 @@ public class SOCServer extends Server
     /**
      * Create a Settlers of Catan server listening on TCP port p.
      * You must start its thread yourself.
+     * Optionally connect to a database for user info and game stats.
      *<P>
      * In 1.1.07 and later, will also print game options to stderr if
      * any option defaults require a minimum client version, or if 
@@ -534,9 +535,19 @@ public class SOCServer extends Server
     /**
      * Create a Settlers of Catan server listening on TCP port p.
      * You must start its thread yourself.
+     * Optionally connect to a database for user info and game stats.
      *<P>
      * The database properties are {@link SOCDBHelper#PROP_JSETTLERS_DB_USER}
      * and {@link SOCDBHelper#PROP_JSETTLERS_DB_PASS}.
+     *<P>
+     * To run a DB setup script to create database tables, send its filename
+     * or relative path as {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP}.
+     *<P>
+     * If a db URL or other DB properties are specified in <tt>props</tt>, but <tt>SOCServer</tt>
+     * can't successfully connect to that database, this constructor throws <tt>SQLException</tt>;
+     * for details see {@link #initSocServer(String, String, Properties)}.
+     * Other constructors can't set those properties, and will instead
+     * continue <tt>SOCServer</tt> startup and run without any database.
      *<P>
      * Will also print game options to stderr if
      * any option defaults require a minimum client version, or if 
@@ -549,7 +560,7 @@ public class SOCServer extends Server
      * @see #PROPS_LIST
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now
-     * @throws SQLException   If db setup script fails
+     * @throws SQLException   If db setup script fails, or need db but can't connect
      */
     public SOCServer(final int p, Properties props)
         throws SocketException, EOFException, SQLException
@@ -599,7 +610,13 @@ public class SOCServer extends Server
      *<P>
      * If there are problems with the network setup ({@link #error} != null),
      * this method will throw {@link SocketException}.
+     *<P>
      * If problems running a {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP db setup script},
+     * this method will throw {@link SQLException}.
+     *<P>
+     *If we can't connect to a database, but it looks like we need one (because
+     * {@link SOCDBHelper#PROP_JSETTLERS_DB_URL}, {@link SOCDBHelper#PROP_JSETTLERS_DB_DRIVER}
+     * or {@link SOCDBHelper#PROP_JSETTLERS_DB_JAR} is specified in <tt>props</tt>),
      * this method will throw {@link SQLException}.
      *<P>
      * If a db setup script runs successfully,
@@ -612,7 +629,7 @@ public class SOCServer extends Server
      *       If <code>props</code> is null, the properties will be created empty.
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now
-     * @throws SQLException   If db setup script fails
+     * @throws SQLException   If db setup script fails, or need db but can't connect
      */
     private void initSocServer(String databaseUserName, String databasePassword, Properties props)
         throws SocketException, EOFException, SQLException
@@ -663,6 +680,16 @@ public class SOCServer extends Server
             {
                 // the sql script was ran by initialize, but failed to complete;
                 // don't continue server startup with just a warning
+                throw x;  // x is SQLException
+            }
+
+            if (props.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_URL)
+                || props.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_JAR)
+                || props.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_DRIVER))
+            {
+                // If other db props were asked for, the user is expecting a DB.
+                // So, fail instead of silently continuing without it.
+                System.err.println("* Exiting because current startup properties specify a database.");
                 throw x;  // x is SQLException
             }
 
@@ -9709,8 +9736,10 @@ public class SOCServer extends Server
             catch (SQLException e)
             {
                 // the sql setup script was ran by initialize, but failed to complete.
+                // or, a db URL was specified and server was unable to connect.
                 // exception detail was printed in initSocServer.
-                System.err.println("\n* DB setup script failed. Exiting now.\n");
+                if (argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP))
+                    System.err.println("\n* DB setup script failed. Exiting now.\n");
                 System.exit(1);
             }
         }

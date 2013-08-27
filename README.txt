@@ -247,6 +247,7 @@ or specify the driver on the SOCServer command line:
 To use SQLite, use a sqlite url like the one shown above, or specify a
 sqlite driver such as:
 	-Djsettlers.db.driver=org.sqlite.JDBC
+If a database URL is given but SOCServer can't connect to the database, it won't continue startup.
 
 Depending on your computer's setup, you may need to point JSettlers at the
 appropriate JDBC drivers, by placing them in your java classpath.
