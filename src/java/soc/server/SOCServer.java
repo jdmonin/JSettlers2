@@ -8765,7 +8765,7 @@ public class SOCServer extends Server
      *    Humans will reset their copy of the game.
      *    Robots will leave the game, and soon be requested to re-join.
      *    (This simplifies the robot client.)
-     *    If the game was already over at reset time, different robots will
+     *    If the game was in initial placement or was already over at reset time, different robots will
      *    be randomly chosen to join the reset game.
      * <LI value=2b> If there were robots, wait for them all to leave the old game.
      *    Otherwise, (race condition) they may leave the new game as it is forming.
@@ -8811,8 +8811,9 @@ public class SOCServer extends Server
                 + plName);
         }
 
-        // If game was over, we'll shuffle the robots
-        final boolean gameWasOverAtReset = (SOCGame.OVER == reBoard.oldGameState);
+        // If game is still initial-placing or was over, we'll shuffle the robots
+        final boolean resetWithShuffledBots =
+            (reBoard.oldGameState < SOCGame.PLAY) || (reBoard.oldGameState == SOCGame.OVER);
 
         /**
          * Player connection data:
@@ -8836,7 +8837,7 @@ public class SOCServer extends Server
                 messageToPlayer(huConns[pn], resetMsg);
             else if (roConns[pn] != null)
             {
-                if (! gameWasOverAtReset)
+                if (! resetWithShuffledBots)
                     messageToPlayer(roConns[pn], resetMsg);  // same robot will rejoin
                 else
                     messageToPlayer(roConns[pn], new SOCRobotDismiss(gaName));  // could be different bot
@@ -8866,7 +8867,8 @@ public class SOCServer extends Server
      */
     private void resetBoardAndNotify_finish(SOCGameBoardReset reBoard, SOCGame reGame)
     {
-        final boolean gameWasOverAtReset = (SOCGame.OVER == reBoard.oldGameState);
+        final boolean resetWithShuffledBots =
+            (reBoard.oldGameState < SOCGame.PLAY) || (reBoard.oldGameState == SOCGame.OVER);
         StringConnection[] huConns = reBoard.humanConns;
 
         /**
@@ -8907,7 +8909,7 @@ public class SOCServer extends Server
          */
             reGame.setGameState(SOCGame.READY);
             readyGameAskRobotsJoin
-              (reGame, gameWasOverAtReset ? null : reBoard.robotConns);
+              (reGame, resetWithShuffledBots ? null : reBoard.robotConns);
         }
 
         // All set.
