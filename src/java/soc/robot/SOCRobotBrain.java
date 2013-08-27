@@ -3261,7 +3261,7 @@ public class SOCRobotBrain extends Thread
      *  but won't leave the game if we've failed too many times.
      *  The brain's run loop should make that decision.
      *
-     * @param mes Cancelmessage from server, including piece type
+     * @param mes  Cancel message from server, including piece type
      */
     protected void cancelWrongPiecePlacement(SOCCancelBuildRequest mes)
     {
@@ -3273,6 +3273,7 @@ public class SOCRobotBrain extends Thread
             whatWeFailedToBuild = whatWeWantToBuild;
             ++failedBuildingAttempts;
         }
+        waitingForGameState = false;
 
         final int gameState = game.getGameState();
 
@@ -3335,7 +3336,6 @@ public class SOCRobotBrain extends Thread
              */ 
             whatWeWantToBuild = null;
             buildingPlan.clear();
-            waitingForGameState = false;
         }
 
         /**
@@ -3364,6 +3364,7 @@ public class SOCRobotBrain extends Thread
                 // special building, currently in state PLACING_* ;
                 // get our resources back, get state PLAY1 or SPECIALBUILD
                 waitingForGameState = true;  
+                expectPLAY1 = true;
                 client.cancelBuildRequest(game, mes.getPieceType());
             }
         }
