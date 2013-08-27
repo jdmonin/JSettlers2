@@ -1037,21 +1037,35 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * locks a seat, so no one can take it
+     *<P>
+     * For player consistency, seat locks can't be changed while {@link #getResetVoteActive()}.
      *
      * @param pn the number of the seat
+     * @throws IllegalStateException if {@link #getResetVoteActive()}
      */
     public void lockSeat(int pn)
+        throws IllegalStateException
     {
+        if (isAtServer && getResetVoteActive())
+            throw new IllegalStateException();
+
         seatLocks[pn] = LOCKED;
     }
 
     /**
      * unlocks a seat
+     *<P>
+     * For player consistency, seat locks can't be changed while {@link #getResetVoteActive()}.
      *
      * @param pn the number of the seat
+     * @throws IllegalStateException if {@link #getResetVoteActive()}
      */
     public void unlockSeat(int pn)
+        throws IllegalStateException
     {
+        if (isAtServer && getResetVoteActive())
+            throw new IllegalStateException();
+
         seatLocks[pn] = UNLOCKED;
     }
 

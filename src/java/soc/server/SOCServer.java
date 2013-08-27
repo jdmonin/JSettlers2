@@ -7151,13 +7151,16 @@ public class SOCServer extends Server
     {
         if (c != null)
         {
-            SOCGame ga = gameList.getGameData(mes.getGame());
+            final String gaName = mes.getGame();
+            SOCGame ga = gameList.getGameData(gaName);
 
             if (ga != null)
             {
                 SOCPlayer player = ga.getPlayer((String) c.getData());
+                if (player == null)
+                    return;
 
-                if (player != null)
+                try
                 {
                     if (mes.getLockState() == true)
                     {
@@ -7169,6 +7172,9 @@ public class SOCServer extends Server
                     }
 
                     messageToGame(mes.getGame(), mes);
+                }
+                catch (IllegalStateException e) {
+                    messageToPlayer(c, gaName, "Cannot set that lock right now." );
                 }
             }
         }
