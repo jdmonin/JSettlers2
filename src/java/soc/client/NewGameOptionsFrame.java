@@ -18,7 +18,6 @@
  **/
 package soc.client;
 
-import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Checkbox;
 import java.awt.Choice;
@@ -158,7 +157,7 @@ public class NewGameOptionsFrame extends Frame
                     ? "New Game options: Practice game"
                     : "New Game options"));
 
-        setLayout(new BorderLayout());
+        setLayout(new FlowLayout(FlowLayout.LEFT, 4, 4));  // include padding insets around edges of frame
 
         this.cl = cli;
         this.opts = opts;
@@ -304,7 +303,7 @@ public class NewGameOptionsFrame extends Frame
 
         // Final assembly setup
         bp.validate();
-        add(bp, BorderLayout.CENTER);
+        add(bp);
     }
 
     private final static Color LABEL_TXT_COLOR = new Color(252, 251, 243); // off-white
