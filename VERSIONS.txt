@@ -13,6 +13,7 @@ new features, until 2.0.00 is ready.
 
 
     > 1.1.19 (build OV2013xxxx)
+- Bugfix when new client sits during first initial-settlement placement round
 - On server startup, exit if a database URL is given but SOCServer can't connect to the database.
 
     > 1.1.18 (build OV20130402)
