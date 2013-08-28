@@ -5241,12 +5241,17 @@ public class SOCServer extends Server
 
                     if (gameState == SOCGame.PLACING_CITY)
                     {
+                        final boolean houseRuleFirstCity = ga.isGameOptionSet("N7C") && ! ga.hasBuiltCity();
+
                         if (player.isPotentialCity(coord) && (player.getNumPieces(SOCPlayingPiece.CITY) >= 1))
                         {
                             ga.putPiece(ci);  // changes game state and maybe player
                             gameList.takeMonitorForGame(gaName);
                             messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a city."));
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, player.getPlayerNumber(), SOCPlayingPiece.CITY, coord));
+                            if (houseRuleFirstCity)
+                                messageToGameWithMon
+                                    (gaName, new SOCGameTextMsg(gaName, SERVERNAME, "Starting next turn, dice rolls of 7 may occur (house rule)."));
                             gameList.releaseMonitorForGame(gaName);
                             broadcastGameStats(ga);
                             sendGameState(ga);

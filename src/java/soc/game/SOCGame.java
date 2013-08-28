@@ -363,6 +363,13 @@ public class SOCGame implements Serializable, Cloneable
     public boolean isPractice;
 
     /**
+     * True once any player has built a city.
+     * Used with house-rule game option <tt>"N7C"</tt>.
+     * @since 1.1.19
+     */
+    private boolean hasBuiltCity;
+
+    /**
      * For use at server; are there clients connected which aren't at the latest version?
      */
     public boolean hasOldClients;
@@ -1431,6 +1438,17 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Has any player built a city?
+     * Used with house-rule {@link SOCGameOption game option} <tt>"N7C"</tt>.
+     * @return  True if {@link #putPiece}({@link SOCCity}) has been called
+     * @since 1.1.19
+     */
+    public boolean hasBuiltCity()
+    {
+        return hasBuiltCity;
+    }
+
+    /**
      * @return the current dice result
      */
     public int getCurrentDice()
@@ -1527,6 +1545,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Get the number of development cards remaining to be bought.
      * @return the number of dev cards in the deck
      */
     public int getNumDevCards()
@@ -1910,6 +1929,11 @@ public class SOCGame implements Serializable, Cloneable
         final int pieceType = pp.getType();
         if (pieceType == SOCPlayingPiece.CITY)
         {
+            if (! (isTempPiece || hasBuiltCity))
+            {
+                hasBuiltCity = true;  // for house-rule game option "N7C"
+            }
+
             SOCSettlement se = new SOCSettlement(pp.getPlayer(), pp.getCoordinates(), board);
 
             for (int i = 0; i < maxPlayers; i++)
@@ -2946,10 +2970,12 @@ public class SOCGame implements Serializable, Cloneable
      */
     public IntPair rollDice()
     {
+        // N7C: Roll no 7s until a city is built.
         // N7: Roll no 7s during first # rounds.
         //     Use > not >= because roundCount includes current round
-        final boolean okToRoll7 =
-            (! isGameOptionSet("N7")) || (roundCount > getGameOptionIntValue("N7"));
+        final boolean okToRoll7
+            = ((isGameOptionSet("N7C")) ? hasBuiltCity : true)
+              && (! isGameOptionSet("N7")) || (roundCount > getGameOptionIntValue("N7"));
 
         int die1, die2;
         do

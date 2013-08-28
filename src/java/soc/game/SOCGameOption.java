@@ -104,6 +104,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *<LI> PLB Use 6-player board*
      *<LI> RD  Robber can't return to the desert
      *<LI> N7  Roll no 7s during first # rounds
+     *<LI> N7C Roll no 7s until a city is built
      *<LI> BC  Break up clumps of # or more same-type ports/hexes
      *<LI> NT  No trading allowed
      *<LI> VP  Victory points (10-15)
@@ -232,6 +233,9 @@ public class SOCGameOption implements Cloneable, Comparable
                 ("RD", -1, 1107, false, false, "Robber can't return to the desert"));
         opt.put("N7", new SOCGameOption
                 ("N7", -1, 1107, false, 7, 1, 999, false, "Roll no 7s during first # rounds"));
+        // N7C's keyname puts it after N7 in the NewGameOptionsFrame list
+        opt.put("N7C", new SOCGameOption
+                ("N7C", -1, 1119, false, true, "Roll no 7s until a city is built"));
         opt.put("BC", new SOCGameOption
                 ("BC", -1, 1107, true, 4, 3, 9, false, "Break up clumps of # or more same-type hexes/ports"));
         opt.put("NT", new SOCGameOption
