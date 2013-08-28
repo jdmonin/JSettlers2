@@ -302,33 +302,7 @@ or http://sourceforge.net/projects/jsettlers2/
 for details. Patches against the latest version may be submitted there
 or at https://github.com/jdmonin/JSettlers2 .
 
-Before building, make sure you have at least version 1.4 of the Java
-development kit installed.  If you simply want to run the client and
-server, you only need the Java Runtime (JRE). If you wish to maintain a user
-database for your server, you need MySQL or PostgreSQL installed, and configured,
-or the sqlite jdbc driver.
-
-This package was designed to use the ANT tool available from
-http://ant.apache.org tools.  We assume you have installed it
-correctly.
-
-Check the "build.properties" file. There may be build variables you
-may want to change locally. These can also be changed from the command
-line when calling ant, by passing a "-Dname=value" parameter to ant.
-
-Now you are ready to invoke ant. There are several targets, here are
-the most useful ones:
-
- build      Create project jar files. (default)
- clean      Cleans the project of all generated files
- compile    Compile class files into "target/classes"
- dist       Build distribution tarballs and zips.
- javadoc    Creates JavaDoc files in "target/docs/api"
- src        Create a tarball of the source tree
-
-All files created by building are in the "target" directory, including
-Java .class files, and JavaDoc files. Distribution tarballs, zip
-files, and installation files are placed in "dist".
+For more information on compiling or developing JSettlers, see README.developer.
 
 JSettlers is licensed under the GNU General Public License.  Each source file
 lists contributors by year.  A copyright year range (for example, 2007-2011)
