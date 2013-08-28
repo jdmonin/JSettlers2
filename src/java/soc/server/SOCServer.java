@@ -3576,16 +3576,19 @@ public class SOCServer extends Server
      * Process a debug command, sent by the "debug" client/player.
      * Check {@link #allowDebugUser} before calling this method.
      * See {@link #DEBUG_COMMANDS_HELP} for list of commands.
+     * @return true if <tt>dcmd</tt> is a recognized debug command, false otherwise
      */
-    public void processDebugCommand(StringConnection debugCli, String ga, String dcmd)
+    public boolean processDebugCommand(StringConnection debugCli, String ga, String dcmd)
     {
         final String dcmdU = dcmd.toUpperCase();
         if (dcmdU.startsWith("*HELP"))
         {
             for (int i = 0; i < DEBUG_COMMANDS_HELP.length; ++i)
                 messageToPlayer(debugCli, ga, DEBUG_COMMANDS_HELP[i]);
-            return;
+            return true;
         }
+
+        boolean isCmd = true;
 
         if (dcmdU.startsWith("*KILLGAME*"))
         {
@@ -3690,6 +3693,12 @@ public class SOCServer extends Server
             processDebugCommand_freePlace
                 (debugCli, ga, dcmd.substring(DEBUG_CMD_FREEPLACEMENT.length()).trim());
         }
+        else
+        {
+            isCmd = false;
+        }
+
+        return isCmd;
     }
 
     /**
@@ -4380,11 +4389,8 @@ public class SOCServer extends Server
             {
                 giveDevCard(c, cmdText, ga);
             }
-            else if (cmdText.charAt(0) == '*')
-            {
-                processDebugCommand(c, ga.getName(), cmdText);
-            }
-            else
+            else if (! ((cmdText.charAt(0) == '*')
+                        && processDebugCommand(c, ga.getName(), cmdText)))
             {
                 //
                 // Send the message to the members of the game
