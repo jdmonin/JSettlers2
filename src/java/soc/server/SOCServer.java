@@ -4352,7 +4352,14 @@ public class SOCServer extends Server
                   minutes = (diff - (hours * 60 * 60 * 1000)) / (60 * 1000),
                   seconds = (diff - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000)) / 1000;
             Runtime rt = Runtime.getRuntime();
-            messageToPlayer(c, gaName, "> Uptime: " + hours + ":" + minutes + ":" + seconds);
+            if (hours < 24)
+            {
+                messageToPlayer(c, gaName, "> Uptime: " + hours + ":" + minutes + ":" + seconds);
+            } else {
+                final int days = (int) (hours / 24),
+                          hr   = (int) (hours - (days * 24L));
+                messageToPlayer(c, gaName, "> Uptime: " + days + "d " + hr + ":" + minutes + ":" + seconds);
+            }
             messageToPlayer(c, gaName, "> Connections since startup: " + numberOfConnections);
             messageToPlayer(c, gaName, "> Current named connections: " + getNamedConnectionCount());
             messageToPlayer(c, gaName, "> Current connections including unnamed: " + getCurrentConnectionCount());
