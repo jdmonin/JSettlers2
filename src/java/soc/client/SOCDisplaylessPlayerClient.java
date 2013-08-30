@@ -776,6 +776,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * the server, don't ask server for info about
      * {@link soc.game.SOCGameOption game option} deltas between
      * the two versions.
+     *<P>
+     * If somehow the server isn't our version, print an error and disconnect.
      *
      * @param isPractice Is the server local, or remote?  Client can be connected
      *                only to local, or remote.
@@ -790,7 +792,16 @@ public class SOCDisplaylessPlayerClient implements Runnable
         else
             sVersion = vers;
 
-        // TODO check for minimum,maximum
+        final int ourVers = Version.versionNumber();
+        if (vers != ourVers)
+        {
+            final String errmsg =
+                "Internal error SOCDisplaylessPlayerClient.handleVERSION: Server must be same as our version "
+                + ourVers + ", not " + vers;  // i18n: Unlikely error, keep un-localized for possible bug reporting
+            System.err.println(errmsg);
+            ex = new IllegalStateException(errmsg);
+            destroy();
+        }
 
         // Clients v1.1.07 and later send SOCVersion right away at connect,
         // so no need to reply here with our client version.
