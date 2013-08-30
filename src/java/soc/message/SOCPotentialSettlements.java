@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -22,6 +22,7 @@
 package soc.message;
 
 import java.util.Enumeration;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.StringTokenizer;
@@ -40,7 +41,14 @@ import java.util.Vector;
  *<LI> More than one "land area" (group of islands, or subset of islands)
  *   can be designated; can also require the player to start
  *   the game in a certain land area ({@link #startingLandArea}).
+ *<LI> Players can build ships on any sea or coastal edge, except in
+ *   scenario {@code _SC_PIRI} which restricts them to certain edges;
+ *   see optional field {@link #legalSeaEdges}.
  *</UL>
+ *<P>
+ * In scenario {@code _SC_PIRI}, after initial placement, each player can place
+ * not only at these potential locations, but also at their "lone settlement"
+ * node previously sent in {@link SOCBoardLayout2} as layout part {@code "LS"}.
  *
  * @author Robert S Thomas
  */
@@ -97,6 +105,24 @@ public class SOCPotentialSettlements extends SOCMessage
     public final HashSet<Integer>[] landAreasLegalNodes;
 
     /**
+     * Optional field, Legal sea edges per player for ships, if restricted.
+     * Usually {@code null} because all sea edges are legal.
+     * Legal sea edges are currently restricted only in scenario {@code _SC_PIRI}.
+     *<P>
+     * If {@link #playerNumber} != -1, {@code legalSeaEdges} contains 1 array, the legal sea edges for that player. 
+     * Otherwise, will contain 1 array for each player position (total 4 or 6 arrays).
+     *<P>
+     * Each per-player array is the same format as in {@code SOCBoardLargeAtServer.PIR_ISL_SEA_EDGES}:
+     * A list of individual sea edge coordinates and/or ranges.
+     * Ranges are designated by a pair of positive,negative numbers:
+     * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+     * If a player position is vacant, their subarray may be empty (length 0).
+     *
+     * @since 2.0.00
+     */
+    public int[][] legalSeaEdges;
+
+    /**
      * Create a SOCPotentialSettlements message.
      *
      * @param ga  name of the game
@@ -116,6 +142,7 @@ public class SOCPotentialSettlements extends SOCMessage
         areaCount = 1;
         landAreasLegalNodes = null;
         startingLandArea = 1;
+        legalSeaEdges = null;
     }
 
     /**
@@ -145,10 +172,11 @@ public class SOCPotentialSettlements extends SOCMessage
      *            (<tt>pan == 0</tt>), then <tt>lan[0]</tt> should be <tt>null</tt>,
      *            and the {@link #getPotentialSettlements()} list will be formed by
      *            combining <tt>lan[1] .. lan[n-1]</tt>.
+     * @param lse  Legal sea edges for ships if restricted, or {@code null}; see {@link #legalSeaEdges} field for format
      * @throws IllegalArgumentException  if <tt>ln[pan] == null</tt>,
      *            or if <tt>ln[<i>i</i>]</tt> == <tt>null</tt> for any <i>i</i> &gt; 0
      */
-    public SOCPotentialSettlements(String ga, int pn, final int pan, HashSet<Integer>[] lan)
+    public SOCPotentialSettlements(String ga, int pn, final int pan, HashSet<Integer>[] lan, final int[][] lse)
         throws IllegalArgumentException
     {
         messageType = POTENTIALSETTLEMENTS;
@@ -166,6 +194,7 @@ public class SOCPotentialSettlements extends SOCMessage
         areaCount = lan.length - 1;
         landAreasLegalNodes = lan;
         startingLandArea = pan;
+        legalSeaEdges = lse;
 
         // consistency-check land areas
         // and (only if psListFromAll)
@@ -208,7 +237,7 @@ public class SOCPotentialSettlements extends SOCMessage
     /**
      * POTENTIALSETTLEMENTS formatted command, for a message with 1 or multiple land areas.
      * Format will be either {@link #toCmd(String, int, Vector)}
-     * or {@link #toCmd(String, int, int, HashSet[])}.
+     * or {@link #toCmd(String, int, int, HashSet[], int[][])}.
      *
      * @return the command String
      */
@@ -218,7 +247,7 @@ public class SOCPotentialSettlements extends SOCMessage
         if (landAreasLegalNodes == null)
             return toCmd(game, playerNumber, psList);
         else
-            return toCmd(game, playerNumber, startingLandArea, landAreasLegalNodes);
+            return toCmd(game, playerNumber, startingLandArea, landAreasLegalNodes, legalSeaEdges);
     }
 
     /**
@@ -251,6 +280,7 @@ public class SOCPotentialSettlements extends SOCMessage
      * POTENTIALSETTLEMENTS sep game sep2 playerNumber sep2 psList
      *    sep2 NA sep2 <i>(number of areas)</i> sep2 PAN sep2 <i>(pan)</i>
      *    { sep2 LA<i>#</i> sep2 legalNodesList }+
+     *    { sep2 SE { sep2 (legalSeaEdgesList | 0) } }*
      *</tt>
      * LA# is the land area number "LA1" or "LA2".
      * None of the LA#s will be PAN's <i>(pan)</i> number.
@@ -268,9 +298,10 @@ public class SOCPotentialSettlements extends SOCMessage
      *            settlements, because the game has started,
      *            use index 0 for that potentials list.
      *            Otherwise index 0 is unused (<tt>null</tt>).
+     * @param lse  Legal sea edges for ships if restricted, or {@code null}; see {@link #legalSeaEdges} field for format
      * @return   the command string
      */
-    public static String toCmd(String ga, int pn, final int pan, final HashSet<Integer>[] lan)
+    public static String toCmd(String ga, int pn, final int pan, final HashSet<Integer>[] lan, final int[][] lse)
     {
         StringBuffer cmd = new StringBuffer(POTENTIALSETTLEMENTS + sep + ga + sep2 + pn);
 
@@ -313,6 +344,36 @@ public class SOCPotentialSettlements extends SOCMessage
             }
         }
 
+        if (lse != null)
+        {
+            for (int i = 0; i < lse.length; ++i)
+            {
+                cmd.append(sep2);
+                cmd.append("SE");
+
+                final int[] lse_i = lse[i];
+                if ((lse_i.length == 0) && (i == (lse.length - 1)))
+                {
+                    cmd.append(sep2);
+                    cmd.append(0);
+                    // 0 is used for padding the last SE list if empty;
+                    // otherwise, at the end of the message, an empty list will have no tokens.
+                } else {
+                    for (int j = 0; j < lse_i.length; ++j)
+                    {
+                        cmd.append(sep2);
+                        int k = lse_i[j];
+                        if (k < 0)
+                        {
+                            cmd.append('-');
+                            k = -k;
+                        }
+                        cmd.append(Integer.toHexString(k));
+                    }
+                }
+            }
+        }
+
         return cmd.toString();
 
     }
@@ -330,6 +391,7 @@ public class SOCPotentialSettlements extends SOCMessage
         Vector<Integer> ps = new Vector<Integer>();
         HashSet<Integer>[] las = null;
         int pan = 0;
+        int[][] legalSeaEdges = null;
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -381,7 +443,13 @@ public class SOCPotentialSettlements extends SOCMessage
                 while (st.hasMoreTokens())
                 {
                     if (! tok.startsWith("LA"))
-                        return null;
+                    {
+                        if (tok.equals("SE"))
+                            break;  // "SE" are Legal Sea Edges, to be parsed in next loop
+                        else
+                            return null;  // unrecognized: bad message
+                    }
+
                     final int areaNum = Integer.parseInt(tok.substring(2));
                     HashSet<Integer> ls = new HashSet<Integer>();
 
@@ -394,6 +462,41 @@ public class SOCPotentialSettlements extends SOCMessage
                         ls.add(new Integer(Integer.parseInt(tok)));
                     }
                     las[areaNum] = ls;
+                }
+
+                // Parse the optional "SE" edge lists
+                if (st.hasMoreTokens() && tok.equals("SE"))
+                {
+                    ArrayList<int[]> allLSE = new ArrayList<int[]>();
+                    while (st.hasMoreTokens() && tok.equals("SE"))
+                    {
+                        ArrayList<Integer> lse = new ArrayList<Integer>();
+
+                        // Loop for edge coords, until next "SE"
+                        while (st.hasMoreTokens())
+                        {
+                            tok = st.nextToken();
+                            if (tok.equals("SE"))
+                                break;
+                            final int edge = Integer.parseInt(tok, 16);
+                            if (edge != 0)
+                                // 0 is used for padding the last SE list if empty;
+                                // otherwise, at the end of the message, an empty list will have no tokens.
+                                lse.add(new Integer(edge));
+                        }
+
+                        final int L = lse.size();
+                        int[] lseArr = new int[L];
+                        for (int i = 0; i < L; ++i)
+                            lseArr[i] = lse.get(i);
+
+                        allLSE.add(lseArr);
+                    }
+
+                    final int L = allLSE.size();
+                    legalSeaEdges = new int[L][];
+                    for (int i = 0; i < L; ++i)
+                        legalSeaEdges[i] = allLSE.get(i);
                 }
 
                 if (las[pan] == null)
@@ -415,7 +518,7 @@ public class SOCPotentialSettlements extends SOCMessage
         if (las == null)
             return new SOCPotentialSettlements(ga, pn, ps);
         else
-            return new SOCPotentialSettlements(ga, pn, pan, las);
+            return new SOCPotentialSettlements(ga, pn, pan, las, legalSeaEdges);
     }
 
     /**
@@ -458,6 +561,33 @@ public class SOCPotentialSettlements extends SOCMessage
                     s.append(' ');
                 }
             }
+        }
+
+        if (legalSeaEdges != null)
+        {
+            s.append("|lse={");
+            for (int i = 0; i < legalSeaEdges.length; ++i)
+            {
+                if (i > 0)  s.append(',');
+                s.append('{');
+                final int[] lse_i = legalSeaEdges[i];
+                for (int j = 0; j < lse_i.length; ++j)
+                {
+                    int k = lse_i[j];
+                    if (k < 0)
+                    {
+                        s.append('-');
+                        k = -k;
+                    }
+                    else if (j > 0)
+                    {
+                        s.append(',');
+                    }
+                    s.append(Integer.toHexString(k));
+                }
+                s.append('}');
+            }
+            s.append('}');
         }
 
         return s.toString();

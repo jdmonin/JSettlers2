@@ -34,12 +34,16 @@ import java.util.StringTokenizer;
  *<P>
  * Used in the pirate islands scenario (_SC_PIRI).
  *<P>
- * Messages from server which precede this one:
+ * Messages from server which precede this one, in this order:
  *<UL>
  * <LI> {@link SOCRemovePiece} for each removed ship, unless player wins
  * <LI> {@link SOCPlayerElement}({@link SOCPlayerElement#SCENARIO_WARSHIP_COUNT SCENARIO_WARSHIP_COUNT})
  *        if any of the player's warships were removed
- * <LI> {@link SOCPieceValue} for the fortress' reduced strength, if player wins;
+ *      <P>&nbsp;<P>
+ *      If player wins:
+ * <LI> {@link SOCMoveRobber}, if all players' fortresses are recaptured,
+ *        which removes the pirate fleet from the board (new pirate coordinate = 0)
+ * <LI> {@link SOCPieceValue} for the fortress' reduced strength;
  *        if its new strength is 0, it is recaptured by the player
  * <LI> {@link SOCPutPiece}(SETTLEMENT) if the player wins for the last time,
  *        and they recapture the fortress

@@ -15,6 +15,9 @@ The server may be configured to use a database to store account
 information and game stats (details below).  A client applet to
 create user accounts is also provided.
 
+If you're upgrading from an earlier version of JSettlers, check
+VERSIONS.txt for new features, bug fixes, and config changes.
+
 JSettlers is an open-source project licensed under the GPL. The
 project is hosted at http://sourceforge.net/projects/jsettlers2
 and at http://nand.net/jsettlers/devel/ .  Questions, bugs, and
@@ -44,7 +47,7 @@ in "docs/users" directory. These can be put on a JSettlers server for
 its users using the applet.
 
 Currently, this README is the only technical documentation for running
-the client or server, setup and other issues. Over time other more
+the client or server, setup and other issues. Over time, more docs
 will be written. If you are interested in helping write documentation
 please contact the development team from the SourceForge site.
 
@@ -120,6 +123,12 @@ To have all games' results stored in the database, use this option:
 
 To see a list of all jsettlers options (use them with -D), run:
   java -jar JSettlersServer.jar --help
+This will print all server options, and all Game Option default values.
+
+To change a Game Option from its default, for example to activate the house rule
+"Robber can't return to the desert", use the "-o" switch with the game option's name and value:
+   -o RD=t
+All command-line switches and options go before the port number if specified.
 
 
 CLIENT CONNECT:
@@ -151,6 +160,11 @@ something like the following in the chat display:
 
 Now click on the "Sit Here" button and press "Start Game".  The robot
 players should automatically join the game and start playing.
+
+To play again with the same game options and players, click "Quit", then "Reset Board".
+If other people are in the game, they will be asked to vote on the reset; any player can reject it.
+If bots are in your game, and you want to reset with fewer or no bots, click the bot's Lock button
+before clicking Quit/Reset and it won't rejoin the reset game.
 
 If you want other people to access your server, tell them your server
 IP address and port number (in this case 8880).  They can run the
@@ -242,13 +256,14 @@ or specify the driver on the SOCServer command line:
 To use SQLite, use a sqlite url like the one shown above, or specify a
 sqlite driver such as:
 	-Djsettlers.db.driver=org.sqlite.JDBC
+If a database URL is given but SOCServer can't connect to the database, it won't continue startup.
 
 Depending on your computer's setup, you may need to point JSettlers at the
 appropriate JDBC drivers, by placing them in your java classpath.
 Your database system's JDBC drivers can be downloaded at these locations:
 	MySQL:   http://www.mysql.com/products/connector/
 	PostgreSQL:  http://jdbc.postgresql.org/download.html
-	SQLite:  http://www.xerial.org/trac/Xerial/wiki/SQLiteJDBC
+	SQLite:  https://bitbucket.org/xerial/sqlite-jdbc
 	          or http://www.sqlite.org/cvstrac/wiki?p=SqliteWrappers
 	          If sqlite crashes jsettlers on launch, retry with -Dsqlite.purejava=true
 
@@ -291,33 +306,7 @@ or http://sourceforge.net/projects/jsettlers2/
 for details. Patches against the latest version may be submitted there
 or at https://github.com/jdmonin/JSettlers2 .
 
-Before building, make sure you have at least version 1.5 of the Java
-development kit installed.  If you simply want to run the client and
-server, you only need the Java Runtime (JRE). If you wish to maintain a user
-database for your server, you need MySQL or PostgreSQL installed, and configured,
-or the sqlite jdbc driver.
-
-This package was designed to use the ANT tool available from
-http://ant.apache.org tools.  We assume you have installed it
-correctly.
-
-Check the "build.properties" file. There may be build variables you
-may want to change locally. These can also be changed from the command
-line when calling ant, by passing a "-Dname=value" parameter to ant.
-
-Now you are ready to invoke ant. There are several targets, here are
-the most useful ones:
-
- build      Create project jar files. (default)
- clean      Cleans the project of all generated files
- compile    Compile class files into "target/classes"
- dist       Build distribution tarballs and zips.
- javadoc    Creates JavaDoc files in "target/docs/api"
- src        Create a tarball of the source tree
-
-All files created by building are in the "target" directory, including
-Java .class files, and JavaDoc files. Distribution tarballs, zip
-files, and installation files are placed in "dist".
+For more information on compiling or developing JSettlers, see README.developer.
 
 JSettlers is licensed under the GNU General Public License.  Each source file
 lists contributors by year.  A copyright year range (for example, 2007-2011)

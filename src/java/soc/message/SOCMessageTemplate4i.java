@@ -60,13 +60,13 @@ package soc.message;
  *   }
  *</pre></code>
  *
- * @author Jeremy D Monin <jeremy@nand.net>
- * @since 2.0.00
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 1.1.18
  */
 public abstract class SOCMessageTemplate4i extends SOCMessage
     implements SOCMessageForGame
 {
-    private static final long serialVersionUID = 2000L;
+    private static final long serialVersionUID = 1118L;
 
     /**
      * Name of the game.

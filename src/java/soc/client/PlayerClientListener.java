@@ -223,9 +223,25 @@ public interface PlayerClientListener
     void devCardDeckUpdated();
     void seatLockUpdated();
 
+    /**
+     * Game play is starting (leaving state {@link SOCGame#NEW}).
+     * Next move is for players to make their starting placements.
+     *<P>
+     * Call {@link SOCGame#setGameState(int)} before calling this method.
+     * Call this method before calling {@link #gameStateChanged(int)}.
+     */
     void gameStarted();
 
     /**
+     * Update interface after game state has changed.
+     * Please call {@link SOCGame#setGameState(int)} first.
+     *<P>
+     * If the game is now starting, please call in this order:
+     *<code><pre>
+     *   game.setGameState(newState);
+     *   {@link #gameStarted()};
+     *   {@link #gameStateChanged(int)};
+     *</pre></code>
      * @param gameState One of the codes from SOCGame, such as {@link soc.game.SOCGame#NEW}
      */
     void gameStateChanged(int gameState);

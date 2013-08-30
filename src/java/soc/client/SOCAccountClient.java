@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file copyright (C) 2009-2011,2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.client;
 
@@ -299,9 +299,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
      */
     public synchronized void init()
     {
-        System.out.println("Java Settlers Account Client " + Version.version() +
-                           ", " + Version.copyright());
-        System.out.println("Network layer based on code by Cristian Bogdan.");
+        Version.printVersionText(System.out, "Java Settlers Account Client ");
 
         String param = null;
         int intValue;

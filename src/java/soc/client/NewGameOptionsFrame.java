@@ -19,7 +19,6 @@
  **/
 package soc.client;
 
-import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Checkbox;
 import java.awt.Choice;
@@ -188,7 +187,7 @@ public class NewGameOptionsFrame extends Frame
                     ? strings.get("game.options.title.newpractice")
                     : strings.get("game.options.title.new")));
 
-        setLayout(new BorderLayout());
+        setLayout(new FlowLayout(FlowLayout.LEFT, 4, 4));  // include padding insets around edges of frame
 
         this.gameDisplay = gd;
         SOCPlayerClient cli = gd.getClient();
@@ -337,7 +336,7 @@ public class NewGameOptionsFrame extends Frame
 
         // Final assembly setup
         bp.validate();
-        add(bp, BorderLayout.CENTER);
+        add(bp);
     }
 
     private final static Color LABEL_TXT_COLOR = new Color(252, 251, 243); // off-white
@@ -351,6 +350,9 @@ public class NewGameOptionsFrame extends Frame
      * unless the player nickname is "debug".  This prevents unwanted changes to those options,
      * which are set at the server during game creation.  When the options are shown read-only
      * during a game, these options are shown and not hidden.
+     *<P>
+     * Options which have {@link SOCGameOption#FLAG_INTERNAL_GAME_PROPERTY} are always hidden.
+     * If not {@link #readOnly}, they're removed from opts.  Unknown opts are always removed.
      *<P>
      * This is called from constructor, so this is a new NGOF being shown.
      * If not read-only, clear {@link SOCGameOption#userChanged} flag for
@@ -400,7 +402,7 @@ public class NewGameOptionsFrame extends Frame
             }
         }
 
-        // Sort and lay out options; remove unknowns from opts.
+        // Sort and lay out options; remove unknowns and internal-onlys from opts.
         // TreeSet sorts game options by description, using gameopt.compareTo.
         // The array lets us remove from opts without disrupting an iterator.
         SOCGameOption[] optArr = new TreeSet<SOCGameOption>(opts.values()).toArray(new SOCGameOption[0]);
@@ -412,6 +414,14 @@ public class NewGameOptionsFrame extends Frame
                 opts.remove(op.optKey);
                 continue;  // <-- Removed, Go to next entry --
             }
+
+            if (op.hasFlag(SOCGameOption.FLAG_INTERNAL_GAME_PROPERTY))
+            {
+                if (! readOnly)
+                    opts.remove(op.optKey);  // ignore internal-property options when requesting new game from client
+                continue;  // <-- Don't show internal-property options
+            }
+
             if (hideUnderscoreOpts && (op.optKey.charAt(0) == '_'))
                 continue;  // <-- Don't show options starting with '_'
 
@@ -491,7 +501,7 @@ public class NewGameOptionsFrame extends Frame
                 Label blank = new Label();
                 gbc.gridwidth = 1;
                 gbl.setConstraints(blank, gbc);
-                add(blank);
+                bp.add(blank);
                 scenInfo = new Button(/*I*/"Scenario Info..."/*18N*/);
                 scenInfo.addActionListener(this);
                 scenInfo.addKeyListener(this);

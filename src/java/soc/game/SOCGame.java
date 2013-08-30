@@ -240,7 +240,7 @@ public class SOCGame implements Serializable, Cloneable
      *   or {@link #PLACING_ROBBER} or {@link #PLACING_PIRATE}.
      *<P>
      * If 7 is rolled with scenario option <tt>_SC_PIRI</tt>, there is no robber to move, but
-     * the player will choose their robbery victim ({@link #WAITING_FOR_CHOICE}) after any discards.
+     * the player will choose their robbery victim ({@link #WAITING_FOR_ROB_CHOOSE_PLAYER}) after any discards.
      *<P>
      * If the number rolled is on a gold hex, next state might be
      *   {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
@@ -253,7 +253,7 @@ public class SOCGame implements Serializable, Cloneable
      * Unless the roll is 7, this can be dealt with along with other gained resources (gold hexes).
      * So: <b>If the player wins and the roll is 7,</b> the player must pick their resource before any normal 7 discarding.
      * In that case only, the next state is {@link #WAITING_FOR_PICK_GOLD_RESOURCE}, which will be
-     * followed by {@link #WAITING_FOR_DISCARDS} or {@link #WAITING_FOR_CHOICE}.
+     * followed by {@link #WAITING_FOR_DISCARDS} or {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
      */
     public static final int PLAY = 15; // Play continues normally; time to roll or play card
 
@@ -271,7 +271,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Player is placing the robber on a new land hex.
      * May follow state {@link #WAITING_FOR_ROBBER_OR_PIRATE} if the game {@link #hasSeaBoard}.
-     * Next game state may be {@link #WAITING_FOR_CHOICE} if multiple possible victims.
+     * Next game state may be {@link #WAITING_FOR_ROB_CHOOSE_PLAYER} if multiple possible victims.
      * @see #PLACING_PIRATE
      * @see #canMoveRobber(int, int)
      * @see #moveRobber(int, int)
@@ -315,7 +315,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * In scenario option <tt>_SC_PIRI</tt>, there is no robber
      * to move, but the player will choose their robbery victim
-     * ({@link #WAITING_FOR_CHOICE}) after any discards.
+     * ({@link #WAITING_FOR_ROB_CHOOSE_PLAYER}) after any discards.
      * If there are no possible victims, next state is {@link #PLAY1}.
      *
      * @see #discard(int, SOCResourceSet)
@@ -337,17 +337,19 @@ public class SOCGame implements Serializable, Cloneable
      * the player also doesn't control the pirate ships, and
      * never has Knight cards to move the robber and steal.
      *<P>
-     * So in that scenario, the only time the game state is <tt>WAITING_FOR_CHOICE</tt>
+     * So in that scenario, the only time the game state is {@code WAITING_FOR_ROB_CHOOSE_PLAYER}
      * is when the player must choose to steal from a possible victim, or choose to steal
      * from no one, after a 7 is rolled.  To choose the victim, call {@link #choosePlayerForRobbery(int)}.
      * To choose no one, call {@link #choosePlayerForRobbery(int) choosePlayerForRobbery(-1)}.
+     *<P>
+     * Before v2.0.00, this game state was called {@code WAITING_FOR_CHOICE}.
      *
      * @see #playKnight()
      * @see #canChoosePlayer(int)
      * @see #canChooseRobClothOrResource(int)
      * @see #stealFromPlayer(int, boolean)
      */
-    public static final int WAITING_FOR_CHOICE = 51;
+    public static final int WAITING_FOR_ROB_CHOOSE_PLAYER = 51;
 
     /**
      * Waiting for player to choose 2 resources (Discovery card)
@@ -372,7 +374,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Waiting for player to choose whether to rob cloth or rob a resource.
-     * Previous game state is {@link #PLACING_PIRATE}.
+     * Previous game state is {@link #PLACING_PIRATE} or {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
      * Used with scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}.
      * @see #movePirate(int, int)
      * @see #canChooseRobClothOrResource(int)
@@ -450,10 +452,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public static final int VACANT = 0, OCCUPIED = 1;
 
-    /**
-     * seatLock states
-     */
-    public static final boolean LOCKED = true, UNLOCKED = false;
+    // for seatLock states, see SeatLockState enum javadoc.
 
     /**
      * {@link #boardResetVotes} per-player states: no vote sent; yes; no.
@@ -654,6 +653,13 @@ public class SOCGame implements Serializable, Cloneable
     public boolean isPractice;
 
     /**
+     * True once any player has built a city.
+     * Used with house-rule game option {@code "N7C"}.
+     * @since 2.0.00
+     */
+    private boolean hasBuiltCity;
+
+    /**
      * Listener for scenario events on the {@link #hasSeaBoard large sea board}, or null.
      * Package access for read-only use by {@link SOCPlayer}.
      * @since 2.0.00
@@ -756,9 +762,9 @@ public class SOCGame implements Serializable, Cloneable
     private int[] seats;
 
     /**
-     * the states if the locks for the player's seats
+     * the states of the locks for the player's seats
      */
-    private boolean[] seatLocks;
+    private SeatLockState[] seatLocks;
 
     /**
      * the number of the current player
@@ -838,7 +844,7 @@ public class SOCGame implements Serializable, Cloneable
      *        So will {@link #cancelBuildRoad(int)}, {@link #cancelBuildSettlement(int)}, etc.
      *<LI> {@link #PLACING_ROBBER}, {@link #WAITING_FOR_ROBBER_OR_PIRATE}:
      *        <tt>oldGameState</tt> = {@link #PLAY1}
-     *<LI> {@link #WAITING_FOR_CHOICE}, {@link #PLACING_PIRATE}, {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}
+     *<LI> {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}, {@link #PLACING_PIRATE}, {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}
      *<LI> {@link #WAITING_FOR_DISCOVERY} in {@link #playDiscovery()}, {@link #doDiscoveryAction(SOCResourceSet)}
      *<LI> {@link #WAITING_FOR_MONOPOLY} in {@link #playMonopoly()}, {@link #doMonopolyAction(int)}
      *<LI> {@link #WAITING_FOR_PICK_GOLD_RESOURCE}:
@@ -1131,14 +1137,14 @@ public class SOCGame implements Serializable, Cloneable
 
         players = new SOCPlayer[maxPlayers];
         seats = new int[maxPlayers];
-        seatLocks = new boolean[maxPlayers];
+        seatLocks = new SeatLockState[maxPlayers];
         boardResetVotes = new int[maxPlayers];
 
         for (int i = 0; i < maxPlayers; i++)
         {
             players[i] = new SOCPlayer(i, this);
             seats[i] = VACANT;
-            seatLocks[i] = UNLOCKED;
+            seatLocks[i] = SeatLockState.UNLOCKED;
         }
 
         currentPlayerNumber = -1;
@@ -1319,13 +1325,25 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * add a new player
+     * Add a new player sitting at a certain seat, or sit them again in their same seat (rejoining after a disconnect).
+     * Called at server and at client.
+     *<P>
+     * If the game just started, players are placing their first settlement and road
+     * (gamestate is &lt; {@link #START2A}), and the new player sits at a vacant seat,
+     * check and update the first player number or last player number if necessary.
+     * If the new player's {@code pn} is less than {@link #getCurrentPlayerNumber()},
+     * they already missed their first settlement and road placement but will get their second one.
+     *<P>
+     * Once the game has started and everyone already has placed their
+     * first settlement and road (gamestate is &gt;= {@link #START2A}),
+     * no one new can sit down at a vacant seat.
+     * <em>(added in v2.0.00)</em>
      *
      * @param name  the player's name; must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param pn    the player's requested player number; the seat number at which they would sit
      * @throws IllegalStateException if player is already sitting in
      *              another seat in this game, or if there are no open seats
-     *              (based on seats[] == OCCUPIED, and game option "PL" or MAXPLAYERS)
+     *              (based on seats[] == OCCUPIED, and game option "PL" or {@link #maxPlayers})
      *               via {@link #getAvailableSeatCount()}
      * @throws IllegalArgumentException if name fails {@link SOCMessage#isSingleLineAndSafe(String)}.
      *           This exception was added in 1.1.07.
@@ -1336,9 +1354,11 @@ public class SOCGame implements Serializable, Cloneable
     {
         if (! SOCMessage.isSingleLineAndSafe(name))
             throw new IllegalArgumentException("name");
-        if (seats[pn] == VACANT)
+
+        final boolean wasVacant = (seats[pn] == VACANT);
+        if (wasVacant)
         {
-            if (0 == getAvailableSeatCount())
+            if (0 == getAvailableSeatCount())  // will be 0 in state >= START2A
                 throw new IllegalStateException("Game is full");
         }
         SOCPlayer already = getPlayer(name);
@@ -1352,6 +1372,15 @@ public class SOCGame implements Serializable, Cloneable
 
         if ((gameState > NEW) && (gameState < OVER))
         {
+            if (wasVacant && (gameState < START2A))
+            {
+                // Still placing first initial settlement + road; check first/last player number
+                if (pn > lastPlayerNumber)
+                    setFirstPlayer(firstPlayerNumber);  // recalc lastPlayerNumber
+                else if (pn < firstPlayerNumber)
+                    setFirstPlayer(pn);  // too late for first settlement, but can place their 2nd
+            }
+
             allOriginalPlayers = false;
         }
     }
@@ -1395,6 +1424,11 @@ public class SOCGame implements Serializable, Cloneable
      * How many seats are vacant and available for players?
      * Based on {@link #isSeatVacant(int)}, and game
      * option "PL" (maximum players) or {@link #maxPlayers}.
+     *<P>
+     * Once the game has started and everyone already has placed their
+     * first settlement and road (gamestate is &gt;= {@link #START2A}}),
+     * no one new can sit down at a vacant seat, so this method returns 0.
+     * <em>(added in v2.0.00)</em>
      *
      * @return number of available vacant seats
      * @see #isSeatVacant(int)
@@ -1402,6 +1436,9 @@ public class SOCGame implements Serializable, Cloneable
      */
     public int getAvailableSeatCount()
     {
+        if (gameState >= START2A)
+            return 0;
+
         int availSeats;
         if (isGameOptionDefined("PL"))
             availSeats = getGameOptionIntValue("PL");
@@ -1416,33 +1453,41 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * locks a seat, so no one can take it
-     *
+     * Get a seat's lock state.
      * @param pn the number of the seat
+     * @since 2.0.00
      */
-    public void lockSeat(final int pn)
+    public SeatLockState getSeatLock(final int pn)
     {
-        seatLocks[pn] = LOCKED;
+        return seatLocks[pn];
     }
 
     /**
-     * unlocks a seat
+     * Lock or unlock a seat, or mark a bot's seat to be cleared on reset.
+     * The meaning of "locked" is different when the game is still forming
+     * (gameState {@link #NEW}) versus when the game is active.
+     * For details, see the javadocs for {@link SeatLockState#LOCKED},
+     * {@link SeatLockState#UNLOCKED UNLOCKED} and {@link SeatLockState#CLEAR_ON_RESET CLEAR_ON_RESET}.
+     *<P>
+     * For player consistency, seat locks can't be changed while {@link #getResetVoteActive()}.
+     *<P>
+     * Before v2.0.00, this was {@code lockSeat(pn}} and {@code unlockSeat(pn)}.
      *
      * @param pn the number of the seat
+     * @param sl  the new lock state for this seat
+     * @throws IllegalStateException if the game is still forming
+     *     but {@code sl} is {@link SeatLockState#CLEAR_ON_RESET},
+     *     or if {@link #getResetVoteActive()}
+     * @since 2.0.00
      */
-    public void unlockSeat(final int pn)
+    public void setSeatLock(final int pn, final SeatLockState sl)
+        throws IllegalStateException
     {
-        seatLocks[pn] = UNLOCKED;
-    }
+        if (((sl == SeatLockState.CLEAR_ON_RESET) && (gameState == NEW))
+            || getResetVoteActive())
+            throw new IllegalStateException();
 
-    /**
-     * @return true if this seat is locked
-     *
-     * @param pn the number of the seat
-     */
-    public boolean isSeatLocked(final int pn)
-    {
-        return (seatLocks[pn] == LOCKED);
+        seatLocks[pn] = sl;
     }
 
     /**
@@ -1791,6 +1836,17 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Has any player built a city?
+     * Used with house-rule {@link SOCGameOption game option} {@code "N7C"}.
+     * @return  True if {@link #putPiece}({@link SOCCity}) has been called
+     * @since 2.0.00
+     */
+    public boolean hasBuiltCity()
+    {
+        return hasBuiltCity;
+    }
+
+    /**
      * @return the current dice result
      */
     public int getCurrentDice()
@@ -1903,6 +1959,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Get the number of development cards remaining to be bought.
      * @return the number of dev cards in the deck
      */
     public int getNumDevCards()
@@ -2430,6 +2487,11 @@ public class SOCGame implements Serializable, Cloneable
         final SOCPlayer ppPlayer = pp.getPlayer();
         if (pieceType == SOCPlayingPiece.CITY)
         {
+            if (! (isTempPiece || hasBuiltCity))
+            {
+                hasBuiltCity = true;  // for house-rule game option "N7C"
+            }
+
             SOCSettlement se = new SOCSettlement(ppPlayer, coord, board);
 
             for (int i = 0; i < maxPlayers; i++)
@@ -3017,13 +3079,17 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * The new location <tt>toEdge</tt> must also be a potential ship location,
      * even if <tt>fromEdge</tt> was unoccupied; calls
-     * {@link SOCPlayer#isPotentialShip(int, int) pn.isPotentialShip(toEdge, fromEdge)}
+     * {@link SOCPlayer#isPotentialShipMoveTo(int, int) pn.isPotentialShipMoveTo(toEdge, fromEdge)}
      * to check that.
      *<P>
      * You cannot move a ship to or from an edge of the pirate ship's hex.
      *<P>
      * Trade routes can branch, so it may be that more than one ship
      * could be moved.  The game limits players to one move per turn.
+     *<P>
+     * <B>Scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}:</B><br>
+     * Ship movement options are limited, because the route can't branch
+     * and only a few sea edges are legal for placement.
      *
      * @param pn   Player number
      * @param fromEdge  Edge coordinate to move the ship from; must contain this player's ship.
@@ -3039,7 +3105,7 @@ public class SOCGame implements Serializable, Cloneable
         if (fromEdge == toEdge)
             return null;
         final SOCPlayer pl = players[pn];
-        if (! pl.isPotentialShip(toEdge, fromEdge))
+        if (! pl.isPotentialShipMoveTo(toEdge, fromEdge))
             return null;
 
         // check toEdge vs. pirate hex
@@ -3112,6 +3178,9 @@ public class SOCGame implements Serializable, Cloneable
      * undo the putting of a temporary or initial piece
      * or a ship being moved.
      * If state is START2B or START3B and resources were given, they will be returned.
+     *<P>
+     * If a ship is removed in scenario {@code _SC_PIRI}, makes sure its player's
+     * {@link SOCPlayer#getNumWarships()} is never more than the number of their ships on the board.
      *
      * @param pp  the piece to remove from the board
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
@@ -3198,13 +3267,19 @@ public class SOCGame implements Serializable, Cloneable
      * do the things involved in starting a game:
      * shuffle the tiles and cards,
      * make a board,
+     * set players' legal and potential piece locations,
      * choose first player.
      * gameState becomes {@link #START1A}.
      *<P>
      * Called only at server, not client.
-     * If appropriate for a scenario, server should call
-     * <tt>SOCBoardLargeAtServer.startGame_putInitPieces(SOCGame)</tt>
-     * right after calling this method.
+     *<P>
+     * Some scenarios require other methods to finish setting up the game;
+     * call them in this order before any other board or game methods:
+     *<UL>
+     * <LI> This method {@code startGame()}
+     * <LI> If appropriate, each player's {@link SOCPlayer#setRestrictedLegalShips(int[])}
+     * <LI> If appropriate, {@code SOCBoardLargeAtServer.startGame_putInitPieces(SOCGame)}
+     *</UL>
      */
     public void startGame()
     {
@@ -3332,6 +3407,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             currentPlayerNumber = Math.abs(rand.nextInt() % maxPlayers);
         } while (isSeatVacant(currentPlayerNumber));
+
         setFirstPlayer(currentPlayerNumber);
     }
 
@@ -3349,12 +3425,11 @@ public class SOCGame implements Serializable, Cloneable
             lastPlayerNumber = -1;
             return;
         }
-        lastPlayerNumber = pn - 1;
 
+        lastPlayerNumber = pn - 1;  // start before firstPlayerNumber, and we'll loop backwards
         if (lastPlayerNumber < 0)
-        {
             lastPlayerNumber = maxPlayers - 1;
-        }
+
         while (isSeatVacant (lastPlayerNumber))
         {
             --lastPlayerNumber;
@@ -3679,7 +3754,7 @@ public class SOCGame implements Serializable, Cloneable
         case WAITING_FOR_DISCARDS:
             return forceEndTurnChkDiscardOrGain(currentPlayerNumber, true);  // sets gameState, discards randomly
 
-        case WAITING_FOR_CHOICE:
+        case WAITING_FOR_ROB_CHOOSE_PLAYER:
             gameState = PLAY1;
             return new SOCForceEndTurnResult
                 (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE);
@@ -3876,6 +3951,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return The force result, including any discarded resources.
      *         Type will be {@link SOCForceEndTurnResult#FORCE_ENDTURN_RSRC_DISCARD}
      *         or {@link SOCForceEndTurnResult#FORCE_ENDTURN_RSRC_DISCARD_WAIT}.
+     * @see #playerDiscardRandom(int, boolean)
      */
     private SOCForceEndTurnResult forceEndTurnChkDiscardOrGain(final int pn, final boolean isDiscard)
     {
@@ -4097,10 +4173,16 @@ public class SOCGame implements Serializable, Cloneable
      */
     public RollResult rollDice()
     {
+        // N7C: Roll no 7s until a city is built.
         // N7: Roll no 7s during first # rounds.
         //     Use > not >= because roundCount includes current round
-        final boolean okToRoll7 =
-            (! isGameOptionSet("N7")) || (roundCount > getGameOptionIntValue("N7"));
+        final boolean okToRoll7;
+        {
+            final boolean okVsCities = (isGameOptionSet("N7C")) ? hasBuiltCity : true;
+
+            okToRoll7 = okVsCities &&
+                (( ! isGameOptionSet("N7")) || (roundCount > getGameOptionIntValue("N7")));
+        }
 
         int die1, die2;
         do
@@ -4124,11 +4206,15 @@ public class SOCGame implements Serializable, Cloneable
             /**
              * Move the pirate fleet along their path.
              * Copy pirate fleet attack results to currentRoll.
+             * If the pirate fleet is already defeated, do nothing.
              */
             final int numSteps = (die1 < die2) ? die1 : die2;
             final int newPirateHex = ((SOCBoardLarge) board).movePirateHexAlongPath(numSteps);
             oldGameState = gameState;
-            movePirate(currentPlayerNumber, newPirateHex, numSteps);
+            if (newPirateHex != 0)
+                movePirate(currentPlayerNumber, newPirateHex, numSteps);
+            else
+                robberResult.victims = null;
 
             final Vector<SOCPlayer> victims = robberResult.victims;
             if ((victims != null) && (victims.size() == 1))
@@ -4227,7 +4313,7 @@ public class SOCGame implements Serializable, Cloneable
      * When a 7 is rolled, update the {@link #gameState}:
      * Always {@link #WAITING_FOR_DISCARDS} if any {@link SOCPlayer#getResources()} total &gt; 7.
      * Otherwise {@link #PLACING_ROBBER}, {@link #WAITING_FOR_ROBBER_OR_PIRATE}, or for
-     * scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, {@link #WAITING_FOR_CHOICE} or {@link #PLAY1}.
+     * scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, {@link #WAITING_FOR_ROB_CHOOSE_PLAYER} or {@link #PLAY1}.
      *<P>
      * For state {@link #WAITING_FOR_DISCARDS}, also sets {@link SOCPlayer#setNeedToDiscard(boolean)}.
      * For state {@link #PLACING_ROBBER}, also clears {@link #robberyWithPirateNotRobber}.
@@ -4267,7 +4353,7 @@ public class SOCGame implements Serializable, Cloneable
                 if (currentRoll.sc_robPossibleVictims.isEmpty())
                     gameState = PLAY1;  // no victims
                 else
-                    gameState = WAITING_FOR_CHOICE;  // 1 or more victims; could choose to not steal anything
+                    gameState = WAITING_FOR_ROB_CHOOSE_PLAYER;  // 1 or more victims; could choose to not steal anything
             }
             else if (canChooseMovePirate())
             {
@@ -4426,7 +4512,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * In scenario option <tt>_SC_PIRI</tt>, there is no robber
      * to move, but the player will choose their robbery victim
-     * (state {@link #WAITING_FOR_CHOICE}) after any discards.
+     * (state {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}) after any discards.
      * If there are no possible victims, state becomes {@link #PLAY1}.
      * Check for those game states after calling this method.
      *<P>
@@ -4475,7 +4561,7 @@ public class SOCGame implements Serializable, Cloneable
                     if (currentRoll.sc_robPossibleVictims.isEmpty())
                         gameState = PLAY1;  // no victims
                     else
-                        gameState = WAITING_FOR_CHOICE;  // 1 or more victims; could choose to not steal anything
+                        gameState = WAITING_FOR_ROB_CHOOSE_PLAYER;  // 1 or more victims; could choose to not steal anything
                 }
                 else if (canChooseMovePirate())
                 {
@@ -4571,6 +4657,7 @@ public class SOCGame implements Serializable, Cloneable
         if ((gameState == PLAY) && (currentDice == 7))
         {
             rollDice_update7gameState();  // from win vs pirate fleet at dice roll (SC_PIRI)
+                // -- may set gameState to WAITING_FOR_DISCARDS, etc; see javadoc. 
         } else {
             for (int i = 0; i < maxPlayers; i++)
             {
@@ -4698,7 +4785,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * If no victims (players to possibly steal from): State becomes oldGameState.
      * If just one victim: call stealFromPlayer, State becomes oldGameState.
-     * If multiple possible victims: Player must choose a victim; State becomes {@link #WAITING_FOR_CHOICE}.
+     * If multiple possible victims: Player must choose a victim: State becomes {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
      *<P>
      * Assumes {@link #canMoveRobber(int, int)} has been called already to validate the move.
      * Assumes gameState {@link #PLACING_ROBBER}.
@@ -4745,7 +4832,7 @@ public class SOCGame implements Serializable, Cloneable
             /**
              * the current player needs to make a choice
              */
-            gameState = WAITING_FOR_CHOICE;
+            gameState = WAITING_FOR_ROB_CHOOSE_PLAYER;
         }
 
         robberResult.setVictims(victims);
@@ -4797,7 +4884,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * If no victims (players to possibly steal from): State becomes oldGameState.
      *<br>
-     * If multiple possible victims: Player must choose a victim; State becomes {@link #WAITING_FOR_CHOICE}.
+     * If multiple possible victims: Player must choose a victim: State becomes {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
      *    Once chosen, call {@link #choosePlayerForRobbery(int)} to choose a victim.
      *<br>
      * If just one victim: call stealFromPlayer, State becomes oldGameState.
@@ -4849,7 +4936,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param ph  the pirate's new hex coordinate; should be a water hex
      * @param pirFleetStrength  Pirate fleet strength, or -1 if not scenario _SC_PIRI
      * @return  see {@link #movePirate(int, int)}
-     * @throws IllegalArgumentException if <tt>ph</tt> &lt;= 0
+     * @throws IllegalArgumentException if <tt>ph</tt> &lt; 0
      * @since 2.0.00
      */
     private SOCMoveRobberResult movePirate(final int pn, final int ph, final int pirFleetStrength)
@@ -4904,7 +4991,7 @@ public class SOCGame implements Serializable, Cloneable
              * of which player to steal from
              * (no pirate robbery in _SC_PIRI if multiple victims)
              */
-            gameState = WAITING_FOR_CHOICE;
+            gameState = WAITING_FOR_ROB_CHOOSE_PLAYER;
         }
 
         robberResult.setVictims(victims);
@@ -4914,13 +5001,13 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * When moving the robber or pirate, can this player be chosen to be robbed?
-     * Game state must be {@link #WAITING_FOR_CHOICE} or {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
+     * Game state must be {@link #WAITING_FOR_ROB_CHOOSE_PLAYER} or {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
      * To choose the player and rob, call {@link #choosePlayerForRobbery(int)}.
      *
      * @return true if the current player can choose this player to rob
      * @param pn  the number of the player to rob, or -1 to rob no one
      *           in game scenario <tt>_SC_PIRI</tt> as described in
-     *           {@link #WAITING_FOR_CHOICE}.
+     *           {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
      *
      * @see #getRobberyPirateFlag()
      * @see #getPossibleVictims()
@@ -4929,14 +5016,14 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean canChoosePlayer(final int pn)
     {
-        if ((gameState != WAITING_FOR_CHOICE) && (gameState != WAITING_FOR_ROB_CLOTH_OR_RESOURCE))
+        if ((gameState != WAITING_FOR_ROB_CHOOSE_PLAYER) && (gameState != WAITING_FOR_ROB_CLOTH_OR_RESOURCE))
         {
             return false;
         }
 
         if (pn == -1)
         {
-            if (gameState != WAITING_FOR_CHOICE)
+            if (gameState != WAITING_FOR_ROB_CHOOSE_PLAYER)
                 return false;
 
             return isGameOptionSet(SOCGameOption.K_SC_PIRI);
@@ -4979,7 +5066,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public int choosePlayerForRobbery(final int pn)
     {
-        if ((pn == -1) && (gameState == WAITING_FOR_CHOICE))
+        if ((pn == -1) && (gameState == WAITING_FOR_ROB_CHOOSE_PLAYER))
         {
             gameState = PLAY1;
             return 0;
@@ -5063,7 +5150,8 @@ public class SOCGame implements Serializable, Cloneable
      * This can happen at most once per turn: Attacking the fortress always ends the player's turn.
      * Assumes {@link #canAttackPirateFortress()} called first, to validate and get the {@code adjacent} ship.
      *<P>
-     * Before calling, call {@link SOCPlayer#getFortress()} so that you can get its new strength afterwards.
+     * Before calling, call {@link SOCPlayer#getFortress()} so that you can get its new strength afterwards,
+     * and call {@link SOCPlayer#getNumWarships()} in case the player doesn't win and the ship they lose is a warship.
      *<P>
      * The player's fleet strength ({@link SOCPlayer#getNumWarships()}) will be compared to a pirate defense
      * strength of 1 to 6 (random).  Players lose 1 ship on a tie, 2 ships if defeated by the pirates.
@@ -5128,7 +5216,8 @@ public class SOCGame implements Serializable, Cloneable
                     if ((pn == currentPlayerNumber) || isSeatVacant(pn))
                         continue;
 
-                    if (players[pn].getFortress() != null)
+                    final SOCFortress pfort = players[pn].getFortress();
+                    if ((pfort != null) && (pfort.getStrength() > 0))
                     {
                         stillHasFortress = true;
                         break;
@@ -5137,7 +5226,11 @@ public class SOCGame implements Serializable, Cloneable
 
                 if (! stillHasFortress)
                 {
-                    // TODO: All fortresses defeated. pirate fleet goes away; and trigger a further scenario game event.
+                    // All fortresses defeated. pirate fleet goes away; trigger a further scenario game event for that.
+                    ((SOCBoardLarge) board).setPirateHex(0, true);
+                    if (scenarioEventListener != null)
+                        scenarioEventListener.gameEvent
+                            (this, SOCScenarioGameEvent.SGE_PIRI_LAST_FORTRESS_FLEET_DEFEATED, null);
                 }
             }
         }
@@ -5176,7 +5269,8 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         // Attacking the pirate fortress ends the player's turn.
-        endTurn();
+        if (gameState < OVER)
+            endTurn();
 
         return retval;
     }
@@ -5342,7 +5436,7 @@ public class SOCGame implements Serializable, Cloneable
     public Vector<SOCPlayer> getPossibleVictims()
     {
         if ((currentRoll.sc_robPossibleVictims != null)
-            && (gameState == WAITING_FOR_CHOICE))
+            && (gameState == WAITING_FOR_ROB_CHOOSE_PLAYER))
         {
             // already computed this turn
             return currentRoll.sc_robPossibleVictims;
@@ -5361,9 +5455,15 @@ public class SOCGame implements Serializable, Cloneable
                 // If more than 1 player, no one is attacked by the pirates.
                 // Resource counts don't matter.
 
-                candidates = getPlayersOnHex(((SOCBoardLarge) board).getPirateHex());
-                if (candidates.size() > 1)
-                    candidates.clear();
+                final int ph = ((SOCBoardLarge) board).getPirateHex();
+                if (ph != 0)
+                {
+                    candidates = getPlayersOnHex(ph);
+                    if (candidates.size() > 1)
+                        candidates.clear();
+                } else {
+                    candidates = new Vector<SOCPlayer>();
+                }
                 return candidates;  // <--- Early return: Special for scenario ---
 
             } else {
@@ -6889,7 +6989,7 @@ public class SOCGame implements Serializable, Cloneable
             {
                 cp.seats[i] = seats[i];  // reset in case addPlayer cleared VACANT for non-in-use player position
                 if (cp.seats[i] == VACANT)
-                    cp.seatLocks[i] = true;
+                    cp.seatLocks[i] = SeatLockState.CLEAR_ON_RESET;
             }
         }
 
@@ -7333,6 +7433,38 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Seat lock states for lock/unlock.
+     * Note different meanings while game is forming
+     * (gameState {@link SOCGame#NEW NEW}) versus already active.
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 2.0.00
+     */
+    public static enum SeatLockState
+    {
+        /** Seat not locked.
+         *  If game is forming, if this seat is empty when the game starts, a bot can sit here.
+         *  If game is active, a newly-joining player can take over a bot in this seat.
+         */
+        UNLOCKED,
+
+        /** Seat is locked.
+         *  If game is forming, a bot will not sit here when the game starts.
+         *  If game is active, a newly-joining player can't take over a bot in this seat.
+         */
+        LOCKED,
+
+        /** If this active game is reset, a robot will not take this seat, it will be left vacant.
+         *  Useful for resetting a game to play again with fewer robots, if a robot is currently sitting here.
+         *  Not a valid seat lock state if game is still forming.
+         *<P>
+         *  This feature was added in v2.0.00; before that version, the seat lock state was
+         *  boolean (UNLOCKED or LOCKED).  Game resets included all robots unless their seat
+         *  was LOCKED at the time of reset.
+         */
+        CLEAR_ON_RESET
+    }
+
+    /**
      * Dice roll result, for reporting from {@link SOCGame#rollDice()}.
      * Each game has 1 instance of this object, which is updated each turn.
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -7357,7 +7489,7 @@ public class SOCGame implements Serializable, Cloneable
          * When a 7 is rolled in game scenario {@link SOCGameOption#K_SC_PIRI},
          * there is no robber piece to move; the current player immediately picks another
          * player with resources to steal from.  In that situation, this field holds
-         * the list of possible victims, and gameState is {@link #WAITING_FOR_CHOICE}.
+         * the list of possible victims, and gameState is {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
          *<P>
          * Moving the pirate fleet might also have a different victim,
          * see {@link #sc_piri_fleetAttackVictim} and {@link #sc_piri_fleetAttackRsrcs}.

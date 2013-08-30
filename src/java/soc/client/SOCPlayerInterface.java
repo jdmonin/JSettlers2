@@ -416,11 +416,6 @@ public class SOCPlayerInterface extends Frame
     protected SOCChoosePlayerDialog choosePlayerDialog;
 
     /**
-     * the dialog for choosing 2 resources to discover
-     */
-    protected SOCDiscoveryDialog discoveryDialog;
-
-    /**
      * the dialog for choosing a resource to monopolize
      */
     protected SOCMonopolyDialog monopolyDialog;
@@ -647,8 +642,12 @@ public class SOCPlayerInterface extends Frame
         add(boardPanel);
         if (game.isGameOptionDefined("PL"))
         {
-            updatePlayerLimitDisplay(true, -1);  // Player data may not be received yet;
+            updatePlayerLimitDisplay(true, false, -1);
+                // Player data may not be received yet;
                 // game is created empty, then SITDOWN messages are received from server.
+                // gameState is at default 0 (NEW) during JOINGAMEAUTH and SITDOWN.
+                // initInterfaceElements is also called at board reset.
+                // updatePlayerLimitDisplay will check the current gameState.
         }
 
         /**
@@ -923,21 +922,25 @@ public class SOCPlayerInterface extends Frame
     /**
      * Show the maximum and available number of player positions,
      * if game parameter "PL" is less than {@link SOCGame#maxPlayers}.
-     * Also, if show, and gamestate is {@link SOCGame#NEW}, check for game-is-full,
+     * Also, if show, and {@code isGameStart}, check for game-is-full,
      * and hide or show "sit down" buttons if necessary.
      * If the game has already started, and the client is playing in this game,
      * will not show this display (it overlays the board, which is in use).
      * It will still hide/show sit-here buttons if needed.
      * @param show show the text, or clear the display (at game start)?
+     * @param isGameStart  True if calling from {@link #startGame()}; will be set true if gameState is {@link SOCGame#NEW}
      * @param playerLeaving The player number if a player is leaving the game, otherwise -1.
      * @since 1.1.07
      */
-    private void updatePlayerLimitDisplay(final boolean show, final int playerLeaving)
+    private void updatePlayerLimitDisplay(final boolean show, boolean isGameStart, final int playerLeaving)
     {
         final int gstate = game.getGameState();
         final boolean clientSatAlready = (clientHand != null);
         boolean noTextOverlay =  ((! show) ||
             ((gstate >= SOCGame.START1A) && clientSatAlready));
+        if (gstate == SOCGame.NEW)
+            isGameStart = true;
+
         if (noTextOverlay)
         {
             boardPanel.setSuperimposedText(null, null);
@@ -954,7 +957,8 @@ public class SOCPlayerInterface extends Frame
             boardPanel.setSuperimposedText
                 (/*I*/"Maximum players: " + maxPl/*18N*/, availTxt);
         }
-        if ((gstate == SOCGame.NEW) || ! clientSatAlready)
+
+        if (isGameStart || ! clientSatAlready)
         {
             if (availPl == 0)
             {
@@ -1206,8 +1210,8 @@ public class SOCPlayerInterface extends Frame
                 }
             }
 
-            String msg = s + '\n';
-            if (!doLocalCommand(msg))
+            final String msg = s + '\n';
+            if (! doLocalCommand(msg))
                 client.getGameManager().sendText(game, msg);
 
             if (sOverflow != null)
@@ -1231,6 +1235,9 @@ public class SOCPlayerInterface extends Frame
      */
     private boolean doLocalCommand(String cmd)
     {
+        if (cmd.charAt(0) != '\\')
+            return false;
+
         if (cmd.startsWith("\\ignore "))
         {
             String name = cmd.substring(8);
@@ -1452,7 +1459,7 @@ public class SOCPlayerInterface extends Frame
      * Print formatted text (with placeholders) in the text window, followed by a new line (<tt>'\n'</tt>). Equivalent to
      * {@link #print(String) print}({@link MessageFormat#format(String, Object...) MessageFormat.format}({@code s, args})).
      *
-     * @param s  String with placeholders, such as "{0} wants to Special Build."
+     * @param s  String with placeholders, such as "{0} wants to Special Build.". Single quotes must be doubled.
      * @param args  Arguments to fill into {@code s}'s placeholders
      * @since 2.0.00
      */
@@ -1586,7 +1593,7 @@ public class SOCPlayerInterface extends Frame
         }
 
         if (game.isGameOptionDefined("PL"))
-            updatePlayerLimitDisplay(true, -1);
+            updatePlayerLimitDisplay(true, false, -1);
 
         if (game.isBoardReset())
         {
@@ -1606,7 +1613,7 @@ public class SOCPlayerInterface extends Frame
     {
         hands[pn].removePlayer();  // May also clear clientHand
         if (game.isGameOptionDefined("PL"))
-            updatePlayerLimitDisplay(true, pn);
+            updatePlayerLimitDisplay(true, false, pn);
         else
             hands[pn].addSitButton(clientHand != null);  // Is the client player already sitting down at this game?
 
@@ -1622,6 +1629,9 @@ public class SOCPlayerInterface extends Frame
      * Game play is starting (leaving state {@link SOCGame#NEW}).
      * Remove the start buttons and robot-lockout buttons.
      * Next move is for players to make their starting placements.
+     *<P>
+     * Call {@link SOCGame#setGameState(int)} before calling this method.
+     * Call this method before calling {@link #updateAtGameState()}.
      */
     public void startGame()
     {
@@ -1633,7 +1643,7 @@ public class SOCPlayerInterface extends Frame
             // If we're joining a game in progress, keep it (as "sit here").
             hands[i].removeSitLockoutBut();
         }
-        updatePlayerLimitDisplay(false, -1);
+        updatePlayerLimitDisplay(false, true, -1);
         gameIsStarting = true;
     }
 
@@ -1766,6 +1776,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Show the discard dialog or the gain-resources dialog.
+     * Used for discards, gold hexes, and the Discovery/Year of Plenty dev card.
      *
      * @param nd  the number of resources to discard or gain
      * @param isDiscard  True for discard (after 7), false for gain (after gold hex)
@@ -1806,15 +1817,6 @@ public class SOCPlayerInterface extends Frame
     public void showChooseRobClothOrResourceDialog(final int vpn)
     {
         new ChooseRobClothOrResourceDialog(vpn).showInNewThread();
-    }
-
-    /**
-     * show the Discovery dialog box
-     */
-    public void showDiscoveryDialog()
-    {
-        discoveryDialog = new SOCDiscoveryDialog(this);
-        discoveryDialog.setVisible(true);
     }
 
     /**
@@ -1860,13 +1862,13 @@ public class SOCPlayerInterface extends Frame
      * Or, if the player must discard resources or pick free resources from the gold hex,
      * calls {@link #discardOrPickTimerSet(boolean)}.
      *<P>
-     * Please call after {@link SOCGame#setGameState(int)}.
+     * Please call {@link SOCGame#setGameState(int)} first. <BR>
      * If the game is now starting, please call in this order:
-     *<code>
-     *   playerInterface.{@link #startGame()};
+     *<code><pre>
      *   game.setGameState(newState);
+     *   playerInterface.{@link #startGame()};
      *   playerInterface.updateAtGameState();
-     *</code>
+     *</pre></code>
      */
     public void updateAtGameState()
     {
@@ -1925,7 +1927,7 @@ public class SOCPlayerInterface extends Frame
         switch (gs)
         {
         case SOCGame.WAITING_FOR_DISCOVERY:
-            showDiscoveryDialog();
+            showDiscardOrGainDialog(2, false);
             break;
 
         case SOCGame.WAITING_FOR_MONOPOLY:
@@ -2584,6 +2586,16 @@ public class SOCPlayerInterface extends Frame
             textDisplay.setBounds(i.left + hw + 8, i.top + 4, bw, tdh);
             chatDisplay.setBounds(i.left + hw + 8, i.top + 4 + tdh, bw, cdh);
             textInput.setBounds(i.left + hw + 8, i.top + 4 + tah, bw, tfh);
+
+            // scroll to bottom of textDisplay, chatDisplay after resize from expanded
+            EventQueue.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    chatDisplay.setCaretPosition(chatDisplay.getText().length());
+                    textDisplay.setCaretPosition(textDisplay.getText().length());
+                }
+            });
         }
         textDisplaysLargerTemp_needsLayout = false;
 

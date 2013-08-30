@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007,2009,2012 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007,2009,2012-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.game;
 
@@ -83,6 +83,21 @@ public class SOCDevCardSet implements Serializable, Cloneable
     }
 
     /**
+     * Get the amount of a card type (old and new) in the set.
+     * @param ctype  Type of development card as described
+     *        in {@link SOCDevCardConstants};
+     *        at least {@link SOCDevCardConstants#MIN}
+     *        and less than {@link SOCDevCardConstants#MAXPLUSONE}
+     * @return  the number of new + of old cards of this type
+     * @see #getAmount(int, int)
+     * @since 2.0.00
+     */
+    public int getAmount(final int ctype)
+    {
+        return devCards[OLD][ctype] + devCards[NEW][ctype];
+    }
+
+    /**
      * @return the number of a kind of development card
      *
      * @param age  either {@link #OLD} or {@link #NEW}
@@ -91,6 +106,7 @@ public class SOCDevCardSet implements Serializable, Cloneable
      *        in {@link SOCDevCardConstants};
      *        at least {@link SOCDevCardConstants#MIN}
      *        and less than {@link SOCDevCardConstants#MAXPLUSONE}
+     * @see #getAmount(int)
      */
     public int getAmount(int age, int ctype)
     {

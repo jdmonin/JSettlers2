@@ -22,9 +22,12 @@
 package soc.client.stats;
 
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -50,13 +53,16 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
     private final SOCPlayerInterface pi;
     private SOCGameStatistics.ListenerRegistration reg;
     private RollPanel rollPanel;
+    private MiscStatsPanel miscPanel;
     private SOCGameStatistics lastStats;
 
     public GameStatisticsFrame(SOCPlayerInterface pi)
     {
         setTitle("Game Statistics");
         this.pi = pi;
-        
+
+        Container cpane = getContentPane();
+        cpane.setLayout(new BoxLayout(cpane, BoxLayout.Y_AXIS));
         createControls();
         pack();
     }
@@ -79,6 +85,7 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
     {
         lastStats = stats;
         rollPanel.refresh(stats);
+        miscPanel.refreshFromGame();
     }
     
     public void statsDisposing()
@@ -91,9 +98,67 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
         JTabbedPane tabs = new JTabbedPane();
         rollPanel = new RollPanel();
         tabs.addTab("Dice Rolls", rollPanel);
-        add(tabs);
+        getContentPane().add(tabs);
+
+        tabs = new JTabbedPane();
+        miscPanel = new MiscStatsPanel();
+        tabs.addTab(/*I*/"Other Stats"/*18N*/, miscPanel);
+        getContentPane().add(tabs);
     }
-    
+
+    /**
+     * Miscellaneous other statistics, such as number of game rounds so far.
+     * Refresh with {@link #refreshFromGame()}.
+     * @author jdmonin
+     */
+    private class MiscStatsPanel extends JPanel
+    {
+        /** Current round number */
+        private JLabel roundNum;
+
+        public MiscStatsPanel()
+        {
+            super(true);
+            GridBagLayout gbl = new GridBagLayout();
+            GridBagConstraints gbc = new GridBagConstraints();
+            setLayout(gbl);
+            gbc.ipadx = 8;
+            gbc.ipady = 8;
+            roundNum = createStatControlRow(0, /*I*/"Current Round:"/*18N*/, gbc);
+        }
+
+        /**
+         * Create a row in our panel to display one stat, and return the JLabel that will hold its value.
+         * @param label  The stat's name
+         * @param gbc    Our layout manager's GBC
+         * @return  The JLabel, currently blank, that will hold the stat's value
+         */
+        private JLabel createStatControlRow
+            (final int rownum, final String label, GridBagConstraints gbc)
+        {
+            gbc.gridy = rownum;
+
+            JLabel jl = new JLabel(label);
+            gbc.gridx = 0;
+            gbc.anchor = GridBagConstraints.LINE_START;
+            add(jl, gbc);
+
+            jl = new JLabel();  // will contain value
+            gbc.gridx = 1;
+            gbc.anchor = GridBagConstraints.LINE_START;
+            add(jl, gbc);
+
+            return jl;
+        }
+
+        /** Refresh our statistics from the current game. */
+        public void refreshFromGame()
+        {
+            final SOCGame ga = pi.getGame();
+            roundNum.setText(Integer.toString(ga.getRoundCount()));
+        }
+    }
+
     private class RollPanel extends JPanel
     {
         /** Value counters backing {@link #displays}; indexed by dice roll value, 0 and 1 are unused */
@@ -297,4 +362,5 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             rollPanel.refresh(lastStats);
         }
     }
+
 }

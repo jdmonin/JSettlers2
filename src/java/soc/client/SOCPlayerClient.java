@@ -1840,8 +1840,8 @@ public class SOCPlayerClient
         
         public void optionsReceived(GameOptionServerSet opts, boolean isPractice, boolean isDash, boolean hasAllNow)
         {
-            boolean newGameWaiting;
-            String gameInfoWaiting;
+            final boolean newGameWaiting;
+            final String gameInfoWaiting;
             synchronized(opts)
             {
                 newGameWaiting = opts.newGameWaitingForOpts;
@@ -1855,12 +1855,20 @@ public class SOCPlayerClient
             {
                 if (gameInfoWaiting != null)
                 {
+                    synchronized(opts)
+                    {
+                        opts.gameInfoWaitingForOpts = null;
+                    }
                     Hashtable<String,SOCGameOption> gameOpts = client.serverGames.parseGameOptions(gameInfoWaiting);
                     newGameOptsFrame = NewGameOptionsFrame.createAndShow
                         (GameAwtDisplay.this, gameInfoWaiting, gameOpts, isPractice, true);
                 }
                 else if (newGameWaiting)
                 {
+                    synchronized(opts)
+                    {
+                        opts.newGameWaitingForOpts = false;
+                    }
                     newGameOptsFrame = NewGameOptionsFrame.createAndShow
                         (GameAwtDisplay.this, (String) null, opts.optionSet, isPractice, false);
                 }
@@ -3425,7 +3433,13 @@ public class SOCPlayerClient
     protected void handleSTARTGAME(SOCStartGame mes)
     {
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
-        pcl.gameStarted();
+        final SOCGame ga = games.get(mes.getGame());
+        if ((pcl == null) || (ga == null))
+            return;
+
+        if (ga.getGameState() == SOCGame.NEW)
+            // skip this call if handleGAMESTATE already called it
+            pcl.gameStarted();
     }
 
     /**
@@ -3439,13 +3453,15 @@ public class SOCPlayerClient
         if (ga != null)
         {
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            if (ga.getGameState() == SOCGame.NEW && mes.getState() != SOCGame.NEW)
+            final boolean gameStarted = (ga.getGameState() == SOCGame.NEW && mes.getState() != SOCGame.NEW);
+            final int newState = mes.getState();
+
+            ga.setGameState(newState);
+            if (gameStarted)
             {
+                // call here, not just in handleSTARTGAME, in case we joined a game in progress
                 pcl.gameStarted();
             }
-
-            final int newState = mes.getState();
-            ga.setGameState(newState);
             pcl.gameStateChanged(newState);
         }
     }
@@ -3798,7 +3814,7 @@ public class SOCPlayerClient
              * the robber moved without seeing if something was stolen.
              */
             final int newHex = mes.getCoordinates();
-            if (newHex >= 0)
+            if (newHex > 0)
                 ga.getBoard().setRobberHex(newHex, true);
             else
                 ((SOCBoardLarge) ga.getBoard()).setPirateHex(-newHex, true);
@@ -4139,15 +4155,7 @@ public class SOCPlayerClient
 
         if (ga != null)
         {
-            if (mes.getLockState() == true)
-            {
-                ga.lockSeat(mes.getPlayerNumber());
-            }
-            else
-            {
-                ga.unlockSeat(mes.getPlayerNumber());
-            }
-
+            ga.setSeatLock(mes.getPlayerNumber(), mes.getLockState());
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
             pcl.seatLockUpdated();
         }
@@ -4836,6 +4844,8 @@ public class SOCPlayerClient
 
     /**
      * The user has picked these resources to gain from the gold hex.
+     * Or, in game state {@link SOCGame#WAITING_FOR_DISCOVERY}, has picked these
+     * 2 free resources from a Discovery/Year of Plenty card.
      *
      * @param ga  the game
      * @param rs  The resources to pick
@@ -4843,7 +4853,10 @@ public class SOCPlayerClient
      */
     public void pickResources(SOCGame ga, SOCResourceSet rs)
     {
-        put(SOCPickResources.toCmd(ga.getName(), rs), ga.isPractice);
+        if (ga.getGameState() != SOCGame.WAITING_FOR_DISCOVERY)
+            put(SOCPickResources.toCmd(ga.getName(), rs), ga.isPractice);
+        else
+            put(SOCDiscoveryPick.toCmd(ga.getName(), rs), ga.isPractice);
     }
 
     /**
@@ -4992,15 +5005,16 @@ public class SOCPlayerClient
     }
 
     /**
-     * the user is locking a seat
+     * The user is locking or unlocking a seat.
      *
      * @param ga  the game
      * @param pn  the seat number
-     * @param lock  Lock the seat, or unlock?
+     * @param sl  new seat lock state; remember that servers older than v2.0.00 won't recognize {@code CLEAR_ON_RESET}
+     * @since 2.0.00
      */
-    public void lockSeat(SOCGame ga, int pn, final boolean lock)
+    public void setSeatLock(SOCGame ga, int pn, SOCGame.SeatLockState sl)
     {
-        put(SOCSetSeatLock.toCmd(ga.getName(), pn, lock), ga.isPractice);
+        put(SOCSetSeatLock.toCmd(ga.getName(), pn, sl), ga.isPractice);
     }
 
     /**
@@ -5282,9 +5296,7 @@ public class SOCPlayerClient
             }
         }
 
-        System.out.println("Java Settlers Client " + Version.version() +
-                ", build " + Version.buildnum() + ", " + Version.copyright());
-        System.out.println("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
+        Version.printVersionText(System.out, "Java Settlers Client ");
 
         Frame frame = new Frame(/*I*/"JSettlers client " + Version.version()/*18N*/);
         frame.setBackground(new Color(Integer.parseInt("61AF71",16)));
@@ -5333,6 +5345,10 @@ public class SOCPlayerClient
          * Hostname we're connected to, or null
          */
         private String host;
+
+        /**
+         * TCP port we're connected to; default is {@link #SOC_PORT_DEFAULT}.
+         */
         private int port = SOC_PORT_DEFAULT;
         
         /**
@@ -5489,7 +5505,7 @@ public class SOCPlayerClient
             return true;
         }
 
-        /** Port number of the tcp server we're a client of */
+        /** Port number of the tcp server we're a client of; default is {@link #SOC_PORT_DEFAULT}. */
         public int getPort()
         {
             return port;
@@ -5518,6 +5534,8 @@ public class SOCPlayerClient
          * Before 1.1.06, the server's response was first,
          * and version was sent in reply to server's version.
          *
+         * @param chost  Server host to connect to, or {@code null} for localhost
+         * @param port   Server TCP port to connect to; the default server port is {@link ClientNetwork#SOC_PORT_DEFAULT}.
          * @throws IllegalStateException if already connected
          * @see soc.server.SOCServer#newConnection1(StringConnection)
          */
@@ -6184,9 +6202,7 @@ public class SOCPlayerClient
             client = new SOCPlayerClient(gameDisplay);
             gameDisplay.setClient(client);
             
-            System.out.println("Java Settlers Client " + Version.version() +
-                               ", build " + Version.buildnum() + ", " + Version.copyright());
-            System.out.println("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
+            Version.printVersionText(System.out, "Java Settlers Client ");
 
             String param = null;
             int intValue;

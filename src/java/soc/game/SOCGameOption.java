@@ -132,6 +132,15 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     public static final int FLAG_DROP_IF_UNUSED = 0x01;  // OTYPE_* - mention in javadoc how this applies to the new type
 
     /**
+     * {@link #optFlags} bitfield constant to indicate option is an internal property.
+     * Set if the purpose of this option is to hold information about the option's game or its board.
+     * The user shouldn't be able to set this option when creating this game,
+     * and it should be hidden not shown in the Game Options window during play ({@code NewGameOptionsFrame}).
+     * @since 2.0.00
+     */
+    public static final int FLAG_INTERNAL_GAME_PROPERTY = 0x02;  // NEW_OPTION - decide if this applies to your option
+
+    /**
      * Set of "known options".
      * allOptions must never be null, because other places assume it is filled.
      */
@@ -156,6 +165,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *<LI> PLL Use large board* (experimental; name may change)
      *<LI> RD  Robber can't return to the desert
      *<LI> N7  Roll no 7s during first # rounds
+     *<LI> N7C Roll no 7s until a city is built
      *<LI> BC  Break up clumps of # or more same-type ports/hexes
      *<LI> NT  No trading allowed
      *<LI> VP  Victory points (10-15)
@@ -305,12 +315,15 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         opt.put("PLL", new SOCGameOption
                 ("PLL", 2000, 2000, false, FLAG_DROP_IF_UNUSED, "Experimental: Use large board"));
         opt.put("_BHW", new SOCGameOption
-                ("_BHW", 2000, 2000, 0, 0, 0xFFFF, FLAG_DROP_IF_UNUSED,
+                ("_BHW", 2000, 2000, 0, 0, 0xFFFF, FLAG_DROP_IF_UNUSED | FLAG_INTERNAL_GAME_PROPERTY,
                  "Large board's height and width (0xRRCC) if not default"));
         opt.put("RD", new SOCGameOption
                 ("RD", -1, 1107, false, 0, "Robber can't return to the desert"));
         opt.put("N7", new SOCGameOption
                 ("N7", -1, 1107, false, 7, 1, 999, 0, "Roll no 7s during first # rounds"));
+        // N7C's keyname puts it after N7 in the NewGameOptionsFrame list
+        opt.put("N7C", new SOCGameOption
+                ("N7C", -1, 2000, false, FLAG_DROP_IF_UNUSED, "Roll no 7s until a city is built"));
         opt.put("BC", new SOCGameOption
                 ("BC", -1, 1107, true, 4, 3, 9, 0, "Break up clumps of # or more same-type hexes/ports"));
         opt.put("NT", new SOCGameOption
@@ -633,6 +646,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
     /**
      * Sum of all of option's flags, if any, such as {@link #FLAG_DROP_IF_UNUSED}.
+     * @see #hasFlag(int)
      * @since 2.0.00
      */
     public final int optFlags;
@@ -1347,11 +1361,33 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     }
 
     /**
+     * Get information about a known option.
+     * @param key  Option key
+     * @param clone  True if a copy of the option is needed; set this true
+     *               unless you're sure you won't be changing any fields of
+     *               its original object, which is a shared copy in a static hash.
      * @return information about a known option, or null if none with that key
+     * @throws IllegalStateException  if {@code clone} but the object couldn't be cloned; this isn't expected to ever happen
      */
-    public static SOCGameOption getOption(String key)
+    public static SOCGameOption getOption(final String key, final boolean clone)
+        throws IllegalStateException
     {
-        return allOptions.get(key);  // null is ok
+        SOCGameOption op = allOptions.get(key);
+        if (op == null)
+            return null;
+
+        if (clone)
+        {
+            try
+            {
+                op = (SOCGameOption) op.clone();
+            } catch (CloneNotSupportedException ce) {
+                // required, but not expected to happen
+                throw new IllegalStateException("Clone failed!", ce);
+            }
+        }
+
+        return op;
     }
 
     /**
@@ -1550,6 +1586,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @return hashtable of SOCGameOptions, or null if ostr==null or empty ("-")
      *         or if ostr is malformed.  Any unrecognized options
      *         will be in the hashtable as type {@link #OTYPE_UNKNOWN}.
+     *         The returned known SGOs are clones from the set of all known options.
      * @see #parseOptionNameValue(String, boolean)
      */
     public static Hashtable<String,SOCGameOption> parseOptionsToHash(String ostr)
@@ -1585,6 +1622,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param forceNameUpcase Call {@link String#toUpperCase()} on keyname within nvpair?
      *               For friendlier parsing of manually entered (command-line) nvpair strings.
      * @return Parsed option, or null if parse error;
+     *         if known, the returned object is a clone of the SGO from the set of all known options.
      *         if nvpair's option keyname is not a known option, returned optType will be {@link #OTYPE_UNKNOWN}.
      * @see #parseOptionsToHash(String)
      * @see #packValue(StringBuffer)
@@ -1847,6 +1885,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * This is a server-side equivalent to the client-side {@link ChangeListener}s.
      * For example, if <tt>"PL"</tt> (number of players) > 4, but <tt>"PLB"</tt> (use 6-player board)
      * is not set, <tt>doServerPreadjust</tt> wil set the <tt>"PLB"</tt> option.
+     * {@code doServerPreadjust} will also remove any game-internal options the client has sent.
      *<P>
      * Before any other adjustments when <tt>doServerPreadjust</tt>, will check for
      * the game scenario option <tt>"SC"</tt>. If that option is set, call
@@ -1883,6 +1922,17 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
         if (doServerPreadjust)
         {
+            // Remove any game-internal options, before adding scenario opts
+            {
+                Iterator<String> ki = newOpts.keySet().iterator();  // keySet lets us remove without disrupting iterator
+                while (ki.hasNext())
+                {
+                    SOCGameOption op = newOpts.get(ki.next());
+                    if (0 != (op.optFlags & SOCGameOption.FLAG_INTERNAL_GAME_PROPERTY))
+                        ki.remove();
+                }
+            }
+
             // Apply scenario options, if any
             SOCGameOption opt = newOpts.get("SC");
             if (opt != null)

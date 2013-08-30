@@ -44,6 +44,7 @@ import soc.game.SOCVillage;
 import soc.message.*;
 import soc.robot.SOCRobotClient;
 import soc.server.genericServer.LocalStringConnection;
+import soc.util.Version;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -280,8 +281,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * Treat the incoming messages.
      * Messages of unknown type are ignored (mes will be null from {@link SOCMessage#toMsg(String)}).
      *<P>
-     *<B>Note:</B> Currently, <tt>SOCRobotClient.treat(mes)</tt> does not call this method.
+     *<B>Note:</B> Currently, <tt>SOCRobotClient.treat(mes)</tt> does not generally call this method.
      * New messages should be added in both places if both displayless and robot should handle them.
+     * The robot treat's switch case can call super.treat before or after any robot-specific handling.
      *
      * @param mes    the message
      */
@@ -547,8 +549,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * a player built something
              */
             case SOCMessage.PUTPIECE:
-                handlePUTPIECE((SOCPutPiece) mes);
-
+                {
+                    final SOCPutPiece ppm = (SOCPutPiece) mes;
+                    handlePUTPIECE(ppm, games.get(ppm.getGame()));
+                }
                 break;
 
             /**
@@ -761,6 +765,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * the server, don't ask server for info about
      * {@link soc.game.SOCGameOption game option} deltas between
      * the two versions.
+     *<P>
+     * If somehow the server isn't our version, print an error and disconnect.
      *
      * @param isPractice Is the server local, or remote?  Client can be connected
      *                only to local, or remote.
@@ -775,7 +781,16 @@ public class SOCDisplaylessPlayerClient implements Runnable
         else
             sVersion = vers;
 
-        // TODO check for minimum,maximum
+        final int ourVers = Version.versionNumber();
+        if (vers != ourVers)
+        {
+            final String errmsg =
+                "Internal error SOCDisplaylessPlayerClient.handleVERSION: Server must be same as our version "
+                + ourVers + ", not " + vers;  // i18n: Unlikely error, keep un-localized for possible bug reporting 
+            System.err.println(errmsg);
+            ex = new IllegalStateException(errmsg);
+            destroy();
+        }
 
         // Clients v1.1.07 and later send SOCVersion right away at connect,
         // so no need to reply here with our client version.
@@ -1432,40 +1447,42 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * handle the "put piece" message
+     *<P>
+     * This method is public static for access by
+     * {@code SOCRobotBrain.handlePUTPIECE_updateGameData(SOCPutPiece)}.
      * @param mes  the message
+     * @param ga  Message's game from {@link SOCPutPiece#getGame()}; if {@code null}, message is ignored
      */
-    protected void handlePUTPIECE(SOCPutPiece mes)
+    public static void handlePUTPIECE(final SOCPutPiece mes, SOCGame ga)
     {
-        SOCGame ga = games.get(mes.getGame());
-
         if (ga != null)
         {
-            SOCPlayer pl = ga.getPlayer(mes.getPlayerNumber());
+            final int pieceType = mes.getPieceType();
+            final int coord = mes.getCoordinates();
+            final SOCPlayer pl = (pieceType != SOCPlayingPiece.VILLAGE)
+                ? ga.getPlayer(mes.getPlayerNumber())
+                : null;
 
-            switch (mes.getPieceType())
+            switch (pieceType)
             {
             case SOCPlayingPiece.ROAD:
-
-                SOCRoad rd = new SOCRoad(pl, mes.getCoordinates(), null);
-                ga.putPiece(rd);
+                ga.putPiece(new SOCRoad(pl, coord, null));
                 break;
 
             case SOCPlayingPiece.SETTLEMENT:
-
-                SOCSettlement se = new SOCSettlement(pl, mes.getCoordinates(), null);
-                ga.putPiece(se);
+                ga.putPiece(new SOCSettlement(pl, coord, null));
                 break;
 
             case SOCPlayingPiece.CITY:
+                ga.putPiece(new SOCCity(pl, coord, null));
+                break;
 
-                SOCCity ci = new SOCCity(pl, mes.getCoordinates(), null);
-                ga.putPiece(ci);
+            case SOCPlayingPiece.FORTRESS:
+                ga.putPiece(new SOCFortress(pl, coord, ga.getBoard()));
                 break;
 
             case SOCPlayingPiece.VILLAGE:
-
-                SOCVillage vi = new SOCVillage(mes.getCoordinates(), ga.getBoard());
-                ga.putPiece(vi);
+                ga.putPiece(new SOCVillage(coord, ga.getBoard()));
                 break;
 
             }
@@ -1537,7 +1554,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * the robber moved without seeing if something was stolen.
              */
             final int newHex = mes.getCoordinates();
-            if (newHex >= 0)
+            if (newHex > 0)
                 ga.getBoard().setRobberHex(newHex, true);
             else
                 ((SOCBoardLarge) ga.getBoard()).setPirateHex(-newHex, true);
@@ -1708,6 +1725,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         final Vector<Integer> vset = mes.getPotentialSettlements();
         final HashSet<Integer>[] las = mes.landAreasLegalNodes;
+        final int[] loneSettles;  // must set for players after pl.setPotentialAndLegalSettlements, if not null
+        final int[][] legalSeaEdges = mes.legalSeaEdges;  // usually null, except in _SC_PIRI
+
         int pn = mes.getPlayerNumber();
         if (ga.hasSeaBoard)
         {
@@ -1715,14 +1735,29 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if ((pn == -1) || bl.getLegalAndPotentialSettlements().isEmpty())
                 bl.setLegalAndPotentialSettlements
                   (vset, mes.startingLandArea, las);
+            loneSettles = bl.getAddedLayoutPart("LS");  // usually null, except in _SC_PIRI
+        } else {
+            loneSettles = null;
         }
+
         if (pn != -1)
         {
             SOCPlayer player = ga.getPlayer(pn);
             player.setPotentialAndLegalSettlements(vset, true, las);
+            if (loneSettles != null)
+                player.addLegalSettlement(loneSettles[pn]);
+            if (legalSeaEdges != null)
+                player.setRestrictedLegalShips(legalSeaEdges[0]);
         } else {
             for (pn = ga.maxPlayers - 1; pn >= 0; --pn)
-                ga.getPlayer(pn).setPotentialAndLegalSettlements(vset, true, las);
+            {
+                SOCPlayer pl = ga.getPlayer(pn);
+                pl.setPotentialAndLegalSettlements(vset, true, las);
+                if (loneSettles != null)
+                    pl.addLegalSettlement(loneSettles[pn]);
+                if (legalSeaEdges != null)
+                    pl.setRestrictedLegalShips(legalSeaEdges[pn]);
+            }
         }
     }
 
@@ -1804,14 +1839,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         if (ga != null)
         {
-            if (mes.getLockState() == true)
-            {
-                ga.lockSeat(mes.getPlayerNumber());
-            }
-            else
-            {
-                ga.unlockSeat(mes.getPlayerNumber());
-            }
+            ga.setSeatLock(mes.getPlayerNumber(), mes.getLockState());
         }
     }
 
@@ -2255,25 +2283,16 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user is locking a seat
+     * The user is locking or unlocking a seat.
      *
      * @param ga  the game
      * @param pn  the seat number
+     * @param sl  new seat lock state; remember that servers older than v2.0.00 won't recognize {@code CLEAR_ON_RESET}
+     * @since 2.0.00
      */
-    public void lockSeat(SOCGame ga, int pn)
+    public void setSeatLock(SOCGame ga, int pn, SOCGame.SeatLockState sl)
     {
-        put(SOCSetSeatLock.toCmd(ga.getName(), pn, true));
-    }
-
-    /**
-     * the user is unlocking a seat
-     *
-     * @param ga  the game
-     * @param pn  the seat number
-     */
-    public void unlockSeat(SOCGame ga, int pn)
-    {
-        put(SOCSetSeatLock.toCmd(ga.getName(), pn, false));
+        put(SOCSetSeatLock.toCmd(ga.getName(), pn, sl));
     }
 
     /** destroy the applet */

@@ -46,6 +46,69 @@ public class SOCDevCard implements SOCDevCardConstants
     }
 
     /**
+     * Get a card type's name.
+     * @param ctype  A constant such as {@link SOCDevCardConstants#TOW}
+     *               or {@link SOCDevCardConstants#ROADS}
+     * @param game  Game data, or {@code null}; some game options might change a card name.
+     *               For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
+     * @param withArticle  If true, format is: "a Market (+1VP)"; if false, is "Market (1VP)"
+     * @return  The card name, formatted per {@code withArticle}; unknown ctypes return "Unknown card type #"
+     */
+    public static String getCardTypeName(final int ctype, final SOCGame game, final boolean withArticle)
+    {
+        final String ctname;
+
+        switch (ctype)
+        {
+        case SOCDevCardConstants.DISC:
+            ctname = (withArticle) ? /*I*/"a Year of Plenty"/*18N*/ : /*I*/"Year of Plenty"/*18N*/;
+            break;
+
+        case SOCDevCardConstants.KNIGHT:
+            {
+                final boolean withWarship = (game != null) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI);
+                ctname = (withWarship)
+                    ? ((withArticle) ? "a Warship" : "Warship")
+                    : ((withArticle) ? "a Soldier" : "Soldier");
+            }
+            break;
+
+        case SOCDevCardConstants.MONO:
+            ctname = (withArticle) ? "a Monopoly" : "Monopoly";
+            break;
+
+        case SOCDevCardConstants.ROADS:
+            ctname = (withArticle) ? "a Road Building" : "Road Building";
+            break;
+
+        case SOCDevCardConstants.CAP:
+            ctname = (withArticle) ? "a Gov.House (+1VP)" : "Gov. House (1VP)";
+            break;
+
+        case SOCDevCardConstants.LIB:
+            ctname = (withArticle) ? "a Market (+1VP)" : "Market (1VP)";
+            break;
+
+        case SOCDevCardConstants.UNIV:
+            ctname = (withArticle) ? "a University (+1VP)" : "University (1VP)";
+            break;
+
+        case SOCDevCardConstants.TEMP:
+            ctname = (withArticle) ? "a Temple (+1VP)" : "Temple (1VP)";
+            break;
+
+        case SOCDevCardConstants.TOW:
+            ctname = (withArticle) ? "a Chapel (+1VP)" : "Chapel (1VP)";
+            break;
+
+        default:
+            ctname = "Unknown card type " + ctype;  // don't bother I18N, should not occur
+        }
+
+        return ctname;
+    }
+
+    /**
      * Create a new card.
      * @param type   Card type, such as {@link SOCDevCardConstants#ROADS}
      * @param isNew  Is this card newly given to a player, or old from a previous turn?

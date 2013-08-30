@@ -14,12 +14,21 @@ new features, until 2.0.00 is ready.
 
     > 2.0.00 (build JM20130xxx)
 - Large board (sea board) support
+- Game Scenario and special-rules support
+- New game option "N7C" for house rule: Roll no 7s until a city is built
 - "House rules" dev card types (New game option "DH")
 - Game options dialog: Set maxplayers to 6 when Use Large Board is set, unless user changed max pl manually
 - New Game options: Popup if old versions can't play: Default to Create, not Change Options
+- Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard's dialog)
+- Bugfix when new client sits during first initial-settlement placement round
+- To ensure everyone has 2 initial settlements, don't allow new clients to sit after 1st settlements are all placed
+- Reset board during initial placement: Pick randomly-selected robots, instead of keeping same robots
+- Reset board: If only 1 human player, don't reset if all bots are locked
+- Player chat text: At server, don't ignore messages which start with '*'
 - More efficient game-setup messages over network
 - Client sends server its locale, to support future i18n localization
 - Applet class is now soc.client.SOCPlayerClient.SOCApplet
+- On server startup, exit if a database URL is given but SOCServer can't connect to the database.
 - Game option key names can now be longer (8 characters)
 - Some game options are meant to be set by the server during game creation, not requested by the client.
   Their option keynames all start with '_' and are hidden in the New Game options window.
@@ -31,13 +40,24 @@ new features, until 2.0.00 is ready.
 
 
 
-    > 1.1.18 (build OV20130xxx)
-- Reset board: Keep player chat text
-- Reset board: Confirm before restarting after end of a practice game
-- 6-player board: Chat ease of use: Focus cursor on text input field when the game chat is made larger by mouse movement
-- Chat text field: Wrap long lines on word boundary if possible
-- In-game "Game Info" button: If an info window's already visible, show it instead of making another one
-- If saving completed games to db, save if any human players, even if not original players
+    > 1.1.19 (build OV20130xxx)
+- Bots connecting require a security cookie, randomly generated at server startup.
+     The built-in bots started automatically by SOCServer will know the cookie value.
+     To set the cookie to a given value, set the jsettlers.bots.cookie parameter.
+     To print the cookie value in order to connect other bots, use -Djsettlers.bots.showcookie=Y
+     when starting the server.
+
+    > 1.1.18 (build OV20130402)
+- Reset board: Keep player chat text; Confirm before restarting after end of a practice game
+- Chat text field: Word-wrap long lines
+- Don't limit the number of simultaneous practice games
+- 6-player board: Focus cursor on input field when the chat window expands; scroll chat/game text to bottom when it shrinks
+- If saving completed games to db, save if any human players, even if some have left/rejoined
+- Bugfix: Client creating a game on a server newer than itself might show a second New Game Options window
+- In-game "Game Options" button: If an info window's already visible, show it instead of making another one
+- Server --help message: Sort game option keynames alphabetically
+- If new game options require a certain version, don't warn unless the required version
+     is newer than 1.1.13 (released November 2011).
 
     > 1.1.17 (build OV20121212)
 - Road Building: Player may skip (cancel) placing second free road, if they want to use just one road piece

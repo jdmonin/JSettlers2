@@ -63,6 +63,7 @@ import java.util.Vector;
  *<UL>
  * <LI> {@link #getPlayerNumber()}.{@link SOCPlayerNumbers#setLandHexCoordinates(int[]) setLandHexCoordinates(int[])}
  * <LI> {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])}
+ * <LI> Optionally, {@link #setRestrictedLegalShips(int[])}
  *</UL>
  *<P>
  * On the {@link SOCLargeBoard large sea board}, our list of the player's roads also
@@ -72,6 +73,13 @@ import java.util.Vector;
  */
 public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 {
+    /**
+     * Number of ships a player can build (15) if {@link SOCGame#hasSeaBoard}.
+     * @see #getNumPieces(int)
+     * @since 2.0.00
+     */
+    public static final int SHIP_COUNT = 15;
+
     /**
      * the name of the player
      */
@@ -335,9 +343,23 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * this set is empty but non-null.
      *<P>
      * May be updated during game play by {@link #updateLegalShipsAddHex(int)}.
+     * @see #legalShipsRestricted
      * @since 2.0.00
      */
     private HashSet<Integer> legalShips;
+
+    /**
+     * A list of edges if the legal sea edges for ships are restricted
+     * by the game's scenario ({@link SOCGameOption#K_SC_PIRI _SC_PIRI}),
+     * or {@code null} if all sea edges are legal for ships.
+     * If the player has no legal ship edges, this list is empty (not null).
+     *<P>
+     * This list, separate from {@link #legalShips}, is necessary because some methods
+     * change {@code legalShips} by removing or adding edges.
+     *
+     * @since 2.0.00
+     */
+    private HashSet<Integer> legalShipsRestricted;
 
     /**
      * a set of edges where a road could be placed
@@ -572,6 +594,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         potentialCities = new HashSet<Integer>(player.potentialCities);
         potentialShips = new HashSet<Integer>(player.potentialShips);
         addedLegalSettlement = player.addedLegalSettlement;
+        if (player.legalShipsRestricted != null)
+            legalShipsRestricted = new HashSet<Integer>(player.legalShipsRestricted);
 
         if (player.currentOffer != null)
         {
@@ -614,7 +638,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         numPieces[SOCPlayingPiece.SETTLEMENT] = 5;
         numPieces[SOCPlayingPiece.CITY] = 4;
         if (ga.hasSeaBoard)
-            numPieces[SOCPlayingPiece.SHIP] = 15;
+            numPieces[SOCPlayingPiece.SHIP] = SHIP_COUNT;
         else
             numPieces[SOCPlayingPiece.SHIP] = 0;
 
@@ -990,8 +1014,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * @return the number of pieces not in play for a particular type of piece
+     * Get the number of one piece type not in play and available to place.
+     * At the start of the game, for example, <tt>getNumPieces({@link SOCPlayingPiece#CITY})</tt> == 4.
+     * On the sea board, each player starts with {@link #SHIP_COUNT} ships.
      *
+     * @return the number of pieces not in play for a particular type of piece
      * @param ptype the type of piece; matches SOCPlayingPiece constants,
      *   such as {@link SOCPlayingPiece#ROAD}, {@link SOCPlayingPiece#SETTLEMENT}.
      * @see #getPieces()
@@ -1058,6 +1085,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Get this player's roads and ships on the board.  Chronological order.
+     * Note that if a ship is moved on the board, it may go to the end of this list.
      * @return the list of roads/ships in play
      */
     public Vector<SOCRoad> getRoads()
@@ -1157,7 +1185,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * player's piece conditions.
      *<P>
      * Once the player picks the ship's requested new location,
-     * that edge will be checked with {@link #isPotentialShip(int, int)}.
+     * that edge will be checked with {@link #isPotentialShipMoveTo(int, int)}.
      *<P>
      * @param sh  One of our ships
      * @since 2.0.00
@@ -1179,7 +1207,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         clearPastNode0 =
             (null == pp)
             && ! doesTradeRouteContinuePastNode
-                   (board, shipEdge, -9, shipNodes[0]);
+                   (board, true, shipEdge, -9, shipNodes[0]);
 
         pp = board.settlementAtNode(shipNodes[1]);
         if ((pp != null) && (pp.getPlayerNumber() != playerNumber))
@@ -1187,38 +1215,90 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         clearPastNode1 =
              (null == pp)
              && ! doesTradeRouteContinuePastNode
-                    (board, shipEdge, -9, shipNodes[1]);
+                    (board, true, shipEdge, -9, shipNodes[1]);
 
         return (clearPastNode0 || clearPastNode1);
     }
 
     /**
-     * Does this trade route (ships only) continue past
+     * For road/ship building, does this edge have a piece of ours adjacent to it
+     * (settlement, city, or same road/ship type as {@code wantShip})?
+     *
+     * @param edge   Check adjacents of this edge
+     * @param wantShip   True to look for ships only, false for roads only
+     * @return  True if we have an adjacent settlement or city, or our route continues on an adjacent edge 
+     * @since 2.0.00
+     */
+    private final boolean doesTradeRouteContinuePastEdge(final int edge, final boolean wantShip)
+    {
+        // TODO refactor: similar to canMoveShip's checks
+
+        final SOCBoard board = game.getBoard();
+
+        final int[] edgeNodes = board.getAdjacentNodesToEdge_arr(edge);
+        for (int i = 0; i < 2; ++i)
+        {
+            SOCPlayingPiece sc = board.settlementAtNode(edgeNodes[i]);
+            if (sc != null)
+            {
+                if (sc.getPlayerNumber() == playerNumber)
+                    return true;
+            } else {
+                if (doesTradeRouteContinuePastNode
+                        (board, wantShip, edge, -9, edgeNodes[i]))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Does this trade route (ships only, or roads only) continue past
      * an unoccupied node?
      *
      * @param board  game board
-     * @param shipEdge  Edge with a ship on the trade route
+     * @param wantShip   True to look for ships only, false for roads only
+     * @param rsEdge  Edge adjacent to {@code node} with a road/ship on the trade route
      * @param ignoreEdge  Edge to ignore our pieces on, or -9; used
-     *                    during the check before moving one of our ships.
-     * @param node  Node at one end of <tt>shipEdge</tt>,
+     *                    during the check before moving one of our ships
+     *                    to ignore the ship's current position (its {@code fromEdge}).
+     *                    Not necessarily adjacent to {@code node} or {@code rsEdge}.
+     *                    <P>
+     *                    In scenario {@code _SC_PIRI}, moving a ship must not create a new
+     *                    branch in the existing ship route. When not -9 in that scenario,
+     *                    this method checks that by counting our ships/roads adjacent to {@code node}
+     *                    besides {@code rsEdge} and {@code ignoreEdge}.
+     * @param node  Node at one end of {@code rsEdge},
      *              which does not have a settlement or city;
-     *              check this node's other 2 edges for ships
+     *              check this node's other 2 edges for roads/ships
      *              continuing the trade route
-     * @return  True if a ship continues the route past <tt>node</tt>
+     * @return  True if a road/ship continues the route past {@code node}
      *              along one or both of the node's 2 other edges
      * @since 2.0.00
      */
     private final boolean doesTradeRouteContinuePastNode
-        (final SOCBoard board, final int shipEdge, final int ignoreEdge, final int node)
+        (final SOCBoard board, final boolean wantShip, final int rsEdge, final int ignoreEdge, final int node)
     {
         boolean routeContinues = false;
 
+        // openEdgesCount: for _SC_PIRI when moving ship, number of non-ship edges around node;
+        //   otherwise 0.  Starts at 3, and the loop has a break below 2, so it will never reach 0.
+        //   Track this count because we can't create a branch in the ship route by moving one.
+        //   Decrement openEdgesCount when a ship is seen.  Ignore roads.
+        //   Assumes that it's OK to place 2 ships next to a coastal settlement
+        //   (the road to the settlement is ignored) because the player's free initial coastal settlement
+        //   has just 1 legal sea edge next to it, not 2, so the route can't branch there,
+        //   so any other coastal settlement is "on the way" along the non-branching route.
+        int openEdgesCount =
+            ((ignoreEdge != -9) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI)) ? 3 : 0;
+
         int[] adjEdges = board.getAdjacentEdgesToNode_arr(node);
         for (int i = 0; i < 3; ++i)
-            if ((adjEdges[i] == shipEdge) || (adjEdges[i] == ignoreEdge))
+            if ((adjEdges[i] == rsEdge) || (adjEdges[i] == ignoreEdge))
                 adjEdges[i] = -9;  // ignore this edge
 
-        // Look for a ship of ours, adjacent to node
+        // Look for a road/ship of ours, adjacent to node
         for (SOCRoad road : roads)
         {
             final int edge = road.getCoordinates();
@@ -1226,19 +1306,25 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             {
                 if (edge == adjEdges[i])
                 {
-                    if (road.isRoadNotShip())
-                        continue;  // interested in ships only
+                    if (road.isRoadNotShip() == wantShip)
+                        continue;  // interested in ships only, or roads only, not both types
 
                     routeContinues = true;
+                    if (openEdgesCount != 0)
+                        --openEdgesCount;
+
                     break;
                 }
             }
 
-            if (routeContinues)
+            if (routeContinues && (openEdgesCount < 2))
                 break;  // no need to keep looking at roads
         }
 
-        return routeContinues;
+        if (openEdgesCount == 0)
+            return routeContinues;
+        else
+            return (openEdgesCount == 2);  // If 3, nothing beyond. If 1, already 2 ships beyond, route would branch.
     }
 
     /**
@@ -2252,6 +2338,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * For {@link #putPiece(SOCPlayingPiece, boolean) putPiece}, update road/ship-related info,
      * {@link #roadNodes}, {@link #roadNodeGraph} and {@link #lastRoadCoord}.
      * Call only when the piece is ours.
+     * Does not update {@link #potentialRoads}/{@link #potentialShips}; see {@link #updatePotentials(SOCPlayingPiece)}.
      * @param piece  The road or ship
      * @param board  The board
      * @since 2.0.00
@@ -2547,10 +2634,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 if (piece.getType() == SOCPlayingPiece.ROAD)
                 {
                     legalRoads.add(pieceCoordInt);
-                    if (isCoastline)
+                    if (isCoastline &&
+                        ((legalShipsRestricted == null) || legalShipsRestricted.contains(pieceCoordInt)))
                         legalShips.add(pieceCoordInt);
                 } else {
-                    legalShips.add(pieceCoordInt);
+                    if ((legalShipsRestricted == null) || legalShipsRestricted.contains(pieceCoordInt))
+                        legalShips.add(pieceCoordInt);
                     if (isCoastline)
                         legalRoads.add(pieceCoordInt);
                 }
@@ -2829,6 +2918,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *           for removing settlements or cities.
      * It does update potential road lists.
      * For roads, updates {@link #roadNodes} and {@link #roadNodeGraph}.
+     *<P>
+     * If a ship is removed in scenario {@code _SC_PIRI}, makes sure our {@link #getNumWarships()}
+     * is never more than the number of ships on the board.
      *
      * @param piece  Our player's piece, to be removed from the board
      * @param replacementPiece  Piece that's replacing this piece; usually null unless player is upgrading to a city.
@@ -2875,48 +2967,57 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     roads.removeElement(p);
                     numPieces[ptype]++;
 
+                    if (ptype == SOCPlayingPiece.SHIP)
+                    {
+                        final int shipsPlaced = SHIP_COUNT - numPieces[ptype];
+                        if (numWarships > shipsPlaced)
+                            numWarships = shipsPlaced;
+                    }
+
+                    int[] edgeNodeCoords = new int[2];  // will hold edge's adjacent nodes
+
                     /**
                      * remove the nodes this road/ship touches from the roadNodes list
                      */
-                    Collection<Integer> nodes = board.getAdjacentNodesToEdge(pieceCoord);
-                    int[] nodeCoords = new int[2];
-                    int i = 0;
-
-                    for (Integer node : nodes)
                     {
-                        nodeCoords[i] = node.intValue();
-                        i++;
+                        Collection<Integer> nodes = board.getAdjacentNodesToEdge(pieceCoord);
+                        int i = 0;
 
-                        /**
-                         * only remove a node if none of our roads/ships are touching it
-                         */
-                        Collection<Integer> adjEdges = board.getAdjacentEdgesToNode(node.intValue());
-                        boolean match = false;
-
-                        for (SOCRoad rd : roads)
+                        for (Integer node : nodes)
                         {
-                            for (Integer adjEdgeObj : adjEdges)
+                            edgeNodeCoords[i] = node.intValue();
+                            i++;
+
+                            /**
+                             * only remove a node if none of our roads/ships are touching it
+                             */
+                            Collection<Integer> adjEdges = board.getAdjacentEdgesToNode(node.intValue());
+                            boolean match = false;
+
+                            for (SOCRoad rd : roads)
                             {
-                                final int adjEdge = adjEdgeObj.intValue();
+                                final int rdEdge = rd.getCoordinates();
 
-                                if (adjEdge == rd.getCoordinates())
+                                for (Integer adjEdgeObj : adjEdges)
                                 {
-                                    match = true;
+                                    if (rdEdge == adjEdgeObj)
+                                    {
+                                        match = true;
+                                        break;
+                                    }
+                                }
 
+                                if (match)
+                                {
                                     break;
                                 }
                             }
 
-                            if (match)
+                            if (! match)
                             {
-                                break;
+                                roadNodes.removeElement(node);
+                                potentialSettlements.remove(node);
                             }
-                        }
-
-                        if (!match)
-                        {
-                            roadNodes.removeElement(node);
-                            potentialSettlements.remove(node);
                         }
                     }
 
@@ -2924,12 +3025,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                      * remove this road/ship from the graph of nodes connected by roads/ships
                      */
                     {
-                        final int node0 = nodeCoords[0],
-                                  node1 = nodeCoords[1];
+                        final int node0 = edgeNodeCoords[0],
+                                  node1 = edgeNodeCoords[1];
                         final Integer node0Int = new Integer(node0),
                                       node1Int = new Integer(node1);
 
-                        // roadNodeGraph[node0][node1]
+                        // check roadNodeGraph[node0][node1]
                         int[] rnArr = roadNodeGraph.get(node0Int);
                         if (rnArr != null)
                         {
@@ -2941,7 +3042,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                 }
                         }
 
-                        // roadNodeGraph[node1][node0]
+                        // check roadNodeGraph[node1][node0]
                         rnArr = roadNodeGraph.get(node1Int);
                         if (rnArr != null)
                         {
@@ -2959,13 +3060,20 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                      *
                      * NOTE: we're assuming that we could build it here
                      * before, so we can make it a legal spot again.
+                     * On coastline, since might be both potential road and ship,
+                     * look for an adjacent road, ship, settlement or city.
                      */
-                    final boolean isCoastline = game.hasSeaBoard && ((SOCBoardLarge) board).isEdgeCoastline(pieceCoord);
+                    final boolean isCoastlineTransition
+                        = game.hasSeaBoard
+                          && ((SOCBoardLarge) board).isEdgeCoastline(pieceCoord)
+                          && doesTradeRouteContinuePastEdge
+                              (pieceCoord, (ptype == SOCPlayingPiece.ROAD));  // look for opposite type for transition
                     if (ptype == SOCPlayingPiece.ROAD)
                     {
                         potentialRoads.add(pieceCoordInt);
                         legalRoads.add(pieceCoordInt);
-                        if (isCoastline)
+                        if (isCoastlineTransition &&
+                            ((legalShipsRestricted == null) || legalShipsRestricted.contains(pieceCoordInt)))
                         {
                             potentialShips.add(pieceCoordInt);
                             legalShips.add(pieceCoordInt);
@@ -2973,16 +3081,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     } else {
                         potentialShips.add(pieceCoordInt);
                         legalShips.add(pieceCoordInt);
-                        if (isCoastline)
+                        if (isCoastlineTransition)
                         {
                             potentialRoads.add(pieceCoordInt);
                             legalRoads.add(pieceCoordInt);
                         }
+                        // (Since we're removing a ship, skip checking legalShipsRestricted.)
                     }
 
                     /**
                      * check each adjacent legal edge, if there are
-                     * no roads touching it, then it's no longer a
+                     * no roads touching it, then the adjacent is no longer a
                      * potential road
                      */
                     // TODO roads/ships are not interchangeable here
@@ -2990,74 +3099,72 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                     for (Integer adjEdge : adjEdgesEnum)
                     {
+                        if (! (potentialRoads.contains(adjEdge) || potentialShips.contains(adjEdge)))
+                            continue;
+
+                        boolean isPotentialRoad = false;  // or, isPotentialShip
+
+                        /**
+                         * check each adjacent node for blocking
+                         * settlements or cities
+                         */
                         final int adjEdgeID = adjEdge.intValue();
+                        final int[] adjNodes = board.getAdjacentNodesToEdge_arr(adjEdgeID);
 
-                        if (potentialRoads.contains(adjEdge))
+                        for (int ni = 0; (ni < 2) && ! isPotentialRoad; ++ni)
                         {
-                            boolean isPotentialRoad = false;  // or, isPotentialShip
-
-                            /**
-                             * check each adjacent node for blocking
-                             * settlements or cities
-                             */
-                            final int[] adjNodes = board.getAdjacentNodesToEdge_arr(adjEdgeID);
-
-                            for (int ni = 0; (ni < 2) && ! isPotentialRoad; ++ni)
+                            boolean blocked = false;  // Are we blocked in this node's direction?
+                            final int adjNode = adjNodes[ni];
+                            final SOCPlayingPiece aPiece = board.settlementAtNode(adjNode);
+                            if ((aPiece != null)
+                                && (aPiece.getPlayerNumber() != playerNumber))
                             {
-                                boolean blocked = false;  // Are we blocked in this node's direction?
-                                final int adjNode = adjNodes[ni];
-                                final SOCPlayingPiece aPiece = board.settlementAtNode(adjNode);
-                                if ((aPiece != null)
-                                    && (aPiece.getPlayerNumber() != playerNumber))
-                                {
-                                    /**
-                                     * we're blocked, don't bother checking adjacent edges
-                                     */
-                                    blocked = true;
-                                }
+                                /**
+                                 * we're blocked, don't bother checking adjacent edges
+                                 */
+                                blocked = true;
+                            }
 
-                                if (!blocked)
-                                {
-                                    Collection<Integer> adjAdjEdgesEnum = board.getAdjacentEdgesToNode(adjNode);
+                            if (! blocked)
+                            {
+                                Collection<Integer> adjAdjEdgesEnum = board.getAdjacentEdgesToNode(adjNode);
 
-                                    for (Integer adjAdjEdgesObj : adjAdjEdgesEnum)
+                                for (Integer adjAdjEdgesObj : adjAdjEdgesEnum)
+                                {
+                                    final int adjAdjEdge = adjAdjEdgesObj.intValue();
+
+                                    if (adjAdjEdge != adjEdgeID)
                                     {
-                                        final int adjAdjEdge = adjAdjEdgesObj.intValue();
-
-                                        if (adjAdjEdge != adjEdgeID)
+                                        for (SOCRoad ourRoad : roads)
                                         {
-                                            for (SOCRoad ourRoad : roads)
+                                            if (ourRoad.getCoordinates() == adjAdjEdge)
                                             {
-                                                if (ourRoad.getCoordinates() == adjAdjEdge)
-                                                {
-                                                    /**
-                                                     * we're still connected
-                                                     */
-                                                    isPotentialRoad = true;
-
-                                                    break;
-                                                }
+                                                /**
+                                                 * we're still connected
+                                                 */
+                                                isPotentialRoad = true;
+                                                break;
                                             }
                                         }
-
-                                        if (isPotentialRoad)
-                                            break;  // no need to keep looking at adjacent edges
                                     }
+
+                                    if (isPotentialRoad)
+                                        break;  // no need to keep looking at adjacent edges
                                 }
                             }
+                        }
 
-                            if (ptype == SOCPlayingPiece.ROAD)
-                            {
-                                if (isPotentialRoad)
-                                    potentialRoads.add(adjEdge);
-                                else
-                                    potentialRoads.remove(adjEdge);
-                            } else {
-                                if (isPotentialRoad)
-                                    potentialShips.add(adjEdge);
-                                else
-                                    potentialShips.remove(adjEdge);
-                            }
+                        if (ptype == SOCPlayingPiece.ROAD)
+                        {
+                            if (isPotentialRoad && legalRoads.contains(adjEdge))
+                                potentialRoads.add(adjEdge);
+                            else
+                                potentialRoads.remove(adjEdge);
+                        } else {
+                            if (isPotentialRoad && legalShips.contains(adjEdge))
+                                potentialShips.add(adjEdge);
+                            else
+                                potentialShips.remove(adjEdge);
                         }
                     }
 
@@ -3131,7 +3238,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         {
             final int edge = sides[i];
             if ((htype == SOCBoard.WATER_HEX) || board.isEdgeCoastline(edge))
-                legalShips.add(new Integer(edge));
+            {
+                final Integer edgeInt = Integer.valueOf(edge);
+                if ((legalShipsRestricted == null) || legalShipsRestricted.contains(edgeInt))
+                    legalShips.add(edgeInt);
+            }
         }
     }
 
@@ -3458,6 +3569,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * {@link SOCBoardLarge#setLegalAndPotentialSettlements(Collection, int, HashSet[])},
      * or the road sets won't be complete.
      *<P>
+     * Call this method before, not after, calling {@link #setRestrictedLegalShips(int[])}.
+     * However, if the player already has a restricted legal ship edge list, this method won't clear it.
+     *<P>
      * This method is called at the server only when <tt>game.hasSeaBoard</tt>,
      * just after makeNewBoard in {@link SOCGame#startGame()}.
      *<P>
@@ -3468,6 +3582,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *     {@link Integer} node coordinates
      * @param setLegalsToo  If true, also update legal settlements/roads/ships
      *     if we're using the large board layout.  [Parameter added in v2.0.00]
+     *     <P>
+     *     In scenario {@code _SC_PIRI}, for efficiency, the legal ships list will remain
+     *     empty until {@link #setRestrictedLegalShips(int[])} is called.
      * @param legalLandAreaNodes If non-null and <tt>setLegalsToo</tt>,
      *     all Land Areas' legal (but not currently potential) node coordinates.
      *     Index 0 is ignored; land area numbers start at 1.
@@ -3491,7 +3608,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             }
 
             legalRoads = game.getBoard().initPlayerLegalRoads();
-            legalShips = ((SOCBoardLarge) game.getBoard()).initPlayerLegalShips();
+            if (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                legalShips = ((SOCBoardLarge) game.getBoard()).initPlayerLegalShips();
+            else
+                legalShips.clear();  // caller must soon call setRestrictedLegalShips
         }
     }
 
@@ -3500,13 +3620,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Used in some scenarios when {@link SOCGame#hasSeaBoard} to add a location
      * after calling {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])}.
      * This would be a lone location beyond the usual starting/legal LandAreas on the scenario's board.
-     * @param node  A node coordinate to add
+     * @param node  A node coordinate to add, or 0 to do nothing
      * @since 2.0.00
      * @see #isLegalSettlement(int)
      * @see #getAddedLegalSettlement()
      */
     public void addLegalSettlement(final int node)
     {
+        if (node == 0)
+            return;
         legalSettlements.add(Integer.valueOf(node));
         addedLegalSettlement = node;
     }
@@ -3661,40 +3783,60 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Is this edge coordinate a potential ship, even if another ship
+     * Is this edge coordinate a potential place to move a ship, even if another ship
      * edge was not?  Used by {@link SOCGame#canMoveShip(int, int, int)}
      * to check the ship's requested new location.
      *<P>
-     * First, <tt>edge</tt> must be a potential ship now.
-     * Then, we check to see if even without the ship at <tt>ignoreEdge</tt>,
-     * edge is still potential:
-     * If either end node of <tt>edge</tt> has a settlement/city of ours,
+     * First, {@code toEdge} must be a potential ship<B>*</B> now.
+     * Then, we check to see if even without the ship at {@code fromEdge},
+     * toEdge is still potential:
+     * If either end node of {@code toEdge} has a settlement/city of ours,
      * or has an adjacent edge with a ship of ours
-     * (except <tt>ignoreEdge</tt>), then <tt>edge</tt> is potential.
+     * (except {@code fromEdge}), then {@code toEdge} is potential.
+     *<P>
+     * <B>*</B>In scenario {@code _SC_PIRI}, we check more carefully because
+     * after ship placement, nearby potential ships are removed to prevent
+     * any branching of the ship route.  This would make it impossible to
+     * move the route's newest ship to its other potential direction from
+     * the previous node.
      *
      * @return true if this edge is still a potential ship
-     * @param edge  the coordinates of an edge on the board;
-     *       {@link #isPotentialShip(int) isPotentialShip(edge)}
+     * @param toEdge  the coordinates of an edge on the board;
+     *       {@link #isPotentialShip(int) isPotentialShip(toEdge)}
      *       must currently be true.
-     * @param ignoreShipEdge  the coordinates of another ship edge, to
-     *   ignore when determining if <tt>edge</tt> is still potential.
+     * @param fromEdge  the ship's current edge coordinate, to
+     *   ignore when determining if {@code toEdge} is still potential.
      * @see #isPotentialShip(int)
      * @since 2.0.00
      */
-    public boolean isPotentialShip(final int edge, final int ignoreShipEdge)
+    public boolean isPotentialShipMoveTo(final int toEdge, final int fromEdge)
     {
-        if (! potentialShips.contains(Integer.valueOf(edge)))
-            return false;
+        if (! potentialShips.contains(Integer.valueOf(toEdge)))
+        {
+            if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI)
+                && (null != legalShipsRestricted))
+            {
+                if ((getRoadOrShip(toEdge) != null)
+                    || ! legalShipsRestricted.contains(Integer.valueOf(toEdge)))
+                    return false;
+
+                // Continue checks below. New edge must be adjacent to a current ship or settlement/city
+                // (potentialShips would normally check that); and can't be a branch of a trade route
+                // (new edge's node must have just 1 road or ship, not 2 already).
+            } else {
+                return false;
+            }
+        }
 
         final SOCBoard board = game.getBoard();
-        final int[] edgeNodes = board.getAdjacentNodesToEdge_arr(edge);
+        final int[] edgeNodes = board.getAdjacentNodesToEdge_arr(toEdge);
 
         SOCPlayingPiece pp = board.settlementAtNode(edgeNodes[0]);
         if ((pp != null) && (pp.getPlayerNumber() != playerNumber))
             pp = null;
         if ((pp != null)
             || doesTradeRouteContinuePastNode
-                 (board, edge, ignoreShipEdge, edgeNodes[0]))
+                 (board, true, toEdge, fromEdge, edgeNodes[0]))
             return true;
 
         pp = board.settlementAtNode(edgeNodes[1]);
@@ -3702,7 +3844,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             pp = null;
         if ((pp != null)
             || doesTradeRouteContinuePastNode
-                 (board, edge, ignoreShipEdge, edgeNodes[1]))
+                 (board, true, toEdge, fromEdge, edgeNodes[1]))
             return true;
 
         return false;
@@ -3718,7 +3860,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *   if not {@link SOCGame#hasSeaBoard}, always returns false
      *   because the player has no potential ship locations.
      * @param edge  the coordinates of an edge on the board
-     * @see #isPotentialShip(int, int)
+     * @see #isPotentialShipMoveTo(int, int)
      * @see SOCGame#canPlaceShip(SOCPlayer, int)
      * @since 2.0.00
      */
@@ -3751,6 +3893,82 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (edge < 0)
             return false;
         return legalShips.contains(Integer.valueOf(edge));
+    }
+
+    /**
+     * A list of edges where the player can build ships,
+     * if the legal sea edges for ships are restricted
+     * by the game's scenario ({@link SOCGameOption#K_SC_PIRI _SC_PIRI}),
+     * or {@code null} if all sea edges are legal for ships.
+     * If the player has no legal ship edges, this list is empty (not null).
+     *<P>
+     * Please treat the returned HashSet as read-only.
+     *
+     * @return  Legal sea edges if they're restricted, or {@code null}
+     * @since 2.0.00
+     */
+    public HashSet<Integer> getRestrictedLegalShips()
+    {
+        return legalShipsRestricted;
+    }
+
+    /**
+     * Set the list of edges where the player can build ships,
+     * when the legal sea edges for ships are restricted
+     * by the game's scenario ({@link SOCGameOption#K_SC_PIRI _SC_PIRI}).
+     * @param edgeList  List of edges, same format as one player's array from
+     *   {@link soc.server.SOCBoardLargeAtServer#getLegalSeaEdges(SOCGame, int) SOCBoardLargeAtServer.getLegalSeaEdges(SOCGame, int)};
+     *   or an empty array (length 0) for vacant players with no legal ship edges;
+     *   or {@code null} for unrestricted ship placement.
+     *   <P>
+     *   If {@code edgeList} is {@code null} and the player previously had a restricted
+     *   ship edge list, will call {@code SOCBoardLarge.initPlayerLegalShips()} to
+     *   unrestrict the player's legal ship positions.  If the game is already in progress,
+     *   this naive call will include any no-longer-legal ships due to placed pieces.
+     * @since 2.0.00
+     */
+    public void setRestrictedLegalShips(final int[] edgeList)
+    {
+        if (legalShipsRestricted != null)
+            legalShipsRestricted.clear();
+
+        if (edgeList == null)
+        {
+            if (legalShipsRestricted != null)
+            {
+                legalShipsRestricted = null;
+                legalShips.addAll(((SOCBoardLarge) game.getBoard()).initPlayerLegalShips());
+            }
+            return;
+        }
+
+        HashSet<Integer> lse = legalShipsRestricted;  // local reference for brevity
+        if (lse == null)
+        {
+            lse = new HashSet<Integer>();
+            legalShipsRestricted = lse;
+        }
+
+        for (int i = 0; i < edgeList.length; ++i)
+        {
+            int edge = edgeList[i];
+            if (edge > 0)
+            {
+                lse.add(Integer.valueOf(edge));
+            } else {
+                // Represents a range from previous element to current.
+                // Previous was added in the previous iteration.
+                edge = -edge;
+                final int incr  // even rows get +1 (along top/bottom of hexes); odd rows get +2 (left/right sides)
+                  = (0 == (edge & 0x100)) ? 1 : 2;
+
+                for (int ed = edgeList[i-1] + incr; ed <= edge; ed += incr)
+                    lse.add(Integer.valueOf(ed));
+            }
+        }
+
+        legalShips.clear();
+        legalShips.addAll(lse);
     }
 
     /**
@@ -4126,6 +4344,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             legalSettlements = null;
             legalShips.clear();
             legalShips = null;
+            if (legalShipsRestricted != null)
+            {
+                legalShipsRestricted.clear();
+                legalShipsRestricted = null;
+            }
             potentialRoads.clear();
             potentialRoads = null;
             potentialSettlements.clear();

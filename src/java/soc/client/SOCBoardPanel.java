@@ -57,6 +57,7 @@ import java.awt.event.MouseMotionListener;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Timer;
@@ -420,7 +421,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Move a previously-placed ship on the large sea board.
-     * Also set {@link #moveShip_fromEdge}.
+     * Also set {@link #moveShip_fromEdge} and {@link #moveShip_isWarship}.
      * @since 2.0.00
      */
     private final static int MOVE_SHIP = 15;
@@ -516,7 +517,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * The board is configured for 6-player layout (and is {@link #isRotated});
-     * set in constructor by checking {@link SOCBoard#getBoardEncodingFormat()}.
+     * set in constructor by checking {@link SOCBoard#getBoardEncodingFormat()}
+     * &lt;= {@link SOCBoard#BOARD_ENCODING_6PLAYER} and {@link SOCGame#maxPlayers} &gt; 4.
+     *<P>
      * The entire coordinate system is land, except the rightmost hexes are unused
      * (7D-DD-D7 row).
      * The 6-player mode uses {@link #hexX_6pl} instead of {@link #hexX_st} for coordinates.
@@ -590,6 +593,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @since 1.1.08
      */
     protected final int panelMinBW, panelMinBH;
+
+    /**
+     * Scaled (actual) panel margin on left, in pixels, for narrow boards, if board's unscaled
+     * width is less than {@link #panelMinBW}.
+     * Used only when {@link #isLargeBoard} and not {@link #isRotated}, otherwise 0.
+     * Never less than 0.
+     * @since 2.0.00
+     */
+    protected int panelMarginX;
 
     /**
      * The board is currently scaled larger than
@@ -930,9 +942,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * During {@link #MOVE_SHIP} mode, the edge coordinate
      * from which we're moving the ship.  0 otherwise.
+     * The hovering "move-to" location under the mouse pointer is {@link #hilight}.
+     * @see #moveShip_isWarship
      * @since 2.0.00
      */
     private int moveShip_fromEdge;
+
+    /**
+     * During {@link #MOVE_SHIP} mode, true if the ship being moved
+     * is a warship in scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * @see #moveShip_fromEdge
+     * @since 2.0.00
+     */
+    private boolean moveShip_isWarship;
 
     /**
      * Map grid sectors (from unscaled on-screen coordinates) to hex edges.
@@ -1824,6 +1846,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         if (piece instanceof SOCFortress)
         {
+            final SOCFortress fort = (SOCFortress) piece;
+
+            if ((0 == fort.getStrength()) && (0 == ((SOCBoardLarge) board).getPirateHex()))
+            {
+                // All players have recaptured their fortresses: The pirate fleet & path is removed.
+                flushBoardLayoutAndRepaint();
+                return;  // <--- Early return: repaint whole board ---
+            }
+
             final int pn = piece.getPlayerNumber();
 
             // repaint this piece in the AWT thread
@@ -1833,8 +1864,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     Image ibuf = buffer;  // Local var in case field becomes null in other thread during paint
                     if (ibuf != null)
-                        drawFortress(ibuf.getGraphics(), (SOCFortress) piece, pn, false);
-                    drawFortress(getGraphics(), (SOCFortress) piece, pn, false);
+                        drawFortress(ibuf.getGraphics(), fort, pn, false);
+                    Graphics bpanG = getGraphics();
+                    if (bpanG != null)
+                        drawFortress(bpanG, fort, pn, false);
+                    else
+                        repaint();
                 }
             });
         }
@@ -1919,6 +1954,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         isScaled = ((scaledPanelX != minSize.width) || (scaledPanelY != minSize.height));
         scaledAt = System.currentTimeMillis();
         isScaledOrRotated = (isScaled || isRotated);
+        if (isRotated)
+        {
+            panelMarginX = 0;
+        } else {
+            final int hexesWidth = halfdeltaX * board.getBoardWidth();
+            panelMarginX = scaleToActualX(panelMinBW - hexesWidth) / 2;  // take half, to center
+            if (panelMarginX < (halfdeltaX / 2))  // also if negative (larger than panelMinBW)
+                panelMarginX = 0;
+        }
 
         /**
          * Off-screen buffer is now the wrong size.
@@ -2822,9 +2866,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * draw a settlement
      */
-    private final void drawSettlement(Graphics g, int nodeNum, int pn, boolean isHilight)
+    private final void drawSettlement(Graphics g, int nodeNum, int pn, boolean isHilight, final boolean outlineOnly)
     {
-        drawSettlementOrCity(g, nodeNum, pn, isHilight, false);
+        drawSettlementOrCity(g, nodeNum, pn, isHilight, outlineOnly, false);
     }
 
     /**
@@ -2832,92 +2876,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private final void drawCity(Graphics g, int nodeNum, int pn, boolean isHilight)
     {
-        drawSettlementOrCity(g, nodeNum, pn, isHilight, true);
+        drawSettlementOrCity(g, nodeNum, pn, isHilight, false, true);
     }
 
     /**
      * draw a settlement or city; they have the same logic for determining (x,y) from nodeNum.
+     * @param outlineOnly  If set for settlement, draw only the outline, not the filled polygon.  Ignored when {@code isCity}.
      * @since 1.1.08
      */
     private final void drawSettlementOrCity
-        (Graphics g, final int nodeNum, final int pn, final boolean isHilight, final boolean isCity)
+        (Graphics g, final int nodeNum, final int pn, final boolean isHilight, final boolean outlineOnly, final boolean isCity)
     {
-        int hx, hy;
-
-        if (! isLargeBoard)
+        final int hx, hy;
         {
-            final int hexNum;
-
-            if (((nodeNum >> 4) % 2) == 0)
-            { // If first digit is even,
-              // then it is a 'Y' node
-              // in the northwest corner of a hex.
-                if ((nodeNum >= 0x81) && (0 == ((nodeNum - 0x81) % 0x22)))
-                {
-                    // this node's hex would be off the southern edge of the board.
-                    // shift 1 hex north, then add to y.
-                    hexNum = hexIDtoNum[nodeNum - 0x20 + 0x02 + 0x10];
-                    hx = hexX[hexNum];
-                    hy = hexY[hexNum] + 17 + (2 * deltaY);
-                } else {
-                    hexNum = hexIDtoNum[nodeNum + 0x10];
-                    hx = hexX[hexNum];
-                    hy = hexY[hexNum] + 17;
-                }
-            }
-            else
-            { // otherwise it is an 'A' node
-              // in the northern corner of a hex.
-                if ((nodeNum >= 0x70) && (0 == ((nodeNum - 0x70) % 0x22)))
-                {
-                    // this node's hex would be off the southern edge of the board.
-                    // shift 1 hex north, then add to y.
-                    hexNum = hexIDtoNum[nodeNum - 0x20 + 0x02 - 0x01];
-                    hx = hexX[hexNum] + halfdeltaX;
-                    hy = hexY[hexNum] + 2 + (2 * deltaY);
-                }
-                else if ((nodeNum & 0x0F) > 0)
-                {
-                    hexNum = hexIDtoNum[nodeNum - 0x01];
-                    hx = hexX[hexNum] + halfdeltaX;
-                    hy = hexY[hexNum] + 2;
-                } else {
-                    // this node's hex would be off the southwest edge of the board.
-                    // shift 1 hex to the east, then subtract from x.
-                    hexNum = hexIDtoNum[nodeNum + 0x22 - 0x01];
-                    hx = hexX[hexNum] - halfdeltaX;
-                    hy = hexY[hexNum] + 2;
-                }
-            }
-
-        } else {
-            // isLargeBoard
-
-            final int r = (nodeNum >> 8),
-                      c = (nodeNum & 0xFF);
-            hx = halfdeltaX * c;
-            hy = halfdeltaY * (r+1);
-
-            // If the node isn't at the top center of a hex,
-            // it will need to move up or down a bit vertically.
-            //
-            // 'Y' nodes vertical offset: move down
-            final int s = r / 2;
-            if ((s % 2) != (c % 2))
-                hy += HEXY_OFF_SLOPE_HEIGHT;
-        }
-
-        if (isRotated)
-        {
-            // (cw):  P'=(panelMinBH-y, x)
-            int hy1 = hx;
-            hx = panelMinBH - hy;
-            hy = hy1;
-        }
-        if (isScaled)
-        {
-            hx = scaleToActualX(hx);
-            hy = scaleToActualY(hy);
+            final int[] nodexy = nodeToXY(nodeNum);
+            hx = nodexy[0];  hy = nodexy[1];
         }
 
         // System.out.println("NODEID = "+Integer.toHexString(nodeNum)+" | HEXNUM = "+hexNum);
@@ -2944,13 +2917,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             g.translate(-hx, -hy);
         } else {
             // settlement
-            if (isHilight)
-                g.setColor(playerInterface.getPlayerColor(pn, true));
-            else
-                g.setColor(playerInterface.getPlayerColor(pn));
             g.translate(hx, hy);
-            g.fillPolygon(scaledSettlementX, scaledSettlementY, 6);
-            if (isHilight)
+            if (! outlineOnly)
+            {
+                if (isHilight)
+                    g.setColor(playerInterface.getPlayerColor(pn, true));
+                else
+                    g.setColor(playerInterface.getPlayerColor(pn));
+                g.fillPolygon(scaledSettlementX, scaledSettlementY, 6);
+            }
+            if (isHilight || outlineOnly)
                 g.setColor(playerInterface.getPlayerColor(pn, false));
             else
                 g.setColor(Color.black);
@@ -2960,41 +2936,40 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
+     * For drawing the player's permitted sea edges for ships, draw
+     * a line covering the middle 60% of this edge on the board (leaves out 20% on each end).
+     * For efficiency, the player color and line stroke must be set before calling this method.
+     * @param edge  Edge coordinate
+     * @since 2.0.00
+     */
+    private final void drawSeaEdgeLine(Graphics g, final int edge)
+    {
+        final int[] enodes = board.getAdjacentNodesToEdge_arr(edge);
+        final int[][] nodexy = { nodeToXY(enodes[0]), nodeToXY(enodes[1]) };
+
+        // keep 60% of line length by removing 20% (1/5) from each end
+        final int dx = (nodexy[1][0] - nodexy[0][0]) / 5, dy = (nodexy[1][1] - nodexy[0][1]) / 5;
+
+        g.drawLine(nodexy[0][0] + dx, nodexy[0][1] + dy, nodexy[1][0] - dx, nodexy[1][1] - dy);
+    }
+
+    /**
      * Draw a pirate fortress, for scenario <tt>SC_PIRI</tt>.
+     * @param fo  Fortress
+     * @param pn  Player number, for fortress color
+     * @param isHilight  Use hilight/ghosted player color?
      * @since 2.0.00
      */
     private final void drawFortress
         (Graphics g, final SOCFortress fo, final int pn, final boolean isHilight)
     {
-        final int nodeNum = fo.getCoordinates();
-        int hx, hy;
-
-        // always isLargeBoard
-
-        final int r = (nodeNum >> 8),
-                  c = (nodeNum & 0xFF);
-        hx = halfdeltaX * c;
-        hy = halfdeltaY * (r+1);
-
-        // If the node isn't at the top center of a hex,
-        // it will need to move up or down a bit vertically.
-        //
-        // 'Y' nodes vertical offset: move down
-        final int s = r / 2;
-        if ((s % 2) != (c % 2))
-            hy += HEXY_OFF_SLOPE_HEIGHT;
-
-        if (isScaled)
-        {
-            hx = scaleToActualX(hx);
-            hy = scaleToActualY(hy);
-        }
+        final int[] nodexy = nodeToXY(fo.getCoordinates());
 
         if (isHilight)
             g.setColor(playerInterface.getPlayerColor(pn, true));
         else
             g.setColor(playerInterface.getPlayerColor(pn));
-        g.translate(hx, hy);
+        g.translate(nodexy[0], nodexy[1]);
         g.fillPolygon(scaledFortressX, scaledFortressY, scaledFortressY.length);
         if (isHilight)
             g.setColor(playerInterface.getPlayerColor(pn, false));
@@ -3009,7 +2984,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         g.setFont(diceNumberCircleFont);
         g.drawString(numstr, x, y);
 
-        g.translate(-hx, -hy);
+        g.translate(-nodexy[0], -nodexy[1]);
     }
 
     /**
@@ -3020,37 +2995,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private void drawVillage(Graphics g, final SOCVillage v)
     {
-        final int nodeNum = v.getCoordinates();
+        final int[] nodexy = nodeToXY(v.getCoordinates());
 
-        // assume isLargeBoard
-
-        final int r = (nodeNum >> 8),
-                  c = (nodeNum & 0xFF);
-        int hx = halfdeltaX * c;
-        int hy = halfdeltaY * (r+1);
-
-        // If the node isn't at the top center of a hex,
-        // it will need to move up or down a bit vertically.
-        //
-        // 'Y' nodes vertical offset: move down
-        final int s = r / 2;
-        if ((s % 2) != (c % 2))
-            hy += HEXY_OFF_SLOPE_HEIGHT;
-
-        if (isRotated)
-        {
-            // (cw):  P'=(panelMinBH-y, x)
-            int hy1 = hx;
-            hx = panelMinBH - hy;
-            hy = hy1;
-        }
-        if (isScaled)
-        {
-            hx = scaleToActualX(hx);
-            hy = scaleToActualY(hy);
-        }
-
-        g.translate(hx, hy);
+        g.translate(nodexy[0], nodexy[1]);
         g.setColor(Color.YELLOW);
         g.fillPolygon(scaledVillageX, scaledVillageY, 4);
         g.setColor(Color.black);
@@ -3063,7 +3010,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         g.setFont(diceNumberCircleFont);
         g.drawString(numstr, x, y);
 
-        g.translate(-hx, -hy);
+        g.translate(-nodexy[0], -nodexy[1]);
    }
 
     /**
@@ -3216,7 +3163,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int[] ROW_START_HEXNUM = { 0, 4, 9, 15, 22, 28, 33 };
 
     /**
-     * for the 6-player board, draw the ring of surrounding water/ports.
+     * for the 6-player board (if {@link #is6player}), draw the ring of surrounding water/ports.
      * This is outside the coordinate system, and doesn't have hex numbers,
      * and so can't be drawn in the standard drawHex loop.
      * @since 1.1.08
@@ -3363,7 +3310,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         g.setPaintMode();
         g.drawImage(ebb, 0, 0, this);
 
-        int gameState = game.getGameState();
+        if (panelMarginX != 0)
+            g.translate(panelMarginX, 0);
+
+        final int gameState = game.getGameState();
 
         if (board.getRobberHex() != -1)
         {
@@ -3428,7 +3378,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          */
         for (SOCSettlement s : board.getSettlements())
         {
-            drawSettlement(g, s.getCoordinates(), s.getPlayerNumber(), false);
+            drawSettlement(g, s.getCoordinates(), s.getPlayerNumber(), false, false);
         }
 
         /**
@@ -3438,6 +3388,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             drawCity(g, c.getCoordinates(), c.getPlayerNumber(), false);
         }
+
+        if (panelMarginX != 0)
+            g.translate(-panelMarginX, 0);
 
         /**
          * draw the current-player arrow after ("above") pieces,
@@ -3452,6 +3405,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         if (player != null)
         {
+        if (panelMarginX != 0)
+            g.translate(panelMarginX, 0);
+
         /**
          * Draw the hilight when in interactive mode;
          * No hilight when null player (before game started).
@@ -3462,7 +3418,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
         case MOVE_SHIP:
             if (moveShip_fromEdge != 0)
-                drawRoadOrShip(g, moveShip_fromEdge, -1, false, false, false);
+                drawRoadOrShip(g, moveShip_fromEdge, -1, false, false, moveShip_isWarship);
             // fall through to road modes, to draw new location (hilight)
 
         case PLACE_ROAD:
@@ -3472,7 +3428,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (hilight != 0)
             {
                 drawRoadOrShip
-                    (g, hilight, playerNumber, true, ! hilightIsShip, false);
+                    (g, hilight, playerNumber, true, ! hilightIsShip, (moveShip_isWarship && (moveShip_fromEdge != 0)));
             }
             break;
 
@@ -3481,7 +3437,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (hilight > 0)
             {
-                drawSettlement(g, hilight, playerNumber, true);
+                drawSettlement(g, hilight, playerNumber, true, false);
             }
             break;
 
@@ -3506,7 +3462,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (hilight > 0)
             {
-                drawSettlement(g, hilight, otherPlayer.getPlayerNumber(), true);
+                drawSettlement(g, hilight, otherPlayer.getPlayerNumber(), true, false);
             }
             break;
 
@@ -3544,6 +3500,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             break;
 
         }  // switch
+
+        if (panelMarginX != 0)
+            g.translate(-panelMarginX, 0);
+
         }  // if (player != null)
 
         if (superText1 != null)
@@ -3565,6 +3525,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<P>
      * For scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI},
      * <tt>drawBoardEmpty</tt> draws the board's {@link SOCVillage}s.
+     *<P>
+     * If {@link #panelMarginX} != 0, do not translate {@code g} before calling.
+     * This method will internally translate.
+     *
      * @param g Graphics, typically from {@link #emptyBoardBuffer}
      * @since 1.1.08
      * @see SOCPlayerInterface#updateAtNewBoard()
@@ -3599,6 +3563,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         } else {
 
+            if (panelMarginX != 0)
+                g.translate(panelMarginX, 0);
+
             // Large Board has a rectangular array of hexes.
             // (r,c) are board coordinates.
             // (x,y) are pixel coordinates.
@@ -3618,6 +3585,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     c = 2;  // top row, even rows start at 2
                     x = halfdeltaX;
                 }
+
+                if (panelMarginX != 0)
+                {
+                    // If board is narrow and has left margin, fill in with water
+                    int xleft = x, cleft = c;
+                    while (xleft >= -panelMarginX)  // xleft >= 0 after g.translate
+                    {
+                        final int hexCoord = rshift | cleft;
+                        drawHex(g, xleft, y, SOCBoard.WATER_HEX, -1, hexCoord);
+                        cleft -= 2;
+                        xleft -= deltaX;
+                    }
+                }
+
                 for (; c < bw; c += 2, x += deltaX)
                 {
                     final int hexCoord = rshift | c;
@@ -3642,13 +3623,54 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
             }
 
-            // For scenario _SC_PIRI, check for the Pirate Path
-            final int[] ppath = ((SOCBoardLarge) board).getAddedLayoutPart("PP");
-            if (ppath != null)
-                drawBoardEmpty_drawPiratePath(g, ppath);
-
+            // All ports
             drawPorts_LargeBoard(g);
 
+            // For scenario _SC_PIRI, check for the Pirate Path and Lone Settlement locations.
+            // Draw path only if the pirate fleet is still on the board
+            // Draw our player's permitted sea edges for ships, if restricted
+            {
+                final int[] ppath = ((SOCBoardLarge) board).getAddedLayoutPart("PP");
+                if ((ppath != null) && (0 != ((SOCBoardLarge) board).getPirateHex()))
+                    drawBoardEmpty_drawPiratePath(g, ppath);
+
+                final int[] ls = ((SOCBoardLarge) board).getAddedLayoutPart("LS");
+                if (ls != null)
+                {
+                    for (int pn = 0; pn < ls.length; ++pn)
+                        if (ls[pn] != 0)
+                            drawSettlement(g, ls[pn], pn, false, true);
+                }
+
+                final HashSet<Integer> lse = (player != null) ? player.getRestrictedLegalShips() : null;
+                if ((lse != null) && ! lse.isEmpty())
+                {
+                    final Stroke prevStroke;
+                    if (g instanceof Graphics2D)
+                    {
+                        // Draw as a dotted line with some thickness
+                        prevStroke = ((Graphics2D) g).getStroke();
+                        final int hexPartWidth = scaleToActualX(halfdeltaX);
+                        final float[] dash = { hexPartWidth * 0.15f, hexPartWidth * 0.12f };  // length of dash/break
+                        ((Graphics2D) g).setStroke
+                            (new BasicStroke
+                                ((1.5f * scaledPanelX) / panelMinBW, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
+                                 1.5f, dash, hexPartWidth * 0.1f));
+                        g.setColor(playerInterface.getPlayerColor(playerNumber));
+                    } else {
+                        prevStroke = null;
+                        g.setColor(playerInterface.getPlayerColor(playerNumber, true));
+                    }
+
+                    for (Integer edge : lse)
+                        drawSeaEdgeLine(g, edge);
+
+                    if (g instanceof Graphics2D)
+                        ((Graphics2D) g).setStroke(prevStroke);
+                }
+            }
+
+            // For scenario _SC_CLVI, draw the cloth villages
             HashMap<Integer, SOCVillage> villages = ((SOCBoardLarge) board).getVillages();
             if (villages != null)
             {
@@ -3659,6 +3681,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             // check debugShowPotentials[0 - 9]
             drawBoardEmpty_drawDebugShowPotentials(g);
+
+            if (panelMarginX != 0)
+                g.translate(-panelMarginX, 0);
         }
 
         if (scaledMissedImage)
@@ -4014,8 +4039,100 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
+     * Calculate the on-screen coordinates of a node.
+     * @param nodeNum  Node coordinate
+     * @return  Array with screen {x, y} for this node, already scaled and/or rotated
+     * @since 2.0.00
+     */
+    private final int[] nodeToXY(final int nodeNum)
+    {
+        int hx, hy;
+
+        if (! isLargeBoard)
+        {
+            final int hexNum;
+
+            if (((nodeNum >> 4) % 2) == 0)
+            { // If first digit is even,
+              // then it is a 'Y' node
+              // in the northwest corner of a hex.
+                if ((nodeNum >= 0x81) && (0 == ((nodeNum - 0x81) % 0x22)))
+                {
+                    // this node's hex would be off the southern edge of the board.
+                    // shift 1 hex north, then add to y.
+                    hexNum = hexIDtoNum[nodeNum - 0x20 + 0x02 + 0x10];
+                    hx = hexX[hexNum];
+                    hy = hexY[hexNum] + 17 + (2 * deltaY);
+                } else {
+                    hexNum = hexIDtoNum[nodeNum + 0x10];
+                    hx = hexX[hexNum];
+                    hy = hexY[hexNum] + 17;
+                }
+            }
+            else
+            { // otherwise it is an 'A' node
+              // in the northern corner of a hex.
+                if ((nodeNum >= 0x70) && (0 == ((nodeNum - 0x70) % 0x22)))
+                {
+                    // this node's hex would be off the southern edge of the board.
+                    // shift 1 hex north, then add to y.
+                    hexNum = hexIDtoNum[nodeNum - 0x20 + 0x02 - 0x01];
+                    hx = hexX[hexNum] + halfdeltaX;
+                    hy = hexY[hexNum] + 2 + (2 * deltaY);
+                }
+                else if ((nodeNum & 0x0F) > 0)
+                {
+                    hexNum = hexIDtoNum[nodeNum - 0x01];
+                    hx = hexX[hexNum] + halfdeltaX;
+                    hy = hexY[hexNum] + 2;
+                } else {
+                    // this node's hex would be off the southwest edge of the board.
+                    // shift 1 hex to the east, then subtract from x.
+                    hexNum = hexIDtoNum[nodeNum + 0x22 - 0x01];
+                    hx = hexX[hexNum] - halfdeltaX;
+                    hy = hexY[hexNum] + 2;
+                }
+            }
+
+        } else {
+            // isLargeBoard
+
+            final int r = (nodeNum >> 8),
+                      c = (nodeNum & 0xFF);
+            hx = halfdeltaX * c;
+            hy = halfdeltaY * (r+1);
+
+            // If the node isn't at the top center of a hex,
+            // it will need to move up or down a bit vertically.
+            //
+            // 'Y' nodes vertical offset: move down
+            final int s = r / 2;
+            if ((s % 2) != (c % 2))
+                hy += HEXY_OFF_SLOPE_HEIGHT;
+        }
+
+        if (isRotated)
+        {
+            // (cw):  P'=(panelMinBH-y, x)
+            int hy1 = hx;
+            hx = panelMinBH - hy;
+            hy = hy1;
+        }
+        if (isScaled)
+        {
+            hx = scaleToActualX(hx);
+            hy = scaleToActualY(hy);
+        }
+
+        final int[] xy = { hx, hy };
+        return xy;
+    }
+
+    /**
      * Scale x-array from internal to actual screen-pixel coordinates.
      * If not isScaled, do nothing.
+     *<P>
+     * This method only scales; does <em>not</em> translate to right by {@link #panelMarginX}. 
      *
      * @param xa Int array to be scaled; each member is an x-coordinate.
      *
@@ -4048,6 +4165,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Scale x-coordinate from internal to actual screen-pixel coordinates.
      * If not isScaled, return input.
+     *<P>
+     * This method only scales; does <em>not</em> translate to right by {@link #panelMarginX}. 
      *
      * @param x x-coordinate to be scaled
      */
@@ -4076,6 +4195,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Convert an x-coordinate from actual-scaled to internal-scaled coordinates.
      * If not isScaled, return input.
+     *<P>
+     * This method only scales; does <em>not</em> translate to left by {@link #panelMarginX}. 
      *
      * @param x x-coordinate to be scaled
      */
@@ -4498,12 +4619,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         int xb, yb;
         if (isScaled)
         {
-            xb = scaleFromActualX(x);
+            xb = scaleFromActualX(x - panelMarginX);
             yb = scaleFromActualY(y);
         }
         else
         {
-            xb = x;
+            xb = x - panelMarginX;
             yb = y;
         }
         if (isRotated)
@@ -4601,7 +4722,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     if (mode == MOVE_SHIP)
                     {
                         isShip = true;
-                        if (! player.isPotentialShip(edgeNum, moveShip_fromEdge))
+                        if (! player.isPotentialShipMoveTo(edgeNum, moveShip_fromEdge))
                             edgeNum = 0;
 
                         // Check edgeNum vs pirate hex:
@@ -5039,7 +5160,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     if (cliAdjacent)
                     {
                         // ask player to confirm first
-                        new MoveRobberConfirmDialog(player, hilight).showInNewThread();
+                        java.awt.EventQueue.invokeLater(new MoveRobberConfirmDialog(player, hilight));
                     }
                     else
                     {
@@ -5071,7 +5192,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     if (cliAdjacent)
                     {
                         // ask player to confirm first
-                        new MoveRobberConfirmDialog(player, -hilight).showInNewThread();
+                        java.awt.EventQueue.invokeLater(new MoveRobberConfirmDialog(player, -hilight));
                     }
                     else
                     {
@@ -5395,6 +5516,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *           use {@link #scaleFromActualX(int)} to convert
      * @param y  y coordinate, in unscaled board, not actual pixels
      * @param checkCoastal  If true, check for coastal edges for ship placement:
+     *           Mouse could be over the land half or the sea half of the edge's graphical area.
      *           Return positive edge coordinate for land, negative edge for sea.
      *           Ignored unless {@link #isLargeBoard}.
      *           Returns positive edge for non-coastal sea edges.
@@ -5907,6 +6029,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          *<P>
          *  If both {@link #hoverRoadID} and <tt>hoverShipID</tt> are non-zero, they must be the same coordinate,
          *  never different non-zero values.
+         *<P>
+         * When setting this field, also set or clear {@link #hoverIsWarship}.
          * @since 2.0.00
          */
         int hoverShipID;
@@ -5923,6 +6047,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * @since 2.0.00
          */
         private boolean hoverIsShipMovable;
+
+        /**
+         * Is hover a warship owned by our player, for scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}?
+         * If true, {@link #hoverShipID} is also set.
+         * @since 2.0.00
+         */
+        private boolean hoverIsWarship;
 
         /** Mouse position */
         private int mouseX, mouseY;
@@ -6081,6 +6212,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             hoverShipID = 0;
             hoverIsPort = false;
             hoverIsShipMovable = false;
+            hoverIsWarship = false;
             hoverText = null;
             setHoverText_modeChangedOrMouseMoved = false;
             bpanel.repaint();
@@ -6091,6 +6223,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             if (playerNumber != -1)
             {
+                if (panelMarginX != 0)
+                    g.translate(panelMarginX, 0);
+
                 if (hoverRoadID != 0)
                 {
                     if (! hoverIsShipMovable)
@@ -6100,16 +6235,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
                 if (hoverShipID != 0)
                 {
-                    drawRoadOrShip(g, hoverShipID, playerNumber, true, false, false);
+                    drawRoadOrShip(g, hoverShipID, playerNumber, true, false, hoverIsWarship);
                 }
                 if (hoverSettlementID != 0)
                 {
-                    drawSettlement(g, hoverSettlementID, playerNumber, true);
+                    drawSettlement(g, hoverSettlementID, playerNumber, true, false);
                 }
                 if (hoverCityID != 0)
                 {
                     drawCity(g, hoverCityID, playerNumber, true);
                 }
+
+                if (panelMarginX != 0)
+                    g.translate(-panelMarginX, 0);
             }
             String ht = hoverText;  // cache against last-minute change in another thread
             if (ht == null)
@@ -6174,7 +6312,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 setHoverText_modeChangedOrMouseMoved = true;
             }
 
-            int xb = x, yb = y;  // internal board coordinates
+            int xb = x - panelMarginX, yb = y;  // internal board coordinates
             if (isScaledOrRotated)
             {
                 if (isScaled)
@@ -6324,16 +6462,43 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     // Initial Placement on large board: Check for
                     // a restricted starting land area.
-                    if (playerIsCurrent && game.hasSeaBoard && (! hoverTextSet)
-                        && game.isInitialPlacement()
-                        && player.isLegalSettlement(id)
-                        && ! player.isPotentialSettlement(id))
+                    // For _SC_PIRI, check for hovering at "LS" lone settlement node.
+                    if (playerIsCurrent && game.hasSeaBoard && ! hoverTextSet)
                     {
-                        setHoverText(/*I*/"Initial placement not allowed here"/*18N*/);
-                        hoverMode = PLACE_ROBBER;  // const used for hovering-at-node
-                        hoverID = id;
-                        hoverIsPort = false;
-                        hoverTextSet = true;
+                        String htext = null;
+
+                        final int[] ls = ((SOCBoardLarge) board).getAddedLayoutPart("LS");
+                        if (ls != null)
+                        {
+                            for (int i = ls.length - 1; i >= 0; --i)
+                            {
+                                if (id == ls[i])
+                                {
+                                    if (game.isInitialPlacement())
+                                        htext = /*I*/"Lone Settlement location allowed on pirate island after initial placement"/*18N*/;
+                                    else
+                                        htext = /*I*/"Lone Settlement location allowed on pirate island"/*18N*/;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if ((htext == null)
+                            && game.isInitialPlacement()
+                            && player.isLegalSettlement(id)
+                            && ! player.isPotentialSettlement(id))
+                        {
+                            htext = /*I*/"Initial placement not allowed here"/*18N*/;
+                        }
+
+                        if (htext != null)
+                        {
+                            setHoverText(htext);
+                            hoverMode = PLACE_ROBBER;  // const used for hovering-at-node
+                            hoverID = id;
+                            hoverIsPort = false;
+                            hoverTextSet = true;
+                        }
                     }
 
                     // Port check.  At most one adjacent will be a port.
@@ -6378,6 +6543,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hoverRoadID = 0;
                 hoverShipID = 0;
                 hoverIsShipMovable = false;
+                hoverIsWarship = false;
 
                 // Is a road or ship there?
                 final SOCRoad rs = board.roadAtEdge(id);
@@ -6395,13 +6561,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         String plName = rs.getPlayer().getName();
                         if (plName == null)
                             plName = /*I*/"unowned"/*18N*/;
+
                         if (isRoad)
                         {
                             setHoverText(/*I*/"Road: " + plName/*18N*/);
                         } else {
                             // Scenario _SC_PIRI has warships; check class just in case.
-                            final boolean isWarship = (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
-                            if (isWarship)
+                            hoverIsWarship = (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
+                            if (hoverIsWarship)
                                 setHoverText(/*I*/"Warship: "/*18N*/ + plName);
                             else
                                 setHoverText(/*I*/"Ship: " + plName/*18N*/);
@@ -6754,6 +6921,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
        */
       private boolean isShipMovable;
 
+      /**
+       * True if the ship is a warship, at menu-show time
+       * (scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}).
+       * {@link #hoverShipID} must be != 0.
+       * @since 2.0.00
+       */
+      private boolean isShipWarship;
+
       /** Will this be for initial placement (send putpiece right away),
        *  or for placement during game (send build, receive gamestate, send putpiece)?
        */
@@ -6858,8 +7033,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               {
                   cancelBuildItem.setLabel(/*I*/"Cancel ship move"/*18N*/);
                   cancelBuildItem.setEnabled(true);
+                  final SOCRoad rs = player.getRoadOrShip(hilightAt);
+                  isShipWarship = (rs != null) && (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
               } else {
                   cancelBuildItem.setLabel(/*I*/"Cancel ship"/*18N*/);
+                  isShipWarship = false;
               }
               hoverShipID = hilightAt;
               break;
@@ -6889,6 +7067,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           wantsCancel = false;
           isInitialPlacement = false;
           isShipMovable = false;
+          isShipWarship = false;
           cancelBuildItem.setEnabled(false);
           cancelBuildItem.setLabel(/*I*/"Cancel build"/*18N*/);
           if (portTradeSubmenu != null)
@@ -7031,12 +7210,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             hSh = -hSh;
                             buildShipItem.setLabel(/*I*/"Move Ship"/*18N*/);
                             buildShipItem.setEnabled(true);  // trust the caller's game checks
+                            final SOCRoad rs = player.getRoadOrShip(hSh);
+                            isShipWarship = (rs != null) && (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
                         } else {
                             buildShipItem.setLabel(/*I*/"Build Ship"/*18N*/);
                             buildShipItem.setEnabled
                             ( game.canPlaceShip(player, hSh) &&
                               (debugPP ? (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
                                        : game.couldBuildShip(cpn)) );
+                            isShipWarship = false;
                         }
                       }
                   }
@@ -7331,6 +7513,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
       {
           playerInterface.print(/*I*/"Click the ship's new location."/*18N*/);
           moveShip_fromEdge = hoverShipID;
+          moveShip_isWarship = hoverTip.hoverIsWarship;
           mode = MOVE_SHIP;
           hilight = 0;
           hoverTip.hideHoverAndPieces();  // calls repaint
@@ -7546,25 +7729,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Modal dialog to confirm moving the robber next to our own settlement or city.
-     * Start a new thread to show, so message treating can continue while the dialog is showing.
+     * Use the AWT event thread to show, so message treating can continue while the dialog is showing.
      * If the move is confirmed, call playerClient.moveRobber and clearModeAndHilight.
      *
      * @author Jeremy D Monin <jeremy@nand.net>
+     * @since 1.1.11
      */
     protected class MoveRobberConfirmDialog extends AskDialog implements Runnable
     {
         /** prevent serializable warning */
-        private static final long serialVersionUID = 1110L;
-
-        /** Runs in own thread, to not tie up client's message-treater thread which initially shows the dialog. */
-        private Thread rdt;
+        private static final long serialVersionUID = 2000L;
 
         private final SOCPlayer pl;
         private final int robHex;
 
         /**
          * Creates a new MoveRobberConfirmDialog.
-         * To display the dialog, call {@link #showInNewThread()}.
+         * To display the dialog without tying up the client's message-treater thread,
+         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          *
          * @param cli     Player client interface
          * @param gamePI  Current game's player interface
@@ -7582,7 +7764,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 ((newRobHex > 0) ? /*I*/"Move Robber"/*18N*/ : /*I*/"Move Pirate"/*18N*/),
                 /*I*/"Don't move there"/*18N*/,
                 null, 2);
-            rdt = null;
             pl = player;
             robHex = newRobHex;
         }
@@ -7611,43 +7792,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         public void windowCloseChosen() {}
 
         /**
-         * Make a new thread and show() in that thread.
-         * Keep track of the thread, in case we need to dispose of it.
-         * As noted in {@link #rdt} javadoc, the dialog runs in its
-         * own thread, to not tie up the client's message-treater thread
-         * which initially shows the dialog.
-         */
-        public void showInNewThread()
-        {
-            rdt = new Thread(this);
-            rdt.setDaemon(true);
-            rdt.setName("MoveRobberConfirmDialog");
-            rdt.start();  // run method will show the dialog
-        }
-
-        @Override
-        public void dispose()
-        {
-            if (rdt != null)
-            {
-                //FIXME: stop this thread internally
-                //rdt.stop();
-                rdt = null;
-            }
-            super.dispose();
-        }
-
-        /**
-         * In new thread, show ourselves. Do not call
-         * directly; call {@link #showInNewThread()}.
+         * In the AWT event thread, show ourselves. Do not call directly;
+         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          */
         public void run()
         {
-            try
-            {
-                setVisible(true);
-            }
-            catch (ThreadDeath e) {}
+            setVisible(true);
         }
 
     }  // nested class MoveRobberConfirmDialog

@@ -28,6 +28,7 @@ import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
+import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCLRPathData;
@@ -38,7 +39,6 @@ import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 
-import soc.util.CutoffExceededException;
 import soc.util.Pair;
 import soc.util.Queue;
 
@@ -148,6 +148,13 @@ public class SOCPlayerTracker
     protected SOCSettlement pendingInitSettlement;
 
     /**
+     * For scenario {@code _SC_PIRI}, the player's ship closest to the Fortress (the ship farthest west).
+     * {@code null} otherwise.  Updated by {@link #updateScenario_SC_PIRI_closestShipToFortress(SOCShip, boolean)}.
+     * @since 2.0.00
+     */
+    private SOCShip scen_SC_PIRI_closestShipToFortress;
+
+    /**
      * monitor for synchronization
      */
     boolean inUse;
@@ -195,6 +202,7 @@ public class SOCPlayerTracker
         largestArmyETA = pt.getLargestArmyETA();
         knightsToBuy = pt.getKnightsToBuy();
         pendingInitSettlement = pt.getPendingInitSettlement();
+        scen_SC_PIRI_closestShipToFortress = pt.scen_SC_PIRI_closestShipToFortress;
 
         //D.ebugPrintln(">>>>> Copying SOCPlayerTracker for player number "+player.getPlayerNumber());
         //
@@ -782,6 +790,12 @@ public class SOCPlayerTracker
         }
 
         dummy.destroyPlayer();
+
+        //
+        // in scenario _SC_PIRI, update the closest ship to our fortress
+        //
+        if ((road instanceof SOCShip) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            updateScenario_SC_PIRI_closestShipToFortress((SOCShip) road, true);
     }
 
     /**
@@ -789,6 +803,11 @@ public class SOCPlayerTracker
      * Adds to or updates {@link #possibleSettlements} at <tt>targetRoad</tt>'s nodes, if potential.
      * If <tt>level</tt> &gt; 0, calls itself recursively to go more levels out from the current pieces,
      * adding/updating {@link #possibleRoads} and {@link #possibleSettlements}.
+     *<P>
+     * <b>Scenario {@code _SC_PIRI}</b>: Ships in this scenario never expand east (never away from the
+     * pirate fortress). Scenario rules require the route to be as short as possible.  Even if a human
+     * player might want to do so, it couldn't interfere with the bot's own route, so we don't track
+     * that possibility.
      *
      * @param targetRoad   the possible road
      * @param player    the player who owns the original road
@@ -874,20 +893,34 @@ public class SOCPlayerTracker
         if (level > 0)
         {
             //
-            // check for new possible roads
+            // check for new possible roads or ships
             //
             Vector<SOCPossibleRoad> newPossibleRoads = new Vector<SOCPossibleRoad>();
             Vector<SOCPossibleRoad> roadsToExpand = new Vector<SOCPossibleRoad>();
 
+            // ships in _SC_PIRI never expand east
+            final boolean isShipInSC_PIRI = game.isGameOptionSet(SOCGameOption.K_SC_PIRI) && ! targetRoad.isRoadNotShip();
+
             //D.ebugPrintln("$$$ checking roads adjacent to "+Integer.toHexString(targetRoad.getCoordinates()));
             //
-            // check adjacent edges to road
+            // check adjacent edges to road or ship
             //
             Enumeration<Integer> adjEdgesEnum = board.getAdjacentEdgesToEdge(tgtRoadEdge).elements();
             while (adjEdgesEnum.hasMoreElements())
             {
                 Integer adjEdge = adjEdgesEnum.nextElement();
                 final int edge = adjEdge.intValue();
+
+                if (isShipInSC_PIRI)
+                {
+                    final int tgtEdgeCol = tgtRoadEdge & 0xFF, adjEdgeCol = edge & 0xFF;
+                    if ((adjEdgeCol > tgtEdgeCol)  // adjacent goes north/south from eastern node of diagonal target edge
+                        || ((adjEdgeCol == tgtEdgeCol) && ((tgtRoadEdge & 0x100) != 0)))
+                            // adjacent goes northeast/southeast from vertical target edge (tgtRoadEdge is on odd row)
+                    {
+                        continue;  // <--- Ignore this eastern adjacent edge ---
+                    }
+                }
 
                 //D.ebugPrintln("$$$ edge "+Integer.toHexString(adjEdge.intValue())+" is legal:"+dummy.isPotentialRoad(adjEdge.intValue()));
                 //
@@ -902,7 +935,6 @@ public class SOCPlayerTracker
                 // If true, this edge transitions
                 // between ships <-> roads, at a
                 // coastal settlement
-                //
                 boolean edgeRequiresCoastalSettlement = false;
 
                 if ((! edgeIsPotentialRoute)
@@ -1062,6 +1094,177 @@ public class SOCPlayerTracker
             removeFromNecessaryRoads(pr);
             removeDependents(pr);
         }
+    }
+
+    /**
+     * For scenario {@code _SC_PIRI}, get the player's ship closest to their Fortress (the ship farthest west).
+     * Updated by {@link #updateScenario_SC_PIRI_closestShipToFortress(SOCShip, boolean)}.
+     * @return the closest ship in scenario {@code _SC_PIRI}; {@code null} otherwise.
+     * @see #getScenario_SC_PIRI_shipDistanceToFortress(SOCShip)
+     * @since 2.0.00
+     */
+    public SOCShip getScenario_SC_PIRI_closestShipToFortress()
+    {
+        return scen_SC_PIRI_closestShipToFortress;
+    }
+
+    /**
+     * For scenario {@code _SC_PIRI}, update the player's ship closest to their Fortress.
+     * Assumes no ship will ever be west of the fortress (smaller column number).
+     * Must be called after adding or removing a ship from our player's {@link SOCPlayer#getRoads()}.
+     * @param ship  Ship that was added or removed, or {@code null} to check all ships after removal
+     * @param shipAdded  True if {@code ship} was added; false if {@code ship} or any other ship was removed
+     *            or if we're updating Closest Ship without adding or removing a ship
+     * @throws IllegalArgumentException if {@code shipAdded} is true, but null {@code ship}
+     * @since 2.0.00
+     */
+    void updateScenario_SC_PIRI_closestShipToFortress(final SOCShip ship, final boolean shipAdded)
+        throws IllegalArgumentException
+    {
+        if (shipAdded && (ship == null))
+            throw new IllegalArgumentException();
+
+        if ((scen_SC_PIRI_closestShipToFortress == null) && (ship != null))
+        {
+            if (shipAdded)
+                scen_SC_PIRI_closestShipToFortress = ship;  // closest by default
+
+            return;  // <--- Early return: no other ships to compare ---
+        }
+
+        if (! shipAdded)
+        {
+            // A ship has been removed.  If we know what ship, and
+            // it's not the closest ship, we don't need to do anything.
+
+            if ((ship != null) && (scen_SC_PIRI_closestShipToFortress != null)
+                && (ship.getCoordinates() != scen_SC_PIRI_closestShipToFortress.getCoordinates()))
+                return;  // <--- Early return: Not the closest ship ---
+        }
+
+        final SOCFortress fort = player.getFortress();  // may be null towards end of game
+            // If fort's null, we can still compare columns, just not rows, of ship coordinates.
+        final int fortR = (fort != null)
+            ? (fort.getCoordinates() >> 8)
+            : -1;
+
+        if (shipAdded)
+        {
+            final int shipEdge = ship.getCoordinates(),
+                      prevShipEdge = scen_SC_PIRI_closestShipToFortress.getCoordinates();
+            final int shipR = shipEdge >> 8, shipC = shipEdge & 0xFF,
+                      prevR = prevShipEdge >> 8, prevC = prevShipEdge & 0xFF;
+            if ((shipC < prevC)
+                || ((shipC == prevC) && (fortR != -1)
+                    && (Math.abs(shipR - fortR) < Math.abs(prevR - fortR))))
+            {
+                scen_SC_PIRI_closestShipToFortress = ship;
+            }
+        } else {
+            // A ship has been removed.  We don't know which one.
+            // So, check all ships for distance from fortress.
+
+            Enumeration<SOCRoad> roadAndShipEnum = player.getRoads().elements();
+
+            SOCShip closest = null;
+            int closeR = -1, closeC = -1;
+            while (roadAndShipEnum.hasMoreElements())
+            {
+                final SOCRoad rs = roadAndShipEnum.nextElement();
+                if (! (rs instanceof SOCShip))
+                    continue;
+
+                final int shipEdge = rs.getCoordinates();
+                final int shipR = shipEdge >> 8, shipC = shipEdge & 0xFF;
+
+                if ((closest == null)
+                    || (shipC < closeC)
+                    || ((shipC == closeC) && (fortR != -1)
+                        && (Math.abs(shipR - fortR) < Math.abs(closeR - fortR))))
+                {
+                    closest = (SOCShip) rs;
+                    closeR = shipR;
+                    closeC = shipC;
+                }
+            }
+
+            scen_SC_PIRI_closestShipToFortress = closest;  // null if no ships
+        }
+    }
+
+    /**
+     * For scenario {@code _SC_PIRI}, get the distance of this player's closest ship from their
+     * {@code SOCFortress}. Since ships aren't placed diagonally, this is the distance along rows + columns.
+     * The edge (r,c) has node (r,c) as its left end, at distance 0.
+     * @param ship  Any ship, including {@link #getScenario_SC_PIRI_closestShipToFortress()}
+     * @return row distance + column distance based on piece coordinates;
+     *     or 0 if no fortress which would mean the fortress was reached
+     *     (distance 0) and defeated already.
+     * @since 2.0.00
+     */
+    public int getScenario_SC_PIRI_shipDistanceToFortress(final SOCShip ship)
+    {
+        final SOCFortress fort = player.getFortress();  // may be null towards end of game
+        if (fort == null)
+            return 0;
+
+        final int fortNode = fort.getCoordinates(),
+                  shipEdge = ship.getCoordinates();
+        final int fortR = fortNode >> 8, fortC = fortNode & 0xFF,
+                  shipR = shipEdge >> 8, shipC = shipEdge & 0xFF;
+
+        return Math.abs(fortR - shipR) + Math.abs(fortC - shipC);
+    }
+
+    /**
+     * For scenario {@code _SC_PIRI}, get the player's next potential ship towards their Fortress.
+     * If fortress was already defeated, or they have no boats, returns {@code null}.
+     *<P>
+     * This is calculated every time, not cached, because potential-ships list may change often.
+     * Calls {@link #updateScenario_SC_PIRI_closestShipToFortress(SOCShip, boolean)} if closest ship not known.
+     *
+     * @return Next potential ship, or {@code null}
+     * @since 2.0.00
+     */
+    SOCPossibleShip recalcScenario_SC_PIRI_nextPotentialShip()
+    {
+        final SOCFortress fort = player.getFortress();  // may be null towards end of game
+        if (fort == null)
+            return null;  // <--- Early return: already defeated fortress ---
+        final int fortR = fort.getCoordinates() >> 8;
+
+        if (scen_SC_PIRI_closestShipToFortress == null)
+            updateScenario_SC_PIRI_closestShipToFortress(null, false);
+
+        final SOCShip closest = scen_SC_PIRI_closestShipToFortress;
+        if (closest == null)
+            return null;  // <--- Early return: no ships ---
+        final Vector<Integer> closestAdjacs =
+            ((SOCBoardLarge) player.getGame().getBoard()).getAdjacentEdgesToEdge(closest.getCoordinates());
+
+        SOCPossibleShip nextShip = null;
+        int nextR = -1, nextC = -1;
+        for (Integer edge : closestAdjacs)
+        {
+            final SOCPossibleRoad rs = possibleRoads.get(edge);
+            if ((rs == null) || ! (rs instanceof SOCPossibleShip))
+                continue;
+
+            final int shipEdge = rs.getCoordinates();
+            final int shipR = shipEdge >> 8, shipC = shipEdge & 0xFF;
+
+            if ((nextShip == null)
+                || (shipC < nextC)
+                || ((shipC == nextC)
+                    && (Math.abs(shipR - fortR) < Math.abs(nextR - fortR))))
+            {
+                nextShip = (SOCPossibleShip) rs;
+                nextR = shipR;
+                nextC = shipC;
+            }
+        }
+
+        return nextShip;
     }
 
     /**
@@ -2168,17 +2371,9 @@ public class SOCPlayerTracker
 
         D.ebugPrintln("===  recalcLongestRoadETA for player " + playerNumber);
 
-        int roadETA;
+        final int roadETA;
         SOCBuildingSpeedEstimate bse = new SOCBuildingSpeedEstimate(player.getNumbers());
-
-        try
-        {
-            roadETA = bse.calculateRollsFast(SOCGame.EMPTY_RESOURCES, SOCGame.ROAD_SET, 500, player.getPortFlags()).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            roadETA = 500;
-        }
+        roadETA = bse.calculateRollsFast(SOCGame.EMPTY_RESOURCES, SOCGame.ROAD_SET, 500, player.getPortFlags());
 
         roadsToGo = 500;
         longestRoadETA = 500;
@@ -2284,7 +2479,7 @@ public class SOCPlayerTracker
         ///
         knightsToBuy = 0;
 
-        if ((player.getNumKnights() + player.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT) + player.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT)) < laSize)
+        if ((player.getNumKnights() + player.getDevCards().getAmount(SOCDevCardConstants.KNIGHT)) < laSize)  // OLD + NEW knights
         {
             knightsToBuy = laSize - (player.getNumKnights() + player.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT));
         }
@@ -3362,8 +3557,7 @@ public class SOCPlayerTracker
                         knightsToBuy = 0;
 
                         if ((player.getNumKnights()
-                            + player.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT)
-                            + player.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT)) < laSize)
+                            + player.getDevCards().getAmount(SOCDevCardConstants.KNIGHT)) < laSize)  // OLD + NEW knights
                         {
                             knightsToBuy = laSize -
                                 (player.getNumKnights() + player.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT));

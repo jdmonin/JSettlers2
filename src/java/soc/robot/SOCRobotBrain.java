@@ -29,6 +29,7 @@ import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
+import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
@@ -66,8 +67,6 @@ import soc.message.SOCSetPlayedDevCard;
 import soc.message.SOCSetTurn;
 import soc.message.SOCSitDown;  // for javadoc
 import soc.message.SOCTurn;
-
-import soc.server.SOCServer;
 
 import soc.util.CappedQueue;
 import soc.util.DebugRecorder;
@@ -1506,38 +1505,15 @@ public class SOCRobotBrain extends Thread
                                  * largest army, play the knight.
                                  * If we're in SPECIAL_BUILDING (not PLAY1),
                                  * can't trade or play development cards.
+                                 *
+                                 * In scenario _SC_PIRI (which has no robber and
+                                 * no largest army), play one whenever we have
+                                 * it, someone else has resources, and we can
+                                 * convert a ship to a warship.
                                  */
                                 if ((game.getGameState() == SOCGame.PLAY1) && ! ourPlayerData.hasPlayedDevCard())
                                 {
-                                    SOCPlayer laPlayer = game.getPlayerWithLargestArmy();
-
-                                    if (((laPlayer != null) && (laPlayer.getPlayerNumber() != ourPlayerNumber)) || (laPlayer == null))
-                                    {
-                                        int larmySize;
-
-                                        if (laPlayer == null)
-                                        {
-                                            larmySize = 3;
-                                        }
-                                        else
-                                        {
-                                            larmySize = laPlayer.getNumKnights() + 1;
-                                        }
-
-                                        if ( ((ourPlayerData.getNumKnights()
-                                              + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT)
-                                              + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT))
-                                              >= larmySize)
-                                            && game.canPlayKnight(ourPlayerNumber)  // has an old KNIGHT devcard, etc
-                                            && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT))
-                                        {
-                                            /**
-                                             * play a knight card
-                                             * (or, in scenario _SC_PIRI, a Convert to Warship card)
-                                             */
-                                            playKnightCard();  // sets expectPLACING_ROBBER, waitingForGameState
-                                        }
-                                    }
+                                    considerPlayKnightCard();  // might set expectPLACING_ROBBER and waitingForGameState
                                 }
 
                                 /**
@@ -1884,6 +1860,81 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * If we haven't played a dev card yet this turn, and we have a knight, and we can get
+     * largest army, play the knight. Must be our turn and gameState {@code PLAY1}.
+     * {@link SOCPlayer#hasPlayedDevCard() ourPlayerData.hasPlayedDevCard()} must be false.
+     *<P>
+     * In scenario {@code _SC_PIRI} (which has no robber and no largest army), play one
+     * whenever we have it, someone else has resources, and we can convert a ship to a warship.
+     *<P>
+     * If we call {@link #playKnightCard()}, it sets the flags
+     * {@code expectPLACING_ROBBER} and {@code waitingForGameState}.
+     *
+     * @see #rollOrPlayKnightOrExpectDice()
+     * @since 2.0.00
+     */
+    private void considerPlayKnightCard()
+    {
+        final boolean canGrowArmy;
+
+        if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        {
+            // Play whenever we have one and someone else has resources
+
+            boolean anyOpponentHasRsrcs = false;
+            for (int pn = 0; pn < game.maxPlayers; ++pn)
+            {
+                if ((pn == ourPlayerNumber) || game.isSeatVacant(pn))
+                    continue;
+
+                if (game.getPlayer(pn).getResources().getTotal() > 0)
+                {
+                    anyOpponentHasRsrcs = true;
+                    break;
+                }
+            }
+
+            canGrowArmy = anyOpponentHasRsrcs;
+
+        } else {
+
+            final SOCPlayer laPlayer = game.getPlayerWithLargestArmy();
+
+            if ((laPlayer == null) || (laPlayer.getPlayerNumber() != ourPlayerNumber))
+            {
+                final int larmySize;
+
+                if (laPlayer == null)
+                    larmySize = 3;
+                else
+                    larmySize = laPlayer.getNumKnights() + 1;
+
+                canGrowArmy =
+                    ((ourPlayerData.getNumKnights()
+                      + ourPlayerData.getDevCards().getAmount(SOCDevCardConstants.KNIGHT))
+                      >= larmySize);
+
+            } else {
+                canGrowArmy = false;  // we already have largest army
+
+                // TODO Should we defend it if another player is close to taking it from us?
+            }
+        }
+
+        if (canGrowArmy
+            && game.canPlayKnight(ourPlayerNumber)  // has an old KNIGHT devcard, etc;
+                  // for _SC_PIRI, also checks if # of warships ships less than # of ships
+            && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT))
+        {
+            /**
+             * play a knight card
+             * (or, in scenario _SC_PIRI, a Convert to Warship card)
+             */
+            playKnightCard();  // sets expectPLACING_ROBBER, waitingForGameState
+        }
+    }
+
+    /**
      * If it's our turn and we have an expect flag set
      * (such as {@link #expectPLACING_SETTLEMENT}), then
      * call {@link SOCRobotClient#putPiece(SOCGame, SOCPlayingPiece) client.putPiece}.
@@ -2112,6 +2163,10 @@ public class SOCRobotBrain extends Thread
      * In scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, play a "Convert to Warship" card.
      * Sets {@link #expectPLACING_ROBBER}, {@link #waitingForGameState}.
      * Calls {@link SOCRobotClient#playDevCard(SOCGame, int) client.playDevCard}({@link SOCDevCardConstants#KNIGHT KNIGHT}).
+     *<P>
+     * In scenario {@code _SC_PIRI}, the server response messages are different, but we
+     * still use those two flag fields; see {@link #expectPLACING_ROBBER} javadoc.
+     *
      * @since 2.0.00
      */
     private void playKnightCard()
@@ -2131,7 +2186,12 @@ public class SOCRobotBrain extends Thread
      *<P>
      * Clears {@link #expectPLAY} to false.
      * Sets either {@link #expectDICERESULT}, or {@link #expectPLACING_ROBBER} and {@link #waitingForGameState}.
+     *<P>
+     * In scenario {@code _SC_PIRI}, don't play a Knight card before dice roll, because the scenario has
+     * no robber: Playing before the roll won't un-block any of our resource hexes, and it might put us
+     * over 7 resources.
      *
+     * @see #considerPlayKnightCard()
      * @since 1.1.08
      */
     private void rollOrPlayKnightOrExpectDice()
@@ -2148,6 +2208,7 @@ public class SOCRobotBrain extends Thread
                  */
                 if ((ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT) > 0)
                     && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT)
+                    && (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))  // scenario has no robber; wait until after roll
                     && ! ourPlayerData.getNumbers().hasNoResourcesForHex(game.getBoard().getRobberHex()))
                 {
                     playKnightCard();  // sets expectPLACING_ROBBER, waitingForGameState
@@ -2383,13 +2444,7 @@ public class SOCRobotBrain extends Thread
      */
     private void handlePUTPIECE_updateGameData(SOCPutPiece mes)
     {
-        final int coord = mes.getCoordinates();
-        final int pieceType = mes.getPieceType();
-        final SOCPlayer pl = (pieceType != SOCPlayingPiece.VILLAGE)
-            ? game.getPlayer(mes.getPlayerNumber())
-            : null;
-
-        switch (pieceType)
+        switch (mes.getPieceType())
         {
         case SOCPlayingPiece.SHIP:  // fall through to ROAD
         case SOCPlayingPiece.ROAD:
@@ -2406,30 +2461,10 @@ public class SOCRobotBrain extends Thread
                 if (se != null)
                     trackNewSettlement(se, false);
             }
-            SOCRoad rd;
-            if (pieceType == SOCPlayingPiece.ROAD)
-                rd = new SOCRoad(pl, coord, null);
-            else
-                rd = new SOCShip(pl, coord, null);
-            game.putPiece(rd);
-            break;
+            // fall through to default
 
-        case SOCPlayingPiece.SETTLEMENT:
-
-            SOCSettlement se = new SOCSettlement(pl, coord, null);
-            game.putPiece(se);
-            break;
-
-        case SOCPlayingPiece.CITY:
-
-            SOCCity ci = new SOCCity(pl, coord, null);
-            game.putPiece(ci);
-            break;
-
-        case SOCPlayingPiece.VILLAGE:
-
-            SOCVillage vi = new SOCVillage(coord, game.getBoard());
-            game.putPiece(vi);
+        default:
+            SOCDisplaylessPlayerClient.handlePUTPIECE(mes, game);
             break;
         }
     }
@@ -3580,7 +3615,7 @@ public class SOCRobotBrain extends Thread
      *  but won't leave the game if we've failed too many times.
      *  The brain's run loop should make that decision.
      *
-     * @param mes Cancelmessage from server, including piece type
+     * @param mes  Cancel message from server, including piece type
      */
     protected void cancelWrongPiecePlacement(SOCCancelBuildRequest mes)
     {
@@ -3589,6 +3624,7 @@ public class SOCRobotBrain extends Thread
         {
             waitingForDevCard = false;
         } else {
+            waitingForGameState = false;
             whatWeFailedToBuild = whatWeWantToBuild;
             ++failedBuildingAttempts;
         }
@@ -3660,7 +3696,6 @@ public class SOCRobotBrain extends Thread
              */
             whatWeWantToBuild = null;
             buildingPlan.clear();
-            waitingForGameState = false;
         }
 
         /**
@@ -3690,6 +3725,7 @@ public class SOCRobotBrain extends Thread
                 // special building, currently in state PLACING_* ;
                 // get our resources back, get state PLAY1 or SPECIALBUILD
                 waitingForGameState = true;
+                expectPLAY1 = true;
                 client.cancelBuildRequest(game, mes.getPieceType());
             }
         }

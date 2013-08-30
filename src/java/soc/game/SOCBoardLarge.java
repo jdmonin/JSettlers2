@@ -190,7 +190,8 @@ import soc.util.IntPair;
  * Rows increase going north to south, Columns increase west to east.
  *<P>
  * Vertical edge coordinates are at the edge's center
- * (between two hex coordinates, to the west and east of the edge).
+ * (between two hex coordinates, which are to the west and east of
+ * the edge); vertical edge row coordinates are odd like hexes.
  * Otherwise, edges get the coordinate of the node at their western end.
  *<P>
  * The first few rows of nodes are: <pre>
@@ -437,6 +438,7 @@ public class SOCBoardLarge extends SOCBoard
      * after {@link #nodesOnLand} is filled by
      * <tt>SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)</tt>.
      * Used by {@link #initPlayerLegalRoads()}.
+     * @see #legalShipEdges
      */
     protected HashSet<Integer> legalRoadEdges;
 
@@ -448,6 +450,12 @@ public class SOCBoardLarge extends SOCBoard
      * <tt>SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)</tt>.
      * Used by {@link #initPlayerLegalShips()}.
      * Updated in {@link #revealFogHiddenHex(int, int, int)} for {@link SOCBoard#WATER_HEX WATER_HEX}.
+     *<P>
+     * With scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, the legal edges vary per player
+     * and are based on {@code SOCBoardLargeAtServer.PIR_ISL_SEA_EDGES}, so {@code legalShipEdges}
+     * is empty.
+     *
+     * @see #legalRoadEdges
      */
     protected HashSet<Integer> legalShipEdges;
 
@@ -518,7 +526,8 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * the hex coordinate that the pirate is in, or 0; placed in {@link #makeNewBoard(Hashtable)}.
-     * Once the pirate is placed on the board, it cannot be removed (cannot become 0 again).
+     * Once the pirate is placed on the board, it cannot be removed (cannot become 0 again) except
+     * in scenario {@link SOCGameOption#K_SC_PIRI}.
      */
     protected int pirateHex;
 
@@ -706,6 +715,7 @@ public class SOCBoardLarge extends SOCBoard
      * <tt>SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)</tt>.
      *<P>
      * Called at server and at client.
+     * @see #initPlayerLegalShips()
      */
     protected void initLegalShipEdges()
     {
@@ -974,23 +984,27 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Set where the pirate is.
+     * Set where the pirate is, or take the pirate off the board.
      *<P>
      * For scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, the
      * server should call {@link #movePirateHexAlongPath(int)}
      * instead of directly calling this method.
+     *<P>
+     * Currently, the only scenario that removes the pirate from
+     * the board is {@code _SC_PIRI}.
      *
-     * @param ph  the new pirate hex coordinate; must be &gt; 0, not validated beyond that
+     * @param ph  the new pirate hex coordinate, or 0 to take the pirate off the board;
+     *            must be &gt;= 0, not validated beyond that
      * @param rememberPrevious  Should we remember the old pirate hex?
      * @see #getPirateHex()
      * @see #getPreviousPirateHex()
      * @see #setRobberHex(int, boolean)
-     * @throws IllegalArgumentException if <tt>ph</tt> &lt;= 0
+     * @throws IllegalArgumentException if <tt>ph</tt> &lt; 0
      */
     public void setPirateHex(final int ph, final boolean rememberPrevious)
         throws IllegalArgumentException
     {
-        if (ph <= 0)
+        if (ph < 0)
             throw new IllegalArgumentException();
         if (rememberPrevious)
             prevPirateHex = pirateHex;
@@ -1766,6 +1780,10 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * If this method hasn't yet been called, {@link #getLegalAndPotentialSettlements()}
      * returns an empty set.
+     *<P>
+     * In some scenarios ({@code _SC_PIRI}), not all sea edges are legal for ships.
+     * See {@link SOCPlayer#setRestrictedLegalShips(int[])}
+     * and {@code SOCBoardLargeAtServer.getLegalSeaEdges(SOCGame, int)}.
      *
      * @param psNodes  The set of potential settlement node coordinates as {@link Integer}s;
      *    either a {@link HashSet} or {@link Vector}.

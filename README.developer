@@ -13,6 +13,7 @@ CONTENTS
 - Tips for debugging
 - Setup instructions for JSettlers as an Eclipse project
 	(although you may use any IDE you want)
+- Build setup and output
 - Current partially-done work
 - Current TODO list
 - Coding Style
@@ -28,7 +29,9 @@ Communication is described in soc.message.SOCMessage.
 Robots talk with the server like normal human clients.
 Most robot messages are per-game; instead of being handled in SOCRobotClient,
 these are handled in a loop in SOCRobotBrain.run().
-Game options and scenario rules are controlled through SOCGameOption.
+Game options and scenario rules are controlled through SOCGameOption; see initAllOptions javadoc for a list.
+Options have flags for their properties ("hidden internal option", "drop if not set", etc).
+All scenario-related game option keynames start with "_SC_", and provide special rules for the scenario.
 
 Coding is done in Java 1.5, but should compile cleanly in newer JDKs.
 (Before v2.0, we restricted ourselves to 1.4 for backwards compatibility.)
@@ -42,12 +45,12 @@ and the one-sentence summary (even though some old methods don't have that summa
 When submitting patches, please use unified diff (-ur) format.
 
 For more information about the AI, please see Robert S Thomas' dissertation.
-For more informaiton about the board coordinates, see the dissertation appendix A,
+For more information about the board coordinates, see the dissertation appendix A,
 or javadocs in soc.game.SOCBoard, and src/docs/hexcoord.gif and hexcoord-6player.gif.
 
 The client's structure was refactored in 2.0 by Paul Bilnoski.  Paul's description of this work:
 Added two major new pieces of API: PlayerClientListener and GameDisplay. These are spliced between the
-SOCPlayerClient and AWT UI code, primarly found in SOCPlayerInterface. The APIs are used by the player client
+SOCPlayerClient and AWT UI code, primarily found in SOCPlayerInterface. The APIs are used by the player client
 abstract network communication away from the UI - to communicate with the UI about network events received and
 receive events to send to the server. Some of it is done using inner classes and interfaces which should be
 split out into an improved package structure.
@@ -106,29 +109,66 @@ Setup instructions for JSettlers as an Eclipse project
 
 - choose File -> New -> Project... -> Java Project from Existing Ant Buildfile.
 - Browse to jsettlers-1.1.xx-src/build.xml, select the "javac" task in target "compile".
-- You'll need to build once before you run it, to create version.info from resources/version.info.in.
+  Check "Link to the buildfile in the file system", hit Finish.
 - Project -> Properties: Resource: Text file encoding: UTF-8
+- You'll need to build once before you run it, to create version.info from resources/version.info.in.
 
-See below for how to set up the coding style in Eclipse.
+Continue reading to see how to set up the builds and the coding style in Eclipse.
 
-In my Eclipse project, I've created these debug/run configurations for testing:
+
+Build Setup and Output
+----------------------
+Before building, make sure you have the Java Development Kit version 5 or later.
+If you simply want to run the client and server, you only need the Java Runtime (JRE).
+If you wish to maintain a user database for your server, you need MySQL or PostgreSQL
+installed and configured, or the sqlite jdbc driver for a file-based local database.
+
+This package was designed to build with eclipse, or with the ANT tool available
+from http://ant.apache.org tools.  We assume you have installed it correctly.
+
+Check the "build.properties" file. There may be build variables you
+may want to change locally. These can also be changed from the command
+line if calling ant that way, by passing a "-Dname=value" parameter.
+
+There are several build targets, here are the most useful ones:
+
+ build      Create project jar files. (default)
+ clean      Cleans the project of all generated files
+ compile    Compile class files into "target/classes"
+ dist       Build distribution tarballs and zips.
+ javadoc    Creates JavaDoc files in "target/docs/api"
+ src        Create a tarball of the source tree
+
+All files created by building are in the "target" directory, including
+JARs, Java .class files, and JavaDoc files. Distribution tarballs, zip
+files, and installation files are placed in "dist".
+
+
+Recommended debug/run configurations for testing
+------------------------------------------------
+  In my Eclipse project, I've created these debug/run configurations:
 
 Java applet: soc.client.SOCPlayerClient$SOCApplet
    width 600, height 340
-   parameters: PORT = 44203
+   parameters: PORT = 8880
 
 Java applications:
   cli-noargs  soc.client.SOCPlayerClient
-  robot1      soc.robot.SOCRobotClient
-     arguments: localhost 44203 robot1 r1
-  robot2      soc.robot.SOCRobotClient
-     arguments: localhost 44203 robot2 r2
   socserver   soc.server.SOCServer
      arguments: -o NT=t -o PL=5 -Djsettlers.startrobots=7 -Djsettlers.client.maxcreategames=2
-                -Djsettlers.allow.debug=Y 44203 20 dbuser dbpass
+                -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
   socserver-sqlite  soc.server.SOCServer
      arguments: -o NT=t -o NT=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.startrobots=7
-                -Djsettlers.allow.debug=Y 44203 20 dbuser dbpass
+                -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
+
+  The server will start 7 bots with the above configuration.  If you need to stop and start your
+  own bots, then add
+		-Djsettlers.bots.cookie=cook
+  to the server configuration arguments, and create these Java application configs:
+  robot1      soc.robot.SOCRobotClient
+     arguments: localhost 8880 robot1 r1 cook
+  robot2      soc.robot.SOCRobotClient
+     arguments: localhost 8880 robot2 r2 cook
 
 
 If you want to configure a sqlite database for testing
@@ -142,7 +182,7 @@ If you want to configure a sqlite database for testing
 	this is an eclipse Run Configuration for a jsettlers server which
 	includes the sqlite database you're about to configure.
 
-  - Download the driver from http://www.xerial.org/trac/Xerial/wiki/SQLiteJDBC
+  - Download the driver from https://bitbucket.org/xerial/sqlite-jdbc
 
   - Eclipse menu -> prefs -> data mgmt -> connectivity -> driver definitions -> add
 	  [this menu path will be available only under eclipse j2ee, not the basic eclipse]
@@ -151,7 +191,7 @@ If you want to configure a sqlite database for testing
 
   - Project build path: libraries: include sqlite-jdbc-3.7.2.jar here too
 
-  - Build the project (from build.xml; creates target\classes\resources\version.info)
+  - Build the project (from build.xml; creates target/classes/resources/version.info)
 
   - Run socserver once to create the db file and exit cleanly:
 	run configurations
@@ -218,13 +258,15 @@ Current TODO list
 		put the message into brainQ, but only update game fields/
 		methods, into SOCDisplayless if possible.
 	- Refactor: SOCGameOption static methods to check and change values within a set
-	- Some way to mark bot seats so they are locked out when the board is reset after a game
-		Possibly right-click the robot icon for a menu/popup to set this
-		So, you could reset to start a new game with fewer/no bots
+	- refactor: name of dev-cards consolidate
+	- refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
+		current SOCResourceConstants.CLAY vs SOCPlayerElement.CLAY
 	- At board reset, game observers not currently handled properly
 	- Property for read-only database use without errors
 	- Game "owner" with extra powers (kick out player, etc)
 		What happens if owner loses connection?
+	- Customize bot names (txt file or startup property) in srv.setupLocalRobots
+	- Server-side storage of options between runs (config file, sqlite db, etc)
 	- "Hot seat" mode (multiple human players sharing a screen on 1 client)
 	- Per-game thread/message queue at server (use SOCMessageForGame.getGame)
 	- Cities & Knights support
@@ -233,15 +275,13 @@ Current TODO list
 		- robot support
 	- Refactor: combine the cli/displayless/robot endturn-like methods
 		ex. search for ga.setCurrentDice(0), or newToOld, or ga.resetVoteClear
-	- refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
-		current SOCResourceConstants.CLAY vs SOCPlayerElement.CLAY
-	- refactor: name of dev-cards consolidate
 
-The rotated 3:1 port hexes' font is Optima Bold, 21 pt.
 
 
 Coding Style
 ------------
+Scroll down a bit if you just want to see how to set up the style in Eclipse.
+
 This is the project's coding style, based on the original authors' style.
 Although we may not agree with every detail of it, for consistency's sake,
 please keep the conventions of the code that's already there.
@@ -301,11 +341,12 @@ Here's how to set up the coding style in Eclipse:
 	project properties -> java compiler -> configure workspace settings
 	  compiler compliance level: 1.5
 
-	prefs -> java -> code style -> formatter -> Click "Configure Project Specific Settings"
+	prefs -> java -> code style -> formatter
+		Click "Enable Project Specific Settings", then New
 		{
-		based on Eclipse built-in standard
-
-		Profile name: 'jsettlers' (apply)
+		Profile name: 'jsettlers'
+		"based on Eclipse built-in standard"
+		[X] Open the edit dialog now
 
 		(Indentation)
 		Tab policy: Spaces only
@@ -356,6 +397,8 @@ To manually clean up trailing whitespace:
 Eclipse preferences -> general -> editors -> text editors -> [x] Show whitespace characters
 Find/Replace: Regular expressions: Find [\t ]+$
 
+The rotated 3:1 port hexes' font is Optima Bold, 21 pt.
+
 
 github
 ------
@@ -363,7 +406,7 @@ The project code lives at https://github.com/jdmonin/JSettlers2 .
 Patches can be sent by email or by pull request.
 Please make sure your patch follows the project coding style.
 
-The master branch recieves new features and enhancements for next 'minor'
+The master branch receives new features and enhancements for next 'minor'
 release.  As soon as a bug is fixed or a feature's design is fairly stable, it
 should be committed to master.
 

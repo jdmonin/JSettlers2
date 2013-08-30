@@ -269,7 +269,8 @@ public class SOCBuildingPanel extends Panel
             {
                 // General Supply cloth count. Initial amount will be sent from server soon.
                 // (joingame if already started, or startgame as part of board layout)
-                final String TTIP_CLOTH_TEXT = /*I*/"General Supply of cloth remaining"/*18N*/;
+                final String TTIP_CLOTH_TEXT =
+                    /*I*/"General Supply of cloth for any villages shared by multiple players";/*18N*/
 
                 clothLab = new Label(/*I*/"Cloth:"/*18N*/);
                 add(clothLab);

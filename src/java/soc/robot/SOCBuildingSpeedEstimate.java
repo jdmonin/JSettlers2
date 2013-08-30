@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2012-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -203,11 +203,11 @@ public class SOCBuildingSpeedEstimate
 
             try
             {
-                estimatesFromNothing[ROAD] = calculateRollsFast(emptySet, SOCGame.ROAD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[SETTLEMENT] = calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[CITY] = calculateRollsFast(emptySet, SOCGame.CITY_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[CARD] = calculateRollsFast(emptySet, SOCGame.CARD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[SHIP] = calculateRollsFast(emptySet, SOCGame.SHIP_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast(emptySet, SOCGame.ROAD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[SETTLEMENT] = calculateRollsAndRsrcFast(emptySet, SOCGame.SETTLEMENT_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[CITY] = calculateRollsAndRsrcFast(emptySet, SOCGame.CITY_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[CARD] = calculateRollsAndRsrcFast(emptySet, SOCGame.CARD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[SHIP] = calculateRollsAndRsrcFast(emptySet, SOCGame.SHIP_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
             }
             catch (CutoffExceededException e)
             {
@@ -237,11 +237,11 @@ public class SOCBuildingSpeedEstimate
 
             try
             {
-                estimatesFromNothing[ROAD] = calculateRollsFast(emptySet, SOCGame.ROAD_SET, limit, ports).getRolls();
-                estimatesFromNothing[SETTLEMENT] = calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, limit, ports).getRolls();
-                estimatesFromNothing[CITY] = calculateRollsFast(emptySet, SOCGame.CITY_SET, limit, ports).getRolls();
-                estimatesFromNothing[CARD] = calculateRollsFast(emptySet, SOCGame.CARD_SET, limit, ports).getRolls();
-                estimatesFromNothing[SHIP] = calculateRollsFast(emptySet, SOCGame.SHIP_SET, limit, ports).getRolls();
+                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast(emptySet, SOCGame.ROAD_SET, limit, ports).getRolls();
+                estimatesFromNothing[SETTLEMENT] = calculateRollsAndRsrcFast(emptySet, SOCGame.SETTLEMENT_SET, limit, ports).getRolls();
+                estimatesFromNothing[CITY] = calculateRollsAndRsrcFast(emptySet, SOCGame.CITY_SET, limit, ports).getRolls();
+                estimatesFromNothing[CARD] = calculateRollsAndRsrcFast(emptySet, SOCGame.CARD_SET, limit, ports).getRolls();
+                estimatesFromNothing[SHIP] = calculateRollsAndRsrcFast(emptySet, SOCGame.SHIP_SET, limit, ports).getRolls();
             }
             catch (CutoffExceededException e)
             {
@@ -298,11 +298,11 @@ public class SOCBuildingSpeedEstimate
 
         try
         {
-            estimatesFromNow[ROAD] = calculateRollsFast(resources, SOCGame.ROAD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-            estimatesFromNow[SETTLEMENT] = calculateRollsFast(resources, SOCGame.SETTLEMENT_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-            estimatesFromNow[CITY] = calculateRollsFast(resources, SOCGame.CITY_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-            estimatesFromNow[CARD] = calculateRollsFast(resources, SOCGame.CARD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-            estimatesFromNow[SHIP] = calculateRollsFast(resources, SOCGame.SHIP_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+            estimatesFromNow[ROAD] = calculateRollsAndRsrcFast(resources, SOCGame.ROAD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+            estimatesFromNow[SETTLEMENT] = calculateRollsAndRsrcFast(resources, SOCGame.SETTLEMENT_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+            estimatesFromNow[CITY] = calculateRollsAndRsrcFast(resources, SOCGame.CITY_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+            estimatesFromNow[CARD] = calculateRollsAndRsrcFast(resources, SOCGame.CARD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+            estimatesFromNow[SHIP] = calculateRollsAndRsrcFast(resources, SOCGame.SHIP_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
         }
         catch (CutoffExceededException e)
         {
@@ -454,18 +454,55 @@ public class SOCBuildingSpeedEstimate
     }
 
     /**
+     * Figures out how many rolls it would take this
+     * player to get the target set of resources, given
+     * a starting set.
+     *<P>
+     * This method does the same calculation as
+     * {@link #calculateRollsAndRsrcFast(SOCResourceSet, SOCResourceSet, int, boolean[])}
+     * with a simpler return type and no thrown exception.
+     *
+     * @param startingResources   the starting resources
+     * @param targetResources     the target resources
+     * @param cutoff              maximum number of rolls
+     * @param ports               a list of port flags
+     *
+     * @return  the number of rolls, or {@code cutoff} if that maximum is reached
+     * @since 2.0.00
+     */
+    protected final int calculateRollsFast
+        (final SOCResourceSet startingResources, final SOCResourceSet targetResources, final int cutoff, final boolean[] ports)
+    {
+        try
+        {
+            SOCResSetBuildTimePair pair = calculateRollsAndRsrcFast(startingResources, targetResources, cutoff, ports);
+            return pair.getRolls();
+        }
+        catch (CutoffExceededException e)
+        {
+            return cutoff;
+        }
+    }
+
+    /**
      * this figures out how many rolls it would take this
      * player to get the target set of resources given
      * a starting set
+     *<P>
+     * Before v2.0.00, this was {@code calculateRollsFast}.
      *
      * @param startingResources   the starting resources
      * @param targetResources     the target resources
      * @param cutoff              throw an exception if the total speed is greater than this
      * @param ports               a list of port flags
      *
-     * @return the number of rolls
+     * @return the number of rolls, and startingResources after any trading
+     * @throws CutoffExceededException  if total number of rolls &gt; {@code cutoff}
+     * @see #calculateRollsFast(SOCResourceSet, SOCResourceSet, int, boolean[])
      */
-    protected SOCResSetBuildTimePair calculateRollsFast(SOCResourceSet startingResources, SOCResourceSet targetResources, int cutoff, boolean[] ports) throws CutoffExceededException
+    protected SOCResSetBuildTimePair calculateRollsAndRsrcFast
+        (final SOCResourceSet startingResources, final SOCResourceSet targetResources, final int cutoff, final boolean[] ports)
+        throws CutoffExceededException
     {
         //D.ebugPrintln("calculateRolls");
         //D.ebugPrintln("  start: "+startingResources);

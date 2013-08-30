@@ -157,7 +157,7 @@ import java.util.Vector;
  * hex (B,B) is the southernmost land hex.  The ring of water hexes are outside
  * this coordinate grid.
  *<P>
- * For the large sea board ({@link #BOARD_ENCODING_LARGE}), see subclass {@link SOCBoardLarge}.
+ * For the large sea board (encoding v3: {@link #BOARD_ENCODING_LARGE}), see subclass {@link SOCBoardLarge}.
  * Remember that ship pieces extend the {@link SOCRoad} class.
  * Most methods of {@link SOCBoard}, {@link SOCGame} and {@link SOCPlayer} differentiate them
  * ({@link SOCPlayer#hasPotentialRoad() vs {@link SOCPlayer#hasPotentialShip()}),
@@ -560,7 +560,8 @@ public class SOCBoard implements Serializable, Cloneable
      *<br>
      * Note that hexLayout contains ports only for the v1 encoding ({@link #BOARD_ENCODING_ORIGINAL});
      * v2 and v3 use {@link #portsLayout} instead, and hexLayout contains only water and the land
-     * hex types.
+     * hex types.  The v3 encoding ({@link #BOARD_ENCODING_LARGE}) doesn't use {@code hexLayout} at all,
+     * instead it has a 2-dimensional {@code hexLayoutLg} structure.
        <pre>
        0 : water   {@link #WATER_HEX} (was 6 before v2.0.00)
        1 : clay    {@link #CLAY_HEX}
@@ -693,6 +694,7 @@ public class SOCBoard implements Serializable, Cloneable
      *     the surrounding ring of water/port hexes.
      *<LI> {@link #BOARD_ENCODING_6PLAYER}:  The hexes in here are the board's land hexes and also
      *     the unused hexes (rightmost column: 7D - DD - D7).
+     *<LI> {@link #BOARD_ENCODING_LARGE}: Does not use numToHexID or hexLayout; hex coordinate == hex number.
      *</UL>
      * @see #hexIDtoNum
      * @see #nodesOnLand
@@ -886,6 +888,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Create a new Settlers of Catan Board, with the v1 or v2 encoding.
+     * (For the v3 encoding, instead use a {@link SOCBoardLarge} constructor.)
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6. (Added in 1.1.08)
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
@@ -1711,11 +1714,11 @@ public class SOCBoard implements Serializable, Cloneable
      * @return the hex layout; meaning of values same as {@link #hexLayout}.
      *     Please treat the returned array as read-only.
      * @see #getLandHexCoords()
-     * @throws IllegalStateException if the board encoding doesn't support this method;
+     * @throws UnsupportedOperationException if the board encoding doesn't support this method;
      *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      */
     public int[] getHexLayout()
-        throws IllegalStateException
+        throws UnsupportedOperationException
     {
         return hexLayout;
     }
@@ -1775,14 +1778,14 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * The dice-number layout of dice rolls at each hex number.
      * Valid for the v1 and v2 encodings, not v3 ({@link #BOARD_ENCODING_LARGE}).
-     * For v3, call {@link #getLandHexCoords()} and {@link #getHexNumFromCoord(int)} instead.
+     * For v3, call {@link #getLandHexCoords()} and {@link #getNumberOnHexFromCoord(int)} instead.
      * @return the number layout; each element is valued 2-12.
      *     The robber hex is 0.  Water hexes are -1.
-     * @throws IllegalStateException if the board encoding doesn't support this method;
+     * @throws UnsupportedOperationException if the board encoding doesn't support this method;
      *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      */
     public int[] getNumberLayout()
-        throws IllegalStateException
+        throws UnsupportedOperationException
     {
         return numberLayout;
     }
@@ -1902,11 +1905,11 @@ public class SOCBoard implements Serializable, Cloneable
      * @param hl  the hex layout.
      *   For {@link #BOARD_ENCODING_ORIGINAL}: if <tt>hl[0]</tt> is {@link #WATER_HEX},
      *    the board is assumed empty and ports arrays won't be filled.
-     * @throws IllegalStateException if the board encoding doesn't support this method;
+     * @throws UnsupportedOperationException if the board encoding doesn't support this method;
      *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      */
     public void setHexLayout(int[] hl)
-        throws IllegalStateException
+        throws UnsupportedOperationException
     {
         hexLayout = hl;
 
@@ -2008,11 +2011,11 @@ public class SOCBoard implements Serializable, Cloneable
      * For v3, call {@link SOCBoardLarge#setLandHexLayout(int[])} instead.
      *
      * @param nl  the number layout, from {@link #getNumberLayout()}
-     * @throws IllegalStateException if the board encoding doesn't support this method;
+     * @throws UnsupportedOperationException if the board encoding doesn't support this method;
      *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      */
     public void setNumberLayout(int[] nl)
-        throws IllegalStateException
+        throws UnsupportedOperationException
     {
         numberLayout = nl;
     }
@@ -2163,10 +2166,11 @@ public class SOCBoard implements Serializable, Cloneable
      * @return the hex number (index in numberLayout), or -1 if hexCoord isn't a hex coordinate on the board
      * @see #getHexTypeFromCoord(int)
      * @since 1.1.08
-     * @throws IllegalStateException if the board encoding doesn't support this method
+     * @throws UnsupportedOperationException if the board encoding doesn't support this method;
+     *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      */
     public int getHexNumFromCoord(final int hexCoord)
-        throws IllegalStateException
+        throws UnsupportedOperationException
     {
         if ((hexCoord >= 0) && (hexCoord <= hexIDtoNum.length))
             return hexIDtoNum[hexCoord];

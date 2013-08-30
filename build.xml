@@ -22,6 +22,8 @@
  along with this program.  If not, see http://www.gnu.org/licenses/ .
  -->
 
+  <!-- Reminder for javac tasks: To prevent ant 1.8+ warning message, use includeantruntime="false" -->
+
   <!-- Give user a chance to override without editing this file
        (and without typing -D each time compiling) -->
   <property file="build.properties" />
@@ -39,7 +41,7 @@
   <property name="versionnum" value="2000" />
   <!-- maximum recent version number to not warn during new game creation; -->
   <!-- should be a version released more than a year ago. -->
-  <property name="versionnumMaxNoWarn" value="1110" />
+  <property name="versionnumMaxNoWarn" value="1113" />
   <property name="copyright" value="2001-2004 Robb Thomas, portions 2007-2013 Jeremy D Monin and contributors" />
   <property name="url"       value="http://nand.net/jsettlers/devel/" />
 
@@ -202,6 +204,7 @@
              classpathref="classpath"
              debug="${debug}" 
              optimize="${optimize}"
+             includeantruntime="false"
              deprecation="${deprecation}" />
   </target>
  
@@ -265,6 +268,7 @@
              classpathref="classpath"
              debug="${debug}"
              optimize="${optimize}"
+             includeantruntime="false"
              deprecation="${deprecation}" />
   </target>
 

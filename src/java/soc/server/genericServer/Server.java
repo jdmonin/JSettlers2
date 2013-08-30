@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - parameterize types, removeConnection bugfix
  *
  * This program is free software; you can redistribute it and/or
@@ -47,6 +47,8 @@ import java.util.Vector;
  *<P>
  *  This is the real stuff. Server subclasses won't have to care about
  *  reading/writing on the net, data consistency among threads, etc.
+ *  The Server listens on either a TCP {@link #port}, or for practice mode,
+ *  to a {@link LocalStringServerSocket}.
  *<P>
  *  Newly connecting clients arrive in {@link #run()},
  *  start a thread for the server side of their Connection or LocalStringConnection,
@@ -78,16 +80,20 @@ import java.util.Vector;
  *  @version 1.7
  *  @author Original author: <A HREF="http://www.nada.kth.se/~cristi">Cristian Bogdan</A> <br>
  *  Lots of mods by Robert S. Thomas and Jay Budzik <br>
- *  Local (StringConnection) network system by Jeremy D Monin <jeremy@nand.net> <br>
- *  Version-tracking system and other minor mods by Jeremy D Monin <jeremy@nand.net>
+ *  Local (StringConnection) network system by Jeremy D Monin &lt;jeremy@nand.net&gt; <br>
+ *  Version-tracking system and other minor mods by Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
 public abstract class Server extends Thread implements Serializable, Cloneable
 {
     StringServerSocket ss;
     boolean up = false;
     protected Exception error = null;
-    protected int port;  // -1 for local mode (LocalStringServerSocket, etc)
-    protected String strSocketName;  // null for network mode
+
+    /** TCP port number, or -1 for local/practice mode ({@link LocalStringServerSocket}, etc). */
+    protected int port;
+
+    /** {@link LocalStringServerSocket} name, or {@code null} for network mode. */
+    protected String strSocketName;
 
     /**
      * Consistency-check the {@link #cliVersionsConnected} set every so often (33 minutes).
