@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Properties;
@@ -495,6 +496,16 @@ public class SOCServer extends Server
     protected int numberOfUsers;
 
     /**
+     * Client version count stats since startup (includes bots).
+     * Incremented from {@link #handleVERSION(StringConnection, SOCVersion)};
+     * currently assumes single-threaded access to this map.
+     *<P>
+     * Key = <tt>Integer</tt> version number, Value = <tt>Integer</tt> client count.
+     * @since 1.1.19
+     */
+    protected HashMap clientPastVersionStats;
+
+    /**
      * server robot pinger
      */
     SOCServerRobotPinger serverRobotPinger;
@@ -750,6 +761,7 @@ public class SOCServer extends Server
         numberOfGamesStarted = 0;
         numberOfGamesFinished = 0;
         numberOfUsers = 0;
+        clientPastVersionStats = new HashMap();
         serverRobotPinger = new SOCServerRobotPinger(this, robots);
         serverRobotPinger.start();
         gameTimeoutChecker = new SOCGameTimeoutChecker(this);
@@ -3937,6 +3949,15 @@ public class SOCServer extends Server
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_OK, "Debugging is On.  Welcome to Java Settlers of Catan!"));
 
+        // Increment version stats; currently assumes single-threaded access to the map.
+        // We don't know yet if client is a bot, so bots are included in the stats.
+        // (If this is not wanted, the bot could be subtracted at handleIMAROBOT.)
+        final Integer cversObj = new Integer(cvers);
+        final int prevCount;
+        Integer prevCObj = (Integer) clientPastVersionStats.get(cversObj);
+        prevCount = (prevCObj != null) ? prevCObj.intValue() : 0;
+        clientPastVersionStats.put(cversObj, new Integer(1 + prevCount));
+
         // This client version is OK to connect
         return true;
     }
@@ -4342,6 +4363,25 @@ public class SOCServer extends Server
             messageToPlayer(c, gaName, "> Free Memory: " + rt.freeMemory());
             messageToPlayer(c, gaName, "> Version: "
                 + Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum());
+
+            if (! clientPastVersionStats.isEmpty())
+            {
+                if (clientPastVersionStats.size() == 1)
+                {
+                    messageToPlayer(c, gaName, "> Client versions since startup: all "
+                            + Version.version( ((Integer)(clientPastVersionStats.keySet().iterator().next())).intValue() ));
+                } else {
+                    // TODO sort it
+                    messageToPlayer(c, gaName, "> Client versions since startup: (includes bots)");
+                    Iterator it = clientPastVersionStats.keySet().iterator();
+                    while (it.hasNext())
+                    {
+                        final Integer vobj = (Integer) it.next();
+                        final int v = vobj.intValue();
+                        messageToPlayer(c, gaName, ">   " + Version.version(v) + ": " + clientPastVersionStats.get(vobj));
+                    }
+                }
+            }
 
             processDebugCommand_checktime(c, gaName, ga);
         }
