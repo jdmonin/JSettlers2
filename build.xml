@@ -22,6 +22,8 @@
  along with this program.  If not, see http://www.gnu.org/licenses/ .
  -->
 
+  <!-- Reminder for javac tasks: To prevent ant 1.8+ warning message, use includeantruntime="false" -->
+
   <!-- Give user a chance to override without editing this file
        (and without typing -D each time compiling) -->
   <property file="build.properties" />
@@ -201,6 +203,7 @@
              classpathref="classpath"
              debug="${debug}" 
              optimize="${optimize}"
+             includeantruntime="false"
              deprecation="${deprecation}" />
   </target>
  
@@ -264,6 +267,7 @@
              classpathref="classpath"
              debug="${debug}"
              optimize="${optimize}"
+             includeantruntime="false"
              deprecation="${deprecation}" />
   </target>
 
