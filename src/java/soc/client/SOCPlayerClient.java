@@ -1930,7 +1930,7 @@ public class SOCPlayerClient
         public void updateGameStats(String gameName, int[] scores, boolean[] robots)
         {
             //D.ebugPrintln("UPDATE GAME STATS FOR "+gameName);
-            //TODO i18n ????
+            //TODO i18n how to?
             String testString = gameName + STATSPREFEX;
 
             for (int i = 0; i < gmlist.getItemCount(); i++)
@@ -2895,7 +2895,7 @@ public class SOCPlayerClient
                     while (opi.hasNext())
                     {
                         final SOCGameOption op = opi.next();
-                        //TODO i18n ?????
+                        //TODO i18n how to?
                         if ((op.optKey.length() > 3) || op.optKey.contains("_"))
                         {
                             tcpServGameOpts.optionSet.remove(op.optKey);
@@ -4321,7 +4321,7 @@ public class SOCPlayerClient
             hasAllNow = opts.receiveInfo(mes);
         }
         
-        //TODO i18n ???
+        //TODO i18n how to?
         boolean isDash = mes.getOptionNameKey().equals("-");
         gameDisplay.optionsReceived(opts, isPractice, isDash, hasAllNow);
     }

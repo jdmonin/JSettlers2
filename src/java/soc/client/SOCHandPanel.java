@@ -3012,7 +3012,7 @@ public class SOCHandPanel extends Panel
         }
         else
         {
-            //TODO i18n match with actual label above
+            //TODO i18n match with actual label used for display
             final int stlmtsW = fm.stringWidth("Stlmts:_");  // Bug in stringWidth does not give correct size for ' '
             final int knightsW = fm.stringWidth("Soldiers:") + 2;  // +2 because Label text is inset from column 0
             // (for item count labels, either Settlements or Soldiers/Knights is widest text)
