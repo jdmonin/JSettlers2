@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -115,6 +115,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     private static final int DEBUGRANDOMPAUSE_SECONDS = 12;
 
     /**
+     * The security cookie value; required by server v1.1.19 and higher.
+     * @since 1.1.19
+     */
+    private String cookie = null;
+
+    /**
      * the thread the reads incoming messages
      */
     private Thread reader;
@@ -195,8 +201,9 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @param p  port
      * @param nn nickname for robot
      * @param pw password for robot
+     * @param co  cookie for robot connections to server
      */
-    public SOCRobotClient(String h, int p, String nn, String pw)
+    public SOCRobotClient(final String h, final int p, final String nn, final String pw, final String co)
     {
         gamesPlayed = 0;
         gamesFinished = 0;
@@ -207,6 +214,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         port = p;
         nickname = nn;
         password = pw;
+        cookie = co;
         strSocketName = null;
     }
 
@@ -216,10 +224,11 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @param s    the stringport that the server listens on
      * @param nn   nickname for robot
      * @param pw   password for robot
+     * @param co  cookie for robot connections to server
      */
-    public SOCRobotClient(String s, String nn, String pw)
+    public SOCRobotClient(final String s, final String nn, final String pw, final String co)
     {
-        this(null, 0, nn, pw);
+        this(null, 0, nn, pw, co);
         strSocketName = s;
     }
 
@@ -248,7 +257,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             //resetThread = new SOCRobotResetThread(this);
             //resetThread.start();
             put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
-            put(SOCImARobot.toCmd(nickname, SOCImARobot.RBCLASS_BUILTIN)); 
+            put(SOCImARobot.toCmd(nickname, cookie, SOCImARobot.RBCLASS_BUILTIN)); 
         }
         catch (Exception e)
         {
@@ -288,7 +297,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             //resetThread = new SOCRobotResetThread(this);
             //resetThread.start();
             put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
-            put(SOCImARobot.toCmd(nickname, SOCImARobot.RBCLASS_BUILTIN));
+            put(SOCImARobot.toCmd(nickname, cookie, SOCImARobot.RBCLASS_BUILTIN));
         }
         catch (Exception e)
         {
@@ -2005,15 +2014,15 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     public static void main(String[] args)
     {
-        if (args.length < 4)
+        if (args.length < 5)
         {
             System.err.println("Java Settlers robotclient " + Version.version() +
                     ", build " + Version.buildnum());
-            System.err.println("usage: java soc.robot.SOCRobotClient host port_number userid password");
+            System.err.println("usage: java soc.robot.SOCRobotClient host port_number userid password cookie");
             return;
         }
 
-        SOCRobotClient ex1 = new SOCRobotClient(args[0], Integer.parseInt(args[1]), args[2], args[3]);
+        SOCRobotClient ex1 = new SOCRobotClient(args[0], Integer.parseInt(args[1]), args[2], args[3], args[4]);
         ex1.init();
     }
 }

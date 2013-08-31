@@ -135,6 +135,25 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_CONNECTIONS = "jsettlers.connections";
 
     /**
+     * String property <tt>jsettlers.bots.cookie</tt> to specify the robot connect cookie.
+     * (By default a random one is generated.)
+     * The value must pass {@link SOCMessage#isSingleLineAndSafe(String)}:
+     * Must not contain the <tt>'|'</tt> or <tt>','</tt> characters.
+     * @see #PROP_JSETTLERS_BOTS_SHOWCOOKIE
+     * @since 1.1.19
+     */
+    public static final String PROP_JSETTLERS_BOTS_COOKIE = "jsettlers.bots.cookie";
+
+    /**
+     * Boolean property <tt>jsettlers.bots.showcookie</tt> to print the
+     * {@link #PROP_JSETTLERS_BOTS_COOKIE robot connect cookie} to System.err during server startup.
+     * (The default is N, the cookie is not printed.)<P>
+     * Format is:<P><tt>Robot cookie: 03883269284ee140cb907ea203846333</tt>
+     * @since 1.1.19
+     */
+    public static final String PROP_JSETTLERS_BOTS_SHOWCOOKIE = "jsettlers.bots.showcookie";
+
+    /**
      * Property <tt>jsettlers.startrobots</tt> to start some robots when the server starts.
      * (The default is 0, no robots are started by default.)
      *<P>
@@ -186,6 +205,8 @@ public class SOCServer extends Server
         PROP_JSETTLERS_ALLOW_DEBUG,   "Allow remote debug commands? (if Y)",
         PROP_JSETTLERS_CLI_MAXCREATECHANNELS,   "Maximum simultaneous channels that a client can create",
         PROP_JSETTLERS_CLI_MAXCREATEGAMES,      "Maximum simultaneous games that a client can create",
+        PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
+        PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
         SOCDBHelper.PROP_JSETTLERS_DB_USER,     "DB username",
         SOCDBHelper.PROP_JSETTLERS_DB_PASS,     "DB password",
         SOCDBHelper.PROP_JSETTLERS_DB_URL,      "DB connection URL",
@@ -336,6 +357,20 @@ public class SOCServer extends Server
      * @since 1.1.09
      */
     private Properties props;
+
+    /**
+     * Randomly generated cookie string required for robot clients to connect
+     * and identify as bots using {@link SOCImARobot}, or <tt>null</tt>.
+     * It isn't sent encrypted and is a weak "shared secret".
+     * Generated in {@link #generateRobotCookie()} unless the server is given
+     * {@link #PROP_JSETTLERS_BOTS_COOKIE} at startup, which can set it to
+     * any string or to <tt>null</tt> if the property is empty.
+     *<P>
+     * The value must pass {@link SOCMessage#isSingleLineAndSafe(String)}:
+     * Must not contain the <tt>'|'</tt> or <tt>','</tt> characters.
+     * @since 1.1.19
+     */
+    private String robotCookie;
 
     /**
      * A list of robot {@link StringConnection}s connected to this server.
@@ -666,6 +701,32 @@ public class SOCServer extends Server
             System.err.println("Warning: Remote debug commands are allowed.");
         }
 
+        /**
+         * See if the user specified a non-random robot cookie value.
+         */
+        if (props.containsKey(PROP_JSETTLERS_BOTS_COOKIE))
+        {
+            final String cook = props.getProperty(PROP_JSETTLERS_BOTS_COOKIE).trim();
+            if (cook.length() > 0)
+            {
+                if (SOCMessage.isSingleLineAndSafe(cook))
+                {
+                    robotCookie = cook;
+                } else {
+                    final String errmsg = "Error: The robot cookie value (param " + PROP_JSETTLERS_BOTS_COOKIE
+                        + ") can't contain comma or pipe characters.";
+                    System.err.println(errmsg);
+                    throw new IllegalArgumentException(errmsg);
+                }
+            }
+            // else robotCookie remains null
+        } else {
+            robotCookie = generateRobotCookie();
+        }
+
+        /**
+         * Try to connect to the DB, if any.
+         */
         try
         {
             SOCDBHelper.initialize(databaseUserName, databasePassword, props);
@@ -762,6 +823,10 @@ public class SOCServer extends Server
         numberOfGamesFinished = 0;
         numberOfUsers = 0;
         clientPastVersionStats = new HashMap();
+
+        /**
+         *  Start various threads.
+         */
         serverRobotPinger = new SOCServerRobotPinger(this, robots);
         serverRobotPinger.start();
         gameTimeoutChecker = new SOCGameTimeoutChecker(this);
@@ -780,6 +845,9 @@ public class SOCServer extends Server
 
             printGameOptions();
         }
+
+        if (init_getBoolProperty(props, PROP_JSETTLERS_BOTS_SHOWCOOKIE, false))
+            System.err.println("Robot cookie: " + robotCookie);
 
         System.err.print("The server is ready.");
         if (port > 0)
@@ -894,6 +962,36 @@ public class SOCServer extends Server
                 System.err.println("Not starting robots: Bad number format, ignoring property " + PROP_JSETTLERS_STARTROBOTS);
             }
         }        
+    }
+
+    /**
+     * The 16 hex characters to use in {@link #generateRobotCookie()}.
+     * @since 1.1.19
+     */
+    private final static char[] GENERATEROBOTCOOKIE_HEX
+        = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+
+    /**
+     * Generate and return a string to use for {@link #robotCookie}.
+     * Currently a lowercase hex string; format or length does not have to be compatible
+     * between versions.  The contents are randomly generated for each server run.
+     * @return Robot connect cookie contents to use for this server
+     * @since 1.1.19
+     */
+    private final String generateRobotCookie()
+    {
+        byte[] rnd = new byte[16];
+        rand.nextBytes(rnd);
+        char[] rndChars = new char[2 * 16];
+        int ic = 0;  // index into rndChars
+        for (int i = 0; i < 16; ++i)
+        {
+            final int byt = rnd[i] & 0xFF;
+            rndChars[ic] = GENERATEROBOTCOOKIE_HEX[byt >>> 4];   ++ic;
+            rndChars[ic] = GENERATEROBOTCOOKIE_HEX[byt & 0x0F];  ++ic;
+        }
+
+        return new String(rndChars);
     }
 
     /**
@@ -1817,7 +1915,7 @@ public class SOCServer extends Server
             for (int i = 0; i < numFast; ++i)
             {
                 String rname = "droid " + (i+1);
-                SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port);
+                SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
                     // includes yield() and sleep(75 ms) this thread.
             }
 
@@ -1838,7 +1936,7 @@ public class SOCServer extends Server
             for (int i = 0; i < numSmart; ++i)
             {
                 String rname = "robot " + (i+1+numFast);
-                SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port);
+                SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
                     // includes yield() and sleep(75 ms) this thread.
             }
 
@@ -4187,6 +4285,8 @@ public class SOCServer extends Server
      * Handle the "I'm a robot" message.
      * Robots send their {@link SOCVersion} before sending this message.
      * Their version is checked here, must equal server's version.
+     * For stability and control, the cookie in this message must
+     * match this server's {@link #robotCookie}.
      *
      * @param c  the connection that sent the message
      * @param mes  the messsage
@@ -4195,6 +4295,18 @@ public class SOCServer extends Server
     {
         if (c != null)
         {
+            /**
+             * Check the cookie given by this bot.
+             */
+            if ((robotCookie != null) && ! robotCookie.equals(mes.getCookie()))
+            {
+                final String rejectMsg = "Cookie contents do not match the running server.";
+                c.put(new SOCRejectConnection(rejectMsg).toCmd());
+                c.disconnectSoft();
+                System.out.println("Rejected robot " + mes.getNickname() + ": Wrong cookie");
+                return;  // <--- Early return: Robot client didn't send our cookie value ---
+            }
+
             /**
              * Check the reported version; if none, assume 1000 (1.0.00)
              */
@@ -9872,6 +9984,7 @@ public class SOCServer extends Server
          * @param rname  Name of robot
          * @param strSocketName  Server's stringport socket name, or null
          * @param port    Server's tcp port, if <tt>strSocketName</tt> is null
+         * @param cookie  Cookie for robot connections to server
          * @since 1.1.09
          * @see SOCServer#setupLocalRobots(int, int)
          * @throws ClassNotFoundException  if a robot class, or SOCDisplaylessClient,
@@ -9879,14 +9992,14 @@ public class SOCServer extends Server
          * @throws LinkageError  for same reason as ClassNotFoundException
          */
         public static void createAndStartRobotClientThread
-            (final String rname, final String strSocketName, final int port)
+            (final String rname, final String strSocketName, final int port, final String cookie)
             throws ClassNotFoundException, LinkageError
         {
             SOCRobotClient rcli;
             if (strSocketName != null)
-                rcli = new SOCRobotClient (strSocketName, rname, "pw");
+                rcli = new SOCRobotClient(strSocketName, rname, "pw", cookie);
             else
-                rcli = new SOCRobotClient ("localhost", port, rname, "pw");
+                rcli = new SOCRobotClient("localhost", port, rname, "pw", cookie);
             Thread rth = new Thread(new SOCPlayerLocalRobotRunner(rcli));
             rth.setDaemon(true);
             rth.start();  // run() will add to robotClients
