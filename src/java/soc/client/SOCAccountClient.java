@@ -113,6 +113,9 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
      */
     protected String emailAddress = null;
 
+    //strings
+    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+    
     /**
      * Create a SOCAccountClient connecting to localhost port 8880
      */
@@ -151,7 +154,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
         email = new TextField(50);
         status = new TextField(50);
         status.setEditable(false);
-        submit = new Button("Create Account");
+        submit = new Button(strings.get("account.okcreate"));
         submitLock = false;
 
         submit.addActionListener(this);
@@ -166,7 +169,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
 
         Label l;
 
-        l = new Label("To create an account, please enter your information.");
+        l = new Label(/*I*/"To create an account, please enter your information."/*18N*/);
         l.setAlignment(Label.CENTER);
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(l, c);
@@ -177,11 +180,11 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
-        l = new Label("Your Nickname:");
+        l = new Label(/*I*/"Your Nickname:"/*18N*/);
         c.gridwidth = 1;
         gbl.setConstraints(l, c);
         mainPane.add(l);
-        new AWTToolTip("This will be your username.", l);
+        new AWTToolTip(/*I*/"This will be your username."/*18N*/, l);
 
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(nick, c);
@@ -192,7 +195,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
-        l = new Label("Password:");
+        l = new Label(/*I*/"Password:"/*18N*/);
         c.gridwidth = 1;
         gbl.setConstraints(l, c);
         mainPane.add(l);
@@ -206,7 +209,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
-        l = new Label("Password (again):");
+        l = new Label(/*I*/"Password (again):"/*18N*/);
         c.gridwidth = 1;
         gbl.setConstraints(l, c);
         mainPane.add(l);
@@ -220,7 +223,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
-        l = new Label("Email (optional):");
+        l = new Label(/*I*/"Email (optional):"/*18N*/);
         c.gridwidth = 1;
         gbl.setConstraints(l, c);
         mainPane.add(l);
@@ -342,7 +345,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
                                             hostString);
         }
         System.out.println("Connecting to " + hostString);
-        messageLabel.setText("Connecting to server...");
+        messageLabel.setText(/*I*/"Connecting to server..."/*18N*/);
 
         try
         {
@@ -358,7 +361,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
         catch (Exception e)
         {
             ex = e;
-            String msg = "Could not connect to the server: " + ex;
+            String msg = /*I*/"Could not connect to the server: " + ex/*18N*/;
             System.err.println(msg);
             messageLabel.setText(msg);
         }
@@ -413,23 +416,23 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
             //
             if (nickname.length() == 0)
             {
-                status.setText("You must enter a nickname.");
+                status.setText(/*I*/"You must enter a nickname."/*18N*/);
                 nick.requestFocus();
             }
             else if (password.length() == 0)
             {
-                status.setText("You must enter a password.");
+                status.setText(/*I*/"You must enter a password."/*18N*/);
                 pass.requestFocus();
             }
             else if (!password.equals(password2))
             {
                 pass.requestFocus();
-                status.setText("Your passwords don't match.");
+                status.setText(/*I*/"Your passwords don't match."/*18N*/);
             }
             else if (!submitLock)
             {
                 submitLock = true;
-                status.setText("Creating account ...");
+                status.setText(/*I*/"Creating account ..."/*18N*/);
                 put(SOCCreateAccount.toCmd(nickname, password, host, emailAddress));
             }
         }

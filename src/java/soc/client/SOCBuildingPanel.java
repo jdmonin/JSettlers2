@@ -51,11 +51,11 @@ import javax.swing.JFrame;   // for GameStatisticsFrame
 public class SOCBuildingPanel extends Panel
     implements ActionListener, WindowListener
 {
-    static final String ROAD = "road";
-    static final String STLMT = "stlmt";
-    static final String CITY = "city";
-    static final String CARD = "card";
-    static final String SHIP = "ship";  // Ship for large sea board; @since 2.0.00
+    static final String ROAD = /*I*/"road"/*18N*/;
+    static final String STLMT = /*I*/"stlmt"/*18N*/;
+    static final String CITY = /*I*/"city"/*18N*/;
+    static final String CARD = /*I*/"card"/*18N*/;
+    static final String SHIP = /*I*/"ship"/*18N*/;  // Ship for large sea board; @since 2.0.00
     private static final String SBP = "sbp";  // Special Building Phase button; @since 1.1.08
     Label title;
     Button roadBut;
@@ -160,10 +160,10 @@ public class SOCBuildingPanel extends Panel
            title.setAlignment(Label.CENTER);
            add(title);
          */
-        roadT = new Label("Road: ");
+        roadT = new Label(/*I*/"Road: "/*18N*/);
         add(roadT);
-        new AWTToolTip ("0 VP  (longest road = 2 VP) ", roadT);
-        roadC = new Label("Cost: ");
+        new AWTToolTip (/*I*/"0 VP  (longest road = 2 VP) "/*18N*/, roadT);
+        roadC = new Label(/*I*/"Cost: "/*18N*/);
         add(roadC);
         roadWood = new ColorSquare(ColorSquare.WOOD, 1);
         add(roadWood);
@@ -175,10 +175,10 @@ public class SOCBuildingPanel extends Panel
         roadBut.setActionCommand(ROAD);
         roadBut.addActionListener(this);
 
-        settlementT = new Label("Settlement: ");
+        settlementT = new Label(/*I*/"Settlement: "/*18N*/);
         add(settlementT);
-        new AWTToolTip ("1 VP ", settlementT);
-        settlementC = new Label("Cost: ");
+        new AWTToolTip (/*I*/"1 VP "/*18N*/, settlementT);
+        settlementC = new Label(/*I*/"Cost: "/*18N*/);
         add(settlementC);
         settlementWood = new ColorSquare(ColorSquare.WOOD, 1);
         add(settlementWood);
@@ -194,10 +194,10 @@ public class SOCBuildingPanel extends Panel
         settlementBut.setActionCommand(STLMT);
         settlementBut.addActionListener(this);
 
-        cityT = new Label("City Upgrade: ");
+        cityT = new Label(/*I*/"City Upgrade: "/*18N*/);
         add(cityT);
-        new AWTToolTip ("2 VP  (receives 2x rsrc.) ", cityT);
-        cityC = new Label("Cost: ");
+        new AWTToolTip (/*I*/"2 VP  (receives 2x rsrc.) "/*18N*/, cityT);
+        cityC = new Label(/*I*/"Cost: "/*18N*/);
         add(cityC);
         cityWheat = new ColorSquare(ColorSquare.WHEAT, 2);
         add(cityWheat);
@@ -209,19 +209,19 @@ public class SOCBuildingPanel extends Panel
         cityBut.setActionCommand(CITY);
         cityBut.addActionListener(this);
 
-        gameInfoBut = new Button("Game Info...");  // show game options
+        gameInfoBut = new Button(/*I*/"Game Info..."/*18N*/);  // show game options
         add(gameInfoBut);
         gameInfoBut.addActionListener(this);
 
         //TODO: disable until the game initialization is complete and the first roll is made
-        statsBut = new Button("Game Statistics...");
+        statsBut = new Button(/*I*/"Game Statistics..."/*18N*/);
         add(statsBut);
         statsBut.addActionListener(this);
 
-        cardT = new Label("Dev Card: ");
+        cardT = new Label(/*I*/"Dev Card: "/*18N*/);
         add(cardT);
-        new AWTToolTip ("? VP  (largest army = 2 VP) ", cardT);
-        cardC = new Label("Cost: ");
+        new AWTToolTip (/*I*/"? VP  (largest army = 2 VP) "/*18N*/, cardT);
+        cardC = new Label(/*I*/"Cost: "/*18N*/);
         add(cardC);
         cardWheat = new ColorSquare(ColorSquare.WHEAT, 1);
         add(cardWheat);
@@ -235,24 +235,25 @@ public class SOCBuildingPanel extends Panel
         cardBut.setActionCommand(CARD);
         cardBut.addActionListener(this);
         // Development Card count. Initial amount will be sent from server soon.
-        cardCountLab = new Label("available");
+        //TODO Is 'Available X' better than 'X available' in some languages'?
+        cardCountLab = new Label(/*I*/"available"/*18N*/);
         cardCountLab.setAlignment(Label.LEFT);
         add(cardCountLab);
-        cardCount = new ColorSquare(ColorSquare.GREY, 0);
-        cardCount.setTooltipText("Development cards available to buy");
-        cardCount.setTooltipLowWarningLevel("Almost out of development cards to buy", 3);
-        cardCount.setTooltipZeroText("No more development cards available to buy");
+        cardCount = new ColorSquare(ColorSquare.GREY, 0);        
+        cardCount.setTooltipText(/*I*/"Development cards available to buy"/*18N*/);
+        cardCount.setTooltipLowWarningLevel(/*I*/"Almost out of development cards to buy"/*18N*/, 3);
+        cardCount.setTooltipZeroText(/*I*/"No more development cards available to buy"/*18N*/);
         add(cardCount);
 
         final SOCGame ga = pi.getGame();
 
         if (ga.hasSeaBoard)
         {
-            shipT = new Label("Ship: ");
+            shipT = new Label(/*I*/"Ship: "/*18N*/);
             shipT.setAlignment(Label.LEFT);
             add(shipT);
-            new AWTToolTip ("0 VP  (longest route = 2 VP) ", shipT);
-            shipC = new Label("Cost: ");
+            new AWTToolTip (/*I*/"0 VP  (longest route = 2 VP) "/*18N*/, shipT);
+            shipC = new Label(/*I*/"Cost: "/*18N*/);
             add(shipC);
             shipWood = new ColorSquare(ColorSquare.WOOD, 1);
             add(shipWood);
@@ -271,7 +272,7 @@ public class SOCBuildingPanel extends Panel
                 final String TTIP_CLOTH_TEXT =
                     /*I*/"General Supply of cloth for any villages shared by multiple players";/*18N*/
 
-                clothLab = new Label("Cloth:");
+                clothLab = new Label(/*I*/"Cloth:"/*18N*/);
                 add(clothLab);
                 new AWTToolTip(TTIP_CLOTH_TEXT, clothLab);
                 cloth = new ColorSquare(ColorSquare.GREY, 0);
@@ -284,9 +285,9 @@ public class SOCBuildingPanel extends Panel
 
         if (ga.hasSeaBoard || (ga.vp_winner != 10))  // 10, not SOCGame.VP_WINNER_STANDARD, in case someone changes that
         {
-            final String TTIP_VP_TEXT = "Victory Points total needed to win the game";
+            final String TTIP_VP_TEXT = /*I*/"Victory Points total needed to win the game"/*18N*/;
 
-            vpToWinLab = new Label("VP to win:");
+            vpToWinLab = new Label(/*I*/"VP to win:"/*18N*/);
             vpToWinLab.setAlignment(Label.RIGHT);
             add(vpToWinLab);
             new AWTToolTip(TTIP_VP_TEXT, vpToWinLab);
@@ -305,16 +306,16 @@ public class SOCBuildingPanel extends Panel
             sbIsHilight = false;
             sbPanel = new Panel();  // with default FlowLayout, alignment FlowLayout.CENTER.
             sbPanel.setBackground(ColorSquare.GREY);
-            sbLab = new Label("Special Building Phase");
-            sbBut = new Button("Buy/Build");
+            sbLab = new Label(/*I*/"Special Building Phase"/*18N*/);
+            sbBut = new Button(/*I*/"Buy/Build"/*18N*/);
             sbBut.setEnabled(false);
             sbBut.setActionCommand(SBP);
             sbBut.addActionListener(this);
             sbPanel.add(sbLab);
             sbPanel.add(sbBut);
             add(sbPanel);
-            new AWTToolTip("This phase allows building between player turns.", sbPanel);
-            new AWTToolTip("This phase allows building between player turns.", sbLab);
+            new AWTToolTip(/*I*/"This phase allows building between player turns."/*18N*/, sbPanel);
+            new AWTToolTip(/*I*/"This phase allows building between player turns."/*18N*/, sbLab);
         }
 
     }
@@ -333,7 +334,8 @@ public class SOCBuildingPanel extends Panel
         FontMetrics fm = this.getFontMetrics(this.getFont());
         final int lineH = ColorSquare.HEIGHT;
         final int rowSpaceH = lineH / 2;
-        final int costW = fm.stringWidth("Cost:_");    //Bug in stringWidth does not give correct size for ' ' so use '_'
+        //TODO get 'cost: ' i18n'd, then replace ' ' for '_' 
+        final int costW = fm.stringWidth(/*I*/"Cost:_"/*18N*/);    //Bug in stringWidth does not give correct size for ' ' so use '_'
         final int butW = 50;
         final int margin = 2;
 
@@ -616,49 +618,49 @@ public class SOCBuildingPanel extends Panel
 
         if (target == ROAD)
         {
-            if (roadBut.getLabel().equals("Buy"))
+            if (roadBut.getLabel().equals(/*I*/"Buy"/*18N*/))
             {
                 if (stateBuyOK)
                     sendBuildRequest = SOCPlayingPiece.ROAD;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
             }
-            else if (roadBut.getLabel().equals("Cancel"))
+            else if (roadBut.getLabel().equals(/*I*/"Cancel"/*18N*/))
             {
                 client.getGameManager().cancelBuildRequest(game, SOCPlayingPiece.ROAD);
             }
         }
         else if (target == STLMT)
         {
-            if (settlementBut.getLabel().equals("Buy"))  // && statebuyOK
+            if (settlementBut.getLabel().equals(/*I*/"Buy"/*18N*/))  // && statebuyOK
             {
                 if (stateBuyOK)
                     sendBuildRequest = SOCPlayingPiece.SETTLEMENT;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
             }
-            else if (settlementBut.getLabel().equals("Cancel"))
+            else if (settlementBut.getLabel().equals(/*I*/"Cancel"/*18N*/))
             {
                 client.getGameManager().cancelBuildRequest(game, SOCPlayingPiece.SETTLEMENT);
             }
         }
         else if (target == CITY)
         {
-            if (cityBut.getLabel().equals("Buy"))
+            if (cityBut.getLabel().equals(/*I*/"Buy"/*18N*/))
             {
                 if (stateBuyOK)
                     sendBuildRequest = SOCPlayingPiece.CITY;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
             }
-            else if (cityBut.getLabel().equals("Cancel"))
+            else if (cityBut.getLabel().equals(/*I*/"Cancel"/*18N*/))
             {
                 client.getGameManager().cancelBuildRequest(game, SOCPlayingPiece.CITY);
             }
         }
         else if (target == CARD)
         {
-            if (cardBut.getLabel().equals("Buy"))
+            if (cardBut.getLabel().equals(/*I*/"Buy"/*18N*/))
             {
                 if (stateBuyOK || canAskSBP)
                 {
@@ -669,14 +671,14 @@ public class SOCBuildingPanel extends Panel
         }
         else if (target == SHIP)
         {
-            if (shipBut.getLabel().equals("Buy"))
+            if (shipBut.getLabel().equals(/*I*/"Buy"/*18N*/))
             {
                 if (stateBuyOK)
                     sendBuildRequest = SOCPlayingPiece.SHIP;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
             }
-            else if (shipBut.getLabel().equals("Cancel"))
+            else if (shipBut.getLabel().equals(/*I*/"Cancel"/*18N*/))
             {
                 client.getGameManager().cancelBuildRequest(game, SOCPlayingPiece.SHIP);
             }
@@ -721,12 +723,12 @@ public class SOCBuildingPanel extends Panel
                             || pi.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2))))
             {
                 roadBut.setEnabled(true);
-                roadBut.setLabel("Cancel");
+                roadBut.setLabel(/*I*/"Cancel"/*18N*/);
             }
             else if (game.couldBuildRoad(pnum))
             {
                 roadBut.setEnabled(currentCanBuy);
-                roadBut.setLabel("Buy");
+                roadBut.setLabel(/*I*/"Buy"/*18N*/);
             }
             else
             {
@@ -739,12 +741,12 @@ public class SOCBuildingPanel extends Panel
                  || (gstate == SOCGame.START2B) || (gstate == SOCGame.START3B)) )
             {
                 settlementBut.setEnabled(true);
-                settlementBut.setLabel("Cancel");
+                settlementBut.setLabel(/*I*/"Cancel"/*18N*/);
             }
             else if (game.couldBuildSettlement(pnum))
             {
                 settlementBut.setEnabled(currentCanBuy);
-                settlementBut.setLabel("Buy");
+                settlementBut.setLabel(/*I*/"Buy"/*18N*/);
             }
             else
             {
@@ -755,12 +757,12 @@ public class SOCBuildingPanel extends Panel
             if (isCurrent && (gstate == SOCGame.PLACING_CITY))
             {
                 cityBut.setEnabled(true);
-                cityBut.setLabel("Cancel");
+                cityBut.setLabel(/*I*/"Cancel"/*18N*/);
             }
             else if (game.couldBuildCity(pnum))
             {
                 cityBut.setEnabled(currentCanBuy);
-                cityBut.setLabel("Buy");
+                cityBut.setLabel(/*I*/"Buy"/*18N*/);
             }
             else
             {
@@ -771,7 +773,7 @@ public class SOCBuildingPanel extends Panel
             if (game.couldBuyDevCard(pnum))
             {
                 cardBut.setEnabled(currentCanBuy);
-                cardBut.setLabel("Buy");
+                cardBut.setLabel(/*I*/"Buy"/*18N*/);
             }
             else
             {
@@ -784,13 +786,13 @@ public class SOCBuildingPanel extends Panel
                 if (isCurrent && ((gstate == SOCGame.PLACING_SHIP) || (gstate == SOCGame.PLACING_FREE_ROAD2)))
                 {
                     shipBut.setEnabled(true);
-                    shipBut.setLabel("Cancel");
+                    shipBut.setLabel(/*I*/"Cancel"/*18N*/);
                     // ships were added after VERSION_FOR_CANCEL_FREE_ROAD2, so no need to check server version
                 }
                 else if (game.couldBuildShip(pnum))
                 {
                     shipBut.setEnabled(currentCanBuy);
-                    shipBut.setLabel("Buy");
+                    shipBut.setLabel(/*I*/"Buy"/*18N*/);
                 }
                 else
                 {

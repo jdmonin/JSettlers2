@@ -104,7 +104,7 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
      */
     public SOCDiscardOrGainResDialog(SOCPlayerInterface pi, final int rnum, final boolean isDiscard)
     {
-        super(pi, (isDiscard ? "Discard [" : "Gain Resources [" ) + pi.getClient().getNickname() + "]", true);
+        super(pi, /*I*/(isDiscard ? "Discard [" : "Gain Resources [" ) + pi.getClient().getNickname() + "]"/*18N*/, true);
 
         this.isDiscard = isDiscard;
         playerInterface = pi;
@@ -114,21 +114,21 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
         setForeground(Color.black);
         setFont(new Font("SansSerif", Font.PLAIN, 12));
 
-        clearBut = new Button("Clear");
-        okBut = new Button(isDiscard ? "Discard" : "Pick");
+        clearBut = new Button(/*I*/"Clear"/*18N*/);
+        okBut = new Button(isDiscard ? /*I*/"Discard"/*18N*/ : /*I*/"Pick"/*18N*/);
 
         didSetLocation = false;
         setLayout(null);
 
         msg = new Label
-            ((isDiscard ? "Please discard " : "Please pick ")
+            (/*I*/(isDiscard ? "Please discard " : "Please pick ")
              + Integer.toString(numPickNeeded)
-             + ((numPickNeeded != 1) ? " resources." : " resource.")
+             + ((numPickNeeded != 1) ? " resources." : " resource."/*18N*/)
              , Label.CENTER);
         add(msg);
-        youHave = new Label("You have:", Label.LEFT);
+        youHave = new Label(/*I*/"You have:"/*18N*/, Label.LEFT);
         add(youHave);
-        pickThese = new Label((isDiscard ? "Discard these:" : "Gain these:"), Label.LEFT);
+        pickThese = new Label((isDiscard ? /*I*/"Discard these:"/*18N*/ : /*I*/"Gain these:"/*18N*/), Label.LEFT);
         add(pickThese);
 
         // wantH formula based on doLayout

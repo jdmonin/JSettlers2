@@ -181,7 +181,7 @@ public class SOCConnectOrPracticePanel extends Panel
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
 
-        topText = new Label("Welcome to JSettlers!  Please choose an option.");
+        topText = new Label(/*I*/"Welcome to JSettlers!  Please choose an option."/*18N*/);
         topText.setAlignment(Label.CENTER);
         gbl.setConstraints(topText, gbc);
         bp.add(topText);
@@ -190,7 +190,7 @@ public class SOCConnectOrPracticePanel extends Panel
          * Interface setup: Connect to a Server
          */
 
-        connserv = new Button("Connect to a Server...");
+        connserv = new Button(/*I*/"Connect to a Server..."/*18N*/);
         gbl.setConstraints(connserv, gbc);
         bp.add(connserv);
         connserv.addActionListener(this);
@@ -198,7 +198,7 @@ public class SOCConnectOrPracticePanel extends Panel
         /**
          * Interface setup: Practice
          */
-        prac = new Button("Practice");
+        prac = new Button(/*I*/"Practice"/*18N*/);
         gbl.setConstraints(prac, gbc);
         bp.add(prac);
         prac.addActionListener(this);
@@ -206,7 +206,7 @@ public class SOCConnectOrPracticePanel extends Panel
         /**
          * Interface setup: Start a Server
          */
-        runserv = new Button("Start a Server...");
+        runserv = new Button(/*I*/"Start a Server..."/*18N*/);
         gbl.setConstraints(runserv, gbc);
         if (! canLaunchServer)
             runserv.setEnabled(false);
@@ -251,7 +251,7 @@ public class SOCConnectOrPracticePanel extends Panel
         gbc.fill = GridBagConstraints.BOTH;
 
         // heading row
-        L = new Label("Connect to Server");
+        L = new Label(/*I*/"Connect to Server"/*18N*/);
         L.setAlignment(Label.CENTER);
         L.setBackground(HEADER_LABEL_BG);
         L.setForeground(HEADER_LABEL_FG);
@@ -269,7 +269,7 @@ public class SOCConnectOrPracticePanel extends Panel
         gbl.setConstraints(L, gbc);
         pconn.add(L);
 
-        L = new Label("Server");
+        L = new Label(/*I*/"Server"/*18N*/);
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
@@ -279,7 +279,7 @@ public class SOCConnectOrPracticePanel extends Panel
         conn_servhost.addKeyListener(this);   // for ESC/ENTER
         pconn.add(conn_servhost);
 
-        L = new Label("Port");
+        L = new Label(/*I*/"Port"/*18N*/);
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
@@ -295,7 +295,7 @@ public class SOCConnectOrPracticePanel extends Panel
         conn_servport.addKeyListener(this);   // for ESC/ENTER
         pconn.add(conn_servport);
 
-        L = new Label("Nickname");
+        L = new Label(/*I*/"Nickname"/*18N*/);
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
@@ -305,7 +305,7 @@ public class SOCConnectOrPracticePanel extends Panel
         conn_user.addKeyListener(this);
         pconn.add(conn_user);
 
-        L = new Label("Password");
+        L = new Label(/*I*/"Password"/*18N*/);
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
@@ -323,13 +323,13 @@ public class SOCConnectOrPracticePanel extends Panel
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
-        conn_connect = new Button("Connect...");
+        conn_connect = new Button(/*I*/"Connect..."/*18N*/);
         conn_connect.addActionListener(this);
         conn_connect.addKeyListener(this);  // for win32 keyboard-focus
         gbl.setConstraints(conn_connect, gbc);
         pconn.add(conn_connect);
 
-        conn_cancel = new Button("Cancel");
+        conn_cancel = new Button(/*I*/"Cancel"/*18N*/);
         conn_cancel.addActionListener(this);
         conn_cancel.addKeyListener(this);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -351,7 +351,7 @@ public class SOCConnectOrPracticePanel extends Panel
         gbc.fill = GridBagConstraints.BOTH;
 
         // heading row
-        L = new Label("Start a Server");
+        L = new Label(/*I*/"Start a Server"/*18N*/);
         L.setAlignment(Label.CENTER);
         L.setBackground(HEADER_LABEL_BG);
         L.setForeground(HEADER_LABEL_FG);
@@ -370,7 +370,7 @@ public class SOCConnectOrPracticePanel extends Panel
         prun.add(L);
 
         // Port#
-        L = new Label("Port");
+        L = new Label(/*I*/"Port"/*18N*/);
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         prun.add(L);
@@ -394,13 +394,13 @@ public class SOCConnectOrPracticePanel extends Panel
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         prun.add(L);
-        run_startserv = new Button(" Start ");
+        run_startserv = new Button(/*I*/" Start "/*18N*/);
         run_startserv.addActionListener(this);
         run_startserv.addKeyListener(this);  // for win32 keyboard-focus
         gbl.setConstraints(run_startserv, gbc);
         prun.add(run_startserv);
 
-        run_cancel = new Button("Cancel");
+        run_cancel = new Button(/*I*/"Cancel"/*18N*/);
         run_cancel.addActionListener(this);
         run_cancel.addKeyListener(this);
         gbl.setConstraints(run_cancel, gbc);

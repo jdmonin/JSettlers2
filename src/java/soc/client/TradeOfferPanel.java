@@ -369,30 +369,30 @@ public class TradeOfferPanel extends Panel
             squares = new SquaresPanel(false);
             add(squares);
 
-            giveLab = new Label("I Give: ");
+            giveLab = new Label(/*I*/"I Give: "/*18N*/);
             giveLab.setBackground(insideBGColor);
             add(giveLab);
-            new AWTToolTip("Opponent gives to you", giveLab);
+            new AWTToolTip(/*I*/"Opponent gives to you"/*18N*/, giveLab);
 
-            getLab = new Label("I Get: ");
+            getLab = new Label(/*I*/"I Get: ")/*18N*/;
             getLab.setBackground(insideBGColor);
             add(getLab);
-            new AWTToolTip("You give to opponent", getLab);
+            new AWTToolTip(/*I*/"You give to opponent"/*18N*/, getLab);
 
             giveInt = new int[5];
             getInt = new int[5];
 
-            acceptBut = new Button("Accept");
+            acceptBut = new Button(/*I*/"Accept"/*18N*/);
             acceptBut.setActionCommand(ACCEPT);
             acceptBut.addActionListener(this);
             add(acceptBut);
 
-            rejectBut = new Button("Reject");
+            rejectBut = new Button(/*I*/"Reject"/*18N*/);
             rejectBut.setActionCommand(REJECT);
             rejectBut.addActionListener(this);
             add(rejectBut);
 
-            offerBut = new Button("Counter");
+            offerBut = new Button(/*I*/"Counter"/*18N*/);
             offerBut.setActionCommand(OFFER);
             offerBut.addActionListener(this);
             add(offerBut);
@@ -403,19 +403,19 @@ public class TradeOfferPanel extends Panel
             counterOfferToWhom.setVisible(false);
             add(counterOfferToWhom);
 
-            sendBut = new Button("Send");
+            sendBut = new Button(/*I*/"Send"/*18N*/);
             sendBut.setActionCommand(SEND);
             sendBut.addActionListener(this);
             sendBut.setVisible(false);
             add(sendBut);
 
-            clearBut = new Button("Clear");
+            clearBut = new Button(/*I*/"Clear"/*18N*/);
             clearBut.setActionCommand(CLEAR);
             clearBut.addActionListener(this);
             clearBut.setVisible(false);
             add(clearBut);
 
-            cancelBut = new Button("Cancel");
+            cancelBut = new Button(/*I*/"Cancel"/*18N*/);
             cancelBut.setActionCommand(CANCEL);
             cancelBut.addActionListener(this);
             cancelBut.setVisible(false);
@@ -425,15 +425,15 @@ public class TradeOfferPanel extends Panel
             counterOfferSquares.setVisible(false);
             add(counterOfferSquares);
 
-            giveLab2 = new Label("Give Them: ");
+            giveLab2 = new Label(/*I*/"Give Them: "/*18N*/);
             giveLab2.setVisible(false);
             add(giveLab2);
-            new AWTToolTip("Give to opponent", giveLab2);
+            new AWTToolTip(/*I*/"Give to opponent"/*18N*/, giveLab2);
 
-            getLab2 = new Label("You Get: ");
+            getLab2 = new Label(/*I*/"You Get: "/*18N*/);
             getLab2.setVisible(false);
             add(getLab2);
-            new AWTToolTip("Opponent gives to you", getLab2);
+            new AWTToolTip(/*I*/"Opponent gives to you"/*18N*/, getLab2);
 
             // correct the interior when we can get our player color
             offerBox = new ShadowedBox(pi.getPlayerColor(from), Color.white);
@@ -473,7 +473,7 @@ public class TradeOfferPanel extends Panel
                     counterOfferToWhom.setBackground(ourPlayerColor);
                     offerBox.setInterior(ourPlayerColor);
                     counterOfferToWhom.setText
-                        ("Counter to " + hp.getPlayer().getName() + ":");
+                        (/*I*/"Counter to " + hp.getPlayer().getName() + ":"/*18N*/);
 
                     counterOffer_playerInit = true;
                 }                
@@ -486,7 +486,8 @@ public class TradeOfferPanel extends Panel
         
             SOCGame ga = hp.getGame();
             final int maxChars = ((ga.maxPlayers > 4) || ga.hasSeaBoard) ? 30 : 25;
-            String names1 = "Offered to: ";
+            //TODO i18n Consider word order of the phase: not always is firstly the phrase, then the names
+            String names1 = /*I*/"Offered to: "/*18N*/;
             String names2 = null;
 
             int cnt = 0;
@@ -639,7 +640,7 @@ public class TradeOfferPanel extends Panel
                 balloon.setBalloonPoint(true);
 
                 int lineH = ColorSquareLarger.HEIGHT_L;
-                int giveW = fm.stringWidth("I Give: ") + 2;
+                int giveW = fm.stringWidth(/*I*/"I Give: "/*18N*/) + 2;
 
                 toWhom1.setBounds(inset, top, w - 20, 14);
                 toWhom2.setBounds(inset, top + 14, w - 20, 14);
@@ -708,11 +709,11 @@ public class TradeOfferPanel extends Panel
                     
                     if (!player.getResources().contains(giveSet))
                     {
-                        pi.print("*** You can't offer what you don't have.");
+                        pi.print(/*I*/"*** You can't offer what you don't have."/*18N*/);
                     }
                     else if ((giveSum == 0) || (getSum == 0))
                     {
-                        pi.print("*** A trade must contain at least one resource card from each player.");
+                        pi.print(/*I*/"*** A trade must contain at least one resource card from each player."/*18N*/);
                     }
                     else
                     {

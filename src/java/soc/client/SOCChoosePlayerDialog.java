@@ -91,7 +91,7 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
     public SOCChoosePlayerDialog
         (SOCPlayerInterface plInt, final int num, final int[] p, final boolean allowChooseNone)
     {
-        super(plInt, "Choose Player", true);
+        super(plInt, /*I*/"Choose Player"/*18N*/, true);
 
         pi = plInt;
         number = (allowChooseNone) ? (num + 1) : num;
@@ -108,7 +108,7 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
         wantH = 20 + 10 + 20 + 10 + 16 + 5;
         setSize(wantW + 10, wantH + 20);  // Can calc & add room for insets at doLayout
 
-        msg = new Label("Please choose a player to steal from:", Label.CENTER);
+        msg = new Label(/*I*/"Please choose a player to steal from:"/*18N*/, Label.CENTER);
         add(msg);
 
         buttons = new Button[number];
@@ -126,7 +126,7 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
 
             final int rescount = pl.getResources().getTotal();
             final int vpcount = pl.getPublicVP();
-            player_res_lbl[i] = new Label(rescount + " res, " + vpcount + " VP", Label.CENTER);
+            player_res_lbl[i] = new Label(/*I*/rescount + " res, " + vpcount + " VP"/*18N*/, Label.CENTER);
             SOCHandPanel ph = pi.getPlayerHandPanel(players[i]);
             player_res_lbl[i].setBackground(ph.getBackground());
             player_res_lbl[i].setForeground(ph.getForeground());
@@ -135,28 +135,28 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
             switch (rescount)
             {
             case 0:
-                restooltip = "This player has no resources.";
+                restooltip = /*I*/"This player has no resources."/*18N*/;
                 break;
 
             case 1:
-                restooltip = "This player has 1 resource.";
+                restooltip = /*I*/"This player has 1 resource."/*18N*/;
                 break;
 
             default:
-                restooltip = "This player has " + rescount + " resources.";
+                restooltip = /*I*/"This player has " + rescount + " resources."/*18N*/;
             }
             new AWTToolTip(restooltip, player_res_lbl[i]);
         }
 
         if (allowChooseNone)
         {
-            Button bNone = new Button("None");
+            Button bNone = new Button(/*I*/"None"/*18N*/);
             buttons[num] = bNone;
             add(bNone);
             bNone.addActionListener(this);
-            new AWTToolTip("Choose this to steal from no player", bNone);
+            new AWTToolTip(/*I*/"Choose this to steal from no player"/*18N*/, bNone);
             players[num] = SOCChoosePlayer.CHOICE_NO_PLAYER;
-            player_res_lbl[num] = new Label("(decline)", Label.CENTER);
+            player_res_lbl[num] = new Label(/*I*/"(decline)"/*18N*/, Label.CENTER);
             add(player_res_lbl[num]);
         }
     }

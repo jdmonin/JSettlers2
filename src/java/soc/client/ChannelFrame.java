@@ -63,16 +63,18 @@ public class ChannelFrame extends Frame
     Vector<String> history = new Vector<String>();
     int historyCounter = 1;
     boolean down = false;
+    //strings
+    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /** build a frame with the given title, belonging to the given applet*/
     public ChannelFrame(String t, GameAwtDisplay ccp)
     {
-        super("Channel: " + t);
+        super(strings.get("channel.channel", t));
         setBackground(ccp.getBackground());
         setForeground(ccp.getForeground());
 
         ta = new SnippingTextArea("", 100);
-        tf = new TextField("Please wait...");
+        tf = new TextField(strings.get("channel.wait"));
         lst = new java.awt.List(0, false);
         cc = ccp;
         cname = t;

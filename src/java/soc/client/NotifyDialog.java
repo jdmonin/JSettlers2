@@ -38,6 +38,8 @@ import soc.client.SOCPlayerClient.GameAwtDisplay;
  */
 class NotifyDialog extends AskDialog
 {
+    //strings
+    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
     /**
      * Creates and shows a new NotifyDialog.
      *
@@ -54,7 +56,7 @@ class NotifyDialog extends AskDialog
         throws IllegalArgumentException
     {
         if (btnText == null)
-            btnText = "OK";
+            btnText = strings.get("base.ok");
         NotifyDialog nd = new NotifyDialog
 	    (cli, gamePI, promptText, btnText, hasDefault);
         nd.setVisible(true);

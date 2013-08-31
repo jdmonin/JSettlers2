@@ -98,6 +98,9 @@ import java.io.StringWriter;
 public class SOCPlayerInterface extends Frame
     implements ActionListener, MouseListener, SOCScenarioEventListener
 {
+    //strings
+    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+
     /**
      * System property os.name; For use by {@link #SOCPI_isPlatformWindows}.
      * @since 1.1.08
@@ -196,15 +199,15 @@ public class SOCPlayerInterface extends Frame
      * @see #textInput
      */
     public static final String TEXTINPUT_INITIAL_PROMPT_MSG
-        = "Type here to chat.";
+        = /*I*/"Type here to chat."/*18N*/;
 
     /** Titlebar text for game in progress */
     public static final String TITLEBAR_GAME
-        = "Settlers of Catan Game: ";
-
+        = "Settlers of Catan Game: ";  //i18n not neccesary
+ 
     /** Titlebar text for game when over */
     public static final String TITLEBAR_GAME_OVER
-        = "Settlers of Catan Game Over: ";
+        = "Settlers of Catan Game Over: "; //i18n not neccesary;
 
     /**
      * Used for responding to textfield changes by setting/clearing prompt message.
@@ -432,7 +435,7 @@ public class SOCPlayerInterface extends Frame
      */
     public SOCPlayerInterface(String title, GameAwtDisplay gd, SOCGame ga)
     {
-        super(TITLEBAR_GAME + title + (ga.isPractice ? "" : " [" + gd.getNickname() + "]"));
+        super(/*I*/TITLEBAR_GAME + title + (ga.isPractice ? "" : " [" + gd.getNickname() + "]")/*18N*/);
         
         setResizable(true);
         layoutNotReadyYet = true;  // will set to false at end of doLayout
@@ -595,7 +598,7 @@ public class SOCPlayerInterface extends Frame
         textInput.setForeground(Color.black);
         textInput.setEditable(false);
         textInputIsInitial = false;  // due to "please wait"
-        textInput.setText("Please wait...");
+        textInput.setText(/*I*/"Please wait..."/*18N*/);
         add(textInput);
         textInput.addActionListener(this);
         if (is6player)
@@ -950,9 +953,9 @@ public class SOCPlayerInterface extends Frame
             ++availPl;  // Not yet vacant in game data
         if (! noTextOverlay)
         {
-            String availTxt = (availPl == 1) ? "1 seat available" : Integer.toString(availPl) + " seats available";
+            String availTxt = (availPl == 1) ? /*I*/"1 seat available"/*18N*/ : /*I*/Integer.toString(availPl) + " seats available"/*18N*/;
             boardPanel.setSuperimposedText
-                ("Maximum players: " + maxPl, availTxt);
+                (/*I*/"Maximum players: " + maxPl/*18N*/, availTxt);
         }
 
         if (isGameStart || ! clientSatAlready)
@@ -1198,7 +1201,7 @@ public class SOCPlayerInterface extends Frame
                             flagnum = Integer.parseInt(s);
                         } catch (NumberFormatException e2) {
                             chatPrintDebug
-                                ("Usage: =*= show: n  or =*= hide: n   where n is all or a number 0-9");
+                                ("Usage: =*= show: n  or =*= hide: n   where n is all or a number 0-9"); //i18n?
                             return;
                         }
                     }
@@ -1345,19 +1348,19 @@ public class SOCPlayerInterface extends Frame
 
         if (client.getServerVersion(game) < 1100)
         {
-            textDisplay.append("*** This server does not support board reset, server is too old.\n");
+            textDisplay.append("*** "+/*I*/"This server does not support board reset, server is too old."/*18N*/+"\n");
             return;
         }
         if (game.getResetVoteActive())
         {
-            textDisplay.append("*** Voting is already active. Try again when voting completes.\n");
+            textDisplay.append("*** "+/*I*/"Voting is already active. Try again when voting completes."/*18N*/+"\n");
             return;
         }
         SOCPlayer pl = game.getPlayer(clientHandPlayerNum);
         if (! pl.hasAskedBoardReset())
             client.getGameManager().resetBoardRequest(game);
         else
-            textDisplay.append("*** You may ask only once per turn to reset the board.\n");
+            textDisplay.append("*** "+/*I*/"You may ask only once per turn to reset the board."/*18N*/+"\n");
     }
 
     /**
@@ -1368,10 +1371,10 @@ public class SOCPlayerInterface extends Frame
     {
         String voteMsg;
         if (vyes)
-            voteMsg = "Go ahead.";
+            voteMsg = /*I*/"Go ahead."/*18N*/;
         else
-            voteMsg = "No thanks.";
-        textDisplay.append("* " + game.getPlayer(pn).getName() + " has voted: " + voteMsg + "\n");
+            voteMsg = /*I*/"No thanks."/*18N*/;
+        textDisplay.append("* " + /*I*/game.getPlayer(pn).getName() + " has voted: " + voteMsg/*18N*/+"\n");
         game.resetVoteRegister(pn, vyes);
         try { hands[pn].resetBoardSetMessage(voteMsg); }
         catch (IllegalStateException e) { /* ignore; discard message is showing */ }
@@ -1383,7 +1386,7 @@ public class SOCPlayerInterface extends Frame
      */
     public void resetBoardRejected()
     {
-        textDisplay.append("** The board reset was rejected.\n");
+        textDisplay.append("** "+/*I*/"The board reset was rejected."/*18N*/+"\n");
         for (int i = 0; i < hands.length; ++i)
         {
             // Clear all displayed votes
@@ -1430,9 +1433,9 @@ public class SOCPlayerInterface extends Frame
         {
             String pleaseMsg;
             if (gaOver)
-                pleaseMsg = "Restart Game?";
+                pleaseMsg = /*I*/"Restart Game?"/*18N*/;
             else
-                pleaseMsg = "Reset Board?";
+                pleaseMsg = /*I*/"Reset Board?"/*18N*/;
             boardResetRequester.resetBoardSetMessage(pleaseMsg);
 
             String requester = game.getPlayer(pnRequester).getName();
@@ -1509,8 +1512,8 @@ public class SOCPlayerInterface extends Frame
             textInputSetToInitialPrompt(false);  // Clear, set foreground color
         textInput.setEditable(false);
         textInput.setText(s);
-        textDisplay.append("* Sorry, lost connection to the server.\n");
-        textDisplay.append("*** Game stopped. ***\n");
+        textDisplay.append("* "+/*I*/"Sorry, lost connection to the server."/*18N*/+"\n");
+        textDisplay.append("*** "+/*I*/"Game stopped."/*18N*/+" ***\n");
         game.setCurrentPlayerNumber(-1);
         boardPanel.repaint();
     }
@@ -1548,7 +1551,7 @@ public class SOCPlayerInterface extends Frame
             if (mname.equals(client.getNickname()))
                 continue;
             if (numObservers == 0)
-                obs = new StringBuffer("* ");
+                obs = new StringBuffer();
             else
                 obs.append(", ");
             obs.append(mname);
@@ -1556,13 +1559,8 @@ public class SOCPlayerInterface extends Frame
         }
         if (numObservers > 0)
         {
-            if (numObservers == 1)
-                obs.append(" has");
-            else
-                obs.append(" have");
-            obs.append(" joined as observer.\n");
-
-            textDisplay.append(obs.toString());
+            textDisplay.append("* "+strings.get((numObservers == 1 ? 
+                    "interface.observer.enter.one" : "interface.observer.enter.many"), obs.toString())+"\n");
         }
     }
 
@@ -1671,8 +1669,8 @@ public class SOCPlayerInterface extends Frame
         }
         for (int i = 0; i < finalScores.length; ++i)
             hands[i].updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // Also disables buttons, etc.
-        setTitle(TITLEBAR_GAME_OVER + game.getName() +
-                 (game.isPractice ? "" : " [" + client.getNickname() + "]"));
+        setTitle(/*I*/TITLEBAR_GAME_OVER + game.getName() +
+                 (game.isPractice ? "" : " [" + client.getNickname() + "]")/*18N*/);
         boardPanel.updateMode();
         repaint();
     }
@@ -1731,18 +1729,11 @@ public class SOCPlayerInterface extends Frame
      */
     public void updateAtSVPText(final String plName, final int svp, final String desc)
     {
-        StringBuilder sb = new StringBuilder("* ");
-        sb.append(plName);
-        sb.append(" gets ");
-        sb.append(svp);
-        final String svpFor = (svp == 1)
-            ? " Special Victory Point for "
-            : " Special Victory Points for ";
-        sb.append(svpFor);
-        sb.append(desc);
-        sb.append(".\n");
+        final String svpKey = (svp == 1)
+            ? "game.SVP.get.one"
+            : "game.SVP.get.many";
 
-        textDisplay.append(sb.toString());
+        textDisplay.append("* "+strings.get(svpKey, plName, svp, desc)+"\n");
     }
 
     /**
@@ -2257,8 +2248,8 @@ public class SOCPlayerInterface extends Frame
         initInterfaceElements(false);  // new sub-components
 
         // Clear from possible TITLEBAR_GAME_OVER
-        setTitle(TITLEBAR_GAME + game.getName() +
-                 (game.isPractice ? "" : " [" + client.getNickname() + "]"));
+        setTitle(/*I*/TITLEBAR_GAME + game.getName() +
+                 (game.isPractice ? "" : " [" + client.getNickname() + "]")/*18N*/);
         boardPanel.debugShowPotentials = boardDebugShow;
 
         validate();
@@ -2267,12 +2258,13 @@ public class SOCPlayerInterface extends Frame
         chatDisplay.append(prevChatText);
         String requesterName = game.getPlayer(requesterNumber).getName();
         if (requesterName == null)
-            requesterName = "player who left";
+            //i18n split into two keys?
+            requesterName = /*I*/"player who left"/*18N*/;
         String resetMsg;
         if (oldGameState != SOCGame.OVER)
-            resetMsg = "** The board was reset by " + requesterName + ".\n";
+            resetMsg = "** "+/*I*/"The board was reset by " + requesterName + "."/*18N*/+"\n";
         else
-            resetMsg = "** New game started by " + requesterName + ".\n";
+            resetMsg = "** "+/*I*/"New game started by " + requesterName + "."/*18N*/+"\n";
         textDisplay.append(resetMsg);
         chatDisplay.append(resetMsg);
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -2807,7 +2799,7 @@ public class SOCPlayerInterface extends Frame
 
         public void playerJoined(String nickname)
         {
-            final String msg = "*** " + nickname + " has joined this game.\n";
+            final String msg = "*** " + /*I*/nickname + " has joined this game.\n"/*18N*/;
             pi.print(msg);
             if ((pi.game != null) && (pi.game.getGameState() >= SOCGame.START1A))
                 pi.chatPrint(msg);
@@ -3055,7 +3047,7 @@ public class SOCPlayerInterface extends Frame
 
         public void playerStats(EnumMap<PlayerClientListener.UpdateType, Integer> stats)
         {
-            pi.print("* Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)");
+            pi.print("* "+/*I*/"Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)"/*18N*/);
             StringBuffer sb = new StringBuffer("* ");
             int total = 0;
 
@@ -3381,17 +3373,17 @@ public class SOCPlayerInterface extends Frame
          */
         protected ResetBoardVoteDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI, String requester, boolean gameIsOver)
         {
-            super(cli, gamePI, "Reset board of game "
-                    + gamePI.getGame().getName() + "?",
+            super(cli, gamePI, /*I*/"Reset board of game "
+                    + gamePI.getGame().getName() + "?"/*18N*/,
                 (gameIsOver
-                    ? (requester + " wants to start a new game.")
-                    : (requester + " wants to reset the game being played.")),
+                    ? (/*I*/requester + " wants to start a new game."/*18N*/)
+                    : (/*I*/requester + " wants to reset the game being played."/*18N*/)),
                 (gameIsOver
-                    ? "Restart"
-                    : "Reset"),
+                    ? /*I*/"Restart"/*18N*/
+                    : /*I*/"Reset"/*18N*/),
                 (gameIsOver
-                    ? "No thanks"
-                    : "Continue playing"),
+                    ? /*I*/"No thanks"/*18N*/
+                    : /*I*/"Continue playing"/*18N*/),
                 null,
                 (gameIsOver ? 1 : 2));
             rdt = null;
@@ -3488,10 +3480,10 @@ public class SOCPlayerInterface extends Frame
         protected ChooseMoveRobberOrPirateDialog()
         {
             super(getGameDisplay(), SOCPlayerInterface.this,
-                "Move robber or pirate?",
-                "Do you want to move the robber or the pirate ship?",
-                "Move Robber",
-                "Move Pirate",
+                /*I*/"Move robber or pirate?"/*18N*/,
+                /*I*/"Do you want to move the robber or the pirate ship?"/*18N*/,
+                /*I*/"Move Robber"/*18N*/,
+                /*I*/"Move Pirate"/*18N*/,
                 null, 1);
         }
 
@@ -3565,10 +3557,10 @@ public class SOCPlayerInterface extends Frame
         protected ChooseRobClothOrResourceDialog(final int vpn)
         {
             super(getGameDisplay(), SOCPlayerInterface.this,
-                "Rob cloth or resource?",
-                "Do you want to steal cloth or a resource from this player?",
-                "Steal Cloth",
-                "Steal Resource",
+                /*I*/"Rob cloth or resource?"/*18N*/,
+                /*I*/"Do you want to steal cloth or a resource from this player?"/*18N*/,
+                /*I*/"Steal Cloth"/*18N*/,
+                /*I*/"Steal Resource"/*18N*/,
                 null, 1);
             rdt = null;
             this.vpn = vpn;

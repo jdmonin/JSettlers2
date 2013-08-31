@@ -96,33 +96,33 @@ public class SOCHandPanel extends Panel
     /** Array of five zeroes, one per resource type; for {@link #sqPanel}. */
     protected static final int[] zero = { 0, 0, 0, 0, 0 };
     /** Before game starts, use {@link #pname} to show if a seat is no-robots-allowed. */
-    protected static final String SITLOCKED = "Locked: No robot";
-    protected static final String SIT = "Sit Here";
-    protected static final String START = "Start Game";
-    protected static final String ROBOT = "Robot";
-    protected static final String TAKEOVER = "Take Over";
-    protected static final String LOCKSEAT = "Lock";
-    protected static final String UNLOCKSEAT = "Unlock";
-    private static final String LOCKSEATTIP = "Lock to prevent a robot from sitting here.";
-    private static final String UNLOCKSEATTIP = "Unlock to have a robot sit here when the game starts.";
-    protected static final String ROLL = "Roll";
-    protected static final String QUIT = "Quit";
-    protected static final String DONE = "Done";
+    protected static final String SITLOCKED = /*I*/"Locked: No robot"/*18N*/;
+    protected static final String SIT = /*I*/"Sit Here"/*18N*/;
+    protected static final String START = /*I*/"Start Game"/*18N*/;
+    protected static final String ROBOT = /*I*/"Robot"/*18N*/;
+    protected static final String TAKEOVER = /*I*/"Take Over"/*18N*/;
+    protected static final String LOCKSEAT = /*I*/"Lock"/*18N*/;
+    protected static final String UNLOCKSEAT = /*I*/"Unlock"/*18N*/;
+    private static final String LOCKSEATTIP = /*I*/"Lock to prevent a robot from sitting here."/*18N*/;
+    private static final String UNLOCKSEATTIP = /*I*/"Unlock to have a robot sit here when the game starts."/*18N*/;
+    protected static final String ROLL = /*I*/"Roll"/*18N*/;
+    protected static final String QUIT = /*I*/"Quit"/*18N*/;
+    protected static final String DONE = /*I*/"Done"/*18N*/;
     /** Text of Done button at end of game becomes Restart button. If you set this, set {@link #doneButIsRestart}. */
-    protected static final String DONE_RESTART = "Restart";
-    protected static final String CLEAR = "Clear";
-    protected static final String SEND = "Offer";
-    protected static final String BANK = "Bank/Port";
-    private static final String BANK_UNDO = "Undo Trade";
-    protected static final String CARD = "  Play Card  ";
-    protected static final String GIVE = "I Give:";  // No trailing space (room for wider colorsquares)
-    protected static final String GET = "I Get:";
-    private static final String RESOURCES = "Resources: ";  // for other players (! playerIsClient)
-    private static final String RESOURCES_TOTAL = "Total: ";  // for playerIsClient
-    protected static final String AUTOROLL_COUNTDOWN = "Auto-Roll in: ";
-    protected static final String ROLL_OR_PLAY_CARD = "Roll or Play Card";
-    protected static final String OFFERBUTTIP_ENA = "Send trade offer to other players";
-    protected static final String OFFERBUTTIP_DIS = "To offer a trade, first click resources";
+    protected static final String DONE_RESTART = /*I*/"Restart"/*18N*/;
+    protected static final String CLEAR = /*I*/"Clear"/*18N*/;
+    protected static final String SEND = /*I*/"Offer"/*18N*/;
+    protected static final String BANK = /*I*/"Bank/Port"/*18N*/;
+    private static final String BANK_UNDO = /*I*/"Undo Trade"/*18N*/;
+    protected static final String CARD = /*I*/"  Play Card  "/*18N*/;
+    protected static final String GIVE = /*I*/"I Give:"/*18N*/;  // No trailing space (room for wider colorsquares)
+    protected static final String GET = /*I*/"I Get:"/*18N*/;
+    private static final String RESOURCES = /*I*/"Resources: "/*18N*/;  // for other players (! playerIsClient)
+    private static final String RESOURCES_TOTAL = /*I*/"Total: "/*18N*/;  // for playerIsClient
+    protected static final String AUTOROLL_COUNTDOWN = /*I*/"Auto-Roll in: "/*18N*/;
+    protected static final String ROLL_OR_PLAY_CARD = /*I*/"Roll or Play Card"/*18N*/;
+    protected static final String OFFERBUTTIP_ENA = /*I*/"Send trade offer to other players"/*18N*/;
+    protected static final String OFFERBUTTIP_DIS = /*I*/"To offer a trade, first click resources"/*18N*/;
     private static final String ROBOTLOCKBUT_U = /*I*/"Unlocked"/*18N*/;
     private static final String ROBOTLOCKBUT_L = /*I*/"Locked"/*18N*/;
     private static final String ROBOTLOCKBUT_M = /*I*/"Marked"/*18N*/;  // C is for lockstate Clear on Reset
@@ -143,7 +143,7 @@ public class SOCHandPanel extends Panel
      * Same methods are used by discard and by {@link #TRADEMSG_PICKING}.
      * @since 1.1.00
      */
-    private static final String TRADEMSG_DISCARD = "Discarding...";
+    private static final String TRADEMSG_DISCARD = /*I*/"Discarding..."/*18N*/;
 
     /**
      * Show that a non-client player is picking resources for the gold hex.
@@ -151,10 +151,7 @@ public class SOCHandPanel extends Panel
      * {@link #offerIsDiscardOrPickMessage}, {@link #setDiscardOrPickMsg(boolean)}, etc.
      * @since 2.0.00
      */
-    private static final String TRADEMSG_PICKING = "Picking\nResources...";
-
-    /** If player has won the game, update pname label */
-    protected static final String WINNER_SUFFIX = " - Winner";
+    private static final String TRADEMSG_PICKING = /*I*/"Picking\nResources..."/*18N*/;
 
     /** Panel text color, and player name color when not current player */
     protected static final Color COLOR_FOREGROUND = Color.BLACK;
@@ -531,7 +528,7 @@ public class SOCHandPanel extends Panel
         setForeground(COLOR_FOREGROUND);
         setFont(new Font("SansSerif", Font.PLAIN, 10));
 
-        blankStandIn = new ColorSquare(pcolor, "One moment...");
+        blankStandIn = new ColorSquare(pcolor, /*I*/"One moment..."/*18N*/);
         blankStandIn.setVisible(false);
         // playerinterface.initInterfaceElements will add blankStandIn to its layout, and set its size/position.
 
@@ -548,28 +545,28 @@ public class SOCHandPanel extends Panel
         // this button always enabled
         add(startBut);
 
-        vpLab = new Label("Points: ");
+        vpLab = new Label(/*I*/"Points: "/*18N*/);
         add(vpLab);
         vpSq = new ColorSquare(ColorSquare.GREY, 0);
-        vpSq.setTooltipText("Total victory points for this opponent");
+        vpSq.setTooltipText(/*I*/"Total victory points for this opponent"/*18N*/);
         if (game.vp_winner <= 12)
         {
-            vpSq.setTooltipHighWarningLevel("Close to winning", game.vp_winner - 2);  // (win checked in SOCGame.checkForWinner)
+            vpSq.setTooltipHighWarningLevel(/*I*/"Close to winning"/*18N*/, game.vp_winner - 2);  // (win checked in SOCGame.checkForWinner)
         } else {
-            vpSq.setTooltipHighWarningLevel("Close to winning", game.vp_winner - 3);
+            vpSq.setTooltipHighWarningLevel(/*I*/"Close to winning"/*18N*/, game.vp_winner - 3);
         }
         add(vpSq);
 
         if (game.hasSeaBoard)
         {
-            svpLab = new Label("SVP: ");
+            svpLab = new Label(/*I*/"SVP: "/*18N*/);
             svpLab.setVisible(false);
             add(svpLab);
-            new AWTToolTip("Special Victory Points for this player", svpLab);
+            new AWTToolTip(/*I*/"Special Victory Points for this player"/*18N*/, svpLab);
             svpLab.addMouseListener(this);
             svpSq = new ColorSquare(ColorSquare.GREY, 0);
             svpSq.setVisible(false);
-            svpSq.setTooltipText("Special Victory Points, click for details");
+            svpSq.setTooltipText(/*I*/"Special Victory Points, click for details"/*18N*/);
             add(svpSq);
             svpSq.addMouseListener(this);
         } else {
@@ -587,35 +584,35 @@ public class SOCHandPanel extends Panel
         lroadLab.setFont(new Font("SansSerif", Font.BOLD, 12));
         add(lroadLab);
 
-        clayLab = new Label("Clay:");
+        clayLab = new Label(/*I*/"Clay:"/*18N*/);
         add(clayLab);
         claySq = new ColorSquare(ColorSquare.CLAY, 0);
         add(claySq);
-        claySq.setTooltipText("Right-click to trade clay");
+        claySq.setTooltipText(/*I*/"Right-click to trade clay"/*18N*/);
 
-        oreLab = new Label("Ore:");
+        oreLab = new Label(/*I*/"Ore:"/*18N*/);
         add(oreLab);
         oreSq = new ColorSquare(ColorSquare.ORE, 0);
         add(oreSq);
-        oreSq.setTooltipText("Right-click to trade ore");
+        oreSq.setTooltipText(/*I*/"Right-click to trade ore"/*18N*/);
 
-        sheepLab = new Label("Sheep:");
+        sheepLab = new Label(/*I*/"Sheep:"/*18N*/);
         add(sheepLab);
         sheepSq = new ColorSquare(ColorSquare.SHEEP, 0);
         add(sheepSq);
-        sheepSq.setTooltipText("Right-click to trade sheep");
+        sheepSq.setTooltipText(/*I*/"Right-click to trade sheep"/*18N*/);
 
-        wheatLab = new Label("Wheat:");
+        wheatLab = new Label(/*I*/"Wheat:"/*18N*/);
         add(wheatLab);
         wheatSq = new ColorSquare(ColorSquare.WHEAT, 0);
         add(wheatSq);
-        wheatSq.setTooltipText("Right-click to trade wheat");
+        wheatSq.setTooltipText(/*I*/"Right-click to trade wheat"/*18N*/);
 
-        woodLab = new Label("Wood:");
+        woodLab = new Label(/*I*/"Wood:"/*18N*/);
         add(woodLab);
         woodSq = new ColorSquare(ColorSquare.WOOD, 0);
         add(woodSq);
-        woodSq.setTooltipText("Right-click to trade wood");
+        woodSq.setTooltipText(/*I*/"Right-click to trade wood"/*18N*/);
 
         resourceSqDivLine = new ColorSquare(Color.BLACK);
         add(resourceSqDivLine);
@@ -629,36 +626,36 @@ public class SOCHandPanel extends Panel
 
         roadSq = new ColorSquare(ColorSquare.GREY, 0);
         add(roadSq);
-        roadSq.setTooltipText("Pieces available to place");
-        roadSq.setTooltipLowWarningLevel("Almost out of roads to place", 2);
-        roadSq.setTooltipZeroText("No more roads available");
-        roadLab = new Label("Roads:");
+        roadSq.setTooltipText(/*I*/"Pieces available to place"/*18N*/);
+        roadSq.setTooltipLowWarningLevel(/*I*/"Almost out of roads to place"/*18N*/, 2);
+        roadSq.setTooltipZeroText(/*I*/"No more roads available"/*18N*/);
+        roadLab = new Label(/*I*/"Roads:"/*18N*/);
         add(roadLab);
 
         settlementSq = new ColorSquare(ColorSquare.GREY, 0);
         add(settlementSq);
-        settlementSq.setTooltipText("Pieces available to place");
-        settlementSq.setTooltipLowWarningLevel("Almost out of settlements to place", 1);
-        settlementSq.setTooltipZeroText("No more settlements available");
-        settlementLab = new Label("Stlmts:");
+        settlementSq.setTooltipText(/*I*/"Pieces available to place"/*18N*/);
+        settlementSq.setTooltipLowWarningLevel(/*I*/"Almost out of settlements to place"/*18N*/, 1);
+        settlementSq.setTooltipZeroText(/*I*/"No more settlements available"/*18N*/);
+        settlementLab = new Label(/*I*/"Stlmts:"/*18N*/);
         add(settlementLab);
 
         citySq = new ColorSquare(ColorSquare.GREY, 0);
         add(citySq);
-        citySq.setTooltipText("Pieces available to place");
-        citySq.setTooltipLowWarningLevel("Almost out of cities to place", 1);
-        citySq.setTooltipZeroText("No more cities available");
-        cityLab = new Label("Cities:");
+        citySq.setTooltipText(/*I*/"Pieces available to place"/*18N*/);
+        citySq.setTooltipLowWarningLevel(/*I*/"Almost out of cities to place"/*18N*/, 1);
+        citySq.setTooltipZeroText(/*I*/"No more cities available"/*18N*/);
+        cityLab = new Label(/*I*/"Cities:"/*18N*/);
         add(cityLab);
 
         if (game.hasSeaBoard)
         {
             shipSq = new ColorSquare(ColorSquare.GREY, 0);
             add(shipSq);
-            shipSq.setTooltipText("Pieces available to place");
-            shipSq.setTooltipLowWarningLevel("Almost out of ships to place", 2);
-            shipSq.setTooltipZeroText("No more ships available");
-            shipLab = new Label("Ships:");
+            shipSq.setTooltipText(/*I*/"Pieces available to place"/*18N*/);
+            shipSq.setTooltipLowWarningLevel(/*I*/"Almost out of ships to place"/*18N*/, 2);
+            shipSq.setTooltipZeroText(/*I*/"No more ships available"/*18N*/);
+            shipLab = new Label(/*I*/"Ships:"/*18N*/);
             add(shipLab);
         } else {
             // shipSq, shipLab already null
@@ -666,33 +663,33 @@ public class SOCHandPanel extends Panel
 
         if (game.isGameOptionSet(SOCGameOption.K_SC_CLVI))
         {
-            clothLab = new Label("Cloth:");  // No trailing space (room for wider colorsquares at left)
+            clothLab = new Label(/*I*/"Cloth:"/*18N*/);  // No trailing space (room for wider colorsquares at left)
             add(clothLab);
             clothSq = new ColorSquare(ColorSquare.GREY, 0);
             add(clothSq);
-            clothSq.setTooltipText("Amount of cloth traded from villages");
+            clothSq.setTooltipText(/*I*/"Amount of cloth traded from villages"/*18N*/);
         } else {
             // clothSq, clothLab already null
         }
 
-        knightsLab = new Label("Soldiers:");  // No trailing space (room for wider colorsquares at left)
+        knightsLab = new Label(/*I*/"Soldiers:"/*18N*/);  // No trailing space (room for wider colorsquares at left)
         add(knightsLab);
         knightsSq = new ColorSquare(ColorSquare.GREY, 0);
         add(knightsSq);
-        knightsSq.setTooltipText("Size of this army");
+        knightsSq.setTooltipText(/*I*/"Size of this army"/*18N*/);
 
         resourceLab = new Label(RESOURCES);
         add(resourceLab);
         resourceSq = new ColorSquare(ColorSquare.GREY, 0);
         add(resourceSq);
-        resourceSq.setTooltipText("Amount in hand");
-        resourceSq.setTooltipHighWarningLevel("If 7 is rolled, would discard half these resources", 8);
+        resourceSq.setTooltipText(/*I*/"Amount in hand"/*18N*/);
+        resourceSq.setTooltipHighWarningLevel(/*I*/"If 7 is rolled, would discard half these resources"/*18N*/, 8);
 
-        developmentLab = new Label("Dev. Cards: ");
+        developmentLab = new Label(/*I*/"Dev. Cards: "/*18N*/);
         add(developmentLab);
         developmentSq = new ColorSquare(ColorSquare.GREY, 0);
         add(developmentSq);
-        developmentSq.setTooltipText("Amount in hand");
+        developmentSq.setTooltipText(/*I*/"Amount in hand"/*18N*/);
 
         sittingRobotLockBut = new Button(ROBOTLOCKBUT_U);  // button text will change soon in updateSeatLockButton()
         sittingRobotLockBut.addActionListener(this);
@@ -983,11 +980,11 @@ public class SOCHandPanel extends Panel
 
                 if (!player.getResources().contains(giveSet))
                 {
-                    playerInterface.print("*** You can't offer what you don't have.");
+                    playerInterface.print("*** "+/*I*/"You can't offer what you don't have."/*18N*/);
                 }
                 else if ((giveSum == 0) || (getSum == 0))
                 {
-                    playerInterface.print("*** A trade must contain at least one resource card from each player.");
+                    playerInterface.print("*** "+/*I*/"A trade must contain at least one resource card from each player."/*18N*/);
                 }
                 else
                 {
@@ -1018,7 +1015,7 @@ public class SOCHandPanel extends Panel
 
                     if (! toAny)
                     {
-                        playerInterface.print("*** Please choose at least one opponent's checkbox.");
+                        playerInterface.print("*** "+/*I*/"Please choose at least one opponent's checkbox."/*18N*/);
                     }
                     else
                     {
@@ -1048,7 +1045,7 @@ public class SOCHandPanel extends Panel
     public void mouseClicked(MouseEvent e)
     {
         StringBuilder sb = new StringBuilder();
-        sb.append("Total Special Victory Points: " + player.getSpecialVP());
+        sb.append(/*I*/"Total Special Victory Points: " + player.getSpecialVP()/*18N*/);
 
         ArrayList<SOCPlayer.SpecialVPInfo> svpis = player.getSpecialVPInfo();
         if ((svpis != null) && (svpis.size() > 0))
@@ -1060,9 +1057,7 @@ public class SOCHandPanel extends Panel
             for (SOCPlayer.SpecialVPInfo svpi : svpis)
             {
                 sb.append("\n");
-                sb.append(svpi.svp);
-                sb.append(": ");
-                sb.append(svpi.desc);
+                sb.append(/*I*/svpi.svp+": "+svpi.desc/*18N*/);
             }
         }
 
@@ -1151,6 +1146,7 @@ public class SOCHandPanel extends Panel
      */
     public void clickPlayCardButton()
     {
+        //TODO Logic must be changed to allow i18n
         String item;
         int itemNum;  // Which one to play from list?
         SOCDevCard itemCard = null;
@@ -1158,7 +1154,7 @@ public class SOCHandPanel extends Panel
         setRollPrompt(null, false);  // Clear prompt if Play Card clicked (instead of Roll clicked)
         if (playerIsCurrent && player.hasPlayedDevCard())
         {
-            playerInterface.print("*** You may play only one card per turn.");
+            playerInterface.print("*** "+/*I*/"You may play only one card per turn."/*18N*/);
             playCardBut.setEnabled(false);
             return;
         }
@@ -1210,7 +1206,7 @@ public class SOCHandPanel extends Panel
                 }
                 if ((itemNum == -1) || (itemCard == null))
                 {
-                    playerInterface.print("* Please click a card first to select it.");
+                    playerInterface.print("* "+/*I*/"Please click a card first to select it."/*18N*/);
                     return;
                 }
                 item = itemNumText;
@@ -1625,8 +1621,8 @@ public class SOCHandPanel extends Panel
             playerIsClient = true;
             playerInterface.setClientHand(this);
 
-            knightsSq.setTooltipText("Size of your army");
-            vpSq.setTooltipText("Your victory point total");
+            knightsSq.setTooltipText(/*I*/"Size of your army"/*18N*/);
+            vpSq.setTooltipText(/*I*/"Your victory point total"/*18N*/);
 
             // show 'Victory Points' and hide "Start Button" if game in progress
             if (game.getGameState() == SOCGame.NEW)
@@ -1732,7 +1728,7 @@ public class SOCHandPanel extends Panel
             D.ebugPrintln("player.getSeatLock(" + playerNumber + ") = " + game.getSeatLock(playerNumber));
             D.ebugPrintln("game.getPlayer(client.getNickname()) = " + game.getPlayer(client.getNickname()));
 
-            knightsSq.setTooltipText("Size of this opponent's army");
+            knightsSq.setTooltipText(/*I*/"Size of this opponent's army"/*18N*/);
 
             // To see if client already sat down at this game,
             // we can't call playerInterface.getClientHand() yet,
@@ -2002,6 +1998,7 @@ public class SOCHandPanel extends Panel
      */
     public void updateDevCards()
     {
+        //TODO i18n being changed by game logic change
         SOCDevCardSet cards = player.getDevCards();
 
         int[] cardTypes = { SOCDevCardConstants.DISC,
@@ -2234,7 +2231,7 @@ public class SOCHandPanel extends Panel
             if (! game.hasTradeOffers())
                 return;
         }
-        offer.setMessage("No thanks.");
+        offer.setMessage(/*I*/"No thanks."/*18N*/);
         if (offerHidesControls)
             hideTradeMsgShowOthers(false);
         offer.setVisible(true);
@@ -2524,7 +2521,7 @@ public class SOCHandPanel extends Panel
         }
         else
         {
-            takeOverBut.setLabel("* Seat Locked *");
+            takeOverBut.setLabel(/*I*/"* Seat Locked *"/*18N*/);
         }
     }
 
@@ -2631,7 +2628,7 @@ public class SOCHandPanel extends Panel
      */
     protected void setLArmy(boolean haveIt)
     {
-        larmyLab.setText(haveIt ? "L. Army" : "");
+        larmyLab.setText(haveIt ? /*I*/"L. Army"/*18N*/ : "");
     }
 
     /**
@@ -2642,7 +2639,7 @@ public class SOCHandPanel extends Panel
      */
     protected void setLRoad(boolean haveIt)
     {
-        lroadLab.setText(haveIt ? (game.hasSeaBoard ? "L. Route" : "L. Road") : "");
+        lroadLab.setText(haveIt ? (game.hasSeaBoard ? /*I*/"L. Route"/*18N*/ : /*I*/"L. Road"/*18N*/) : "");
     }
 
     /**
@@ -2675,8 +2672,8 @@ public class SOCHandPanel extends Panel
                 {
                     if (game.getPlayerWithWin() == player)
                     {
-                        vpSq.setTooltipText("Winner with " + newVP + " victory points");
-                        pname.setText(player.getName() + WINNER_SUFFIX);
+                        vpSq.setTooltipText(/*I*/"Winner with " + newVP + " victory points"/*18N*/);
+                        pname.setText(/*I*/player.getName() + " - Winner"/*18N*/);
                     }
                     if (interactive)
                     {
@@ -3015,6 +3012,7 @@ public class SOCHandPanel extends Panel
         }
         else
         {
+            //TODO i18n match with actual label used for display
             final int stlmtsW = fm.stringWidth("Stlmts:_");  // Bug in stringWidth does not give correct size for ' '
             final int knightsW = fm.stringWidth("Soldiers:") + 2;  // +2 because Label text is inset from column 0
             // (for item count labels, either Settlements or Soldiers/Knights is widest text)
@@ -3360,8 +3358,8 @@ public class SOCHandPanel extends Panel
         public ResourceTradeMenuItem(int numFrom, int typeFrom, int typeTo, boolean shortText)
         {
             super( (shortText
-                    ? "For 1 "
-                    : ("Trade " + numFrom + " " + SOCResourceConstants.resName(typeFrom) + " for 1 "))
+                    ? /*I*/"For 1 "/*18N*/
+                    : /*I*/("Trade " + numFrom + " " + SOCResourceConstants.resName(typeFrom) + " for 1 ")/*18N*/)
                    + SOCResourceConstants.resName(typeTo));
             tradeNum = numFrom;
             tradeFrom = typeFrom;
@@ -3382,10 +3380,10 @@ public class SOCHandPanel extends Panel
                 return;
             tradeNum = numFrom;
             if (shortTxt)
-                setLabel("For 1 " + SOCResourceConstants.resName(tradeTo));
+                setLabel(/*I*/"For 1 " + SOCResourceConstants.resName(tradeTo)/*18N*/);
             else
-                setLabel("Trade " + numFrom + " " + SOCResourceConstants.resName(tradeFrom)
-                        + " for 1 " + SOCResourceConstants.resName(tradeTo));
+                setLabel(/*I*/"Trade " + numFrom + " " + SOCResourceConstants.resName(tradeFrom)
+                        + " for 1 " + SOCResourceConstants.resName(tradeTo)/*18N*/);
         }
 
         /**
@@ -3425,7 +3423,7 @@ public class SOCHandPanel extends Panel
             SOCGame game = hp.getGame();
             if (game.getGameState() != SOCGame.PLAY1)
             {
-                hp.getPlayerInterface().print("* You cannot trade at this time.\n");
+                hp.getPlayerInterface().print("* "+/*I*/"You cannot trade at this time."/*18N*/+"\n");
                 return;
             }
 
@@ -3495,7 +3493,7 @@ public class SOCHandPanel extends Panel
         /** Menu attached to a resource colorsquare in the client player's handpanel */
         public ResourceTradeTypeMenu(SOCHandPanel hp, int typeFrom, ColorSquare sq, int numFrom)
         {
-          super(hp, "Bank/Port Trade");
+          super(hp, /*I*/"Bank/Port Trade"/*18N*/);
           init(typeFrom, sq, numFrom, false);
         }
 
@@ -3511,7 +3509,7 @@ public class SOCHandPanel extends Panel
         public ResourceTradeTypeMenu(SOCHandPanel hp, int typeFrom, boolean forThree1)
             throws IllegalStateException
         {
-            super(hp, "Trade Port");
+            super(hp, /*I*/"Trade Port"/*18N*/);
             if (! hp.getPlayerInterface().clientIsCurrentPlayer())
                 throw new IllegalStateException("Not current player");
             init(typeFrom, null, hp.resourceTradeCost[typeFrom], forThree1);
@@ -3525,8 +3523,8 @@ public class SOCHandPanel extends Panel
           costFrom = numFrom;
           isForThree1 = forThree1;
           if (forThree1)
-              setLabel("Trade " + costFrom + " "
-                  + SOCResourceConstants.resName(typeFrom) + " ");
+              setLabel(/*I*/"Trade " + costFrom + " "
+                  + SOCResourceConstants.resName(typeFrom) + " "/*18N*/);
 
           if (resSq != null)
           {

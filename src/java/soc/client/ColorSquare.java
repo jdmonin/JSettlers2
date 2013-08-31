@@ -157,6 +157,8 @@ public class ColorSquare extends Canvas implements MouseListener
     /** Size per instance, for ColorSquareLarger */
     protected int squareW, squareH;
     protected Dimension squareSize;
+    //strings
+    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /**
      * Creates a new grey ColorSquare object without a visible value.
@@ -325,15 +327,15 @@ public class ColorSquare extends Canvas implements MouseListener
             // If needed, can call setTooltipText explicitly.
         }
         else if (c == CLAY)
-            ttip = new AWTToolTip ("Clay", this);
+            ttip = new AWTToolTip (strings.get("resources.clay"), this);
         else if (c == ORE)
-            ttip = new AWTToolTip ("Ore", this);
+            ttip = new AWTToolTip (strings.get("resources.ore"), this);
         else if (c == SHEEP)
-            ttip = new AWTToolTip ("Sheep", this);
+            ttip = new AWTToolTip (strings.get("resources.sheep"), this);
         else if (c == WHEAT)
-            ttip = new AWTToolTip ("Wheat", this);
+            ttip = new AWTToolTip (strings.get("resources.wheat"), this);
         else if (c == WOOD)
-            ttip = new AWTToolTip ("Wood", this);
+            ttip = new AWTToolTip (strings.get("resources.wood"), this);
 
         this.addMouseListener(this);
     }
@@ -827,7 +829,7 @@ public class ColorSquare extends Canvas implements MouseListener
                     break;
 
                 case YES_NO:
-                    String value = (boolValue ? "Y" : "N");
+                    String value = (boolValue ? strings.get("abbr.yes") : strings.get("abbr.no"));
 
                     numW = fm.stringWidth(value);
 

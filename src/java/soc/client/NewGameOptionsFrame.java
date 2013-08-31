@@ -89,9 +89,6 @@ public class NewGameOptionsFrame extends Frame
      */
     public static final int INTFIELD_POPUP_MAXRANGE = 21;
 
-    private static final String TXT_SERVER_TOO_OLD
-        = "This server version does not support game options.";
-
     private final GameAwtDisplay gameDisplay;
 
     /** should this be sent to the remote tcp server, or local practice server? */
@@ -158,6 +155,9 @@ public class NewGameOptionsFrame extends Frame
     private static final Color NGOF_BG = new Color(Integer.parseInt("61AF71",16));
     private static final Color HEADER_LABEL_BG = new Color(220,255,220);
     private static final Color HEADER_LABEL_FG = new Color( 50, 80, 50);
+    
+    //strings
+    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /**
      * Creates a new NewGameOptionsFrame.
@@ -181,11 +181,11 @@ public class NewGameOptionsFrame extends Frame
         (GameAwtDisplay gd, String gaName, Hashtable<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
         super( readOnly
-                ? ("Game info and options: " + gaName)
+                ? (strings.get("game.options.title", gaName))
                 :
                    (forPractice
-                    ? "New Game options: Practice game"
-                    : "New Game options"));
+                    ? strings.get("game.options.title.newpractice")
+                    : strings.get("game.options.title.new")));
 
         setLayout(new FlowLayout(FlowLayout.LEFT, 4, 4));  // include padding insets around edges of frame
 
@@ -262,7 +262,7 @@ public class NewGameOptionsFrame extends Frame
 
         if (! readOnly)
         {
-            msgText = new TextField("Choose options for the new game.");
+            msgText = new TextField(strings.get("game.options.prompt"));
             msgText.setEditable(false);
             msgText.setForeground(LABEL_TXT_COLOR);
             msgText.setBackground(getBackground());
@@ -275,7 +275,7 @@ public class NewGameOptionsFrame extends Frame
          */
         Label L;
 
-        L = new Label("Game name");
+        L = new Label(strings.get("game.options.name"));
         L.setAlignment(Label.RIGHT);
         L.setBackground(HEADER_LABEL_BG);
         L.setForeground(HEADER_LABEL_FG);
@@ -308,11 +308,11 @@ public class NewGameOptionsFrame extends Frame
 
         if (readOnly)
         {
-            cancel = new Button("OK");
+            cancel = new Button(strings.get("base.ok"));
             cancel.setEnabled(true);
             gbc.gridwidth = GridBagConstraints.REMAINDER;
         } else {
-            cancel = new Button("Cancel");
+            cancel = new Button(strings.get("base.cancel"));
             cancel.addKeyListener(this);  // for win32 keyboard-focus
             gbc.gridwidth = 2;
         }
@@ -322,7 +322,7 @@ public class NewGameOptionsFrame extends Frame
         
         if (! readOnly)
         {
-            create = new Button("Create Game");
+            create = new Button(strings.get("game.options.oknew"));
             AskDialog.styleAsDefault(create);
             create.addActionListener(this);
             create.addKeyListener(this);
@@ -368,7 +368,7 @@ public class NewGameOptionsFrame extends Frame
 
         if (opts == null)
         {
-            L = new Label(TXT_SERVER_TOO_OLD);
+            L = new Label(strings.get("game.options.not"));
             L.setForeground(LABEL_TXT_COLOR);
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(L, gbc);
@@ -476,7 +476,7 @@ public class NewGameOptionsFrame extends Frame
 
             int i = 0, sel = 0;
             Choice ch = new Choice();
-            ch.add("(none)");
+            ch.add("(none)");   //I18N?
             for (final SOCScenario sc : allSc.values())
             {
                 ++i;
@@ -868,7 +868,7 @@ public class NewGameOptionsFrame extends Frame
             // so the user must have gone back and changed it.
             // Can't correct the problem from within this dialog, since the
             // nickname field (and hint message) is in SOCPlayerClient's panel.
-            NotifyDialog.createAndShow(gameDisplay, this, "Please go back and enter a valid nickname for your user.", null, true);
+            NotifyDialog.createAndShow(gameDisplay, this, strings.get("game.options.nickerror"), null, true);
             return;
         }
 
@@ -959,7 +959,7 @@ public class NewGameOptionsFrame extends Frame
                     } catch (IllegalArgumentException ex)
                     {
                         allOK = false;
-                        msgText.setText("Please use only a single line of text here.");
+                        msgText.setText(strings.get("game.options.singleline"));
                         ctrl.requestFocusInWindow();
                     }
                 } else {
@@ -971,14 +971,13 @@ public class NewGameOptionsFrame extends Frame
                         {
                             allOK = false;
                             msgText.setText
-                                ("Out of range: Should be " + op.minIntValue
-                                 + " to " + op.maxIntValue);
+                                (strings.get("game.options.outofrange", op.minIntValue, op.maxIntValue));
                             ctrl.requestFocusInWindow();
                         }
                     } catch (NumberFormatException ex)
                     {
                         allOK = false;
-                        msgText.setText("Please use only digits here.");
+                        msgText.setText(strings.get("game.options.onlydigits"));
                         ctrl.requestFocusInWindow();
                     }
                 }
@@ -1543,9 +1542,10 @@ public class NewGameOptionsFrame extends Frame
          */
         public VersionConfirmDialog(NewGameOptionsFrame ngof, int minVers)
         {
-            super(gameDisplay, ngof, "Confirm options minimum version",
-                "JSettlers " + Version.version(minVers) + " or newer is required for these game options.\nOlder clients won't be able to join.",
-                "Create with these options", "Change options", true, false);
+            super(gameDisplay, ngof, strings.get("game.options.verconfirm.title"),
+                strings.get("game.options.verconfirm.prompt", Version.version(minVers)),
+                strings.get("game.options.verconfirm.create"), 
+                strings.get("game.options.verconfirm.change"), true, false);
         }
 
         /**
