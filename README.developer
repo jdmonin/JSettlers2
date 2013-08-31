@@ -98,20 +98,25 @@ In my Eclipse project, I've created these debug/run configurations for testing:
 
 Java applet: soc.client.SOCPlayerClient
    width 600, height 340
-   parameters: PORT = 44203
+   parameters: PORT = 8880
 
 Java applications:
   cli-noargs  soc.client.SOCPlayerClient
-  robot1      soc.robot.SOCRobotClient
-     arguments: localhost 44203 robot1 r1
-  robot2      soc.robot.SOCRobotClient
-     arguments: localhost 44203 robot2 r2
   socserver   soc.server.SOCServer
      arguments: -o NT=t -o PL=5 -Djsettlers.startrobots=7 -Djsettlers.client.maxcreategames=2
-                -Djsettlers.allow.debug=Y 44203 20 dbuser dbpass
+                -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
   socserver-sqlite  soc.server.SOCServer
      arguments: -o NT=t -o NT=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.startrobots=7
-                -Djsettlers.allow.debug=Y 44203 20 dbuser dbpass
+                -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
+
+  The server will start 7 bots with the above configuration.  If you need to stop and start your
+  own bots, then add
+                -Djsettlers.bots.cookie=cook
+  to the server configuration arguments, and create these Java application configs:
+  robot1      soc.robot.SOCRobotClient
+     arguments: localhost 8880 robot1 r1 cook
+  robot2      soc.robot.SOCRobotClient
+     arguments: localhost 8880 robot2 r2 cook
 
 
 Build Setup and Results
