@@ -323,7 +323,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                 ("N7", -1, 1107, false, 7, 1, 999, 0, "Roll no 7s during first # rounds"));
         // N7C's keyname puts it after N7 in the NewGameOptionsFrame list
         opt.put("N7C", new SOCGameOption
-                ("N7C", -1, 2000, false, FLAG_DROP_IF_UNUSED, "Roll no 7s until a city is built"));
+                ("N7C", -1, 1119, false, FLAG_DROP_IF_UNUSED, "Roll no 7s until a city is built"));
         opt.put("BC", new SOCGameOption
                 ("BC", -1, 1107, true, 4, 3, 9, 0, "Break up clumps of # or more same-type hexes/ports"));
         opt.put("NT", new SOCGameOption

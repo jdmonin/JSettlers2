@@ -648,14 +648,14 @@ public class SOCGame implements Serializable, Cloneable
      * server whose stringport name is <tt>SOCServer.PRACTICE_STRINGPORT</tt>.
      *<P>
      * Before 1.1.13, this field was called <tt>isLocal</tt>, but that was misleading;
-     * the full client can launched a tcp LAN server.
+     * the full client can launch a tcp LAN server.
      */
     public boolean isPractice;
 
     /**
      * True once any player has built a city.
      * Used with house-rule game option {@code "N7C"}.
-     * @since 2.0.00
+     * @since 1.1.19
      */
     private boolean hasBuiltCity;
 
@@ -1840,7 +1840,7 @@ public class SOCGame implements Serializable, Cloneable
      * Has any player built a city?
      * Used with house-rule {@link SOCGameOption game option} {@code "N7C"}.
      * @return  True if {@link #putPiece}({@link SOCCity}) has been called
-     * @since 2.0.00
+     * @since 1.1.19
      */
     public boolean hasBuiltCity()
     {
@@ -4177,13 +4177,9 @@ public class SOCGame implements Serializable, Cloneable
         // N7C: Roll no 7s until a city is built.
         // N7: Roll no 7s during first # rounds.
         //     Use > not >= because roundCount includes current round
-        final boolean okToRoll7;
-        {
-            final boolean okVsCities = (isGameOptionSet("N7C")) ? hasBuiltCity : true;
-
-            okToRoll7 = okVsCities &&
-                (( ! isGameOptionSet("N7")) || (roundCount > getGameOptionIntValue("N7")));
-        }
+        final boolean okToRoll7
+            = ((isGameOptionSet("N7C")) ? hasBuiltCity : true)
+              && (( ! isGameOptionSet("N7")) || (roundCount > getGameOptionIntValue("N7")));
 
         int die1, die2;
         do
