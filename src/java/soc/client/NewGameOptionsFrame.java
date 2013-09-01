@@ -476,7 +476,7 @@ public class NewGameOptionsFrame extends Frame
 
             int i = 0, sel = 0;
             Choice ch = new Choice();
-            ch.add("(none)");   //I18N?
+            ch.add(strings.get("base.none.parens"));  // "(none)" is item 0 in dropdown
             for (final SOCScenario sc : allSc.values())
             {
                 ++i;
