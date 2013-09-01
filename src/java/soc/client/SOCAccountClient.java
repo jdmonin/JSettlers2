@@ -113,9 +113,9 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
      */
     protected String emailAddress = null;
 
-    //strings
+    /** i18n text strings */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
-    
+
     /**
      * Create a SOCAccountClient connecting to localhost port 8880
      */

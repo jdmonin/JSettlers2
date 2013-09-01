@@ -90,7 +90,8 @@ public class FaceChooserFrame extends Frame implements ActionListener, WindowLis
      * @see #isStillAvailable()
      */
     private boolean stillAvailable;
-    //strings
+
+    /** i18n text strings */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /**

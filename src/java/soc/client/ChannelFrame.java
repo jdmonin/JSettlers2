@@ -63,7 +63,8 @@ public class ChannelFrame extends Frame
     Vector<String> history = new Vector<String>();
     int historyCounter = 1;
     boolean down = false;
-    //strings
+
+    /** i18n text strings */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /** build a frame with the given title, belonging to the given applet*/

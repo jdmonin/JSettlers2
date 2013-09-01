@@ -92,9 +92,9 @@ import java.util.Timer;
  */
 public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
 {
-    //strings
+    /** i18n text strings */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
-    
+
     /**
      * Hex and port graphics are in this directory.
      * The rotated versions for the 6-player non-sea board are in <tt><i>IMAGEDIR</i>/rotat</tt>.
@@ -6726,12 +6726,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     }
                     if (board.getRobberHex() == id)
                     {
-                        showDice = dicenum > 0;
+                        showDice = (dicenum > 0);
                         addinfo = "game.hex.addinfo.robber";
                     }
                     else if (board.getPreviousRobberHex() == id)
                     {
-                        showDice = dicenum > 0;
+                        showDice = (dicenum > 0);
                         addinfo = "game.hex.addinfo.past.robber";
                     }
                     else if (isLargeBoard)
@@ -6739,12 +6739,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         final SOCBoardLarge bl = (SOCBoardLarge) board;
                         if (bl.getPirateHex() == id)
                         {
-                            showDice = dicenum > 0;
+                            showDice = (dicenum > 0);
                             addinfo = "game.hex.addinfo.pirate";
                         }
                         else if (bl.getPreviousPirateHex() == id)
                         {
-                            showDice = dicenum > 0;
+                            showDice = (dicenum > 0);
                             addinfo = "game.hex.addinfo.past.pirate";
                         }
                         else if (bl.isHexInLandAreas(id, bl.getPlayerExcludedLandAreas()))

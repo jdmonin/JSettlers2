@@ -38,8 +38,9 @@ import soc.client.SOCPlayerClient.GameAwtDisplay;
  */
 class NotifyDialog extends AskDialog
 {
-    //strings
+    /** i18n text strings */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+
     /**
      * Creates and shows a new NotifyDialog.
      *

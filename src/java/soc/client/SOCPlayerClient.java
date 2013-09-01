@@ -123,7 +123,7 @@ import soc.util.Version;
  */
 public class SOCPlayerClient
 {
-    //strings
+    /** i18n text strings */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /** main panel, in cardlayout */
@@ -2229,7 +2229,7 @@ public class SOCPlayerClient
             
             cardLayout.show(this, MESSAGE_PANEL);
             // Connect to it
-            client.net.connect(/*I*/"localhost"/*18N*/, tport);
+            client.net.connect("localhost", tport);  // I18N: no need to localize this hostname
 
             // Ensure we can't "connect" to another, too
             if (connectOrPracticePane != null)
@@ -4320,9 +4320,8 @@ public class SOCPlayerClient
         {
             hasAllNow = opts.receiveInfo(mes);
         }
-        
-        //TODO i18n how to?
-        boolean isDash = mes.getOptionNameKey().equals("-");
+
+        boolean isDash = mes.getOptionNameKey().equals("-");  // I18N: skip this
         gameDisplay.optionsReceived(opts, isPractice, isDash, hasAllNow);
     }
 
@@ -5544,13 +5543,13 @@ public class SOCPlayerClient
             host = chost;
             port = cport;
             
-            String hostString = /*I*/(host != null ? host : "localhost") + ":" + port/*18N*/;
+            String hostString = (host != null ? host : "localhost") + ":" + port;
             if (connected)
             {
                 throw new IllegalStateException("Already connected to " + hostString);
             }
                     
-            System.out.println("Connecting to " + hostString);
+            System.out.println(/*I*/"Connecting to " + hostString/*18N*/);
             client.gameDisplay.setMessage(/*I*/"Connecting to server..."/*18N*/);
             
             try

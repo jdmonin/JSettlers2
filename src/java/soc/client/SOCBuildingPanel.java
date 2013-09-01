@@ -51,11 +51,11 @@ import javax.swing.JFrame;   // for GameStatisticsFrame
 public class SOCBuildingPanel extends Panel
     implements ActionListener, WindowListener
 {
-    static final String ROAD = /*I*/"road"/*18N*/;
-    static final String STLMT = /*I*/"stlmt"/*18N*/;
-    static final String CITY = /*I*/"city"/*18N*/;
-    static final String CARD = /*I*/"card"/*18N*/;
-    static final String SHIP = /*I*/"ship"/*18N*/;  // Ship for large sea board; @since 2.0.00
+    static final String ROAD = "road";  // I18N: These are internal command labels, not user-visible strings
+    static final String STLMT = "stlmt";
+    static final String CITY = "city";
+    static final String CARD = "card";
+    static final String SHIP = "ship";  // Ship for large sea board; @since 2.0.00
     private static final String SBP = "sbp";  // Special Building Phase button; @since 1.1.08
     Label title;
     Button roadBut;

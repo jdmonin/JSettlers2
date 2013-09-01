@@ -157,7 +157,8 @@ public class ColorSquare extends Canvas implements MouseListener
     /** Size per instance, for ColorSquareLarger */
     protected int squareW, squareH;
     protected Dimension squareSize;
-    //strings
+
+    /** i18n text strings */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /**

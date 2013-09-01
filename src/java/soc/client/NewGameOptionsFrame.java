@@ -155,8 +155,8 @@ public class NewGameOptionsFrame extends Frame
     private static final Color NGOF_BG = new Color(Integer.parseInt("61AF71",16));
     private static final Color HEADER_LABEL_BG = new Color(220,255,220);
     private static final Color HEADER_LABEL_FG = new Color( 50, 80, 50);
-    
-    //strings
+
+    /** i18n text strings */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /**
@@ -322,7 +322,7 @@ public class NewGameOptionsFrame extends Frame
         
         if (! readOnly)
         {
-            create = new Button(strings.get("game.options.oknew"));
+            create = new Button(strings.get("game.options.oknew"));  // "Create Game"
             AskDialog.styleAsDefault(create);
             create.addActionListener(this);
             create.addKeyListener(this);
@@ -368,7 +368,7 @@ public class NewGameOptionsFrame extends Frame
 
         if (opts == null)
         {
-            L = new Label(strings.get("game.options.not"));
+            L = new Label(strings.get("game.options.not"));  // "This server version does not support game options."
             L.setForeground(LABEL_TXT_COLOR);
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(L, gbc);
@@ -959,7 +959,7 @@ public class NewGameOptionsFrame extends Frame
                     } catch (IllegalArgumentException ex)
                     {
                         allOK = false;
-                        msgText.setText(strings.get("game.options.singleline"));
+                        msgText.setText(strings.get("game.options.singleline"));  // only a single line of text allowed
                         ctrl.requestFocusInWindow();
                     }
                 } else {
