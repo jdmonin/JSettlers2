@@ -433,6 +433,38 @@ public class SOCConnectOrPracticePanel extends Panel
         validate();
     }
 
+    /**
+     * Parse a server TCP port number from a text field.
+     * If the field is empty after trimming whitespace, use this client's default from
+     * {@link SOCPlayerClient.ClientNetwork#getPort() clientNetwork.getPort()},
+     * which is usually {@link SOCPlayerClient.ClientNetwork#SOC_PORT_DEFAULT}.
+     * @param tf  Text field with the port number, such as {@link #conn_servport} or {@link #run_servport}
+     * @return the port number, or {@code clientNetwork.getPort()} if empty,
+     *         or 0 if cannot be parsed or if outside the valid range 1-65535
+     * @since 1.1.19
+     */
+    private final int parsePortNumberOrDefault(final TextField tf)
+    {
+        int srport;
+        try {
+            final String ptext = tf.getText().trim();
+            if (ptext.length() > 0)
+                srport = Integer.parseInt(ptext);
+            else
+                srport = clientNetwork.getPort();  // text field is empty, use default (usually == SOC_PORT_DEFAULT)
+
+            if ((srport <= 0) || (srport > 65535))
+                srport = 0;  // TODO show error
+        }
+        catch (NumberFormatException e)
+        {
+            // TODO show error?
+            srport = 0;
+        }
+
+        return srport;
+    }
+
     /** React to button clicks */
     public void actionPerformed(ActionEvent ae)
     {
@@ -537,14 +569,10 @@ public class SOCConnectOrPracticePanel extends Panel
         String cserv = conn_servhost.getText().trim();
         if (cserv.length() == 0)
             cserv = null;  // localhost
-        int cport = 0;
-        try {
-            cport = Integer.parseInt(conn_servport.getText());
-        }
-        catch (NumberFormatException e)
+        final int cport = parsePortNumberOrDefault(conn_servport);
+        if (cport == 0)
         {
-            // TODO show error?
-            return;
+            return;  // <--- Early return: Couldn't parse port number ---
         }
 
         // Copy fields, show MAIN_PANEL, and connect in client
@@ -564,20 +592,9 @@ public class SOCConnectOrPracticePanel extends Panel
     private void clickRunStartserv()
     {
         // After clicking runserv, actually start a server
-        final int srport;
-        try {
-            final String ptext = run_servport.getText().trim();
-            if (ptext.length() > 0)
-                srport = Integer.parseInt(ptext);
-            else
-                srport = clientNetwork.getPort();  // text field is empty, use default
-        }
-        catch (NumberFormatException e)
-        {
-            // TODO show error?
-            return;
-        }
-        gd.startLocalTCPServer(srport);
+        final int srport = parsePortNumberOrDefault(run_servport);
+        if (srport > 0)
+            gd.startLocalTCPServer(srport);
     }
 
     /** Hide fields used to start a server */
