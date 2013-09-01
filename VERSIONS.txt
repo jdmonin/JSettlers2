@@ -26,6 +26,7 @@ new features, until 2.0.00 is ready.
 - Reset board: If only 1 human player, don't reset if all bots are locked
 - Player chat text: At server, don't ignore messages which start with '*'
 - More efficient game-setup messages over network
+- I18N framework in place, started by Luis A. Ramirez; thank you Luis.
 - Client sends server its locale, to support future i18n localization
 - Applet class is now soc.client.SOCPlayerClient.SOCApplet
 - On server startup, exit if a database URL is given but SOCServer can't connect to the database.

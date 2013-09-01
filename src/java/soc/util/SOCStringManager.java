@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2013 Luis A. Ramirez <lartkma@gmail.com>
+ * This file Copyright (C) 2013 Luis A. Ramirez <lartkma@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,11 +21,13 @@ package soc.util;
 
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
+
 /**
  * TODO Write JavaDoc.
  * @author lartkma
  */
 public class SOCStringManager {
+
     private static SOCStringManager clientManager = null;
     
     private ResourceBundle bundle;
@@ -47,4 +49,5 @@ public class SOCStringManager {
         
         return clientManager;
     }
+
 }
