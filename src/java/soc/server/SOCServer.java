@@ -378,7 +378,8 @@ public class SOCServer extends Server
      * and identify as bots using {@link SOCImARobot}.
      * It isn't sent encrypted and is a weak "shared secret".
      * Generated in {@link #generateRobotCookie()} unless the server is given
-     * {@link #PROP_JSETTLERS_BOTS_COOKIE} at startup.
+     * {@link #PROP_JSETTLERS_BOTS_COOKIE} at startup, which can set it to
+     * any string or to {@code null} if the property is empty.
      *<P>
      * The value must pass {@link SOCMessage#isSingleLineAndSafe(String)}:
      * Must not contain the {@code '|'} or {@code ','} characters.
@@ -547,7 +548,9 @@ public class SOCServer extends Server
      * Client version count stats since startup (includes bots).
      * Incremented from {@link #handleVERSION(StringConnection, SOCVersion)};
      * currently assumes single-threaded access to this map.
-     * @since 2.0.00
+     *<P>
+     * Key = version number, Value = client count.
+     * @since 1.1.19
      */
     protected HashMap<Integer, Integer> clientPastVersionStats;
 
@@ -731,6 +734,7 @@ public class SOCServer extends Server
                     throw new IllegalArgumentException(errmsg);
                 }
             }
+            // else robotCookie remains null
         } else {
             robotCookie = generateRobotCookie();
         }
@@ -1000,9 +1004,10 @@ public class SOCServer extends Server
         for (int i = 0; i < 16; ++i)
         {
             final int byt = rnd[i] & 0xFF;
-            rndChars[ic] = GENERATEROBOTCOOKIE_HEX[byt >>> 4];  ++ic;
+            rndChars[ic] = GENERATEROBOTCOOKIE_HEX[byt >>> 4];   ++ic;
             rndChars[ic] = GENERATEROBOTCOOKIE_HEX[byt & 0x0F];  ++ic;
         }
+
         return new String(rndChars);
     }
 
@@ -4151,6 +4156,7 @@ public class SOCServer extends Server
         }
 
         boolean isCmd = true;
+
         if (dcmdU.startsWith("*KILLGAME*"))
         {
             messageToGameUrgent(ga, ">>> ********** " + (String) debugCli.getData() + " KILLED THE GAME!!! ********** <<<");
@@ -4550,6 +4556,7 @@ public class SOCServer extends Server
 
         // Increment version stats; currently assumes single-threaded access to the map.
         // We don't know yet if client is a bot, so bots are included in the stats.
+        // (If this is not wanted, the bot could be subtracted at handleIMAROBOT.)
         final Integer cversObj = Integer.valueOf(cvers);
         final int prevCount;
         Integer prevCObj = clientPastVersionStats.get(cversObj);
@@ -4803,9 +4810,9 @@ public class SOCServer extends Server
         /**
          * Check the cookie given by this bot.
          */
-        if (! robotCookie.equals(mes.getCookie()))
+        if ((robotCookie != null) && ! robotCookie.equals(mes.getCookie()))
         {
-            String rejectMsg = "Cookie contents do not match the running server.";
+            final String rejectMsg = "Cookie contents do not match the running server.";
             c.put(new SOCRejectConnection(rejectMsg).toCmd());
             c.disconnectSoft();
             System.out.println("Rejected robot " + mes.getNickname() + ": Wrong cookie");
@@ -4975,7 +4982,7 @@ public class SOCServer extends Server
                 messageToPlayer(c, gaName, "> Uptime: " + hours + ":" + minutes + ":" + seconds);
             } else {
                 final int days = (int) (hours / 24),
-                          hr = (int) (hours - (days * 24L));
+                          hr   = (int) (hours - (days * 24L));
                 messageToPlayer(c, gaName, "> Uptime: " + days + "d " + hr + ":" + minutes + ":" + seconds);
             }
             messageToPlayer(c, gaName, "> Connections since startup: " + numberOfConnections);
@@ -5049,16 +5056,13 @@ public class SOCServer extends Server
             {
                 giveDevCard(c, cmdText, ga);
             }
-            else
-            {
-                if (! ((cmdText.charAt(0) == '*')
+            else if (! ((cmdText.charAt(0) == '*')
                         && processDebugCommand(c, ga.getName(), cmdText)))
-                {
-                    //
-                    // Send the message to the members of the game
-                    //
-                    messageToGame(gaName, new SOCGameTextMsg(gaName, plName, cmdText));
-                }
+            {
+                //
+                // Send the message to the members of the game
+                //
+                messageToGame(gaName, new SOCGameTextMsg(gaName, plName, cmdText));
             }
         }
         else
@@ -10712,7 +10716,7 @@ public class SOCServer extends Server
 
         // If game is still initial-placing or was over, we'll shuffle the robots
         final boolean resetWithShuffledBots =
-            (reBoard.oldGameState < SOCGame.PLAY) || (SOCGame.OVER == reBoard.oldGameState);
+            (reBoard.oldGameState < SOCGame.PLAY) || (reBoard.oldGameState == SOCGame.OVER);
 
         /**
          * Player connection data:
@@ -10769,7 +10773,7 @@ public class SOCServer extends Server
     private void resetBoardAndNotify_finish(SOCGameBoardReset reBoard, SOCGame reGame)
     {
         final boolean resetWithShuffledBots =
-            (reBoard.oldGameState < SOCGame.PLAY) || (SOCGame.OVER == reBoard.oldGameState);
+            (reBoard.oldGameState < SOCGame.PLAY) || (reBoard.oldGameState == SOCGame.OVER);
         StringConnection[] huConns = reBoard.humanConns;
 
         /**
