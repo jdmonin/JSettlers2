@@ -13,7 +13,7 @@ CONTENTS
 - Tips for debugging
 - Setup instructions for JSettlers as an Eclipse project
 	(although you may use any IDE you want)
-- Build setup and output
+- Build setup and results
 - Current partially-done work
 - Current TODO list
 - Coding Style
@@ -116,15 +116,15 @@ Setup instructions for JSettlers as an Eclipse project
 Continue reading to see how to set up the builds and the coding style in Eclipse.
 
 
-Build Setup and Output
-----------------------
+Build Setup and Results
+-----------------------
 Before building, make sure you have the Java Development Kit version 5 or later.
-If you simply want to run the client and server, you only need the Java Runtime (JRE).
+If you simply want to run the client or server, you only need the Java Runtime (JRE).
 If you wish to maintain a user database for your server, you need MySQL or PostgreSQL
 installed and configured, or the sqlite jdbc driver for a file-based local database.
 
 This package was designed to build with eclipse, or with the ANT tool available
-from http://ant.apache.org tools.  We assume you have installed it correctly.
+from http://ant.apache.org/ .
 
 Check the "build.properties" file. There may be build variables you
 may want to change locally. These can also be changed from the command
