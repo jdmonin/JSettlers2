@@ -92,6 +92,7 @@ import soc.server.genericServer.LocalStringConnection;
 import soc.server.genericServer.LocalStringServerSocket;
 import soc.server.genericServer.StringConnection;
 
+import soc.util.I18n;
 import soc.util.SOCGameList;
 import soc.util.Version;
 
@@ -123,8 +124,11 @@ import soc.util.Version;
  */
 public class SOCPlayerClient
 {
-    /** i18n text strings */
-    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+    /**
+     * i18n text strings in our {@link #cliLocale}.
+     * @since 2.0.00
+     */
+    private final soc.util.SOCStringManager strings;
 
     /** main panel, in cardlayout */
     protected static final String MAIN_PANEL = "main";
@@ -153,6 +157,13 @@ public class SOCPlayerClient
      */
     public static final boolean isJavaOnOSX =
         System.getProperty("os.name").toLowerCase().startsWith("mac os x");
+
+    /**
+     * Locale for i18n message lookups used for {@link #strings}.  Override if needed
+     * in the constructor by reading the {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE} system property.
+     * @since 2.0.00
+     */
+    final Locale cliLocale;
 
     /**
      * Helper object to deal with network connectivity.
@@ -359,7 +370,16 @@ public class SOCPlayerClient
     {
         gotPassword = false;
         lastFaceChange = 1;  // Default human face
-        
+
+        String jsLocale = System.getProperty(I18n.PROP_JSETTLERS_LOCALE);
+        if (jsLocale != null)
+        {
+            cliLocale = I18n.parseLocale(jsLocale.trim());  // TODO may throw IllegalArgumentException
+        } else {
+            cliLocale = Locale.getDefault();
+        }
+        strings = soc.util.SOCStringManager.getClientManager(cliLocale);
+
         gameDisplay = gd;
         net = new ClientNetwork(this);
         gameManager = new GameManager(this);
@@ -5438,7 +5458,7 @@ public class SOCPlayerClient
                     // Reader will start its own thread.
                     // Send VERSION right away (1.1.06 and later)
                     putPractice(SOCVersion.toCmd
-                        (Version.versionNumber(), Version.version(), Version.buildnum(), Locale.getDefault().toString()));
+                        (Version.versionNumber(), Version.version(), Version.buildnum(), client.cliLocale.toString()));
 
                     // practice server will support per-game options
                     client.gameDisplay.enableOptions();
@@ -5562,7 +5582,7 @@ public class SOCPlayerClient
                 // send VERSION right away (1.1.06 and later)
                 // Version msg includes locale in 2.0.00 and later clients; older 1.1.xx servers will ignore that token.
                 putNet(SOCVersion.toCmd
-                    (Version.versionNumber(), Version.version(), Version.buildnum(), Locale.getDefault().toString()));
+                    (Version.versionNumber(), Version.version(), Version.buildnum(), client.cliLocale.toString()));
             }
             catch (Exception e)
             {

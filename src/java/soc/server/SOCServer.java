@@ -209,6 +209,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_ALLOW_DEBUG,   "Allow remote debug commands? (if Y)",
         PROP_JSETTLERS_CLI_MAXCREATECHANNELS,   "Maximum simultaneous channels that a client can create",
         PROP_JSETTLERS_CLI_MAXCREATEGAMES,      "Maximum simultaneous games that a client can create",
+        I18n.PROP_JSETTLERS_LOCALE,             "Locale override from the default, such as es or en_US",
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
         SOCDBHelper.PROP_JSETTLERS_DB_USER,     "DB username",
@@ -4496,6 +4497,7 @@ public class SOCServer extends Server
                     clocale = clocale.substring(0, hashIdx);
                 }
             }
+            System.err.println("client locale is: " + clocale);  // JM temp for now; do something with it soon?
             scd.locale = clocale;
         }
 

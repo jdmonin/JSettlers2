@@ -334,7 +334,8 @@ the strings, and place I18N marker comments around them:
             ( /*I*/"{0} has won the game with {1} points."/*18N*/, winPl.getName(), winPl.getTotalVP());
 Code that fully integrates the i18n framework looks like:
 	super(strings.get("game.options.title", gaName));
-The client strings live in soc/client/strings/data*.properties.
+The client strings live in soc/client/strings/data*.properties.  An example commit is 68c3972.
+To override locales for testing, launch the client with vm argument -Djsettlers.locale=es
 Thanks to Luis A. Ramirez for building the initial framework and encouraging its use.
 
 In emacs, you can place this in your .emacs file to use spaces instead of tabs:
