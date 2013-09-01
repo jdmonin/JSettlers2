@@ -3624,10 +3624,10 @@ public class SOCRobotBrain extends Thread
         {
             waitingForDevCard = false;
         } else {
-            waitingForGameState = false;
             whatWeFailedToBuild = whatWeWantToBuild;
             ++failedBuildingAttempts;
         }
+        waitingForGameState = false;
 
         final int gameState = game.getGameState();
 
@@ -3718,10 +3718,8 @@ public class SOCRobotBrain extends Thread
             expectPLACING_CITY = false;
             expectPLACING_SHIP = false;
             decidedIfSpecialBuild = true;
-            if (cancelBuyDevCard)
+            if (! cancelBuyDevCard)
             {
-                waitingForGameState = false;  // don't wait for PLACING_ after buy dev card
-            } else {
                 // special building, currently in state PLACING_* ;
                 // get our resources back, get state PLAY1 or SPECIALBUILD
                 waitingForGameState = true;
@@ -3763,7 +3761,6 @@ public class SOCRobotBrain extends Thread
                 expectSTART3B = true;
                 break;
             }
-            waitingForGameState = false;
             // The run loop will check if failedBuildingAttempts > (2 * MAX_DENIED_BUILDING_PER_TURN).
             // This bot will leave the game there if it can't recover.
         } else {
