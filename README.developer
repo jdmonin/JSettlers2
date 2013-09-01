@@ -308,6 +308,10 @@ Some methods return in the middle of their body, depending on conditions.
 That kind of early return should be marked with a prominent comment such as:
 	return;   // <--- Early return: Temporary piece ---
 
+Use parentheses around all boolean expressions, to make them easier to see as such:
+	flagvalue = (state == xyz);
+	somevar = (testflag) ? a : b;
+
 Some methods end with this style of code:
 	if (x)
 	    return y;
@@ -321,6 +325,17 @@ That section of code should not be reformatted to something like:
 	return z;
 because conventionally in jsettlers, that would mean z is the usual case
 and y is less common or is an edge condition.
+
+I18N: An internationalization framework has just been put into place for v2.0.00,
+and not yet fully used, so you won't see it used in every class yet (client, server, etc).
+When building strings that the user will see, use placeholders instead of + to build
+the strings, and place I18N marker comments around them:
+       msg = ">>> " + MessageFormat.format
+            ( /*I*/"{0} has won the game with {1} points."/*18N*/, winPl.getName(), winPl.getTotalVP());
+Code that fully integrates the i18n framework looks like:
+	super(strings.get("game.options.title", gaName));
+The client strings live in soc/client/strings/data*.properties.
+Thanks to Luis A. Ramirez for building the initial framework and encouraging its use.
 
 In emacs, you can place this in your .emacs file to use spaces instead of tabs:
 (setq-default c-basic-offset 4)
