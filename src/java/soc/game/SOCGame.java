@@ -358,7 +358,7 @@ public class SOCGame implements Serializable, Cloneable
      * server whose stringport name is <tt>SOCServer.PRACTICE_STRINGPORT</tt>.
      *<P>
      * Before 1.1.13, this field was called <tt>isLocal</tt>, but that was misleading;
-     * the full client can launched a tcp LAN server.
+     * the full client can launch a tcp LAN server.
      */
     public boolean isPractice;
 
@@ -1045,7 +1045,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * locks a seat, so no one can take it
      *<P>
-     * For player consistency, seat locks can't be changed while {@link #getResetVoteActive()}.
+     * For player consistency, seat locks can't be changed while {@link #getResetVoteActive()}
+     * in server version 1.1.19 and higher.
      *
      * @param pn the number of the seat
      * @throws IllegalStateException if {@link #getResetVoteActive()}
@@ -1062,7 +1063,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * unlocks a seat
      *<P>
-     * For player consistency, seat locks can't be changed while {@link #getResetVoteActive()}.
+     * For player consistency, seat locks can't be changed while {@link #getResetVoteActive()}
+     * in server version 1.1.19 and higher.
      *
      * @param pn the number of the seat
      * @throws IllegalStateException if {@link #getResetVoteActive()}
