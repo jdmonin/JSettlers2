@@ -1469,7 +1469,8 @@ public class SOCGame implements Serializable, Cloneable
      * For details, see the javadocs for {@link SeatLockState#LOCKED},
      * {@link SeatLockState#UNLOCKED UNLOCKED} and {@link SeatLockState#CLEAR_ON_RESET CLEAR_ON_RESET}.
      *<P>
-     * For player consistency, seat locks can't be changed while {@link #getResetVoteActive()}.
+     * For player consistency, seat locks can't be changed while {@link #getResetVoteActive()}
+     * in server version 1.1.19 and higher.
      *<P>
      * Before v2.0.00, this was {@code lockSeat(pn}} and {@code unlockSeat(pn)}.
      *
@@ -1484,7 +1485,7 @@ public class SOCGame implements Serializable, Cloneable
         throws IllegalStateException
     {
         if (((sl == SeatLockState.CLEAR_ON_RESET) && (gameState == NEW))
-            || getResetVoteActive())
+            || (isAtServer && getResetVoteActive()))
             throw new IllegalStateException();
 
         seatLocks[pn] = sl;

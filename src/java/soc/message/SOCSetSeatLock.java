@@ -28,8 +28,10 @@ import soc.game.SOCGame.SeatLockState;
 /**
  * This message sets the lock state of a seat.
  * See {@link SeatLockState} for state details.
+ *<P>
  * For player consistency, seat locks can't be
- * changed while {@link soc.game.SOCGame#getResetVoteActive()}.
+ * changed while {@link soc.game.SOCGame#getResetVoteActive()}
+ * in server version 1.1.19 and higher.
  *
  * @author Robert S. Thomas
  */
