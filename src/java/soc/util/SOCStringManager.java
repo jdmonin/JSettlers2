@@ -21,7 +21,9 @@
 package soc.util;
 
 import java.text.MessageFormat;
+import java.util.Hashtable;
 import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 /**
@@ -35,7 +37,16 @@ public class SOCStringManager {
      * Manager for all client strings. Static is okay because the client is seen by 1 person with 1 locale.
      */
     private static SOCStringManager clientManager = null;
-    
+
+    /**
+     * Manager at server for strings sent to the client.
+     *<P>
+     * Key = locale.toString, value = {@link SOCStringManager} for server strings to clients in that locale. 
+     * Uses Hashtable to gain synchronization.
+     */
+    private static Hashtable<String, SOCStringManager> serverManagerForClientLocale
+        = new Hashtable<String, SOCStringManager>();
+
     private ResourceBundle bundle;
 
     /**
@@ -54,12 +65,32 @@ public class SOCStringManager {
     public SOCStringManager(final String bundlePath, final Locale loc) {
         bundle = ResourceBundle.getBundle(bundlePath, loc);
     }
-    
-    public String get(String key){
+
+    // If you add get methods, for server convenience also add them in StringConnection and classes that implement that.
+
+    /**
+     * Get a localized string (having no parameters) with the given key.
+     * @param key  Key to use for string retrieval
+     * @return the localized string from the manager's bundle or one of its parents
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     */
+    public String get(String key)
+        throws MissingResourceException
+    {
         return bundle.getString(key);
     }
 
-    public String get(String key, Object ... arguments){
+    /**
+     * Get and format a localized string (with parameters) with the given key.
+     * @param key  Key to use for string retrieval
+     * @param arguments  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
+     *                   by calling {@link MessageFormat#format(String, Object...)}. 
+     * @return the localized formatted string from the manager's bundle or one of its parents
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     */
+    public String get(String key, Object ... arguments)
+        throws MissingResourceException
+    {
         return MessageFormat.format(bundle.getString(key), arguments);
     }
 
@@ -88,6 +119,26 @@ public class SOCStringManager {
             clientManager = new SOCStringManager("soc/client/strings/data", loc);
 
         return clientManager;
+    }
+
+    /**
+     * Create or retrieve the server's string manager to send text to a clients with a certain locale.
+     * @param loc  Locale to use, or {@code null} for the {@link Locale#getDefault()} 
+     * @return  The server manager for that client locale
+     */
+    public static SOCStringManager getServerManagerForClient(Locale loc) {
+        if (loc == null)
+            loc = Locale.getDefault();
+
+        final String lstr = loc.toString();
+        SOCStringManager smc = serverManagerForClientLocale.get(lstr);
+        if (smc == null)
+        {
+            smc = new SOCStringManager("soc/server/strings/toClient", loc);
+            serverManagerForClientLocale.put(lstr, smc);
+        }
+
+        return smc;
     }
 
 }

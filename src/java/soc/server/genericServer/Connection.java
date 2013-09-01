@@ -22,6 +22,7 @@
 package soc.server.genericServer;
 
 import soc.disableDebug.D;
+import soc.util.SOCStringManager;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -31,11 +32,12 @@ import java.io.Serializable;
 import java.net.Socket;
 
 import java.util.Date;
+import java.util.MissingResourceException;
 import java.util.Vector;
 
 
 /** A client's connection at a server.
- *  @version 1.1.06
+ *  @version 1.2.0
  *  @author <A HREF="http://www.nada.kth.se/~cristi">Cristian Bogdan</A>
  *  Reads from the net, writes atomically to the net and
  *  holds the connection data
@@ -62,6 +64,13 @@ public final class Connection extends Thread implements Runnable, Serializable, 
      * Not used or referenced by generic server.
      */
     protected Object appData;
+
+    /**
+     * The server-side string manager for app-specific client message formatting.
+     * Not used or referenced by the generic server layer.
+     * @since 1.2.0
+     */
+    protected SOCStringManager stringMgr;
 
     DataInputStream in = null;
     DataOutputStream out = null;
@@ -373,6 +382,26 @@ public final class Connection extends Thread implements Runnable, Serializable, 
     public void setAppData(Object data)
     {
         appData = data;
+    }
+
+    // javadoc inherited from StringConnection
+    public void setI18NStringManager(SOCStringManager mgr)
+    {
+        stringMgr = mgr;
+    }
+
+    // javadoc inherited from StringConnection
+    public String getLocalized(final String key)
+        throws MissingResourceException
+    {
+        return stringMgr.get(key);
+    }
+
+    // javadoc inherited from StringConnection
+    public String getLocalized(final String key, final Object ... arguments)
+        throws MissingResourceException
+    {
+        return stringMgr.get(key, arguments);
     }
 
     /**

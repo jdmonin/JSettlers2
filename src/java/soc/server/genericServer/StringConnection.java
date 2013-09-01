@@ -19,7 +19,11 @@
  **/
 package soc.server.genericServer;
 
+import java.text.MessageFormat;
 import java.util.Date;
+import java.util.MissingResourceException;
+
+import soc.util.SOCStringManager;
 
 /**
  * StringConnection allows clients and servers to communicate,
@@ -35,10 +39,11 @@ import java.util.Date;
  *                       setVersionTracking, isInputAvailable,
  *                       wantsHideTimeoutMessage, setHideTimeoutMessage
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed; remove unused import EOFException
+ *  1.2.0 - 2013-09-01- for I18N, add {@link #setI18NStringManager(SOCStringManager)} and {@link #getLocalized(String)}
  *</PRE>
  *
  * @author Jeremy D Monin <jeremy@nand.net>
- * @version 1.0.5.1
+ * @version 1.2.0
  */
 public interface StringConnection
 {
@@ -116,7 +121,7 @@ public interface StringConnection
 
     /**
      * Set the app-specific non-key data for this connection.
-     *
+     *<P>
      * This is anything your application wants to associate with the connection.
      * The StringConnection system itself does not reference or use this data.
      * You can change it as often as you'd like, or not use it.
@@ -125,6 +130,38 @@ public interface StringConnection
      * @see #setData(Object)
      */
     public abstract void setAppData(Object data);
+
+    /**
+     * Set the I18N string manager for this connection, for server convenience.
+     * Used for {@link #getLocalized(String)}.
+     * @param mgr  String manager, or null
+     * @since 1.2.0
+     */
+    public abstract void setI18NStringManager(SOCStringManager mgr);
+
+    /**
+     * Get a localized string (having no parameters) with the given key.
+     * Used for convenience at servers whose clients may have different locales.
+     * @param key  Key to use for string retrieval
+     * @return the localized string from the manager's bundle or one of its parents
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @since 1.2.0
+     * @see #getLocalized(String, Object...)
+     */
+    public String getLocalized(String key) throws MissingResourceException;
+
+    /**
+     * Get and format a localized string (with parameters) with the given key.
+     * Used for convenience at servers whose clients may have different locales.
+     * @param key  Key to use for string retrieval
+     * @param arguments  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
+     *                   by calling {@link MessageFormat#format(String, Object...)}. 
+     * @return the localized formatted string from the manager's bundle or one of its parents
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @since 1.2.0
+     * @see #getLocalized(String)
+     */
+    public String getLocalized(String key, Object ... arguments) throws MissingResourceException;
 
     /**
      * @return Any error encountered, or null

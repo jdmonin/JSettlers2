@@ -38,6 +38,7 @@ import soc.util.I18n;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;  // used in javadoc
 import soc.util.SOCRobotParameters;
+import soc.util.SOCStringManager;
 import soc.util.Version;
 
 import java.io.EOFException;
@@ -4484,22 +4485,23 @@ public class SOCServer extends Server
 
         SOCClientData scd = (SOCClientData) c.getAppData();
 
-        if (clocale != null)
+        if (clocale == null)
+            clocale = "en_US";  // backwards compatibility with clients older than v2.0.00
+
+        final int hashIdx = clocale.indexOf("_#");
+        if (hashIdx != -1)
         {
-            final int hashIdx = clocale.indexOf("_#");
-            if (hashIdx != -1)
+            // extended info from java 1.7+ Locale.toString();
+            // if our server is an older JRE version, strip that out.
+            final String jreVersStr = System.getProperty("java.specification.version");
+            if (jreVersStr.startsWith("1.5") || jreVersStr.startsWith("1.6"))
             {
-                // extended info from java 1.7+ Locale.toString();
-                // if our server is an older JRE version, strip that out.
-                final String jreVersStr = System.getProperty("java.specification.version");
-                if (jreVersStr.startsWith("1.5") || jreVersStr.startsWith("1.6"))
-                {
-                    clocale = clocale.substring(0, hashIdx);
-                }
+                clocale = clocale.substring(0, hashIdx);
             }
-            System.err.println("client locale is: " + clocale);  // JM temp for now; do something with it soon?
-            scd.locale = clocale;
         }
+        scd.locale = I18n.parseLocale(clocale);  // TODO may throw IllegalArgumentException
+        System.err.println("client locale is: " + scd.locale);  // JM temp for now; do something with it soon?
+        c.setI18NStringManager(SOCStringManager.getServerManagerForClient(scd.locale));
 
         if (prevVers == -1)
             scd.clearVersionTimer();
@@ -5089,7 +5091,7 @@ public class SOCServer extends Server
     {
         if (gameData == null)
             return;
-        messageToPlayer(c, gaName, "-- Game statistics: --");
+        messageToPlayer(c, gaName, "-- " + c.getLocalized("stats.title.game") + " --");  // "-- Game statistics: --"
         messageToPlayer(c, gaName, "Rounds played: " + gameData.getRoundCount());
 
         // player's stats

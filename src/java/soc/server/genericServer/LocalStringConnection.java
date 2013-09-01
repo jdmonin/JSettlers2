@@ -24,9 +24,11 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.Date;
+import java.util.MissingResourceException;
 import java.util.Vector;
 
 import soc.disableDebug.D;
+import soc.util.SOCStringManager;
 
 /**
  * Symmetric buffered connection sending strings between two local peers.
@@ -52,10 +54,11 @@ import soc.disableDebug.D;
  *                       common constructor code moved to init().
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed
  *  1.0.5.2- 2010-04-05- add toString for debugging
+ *  1.2.0 - 2013-09-01- for I18N, add {@link #setI18NStringManager(SOCStringManager)} and {@link #getLocalized(String)}
  *</PRE>
  *
  * @author Jeremy D. Monin <jeremy@nand.net>
- * @version 1.0.5.1
+ * @version 1.2.0
  */
 public class LocalStringConnection
     implements StringConnection, Runnable
@@ -88,6 +91,13 @@ public class LocalStringConnection
      * Not used or referenced by generic server.
      */
     protected Object appData;
+
+    /**
+     * The server-side string manager for app-specific client message formatting.
+     * Not used or referenced by the generic server layer.
+     * @since 1.2.0
+     */
+    protected SOCStringManager stringMgr;
 
     /**
      * Create a new, unused LocalStringConnection.
@@ -436,6 +446,26 @@ public class LocalStringConnection
     public void setAppData(Object data)
     {
         appData = data;
+    }
+
+    // javadoc inherited from StringConnection
+    public void setI18NStringManager(SOCStringManager mgr)
+    {
+        stringMgr = mgr;
+    }
+
+    // javadoc inherited from StringConnection
+    public String getLocalized(final String key)
+        throws MissingResourceException
+    {
+        return stringMgr.get(key);
+    }
+
+    // javadoc inherited from StringConnection
+    public String getLocalized(final String key, final Object ... arguments)
+        throws MissingResourceException
+    {
+        return stringMgr.get(key, arguments);
     }
 
     /**

@@ -18,6 +18,7 @@
  **/
 package soc.server;
 
+import java.util.Locale;
 import java.util.TimerTask;
 
 import soc.message.SOCMessage;  // for javadoc
@@ -39,14 +40,14 @@ public class SOCClientData
     private int wins, losses;
 
     /**
-     * Client's reported JVM locale, or null, as in {@link java.util.Locale#toString()}.
-     * Sent as part of the SOCVersion message.
+     * Client's reported JVM locale, or {@code null}, as in {@link java.util.Locale#getDefault()}.
+     * Sent via {@link Locale#toString()} as part of the SOCVersion message.
      * Not sent from jsettlers clients older than 2.0.00;
      * if null, should probably assume <tt>en_US</tt>
      * since older versions had all messages in english.
      * @since 2.0.00
      */
-    public String locale;
+    public Locale locale;
 
     /**
      * Number of games/channels this client has created, which currently exist (not deleted)
