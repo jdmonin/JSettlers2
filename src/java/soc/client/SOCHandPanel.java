@@ -50,6 +50,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Timer;  // For auto-roll
 import java.util.TimerTask;
@@ -95,37 +96,42 @@ public class SOCHandPanel extends Panel
 
     /** Array of five zeroes, one per resource type; for {@link #sqPanel}. */
     protected static final int[] zero = { 0, 0, 0, 0, 0 };
+
+    /** i18n text strings.
+     *  @since 2.0.00 */
+    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+
     /** Before game starts, use {@link #pname} to show if a seat is no-robots-allowed. */
-    protected static final String SITLOCKED = /*I*/"Locked: No robot"/*18N*/;
-    protected static final String SIT = /*I*/"Sit Here"/*18N*/;
-    protected static final String START = /*I*/"Start Game"/*18N*/;
-    protected static final String ROBOT = /*I*/"Robot"/*18N*/;
-    protected static final String TAKEOVER = /*I*/"Take Over"/*18N*/;
-    protected static final String LOCKSEAT = /*I*/"Lock"/*18N*/;
-    protected static final String UNLOCKSEAT = /*I*/"Unlock"/*18N*/;
+    protected static final String SITLOCKED = strings.get("hpan.sit.locked.norobot");  // "Locked: No robot"
+    protected static final String SIT = strings.get("hpan.sit.here");  // "Sit Here"
+    protected static final String START = strings.get("hpan.start.game");  // "Start Game"
+    protected static final String ROBOT = strings.get("hpan.sit.robot");
+    protected static final String TAKEOVER = strings.get("hpan.sit.takeover");  // "Take Over"
+    protected static final String LOCKSEAT = strings.get("hpan.sit.lock");
+    protected static final String UNLOCKSEAT = strings.get("hpan.sit.unlock");
     private static final String LOCKSEATTIP = /*I*/"Lock to prevent a robot from sitting here."/*18N*/;
     private static final String UNLOCKSEATTIP = /*I*/"Unlock to have a robot sit here when the game starts."/*18N*/;
-    protected static final String ROLL = /*I*/"Roll"/*18N*/;
-    protected static final String QUIT = /*I*/"Quit"/*18N*/;
-    protected static final String DONE = /*I*/"Done"/*18N*/;
+    protected static final String ROLL = strings.get("hpan.roll");
+    protected static final String QUIT = strings.get("hpan.quit");
+    protected static final String DONE = strings.get("hpan.done");
     /** Text of Done button at end of game becomes Restart button. If you set this, set {@link #doneButIsRestart}. */
-    protected static final String DONE_RESTART = /*I*/"Restart"/*18N*/;
-    protected static final String CLEAR = /*I*/"Clear"/*18N*/;
-    protected static final String SEND = /*I*/"Offer"/*18N*/;
-    protected static final String BANK = /*I*/"Bank/Port"/*18N*/;
-    private static final String BANK_UNDO = /*I*/"Undo Trade"/*18N*/;
-    protected static final String CARD = /*I*/"  Play Card  "/*18N*/;
-    protected static final String GIVE = /*I*/"I Give:"/*18N*/;  // No trailing space (room for wider colorsquares)
-    protected static final String GET = /*I*/"I Get:"/*18N*/;
-    private static final String RESOURCES = /*I*/"Resources: "/*18N*/;  // for other players (! playerIsClient)
-    private static final String RESOURCES_TOTAL = /*I*/"Total: "/*18N*/;  // for playerIsClient
-    protected static final String AUTOROLL_COUNTDOWN = /*I*/"Auto-Roll in: "/*18N*/;
-    protected static final String ROLL_OR_PLAY_CARD = /*I*/"Roll or Play Card"/*18N*/;
+    protected static final String DONE_RESTART = strings.get("hpan.restart");
+    protected static final String CLEAR = strings.get("hpan.trade.clear");
+    protected static final String SEND = strings.get("hpan.trade.offer");
+    protected static final String BANK = strings.get("hpan.trade.bankport");  // "Bank/Port"
+    private static final String BANK_UNDO = strings.get("hpan.trade.undo");  // "Undo Trade"
+    protected static final String CARD = "  " + strings.get("hpan.devcards.play") + "  ";  // "  Play Card  "
+    protected static final String GIVE = strings.get("hpan.trade.igive");  // No trailing space (room for wider colorsquares)
+    protected static final String GET = strings.get("hpan.trade.iget");
+    private static final String RESOURCES = strings.get("hpan.rsrc") + " ";  // for other players (! playerIsClient)
+    private static final String RESOURCES_TOTAL = strings.get("hpan.rsrc.total") + " ";  // "Total: " for playerIsClient
+    protected static final String AUTOROLL_COUNTDOWN = strings.get("hpan.roll.autocountdown");  // "Auto-Roll in: {0}"
+    protected static final String ROLL_OR_PLAY_CARD = strings.get("hpan.roll.rollorplaycard");  // "Roll or Play Card"
     protected static final String OFFERBUTTIP_ENA = /*I*/"Send trade offer to other players"/*18N*/;
     protected static final String OFFERBUTTIP_DIS = /*I*/"To offer a trade, first click resources"/*18N*/;
-    private static final String ROBOTLOCKBUT_U = /*I*/"Unlocked"/*18N*/;
-    private static final String ROBOTLOCKBUT_L = /*I*/"Locked"/*18N*/;
-    private static final String ROBOTLOCKBUT_M = /*I*/"Marked"/*18N*/;  // C is for lockstate Clear on Reset
+    private static final String ROBOTLOCKBUT_U = strings.get("hpan.sit.unlocked");
+    private static final String ROBOTLOCKBUT_L = strings.get("hpan.sit.locked");
+    private static final String ROBOTLOCKBUT_M = strings.get("hpan.sit.marked");  // for lockstate Clear on Reset
     private static final String ROBOTLOCKBUTTIP_L
         = /*I*/"Click to mark or unlock; is locked to prevent a human from taking over this robot."/*18N*/;
     private static final String ROBOTLOCKBUTTIP_U
@@ -545,28 +551,29 @@ public class SOCHandPanel extends Panel
         // this button always enabled
         add(startBut);
 
-        vpLab = new Label(/*I*/"Points: "/*18N*/);
+        vpLab = new Label(strings.get("hpan.points") + " ");  // "Points: "
         add(vpLab);
         vpSq = new ColorSquare(ColorSquare.GREY, 0);
-        vpSq.setTooltipText(/*I*/"Total victory points for this opponent"/*18N*/);
+        vpSq.setTooltipText(strings.get("hpan.points.total.opponent"));  // "Total victory points for this opponent"
+        final String vp_close_to_win = strings.get("hpan.points.closetowin");  // "Close to winning"
         if (game.vp_winner <= 12)
         {
-            vpSq.setTooltipHighWarningLevel(/*I*/"Close to winning"/*18N*/, game.vp_winner - 2);  // (win checked in SOCGame.checkForWinner)
+            vpSq.setTooltipHighWarningLevel(vp_close_to_win, game.vp_winner - 2);  // (win checked in SOCGame.checkForWinner)
         } else {
-            vpSq.setTooltipHighWarningLevel(/*I*/"Close to winning"/*18N*/, game.vp_winner - 3);
+            vpSq.setTooltipHighWarningLevel(vp_close_to_win, game.vp_winner - 3);
         }
         add(vpSq);
 
         if (game.hasSeaBoard)
         {
-            svpLab = new Label(/*I*/"SVP: "/*18N*/);
+            svpLab = new Label(strings.get("hpan.svp") + " ");  // "SVP: "
             svpLab.setVisible(false);
             add(svpLab);
-            new AWTToolTip(/*I*/"Special Victory Points for this player"/*18N*/, svpLab);
+            new AWTToolTip(strings.get("hpan.svp.tt.forplayer"), svpLab);  // "Special Victory Points for this player"
             svpLab.addMouseListener(this);
             svpSq = new ColorSquare(ColorSquare.GREY, 0);
             svpSq.setVisible(false);
-            svpSq.setTooltipText(/*I*/"Special Victory Points, click for details"/*18N*/);
+            svpSq.setTooltipText(strings.get("hpan.svp.tt.clickdetails"));  // "Special Victory Points, click for details"
             add(svpSq);
             svpSq.addMouseListener(this);
         } else {
@@ -624,38 +631,40 @@ public class SOCHandPanel extends Panel
         cardList.addActionListener(this);  // double-click support
         add(cardList);
 
+        final String pieces_available_to_place = strings.get("hpan.pieces.available");
+
         roadSq = new ColorSquare(ColorSquare.GREY, 0);
         add(roadSq);
-        roadSq.setTooltipText(/*I*/"Pieces available to place"/*18N*/);
-        roadSq.setTooltipLowWarningLevel(/*I*/"Almost out of roads to place"/*18N*/, 2);
-        roadSq.setTooltipZeroText(/*I*/"No more roads available"/*18N*/);
-        roadLab = new Label(/*I*/"Roads:"/*18N*/);
+        roadSq.setTooltipText(pieces_available_to_place);
+        roadSq.setTooltipLowWarningLevel(strings.get("hpan.roads.almostout"), 2);  // "Almost out of roads to place"
+        roadSq.setTooltipZeroText(strings.get("hpan.roads.out"));  // "No more roads available"
+        roadLab = new Label(strings.get("hpan.roads"));  // "Roads:"
         add(roadLab);
 
         settlementSq = new ColorSquare(ColorSquare.GREY, 0);
         add(settlementSq);
-        settlementSq.setTooltipText(/*I*/"Pieces available to place"/*18N*/);
-        settlementSq.setTooltipLowWarningLevel(/*I*/"Almost out of settlements to place"/*18N*/, 1);
-        settlementSq.setTooltipZeroText(/*I*/"No more settlements available"/*18N*/);
-        settlementLab = new Label(/*I*/"Stlmts:"/*18N*/);
+        settlementSq.setTooltipText(pieces_available_to_place);
+        settlementSq.setTooltipLowWarningLevel(strings.get("hpan.stlmts.almostout"), 1);
+        settlementSq.setTooltipZeroText(strings.get("hpan.stlmts.out"));
+        settlementLab = new Label(strings.get("hpan.stlmts"));  // "Stlmts:"
         add(settlementLab);
 
         citySq = new ColorSquare(ColorSquare.GREY, 0);
         add(citySq);
-        citySq.setTooltipText(/*I*/"Pieces available to place"/*18N*/);
-        citySq.setTooltipLowWarningLevel(/*I*/"Almost out of cities to place"/*18N*/, 1);
-        citySq.setTooltipZeroText(/*I*/"No more cities available"/*18N*/);
-        cityLab = new Label(/*I*/"Cities:"/*18N*/);
+        citySq.setTooltipText(pieces_available_to_place);
+        citySq.setTooltipLowWarningLevel(strings.get("hpan.cities.almostout"), 1);
+        citySq.setTooltipZeroText(strings.get("hpan.cities.out"));
+        cityLab = new Label(strings.get("hpan.cities"));  // "Cities:"
         add(cityLab);
 
         if (game.hasSeaBoard)
         {
             shipSq = new ColorSquare(ColorSquare.GREY, 0);
             add(shipSq);
-            shipSq.setTooltipText(/*I*/"Pieces available to place"/*18N*/);
-            shipSq.setTooltipLowWarningLevel(/*I*/"Almost out of ships to place"/*18N*/, 2);
-            shipSq.setTooltipZeroText(/*I*/"No more ships available"/*18N*/);
-            shipLab = new Label(/*I*/"Ships:"/*18N*/);
+            shipSq.setTooltipText(pieces_available_to_place);
+            shipSq.setTooltipLowWarningLevel(strings.get("hpan.ships.almostout"), 2);
+            shipSq.setTooltipZeroText(strings.get("hpan.ships.out"));
+            shipLab = new Label(strings.get("hpan.ships"));  // "Ships:"
             add(shipLab);
         } else {
             // shipSq, shipLab already null
@@ -663,33 +672,33 @@ public class SOCHandPanel extends Panel
 
         if (game.isGameOptionSet(SOCGameOption.K_SC_CLVI))
         {
-            clothLab = new Label(/*I*/"Cloth:"/*18N*/);  // No trailing space (room for wider colorsquares at left)
+            clothLab = new Label(strings.get("hpan.cloth"));  // No trailing space (room for wider colorsquares at left)
             add(clothLab);
             clothSq = new ColorSquare(ColorSquare.GREY, 0);
             add(clothSq);
-            clothSq.setTooltipText(/*I*/"Amount of cloth traded from villages"/*18N*/);
+            clothSq.setTooltipText(strings.get("hpan.cloth.amounttraded"));  // "Amount of cloth traded from villages"
         } else {
             // clothSq, clothLab already null
         }
 
-        knightsLab = new Label(/*I*/"Soldiers:"/*18N*/);  // No trailing space (room for wider colorsquares at left)
+        knightsLab = new Label(strings.get("hpan.soldiers"));  // No trailing space (room for wider colorsquares at left)
         add(knightsLab);
         knightsSq = new ColorSquare(ColorSquare.GREY, 0);
         add(knightsSq);
-        knightsSq.setTooltipText(/*I*/"Size of this army"/*18N*/);
+        knightsSq.setTooltipText(strings.get("hpan.soldiers.sizearmy"));  // "Size of this army"
 
         resourceLab = new Label(RESOURCES);
         add(resourceLab);
         resourceSq = new ColorSquare(ColorSquare.GREY, 0);
         add(resourceSq);
-        resourceSq.setTooltipText(/*I*/"Amount in hand"/*18N*/);
-        resourceSq.setTooltipHighWarningLevel(/*I*/"If 7 is rolled, would discard half these resources"/*18N*/, 8);
+        resourceSq.setTooltipText(strings.get("hpan.amounthand"));  // "Amount in hand"
+        resourceSq.setTooltipHighWarningLevel(strings.get("hpan.rsrc.roll7discard"), 8); // "If 7 is rolled, would discard half these resources"
 
-        developmentLab = new Label(/*I*/"Dev. Cards: "/*18N*/);
+        developmentLab = new Label(strings.get("hpan.devcards") + " ");  // "Dev. Cards: "
         add(developmentLab);
         developmentSq = new ColorSquare(ColorSquare.GREY, 0);
         add(developmentSq);
-        developmentSq.setTooltipText(/*I*/"Amount in hand"/*18N*/);
+        developmentSq.setTooltipText(strings.get("hpan.amounthand"));
 
         sittingRobotLockBut = new Button(ROBOTLOCKBUT_U);  // button text will change soon in updateSeatLockButton()
         sittingRobotLockBut.addActionListener(this);
@@ -1621,8 +1630,8 @@ public class SOCHandPanel extends Panel
             playerIsClient = true;
             playerInterface.setClientHand(this);
 
-            knightsSq.setTooltipText(/*I*/"Size of your army"/*18N*/);
-            vpSq.setTooltipText(/*I*/"Your victory point total"/*18N*/);
+            knightsSq.setTooltipText(strings.get("hpan.soldiers.sizeyourarmy"));  // "Size of your army"
+            vpSq.setTooltipText(strings.get("hpan.points.total.yours"));  // "Your victory point total"
 
             // show 'Victory Points' and hide "Start Button" if game in progress
             if (game.getGameState() == SOCGame.NEW)
@@ -1728,7 +1737,7 @@ public class SOCHandPanel extends Panel
             D.ebugPrintln("player.getSeatLock(" + playerNumber + ") = " + game.getSeatLock(playerNumber));
             D.ebugPrintln("game.getPlayer(client.getNickname()) = " + game.getPlayer(client.getNickname()));
 
-            knightsSq.setTooltipText(/*I*/"Size of this opponent's army"/*18N*/);
+            knightsSq.setTooltipText(strings.get("hpan.soldiers.sizeoppoarmy"));  // "Size of this opponent's army"
 
             // To see if client already sat down at this game,
             // we can't call playerInterface.getClientHand() yet,
@@ -2672,8 +2681,8 @@ public class SOCHandPanel extends Panel
                 {
                     if (game.getPlayerWithWin() == player)
                     {
-                        vpSq.setTooltipText(/*I*/"Winner with " + newVP + " victory points"/*18N*/);
-                        pname.setText(/*I*/player.getName() + " - Winner"/*18N*/);
+                        vpSq.setTooltipText(strings.get("hpan.winner.label.ttwithvp", newVP));  // "Winner with 12 victory points"
+                        pname.setText(strings.get("hpan.winner.label", player.getName()));  // "X - Winner"
                     }
                     if (interactive)
                     {
@@ -3316,7 +3325,7 @@ public class SOCHandPanel extends Panel
             {
                 if (timeRemain > 0)
                 {
-                    setRollPrompt(AUTOROLL_COUNTDOWN + Integer.toString(timeRemain), false);
+                    setRollPrompt(MessageFormat.format(AUTOROLL_COUNTDOWN, Integer.valueOf(timeRemain)), false);
                 } else {
                     clickRollButton();  // Clear prompt, click Roll
                     cancel();  // End of countdown for this timer
