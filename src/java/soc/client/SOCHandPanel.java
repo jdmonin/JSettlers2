@@ -591,35 +591,22 @@ public class SOCHandPanel extends Panel
         lroadLab.setFont(new Font("SansSerif", Font.BOLD, 12));
         add(lroadLab);
 
-        clayLab = new Label(/*I*/"Clay:"/*18N*/);
-        add(clayLab);
-        claySq = new ColorSquare(ColorSquare.CLAY, 0);
-        add(claySq);
-        claySq.setTooltipText(/*I*/"Right-click to trade clay"/*18N*/);
+        createAndAddResourceColorSquare(ColorSquare.CLAY, "resources.clay");
+        clayLab = createColorSqRetLbl;   claySq = createColorSqRetSq;
 
-        oreLab = new Label(/*I*/"Ore:"/*18N*/);
-        add(oreLab);
-        oreSq = new ColorSquare(ColorSquare.ORE, 0);
-        add(oreSq);
-        oreSq.setTooltipText(/*I*/"Right-click to trade ore"/*18N*/);
+        createAndAddResourceColorSquare(ColorSquare.ORE, "resources.ore");
+        oreLab = createColorSqRetLbl;    oreSq = createColorSqRetSq;
 
-        sheepLab = new Label(/*I*/"Sheep:"/*18N*/);
-        add(sheepLab);
-        sheepSq = new ColorSquare(ColorSquare.SHEEP, 0);
-        add(sheepSq);
-        sheepSq.setTooltipText(/*I*/"Right-click to trade sheep"/*18N*/);
+        createAndAddResourceColorSquare(ColorSquare.SHEEP, "resources.sheep");
+        sheepLab = createColorSqRetLbl;  sheepSq = createColorSqRetSq;
 
-        wheatLab = new Label(/*I*/"Wheat:"/*18N*/);
-        add(wheatLab);
-        wheatSq = new ColorSquare(ColorSquare.WHEAT, 0);
-        add(wheatSq);
-        wheatSq.setTooltipText(/*I*/"Right-click to trade wheat"/*18N*/);
+        createAndAddResourceColorSquare(ColorSquare.WHEAT, "resources.wheat");
+        wheatLab = createColorSqRetLbl;  wheatSq = createColorSqRetSq;
 
-        woodLab = new Label(/*I*/"Wood:"/*18N*/);
-        add(woodLab);
-        woodSq = new ColorSquare(ColorSquare.WOOD, 0);
-        add(woodSq);
-        woodSq.setTooltipText(/*I*/"Right-click to trade wood"/*18N*/);
+        createAndAddResourceColorSquare(ColorSquare.WOOD, "resources.wood");
+        woodLab = createColorSqRetLbl;   woodSq = createColorSqRetSq;
+
+        createColorSqRetLbl = null;      createColorSqRetSq = null;  // done, clear refs
 
         resourceSqDivLine = new ColorSquare(Color.BLACK);
         add(resourceSqDivLine);
@@ -821,6 +808,34 @@ public class SOCHandPanel extends Panel
 
         // set the starting state of the panel
         removePlayer();
+    }
+
+    /** Color square label created by most recent call to {@link #createAndAddResourceColorSquare(Color, String)}. */
+    private Label createColorSqRetLbl;
+
+    /** Color square created by most recent call to {@link #createAndAddResourceColorSquare(Color, String)}. */
+    private ColorSquare createColorSqRetSq;
+
+    /**
+     * Create a ColorSquare and its Label, with the given text key, and add them to the layout.
+     * The new colorsquare and label will be "returned" by setting the
+     * {@link #createColorSqRetSq} and {@link #createColorSqRetLbl} fields.
+     *
+     * @param rc      Color for the square, such as {@link ColorSquare#CLAY}
+     * @param rtxtkey Text key for i18n, such as {@code "resources.clay"}.
+     *                If this key gives the text "Clay", the label will be "Clay:" and the
+     *                tooltip will be "Right-click to trade clay".
+     * @since 2.0.00
+     */
+    private final void createAndAddResourceColorSquare(final Color rc, final String rtxtkey)
+    {
+        final String rtxt = strings.get(rtxtkey);
+        createColorSqRetLbl = new Label(rtxt + ":");  // "Clay:"
+        add(createColorSqRetLbl);
+        createColorSqRetSq = new ColorSquare(rc, 0);
+        add(createColorSqRetSq);
+        createColorSqRetSq.setTooltipText
+            (strings.get("hpan.trade.rightclick", rtxt.toLowerCase()));  // "Right-click to trade clay"
     }
 
     /**
