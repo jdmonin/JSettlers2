@@ -204,14 +204,10 @@ public class SOCPlayerClient
         practiceServGameOpts = new GameOptionServerSet();
 
     /**
-     * For practice games, default player name.
+     * For practice games, default game name ("Practice").
+     * Set in constructor using i18n {@link #strings} lookup.
      */
-    public static String DEFAULT_PLAYER_NAME = /*I*/"Player"/*18N*/;
-
-    /**
-     * For practice games, default game name.
-     */
-    public static String DEFAULT_PRACTICE_GAMENAME = /*I*/"Practice"/*18N*/;
+    public final String DEFAULT_PRACTICE_GAMENAME;
 
     /**
      * For practice games, reminder message for network problems.
@@ -379,6 +375,7 @@ public class SOCPlayerClient
             cliLocale = Locale.getDefault();
         }
         strings = soc.util.SOCStringManager.getClientManager(cliLocale);
+        DEFAULT_PRACTICE_GAMENAME = strings.get("default.name.practice.game");
 
         gameDisplay = gd;
         net = new ClientNetwork(this);
@@ -1050,13 +1047,13 @@ public class SOCPlayerClient
         
             if ((target == pg) || (target == pgm)) // "Practice Game" Buttons
             {
-                gm = DEFAULT_PRACTICE_GAMENAME;
+                gm = client.DEFAULT_PRACTICE_GAMENAME;  // "Practice"
         
                 // If blank, fill in player name
         
                 if (0 == nick.getText().trim().length())
                 {
-                    nick.setText(DEFAULT_PLAYER_NAME);
+                    nick.setText(client.strings.get("default.name.practice.player"));  // "Player"
                 }
             }
             else if (target == ng)  // "New Game" button
@@ -1160,7 +1157,7 @@ public class SOCPlayerClient
             if ((pi == null)
                     && ((target == pg) || (target == pgm))
                     && (client.net.practiceServer != null)
-                    && (gm.equalsIgnoreCase(DEFAULT_PRACTICE_GAMENAME)))
+                    && (gm.equalsIgnoreCase(client.DEFAULT_PRACTICE_GAMENAME)))
             {
                 // Practice game requested, no game named "Practice" already exists.
                 // Check for other active practice games. (Could be "Practice 2")
@@ -5209,7 +5206,7 @@ public class SOCPlayerClient
         ++numPracticeGames;
 
         if (practiceGameName == null)
-            practiceGameName = /*I*/DEFAULT_PRACTICE_GAMENAME + " " + (numPracticeGames)/*18N*/;
+            practiceGameName = DEFAULT_PRACTICE_GAMENAME + " " + (numPracticeGames);  // "Practice 3"
 
         // May take a while to start server & game.
         // The new-game window will clear this cursor.

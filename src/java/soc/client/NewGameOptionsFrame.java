@@ -203,9 +203,9 @@ public class NewGameOptionsFrame extends Frame
         if ((gaName == null) && forPractice)
         {
             if (cli.numPracticeGames == 0)
-                gaName = SOCPlayerClient.DEFAULT_PRACTICE_GAMENAME;
+                gaName = cli.DEFAULT_PRACTICE_GAMENAME;
             else
-                gaName = SOCPlayerClient.DEFAULT_PRACTICE_GAMENAME + " " + (1 + cli.numPracticeGames);
+                gaName = cli.DEFAULT_PRACTICE_GAMENAME + " " + (1 + cli.numPracticeGames);
         }
 
         // same Frame setup as in SOCPlayerClient.main
