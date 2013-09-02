@@ -2550,6 +2550,7 @@ public class SOCServer extends Server
      * @param ga  game name
      * @param txt the message text to send
      * @since 1.1.08
+     * @see #messageToPlayerKeyed(StringConnection, String, String)
      */
     public void messageToPlayer(StringConnection c, final String ga, final String txt)
     {
@@ -2571,10 +2572,53 @@ public class SOCServer extends Server
      * @param args  Any parameters within {@code txt}'s placeholders
      * @since 2.0.00
      * @see #messageFormatToGame(String, boolean, String, Object...)
+     * @see #messageToPlayerKeyed(StringConnection, String, String, Object...)
      */
     public void messageFormatToPlayer(StringConnection c, final String ga, final String fmt, final Object ... args)
     {
         messageToPlayer(c, ga, MessageFormat.format(fmt, args));
+    }
+
+    /**
+     * Send a localized {@link SOCGameTextMsg} game text message to a player.
+     * Equivalent to: messageToPlayer(conn, new {@link SOCGameTextMsg}(ga, {@link #SERVERNAME},
+     * {@link StringConnection#getLocalized(String) c.getLocalized(key)}));
+     *
+     * @param c   the player connection
+     * @param ga  game name
+     * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
+     * @since 2.0.00
+     * @see #messageToPlayerKeyed(StringConnection, String, String, Object...)
+     */
+    public final void messageToPlayerKeyed(StringConnection c, final String ga, final String key)
+    {
+        if (c == null)
+            return;
+
+        c.put(SOCGameTextMsg.toCmd(ga, SERVERNAME, c.getLocalized(key)));
+    }
+
+    /**
+     * Send a localized {@link SOCGameTextMsg} game text message with arguments to a player.
+     * Equivalent to: messageToPlayer(conn, new {@link SOCGameTextMsg}(ga, {@link #SERVERNAME},
+     * {@link StringConnection#getLocalized(String, Object...) c.getLocalized(key, args)}));
+     *<P>
+     * The localized message text must be formatted as in {@link MessageFormat}:
+     * Placeholders for {@code args} are <tt>{0}</tt> etc, single-quotes must be repeated: {@code ''}.
+     *
+     * @param c   the player connection
+     * @param ga  game name
+     * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
+     * @param args  Any parameters within {@code txt}'s placeholders
+     * @since 2.0.00
+     * @see #messageToPlayerKeyed(StringConnection, String, String)
+     */
+    public final void messageToPlayerKeyed(StringConnection c, final String ga, final String key, final Object ... args)
+    {
+        if (c == null)
+            return;
+
+        c.put(SOCGameTextMsg.toCmd(ga, SERVERNAME, c.getLocalized(key, args)));
     }
 
     /**
@@ -5091,8 +5135,9 @@ public class SOCServer extends Server
     {
         if (gameData == null)
             return;
-        messageToPlayer(c, gaName, "-- " + c.getLocalized("stats.title.game") + " --");  // "-- Game statistics: --"
-        messageToPlayer(c, gaName, "Rounds played: " + gameData.getRoundCount());
+
+        messageToPlayerKeyed(c, gaName, "stats.game.title");  // "-- Game statistics: --"
+        messageToPlayerKeyed(c, gaName, "stats.game.rounds", gameData.getRoundCount());  // Rounds played: 20
 
         // player's stats
         if (c.getVersion() >= SOCPlayerStats.VERSION_FOR_RES_ROLL)
@@ -5108,15 +5153,15 @@ public class SOCServer extends Server
         {
             long gameSeconds = ((new Date().getTime() - gstart.getTime())+500L) / 1000L;
             long gameMinutes = (gameSeconds+29L)/60L;
-            String gLengthMsg = "This game started " + gameMinutes + " minutes ago.";
-            messageToPlayer(c, gaName, gLengthMsg);
+            messageToPlayerKeyed(c, gaName, "stats.game.startedago", gameMinutes);  // "This game started 5 minutes ago."
             // Ignore possible "1 minutes"; that game is too short to worry about.
         }
 
         if (! gameData.isPractice)   // practice games don't expire
         {
-            String expireMsg = ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.";
-            messageToPlayer(c, gaName, expireMsg);
+            // ">>> This game will expire in 15 minutes."
+            messageToPlayerKeyed(c, gaName, "stats.game.willexpire",
+                Integer.valueOf((int) ((gameData.getExpiration() - System.currentTimeMillis()) / 60000)));
         }
     }
 
