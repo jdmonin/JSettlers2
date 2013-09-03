@@ -56,6 +56,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
@@ -2720,6 +2721,154 @@ public class SOCServer extends Server
     }
 
     /**
+     * Send a localized {@link SOCGameTextMsg} game text message to a game.
+     * Same as {@link #messageToGame(String, String)} but calls each member connection's
+     * {@link StringConnection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
+     *<P>
+     * <b>Locks:</b> If {@code takeMon} is true, takes and releases {@link SOCGameList#takeMonitorForGame(String)}.
+     * Otherwise call {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
+     * before calling this method.
+     *
+     * @param ga  the game object
+     * @param takeMon Should this method take and release
+     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                True unless caller already holds that monitor.
+     * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
+     *            If its localized text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way.
+     *            (See {@link #messageToGameUrgent(String, String)})
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @see #messageToGameKeyed(SOCGame, boolean, String, Object...)
+     * @see #messageToGame(String, String)
+     * @since 2.0.00
+     */
+    public void messageToGameKeyed(SOCGame ga, final boolean takeMon, final String key)
+        throws MissingResourceException
+    {
+        // same code as the other messageToGameKeyed, except for the call to cli.getKeyed;
+        // if you change code here, change it there too
+
+        final boolean hasMultiLocales = ga.hasMultiLocales;
+        final String gaName = ga.getName();
+
+        if (takeMon)
+            gameList.takeMonitorForGame(gaName);
+
+        try
+        {
+            Vector<StringConnection> v = gameList.getMembers(gaName);
+
+            if (v != null)
+            {
+                Enumeration<StringConnection> menum = v.elements();
+
+                String gameTextMsg = null, gameTxtLocale = null;
+                while (menum.hasMoreElements())
+                {
+                    StringConnection c = menum.nextElement();
+                    if (c != null)
+                    {
+                        final String cliLocale = c.getI18NLocale();
+                        if ((gameTextMsg == null)
+                            || (hasMultiLocales
+                                 && (  (cliLocale == null)
+                                       ? (gameTxtLocale != null)
+                                       : ! cliLocale.equals(gameTxtLocale)  )))
+                        {
+                            gameTextMsg = SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key));
+                            gameTxtLocale = cliLocale;
+                        }
+
+                        c.put(gameTextMsg);
+                    }
+                }
+            }
+        }
+        catch (Throwable e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in messageToGameKeyed");
+        }
+
+        if (takeMon)
+            gameList.releaseMonitorForGame(gaName);
+    }
+
+    /**
+     * Send a localized {@link SOCGameTextMsg} game text message (with parameters) to a game.
+     * Same as {@link #messageToGame(String, String)} but calls each member connection's
+     * {@link StringConnection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
+     *<P>
+     * <b>Locks:</b> If {@code takeMon} is true, takes and releases {@link SOCGameList#takeMonitorForGame(String)}.
+     * Otherwise call {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
+     * before calling this method.
+     *
+     * @param ga  the game object
+     * @param takeMon Should this method take and release
+     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                True unless caller already holds that monitor.
+     * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
+     *            If its localized text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way.
+     *            (See {@link #messageToGameUrgent(String, String)})
+     * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
+     *             by calling {@link MessageFormat#format(String, Object...)}.
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @see #messageToGameKeyed(SOCGame, boolean, String)
+     * @see #messageToGame(String, String)
+     * @since 2.0.00
+     */
+    public void messageToGameKeyed(SOCGame ga, final boolean takeMon, final String key, final Object ... params)
+        throws MissingResourceException
+    {
+        // same code as the other messageToGameKeyed, except for the call to cli.getKeyed;
+        // if you change code here, change it there too
+
+        final boolean hasMultiLocales = ga.hasMultiLocales;
+        final String gaName = ga.getName();
+
+        if (takeMon)
+            gameList.takeMonitorForGame(gaName);
+
+        try
+        {
+            Vector<StringConnection> v = gameList.getMembers(gaName);
+
+            if (v != null)
+            {
+                Enumeration<StringConnection> menum = v.elements();
+
+                String gameTextMsg = null, gameTxtLocale = null;
+                while (menum.hasMoreElements())
+                {
+                    StringConnection c = menum.nextElement();
+                    if (c != null)
+                    {
+                        final String cliLocale = c.getI18NLocale();
+                        if ((gameTextMsg == null)
+                            || (hasMultiLocales
+                                 && (  (cliLocale == null)
+                                       ? (gameTxtLocale != null)
+                                       : ! cliLocale.equals(gameTxtLocale)  )))
+                        {
+                            gameTextMsg = SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key, params));
+                            gameTxtLocale = cliLocale;
+                        }
+
+                        c.put(gameTextMsg);
+                    }
+                }
+            }
+        }
+        catch (Throwable e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in messageToGameKeyed");
+        }
+
+        if (takeMon)
+            gameList.releaseMonitorForGame(gaName);
+    }
+
+    /**
      * Send a message to the given game.
      *<P>
      *<b>Locks:</b> MUST HAVE THE
@@ -2802,6 +2951,7 @@ public class SOCServer extends Server
      *            an urgent message, and draw the user's attention in some way.
      *            (See {@link #messageToGameUrgent(String, String)})
      * @param args  Any parameters within {@code txt}'s placeholders
+     * @see #messageToGameKeyed(SOCGame, boolean, String, Object...)
      * @see #messageToGame(String, String)
      * @see #messageFormatToPlayer(StringConnection, String, String, Object...)
      * @since 2.0.00
@@ -4547,7 +4697,7 @@ public class SOCServer extends Server
         scd.localeStr = clocale;
         scd.locale = I18n.parseLocale(clocale);  // TODO may throw IllegalArgumentException
         System.err.println("client locale is: " + scd.locale);  // JM temp for now; do something with it soon?
-        c.setI18NStringManager(SOCStringManager.getServerManagerForClient(scd.locale));
+        c.setI18NStringManager(SOCStringManager.getServerManagerForClient(scd.locale), clocale);
 
         if (prevVers == -1)
             scd.clearVersionTimer();
@@ -4846,7 +4996,7 @@ public class SOCServer extends Server
      * match this server's {@link #robotCookie}.
      *<P>
      * Bot tuning parameters are sent to the bot.  Its {@link SOCClientData#isRobot} flag is set.  Its
-     * {@link SOCClientData#locale} is cleared, but not its {@link StringConnection#setI18NStringManager(SOCStringManager)}.
+     * {@link SOCClientData#locale} is cleared, but not its {@link StringConnection#setI18NStringManager(SOCStringManager, String)}.
      *<P>
      * Sometimes a bot disconnects and quickly reconnects.  In that case
      * this method removes the disconnect/reconnect messages from
@@ -5925,7 +6075,7 @@ public class SOCServer extends Server
                                }
                              */
                             gameList.takeMonitorForGame(gaName);
-                            messageFormatToGame(gaName, false, "{0} built a road.", plName);
+                            messageToGameKeyed(ga, false, "action.built.road", plName);  // "Joe built a road."
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.ROAD, coord));
                             if (! ga.pendingMessagesOut.isEmpty())
                             {
@@ -5984,7 +6134,7 @@ public class SOCServer extends Server
                         {
                             ga.putPiece(se);   // Changes game state and (if game start) player
                             gameList.takeMonitorForGame(gaName);
-                            messageFormatToGame(gaName, false, "{0} built a settlement.", plName);
+                            messageToGameKeyed(ga, false, "action.built.stlmt", plName);  // "Joe built a settlement."
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SETTLEMENT, coord));
                             if (! ga.pendingMessagesOut.isEmpty())
                             {
@@ -6035,7 +6185,7 @@ public class SOCServer extends Server
 
                             ga.putPiece(ci);  // changes game state and maybe player
                             gameList.takeMonitorForGame(gaName);
-                            messageFormatToGame(gaName, false, "{0} built a city.", plName);
+                            messageToGameKeyed(ga, false, "action.built.city", plName);  // "Joe built a city."
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.CITY, coord));
                             if (! ga.pendingMessagesOut.isEmpty())
                             {
@@ -6084,7 +6234,7 @@ public class SOCServer extends Server
                             ga.putPiece(sh);  // Changes state and sometimes player (during initial placement)
 
                             gameList.takeMonitorForGame(gaName);
-                            messageFormatToGame(gaName, false, "{0} built a ship.", plName);
+                            messageToGameKeyed(ga, false, "action.built.ship", plName);  // "Joe built a ship."
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SHIP, coord));
                             if (! ga.pendingMessagesOut.isEmpty())
                             {
@@ -9950,7 +10100,7 @@ public class SOCServer extends Server
         case SOCGame.START1A:
         case SOCGame.START2A:
         case SOCGame.START3A:
-            messageFormatToGame(gname, true, "It''s {0}''s turn to build a settlement.", player.getName());
+            messageToGameKeyed(ga, true, "prompt.turn.to.build.stlmt",  player.getName());  // "It's Joe's turn to build a settlement."
             if ((ga.getGameState() >= SOCGame.START2A)
                 && ga.isGameOptionSet(SOCGameOption.K_SC_3IP))
             {
@@ -9969,14 +10119,14 @@ public class SOCServer extends Server
         case SOCGame.START1B:
         case SOCGame.START2B:
         case SOCGame.START3B:
-            messageFormatToGame(gname, true,
-                ((ga.hasSeaBoard) ? "It''s {0}''s turn to build a road or ship."
-                    : "It''s {0}''s turn to build a road."),
+            messageToGameKeyed(ga, true,
+                ((ga.hasSeaBoard) ? "prompt.turn.to.build.road.or.ship"  // "It's Joe's turn to build a road or ship."
+                    : "prompt.turn.to.build.road"),
                 player.getName());
             break;
 
         case SOCGame.PLAY:
-            messageFormatToGame(gname, true, "It''s {0}''s turn to roll the dice.", player.getName());
+            messageToGameKeyed(ga, true, "prompt.turn.to.roll.dice", player.getName());  // "It's Joe's turn to roll the dice."
             promptedRoll = true;
             if (sendRollPrompt)
                 messageToGame(gname, new SOCRollDicePrompt (gname, player.getPlayerNumber()));
@@ -10694,7 +10844,7 @@ public class SOCServer extends Server
         /**
          * ga.startGame() picks who goes first, but feedback is nice
          */
-        messageToGameWithMon(gaName, "Randomly picking a starting player...");
+        messageToGameKeyed(ga, false, "action.picking.random.starting.player");  // "Randomly picking a starting player..."
 
         gameList.releaseMonitorForGame(gaName);
 
