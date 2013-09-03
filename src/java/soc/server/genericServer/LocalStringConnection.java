@@ -93,6 +93,13 @@ public class LocalStringConnection
     protected Object appData;
 
     /**
+     * The server-side locale for this client connection, for app-specific message formatting.
+     * Not used or referenced by the generic server layer.
+     * @since 1.2.0
+     */
+    protected String localeStr;
+
+    /**
      * The server-side string manager for app-specific client message formatting.
      * Not used or referenced by the generic server layer.
      * @since 1.2.0
@@ -449,9 +456,16 @@ public class LocalStringConnection
     }
 
     // javadoc inherited from StringConnection
-    public void setI18NStringManager(SOCStringManager mgr)
+    public String getI18NLocale()
+    {
+        return localeStr;
+    }
+
+    // javadoc inherited from StringConnection
+    public void setI18NStringManager(SOCStringManager mgr, final String loc)
     {
         stringMgr = mgr;
+        localeStr = loc;
     }
 
     // javadoc inherited from StringConnection

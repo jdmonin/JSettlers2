@@ -39,7 +39,7 @@ import soc.util.SOCStringManager;
  *                       setVersionTracking, isInputAvailable,
  *                       wantsHideTimeoutMessage, setHideTimeoutMessage
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed; remove unused import EOFException
- *  1.2.0 - 2013-09-01- for I18N, add {@link #setI18NStringManager(SOCStringManager)} and {@link #getLocalized(String)}
+ *  1.2.0 - 2013-09-01- for I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and {@link #getLocalized(String)}
  *</PRE>
  *
  * @author Jeremy D Monin <jeremy@nand.net>
@@ -132,12 +132,20 @@ public interface StringConnection
     public abstract void setAppData(Object data);
 
     /**
-     * Set the I18N string manager for this connection, for server convenience.
-     * Used for {@link #getLocalized(String)}.
-     * @param mgr  String manager, or null
+     * Get the locale for this connection, as reported to {@link #setI18NStringManager(SOCStringManager, String)}.
+     * @return the locale passed to {@code setI18NStringManager}, which may be {@code null}
      * @since 1.2.0
      */
-    public abstract void setI18NStringManager(SOCStringManager mgr);
+    public abstract String getI18NLocale();
+
+    /**
+     * Set the I18N string manager and locale name for this connection, for server convenience.
+     * Used for {@link #getLocalized(String)}.
+     * @param mgr  String manager, or null
+     * @param loc  Locale name, used only for {@link #getI18NLocale()}
+     * @since 1.2.0
+     */
+    public abstract void setI18NStringManager(SOCStringManager mgr, String loc);
 
     /**
      * Get a localized string (having no parameters) with the given key.
