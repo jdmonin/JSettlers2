@@ -47,6 +47,11 @@ public class SOCStringManager {
     private static Hashtable<String, SOCStringManager> serverManagerForClientLocale
         = new Hashtable<String, SOCStringManager>();
 
+    /**
+     * Fallback for {@link #serverManagerForClientLocale} using server's default locale.
+     */
+    private static SOCStringManager serverManagerForClientLocale_fallback;
+
     private ResourceBundle bundle;
 
     /**
@@ -141,4 +146,21 @@ public class SOCStringManager {
         return smc;
     }
 
+    /**
+     * Create or retrieve the server's string manager for fallback to send text to clients with unknown locale.
+     * Can be used for messages while a client hasn't yet sent their locale.
+     * @return  The server string manager with default locale
+     */
+    public static SOCStringManager getFallbackServerManagerForClient() {
+        SOCStringManager sm = serverManagerForClientLocale_fallback;
+        if (sm == null)
+        {
+            sm = getServerManagerForClient(null);
+            serverManagerForClientLocale_fallback = sm;
+            // multithreading: If multiple threads race to initialize this field,
+            // any of the created objects will have the same contents and function
+        }
+
+        return sm;
+    }
 }

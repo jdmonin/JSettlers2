@@ -458,14 +458,22 @@ public class LocalStringConnection
     public String getLocalized(final String key)
         throws MissingResourceException
     {
-        return stringMgr.get(key);
+        SOCStringManager sm = stringMgr;
+        if (sm == null)
+            sm = SOCStringManager.getFallbackServerManagerForClient();
+
+        return sm.get(key);
     }
 
     // javadoc inherited from StringConnection
     public String getLocalized(final String key, final Object ... arguments)
         throws MissingResourceException
     {
-        return stringMgr.get(key, arguments);
+        SOCStringManager sm = stringMgr;
+        if (sm == null)
+            sm = SOCStringManager.getFallbackServerManagerForClient();
+
+        return sm.get(key, arguments);
     }
 
     /**
