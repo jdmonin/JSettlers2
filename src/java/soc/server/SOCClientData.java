@@ -42,12 +42,26 @@ public class SOCClientData
     /**
      * Client's reported JVM locale, or {@code null}, as in {@link java.util.Locale#getDefault()}.
      * Sent via {@link Locale#toString()} as part of the SOCVersion message.
+     * Kept as {@link #localeStr} and also parsed to this field.
      * Not sent from jsettlers clients older than 2.0.00;
      * if null, should probably assume <tt>en_US</tt>
      * since older versions had all messages in english.
+     * Bots always use a {@code null} locale; they don't care about message text contents, and a
+     * null locale means they won't set any {@code SOCGame.hasMultiLocales} flag by joining.
      * @since 2.0.00
      */
     public Locale locale;
+
+    /**
+     * Client's reported JVM locale, or {@code null}, as in {@link java.util.Locale#toString()}.
+     * Sent as part of the SOCVersion message, kept here and also parsed to {@link #locale}.
+     * Not sent from jsettlers clients older than 2.0.00;
+     * if null, should probably assume <tt>en_US</tt>
+     * since older versions had all messages in english.
+     * Bots always use a {@code null} locale, see {@link #locale} javadoc for details.
+     * @since 2.0.00
+     */
+    public String localeStr;
 
     /**
      * Number of games/channels this client has created, which currently exist (not deleted)

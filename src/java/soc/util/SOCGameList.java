@@ -356,7 +356,7 @@ public class SOCGameList
      *<P>
      * Client should instead call {@link #addGame(String, String, boolean)} because game options should
      * remain unparsed as late as possible.
-     * Server should instead call {@link soc.server.SOCGameListAtServer#createGame(String, String, Hashtable)}.
+     * Server should instead call {@link soc.server.SOCGameListAtServer#createGame(String, String, String, Hashtable)}.
      *
      * @param gaName Name of added game; may be marked with the prefix
      *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.

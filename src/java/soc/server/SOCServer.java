@@ -261,7 +261,7 @@ public class SOCServer extends Server
     /**
      * If game will expire in this or fewer minutes, warn the players. Default 10.
      * Must be at least twice the sleep-time in {@link SOCGameTimeoutChecker#run()}.
-     * The game expiry time is set at game creation in {@link SOCGameListAtServer#createGame(String, String, Hashtable)}.
+     * The game expiry time is set at game creation in {@link SOCGameListAtServer#createGame(String, String, String, Hashtable)}.
      *
      * @see #checkForExpiredGames(long)
      * @see SOCGameTimeoutChecker#run()
@@ -1219,7 +1219,8 @@ public class SOCServer extends Server
             try
             {
                 // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES .
-                SOCGame newGame = gameList.createGame(gaName, (String) c.getData(), gaOpts);
+                SOCClientData scd = (SOCClientData) c.getAppData();
+                SOCGame newGame = gameList.createGame(gaName, (String) c.getData(), scd.localeStr, gaOpts);
                 if ((strSocketName != null) && (strSocketName.equals(PRACTICE_STRINGPORT)))
                 {
                     newGame.isPractice = true;  // flag if practice game (set since 1.1.09)
@@ -1233,7 +1234,7 @@ public class SOCServer extends Server
                 gameList.releaseMonitor();
                 monitorReleased = true;
                 result = true;
-                ((SOCClientData) c.getAppData()).createdGame();
+                scd.createdGame();
 
                 // check required client version before we broadcast
                 final int cversMin = getMinConnectedCliVersion();
@@ -4543,6 +4544,7 @@ public class SOCServer extends Server
                 clocale = clocale.substring(0, hashIdx);
             }
         }
+        scd.localeStr = clocale;
         scd.locale = I18n.parseLocale(clocale);  // TODO may throw IllegalArgumentException
         System.err.println("client locale is: " + scd.locale);  // JM temp for now; do something with it soon?
         c.setI18NStringManager(SOCStringManager.getServerManagerForClient(scd.locale));
@@ -4843,6 +4845,9 @@ public class SOCServer extends Server
      * For stability and control, the cookie in this message must
      * match this server's {@link #robotCookie}.
      *<P>
+     * Bot tuning parameters are sent to the bot.  Its {@link SOCClientData#isRobot} flag is set.  Its
+     * {@link SOCClientData#locale} is cleared, but not its {@link StringConnection#setI18NStringManager(SOCStringManager)}.
+     *<P>
      * Sometimes a bot disconnects and quickly reconnects.  In that case
      * this method removes the disconnect/reconnect messages from
      * {@link Server#cliConnDisconPrintsPending} so they won't be printed.
@@ -4962,6 +4967,11 @@ public class SOCServer extends Server
         scd.isBuiltInRobot = isBuiltIn;
         if (! isBuiltIn)
             scd.robot3rdPartyBrainClass = rbc;
+
+        scd.locale = null;  // bots don't care about message text contents
+        scd.localeStr = null;
+        // Note that if c.setI18NStringManager was called, it's not cleared here
+
         nameConnection(c);
     }
 

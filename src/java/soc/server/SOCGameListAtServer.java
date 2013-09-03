@@ -40,7 +40,7 @@ import soc.util.Version;
  * {@link SOCGame} object, and clients ({@link StringConnection}s).
  *<P>
  * In 1.1.07, parent class SOCGameList was refactored, with
- * some methods moved to this new subclass, such as {@link #createGame(String, String, Hashtable) createGame}.
+ * some methods moved to this new subclass, such as {@link #createGame(String, String, String, Hashtable) createGame}.
  *
  * @see SOCBoardLargeAtServer
  * @author Jeremy D Monin <jeremy@nand.net>
@@ -52,7 +52,7 @@ public class SOCGameListAtServer extends SOCGameList
      * Number of minutes after which a game (created on the list) is expired.
      * Default is 90.
      *
-     * @see #createGame(String, String, Hashtable)
+     * @see #createGame(String, String, String, Hashtable)
      * @see SOCServer#checkForExpiredGames(long)
      */
     public static int GAME_EXPIRE_MINUTES = 90;
@@ -161,6 +161,17 @@ public class SOCGameListAtServer extends SOCGameList
                     ga.clientVersionHighest = cliVers;
                 }
             }
+
+            if (! ga.hasMultiLocales)
+            {
+                final String gaLocale = ga.getOwnerLocale();
+                if (gaLocale != null)
+                {
+                    final SOCClientData scd = (SOCClientData) conn.getAppData();
+                    if ((scd != null) && (scd.localeStr != null) && ! gaLocale.equals(scd.localeStr))
+                        ga.hasMultiLocales = true;  // client's locale differs from other game members'
+                }
+            }
         }
     }
 
@@ -250,13 +261,15 @@ public class SOCGameListAtServer extends SOCGameList
      *
      * @param gaName  the name of the game
      * @param gaOwner the game owner/creator's player name, or null (added in 1.1.10)
+     * @param gaLocaleStr  the game creator's locale, to later set {@link SOCGame#hasMultiLocales} if needed (added in 2.0.00)
      * @param gaOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      *                Should already be validated, by calling
      *                {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}
      *                with <tt>doServerPreadjust</tt> true.
      * @return new game object, or null if it already existed
      */
-    public synchronized SOCGame createGame(final String gaName, final String gaOwner, Hashtable<String, SOCGameOption> gaOpts)
+    public synchronized SOCGame createGame
+        (final String gaName, final String gaOwner, final String gaLocaleStr, Hashtable<String, SOCGameOption> gaOpts)
     {
         if (isGame(gaName))
             return null;
@@ -271,7 +284,7 @@ public class SOCGameListAtServer extends SOCGameList
 
         SOCGame game = new SOCGame(gaName, gaOpts);
         if (gaOwner != null)
-            game.setOwner(gaOwner);
+            game.setOwner(gaOwner, gaLocaleStr);
 
         // set the expiration to 90 min. from now
         game.setExpiration(game.getStartTime().getTime() + (60 * 1000 * GAME_EXPIRE_MINUTES));

@@ -613,6 +613,17 @@ public class SOCGame implements Serializable, Cloneable
     private String ownerName;
 
     /**
+     * Locale of the client connection that created this game.
+     * Used to determine whether to set {@link #hasMultiLocales} when adding a member to the game.
+     * Currently, if the game is reset, {@link #resetAsCopy()} copies {@code ownerLocale},
+     * even if they aren't still connected to the game.
+     *<P>
+     * Server only, this field is not set at client.
+     * @since 2.0.00
+     */
+    private String ownerLocale;
+
+    /**
      * true if this game is ACTIVE
      */
     private boolean active;
@@ -685,6 +696,14 @@ public class SOCGame implements Serializable, Cloneable
      * Value may sometimes be too low at client, see {@link #getClientVersionMinRequired()} for details.
      */
     private int clientVersionMinRequired;
+
+    /**
+     * For use at server for i18n; does this game have any members (players or observers)
+     * with a locale different than {@link #getOwnerLocale()}?
+     * Initially false, set true in {@code SOCGameListAtServer.addMember} if needed. 
+     * @since 2.0.00
+     */
+    public boolean hasMultiLocales;
 
     /**
      * Are we in the 'free placement' debug mode?
@@ -1303,6 +1322,7 @@ public class SOCGame implements Serializable, Cloneable
      * Even if the owner leaves the game, their name may be retained here.
      * @return the owner's player name, or null if {@link #setOwner(String)} was never called
      * @since 1.1.10
+     * @see #getOwnerLocale()
      */
     public String getOwner()
     {
@@ -1313,15 +1333,27 @@ public class SOCGame implements Serializable, Cloneable
      * For games at the server, set the game owner (creator).
      * Will be the name of a player / server connection.
      * @param gameOwnerName The game owner's player name, or null to clear
+     * @param gameOwnerLocale  The game owner's locale, or {@code null} to clear
      * @since 1.1.10
      * @throws IllegalStateException if <tt>gameOwnerName</tt> not null, but the game's owner is already set
      */
-    public void setOwner(final String gameOwnerName)
+    public void setOwner(final String gameOwnerName, final String gameOwnerLocale)
         throws IllegalStateException
     {
         if ((ownerName != null) && (gameOwnerName != null))
             throw new IllegalStateException("owner already set");
         ownerName = gameOwnerName;
+        ownerLocale = gameOwnerLocale;
+    }
+
+    /**
+     * For games at the server, get the game owner (creator)'s locale, or {@code null}.
+     * Used by {@code SOCGameListAtServer.addMember} to determine whether to set {@link #hasMultiLocales}.
+     * @since 2.0.00
+     */
+    public final String getOwnerLocale()
+    {
+        return ownerLocale;
     }
 
     /**
@@ -6958,6 +6990,8 @@ public class SOCGame implements Serializable, Cloneable
         cp.isAtServer = isAtServer;
         cp.isPractice = isPractice;
         cp.ownerName = ownerName;
+        cp.ownerLocale = ownerLocale;
+        cp.hasMultiLocales = hasMultiLocales;
         cp.scenarioEventListener = scenarioEventListener;
         cp.clientVersionLowest = clientVersionLowest;
         cp.clientVersionHighest = clientVersionHighest;
