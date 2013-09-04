@@ -702,6 +702,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * generic "simple action" announcements from the server.
+             * Added 2013-09-04 for v1.1.19.
+             */
+            case SOCMessage.SIMPLEACTION:
+                handleSIMPLEACTION((SOCSimpleAction) mes);
+                break;
+
+            /**
              * move a previous piece (a ship) somewhere else on the board.
              * Added 2011-12-05 for v2.0.00.
              */
@@ -1867,6 +1875,29 @@ public class SOCDisplaylessPlayerClient implements Runnable
         greset.isPractice = ga.isPractice;
         games.put(gname, greset);
         ga.destroyGame();
+    }
+
+    /**
+     * Handle "simple action" announcements from the server.
+     * Currently a stub for SOCDisplaylessPlayerClient.
+     * @since 1.1.19
+     */
+    private final void handleSIMPLEACTION(final SOCSimpleAction mes)
+    {
+        /*
+          code if not a stub:
+
+        final String gaName = mes.getGame();
+        SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;  // Not one of our games
+
+        switch (mes.getActionType())
+        {
+        default:
+            // ignore unknown types
+        }
+        */
     }
 
     /**

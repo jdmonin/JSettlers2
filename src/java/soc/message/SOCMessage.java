@@ -50,7 +50,7 @@ import java.util.StringTokenizer;
  *<P>
  * To create and add a new message type:
  *<UL>
- * <LI> Decide the message type name.  Add to the end of the constant list in this
+ * <LI> Decide on the message type name.  Add to the end of the constant list in this
  *      class.  Add a comment to note the JSettlers version in which it was introduced, and the date.
  * <LI> If the new message is for something that any kind of game can use,
  *      give it the next available type ID number in the list (10xx).
@@ -213,46 +213,50 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  @since 1.1.18 */
     public static final int SIMPLEREQUEST = 1089;  // simple player requests, 20130217, v1.1.18
 
+    /** {@link SOCSimpleAction} - Generic message type for simple actions for players.
+     *  @since 1.1.19 */
+    public static final int SIMPLEACTION = 1090;  // simple player actions, 20130904, v1.1.19
+
     /** Ask server to move a piece to another location.
      *  Server replies with {@link #MOVEPIECE} if okay.
      *  @since 2.0.00 */
-    public static final int MOVEPIECEREQUEST = 1090;  // move piece request, 20111203, v2.0.00
+    public static final int MOVEPIECEREQUEST = 1091;  // move piece request, 20111203, v2.0.00
 
     /** Move a piece to another location; server reply to {@link #MOVEPIECEREQUEST}.
      *  @since 2.0.00 */
-    public static final int MOVEPIECE = 1091;  // move piece, 20111203, v2.0.00
+    public static final int MOVEPIECE = 1092;  // move piece, 20111203, v2.0.00
 
     /** {@link SOCRemovePiece} - Remove a piece from the board; currently used only with ships.
      *  @since 2.0.00 */
-    public static final int REMOVEPIECE = 1092;  // pirate islands scenario, 20130218, v2.0.00
+    public static final int REMOVEPIECE = 1093;  // pirate islands scenario, 20130218, v2.0.00
 
     /** Ask client to pick this many resources,
      *  when they have a settlement or city next to a gold hex.
      *  Client replies with {@link #PICKRESOURCES}.
      *  @since 2.0.00 */
-    public static final int PICKRESOURCESREQUEST = 1093;  // gold hex resources, 20120112, v2.0.00
+    public static final int PICKRESOURCESREQUEST = 1094;  // gold hex resources, 20120112, v2.0.00
 
     /** Client reply to {@link #PICKRESOURCESREQUEST}.
      *  Has picked these resource types/counts.
      *  @since 2.0.00 */
-    public static final int PICKRESOURCES = 1094;  // gold hex resources, 20120112, v2.0.00
+    public static final int PICKRESOURCES = 1095;  // gold hex resources, 20120112, v2.0.00
 
     /** Reveal a hidden hex on the board; server to all clients in game.
      *  @since 2.0.00 */
-    public static final int REVEALFOGHEX = 1095;  // fog hexes, 20121108, v2.0.00
+    public static final int REVEALFOGHEX = 1096;  // fog hexes, 20121108, v2.0.00
 
     /** Update the value(s) of a piece on the board.
      *  @since 2.0.00 */
-    public static final int PIECEVALUE = 1096;  // cloth villages scenario, 20121115, v2.0.00
+    public static final int PIECEVALUE = 1097;  // cloth villages scenario, 20121115, v2.0.00
 
     /** Legal road or ship edges for the large sea board.
      *  @since 2.0.00 */
-    public static final int LEGALEDGES = 1097;  // large sea board, 20121216, v2.0.00 
+    public static final int LEGALEDGES = 1098;  // large sea board, 20121216, v2.0.00 
 
     /** Text that a player has been awarded Special Victory Point(s).
      *  The server will also send a {@link SOCPlayerElement} with the SVP total.
      *  @since 2.0.00 */
-    public static final int SVPTEXTMSG = 1098;  // SVP text messages, 20121221, v2.0.00 
+    public static final int SVPTEXTMSG = 1099;  // SVP text messages, 20121221, v2.0.00 
 
 
     /////////////////////////////////////////
@@ -827,6 +831,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case SIMPLEREQUEST:     // simple player requests, 20130217, v1.1.18
                 return SOCSimpleRequest.parseDataStr(data);
+
+            case SIMPLEACTION:     // simple actions for players, 20130904, v1.1.19
+                return SOCSimpleAction.parseDataStr(data);
 
             case MOVEPIECEREQUEST:  // move piece request, 20111203, v2.0.00
                 return SOCMovePieceRequest.parseDataStr(data);

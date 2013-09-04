@@ -740,7 +740,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.RESETBOARDAUTH:
                 handleRESETBOARDAUTH((SOCResetBoardAuth) mes);
+                break;
 
+            /**
+             * generic "simple action" announcements from the server.
+             * Added 2013-09-04 for v1.1.19.
+             */
+            case SOCMessage.SIMPLEACTION:
+                handlePutBrainQ((SOCSimpleAction) mes);
                 break;
 
             /**

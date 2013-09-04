@@ -2793,6 +2793,14 @@ public class SOCPlayerClient
                 break;
 
             /**
+             * generic "simple action" announcements from the server.
+             * Added 2013-09-04 for v1.1.19.
+             */
+            case SOCMessage.SIMPLEACTION:
+                handleSIMPLEACTION((SOCSimpleAction) mes);
+                break;
+
+            /**
              * move a previous piece (a ship) somewhere else on the board.
              * Added 2011-12-05 for v2.0.00.
              */
@@ -4453,6 +4461,26 @@ public class SOCPlayerClient
             // unknown type
             System.err.println
                 ("handleSIMPLEREQUEST: Unknown type " + mes.getRequestType() + " in game " + gaName);
+        }
+    }
+
+    /**
+     * Handle "simple action" announcements from the server.
+     * @since 1.1.19
+     */
+    private final void handleSIMPLEACTION(final SOCSimpleAction mes)
+    {
+        final String gaName = mes.getGame();
+        PlayerClientListener pcl = clientListeners.get(gaName);
+        if (pcl == null)
+            return;  // Not one of our games
+
+        switch (mes.getActionType())
+        {
+        default:
+            // ignore unknown types
+            System.err.println
+                ("handleSIMPLEACTION: Unknown type ignored: " + mes.getActionType() + " in game " + gaName);
         }
     }
 
