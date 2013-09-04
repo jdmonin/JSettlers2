@@ -65,6 +65,7 @@ import soc.message.SOCRejectOffer;
 import soc.message.SOCResourceCount;
 import soc.message.SOCSetPlayedDevCard;
 import soc.message.SOCSetTurn;
+import soc.message.SOCSimpleAction;
 import soc.message.SOCSitDown;  // for javadoc
 import soc.message.SOCTurn;
 
@@ -1400,16 +1401,13 @@ public class SOCRobotBrain extends Thread
                         }
                     }
 
-                    if (waitingForTradeMsg && (mesType == SOCMessage.GAMETEXTMSG)
-                        && (((SOCGameTextMsg) mes).getNickname().equals(SOCGameTextMsg.SERVERNAME)))
+                    if (waitingForTradeMsg && (mesType == SOCMessage.SIMPLEACTION)
+                        && (((SOCSimpleAction) mes).getActionType() == SOCSimpleAction.TRADE_SUCCESSFUL))
                     {
                         //
-                        // This might be the trade message we've been waiting for
+                        // This is the trade message we've been waiting for
                         //
-                        if (((SOCGameTextMsg) mes).getText().startsWith(client.getNickname() + " traded"))
-                        {
-                            waitingForTradeMsg = false;
-                        }
+                        waitingForTradeMsg = false;
                     }
 
                     if (waitingForDevCard && (mesType == SOCMessage.GAMETEXTMSG)

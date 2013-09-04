@@ -7898,7 +7898,8 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
-        SOCGame ga = gameList.getGameData(mes.getGame());
+        final String gaName = mes.getGame();
+        SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
             return;
 
@@ -7915,10 +7916,15 @@ public class SOCServer extends Server
                 {
                     ga.makeBankTrade(give, get);
                     reportBankTrade(ga, give, get);
+
+                    final int cpn = ga.getCurrentPlayerNumber();
+                    final SOCPlayer cpl = ga.getPlayer(cpn);
+                    if (cpl.isRobot())
+                        c.put(SOCSimpleAction.toCmd(gaName, cpn, SOCSimpleAction.TRADE_SUCCESSFUL, 0, 0));
                 }
                 else
                 {
-                    messageToPlayer(c, ga.getName(), "You can't make that trade.");
+                    messageToPlayer(c, gaName, "You can't make that trade.");
                     SOCClientData scd = (SOCClientData) c.getAppData();
                     if ((scd != null) && scd.isRobot)
                         D.ebugPrintln("ILLEGAL BANK TRADE: " + c.getData()
@@ -7927,7 +7933,7 @@ public class SOCServer extends Server
             }
             else
             {
-                messageToPlayer(c, ga.getName(), "It's not your turn.");
+                messageToPlayer(c, gaName, "It's not your turn.");
             }
         }
         catch (Exception e)
