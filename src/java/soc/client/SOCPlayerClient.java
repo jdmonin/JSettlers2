@@ -4475,12 +4475,17 @@ public class SOCPlayerClient
         if (pcl == null)
             return;  // Not one of our games
 
-        switch (mes.getActionType())
+        final int atype = mes.getActionType();
+        switch (atype)
         {
+        case SOCSimpleAction.DEVCARD_BOUGHT:
+            pcl.simpleAction(mes.getPlayerNumber(), atype, mes.getValue1(), mes.getValue2());
+            break;
+
         default:
             // ignore unknown types
             System.err.println
-                ("handleSIMPLEACTION: Unknown type ignored: " + mes.getActionType() + " in game " + gaName);
+                ("handleSIMPLEACTION: Unknown type ignored: " + atype + " in game " + gaName);
         }
     }
 

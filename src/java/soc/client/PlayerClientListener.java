@@ -257,7 +257,18 @@ public interface PlayerClientListener
      * @param message  Message text
      */
     void messageSent(String nickname, String message);
-    
+
+    /**
+     * A {@link soc.message.SOCSimpleAction "simple action"} has occurred in the game and should be displayed.
+     *<P>
+     * This will be called only after other game data is updated (number of dev cards, resource gains/loss, etc).
+     * @param pn  The player number acting or acted on
+     * @param acttype  The action type, from {@link soc.message.SOCSimpleAction} constants for simplicity
+     * @param value1  First optional detail value, or 0
+     * @param value2  Second optional detail value, or 0
+     */
+    void simpleAction(int pn, int acttype, int value1, int value2);
+
     void buildRequestCanceled(SOCPlayer player);
 
     /**

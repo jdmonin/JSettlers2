@@ -41,6 +41,7 @@ import soc.game.SOCScenarioPlayerEvent;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCVillage;
+import soc.message.SOCSimpleAction;  // for action type constants
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -3189,6 +3190,28 @@ public class SOCPlayerInterface extends Frame
                 {
                     pi.chatPrint(nickname + ": " + message);
                 }
+            }
+        }
+
+        public final void simpleAction(final int pn, final int acttype, final int value1, final int value2)
+        {
+            switch (acttype)
+            {
+            case SOCSimpleAction.DEVCARD_BOUGHT:
+                {
+                    pi.print("* " + strings.get("game.devcard.bought", pi.game.getPlayer(pn).getName()));
+                    final String key;
+                    if (value1 > 1)
+                        key = "game.devcard.bought.xleft";  // "There are 5 cards left."
+                    else if (value1 == 1)
+                        key = "game.devcard.bought.1left";  // "There is 1 card left."
+                    else
+                        key = "game.devcard.bought.0left";  // "There are no more Development cards."
+                    pi.print("* " + strings.get(key, value1));
+                    break;
+                }
+
+            // default: ignore unknown action types
             }
         }
 

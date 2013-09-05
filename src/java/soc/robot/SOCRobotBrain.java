@@ -1405,21 +1405,20 @@ public class SOCRobotBrain extends Thread
                         && (((SOCSimpleAction) mes).getActionType() == SOCSimpleAction.TRADE_SUCCESSFUL))
                     {
                         //
-                        // This is the trade message we've been waiting for
+                        // This is the bank/port trade message we've been waiting for;
+                        // is sent to only the trading player
                         //
                         waitingForTradeMsg = false;
                     }
 
-                    if (waitingForDevCard && (mesType == SOCMessage.GAMETEXTMSG)
-                        && (((SOCGameTextMsg) mes).getNickname().equals(SOCGameTextMsg.SERVERNAME)))
+                    if (waitingForDevCard && (mesType == SOCMessage.SIMPLEACTION)
+                        && (((SOCSimpleAction) mes).getPlayerNumber() == ourPlayerNumber)
+                        && (((SOCSimpleAction) mes).getActionType() == SOCSimpleAction.DEVCARD_BOUGHT))
                     {
                         //
-                        // This might be the dev card message we've been waiting for
+                        // This is the "dev card bought" message we've been waiting for
                         //
-                        if (((SOCGameTextMsg) mes).getText().equals(client.getNickname() + " bought a development card."))
-                        {
-                            waitingForDevCard = false;
-                        }
+                        waitingForDevCard = false;
                     }
 
                     if (((game.getGameState() == SOCGame.PLAY1) || (game.getGameState() == SOCGame.SPECIAL_BUILDING))

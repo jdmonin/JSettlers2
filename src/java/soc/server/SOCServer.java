@@ -8286,19 +8286,39 @@ public class SOCServer extends Server
                             (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
                              c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
                     }
-                    messageFormatToGame(gaName, true, "{0} bought a development card.", (String) c.getData());
 
-                    if (ga.getNumDevCards() > 1)
+                    final int remain = ga.getNumDevCards();
+                    final SOCSimpleAction actmsg = new SOCSimpleAction
+                        (gaName, pn, SOCSimpleAction.DEVCARD_BOUGHT, remain, 0);
+
+                    if (ga.clientVersionLowest >= SOCSimpleAction.VERSION_FOR_SIMPLEACTION)
                     {
-                        messageFormatToGame(gaName, true, "There are {0} cards left.", ga.getNumDevCards());
-                    }
-                    else if (ga.getNumDevCards() == 1)
-                    {
-                        messageToGame(gaName, "There is 1 card left.");
-                    }
-                    else
-                    {
-                        messageToGame(gaName, "There are no more Development cards.");
+                        messageToGame(gaName, actmsg);
+                    } else {
+                        gameList.takeMonitorForGame(gaName);
+
+                        messageToGameForVersions
+                            (ga, SOCSimpleAction.VERSION_FOR_SIMPLEACTION, Integer.MAX_VALUE, actmsg, false);
+
+                        // Only pre-1.1.19 clients will get the game text messages, so they're
+                        // older than the i18n work; skip text key lookups, give them english
+
+                        final String boughtTxt = MessageFormat.format("{0} bought a development card.", player.getName());
+                        messageToGameForVersions(ga, -1, SOCSimpleAction.VERSION_FOR_SIMPLEACTION - 1,
+                                new SOCGameTextMsg(gaName, SERVERNAME, boughtTxt), false);
+
+                        final String remainTxt;
+                        if (remain > 1)
+                            remainTxt = MessageFormat.format("There are {0,number} cards left.", ga.getNumDevCards());
+                        else if (remain == 1)
+                            remainTxt = "There is 1 card left.";
+                        else
+                            remainTxt = "There are no more Development cards.";
+
+                        messageToGameForVersions(ga, -1, SOCSimpleAction.VERSION_FOR_SIMPLEACTION - 1,
+                                new SOCGameTextMsg(gaName, SERVERNAME, remainTxt), false);
+
+                        gameList.releaseMonitorForGame(gaName);
                     }
 
                     sendGameState(ga);
