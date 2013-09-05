@@ -27,13 +27,12 @@ import java.util.StringTokenizer;
  * This message contains a text message for a SoC game.
  * Seen by {@link soc.server.SOCServer server} or by
  * human players on-screen, occasionally parsed by robots
- * if they're expecting something.
+ * if they're expecting a debug message.
  *<P>
- * Occasionally, game text is sent with additional information
- * via {@link SOCSVPTextMessage}, instead of using GAMETEXTMSG.
- *<P>
- * Dice roll result text messages are sent to older clients only;
- * see {@link #VERSION_FOR_DICE_RESULT_INSTEAD}.
+ * Text announcements from the server are instead sent as
+ * {@link SOCGameServerText} to client versions 2.0.00 and newer.
+ * See that class javadoc for what game information is sent as text
+ * and what's sent as other message types.
  *
  * @author Robert S Thomas
  */
@@ -43,6 +42,9 @@ public class SOCGameTextMsg extends SOCMessage
     /**
      * {@code "Server"}, the reserved nickname used when sending game text messages
      * from the server itself, not chat messages from players.
+     *<P>
+     * This is used only for pre-2.0.00 clients, because starting with that version,
+     * the server's announcement texts are sent as {@link SOCGameServerText} instead.
      *<P>
      * Moved here in v2.0.00; previously declared in SOCServer and a string literal at clients.
      * @since 2.0.00
@@ -65,7 +67,7 @@ public class SOCGameTextMsg extends SOCMessage
     public static final int VERSION_FOR_DICE_RESULT_INSTEAD = 2000;
 
     /**
-     * our token seperator; not the normal {@link SOCMessage#sep2}
+     * our token separator; not the normal {@link SOCMessage#sep2}
      */
     private static String sep2 = "" + (char) 0;
 

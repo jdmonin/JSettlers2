@@ -34,8 +34,8 @@ import java.util.StringTokenizer;
  * sent contains a separator character ({@link #sep_char} or {@link #sep2_char}).
  * To help with this, use {@link #isSingleLineAndSafe(String)}.
  *<P>
- * Text announcements ({@link SOCGameTextMsg}) are often sent along with
- * data messages.
+ * Text announcements ({@link SOCGameServerText} or {@link SOCGameTextMsg})
+ * are often sent after data messages.
  *<P>
  * The message data is sent over the network as type ID + data strings
  * built by each SOCMessage subclass's toCmd() method.
@@ -108,7 +108,14 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int DELETECHANNEL = 1007;
     public static final int LEAVEALL = 1008;
     public static final int PUTPIECE = 1009;
+
+    /** {@link SOCGameTextMsg} - Game text from players.
+     *<P>
+     * Before v2.0.00, messages from the server also used this type.
+     * In 2.0.00 and later, text from the server is {@link #GAMESERVERTEXT} instead.
+     */
     public static final int GAMETEXTMSG = 1010;
+
     public static final int LEAVEGAME = 1011;
     public static final int SITDOWN = 1012;
     public static final int JOINGAME = 1013;
@@ -217,46 +224,53 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  @since 1.1.19 */
     public static final int SIMPLEACTION = 1090;  // simple player actions, 20130904, v1.1.19
 
+    /** {@link SOCGameServerText} - Game text announcements from the server.
+     *<P>
+     * Before v2.0.00, server text announcements were sent as {@link #GAMETEXTMSG} just like player chat messages.
+     * @since 2.0.00
+     */
+    public static final int GAMESERVERTEXT = 1091;  // game server text, 20130905; v2.0.00
+
     /** Ask server to move a piece to another location.
      *  Server replies with {@link #MOVEPIECE} if okay.
      *  @since 2.0.00 */
-    public static final int MOVEPIECEREQUEST = 1091;  // move piece request, 20111203, v2.0.00
+    public static final int MOVEPIECEREQUEST = 1092;  // move piece request, 20111203, v2.0.00
 
     /** Move a piece to another location; server reply to {@link #MOVEPIECEREQUEST}.
      *  @since 2.0.00 */
-    public static final int MOVEPIECE = 1092;  // move piece, 20111203, v2.0.00
+    public static final int MOVEPIECE = 1093;  // move piece, 20111203, v2.0.00
 
     /** {@link SOCRemovePiece} - Remove a piece from the board; currently used only with ships.
      *  @since 2.0.00 */
-    public static final int REMOVEPIECE = 1093;  // pirate islands scenario, 20130218, v2.0.00
+    public static final int REMOVEPIECE = 1094;  // pirate islands scenario, 20130218, v2.0.00
 
     /** Ask client to pick this many resources,
      *  when they have a settlement or city next to a gold hex.
      *  Client replies with {@link #PICKRESOURCES}.
      *  @since 2.0.00 */
-    public static final int PICKRESOURCESREQUEST = 1094;  // gold hex resources, 20120112, v2.0.00
+    public static final int PICKRESOURCESREQUEST = 1095;  // gold hex resources, 20120112, v2.0.00
 
     /** Client reply to {@link #PICKRESOURCESREQUEST}.
      *  Has picked these resource types/counts.
      *  @since 2.0.00 */
-    public static final int PICKRESOURCES = 1095;  // gold hex resources, 20120112, v2.0.00
+    public static final int PICKRESOURCES = 1096;  // gold hex resources, 20120112, v2.0.00
 
     /** Reveal a hidden hex on the board; server to all clients in game.
      *  @since 2.0.00 */
-    public static final int REVEALFOGHEX = 1096;  // fog hexes, 20121108, v2.0.00
+    public static final int REVEALFOGHEX = 1097;  // fog hexes, 20121108, v2.0.00
 
     /** Update the value(s) of a piece on the board.
      *  @since 2.0.00 */
-    public static final int PIECEVALUE = 1097;  // cloth villages scenario, 20121115, v2.0.00
+    public static final int PIECEVALUE = 1098;  // cloth villages scenario, 20121115, v2.0.00
 
     /** Legal road or ship edges for the large sea board.
      *  @since 2.0.00 */
-    public static final int LEGALEDGES = 1098;  // large sea board, 20121216, v2.0.00 
+    public static final int LEGALEDGES = 1099;  // large sea board, 20121216, v2.0.00 
 
     /** Text that a player has been awarded Special Victory Point(s).
      *  The server will also send a {@link SOCPlayerElement} with the SVP total.
      *  @since 2.0.00 */
-    public static final int SVPTEXTMSG = 1099;  // SVP text messages, 20121221, v2.0.00 
+    public static final int SVPTEXTMSG = 1100;  // SVP text messages, 20121221, v2.0.00 
 
 
     /////////////////////////////////////////
@@ -834,6 +848,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case SIMPLEACTION:     // simple actions for players, 20130904, v1.1.19
                 return SOCSimpleAction.parseDataStr(data);
+
+            case GAMESERVERTEXT:    // game server text, 20130905; v2.0.00
+                return SOCGameServerText.parseDataStr(data);
 
             case MOVEPIECEREQUEST:  // move piece request, 20111203, v2.0.00
                 return SOCMovePieceRequest.parseDataStr(data);

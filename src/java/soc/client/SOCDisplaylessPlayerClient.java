@@ -447,7 +447,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.GAMETEXTMSG:
                 handleGAMETEXTMSG((SOCGameTextMsg) mes);
-
                 break;
 
             /**
@@ -455,7 +454,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.BCASTTEXTMSG:
                 handleBCASTTEXTMSG((SOCBCastTextMsg) mes);
-
                 break;
 
             /**
@@ -710,6 +708,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * game server text and announcements.
+             * Added 2013-09-05 for v2.0.00.
+             */
+            case SOCMessage.GAMESERVERTEXT:
+                handleGAMESERVERTEXT((SOCGameServerText) mes);
+                break;
+
+            /**
              * move a previous piece (a ship) somewhere else on the board.
              * Added 2011-12-05 for v2.0.00.
              */
@@ -935,6 +941,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param mes  the message
      */
     protected void handleGAMETEXTMSG(SOCGameTextMsg mes) {}
+
+    /**
+     * handle the "game server text" message; stub for now
+     * @param mes  the message
+     */
+    protected void handleGAMESERVERTEXT(SOCGameServerText mes) {}
 
     /**
      * handle the "player sitting down" message

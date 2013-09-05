@@ -109,7 +109,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     /**
      * When {@link #debugRandomPause} is true but not {@link #debugRandomPauseActive},
      * frequency of activating it; checked for each non-{@link SOCGameTextMsg}
-     * message received during our own turn.
+     * and non-{@link SOCGameServerText} message received during our own turn.
      * @since 1.1.11
      */
     private static final double DEBUGRANDOMPAUSE_FREQ = .04;  // 4%
@@ -332,6 +332,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         if (debugRandomPause && (! robotBrains.isEmpty())
             && (mes instanceof SOCMessageForGame)
             && ! (mes instanceof SOCGameTextMsg)
+            && ! (mes instanceof SOCGameServerText)
             && ! (mes instanceof SOCTurn))
         {
             final String ga = ((SOCMessageForGame) mes).getGame();
@@ -493,7 +494,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.GAMETEXTMSG:
                 handleGAMETEXTMSG((SOCGameTextMsg) mes);
-
                 break;
 
             /**
@@ -759,6 +759,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
+             * game server text and announcements (ignored).
+             * Added 2013-09-05 for v2.0.00.
+             */
+            case SOCMessage.GAMESERVERTEXT:
+                break;  // this message type is ignored by bots
+
+            /**
              * move a previous piece (a ship) somewhere else on the board.
              * Added 2013-03-16 for v2.0.00.
              */
@@ -1020,7 +1027,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * Handle debug text messages to the robot, which start with
+     * Handle debug text messages from players to the robot, which start with
      * the robot's nickname + ":".
      * @since 1.1.12
      */

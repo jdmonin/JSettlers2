@@ -2458,7 +2458,6 @@ public class SOCPlayerClient
              */
             case SOCMessage.GAMETEXTMSG:
                 handleGAMETEXTMSG((SOCGameTextMsg) mes);
-
                 break;
 
             /**
@@ -2466,7 +2465,6 @@ public class SOCPlayerClient
              */
             case SOCMessage.BCASTTEXTMSG:
                 handleBCASTTEXTMSG((SOCBCastTextMsg) mes);
-
                 break;
 
             /**
@@ -2798,6 +2796,14 @@ public class SOCPlayerClient
              */
             case SOCMessage.SIMPLEACTION:
                 handleSIMPLEACTION((SOCSimpleAction) mes);
+                break;
+
+            /**
+             * game server text and announcements.
+             * Added 2013-09-05 for v2.0.00.
+             */
+            case SOCMessage.GAMESERVERTEXT:
+                handleGAMESERVERTEXT((SOCGameServerText) mes);
                 break;
 
             /**
@@ -3278,7 +3284,7 @@ public class SOCPlayerClient
             return;
 
         String fromNickname = mes.getNickname();
-        if (fromNickname.equals(SOCGameTextMsg.SERVERNAME))
+        if (fromNickname.equals(SOCGameTextMsg.SERVERNAME))  // for pre-2.0.00 servers not using SOCGameServerText
             fromNickname = null;
         pcl.messageSent(fromNickname, mes.getText());
     }
@@ -4487,6 +4493,19 @@ public class SOCPlayerClient
             System.err.println
                 ("handleSIMPLEACTION: Unknown type ignored: " + atype + " in game " + gaName);
         }
+    }
+
+    /**
+     * Handle game server text and announcements.
+     * @since 2.0.00
+     */
+    protected void handleGAMESERVERTEXT(SOCGameServerText mes)
+    {
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
+            return;
+
+        pcl.messageSent(null, mes.getText());
     }
 
     /**

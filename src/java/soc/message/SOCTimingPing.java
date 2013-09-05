@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011,2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003-2004  Robert S. Thomas
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ package soc.message;
  * each robot, once each second. Used by SOCRobotBrain for timing.
  *
  * @author Jeremy D Monin <jeremy@nand.net>
- * @see SOCGameTextMsg
+ * @see SOCGameServerText
  * @since 1.1.13
  */
 public class SOCTimingPing extends SOCMessage
