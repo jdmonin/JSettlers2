@@ -42,6 +42,7 @@ import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCVillage;
 import soc.message.SOCSimpleAction;  // for action type constants
+import soc.util.SOCStringManager;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -72,6 +73,7 @@ import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -100,7 +102,7 @@ public class SOCPlayerInterface extends Frame
     implements ActionListener, MouseListener, SOCScenarioEventListener
 {
     /** i18n text strings */
-    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+    private static final SOCStringManager strings = SOCStringManager.getClientManager();
 
     /**
      * System property os.name; For use by {@link #SOCPI_isPlatformWindows}.
@@ -1454,6 +1456,36 @@ public class SOCPlayerInterface extends Frame
     private void resetBoardClearDia()
     {
         boardResetVoteDia = null;
+    }
+
+    /**
+     * Get and print a localized string (having no parameters) in the text window, followed by a new line (<tt>'\n'</tt>).
+     * Equivalent to {@link #print(String) print}({@link SOCStringManager#get(String) strings.get}({@code key})).
+     * @param key  Key to use for string retrieval
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @since 2.0.00
+     */
+    public void printKeyed(final String key)
+        throws MissingResourceException
+    {
+        textDisplay.append("* " + strings.get(key) + "\n");  // TextArea will soft-wrap within the line
+    }
+
+    /**
+     * Get and print a localized string (with parameters) in the text window, followed by a new line (<tt>'\n'</tt>).
+     * Equivalent to {@link #print(String) print}
+     * ({@link SOCStringManager#get(String, Object...) strings.get}({@code key, params})).
+     * @param key  Key to use for string retrieval
+     * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string by
+     *                calling {@code SOCStringManager.get(key, params...)}; the localized string should not
+     *                contain the leading <tt>"* "</tt> or the ending <tt>\n</tt>, those are added here.
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @since 2.0.00
+     */
+    public void printKeyed(final String key, final Object ... params)
+        throws MissingResourceException
+    {
+        textDisplay.append("* " + strings.get(key, params) + "\n");  // TextArea will soft-wrap within the line
     }
 
     /**
@@ -2891,6 +2923,8 @@ public class SOCPlayerInterface extends Frame
                                 pieceType,
                                 true,
                                 targetCoordinate);
+            if (pieceType == SOCPlayingPiece.SHIP)
+                pi.printKeyed("game.pieces.moved.ship", player.getName());  // "Joe moved a ship."
         }
 
         public void playerPieceRemoved(SOCPlayer player, int pieceCoordinate, int pieceType)
