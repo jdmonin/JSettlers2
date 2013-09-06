@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,6 +25,7 @@ import java.util.StringTokenizer;
  * This server-broadcast message announces a player
  * is moving a piece that's already on the board, to a new location.
  * This is a response to all player clients, following a player's {@link SOCMovePieceRequest}.
+ * If pieceType == ship, the client should also print a line of text such as "* Joe moved a ship."
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00

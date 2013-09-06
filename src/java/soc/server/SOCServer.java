@@ -2024,8 +2024,8 @@ public class SOCServer extends Server
                 {
                     StringConnection c = getConnection(plName);
                     if (c != null)
-                        c.put(SOCGameTextMsg.toCmd
-                            (gaName, SERVERNAME, "You are no longer prevented from moving the pirate ship."));
+                        c.put(SOCGameServerText.toCmd
+                            (gaName, "You are no longer prevented from moving the pirate ship."));
                 }
 
                 // Player gets 1 cloth for establishing trade
@@ -2545,10 +2545,11 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send a {@link SOCGameTextMsg} game text message to a player.
-     * Equivalent to: messageToPlayer(conn, new {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt));
+     * Send a {@link SOCGameServerText} or {@link SOCGameTextMsg} game text message to a player.
+     * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga, {@link #SERVERNAME}, txt));
      *
-     * @param c   the player connection
+     * @param c   the player connection; if their version is 2.0.00 or newer,
+     *            they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
      * @param ga  game name
      * @param txt the message text to send
      * @since 1.1.08
@@ -2558,16 +2559,21 @@ public class SOCServer extends Server
     {
         if (c == null)
             return;
-        c.put(SOCGameTextMsg.toCmd(ga, SERVERNAME, txt));
+
+        if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
+            c.put(SOCGameServerText.toCmd(ga, txt));
+        else
+            c.put(SOCGameTextMsg.toCmd(ga, SERVERNAME, txt));
     }
 
     /**
-     * Send a formatted {@link SOCGameTextMsg} game text message to a player.
+     * Send a formatted {@link SOCGameServerText} game text message to a player.
      * Standardizes construction of strings with arguments, to aid with internationalization.
      * Equivalent to: {@link #messageToPlayer(StringConnection, String, String) messageToPlayer}(c, ga,
      * {@link MessageFormat MessageFormat}.format(fmt, args));
      *
-     * @param c   the player connection
+     * @param c   the player connection; if their version is 2.0.00 or newer,
+     *            they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
      * @param ga  game name
      * @param fmt the message text to send, to be formatted as in {@link MessageFormat}:
      *            Placeholders for {@code args} are <tt>{0}</tt> etc, single-quotes must be repeated: {@code ''}.
@@ -2582,11 +2588,12 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send a localized {@link SOCGameTextMsg} game text message to a player.
-     * Equivalent to: messageToPlayer(conn, new {@link SOCGameTextMsg}(ga, {@link #SERVERNAME},
+     * Send a localized {@link SOCGameServerText} game text message to a player.
+     * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga, {@link #SERVERNAME},
      * {@link StringConnection#getLocalized(String) c.getLocalized(key)}));
      *
-     * @param c   the player connection
+     * @param c   the player connection; if their version is 2.0.00 or newer,
+     *            they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
      * @param ga  game name
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
      * @since 2.0.00
@@ -2597,18 +2604,22 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
-        c.put(SOCGameTextMsg.toCmd(ga, SERVERNAME, c.getLocalized(key)));
+        if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
+            c.put(SOCGameServerText.toCmd(ga, c.getLocalized(key)));
+        else
+            c.put(SOCGameTextMsg.toCmd(ga, SERVERNAME, c.getLocalized(key)));
     }
 
     /**
-     * Send a localized {@link SOCGameTextMsg} game text message with arguments to a player.
-     * Equivalent to: messageToPlayer(conn, new {@link SOCGameTextMsg}(ga, {@link #SERVERNAME},
+     * Send a localized {@link SOCGameServerText} game text message with arguments to a player.
+     * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga, {@link #SERVERNAME},
      * {@link StringConnection#getLocalized(String, Object...) c.getLocalized(key, args)}));
      *<P>
      * The localized message text must be formatted as in {@link MessageFormat}:
      * Placeholders for {@code args} are <tt>{0}</tt> etc, single-quotes must be repeated: {@code ''}.
      *
-     * @param c   the player connection
+     * @param c   the player connection; if their version is 2.0.00 or newer,
+     *            they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
      * @param ga  game name
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
      * @param args  Any parameters within {@code txt}'s placeholders
@@ -2620,11 +2631,15 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
-        c.put(SOCGameTextMsg.toCmd(ga, SERVERNAME, c.getLocalized(key, args)));
+        if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
+            c.put(SOCGameServerText.toCmd(ga, c.getLocalized(key, args)));
+        else
+            c.put(SOCGameTextMsg.toCmd(ga, SERVERNAME, c.getLocalized(key, args)));
     }
 
     /**
      * Send a message to the given game.
+     *<P>
      * <b>Locks:</b> Takes, releases {@link SOCGameList#takeMonitorForGame(String)}.
      *
      * @param ga  the name of the game
@@ -2673,10 +2688,13 @@ public class SOCServer extends Server
 
     /**
      * Send a server text message to the given game.
-     * Equivalent to: messageToGame(ga, new SOCGameTextMsg(ga, {@link #SERVERNAME}, txt));
+     * Equivalent to: messageToGame(ga, new SOCGameServerText(ga, txt));
      *<P>
      * Do not pass SOCSomeMessage.toCmd() into this method; the message type number
-     * will be GAMETEXTMSG, not the desired SOMEMESSAGE.
+     * will be GAMESERVERTEXT, not the desired SOMEMESSAGE.
+     *<P>
+     * Client versions older than v2.0.00 will be sent
+     * {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt).
      *<P>
      * <b>Locks:</b> Takes, releases {@link SOCGameList#takeMonitorForGame(String)}.
      *
@@ -2693,6 +2711,8 @@ public class SOCServer extends Server
      */
     public void messageToGame(final String ga, final String txt)
     {
+        final String gameServTxtMsg = SOCGameServerText.toCmd(ga, txt);
+
         gameList.takeMonitorForGame(ga);
 
         try
@@ -2701,14 +2721,18 @@ public class SOCServer extends Server
 
             if (v != null)
             {
-                final String gameTextMsg = SOCGameTextMsg.toCmd(ga, SERVERNAME, txt);
                 Enumeration<StringConnection> menum = v.elements();
 
                 while (menum.hasMoreElements())
                 {
                     StringConnection c = menum.nextElement();
                     if (c != null)
-                        c.put(gameTextMsg);
+                    {
+                        if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
+                            c.put(gameServTxtMsg);
+                        else
+                            c.put(SOCGameTextMsg.toCmd(ga, SERVERNAME, txt));
+                    }
                 }
             }
         }
@@ -2721,9 +2745,11 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send a localized {@link SOCGameTextMsg} game text message to a game.
+     * Send a localized {@link SOCServerGameText} game text message to a game.
      * Same as {@link #messageToGame(String, String)} but calls each member connection's
      * {@link StringConnection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
+     *<P>
+     * Client versions older than v2.0.00 will be sent {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt).
      *<P>
      * <b>Locks:</b> If {@code takeMon} is true, takes and releases {@link SOCGameList#takeMonitorForGame(String)}.
      * Otherwise call {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
@@ -2775,11 +2801,15 @@ public class SOCServer extends Server
                                        ? (gameTxtLocale != null)
                                        : ! cliLocale.equals(gameTxtLocale)  )))
                         {
-                            gameTextMsg = SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key));
+                            gameTextMsg = SOCGameServerText.toCmd(gaName, c.getLocalized(key));
                             gameTxtLocale = cliLocale;
                         }
 
-                        c.put(gameTextMsg);
+                        if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
+                            c.put(gameTextMsg);
+                        else
+                            // old client (not common) gets a different message type
+                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key)));
                     }
                 }
             }
@@ -2794,9 +2824,11 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send a localized {@link SOCGameTextMsg} game text message (with parameters) to a game.
+     * Send a localized {@link SOCGameServerText} game text message (with parameters) to a game.
      * Same as {@link #messageToGame(String, String)} but calls each member connection's
      * {@link StringConnection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
+     *<P>
+     * Client versions older than v2.0.00 will be sent {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt).
      *<P>
      * <b>Locks:</b> If {@code takeMon} is true, takes and releases {@link SOCGameList#takeMonitorForGame(String)}.
      * Otherwise call {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
@@ -2850,11 +2882,15 @@ public class SOCServer extends Server
                                        ? (gameTxtLocale != null)
                                        : ! cliLocale.equals(gameTxtLocale)  )))
                         {
-                            gameTextMsg = SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key, params));
+                            gameTextMsg = SOCGameServerText.toCmd(gaName, c.getLocalized(key, params));
                             gameTxtLocale = cliLocale;
                         }
 
-                        c.put(gameTextMsg);
+                        if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
+                            c.put(gameTextMsg);
+                        else
+                            // old client (not common) gets a different message type
+                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key, params)));
                     }
                 }
             }
@@ -2925,6 +2961,7 @@ public class SOCServer extends Server
      */
     public void messageToGameWithMon(String ga, String txt)
     {
+        // TODO I18N: Find calls to this method; consider connection's locale and version
         messageToGameWithMon(ga, new SOCGameTextMsg(ga, SERVERNAME, txt));
     }
 
@@ -2990,6 +3027,7 @@ public class SOCServer extends Server
      */
     public void messageToGameExcept(final String gn, final StringConnection ex, final String txt, final boolean takeMon)
     {
+        // TODO I18N: Find calls to this method; consider connection's locale and version
         messageToGameExcept(gn, ex, new SOCGameTextMsg(gn, SERVERNAME, txt), takeMon);
     }
 
@@ -6721,7 +6759,8 @@ public class SOCServer extends Server
                 if (ga.clientVersionLowest < SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD)
                 {
                     // backwards-compat: this text message is redundant to v2.0.00 and newer clients
-                    // because they print the roll results from SOCDiceResult.
+                    // because they print the roll results from SOCDiceResult.  Use SOCGameTextMsg
+                    // because pre-2.0.00 clients don't understand SOCGameServerText messages.
                     messageToGameForVersions(ga, 0, SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD - 1,
                         new SOCGameTextMsg
                             (gn, SERVERNAME, plName + " rolled a " + roll.diceA + " and a " + roll.diceB + "."), // I18N
@@ -6761,7 +6800,7 @@ public class SOCServer extends Server
                                  */
                                 StringBuffer sb = new StringBuffer("You lost ");
                                 reportRsrcGainLoss(gn, loot, true, pn, -1, sb, vCon);
-                                sb.append(" to the pirate fleet (strength ");
+                                sb.append(/*I*/" to the pirate fleet (strength "/*18N*/);
                                 sb.append(strength);
                                 sb.append(").");
                                 messageToPlayer(vCon, gn, sb.toString());
@@ -8302,6 +8341,7 @@ public class SOCServer extends Server
 
                         // Only pre-1.1.19 clients will get the game text messages, so they're
                         // older than the i18n work; skip text key lookups, give them english
+                        // and use SOCGameTextMsg not SOCGameServerText.
 
                         final String boughtTxt = MessageFormat.format("{0} bought a development card.", player.getName());
                         messageToGameForVersions(ga, -1, SOCSimpleAction.VERSION_FOR_SIMPLEACTION - 1,
@@ -9307,12 +9347,10 @@ public class SOCServer extends Server
                 denyRequest = true;
             } else {
                 ga.moveShip(moveShip, toEdge);
-                gameList.takeMonitorForGame(gaName);
-                messageToGameWithMon(gaName, new SOCGameTextMsg
-                    (gaName, SERVERNAME, ga.getPlayer(pn).getName() + " moved a ship."));
-                messageToGameWithMon(gaName, new SOCMovePiece
+                messageToGame(gaName, new SOCMovePiece
                     (gaName, pn, SOCPlayingPiece.SHIP, fromEdge, toEdge));
-                gameList.releaseMonitorForGame(gaName);
+                // client will also print "* Joe moved a ship.", no need to send a SOCGameServerText.
+
                 if (ga.getGameState() >= SOCGame.OVER)
                 {
                     // announce end of game
@@ -10134,10 +10172,8 @@ public class SOCServer extends Server
                 StringConnection con = getConnection(player.getName());
                 if (con != null)
                 {
-                    con.put(SOCGameTextMsg.toCmd
-                        (gname, SERVERNAME, "This game gives you 3 initial settlements and roads."));
-                    con.put(SOCGameTextMsg.toCmd
-                        (gname, SERVERNAME, "Your free resources will be from the third settlement."));
+                    messageToPlayer(con, gname, /*I*/"This game gives you 3 initial settlements and roads."/*18N*/);
+                    messageToPlayer(con, gname, /*I*/"Your free resources will be from the third settlement."/*18N*/);
                 }
             }
             break;
