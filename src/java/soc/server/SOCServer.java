@@ -1469,7 +1469,7 @@ public class SOCServer extends Server
         recordGameEvent(gm, leaveMessage.toCmd());
 
         D.ebugPrintln("*** " + plName + " left the game " + gm);
-        messageFormatToGame(gm, false, "{0} left the game", plName);
+        messageToGameKeyed(ga, false, "member.left.game", plName);  // "{0} left the game"
 
         /**
          * check if there is at least one person playing the game
@@ -1553,18 +1553,19 @@ public class SOCServer extends Server
                  */
                 foundNoRobots = false;
 
-                messageToGameWithMon(gm, "Fetching a robot player...");
+                messageToGameKeyed(ga, false, "member.bot.join.fetching");  // "Fetching a robot player..."
 
                 if (robots.isEmpty())
                 {
-                    messageToGameWithMon(gm, "Sorry, no robots on this server.");
+                    messageToGameKeyed(ga, false, "member.bot.join.no.bots.server");
+                        // "No robot can join the game, there are no robots on this server."
                     foundNoRobots = true;
                 }
                 else if (ga.getClientVersionMinRequired() > Version.versionNumber())
                 {
-                    messageFormatToGame(gm, false,
-                         "Sorry, the robots can't join this game; its version is somehow newer than server and robots, it's {0}",
-                         ga.getClientVersionMinRequired());
+                    messageToGameKeyed
+                        (ga, false, "member.bot.join.interror.version", ga.getClientVersionMinRequired());
+                        // "Internal error: The robots can't join this game; game's version {0} is newer than the robots.
                     foundNoRobots = true;
                 }
                 else
@@ -1660,7 +1661,7 @@ public class SOCServer extends Server
                     }
                     else
                     {
-                        messageToGameWithMon(gm, "*** Can't find a robot! ***");
+                        messageToGameKeyed(ga, false, "member.bot.join.cantfind");  // "*** Can't find a robot! ***"
                         foundNoRobots = true;
                     }
                 }
@@ -2599,15 +2600,15 @@ public class SOCServer extends Server
      * @since 2.0.00
      * @see #messageToPlayerKeyed(StringConnection, String, String, Object...)
      */
-    public final void messageToPlayerKeyed(StringConnection c, final String ga, final String key)
+    public final void messageToPlayerKeyed(StringConnection c, final String gaName, final String key)
     {
         if (c == null)
             return;
 
         if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
-            c.put(SOCGameServerText.toCmd(ga, c.getLocalized(key)));
+            c.put(SOCGameServerText.toCmd(gaName, c.getLocalized(key)));
         else
-            c.put(SOCGameTextMsg.toCmd(ga, SERVERNAME, c.getLocalized(key)));
+            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key)));
     }
 
     /**
@@ -2626,15 +2627,16 @@ public class SOCServer extends Server
      * @since 2.0.00
      * @see #messageToPlayerKeyed(StringConnection, String, String)
      */
-    public final void messageToPlayerKeyed(StringConnection c, final String ga, final String key, final Object ... args)
+    public final void messageToPlayerKeyed
+        (StringConnection c, final String gaName, final String key, final Object ... args)
     {
         if (c == null)
             return;
 
         if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
-            c.put(SOCGameServerText.toCmd(ga, c.getLocalized(key, args)));
+            c.put(SOCGameServerText.toCmd(gaName, c.getLocalized(key, args)));
         else
-            c.put(SOCGameTextMsg.toCmd(ga, SERVERNAME, c.getLocalized(key, args)));
+            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key, args)));
     }
 
     /**
@@ -2913,8 +2915,8 @@ public class SOCServer extends Server
      *
      * @param ga  the name of the game
      * @param mes the message to send
-     * @see #messageToGameWithMon(String, String)
      * @see #messageToGame(String, SOCMessage)
+     * @see #messageToGameKeyed(SOCGame, boolean, String)
      * @see #messageToGameForVersions(String, int, int, SOCMessage, boolean)
      */
     public void messageToGameWithMon(String ga, SOCMessage mes)
@@ -2940,32 +2942,6 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send a server text message to the given game.
-     * Equivalent to: messageToGameWithMon(ga, new SOCGameTextMsg(ga, {@link #SERVERNAME}, txt));
-     *<P>
-     * Do not pass SOCSomeMessage.toCmd() into this method; the message type number
-     * will be GAMETEXTMSG, not the desired SOMEMESSAGE.
-     *<P>
-     *<b>Locks:</b> MUST HAVE THE
-     * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(ga)}
-     * before calling this method.
-     *
-     * @param ga  the name of the game
-     * @param txt the message text to send. If
-     *            text begins with ">>>", the client should consider this
-     *            an urgent message, and draw the user's attention in some way.
-     *            (See {@link #messageToGameUrgent(String, String)})
-     * @see #messageToGame(String, String)
-     * @see #messageToGameWithMon(String, SOCMessage)
-     * @since 2.0.00
-     */
-    public void messageToGameWithMon(String ga, String txt)
-    {
-        // TODO I18N: Find calls to this method; consider connection's locale and version
-        messageToGameWithMon(ga, new SOCGameTextMsg(ga, SERVERNAME, txt));
-    }
-
-    /**
      * Send a formatted server text message to the given game.
      * Standardizes construction of strings with arguments, to aid with internationalization.
      * Equivalent to: messageToGame(ga, new SOCGameTextMsg(ga, {@link #SERVERNAME}, MessageFormat.format(txt, args)));
@@ -2980,7 +2956,7 @@ public class SOCServer extends Server
      * @param ga  the name of the game
      * @param takeMon Should this method take and release
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
-     *                True unless caller already holds that monitor.
+     *                Must be true; if false, use {@link #messageToGameKeyed(SOCGame, boolean, String, Object...)} instead.
      * @param txt the message text to send, to be formatted as in {@link MessageFormat}:
      *            Placeholders for {@code args} are <tt>{0}</tt> etc, single-quotes must be repeated: {@code ''}
      *           <P>
@@ -3000,7 +2976,8 @@ public class SOCServer extends Server
         if (takeMon)
             messageToGame(ga, finalTxt);
         else
-            messageToGameWithMon(ga, finalTxt);
+            throw new IllegalArgumentException("i18n: use messageToGameKeyed instead");
+            // was messageToGameWithMon(ga, finalTxt); temporary message while phasing out messageFormatToGame
     }
 
     /**
@@ -6232,8 +6209,8 @@ public class SOCServer extends Server
                                 ga.pendingMessagesOut.clear();
                             }
                             if (houseRuleFirstCity)
-                                messageToGameWithMon
-                                  (gaName, /*I*/"Starting next turn, dice rolls of 7 may occur (house rule)."/*18N*/ );
+                                messageToGameKeyed(ga, false, "action.built.nextturn.7.houserule");
+                                // "Starting next turn, dice rolls of 7 may occur (house rule)."
                             gameList.releaseMonitorForGame(gaName);
                             broadcastGameStats(ga);
                             sendGameState(ga);
@@ -8452,10 +8429,10 @@ public class SOCServer extends Server
 
                         ga.playKnight();
                         final String cardplayed = (isWarshipConvert)
-                            ? "{0} converted a ship to a warship."
-                            : "{0} played a Soldier card.";
+                            ? "action.card.soldier.warship"  // "converted a ship to a warship."
+                            : "action.card.soldier";         // "played a Soldier card."
                         gameList.takeMonitorForGame(gaName);
-                        messageFormatToGame(gaName, false, cardplayed, player.getName());
+                        messageToGameKeyed(ga, false, cardplayed, player.getName());
                         if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
                         {
                             messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT));
@@ -8494,22 +8471,20 @@ public class SOCServer extends Server
                         gameList.takeMonitorForGame(gaName);
                         messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.ROADS));
                         messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
-                        messageFormatToGame(gaName, false, "{0} played a Road Building card.", player.getName());
+                        messageToGameKeyed(ga, false, "action.card.roadbuilding", player.getName());  // "played a Road Building card."
                         gameList.releaseMonitorForGame(gaName);
                         sendGameState(ga);
                         if (ga.getGameState() == SOCGame.PLACING_FREE_ROAD1)
                         {
-                            if (ga.hasSeaBoard)
-                                messageToPlayer(c, gaName, "You may place 2 roads/ships.");
-                            else
-                                messageToPlayer(c, gaName, "You may place 2 roads.");
+                            messageToPlayerKeyed
+                                (c, gaName, (ga.hasSeaBoard) ? "action.card.road.place.2s" : "action.card.road.place.2r");
+                            // "You may place 2 roads/ships." or "You may place 2 roads."
                         }
                         else
                         {
-                            if (ga.hasSeaBoard)
-                                messageToPlayer(c, gaName, "You may place your 1 remaining road or ship.");
-                            else
-                                messageToPlayer(c, gaName, "You may place your 1 remaining road.");
+                            messageToPlayerKeyed
+                                (c, gaName, (ga.hasSeaBoard) ? "action.card.road.place.1s" : "action.card.road.place.1r");
+                            // "You may place your 1 remaining road or ship." or "... place your 1 remaining road."
                         }
                     }
                     else
@@ -8527,7 +8502,8 @@ public class SOCServer extends Server
                         gameList.takeMonitorForGame(gaName);
                         messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.DISC));
                         messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
-                        messageFormatToGame(gaName, false, "{0} played a Year of Plenty card.", player.getName());
+                        messageToGameKeyed(ga, false, "action.card.discoveryplenty", player.getName());
+                            // "played a Year of Plenty card."
                         gameList.releaseMonitorForGame(gaName);
                         sendGameState(ga);
                     }
@@ -8546,7 +8522,7 @@ public class SOCServer extends Server
                         gameList.takeMonitorForGame(gaName);
                         messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.MONO));
                         messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
-                        messageFormatToGame(gaName, false, "{0} played a Monopoly card.", player.getName());
+                        messageToGameKeyed(ga, false, "action.card.mono", player.getName());  // "played a Monopoly card."
                         gameList.releaseMonitorForGame(gaName);
                         sendGameState(ga);
                     }
@@ -8965,9 +8941,11 @@ public class SOCServer extends Server
             {
                 resetBoardAndNotify(gaName, reqPN);
             } else if (hadRobot) {
-                messageToPlayer(c, gaName, /*I*/"Please unlock at least one bot, so you will have an opponent."/*18N*/ );
+                messageToPlayerKeyed(c, gaName, "resetboard.request.unlock.bot");
+                    // "Please unlock at least one bot, so you will have an opponent."
             } else {
-                messageToGameUrgent(gaName, "Everyone has left this game. Please start a new game with players or bots.");
+                messageToGameKeyed(ga, true, "resetboard.request.everyone.left");
+                    // "Everyone has left this game. Please start a new game with players or bots."
             }
         }
         else
@@ -8993,17 +8971,16 @@ public class SOCServer extends Server
             {
                 // No one else is capable of voting.
                 // Reset the game immediately.
-                messageFormatToGame(gaName, false,
-                    ">>> {0} is resetting the game - other connected players are unable to vote (client too old).",
-                    (String) c.getData());
+                messageToGameKeyed(ga, false, "resetboard.vote.request.alloldcli", (String) c.getData());
+                    // ">>> {0} is resetting the game - other connected players are unable to vote (client too old)."
                 gameList.releaseMonitorForGame(gaName);
                 resetBoardAndNotify(gaName, reqPN);
             }
             else
             {
                 // Put it to a vote
-                messageFormatToGame(gaName, false,
-                    "{0} requests a board reset - other players please vote.", (String) c.getData());
+                messageToGameKeyed(ga, false, "resetboard.vote.request", (String) c.getData());
+                    // "requests a board reset - other players please vote."
                 String vrCmd = SOCResetBoardVoteRequest.toCmd(gaName, reqPN);
                 ga.resetVoteBegin(reqPN);
                 gameList.releaseMonitorForGame(gaName);
@@ -10971,7 +10948,11 @@ public class SOCServer extends Server
         SOCGameBoardReset reBoard = gameList.resetBoard(gaName);
         if (reBoard == null)
         {
-            messageToGameUrgent(gaName, ">>> Internal error, Game " + gaName + " board reset failed");
+            final SOCGame ga = gameList.getGameData(gaName);
+            if (ga != null)
+                messageToGameKeyed(ga, true, "resetboard.doit.interror", gaName);
+                    // ">>> Internal error, Game {0} board reset failed"
+
             return;  // <---- Early return: reset failed ----
         }
         SOCGame reGame = reBoard.newGame;
@@ -10979,10 +10960,10 @@ public class SOCServer extends Server
         // Announce who asked for this reset
         {
             String plName = reGame.getPlayer(requestingPlayer).getName();
-            if (plName == null)
-                plName = "player who left";
-            messageToGameUrgent(gaName, ">>> Game " + gaName + " board reset by "
-                + plName);
+            final String key = (plName != null)
+                ? "resetboard.doit.announce.requester"       // ">>> Game {0} board reset by {1}"
+                : "resetboard.doit.announce.playerwholeft";  // ">>> Game {0} board reset by a player who left"
+            messageToGameKeyed(reGame, true, key, gaName, plName);
         }
 
         // If game is still initial-placing or was over, we'll shuffle the robots
