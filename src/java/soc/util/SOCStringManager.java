@@ -21,10 +21,14 @@
 package soc.util;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+
+import soc.game.SOCResourceConstants;
+import soc.game.SOCResourceSet;
 
 /**
  * TODO Write JavaDoc.
@@ -79,7 +83,7 @@ public class SOCStringManager {
      * @return the localized string from the manager's bundle or one of its parents
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      */
-    public String get(String key)
+    public final String get(final String key)
         throws MissingResourceException
     {
         return bundle.getString(key);
@@ -93,10 +97,124 @@ public class SOCStringManager {
      * @return the localized formatted string from the manager's bundle or one of its parents
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      */
-    public String get(String key, Object ... arguments)
+    public final String get(final String key, final Object ... arguments)
         throws MissingResourceException
     {
         return MessageFormat.format(bundle.getString(key), arguments);
+    }
+
+    /**
+     * Resource type-and-count text keys for {@link #getSpecial(String, Object...)}.
+     * Each subarray's indexes are the same values as {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
+     * The string key at index 0 is used for resources out of range (unknown types).
+     */
+    private static final String[][] GETSPECIAL_RSRC_KEYS =
+    {
+        {     // 1
+            "spec.rsrcs.1unknown", "spec.rsrcs.1clay", "spec.rsrcs.1ore", "spec.rsrcs.1sheep", "spec.rsrcs.1wheat", "spec.rsrcs.1wood"
+        }, {  // n
+            "spec.rsrcs.nunknown", "spec.rsrcs.nclay", "spec.rsrcs.nore", "spec.rsrcs.nsheep", "spec.rsrcs.nwheat", "spec.rsrcs.nwood"
+        }
+    };
+
+    /**
+     * Get a resource count, such as "5 sheep"; used by {@link #getSpecial(String, Object...)}. 
+     * @param rtype  Type of resource, in the range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
+     * @param rcountObj  Resource count; uses the Integer object passed into {@code getSpecial}
+     * @return  A localized string such as "1 wood" or "5 clay", or if {@code rtype} is out of range,
+     *          "3 resources of unknown type 37"
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     */
+    public final String getSOCResourceCount(final int rtype, final Integer rcountObj)
+        throws MissingResourceException
+    {
+        final int rcount = rcountObj;
+
+        final String resText;
+        if ((rtype >= SOCResourceConstants.CLAY) && (rtype <= SOCResourceConstants.WOOD))
+        {
+            final String[] rkeyArray = GETSPECIAL_RSRC_KEYS[(rcount == 1) ? 0 : 1];
+            if (rcount == 1)
+                resText = bundle.getString(rkeyArray[rtype]);
+            else
+                resText = MessageFormat.format(bundle.getString(rkeyArray[rtype]), rcountObj);
+        } else {
+            // out of range, unknown type
+            if (rcount == 1)
+                resText = MessageFormat.format(bundle.getString(GETSPECIAL_RSRC_KEYS[0][0]), rtype);
+            else
+                resText = MessageFormat.format(bundle.getString(GETSPECIAL_RSRC_KEYS[1][0]), rcountObj, rtype);
+        }
+
+        return resText;
+    }
+
+    /**
+     * Get and format a localized string (with special SoC-specific parameters) with the given key.
+     * @param key  Key to use for string retrieval; can contain <tt>{0,rsrcs}</tt> for a resource name or resource set.
+     *            Resource names ("5 sheep") take 2 argument slots: an Integer for the count, and an Integer for the type.
+     *            You can use <tt>{1</tt>, <tt>{2</tt>, or any other slot number.
+     * @param arguments  Objects to go with <tt>{0,rsrcs}</tt> in {@code key};
+     *            can contain a {@link SOCResourceSet} or two integers:
+     *            An Integer for the count, and a resource type Integer in the range
+     *            {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD}.
+     * @return the localized formatted string from the manager's bundle or one of its parents
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
+     * @see #getSOCResourceCount(int, Integer)
+     */
+    public String getSpecial(final String key, Object ... arguments)
+        throws MissingResourceException, IllegalArgumentException
+    {
+        String txtfmt = bundle.getString(key);
+
+        // look for any "{#,rsrcs}" parameter here, and replace that arg with a String
+        int ir = txtfmt.indexOf(",rsrcs}");
+        while (ir != -1)
+        {
+            final int i0 = txtfmt.lastIndexOf('{', ir - 1);
+            if (i0 == -1)
+                throw new IllegalArgumentException("Missing '{' before ',rsrcs}' in pattern: " + txtfmt);
+
+            final int pnum = Integer.parseInt(txtfmt.substring(i0 + 1, ir));
+
+            if (arguments[pnum] instanceof Integer)
+            {
+                // [pnum] is rcount, [pnum+1] is rtype;
+                // replace the argument obj with its localized String 
+                arguments[pnum] = getSOCResourceCount
+                    (((Integer) arguments[pnum + 1]).intValue(), (Integer) arguments[pnum]);
+            }
+            else if (arguments[pnum] instanceof SOCResourceSet)
+            {
+                final SOCResourceSet rset = (SOCResourceSet) (arguments[pnum]); 
+                ArrayList<String> resList = new ArrayList<String>();
+                for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+                {
+                    int n = rset.getAmount(rtype);
+                    if (n > 0)
+                        resList.add(getSOCResourceCount(rtype, Integer.valueOf(n)));
+                }
+
+                // replace the argument obj
+                if (resList.isEmpty())
+                    arguments[pnum] = bundle.getString("spec.rsrcs.none");  // "no resources"
+                else
+                    arguments[pnum] = I18n.listItems(resList);
+
+            } else {
+                // keep obj as whatever it is; MessageFormat.format will call its toString()
+            }
+
+            // splice the format string: "{#,rsrcs}" -> "{#}"
+            txtfmt = txtfmt.substring(0, ir) + txtfmt.substring(ir + 6);
+
+            // look for any others (at top of loop)
+            ir = txtfmt.indexOf(",rsrcs}");
+        }
+
+        // now format the rest of the message:
+        return MessageFormat.format(txtfmt, arguments);
     }
 
     /**
@@ -163,4 +281,5 @@ public class SOCStringManager {
 
         return sm;
     }
+
 }
