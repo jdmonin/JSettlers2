@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2010,2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -17,12 +17,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.server.genericServer;
 
 import soc.disableDebug.D;
-import soc.util.SOCStringManager;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -32,7 +31,6 @@ import java.io.Serializable;
 import java.net.Socket;
 
 import java.util.Date;
-import java.util.MissingResourceException;
 import java.util.Vector;
 
 
@@ -42,56 +40,28 @@ import java.util.Vector;
  *  Reads from the net, writes atomically to the net and
  *  holds the connection data
  *<P>
+ * This class has a run method, but you must start the thread yourself.
+ * Constructors will not create or start a thread.
+ *<P>
  * As used within JSettlers, the structure of this class has much in common
- * with {@link LocalStringConnection}, as they both implement the {@link StringConnection}
- * interface.  If you add something to one class (or to StringConnection),
- * you should probably add it to the other.
+ * with {@link LocalStringConnection}, as they both subclass {@link StringConnection}.
+ * If you add something to one class, you should probably add it to the other, or to the superclass instead.
+ *<P>
+ * Refactored in v1.2.0 to extend {@link StringConnection} instead of Thread.
  */
-public final class Connection extends Thread implements Runnable, Serializable, Cloneable, StringConnection
+public final class Connection
+    extends StringConnection implements Runnable, Serializable, Cloneable
 {
     static int putters = 0;
     static Object puttersMonitor = new Object();
     protected final static int TIMEOUT_VALUE = 3600000; // approx. 1 hour
 
-    /**
-     * the arbitrary key data ("name") associated with this connection.
-     * Protected to force callers to use getData() part of StringConnection interface.
-     */
-    protected Object data;
-
-    /**
-     * the arbitrary app-specific data associated with this connection.
-     * Not used or referenced by generic server.
-     */
-    protected Object appData;
-
-    /**
-     * The server-side locale for this client connection, for app-specific message formatting.
-     * Not used or referenced by the generic server layer.
-     * @since 1.2.0
-     */
-    protected String localeStr;
-
-    /**
-     * The server-side string manager for app-specific client message formatting.
-     * Not used or referenced by the generic server layer.
-     * @since 1.2.0
-     */
-    protected SOCStringManager stringMgr;
-
     DataInputStream in = null;
     DataOutputStream out = null;
     Socket s = null;
-    Server sv;
-    public Thread reader;
+    /** Hostname of the remote end of the connection, for {@link #host()} */
     protected String hst;
-    protected int remoteVersion;
-    protected boolean remoteVersionKnown;
-    protected boolean remoteVersionTrack;
-    protected boolean hideTimeoutMessage = false;
 
-    protected Exception error = null;
-    protected Date connectTime = new Date();
     protected boolean connected = false;
     /** @see #disconnectSoft() */
     protected boolean inputConnected = false;
@@ -101,20 +71,21 @@ public final class Connection extends Thread implements Runnable, Serializable, 
     Connection(Socket so, Server sve)
     {
         hst = so.getInetAddress().getHostName();
-
-        sv = sve;
+        ourServer = sve;
         s = so;
-        reader = null;
-        data = null;
-        remoteVersion = 0;
-        remoteVersionKnown = false;
-        remoteVersionTrack = false;
-        
-        /* Thread name for debugging */
-        if (hst != null)
-            setName ("connection-" + hst + "-" + Integer.toString(so.getPort()));
+    }
+
+    /**
+     * Get our connection thread name for debugging.  Also used by {@link #toString()}.
+     * @return "connection-"remotehostname-portnumber, or "connection-(null)-"hashCode
+     * @since 1.2.0
+     */
+    public String getName()
+    {
+        if ((hst != null) && (s != null))
+            return "connection-" + hst + "-" + Integer.toString(s.getPort());
         else
-            setName ("connection-(null)-" + Integer.toString(hashCode()));
+            return "connection-(null)-" + Integer.toString(hashCode());
     }
 
     /**
@@ -139,7 +110,6 @@ public final class Connection extends Thread implements Runnable, Serializable, 
             out = new DataOutputStream(s.getOutputStream());
             connected = true;
             inputConnected = true;
-            reader = this;
             connectTime = new Date();
 
             Putter putter = new Putter(this);
@@ -178,48 +148,26 @@ public final class Connection extends Thread implements Runnable, Serializable, 
             return false;
         }
     }
-
-    /**
-     * If client connection times out at server, should the server not print a message to console?
-     * This would be desired, for instance, in automated clients, which would reconnect
-     * if they become disconnected.
-     * @see #setHideTimeoutMessage(boolean)
-     */
-    public boolean wantsHideTimeoutMessage()
-    {
-        return hideTimeoutMessage;
-    }
-
-    /**
-     * If client connection times out at server, should the server not print a message to console?
-     * This would be desired, for instance, in automated clients, which would reconnect
-     * if they become disconnected.
-     * @param wantsHide true to hide, false to print, the log message on idle-disconnect
-     * @see #wantsHideTimeoutMessage()
-     */
-    public void setHideTimeoutMessage(boolean wantsHide)
-    {
-        hideTimeoutMessage = wantsHide;
-    }
  
     /** continuously read from the net */
     public void run()
     {
-        sv.addConnection(this);
+        Thread.currentThread().setName(getName());  // connection-remotehostname-portnumber
+        ourServer.addConnection(this);
 
         try
         {
             if (inputConnected)
             {
                 String firstMsg = in.readUTF();
-                if (! sv.processFirstCommand(firstMsg, this))
-                    sv.treat(firstMsg, this);
+                if (! ourServer.processFirstCommand(firstMsg, this))
+                    ourServer.treat(firstMsg, this);
             }
 
             while (inputConnected)
             {
                 // readUTF max message size is 65535 chars, modified utf-8 format
-                sv.treat(in.readUTF(), this);
+                ourServer.treat(in.readUTF(), this);
             }
         }
         catch (IOException e)
@@ -237,7 +185,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
             }
 
             error = e;
-            sv.removeConnection(this);
+            ourServer.removeConnection(this);
         }
     }
 
@@ -279,7 +227,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
             }
             else
             {
-                sv.removeConnection(this);
+                ourServer.removeConnection(this);
             }
 
             return false;
@@ -332,114 +280,6 @@ public final class Connection extends Thread implements Runnable, Serializable, 
         }
 
         return true;
-    }
-
-    /**
-     * The optional key data used to name this connection.
-     *
-     * @return The key data for this connection, or null.
-     * @see #getAppData()
-     */
-    public Object getData()
-    {
-        return data;
-    }
-
-    /**
-     * The optional app-specific changeable data for this connection.
-     * Not used anywhere in the generic server, only in your app.
-     *
-     * @return The app-specific data for this connection.
-     * @see #getData()
-     */
-    public Object getAppData()
-    {
-        return appData;
-    }
-
-    /**
-     * Set the optional key data for this connection.
-     *
-     * This is anything your application wants to associate with the connection.
-     * The StringConnection system uses this data to name the connection,
-     * so it should not change once set.
-     *<P>
-     * If you call setData after {@link Server#newConnection1(StringConnection)},
-     * please call {@link Server#nameConnection(StringConnection)} afterwards
-     * to ensure the name is tracked properly at the server.
-     *
-     * @param dat The new key data, or null
-     * @see #setAppData(Object)
-     */
-    public void setData(Object dat)
-    {
-        data = dat;
-    }
-
-    /**
-     * Set the app-specific non-key data for this connection.
-     *
-     * This is anything your application wants to associate with the connection.
-     * The StringConnection system itself does not reference or use this data.
-     * You can change it as often as you'd like, or not use it.
-     *
-     * @param data The new data, or null
-     * @see #setData(Object)
-     */
-    public void setAppData(Object data)
-    {
-        appData = data;
-    }
-
-    // javadoc inherited from StringConnection
-    public String getI18NLocale()
-    {
-        return localeStr;
-    }
-
-    // javadoc inherited from StringConnection
-    public void setI18NStringManager(SOCStringManager mgr, final String loc)
-    {
-        stringMgr = mgr;
-        localeStr = loc;
-    }
-
-    // javadoc inherited from StringConnection
-    public String getLocalized(final String key)
-        throws MissingResourceException
-    {
-        SOCStringManager sm = stringMgr;
-        if (sm == null)
-            sm = SOCStringManager.getFallbackServerManagerForClient();
-
-        return sm.get(key);
-    }
-
-    // javadoc inherited from StringConnection
-    public String getLocalized(final String key, final Object ... arguments)
-        throws MissingResourceException
-    {
-        SOCStringManager sm = stringMgr;
-        if (sm == null)
-            sm = SOCStringManager.getFallbackServerManagerForClient();
-
-        return sm.get(key, arguments);
-    }
-
-    /**
-     * @return Any error encountered, or null
-     */
-    public Exception getError()
-    {
-        return error;
-    }
-
-    /**
-     * @return Time of connection to server, or of object creation if that time's not available
-     */
-    public Date getConnectTime()
-    {
-        return connectTime;
     }
 
     /** close the socket, stop the reader; called after conn is removed from server structures */
@@ -499,79 +339,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
     }
 
     /**
-     * Give the version number (if known) of the remote end of this connection.
-     * The meaning of this number is application-defined.
-     * @return Version number, or 0 if unknown.
-     */
-    public int getVersion()
-    {
-        return remoteVersion;
-    }
-
-    /**
-     * Set the version number of the remote end of this connection.
-     * The meaning of this number is application-defined.
-     *<P>
-     * <b>Locking:</b> If we're on server side, and {@link #setVersionTracking(boolean)} is true,
-     *  caller should synchronize on {@link Server#unnamedConns}.
-     *
-     * @param version Version number, or 0 if unknown.
-     *                If version is greater than 0, future calls to {@link #isVersionKnown()}
-     *                should return true.
-     */
-    public void setVersion(int version)
-    {
-        setVersion(version, version > 0);
-    }
-
-    /**
-     * Set the version number of the remote end of this connection.
-     * The meaning of this number is application-defined.
-     *<P>
-     * <b>Locking:</b> If we're on server side, and {@link #setVersionTracking(boolean)} is true,
-     *  caller should synchronize on {@link Server#unnamedConns}.
-     *
-     * @param version Version number, or 0 if unknown.
-     * @param isKnown Should this version be considered confirmed/known by {@link #isVersionKnown()}?
-     */
-    public void setVersion(int version, boolean isKnown)
-    {
-        final int prevVers = remoteVersion;
-        remoteVersion = version;
-        remoteVersionKnown = isKnown;
-        if (remoteVersionTrack && (sv != null) && (prevVers != version))
-        {
-            sv.clientVersionRem(prevVers);
-            sv.clientVersionAdd(version);
-        }
- }
-
-    /**
-     * Is the version known of the remote end of this connection?
-     * We may have just assumed it, or taken a default.
-     * @return True if we've confirmed the version, false if it's assumed or default.
-     */
-    public boolean isVersionKnown()
-    {
-        return remoteVersionKnown;
-    }
-
-    /**
-     * For server-side use, should we notify the server when our version
-     * is changed by setVersion calls?
-     * @param doTracking true if we should notify server, false otherwise.
-     *        If true, please call both setVersion and
-     *        {@link Server#clientVersionAdd(int)} before calling setVersionTracking.
-     *        If false, please call {@link Server#clientVersionRem(int)} before
-     *        calling setVersionTracking.
-     */
-    public void setVersionTracking(boolean doTracking)
-    {
-        remoteVersionTrack = doTracking;
-    }
-
-    /**
-     * toString includes data.toString for debugging.
+     * toString includes data.toString for debugging, and {@link #getName()}.
      * @since 1.0.5.2
      */
     public String toString()

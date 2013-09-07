@@ -360,7 +360,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     StringConnection con = ss.accept();
                     if (port != -1)
                     {
-                        ((Connection) con).start();
+                        new Thread((Connection) con).start();
                     }
                     else
                     {

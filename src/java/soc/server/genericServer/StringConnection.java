@@ -1,6 +1,6 @@
 /**
- * Local (StringConnection) network system.  Version 1.0.5.
- * Copyright (C) 2007-2009 Jeremy D Monin <jeremy@nand.net>.
+ * Local (StringConnection) network system.  Version 1.2.0.
+ * This file Copyright (C) 2007-2009,2013 Jeremy D Monin <jeremy@nand.net>.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -39,14 +39,54 @@ import soc.util.SOCStringManager;
  *                       setVersionTracking, isInputAvailable,
  *                       wantsHideTimeoutMessage, setHideTimeoutMessage
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed; remove unused import EOFException
- *  1.2.0 - 2013-09-01- for I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and {@link #getLocalized(String)}
+ *  1.2.0 - 2013-09-07 - for I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and {@link #getLocalized(String)}.
+ *                       StringConnection is now a superclass, not an interface
  *</PRE>
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  * @version 1.2.0
  */
-public interface StringConnection
+public abstract class StringConnection
 {
+
+    /**
+     * The arbitrary key data (client "name") associated with this connection, or {@code null}.
+     */
+    protected Object data;
+
+    /**
+     * The arbitrary app-specific data associated with this connection, or {@code null}.
+     * Not used or referenced by generic server.
+     */
+    protected Object appData;
+
+    /**
+     * The server-side locale for this client connection, for app-specific message formatting, or {@code null}.
+     * Not used or referenced by the generic server layer.
+     * @since 1.2.0
+     */
+    protected String localeStr;
+
+    /**
+     * The server-side string manager for app-specific client message formatting, or {@code null}.
+     * Not used or referenced by the generic server layer.
+     * @since 1.2.0
+     */
+    protected SOCStringManager stringMgr;
+
+    protected int remoteVersion;
+    protected boolean remoteVersionKnown;
+    protected boolean remoteVersionTrack;
+    protected boolean hideTimeoutMessage;
+
+    /** Is set if server-side. Notifies at EOF (calls removeConnection). */
+    protected Server ourServer;
+
+    /** Any error encountered, or {@code null} */
+    protected Exception error;
+
+    /** Time of connection to server, or of object creation if that time's not available */
+    protected Date connectTime = new Date();
 
     /**
      * @return Hostname of the remote end of the connection
@@ -92,7 +132,10 @@ public interface StringConnection
      * @return The key data for this connection, or null.
      * @see #getAppData()
      */
-    public abstract Object getData();
+    public Object getData()
+    {
+        return data;
+    }
 
     /**
      * The optional app-specific changeable data for this connection.
@@ -101,11 +144,14 @@ public interface StringConnection
      * @return The app-specific data for this connection.
      * @see #getData()
      */
-    public abstract Object getAppData();
+    public Object getAppData()
+    {
+        return appData;
+    }
 
     /**
      * Set the optional key data for this connection.
-     *
+     *<P>
      * This is anything your application wants to associate with the connection.
      * The StringConnection system uses this data to name the connection,
      * so it should not change once set.
@@ -117,7 +163,10 @@ public interface StringConnection
      * @param data The new key data, or null
      * @see #setAppData(Object)
      */
-    public abstract void setData(Object data);
+    public void setData(Object data)
+    {
+        this.data = data;
+    }
 
     /**
      * Set the app-specific non-key data for this connection.
@@ -129,14 +178,20 @@ public interface StringConnection
      * @param data The new data, or null
      * @see #setData(Object)
      */
-    public abstract void setAppData(Object data);
+    public void setAppData(Object data)
+    {
+        appData = data;
+    }
 
     /**
      * Get the locale for this connection, as reported to {@link #setI18NStringManager(SOCStringManager, String)}.
      * @return the locale passed to {@code setI18NStringManager}, which may be {@code null}
      * @since 1.2.0
      */
-    public abstract String getI18NLocale();
+    public String getI18NLocale()
+    {
+        return localeStr;
+    }
 
     /**
      * Set the I18N string manager and locale name for this connection, for server convenience.
@@ -145,7 +200,11 @@ public interface StringConnection
      * @param loc  Locale name, used only for {@link #getI18NLocale()}
      * @since 1.2.0
      */
-    public abstract void setI18NStringManager(SOCStringManager mgr, String loc);
+    public void setI18NStringManager(SOCStringManager mgr, final String loc)
+    {
+        stringMgr = mgr;
+        localeStr = loc;
+    }
 
     /**
      * Get a localized string (having no parameters) with the given key.
@@ -156,7 +215,15 @@ public interface StringConnection
      * @since 1.2.0
      * @see #getLocalized(String, Object...)
      */
-    public String getLocalized(String key) throws MissingResourceException;
+    public String getLocalized(final String key)
+        throws MissingResourceException
+    {
+        SOCStringManager sm = stringMgr;
+        if (sm == null)
+            sm = SOCStringManager.getFallbackServerManagerForClient();
+
+        return sm.get(key);
+    }
 
     /**
      * Get and format a localized string (with parameters) with the given key.
@@ -169,26 +236,42 @@ public interface StringConnection
      * @since 1.2.0
      * @see #getLocalized(String)
      */
-    public String getLocalized(String key, Object ... arguments) throws MissingResourceException;
+    public String getLocalized(final String key, final Object ... arguments)
+        throws MissingResourceException
+    {
+        SOCStringManager sm = stringMgr;
+        if (sm == null)
+            sm = SOCStringManager.getFallbackServerManagerForClient();
+
+        return sm.get(key, arguments);
+    }
 
     /**
      * @return Any error encountered, or null
      */
-    public abstract Exception getError();
+    public Exception getError()
+    {
+        return error;
+    }
 
     /**
      * @return Time of connection to server, or of object creation if that time's not available
-     *
      * @see #connect()
      */
-    public abstract Date getConnectTime();
+    public Date getConnectTime()
+    {
+        return connectTime;
+    }
 
     /**
      * Give the version number (if known) of the remote end of this connection.
      * The meaning of this number is application-defined.
      * @return Version number, or 0 if unknown.
      */
-    public abstract int getVersion();
+    public int getVersion()
+    {
+        return remoteVersion;
+    }
 
     /**
      * Set the version number of the remote end of this connection.
@@ -201,7 +284,10 @@ public interface StringConnection
      *                If version is greater than 0, future calls to {@link #isVersionKnown()}
      *                should return true.
      */
-    public abstract void setVersion(int version);
+    public void setVersion(final int version)
+    {
+        setVersion(version, version > 0);
+    }
 
     /**
      * Set the version number of the remote end of this connection.
@@ -214,16 +300,29 @@ public interface StringConnection
      * @param isKnown Should this version be considered confirmed/known by {@link #isVersionKnown()}?
      * @since 1.0.5
      */
-    public abstract void setVersion(int version, boolean isKnown);
+    public void setVersion(final int version, final boolean isKnown)
+    {
+        final int prevVers = remoteVersion;
+        remoteVersion = version;
+        remoteVersionKnown = isKnown;
+        if (remoteVersionTrack && (ourServer != null) && (prevVers != version))
+        {
+            ourServer.clientVersionRem(prevVers);
+            ourServer.clientVersionAdd(version);
+        }
+    }
 
     /**
      * Is the version known of the remote end of this connection?
      * We may have just assumed it, or taken a default.
-     * To confirm, call {@link #setVersion(int, boolean)}.
+     * To confirm the version and set this flag, call {@link #setVersion(int, boolean)}.
      * @return True if we've confirmed the version, false if it's assumed or default.
      * @since 1.0.5
      */
-    public abstract boolean isVersionKnown();
+    public boolean isVersionKnown()
+    {
+        return remoteVersionKnown;
+    }
 
     /**
      * For server-side use, should we notify the server when our version
@@ -235,7 +334,10 @@ public interface StringConnection
      *        calling setVersionTracking.
      * @since 1.0.5
      */
-    public abstract void setVersionTracking(boolean doTracking);
+    public void setVersionTracking(final boolean doTracking)
+    {
+        remoteVersionTrack = doTracking;
+    }
 
     /**
      * Is input available now, without blocking?
@@ -251,7 +353,10 @@ public interface StringConnection
      * @see #setHideTimeoutMessage(boolean)
      * @since 1.0.5
      */
-    public abstract boolean wantsHideTimeoutMessage();
+    public boolean wantsHideTimeoutMessage()
+    {
+        return hideTimeoutMessage;
+    }
 
     /**
      * If client connection times out at server, should the server not print a message to console?
@@ -261,6 +366,9 @@ public interface StringConnection
      * @see #wantsHideTimeoutMessage()
      * @since 1.0.5
      */
-    public abstract void setHideTimeoutMessage(boolean wantsHide);
+    public void setHideTimeoutMessage(final boolean wantsHide)
+    {
+        hideTimeoutMessage = wantsHide;
+    }
 
 }

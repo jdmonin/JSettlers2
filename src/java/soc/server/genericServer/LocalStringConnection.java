@@ -1,6 +1,6 @@
 /**
- * Local (StringConnection) network system.  Version 1.0.5.
- * Copyright (C) 2007-2010,2012 Jeremy D Monin <jeremy@nand.net>.
+ * Local (StringConnection) network system.  Version 1.2.0.
+ * Copyright (C) 2007-2010,2012-2013 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +24,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.Date;
-import java.util.MissingResourceException;
 import java.util.Vector;
 
 import soc.disableDebug.D;
@@ -38,9 +37,8 @@ import soc.util.SOCStringManager;
  * Constructors will not create or start a thread.
  *<P>
  * As used within JSettlers, the structure of this class has much in common
- * with {@link Connection}, as they both implement the {@link StringConnection}
- * interface.  If you add something to one class (or to StringConnection),
- * you should probably add it to the other.
+ * with {@link LocalStringConnection}, as they both subclass {@link StringConnection}.
+ * If you add something to one class, you should probably add it to the other, or to the superclass instead.
  *
  *<PRE>
  *  1.0.0 - 2007-11-18 - initial release
@@ -54,14 +52,15 @@ import soc.util.SOCStringManager;
  *                       common constructor code moved to init().
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed
  *  1.0.5.2- 2010-04-05- add toString for debugging
- *  1.2.0 - 2013-09-01- for I18N, add {@link #setI18NStringManager(SOCStringManager)} and {@link #getLocalized(String)}
+ *  1.2.0 - 2013-09-07 - for I18N, add {@link #setI18NStringManager(SOCStringManager)} and {@link #getLocalized(String)}.
+ *                       StringConnection is now a superclass, not an interface
  *</PRE>
  *
  * @author Jeremy D. Monin <jeremy@nand.net>
  * @version 1.2.0
  */
 public class LocalStringConnection
-    implements StringConnection, Runnable
+    extends StringConnection implements Runnable
 {
     /** Unique end-of-file marker object.  Always compare against this with == not string.equals. */
     protected static String EOF_MARKER = "__EOF_MARKER__" + '\004';
@@ -73,48 +72,13 @@ public class LocalStringConnection
     protected boolean accepted;
     private LocalStringConnection ourPeer;
 
-    protected Server ourServer;  // Is set if server-side. Notifies at EOF (calls removeConnection).
-    protected Exception error;
-    protected Date connectTime;
-    protected int  remoteVersion;
-    protected boolean remoteVersionKnown;
-    protected boolean remoteVersionTrack;
-    protected boolean hideTimeoutMessage = false;
-
-    /**
-     * the arbitrary key data associated with this connection.
-     */
-    protected Object data;
-
-    /**
-     * the arbitrary app-specific data associated with this connection.
-     * Not used or referenced by generic server.
-     */
-    protected Object appData;
-
-    /**
-     * The server-side locale for this client connection, for app-specific message formatting.
-     * Not used or referenced by the generic server layer.
-     * @since 1.2.0
-     */
-    protected String localeStr;
-
-    /**
-     * The server-side string manager for app-specific client message formatting.
-     * Not used or referenced by the generic server layer.
-     * @since 1.2.0
-     */
-    protected SOCStringManager stringMgr;
-
     /**
      * Create a new, unused LocalStringConnection.
      *
-     * After construction, call connect to use this object.
+     * After construction, call {@link #connect(String)} to use this object.
      *
      * This class has a run method, but you must start the thread yourself.
      * Constructors will not create or start a thread.
-     *
-     * @see #connect(String)
      */
     public LocalStringConnection()
     {
@@ -159,14 +123,6 @@ public class LocalStringConnection
         in_reachedEOF = false;
         out_setEOF = false;
         accepted = false;
-        data = null;
-        ourServer = null;
-        error = null;
-        connectTime = new Date();
-        appData = null;
-        remoteVersion = 0;
-        remoteVersionKnown = false;
-        remoteVersionTrack = false;
     }
 
     /**
@@ -399,98 +355,6 @@ public class LocalStringConnection
     }
 
     /**
-     * The optional key data used to name this connection.
-     *
-     * @return The key data for this connection, or null.
-     * @see #getAppData()
-     */
-    public Object getData()
-    {
-        return data;
-    }
-
-    /**
-     * The optional app-specific changeable data for this connection.
-     * Not used anywhere in the generic server, only in your app.
-     *
-     * @return The app-specific data for this connection.
-     * @see #getData()
-     */
-    public Object getAppData()
-    {
-        return appData;
-    }
-
-    /**
-     * Set the optional key data for this connection.
-     *
-     * This is anything your application wants to associate with the connection.
-     * The StringConnection system uses this data to name the connection,
-     * so it should not change once set.
-     *<P>
-     * If you call setData after {@link Server#newConnection1(StringConnection)},
-     * please call {@link Server#nameConnection(StringConnection)} afterwards
-     * to ensure the name is tracked properly at the server.
-     *
-     * @param dat The new key data, or null
-     * @see #setAppData(Object)
-     */
-    public void setData(Object dat)
-    {
-        data = dat;
-    }
-
-    /**
-     * Set the app-specific non-key data for this connection.
-     *
-     * This is anything your application wants to associate with the connection.
-     * The StringConnection system itself does not reference or use this data.
-     * You can change it as often as you'd like, or not use it.
-     *
-     * @param data The new data, or null
-     * @see #setData(Object)
-     */
-    public void setAppData(Object data)
-    {
-        appData = data;
-    }
-
-    // javadoc inherited from StringConnection
-    public String getI18NLocale()
-    {
-        return localeStr;
-    }
-
-    // javadoc inherited from StringConnection
-    public void setI18NStringManager(SOCStringManager mgr, final String loc)
-    {
-        stringMgr = mgr;
-        localeStr = loc;
-    }
-
-    // javadoc inherited from StringConnection
-    public String getLocalized(final String key)
-        throws MissingResourceException
-    {
-        SOCStringManager sm = stringMgr;
-        if (sm == null)
-            sm = SOCStringManager.getFallbackServerManagerForClient();
-
-        return sm.get(key);
-    }
-
-    // javadoc inherited from StringConnection
-    public String getLocalized(final String key, final Object ... arguments)
-        throws MissingResourceException
-    {
-        SOCStringManager sm = stringMgr;
-        if (sm == null)
-            sm = SOCStringManager.getFallbackServerManagerForClient();
-
-        return sm.get(key, arguments);
-    }
-
-    /**
      * Server-side: Reference to the server handling this connection.
      *
      * @return The generic server (optional) for this connection
@@ -513,22 +377,6 @@ public class LocalStringConnection
     public void setServer(Server srv)
     {
         ourServer = srv;
-    }
-
-    /**
-     * @return Any error encountered, or null
-     */
-    public Exception getError()
-    {
-        return error;
-    }
-
-    /**
-     * @return Time of connection to server, or of object creation if that time's not available
-     */
-    public Date getConnectTime()
-    {
-        return connectTime;
     }
 
     /**
@@ -561,80 +409,6 @@ public class LocalStringConnection
     }
 
     /**
-     * Give the version number (if known) of the remote end of this connection.
-     * The meaning of this number is application-defined.
-     * @return Version number, or 0 if unknown.
-     */
-    public int getVersion()
-    {
-        return remoteVersion;
-    }
-
-    /**
-     * Set the version number of the remote end of this connection.
-     * The meaning of this number is application-defined.
-     *<P>
-     * <b>Locking:</b> If we're on server side, and {@link #setVersionTracking(boolean)} is true,
-     *  caller should synchronize on {@link Server#unnamedConns}.
-     *
-     * @param version Version number, or 0 if unknown.
-     *                If version is greater than 0, future calls to {@link #isVersionKnown()}
-     *                should return true.
-     */
-    public void setVersion(int version)
-    {
-        setVersion(version, version > 0);
-    }
-
-    /**
-     * Set the version number of the remote end of this connection.
-     * The meaning of this number is application-defined.
-     *<P>
-     * <b>Locking:</b> If we're on server side, and {@link #setVersionTracking(boolean)} is true,
-     *  caller should synchronize on {@link Server#unnamedConns}.
-     *
-     * @param version Version number, or 0 if unknown.
-     * @param isKnown Should this version be considered confirmed/known by {@link #isVersionKnown()}?
-     */
-    public void setVersion(int version, boolean isKnown)
-    {
-        final int prevVers = remoteVersion;
-        remoteVersion = version;
-        remoteVersionKnown = isKnown;
-        if (remoteVersionTrack && (ourServer != null) && (prevVers != version))
-        {
-            ourServer.clientVersionRem(prevVers);
-            ourServer.clientVersionAdd(version);
-        }
-    }
-
-    /**
-     * Is the version known of the remote end of this connection?
-     * We may have just assumed it, or taken a default.
-     * @return True if we've confirmed the version, false if it's assumed or default.
-     * @since 1.0.5
-     */
-    public boolean isVersionKnown()
-    {
-        return remoteVersionKnown;
-    }
-
-    /**
-     * For server-side use, should we notify the server when our version
-     * is changed by setVersion calls?
-     * @param doTracking true if we should notify server, false otherwise.
-     *        If true, please call both setVersion and
-     *        {@link Server#clientVersionAdd(int)} before calling setVersionTracking.
-     *        If false, please call {@link Server#clientVersionRem(int)} before
-     *        calling setVersionTracking.
-     * @since 1.0.5
-     */
-    public void setVersionTracking(boolean doTracking)
-    {
-        remoteVersionTrack = doTracking;
-    }
-
-    /**
      * Is input available now, without blocking?
      * Same idea as {@link java.io.DataInputStream#available()}.
      * @since 1.0.5
@@ -642,31 +416,6 @@ public class LocalStringConnection
     public boolean isInputAvailable()
     {
         return (! in_reachedEOF) && (0 < in.size());
-    }
-
-    /**
-     * If client connection times out at server, should the server not print a message to console?
-     * This would be desired, for instance, in automated clients, which would reconnect
-     * if they become disconnected.
-     * @see #setHideTimeoutMessage(boolean)
-     * @since 1.0.5
-     */
-    public boolean wantsHideTimeoutMessage()
-    {
-        return hideTimeoutMessage;
-    }
-
-    /**
-     * If client connection times out at server, should the server not print a message to console?
-     * This would be desired, for instance, in automated clients, which would reconnect
-     * if they become disconnected.
-     * @param wantsHide true to hide, false to print, the log message on idle-disconnect
-     * @see #wantsHideTimeoutMessage()
-     * @since 1.0.5
-     */
-    public void setHideTimeoutMessage(boolean wantsHide)
-    {
-        hideTimeoutMessage = wantsHide;
     }
 
     /**
