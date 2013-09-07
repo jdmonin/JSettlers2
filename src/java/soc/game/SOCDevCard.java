@@ -19,6 +19,8 @@
  **/
 package soc.game;
 
+import soc.util.SOCStringManager;
+
 /**
  * A single Dev Card, probably within a {@link SOCDevCardSet}.
  *
@@ -46,62 +48,51 @@ public class SOCDevCard implements SOCDevCardConstants
     }
 
     /**
+     * Resource type-and-count text keys for {@link #getCardTypeName(int, SOCGame, boolean, SOCStringManager)}.
+     * Each subarray's indexes are the same values as {@link SOCDevCardConstants#UNKNOWN} to {@link SOCDevCardConstants#TOW}.
+     * @since 2.0.00
+     */
+    private static final String[][] GETCARDTYPENAME_KEYS =
+    {
+        {     // without article
+            "spec.dcards.unknown", "spec.dcards.roadbuilding", "spec.dcards.discoveryplenty", "spec.dcards.monopoly",
+            "spec.dcards.capgovhouse", "spec.dcards.libmarket", "spec.dcards.university",
+            "spec.dcards.temple", "spec.dcards.towerchapel", "spec.dcards.knightsoldier"
+        }, {  // with article (a/an)
+            "spec.dcards.aunknown", "spec.dcards.aroadbuilding", "spec.dcards.adiscoveryplenty", "spec.dcards.amonopoly",
+            "spec.dcards.acapgovhouse", "spec.dcards.alibmarket", "spec.dcards.auniversity",
+            "spec.dcards.atemple", "spec.dcards.atowerchapel", "spec.dcards.aknightsoldier"
+        }
+    };
+
+    /**
      * Get a card type's name.
      * @param ctype  A constant such as {@link SOCDevCardConstants#TOW}
      *               or {@link SOCDevCardConstants#ROADS}
      * @param game  Game data, or {@code null}; some game options might change a card name.
      *               For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
      * @param withArticle  If true, format is: "a Market (+1VP)"; if false, is "Market (1VP)"
+     * @param strings  StringManager to get i18n localized text
      * @return  The card name, formatted per {@code withArticle}; unknown ctypes return "Unknown card type #"
      */
-    public static String getCardTypeName(final int ctype, final SOCGame game, final boolean withArticle)
+    public static String getCardTypeName
+        (final int ctype, final SOCGame game, final boolean withArticle, final SOCStringManager strings)
     {
+        // i18n: These names are also currently hardcoded in SOCServer.DEBUG_COMMANDS_HELP and .DEBUG_COMMANDS_HELP_DEV_TYPES
+
         final String ctname;
 
-        switch (ctype)
+        if ((ctype == SOCDevCardConstants.KNIGHT) && (game != null) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
         {
-        case SOCDevCardConstants.DISC:
-            ctname = (withArticle) ? /*I*/"a Year of Plenty"/*18N*/ : /*I*/"Year of Plenty"/*18N*/;
-            break;
+            final String key = (withArticle) ? "spec.dcards.knightsoldier.awarship" : "spec.dcards.knightsoldier.warship";
+            return strings.get(key);  // <--- Early return: special case ---
+        }
 
-        case SOCDevCardConstants.KNIGHT:
-            {
-                final boolean withWarship = (game != null) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI);
-                ctname = (withWarship)
-                    ? ((withArticle) ? "a Warship" : "Warship")
-                    : ((withArticle) ? "a Soldier" : "Soldier");
-            }
-            break;
-
-        case SOCDevCardConstants.MONO:
-            ctname = (withArticle) ? "a Monopoly" : "Monopoly";
-            break;
-
-        case SOCDevCardConstants.ROADS:
-            ctname = (withArticle) ? "a Road Building" : "Road Building";
-            break;
-
-        case SOCDevCardConstants.CAP:
-            ctname = (withArticle) ? "a Gov.House (+1VP)" : "Gov. House (1VP)";
-            break;
-
-        case SOCDevCardConstants.LIB:
-            ctname = (withArticle) ? "a Market (+1VP)" : "Market (1VP)";
-            break;
-
-        case SOCDevCardConstants.UNIV:
-            ctname = (withArticle) ? "a University (+1VP)" : "University (1VP)";
-            break;
-
-        case SOCDevCardConstants.TEMP:
-            ctname = (withArticle) ? "a Temple (+1VP)" : "Temple (1VP)";
-            break;
-
-        case SOCDevCardConstants.TOW:
-            ctname = (withArticle) ? "a Chapel (+1VP)" : "Chapel (1VP)";
-            break;
-
-        default:
+        final String[] keyArr = GETCARDTYPENAME_KEYS[(withArticle) ? 1 : 0];
+        if ((ctype >= 0) && (ctype < keyArr.length))
+        {
+            ctname = strings.get(keyArr[ctype]);
+        } else {
             ctname = "Unknown card type " + ctype;  // don't bother I18N, should not occur
         }
 

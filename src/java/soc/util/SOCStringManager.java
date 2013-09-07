@@ -23,10 +23,14 @@ package soc.util;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
+import soc.game.SOCDevCard;
+import soc.game.SOCDevCardConstants;
+import soc.game.SOCGame;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 
@@ -104,7 +108,7 @@ public class SOCStringManager {
     }
 
     /**
-     * Resource type-and-count text keys for {@link #getSpecial(String, Object...)}.
+     * Resource type-and-count text keys for {@link #getSpecial(SOCGame, String, Object...)}.
      * Each subarray's indexes are the same values as {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
      * The string key at index 0 is used for resources out of range (unknown types).
      */
@@ -118,7 +122,7 @@ public class SOCStringManager {
     };
 
     /**
-     * Get a resource count, such as "5 sheep"; used by {@link #getSpecial(String, Object...)}. 
+     * Get a resource count, such as "5 sheep"; used by {@link #getSpecial(SOCGame, String, Object...)}. 
      * @param rtype  Type of resource, in the range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
      * @param rcountObj  Resource count; uses the Integer object passed into {@code getSpecial}
      * @return  A localized string such as "1 wood" or "5 clay", or if {@code rtype} is out of range,
@@ -151,19 +155,29 @@ public class SOCStringManager {
 
     /**
      * Get and format a localized string (with special SoC-specific parameters) with the given key.
-     * @param key  Key to use for string retrieval; can contain <tt>{0,rsrcs}</tt> for a resource name or resource set.
-     *            Resource names ("5 sheep") take 2 argument slots: an Integer for the count, and an Integer for the type.
+     *<UL>
+     *<LI> <tt>{0,rsrcs}</tt> for a resource name or resource set.
+     *     A resource set is passed as a {@link SOCResourceSet} in {@code arguments}.
+     *     Resource names ("5 sheep") take 2 argument slots: an Integer for the count, and a
+     *     resource type Integer in the range {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD}.
+     *<LI> <tt>{0,dcards}</tt> for a Development Card or list of dev cards.
+     *     {@code arguments} should contain a single Integer, or a {@link List} of them,
+     *     in the range {@link SOCDevCardConstants#MIN} - {@link SOCDevCardConstants#TOW}.
+     *     <P>
+     *     The returned format will include indefinite articles: "a Year of Plenty", "a Market (1 VP)", etc.
+     *</UL>
+     *
+     * @param game  Game, in case its options influence the strings (such as dev card Knight -> Warship in scenario _SC_PIRI)
+     * @param key  Key to use for string retrieval. Can contain <tt>{0,rsrcs}</tt> and or <tt>{0,dcards}</tt>.
      *            You can use <tt>{1</tt>, <tt>{2</tt>, or any other slot number.
-     * @param arguments  Objects to go with <tt>{0,rsrcs}</tt> in {@code key};
-     *            can contain a {@link SOCResourceSet} or two integers:
-     *            An Integer for the count, and a resource type Integer in the range
-     *            {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD}.
+     * @param arguments  Objects to go with <tt>{0,rsrcs}</tt> or <tt>{0,dcards}</tt> in {@code key};
+     *            see above for the expected object types.
      * @return the localized formatted string from the manager's bundle or one of its parents
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
      * @see #getSOCResourceCount(int, Integer)
      */
-    public String getSpecial(final String key, Object ... arguments)
+    public String getSpecial(final SOCGame game, final String key, Object ... arguments)
         throws MissingResourceException, IllegalArgumentException
     {
         String txtfmt = bundle.getString(key);
@@ -177,7 +191,6 @@ public class SOCStringManager {
                 throw new IllegalArgumentException("Missing '{' before ',rsrcs}' in pattern: " + txtfmt);
 
             final int pnum = Integer.parseInt(txtfmt.substring(i0 + 1, ir));
-
             if (arguments[pnum] instanceof Integer)
             {
                 // [pnum] is rcount, [pnum+1] is rtype;
@@ -211,6 +224,50 @@ public class SOCStringManager {
 
             // look for any others (at top of loop)
             ir = txtfmt.indexOf(",rsrcs}");
+        }
+
+        // look for any "{#,dcards}" parameter here, and replace that arg with a String
+        ir = txtfmt.indexOf(",dcards}");
+        while (ir != -1)
+        {
+            final int i0 = txtfmt.lastIndexOf('{', ir - 1);
+            if (i0 == -1)
+                throw new IllegalArgumentException("Missing '{' before ',dcards}' in pattern: " + txtfmt);
+
+            final int pnum = Integer.parseInt(txtfmt.substring(i0 + 1, ir));
+            if (arguments[pnum] instanceof Integer)
+            {
+                // replace the argument obj with its localized String 
+                arguments[pnum] = SOCDevCard.getCardTypeName(((Integer) arguments[pnum]), game, true, this);
+            }
+            else if (arguments[pnum] instanceof List)
+            {
+                // replace the argument obj with String of its localized items 
+                final int L = ((List<?>) arguments[pnum]).size();
+                if (L == 0)
+                {
+                    arguments[pnum] = bundle.getString("spec.dcards.none");  // "nothing"
+                } else {
+                    ArrayList<String> resList = new ArrayList<String>(L);
+                    for (Object itm : ((List<?>) arguments[pnum]))
+                    {
+                        if (itm instanceof Integer)
+                            resList.add(SOCDevCard.getCardTypeName(((Integer) itm).intValue(), game, true, this));
+                        else
+                            resList.add(itm.toString());
+                    }
+
+                    arguments[pnum] = I18n.listItems(resList, this);
+                }
+            } else {
+                // keep obj as whatever it is; MessageFormat.format will call its toString()
+            }
+
+            // splice the format string: "{#,dcards}" -> "{#}"
+            txtfmt = txtfmt.substring(0, ir) + txtfmt.substring(ir + 7);
+
+            // look for any others (at top of loop)
+            ir = txtfmt.indexOf(",dcards}");
         }
 
         // now format the rest of the message:

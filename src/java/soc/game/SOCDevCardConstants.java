@@ -44,7 +44,7 @@ package soc.game;
  * older versions, constants {@link #KNIGHT_FOR_VERS_1_X} and
  * {@link #UNKNOWN_FOR_VERS_1_X} were added.  See {@link #VERSION_FOR_NEW_TYPES}.
  *
- * @see SOCDevCard#getCardTypeName(int, SOCGame, boolean)
+ * @see SOCDevCard#getCardTypeName(int, SOCGame, boolean, soc.util.SOCStringManager)
  */
 public interface SOCDevCardConstants
 {

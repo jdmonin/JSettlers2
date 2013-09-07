@@ -2052,14 +2052,14 @@ public class SOCHandPanel extends Panel
 
                 for (int j = 0; j < numOld; j++)
                 {
-                    cardList.add(SOCDevCard.getCardTypeName(ctype, game, false));
+                    cardList.add(SOCDevCard.getCardTypeName(ctype, game, false, strings));
                     cardListItems.add(new SOCDevCard(ctype, false));
                 }
                 for (int j = 0; j < numNew; j++)
                 {
                     // VP cards are valid immediately, so don't mark them new
                     String prefix = (SOCDevCard.isVPCard(i)) ? "" : /*I*/"*NEW* "/*18N*/;
-                    cardList.add(prefix + SOCDevCard.getCardTypeName(ctype, game, false));
+                    cardList.add(prefix + SOCDevCard.getCardTypeName(ctype, game, false, strings));
                     cardListItems.add(new SOCDevCard(ctype, true));
                 }
             }
