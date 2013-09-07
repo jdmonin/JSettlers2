@@ -198,9 +198,9 @@ public class SOCStringManager {
 
                 // replace the argument obj
                 if (resList.isEmpty())
-                    arguments[pnum] = bundle.getString("spec.rsrcs.none");  // "no resources"
+                    arguments[pnum] = bundle.getString("spec.rsrcs.none");  // "nothing"
                 else
-                    arguments[pnum] = I18n.listItems(resList);
+                    arguments[pnum] = I18n.listItems(resList, this);
 
             } else {
                 // keep obj as whatever it is; MessageFormat.format will call its toString()

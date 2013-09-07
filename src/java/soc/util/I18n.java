@@ -60,8 +60,10 @@ public abstract class I18n
     /**
      * Build a string with the contents of this list, such as "x, y, and z". 
      *<P>
-     * This method and its strings may need refinement as more languages are supported.
-     * @param items
+     * This method and its formatting strings ({@code i18n.listitems.*}) may need
+     * refinement as more languages are supported.
+     * @param items  Each item's {@link Object#toString() toString()} will be placed in the list
+     * @param strings  StringManager to retrieve localized formatting between items
      * @return A string nicely listing the items, with a form such as:
      *   <UL>
      *   <LI> nothing
@@ -70,32 +72,31 @@ public abstract class I18n
      *   <LI> x, y, and z
      *   <LI> x, y, z, and w
      *   </UL>
-     * @throws IllegalArgumentException if {@code items} is null
+     * @throws IllegalArgumentException if {@code items} is null, or {@code strings} is null
      */
-    public static final String listItems(List<? extends Object> items)
+    public static final String listItems(List<? extends Object> items, SOCStringManager strings)
         throws IllegalArgumentException
     {
-        if (items == null)
+        if ((items == null) || (strings == null))
             throw new IllegalArgumentException("null");
 
         final int L = items.size();
         switch(L)
         {
         case 0:
-            return /*I*/"nothing"/*18N*/;
+            return strings.get("i18n.listitems.nothing");  // "nothing"
 
         case 1:
             return items.get(0).toString();
 
         case 2:
-            return MessageFormat.format
-                ( /*I*/"{0} and {1}"/*18N*/, items.get(0), items.get(1));
+            return strings.get("i18n.listitems.2", items.get(0), items.get(1));  // "{0} and {1}"
 
         default:
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < (L-1); ++i)
-                sb.append(MessageFormat.format(/*I*/"{0}, "/*18N*/, items.get(i)));
-            sb.append(MessageFormat.format(/*I*/"and {0}"/*18N*/, items.get(L-1)));
+                sb.append(strings.get("i18n.listitems.item", items.get(i)));  // "{0}, " -- trailing space noted in properties file comment
+            sb.append(strings.get("i18n.listitems.finalitem", items.get(L-1)));  // "and {0}"
             return sb.toString();
         }
     }
