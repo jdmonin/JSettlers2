@@ -2547,7 +2547,7 @@ public class SOCServer extends Server
 
     /**
      * Send a {@link SOCGameServerText} or {@link SOCGameTextMsg} game text message to a player.
-     * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga, {@link #SERVERNAME}, txt));
+     * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga, txt));
      *
      * @param c   the player connection; if their version is 2.0.00 or newer,
      *            they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
@@ -2590,7 +2590,7 @@ public class SOCServer extends Server
 
     /**
      * Send a localized {@link SOCGameServerText} game text message to a player.
-     * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga, {@link #SERVERNAME},
+     * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga,
      * {@link StringConnection#getLocalized(String) c.getLocalized(key)}));
      *
      * @param c   the player connection; if their version is 2.0.00 or newer,
@@ -2613,7 +2613,7 @@ public class SOCServer extends Server
 
     /**
      * Send a localized {@link SOCGameServerText} game text message with arguments to a player.
-     * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga, {@link #SERVERNAME},
+     * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga,
      * {@link StringConnection#getLocalized(String, Object...) c.getLocalized(key, args)}));
      *<P>
      * The localized message text must be formatted as in {@link MessageFormat}:
@@ -2626,6 +2626,7 @@ public class SOCServer extends Server
      * @param args  Any parameters within {@code txt}'s placeholders
      * @since 2.0.00
      * @see #messageToPlayerKeyed(StringConnection, String, String)
+     * @see #messageToPlayerKeyedSpecial(StringConnection, SOCGame, String, Object...)
      */
     public final void messageToPlayerKeyed
         (StringConnection c, final String gaName, final String key, final Object ... args)
@@ -2637,6 +2638,38 @@ public class SOCServer extends Server
             c.put(SOCGameServerText.toCmd(gaName, c.getLocalized(key, args)));
         else
             c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key, args)));
+    }
+
+    /**
+     * Send a localized {@link SOCGameServerText} game text message with arguments to a player,
+     * with special formatting like <tt>{0,rsrcs}</tt>.
+     * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga,
+     * {@link StringConnection#getLocalizedSpecial(SOCGame, String, Object...) c.getLocalizedSpecial(ga, key, args)}));
+     *<P>
+     * The localized message text must be formatted as in {@link MessageFormat}:
+     * Placeholders for {@code args} are <tt>{0}</tt> etc, single-quotes must be repeated: {@code ''}.
+     * For the SoC-specific parameters such as <tt>{0,rsrcs}</tt>, see the javadoc for
+     * {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}.
+     *
+     * @param c   the player connection; if their version is 2.0.00 or newer,
+     *            they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
+     * @param ga  the game
+     * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
+     * @param args  Any parameters within {@code txt}'s placeholders
+     * @since 2.0.00
+     * @see #messageToPlayerKeyed(StringConnection, String, String, Object...)
+     * @see #messageToPlayerKeyed(StringConnection, String, String)
+     */
+    public final void messageToPlayerKeyedSpecial
+        (StringConnection c, final SOCGame ga, final String key, final Object ... args)
+    {
+        if (c == null)
+            return;
+
+        if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
+            c.put(SOCGameServerText.toCmd(ga.getName(), c.getLocalizedSpecial(ga, key, args)));
+        else
+            c.put(SOCGameTextMsg.toCmd(ga.getName(), SERVERNAME, c.getLocalizedSpecial(ga, key, args)));
     }
 
     /**
@@ -2767,6 +2800,7 @@ public class SOCServer extends Server
      *            (See {@link #messageToGameUrgent(String, String)})
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @see #messageToGameKeyed(SOCGame, boolean, String, Object...)
+     * @see #messageToGameKeyedSpecial(SOCGame, boolean, StringConnection, boolean, String, Object...)
      * @see #messageToGame(String, String)
      * @since 2.0.00
      */
@@ -2848,6 +2882,7 @@ public class SOCServer extends Server
      *             by calling {@link MessageFormat#format(String, Object...)}.
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @see #messageToGameKeyed(SOCGame, boolean, String)
+     * @see #messageToGameKeyedSpecial(SOCGame, boolean, StringConnection, boolean, String, Object...)
      * @see #messageToGame(String, String)
      * @since 2.0.00
      */
@@ -2900,6 +2935,106 @@ public class SOCServer extends Server
         catch (Throwable e)
         {
             D.ebugPrintStackTrace(e, "Exception in messageToGameKeyed");
+        }
+
+        if (takeMon)
+            gameList.releaseMonitorForGame(gaName);
+    }
+
+    /**
+     * Send a localized {@link SOCGameServerText} game text message (with parameters) to a game,
+     * optionally with special formatting like <tt>{0,rsrcs}</tt>, optionally excluding one connection.
+     * Same as {@link #messageToGame(String, String)} but calls each member connection's
+     * {@link StringConnection#getLocalizedSpecial(SOCGame, String, Object...) c.getLocalizedSpecial(...)} for the localized text to send.
+     *<P>
+     * For the SoC-specific parameters such as <tt>{0,rsrcs}</tt>, see the javadoc for
+     * {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}.
+     *<P>
+     * Client versions older than v2.0.00 will be sent {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt).
+     *<P>
+     * <b>Locks:</b> If {@code takeMon} is true, takes and releases {@link SOCGameList#takeMonitorForGame(String)}.
+     * Otherwise call {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
+     * before calling this method.
+     *
+     * @param ga  the game object
+     * @param takeMon Should this method take and release
+     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                True unless caller already holds that monitor.
+     * @param ex  the excluded connection, or {@code null}
+     * @param fmtSpecial  Should this method call {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}
+     *            instead of the usual {@link SOCStringManager#get(String, Object...)} ?
+     * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
+     *            If its localized text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way.
+     *            (See {@link #messageToGameUrgent(String, String)})
+     * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
+     *             by calling {@link MessageFormat#format(String, Object...)}.
+     *             <P>
+     *             If {@code fmtSpecial}, these objects can include {@link SOCResourceSet} or pairs of
+     *             Integers for a resource count and type; see {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}.
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
+     * @see #messageToGameKeyed(SOCGame, boolean, String)
+     * @see #messageToGame(String, String)
+     * @since 2.0.00
+     */
+    public void messageToGameKeyedSpecial
+        (SOCGame ga, final boolean takeMon, final StringConnection ex,
+         final boolean fmtSpecial, final String key, final Object ... params)
+        throws MissingResourceException, IllegalArgumentException
+    {
+        // same code as the other messageToGameKeyed, except for checking ex and the call to c.getKeyedSpecial;
+        // if you change code here, change it there too
+
+        final boolean hasMultiLocales = ga.hasMultiLocales;
+        final String gaName = ga.getName();
+
+        if (takeMon)
+            gameList.takeMonitorForGame(gaName);
+
+        try
+        {
+            Vector<StringConnection> v = gameList.getMembers(gaName);
+
+            if (v != null)
+            {
+                Enumeration<StringConnection> menum = v.elements();
+
+                String gameTextMsg = null, gameTxtLocale = null;
+                while (menum.hasMoreElements())
+                {
+                    StringConnection c = menum.nextElement();
+                    if ((c != null) && (c != ex))
+                    {
+                        final String cliLocale = c.getI18NLocale();
+                        if ((gameTextMsg == null)
+                            || (hasMultiLocales
+                                 && (  (cliLocale == null)
+                                       ? (gameTxtLocale != null)
+                                       : ! cliLocale.equals(gameTxtLocale)  )))
+                        {
+                            if (fmtSpecial)
+                                gameTextMsg = SOCGameServerText.toCmd(gaName, c.getLocalizedSpecial(ga, key, params));
+                            else
+                                gameTextMsg = SOCGameServerText.toCmd(gaName, c.getLocalized(key, params));
+                            gameTxtLocale = cliLocale;
+                        }
+
+                        if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
+                            c.put(gameTextMsg);
+                        else
+                            // old client (not common) gets a different message type
+                            if (fmtSpecial)
+                                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalizedSpecial(ga, key, params)));
+                            else
+                                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key, params)));
+                    }
+                }
+            }
+        }
+        catch (Throwable e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in messageToGameKeyedSpecial");
         }
 
         if (takeMon)
@@ -8638,7 +8773,6 @@ public class SOCServer extends Server
         if (ga == null)
             return;
 
-
         ga.takeMonitor();
 
         try
@@ -8653,7 +8787,7 @@ public class SOCServer extends Server
                     final String monoPlayerName = (String) c.getData();
                     final String resName
                         = " " + SOCResourceConstants.resName(mes.getResource()) + ".";
-                    String message = monoPlayerName + " monopolized" + resName;
+                    String message = /*I*/monoPlayerName + " monopolized" + resName/*18N*/;
 
                     gameList.takeMonitorForGame(gaName);
                     messageToGameExcept(gaName, c, message, false);
@@ -10413,7 +10547,9 @@ public class SOCServer extends Server
 
             if (devCards.getNumVPCards() > 0)
             {
-                ArrayList<String> vpCardNames = new ArrayList<String>();
+                // assumes dev card deck has at most 1 card of each VP type
+                ArrayList<Integer> vpCardTypes = new ArrayList<Integer>();
+
                 for (int devCardType = SOCDevCardConstants.MIN_KNOWN;
                          devCardType < SOCDevCardConstants.MAXPLUSONE;
                          devCardType++)
@@ -10424,12 +10560,13 @@ public class SOCServer extends Server
                     if (devCards.getAmount(devCardType) <= 0)
                         continue;
 
-                    vpCardNames.add(SOCDevCard.getCardTypeName(devCardType, ga, true));  // "a Gov.House (+1VP)";
+                    vpCardTypes.add(Integer.valueOf(devCardType));
 
                 }  // for each devcard type
 
-                messageToGame(gname, MessageFormat.format
-                    ( /*I*/"{0} has {1}."/*18N*/, pl.getName(), I18n.listItems(vpCardNames)));
+                messageToGameKeyedSpecial
+                    (ga, true, null, true, "endgame.player.has.vpcards", pl.getName(), vpCardTypes);
+                    // "Joe has a Gov.House (+1VP) and a Market (+1VP)"
 
             }  // if devcards
         }  // for each player
@@ -11581,8 +11718,7 @@ public class SOCServer extends Server
         SOCDevCardSet dcSet = pl.getDevCards();
         dcSet.add(1, SOCDevCardSet.NEW, cardType);
 
-        int pnum = pl.getPlayerNumber();
-        String outMes = "### " + name + " gets " + SOCDevCard.getCardTypeName(cardType, game, true) + " card.";
+        final int pnum = pl.getPlayerNumber();
         if ((cardType != SOCDevCardConstants.KNIGHT) || (game.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
         {
             messageToGame(game.getName(), new SOCDevCardAction(game.getName(), pnum, SOCDevCardAction.DRAW, cardType));
@@ -11594,7 +11730,8 @@ public class SOCServer extends Server
                 (game, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
                  new SOCDevCardAction(game.getName(), pnum, SOCDevCardAction.DRAW, SOCDevCardConstants.KNIGHT), true);
         }
-        messageToGame(game.getName(), outMes);
+        messageToGameKeyedSpecial(game, true, null, true, "debug.dev.gets", name, Integer.valueOf(cardType));
+            // ""### joe gets a Road Building card."
     }
 
     /**

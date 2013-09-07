@@ -23,6 +23,7 @@ import java.text.MessageFormat;
 import java.util.Date;
 import java.util.MissingResourceException;
 
+import soc.game.SOCGame;  // strictly for passthrough in getLocalizedSpecial; not used otherwise
 import soc.util.SOCStringManager;
 
 /**
@@ -214,6 +215,7 @@ public abstract class StringConnection
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @since 1.2.0
      * @see #getLocalized(String, Object...)
+     * @see #getLocalizedSpecial(SOCGame, String, Object...)
      */
     public String getLocalized(final String key)
         throws MissingResourceException
@@ -235,6 +237,7 @@ public abstract class StringConnection
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @since 1.2.0
      * @see #getLocalized(String)
+     * @see #getLocalizedSpecial(SOCGame, String, Object...)
      */
     public String getLocalized(final String key, final Object ... arguments)
         throws MissingResourceException
@@ -244,6 +247,31 @@ public abstract class StringConnection
             sm = SOCStringManager.getFallbackServerManagerForClient();
 
         return sm.get(key, arguments);
+    }
+
+    /**
+     * Get and format a localized string (with special SoC-specific parameters) with the given key.
+     * Used for convenience at servers whose clients may have different locales.
+     * See {@link SOCStringManager#getSpecial(SOCGame, String, Object...)} for details.
+     *
+     * @param game  Game object to pass through to {@code SOCStringManager.getSpecial(...)}
+     * @param key  Key to use for string retrieval
+     * @param arguments  Objects to use with <tt>{0}</tt>, <tt>{1,rsrcs}</tt>, etc in the localized string
+     * @return the localized formatted string from the manager's bundle or one of its parents
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
+     * @since 1.2.0
+     * @see #getLocalized(String)
+     * @see #getLocalized(String, Object...)
+     */
+    public String getLocalizedSpecial(final SOCGame game, final String key, final Object ... arguments)
+        throws MissingResourceException, IllegalArgumentException
+    {
+        SOCStringManager sm = stringMgr;
+        if (sm == null)
+            sm = SOCStringManager.getFallbackServerManagerForClient();
+
+        return sm.getSpecial(game, key, arguments);
     }
 
     /**
