@@ -49,6 +49,7 @@ import java.util.Vector;
  *<P>
  * Refactored in v1.2.0 to extend {@link StringConnection} instead of Thread.
  */
+@SuppressWarnings("serial")
 public final class Connection
     extends StringConnection implements Runnable, Serializable, Cloneable
 {
@@ -65,7 +66,7 @@ public final class Connection
     protected boolean connected = false;
     /** @see #disconnectSoft() */
     protected boolean inputConnected = false;
-    public Vector<String> outQueue = new Vector<String>();
+    private Vector<String> outQueue = new Vector<String>();
 
     /** initialize the connection data */
     Connection(Socket so, Server sve)
@@ -96,9 +97,10 @@ public final class Connection
         return hst;
     }
 
-    /** start reading from the net; called only by the server.
+    /** Set up to reading from the net, start a new Putter thread to send to the net; called only by the server.
      * If successful, also sets connectTime to now.
-     * 
+     * Before calling {@code connect()}, be sure to call {@link #run()} to start the inbound reading thread.
+     *
      * @return true if thread start was successful, false if an error occurred.
      */
     public boolean connect()
@@ -112,7 +114,7 @@ public final class Connection
             inputConnected = true;
             connectTime = new Date();
 
-            Putter putter = new Putter(this);
+            Putter putter = new Putter();
             putter.start();
 
             //(reader=new Thread(this)).start();
@@ -179,7 +181,7 @@ public final class Connection
                 e.printStackTrace(System.out);
             }
 
-            if (!connected)
+            if (! connected)
             {
                 return;  // Don't set error twice
             }
@@ -206,7 +208,7 @@ public final class Connection
     }
 
     /**
-     * Data is added aynchronously (sitting in {@link #outQueue}).
+     * Data is added asynchronously (sitting in {@link #outQueue}).
      * This method is called when it's dequeued and sent over
      * the connection to the remote end.
      *
@@ -215,13 +217,13 @@ public final class Connection
      * @return True if sent, false if error
      *         (and sets {@link #error})
      */
-    public boolean putForReal(String str)
+    private boolean putForReal(final String str)
     {
         boolean rv = putAux(str);
 
-        if (!rv)
+        if (! rv)
         {
-            if (!connected)
+            if (! connected)
             {
                 return false;
             }
@@ -242,9 +244,9 @@ public final class Connection
      * @return true for success, false and disconnects on failure
      *         (and sets {@link #error})
      */
-    public final boolean putAux(String str)
+    private final boolean putAux(final String str)
     {
-        if ((error != null) || !connected)
+        if ((error != null) || ! connected)
         {
             return false;
         }
@@ -355,27 +357,25 @@ public final class Connection
         return sb.toString();
     }
 
+    /** Connection inner class thread to send {@link Connection#outQueue} messages to the net. */
     class Putter extends Thread
     {
-        Connection con;
-
         //public boolean putting = true;
-        public Putter(Connection c)
+        public Putter()
         {
-            con = c;
             D.ebugPrintln("NEW PUTTER CREATED FOR " + data);
             
             /* thread name for debug */
-            String cn = c.host();
+            String cn = host();
             if (cn != null)
-                setName("putter-" + cn + "-" + Integer.toString(c.s.getPort()));
+                setName("putter-" + cn + "-" + Integer.toString(s.getPort()));
             else
-                setName("putter-(null)-" + Integer.toString(c.hashCode()));
+                setName("putter-(null)-" + Integer.toString(hashCode()));
         }
 
         public void run()
         {
-            while (con.connected)
+            while (connected)
             {
                 String c = null;
 
@@ -392,7 +392,7 @@ public final class Connection
 
                 if (c != null)
                 {
-                    /* boolean rv = */ con.putForReal(c);
+                    /* boolean rv = */ putForReal(c);
 
                     // rv ignored because handled by putForReal
                 }
