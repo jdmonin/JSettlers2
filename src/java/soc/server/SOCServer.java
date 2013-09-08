@@ -2225,7 +2225,7 @@ public class SOCServer extends Server
             reportRsrcGainLoss(gaName, discard, true, cpn, -1, null, c);
         int totalRes = discard.getTotal();
         messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
-        messageFormatToGame(gaName, true, "{0} discarded {1} resources.", plName, totalRes);
+        messageToGameKeyed(cg, true, "action.discarded", plName, totalRes);  // "{0} discarded {1} resources."
     }
 
     /**
@@ -7253,8 +7253,8 @@ public class SOCServer extends Server
                  * tell everyone else that the player discarded unknown resources
                  */
                 messageToGameExcept(gn, c, new SOCPlayerElement(gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, mes.getResources().getTotal()), true);
-                messageFormatToGame(gn, true, "{0} discarded {1} resources.",
-                    (String) c.getData(), mes.getResources().getTotal());
+                messageToGameKeyed(ga, true, "action.discarded", (String) c.getData(), mes.getResources().getTotal());
+                    // "{0} discarded {1} resources."
 
                 /**
                  * send the new state, or end turn if was marked earlier as forced
@@ -7332,7 +7332,7 @@ public class SOCServer extends Server
                 /**
                  * tell everyone what the player gained
                  */
-                reportRsrcGainGold(gn, player, pn, rsrcs, ! fromPirateFleet);
+                reportRsrcGainGold(ga, player, pn, rsrcs, ! fromPirateFleet);
 
                 /**
                  * send the new state, or end turn if was marked earlier as forced
@@ -7643,7 +7643,7 @@ public class SOCServer extends Server
                     || (endFromGameState == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
                 {
                     // Send SOCPlayerElement messages, "gains" text
-                    reportRsrcGainGold(gaName, cp, cpn, resGainLoss, false);
+                    reportRsrcGainGold(ga, cp, cpn, resGainLoss, false);
                 } else {
                     // Send SOCPlayerElement messages
                     reportRsrcGainLoss(gaName, resGainLoss, false, cpn, -1, null, null);
@@ -7654,7 +7654,7 @@ public class SOCServer extends Server
                     reportRsrcGainLoss(gaName, resGainLoss, true, cpn, -1, null, c);
                 int totalRes = resGainLoss.getTotal();
                 messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
-                messageFormatToGame(gaName, true,  "{0} discarded {1} resources.", plName, totalRes);
+                messageToGameKeyed(ga, true, "action.discarded", plName, totalRes);  //  "{0} discarded {1} resources."
             }
         }
 
@@ -10307,20 +10307,18 @@ public class SOCServer extends Server
             break;
 
         case SOCGame.WAITING_FOR_DISCARDS:
-            int count = 0;
-            String[] names = new String[ga.maxPlayers];
-
-            for (int i = 0; i < ga.maxPlayers; i++)
             {
-                if (ga.getPlayer(i).getNeedToDiscard())
-                {
-                    names[count] = ga.getPlayer(i).getName();
-                    count++;
-                }
-            }
+                ArrayList<String> names = new ArrayList<String>();
 
-            String message = sendGameState_buildPlayerNamesText(count, names, "discard.");
-            messageToGame(gname, message);
+                for (int i = 0; i < ga.maxPlayers; i++)
+                    if (ga.getPlayer(i).getNeedToDiscard())
+                        names.add(ga.getPlayer(i).getName());
+
+                if (names.size() == 1)
+                    messageToGameKeyed(ga, true, "prompt.discard.1", names.get(0));  // "Joe needs to discard"
+                else
+                    messageToGameKeyedSpecial(ga, true, null, true, "prompt.discard.n", names);  // "Joe and Ed need to discard"
+            }
             break;
 
         // case SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE and
@@ -10381,43 +10379,6 @@ public class SOCServer extends Server
     }
 
     /**
-     * For discard or gold hex in {@link #sendGameState(SOCGame, boolean)}, build
-     * the list of player names affected.
-     * @param count  Number of players to name
-     * @param names  Player names
-     * @param needToVerb  "discard." or "pick resources."
-     * @return message text, such as "x, y and z need to discard."
-     * @since 2.0.00
-     */
-    private final String sendGameState_buildPlayerNamesText
-        (final int count, final String[] names, final String needToVerb)
-    {
-        String message = "error at sendGameState()";  // default contents
-
-        if (count == 1)
-        {
-            message = names[0] + " needs to " + needToVerb;
-        }
-        else if (count == 2)
-        {
-            message = names[0] + " and " + names[1] + " need to " + needToVerb;
-        }
-        else if (count > 2)
-        {
-            message = names[0];
-
-            for (int i = 1; i < (count - 1); i++)
-            {
-                message += (", " + names[i]);
-            }
-
-            message += (" and " + names[count - 1] + " need to " + needToVerb);
-        }
-
-        return message;
-    }
-
-    /**
      * Send a game text message "x, y, and z need to pick resources from the gold hex."
      * and, for each picking player, a {@link SOCPlayerElement}({@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
      * Used in game state {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}
@@ -10451,7 +10412,7 @@ public class SOCServer extends Server
             ignoreRollPirateVictory = 0;
 
         int count = 0, amount = 0;
-        String[] names = new String[ga.maxPlayers];
+        ArrayList<String> names = new ArrayList<String>();
         int[] num = new int[ga.maxPlayers];
 
         for (int pl = 0; pl < ga.maxPlayers; ++pl)
@@ -10465,7 +10426,7 @@ public class SOCServer extends Server
                     numGoldRes -= ignoreRollPirateVictory;
                 if (numGoldRes > 0)
                 {
-                    names[count] = player.getName();
+                    names.add(player.getName());
                     count++;
                     if (count == 1)
                         amount = numGoldRes;
@@ -10473,9 +10434,13 @@ public class SOCServer extends Server
             }
         }
 
-        if (count > 0)
-            messageToGame(gname, sendGameState_buildPlayerNamesText
-                (count, names, "pick resources from the gold hex."));
+        if (count > 1)
+            messageToGameKeyedSpecial(ga, true, null, true, "prompt.pick.gold.n", names);
+                // "... need to pick resources from the gold hex."
+        else if (count == 1)
+            messageToGameKeyed(ga, true, "prompt.pick.gold.1", names.get(0));
+                // "Joe needs to pick resources from the gold hex."
+
         for (int pl = 0; pl < ga.maxPlayers; ++pl)
             if (num[pl] > 0)
                 messageToGame(gname, new SOCPlayerElement
@@ -10828,7 +10793,7 @@ public class SOCServer extends Server
      * Sends {@link SOCPlayerElement} for resources and to reset the
      * {@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES} counter.
      * Sends text "playername has picked ___ from the gold hex.".
-     * @param gn      Game name
+     * @param ga      Game with gaining player
      * @param player  Player gaining
      * @param pn      <tt>player</tt>{@link SOCPlayer#getPlayerNumber() .getPlayerNumber()}
      * @param rsrcs   Resources picked
@@ -10836,20 +10801,16 @@ public class SOCServer extends Server
      * @since 2.0.00
      */
     private void reportRsrcGainGold
-        (final String gn, final SOCPlayer player, final int pn, final SOCResourceSet rsrcs,
+        (final SOCGame ga, final SOCPlayer player, final int pn, final SOCResourceSet rsrcs,
          final boolean includeGoldHexText)
     {
-        StringBuffer gainsText = new StringBuffer();
-        gainsText.append(player.getName());
-        gainsText.append(" has picked ");
-        // Send SOCPlayerElement messages,
-        // build resource-text in gainsText.
-        reportRsrcGainLoss(gn, rsrcs, false, pn, -1, gainsText, null);
-        if (includeGoldHexText)
-            gainsText.append(" from the gold hex.");
-        else
-            gainsText.append('.');
-        messageToGame(gn, gainsText.toString());
+        final String gn = ga.getName();
+
+        // Send SOCPlayerElement messages
+        reportRsrcGainLoss(gn, rsrcs, false, pn, -1, null, null);
+        messageToGameKeyedSpecial(ga, true, null, true,
+            ((includeGoldHexText) ? "action.picked.rsrcs.goldhex" : "action.picked.rsrcs"),
+            player.getName(), rsrcs);
         messageToGame(gn, new SOCPlayerElement
             (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, 0));
     }

@@ -156,6 +156,8 @@ public class SOCStringManager {
     /**
      * Get and format a localized string (with special SoC-specific parameters) with the given key.
      *<UL>
+     *<LI> <tt>{0,list}</tt> for a list of items, which will be formatted as "x, y, and z"
+     *     by {@link I18n#listItems(List, SOCStringManager)}.  Use a {@link List} in {@code arguments}.
      *<LI> <tt>{0,rsrcs}</tt> for a resource name or resource set.
      *     A resource set is passed as a {@link SOCResourceSet} in {@code arguments}.
      *     Resource names ("5 sheep") take 2 argument slots: an Integer for the count, and a
@@ -170,7 +172,7 @@ public class SOCStringManager {
      * @param game  Game, in case its options influence the strings (such as dev card Knight -> Warship in scenario _SC_PIRI)
      * @param key  Key to use for string retrieval. Can contain <tt>{0,rsrcs}</tt> and or <tt>{0,dcards}</tt>.
      *            You can use <tt>{1</tt>, <tt>{2</tt>, or any other slot number.
-     * @param arguments  Objects to go with <tt>{0,rsrcs}</tt> or <tt>{0,dcards}</tt> in {@code key};
+     * @param arguments  Objects to go with <tt>{0,list}</tt>, <tt>{0,rsrcs}</tt>, <tt>{0,dcards}</tt>, etc in {@code key};
      *            see above for the expected object types.
      * @return the localized formatted string from the manager's bundle or one of its parents
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
@@ -226,6 +228,30 @@ public class SOCStringManager {
             ir = txtfmt.indexOf(",rsrcs}");
         }
 
+        // look for any "{#,list}" parameter here, and replace that arg with a String
+        ir = txtfmt.indexOf(",list}");
+        while (ir != -1)
+        {
+            final int i0 = txtfmt.lastIndexOf('{', ir - 1);
+            if (i0 == -1)
+                throw new IllegalArgumentException("Missing '{' before ',list}' in pattern: " + txtfmt);
+
+            final int pnum = Integer.parseInt(txtfmt.substring(i0 + 1, ir));
+            if (arguments[pnum] instanceof List)
+            {
+                // replace the argument obj with String of its localized items
+                arguments[pnum] = I18n.listItems((List<?>) arguments[pnum], this);
+            } else {
+                // keep obj as whatever it is; MessageFormat.format will call its toString()
+            }
+
+            // splice the format string: "{#,list}" -> "{#}"
+            txtfmt = txtfmt.substring(0, ir) + txtfmt.substring(ir + 5);
+
+            // look for any others (at top of loop)
+            ir = txtfmt.indexOf(",list}");
+        }
+
         // look for any "{#,dcards}" parameter here, and replace that arg with a String
         ir = txtfmt.indexOf(",dcards}");
         while (ir != -1)
@@ -246,7 +272,7 @@ public class SOCStringManager {
                 final int L = ((List<?>) arguments[pnum]).size();
                 if (L == 0)
                 {
-                    arguments[pnum] = bundle.getString("spec.dcards.none");  // "nothing"
+                    arguments[pnum] = bundle.getString("base.emptylist.nothing");  // "nothing"
                 } else {
                     ArrayList<String> resList = new ArrayList<String>(L);
                     for (Object itm : ((List<?>) arguments[pnum]))
