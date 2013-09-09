@@ -8539,7 +8539,8 @@ public class SOCServer extends Server
         try
         {
             final String gaName = ga.getName();
-            String denyText = null;  // if player can't play right now, send this
+            boolean denyPlayCardNow = false;  // if player can't play right now, send "You can't play a (cardtype) card now."
+            String denyTextKey = null;  // if player can't play right now, for a different reason than denyPlayCardNow, send this
 
             if (checkTurn(c, ga))
             {
@@ -8592,8 +8593,8 @@ public class SOCServer extends Server
                     }
                     else
                     {
-                        final String cardname = (isWarshipConvert) ? "Warship" : "Soldier";
-                        denyText = "You can't play a " + cardname + " card now.";
+                        denyPlayCardNow = true;
+                        // "You can't play a " + ((isWarshipConvert) ? "Warship" : "Soldier") + " card now."
                     }
 
                     break;
@@ -8624,7 +8625,7 @@ public class SOCServer extends Server
                     }
                     else
                     {
-                        denyText = "You can't play a Road Building card now.";
+                        denyPlayCardNow = true;  // "You can't play a Road Building card now."
                     }
 
                     break;
@@ -8644,7 +8645,7 @@ public class SOCServer extends Server
                     }
                     else
                     {
-                        denyText = "You can't play a Year of Plenty card now.";
+                        denyPlayCardNow = true;  // "You can't play a Year of Plenty card now."
                     }
 
                     break;
@@ -8663,7 +8664,7 @@ public class SOCServer extends Server
                     }
                     else
                     {
-                        denyText = "You can't play a Monopoly card now.";
+                        denyPlayCardNow = true;  // "You can't play a Monopoly card now."
                     }
 
                     break;
@@ -8676,7 +8677,7 @@ public class SOCServer extends Server
                 //  break;
 
                 default:
-                    denyText = "That card type is unknown.";
+                    denyTextKey = "reply.playdevcard.type.unknown";  // "That card type is unknown."
                     D.ebugPrintln("* SOCServer.handlePLAYDEVCARDREQUEST: asked to play unhandled type " + mes.getDevCard());
                     // debug prints dev card type from client, not ctype,
                     // in case ctype was changed here from message value.
@@ -8685,16 +8686,21 @@ public class SOCServer extends Server
             }
             else
             {
-                denyText = "It's not your turn.";
+                denyTextKey = "reply.not.your.turn";  // "It's not your turn."
             }
 
-            if (denyText != null)
+            if (denyPlayCardNow || (denyTextKey != null))
             {
                 final SOCClientData scd = (SOCClientData) c.getAppData();
                 if ((scd == null) || ! scd.isRobot)
-                    messageToPlayer(c, gaName, denyText);
-                else
+                {
+                    if (denyTextKey != null)
+                        messageToPlayerKeyed(c, gaName, denyTextKey);
+                    else
+                        messageToPlayerKeyedSpecial(c, ga, "reply.playdevcard.cannot.now", mes.getDevCard());
+                } else {
                     messageToPlayer(c, new SOCDevCardAction(gaName, -1, SOCDevCardAction.CANNOT_PLAY, mes.getDevCard()));
+                }
             }
         }
         catch (Exception e)

@@ -84,7 +84,7 @@ public class SOCDevCard implements SOCDevCardConstants
 
         if ((ctype == SOCDevCardConstants.KNIGHT) && (game != null) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
         {
-            final String key = (withArticle) ? "spec.dcards.knightsoldier.awarship" : "spec.dcards.knightsoldier.warship";
+            final String key = (withArticle) ? "spec.dcards.aknightsoldier.warship" : "spec.dcards.knightsoldier.warship";
             return strings.get(key);  // <--- Early return: special case ---
         }
 
