@@ -16,6 +16,7 @@ CONTENTS
 - Build setup and results
 - Current partially-done work
 - Current TODO list
+- Internationalization (I18N)
 - Coding Style
 - github usage
 
@@ -277,6 +278,29 @@ Current TODO list
 		ex. search for ga.setCurrentDice(0), or newToOld, or ga.resetVoteClear
 
 
+Internationalization (I18N)
+---------------------------
+An internationalization framework has just been put into place for v2.0.00,
+and not yet fully used, so you won't see it used in every server and client class.
+Some work in progress is surrounded by marker comments: /*I*/"{0} has won the game with {1} points."/*18N*/
+
+When building strings that the user will see, don't use + to build the strings;
+use strings.get or strings.getSpecial with parameter placeholders such as {0}.
+(At the server, use messageToPlayerKeyed, messageToPlayerKeyedSpecial, messageToGameKeyed, etc.)
+The client strings live in soc/client/strings/data*.properties.  An example commit is 68c3972.
+The server strings live in soc/server/strings/*.properties.  An example commit is 3e062b7.
+See the comments at the top of any *.properties file for format details.
+
+Note that all java properties files use ISO-8859-1, not UTF-8, as their encoding.
+Make sure your editor or IDE honors this encoding format.  Unfortunately you must use \uXXXX
+for characters outside that 8-bit encoding's range, directly or with the native2ascii utility:
+	native2ascii -encoding utf8 examplefile.utf8 examplefile.properties
+
+To override system locales for testing, launch the client with vm argument -Djsettlers.locale=es
+
+Thanks to Luis A. Ramirez for building the initial client i18n framework and advocating i18n-friendly
+programming practices throughout the code base with helpful specific suggestions.
+
 
 Coding Style
 ------------
@@ -325,18 +349,6 @@ That section of code should not be reformatted to something like:
 	return z;
 because conventionally in jsettlers, that would mean z is the usual case
 and y is less common or is an edge condition.
-
-I18N: An internationalization framework has just been put into place for v2.0.00,
-and not yet fully used, so you won't see it used in every class yet (client, server, etc).
-When building strings that the user will see, use placeholders instead of + to build
-the strings, and place I18N marker comments around them:
-       msg = ">>> " + MessageFormat.format
-            ( /*I*/"{0} has won the game with {1} points."/*18N*/, winPl.getName(), winPl.getTotalVP());
-Code that fully integrates the i18n framework looks like:
-	super(strings.get("game.options.title", gaName));
-The client strings live in soc/client/strings/data*.properties.  An example commit is 68c3972.
-To override locales for testing, launch the client with vm argument -Djsettlers.locale=es
-Thanks to Luis A. Ramirez for building the initial framework and encouraging its use.
 
 In emacs, you can place this in your .emacs file to use spaces instead of tabs:
 (setq-default c-basic-offset 4)

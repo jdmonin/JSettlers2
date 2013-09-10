@@ -36,6 +36,16 @@ import soc.game.SOCResourceSet;
 
 /**
  * TODO Write JavaDoc.
+ *<P>
+ * See comments at the top of {@code .properties} files for more details on key-value formatting and message parameters.
+ * Remember that {@code .properties} bundle files are encoded not in {@code UTF-8} but in {@code ISO-8859-1}:
+ *<UL>
+ * <LI> <A href="http://docs.oracle.com/javase/1.5.0/docs/api/java/util/Properties.html#encoding"
+ *       >java.util.Properties</A> (Java 1.5)
+ * <LI> <A href="http://stackoverflow.com/questions/4659929/how-to-use-utf-8-in-resource-properties-with-resourcebundle"
+ *       >Stack Overflow: How to use UTF-8 in resource properties with ResourceBundle</A> (asked on 2011-01-11)
+ *</UL>
+ *
  * @author lartkma
  * @see soc.util.I18n
  */
@@ -64,6 +74,7 @@ public class SOCStringManager {
 
     /**
      * Create a string manager for the bundles at {@code bundlePath} with the default locale. 
+     * Remember that bundle files are encoded not in {@code UTF-8} but in {@code ISO-8859-1}, see class javadoc.
      * @param bundlePath  Bundle path, will be retrieved with {@link ResourceBundle#getBundle(String)}
      */
     public SOCStringManager(String bundlePath){
@@ -72,6 +83,7 @@ public class SOCStringManager {
 
     /**
      * Create a string manager for the bundles at {@code bundlePath} with a certain Locale.
+     * Remember that bundle files are encoded not in {@code UTF-8} but in {@code ISO-8859-1}, see class javadoc.
      * @param bundlePath  Bundle path, will be retrieved with {@link ResourceBundle#getBundle(String, Locale)}
      * @param loc  Locale to use; not {@code null}
      */
