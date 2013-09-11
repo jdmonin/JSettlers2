@@ -241,11 +241,12 @@ Current TODO list
 	- Visual reminder to player when they've made a trade offer
 	- Show # VP when choosing where to sit, if game is in progress
 	- Keyboard shortcuts for "roll", "done" buttons
+	- Search the source for /*18N*/ and externalize those strings; see "I18N" section below
 	- Occasionally an image does not re-scale when board is stretched.
 		Instead of giving up (SOCBoardPanel.scaledHexFail, etc),
 		try re-scaling again, but increase width or height by 1 pixel.
 	- Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
-	- Control the speed of robots in practice
+	- Control the speed of robots in practice games
 		Adjust SOCRobotBrain.pause, ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS, etc
 	- Sound effects
 	- Property to require an account (user/password) in database in order to connect

@@ -19,7 +19,6 @@
  **/
 package soc.util;
 
-import java.text.MessageFormat;
 import java.util.List;
 import java.util.Locale;
 
