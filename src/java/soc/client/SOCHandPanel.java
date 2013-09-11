@@ -2058,7 +2058,8 @@ public class SOCHandPanel extends Panel
                 for (int j = 0; j < numNew; j++)
                 {
                     // VP cards are valid immediately, so don't mark them new
-                    String prefix = (SOCDevCard.isVPCard(i)) ? "" : /*I*/"*NEW* "/*18N*/;
+                    String prefix = (SOCDevCard.isVPCard(i))
+                        ? "" : strings.get("hpan.devcards.prefix.new");  // "*NEW* " - includes trailing space
                     cardList.add(prefix + SOCDevCard.getCardTypeName(ctype, game, false, strings));
                     cardListItems.add(new SOCDevCard(ctype, true));
                 }
