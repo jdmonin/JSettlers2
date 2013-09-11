@@ -6983,15 +6983,7 @@ public class SOCServer extends Server
                                     messageToPlayer(playerCon, new SOCPlayerElement(gn, i, SOCPlayerElement.SET, res, resources.getAmount(res)));
                                 messageToGame(gn, new SOCResourceCount(gn, i, resources.getTotal()));
 
-                                if (ga.hasSeaBoard)
-                                {
-                                    final int numGoldRes = pli.getNeedToPickGoldHexResources();
-                                    if (numGoldRes > 0)
-                                    {
-                                        messageToPlayer(playerCon, new SOCPickResourcesRequest(gn, numGoldRes));
-                                        // We'll send text and PLAYERELEMENT about the gold picks after the loop.
-                                    }
-                                }
+                                // we'll send gold picks text, PLAYERELEMENT, and PICKRESOURCESREQUEST after the loop
                             }
                         }  // if (! ga.isSeatVacant(i))
                     }  // for (i)
@@ -7054,6 +7046,7 @@ public class SOCServer extends Server
                     }
 
                     if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                        // gold picks text, PLAYERELEMENT, and PICKRESOURCESREQUESTs
                         sendGameState_sendGoldPickAnnounceText(ga, gn, null, roll);
 
                     /*
@@ -10387,12 +10380,13 @@ public class SOCServer extends Server
     /**
      * Send a game text message "x, y, and z need to pick resources from the gold hex."
      * and, for each picking player, a {@link SOCPlayerElement}({@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
+     * To prompt the specific players to choose a resource, also sends their clients a {@link SOCPickResourcesRequest}.
      * Used in game state {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}
      * and {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}.
      *<P>
-     * These messages are sent to the entire game. To prompt the specific players to choose a resource,
-     * you must send their clients a {@link SOCPickResourcesRequest}.
-     * If you know that only 1 player will pick gold, send it here by setting <tt>playerCon</tt>.
+     * The text and SOCPlayerElement messages are sent to the entire game.
+     * Any SOCPickResourcesRequests are sent to those player clients only.
+     * If you know that only 1 player will pick gold, pass their <tt>playerCon</tt> for efficiency.
      *<P>
      * This is separate from {@link #sendGameState(SOCGame)} because when the dice are rolled,
      * <tt>sendGameState</tt> is called, then resource distribution messages are sent out,
@@ -10447,12 +10441,24 @@ public class SOCServer extends Server
             messageToGameKeyed(ga, true, "prompt.pick.gold.1", names.get(0));
                 // "Joe needs to pick resources from the gold hex."
 
+        final boolean singlePlayerGetsPickRequest = ((playerCon != null) && (count == 1));
         for (int pl = 0; pl < ga.maxPlayers; ++pl)
+        {
             if (num[pl] > 0)
+            {
                 messageToGame(gname, new SOCPlayerElement
                     (gname, pl, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, num[pl]));
 
-        if ((playerCon != null) && (count == 1))
+                if (! singlePlayerGetsPickRequest)
+                {
+                    StringConnection plCon = getConnection(ga.getPlayer(pl).getName());
+                    if (plCon != null)
+                        messageToPlayer(plCon, new SOCPickResourcesRequest(gname, num[pl]));
+                }
+            }
+        }
+
+        if (singlePlayerGetsPickRequest)
             messageToPlayer(playerCon, new SOCPickResourcesRequest(gname, amount));
     }
 
