@@ -3,13 +3,30 @@
  * 
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
+ *
+ * Portions of this file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
  */
 package org.fedorahosted.tennera.antgettext;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-class StringUtil {
+/**
+ * String utilities and i18n pseudolocalization from the JBoss Ant-Gettext utilities.
+ * <P>
+ * For the JSettlers project, retrieved 2013-09-10 from
+ *   <A href="https://github.com/zanata/tennera/blob/master/ant-gettext/src/main/java/org/fedorahosted/tennera/antgettext/StringUtil.java"
+ *   >https://github.com/zanata/tennera/blob/master/ant-gettext/src/main/java/org/fedorahosted/tennera/antgettext/StringUtil.java</A><BR>
+ *  Retrieved version was last modified 2009-05-05, LGPL license.
+ * <P>
+ *  Changes for JSettlers:
+ * <UL>
+ * <LI> 2013-09-12  jeremy  Make class and removeFileExtension public;
+ *                          pseudolocalise: shorten prefix, suffix to {@code "[-- ", " --]"},
+ *                              don't pseudo any text within {curly brackets}
+ * </UL>
+ */
+public class StringUtil {
 
     private static final String alphabetEnglish = "abcdefghijklmnopqrstuvwxyz";
     /* decoding thanks to http://rishida.net/scripts/uniview/uniview.php
@@ -118,11 +135,23 @@ class StringUtil {
     public static String pseudolocalise(String text) 
     {
         StringBuilder sb = new StringBuilder();
-        sb.append("[--- "); //$NON-NLS-1$
+        sb.append("[-- "); //$NON-NLS-1$
+        boolean withinSingleQuote = false;
+        int withinCurlyBracket = 0;  // don't pseudo the text like {0,number} within curly brackets
         for (int i = 0; i < text.length(); i++) 
         {
  	   char ch = text.charAt(i);
- 	   if (ch < 'a' || ch > 'z') 
+	   if (ch == '\'')
+	   {
+	       withinSingleQuote = ! withinSingleQuote;
+	       sb.append(ch);
+	   } else if ((ch == '{') && ! withinSingleQuote) {
+	       ++withinCurlyBracket;
+	       sb.append(ch);
+	   } else if ((ch == '}') && ! withinSingleQuote) {
+	       --withinCurlyBracket;
+	       sb.append(ch);
+	   } else if (ch < 'a' || ch > 'z' || withinCurlyBracket > 0)
  	   {
  	       sb.append(ch);
  	   } 
@@ -132,7 +161,7 @@ class StringUtil {
  	       sb.appendCodePoint(mungedCodePoint);
  	   }
         }
-        sb.append(" ---]"); //$NON-NLS-1$
+        sb.append(" --]"); //$NON-NLS-1$
         return sb.toString();
     }
 
@@ -154,7 +183,7 @@ class StringUtil {
         return sb.toString();
     }
     
-    static String removeFileExtension(String filename, String extension)
+    public static String removeFileExtension(String filename, String extension)
     {
         if (!filename.endsWith(extension))
         	throw new IllegalArgumentException(

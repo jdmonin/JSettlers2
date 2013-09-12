@@ -317,6 +317,9 @@ BCrypt.java is licensed under the "new BSD" license, and is copyright
 (C) 2006 Damien Miller; see BCrypt.java for details.  jBCrypt-0.3.tar.gz
 retrieved 2012-08-14 from http://www.mindrot.org/projects/jBCrypt/
 
+org.fedorahosted.tennera.antgettext.StringUtil is licensed under the
+"Lesser GPL" (LGPL) license, and is from the JBoss Ant-Gettext utilities.
+
 The hex and port images were created by Jeremy Monin, and are licensed
 Creative Commons Attribution Share Alike (cc-by-sa 3.0 US) or Creative
 Commons Attribution (CC-BY 3.0 US); see each image's gif comments for details.
