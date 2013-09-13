@@ -1170,7 +1170,6 @@ public class SOCHandPanel extends Panel
      */
     public void clickPlayCardButton()
     {
-        //TODO Logic must be changed to allow i18n
         String item;
         int itemNum;  // Which one to play from list?
         SOCDevCard itemCard = null;
@@ -1178,7 +1177,7 @@ public class SOCHandPanel extends Panel
         setRollPrompt(null, false);  // Clear prompt if Play Card clicked (instead of Roll clicked)
         if (playerIsCurrent && player.hasPlayedDevCard())
         {
-            playerInterface.print("*** "+/*I*/"You may play only one card per turn."/*18N*/);
+            playerInterface.print("*** " + strings.get("hpan.devcards.oneperturn"));  // "You may play only one card per turn."
             playCardBut.setEnabled(false);
             return;
         }
@@ -1230,7 +1229,7 @@ public class SOCHandPanel extends Panel
                 }
                 if ((itemNum == -1) || (itemCard == null))
                 {
-                    playerInterface.print("* "+/*I*/"Please click a card first to select it."/*18N*/);
+                    playerInterface.print("* " + strings.get("hpan.devcards.clickfirst"));  // "Please click a card first to select it."
                     return;
                 }
                 item = itemNumText;
@@ -1252,12 +1251,19 @@ public class SOCHandPanel extends Panel
 
         if (itemCard.isVPCard())
         {
-            playerInterface.print("*** You secretly played this VP card when you bought it.");
+            playerInterface.print("*** " + strings.get("hpan.devcards.vp.secretlyplayed"));
+                // "You secretly played this VP card when you bought it."
             itemNum = cardList.getSelectedIndex();
             if (itemNum >= 0)
                 cardList.deselect(itemNum);
 
             return;  // <--- Early Return: Can't play a VP card ---
+        }
+
+        if (itemCard.isNew())
+        {
+            playerInterface.print("*** " + strings.get("hpan.devcards.wait"));  // "Wait a turn before playing new cards."
+            return;  // <--- Early Return: Card is new ---
         }
 
         int cardTypeToPlay = -1;
@@ -1271,7 +1277,8 @@ public class SOCHandPanel extends Panel
             }
             else if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
             {
-                playerInterface.print("* You cannot convert a ship to a warship right now.");   
+                playerInterface.print("* " + strings.get("hpan.devcards.warship.cannotnow"));
+                    // "You cannot convert a ship to a warship right now."
             }
             break;
 
@@ -1282,7 +1289,7 @@ public class SOCHandPanel extends Panel
             }
             else if (player.getNumPieces(SOCPlayingPiece.ROAD) == 0)
             {
-                playerInterface.print("* You have no roads left to place.");
+                playerInterface.print("* " + strings.get("hpan.devcards.roads.none"));  // "You have no roads left to place."
             }
             break;
 
@@ -1301,7 +1308,8 @@ public class SOCHandPanel extends Panel
             break;
 
         default:
-            playerInterface.print("L1198 internal error: Unknown card type " + itemCard.ctype + ": " + item);
+            playerInterface.print("* " + strings.get("hpan.devcards.interror.ctype", itemCard.ctype, item));
+                // "Internal error: Unknown card type {0,number}: {1}"
 
         }
 
