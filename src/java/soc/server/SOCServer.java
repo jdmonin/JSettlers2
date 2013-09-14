@@ -6559,9 +6559,9 @@ public class SOCServer extends Server
             }
             else
             {
-                messageFormatToPlayer
-                    (c, gaName, /*I*/"You can''t move {0}."/*18N*/,
-                     ((coord < 0) ? /*I*/"the pirate"/*18N*/ : /*I*/"the robber"/*18N*/ ));
+                messageToPlayerKeyed
+                    (c, gaName, ((coord < 0) ? "robber.cantmove.pirate" : "robber.cantmove"));
+                    // "You can't move the pirate" / "You can't move the robber"
             }
         }
         catch (Exception e)
@@ -10498,10 +10498,10 @@ public class SOCServer extends Server
                 }
             }
         }
-        msg = ">>> " + MessageFormat.format
-            ( /*I*/"{0} has won the game with {1} points."/*18N*/, winPl.getName(), winPl.getTotalVP());
-        messageToGameUrgent(gname, msg);
-        
+
+        messageToGameKeyed(ga, true, "stats.game.winner.withpoints", winPl.getName(), winPl.getTotalVP());
+            // "{0} has won the game with {1,number} points."
+
         /// send a message with the revealed final scores
         {
             int[] scores = new int[ga.maxPlayers];
@@ -10556,20 +10556,17 @@ public class SOCServer extends Server
             Date gstart = ga.getStartTime();
             if (gstart != null)
             {
-                final String gameDuration;
+                final int gameRounds = ga.getRoundCount();
                 long gameSeconds = ((now.getTime() - gstart.getTime())+500L) / 1000L;
                 final long gameMinutes = gameSeconds / 60L;
                 gameSeconds = gameSeconds % 60L;
 
                 if (gameSeconds == 0)
-                    gameDuration = MessageFormat.format( /*I*/"{0} minutes"/*18N*/, gameMinutes);
-                else if (gameSeconds == 1)
-                    gameDuration = MessageFormat.format( /*I*/"{0} minutes 1 second"/*18N*/, gameMinutes);
+                    messageToGameKeyed(ga, true, "stats.game.was.roundsminutes", gameRounds, gameMinutes);
+                        // "This game was # rounds, and took # minutes."
                 else
-                    gameDuration = MessageFormat.format( /*I*/"{0} minutes {1} seconds"/*18N*/, gameMinutes, gameSeconds);
-                messageFormatToGame
-                    (gname, true, /*I*/"This game was {0} rounds, and took {1}."/*18N*/,
-                     ga.getRoundCount(), gameDuration);
+                    messageToGameKeyed(ga, true, "stats.game.was.roundsminutessec", gameRounds, gameMinutes, gameSeconds);
+                        // "This game was # rounds, and took # minutes # seconds." [or 1 second.]
 
                 // Ignore possible "1 minutes"; that game is too short to worry about.
             }
@@ -10580,11 +10577,11 @@ public class SOCServer extends Server
              * Tell each player how long they've been connected.
              * (Robot players aren't told this, it's not necessary.)
              */
-            String connMsg;
+            final String connMsgKey;
             if ((strSocketName != null) && (strSocketName.equals(PRACTICE_STRINGPORT)))
-                connMsg = /*I*/"You have been practicing {0} minutes."/*18N*/;
+                connMsgKey = "stats.cli.connected.minutes.prac";  // "You have been practicing # minutes."
             else
-                connMsg = /*I*/"You have been connected {0} minutes."/*18N*/;
+                connMsgKey = "stats.cli.connected.minutes";  // "You have been connected # minutes."
 
             for (int i = 0; i < ga.maxPlayers; i++)
             {
@@ -10619,7 +10616,7 @@ public class SOCServer extends Server
 
                     final long connTime = plConn.getConnectTime().getTime();
                     final long connMinutes = (((now.getTime() - connTime)) + 30000L) / 60000L;
-                    messageFormatToPlayer(plConn, gname, connMsg, connMinutes);  // "You have been connected # minutes."
+                    messageToPlayerKeyed(plConn, gname, connMsgKey, connMinutes);  // "You have been connected # minutes."
 
                     // Send client's win-loss count for this session,
                     // if more than 1 game has been played
@@ -10629,21 +10626,18 @@ public class SOCServer extends Server
                         if (wins + losses < 2)
                             continue;  // Only 1 game played so far
 
-                        final String winLossMsg;
                         if (wins > 0)
                         {
                             if (losses == 0)
-                                winLossMsg = MessageFormat.format
-                                    (/*I*/"You have won {0,choice, 1#1 game|1<{0,number} games} since connecting."/*18N*/, wins);
+                                messageToPlayerKeyed(plConn, gname, "stats.cli.winloss.won", wins);
+                                    // "You have won {0,choice, 1#1 game|1<{0,number} games} since connecting."
                             else
-                                winLossMsg = MessageFormat.format
-                                    (/*I*/"You have won {0,choice, 1#1 game|1<{0,number} games} and lost {1,choice, 1#1 game|1<{1,number} games} since connecting."/*18N*/
-                                     , wins, losses);
+                                messageToPlayerKeyed(plConn, gname, "stats.cli.winloss.wonlost", wins, losses);
+                                    // "You have won {0,choice, 1#1 game|1<{0,number} games} and lost {1,choice, 1#1 game|1<{1,number} games} since connecting."
                         } else {
-                            winLossMsg = MessageFormat.format
-                                (/*I*/"You have lost {0,choice, 1#1 game|1<{0,number} games} since connecting."/*18N*/, losses);
+                            messageToPlayerKeyed(plConn, gname, "stats.cli.winloss.lost", losses);
+                                // "You have lost {0,choice, 1#1 game|1<{0,number} games} since connecting."
                         }
-                        messageToPlayer(plConn, gname, winLossMsg);
                     }
                 }
             }  // for each player
