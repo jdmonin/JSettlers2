@@ -32,6 +32,7 @@ import java.awt.event.ActionListener;
 class SOCMonopolyDialog extends Dialog implements ActionListener
 {
     Button[] rsrcBut;
+    /** Prompt message. Text alignment is centered. */
     Label msg;
     SOCPlayerInterface pi;
 
@@ -110,7 +111,7 @@ class SOCMonopolyDialog extends Dialog implements ActionListener
 
         try
         {
-            msg.setBounds((width - 188) / 2, getInsets().top, 210, 20);
+            msg.setBounds(getInsets().left, getInsets().top, width, 20);
             rsrcBut[0].setBounds(button2X, (getInsets().bottom + height) - (50 + (2 * space)), buttonW, 25);
             rsrcBut[1].setBounds(button2X + buttonW + space, (getInsets().bottom + height) - (50 + (2 * space)), buttonW, 25);
             rsrcBut[2].setBounds(button3X, (getInsets().bottom + height) - (25 + space), buttonW, 25);
