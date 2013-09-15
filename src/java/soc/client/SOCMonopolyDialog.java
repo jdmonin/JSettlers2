@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,14 +35,18 @@ class SOCMonopolyDialog extends Dialog implements ActionListener
     Label msg;
     SOCPlayerInterface pi;
 
+    /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
+     *  @since 2.0.00 */
+    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+
     /**
      * Creates a new SOCMonopolyDialog object.
      *
-     * @param pi DOCUMENT ME!
+     * @param pi Parent window
      */
     public SOCMonopolyDialog(SOCPlayerInterface pi)
     {
-        super(pi, /*I*/"Monopoly"/*18N*/, true);
+        super(pi, strings.get("spec.dcards.monopoly"), true);  // "Monopoly"
 
         this.pi = pi;
         setBackground(new Color(255, 230, 162));
@@ -52,16 +56,17 @@ class SOCMonopolyDialog extends Dialog implements ActionListener
         addNotify();
         setSize(280, 160);
 
-        msg = new Label(/*I*/"Please pick a resource to monopolize."/*18N*/, Label.CENTER);
+        msg = new Label(strings.get("dialog.mono.please.pick.resource"), Label.CENTER);
+            // "Please pick a resource to monopolize."
         add(msg);
 
         rsrcBut = new Button[5];
 
-        rsrcBut[0] = new Button(/*I*/"Clay"/*18N*/);
-        rsrcBut[1] = new Button(/*I*/"Ore"/*18N*/);
-        rsrcBut[2] = new Button(/*I*/"Sheep"/*18N*/);
-        rsrcBut[3] = new Button(/*I*/"Wheat"/*18N*/);
-        rsrcBut[4] = new Button(/*I*/"Wood"/*18N*/);
+        rsrcBut[0] = new Button(strings.get("resources.clay"));   // "Clay"
+        rsrcBut[1] = new Button(strings.get("resources.ore"));    // "Ore"
+        rsrcBut[2] = new Button(strings.get("resources.sheep"));  // "Sheep"
+        rsrcBut[3] = new Button(strings.get("resources.wheat"));  // "Wheat"
+        rsrcBut[4] = new Button(strings.get("resources.wood"));   // "Wood"
 
         for (int i = 0; i < 5; i++)
         {
@@ -71,22 +76,19 @@ class SOCMonopolyDialog extends Dialog implements ActionListener
     }
 
     /**
-     * DOCUMENT ME!
-     *
-     * @param b DOCUMENT ME!
+     * Set this dialog visible or hide it. If visible, request focus on the first resource button.
      */
     public void setVisible(boolean b)
     {
         super.setVisible(b);
 
         if (b)
-        {
             rsrcBut[0].requestFocus();
-        }
     }
 
     /**
-     * DOCUMENT ME!
+     * Do our dialog's custom layout: Prompt message, row of 2 resource buttons, of 3 resource buttons.
+     * Put the dialog in the center of the parent game window.
      */
     public void doLayout()
     {
@@ -119,9 +121,7 @@ class SOCMonopolyDialog extends Dialog implements ActionListener
     }
 
     /**
-     * DOCUMENT ME!
-     *
-     * @param e DOCUMENT ME!
+     * Handle resource button clicks.
      */
     public void actionPerformed(ActionEvent e)
     {
