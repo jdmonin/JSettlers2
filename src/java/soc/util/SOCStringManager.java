@@ -130,14 +130,17 @@ public class SOCStringManager {
             "spec.rsrcs.1unknown", "spec.rsrcs.1clay", "spec.rsrcs.1ore", "spec.rsrcs.1sheep", "spec.rsrcs.1wheat", "spec.rsrcs.1wood"
         }, {  // n
             "spec.rsrcs.nunknown", "spec.rsrcs.nclay", "spec.rsrcs.nore", "spec.rsrcs.nsheep", "spec.rsrcs.nwheat", "spec.rsrcs.nwood"
+        }, {  // a, an
+            "spec.rsrcs.aunknown", "spec.rsrcs.aclay", "spec.rsrcs.aore", "spec.rsrcs.asheep", "spec.rsrcs.awheat", "spec.rsrcs.awood"
         }
     };
 
     /**
      * Get a resource count, such as "5 sheep"; used by {@link #getSpecial(SOCGame, String, Object...)}. 
      * @param rtype  Type of resource, in the range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
-     * @param rcountObj  Resource count; uses the Integer object passed into {@code getSpecial}
-     * @return  A localized string such as "1 wood" or "5 clay", or if {@code rtype} is out of range,
+     * @param rcountObj  Resource count; uses the Integer object passed into {@code getSpecial}.
+     *          As a special case, -1 will localize with the indefinite article, such as "a sheep" or "an ore"
+     * @return  A localized string such as "1 wood" or "5 clay" or "a sheep", or if {@code rtype} is out of range,
      *          "3 resources of unknown type 37"
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      */
@@ -146,20 +149,22 @@ public class SOCStringManager {
     {
         final int rcount = rcountObj;
 
+        // keys for 1, n, or a/an
+        final String[] rkeyArray = GETSPECIAL_RSRC_KEYS[(rcount == 1) ? 0 : ((rcount != -1) ? 1 : 2)];
+
         final String resText;
         if ((rtype >= SOCResourceConstants.CLAY) && (rtype <= SOCResourceConstants.WOOD))
         {
-            final String[] rkeyArray = GETSPECIAL_RSRC_KEYS[(rcount == 1) ? 0 : 1];
-            if (rcount == 1)
+            if ((rcount == 1) || (rcount == -1))
                 resText = bundle.getString(rkeyArray[rtype]);
             else
                 resText = MessageFormat.format(bundle.getString(rkeyArray[rtype]), rcountObj);
         } else {
             // out of range, unknown type
-            if (rcount == 1)
-                resText = MessageFormat.format(bundle.getString(GETSPECIAL_RSRC_KEYS[0][0]), rtype);
+            if ((rcount == 1) || (rcount == -1))
+                resText = MessageFormat.format(bundle.getString(rkeyArray[0]), rtype);
             else
-                resText = MessageFormat.format(bundle.getString(GETSPECIAL_RSRC_KEYS[1][0]), rcountObj, rtype);
+                resText = MessageFormat.format(bundle.getString(rkeyArray[0]), rcountObj, rtype);
         }
 
         return resText;
@@ -174,6 +179,7 @@ public class SOCStringManager {
      *     A resource set is passed as a {@link SOCResourceSet} in {@code arguments}.
      *     Resource names ("5 sheep") take 2 argument slots: an Integer for the count, and a
      *     resource type Integer in the range {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD}.
+     *     Special case: A count of -1 will localize with "a/an", such as "a sheep" or "an ore".
      *<LI> <tt>{0,dcards}</tt> for a Development Card or list of dev cards.
      *     {@code arguments} should contain a single Integer, or a {@link List} of them,
      *     in the range {@link SOCDevCardConstants#MIN} - {@link SOCDevCardConstants#TOW}.
