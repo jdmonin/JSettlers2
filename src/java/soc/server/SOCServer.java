@@ -56,6 +56,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.Random;
@@ -2792,7 +2793,8 @@ public class SOCServer extends Server
      *            (See {@link #messageToGameUrgent(String, String)})
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @see #messageToGameKeyed(SOCGame, boolean, String, Object...)
-     * @see #messageToGameKeyedSpecial(SOCGame, boolean, StringConnection, boolean, String, Object...)
+     * @see #messageToGameKeyedSpecial(SOCGame, boolean, String, Object...)
+     * @see #messageToGameKeyedSpecialExcept(SOCGame, boolean, StringConnection, String, Object...)
      * @see #messageToGame(String, String)
      * @since 2.0.00
      */
@@ -2874,7 +2876,8 @@ public class SOCServer extends Server
      *             by calling {@link MessageFormat#format(String, Object...)}.
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @see #messageToGameKeyed(SOCGame, boolean, String)
-     * @see #messageToGameKeyedSpecial(SOCGame, boolean, StringConnection, boolean, String, Object...)
+     * @see #messageToGameKeyedSpecial(SOCGame, boolean, String, Object...)
+     * @see #messageToGameKeyedSpecialExcept(SOCGame, boolean, StringConnection, String, Object...)
      * @see #messageToGame(String, String)
      * @since 2.0.00
      */
@@ -2952,6 +2955,119 @@ public class SOCServer extends Server
      * @param takeMon Should this method take and release
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
      *                True unless caller already holds that monitor.
+     * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
+     *            If its localized text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way.
+     *            (See {@link #messageToGameUrgent(String, String)})
+     * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
+     *             by calling {@link MessageFormat#format(String, Object...)}.
+     *             <P>
+     *             These objects can include {@link SOCResourceSet} or pairs of
+     *             Integers for a resource count and type; see {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}.
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
+     * @see #messageToGameKeyedSpecialExcept(SOCGame, boolean, StringConnection, String, Object...)
+     * @see #messageToGameKeyed(SOCGame, boolean, String)
+     * @see #messageToGame(String, String)
+     * @since 2.0.00
+     */
+    public final void messageToGameKeyedSpecial
+        (SOCGame ga, final boolean takeMon, final String key, final Object ... params)
+        throws MissingResourceException, IllegalArgumentException
+    {
+        impl_messageToGameKeyedSpecial(ga, takeMon, gameList.getMembers(ga.getName()), null, true, key, params);
+    }
+
+    /**
+     * Send a localized {@link SOCGameServerText} game text message (with parameters) to a game,
+     * optionally with special formatting like <tt>{0,rsrcs}</tt>, optionally excluding one connection.
+     * Same as {@link #messageToGame(String, String)} but calls each member connection's
+     * {@link StringConnection#getLocalizedSpecial(SOCGame, String, Object...) c.getLocalizedSpecial(...)} for the
+     * localized text to send.
+     *
+     * @param ga  the game object
+     * @param takeMon Should this method take and release
+     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                True unless caller already holds that monitor.
+     * @param ex  the excluded connection, or {@code null}
+     * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
+     *            If its localized text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way.
+     *            (See {@link #messageToGameUrgent(String, String)})
+     * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
+     *             by calling {@link MessageFormat#format(String, Object...)}.
+     *             <P>
+     *             These objects can include {@link SOCResourceSet} or pairs of
+     *             Integers for a resource count and type; see {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}.
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
+     * @see #messageToGameKeyedSpecialExcept(SOCGame, boolean, List, String, Object...)
+     * @see #messageToGameKeyed(SOCGame, boolean, String)
+     * @see #messageToGame(String, String)
+     * @since 2.0.00
+     */
+    public final void messageToGameKeyedSpecialExcept
+        (SOCGame ga, final boolean takeMon, StringConnection ex, final String key, final Object ... params)
+        throws MissingResourceException, IllegalArgumentException
+    {
+        impl_messageToGameKeyedSpecial(ga, takeMon, gameList.getMembers(ga.getName()), ex, true, key, params);
+    }
+
+    /**
+     * Send a localized {@link SOCGameServerText} game text message (with parameters) to a game,
+     * optionally with special formatting like <tt>{0,rsrcs}</tt>, optionally excluding one connection.
+     * Same as {@link #messageToGame(String, String)} but calls each member connection's
+     * {@link StringConnection#getLocalizedSpecial(SOCGame, String, Object...) c.getLocalizedSpecial(...)} for the
+     * localized text to send.
+     *
+     * @param ga  the game object
+     * @param takeMon Should this method take and release
+     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                True unless caller already holds that monitor.
+     * @param ex  the excluded connections, or {@code null}
+     * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
+     *            If its localized text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way.
+     *            (See {@link #messageToGameUrgent(String, String)})
+     * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
+     *             by calling {@link MessageFormat#format(String, Object...)}.
+     *             <P>
+     *             These objects can include {@link SOCResourceSet} or pairs of
+     *             Integers for a resource count and type; see {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}.
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
+     * @see #messageToGameKeyedSpecialExcept(SOCGame, boolean, StringConnection, String, Object...)
+     * @see #messageToGameKeyed(SOCGame, boolean, String)
+     * @see #messageToGame(String, String)
+     * @since 2.0.00
+     */
+    public final void messageToGameKeyedSpecialExcept
+        (SOCGame ga, final boolean takeMon, List<StringConnection> ex, final String key, final Object ... params)
+        throws MissingResourceException, IllegalArgumentException
+    {
+        List<StringConnection> sendTo = gameList.getMembers(ga.getName());
+        if ((ex != null) && ! ex.isEmpty())
+        {
+            // Copy the members list, then remove the excluded connections.
+            // This method isn't called for many situations, so this is efficient enough.
+            sendTo = new ArrayList<StringConnection>(sendTo);
+            for (StringConnection excl : ex)
+                sendTo.remove(excl);
+        }
+
+        impl_messageToGameKeyedSpecial(ga, takeMon, sendTo, null, true, key, params);
+    }
+
+    /**
+     * Implement {@code messageToGameKeyedSpecial} and {@code messageToGameKeyedSpecialExcept}.
+     *
+     * @param ga  the game object
+     * @param takeMon Should this method take and release
+     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                True unless caller already holds that monitor.
+     * @param members  Game members to send to, from {@link SOCGameListAtServer#getMembers(String)}.
+     *            If we're excluding several members of the game, make a new list from getMembers, remove them from
+     *            that list, then pass it to this method.
      * @param ex  the excluded connection, or {@code null}
      * @param fmtSpecial  Should this method call {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}
      *            instead of the usual {@link SOCStringManager#get(String, Object...)} ?
@@ -2966,15 +3082,16 @@ public class SOCServer extends Server
      *             Integers for a resource count and type; see {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}.
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
-     * @see #messageToGameKeyed(SOCGame, boolean, String)
-     * @see #messageToGame(String, String)
      * @since 2.0.00
      */
-    public void messageToGameKeyedSpecial
-        (SOCGame ga, final boolean takeMon, final StringConnection ex,
+    private final void impl_messageToGameKeyedSpecial
+        (SOCGame ga, final boolean takeMon, final List<StringConnection> members, final StringConnection ex,
          final boolean fmtSpecial, final String key, final Object ... params)
         throws MissingResourceException, IllegalArgumentException
     {
+        if (members == null)
+            return;
+
         // same code as the other messageToGameKeyed, except for checking ex and the call to c.getKeyedSpecial;
         // if you change code here, change it there too
 
@@ -2986,16 +3103,12 @@ public class SOCServer extends Server
 
         try
         {
-            Vector<StringConnection> v = gameList.getMembers(gaName);
-
-            if (v != null)
-            {
-                Enumeration<StringConnection> menum = v.elements();
+                Iterator<StringConnection> miter = members.iterator();
 
                 String gameTextMsg = null, gameTxtLocale = null;
-                while (menum.hasMoreElements())
+                while (miter.hasNext())
                 {
-                    StringConnection c = menum.nextElement();
+                    StringConnection c = miter.next();
                     if ((c != null) && (c != ex))
                     {
                         final String cliLocale = c.getI18NLocale();
@@ -3022,7 +3135,6 @@ public class SOCServer extends Server
                                 c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key, params)));
                     }
                 }
-            }
         }
         catch (Throwable e)
         {
@@ -6509,9 +6621,9 @@ public class SOCServer extends Server
 
                 else
                 {
-                    StringBuffer msgtext = new StringBuffer();
-                    msgtext.append(MessageFormat.format(/*I*/"{0} moved {1}."/*18N*/,
-                         player.getName(), (isPirate) ? /*I*/"the pirate"/*18N*/ : /*I*/"the robber"/*18N*/ ));
+                    final String msgKey;
+                    // These messages use ChoiceFormat to choose "robber" or "pirate":
+                    //    robberpirate.moved={0} moved {1,choice, 1#the robber|2#the pirate}.
 
                     /** no victim */
                     if (victims.size() == 0)
@@ -6519,23 +6631,26 @@ public class SOCServer extends Server
                         /**
                          * just say it was moved; nothing is stolen
                          */
+                        msgKey = "robberpirate.moved";  // "{0} moved the robber" or "{0} moved the pirate"
                     }
                     else if (ga.getGameState() == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE)
                     {
                         /**
                          * only one possible victim, they have both clay and resources
                          */
-                        msgtext.append(/*I*/" Must choose to steal cloth or steal resources."/*18N*/ );
+                        msgKey = "robberpirate.moved.choose.cloth.rsrcs";
+                            // "{0} moved the robber/pirate. Must choose to steal cloth or steal resources."
                     }
                     else
                     {
                         /**
                          * else, the player needs to choose a victim
                          */
-                        msgtext.append(/*I*/" Must choose a victim."/*18N*/ );
+                        msgKey = "robberpirate.moved.choose.victim";
+                            // "{0} moved the robber/pirate. Must choose a victim."
                     }
 
-                    messageToGame(gaName, msgtext.toString());
+                    messageToGameKeyed(ga, true, msgKey, player.getName(), ((isPirate) ? 2 : 1));
                 }
 
                 sendGameState(ga);
@@ -6919,6 +7034,7 @@ public class SOCServer extends Server
                                     rword = " resource";
                                 else
                                     rword = " resources";
+                                // TODO I18N
                                 messageToGameExcept
                                     (gn, vCon, vicName + " lost " + lootTotal + rword
                                      + " to pirate fleet attack (strength " + strength + ").", true);
@@ -10178,8 +10294,7 @@ public class SOCServer extends Server
          */
         messageToPlayerKeyedSpecial(peCon, ga, "robber.you.stole.resource.from", -1, rsrc, viName);  // "You stole {0,rsrcs} from {2}."
         messageToPlayerKeyedSpecial(viCon, ga, "robber.stole.resource.from.you", peName, -1, rsrc);  // "{0} stole {1,rsrcs} from you."
-        messageToGameExcept(gaName, exceptions, new SOCGameTextMsg(gaName, SERVERNAME,
-            MessageFormat.format( /*I*/"{0} stole a resource from {1}."/*18N*/, peName, viName)), true);
+        messageToGameKeyedSpecialExcept(ga, true, exceptions, "robber.stole.resource.from", peName, viName);  // "{0} stole a resource from {1}."
     }
 
     /**
@@ -10306,7 +10421,7 @@ public class SOCServer extends Server
                 if (names.size() == 1)
                     messageToGameKeyed(ga, true, "prompt.discard.1", names.get(0));  // "Joe needs to discard"
                 else
-                    messageToGameKeyedSpecial(ga, true, null, true, "prompt.discard.n", names);  // "Joe and Ed need to discard"
+                    messageToGameKeyedSpecial(ga, true, "prompt.discard.n", names);  // "Joe and Ed need to discard"
             }
             break;
 
@@ -10425,7 +10540,7 @@ public class SOCServer extends Server
         }
 
         if (count > 1)
-            messageToGameKeyedSpecial(ga, true, null, true, "prompt.pick.gold.n", names);
+            messageToGameKeyedSpecial(ga, true, "prompt.pick.gold.n", names);
                 // "... need to pick resources from the gold hex."
         else if (count == 1)
             messageToGameKeyed(ga, true, "prompt.pick.gold.1", names.get(0));
@@ -10532,7 +10647,7 @@ public class SOCServer extends Server
                 }  // for each devcard type
 
                 messageToGameKeyedSpecial
-                    (ga, true, null, true, "endgame.player.has.vpcards", pl.getName(), vpCardTypes);
+                    (ga, true, "endgame.player.has.vpcards", pl.getName(), vpCardTypes);
                     // "Joe has a Gov.House (+1VP) and a Market (+1VP)"
 
             }  // if devcards
@@ -10804,7 +10919,7 @@ public class SOCServer extends Server
 
         // Send SOCPlayerElement messages
         reportRsrcGainLoss(gn, rsrcs, false, pn, -1, null, null);
-        messageToGameKeyedSpecial(ga, true, null, true,
+        messageToGameKeyedSpecial(ga, true,
             ((includeGoldHexText) ? "action.picked.rsrcs.goldhex" : "action.picked.rsrcs"),
             player.getName(), rsrcs);
         messageToGame(gn, new SOCPlayerElement
@@ -11687,7 +11802,7 @@ public class SOCServer extends Server
                 (game, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
                  new SOCDevCardAction(game.getName(), pnum, SOCDevCardAction.DRAW, SOCDevCardConstants.KNIGHT), true);
         }
-        messageToGameKeyedSpecial(game, true, null, true, "debug.dev.gets", name, Integer.valueOf(cardType));
+        messageToGameKeyedSpecial(game, true, "debug.dev.gets", name, Integer.valueOf(cardType));
             // ""### joe gets a Road Building card."
     }
 
