@@ -2568,27 +2568,6 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send a formatted {@link SOCGameServerText} game text message to a player.
-     * Standardizes construction of strings with arguments, to aid with internationalization.
-     * Equivalent to: {@link #messageToPlayer(StringConnection, String, String) messageToPlayer}(c, ga,
-     * {@link MessageFormat MessageFormat}.format(fmt, args));
-     *
-     * @param c   the player connection; if their version is 2.0.00 or newer,
-     *            they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
-     * @param ga  game name
-     * @param fmt the message text to send, to be formatted as in {@link MessageFormat}:
-     *            Placeholders for {@code args} are <tt>{0}</tt> etc, single-quotes must be repeated: {@code ''}.
-     * @param args  Any parameters within {@code txt}'s placeholders
-     * @since 2.0.00
-     * @see #messageFormatToGame(String, boolean, String, Object...)
-     * @see #messageToPlayerKeyed(StringConnection, String, String, Object...)
-     */
-    public void messageFormatToPlayer(StringConnection c, final String ga, final String fmt, final Object ... args)
-    {
-        messageToPlayer(c, ga, MessageFormat.format(fmt, args));
-    }
-
-    /**
      * Send a localized {@link SOCGameServerText} game text message to a player.
      * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga,
      * {@link StringConnection#getLocalized(String) c.getLocalized(key)}));
@@ -3101,7 +3080,7 @@ public class SOCServer extends Server
      * @param args  Any parameters within {@code txt}'s placeholders
      * @see #messageToGameKeyed(SOCGame, boolean, String, Object...)
      * @see #messageToGame(String, String)
-     * @see #messageFormatToPlayer(StringConnection, String, String, Object...)
+     * @see #messageToPlayerKeyed(StringConnection, String, String, Object...)
      * @since 2.0.00
      */
     public void messageFormatToGame(final String ga, final boolean takeMon, final String txt, final Object ... args)
@@ -7744,7 +7723,7 @@ public class SOCServer extends Server
                     if ((choice == SOCChoosePlayer.CHOICE_NO_PLAYER) && ga.canChoosePlayer(-1))
                     {
                         ga.choosePlayerForRobbery(-1);  // state becomes PLAY1
-                        messageFormatToGame(ga.getName(), true, "{0} declined to steal.", ((String) c.getData()));
+                        messageToGameKeyed(ga, true, "robber.declined", (String) c.getData());  // "{0} declined to steal."
                         sendGameState(ga);
                     }
                     else if (ga.canChoosePlayer(choice))
@@ -7756,15 +7735,15 @@ public class SOCServer extends Server
                             reportRobbery
                                 (ga, ga.getPlayer((String) c.getData()), ga.getPlayer(choice), rsrc);
                         } else {
-                            messageFormatToGame(ga.getName(), true,
-                                "{0} moved the pirate, must choose to steal cloth or steal resources from {1}.",
+                            messageToGameKeyed(ga, true, "robber.moved.choose.cloth.rsrcs",
                                 ((String) c.getData()), ga.getPlayer(choice).getName());
+                                // "{0} moved the pirate, must choose to steal cloth or steal resources from {1}."
                         }
                         sendGameState(ga);
                         if (waitingClothOrRsrc)
                             messageToPlayer(c, new SOCChoosePlayer(ga.getName(), choice));
                     } else {
-                        messageToPlayer(c, ga.getName(), "You can't steal from that player.");
+                        messageToPlayerKeyed(c, ga.getName(), "robber.cantsteal");  // "You can't steal from that player."
                     }
                     break;
 
@@ -7792,12 +7771,12 @@ public class SOCServer extends Server
                     }
                     
                 default:
-                    messageToPlayer(c, ga.getName(), "You can't steal from that player.");
+                    messageToPlayerKeyed(c, ga.getName(), "robber.cantsteal");  // "You can't steal from that player."
                 }
             }
             else
             {
-                messageToPlayer(c, ga.getName(), "It's not your turn.");
+                messageToPlayerKeyed(c, ga.getName(), "reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Throwable e)
@@ -10146,7 +10125,7 @@ public class SOCServer extends Server
             messageToGame(gaName,
                 new SOCPlayerElement(gaName, pePN, SOCPlayerElement.SET,
                     SOCPlayerElement.SCENARIO_CLOTH_COUNT, pe.getCloth()));
-            messageFormatToGame(gaName, true, "{0} stole a cloth from {1}.", peName, viName);
+            messageToGameKeyed(ga, true, "robber.stole.cloth.from", peName, viName);  // "{0} stole a cloth from {1}."
 
             return;  // <--- early return: cloth is announced to entire game ---
         }
@@ -10155,8 +10134,6 @@ public class SOCServer extends Server
         SOCPlayerElement loseRsrc = null;
         SOCPlayerElement gainUnknown;
         SOCPlayerElement loseUnknown;
-
-        final String aResource = SOCResourceConstants.aResName(rsrc);  // "a clay"
 
         // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP.
         gainRsrc = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, rsrc, 1);
@@ -10182,12 +10159,12 @@ public class SOCServer extends Server
 
         /**
          * send the text messages:
-         * "You stole a sheep resource from viName."
-         * "peName stole a sheep resource from you."
+         * "You stole a sheep from viName."  [In 1.1.xx, "stole a sheep resource"]
+         * "peName stole a sheep from you."
          * "peName stole a resource from viName."
          */
-        messageFormatToPlayer(peCon, gaName, /*I*/"You stole {0} resource from {1}."/*18N*/, aResource, viName);
-        messageFormatToPlayer(viCon, gaName, /*I*/"{0} stole {1} resource from you."/*18N*/, peName, aResource);
+        messageToPlayerKeyedSpecial(peCon, ga, "robber.you.stole.resource.from", -1, rsrc, viName);  // "You stole {0,rsrcs} from {2}."
+        messageToPlayerKeyedSpecial(viCon, ga, "robber.stole.resource.from.you", peName, -1, rsrc);  // "{0} stole {1,rsrcs} from you."
         messageToGameExcept(gaName, exceptions, new SOCGameTextMsg(gaName, SERVERNAME,
             MessageFormat.format( /*I*/"{0} stole a resource from {1}."/*18N*/, peName, viName)), true);
     }
@@ -10327,15 +10304,15 @@ public class SOCServer extends Server
             // These methods directly call sendGameState_sendGoldPickAnnounceText.
 
         case SOCGame.WAITING_FOR_ROBBER_OR_PIRATE:
-            messageFormatToGame(gname, true, "{0} must choose to move the robber or the pirate.", player.getName());
+            messageToGameKeyed(ga, true, "robber.willmove.choose", player.getName());  // "{0} must choose to move the robber or the pirate."
             break;
 
         case SOCGame.PLACING_ROBBER:
-            messageFormatToGame(gname, true, "{0} will move the robber.", player.getName());
+            messageToGameKeyed(ga, true, "robber.willmove", player.getName());  // "{0} will move the robber."
             break;
 
         case SOCGame.PLACING_PIRATE:
-            messageFormatToGame(gname, true, "{0} will move the pirate ship.", player.getName());
+            messageToGameKeyed(ga, true, "robber.willmove.pirate", player.getName());  // "{0} will move the pirate ship."
             break;
 
         case SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER:
