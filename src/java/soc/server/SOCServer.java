@@ -392,7 +392,7 @@ public class SOCServer extends Server
 
     /**
      * A list of robot {@link StringConnection}s connected to this server.
-     * @see SOCPlayerLocalRobotRunner#robotClients
+     * @see SOCLocalRobotClient#robotClients
      */
     protected Vector<StringConnection> robots = new Vector<StringConnection>();
 
@@ -2148,6 +2148,7 @@ public class SOCServer extends Server
      *     can't be loaded, due to packaging of the server-only JAR.
      * @see #startPracticeGame()
      * @see #startLocalTCPServer(int)
+     * @see SOCLocalRobotClient
      * @since 1.1.00
      */
     public boolean setupLocalRobots(final int numFast, final int numSmart)
@@ -2160,7 +2161,7 @@ public class SOCServer extends Server
             for (int i = 0; i < numFast; ++i)
             {
                 String rname = "droid " + (i+1);
-                SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
+                SOCLocalRobotClient.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
                     // includes yield() and sleep(75 ms) this thread.
             }
 
@@ -2181,7 +2182,7 @@ public class SOCServer extends Server
             for (int i = 0; i < numSmart; ++i)
             {
                 String rname = "robot " + (i+1+numFast);
-                SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
+                SOCLocalRobotClient.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
                     // includes yield() and sleep(75 ms) this thread.
             }
 
@@ -2327,6 +2328,18 @@ public class SOCServer extends Server
     public Hashtable<String,SOCGameOption> getGameOptions(String gm)
     {
         return gameList.getGameOptions(gm);
+    }
+
+    /**
+     * Given a connection's key, return the connected client.
+     * Package-level access for other server classes.
+     * @param connKey Client name (Object key data), as in {@link StringConnection#getData()}; if null, returns null
+     * @return The connection with this key, or null if none
+     * @since 2.0.00
+     */
+    StringConnection getConnection(final String connKey)
+    {
+        return super.getConnection(connKey);
     }
 
     /**
@@ -11595,7 +11608,7 @@ public class SOCServer extends Server
                         continue;
                 }
 
-                new ForceEndTurnThread(ga, pl).start();
+                new SOCForceEndTurnThread(this, ga, pl).start();
             }
         }
         catch (Exception e)
@@ -12048,135 +12061,5 @@ public class SOCServer extends Server
         }
 
     }  // main
-
-    /**
-     * Each local robot gets its own thread.
-     * Equivalent to main thread in SOCRobotClient in network games.
-     *<P>
-     * Before 1.1.09, this class was part of SOCPlayerClient.
-     * @see SOCServer#setupLocalRobots(int, int, int)
-     * @since 1.1.00
-     */
-    private static class SOCPlayerLocalRobotRunner implements Runnable
-    {
-        /**
-         * All the started {@link SOCRobotClient}s. Key is the bot nickname.
-         *<P>
-         *<b>Note:</b> If a bot is disconnected from the server, it's not
-         * removed from this list, because the same bot will try to reconnect.
-         * To see if a bot is connected, check {@link SOCServer#robots} instead.
-         * @since 1.1.13
-         */
-        public static Hashtable<String, SOCRobotClient> robotClients = new Hashtable<String, SOCRobotClient>();
-
-        SOCRobotClient rob;
-
-        protected SOCPlayerLocalRobotRunner(SOCRobotClient rc)
-        {
-            rob = rc;
-        }
-
-        public void run()
-        {
-            final String rname = rob.getNickname();
-            Thread.currentThread().setName("robotrunner-" + rname);
-            robotClients.put(rname, rob);
-            rob.init();
-        }
-
-        /**
-         * Create and start a robot client within a {@link SOCPlayerLocalRobotRunner} thread.
-         * After creating it, {@link Thread#yield() yield} the current thread and then sleep
-         * 75 milliseconds, to give the robot time to start itself up.
-         * The SOCPlayerLocalRobotRunner's run() will add the {@link SOCRobotClient} to {@link #robotClients}.
-         * @param rname  Name of robot
-         * @param strSocketName  Server's stringport socket name, or null
-         * @param port    Server's tcp port, if <tt>strSocketName</tt> is null
-         * @param cookie  Cookie for robot connections to server
-         * @since 1.1.09
-         * @see SOCServer#setupLocalRobots(int, int)
-         * @throws ClassNotFoundException  if a robot class, or SOCDisplaylessClient,
-         *           can't be loaded. This can happen due to packaging of the server-only JAR.
-         * @throws LinkageError  for same reason as ClassNotFoundException
-         */
-        public static void createAndStartRobotClientThread
-            (final String rname, final String strSocketName, final int port, final String cookie)
-            throws ClassNotFoundException, LinkageError
-        {
-            SOCRobotClient rcli;
-            if (strSocketName != null)
-                rcli = new SOCRobotClient(strSocketName, rname, "pw", cookie);
-            else
-                rcli = new SOCRobotClient("localhost", port, rname, "pw", cookie);
-            Thread rth = new Thread(new SOCPlayerLocalRobotRunner(rcli));
-            rth.setDaemon(true);
-            rth.start();  // run() will add to robotClients
-
-            Thread.yield();
-            try
-            {
-                Thread.sleep(75);  // Let that robot go for a bit.
-                    // robot runner thread will call its init()
-            }
-            catch (InterruptedException ie) {}
-        }
-
-    }  // nested static class SOCPlayerLocalRobotRunner
-
-    /**
-     * Force-end this robot's turn.
-     * Done in a separate thread in case of deadlocks.
-     * Created from {@link SOCGameTimeoutChecker#run()}.
-     * @author Jeremy D Monin
-     * @since 1.1.11
-     */
-    private class ForceEndTurnThread extends Thread
-    {
-        private SOCGame ga;
-        private SOCPlayer pl;
-
-        public ForceEndTurnThread(SOCGame g, SOCPlayer p)
-        {
-            setDaemon(true);
-            ga = g;
-            pl = p;
-        }
-
-        /** If our targeted robot player is still the current player, force-end their turn. */
-        @Override
-        public void run()
-        {
-            final String rname = pl.getName();
-            final int plNum = pl.getPlayerNumber();
-            if (ga.getCurrentPlayerNumber() != plNum)
-                return;
-
-            StringConnection rconn = getConnection(rname);
-            System.err.println("For robot " + rname + ": force end turn in game " + ga.getName() + " cpn=" + plNum + " state " + ga.getGameState());
-            if (ga.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
-                System.err.println("  srv card count = " + pl.getResources().getTotal());
-            if (rconn == null)
-            {
-                System.err.println("L9120: internal error: can't find connection for " + rname);
-                return;  // shouldn't happen
-            }
-
-            // if it's the built-in type, print brain variables
-            SOCClientData scd = (SOCClientData) rconn.getAppData();
-            if (scd.isBuiltInRobot)
-            {
-                SOCRobotClient rcli = SOCPlayerLocalRobotRunner.robotClients.get(rname);
-                if (rcli != null)
-                    rcli.debugPrintBrainStatus(ga.getName());
-                else
-                    System.err.println("L9397: internal error: can't find robotClient for " + rname);
-            } else {
-                System.err.println("  Can't print brain status; robot type is " + scd.robot3rdPartyBrainClass);
-            }
-
-            endGameTurnOrForce(ga, plNum, rname, rconn, false);
-        }
-
-    }  // inner class ForceEndTurnThread
 
 }  // public class SOCServer
