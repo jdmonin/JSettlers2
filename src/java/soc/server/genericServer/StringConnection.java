@@ -253,6 +253,8 @@ public abstract class StringConnection
      * Get and format a localized string (with special SoC-specific parameters) with the given key.
      * Used for convenience at servers whose clients may have different locales.
      * See {@link SOCStringManager#getSpecial(SOCGame, String, Object...)} for details.
+     * Uses locale/strings from our client connection's {@link SOCStringManager} if set,
+     * {@link SOCStringManager#getFallbackServerManagerForClient()} otherwise.
      *
      * @param game  Game object to pass through to {@code SOCStringManager.getSpecial(...)}
      * @param key  Key to use for string retrieval
