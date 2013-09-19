@@ -202,6 +202,9 @@ public class SOCStringManager {
     {
         String txtfmt = bundle.getString(key);
 
+        /** Clone of arguments, with specials replaced with their localized strings */
+        Object[] argsLocal = null;
+
         // look for any "{#,rsrcs}" parameter here, and replace that arg with a String
         int ir = txtfmt.indexOf(",rsrcs}");
         while (ir != -1)
@@ -210,17 +213,21 @@ public class SOCStringManager {
             if (i0 == -1)
                 throw new IllegalArgumentException("Missing '{' before ',rsrcs}' in pattern: " + txtfmt);
 
+            if (argsLocal == null)
+                argsLocal = (Object[]) (arguments.clone());
+
             final int pnum = Integer.parseInt(txtfmt.substring(i0 + 1, ir));
-            if (arguments[pnum] instanceof Integer)
+            final Object arg = argsLocal[pnum];
+            if (arg instanceof Integer)
             {
                 // [pnum] is rcount, [pnum+1] is rtype;
                 // replace the argument obj with its localized String 
-                arguments[pnum] = getSOCResourceCount
-                    (((Integer) arguments[pnum + 1]).intValue(), (Integer) arguments[pnum]);
+                argsLocal[pnum] = getSOCResourceCount
+                    (((Integer) arguments[pnum + 1]).intValue(), (Integer) arg);
             }
-            else if (arguments[pnum] instanceof SOCResourceSet)
+            else if (arg instanceof SOCResourceSet)
             {
-                final SOCResourceSet rset = (SOCResourceSet) (arguments[pnum]); 
+                final SOCResourceSet rset = (SOCResourceSet) (arg);
                 ArrayList<String> resList = new ArrayList<String>();
                 for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
                 {
@@ -231,9 +238,9 @@ public class SOCStringManager {
 
                 // replace the argument obj
                 if (resList.isEmpty())
-                    arguments[pnum] = bundle.getString("spec.rsrcs.none");  // "nothing"
+                    argsLocal[pnum] = bundle.getString("spec.rsrcs.none");  // "nothing"
                 else
-                    arguments[pnum] = I18n.listItems(resList, this);
+                    argsLocal[pnum] = I18n.listItems(resList, this);
 
             } else {
                 // keep obj as whatever it is; MessageFormat.format will call its toString()
@@ -254,11 +261,15 @@ public class SOCStringManager {
             if (i0 == -1)
                 throw new IllegalArgumentException("Missing '{' before ',list}' in pattern: " + txtfmt);
 
+            if (argsLocal == null)
+                argsLocal = (Object[]) (arguments.clone());
+
             final int pnum = Integer.parseInt(txtfmt.substring(i0 + 1, ir));
-            if (arguments[pnum] instanceof List)
+            final Object arg = argsLocal[pnum];
+            if (arg instanceof List)
             {
                 // replace the argument obj with String of its localized items
-                arguments[pnum] = I18n.listItems((List<?>) arguments[pnum], this);
+                argsLocal[pnum] = I18n.listItems((List<?>) arg, this);
             } else {
                 // keep obj as whatever it is; MessageFormat.format will call its toString()
             }
@@ -278,22 +289,26 @@ public class SOCStringManager {
             if (i0 == -1)
                 throw new IllegalArgumentException("Missing '{' before ',dcards}' in pattern: " + txtfmt);
 
+            if (argsLocal == null)
+                argsLocal = (Object[]) (arguments.clone());
+
             final int pnum = Integer.parseInt(txtfmt.substring(i0 + 1, ir));
-            if (arguments[pnum] instanceof Integer)
+            final Object arg = argsLocal[pnum];
+            if (arg instanceof Integer)
             {
                 // replace the argument obj with its localized String 
-                arguments[pnum] = SOCDevCard.getCardTypeName(((Integer) arguments[pnum]), game, true, this);
+                argsLocal[pnum] = SOCDevCard.getCardTypeName(((Integer) arg), game, true, this);
             }
-            else if (arguments[pnum] instanceof List)
+            else if (arg instanceof List)
             {
                 // replace the argument obj with String of its localized items 
-                final int L = ((List<?>) arguments[pnum]).size();
+                final int L = ((List<?>) arg).size();
                 if (L == 0)
                 {
-                    arguments[pnum] = bundle.getString("base.emptylist.nothing");  // "nothing"
+                    argsLocal[pnum] = bundle.getString("base.emptylist.nothing");  // "nothing"
                 } else {
                     ArrayList<String> resList = new ArrayList<String>(L);
-                    for (Object itm : ((List<?>) arguments[pnum]))
+                    for (Object itm : ((List<?>) arg))
                     {
                         if (itm instanceof Integer)
                             resList.add(SOCDevCard.getCardTypeName(((Integer) itm).intValue(), game, true, this));
@@ -301,7 +316,7 @@ public class SOCStringManager {
                             resList.add(itm.toString());
                     }
 
-                    arguments[pnum] = I18n.listItems(resList, this);
+                    argsLocal[pnum] = I18n.listItems(resList, this);
                 }
             } else {
                 // keep obj as whatever it is; MessageFormat.format will call its toString()
@@ -315,7 +330,9 @@ public class SOCStringManager {
         }
 
         // now format the rest of the message:
-        return MessageFormat.format(txtfmt, arguments);
+        if (argsLocal == null)
+            argsLocal = arguments;
+        return MessageFormat.format(txtfmt, argsLocal);
     }
 
     /**
