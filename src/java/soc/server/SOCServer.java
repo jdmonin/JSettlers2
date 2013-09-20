@@ -7966,9 +7966,9 @@ public class SOCServer extends Server
                     offGive.toFriendlyString(giveText);
                     StringBuffer getText = new StringBuffer();                    
                     offGet.toFriendlyString(getText);
-                    messageFormatToGame
-                        (gaName, true, "{0} made a trade offer to give {1} for {2}.",
-                         (String) c.getData(), giveText, getText);
+                    messageToGameKeyedSpecial(ga, true, "trade.offered.rsrcs.for",
+                        player.getName(), offGive, offGet);
+                        // "{0} made a trade offer to give {1,rsrcs} for {2,rsrcs}."
                 }
 
                 SOCMakeOffer makeOfferMessage = new SOCMakeOffer(gaName, remadeOffer);
@@ -8835,26 +8835,25 @@ public class SOCServer extends Server
             if (checkTurn(c, ga))
             {
                 SOCPlayer player = ga.getPlayer((String) c.getData());
+                final SOCResourceSet discovRsrcs = mes.getResources();
 
-                if (ga.canDoDiscoveryAction(mes.getResources()))
+                if (ga.canDoDiscoveryAction(discovRsrcs))
                 {
-                    ga.doDiscoveryAction(mes.getResources());
+                    ga.doDiscoveryAction(discovRsrcs);
 
-                    StringBuffer message = new StringBuffer((String) c.getData());
-                    message.append(" received ");
-                    reportRsrcGainLoss(gaName, mes.getResources(), false, player.getPlayerNumber(), -1, message, null);
-                    message.append(" from the bank.");
-                    messageToGame(gaName, message.toString());
+                    reportRsrcGainLoss(gaName, discovRsrcs, false, player.getPlayerNumber(), -1, null, null);
+                    messageToGameKeyedSpecial(ga, true, "action.card.discov.received", player.getName(), discovRsrcs);
+                        // "{0} received {1,rsrcs} from the bank."
                     sendGameState(ga);
                 }
                 else
                 {
-                    messageToPlayer(c, gaName, "That is not a legal Year of Plenty pick.");
+                    messageToPlayerKeyed(c, gaName, "action.card.discov.notlegal");  // "That is not a legal Year of Plenty pick."
                 }
             }
             else
             {
-                messageToPlayer(c, gaName, "It's not your turn.");
+                messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)
@@ -10779,14 +10778,14 @@ public class SOCServer extends Server
 
         final String gaName = ga.getName();
         final SOCTradeOffer offer = ga.getPlayer(offering).getCurrentOffer();
+        final SOCResourceSet giveSet = offer.getGiveSet(),
+                             getSet  = offer.getGetSet();
 
-        StringBuffer giveDesc = new StringBuffer();  // reportRsrc will fill with "2 sheep, 1 wheat"
-        StringBuffer getDesc = new StringBuffer();
-        reportRsrcGainLoss(gaName, offer.getGiveSet(), true, offering, accepting, giveDesc, null);
-        reportRsrcGainLoss(gaName, offer.getGetSet(), false, offering, accepting, getDesc, null);
-
-        messageFormatToGame(gaName, true, "{0} gave {1} for {2} from {3}.",
-            ga.getPlayer(offering).getName(), giveDesc, getDesc, ga.getPlayer(accepting).getName());
+        reportRsrcGainLoss(gaName, giveSet, true, offering, accepting, null, null);
+        reportRsrcGainLoss(gaName, getSet, false, offering, accepting, null, null);
+        messageToGameKeyedSpecial(ga, true, "trade.gave.rsrcs.for.from.player",
+            ga.getPlayer(offering).getName(), giveSet, getSet, ga.getPlayer(accepting).getName());
+            // "{0} gave {1,rsrcs} for {2,rsrcs} from {3}."
     }
 
     /**
@@ -10807,26 +10806,23 @@ public class SOCServer extends Server
         final String gaName = ga.getName();
         final int    cpn    = ga.getCurrentPlayerNumber();
 
-        StringBuffer giveDesc = new StringBuffer(),  // reportRsrc will fill with "2 sheep, 1 wheat"
-                     getDesc  = new StringBuffer();
-        reportRsrcGainLoss(gaName, give, true, cpn, -1, giveDesc, null);
-        reportRsrcGainLoss(gaName, get, false, cpn, -1, getDesc, null);
+        reportRsrcGainLoss(gaName, give, true, cpn, -1, null, null);
+        reportRsrcGainLoss(gaName, get, false, cpn, -1, null, null);
 
         final int giveTotal = give.getTotal(),
-                  getTotal = get.getTotal();
-        final String tradeFrom;
-        if ((giveTotal / getTotal) == 4)
-            tradeFrom = /*I*/"the bank"/*18N*/;  // 4:1 trade
-        else
-            tradeFrom = /*I*/"a port"/*18N*/;    // 3:1 or 2:1 trade
+                  getTotal  = get.getTotal();
+        final int tradeFrom;  // 1 = "the bank" -- 4:1 trade; 2 = "a port" -- 3:1 or 2:1 trade
+        final String msgKey;
+        if (giveTotal > getTotal)
+        {
+            msgKey = "trade.traded.rsrcs.for.from.bankport";  // "{0} traded {1,rsrcs} for {2,rsrcs} from {3,choice, 1#the bank|2#a port}."
+            tradeFrom = ((giveTotal / getTotal) == 4) ? 1 : 2;
+        } else {
+            msgKey = "trade.traded.rsrcs.for.from.bankport.undoprevious";  // same + " (Undo previous trade)"
+            tradeFrom = ((getTotal / giveTotal) == 4) ? 1 : 2;
+        }
 
-        StringBuffer message = new StringBuffer();
-        message.append(MessageFormat.format
-            ( /*I*/"{0} traded {1} for {2} from {3}."/*18N*/, ga.getPlayer(cpn).getName(), giveDesc, getDesc, tradeFrom));
-        if (giveTotal < getTotal)
-            message.append( /*I*/" (Undo previous trade)"/*18N*/ );
-
-        messageToGame(gaName, message.toString());
+        messageToGameKeyedSpecial(ga, true, msgKey, ga.getPlayer(cpn).getName(), give, get, tradeFrom);
     }
 
     /**
