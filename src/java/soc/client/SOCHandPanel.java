@@ -2867,19 +2867,11 @@ public class SOCHandPanel extends Panel
      */
     public void updateResourcesVP()
     {
+        updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
+
         if (playerIsClient)
-        {
-            updateValue(PlayerClientListener.UpdateType.Clay);
-            updateValue(PlayerClientListener.UpdateType.Ore);
-            updateValue(PlayerClientListener.UpdateType.Sheep);
-            updateValue(PlayerClientListener.UpdateType.Wheat);
-            updateValue(PlayerClientListener.UpdateType.Wood);
             updateResourceTradeCosts(false);
-        }
-        else
-        {
-            updateValue(PlayerClientListener.UpdateType.Resources);
-        }
+
         updateValue(PlayerClientListener.UpdateType.VictoryPoints);
     }
 

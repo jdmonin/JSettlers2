@@ -2041,16 +2041,7 @@ public class SOCPlayerInterface extends Frame
             /**
              * if this is the second initial settlement, then update the resource display
              */
-            if (mesHp.isClientPlayer())
-            {
-                mesHp.updateValue(PlayerClientListener.UpdateType.Clay);
-                mesHp.updateValue(PlayerClientListener.UpdateType.Ore);
-                mesHp.updateValue(PlayerClientListener.UpdateType.Sheep);
-                mesHp.updateValue(PlayerClientListener.UpdateType.Wheat);
-                mesHp.updateValue(PlayerClientListener.UpdateType.Wood);
-            } else {
-                mesHp.updateValue(PlayerClientListener.UpdateType.Resources);
-            }
+            mesHp.updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
 
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7]
                 || debugShowPotentials[6])
@@ -2916,11 +2907,7 @@ public class SOCPlayerInterface extends Frame
 
             if (nickname.equals(sitterNickname))
             {
-                hp.updateValue(PlayerClientListener.UpdateType.Clay);
-                hp.updateValue(PlayerClientListener.UpdateType.Ore);
-                hp.updateValue(PlayerClientListener.UpdateType.Sheep);
-                hp.updateValue(PlayerClientListener.UpdateType.Wheat);
-                hp.updateValue(PlayerClientListener.UpdateType.Wood);
+                hp.updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
                 hp.updateDevCards();
             }
             else
