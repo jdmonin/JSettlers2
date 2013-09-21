@@ -7010,34 +7010,27 @@ public class SOCServer extends Server
 
                             if (won)
                             {
-                                messageFormatToGame(gn, true,
-                                    "{0} won against the pirate fleet (strength {1}) and will pick a free resource.",
-                                    vicName, strength);
+                                messageToGameKeyed
+                                    (ga, true, "action.rolled.sc_piri.player.won.pick.free", vicName, strength);
+                                    // "{0} won against the pirate fleet (strength {1}) and will pick a free resource."
                             } else {
                                 /**
                                  * tell the victim client that the player lost the resources
                                  */
-                                StringBuffer sb = new StringBuffer("You lost ");
-                                reportRsrcGainLoss(gn, loot, true, pn, -1, sb, vCon);
-                                sb.append(/*I*/" to the pirate fleet (strength "/*18N*/);
-                                sb.append(strength);
-                                sb.append(").");
-                                messageToPlayer(vCon, gn, sb.toString());
+                                reportRsrcGainLoss(gn, loot, true, pn, -1, null, vCon);
+                                messageToPlayerKeyedSpecial
+                                    (vCon, ga, "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
+                                    // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
 
                                 /**
                                  * tell everyone else that the player lost unknown resources
                                  */
                                 messageToGameExcept(gn, vCon, new SOCPlayerElement
                                     (gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, lootTotal), true);
-                                final String rword;
-                                if (lootTotal == 1)
-                                    rword = " resource";
-                                else
-                                    rword = " resources";
-                                // TODO I18N
-                                messageToGameExcept
-                                    (gn, vCon, vicName + " lost " + lootTotal + rword
-                                     + " to pirate fleet attack (strength " + strength + ").", true);
+                                messageToGameKeyedSpecialExcept(ga, true, vCon,
+                                    "action.rolled.sc_piri.player.lost.rsrcs.to.fleet", vicName, lootTotal, strength);
+                                    // "Joe lost 1 resource to pirate fleet attack (strength 3)." or
+                                    // "Joe lost 3 resources to pirate fleet attack (strength 3)."
                             }
                         }
                     }
@@ -7111,12 +7104,13 @@ public class SOCServer extends Server
                                 else
                                     gainsText.append(" ");
 
-                                gainsText.append(pli.getName());
-                                gainsText.append(" gets ");
-                                // Announce SOCPlayerElement.GAIN messages,
-                                // build resource-text in gainsText.
-                                reportRsrcGainLoss(gn, rsrcs, false, i, -1, gainsText, null);
-                                gainsText.append(".");
+                                gainsText.append
+                                    (c.getLocalizedSpecial(ga, "_nolocaliz.roll.gets.resources", pli.getName(), rsrcs));
+                                    // "{0} gets {1,rsrcs}."
+                                    // get it from any connection's StringManager, because that string is never localized
+
+                                // Announce SOCPlayerElement.GAIN messages
+                                reportRsrcGainLoss(gn, rsrcs, false, i, -1, null, null);
                             }
 
                         }  // if (! ga.isSeatVacant(i))
@@ -8024,10 +8018,6 @@ public class SOCServer extends Server
                     remadeOffer = new SOCTradeOffer(gaName, player.getPlayerNumber(), offer.getTo(), offGive, offGet);
                     player.setCurrentOffer(remadeOffer);
 
-                    StringBuffer giveText = new StringBuffer();
-                    offGive.toFriendlyString(giveText);
-                    StringBuffer getText = new StringBuffer();                    
-                    offGet.toFriendlyString(getText);
                     messageToGameKeyedSpecial(ga, true, "trade.offered.rsrcs.for",
                         player.getName(), offGive, offGet);
                         // "{0} made a trade offer to give {1,rsrcs} for {2,rsrcs}."
