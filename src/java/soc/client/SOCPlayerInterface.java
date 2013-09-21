@@ -1122,7 +1122,7 @@ public class SOCPlayerInterface extends Frame
     public void showDiceResult(final SOCPlayer cp, final int roll)
     {
         if (roll > 0)
-            printFormat(/*I*/"* Rolled a {0}."/*18N*/, Integer.toString(roll));
+            print(strings.get("game.roll.rolled.number", roll));  // "* Rolled a {0}."
 
         boardPanel.repaint();
 
