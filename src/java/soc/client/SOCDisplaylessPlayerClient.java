@@ -716,6 +716,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * All players' dice roll result resources.
+             * Added 2013-09-20 for v2.0.00.
+             */
+            case SOCMessage.DICERESULTRESOURCES:
+                handleDICERESULTRESOURCES((SOCDiceResultResources) mes);
+                break;
+
+            /**
              * move a previous piece (a ship) somewhere else on the board.
              * Added 2011-12-05 for v2.0.00.
              */
@@ -947,6 +955,36 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param mes  the message
      */
     protected void handleGAMESERVERTEXT(SOCGameServerText mes) {}
+
+    /**
+     * Handle all players' dice roll result resources.  Looks up the game and calls
+     * {@link #handleDICERESULTRESOURCES(SOCDiceResultResources, SOCGame)}
+     * so the players gain resources.
+     * @since 2.0.00
+     */
+    protected void handleDICERESULTRESOURCES(final SOCDiceResultResources mes)
+    {
+        SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
+
+        handleDICERESULTRESOURCES(mes, ga);
+    }
+
+    /**
+     * Handle all players' dice roll result resources: static version to share with SOCPlayerClient.
+     * Game players gain resources.
+     * @since 2.0.00
+     */
+    protected static void handleDICERESULTRESOURCES(final SOCDiceResultResources mes, SOCGame ga)
+    {
+        final int n = mes.playerNum.size();
+        for (int p = 0; p < n; ++p)  // current index reading from playerNum and playerRsrc
+        {
+            final SOCResourceSet rs = mes.playerRsrc.get(p);
+            ga.getPlayer(mes.playerNum.get(p)).getResources().add(rs);
+        }
+    }
 
     /**
      * handle the "player sitting down" message

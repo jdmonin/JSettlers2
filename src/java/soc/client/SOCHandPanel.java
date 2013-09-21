@@ -2769,6 +2769,19 @@ public class SOCHandPanel extends Panel
             updateTotalResCount = true;
             break;
 
+        case ResourceTotalAndDetails:
+            if (playerIsClient)
+            {
+                // Update the 5 individual ones too, not just the total count
+                final SOCResourceSet rsrc = player.getResources();
+                claySq.setIntValue (rsrc.getAmount(SOCResourceConstants.CLAY));
+                oreSq.setIntValue  (rsrc.getAmount(SOCResourceConstants.ORE));
+                sheepSq.setIntValue(rsrc.getAmount(SOCResourceConstants.SHEEP));
+                wheatSq.setIntValue(rsrc.getAmount(SOCResourceConstants.WHEAT));
+                woodSq.setIntValue (rsrc.getAmount(SOCResourceConstants.WOOD));
+            }
+            // fall through to case Resources
+
         case Resources:
             updateTotalResCount = true;
             break;
@@ -2812,6 +2825,7 @@ public class SOCHandPanel extends Panel
         if (updateTotalResCount)
         {
             resourceSq.setIntValue(player.getResources().getTotal());
+
             if (offerIsDiscardOrPickMessage)
             {
                 final int gs = game.getGameState();

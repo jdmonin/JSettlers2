@@ -33,6 +33,7 @@ import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
+import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCScenario;
 import soc.game.SOCScenarioEventListener;
@@ -2825,9 +2826,36 @@ public class SOCPlayerInterface extends Frame
          * Show a dice roll result.
          * Call this after updating game state with the roll result.
          */
-        public void diceRolled(SOCPlayer player, int roll)
+        public void diceRolled(SOCPlayer player, final int rollSum)
         {
-            pi.showDiceResult(player, roll);
+            pi.showDiceResult(player, rollSum);
+        }
+
+        public void diceRolledResources(final List<Integer> pnum, final List<SOCResourceSet> rsrc)
+        {
+            StringBuffer sb = new StringBuffer("* ");
+            boolean noPlayersGained = true;
+
+            final int n = pnum.size();
+            final SOCGame ga = pi.game;
+            for (int p = 0; p < n; ++p)  // current index reading from playerNum and playerRsrc
+            {
+                final int pn = pnum.get(p);
+                final SOCHandPanel hpan = pi.getPlayerHandPanel(pn);
+                hpan.updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
+
+                final SOCPlayer pl = ga.getPlayer(pn);
+                if (noPlayersGained)
+                    noPlayersGained = false;
+                else
+                    sb.append(" ");
+
+                sb.append(SOCPlayerInterface.strings.getSpecial(ga, "game.roll.gets.resources", pl.getName(), rsrc.get(p)));
+                    // "{0} gets {1,rsrcs}."
+            }
+
+            if (sb.length() > 2)
+                pi.print(sb.toString());
         }
 
         public void playerJoined(String nickname)
@@ -2947,7 +2975,7 @@ public class SOCPlayerInterface extends Frame
 
         public void playerElementUpdated(SOCPlayer player, PlayerClientListener.UpdateType utype)
         {
-            final SOCHandPanel hpan = player == null ? null : pi.getPlayerHandPanel(player.getPlayerNumber());  // null if no player
+            final SOCHandPanel hpan = (player == null) ? null : pi.getPlayerHandPanel(player.getPlayerNumber());  // null if no player
             int hpanUpdateRsrcType = 0;  // If not 0, update this type's amount display
 
             switch (utype)

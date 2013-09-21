@@ -34,6 +34,13 @@ import soc.game.SOCResourceSet;
  */
 public class SOCDiceResultResources extends SOCMessageTemplateMi
 {
+    /**
+     * Version number (2.0.00) where the server no longer sends dice roll result resources as
+     * a game text message + several {@link SOCPlayerElement SOCPlayerElement(GAIN)} messages,
+     * and instead sends a single {@link SOCDiceResultResources} message.
+     */
+    public static final int VERSION_FOR_DICERESULTRESOURCES = 2000;
+
     private static final long serialVersionUID = 2000L;
 
     /**
@@ -166,11 +173,11 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
     }
 
     /**
-     * Minimum version where this message type is used.
+     * Minimum version where this message type is used ({@link #VERSION_FOR_DICERESULTRESOURCES}).
      * DICERESULTRESOURCES introduced in 2.0.00 for dice roll result resources.
      * @return Version number, 2000 for JSettlers 2.0.00.
      */
-    public int getMinimumVersion() { return 2000; }
+    public int getMinimumVersion() { return VERSION_FOR_DICERESULTRESOURCES; }
 
     /**
      * Parse the command String array into a SOCDiceResultResources message.

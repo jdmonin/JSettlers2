@@ -2807,6 +2807,14 @@ public class SOCPlayerClient
                 break;
 
             /**
+             * All players' dice roll result resources.
+             * Added 2013-09-20 for v2.0.00.
+             */
+            case SOCMessage.DICERESULTRESOURCES:
+                handleDICERESULTRESOURCES((SOCDiceResultResources) mes);
+                break;
+
+            /**
              * move a previous piece (a ship) somewhere else on the board.
              * Added 2011-12-05 for v2.0.00.
              */
@@ -4506,6 +4514,25 @@ public class SOCPlayerClient
             return;
 
         pcl.messageSent(null, mes.getText());
+    }
+
+    /**
+     * Handle all players' dice roll result resources.  Looks up the game,
+     * players gain resources, and announces results.
+     * @since 2.0.00
+     */
+    protected void handleDICERESULTRESOURCES(final SOCDiceResultResources mes)
+    {
+        SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
+
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
+            return;
+
+        SOCDisplaylessPlayerClient.handleDICERESULTRESOURCES(mes, ga);
+        pcl.diceRolledResources(mes.playerNum, mes.playerRsrc);
     }
 
     /**

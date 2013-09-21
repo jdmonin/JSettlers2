@@ -7050,8 +7050,52 @@ public class SOCServer extends Server
                 if (ga.getCurrentDice() != 7)
                 {
                     boolean noPlayersGained = true;
+                    boolean[] plGained = new boolean[SOCGame.MAXPLAYERS];  // send total rsrcs only to players who gain
+
+                    /**
+                     * Clients v2.0.00 and newer get an i18n-neutral SOCDiceResultResources message.
+                     * Older clients get a string such as "Joe gets 3 sheep. Mike gets 1 clay."
+                     */
+                    String rollRsrcOldCli = null;
+                    SOCDiceResultResources rollRsrcNewCli = null;
+
+                    if (ga.clientVersionHighest >= SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
+                    {
+                        // build a SOCDiceResultResources message
+                        ArrayList<Integer> pnum = null;
+                        ArrayList<SOCResourceSet> rsrc = null;
+
+                        for (int i = 0; i < ga.maxPlayers; i++)
+                        {
+                            if (ga.isSeatVacant(i))
+                                continue;
+
+                            final SOCPlayer pli = ga.getPlayer(i);
+                            final SOCResourceSet rs = pli.getRolledResources();
+                            if (rs.getKnownTotal() == 0)
+                                continue;
+
+                            plGained[i] = true;
+                            if (noPlayersGained)
+                            {
+                                noPlayersGained = false;
+                                pnum = new ArrayList<Integer>();
+                                rsrc = new ArrayList<SOCResourceSet>();
+                            }
+                            pnum.add(Integer.valueOf(i));
+                            rsrc.add(rs);
+                        }
+
+                        if (! noPlayersGained)
+                            rollRsrcNewCli = new SOCDiceResultResources(gn, pnum, rsrc);
+                    }
+
+                    if (ga.clientVersionLowest < SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
+                    {
+                        // Build a string
                     StringBuffer gainsText = new StringBuffer();
 
+                    noPlayersGained = true;  // for string spacing; might be false due to loop for new clients in game
                     for (int i = 0; i < ga.maxPlayers; i++)
                     {
                         if (! ga.isSeatVacant(i))
@@ -7061,14 +7105,11 @@ public class SOCServer extends Server
 
                             if (rsrcs.getKnownTotal() != 0)
                             {
+                                plGained[i] = true;
                                 if (noPlayersGained)
-                                {
                                     noPlayersGained = false;
-                                }
                                 else
-                                {
                                     gainsText.append(" ");
-                                }
 
                                 gainsText.append(pli.getName());
                                 gainsText.append(" gets ");
@@ -7078,38 +7119,59 @@ public class SOCServer extends Server
                                 gainsText.append(".");
                             }
 
-                            //
-                            //  Send player all their resource info for accuracy
-                            //  and prompt if they must pick for GOLD_HEX
-                            //
-                            StringConnection playerCon = getConnection(pli.getName());
-                            if (playerCon != null)
-                            {
-                                // CLAY, ORE, SHEEP, WHEAT, WOOD
-                                SOCResourceSet resources = pli.getResources();
-                                for (int res = SOCPlayerElement.CLAY; res <= SOCPlayerElement.WOOD; ++res)
-                                    messageToPlayer(playerCon, new SOCPlayerElement(gn, i, SOCPlayerElement.SET, res, resources.getAmount(res)));
-                                messageToGame(gn, new SOCResourceCount(gn, i, resources.getTotal()));
-
-                                // we'll send gold picks text, PLAYERELEMENT, and PICKRESOURCESREQUEST after the loop
-                            }
                         }  // if (! ga.isSeatVacant(i))
                     }  // for (i)
 
-                    String message;
+                    if (! noPlayersGained)
+                        rollRsrcOldCli = gainsText.toString();
+
+                    }
+
                     if (noPlayersGained)
                     {
+                        String key;
                         if (roll.cloth == null)
-                            message = "No player gets anything.";
+                            key = "action.rolled.no.player.gets.anything";  // "No player gets anything."
                         else
-                            message = "No player gets resources.";
+                            key = "action.rolled.no.player.gets.resources";  // "No player gets resources."
                         // debug_printPieceDiceNumbers(ga, message);
+                        messageToGameKeyed(ga, true, key);
+                    } else {
+                        if (rollRsrcOldCli == null)
+                            messageToGame(gn, rollRsrcNewCli);
+                        else if (rollRsrcNewCli == null)
+                            messageToGame(gn, rollRsrcOldCli);
+                        else
+                        {
+                            // neither is null: we have old and new clients
+                            messageToGameForVersions(ga, 0, (SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES - 1),
+                                new SOCGameTextMsg(gn, SERVERNAME, rollRsrcOldCli), true);
+                            messageToGameForVersions(ga, SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES, Integer.MAX_VALUE,
+                                rollRsrcNewCli, true);
+                        }
+
+                        //
+                        //  Send gaining players all their resource info for accuracy
+                        //
+                        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                        {
+                            if (! plGained[pn])
+                                continue;  // skip if player didn't gain; before v2.0.00, each player in game got these
+
+                            final SOCPlayer pli = ga.getPlayer(pn);
+                            StringConnection playerCon = getConnection(pli.getName());
+                            if (playerCon == null)
+                                continue;
+
+                            // CLAY, ORE, SHEEP, WHEAT, WOOD
+                            final SOCResourceSet resources = pli.getResources();
+                            for (int res = SOCPlayerElement.CLAY; res <= SOCPlayerElement.WOOD; ++res)
+                                messageToPlayer(playerCon, new SOCPlayerElement(gn, pn, SOCPlayerElement.SET, res, resources.getAmount(res)));
+                            messageToGame(gn, new SOCResourceCount(gn, pn, resources.getTotal()));
+
+                            // we'll send gold picks text, PLAYERELEMENT, and PICKRESOURCESREQUEST after the per-player loop
+                        }
                     }
-                    else
-                    {
-                        message = gainsText.toString();
-                    }
-                    messageToGame(gn, message);
 
                     if (roll.cloth != null)
                     {

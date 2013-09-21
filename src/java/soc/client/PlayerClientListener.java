@@ -29,12 +29,15 @@ import java.util.Map;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceSet;
 
 /**
  * A listener on the {@link SOCPlayerClient} to decouple the presentation from the networking.
  * This presents the facade of the UI to the networking layer.
  * The game data ({@link SOCGame}, {@link SOCPlayer} methods) will be updated before
  * these methods are called, so you can call game-object methods for more details on the new event.
+ *<P>
+ * The classic presentation implementing this interface is {@link SOCPlayerInterface.ClientBridge}.
  * @author paulbilnoski
  * @since 2.0.00
  */
@@ -43,10 +46,20 @@ public interface PlayerClientListener
     /**
      * Receive a notification that the current player has rolled the dice.
      * Call this after updating game state with the roll result.
+     * After a call to {@code diceRolled}, {@link #diceRolledResources(List, List)} is often called next.
      * @param player May be {@code null} if the current player was null when the dice roll was received from the server.
-     * @param result The sum of the dice rolled. May be <tt>-1</tt> for some game events.
+     * @param resultSum The sum of the dice rolled. May be <tt>-1</tt> for some game events.
      */
-    void diceRolled(SOCPlayer player, int result);
+    void diceRolled(SOCPlayer player, int resultSum);
+
+    /**
+     * Receive a notification that the dice roll resulted in players gaining resources.
+     * Call this after updating player resources with the gains.
+     * Often follows a call to {@link #diceRolled(SOCPlayer, int)}.
+     * @param pnum  Player numbers, same format as {@link #playerNum}
+     * @param rsrc Resources gained by each {@code pn}, same format as {@link #playerRsrc}
+     */
+    void diceRolledResources(List<Integer> pnum, List<SOCResourceSet> rsrc);
 
     /**
      * A client (us or someone else) has joined the game.
@@ -297,8 +310,11 @@ public interface PlayerClientListener
         Wheat,
         Wood,
         Unknown,
+        /** Update Total Resource count only. */
         Resources,
-        
+        /** Update Total Resource count, and also each box (Clay,Ore,Sheep,Wheat,Wood) if shown. */
+        ResourceTotalAndDetails,
+
         Road,
         Settlement,
         City,

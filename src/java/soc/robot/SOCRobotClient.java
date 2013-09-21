@@ -766,6 +766,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;  // this message type is ignored by bots
 
             /**
+             * All players' dice roll result resources.
+             * Added 2013-09-20 for v2.0.00.
+             */
+            case SOCMessage.DICERESULTRESOURCES:
+                super.handleDICERESULTRESOURCES((SOCDiceResultResources) mes);
+                break;
+
+            /**
              * move a previous piece (a ship) somewhere else on the board.
              * Added 2013-03-16 for v2.0.00.
              */
