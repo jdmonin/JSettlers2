@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
  * <LI> 2013-09-12  jeremy  Make class and removeFileExtension public;
  *                          pseudolocalise: shorten prefix, suffix to {@code "[-- ", " --]"},
  *                              don't pseudo any text within {curly brackets}
+ * <LI> 2013-09-22  jeremy  Allow null param to pseudolocalise: returns null.
  * </UL>
  */
 public class StringUtil {
@@ -134,6 +135,9 @@ public class StringUtil {
 
     public static String pseudolocalise(String text) 
     {
+        if (text == null)
+            return null;
+
         StringBuilder sb = new StringBuilder();
         sb.append("[-- "); //$NON-NLS-1$
         boolean withinSingleQuote = false;
