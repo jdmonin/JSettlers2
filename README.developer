@@ -297,7 +297,14 @@ Make sure your editor or IDE honors this encoding format.  Unfortunately you mus
 for characters outside that 8-bit encoding's range, directly or with the native2ascii utility:
 	native2ascii -encoding utf8 examplefile.utf8 examplefile.properties
 
+You can use the included net.nand.util.i18n.gui.PropertiesTranslatorEditor to edit language key values
+for the basic and new locales side by side; this editor has unicode support and color hilighting, and
+will convert to ISO-8859-1 automatically when saving.
+
 To override system locales for testing, launch the client with vm argument -Djsettlers.locale=es
+
+Pseudolocalization for testing (en_AA locale) uses StringUtil from the JBoss Ant-Gettext utilities.
+See command-line utility net.nand.util.i18n.PropsFilePseudoLocalizer.
 
 Thanks to Luis A. Ramirez for building the initial client i18n framework and advocating i18n-friendly
 programming practices throughout the code base with helpful specific suggestions.
