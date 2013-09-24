@@ -138,17 +138,22 @@ public class ParsedPropsFilePair
                 }
             } else {
                 FileKeyEntry kpe = (FileKeyEntry) kp;
-                CharSequence val;
+                final CharSequence val;
+                final boolean spc;
                 if (destHalf)
+                {
                     val = kpe.destValue;
-                else
+                    spc = kpe.destSpacedEquals;
+                } else {
                     val = kpe.srcValue;
+                    spc = kpe.srcSpacedEquals;
+                }
 
                 if (val == null)
                     continue;  // skip it: only the other half of the dest/src pair has a value for this key
 
                 ret.add(new KeyPairLine
-                        (kpe.key, ((val != null) ? val.toString() : null), null));
+                        (kpe.key, val.toString(), null, spc));
             }
         }
 
@@ -238,6 +243,7 @@ public class ParsedPropsFilePair
                 FileKeyEntry fe = new FileKeyEntry(line.key, line.value);
                 if (line.comment != null)
                     fe.srcComment = line.comment;
+                fe.srcSpacedEquals = line.spacedEquals;
                 parsed.add(fe);
             } else if (line.comment != null) {
                 FileKeyEntry fe = new FileKeyEntry(line.comment);
@@ -296,9 +302,6 @@ public class ParsedPropsFilePair
         {
             if (line.key != null)
             {
-                FileKeyEntry fe = new FileKeyEntry(line.key, line.value);
-                if (line.comment != null)
-                    fe.destComment = line.comment;
                 destKeys.put(line.key, line);
             } else if (line.comment != null) {
                 // key is null, comment isn't: must be the comment(s) after the last key in the file
@@ -335,6 +338,7 @@ public class ParsedPropsFilePair
                 srcLine.destValue = dest.value;
                 if (dest.comment != null)
                     srcLine.destComment = dest.comment;
+                srcLine.destSpacedEquals = dest.spacedEquals;
 
                 if ((srcLine.srcComment != null) || (srcLine.destComment != null))
                     expandCommentLinesIntoCont(srcLine);
@@ -362,6 +366,7 @@ public class ParsedPropsFilePair
             fe.srcValue = null;
             if (line.comment != null)
                 fe.destComment = line.comment;
+            fe.destSpacedEquals = line.spacedEquals;
             cont.add(fe);
         }
 
@@ -436,6 +441,12 @@ public class ParsedPropsFilePair
 
         /** Value in destination language, or {@code null}. Empty strings or only whitespace are {@code null}. */
         public CharSequence destValue;
+
+        /** If true, the key and value are separated by " = " instead of "=".
+         *  This is tracked to minimize whitespace changes when editing a properties file.
+         *  False by default, set true after constructor if needed.
+         */
+        public boolean srcSpacedEquals, destSpacedEquals;
 
         /**
          * Create an entry for a source language (no destination value yet).

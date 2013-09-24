@@ -109,6 +109,7 @@ public class PropsFileParser
                     if (key.length() > 0)
                     {
                         CharSequence val = L.subSequence(ieq + 1, L.length());
+                        final boolean spacedEquals = Character.isWhitespace(L.charAt(ieq - 1));
 
                         // trim leading spaces from val, but not trailing spaces
                         if ((val.length() > 0) && Character.isWhitespace(val.charAt(0)))
@@ -157,7 +158,7 @@ public class PropsFileParser
                                 ret.add(new KeyPairLine(headerComment));
                         }
 
-                        ret.add(new KeyPairLine(key, valStr, comment));
+                        ret.add(new KeyPairLine(key, valStr, comment, spacedEquals));
                         comment = null;
                     } else {
                         // TODO malformed: 0-length key
@@ -223,12 +224,18 @@ public class PropsFileParser
         /** comment lines, if any, or {@code null}; each one contains leading {@code "# "} */
         public List<String> comment;
 
+        /** If true, the key and value are separated by " = " instead of "=".
+         *  This is tracked to minimize whitespace changes when editing a properties file.
+         */
+        public boolean spacedEquals;
+
         /** Line with a key and value, and optionally a comment. */
-        public KeyPairLine(final String key, final String value, final List<String> comment)
+        public KeyPairLine(final String key, final String value, final List<String> comment, final boolean spacedEquals)
         {
             this.key = key;
             this.value = value;
             this.comment = ((comment == null) || comment.isEmpty()) ? null : comment;
+            this.spacedEquals = spacedEquals;
         }
 
         /**

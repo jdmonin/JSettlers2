@@ -34,7 +34,7 @@ import java.util.List;
  * <LI> writer = new {@link #PropsFileWriter(String)} or {@link #PropsFileWriter(PrintWriter)};
  * <LI> writer.{@link #write(List, String) .write(pairs, filecomment)};
  * <LI> // Or: <BR>
- *      {@link #writeOne(PrintWriter, String, String, List) writeOne(writer, key, value, paircomment)};
+ *      {@link #writeOne(PrintWriter, String, String, List, boolean) writeOne(writer, key, value, paircomment, spacedEquals)};<BR>
  *      writeOne(...); ...
  * <LI> writer.close();
  *</UL>
@@ -193,15 +193,19 @@ public class PropsFileWriter
      * @param val  Value to write; leading whitespace and special characters will be escaped;
      *             backslashes will not be doubled, assumes they are part of an escape sequence in {@code val}
      * @param comments  Comment lines to write above key=value, or {@code null}; each one must contain a leading {@code "# "}
+     * @param spacedEquals  If true, If true, the key and value are separated by " = " instead of "="
      */
-    public static final void writeOne(PrintWriter pw, final String key, final String val, final List<String> comments)
+    public static final void writeOne
+        (PrintWriter pw, final String key, final String val, final List<String> comments, final boolean spacedEquals)
     {
         if (comments != null)
             for (String c : comments)
                 pw.println(c);
 
         if (key != null)
-            pw.println(key + " = " + escValue(val));
+        {
+            pw.println(key + ((spacedEquals) ? " = " : '=') + escValue(val));
+        }
     }
 
     /**
@@ -250,7 +254,7 @@ public class PropsFileWriter
             pw.println("# " + fileComment);
 
         for (PropsFileParser.KeyPairLine pair : pairs)
-            writeOne(pw, pair.key, pair.value, pair.comment);
+            writeOne(pw, pair.key, pair.value, pair.comment, pair.spacedEquals);
     }
 
 }

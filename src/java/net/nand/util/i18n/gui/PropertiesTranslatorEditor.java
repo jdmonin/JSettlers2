@@ -59,6 +59,7 @@ import net.nand.util.i18n.PropsFileWriter;
  * <LI> Filename required on command line, no File Open dialog
  * <LI> Search the source for {@code TODO} for other minor items
  *</UL>
+ * There are other properties editors out there, I wanted to see what writing one would be like.
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
 public class PropertiesTranslatorEditor
@@ -451,11 +452,15 @@ public class PropertiesTranslatorEditor
                 //case 0:
                 //    TODO when to allow key chgs?  is it newly created since loading files?  are their other langs in the same dir?
                 //    return (fke.key != null) ? fke.key : "";
+
                 case 1:
                     fke.srcValue = newStr;
                     changed = true;
                     break;
+
                 case 2:
+                    if ((fke.destValue == null) && (newStr != null))
+                        fke.destSpacedEquals = fke.srcSpacedEquals;
                     fke.destValue = newStr;
                     changed = true;
                     break;
