@@ -70,6 +70,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
@@ -1575,26 +1576,24 @@ public class SOCPlayerInterface extends Frame
         // Look for game observers, list in textDisplay
         if (members == null)
             return;
-        int numObservers = 0;
-        StringBuffer obs = null;
+        List<String> obs = null;
         for (int i = members.size() - 1; i >= 0; --i)
         {
-            String mname = members.elementAt(i);
+            final String mname = members.elementAt(i);
             if (null != game.getPlayer(mname))
                 continue;
             if (mname.equals(client.getNickname()))
                 continue;
-            if (numObservers == 0)
-                obs = new StringBuffer();
-            else
-                obs.append(", ");
-            obs.append(mname);
-            ++numObservers;
+            if (obs == null)
+                obs = new ArrayList<String>();
+            obs.add(mname);
         }
-        if (numObservers > 0)
+        if (obs != null)
         {
-            textDisplay.append("* "+strings.get((numObservers == 1 ? 
-                    "interface.observer.enter.one" : "interface.observer.enter.many"), obs.toString())+"\n");
+            final String obsTxt = (obs.size() == 1)
+                ? strings.get("interface.observer.enter.one", obs.get(0))
+                : strings.getSpecial(game, "interface.observer.enter.many", obs);
+            textDisplay.append("* " + obsTxt + "\n");
         }
     }
 
@@ -2851,7 +2850,7 @@ public class SOCPlayerInterface extends Frame
 
         public void playerJoined(String nickname)
         {
-            final String msg = "*** " + /*I*/nickname + " has joined this game.\n"/*18N*/;
+            final String msg = "*** " + strings.get("interface.member.joined.game", nickname);  // "Joe has joined this game."
             pi.print(msg);
             if ((pi.game != null) && (pi.game.getGameState() >= SOCGame.START1A))
                 pi.chatPrint(msg);
@@ -2872,7 +2871,7 @@ public class SOCPlayerInterface extends Frame
                 //  Spectator, game in progress.
                 //  Server prints it in the game text area,
                 //  and we also print in the chat area (less clutter there).
-                pi.chatPrint("* " + nickname + " left the game");
+                pi.chatPrint("* " + strings.get("interface.member.left.game", nickname));  // "Joe left the game."
             }
         }
 
