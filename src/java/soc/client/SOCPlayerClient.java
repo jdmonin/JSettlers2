@@ -2146,9 +2146,10 @@ public class SOCPlayerClient
          *
          * @param tport Port number to host on; must be greater than zero.
          * @throws IllegalArgumentException If port is 0 or negative
+         * @throws IllegalStateException  if already connected to a server
          */
         public void startLocalTCPServer(final int tport)
-            throws IllegalArgumentException
+            throws IllegalArgumentException, IllegalStateException
         {
             if (client.net.localTCPServer != null)
             {
@@ -2156,7 +2157,7 @@ public class SOCPlayerClient
             }
             if (client.net.isConnected())
             {
-                return;  // Already connected somewhere
+                throw new IllegalStateException("Already connected to " + client.net.getHost());
             }
             if (tport < 1)
             {
@@ -5449,7 +5450,7 @@ public class SOCPlayerClient
         /**
          * Client-hosted TCP server. If client is running this server, it's also connected
          * as a client, instead of being client of a remote server.
-         * Started via {@link #startLocalTCPServer(int)}.
+         * Started via {@link SOCPlayerClient.GameAwtDisplay#startLocalTCPServer(int)}.
          * {@link #practiceServer} may still be activated at the user's request.
          * Note that {@link SOCGame#isPractice} is false for localTCPServer's games.
          */
@@ -5635,16 +5636,19 @@ public class SOCPlayerClient
          * @see soc.server.SOCServer#newConnection1(StringConnection)
          */
         public synchronized void connect(String chost, int cport)
+            throws IllegalStateException
         {
-            host = chost;
-            port = cport;
-            
-            String hostString = (host != null ? host : "localhost") + ":" + port;
             if (connected)
             {
-                throw new IllegalStateException("Already connected to " + hostString);
+                throw new IllegalStateException
+                    ("Already connected to " + (host != null ? host : "localhost") + ":" + port);
             }
-                    
+
+            ex = null;
+            host = chost;
+            port = cport;
+
+            String hostString = (chost != null ? chost : "localhost") + ":" + cport;
             System.out.println(/*I*/"Connecting to " + hostString/*18N*/);
             client.gameDisplay.setMessage(/*I*/"Connecting to server..."/*18N*/);
             
@@ -5666,11 +5670,30 @@ public class SOCPlayerClient
                 String msg = /*I*/"Could not connect to the server: " + ex/*18N*/;
                 System.err.println(msg);    //TODO i18n not translate debug
                 client.gameDisplay.showErrorPanel(msg, (ex_P == null));
+                if (connected)
+                {
+                    disconnect();
+                    connected = false;
+                }
+                host = null;
+                port = 0;
+                if (in != null)
+                {
+                    try { in.close(); } catch (Throwable th) {}
+                    in = null;
+                }
+                if (out != null)
+                {
+                    try { out.close(); } catch (Throwable th) {}
+                    out = null;
+                }
+                s = null;
             }
         }
         
         /**
          * Disconnect from the net (client of remote server).
+         * If a problem occurs, sets {@link #ex}.
          * @see #dispose()
          */
         protected synchronized void disconnect()
