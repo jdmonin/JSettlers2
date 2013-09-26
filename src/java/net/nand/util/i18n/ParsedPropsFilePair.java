@@ -347,6 +347,8 @@ public class ParsedPropsFilePair
                 dest.key = null;  // mark as matched to src, not left over for destOnlyPairs
             } else {
                 // this key is in source only
+                if (srcLine.srcComment != null)
+                    expandCommentLinesIntoCont(srcLine);
                 cont.add(srcLine);
             }
         }
@@ -379,12 +381,12 @@ public class ParsedPropsFilePair
     private final void expandCommentLinesIntoCont(final FileKeyEntry fe)
     {
         // TODO line up comments on lines above src, dest: bottom-justify, not top-justify, if not the same number of comment lines
-        final int nSrc  = (fe.srcComment != null) ? fe.srcComment.size() : 0,
+        final int nSrc  = (fe.srcComment != null)  ? fe.srcComment.size()  : 0,
                   nDest = (fe.destComment != null) ? fe.destComment.size() : 0,
                   nComment = (nSrc >= nDest) ? nSrc : nDest;
         for (int i = 0; i < nComment; ++i)
             cont.add(new FileCommentEntry
-                    ( ((i < nSrc) ? fe.srcComment.get(i) : null),
+                    ( ((i < nSrc)  ? fe.srcComment.get(i)  : null),
                       ((i < nDest) ? fe.destComment.get(i) : null) ));
     }
 

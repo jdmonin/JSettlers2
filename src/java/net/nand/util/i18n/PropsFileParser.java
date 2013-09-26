@@ -159,7 +159,7 @@ public class PropsFileParser
                         }
 
                         ret.add(new KeyPairLine(key, valStr, comment, spacedEquals));
-                        comment = null;
+                        comment = null;  // Don't share comment reference with next KeyPairLine
                     } else {
                         // TODO malformed: 0-length key
                     }
@@ -229,7 +229,16 @@ public class PropsFileParser
          */
         public boolean spacedEquals;
 
-        /** Line with a key and value, and optionally a comment. */
+        /**
+         * Line with a key and value, and optionally a comment.
+         * @param key  Key, or {@code null} for any comment at the end of the file.
+         *            If {@code null}, the {@link #PropsFileParser(List)} constructor might be more convenient.
+         * @param value  Value, if {@code key != null}
+         * @param comment  Comment line(s), or {@code null} for a blank line.
+         *            For efficiency the contents aren't copied, an object reference is stored in the KeyPairLine;
+         *            be sure to not change the {@code comment} list contents after calling this.
+         * @param spacedEquals  {@link #spacedEquals}: If true, the key and value are separated by " = " instead of "=".
+         */
         public KeyPairLine(final String key, final String value, final List<String> comment, final boolean spacedEquals)
         {
             this.key = key;
@@ -240,7 +249,9 @@ public class PropsFileParser
 
         /**
          * Line with a comment, or blank line; key and value are {@code null}.
-         * @param comment  Comment line(s), or {@code null} for a blank line
+         * @param comment  Comment line(s), or {@code null} for a blank line.
+         *            For efficiency the contents aren't copied, an object reference is stored in the KeyPairLine;
+         *            be sure to not change the {@code comment} list contents after calling this.
          */
         public KeyPairLine(final List<String> comment)
         {
