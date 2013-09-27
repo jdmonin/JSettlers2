@@ -80,8 +80,8 @@ public class PropertiesTranslatorEditor
     /** main window's pane, created in {@link #init()}, populated in {@link #showPairInPane()} */
     private JScrollPane jpane;
 
-    /** Save button for destination props file; disabled until changes are made */
-    private JButton bSaveDest;
+    /** Save button for properties file from current editor contents; disabled until changes are made */
+    private JButton bSaveSrc, bSaveDest;
 
     /** mainwindow's data table, created and populated in {@link #showPairInPane()} */
     private JTable jtab;
@@ -170,12 +170,18 @@ public class PropertiesTranslatorEditor
         {
             GridLayout bgl = new GridLayout(1, 4);
             JPanel pba = new JPanel(bgl);
+            bSaveSrc = new JButton("Save Src");
+            bSaveSrc.setToolTipText("Save changes to the source language file");
+            bSaveSrc.setEnabled(false);
+            bSaveSrc.addActionListener(this);
             bSaveDest = new JButton("Save Dest");
             bSaveDest.setToolTipText("Save changes to the destination language file");
             bSaveDest.setEnabled(false);
             bSaveDest.addActionListener(this);
             pba.add(new JPanel());  // left spacer
-            pba.add(new JPanel());  // center spacer
+            pba.add(new JPanel());  // left-center spacer
+            pba.add(bSaveSrc);
+            pba.add(new JPanel());  // spacer between buttons
             pba.add(bSaveDest);
             opan.add(pba, BorderLayout.NORTH);
         }
@@ -239,7 +245,8 @@ public class PropertiesTranslatorEditor
 
         if (btn == bSaveDest)
             saveChangesToDest();
-
+        else if (btn == bSaveSrc)
+            saveChangesToSrc();
     }
 
     /** Save any unsaved changes to the destination and/or source properties files. */
@@ -284,6 +291,7 @@ public class PropertiesTranslatorEditor
             pfw.write(pair.extractContentsHalf(false), null);
             pfw.close();
             pair.unsavedSrc = false;
+            bSaveSrc.setEnabled(false);
         }
         catch (Exception e)
         {
@@ -429,8 +437,8 @@ public class PropertiesTranslatorEditor
             if (r >= pair.size())
                 return;
 
-            if (c != 2)
-                return;  // TODO temporary; can change only dest for now
+            if ((c < 1) && (c > 2))
+                return;  // TODO temporary; can change only src or dest for now, not keys yet
 
             String newStr = newVal.toString();
             if (newStr.trim().length() == 0)
@@ -454,6 +462,10 @@ public class PropertiesTranslatorEditor
                 //    return (fke.key != null) ? fke.key : "";
 
                 case 1:
+                    if (newStr == null)
+                    {
+                        return;  // <--- Early return: Can't entirely clear a value in src file ---
+                    }
                     fke.srcValue = newStr;
                     changed = true;
                     break;
@@ -467,6 +479,14 @@ public class PropertiesTranslatorEditor
                 }
             } else {
                 // FileCommentEntry
+
+                if (newStr != null)
+                {
+                    newStr = newStr.trim();
+                    if (! newStr.startsWith("#"))
+                        newStr = "# " + newStr;  // Non-blank comment rows need our standard comment character
+                }
+
                 ParsedPropsFilePair.FileCommentEntry fce = (ParsedPropsFilePair.FileCommentEntry) fe;
                 switch (c)
                 {
@@ -493,7 +513,10 @@ public class PropertiesTranslatorEditor
                 } else if (c == 1)
                 {
                     if (! pair.unsavedSrc)
+                    {
                         pair.unsavedSrc = true;
+                        bSaveSrc.setEnabled(true);
+                    }
                 }
 
                 fireTableCellUpdated(r, c);
