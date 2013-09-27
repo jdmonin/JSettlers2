@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import net.nand.util.i18n.PropsFileParser.KeyPairLine;
@@ -49,8 +50,19 @@ import net.nand.util.i18n.PropsFileParser.KeyPairLine;
  */
 public class ParsedPropsFilePair
 {
-    /** If true, unsaved changes */
-    public boolean unsavedSrc = false, unsavedDest = false;
+    /** If true, there are unsaved changes from editing the pair.
+     *  If new rows were inserted, {@link #unsavedInsRows} will also be set.
+     */
+    public boolean unsavedSrc, unsavedDest;
+
+    /** If true, there are unsaved inserted rows.
+     *  You can call {@link #convertInsertedRows()} to make them key or comment rows.
+     *  To avoid inconsistencies when saving changes, {@link #extractContentsHalf(boolean)}
+     *  will call that method if {@code unsavedInsRows}.
+     *  If you call {@link #convertInsertedRows()} yourself first, you can check its return value
+     *  to see if any conversions were needed.
+     */
+    public boolean unsavedInsRows;
 
     public final String srcFilePath, destFilePath;
 
@@ -112,12 +124,21 @@ public class ParsedPropsFilePair
     /**
      * Get the source or destination "half" of the parsed pair's contents,
      * in a format suitable for {@link PropsFileWriter#write(List, String)}.
+     *<P>
+     * To avoid inconsistencies when saving changes, checks {@link #unsavedInsRows}
+     * and will call {@link #convertInsertedRows()} if needed.
+     *<P>
+     * Lines with a key but no value are ignored and not extracted.
+     *
      * @param destHalf  True for destination half, false for source half
      * @return  List of key pair lines; may contain comment lines (null keys).
      * @see #getContents()
      */
     public List<KeyPairLine> extractContentsHalf(final boolean destHalf)
     {
+        if (unsavedInsRows)
+            convertInsertedRows();
+
         ArrayList<KeyPairLine> ret = new ArrayList<KeyPairLine>(cont.size());
         for (final FileEntry kp: cont)
         {
@@ -390,6 +411,71 @@ public class ParsedPropsFilePair
                       ((i < nDest) ? fe.destComment.get(i) : null) ));
     }
 
+    /**
+     * Add/insert a row before or after an existing row.
+     * @param r  Row number
+     * @param beforeRow  If true, insert before (above), otherwise add after (below) this line
+     * @throws IndexOutOfBoundsException  if {@code r} is &lt; 0 or &gt;= {@link #size()}
+     */
+    public void insertRow(int r, final boolean beforeRow)
+        throws IndexOutOfBoundsException
+    {
+        if (! beforeRow)
+            ++r;
+
+        FileKeyEntry fke = new FileKeyEntry(null, null);
+        fke.newAdd = true;
+        if (r < cont.size())
+            cont.add(r, fke);  // throws IndexOutOfBoundsException if out of range
+        else
+            cont.add(fke);
+
+        if (! unsavedInsRows)
+            unsavedInsRows = true;
+    }
+
+    /**
+     * Check for rows added by the editor, with the {@link FileKeyEntry#newAdd} flag;
+     * inspect these for keys and values, clear the flag, and if needed convert them to {@link FileCommentEntry}.
+     * @return  True if any rows had the flag and had their contents converted (keys, values, or comments)
+     */
+    public boolean convertInsertedRows()
+    {
+        boolean foundAny = false;
+
+        for (ListIterator<FileEntry> li = cont.listIterator(); li.hasNext(); )
+        {
+            FileEntry fe = li.next();
+            if (! (fe instanceof FileKeyEntry))
+                continue;
+
+            FileKeyEntry fke = (FileKeyEntry) fe;
+            if (! fke.newAdd)
+                continue;
+
+            if ((fke.key != null) && (fke.key.length() > 0))
+            {
+                fke.newAdd = false;  // Has a key, just clear the flag
+            } else {
+                // No key: this is a comment or blank line
+                foundAny = true;
+
+                String srcComm  = (fke.srcValue != null)  ? fke.srcValue.toString().trim()  : null,
+                       destComm = (fke.destValue != null) ? fke.destValue.toString().trim() : null;
+                if ((srcComm != null) && ! srcComm.startsWith("#"))
+                    srcComm = "# " + srcComm;
+                if ((destComm != null) && ! destComm.startsWith("#"))
+                    destComm = "# " + destComm;
+
+                FileCommentEntry fce = new FileCommentEntry(srcComm, destComm);
+                li.set(fce);
+            }
+        }
+
+        unsavedInsRows = false;
+        return foundAny;
+    }
+
     //
     // Nested Classes
     //
@@ -420,9 +506,18 @@ public class ParsedPropsFilePair
         public final String toString() { return "FileCommentEntry"; }
     }
 
-    /** Key-value pair line in source and destination, with preceding comments, or multi-line comment at the end of the file */
+    /**
+     * Key-value pair line in source and destination, with preceding comments, or multi-line
+     * comment at the end of the file.
+     *<P>
+     * Also used by editor for newly inserted lines, when we are unsure if they will be comments or key-value.
+     * To convert those before saving, call {@link ParsedPropsFilePair#convertInsertedRows()}.
+     */
     public static final class FileKeyEntry extends FileEntry
     {
+        /** Is this line newly added in the editor? */
+        public boolean newAdd;
+
         /** key for retrieval, or {@code null} for comments at the end of the file */
         public String key;
 
@@ -464,7 +559,8 @@ public class ParsedPropsFilePair
 
         /**
          * Create an entry for a source and destination.
-         * @param key  Key for retrieval
+         * @param key  Key for retrieval.  May be {@code null} only if inserting a new line which may become a comment.
+         *                Before saving, set the key and value, or convert to {@link FileCommentEntry}.
          * @param srcValue  Value in source language, or {@code null} for empty or only whitespace
          * @param destValue  Value in destination language, or {@code null} for undefined, empty or only whitespace
          * @throws IllegalArgumentException if {@code key} is null
@@ -472,8 +568,6 @@ public class ParsedPropsFilePair
         public FileKeyEntry(final String key, final String srcValue, final String destValue)
             throws IllegalArgumentException
         {
-            if (key == null)
-                throw new IllegalArgumentException();
             this.key = key;
             this.srcValue = srcValue;
             this.destValue = destValue;

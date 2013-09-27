@@ -25,6 +25,8 @@ import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -34,8 +36,10 @@ import java.util.Iterator;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
@@ -83,11 +87,17 @@ public class PropertiesTranslatorEditor
     /** Save button for properties file from current editor contents; disabled until changes are made */
     private JButton bSaveSrc, bSaveDest;
 
+    /** Menu items to add a line above or below this line */
+    private JMenuItem menuAddAbove, menuAddBelow;
+
     /** mainwindow's data table, created and populated in {@link #showPairInPane()} */
     private JTable jtab;
 
     /** data model for JTable */
     private PTSwingTableModel mod;
+
+    /** Last-clicked row number in {@link #jtab}, or -1 */
+    private int jtabClickedRow = -1;
 
     /**
      * Continue GUI startup, once constructor has set {@link #pair} or left it null.
@@ -166,6 +176,29 @@ public class PropertiesTranslatorEditor
         opan.add(jpane, BorderLayout.CENTER);
         jfra.setContentPane(opan);
 
+        // Listen for click locations, so right-click menu knows where it was clicked
+        jtab.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                final int r = jtab.rowAtPoint(e.getPoint());
+                if ((r >= 0) && (r < mod.getRowCount()))
+                    jtabClickedRow = r;
+                else
+                    jtabClickedRow = -1;
+            }
+        });
+
+        // Table right-click menu
+        {
+            final JPopupMenu tPopup = new JPopupMenu();
+            menuAddAbove = new JMenuItem("Add above");
+            menuAddBelow = new JMenuItem("Add below");
+            menuAddAbove.addActionListener(this);
+            menuAddBelow.addActionListener(this);
+            tPopup.add(menuAddAbove);
+            tPopup.add(menuAddBelow);
+            jtab.setComponentPopupMenu(tPopup);
+        }
+
         // Buttons above JTable
         {
             GridLayout bgl = new GridLayout(1, 4);
@@ -241,12 +274,31 @@ public class PropertiesTranslatorEditor
     /** Handle button clicks. */
     public void actionPerformed(final ActionEvent ae)
     {
-        final Object btn = ae.getSource();
+        final Object item = ae.getSource();
 
-        if (btn == bSaveDest)
+        if (item == menuAddAbove)
+            insertRow(ae, true);
+        else if (item == menuAddBelow)
+            insertRow(ae, false);
+        else if (item == bSaveDest)
             saveChangesToDest();
-        else if (btn == bSaveSrc)
+        else if (item == bSaveSrc)
             saveChangesToSrc();
+    }
+
+    /**
+     * Add/insert a row before or after the row that was right-clicked on.
+     * @param ae  Menu popup action, with right-click location
+     * @param beforeRow  If true, insert before (above), otherwise add after (below) this line
+     */
+    private void insertRow(final ActionEvent ae, final boolean beforeRow)
+    {
+        if (jtabClickedRow == -1)
+            return;
+
+        pair.insertRow(jtabClickedRow, beforeRow);
+        final int r = (beforeRow) ? jtabClickedRow : (jtabClickedRow+1);
+        mod.fireTableRowsInserted(r, r);
     }
 
     /** Save any unsaved changes to the destination and/or source properties files. */
@@ -264,6 +316,9 @@ public class PropertiesTranslatorEditor
      */
     public void saveChangesToDest()
     {
+        if (pair.unsavedInsRows && pair.convertInsertedRows())
+            mod.fireTableDataChanged();
+
         try
         {
             PropsFileWriter pfw = new PropsFileWriter(pair.destFilePath);
@@ -285,8 +340,12 @@ public class PropertiesTranslatorEditor
      */
     public void saveChangesToSrc()
     {
+        if (pair.unsavedInsRows && pair.convertInsertedRows())
+            mod.fireTableDataChanged();
+
         try
         {
+
             PropsFileWriter pfw = new PropsFileWriter(pair.srcFilePath);
             pfw.write(pair.extractContentsHalf(false), null);
             pfw.close();
@@ -451,15 +510,24 @@ public class PropertiesTranslatorEditor
                 newStr = null;  // empty strings stored as null
 
             boolean changed = false;
+            boolean keyChgHasDestValue = false;  // If key is being changed, does it already have a value in dest?
             ParsedPropsFilePair.FileEntry fe = pair.getRow(r);
             if (fe instanceof ParsedPropsFilePair.FileKeyEntry)
             {
                 ParsedPropsFilePair.FileKeyEntry fke = (ParsedPropsFilePair.FileKeyEntry) fe;
+
                 switch (c)
                 {
-                //case 0:
-                //    TODO when to allow key chgs?  is it newly created since loading files?  are their other langs in the same dir?
-                //    return (fke.key != null) ? fke.key : "";
+                case 0:
+                    // TODO when to allow key chgs to existing entries?  Are there other langs in the same dir using the key?
+                    if (fke.newAdd)
+                    {
+                        // TODO check format and allowed key characters
+                        fke.key = (newStr != null) ? newStr.trim() : null;
+                        changed = true;
+                        keyChgHasDestValue = (fke.destValue != null) && (fke.destValue.length() > 0);
+                    }
+                    break;
 
                 case 1:
                     if (newStr == null)
@@ -503,20 +571,32 @@ public class PropertiesTranslatorEditor
 
             if (changed)
             {
-                if (c == 2)
+                switch (c)
                 {
+                case 2:
                     if (! pair.unsavedDest)
                     {
                         pair.unsavedDest = true;
                         bSaveDest.setEnabled(true);
                     }
-                } else if (c == 1)
-                {
+                    break;
+
+                case 0:
+                    if (keyChgHasDestValue && ! pair.unsavedDest)
+                    {
+                        pair.unsavedDest = true;
+                        bSaveDest.setEnabled(true);
+                    }
+                    // fall through to set unsavedSrc
+
+                case 1:
                     if (! pair.unsavedSrc)
                     {
                         pair.unsavedSrc = true;
                         bSaveSrc.setEnabled(true);
                     }
+                    break;
+
                 }
 
                 fireTableCellUpdated(r, c);
@@ -538,7 +618,19 @@ public class PropertiesTranslatorEditor
             }
         }
 
-        public boolean isCellEditable(final int r, final int c) { return (c != 0); }  // TODO not key col; revisit if any added columns or rows
+        public boolean isCellEditable(final int r, final int c)
+        {
+            if (r >= pair.size())
+                return true;
+
+            final ParsedPropsFilePair.FileEntry fe = pair.getRow(r);
+            if (fe instanceof ParsedPropsFilePair.FileCommentEntry)
+                // in comment rows, no key col
+                return (c != 0);
+            else
+                // in key-pair rows, no key col unless row was added
+                return (c != 0) || ((ParsedPropsFilePair.FileKeyEntry) fe).newAdd;
+        }
 
         /**
          * Get the cell status, to visually show the user.
