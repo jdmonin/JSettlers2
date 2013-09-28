@@ -893,15 +893,15 @@ public class SOCPlayerInterface extends Frame
         if ((newp != oldp)
             && ((null != oldp) || (null != newp)))
         {
-            final String changedObj;  // what was changed?
+            final String changedObj;  // what was changed?  Key prefix will be combined below with .taken/.first/.lost
             if (isRoadNotArmy)
             {
                 if (game.hasSeaBoard)
-                    changedObj = /*I*/"Longest trade route"/*18N*/;
+                    changedObj = "game.route.longest";  // "Longest trade route"
                 else
-                    changedObj = /*I*/"Longest road"/*18N*/;
+                    changedObj = "game.road.longest";  // "Longest road"
             } else {
-                changedObj = /*I*/"Largest army"/*18N*/;
+                changedObj = "game.army.largest";  // "Largest army"
             }
 
             final String msg;  // full sentence with change and players
@@ -909,18 +909,18 @@ public class SOCPlayerInterface extends Frame
             {
                 if (oldp != null)
                 {
-                    msg = MessageFormat.format
-                        (/*I*/"* {0} was taken from {1} by {2}."/*18N*/, changedObj, oldp.getName(), newp.getName());
+                    msg = strings.get(changedObj + ".taken", oldp.getName(), newp.getName());
+                        // "___ was taken from {0} by {1}."
                 } else {
-                    msg = MessageFormat.format
-                        (/*I*/"* {0} was taken by {1}."/*18N*/, changedObj, newp.getName());
+                    msg = strings.get(changedObj + ".first", newp.getName());
+                        // "___ was taken by {0}."
                 }
             } else {
-                msg = MessageFormat.format
-                    (/*I*/"* {0} was lost by {1}."/*18N*/, changedObj, oldp.getName());
+                msg = strings.get(changedObj + ".lost", oldp.getName());
+                    // "___ was lost by {0}."
             }
 
-            print(msg);
+            print("* " + msg);
         }
     }
 
