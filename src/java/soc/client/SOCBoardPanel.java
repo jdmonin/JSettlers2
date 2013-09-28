@@ -657,6 +657,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<LI> 9: Nodes on land - red round rects
      *</UL>
      *<P>
+     * Changed via {@link #setDebugShowPotentialsFlag(int, boolean, boolean)} with
+     * SOCPlayerInterface debug command {@code =*= show: n} or {@code =*= hide: n}.
+     *<P>
      * Has package-level visibility, for use by {@link SOCPlayerInterface#updateAtPutPiece(SOCPlayingPiece)}.
      * @since 2.0.00
      */
