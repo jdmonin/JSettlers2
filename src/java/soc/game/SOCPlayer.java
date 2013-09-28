@@ -3431,7 +3431,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             else
             {
                 // see if a nearby potential road/ship has been cut off:
-                // build vector of our road edge IDs placed so far.
+                // build the set of our road/ship edges placed so far.
                 // for each of 3 adjacent edges to node:
                 //  if we have potentialRoad(edge) or potentialShip(edge)
                 //    check ourRoads vs that edge's far-end (away from node of new settlement)
@@ -3442,12 +3442,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 // ourRoads contains both roads and ships.
                 //  TODO may need to separate them and check twice,
                 //       or differentiate far-side roads vs ships.
-                Hashtable<Integer,Object> ourRoads = new Hashtable<Integer,Object>();  // TODO more efficient way of looking this up, with fewer temp objs
-                Object hashDummy = new Object();   // a value is needed for hashtable
+                HashSet<Integer> ourRoads = new HashSet<Integer>();  // TODO more efficient way of looking this up, with fewer temp objs
                 for (SOCPlayingPiece p : this.pieces)
                 {
                     if (p instanceof SOCRoad)   // roads and ships
-                        ourRoads.put(new Integer(p.getCoordinates()), hashDummy);
+                        ourRoads.add(Integer.valueOf(p.getCoordinates()));
                 }
 
                 adjac = board.getAdjacentEdgesToNode_arr(id);
@@ -3456,7 +3455,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     tmp = adjac[i];  // edge coordinate
                     if (tmp == -9)
                         continue;
-                    final Integer tmpInt = new Integer(tmp);
+                    final Integer tmpInt = Integer.valueOf(tmp);
                     if (! (potentialRoads.contains(tmpInt)
                            || potentialShips.contains(tmpInt)))
                     {
@@ -3478,14 +3477,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     // we may have actual roads/ships on them already.
                     // If so, we'll still be able to get to the edge (tmp)
                     // which connects that node with the new settlement's node,
-                    // from its far side.
+                    // from tmp edge's far node.
 
                     final int[] farEdges = board.getAdjacentEdgesToNode_arr(farNode);
                     boolean foundOurRoad = false;
                     for (int ie = 0; ie < 3; ++ie)
                     {
                         int farEdge = farEdges[ie];
-                        if ((farEdge != tmp) && ourRoads.contains(new Integer(farEdge)))
+                        if ((farEdge != tmp) && ourRoads.contains(Integer.valueOf(farEdge)))
                         {
                             foundOurRoad = true;
                             break;

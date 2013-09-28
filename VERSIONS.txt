@@ -38,6 +38,7 @@ new features, until 2.0.00 is ready.
     > 1.1.19 (build OV20130xxx)
 - New game option "N7C" for house rule: Roll no 7s until a city is built
 - Bugfix when new client sits during first initial-settlement placement round
+- Bugfix: potential roads now allowed next to opponent's newly placed settlement, if player already has a road touching the potential road
 - Reset board during initial placement: Pick randomly-selected robots, instead of keeping same robots
 - Reset board: If only 1 human player, don't reset if all bots are locked
 - Player chat text: At server, don't ignore messages which start with '*'
