@@ -530,9 +530,9 @@ public class PropertiesTranslatorEditor
                     break;
 
                 case 1:
-                    if (newStr == null)
+                    if ((newStr == null) && (fke.key != null) && (fke.key.length() > 0))
                     {
-                        return;  // <--- Early return: Can't entirely clear a value in src file ---
+                        return;  // <--- Early return: Can't entirely clear a key's value in src file ---
                     }
                     fke.srcValue = newStr;
                     changed = true;
