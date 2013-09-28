@@ -412,7 +412,7 @@ public class SOCConnectOrPracticePanel extends Panel
     /**
      * A local server has been started; disable other options ("Connect", etc) but
      * not Practice.  Called from client, once the server is started in
-     * {@link SOCPlayerClient#startLocalTCPServer(int)}.
+     * {@link SOCPlayerClient.GameAwtDisplay#startLocalTCPServer(int)}.
      */
     public void startedLocalServer()
     {
