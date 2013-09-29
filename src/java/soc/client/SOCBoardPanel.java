@@ -6392,9 +6392,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     else
                     {
                         if (p.getType() == SOCPlayingPiece.CITY)
-                            sb.append("game.city");
+                            sb.append("board.city");
                         else
-                            sb.append("game.stlmt");
+                            sb.append("board.stlmt");
                     }
                     String plName = p.getPlayer().getName();
                     if (plName == null)
@@ -6567,14 +6567,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                         if (isRoad)
                         {
-                            setHoverText(/*I*/"Road: " + plName/*18N*/);
+                            setHoverText(strings.get("board.road", plName));  // "Road: " + plName
                         } else {
                             // Scenario _SC_PIRI has warships; check class just in case.
                             hoverIsWarship = (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
                             if (hoverIsWarship)
-                                setHoverText(/*I*/"Warship: "/*18N*/ + plName);
+                                setHoverText(strings.get("board.warship", plName));  // "Warship: " + plName
                             else
-                                setHoverText(/*I*/"Ship: " + plName/*18N*/);
+                                setHoverText(strings.get("board.ship", plName));     // "Ship: " + plName
                         }
 
                         // Can the player move their ship?
@@ -6670,23 +6670,23 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     switch (htype)
                     {
                     case SOCBoard.DESERT_HEX:
-                        hname = "game.hex.desert";  break;
+                        hname = "board.hex.desert";  break;
                     case SOCBoard.CLAY_HEX:
-                        hname = "game.hex.clay";    break;
+                        hname = "resources.clay";    break;
                     case SOCBoard.ORE_HEX:
-                        hname = "game.hex.ore";     break;
+                        hname = "resources.ore";     break;
                     case SOCBoard.SHEEP_HEX:
-                        hname = "game.hex.sheep";   break;
+                        hname = "resources.sheep";   break;
                     case SOCBoard.WHEAT_HEX:
-                        hname = "game.hex.wheat";   break;
+                        hname = "resources.wheat";   break;
                     case SOCBoard.WOOD_HEX:
-                        hname = "game.hex.wood";    break;
+                        hname = "resources.wood";    break;
                     case SOCBoard.WATER_HEX:
-                        hname = "game.hex.water";   break;
+                        hname = "board.hex.water";   break;
 
                     case SOCBoardLarge.GOLD_HEX:
                         if (isLargeBoard)
-                            hname = "game.hex.gold";
+                            hname = "board.hex.gold";
                         else
                             // GOLD_HEX is also MISC_PORT_HEX
                             hid = SOCBoard.MISC_PORT;
@@ -6697,9 +6697,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         if (isLargeBoard)
                         {
                             if (game.isInitialPlacement())
-                                hname = "game.hex.fog.s";
+                                hname = "board.hex.fog.s";
                             else
-                                hname = "game.hex.fog.r";
+                                hname = "board.hex.fog.r";
                         } else {
                             // FOG_HEX is also CLAY_PORT_HEX
                             hid = SOCBoard.CLAY_PORT;
@@ -6723,7 +6723,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                                 hname = portDesc;
                             } else {
                                 hid = htype;
-                                hname = "game.hex.generic";
+                                hname = "board.hex.generic";
                             }
                         }
                     }
