@@ -6943,14 +6943,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         super ("JSettlers");
         bp = bpanel;
 
-        buildRoadItem = new MenuItem(/*I*/"Build Road"/*18N*/);
-        buildSettleItem = new MenuItem(/*I*/"Build Settlement"/*18N*/);
-        upgradeCityItem = new MenuItem(/*I*/"Upgrade to City"/*18N*/);
+        buildRoadItem = new MenuItem(strings.get("board.build.road"));  // "Build Road"
+        buildSettleItem = new MenuItem(strings.get("board.build.stlmt"));  // "Build Settlement"
+        upgradeCityItem = new MenuItem(strings.get("board.build.upgrade.city"));  // "Upgrade to City"
         if (game.hasSeaBoard)
-            buildShipItem = new MenuItem(/*I*/"Build Ship"/*18N*/);
+            buildShipItem = new MenuItem(strings.get("board.build.ship"));  // "Build Ship"
         else
             buildShipItem = null;
-        cancelBuildItem = new MenuItem(/*I*/"Cancel build"/*18N*/);
+        cancelBuildItem = new MenuItem(strings.get("board.cancel.build"));  // "Cancel build"
         portTradeSubmenu = null;
 
         add(buildRoadItem);
@@ -6986,7 +6986,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           if (hoverSettlementID == -1)
           {
               // restore label after previous popup's "Attack Fortress" label for _SC_PIRI
-              buildSettleItem.setLabel( /*I*/"Build Settlement"/*18N*/ );
+              buildSettleItem.setLabel(strings.get("board.build.stlmt"));  // "Build Settlement"
           }
           hoverSettlementID = 0;
           hoverCityID = 0;
@@ -7000,10 +7000,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               if (mode == MOVE_SHIP)
               {
                   buildShipItem.setEnabled((hilightAt != 0) && (hilightAt != moveShip_fromEdge));
-                  buildShipItem.setLabel(/*I*/"Move Ship"/*18N*/);                  
+                  buildShipItem.setLabel(strings.get("board.build.move.ship"));  // "Move Ship"
               } else {
                   buildShipItem.setEnabled(false);
-                  buildShipItem.setLabel(/*I*/"Build Ship"/*18N*/);
+                  buildShipItem.setLabel(strings.get("board.build.ship"));  // "Build Ship"
               }
           }
           cancelBuildItem.setEnabled(menuPlayerIsCurrent && game.canCancelBuildPiece(buildType));
@@ -7014,19 +7014,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           switch (buildType)
           {
           case SOCPlayingPiece.ROAD:
-              cancelBuildItem.setLabel(/*I*/"Cancel road"/*18N*/);
+              cancelBuildItem.setLabel(strings.get("board.cancel.road"));  // "Cancel road"
               buildRoadItem.setEnabled(menuPlayerIsCurrent);
               hoverRoadID = hilightAt;
               break;
 
           case SOCPlayingPiece.SETTLEMENT:
-              cancelBuildItem.setLabel(/*I*/"Cancel settlement"/*18N*/);
+              cancelBuildItem.setLabel(strings.get("board.cancel.stlmt"));  // "Cancel settlement"
               buildSettleItem.setEnabled(menuPlayerIsCurrent);
               hoverSettlementID = hilightAt;
               break;
 
           case SOCPlayingPiece.CITY:
-              cancelBuildItem.setLabel(/*I*/"Cancel city upgrade"/*18N*/);
+              cancelBuildItem.setLabel(strings.get("board.cancel.city.upgrade"));  // "Cancel city upgrade"
               upgradeCityItem.setEnabled(menuPlayerIsCurrent);
               hoverCityID = hilightAt;
               break;
@@ -7034,12 +7034,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           case SOCPlayingPiece.SHIP:
               if (mode == MOVE_SHIP)
               {
-                  cancelBuildItem.setLabel(/*I*/"Cancel ship move"/*18N*/);
+                  cancelBuildItem.setLabel(strings.get("board.cancel.ship.move"));  // "Cancel ship move"
                   cancelBuildItem.setEnabled(true);
                   final SOCRoad rs = player.getRoadOrShip(hilightAt);
                   isShipWarship = (rs != null) && (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
               } else {
-                  cancelBuildItem.setLabel(/*I*/"Cancel ship"/*18N*/);
+                  cancelBuildItem.setLabel(strings.get("board.cancel.ship"));  // "Cancel ship"
                   isShipWarship = false;
               }
               hoverShipID = hilightAt;
@@ -7072,7 +7072,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           isShipMovable = false;
           isShipWarship = false;
           cancelBuildItem.setEnabled(false);
-          cancelBuildItem.setLabel(/*I*/"Cancel build"/*18N*/);
+          cancelBuildItem.setLabel(strings.get("board.cancel.build"));  // "Cancel build"
           if (portTradeSubmenu != null)
           {
               // Cleanup from last time
@@ -7083,7 +7083,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           if (hoverSettlementID == -1)
           {
               // Restore label after previous popup's "Attack Fortress" label for _SC_PIRI
-              buildSettleItem.setLabel( /*I*/"Build Settlement"/*18N*/ );
+              buildSettleItem.setLabel(strings.get("board.build.stlmt"));  // "Build Settlement"
           }
 
           boolean didEnableDisable = true;  // don't go through both sets of menu item enable/disable statements
@@ -7134,7 +7134,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                       buildShipItem.setEnabled(hSh != 0);
                   if (! game.isDebugFreePlacement())
                   {
-                      cancelBuildItem.setLabel(/*I*/"Cancel settlement"/*18N*/);  // Initial settlement
+                      cancelBuildItem.setLabel(strings.get("board.cancel.stlmt"));  // "Cancel settlement" -- Initial settlement
                       cancelBuildItem.setEnabled(true);
                       cancelBuildType = SOCPlayingPiece.SETTLEMENT;
                   }
@@ -7144,7 +7144,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                   if (game.isPractice || (playerInterface.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2))
                   {
                       cancelBuildItem.setEnabled(true);
-                      cancelBuildItem.setLabel(/*I*/"Skip road or ship"/*18N*/);
+                      cancelBuildItem.setLabel(strings.get("board.build.skip.road.ship"));  // "Skip road or ship"
                   }
                   // Fall through to enable/disable building menu items
 
@@ -7171,13 +7171,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               if (buildShipItem != null)
               {
                   buildShipItem.setEnabled(false);
-                  buildShipItem.setLabel(/*I*/"Build Ship"/*18N*/);
+                  buildShipItem.setLabel(strings.get("board.build.ship"));
               }
               hoverRoadID = 0;
               if (hoverSettlementID == -1)
               {
                   // restore label after previous popup's "Attack Fortress" label for _SC_PIRI
-                  buildSettleItem.setLabel( /*I*/"Build Settlement"/*18N*/ );
+                  buildSettleItem.setLabel(strings.get("board.build.stlmt"));
               }
               hoverSettlementID = 0;
               hoverCityID = 0;
@@ -7211,12 +7211,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         if (isShipMovable)
                         {
                             hSh = -hSh;
-                            buildShipItem.setLabel(/*I*/"Move Ship"/*18N*/);
+                            buildShipItem.setLabel(strings.get("board.build.move.ship"));
                             buildShipItem.setEnabled(true);  // trust the caller's game checks
                             final SOCRoad rs = player.getRoadOrShip(hSh);
                             isShipWarship = (rs != null) && (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
                         } else {
-                            buildShipItem.setLabel(/*I*/"Build Ship"/*18N*/);
+                            buildShipItem.setLabel(strings.get("board.build.ship"));
                             buildShipItem.setEnabled
                             ( game.canPlaceShip(player, hSh) &&
                               (debugPP ? (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
@@ -7284,7 +7284,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           buildRoadItem.setEnabled(false);
           if (hoverSettlementID == -1)
           {
-              buildSettleItem.setLabel( /*I*/"Attack Fortress"/*18N*/ );
+              buildSettleItem.setLabel(strings.get("board.build.sc_piri.attack.fortress"));  // "Attack Fortress"
               buildSettleItem.setEnabled
                   (menuPlayerIsCurrent && (ft.getPlayerNumber() == playerNumber)
                    && (game.canAttackPirateFortress() != null));
@@ -7292,7 +7292,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           else if (settleItemWasFortress)
           {
               // Restore label after previous popup's "Attack Fortress" label for _SC_PIRI
-              buildSettleItem.setLabel( /*I*/"Build Settlement"/*18N*/ );
+              buildSettleItem.setLabel(strings.get("board.build.stlmt"));  // "Build Settlement"
               buildSettleItem.setEnabled(false);
           }
           upgradeCityItem.setEnabled(false);
@@ -7416,7 +7416,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           
           if (! canBuild)
           {
-              playerInterface.print(/*I*/"Sorry, you cannot build there."/*18N*/);
+              playerInterface.print("* " + strings.get("board.msg.cannot.build.there"));  // "Sorry, you cannot build there."
               return;
           }
           
@@ -7477,7 +7477,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           {
               // No building-panel or server request necessary
               clearModeAndHilight(SOCPlayingPiece.SHIP);
-              playerInterface.print(/*I*/"Canceled moving the ship."/*18N*/);
+              playerInterface.print("* " + strings.get("board.msg.canceled.move.ship"));  // "Canceled moving the ship."
               return;
           }
 
@@ -7514,7 +7514,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
        */
       private void tryMoveShipFromHere()
       {
-          playerInterface.print(/*I*/"Click the ship's new location."/*18N*/);
+          playerInterface.print("* " + strings.get("board.msg.click.ship.new.loc"));  // "Click the ship's new location."
           moveShip_fromEdge = hoverShipID;
           moveShip_isWarship = hoverTip.hoverIsWarship;
           mode = MOVE_SHIP;
