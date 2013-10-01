@@ -34,6 +34,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
+import soc.util.SOCStringManager;
 
 import java.awt.Button;
 import java.awt.Color;
@@ -99,7 +100,7 @@ public class SOCHandPanel extends Panel
 
     /** i18n text strings.
      *  @since 2.0.00 */
-    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+    private static final SOCStringManager strings = SOCStringManager.getClientManager();
 
     /** Before game starts, use {@link #pname} to show if a seat is no-robots-allowed. */
     protected static final String SITLOCKED = strings.get("hpan.sit.locked.norobot");  // "Locked: No robot"
@@ -3381,6 +3382,9 @@ public class SOCHandPanel extends Panel
      */
     protected static class ResourceTradeMenuItem extends MenuItem
     {
+        private static final Integer INT_1 = Integer.valueOf(1);  // resource quantity for string formats
+
+        private final SOCGame game;  // needed only for SOCStringManager.getSpecial
         private int tradeFrom, tradeTo;
         private int tradeNum;
         private boolean shortTxt;
@@ -3388,18 +3392,21 @@ public class SOCHandPanel extends Panel
         /**
          * Create a bank/port trade MenuItem, with text such as "Trade 2 brick for 1 wheat".
          *
+         * @param game     Game reference, needed for {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}
          * @param numFrom  Number of resources to trade for 1 resource
          * @param typeFrom Source resource type, as in {@link SOCResourceConstants}.
          * @param typeTo   Target resource type, as in {@link SOCResourceConstants}.
          *                 If typeFrom == typeTo, menuitem will be disabled.
          * @param shortText If true, short ("For 1 wheat") vs full "Trade 2 brick for 1 wheat"
          */
-        public ResourceTradeMenuItem(int numFrom, int typeFrom, int typeTo, boolean shortText)
+        public ResourceTradeMenuItem(final SOCGame game, int numFrom, int typeFrom, int typeTo, boolean shortText)
         {
             super( (shortText
-                    ? /*I*/"For 1 "/*18N*/
-                    : /*I*/("Trade " + numFrom + " " + SOCResourceConstants.resName(typeFrom) + " for 1 ")/*18N*/)
-                   + SOCResourceConstants.resName(typeTo));
+                    ? strings.getSpecial(game, "board.trade.for.1.rsrc", INT_1, typeTo)     // "For 1 sheep"
+                    : strings.getSpecial(game, "board.trade.trade.x.rsrcs.for.1.rsrc", numFrom, typeFrom, INT_1, typeTo)
+                    // "Trade 3 wheat for 1 sheep"
+                    ) );
+            this.game = game;
             tradeNum = numFrom;
             tradeFrom = typeFrom;
             tradeTo = typeTo;
@@ -3419,10 +3426,11 @@ public class SOCHandPanel extends Panel
                 return;
             tradeNum = numFrom;
             if (shortTxt)
-                setLabel(/*I*/"For 1 " + SOCResourceConstants.resName(tradeTo)/*18N*/);
+                setLabel(strings.getSpecial(game, "board.trade.for.1.rsrc", INT_1, tradeTo));     // "For 1 sheep"
             else
-                setLabel(/*I*/"Trade " + numFrom + " " + SOCResourceConstants.resName(tradeFrom)
-                        + " for 1 " + SOCResourceConstants.resName(tradeTo)/*18N*/);
+                setLabel(strings.getSpecial
+                    (game, "board.trade.trade.x.rsrcs.for.1.rsrc", numFrom, tradeFrom, INT_1, tradeTo));
+                    // "Trade 3 wheat for 1 sheep"
         }
 
         /**
@@ -3532,8 +3540,8 @@ public class SOCHandPanel extends Panel
         /** Menu attached to a resource colorsquare in the client player's handpanel */
         public ResourceTradeTypeMenu(SOCHandPanel hp, int typeFrom, ColorSquare sq, int numFrom)
         {
-          super(hp, /*I*/"Bank/Port Trade"/*18N*/);
-          init(typeFrom, sq, numFrom, false);
+          super(hp, strings.get("board.trade.bank.port.trade"));  // "Bank/Port Trade"
+          init(typeFrom, hp.game, sq, numFrom, false);
         }
 
         /**
@@ -3548,22 +3556,21 @@ public class SOCHandPanel extends Panel
         public ResourceTradeTypeMenu(SOCHandPanel hp, int typeFrom, boolean forThree1)
             throws IllegalStateException
         {
-            super(hp, /*I*/"Trade Port"/*18N*/);
+            super(hp, strings.get("board.trade.trade.port"));  // "Trade Port"
             if (! hp.getPlayerInterface().clientIsCurrentPlayer())
                 throw new IllegalStateException("Not current player");
-            init(typeFrom, null, hp.resourceTradeCost[typeFrom], forThree1);
+            init(typeFrom, hp.game, null, hp.resourceTradeCost[typeFrom], forThree1);
         }
 
         /** Common to both constructors */
-        private void init(int typeFrom, ColorSquare sq, int numFrom, boolean forThree1)
+        private void init(int typeFrom, final SOCGame ga, ColorSquare sq, int numFrom, boolean forThree1)
         {
           resSq = sq;
           resTypeFrom = typeFrom;
           costFrom = numFrom;
           isForThree1 = forThree1;
           if (forThree1)
-              setLabel(/*I*/"Trade " + costFrom + " "
-                  + SOCResourceConstants.resName(typeFrom) + " "/*18N*/);
+              setLabel(strings.getSpecial(ga, "board.trade.trade.x.rsrcs", costFrom, typeFrom));  // "Trade 3 wheat"
 
           if (resSq != null)
           {
@@ -3573,7 +3580,7 @@ public class SOCHandPanel extends Panel
           tradeForItems = new ResourceTradeMenuItem[5];
           for (int i = 0; i < 5; ++i)
           {
-              tradeForItems[i] = new ResourceTradeMenuItem(numFrom, typeFrom, i+1, forThree1);
+              tradeForItems[i] = new ResourceTradeMenuItem(ga, numFrom, typeFrom, i+1, forThree1);
               add(tradeForItems[i]);
               tradeForItems[i].addActionListener(this);
           }

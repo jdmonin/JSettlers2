@@ -7544,7 +7544,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         public ResourceTradeAllMenu(SOCBoardPanel bp, SOCHandPanel hp)
             throws IllegalStateException
         {
-            super(hp, /*I*/"Trade Port"/*18N*/);
+            super(hp, strings.get("board.trade.trade.port"));  // "Trade Port"
             bpanel = bp;
             SOCPlayerInterface pi = hp.getPlayerInterface();
             if (! pi.clientIsCurrentPlayer())
