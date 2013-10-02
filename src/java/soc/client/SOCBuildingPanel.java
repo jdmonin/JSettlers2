@@ -51,6 +51,9 @@ import javax.swing.JFrame;   // for GameStatisticsFrame
 public class SOCBuildingPanel extends Panel
     implements ActionListener, WindowListener
 {
+    /** i18n text strings */
+    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+
     static final String ROAD = "road";  // I18N: These are internal command labels, not user-visible strings
     static final String STLMT = "stlmt";
     static final String CITY = "city";
@@ -160,10 +163,10 @@ public class SOCBuildingPanel extends Panel
            title.setAlignment(Label.CENTER);
            add(title);
          */
-        roadT = new Label(/*I*/"Road: "/*18N*/);
+        roadT = new Label(strings.get("build.road"));  // "Road: "
         add(roadT);
-        new AWTToolTip (/*I*/"0 VP  (longest road = 2 VP) "/*18N*/, roadT);
-        roadC = new Label(/*I*/"Cost: "/*18N*/);
+        new AWTToolTip(strings.get("build.road.vp"), roadT);  // "0 VP  (longest road = 2 VP)"
+        roadC = new Label(strings.get("build.cost"));  // "Cost: "
         add(roadC);
         roadWood = new ColorSquare(ColorSquare.WOOD, 1);
         add(roadWood);
@@ -175,10 +178,10 @@ public class SOCBuildingPanel extends Panel
         roadBut.setActionCommand(ROAD);
         roadBut.addActionListener(this);
 
-        settlementT = new Label(/*I*/"Settlement: "/*18N*/);
+        settlementT = new Label(strings.get("build.settlement"));  // "Settlement: "
         add(settlementT);
-        new AWTToolTip (/*I*/"1 VP "/*18N*/, settlementT);
-        settlementC = new Label(/*I*/"Cost: "/*18N*/);
+        new AWTToolTip(strings.get("build.1.vp"), settlementT);  // "1 VP"
+        settlementC = new Label(strings.get("build.cost"));  // "Cost: "
         add(settlementC);
         settlementWood = new ColorSquare(ColorSquare.WOOD, 1);
         add(settlementWood);
@@ -194,10 +197,10 @@ public class SOCBuildingPanel extends Panel
         settlementBut.setActionCommand(STLMT);
         settlementBut.addActionListener(this);
 
-        cityT = new Label(/*I*/"City Upgrade: "/*18N*/);
+        cityT = new Label(strings.get("build.city.upg"));  // "City Upgrade: "
         add(cityT);
-        new AWTToolTip (/*I*/"2 VP  (receives 2x rsrc.) "/*18N*/, cityT);
-        cityC = new Label(/*I*/"Cost: "/*18N*/);
+        new AWTToolTip(strings.get("build.city.upg.vp"), cityT);  // "2 VP  (receives 2x rsrc.)"
+        cityC = new Label(strings.get("build.cost"));  // "Cost: "
         add(cityC);
         cityWheat = new ColorSquare(ColorSquare.WHEAT, 2);
         add(cityWheat);
@@ -209,19 +212,19 @@ public class SOCBuildingPanel extends Panel
         cityBut.setActionCommand(CITY);
         cityBut.addActionListener(this);
 
-        gameInfoBut = new Button(/*I*/"Game Info..."/*18N*/);  // show game options
+        gameInfoBut = new Button(strings.get("build.game.info"));  // "Game Info..." -- show game options
         add(gameInfoBut);
         gameInfoBut.addActionListener(this);
 
         //TODO: disable until the game initialization is complete and the first roll is made
-        statsBut = new Button(/*I*/"Game Statistics..."/*18N*/);
+        statsBut = new Button(strings.get("build.game.stats"));  // "Game Statistics..."
         add(statsBut);
         statsBut.addActionListener(this);
 
-        cardT = new Label(/*I*/"Dev Card: "/*18N*/);
+        cardT = new Label(strings.get("build.dev.card"));  // "Dev Card: "
         add(cardT);
         new AWTToolTip (/*I*/"? VP  (largest army = 2 VP) "/*18N*/, cardT);
-        cardC = new Label(/*I*/"Cost: "/*18N*/);
+        cardC = new Label(strings.get("build.cost"));  // "Cost: "
         add(cardC);
         cardWheat = new ColorSquare(ColorSquare.WHEAT, 1);
         add(cardWheat);
@@ -236,24 +239,24 @@ public class SOCBuildingPanel extends Panel
         cardBut.addActionListener(this);
         // Development Card count. Initial amount will be sent from server soon.
         //TODO Is 'Available X' better than 'X available' in some languages'?
-        cardCountLab = new Label(/*I*/"available"/*18N*/);
+        cardCountLab = new Label(strings.get("build.available"));  // "available"
         cardCountLab.setAlignment(Label.LEFT);
         add(cardCountLab);
         cardCount = new ColorSquare(ColorSquare.GREY, 0);        
-        cardCount.setTooltipText(/*I*/"Development cards available to buy"/*18N*/);
-        cardCount.setTooltipLowWarningLevel(/*I*/"Almost out of development cards to buy"/*18N*/, 3);
-        cardCount.setTooltipZeroText(/*I*/"No more development cards available to buy"/*18N*/);
+        cardCount.setTooltipText(strings.get("build.dev.cards.available"));  // "Development cards available to buy"
+        cardCount.setTooltipLowWarningLevel(strings.get("build.dev.cards.low"), 3);  // "Almost out of development cards to buy"
+        cardCount.setTooltipZeroText(strings.get("build.dev.cards.none"));  // "No more development cards available to buy"
         add(cardCount);
 
         final SOCGame ga = pi.getGame();
 
         if (ga.hasSeaBoard)
         {
-            shipT = new Label(/*I*/"Ship: "/*18N*/);
+            shipT = new Label(strings.get("build.ship"));  // "Ship: "
             shipT.setAlignment(Label.LEFT);
             add(shipT);
-            new AWTToolTip (/*I*/"0 VP  (longest route = 2 VP) "/*18N*/, shipT);
-            shipC = new Label(/*I*/"Cost: "/*18N*/);
+            new AWTToolTip (strings.get("build.ship.vp"), shipT);  // "0 VP  (longest route = 2 VP)"
+            shipC = new Label(strings.get("build.cost"));  // "Cost: "
             add(shipC);
             shipWood = new ColorSquare(ColorSquare.WOOD, 1);
             add(shipWood);
@@ -269,10 +272,11 @@ public class SOCBuildingPanel extends Panel
             {
                 // General Supply cloth count. Initial amount will be sent from server soon.
                 // (joingame if already started, or startgame as part of board layout)
-                final String TTIP_CLOTH_TEXT =
-                    /*I*/"General Supply of cloth for any villages shared by multiple players";/*18N*/
 
-                clothLab = new Label(/*I*/"Cloth:"/*18N*/);
+                final String TTIP_CLOTH_TEXT = strings.get("build.sc_clvi.cloth.tip");
+                    // "General Supply of cloth for any villages shared by multiple players"
+
+                clothLab = new Label(strings.get("build.sc_clvi.cloth"));  // "Cloth:"
                 add(clothLab);
                 new AWTToolTip(TTIP_CLOTH_TEXT, clothLab);
                 cloth = new ColorSquare(ColorSquare.GREY, 0);
@@ -285,9 +289,9 @@ public class SOCBuildingPanel extends Panel
 
         if (ga.hasSeaBoard || (ga.vp_winner != 10))  // 10, not SOCGame.VP_WINNER_STANDARD, in case someone changes that
         {
-            final String TTIP_VP_TEXT = /*I*/"Victory Points total needed to win the game"/*18N*/;
+            final String TTIP_VP_TEXT = strings.get("build.vp.to.win.tip");  // "Victory Points total needed to win the game"
 
-            vpToWinLab = new Label(/*I*/"VP to win:"/*18N*/);
+            vpToWinLab = new Label(strings.get("build.vp.to.win"));  // "VP to win:"
             vpToWinLab.setAlignment(Label.RIGHT);
             add(vpToWinLab);
             new AWTToolTip(TTIP_VP_TEXT, vpToWinLab);
@@ -306,16 +310,19 @@ public class SOCBuildingPanel extends Panel
             sbIsHilight = false;
             sbPanel = new Panel();  // with default FlowLayout, alignment FlowLayout.CENTER.
             sbPanel.setBackground(ColorSquare.GREY);
-            sbLab = new Label(/*I*/"Special Building Phase"/*18N*/);
-            sbBut = new Button(/*I*/"Buy/Build"/*18N*/);
+            sbLab = new Label(strings.get("build.special.build.phase"));  // "Special Building Phase"
+            sbBut = new Button(strings.get("build.buybuild"));  // "Buy/Build"
             sbBut.setEnabled(false);
             sbBut.setActionCommand(SBP);
             sbBut.addActionListener(this);
             sbPanel.add(sbLab);
             sbPanel.add(sbBut);
             add(sbPanel);
-            new AWTToolTip(/*I*/"This phase allows building between player turns."/*18N*/, sbPanel);
-            new AWTToolTip(/*I*/"This phase allows building between player turns."/*18N*/, sbLab);
+
+            final String TTIP_SBP_TEXT = strings.get("build.special.build.tip");
+                // "This phase allows building between player turns."
+            new AWTToolTip(TTIP_SBP_TEXT, sbPanel);
+            new AWTToolTip(TTIP_SBP_TEXT, sbLab);
         }
 
     }
@@ -334,8 +341,7 @@ public class SOCBuildingPanel extends Panel
         FontMetrics fm = this.getFontMetrics(this.getFont());
         final int lineH = ColorSquare.HEIGHT;
         final int rowSpaceH = lineH / 2;
-        //TODO get 'cost: ' i18n'd, then replace ' ' for '_' 
-        final int costW = fm.stringWidth(/*I*/"Cost:_"/*18N*/);    //Bug in stringWidth does not give correct size for ' ' so use '_'
+        final int costW = fm.stringWidth(roadC.getText().replace(' ', '_'));    //Bug in stringWidth does not give correct size for ' ' so use '_'
         final int butW = 50;
         final int margin = 2;
 
@@ -615,6 +621,8 @@ public class SOCBuildingPanel extends Panel
             : canAskSBP;
 
         int sendBuildRequest = -9;  // send client.buildRequest if this changes
+
+        // TODO i18n: don't rely on label text
 
         if (target == ROAD)
         {
