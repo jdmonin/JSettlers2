@@ -119,6 +119,22 @@ public class SOCBuildingPanel extends Panel
     private boolean sbIsHilight;  // Yellow, not grey, when true
 
     /**
+     * Piece-purchase button status; either all "Buy", or when placing a piece, 1 type "Cancel" and the rest disabled.
+     * When placing the second free road or free ship, this placement can be canceled, and the Road and Ship
+     * buttons both say "Cancel".
+     *<P>
+     * Updated in {@link #updateButtonStatus()}.
+     * Value is 0 for "Buy", or when placing a piece, a borrowed SOCGameState constant with the piece type:
+     * {@link SOCGame#PLACING_ROAD PLACING_ROAD}, {@link SOCGame#PLACING_SETTLEMENT PLACING_SETTLEMENT},
+     * {@link SOCGame#PLACING_CITY PLACING_CITY}, or {@link SOCGame#PLACING_SHIP PLACING_SHIP}.
+     * When placing the second free road or ship, {@link SOCGame#PLACING_FREE_ROAD2 PLACING_FREE_ROAD2}.
+     *<P>
+     * Before v2.0.00 and i18n, button state was checked by comparing the button text to "Buy" or "Cancel".
+     * @since 2.0.00
+     */
+    private int pieceButtonsState;
+
+    /**
      * "Game Info" window, from {@link #gameInfoBut} click, or null.
      * Tracked to prevent showing more than 1 at a time.
      * @since 1.1.18
@@ -626,49 +642,49 @@ public class SOCBuildingPanel extends Panel
 
         if (target == ROAD)
         {
-            if (roadBut.getLabel().equals(/*I*/"Buy"/*18N*/))
+            if (pieceButtonsState == 0)
             {
                 if (stateBuyOK)
                     sendBuildRequest = SOCPlayingPiece.ROAD;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
             }
-            else if (roadBut.getLabel().equals(/*I*/"Cancel"/*18N*/))
+            else if ((pieceButtonsState == SOCGame.PLACING_ROAD) || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2))
             {
                 client.getGameManager().cancelBuildRequest(game, SOCPlayingPiece.ROAD);
             }
         }
         else if (target == STLMT)
         {
-            if (settlementBut.getLabel().equals(/*I*/"Buy"/*18N*/))  // && statebuyOK
+            if (pieceButtonsState == 0)
             {
                 if (stateBuyOK)
                     sendBuildRequest = SOCPlayingPiece.SETTLEMENT;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
             }
-            else if (settlementBut.getLabel().equals(/*I*/"Cancel"/*18N*/))
+            else if (pieceButtonsState == SOCGame.PLACING_SETTLEMENT)
             {
                 client.getGameManager().cancelBuildRequest(game, SOCPlayingPiece.SETTLEMENT);
             }
         }
         else if (target == CITY)
         {
-            if (cityBut.getLabel().equals(/*I*/"Buy"/*18N*/))
+            if (pieceButtonsState == 0)
             {
                 if (stateBuyOK)
                     sendBuildRequest = SOCPlayingPiece.CITY;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
             }
-            else if (cityBut.getLabel().equals(/*I*/"Cancel"/*18N*/))
+            else if (pieceButtonsState == SOCGame.PLACING_CITY)
             {
                 client.getGameManager().cancelBuildRequest(game, SOCPlayingPiece.CITY);
             }
         }
         else if (target == CARD)
         {
-            if (cardBut.getLabel().equals(/*I*/"Buy"/*18N*/))
+            if (pieceButtonsState == 0)
             {
                 if (stateBuyOK || canAskSBP)
                 {
@@ -679,14 +695,14 @@ public class SOCBuildingPanel extends Panel
         }
         else if (target == SHIP)
         {
-            if (shipBut.getLabel().equals(/*I*/"Buy"/*18N*/))
+            if (pieceButtonsState == 0)
             {
                 if (stateBuyOK)
                     sendBuildRequest = SOCPlayingPiece.SHIP;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
             }
-            else if (shipBut.getLabel().equals(/*I*/"Cancel"/*18N*/))
+            else if ((pieceButtonsState == SOCGame.PLACING_SHIP) || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2))
             {
                 client.getGameManager().cancelBuildRequest(game, SOCPlayingPiece.SHIP);
             }
@@ -709,11 +725,16 @@ public class SOCBuildingPanel extends Panel
     }
 
     /**
-     * update the status of the buttons
+     * Update the status of the buttons. Each piece type's button is labeled "Buy" or disabled ("---")
+     * depending on game state and resources available, unless we're currently placing a bought piece.
+     * In that case the bought piece type's button is labeled "Cancel", and the others are disabled with
+     * their current labels until placement is complete.
      */
     public void updateButtonStatus()
     {
         SOCGame game = pi.getGame();
+
+        pieceButtonsState = 0;  // If placing a piece, if-statements here will set the right state
 
         if (player != null)
         {
@@ -731,12 +752,13 @@ public class SOCBuildingPanel extends Panel
                             || pi.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2))))
             {
                 roadBut.setEnabled(true);
-                roadBut.setLabel(/*I*/"Cancel"/*18N*/);
+                roadBut.setLabel(strings.get("base.cancel"));  // "Cancel"
+                pieceButtonsState = (gstate == SOCGame.PLACING_FREE_ROAD2) ? gstate : SOCGame.PLACING_ROAD;
             }
             else if (game.couldBuildRoad(pnum))
             {
                 roadBut.setEnabled(currentCanBuy);
-                roadBut.setLabel(/*I*/"Buy"/*18N*/);
+                roadBut.setLabel(strings.get("build.buy"));  // "Buy"
             }
             else
             {
@@ -749,12 +771,13 @@ public class SOCBuildingPanel extends Panel
                  || (gstate == SOCGame.START2B) || (gstate == SOCGame.START3B)) )
             {
                 settlementBut.setEnabled(true);
-                settlementBut.setLabel(/*I*/"Cancel"/*18N*/);
+                settlementBut.setLabel(strings.get("base.cancel"));
+                pieceButtonsState = SOCGame.PLACING_SETTLEMENT;
             }
             else if (game.couldBuildSettlement(pnum))
             {
                 settlementBut.setEnabled(currentCanBuy);
-                settlementBut.setLabel(/*I*/"Buy"/*18N*/);
+                settlementBut.setLabel(strings.get("build.buy"));
             }
             else
             {
@@ -765,12 +788,13 @@ public class SOCBuildingPanel extends Panel
             if (isCurrent && (gstate == SOCGame.PLACING_CITY))
             {
                 cityBut.setEnabled(true);
-                cityBut.setLabel(/*I*/"Cancel"/*18N*/);
+                cityBut.setLabel(strings.get("base.cancel"));
+                pieceButtonsState = SOCGame.PLACING_CITY;
             }
             else if (game.couldBuildCity(pnum))
             {
                 cityBut.setEnabled(currentCanBuy);
-                cityBut.setLabel(/*I*/"Buy"/*18N*/);
+                cityBut.setLabel(strings.get("build.buy"));
             }
             else
             {
@@ -781,7 +805,7 @@ public class SOCBuildingPanel extends Panel
             if (game.couldBuyDevCard(pnum))
             {
                 cardBut.setEnabled(currentCanBuy);
-                cardBut.setLabel(/*I*/"Buy"/*18N*/);
+                cardBut.setLabel(strings.get("build.buy"));
             }
             else
             {
@@ -794,13 +818,15 @@ public class SOCBuildingPanel extends Panel
                 if (isCurrent && ((gstate == SOCGame.PLACING_SHIP) || (gstate == SOCGame.PLACING_FREE_ROAD2)))
                 {
                     shipBut.setEnabled(true);
-                    shipBut.setLabel(/*I*/"Cancel"/*18N*/);
+                    shipBut.setLabel(strings.get("base.cancel"));
+                    pieceButtonsState = gstate;  // PLACING_SHIP or PLACING_FREE_ROAD2
                     // ships were added after VERSION_FOR_CANCEL_FREE_ROAD2, so no need to check server version
+                    // to make sure the server supports canceling.
                 }
                 else if (game.couldBuildShip(pnum))
                 {
                     shipBut.setEnabled(currentCanBuy);
-                    shipBut.setLabel(/*I*/"Buy"/*18N*/);
+                    shipBut.setLabel(strings.get("build.buy"));
                 }
                 else
                 {
