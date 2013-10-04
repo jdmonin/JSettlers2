@@ -116,7 +116,7 @@ public class SOCHandPanel extends Panel
     protected static final String QUIT = strings.get("hpan.quit");
     protected static final String DONE = strings.get("hpan.done");
     /** Text of Done button at end of game becomes Restart button. If you set this, set {@link #doneButIsRestart}. */
-    protected static final String DONE_RESTART = strings.get("hpan.restart");
+    protected static final String DONE_RESTART = strings.get("base.restart");
     protected static final String CLEAR = strings.get("hpan.trade.clear");
     protected static final String SEND = strings.get("hpan.trade.offer");
     protected static final String BANK = strings.get("hpan.trade.bankport");  // "Bank/Port"

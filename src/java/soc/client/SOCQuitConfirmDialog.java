@@ -21,6 +21,7 @@ package soc.client;
 
 import soc.client.SOCPlayerClient.GameAwtDisplay;
 import soc.game.SOCGame;
+import soc.util.SOCStringManager;
 
 
 /**
@@ -30,6 +31,11 @@ import soc.game.SOCGame;
  */
 class SOCQuitConfirmDialog extends AskDialog
 {
+    /** i18n text strings.
+     *  @since 2.0.00
+     */
+    private static final SOCStringManager strings = SOCStringManager.getClientManager();
+
     /**
      * Creates and shows a new SOCQuitConfirmDialog.
      * If the game is over, the "Quit" button is the default;
@@ -61,17 +67,17 @@ class SOCQuitConfirmDialog extends AskDialog
      */
     protected SOCQuitConfirmDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI, boolean gameIsOver)
     {
-        super(cli, gamePI, /*I*/"Really quit game "
-                + gamePI.getGame().getName() + "?"/*18N*/,
-            (gameIsOver
-                ? /*I*/"Do you want to quit this finished game?"/*18N*/
-                : /*I*/"Do you want to quit the game being played?"/*18N*/),
-            /*I*/"Quit this game"/*18N*/,
-            (gameIsOver
-                ? /*I*/"Don't quit"/*18N*/
-                : /*I*/"Continue playing"/*18N*/),
+        super(cli, gamePI,
+            strings.get("dialog.quit.really", gamePI.getGame().getName()),  // "Really quit game {0}?"
+            strings.get(gameIsOver
+                ? "dialog.quit.finished"        // "Do you want to quit this finished game?"
+                : "dialog.quit.being.played"),  // "Do you want to quit the game being played?"
+            strings.get("dialog.quit.this"),    // "Quit this game"
+            strings.get(gameIsOver
+                ? "dialog.quit.dont"            // "Don't quit"
+                : "dialog.quit.continue.playing"),  // "Continue playing"
             ((gamePI.getGame().getGameState() != SOCGame.NEW)
-                ? /*I*/"Reset board"/*18N*/
+                ? strings.get("dialog.quit.reset.board")  // "Reset board"
                 : null),
             (gameIsOver ? 1 : 2));
     }
