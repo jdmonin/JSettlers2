@@ -6478,9 +6478,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                                 if (id == ls[i])
                                 {
                                     if (game.isInitialPlacement())
-                                        htext = /*I*/"Lone Settlement location allowed on pirate island after initial placement"/*18N*/;
+                                        htext = "board.sc_piri.lone.stlmt.after";  // "Lone Settlement location allowed on pirate island after initial placement"
                                     else
-                                        htext = /*I*/"Lone Settlement location allowed on pirate island"/*18N*/;
+                                        htext = "board.sc_piri.lone.stlmt";  // "Lone Settlement location allowed on pirate island"
                                     break;
                                 }
                             }
@@ -6491,12 +6491,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             && player.isLegalSettlement(id)
                             && ! player.isPotentialSettlement(id))
                         {
-                            htext = /*I*/"Initial placement not allowed here"/*18N*/;
+                            htext = "board.initial.not.here";  // "Initial placement not allowed here"
                         }
 
                         if (htext != null)
                         {
-                            setHoverText(htext);
+                            setHoverText(strings.get(htext));
                             hoverMode = PLACE_ROBBER;  // const used for hovering-at-node
                             hoverID = id;
                             hoverIsPort = false;
@@ -7416,7 +7416,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           
           if (! canBuild)
           {
-              playerInterface.print("* " + strings.get("board.msg.cannot.build.there"));  // "Sorry, you cannot build there."
+              playerInterface.printKeyed("board.msg.cannot.build.there");  // * "Sorry, you cannot build there."
               return;
           }
           
@@ -7477,7 +7477,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           {
               // No building-panel or server request necessary
               clearModeAndHilight(SOCPlayingPiece.SHIP);
-              playerInterface.print("* " + strings.get("board.msg.canceled.move.ship"));  // "Canceled moving the ship."
+              playerInterface.printKeyed("board.msg.canceled.move.ship");  // * "Canceled moving the ship."
               return;
           }
 
@@ -7514,7 +7514,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
        */
       private void tryMoveShipFromHere()
       {
-          playerInterface.print("* " + strings.get("board.msg.click.ship.new.loc"));  // "Click the ship's new location."
+          playerInterface.printKeyed("board.msg.click.ship.new.loc");  // * "Click the ship's new location."
           moveShip_fromEdge = hoverShipID;
           moveShip_isWarship = hoverTip.hoverIsWarship;
           mode = MOVE_SHIP;
@@ -7825,10 +7825,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         protected ConfirmAttackPirateFortressDialog()
         {
             super(playerInterface.getGameDisplay(), playerInterface,
-                "Attack and end turn?",
-                "Attacking the fortress will end your turn. Are you sure?",
-                "Confirm Attack",
-                "Cancel",
+                strings.get("game.sc_piri.attfort.and.endturn"),      // "Attack and end turn?"
+                strings.get("game.sc_piri.attfort.confirm.endturn"),  // "Attacking the fortress will end your turn. Are you sure?"
+                strings.get("game.sc_piri.attfort.confirm"),          // "Confirm Attack"
+                strings.get("base.cancel"),
                 null, 2);
         }
 

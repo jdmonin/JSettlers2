@@ -3064,7 +3064,7 @@ public class SOCPlayerInterface extends Frame
         public void requestedSpecialBuild(SOCPlayer player)
         {
             if (player.hasAskedSpecialBuild())
-                pi.printFormat(/*I*/"* {0} wants to Special Build."/*18N*/, player.getName());
+                pi.printKeyed("game.sbp.wants.to", player.getName());  // * "{0} wants to Special Build."
             if (pi.isClientPlayer(player))
                 pi.getBuildingPanel().updateButtonStatus();
         }
@@ -3274,7 +3274,7 @@ public class SOCPlayerInterface extends Frame
         {
             if (wasRejected)
             {
-                pi.print( /*I*/"* You cannot attack the pirate fortress right now."/*18N*/ );
+                pi.printKeyed("game.sc_piri.attfort.cannot");  // * "You cannot attack the fortress right now."
                 return;
             }
 
@@ -3282,18 +3282,18 @@ public class SOCPlayerInterface extends Frame
             final SOCPlayer cpl = ga.getPlayer(ga.getCurrentPlayerNumber());
             final SOCFortress fort = cpl.getFortress();
             final String cplName = cpl.getName();
-            pi.printFormat( /*I*/"* {0} has attacked a pirate fortress (defense strength {1})."/*18N*/,
-                cplName, Integer.toString(defStrength));
+            pi.printKeyed("game.sc_piri.attfort.attacked", cplName, defStrength);
+                // * "{0} has attacked a pirate fortress (defense strength {1})."
 
             String resDesc;  // used for game text print and popup window
             switch (resultShipsLost)
             {
-            case 0:  resDesc = /*I*/"{0} wins!"/*18N*/;  break;
-            case 1:  resDesc = /*I*/"{0} ties, and loses 1 ship."/*18N*/;  break;
-            default: resDesc = /*I*/"{0} loses, and loses 2 ships."/*18N*/;  break;
+            case 0:  resDesc = "game.sc_piri.attfort.wins";  break;  // "{0} wins!"
+            case 1:  resDesc = "game.sc_piri.attfort.ties";  break;  // "{0} ties, and loses 1 ship."
+            default: resDesc = "game.sc_piri.attfort.loses"; break;  // "{0} loses, and loses 2 ships."
                 // case 2 is "default" so resDesc is always set for compiler
             }
-            resDesc = MessageFormat.format(resDesc, cplName);  // 'Player 2 wins!'
+            resDesc = strings.get(resDesc, cplName);  // "Player 2 wins!"
             pi.print("* " + resDesc);
 
             final String resDesc2;
@@ -3302,13 +3302,12 @@ public class SOCPlayerInterface extends Frame
                 if (fort == null)
                 {
                     // defeated and recaptured
-                    resDesc2 = MessageFormat.format
-                        ( /*I*/"{0} has recaptured the fortress as a settlement."/*18N*/, cplName);
+                    resDesc2 = strings.get("game.sc_piri.attfort.wins.recaptured", cplName);
+                        // "{0} has recaptured the fortress as a settlement."
                 } else {
                     // still needs to attack
-                    resDesc2 = MessageFormat.format
-                        ( /*I*/"The pirate fortress will be defeated after {0} more attack(s)."/*18N*/,
-                         Integer.toString(fort.getStrength()));
+                    resDesc2 = strings.get("game.sc_piri.attfort.n.more.attacks", fort.getStrength());
+                        // "The pirate fortress will be defeated after {0} more attack(s)."
                 }
                 pi.print("* " + resDesc2);
             } else {
@@ -3318,9 +3317,9 @@ public class SOCPlayerInterface extends Frame
             if (pi.clientIsCurrentPlayer() || (fort == null))
             {
                 // popup if player is our client, or if recaptured
-                StringBuffer sb = new StringBuffer( /*I*/"Pirate Fortress attack results:\n"/*18N*/ );
-                sb.append( /*I*/"Defense strength: "/*18N*/ );
-                sb.append(defStrength);
+                StringBuffer sb = new StringBuffer(strings.get("game.sc_piri.attfort.results"));  // "Pirate Fortress attack results:"
+                sb.append('\n');
+                sb.append(strings.get("game.sc_piri.attfort.def.strength", defStrength));  // "Defense strength: {0}"
                 sb.append('\n');
                 sb.append(resDesc);
                 if (resDesc2 != null)
