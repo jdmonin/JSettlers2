@@ -1462,7 +1462,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Get and print a localized string (having no parameters) in the text window, followed by a new line (<tt>'\n'</tt>).
-     * Equivalent to {@link #print(String) print}({@link SOCStringManager#get(String) strings.get}({@code key})).
+     * Equivalent to {@link #print(String) print}("* " + {@link SOCStringManager#get(String) strings.get}({@code key})).
      * @param key  Key to use for string retrieval
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @since 2.0.00
@@ -1476,7 +1476,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Get and print a localized string (with parameters) in the text window, followed by a new line (<tt>'\n'</tt>).
      * Equivalent to {@link #print(String) print}
-     * ({@link SOCStringManager#get(String, Object...) strings.get}({@code key, params})).
+     * ("* " + {@link SOCStringManager#get(String, Object...) strings.get}({@code key, params})).
      * @param key  Key to use for string retrieval
      * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string by
      *                calling {@code SOCStringManager.get(key, params...)}; the localized string should not
@@ -1491,24 +1491,12 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * Print formatted text (with placeholders) in the text window, followed by a new line (<tt>'\n'</tt>). Equivalent to
-     * {@link #print(String) print}({@link MessageFormat#format(String, Object...) MessageFormat.format}({@code s, args})).
-     *
-     * @param s  String with placeholders, such as "{0} wants to Special Build.". Single quotes must be doubled.
-     * @param args  Arguments to fill into {@code s}'s placeholders
-     * @since 2.0.00
-     */
-    public void printFormat(final String s, final Object ... args)
-    {
-        print(MessageFormat.format(s, args));
-    }
-
-    /**
      * print text in the text window, followed by a new line (<tt>'\n'</tt>).
      *
      * @param s  the text; you don't need to include "\n".
      * @see #chatPrint(String)
-     * @see #printFormat(String, Object...)
+     * @see #printKeyed(String)
+     * @see #printKeyed(String, Object...)
      */
     public void print(String s)
     {
@@ -1766,7 +1754,7 @@ public class SOCPlayerInterface extends Frame
             ? "game.SVP.get.one"
             : "game.SVP.get.many";
 
-        textDisplay.append("* "+strings.get(svpKey, plName, svp, desc)+"\n");
+        printKeyed(svpKey, plName, svp, desc);
     }
 
     /**
@@ -3247,7 +3235,7 @@ public class SOCPlayerInterface extends Frame
             {
             case SOCSimpleAction.DEVCARD_BOUGHT:
                 {
-                    pi.print("* " + strings.get("game.devcard.bought", pi.game.getPlayer(pn).getName()));
+                    pi.printKeyed("game.devcard.bought", pi.game.getPlayer(pn).getName());
                     final String key;
                     if (value1 > 1)
                         key = "game.devcard.bought.xleft";  // "There are 5 cards left."
@@ -3255,7 +3243,7 @@ public class SOCPlayerInterface extends Frame
                         key = "game.devcard.bought.1left";  // "There is 1 card left."
                     else
                         key = "game.devcard.bought.0left";  // "There are no more Development cards."
-                    pi.print("* " + strings.get(key, value1));
+                    pi.printKeyed(key, value1);
                     break;
                 }
 

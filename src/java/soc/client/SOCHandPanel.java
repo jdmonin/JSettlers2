@@ -1230,7 +1230,7 @@ public class SOCHandPanel extends Panel
                 }
                 if ((itemNum == -1) || (itemCard == null))
                 {
-                    playerInterface.print("* " + strings.get("hpan.devcards.clickfirst"));  // "Please click a card first to select it."
+                    playerInterface.printKeyed("hpan.devcards.clickfirst");  // * "Please click a card first to select it."
                     return;
                 }
                 item = itemNumText;
@@ -1278,7 +1278,7 @@ public class SOCHandPanel extends Panel
             }
             else if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
             {
-                playerInterface.print("* " + strings.get("hpan.devcards.warship.cannotnow"));
+                playerInterface.printKeyed("hpan.devcards.warship.cannotnow");
                     // "You cannot convert a ship to a warship right now."
             }
             break;
@@ -1290,7 +1290,7 @@ public class SOCHandPanel extends Panel
             }
             else if (player.getNumPieces(SOCPlayingPiece.ROAD) == 0)
             {
-                playerInterface.print("* " + strings.get("hpan.devcards.roads.none"));  // "You have no roads left to place."
+                playerInterface.printKeyed("hpan.devcards.roads.none");  // * "You have no roads left to place."
             }
             break;
 
@@ -1309,7 +1309,7 @@ public class SOCHandPanel extends Panel
             break;
 
         default:
-            playerInterface.print("* " + strings.get("hpan.devcards.interror.ctype", itemCard.ctype, item));
+            playerInterface.printKeyed("hpan.devcards.interror.ctype", itemCard.ctype, item);
                 // "Internal error: Unknown card type {0,number}: {1}"
 
         }
