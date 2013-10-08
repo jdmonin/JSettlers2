@@ -43,7 +43,7 @@ import soc.util.Version;
  * some methods moved to this new subclass, such as {@link #createGame(String, String, String, Hashtable) createGame}.
  *
  * @see SOCBoardLargeAtServer
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
  */
 public class SOCGameListAtServer extends SOCGameList
@@ -91,6 +91,21 @@ public class SOCGameListAtServer extends SOCGameList
         }
 
         return result;
+    }
+
+    /**
+     * Get this game's type handler from its {@link GameInfoAtServer}.
+     * @param gaName  Game name
+     * @return  handler, or {@code null} if game unknown or its GameInfo doesn't have a handler
+     * @since 2.0.00
+     */
+    public GameHandler getGameTypeHandler(final String gaName)
+    {
+        GameInfo gi = gameInfo.get(gaName);
+        if ((gi == null) || ! (gi instanceof GameInfoAtServer))
+            return null;
+
+        return ((GameInfoAtServer) gi).handler;
     }
 
     /**
@@ -266,13 +281,19 @@ public class SOCGameListAtServer extends SOCGameList
      *                Should already be validated, by calling
      *                {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}
      *                with <tt>doServerPreadjust</tt> true.
+     * @param typeHandler  Game type handler for this game
      * @return new game object, or null if it already existed
+     * @throws IllegalArgumentException  if {@code handler} is null
      */
     public synchronized SOCGame createGame
-        (final String gaName, final String gaOwner, final String gaLocaleStr, Hashtable<String, SOCGameOption> gaOpts)
+        (final String gaName, final String gaOwner, final String gaLocaleStr,
+         Hashtable<String, SOCGameOption> gaOpts, final GameHandler handler)
+        throws IllegalArgumentException
     {
         if (isGame(gaName))
             return null;
+        if (handler == null)
+            throw new IllegalArgumentException("handler");
 
         // Make sure server games have SOCBoardLargeAtServer, for makeNewBoard.
         // Double-check class in case server is started at client after a client SOCGame.
@@ -289,7 +310,7 @@ public class SOCGameListAtServer extends SOCGameList
         // set the expiration to 90 min. from now
         game.setExpiration(game.getStartTime().getTime() + (60 * 1000 * GAME_EXPIRE_MINUTES));
 
-        gameInfo.put(gaName, new GameInfo(true, game.getGameOptions()));  // also creates MutexFlag
+        gameInfo.put(gaName, new GameInfoAtServer(game.getGameOptions(), handler));  // also creates MutexFlag
         gameData.put(gaName, game);
 
         return game;
@@ -456,6 +477,35 @@ public class SOCGameListAtServer extends SOCGameList
         }
 
         return cGames;
+    }
+
+    /**
+     * Game info including server-side information, such as the game type's {@link GameHandler}.
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 2.0.00
+     */
+    protected static class GameInfoAtServer extends GameInfo
+    {
+        public final GameHandler handler;
+
+        /**
+         * Constructor, with handler and optional game options.
+         * @param gameOpts Hashtable of {@link SOCGameOption}s, or null
+         * @param typeHandler  Game type handler for this game
+         * @throws IllegalArgumentException  if {@code handler} is null
+         */
+        public GameInfoAtServer
+            (final Hashtable<String,SOCGameOption> gameOpts, final GameHandler typeHandler)
+            throws IllegalArgumentException
+        {
+            super(true, gameOpts);
+
+            if (typeHandler == null)
+                throw new IllegalArgumentException("handler");
+
+            handler = typeHandler;
+        }
+
     }
 
 }

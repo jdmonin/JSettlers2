@@ -21,7 +21,6 @@ package soc.server;
 
 import soc.game.SOCGame;
 import soc.message.SOCMessageForGame;
-import soc.message.SOCPotentialSettlements;
 import soc.server.genericServer.StringConnection;
 import soc.util.SOCGameList;
 
@@ -47,8 +46,8 @@ import soc.util.SOCGameList;
  * <LI> The {@link SOCServer} manages the "boundary" of the game: The list of all games;
  *      joining and leaving players and bots; creating and destroying games; game start time and the board reset framework.
  * <LI> Every server/client interaction about the game, including startup and end-game details, player actions and
- *      requests, is taken care of within the {@code GameHandler} and {@link SOCGame}. Game reset details are handled
- *      by {@link SOCGame#resetAsCopy()}.
+ *      requests, and ending a player's turn, is taken care of within the {@code GameHandler} and {@link SOCGame}.
+ *      Game reset details are handled by {@link SOCGame#resetAsCopy()}.
  * <LI> Actions and requests from players arrive here via {@link #processCommand(SOCGame, SOCMessageForGame, StringConnection)},
  *      called for each {@link SOCMessageForGame} sent to the server about this handler's game.
  * <LI> Communication to game members is done by handler methods calling server methods
@@ -71,6 +70,9 @@ public abstract class GameHandler
     /**
      * Process one command from a client player of this game.
      *<P>
+     * Some game messages (such as player sits down, or board reset voting) are handled the same for all game types.
+     * These are handled at {@link SOCServer}; they should be ignored here and not appear in your switch statement.
+     *<P>
      * Called from {@link SOCServer} message treater loop.  Caller will catch any thrown Exceptions.
      *
      * @param ga  Game in which client {@code c} is sending {@code msg}.
@@ -89,8 +91,19 @@ public abstract class GameHandler
      * @param dcmd   Text message which may be a debug command
      * @param dcmdU  {@code dcmd} as uppercase, for efficiency (it's already been uppercased in caller)
      * @return true if {@code dcmd} is a recognized debug command, false otherwise
+     * @see #getDebugCommandsHelp()
      */
     public abstract boolean processDebugCommand(StringConnection debugCli, final String gaName, final String dcmd, final String dcmdU);
+
+    /**
+     * Get the debug commands for this game type, if any, used with
+     * {@link #processDebugCommand(StringConnection, String, String, String)}.
+     * If client types the {@code *help*} debug command, the server will
+     * send them all the general debug command help, and these strings.
+     * @return  a set of lines of help text to send to a client after sending {@link SOCServer#DEBUG_COMMANDS_HELP},
+     *          or {@code null} if no gametype-specific debug commands
+     */
+    public abstract String[] getDebugCommandsHelp();
 
     /**
      * Client has been approved to join game; send the entire state of the game to client.
@@ -168,6 +181,7 @@ public abstract class GameHandler
     /**
      * This member (player or observer) has left the game.
      * Check the game and clean up, forcing end of current turn if necessary.
+     * Call {@link SOCGame#removePlayer(String)}.
      * If the game still has other players, continue it, otherwise it will be ended after
      * returning from {@code leaveGame}. Send messages out to other game members.
      *<P>

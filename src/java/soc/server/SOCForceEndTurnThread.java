@@ -29,7 +29,7 @@ import soc.server.genericServer.StringConnection;
 /**
  * Force-end this robot's turn.
  * Done in a separate thread in case of deadlocks.
- * Created from {@link SOCServer#checkForExpiredTurns(long)}
+ * Created from {@link SOCGameHandler#endTurnIfInactive(SOCGame, long)}
  * when that's called from {@link SOCGameTimeoutChecker#run()}.
  *<P>
  * Before 2.0.00, this class was SOCServer.SOCForceEndTurnThread;
@@ -41,13 +41,15 @@ import soc.server.genericServer.StringConnection;
 class SOCForceEndTurnThread extends Thread
 {
     private final SOCServer srv;
+    private final SOCGameHandler hand;
     private final SOCGame ga;
     private final SOCPlayer pl;
 
-    public SOCForceEndTurnThread(final SOCServer srv, final SOCGame g, final SOCPlayer p)
+    public SOCForceEndTurnThread(final SOCServer srv, final SOCGameHandler hand, final SOCGame g, final SOCPlayer p)
     {
         setDaemon(true);
         this.srv = srv;
+        this.hand = hand;
         ga = g;
         pl = p;
     }
@@ -84,7 +86,7 @@ class SOCForceEndTurnThread extends Thread
             System.err.println("  Can't print brain status; robot type is " + scd.robot3rdPartyBrainClass);
         }
 
-        srv.endGameTurnOrForce(ga, plNum, rname, rconn, false);
+        hand.endGameTurnOrForce(ga, plNum, rname, rconn, false);
     }
 
 }  // class SOCForceEndTurnThread
