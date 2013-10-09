@@ -32,6 +32,8 @@ import soc.game.SOCGame.SeatLockState;
  * For player consistency, seat locks can't be
  * changed while {@link soc.game.SOCGame#getResetVoteActive()}
  * in server version 1.1.19 and higher.
+ *<P>
+ * Although this is a game-specific message, it's handled by {@code SOCServer} instead of a {@code GameHandler}.
  *
  * @author Robert S. Thomas
  */
@@ -44,7 +46,7 @@ public class SOCSetSeatLock extends SOCMessage
     private String game;
 
     /**
-     * The number player that is changing
+     * Change lock state of this seat number
      */
     private int playerNumber;
 

@@ -69,8 +69,8 @@ import java.util.StringTokenizer;
  *      Set <tt>serialVersionUID</tt> to the version it's added in.
  *      for example, if adding for version 1.1.09:
  *      <code> private static final long serialVersionUID = 1109L;</code>
- * <LI> Add to the switch in SOCPlayerClient.treat and/or SOCServer.processCommand.
- *      Note the JSettlers version with a comment.
+ * <LI> Add to the switch in SOCPlayerClient.treat and/or SOCServer.processCommand
+ *      or GameHandler.processCommand.  Note the JSettlers version with a comment.
  *      <P>
  *      <em>Note:</em> Most things added to SOCPlayerClient.treat should also be added to
  *      {@link soc.client.SOCDisplaylessPlayerClient#treat(SOCMessage)},
@@ -78,7 +78,7 @@ import java.util.StringTokenizer;
  *      and possibly to {@link soc.robot.SOCRobotBrain#run()}.
  *      <P>
  *      If the message is player-state related, you might also want to add
- *      it in <tt>SOCServer.sitDown_sendPrivateInfo()</tt>.
+ *      it in your game type's <tt>soc.server.GameHandler.sitDown_sendPrivateInfo()</tt>.
  *</UL>
  *<P>
  * Backwards compatibility: Unknown message types are ignored by client and by server.

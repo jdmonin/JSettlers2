@@ -26,6 +26,8 @@ import java.util.StringTokenizer;
 /**
  * This message says that a player is changing the
  * face icon.
+ *<P>
+ * Although this is a game-specific message, it's handled by {@code SOCServer} instead of a {@code GameHandler}.
  *
  * @author Robert S. Thomas
  */

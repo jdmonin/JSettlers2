@@ -21,7 +21,6 @@
  **/
 package soc.game;
 
-
 /**
  * This is a list of constants for representing
  * types of development cards in Settlers of Catan.
@@ -34,7 +33,7 @@ package soc.game;
  * one past the highest card type value.
  *<P>
  * If you add values here, be sure to update javadocs at
- * server.giveDevCard,  .handleGAMETEXTMSG and .sendGameStateOVER ,
+ * SOCGameHandler.DEBUG_COMMANDS_HELP_DEV_TYPES, .debugGiveDevCard and .sendGameStateOVER ,
  * and the code in SOCDevCard.getCardTypeName and handpanel.updateDevCards .
  * If you add VP card types, update {@link SOCDevCard#isVPCard(int)}
  * and {@link SOCDevCardSet#getNumVPCards()}.

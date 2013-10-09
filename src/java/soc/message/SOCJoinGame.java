@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2009,2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
@@ -31,6 +31,8 @@ import java.util.StringTokenizer;
  * and sends JOINGAME to all players/observers of the game (including client).
  *<P>
  * To request a new game with game options, send {@link SOCNewGameWithOptionsRequest NEWGAMEWITHOPTIONSREQUEST} instead.
+ *<P>
+ * Although this is a game-specific message, it's handled by {@code SOCServer} instead of a {@code GameHandler}.
  *
  * @author Robert S Thomas
  */

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - getGameNames, parameterize types
  *
  * This program is free software; you can redistribute it and/or
@@ -356,7 +356,7 @@ public class SOCGameList
      *<P>
      * Client should instead call {@link #addGame(String, String, boolean)} because game options should
      * remain unparsed as late as possible.
-     * Server should instead call {@link soc.server.SOCGameListAtServer#createGame(String, String, String, Hashtable)}.
+     * Server should instead call {@link soc.server.SOCGameListAtServer#createGame(String, String, String, Hashtable, soc.server.GameHandler)}.
      *
      * @param gaName Name of added game; may be marked with the prefix
      *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
@@ -368,7 +368,7 @@ public class SOCGameList
      *         start with the unjoinable prefix.
      *         gaName will be checked for the prefix regardless of cannotJoin's value.
      * @see #addGames(SOCGameList, int)
-     * @see #addGames(Enumeration, int)
+     * @see #addGames(Iterable, int)
      * @since 1.1.07
      */
     protected synchronized void addGame(String gaName, Hashtable<String, SOCGameOption> gaOpts, String gaOptsStr, boolean cannotJoin)
@@ -401,6 +401,10 @@ public class SOCGameList
      * Calls addGame for each one.
      * gl's {@link SOCGame}s will be added first, followed by games for which we only know
      * the name and options.
+     *<P>
+     * For use at client.  Each added game's {@link SOCGameList.GameInfo} is examined for game options
+     * and {@code canJoin} flag, but not directly copied.
+     *
      * @param gl Another SOCGameList from which to copy game data.
      *          If gl is null, nothing happens.
      *          If any game already exists here (per this.{@link #isGame(String)}), don't overwrite it.
@@ -433,6 +437,9 @@ public class SOCGameList
     /**
      * Add several games to this GameList.
      * Calls {@link #addGame(String, Hashtable, String, boolean)} for each one.
+     *<P>
+     * For use at client.
+     *
      * @param gamelist Enumeration of Strings and/or {@link SOCGame}s (mix and match);
      *          game names may be marked with the prefix
      *          {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.

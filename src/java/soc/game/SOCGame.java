@@ -110,14 +110,14 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> {@link #advanceTurnStateAfterPutPiece()}
      * <LI> {@link #forceEndTurn()}
      * <LI> {@link soc.robot.SOCRobotBrain#run()}
-     * <LI> {@link soc.server.SOCServer#sendGameState(SOCGame)}
+     * <LI> {@link soc.server.SOCGameHandler#sendGameState(SOCGame)}
      *</UL>
      * Also, if your state is similar to an existing state, do a where-used search
      * for that state, and decide where both states should be reacted to.
      *<P>
      * If your new state might be waiting for several players (not just the current player) to
      * respond with a choice (such as picking resources to discard or gain), also update
-     * {@link soc.server.SOCServer#checkForExpiredTurns(long)}.  Otherwise the robot will be
+     * {@link soc.server.GameHandler#endTurnIfInactive(SOCGame, long)}.  Otherwise the robot will be
      * forced to lose its turn while waiting for human players.
      *<P>
      * Other places to check, if you add a game state:
@@ -126,7 +126,8 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> SOCBoardPanel.drawBoard
      * <LI> SOCHandPanel.addPlayer, began, removePlayer, updateAtTurn, updateValue
      * <LI> SOCGame.addPlayer
-     * <LI> SOCServer.handleSTARTGAME, leaveGame, sitDown, handleCANCELBUILDREQUEST, handlePUTPIECE
+     * <LI> SOCServer.handleSTARTGAME
+     * <LI> Your game type's GameHandler.leaveGame, sitDown, handleCANCELBUILDREQUEST, handlePUTPIECE
      * <LI> SOCPlayerClient.handleCANCELBUILDREQUEST, SOCDisplaylessPlayerClient.handleCANCELBUILDREQUEST
      *</UL>
      */
@@ -707,7 +708,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Are we in the 'free placement' debug mode?
-     * See server.processDebugCommand_freePlace,
+     * See SOCGameHandler.processDebugCommand_freePlace,
      * SOCPlayerInterface.setDebugPaintPieceMode.
      * @since 1.1.12
      */
@@ -1419,7 +1420,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * remove a player from their seat.
-     * Player's name becomes null.  {@link #isSeatVacant(int) isSeatVacant(playerNum)} becomes true.
+     * Player's name becomes {@code null}.  {@link #isSeatVacant(int) isSeatVacant(playerNum)} becomes true.
      *<P>
      * <b>If they are the current player,</b>
      * call this and then call {@link #canEndTurn(int)}.
@@ -1824,7 +1825,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @return the number of the current player
+     * @return the number of the current player, or -1 if the game isn't started yet
      */
     public int getCurrentPlayerNumber()
     {
@@ -3677,7 +3678,7 @@ public class SOCGame implements Serializable, Cloneable
      *       {@link SOCForceEndTurnResult#FORCE_ENDTURN_SKIP_START_TURN}.
      * </UL>
      *<P>
-     * See also <tt>SOCServer.forceEndGameTurn, SOCServer.endGameTurnOrForce</tt>.
+     * See also <tt>SOCGameHandler.forceEndGameTurn, SOCGameHandler.endGameTurnOrForce</tt>.
      *
      * @return Type of action performed, one of these values:
      *     <UL>
@@ -7352,7 +7353,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Are we in the 'free placement' debug mode?
-     * See server.processDebugCommand_freePlace,
+     * See SOCGameHandler.processDebugCommand_freePlace,
      * SOCPlayerInterface.setDebugPaintPieceMode.
      * @see #putPiece(SOCPlayingPiece)
      * @since 1.1.12

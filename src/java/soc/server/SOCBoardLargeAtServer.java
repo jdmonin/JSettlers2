@@ -1925,7 +1925,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * for their Lone Settlement location (adds layout part "LS").
      * Vacant player numbers get 0 for their {@code "LS"} element.
      *<P>
-     * This is called before {@link SOCServer#getBoardLayoutMessage}.  So,
+     * This is called before {@link SOCGameHandler#getBoardLayoutMessage}.  So,
      * if needed, it can call {@link SOCBoardLarge#setAddedLayoutPart(String, int[])}.
      *<P>
      * If ship placement is restricted by the scenario, please call each player's
