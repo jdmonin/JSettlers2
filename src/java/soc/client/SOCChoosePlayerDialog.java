@@ -42,6 +42,10 @@ import java.awt.event.ActionListener;
  */
 class SOCChoosePlayerDialog extends Dialog implements ActionListener
 {
+    /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
+     *  @since 2.0.00 */
+    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+
     /** Player names on each button. This array's elements align with {@link #players}. Length is {@link #number}. */
     Button[] buttons;
 
@@ -91,7 +95,7 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
     public SOCChoosePlayerDialog
         (SOCPlayerInterface plInt, final int num, final int[] p, final boolean allowChooseNone)
     {
-        super(plInt, /*I*/"Choose Player"/*18N*/, true);
+        super(plInt, strings.get("dialog.robchoose.choose.player"), true);  // "Choose Player"
 
         pi = plInt;
         number = (allowChooseNone) ? (num + 1) : num;
@@ -108,7 +112,7 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
         wantH = 20 + 10 + 20 + 10 + 16 + 5;
         setSize(wantW + 10, wantH + 20);  // Can calc & add room for insets at doLayout
 
-        msg = new Label(/*I*/"Please choose a player to steal from:"/*18N*/, Label.CENTER);
+        msg = new Label(strings.get("dialog.robchoose.please.choose"), Label.CENTER);  // "Please choose a player to steal from:"
         add(msg);
 
         buttons = new Button[number];
@@ -126,37 +130,28 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
 
             final int rescount = pl.getResources().getTotal();
             final int vpcount = pl.getPublicVP();
-            player_res_lbl[i] = new Label(/*I*/rescount + " res, " + vpcount + " VP"/*18N*/, Label.CENTER);
+            player_res_lbl[i] = new Label(strings.get("dialog.robchoose.n.res.n.vp", rescount, vpcount), Label.CENTER);
+                // "{0} res, {1} VP"
             SOCHandPanel ph = pi.getPlayerHandPanel(players[i]);
             player_res_lbl[i].setBackground(ph.getBackground());
             player_res_lbl[i].setForeground(ph.getForeground());
             add(player_res_lbl[i]);
-            String restooltip;
-            switch (rescount)
-            {
-            case 0:
-                restooltip = /*I*/"This player has no resources."/*18N*/;
-                break;
-
-            case 1:
-                restooltip = /*I*/"This player has 1 resource."/*18N*/;
-                break;
-
-            default:
-                restooltip = /*I*/"This player has " + rescount + " resources."/*18N*/;
-            }
+            String restooltip = strings.get("dialog.robchoose.player.has.n.rsrcs", rescount);
+                // "This player has 1 resource.", "This player has {0} resources."
+                // 0 resources is possible if they have cloth. (SC_CLVI)
             new AWTToolTip(restooltip, player_res_lbl[i]);
         }
 
         if (allowChooseNone)
         {
-            Button bNone = new Button(/*I*/"None"/*18N*/);
+            Button bNone = new Button(strings.get("base.none"));  // "None"
             buttons[num] = bNone;
             add(bNone);
             bNone.addActionListener(this);
-            new AWTToolTip(/*I*/"Choose this to steal from no player"/*18N*/, bNone);
+            new AWTToolTip(strings.get("dialog.robchoose.choose.steal.no.player"), bNone);
+                // "Choose this to steal from no player"
             players[num] = SOCChoosePlayer.CHOICE_NO_PLAYER;
-            player_res_lbl[num] = new Label(/*I*/"(decline)"/*18N*/, Label.CENTER);
+            player_res_lbl[num] = new Label(strings.get("dialog.robchoose.decline"), Label.CENTER);  // "(decline)"
             add(player_res_lbl[num]);
         }
     }
