@@ -130,7 +130,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int JOINAUTH = 1020;
     public static final int JOINGAMEAUTH = 1021;
     public static final int IMAROBOT = 1022;
-    public static final int JOINGAMEREQUEST = 1023;
+    public static final int ROBOTJOINGAMEREQUEST = 1023;  // was JOINGAMEREQUEST before v2.0.00
     public static final int PLAYERELEMENT = 1024;
     public static final int GAMESTATE = 1025;
     public static final int TURN = 1026;
@@ -655,8 +655,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case IMAROBOT:
                 return SOCImARobot.parseDataStr(data);
 
-            case JOINGAMEREQUEST:
-                return SOCJoinGameRequest.parseDataStr(data);
+            case ROBOTJOINGAMEREQUEST:
+                return SOCRobotJoinGameRequest.parseDataStr(data);
 
             case PLAYERELEMENT:
                 return SOCPlayerElement.parseDataStr(data);

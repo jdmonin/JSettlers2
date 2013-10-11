@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008 Jeremy D. Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008,2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,7 +30,7 @@ import java.util.StringTokenizer;
  * with others which will fill in the game state.
  *<P>
  * For robots, they must discard game state and ask to re-join.
- * Treat as a {@link SOCJoinGameRequest}: ask server for us to join the new game.
+ * Robot client treats as a {@link SOCRobotJoinGameRequest}: Asks to join the new game.
  *<P>
  * Follows {@link SOCResetBoardRequest} and {@link SOCResetBoardVote} messages.
  * For details of messages sent, see 

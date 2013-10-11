@@ -158,7 +158,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * Some games may have no options, so will have no entry here,
      * although they will have an entry in {@link #games} once joined.
      * Key = game name, Value = hashtable of {@link SOCGameOption}.
-     * Entries are added in {@link #handleJOINGAMEREQUEST(SOCJoinGameRequest)}.
+     * Entries are added in {@link #handleROBOTJOINGAMEREQUEST(SOCRobotJoinGameRequest)}.
      * Since the robot and server are the same version, the
      * set of "known options" will always be in sync.
      */
@@ -714,8 +714,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             /**
              * the server is requesting that we join a game
              */
-            case SOCMessage.JOINGAMEREQUEST:
-                handleJOINGAMEREQUEST((SOCJoinGameRequest) mes);
+            case SOCMessage.ROBOTJOINGAMEREQUEST:
+                handleROBOTJOINGAMEREQUEST((SOCRobotJoinGameRequest) mes);
 
                 break;
 
@@ -899,9 +899,9 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      *
      * @see #handleRESETBOARDAUTH(SOCResetBoardAuth)
      */
-    protected void handleJOINGAMEREQUEST(SOCJoinGameRequest mes)
+    protected void handleROBOTJOINGAMEREQUEST(SOCRobotJoinGameRequest mes)
     {
-        D.ebugPrintln("**** handleJOINGAMEREQUEST ****");
+        D.ebugPrintln("**** handleROBOTJOINGAMEREQUEST ****");
         final String gaName = mes.getGame();
         Hashtable<String,SOCGameOption> gaOpts = mes.getOptions();
         if (gaOpts != null)
@@ -1583,12 +1583,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      *<P>
      * Take robotbrain out of old game, don't yet put it in new game.
      * Let server know we've done so, by sending LEAVEGAME via {@link #leaveGame(SOCGame, String, boolean)}.
-     * Server will soon send a JOINGAMEREQUEST if we should join the new game.
+     * Server will soon send a ROBOTJOINGAMEREQUEST if we should join the new game.
      *
      * @param mes  the message
      *
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
-     * @see #handleJOINGAMEREQUEST(SOCJoinGameRequest)
+     * @see #handleROBOTJOINGAMEREQUEST(SOCRobotJoinGameRequest)
      */
     @Override
     protected void handleRESETBOARDAUTH(SOCResetBoardAuth mes)

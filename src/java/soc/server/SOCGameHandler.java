@@ -86,7 +86,7 @@ import soc.message.SOCGameStats;
 import soc.message.SOCGameTextMsg;
 import soc.message.SOCJoinGame;
 import soc.message.SOCJoinGameAuth;
-import soc.message.SOCJoinGameRequest;
+import soc.message.SOCRobotJoinGameRequest;
 import soc.message.SOCLargestArmy;
 import soc.message.SOCLastSettlement;
 import soc.message.SOCLeaveGame;
@@ -1531,7 +1531,7 @@ public class SOCGameHandler extends GameHandler
                             ga.setSeatLock(playerNumber, SOCGame.SeatLockState.UNLOCKED);
                             srv.messageToGameWithMon(gm, new SOCSetSeatLock(gm, playerNumber, SOCGame.SeatLockState.UNLOCKED));
                         }
-                        robotConn.put(SOCJoinGameRequest.toCmd(gm, playerNumber, ga.getGameOptions()));
+                        robotConn.put(SOCRobotJoinGameRequest.toCmd(gm, playerNumber, ga.getGameOptions()));
     
                         /**
                          * record the request

@@ -5488,7 +5488,7 @@ public class SOCServer extends Server
             // now, make the requests
             for (int i = 0; i < ga.maxPlayers; ++i)
                 if (robotSeatsConns[i] != null)
-                    robotSeatsConns[i].put(SOCJoinGameRequest.toCmd(gname, i, gopts));
+                    robotSeatsConns[i].put(SOCRobotJoinGameRequest.toCmd(gname, i, gopts));
         }
     }
 
