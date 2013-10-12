@@ -150,7 +150,7 @@ public class SOCHandPanel extends Panel
      * Same methods are used by discard and by {@link #TRADEMSG_PICKING}.
      * @since 1.1.00
      */
-    private static final String TRADEMSG_DISCARD = /*I*/"Discarding..."/*18N*/;
+    private static final String TRADEMSG_DISCARD = strings.get("hpan.discarding");  // "Discarding..."
 
     /**
      * Show that a non-client player is picking resources for the gold hex.
@@ -158,7 +158,7 @@ public class SOCHandPanel extends Panel
      * {@link #offerIsDiscardOrPickMessage}, {@link #setDiscardOrPickMsg(boolean)}, etc.
      * @since 2.0.00
      */
-    private static final String TRADEMSG_PICKING = /*I*/"Picking\nResources..."/*18N*/;
+    private static final String TRADEMSG_PICKING = strings.get("hpan.picking.rsrcs");  // "Picking\nResources..."
 
     /** Panel text color, and player name color when not current player */
     protected static final Color COLOR_FOREGROUND = Color.BLACK;
@@ -2265,7 +2265,7 @@ public class SOCHandPanel extends Panel
             if (! game.hasTradeOffers())
                 return;
         }
-        offer.setMessage(/*I*/"No thanks."/*18N*/);
+        offer.setMessage(strings.get("base.no.thanks.sentenc"));  // "No thanks."
         if (offerHidesControls)
             hideTradeMsgShowOthers(false);
         offer.setVisible(true);
