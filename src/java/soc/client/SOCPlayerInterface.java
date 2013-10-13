@@ -69,7 +69,6 @@ import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
@@ -1353,19 +1352,22 @@ public class SOCPlayerInterface extends Frame
 
         if (client.getServerVersion(game) < 1100)
         {
-            textDisplay.append("*** "+/*I*/"This server does not support board reset, server is too old."/*18N*/+"\n");
+            textDisplay.append("*** " + strings.get("reset.server.support.too.old") + "\n");
+                // "This server does not support board reset, server is too old."
             return;
         }
         if (game.getResetVoteActive())
         {
-            textDisplay.append("*** "+/*I*/"Voting is already active. Try again when voting completes."/*18N*/+"\n");
+            textDisplay.append("*** " + strings.get("reset.voting.already.active") + "\n");
+                // "Voting is already active. Try again when voting completes."
             return;
         }
         SOCPlayer pl = game.getPlayer(clientHandPlayerNum);
         if (! pl.hasAskedBoardReset())
             client.getGameManager().resetBoardRequest(game);
         else
-            textDisplay.append("*** "+/*I*/"You may ask only once per turn to reset the board."/*18N*/+"\n");
+            textDisplay.append("*** " + strings.get("reset.you.may.ask.once") + "\n");
+                // "You may ask only once per turn to reset the board."
     }
 
     /**
@@ -1376,10 +1378,10 @@ public class SOCPlayerInterface extends Frame
     {
         String voteMsg;
         if (vyes)
-            voteMsg = /*I*/"Go ahead."/*18N*/;
+            voteMsg = strings.get("reset.go.ahead");   // "Go ahead."
         else
-            voteMsg = /*I*/"No thanks."/*18N*/;
-        textDisplay.append("* " + /*I*/game.getPlayer(pn).getName() + " has voted: " + voteMsg/*18N*/+"\n");
+            voteMsg = strings.get("base.no.thanks.sentenc");  // "No thanks."
+        printKeyed("reset.x.has.voted", game.getPlayer(pn).getName(), voteMsg);  // "* " + "{0} has voted: {1}"
         game.resetVoteRegister(pn, vyes);
         try { hands[pn].resetBoardSetMessage(voteMsg); }
         catch (IllegalStateException e) { /* ignore; discard message is showing */ }
@@ -1391,7 +1393,7 @@ public class SOCPlayerInterface extends Frame
      */
     public void resetBoardRejected()
     {
-        textDisplay.append("** "+/*I*/"The board reset was rejected."/*18N*/+"\n");
+        textDisplay.append("*** " + strings.get("reset.was.rejected") + "\n");  // "The board reset was rejected."
         for (int i = 0; i < hands.length; ++i)
         {
             // Clear all displayed votes
@@ -1438,9 +1440,9 @@ public class SOCPlayerInterface extends Frame
         {
             String pleaseMsg;
             if (gaOver)
-                pleaseMsg = /*I*/"Restart Game?"/*18N*/;
+                pleaseMsg = strings.get("reset.restart.game");  // "Restart Game?"
             else
-                pleaseMsg = /*I*/"Reset Board?"/*18N*/;
+                pleaseMsg = strings.get("reset.board");   // "Reset Board?"
             boardResetRequester.resetBoardSetMessage(pleaseMsg);
 
             String requester = game.getPlayer(pnRequester).getName();
@@ -2268,15 +2270,17 @@ public class SOCPlayerInterface extends Frame
         repaint();
 
         chatDisplay.append(prevChatText);
+
         String requesterName = game.getPlayer(requesterNumber).getName();
         if (requesterName == null)
-            //i18n split into two keys?
-            requesterName = /*I*/"player who left"/*18N*/;
-        String resetMsg;
-        if (oldGameState != SOCGame.OVER)
-            resetMsg = "** "+/*I*/"The board was reset by " + requesterName + "."/*18N*/+"\n";
-        else
-            resetMsg = "** "+/*I*/"New game started by " + requesterName + "."/*18N*/+"\n";
+            requesterName = strings.get("reset.player.who.left");  // fall back to "player who left"
+
+        final String resetMsg = "** "
+            + strings.get( ((oldGameState != SOCGame.OVER)
+              ? "reset.board.was.reset"     // "The board was reset by {0}."
+              : "reset.new.game.started"),  // "New game started by {0}.
+              requesterName)
+            + "\n";
         textDisplay.append(resetMsg);
         chatDisplay.append(resetMsg);
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -3431,17 +3435,16 @@ public class SOCPlayerInterface extends Frame
          */
         protected ResetBoardVoteDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI, String requester, boolean gameIsOver)
         {
-            super(cli, gamePI, /*I*/"Reset board of game "
-                    + gamePI.getGame().getName() + "?"/*18N*/,
+            super(cli, gamePI, strings.get("reset.board.for.game", gamePI.getGame().getName()),  // "Reset board for game {0}?"
                 (gameIsOver
-                    ? (/*I*/requester + " wants to start a new game."/*18N*/)
-                    : (/*I*/requester + " wants to reset the game being played."/*18N*/)),
+                    ? strings.get("reset.x.wants.start.new", requester)  // "{0} wants to start a new game."
+                    : strings.get("reset.x.wants.reset", requester)),    // "{0} wants to reset the game being played."
                 (gameIsOver
-                    ? /*I*/"Restart"/*18N*/
-                    : /*I*/"Reset"/*18N*/),
+                    ? strings.get("base.restart")    // "Restart"
+                    : strings.get("reset.reset")),   // "Reset"
                 (gameIsOver
-                    ? /*I*/"No thanks"/*18N*/
-                    : /*I*/"Continue playing"/*18N*/),
+                    ? strings.get("base.no.thanks")                  // "No thanks"
+                    : strings.get("dialog.base.continue.playing")),  // "Continue playing"
                 null,
                 (gameIsOver ? 1 : 2));
             rdt = null;
@@ -3711,8 +3714,8 @@ public class SOCPlayerInterface extends Frame
          */
         private ResetBoardConfirmDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI)
         {
-            super(cli, gamePI, strings.get("dialog.reset.restart.game"),  // "Restart game?"
-                strings.get("dialog.reset.and.start.new.game"),  // "Reset the board and start a new game?"
+            super(cli, gamePI, strings.get("reset.restart.game"),  // "Restart game?"
+                strings.get("reset.board.new"),  // "Reset the board and start a new game?"
                 strings.get("base.restart"),
                 strings.get("base.cancel"),
                 null,

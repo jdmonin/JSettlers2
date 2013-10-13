@@ -75,7 +75,7 @@ class SOCQuitConfirmDialog extends AskDialog
             strings.get("dialog.quit.this"),    // "Quit this game"
             strings.get(gameIsOver
                 ? "dialog.quit.dont"            // "Don't quit"
-                : "dialog.quit.continue.playing"),  // "Continue playing"
+                : "dialog.base.continue.playing"),  // "Continue playing"
             ((gamePI.getGame().getGameState() != SOCGame.NEW)
                 ? strings.get("dialog.quit.reset.board")  // "Reset board"
                 : null),
