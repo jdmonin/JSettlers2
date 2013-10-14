@@ -3541,10 +3541,10 @@ public class SOCPlayerInterface extends Frame
         protected ChooseMoveRobberOrPirateDialog()
         {
             super(getGameDisplay(), SOCPlayerInterface.this,
-                /*I*/"Move robber or pirate?"/*18N*/,
-                /*I*/"Do you want to move the robber or the pirate ship?"/*18N*/,
-                /*I*/"Move Robber"/*18N*/,
-                /*I*/"Move Pirate"/*18N*/,
+                strings.get("dialog.choosemove.robber.or.pirate"), // "Move robber or pirate?"
+                strings.get("dialog.choosemove.ask.rob.pirate"),   // "Do you want to move the robber or the pirate ship?"
+                strings.get("dialog.choosemove.robber"),  // "Move Robber"
+                strings.get("dialog.choosemove.pirate"),  // "Move Pirate"
                 null, 1);
         }
 
@@ -3618,10 +3618,10 @@ public class SOCPlayerInterface extends Frame
         protected ChooseRobClothOrResourceDialog(final int vpn)
         {
             super(getGameDisplay(), SOCPlayerInterface.this,
-                /*I*/"Rob cloth or resource?"/*18N*/,
-                /*I*/"Do you want to steal cloth or a resource from this player?"/*18N*/,
-                /*I*/"Steal Cloth"/*18N*/,
-                /*I*/"Steal Resource"/*18N*/,
+                strings.get("dialog.rob.sc_clvi.cloth.or.rsrc"),      // "Rob cloth or resource?"
+                strings.get("dialog.rob.sc_clvi.ask.cloth.or.rsrc"),  // "Do you want to steal cloth or a resource from this player?"
+                strings.get("dialog.rob.sc_clvi.cloth"),  // "Steal Cloth"
+                strings.get("dialog.rob.sc_clvi.rsrc"),   // "Steal Resource"
                 null, 1);
             rdt = null;
             this.vpn = vpn;
