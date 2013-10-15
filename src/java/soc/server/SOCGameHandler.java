@@ -4505,15 +4505,14 @@ public class SOCGameHandler extends GameHandler
             {
                 if (ga.canDoMonopolyAction())
                 {
-                    int[] monoPicks = ga.doMonopolyAction(mes.getResource());
-
+                    final int rsrc = mes.getResource();
+                    final int[] monoPicks = ga.doMonopolyAction(rsrc);
                     final String monoPlayerName = (String) c.getData();
-                    final String resName
-                        = " " + SOCResourceConstants.resName(mes.getResource()) + ".";
-                    String message = /*I*/monoPlayerName + " monopolized" + resName/*18N*/;
 
                     srv.gameList.takeMonitorForGame(gaName);
-                    srv.messageToGameExcept(gaName, c, message, false);
+                    srv.messageToGameKeyedSpecialExcept
+                        (ga, false, c, "action.mono.monopolized", monoPlayerName, -2, rsrc);
+                        // "{0} monopolized {1,rsrcs}" -> "Joe monopolized Sheep."
 
                     /**
                      * just send all the player's resource counts for the
@@ -4524,7 +4523,7 @@ public class SOCGameHandler extends GameHandler
                         /**
                          * Note: This only works if SOCPlayerElement.CLAY == SOCResourceConstants.CLAY
                          */
-                        srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, mes.getResource(), ga.getPlayer(i).getResources().getAmount(mes.getResource())));
+                        srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, rsrc, ga.getPlayer(i).getResources().getAmount(rsrc)));
                     }
                     srv.gameList.releaseMonitorForGame(gaName);
 
@@ -4543,21 +4542,28 @@ public class SOCGameHandler extends GameHandler
                         String viName = ga.getPlayer(i).getName();
                         StringConnection viCon = srv.getConnection(viName);
                         if (viCon != null)
-                            srv.messageToPlayer(viCon, gaName,
-                                monoPlayerName + "'s Monopoly took your " + picked + resName);
+                        {
+                            srv.messageToPlayerKeyedSpecial
+                                (viCon, ga,
+                                 ((picked == 1) ? "action.mono.took.your.1" : "action.mono.took.your.n"),
+                                 monoPlayerName, picked, rsrc);
+                                // "Joe's Monopoly took your 3 sheep."
+                        }
                     }
 
-                    srv.messageToPlayer(c, gaName, "You monopolized " + monoTotal + resName);
+                    srv.messageToPlayerKeyedSpecial(c, ga, "action.mono.you.monopolized", monoTotal, rsrc);
+                        // "You monopolized 5 sheep."
                     sendGameState(ga);
                 }
                 else
                 {
-                    srv.messageToPlayer(c, gaName, "You can't do a Monopoly pick now.");
+                    srv.messageToPlayerKeyedSpecial(c, ga, "reply.playdevcard.cannot.now", SOCDevCardConstants.MONO);
+                        // "You can't play a Monopoly card now."  Before v2.0.00, was "You can't do a Monopoly pick now."
                 }
             }
             else
             {
-                srv.messageToPlayer(c, gaName, "It's not your turn.");
+                srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)
