@@ -123,6 +123,7 @@ public class SOCStringManager {
      * Resource type-and-count text keys for {@link #getSpecial(SOCGame, String, Object...)}.
      * Each subarray's indexes are the same values as {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
      * The string key at index 0 is used for resources out of range (unknown types).
+     * @see #getSOCResourceCount(int, Integer)
      */
     private static final String[][] GETSPECIAL_RSRC_KEYS =
     {
@@ -132,6 +133,8 @@ public class SOCStringManager {
             "spec.rsrcs.nunknown", "spec.rsrcs.nclay", "spec.rsrcs.nore", "spec.rsrcs.nsheep", "spec.rsrcs.nwheat", "spec.rsrcs.nwood"
         }, {  // a, an
             "spec.rsrcs.aunknown", "spec.rsrcs.aclay", "spec.rsrcs.aore", "spec.rsrcs.asheep", "spec.rsrcs.awheat", "spec.rsrcs.awood"
+        }, {  // resource type names, all of 1 resource ("la madera")
+            "spec.rsrcs.unknown", "spec.rsrcs.clay", "spec.rsrcs.ore", "spec.rsrcs.sheep", "spec.rsrcs.wheat", "spec.rsrcs.wood"
         }
     };
 
@@ -139,7 +142,8 @@ public class SOCStringManager {
      * Get a resource count, such as "5 sheep"; used by {@link #getSpecial(SOCGame, String, Object...)}. 
      * @param rtype  Type of resource, in the range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
      * @param rcountObj  Resource count; uses the Integer object passed into {@code getSpecial}.
-     *          As a special case, -1 will localize with the indefinite article, such as "a sheep" or "an ore"
+     *          As a special case, -1 will localize with the indefinite article, such as "a sheep" or "an ore".
+     *          -2 will localize to the plural resource name without a count, as in "clay" or "la lana".
      * @return  A localized string such as "1 wood" or "5 clay" or "a sheep", or if {@code rtype} is out of range,
      *          "3 resources of unknown type 37"
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
@@ -149,8 +153,19 @@ public class SOCStringManager {
     {
         final int rcount = rcountObj;
 
-        // keys for 1, n, or a/an
-        final String[] rkeyArray = GETSPECIAL_RSRC_KEYS[(rcount == 1) ? 0 : ((rcount != -1) ? 1 : 2)];
+        // arrays of resource type string keys for 1, n, or a/an
+        final String[] rkeyArray;
+        {
+            final int idx;
+            switch (rcount)
+            {
+            case  1:  idx = 0;  break;  // 1 resource
+            case -1:  idx = 2;  break;  // an/a resource
+            case -2:  idx = 3;  break;  // resource [no count shown]
+            default:  idx = 1;          // n resources
+            }
+            rkeyArray = GETSPECIAL_RSRC_KEYS[idx];
+        }
 
         final String resText;
         if ((rtype >= SOCResourceConstants.CLAY) && (rtype <= SOCResourceConstants.WOOD))
@@ -161,7 +176,7 @@ public class SOCStringManager {
                 resText = MessageFormat.format(bundle.getString(rkeyArray[rtype]), rcountObj);
         } else {
             // out of range, unknown type
-            if ((rcount == 1) || (rcount == -1))
+            if ((rcount == 1) || (rcount < 0))
                 resText = MessageFormat.format(bundle.getString(rkeyArray[0]), rtype);
             else
                 resText = MessageFormat.format(bundle.getString(rkeyArray[0]), rcountObj, rtype);
@@ -180,6 +195,7 @@ public class SOCStringManager {
      *     Resource names ("5 sheep") take 2 argument slots: an Integer for the count, and a
      *     resource type Integer in the range {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD}.
      *     Special case: A count of -1 will localize with "a/an", such as "a sheep" or "an ore".
+     *     A count of -2 will localize to the plural resource name without a number, for uses such as "Joe monopolized clay".
      *<LI> <tt>{0,dcards}</tt> for a Development Card or list of dev cards.
      *     {@code arguments} should contain a single Integer, or a {@link List} of them,
      *     in the range {@link SOCDevCardConstants#MIN} - {@link SOCDevCardConstants#TOW}.
@@ -344,7 +360,7 @@ public class SOCStringManager {
     public static SOCStringManager getClientManager(){
         if(clientManager == null)
             clientManager = new SOCStringManager("soc/client/strings/data");
-        
+
         return clientManager;
     }
 
