@@ -3088,30 +3088,28 @@ public class SOCPlayerInterface extends Frame
 
         public void playerStats(EnumMap<PlayerClientListener.UpdateType, Integer> stats)
         {
-            pi.print("* "+/*I*/"Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)"/*18N*/);
-            StringBuffer sb = new StringBuffer("* ");
+            pi.printKeyed("stats.rolls.your");  // "Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)"
             int total = 0;
 
-            PlayerClientListener.UpdateType[] types = {
+            // read resource stats into an array for message format access
+            int[] v = new int[5];  // CLAY - WOOD
+            final PlayerClientListener.UpdateType[] types =
+            {
                 PlayerClientListener.UpdateType.Clay,
                 PlayerClientListener.UpdateType.Ore,
                 PlayerClientListener.UpdateType.Sheep,
                 PlayerClientListener.UpdateType.Wheat,
                 PlayerClientListener.UpdateType.Wood
             };
-
+            int i = 0;
             for (PlayerClientListener.UpdateType t : types)
             {
                 int value = stats.get(t).intValue();
                 total += value;
-                sb.append(value);
-                sb.append(", ");
+                v[i] = value;  ++i;
             }
-            // Remove the last comma-space
-            sb.delete(sb.length()-2, sb.length());
-            sb.append(". Total: ");
-            sb.append(total);
-            pi.print(sb.toString());
+
+            pi.printKeyed("stats.rolls.n.total", v[0], v[1], v[2], v[3], v[4], total);  // "{0}, {1}, {2}, {3}, {4}. Total: {5}"
         }
 
         public void largestArmyRefresh(SOCPlayer old, SOCPlayer potentialNew)
