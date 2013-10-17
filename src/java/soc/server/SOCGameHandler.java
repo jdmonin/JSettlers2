@@ -691,9 +691,9 @@ public class SOCGameHandler extends GameHandler
          */
         sendTurn(ga, wantsRollPrompt);
         if (ga.getGameState() == SOCGame.SPECIAL_BUILDING)
-            srv.messageFormatToGame(gname, true,
-                "Special building phase: {0}''s turn to place.",
-                ga.getPlayer(ga.getCurrentPlayerNumber()).getName());
+            srv.messageToGameKeyed
+                (ga, true, "action.sbp.turn.to.place", ga.getPlayer(ga.getCurrentPlayerNumber()).getName());
+                // "Special building phase: {0}''s turn to place."
     }
 
     /**
@@ -786,6 +786,7 @@ public class SOCGameHandler extends GameHandler
                     card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
                 srv.messageToPlayer(c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, card));
             }
+
             if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
             {
                 srv.messageToGameExcept
@@ -798,7 +799,9 @@ public class SOCGameHandler extends GameHandler
                     (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
                      c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
             }
-            srv.messageFormatToGame(gaName, true, "{0}''s just-played development card was returned.", plName);
+
+            srv.messageToGameKeyed(ga, true, "forceend.devcard.returned", plName);
+                // "{0}''s just-played development card was returned."
         }
 
         /**
@@ -4039,13 +4042,14 @@ public class SOCGameHandler extends GameHandler
                             srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
                             srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
                         } else {
-                            srv.messageFormatToGame(gaName, true, "{0} skipped placing the second road.", player.getName());
+                            srv.messageToGameKeyed(ga, true, "action.card.roadbuilding.skip.r", player.getName());
+                                // "{0} skipped placing the second road."
                         }
                         sendGameState(ga);
                     }
                     else
                     {
-                        srv.messageToPlayer(c, gaName, "You didn't buy a road.");
+                        srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a road."/*18N*/ );
                     }
 
                     break;
@@ -4069,12 +4073,12 @@ public class SOCGameHandler extends GameHandler
                         ga.undoPutInitSettlement(pp);
                         srv.messageToGame(gaName, mes);  // Re-send to all clients to announce it
                             // (Safe since we've validated all message parameters)
-                        srv.messageFormatToGame(gaName, true, "{0} cancelled this settlement placement.",  player.getName());
+                        srv.messageToGameKeyed(ga, true, "action.built.stlmt.cancel", player.getName());  //  "{0} cancelled this settlement placement."
                         sendGameState(ga);  // This send is redundant, if client reaction changes game state
                     }
                     else
                     {
-                        srv.messageToPlayer(c, gaName, "You didn't buy a settlement.");
+                        srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a settlement."/*18N*/ );
                     }
 
                     break;
@@ -4090,7 +4094,7 @@ public class SOCGameHandler extends GameHandler
                     }
                     else
                     {
-                        srv.messageToPlayer(c, gaName, "You didn't buy a city.");
+                        srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a city."/*18N*/ );
                     }
 
                     break;
@@ -4105,13 +4109,14 @@ public class SOCGameHandler extends GameHandler
                             srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, 1));
                             srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
                         } else {
-                            srv.messageFormatToGame(gaName, true, "{0} skipped placing the second ship.", player.getName());
+                            srv.messageToGameKeyed(ga, true, "action.card.roadbuilding.skip.s", player.getName());
+                                // "{0} skipped placing the second ship."
                         }
                         sendGameState(ga);
                     }
                     else
                     {
-                        srv.messageToPlayer(c, gaName, "You didn't buy a ship.");
+                        srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a ship."/*18N*/ );
                     }
 
                     break;
@@ -4122,7 +4127,7 @@ public class SOCGameHandler extends GameHandler
             }
             else
             {
-                srv.messageToPlayer(c, gaName, "It's not your turn.");
+                srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)
@@ -5212,9 +5217,9 @@ public class SOCGameHandler extends GameHandler
                     {
                         srv.messageToGame
                             (gaName, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.GAIN, res, 1));
-                        srv.messageFormatToGame
-                            (gaName, true, "{0} gets 1 {1} by revealing the fog hex.",
-                             ga.getPlayer(cpn).getName(), SOCResourceConstants.resName(res));
+                        srv.messageToGameKeyedSpecial
+                            (ga, true, "event.fog.reveal",  // "{0} gets 1 {1,rsrcs} by revealing the fog hex."
+                             ga.getPlayer(cpn).getName(), Integer.valueOf(1), Integer.valueOf(res));
                     }
                 }
             }
@@ -5222,18 +5227,18 @@ public class SOCGameHandler extends GameHandler
 
         case SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY:
             {
-                final String gaName = ga.getName();
-                srv.messageToGame(gaName, "Game is ending: Less than half the villages have cloth remaining.");
-                srv.messageFormatToGame
-                    (gaName, true, "{0} has won due to this special win condition.",
-                     ((SOCPlayer) detail).getName());
+                srv.messageToGameKeyed(ga, true, "event.sc_clvi.game.ending.villages");
+                    // "Game is ending: Less than half the villages have cloth remaining."
+                srv.messageToGameKeyed(ga, true, "event.won.special.cond", ((SOCPlayer) detail).getName());
+                    // "{0} has won due to this special win condition."
             }
             break;
 
         case SGE_PIRI_LAST_FORTRESS_FLEET_DEFEATED:
             {
                 final String gaName = ga.getName();
-                srv.messageToGame(gaName, /*I*/"All pirate fortresses have been recaptured, the pirate fleet is defeated."/*18N*/);
+                srv.messageToGameKeyedSpecial(ga, true, "event.sc_piri.fleet.defeated");
+                    // "All pirate fortresses have been recaptured, the pirate fleet is defeated."
                 srv.messageToGame(gaName, new SOCMoveRobber(gaName, ga.getCurrentPlayerNumber(), 0));
             }
             break;
@@ -5310,13 +5315,12 @@ public class SOCGameHandler extends GameHandler
                 sendSVP = false;
                 if (! flagsChanged)
                     sendPlayerEventsBitmask = false;
-                srv.messageFormatToGame(gaName, true, "{0} established a trade route with a village.", plName);
+                srv.messageToGameKeyed(ga, true, "event.sc_clvi.established", plName);  // "{0} established a trade route with a village."
                 if (flagsChanged)
                 {
                     StringConnection c = srv.getConnection(plName);
-                    if (c != null)
-                        c.put(SOCGameServerText.toCmd
-                            (gaName, "You are no longer prevented from moving the pirate ship."));
+                    srv.messageToPlayerKeyed(c, gaName, "event.sc_clvi.not.prevented.pirate");  // null c is okay
+                        // "You are no longer prevented from moving the pirate ship."
                 }
 
                 // Player gets 1 cloth for establishing trade
