@@ -5275,8 +5275,8 @@ public class SOCServer extends Server
 
                     seatsFull = false;  // must be true to start game
                     numEmpty = 3;
-                    String m = "Sorry, the only player cannot lock all seats.";
-                    messageToGame(gn, m);
+                    messageToGameKeyed(ga, true, "start.only.cannot.lock.all");
+                        // "The only player cannot lock all seats. To start the game, other players or robots must join."
                 }
                 else if (! seatsFull)
                 {
@@ -5322,9 +5322,18 @@ public class SOCServer extends Server
                             }
                             catch (IllegalStateException e)
                             {
-                                messageToGameKeyed(ga, true, "start.robots.cannot.join.problem", e.getMessage());
-                                    // "Sorry, robots cannot join this game: {0}"
                                 System.err.println("Robot-join problem in game " + gn + ": " + e);
+
+                                // recover, so that human players can still start a game
+                                ga.setGameState(SOCGame.NEW);
+                                seatsFull = false;
+
+                                gameList.takeMonitorForGame(gn);
+                                messageToGameKeyed(ga, false, "start.robots.cannot.join.problem", e.getMessage());
+                                    // "Sorry, robots cannot join this game: {0}"
+                                messageToGameKeyed(ga, false, "start.to.start.without.robots");
+                                    // "To start the game without robots, lock all empty seats."
+                                gameList.releaseMonitorForGame(gn);
                             }
                         }
                     }
