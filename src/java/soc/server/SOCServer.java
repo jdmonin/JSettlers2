@@ -45,7 +45,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.SocketException;
 import java.sql.SQLException;
-import java.text.MessageFormat;
+import java.text.MessageFormat;  // used in javadocs
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -1916,6 +1916,7 @@ public class SOCServer extends Server
      *
      * @param c   the player connection; if their version is 2.0.00 or newer,
      *            they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
+     *            Null {@code c} is ignored and not an error.
      * @param ga  game name
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
      * @since 2.0.00
@@ -1942,6 +1943,7 @@ public class SOCServer extends Server
      *
      * @param c   the player connection; if their version is 2.0.00 or newer,
      *            they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
+     *            Null {@code c} is ignored and not an error.
      * @param ga  game name
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
      * @param args  Any parameters within {@code txt}'s placeholders
@@ -1974,6 +1976,7 @@ public class SOCServer extends Server
      *
      * @param c   the player connection; if their version is 2.0.00 or newer,
      *            they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
+     *            Null {@code c} is ignored and not an error.
      * @param ga  the game
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
      * @param args  Any parameters within {@code txt}'s placeholders
@@ -2059,8 +2062,9 @@ public class SOCServer extends Server
      *            text begins with ">>>", the client should consider this
      *            an urgent message, and draw the user's attention in some way.
      *            (See {@link #messageToGameUrgent(String, String)})
+     * @see #messageToGameKeyed(SOCGame, boolean, String)
+     * @see #messageToGameKeyed(SOCGame, boolean, String, Object...)
      * @see #messageToGame(String, SOCMessage)
-     * @see #messageFormatToGame(String, boolean, String, Object...)
      * @see #messageToGameWithMon(String, SOCMessage)
      * @see #messageToGameExcept(String, StringConnection, String, boolean)
      * @since 1.1.08
@@ -2343,7 +2347,7 @@ public class SOCServer extends Server
 
     /**
      * Send a localized {@link SOCGameServerText} game text message (with parameters) to a game,
-     * optionally with special formatting like <tt>{0,rsrcs}</tt>, optionally excluding one connection.
+     * optionally with special formatting like <tt>{0,rsrcs}</tt>, optionally excluding some connections.
      * Same as {@link #messageToGame(String, String)} but calls each member connection's
      * {@link StringConnection#getLocalizedSpecial(SOCGame, String, Object...) c.getLocalizedSpecial(...)} for the
      * localized text to send.
@@ -2506,45 +2510,6 @@ public class SOCServer extends Server
                 c.put(mesCmd);
             }
         }
-    }
-
-    /**
-     * Send a formatted server text message to the given game.
-     * Standardizes construction of strings with arguments, to aid with internationalization.
-     * Equivalent to: messageToGame(ga, new SOCGameTextMsg(ga, {@link #SERVERNAME}, MessageFormat.format(txt, args)));
-     *<P>
-     * Do not pass SOCSomeMessage.toCmd() into this method; the message type number
-     * will be GAMETEXTMSG, not the desired SOMEMESSAGE.
-     *<P>
-     *<b>Locks:</b> Either set <tt>takeMon</tt> true, or call
-     * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(ga)}
-     * before calling this method.
-     *
-     * @param ga  the name of the game
-     * @param takeMon Should this method take and release
-     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
-     *                Must be true; if false, use {@link #messageToGameKeyed(SOCGame, boolean, String, Object...)} instead.
-     * @param txt the message text to send, to be formatted as in {@link MessageFormat}:
-     *            Placeholders for {@code args} are <tt>{0}</tt> etc, single-quotes must be repeated: {@code ''}
-     *           <P>
-     *            If text begins with ">>>", the client should consider this
-     *            an urgent message, and draw the user's attention in some way.
-     *            (See {@link #messageToGameUrgent(String, String)})
-     * @param args  Any parameters within {@code txt}'s placeholders
-     * @see #messageToGameKeyed(SOCGame, boolean, String, Object...)
-     * @see #messageToGame(String, String)
-     * @see #messageToPlayerKeyed(StringConnection, String, String, Object...)
-     * @since 2.0.00
-     */
-    public void messageFormatToGame(final String ga, final boolean takeMon, final String txt, final Object ... args)
-    {
-        final String finalTxt = MessageFormat.format(txt, args);
-
-        if (takeMon)
-            messageToGame(ga, finalTxt);
-        else
-            throw new IllegalArgumentException("i18n: use messageToGameKeyed instead");
-            // was messageToGameWithMon(ga, finalTxt); temporary message while phasing out messageFormatToGame
     }
 
     /**
@@ -5320,9 +5285,8 @@ public class SOCServer extends Server
                     if (robots.isEmpty())
                     {
                         if (numPlayers < SOCGame.MINPLAYERS)
-                            messageFormatToGame(gn, true,
-                                "No robots on this server, please fill at least {0} seats before starting.",
-                                SOCGame.MINPLAYERS);
+                            messageToGameKeyed(ga, true, "start.no.robots.on.server", SOCGame.MINPLAYERS);
+                                // "No robots on this server, please fill at least {0} seats before starting."
                         else
                             seatsFull = true;  // Enough players to start game.
                     }
@@ -5334,12 +5298,14 @@ public class SOCServer extends Server
                         //
                         if (numEmpty > robots.size())
                         {
-                            String m;
+                            final String m;
                             if (anyLocked)
-                                m = "Sorry, not enough robots to fill all the seats.  Only {0} robots are available.";
+                                m = "start.not.enough.robots";
+                                    // "Not enough robots to fill all the seats. Only {0} robots are available."
                             else
-                                m = "Sorry, not enough robots to fill all the seats.  Lock some seats.  Only {0} robots are available.";
-                            messageFormatToGame(gn, true, m, robots.size());
+                                m = "start.not.enough.robots.lock";
+                                    // "Not enough robots to fill all the seats. Lock some seats. Only {0} robots are available."
+                            messageToGameKeyed(ga, true, m, robots.size());
                         }
                         else
                         {
@@ -5356,9 +5322,9 @@ public class SOCServer extends Server
                             }
                             catch (IllegalStateException e)
                             {
-                                String m = "Sorry, robots cannot join this game: {0}";
-                                messageFormatToGame(gn, true, m, e.getMessage());
-                                System.err.println("Robot-join problem in game " + gn + ": " + m + e);
+                                messageToGameKeyed(ga, true, "start.robots.cannot.join.problem", e.getMessage());
+                                    // "Sorry, robots cannot join this game: {0}"
+                                System.err.println("Robot-join problem in game " + gn + ": " + e);
                             }
                         }
                     }
