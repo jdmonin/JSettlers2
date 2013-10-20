@@ -1923,7 +1923,7 @@ public class SOCGameHandler extends GameHandler
 
                 srv.messageToGameKeyedSpecial
                     (ga, true, "endgame.player.has.vpcards", pl.getName(), vpCardTypes);
-                    // "Joe has a Gov.House (+1VP) and a Market (+1VP)"
+                    // "Joe has a Gov.House (+1VP) and a Market (+1VP)" ["{0} has {1,dcards}."]
 
             }  // if devcards
         }  // for each player
@@ -2404,7 +2404,7 @@ public class SOCGameHandler extends GameHandler
         /**
          * ga.startGame() picks who goes first, but feedback is nice
          */
-        srv.messageToGameKeyed(ga, false, "action.picking.random.starting.player");  // "Randomly picking a starting player..."
+        srv.messageToGameKeyed(ga, false, "start.picking.random.starting.player");  // "Randomly picking a starting player..."
 
         srv.gameList.releaseMonitorForGame(gaName);
 
@@ -3165,7 +3165,8 @@ public class SOCGameHandler extends GameHandler
                                 (gn, -1, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, board.getCloth()));
 
                         StringBuilder sb = null;
-                        int nPl = 0;
+                        String clplName = null;   // name of first player to receive cloth
+                        ArrayList<String> clpls = null;  // names of all players receiving cloth, if more than one
                         for (int i = 2; i < roll.cloth.length; ++i)
                         {
                             if (roll.cloth[i] == 0)
@@ -3176,19 +3177,27 @@ public class SOCGameHandler extends GameHandler
                             srv.messageToGame(gn, new SOCPlayerElement
                                 (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, clpl.getCloth()));
 
-                            if (sb == null)
+                            if (clplName == null)
                             {
-                                sb = new StringBuilder(clpl.getName());
+                                // first pl to receive cloth
+                                clplName = clpl.getName();
                             } else {
-                                sb.append(", ");
-                                sb.append(clpl.getName());
+                                // second or further player
+                                if (clpls == null)
+                                {
+                                    clpls = new ArrayList<String>();
+                                    clpls.add(clplName);
+                                }
+                                clpls.add(clpl.getName());
                             }
-                            ++nPl;
                         }
-                        if (nPl > 1)
-                            sb.append(" each");
-                        sb.append(/*I*/" received 1 cloth from a village."/*18N*/);
-                        srv.messageToGame(gn, sb.toString());
+
+                        if (clpls == null)
+                            srv.messageToGameKeyed(ga, true, "action.rolled.sc_clvi.received.cloth.1", clplName);
+                                // "{0} received 1 cloth from a village."
+                        else
+                            srv.messageToGameKeyedSpecial(ga, true, "action.rolled.sc_clvi.received.cloth.n", clpls);
+                                // "{0,list} each received 1 cloth from a village."
                     }
 
                     if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
