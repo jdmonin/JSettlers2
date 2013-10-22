@@ -2170,6 +2170,7 @@ public class SOCHandPanel extends Panel
         else
             sitButTip.setTip(ttipText);
         sitButIsLock = true;
+        validate();  // sitBut minimum width may change with text
         sitBut.repaint();
     }
 
@@ -2651,6 +2652,7 @@ public class SOCHandPanel extends Panel
             else
                 sitButTip.setTip(ttipText);
 
+            validate();  // sitBut minimum width may change with text
             repaint();
         }
     }
@@ -3047,7 +3049,9 @@ public class SOCHandPanel extends Panel
             /* just show the 'sit' button */
             /* and the 'robot' button     */
             /* and the pname label        */
-            sitBut.setBounds((dim.width - 60) / 2, (dim.height - 82) / 2, 60, 40);
+
+            final int sitW = (fm != null) ? (24 + fm.stringWidth(sitBut.getLabel())) : 60;
+            sitBut.setBounds((dim.width - sitW) / 2, (dim.height - 82) / 2, sitW, 40);
             pname.setBounds(inset + faceW + inset, inset, pnameW, lineH);
         }
         else
