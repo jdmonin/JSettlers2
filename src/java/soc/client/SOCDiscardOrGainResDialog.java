@@ -49,6 +49,11 @@ import java.awt.event.MouseListener;
  */
 class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseListener
 {
+
+    /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
+     *  @since 2.0.00 */
+    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+
     /**
      * Are we discarding, not gaining?
      * @since 2.0.00
@@ -104,7 +109,9 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
      */
     public SOCDiscardOrGainResDialog(SOCPlayerInterface pi, final int rnum, final boolean isDiscard)
     {
-        super(pi, /*I*/(isDiscard ? "Discard [" : "Gain Resources [" ) + pi.getClient().getNickname() + "]"/*18N*/, true);
+        super(pi, strings.get
+                (isDiscard ? "dialog.discard.title" : "dialog.discard.title.gain", pi.getClient().getNickname()), true);
+                // "Discard [{0}]" or "Gain Resources [{0}]"
 
         this.isDiscard = isDiscard;
         playerInterface = pi;
@@ -114,21 +121,22 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
         setForeground(Color.black);
         setFont(new Font("SansSerif", Font.PLAIN, 12));
 
-        clearBut = new Button(/*I*/"Clear"/*18N*/);
-        okBut = new Button(isDiscard ? /*I*/"Discard"/*18N*/ : /*I*/"Pick"/*18N*/);
+        clearBut = new Button(strings.get("base.clear"));
+        okBut = new Button(strings.get(isDiscard ? "dialog.discard.discard" : "dialog.discard.pick"));
+            // "Discard" or "Pick"
 
         didSetLocation = false;
         setLayout(null);
 
         msg = new Label
-            (/*I*/(isDiscard ? "Please discard " : "Please pick ")
-             + Integer.toString(numPickNeeded)
-             + ((numPickNeeded != 1) ? " resources." : " resource."/*18N*/)
-             , Label.CENTER);
+            (strings.get((isDiscard) ? "dialog.discard.please.discard.n" : "dialog.discard.please.pick.n", numPickNeeded),
+             Label.CENTER);
+            // "Please discard {0} resources." or "Please pick {0} resources."
         add(msg);
-        youHave = new Label(/*I*/"You have:"/*18N*/, Label.LEFT);
+        youHave = new Label(strings.get("dialog.discard.you.have"), Label.LEFT);  // "You have:"
         add(youHave);
-        pickThese = new Label((isDiscard ? /*I*/"Discard these:"/*18N*/ : /*I*/"Gain these:"/*18N*/), Label.LEFT);
+        pickThese = new Label(strings.get(isDiscard ? "dialog.discard.these" : "dialog.discard.gain.these"), Label.LEFT);
+            // "Discard these:" or "Gain these:"
         add(pickThese);
 
         // wantH formula based on doLayout
@@ -435,4 +443,5 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
             playerInterface.chatPrintStackTrace(th);
         }
     }
+
 }
