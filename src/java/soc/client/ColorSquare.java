@@ -42,6 +42,7 @@ import java.awt.event.MouseListener;
  *
  * @author Robert S Thomas
  */
+@SuppressWarnings("serial")
 public class ColorSquare extends Canvas implements MouseListener
 {
     /**

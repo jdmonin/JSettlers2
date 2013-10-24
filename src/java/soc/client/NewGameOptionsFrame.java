@@ -80,6 +80,7 @@ import soc.util.Version;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
  */
+@SuppressWarnings("serial")
 public class NewGameOptionsFrame extends Frame
     implements ActionListener, KeyListener, ItemListener, TextListener, MouseListener
 {

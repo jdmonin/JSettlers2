@@ -28,6 +28,7 @@ import soc.client.SOCPlayerClient.GameAwtDisplay;
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  */
+@SuppressWarnings("serial")
 class SOCPracticeAskDialog extends AskDialog
 {
     /**

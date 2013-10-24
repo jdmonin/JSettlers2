@@ -122,6 +122,7 @@ import soc.util.Version;
  *
  * @author Robert S Thomas
  */
+@SuppressWarnings("serial")
 public class SOCPlayerClient
 {
     /**

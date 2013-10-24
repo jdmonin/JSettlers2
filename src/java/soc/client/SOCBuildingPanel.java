@@ -48,6 +48,7 @@ import javax.swing.JFrame;   // for GameStatisticsFrame
  * to build things, and it allows the player to build.
  * Sits within a game's {@link SOCPlayerInterface} frame.
  */
+@SuppressWarnings("serial")
 public class SOCBuildingPanel extends Panel
     implements ActionListener, WindowListener
 {

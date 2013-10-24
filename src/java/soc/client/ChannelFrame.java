@@ -50,6 +50,7 @@ import soc.client.SOCPlayerClient.GameAwtDisplay;
  *  @version 2.0 (no GridbagLayout) with textwrapping and customized window
  *  @author <A HREF="http://www.nada.kth.se/~cristi">Cristian Bogdan</A>
  */
+@SuppressWarnings("serial")
 public class ChannelFrame extends Frame
 {
     public SnippingTextArea ta;

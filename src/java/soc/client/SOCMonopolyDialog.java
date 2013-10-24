@@ -29,6 +29,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 
+@SuppressWarnings("serial")
 class SOCMonopolyDialog extends Dialog implements ActionListener
 {
     Button[] rsrcBut;

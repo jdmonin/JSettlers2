@@ -47,6 +47,7 @@ import java.awt.event.MouseListener;
  *
  * @author  Robert S. Thomas
  */
+@SuppressWarnings("serial")
 class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseListener
 {
 

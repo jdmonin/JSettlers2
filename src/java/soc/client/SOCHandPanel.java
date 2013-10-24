@@ -71,6 +71,7 @@ import java.util.TimerTask;
  * To set this panel's position or size, please use {@link #setBounds(int, int, int, int)},
  * because it is overridden to also update {@link #getBlankStandIn()}.
  */
+@SuppressWarnings("serial")
 public class SOCHandPanel extends Panel
     implements ActionListener, MouseListener
 {
@@ -2823,6 +2824,10 @@ public class SOCHandPanel extends Panel
                 clothSq.setIntValue(player.getCloth());
             break;
 
+        case Warship:
+        case Unknown:
+            // do nothing (avoid compiler enum warning).
+            //    We don't use a default case, so that future enum values will be considered when the warning appears.
         }
 
         if (updateTotalResCount)

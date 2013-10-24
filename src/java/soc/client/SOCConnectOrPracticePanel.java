@@ -50,6 +50,7 @@ import soc.util.Version;
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  */
+@SuppressWarnings("serial")
 public class SOCConnectOrPracticePanel extends Panel
     implements ActionListener, KeyListener
 {

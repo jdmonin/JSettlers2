@@ -43,6 +43,7 @@ import java.awt.Graphics;
  *
  * @author Robert S. Thomas
  */
+@SuppressWarnings("serial")
 public class SpeechBalloon extends Canvas
 {
     /**

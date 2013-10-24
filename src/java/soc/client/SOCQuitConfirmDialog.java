@@ -29,6 +29,7 @@ import soc.util.SOCStringManager;
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  */
+@SuppressWarnings("serial")
 class SOCQuitConfirmDialog extends AskDialog
 {
     /** i18n text strings.

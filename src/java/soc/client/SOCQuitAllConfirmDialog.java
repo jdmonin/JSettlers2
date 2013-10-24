@@ -31,6 +31,7 @@ import soc.client.SOCPlayerClient.GameAwtDisplay;
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  */
+@SuppressWarnings("serial")
 class SOCQuitAllConfirmDialog extends AskDialog
 {
     protected boolean hostedServerActive;

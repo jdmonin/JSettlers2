@@ -31,6 +31,7 @@ import java.awt.Graphics;
  *
  * @author Robert S. Thomas
  */
+@SuppressWarnings("serial")
 public class ShadowedBox extends Canvas
 {
     /**
@@ -97,7 +98,6 @@ public class ShadowedBox extends Canvas
         int w = dim.width;
         final int xm = SHADOW_SIZE;
         final int ym = SHADOW_SIZE;
-        int i;
 
         g.setPaintMode();
         g.setColor(interior);

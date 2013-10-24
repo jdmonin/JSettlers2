@@ -99,6 +99,7 @@ import java.io.StringWriter;
  *
  * @author Robert S. Thomas
  */
+@SuppressWarnings("serial")
 public class SOCPlayerInterface extends Frame
     implements ActionListener, MouseListener, SOCScenarioEventListener
 {

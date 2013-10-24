@@ -55,6 +55,7 @@ import java.awt.event.ActionListener;
  * To set this panel's position or size, please use {@link #setBounds(int, int, int, int)},
  * because it is overridden to also update a "compact mode" flag for counter-offer layout.
  */
+@SuppressWarnings("serial")
 public class TradeOfferPanel extends Panel
 {
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager.

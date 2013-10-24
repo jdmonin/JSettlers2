@@ -34,6 +34,7 @@ import java.awt.TextArea;
  * Limits lines displayed to MaximumLines.  Note that the empty string is also
  * considered a line.
  */
+@SuppressWarnings("serial")
 public class SnippingTextArea extends TextArea
 {
     /**

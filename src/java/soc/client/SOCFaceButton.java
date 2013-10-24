@@ -51,6 +51,7 @@ import java.net.URL;
  *
  * @author Robert S. Thomas
  */
+@SuppressWarnings("serial")
 public class SOCFaceButton extends Canvas
 {
     public static final int DEFAULT_FACE = 1;  // Human face # 1 (face1.gif)

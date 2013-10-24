@@ -37,6 +37,7 @@ import java.awt.event.MouseListener;
  * @see SOCHandPanel
  * @see TradeOfferPanel
  */
+@SuppressWarnings("serial")
 public class SquaresPanel extends Panel implements MouseListener, ColorSquareListener
 {
     /**

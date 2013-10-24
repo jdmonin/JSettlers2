@@ -90,6 +90,7 @@ import java.util.Timer;
  * To set its size, call {@link #setSize(int, int)} or {@link #setBounds(int, int, int, int)};
  * these methods will set a flag to rescale board graphics if needed.
  */
+@SuppressWarnings("serial")
 public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
 {
     /** i18n text strings */
@@ -6884,9 +6885,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
       /** determined at menu-show time, only over a useable port. Added then, and removed at next menu-show */
       SOCHandPanel.ResourceTradePopupMenu portTradeSubmenu;
-
-      /** determined at menu-show time */
-      private int menuPlayerID;
 
       /** determined at menu-show time */
       private boolean menuPlayerIsCurrent;

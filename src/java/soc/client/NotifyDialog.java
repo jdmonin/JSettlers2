@@ -36,6 +36,7 @@ import soc.client.SOCPlayerClient.GameAwtDisplay;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.06
  */
+@SuppressWarnings("serial")
 class NotifyDialog extends AskDialog
 {
     /** i18n text strings */

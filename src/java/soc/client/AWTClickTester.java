@@ -34,6 +34,7 @@ import java.awt.event.MouseListener;
  * @author Jeremy D Monin <jeremy@nand.net>
  *
  */
+@SuppressWarnings("serial")
 public class AWTClickTester extends java.awt.Canvas implements MouseListener
 {
     int lastX, lastY;

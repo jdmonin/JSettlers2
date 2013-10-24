@@ -38,6 +38,7 @@ import java.awt.event.*;
  * The tooltip adds itself as a listener to the parent component.
  * If you need to remove this tooltip from the parent, call {@link #destroy()}.
  */
+@SuppressWarnings("serial")
 public class AWTToolTip
   extends Canvas
   implements MouseListener, MouseMotionListener, ComponentListener
