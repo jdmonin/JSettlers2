@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2008,2010 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008,2010,2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -34,6 +34,10 @@ import soc.client.SOCPlayerClient.GameAwtDisplay;
 @SuppressWarnings("serial")
 class SOCQuitAllConfirmDialog extends AskDialog
 {
+    /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
+     *  @since 2.0.00 */
+    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+
     protected boolean hostedServerActive;
 
     /**
@@ -55,7 +59,6 @@ class SOCQuitAllConfirmDialog extends AskDialog
         SOCQuitAllConfirmDialog qcd = new SOCQuitAllConfirmDialog(cli, gamePIOrSelf, hasAny);
         qcd.setVisible(true);
     }
-    
 
     /**
      * Creates a new SOCQuitAllConfirmDialog.
@@ -69,10 +72,13 @@ class SOCQuitAllConfirmDialog extends AskDialog
     protected SOCQuitAllConfirmDialog(GameAwtDisplay cli, Frame gamePIOrSelf, boolean hostedServerActive)
     {
         super(cli, gamePIOrSelf,
-            (hostedServerActive ? /*I*/"Shut down game server?"/*18N*/ : /*I*/"Really quit all games?"/*18N*/),
-            /*I*/"One or more games are still active."/*18N*/,
-            (hostedServerActive ? /*I*/"Shut down server anyway"/*18N*/ : /*I*/"Quit all games"/*18N*/),
-            (hostedServerActive ? /*I*/"Continue serving"/*18N*/ : /*I*/"Continue playing"/*18N*/),
+            strings.get(hostedServerActive ? "dialog.quitall.shut.srv" : "dialog.quitall.really"),
+                // "Shut down game server?" / "Really quit all games?"
+            strings.get("dialog.quitall.still.active"),  // "One or more games are still active."
+            strings.get(hostedServerActive ? "dialog.quitall.shut.anyway" : "dialog.quitall.games"),
+                // "Shut down server anyway" / "Quit all games"
+            strings.get(hostedServerActive ? "dialog.quitall.cont.srv" : "dialog.quitall.cont.play"),
+                // "Continue serving" / "Continue playing"
             false, true);
         this.hostedServerActive = hostedServerActive;
     }
