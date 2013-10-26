@@ -43,7 +43,13 @@ import soc.util.IntPair;
  * Calling board methods won't change the game state.
  *<P>
  * To create a new board, use subclass <tt>soc.server.SOCBoardLargeAtServer</tt>.
- * See that class's javadoc, and its <tt>makeNewBoard(Hashtable)</tt> javadoc, for more details.
+ * Game boards are initially all water.  The layout contents are set up later by calling
+ * {@code SOCBoardLargeAtServer.makeNewBoard(Hashtable)} when the game is about to begin,
+ * then sent to the clients over the network.  The client calls methods such as {@link #setLandHexLayout(int[])},
+ * {@link #setPortsLayout(int[])}, {@link SOCGame#putPiece(SOCPlayingPiece)}, and
+ * {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])} with data from the server.
+ *<P>
+ * See that class's javadoc, and its <tt>makeNewBoard(Hashtable)</tt> javadoc, for more details on layout creation.
  *<P>
  * On this large sea board, there can optionally be multiple "land areas"
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
@@ -212,6 +218,9 @@ import soc.util.IntPair;
  */
 public class SOCBoardLarge extends SOCBoard
 {
+    /** SOCBoardLarge serial, to suppress warning. SOCBoardLarge isn't sent over the network as a serialized object. */
+    private static final long serialVersionUID = 2000L;
+
     /**
      * This board encoding {@link SOCBoard#BOARD_ENCODING_LARGE}
      * was introduced in version 2.0.00 (2000)
@@ -539,7 +548,10 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Create a new Settlers of Catan Board, with the v3 encoding.
+     * The board will be empty (all hexes are water, no dice numbers on any hex), see class javadoc
+     * for how the board is filled when the game begins.
      * Board height and width will be the default, {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE}.
+     *<P>
      * Only the client uses this constructor.
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6
@@ -553,6 +565,8 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Create a new Settlers of Catan Board, with the v3 encoding and a certain size.
+     * The board will be empty (all hexes are water, no dice numbers on any hex), see class javadoc
+     * for how the board is filled when the game begins.
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6
      * @param boardHeightWidth  Board's height and width.

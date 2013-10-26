@@ -116,7 +116,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Create a new Settlers of Catan Board, with the v3 encoding.
      * Called by {@link SOCBoardLargeAtServer.BoardFactoryAtServer#createBoard(Hashtable, boolean, int)}
      * to get the right board size and layout based on game options and optional {@link SOCScenario}.
-     * The layout contents are set up in {@link #makeNewBoard(Hashtable)}.
+     * The board will be empty (all hexes are water, no dice numbers on any hex).
+     * The layout contents are set up later by calling {@link #makeNewBoard(Hashtable)} when the game is about to begin,
+     * see {@link SOCBoardLarge} class javadoc for how the layout is sent to clients.
      *
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6
@@ -1818,7 +1820,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * unless <tt>gameOpts</tt> contains a scenario (<tt>"SC"</tt>) whose layout has a custom height/width.
      * @param gameOpts  Game options, or null
      * @param maxPlayers  Maximum players; must be 4 or 6
-     * @return encoded size (0xRRCC)
+     * @return encoded size (0xRRCC), the same format as game option {@code "_BHW"}
      * @see SOCBoardLarge#getBoardSize(Hashtable, int)
      */
     private static int getBoardSize(Hashtable<String, SOCGameOption> gameOpts, final int maxPlayers)
