@@ -113,7 +113,11 @@ public class SOCBuildingPanel extends Panel
      */
     private Button shipBut;
 
-    // For 6-player board: request Special Building Phase: @since 1.1.08
+    /** For 6-player board: request Special Building Phase.
+     *  Given variable custom layout in v2.0.00 for i18n. Contains {@link #sbLab} and {@link #sbBut}
+     *  centered on 1 line or 2 lines based on their text widths.
+     *  @since 1.1.08
+     */
     private Panel sbPanel;
     private Button sbBut;
     private Label sbLab;
@@ -325,9 +329,55 @@ public class SOCBuildingPanel extends Panel
         {
             // Special Building Phase button for 6-player game
             sbIsHilight = false;
-            sbPanel = new Panel();  // with default FlowLayout, alignment FlowLayout.CENTER.
+            sbPanel = new Panel(null) {
+                /** Custom layout for this Panel, with label/button centered on 1 line or 2 lines based on their text widths.
+                 *  Line height is {@link ColorSquare#HEIGHT}, the same used in {@link SOCBuildingPanel#doLayout()}.
+                 */
+                public void doLayout() {
+                    final Dimension dim = getSize();
+                    final FontMetrics fm = this.getFontMetrics(this.getFont());
+                    if ((dim.height == 0) || (sbLab == null) || (sbBut == null) || (fm == null))
+                    {
+                        invalidate();
+                        return;  // <--- not ready for layout yet ---
+                    }
+                    int lineH = sbBut.getMinimumSize().height;
+                    if (lineH == 0)
+                        lineH = sbBut.getPreferredSize().height;
+                    if (lineH == 0)
+                        lineH = ColorSquare.HEIGHT;
+
+                    final int lblW = fm.stringWidth(sbLab.getText());
+                    int btnW = sbBut.getPreferredSize().width;
+                    final int btnTxtW = 8 + sbBut.getFontMetrics(sbBut.getFont()).stringWidth(sbBut.getLabel());
+                    if (btnTxtW > btnW)
+                        btnW = btnTxtW;
+                    if (btnW > dim.width)
+                        btnW = dim.width;
+
+                    final int bothW = (lblW + btnW + 4 + 2 + 2);
+                    if (bothW <= dim.width)
+                    {
+                        // layout on 1 line
+                        final int y = (dim.height - lineH) / 2;
+                        int x = (dim.width - bothW) / 2;
+                        sbLab.setLocation(x, y);
+                        sbLab.setSize(lblW, lineH);
+                        x += lblW + 4;
+                        sbBut.setLocation(x, y);
+                        sbBut.setSize(btnW, lineH);
+                    } else {
+                        // layout on 2 lines; y == line height == half of panel height, then adjust for padding
+                        int y = (dim.height / 2) - 1;
+                        sbLab.setLocation(0, 0);
+                        sbLab.setSize(dim.width, y);
+                        sbBut.setLocation((dim.width - btnW) / 2, y);
+                        sbBut.setSize(btnW, y);
+                    }
+                }
+            };
             sbPanel.setBackground(ColorSquare.GREY);
-            sbLab = new Label(strings.get("build.special.build.phase"));  // "Special Building Phase"
+            sbLab = new Label(strings.get("build.special.build.phase"), Label.CENTER);  // "Special Building Phase"
             sbBut = new Button(strings.get("build.buybuild"));  // "Buy/Build"
             sbBut.setEnabled(false);
             sbBut.setActionCommand(SBP);
@@ -346,8 +396,13 @@ public class SOCBuildingPanel extends Panel
 
     /**
      * custom layout for this panel.
+     * Layout line height is based on {@link ColorSquare#HEIGHT}.
      * If you change the line spacing or total height laid out here,
      * please update {@link #MINHEIGHT}.
+     *<P>
+     * For 6-player games, {@link #sbPanel} is 2 "layout lines" tall here,
+     * and has its own custom {@code doLayout()} based on whether its label
+     * and button will fit on the same line or must be wrapped to 2 lines.
      */
     public void doLayout()
     {
