@@ -3049,13 +3049,13 @@ public class SOCHandPanel extends Panel
         final int faceW = 40;  // face icon width
         final int pnameW = dim.width - (inset + faceW + inset + inset);  // player name width, to right of face
 
-        if (!inPlay)
+        if (! inPlay)
         {
             /* just show the 'sit' button */
             /* and the 'robot' button     */
             /* and the pname label        */
 
-            final int sitW = (fm != null) ? (24 + fm.stringWidth(sitBut.getLabel())) : 60;
+            final int sitW = (fm != null) ? (24 + fm.stringWidth(sitBut.getLabel())) : 70;
             sitBut.setBounds((dim.width - sitW) / 2, (dim.height - 82) / 2, sitW, 40);
             pname.setBounds(inset + faceW + inset, inset, pnameW, lineH);
         }
