@@ -446,10 +446,11 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         opt = (opts != null ? opts.get(SOCGameOption.K_SC_CLVI) : null);
         if ((opt != null) && opt.getBoolValue())
         {
-            setVillageAndClothLayout(SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE);
-                // also sets board's "general supply"
+            final int[] cl =
+                (maxPl == 6) ? SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE_6PL : SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE_4PL;
 
-            setAddedLayoutPart("CV", SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE);
+            setVillageAndClothLayout(cl);  // also sets board's "general supply"
+            setAddedLayoutPart("CV", cl);
         }
 
         if (PORTS_TYPES_MAINLAND == null)
@@ -1875,6 +1876,12 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 else
                     heightWidth = PIR_ISL_BOARDSIZE[0];
             }
+            else if (sc.equals(SOCScenario.K_SC_CLVI) && (maxPlayers == 6))
+            {
+                // For now, _SC_CLVI uses the fallback layout.
+                // For 6 players, height includes an extra row of hexes.
+                heightWidth = ((BOARDHEIGHT_LARGE + 3) << 8) | BOARDWIDTH_LARGE;
+            }
         }
         else if (maxPlayers == 6)
         {
@@ -2059,7 +2066,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     };
 
     /**
-     * My sample board layout: Outlying islands' cloth village node locations and dice numbers.
+     * 4-player fallback board layout: Outlying islands' cloth village node locations and dice numbers
+     * for the {@link SOCScenario#K_SC_CLVI} Cloth Villages scenario (until its real layout is ready).
      * Index 0 is the board's "general supply" cloth count.
      * Index 1 is each village's starting cloth count, from {@link SOCVillage#STARTING_CLOTH}.
      * Further indexes are the locations and dice.
@@ -2068,7 +2076,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * @see SOCGameOption#K_SC_CLVI
      * @see #setVillageAndClothLayout(int[])
      */
-    private static final int SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE[] =
+    private static final int SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE_4PL[] =
     {
         SOCVillage.STARTING_GENERAL_CLOTH,  // Board's "general supply" cloth count
         SOCVillage.STARTING_CLOTH,
@@ -2175,6 +2183,29 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         0x0B0A, FACING_W,   0x0E08, FACING_NW,
         0x0E05, FACING_NE,  0x0C02, FACING_NE,
         0x0800, FACING_NE
+    };
+
+    /**
+     * 6-player fallback board layout: Outlying islands' cloth village node locations and dice numbers
+     * for the {@link SOCScenario#K_SC_CLVI} Cloth Villages scenario (until its real layout is ready).
+     * Index 0 is the board's "general supply" cloth count.
+     * Index 1 is each village's starting cloth count, from {@link SOCVillage#STARTING_CLOTH}.
+     * Further indexes are the locations and dice.
+     * Paired for each village: [i] = node, [i+1] = dice number.
+     * For testing only: An actual cloth village scenario would have a better layout.
+     * @see SOCGameOption#K_SC_CLVI
+     * @see #setVillageAndClothLayout(int[])
+     */
+    private static final int SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE_6PL[] =
+    {
+        SOCVillage.STARTING_GENERAL_CLOTH,  // Board's "general supply" cloth count
+        SOCVillage.STARTING_CLOTH,
+        0x020C, 6,  // NW part of NE island
+        0x060E, 10, // SE part of NE island
+        0x0A0D, 5,  // N point of SE island
+        0x0E0B, 9,  // SW point of SE island
+        0x1005, 8,  // west on SW island
+        0x1009, 4   // east on SW island
     };
 
     /**
