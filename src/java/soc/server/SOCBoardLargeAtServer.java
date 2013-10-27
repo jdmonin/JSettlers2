@@ -74,7 +74,8 @@ import soc.util.IntTriple;
  * are tracked by their hexes' nodes, not by the hexes, and a node can't be in multiple LAs.
  *<P>
  * <H3> To Add a New Board:</H3>
- * To add a new board, you'll need to declare all parts of its layout, recognize its
+ * To add a new board layout type, for a new game option or scenario:
+ * You'll need to declare all parts of its layout, recognize its
  * scenario or game option in makeNewBoard, and call methods to set up the structure.
  * These layout parts' values can be different for 3, 4, or 6 players.
  *<P>
@@ -83,7 +84,7 @@ import soc.util.IntTriple;
  *<P>
  * Parts of the layout:
  *<UL>
- * <LI> Its height and width, if not default
+ * <LI> Its height and width, if not default; set in {@link #getBoardSize(Hashtable, int)}
  * <LI> Its set of land hex types, usually shuffled *
  * <LI> Land hex coordinates *
  * <LI> Dice numbers to place at land hex coordinates, sometimes shuffled
@@ -167,7 +168,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     //
     // Make New Board
     //
-    // To add a new board, see the class javadoc.
+    // To add a new board layout, see the class javadoc.
     //
 
 
@@ -175,7 +176,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Shuffle the hex tiles and layout a board.
      * This is called at server, but not at client;
      * client instead calls methods such as {@link #setLandHexLayout(int[])}
-     * and {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}.
+     * and {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])},
+     * see {@link SOCBoardLarge} class javadoc.
      * @param opts {@link SOCGameOption Game options}, which may affect
      *          tile placement on board, or null.  <tt>opts</tt> must be
      *          the same as passed to constructor, and thus give the same size and layout
@@ -329,26 +331,32 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         }
         else if (! hasScenarioFog)
         {
-            // This is the example fallback layout.
+            // This is the fallback layout, the large sea board used when no scenario is chosen.
+            // Size is BOARDHEIGHT_LARGE by BOARDWIDTH_LARGE for 4 players.
+            // For 6 players, there's an extra row of hexes: BOARDHEIGHT_LARGE + 3.
 
             landAreasLegalNodes = new HashSet[5];  // hardcoded max number of land areas
-            // TODO revisit, un-hardcode, when we have multiple scenarios
-            // TODO maxPlayers 6 doesn't have its own board layout yet here
 
             // - Mainland:
             makeNewBoard_placeHexes
-                (makeNewBoard_landHexTypes_v1, LANDHEX_DICEPATH_MAINLAND, makeNewBoard_diceNums_v1,
+                ((maxPl > 4) ? makeNewBoard_landHexTypes_v2 : makeNewBoard_landHexTypes_v1,
+                 (maxPl > 4) ? LANDHEX_DICEPATH_MAINLAND_6PL : LANDHEX_DICEPATH_MAINLAND_4PL,
+                 (maxPl > 4) ? makeNewBoard_diceNums_v2 : makeNewBoard_diceNums_v1,
                  false, true, 1, opt_breakClumps, scen);
 
             // - Outlying islands:
             makeNewBoard_placeHexes
-                (LANDHEX_TYPE_ISLANDS, LANDHEX_COORD_ISLANDS_ALL, LANDHEX_DICENUM_ISLANDS,
-                 true, true, LANDHEX_LANDAREA_RANGES_ISLANDS, null, scen);
+                ((maxPl > 4) ? LANDHEX_TYPE_ISLANDS_6PL : LANDHEX_TYPE_ISLANDS_4PL,
+                 (maxPl > 4) ? LANDHEX_COORD_ISLANDS_ALL_6PL : LANDHEX_COORD_ISLANDS_ALL_4PL,
+                 (maxPl > 4) ? LANDHEX_DICENUM_ISLANDS_6PL : LANDHEX_DICENUM_ISLANDS_4PL,
+                 true, true,
+                 (maxPl > 4) ? LANDHEX_LANDAREA_RANGES_ISLANDS_6PL : LANDHEX_LANDAREA_RANGES_ISLANDS_4PL,
+                 null, scen);
 
-            PORTS_TYPES_MAINLAND = PORTS_TYPE_V1;
-            PORTS_TYPES_ISLANDS = PORT_TYPE_ISLANDS;
-            PORT_LOC_FACING_MAINLAND = PORT_EDGE_FACING_MAINLAND;
-            PORT_LOC_FACING_ISLANDS = PORT_EDGE_FACING_ISLANDS;
+            PORTS_TYPES_MAINLAND = (maxPl > 4) ? PORTS_TYPE_V2 : PORTS_TYPE_V1;
+            PORTS_TYPES_ISLANDS = (maxPl > 4) ? PORT_TYPE_ISLANDS_6PL : PORT_TYPE_ISLANDS_4PL;
+            PORT_LOC_FACING_MAINLAND = (maxPl > 4) ? PORT_EDGE_FACING_MAINLAND_6PL : PORT_EDGE_FACING_MAINLAND_4PL;
+            PORT_LOC_FACING_ISLANDS = (maxPl > 4) ? PORT_EDGE_FACING_ISLANDS_6PL : PORT_EDGE_FACING_ISLANDS_4PL;
 
         } else {
             // hasScenarioFog
@@ -1652,7 +1660,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * facing directions, and ports should be on a land/water edge, facing the land side.
      * Call this method after placing all land hexes.
      * @param portsLocFacing  Array of port location edges and "port facing" directions
-     *            ({@link SOCBoard#FACING_NE FACING_NE} = 1, etc), such as {@link #PORT_EDGE_FACING_MAINLAND}.
+     *            ({@link SOCBoard#FACING_NE FACING_NE} = 1, etc), such as {@link #PORT_EDGE_FACING_MAINLAND_4PL}.
      *            Each port has 2 consecutive elements: Edge coordinate (0xRRCC), Port Facing (towards land).
      * @throws IllegalArgumentException  If a port's facing direction isn't possible,
      *            or its location causes its water portion to "overlap" land.
@@ -1816,8 +1824,11 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     /**
      * Get the board size for
      * {@link BoardFactoryAtServer#createBoard(Hashtable, boolean, int) BoardFactoryAtServer.createBoard}:
-     * Default size {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE},
+     * The default size {@link SOCBoardLarge#BOARDHEIGHT_LARGE BOARDHEIGHT_LARGE} by
+     * {@link SOCBoardLarge#BOARDWIDTH_LARGE BOARDWIDTH_LARGE},
      * unless <tt>gameOpts</tt> contains a scenario (<tt>"SC"</tt>) whose layout has a custom height/width.
+     * The fallback 6-player layout size is taller,
+     * {@link SOCBoardLarge#BOARDHEIGHT_LARGE BOARDHEIGHT_LARGE} + 3 by {@link SOCBoardLarge#BOARDWIDTH_LARGE BOARDWIDTH_LARGE}.
      * @param gameOpts  Game options, or null
      * @param maxPlayers  Maximum players; must be 4 or 6
      * @return encoded size (0xRRCC), the same format as game option {@code "_BHW"}
@@ -1864,6 +1875,12 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 else
                     heightWidth = PIR_ISL_BOARDSIZE[0];
             }
+        }
+        else if (maxPlayers == 6)
+        {
+            // No scenario (scOpt == null), so use the fallback board.
+            // For 6 players, this has an extra row of hexes.
+            heightWidth = ((BOARDHEIGHT_LARGE + 3) << 8) | BOARDWIDTH_LARGE;
         }
 
         if (heightWidth == 0)
@@ -1973,7 +1990,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
 
     /**
-     * My sample board layout: Main island's ports, clockwise from its northwest.
+     * Fallback board layout for 4 players: Main island's ports, clockwise from its northwest.
      * Each port has 2 consecutive elements.
      * First: Port edge coordinate, in hex: 0xRRCC.
      * Second: Port Facing direction: {@link SOCBoard#FACING_E FACING_E}, etc.
@@ -1981,7 +1998,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Port Facing is the direction from the port edge, to the land hex touching it
      * which will have 2 nodes where a port settlement/city can be built.
      */
-    private static final int PORT_EDGE_FACING_MAINLAND[] =
+    private static final int PORT_EDGE_FACING_MAINLAND_4PL[] =
     {
         0x0003, FACING_SE,  0x0006, FACING_SW,
         0x0209, FACING_SW,  0x050B, FACING_W,
@@ -1991,12 +2008,12 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     };
 
     /**
-     * My sample board layout: Outlying islands' ports.
+     * Fallback board layout, 4 players: Outlying islands' ports.
      * Each port has 2 elements.
-     * First: Coordinate, in hex: 0xRRCC
+     * First: Coordinate, in hex: 0xRRCC.
      * Second: Facing
      */
-    private static final int PORT_EDGE_FACING_ISLANDS[] =
+    private static final int PORT_EDGE_FACING_ISLANDS_4PL[] =
     {
         0x060E, FACING_NW,   // - northeast island
         0x0A0F, FACING_SW,  0x0E0C, FACING_NW,        // - southeast island
@@ -2004,23 +2021,22 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     };
 
     /**
-     * Port types for the 4 outlying-island ports.
-     * {@link SOCBoard#MISC_PORT} is 0.
+     * Port types for the 4 outlying-island ports on the 4-player fallback board.
      * For the mainland's port types, use {@link SOCBoard#PORTS_TYPE_V1}.
      */
-    private static final int PORT_TYPE_ISLANDS[] =
+    private static final int PORT_TYPE_ISLANDS_4PL[] =
     {
-        0, SHEEP_PORT, WHEAT_PORT, WOOD_PORT
+        MISC_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT
     };
 
     /**
-     * Sample board layout: Dice-number path (hex coordinates)
+     * Fallback board layout for 4 players: Dice-number path (hex coordinates)
      * on the main island, spiraling inward from the shore.
      * The outlying islands have no dice path.
-     * For the mainland's dice numbers, see SOCBoard.makeNewBoard.numPath_v1.
+     * For the mainland's dice numbers, see {@link SOCBoard#makeNewBoard_diceNums_v1}.
      * @see #LANDHEX_COORD_MAINLAND
      */
-    private static final int LANDHEX_DICEPATH_MAINLAND[] =
+    private static final int LANDHEX_DICEPATH_MAINLAND_4PL[] =
     {
         // clockwise from northwest
         0x0104, 0x0106, 0x0108, 0x0309, 0x050A,
@@ -2030,8 +2046,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     };
 
     /**
-     * My sample board layout: Main island's land hex coordinates, each row west to east.
-     * @see #LANDHEX_DICEPATH_MAINLAND
+     * Fallback board layout for 4 players: Main island's land hex coordinates, each row west to east.
+     * @see #LANDHEX_DICEPATH_MAINLAND_4PL
      */
     private static final int LANDHEX_COORD_MAINLAND[] =
     {
@@ -2041,20 +2057,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         0x0703, 0x0705, 0x0707, 0x0709,
         0x0904, 0x0906, 0x0908
     };
-
-    /**
-     * My sample board layout: Main island's land hex coordinates in fog.
-     * For testing only: An actual fog scenario would have a larger main island layout.
-     * @see #LANDHEX_COORD_MAINLAND
-    private static final int LANDHEX_COORD_MAINLAND_FOG[] =
-    {
-        // 1st row ok
-        0x0303, 0x0305, // 2nd row 1st,2nd
-                0x0504, 0x0506, // middle row 2nd,3rd
-                0x0705  // 4th row 2nd
-        // 5th row ok
-    };
-     */
 
     /**
      * My sample board layout: Outlying islands' cloth village node locations and dice numbers.
@@ -2077,15 +2079,15 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     };
 
     /**
-     * My sample board layout: All the outlying islands' land hex coordinates.
+     * Fallback board layout, 4 players: All the outlying islands' land hex coordinates.
      *<P>
      * The first outlying island (land area 2) is upper-right on board.
      * Second island (landarea 3) is lower-right.
      * Third island (landarea 4) is lower-left.
      * @see #LANDHEX_COORD_ISLANDS_EACH
-     * @see #LANDHEX_LANDAREA_RANGES_ISLANDS
+     * @see #LANDHEX_LANDAREA_RANGES_ISLANDS_4PL
      */
-    private static final int LANDHEX_COORD_ISLANDS_ALL[] =
+    private static final int LANDHEX_COORD_ISLANDS_ALL_4PL[] =
     {
         0x010E, 0x030D, 0x030F, 0x050E, 0x0510,
         0x0B0D, 0x0B0F, 0x0B11, 0x0D0C, 0x0D0E,
@@ -2093,9 +2095,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     };
 
     /**
-     * My sample board layout: Each outlying island's land hex coordinates.
-     * @see #LANDHEX_COORD_ISLANDS_ALL
-     * @see #LANDHEX_LANDAREA_RANGES_ISLANDS
+     * Fallback board layout for 4 players: Each outlying island's land hex coordinates.
+     * @see #LANDHEX_COORD_ISLANDS_ALL_4PL
+     * @see #LANDHEX_LANDAREA_RANGES_ISLANDS_4PL
      */
     private static final int LANDHEX_COORD_ISLANDS_EACH[][] =
     {
@@ -2105,11 +2107,11 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     };
 
     /**
-     * Island hex counts and land area numbers within {@link #LANDHEX_COORD_ISLANDS_ALL}.
-     * Allows us to shuffle them all together ({@link #LANDHEX_TYPE_ISLANDS}).
+     * 4-player island hex counts and land area numbers within {@link #LANDHEX_COORD_ISLANDS_ALL_4PL}.
+     * Allows us to shuffle them all together ({@link #LANDHEX_TYPE_ISLANDS_4PL}).
      * @see #LANDHEX_COORD_ISLANDS_EACH
      */
-    private static final int LANDHEX_LANDAREA_RANGES_ISLANDS[] =
+    private static final int LANDHEX_LANDAREA_RANGES_ISLANDS_4PL[] =
     {
         2, 5,  // landarea 2 is an island with 5 hexes
         3, 5,  // landarea 3
@@ -2117,10 +2119,10 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     };
 
     /**
-     * My sample board layout: Land hex types for the 3 small islands,
+     * Fallback board layout, 4 players: Land hex types for the 3 small islands,
      * to be used with (for the main island) {@link #makeNewBoard_landHexTypes_v1}[].
      */
-    private static final int LANDHEX_TYPE_ISLANDS[] =
+    private static final int LANDHEX_TYPE_ISLANDS_4PL[] =
     {
         CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
         SHEEP_HEX, SHEEP_HEX, WHEAT_HEX, WHEAT_HEX, DESERT_HEX,
@@ -2128,15 +2130,123 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     };
 
     /**
-     * My sample board layout: Dice numbers for the outlying islands.
-     * These islands have no defined NumPath; as long as 6 and 8 aren't
+     * Fallback board layout, 4 players: Dice numbers for the outlying islands.
+     * These islands have no defined NumPath; as long as the frequently rolled ("red") 6 and 8 aren't
      * adjacent, and as long as GOLD_HEXes have rare numbers, all is OK.
+     * To make the islands more attractive, avoids the infrequntly rolled 2 and 12.
      */
-    private static final int LANDHEX_DICENUM_ISLANDS[] =
+    private static final int LANDHEX_DICENUM_ISLANDS_4PL[] =
     {
         5, 4, 6, 3, 8,
         10, 9, 11, 5, 9,
         4, 10, 5  // leave 1 un-numbered, for the DESERT_HEX
+    };
+
+    /**
+     * Fallback board layout for 6 players: Dice-number path (hex coordinates)
+     * on the main island, spiraling inward from the shore.
+     * The outlying islands have no dice path.
+     * For the mainland's dice numbers, see {@link SOCBoard#makeNewBoard_diceNums_v2}.
+     */
+    private static final int LANDHEX_DICEPATH_MAINLAND_6PL[] =
+    {
+        // clockwise inward from western corner
+        0x0701, 0x0502, 0x0303, 0x0104, 0x0106, 0x0108, 0x0309, 0x050A,
+        0x070B, 0x090A, 0x0B09, 0x0D08, 0x0D06, 0x0D04, 0x0B03, 0x0902,  // end of outside of spiral
+        0x0703, 0x0504, 0x0305, 0x0307, 0x0508,
+        0x0709, 0x0908, 0x0B07, 0x0B05, 0x0904,  // end of middle layer of spiral
+        0x0705, 0x0506, 0x0707, 0x0906
+    };
+
+    /**
+     * Fallback board layout for 6 players: Main island's ports, clockwise from its western corner (like dice path).
+     * Each port has 2 consecutive elements.
+     * First: Port edge coordinate, in hex: 0xRRCC.
+     * Second: Port Facing direction: {@link SOCBoard#FACING_E FACING_E}, etc.
+     *<P>
+     * Port Facing is the direction from the port edge, to the land hex touching it
+     * which will have 2 nodes where a port settlement/city can be built.
+     */
+    private static final int PORT_EDGE_FACING_MAINLAND_6PL[] =
+    {
+        0x0501, FACING_E,   0x0202, FACING_SE,
+        0x0006, FACING_SW,  0x0209, FACING_SW,
+        0x050B, FACING_W,   0x080B, FACING_NW,
+        0x0B0A, FACING_W,   0x0E08, FACING_NW,
+        0x0E05, FACING_NE,  0x0C02, FACING_NE,
+        0x0800, FACING_NE
+    };
+
+    /**
+     * Fallback board layout, 6 players: All the outlying islands' land hex coordinates.
+     *<P>
+     * The first outlying island (land area 2) is upper-right on board.
+     * Second island (landarea 3) is lower-right.
+     * Third island (landarea 4) is lower-left.
+     * @see #LANDHEX_LANDAREA_RANGES_ISLANDS_6PL
+     */
+    private static final int LANDHEX_COORD_ISLANDS_ALL_6PL[] =
+    {
+        0x010E, 0x0110, 0x030D, 0x030F, 0x0311, 0x050E, 0x0510, 0x0711,
+        0x0B0D, 0x0B0F, 0x0B11, 0x0D0C, 0x0D0E, 0x0D10, 0x0F0F, 0x0F11,
+        0x1102, 0x1104, 0x1106, 0x1108, 0x110A
+    };
+
+    /**
+     * 4-player island hex counts and land area numbers within {@link #LANDHEX_COORD_ISLANDS_ALL_4PL}.
+     * Allows us to shuffle them all together ({@link #LANDHEX_TYPE_ISLANDS_6PL}).
+     * @see #LANDHEX_COORD_ISLANDS_EACH
+     */
+    private static final int LANDHEX_LANDAREA_RANGES_ISLANDS_6PL[] =
+    {
+        2, 8,  // landarea 2 is an island with 8 hexes
+        3, 8,  // landarea 3
+        4, 5   // landarea 4
+    };
+
+    /**
+     * Fallback board layout, 6 players: Land hex types for the 3 small islands,
+     * to be used with (for the main island) {@link #makeNewBoard_landHexTypes_v2}[].
+     */
+    private static final int LANDHEX_TYPE_ISLANDS_6PL[] =
+    {
+        CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
+        SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+        DESERT_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, GOLD_HEX, GOLD_HEX
+    };
+
+    /**
+     * Fallback board layout, 6 players: Dice numbers for the outlying islands.
+     * These islands have no defined NumPath; as long as the frequently rolled ("red") 6 and 8 aren't
+     * adjacent, and as long as GOLD_HEXes have rare numbers, all is OK.
+     * To make the islands more attractive, avoids the infrequntly rolled 2 and 12.
+     */
+    private static final int LANDHEX_DICENUM_ISLANDS_6PL[] =
+    {
+        3, 3, 4, 4, 5, 5, 5, 6, 6, 6, 8, 8, 8, 9, 9, 9, 10, 10, 11, 11
+        // leave 1 un-numbered, for the DESERT_HEX
+    };
+
+    /**
+     * Fallback board layout, 6 players: Outlying islands' ports.
+     * Each port has 2 elements.
+     * First: Coordinate, in hex: 0xRRCC.
+     * Second: Facing
+     */
+    private static final int PORT_EDGE_FACING_ISLANDS_6PL[] =
+    {
+        0x060F, FACING_NE,   // - northeast island
+        0x0A0E, FACING_SE,  0x0E0D, FACING_NE,        // - southeast island
+        0x1007, FACING_SE    // - southwest island
+    };
+
+    /**
+     * Port types for the 4 outlying-island ports on the 6-player fallback board.
+     * For the mainland's port types, use {@link SOCBoard#PORTS_TYPE_V2}.
+     */
+    private static final int PORT_TYPE_ISLANDS_6PL[] =
+    {
+        MISC_PORT, MISC_PORT, CLAY_PORT, WOOD_PORT
     };
 
 
