@@ -330,7 +330,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Same order as {@link #PORTS_FACING_V2}. {@link #MISC_PORT} is 0.
      * @since 1.1.08
      */
-    private final static int PORTS_TYPE_V2[] =
+    protected final static int PORTS_TYPE_V2[] =
         { 0, 0, 0, 0, CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT, MISC_PORT, SHEEP_PORT };
 
     /**
@@ -1080,7 +1080,7 @@ public class SOCBoard implements Serializable, Cloneable
      * to be used as <tt>numPath[]</tt> in
      * {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
      */
-    private final static int[][] makeNewBoard_numPaths_6pl =
+    private final static int[][] makeNewBoard_numPaths_v2 =
     {
         // Numbers are indexes within hexLayout (also in numberLayout) for each land hex.
         // See the hexLayout javadoc for how the indexes are arranged on the board layout,
@@ -1117,7 +1117,7 @@ public class SOCBoard implements Serializable, Cloneable
     };
 
     /**
-     * Land hex types on the original board layout (v1).
+     * Land hex types on the original 4-player board layout (v1).
      * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
      * @since 2.0.00
      */
@@ -1127,13 +1127,44 @@ public class SOCBoard implements Serializable, Cloneable
             SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
             WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
             WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX };
+
     /**
-     * Dice numbers in the original board layout, in order along numPath.
+     * Dice numbers in the original 4-player board layout, in order along {@code numPath} ({@link #makeNewBoard_numPaths_v1}).
      * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
      * @since 2.0.00
      */
     protected static final int[] makeNewBoard_diceNums_v1 = 
         { 5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11 };
+
+    /**
+     * Land hex types on the 6-player board layout (v2).
+     * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
+     * @since 2.0.00
+     */
+    protected static final int[] makeNewBoard_landHexTypes_v2 =
+        {
+            DESERT_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
+            SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+            WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+            WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX,   // last line of v1's hexes
+            DESERT_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, SHEEP_HEX, SHEEP_HEX,
+            WHEAT_HEX, WHEAT_HEX, WOOD_HEX, WOOD_HEX
+        };
+
+    /**
+     * Dice numbers in the 6-player board layout, in order along {@code numPath} ({@link #makeNewBoard_numPaths_v2}).
+     * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
+     * @since 2.0.00
+     */
+    protected static final int[] makeNewBoard_diceNums_v2 =
+        {
+            2,   5,  4,  6 , 3, // A-E
+            9,   8, 11, 11, 10, // F-J
+            6,   3,  8,  4,  8, // K-O
+            10, 11, 12, 10,  5, // P-T
+            4,   9,  5,  9, 12, // U-Y
+            3,   2,  6          // Za-Zc
+        };
 
     /**
      * Shuffle the hex tiles and layout a board.
@@ -1149,36 +1180,16 @@ public class SOCBoard implements Serializable, Cloneable
     {
         final boolean is6player = (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
 
-        // landHex_v1 == makeNewBoard_landHexTypes_v1
-        // number_v1  == makeNewBoard_diceNums_v1
-        // For v2 encoding:
-        final int[] landHex_6pl = {   // same as v1's hexes: makeNewBoard_landHexTypes_v1[]
-            DESERT_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
-            SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
-            WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
-            WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX,   // last line of v1's hexes
-            DESERT_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, SHEEP_HEX, SHEEP_HEX,
-            WHEAT_HEX, WHEAT_HEX, WOOD_HEX, WOOD_HEX };
-        final int[] number_6pl =
-            {
-                2,   5,  4,  6 , 3, // A-E
-                9,   8, 11, 11, 10, // F-J
-                6,   3,  8,  4,  8, // K-O
-                10, 11, 12, 10,  5, // P-T
-                4,   9,  5,  9, 12, // U-Y
-                3,   2,  6          // Za-Zc        
-            };
-
-        SOCGameOption opt_breakClumps = (opts != null ? opts.get("BC") : null);
+        final SOCGameOption opt_breakClumps = (opts != null ? opts.get("BC") : null);
 
         // shuffle and place the land hexes, numbers, and robber:
         // sets robberHex, contents of hexLayout[] and numberLayout[].
         // Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
         {
-            final int[] landHex = is6player ? landHex_6pl : makeNewBoard_landHexTypes_v1;
-            final int[][] numPaths = is6player ? makeNewBoard_numPaths_6pl : makeNewBoard_numPaths_v1;
+            final int[] landHex = is6player ? makeNewBoard_landHexTypes_v2 : makeNewBoard_landHexTypes_v1;
+            final int[][] numPaths = is6player ? makeNewBoard_numPaths_v2 : makeNewBoard_numPaths_v1;
             final int[] numPath = numPaths[ Math.abs(rand.nextInt() % numPaths.length) ];
-            final int[] numbers = is6player ? number_6pl : makeNewBoard_diceNums_v1;
+            final int[] numbers = is6player ? makeNewBoard_diceNums_v2 : makeNewBoard_diceNums_v1;
             makeNewBoard_placeHexes(landHex, numPath, numbers, opt_breakClumps);
         }
 

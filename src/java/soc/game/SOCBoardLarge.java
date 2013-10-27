@@ -49,7 +49,7 @@ import soc.util.IntPair;
  * {@link #setPortsLayout(int[])}, {@link SOCGame#putPiece(SOCPlayingPiece)}, and
  * {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])} with data from the server.
  *<P>
- * See that class's javadoc, and its <tt>makeNewBoard(Hashtable)</tt> javadoc, for more details on layout creation.
+ * See {@code SOCBoardLargeAtServer}'s class javadoc, and its {@code makeNewBoard(Hashtable)} javadoc, for more details on layout creation.
  *<P>
  * On this large sea board, there can optionally be multiple "land areas"
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
