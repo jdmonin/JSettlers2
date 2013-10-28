@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007-2010,2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +31,11 @@ import soc.client.SOCPlayerClient.GameAwtDisplay;
 @SuppressWarnings("serial")
 class SOCPracticeAskDialog extends AskDialog
 {
+
+    /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
+     *  @since 2.0.00 */
+    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+
     /**
      * Creates a new SOCPracticeAskDialog.
      *
@@ -39,9 +44,11 @@ class SOCPracticeAskDialog extends AskDialog
      */
     public SOCPracticeAskDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI)
     {
-        super(cli, gamePI, /*I*/"Practice game in progress"/*18N*/,
-            /*I*/"A practice game is already being played."/*18N*/,
-            /*I*/"Show this game"/*18N*/, /*I*/"Create another"/*18N*/, true, false);
+        super(cli, gamePI, strings.get("dialog.practiceask.in.progress"),  // "Practice game in progress"
+            strings.get("dialog.practiceask.already.being.played"),  // "A practice game is already being played."
+            strings.get("dialog.practiceask.show.game"),  // "Show that game"
+            strings.get("dialog.practiceask.create"),     // "Create another"
+            true, false);
     }
 
     /**
