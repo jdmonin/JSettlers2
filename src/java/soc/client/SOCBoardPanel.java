@@ -6687,11 +6687,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     case SOCBoardLarge.GOLD_HEX:
                         if (isLargeBoard)
+                        {
                             hname = "board.hex.gold";
-                        else
+                        } else {
                             // GOLD_HEX is also MISC_PORT_HEX
                             hid = SOCBoard.MISC_PORT;
                             hname = portDescForType(hid);
+                        }
                         break;
 
                     case SOCBoardLarge.FOG_HEX:
