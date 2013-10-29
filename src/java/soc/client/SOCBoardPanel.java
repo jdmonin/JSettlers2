@@ -62,7 +62,6 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Timer;
 
-
 /**
  * This is a component that can display a Settlers of Catan Board.
  * It can be used in an applet or an application.
@@ -437,16 +436,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private final static int TURN_STARTING = 97;
     private final static int GAME_FORMING = 98;
     private final static int GAME_OVER = 99;
-    
+
     /** During initial-piece placement, the tooltip is moved this far over to make room. */
     public final static int HOVER_OFFSET_X_FOR_INIT_PLACE = 9;
-    
+
     /** During robber placement, the tooltip is moved this far over to make room. */
     public final static int HOVER_OFFSET_X_FOR_ROBBER = 15;
-    
+
     /** for popup-menu build request, network send maximum delay (seconds) */
     protected static int BUILD_REQUEST_MAX_DELAY_SEC = 5;
-    
+
     /** for popup-menu build request, length of time after popup to ignore further
      *  mouse-clicks.  Avoids Windows accidental build by popup-click during game's
      *  initial piece placement. (150 ms)
@@ -853,7 +852,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * {@link #hilight} was last determined in {@link #mouseMoved(MouseEvent)}.
      */
     private int ptrOldX, ptrOldY;
-    
+
     /**
      * (tooltip) Hover text for info on pieces/parts of the board. Its mode uses boardpanel mode constants.
      * Also contains "hovering" road/settlement/city near mouse pointer.
@@ -1065,7 +1064,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @see #playerNumber
      */
     private SOCPlayer player;
-    
+
     /**
      * player number of our {@link #player} if in a game, or -1.
      * @since 1.1.00
@@ -1114,9 +1113,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *  (previous position) when moving the robber.
      *  Values are determined the first time the
      *  robber is ghosted on that type of tile.
-     * 
+     *
      *  Index ranges from 0 to SOCBoard.MAX_ROBBER_HEX.
-     * 
+     *
      *  @see soc.client.ColorSquare
      *  @see #drawRobber(Graphics, int, boolean, boolean)
      */
@@ -1237,7 +1236,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         // Set up hover tooltip info
         hoverTip = new BoardToolTip(this);
-        
+
         // Set up popup menu
         popupMenu = new BoardPopupMenu(this);
         add (popupMenu);
@@ -2247,30 +2246,31 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     public void paint(Graphics g)
     {
         Image ibuf = buffer;  // Local var in case field becomes null in other thread during paint
-        try {
-        if (ibuf == null)
-        {
-            ibuf = this.createImage(scaledPanelX, scaledPanelY);
-            buffer = ibuf;
-        }
-
-        // Because of message timing during placement, watch for
-        // the board's lists of roads, settlements, ships, etc
-        // being modified as we're drawing them.
-        // Happens with java 5 foreach loop iteration; wasn't
-        // previously an issue with java 1.4 piece enumerations.
         try
         {
-            drawBoard(ibuf.getGraphics());  // Do the actual drawing
-        } catch (ConcurrentModificationException cme) {
-            repaint();  // try again soon
-            return;
-        }
+            if (ibuf == null)
+            {
+                ibuf = this.createImage(scaledPanelX, scaledPanelY);
+                buffer = ibuf;
+            }
 
-        if (hoverTip.isVisible())
-            hoverTip.paint(ibuf.getGraphics());
-        ibuf.flush();
-        g.drawImage(ibuf, 0, 0, this);
+            // Because of message timing during placement, watch for
+            // the board's lists of roads, settlements, ships, etc
+            // being modified as we're drawing them.
+            // Happens with java 5 foreach loop iteration; wasn't
+            // previously an issue with java 1.4 piece enumerations.
+            try
+            {
+                drawBoard(ibuf.getGraphics());  // Do the actual drawing
+            } catch (ConcurrentModificationException cme) {
+                repaint();  // try again soon
+                return;
+            }
+
+            if (hoverTip.isVisible())
+                hoverTip.paint(ibuf.getGraphics());
+            ibuf.flush();
+            g.drawImage(ibuf, 0, 0, this);
 
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
@@ -2396,7 +2396,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if ((portFacing == -1) || (hexType != SOCBoard.MISC_PORT))
         {
             final Image[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original, or to rotated?
-    
+
             if (isScaled && (scaledHexes[hexType] == hexis[hexType]))
             {
                 recenterPrevMiss = true;
@@ -2407,21 +2407,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 x += xm;
                 y += ym;
             }
-    
+
             /**
              * Draw the hex graphic
              */
             if (! g.drawImage(scaledHexes[hexType], x, y, this))
             {
                 // for now, draw the placeholder; try to rescale and redraw soon if we can
-    
+
                 g.translate(x, y);
                 g.setColor(hexColor(hexType));
                 g.fillPolygon(scaledHexCornersX, scaledHexCornersY, 6);
                 g.setColor(Color.BLACK);
                 g.drawPolyline(scaledHexCornersX, scaledHexCornersY, 6);
                 g.translate(-x, -y);
-    
+
                 missedDraw = true;
                 if (isScaled && (7000 < (drawnEmptyAt - scaledAt)))
                 {
@@ -2439,6 +2439,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     }
                 }
             }
+
             if (recenterPrevMiss)
             {
                 // Don't "center" further drawing
@@ -2533,7 +2534,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 } else {
                     dx = 17;  dy = 22;
                 }
-    
+
                 if (! isScaled)
                 {
                     x += dx;
@@ -2544,13 +2545,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     x += scaleToActualX(dx);
                     y += scaleToActualY(dy);
                 }
-    
+
                 // Draw the circle and dice number:
                 int dia = DICE_NUMBER_CIRCLE_DIAMETER;
                 if (isScaled)
                     dia = scaleToActualX(dia);
                 ++dia;
-    
+
                 // Set background color:
                 {
                     int colorIdx;
@@ -2563,7 +2564,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 g.fillOval(x, y, dia, dia);
                 g.setColor(Color.BLACK);
                 g.drawOval(x, y, dia, dia);
-    
+
                 final String numstr = Integer.toString(hnl);
                 x += (dia - diceNumberCircleFM.stringWidth(numstr)) / 2;
                 y += (dia + diceNumberCircleFM.getAscent() - diceNumberCircleFM.getDescent()) / 2;
@@ -2666,7 +2667,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 // Remember for next time
                 robberGhostFill[hexType] = rFill;
                 robberGhostOutline[hexType] = rOutline;
-                
+
             }  // cached ghost color?
         }  // normal or ghost?
 
@@ -2848,7 +2849,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 g.setColor(playerInterface.getPlayerColor(pn, true));
             else
                 g.setColor(playerInterface.getPlayerColor(pn));
-    
+
             g.fillPolygon(roadX, roadY, roadX.length);
         }
 
@@ -3006,7 +3007,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         g.fillPolygon(scaledVillageX, scaledVillageY, 4);
         g.setColor(Color.black);
         g.drawPolygon(scaledVillageX, scaledVillageY, 5);
- 
+
         // dice # for village
         final String numstr = Integer.toString(v.diceNum);
         int x = -diceNumberCircleFM.stringWidth(numstr) / 2;
@@ -3916,7 +3917,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 repaint();  // We'll have to try again
                 return;
             }
-            
+
             final FontMetrics fm = getFontMetrics(bpf);
             if (fm == null)
             {
@@ -4136,7 +4137,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Scale x-array from internal to actual screen-pixel coordinates.
      * If not isScaled, do nothing.
      *<P>
-     * This method only scales; does <em>not</em> translate to right by {@link #panelMarginX}. 
+     * This method only scales; does <em>not</em> translate to right by {@link #panelMarginX}.
      *
      * @param xa Int array to be scaled; each member is an x-coordinate.
      *
@@ -4170,7 +4171,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Scale x-coordinate from internal to actual screen-pixel coordinates.
      * If not isScaled, return input.
      *<P>
-     * This method only scales; does <em>not</em> translate to right by {@link #panelMarginX}. 
+     * This method only scales; does <em>not</em> translate to right by {@link #panelMarginX}.
      *
      * @param x x-coordinate to be scaled
      */
@@ -4200,7 +4201,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Convert an x-coordinate from actual-scaled to internal-scaled coordinates.
      * If not isScaled, return input.
      *<P>
-     * This method only scales; does <em>not</em> translate to left by {@link #panelMarginX}. 
+     * This method only scales; does <em>not</em> translate to left by {@link #panelMarginX}.
      *
      * @param x x-coordinate to be scaled
      */
@@ -4331,7 +4332,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 case SOCGame.PLACING_ROBBER:
                     mode = PLACE_ROBBER;
                     break;
-                    
+
                 case SOCGame.PLACING_PIRATE:
                     mode = PLACE_PIRATE;
                     break;
@@ -4564,15 +4565,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     public void mouseReleased(MouseEvent e)
     {
-        try {
-        // Needed in Windows for popup-menu handling
-        if (e.isPopupTrigger())
+        try
         {
-            popupMenuSystime = e.getWhen();
-            e.consume();
-            doBoardMenuPopup(e.getX(), e.getY());
-            return;
-        }
+            // Needed in Windows for popup-menu handling
+            if (e.isPopupTrigger())
+            {
+                popupMenuSystime = e.getWhen();
+                e.consume();
+                doBoardMenuPopup(e.getX(), e.getY());
+                return;
+            }
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
         }
@@ -4617,384 +4619,384 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     public void mouseMoved(MouseEvent e)
     {
-        try {
-        int x = e.getX();
-        int y = e.getY();
-        int xb, yb;
-        if (isScaled)
+        try
         {
-            xb = scaleFromActualX(x - panelMarginX);
-            yb = scaleFromActualY(y);
-        }
-        else
-        {
-            xb = x - panelMarginX;
-            yb = y;
-        }
-        if (isRotated)
-        {
-            // (ccw): P'=(y, panelMinBW-x)
-            int xb1 = yb;
-            yb = panelMinBW - xb - deltaY;  // -deltaY for similar reasons as -HEXHEIGHT in drawHex
-            xb = xb1;
-        }
-
-        int edgeNum;
-        int nodeNum;
-        int hexNum;
-
-        switch (mode)
-        {
-        case PLACE_INIT_ROAD:
-
-            /**** Code for finding an edge ********/
-            edgeNum = 0;
-
-            if ((ptrOldX != x) || (ptrOldY != y))
+            int x = e.getX();
+            int y = e.getY();
+            int xb, yb;
+            if (isScaled)
             {
-                ptrOldX = x;
-                ptrOldY = y;
-                boolean isShip = false;
-                edgeNum = findEdge(xb, yb, true);
-                if (edgeNum < 0)
-                {
-                    edgeNum = -edgeNum;
-                    if ((player != null) && game.canPlaceShip(player, edgeNum))
-                        isShip = true;
-                } else {
-                    // check potential roads, not ships, to keep it false if coastal edge
-                    isShip = ((player != null) && ! player.isPotentialRoad(edgeNum));
-                }
-
-                // Figure out if this is a legal road/ship;
-                // It must be attached to the last stlmt
-                if ((player == null)
-                    || (! (player.isPotentialRoad(edgeNum)
-                           || game.canPlaceShip(player, edgeNum) ))
-                    || (! (game.isDebugFreePlacement()
-                           || board.isEdgeAdjacentToNode
-                              (initstlmt,
-                               (edgeNum != -1) ? edgeNum : 0))))
-                {
-                    edgeNum = 0;
-                }
-
-                if ((hilight != edgeNum) || (hilightIsShip != isShip))
-                {
-                    hilight = edgeNum;
-                    hilightIsShip = isShip;
-                    repaint();
-                }
+                xb = scaleFromActualX(x - panelMarginX);
+                yb = scaleFromActualY(y);
+            }
+            else
+            {
+                xb = x - panelMarginX;
+                yb = y;
+            }
+            if (isRotated)
+            {
+                // (ccw): P'=(y, panelMinBW-x)
+                int xb1 = yb;
+                yb = panelMinBW - xb - deltaY;  // -deltaY for similar reasons as -HEXHEIGHT in drawHex
+                xb = xb1;
             }
 
-            break;
+            int edgeNum;
+            int nodeNum;
+            int hexNum;
 
-        case PLACE_ROAD:
-        case PLACE_FREE_ROAD_OR_SHIP:
-        case MOVE_SHIP:
-
-            /**** Code for finding an edge; see also PLACE_SHIP ********/
-            edgeNum = 0;
-
-            if ((ptrOldX != x) || (ptrOldY != y))
+            switch (mode)
             {
-                ptrOldX = x;
-                ptrOldY = y;
-                edgeNum = findEdge(xb, yb, true);
-                final boolean hasShips = (player != null) && (player.getNumPieces(SOCPlayingPiece.SHIP) > 0);
-                final boolean canPlaceShip =
-                    hasShips && game.canPlaceShip(player, Math.abs(edgeNum));
+            case PLACE_INIT_ROAD:
 
-                if ((mode == PLACE_FREE_ROAD_OR_SHIP) && canPlaceShip
-                    && (edgeNum > 0) && (player.getNumPieces(SOCPlayingPiece.ROAD) == 0))
-                {
-                    edgeNum = -edgeNum;  // force ship (not road) if we have no roads remaining to freely place 
-                }
+                /**** Code for finding an edge ********/
+                edgeNum = 0;
 
-                boolean isShip;
-                if (edgeNum < 0)
+                if ((ptrOldX != x) || (ptrOldY != y))
                 {
-                    edgeNum = -edgeNum;
-                    isShip = canPlaceShip
-                        || ((mode == PLACE_FREE_ROAD_OR_SHIP) && hasShips && player.isPotentialShip(edgeNum));
-                } else {
-                    isShip = false;
-                }
-
-                if ((edgeNum != 0) && (player != null))
-                {
-                    if (mode == MOVE_SHIP)
+                    ptrOldX = x;
+                    ptrOldY = y;
+                    boolean isShip = false;
+                    edgeNum = findEdge(xb, yb, true);
+                    if (edgeNum < 0)
                     {
-                        isShip = true;
-                        if (! player.isPotentialShipMoveTo(edgeNum, moveShip_fromEdge))
-                            edgeNum = 0;
-
-                        // Check edgeNum vs pirate hex:
-                        final SOCBoardLarge bL = (SOCBoardLarge) board;
-                        final int ph = bL.getPirateHex();
-                        if ((ph != 0) && bL.isEdgeAdjacentToHex(edgeNum, ph))
-                            edgeNum = 0;
+                        edgeNum = -edgeNum;
+                        if ((player != null) && game.canPlaceShip(player, edgeNum))
+                            isShip = true;
+                    } else {
+                        // check potential roads, not ships, to keep it false if coastal edge
+                        isShip = ((player != null) && ! player.isPotentialRoad(edgeNum));
                     }
-                    else {
-                        if ((player.isPotentialRoad(edgeNum) && (player.getNumPieces(SOCPlayingPiece.ROAD) > 0))
-                            || ((mode == PLACE_FREE_ROAD_OR_SHIP) && canPlaceShip))
-                        {
-                            // edgeNum is OK.
 
-                            if (! isShip)
-                            {
-                                // check potential roads, not ships, to keep it false if coastal edge
-                                isShip = (player != null) && canPlaceShip
-                                    && ! player.isPotentialRoad(edgeNum);
-                            }
-                        } else {
-                            edgeNum = 0;
-                        }
-                    }
-                }
-
-                if ((hilight != edgeNum) || (hilightIsShip != isShip))
-                {
-                    hilight = edgeNum;
-                    hilightIsShip = isShip;
-                    repaint();
-                }
-            }
-
-            break;
-
-        case PLACE_SETTLEMENT:
-        case PLACE_INIT_SETTLEMENT:
-
-            /**** Code for finding a node *********/
-            nodeNum = 0;
-
-            if ((ptrOldX != x) || (ptrOldY != y))
-            {
-                ptrOldX = x;
-                ptrOldY = y;
-                nodeNum = findNode(xb, yb);
-
-                if ((player == null) || ! player.canPlaceSettlement(nodeNum))
-                {
-                    nodeNum = 0;
-                }
-
-                if (hilight != nodeNum)
-                {
-                    hilight = nodeNum;
-                    hilightIsShip = false;
-                    if (mode == PLACE_INIT_SETTLEMENT)
-                        hoverTip.handleHover(x,y);
-                    repaint();
-                }
-                else if (mode == PLACE_INIT_SETTLEMENT)
-                {
-                    hoverTip.handleHover(x,y);  // Will call repaint() if needed
-                }
-            }
-
-            break;
-
-        case PLACE_CITY:
-
-            /**** Code for finding a node *********/
-            nodeNum = 0;
-
-            if ((ptrOldX != x) || (ptrOldY != y))
-            {
-                ptrOldX = x;
-                ptrOldY = y;
-                nodeNum = findNode(xb, yb);
-
-                if ((player == null) || !player.isPotentialCity(nodeNum))
-                {
-                    nodeNum = 0;
-                }
-
-                if (hilight != nodeNum)
-                {
-                    hilight = nodeNum;
-                    hilightIsShip = false;
-                    repaint();
-                }
-            }
-
-            break;
-
-        case PLACE_SHIP:
-
-            /**** Code for finding an edge; see also PLACE_ROAD ********/
-            edgeNum = 0;
-
-            if ((ptrOldX != x) || (ptrOldY != y))
-            {
-                ptrOldX = x;
-                ptrOldY = y;
-                edgeNum = findEdge(xb, yb, false);
-
-                if (edgeNum != 0)
-                {
-                    if ((player == null) || (player.getNumPieces(SOCPlayingPiece.SHIP) < 1)
-                        || ! game.canPlaceShip(player, edgeNum))
+                    // Figure out if this is a legal road/ship;
+                    // It must be attached to the last stlmt
+                    if ((player == null)
+                        || (! (player.isPotentialRoad(edgeNum)
+                               || game.canPlaceShip(player, edgeNum) ))
+                        || (! (game.isDebugFreePlacement()
+                               || board.isEdgeAdjacentToNode
+                                  (initstlmt,
+                                   (edgeNum != -1) ? edgeNum : 0))))
+                    {
                         edgeNum = 0;
-                }
+                    }
 
-                if (hilight != edgeNum)
-                {
-                    hilight = edgeNum;
-                    hilightIsShip = true;
-                    repaint();
-                }
-            }
-
-            break;
-
-        case PLACE_ROBBER:
-        case PLACE_PIRATE:
-
-            /**** Code for finding a hex *********/
-            hexNum = 0;
-
-            if ((ptrOldX != x) || (ptrOldY != y))
-            {
-                ptrOldX = x;
-                ptrOldY = y;
-                hexNum = findHex(xb, yb);
-                final boolean canMove =
-                    (mode == PLACE_ROBBER)
-                    ? game.canMoveRobber(playerNumber, hexNum)
-                    : game.canMovePirate(playerNumber, hexNum);
-
-                if (! canMove)
-                {
-                    // Not a hex, or can't move to this hex (water, etc)
-                    if (hexNum != 0)
+                    if ((hilight != edgeNum) || (hilightIsShip != isShip))
                     {
-                        if ((board instanceof SOCBoardLarge)
-                            && ((SOCBoardLarge) board).isHexInLandAreas
-                                (hexNum, ((SOCBoardLarge) board).getRobberExcludedLandAreas()))
-                        {
-                            hoverTip.setHoverText(/*I*/"Cannot move the robber here."/*18N*/);
-                        } else {
-                            hoverTip.setHoverText(null);  // clear any previous
-                        }
-                        
-                        hexNum = 0;
+                        hilight = edgeNum;
+                        hilightIsShip = isShip;
+                        repaint();
                     }
                 }
 
-                if (hilight != hexNum)
+                break;
+
+            case PLACE_ROAD:
+            case PLACE_FREE_ROAD_OR_SHIP:
+            case MOVE_SHIP:
+
+                /**** Code for finding an edge; see also PLACE_SHIP ********/
+                edgeNum = 0;
+
+                if ((ptrOldX != x) || (ptrOldY != y))
                 {
-                    hilight = hexNum;
-                    hilightIsShip = false;
+                    ptrOldX = x;
+                    ptrOldY = y;
+                    edgeNum = findEdge(xb, yb, true);
+                    final boolean hasShips = (player != null) && (player.getNumPieces(SOCPlayingPiece.SHIP) > 0);
+                    final boolean canPlaceShip =
+                        hasShips && game.canPlaceShip(player, Math.abs(edgeNum));
+
+                    if ((mode == PLACE_FREE_ROAD_OR_SHIP) && canPlaceShip
+                        && (edgeNum > 0) && (player.getNumPieces(SOCPlayingPiece.ROAD) == 0))
+                    {
+                        edgeNum = -edgeNum;  // force ship (not road) if we have no roads remaining to freely place
+                    }
+
+                    boolean isShip;
+                    if (edgeNum < 0)
+                    {
+                        edgeNum = -edgeNum;
+                        isShip = canPlaceShip
+                            || ((mode == PLACE_FREE_ROAD_OR_SHIP) && hasShips && player.isPotentialShip(edgeNum));
+                    } else {
+                        isShip = false;
+                    }
+
+                    if ((edgeNum != 0) && (player != null))
+                    {
+                        if (mode == MOVE_SHIP)
+                        {
+                            isShip = true;
+                            if (! player.isPotentialShipMoveTo(edgeNum, moveShip_fromEdge))
+                                edgeNum = 0;
+
+                            // Check edgeNum vs pirate hex:
+                            final SOCBoardLarge bL = (SOCBoardLarge) board;
+                            final int ph = bL.getPirateHex();
+                            if ((ph != 0) && bL.isEdgeAdjacentToHex(edgeNum, ph))
+                                edgeNum = 0;
+                        }
+                        else {
+                            if ((player.isPotentialRoad(edgeNum) && (player.getNumPieces(SOCPlayingPiece.ROAD) > 0))
+                                || ((mode == PLACE_FREE_ROAD_OR_SHIP) && canPlaceShip))
+                            {
+                                // edgeNum is OK.
+
+                                if (! isShip)
+                                {
+                                    // check potential roads, not ships, to keep it false if coastal edge
+                                    isShip = (player != null) && canPlaceShip
+                                        && ! player.isPotentialRoad(edgeNum);
+                                }
+                            } else {
+                                edgeNum = 0;
+                            }
+                        }
+                    }
+
+                    if ((hilight != edgeNum) || (hilightIsShip != isShip))
+                    {
+                        hilight = edgeNum;
+                        hilightIsShip = isShip;
+                        repaint();
+                    }
+                }
+
+                break;
+
+            case PLACE_SETTLEMENT:
+            case PLACE_INIT_SETTLEMENT:
+
+                /**** Code for finding a node *********/
+                nodeNum = 0;
+
+                if ((ptrOldX != x) || (ptrOldY != y))
+                {
+                    ptrOldX = x;
+                    ptrOldY = y;
+                    nodeNum = findNode(xb, yb);
+
+                    if ((player == null) || ! player.canPlaceSettlement(nodeNum))
+                    {
+                        nodeNum = 0;
+                    }
+
+                    if (hilight != nodeNum)
+                    {
+                        hilight = nodeNum;
+                        hilightIsShip = false;
+                        if (mode == PLACE_INIT_SETTLEMENT)
+                            hoverTip.handleHover(x,y);
+                        repaint();
+                    }
+                    else if (mode == PLACE_INIT_SETTLEMENT)
+                    {
+                        hoverTip.handleHover(x,y);  // Will call repaint() if needed
+                    }
+                }
+
+                break;
+
+            case PLACE_CITY:
+
+                /**** Code for finding a node *********/
+                nodeNum = 0;
+
+                if ((ptrOldX != x) || (ptrOldY != y))
+                {
+                    ptrOldX = x;
+                    ptrOldY = y;
+                    nodeNum = findNode(xb, yb);
+
+                    if ((player == null) || !player.isPotentialCity(nodeNum))
+                    {
+                        nodeNum = 0;
+                    }
+
+                    if (hilight != nodeNum)
+                    {
+                        hilight = nodeNum;
+                        hilightIsShip = false;
+                        repaint();
+                    }
+                }
+
+                break;
+
+            case PLACE_SHIP:
+
+                /**** Code for finding an edge; see also PLACE_ROAD ********/
+                edgeNum = 0;
+
+                if ((ptrOldX != x) || (ptrOldY != y))
+                {
+                    ptrOldX = x;
+                    ptrOldY = y;
+                    edgeNum = findEdge(xb, yb, false);
+
+                    if (edgeNum != 0)
+                    {
+                        if ((player == null) || (player.getNumPieces(SOCPlayingPiece.SHIP) < 1)
+                            || ! game.canPlaceShip(player, edgeNum))
+                            edgeNum = 0;
+                    }
+
+                    if (hilight != edgeNum)
+                    {
+                        hilight = edgeNum;
+                        hilightIsShip = true;
+                        repaint();
+                    }
+                }
+
+                break;
+
+            case PLACE_ROBBER:
+            case PLACE_PIRATE:
+
+                /**** Code for finding a hex *********/
+                hexNum = 0;
+
+                if ((ptrOldX != x) || (ptrOldY != y))
+                {
+                    ptrOldX = x;
+                    ptrOldY = y;
+                    hexNum = findHex(xb, yb);
+                    final boolean canMove =
+                        (mode == PLACE_ROBBER)
+                        ? game.canMoveRobber(playerNumber, hexNum)
+                        : game.canMovePirate(playerNumber, hexNum);
+
+                    if (! canMove)
+                    {
+                        // Not a hex, or can't move to this hex (water, etc)
+                        if (hexNum != 0)
+                        {
+                            if ((board instanceof SOCBoardLarge)
+                                && ((SOCBoardLarge) board).isHexInLandAreas
+                                    (hexNum, ((SOCBoardLarge) board).getRobberExcludedLandAreas()))
+                            {
+                                hoverTip.setHoverText(/*I*/"Cannot move the robber here."/*18N*/);
+                            } else {
+                                hoverTip.setHoverText(null);  // clear any previous
+                            }
+
+                            hexNum = 0;
+                        }
+                    }
+
+                    if (hilight != hexNum)
+                    {
+                        hilight = hexNum;
+                        hilightIsShip = false;
+                        hoverTip.handleHover(x,y);
+                        repaint();
+                    }
+                    else
+                    {
+                        hoverTip.positionToMouse(x,y); // calls repaint
+                    }
+                }
+
+                break;
+
+            case CONSIDER_LM_SETTLEMENT:
+            case CONSIDER_LT_SETTLEMENT:
+
+                /**** Code for finding a node *********/
+                nodeNum = 0;
+
+                if ((ptrOldX != x) || (ptrOldY != y))
+                {
+                    ptrOldX = x;
+                    ptrOldY = y;
+                    nodeNum = findNode(xb, yb);
+
+                    //if (!otherPlayer.isPotentialSettlement(nodeNum))
+                    //  nodeNum = 0;
+                    if (hilight != nodeNum)
+                    {
+                        hilight = nodeNum;
+                        hilightIsShip = false;
+                        repaint();
+                    }
+                }
+
+                break;
+
+            case CONSIDER_LM_ROAD:
+            case CONSIDER_LT_ROAD:
+
+                /**** Code for finding an edge ********/
+                edgeNum = 0;
+
+                if ((ptrOldX != x) || (ptrOldY != y))
+                {
+                    ptrOldX = x;
+                    ptrOldY = y;
+                    edgeNum = findEdge(xb, yb, false);
+
+                    if (!otherPlayer.isPotentialRoad(edgeNum))
+                    {
+                        edgeNum = 0;
+                    }
+
+                    if (hilight != edgeNum)
+                    {
+                        hilight = edgeNum;
+                        hilightIsShip = false;
+                        repaint();
+                    }
+                }
+
+                break;
+
+            case CONSIDER_LM_CITY:
+            case CONSIDER_LT_CITY:
+
+                /**** Code for finding a node *********/
+                nodeNum = 0;
+
+                if ((ptrOldX != x) || (ptrOldY != y))
+                {
+                    ptrOldX = x;
+                    ptrOldY = y;
+                    nodeNum = findNode(xb, yb);
+
+                    if (!otherPlayer.isPotentialCity(nodeNum))
+                    {
+                        nodeNum = 0;
+                    }
+
+                    if (hilight != nodeNum)
+                    {
+                        hilight = nodeNum;
+                        hilightIsShip = false;
+                        repaint();
+                    }
+                }
+
+                break;
+
+            case NONE:
+            case TURN_STARTING:
+            case GAME_OVER:
+                // see hover
+                if ((ptrOldX != x) || (ptrOldY != y))
+                {
+                    ptrOldX = x;
+                    ptrOldY = y;
                     hoverTip.handleHover(x,y);
-                    repaint();
                 }
-                else
-                {
-                    hoverTip.positionToMouse(x,y); // calls repaint
-                }
+                break;
+
+            case GAME_FORMING:
+                // No hover for forming
+                break;
+
             }
-
-            break;
-
-        case CONSIDER_LM_SETTLEMENT:
-        case CONSIDER_LT_SETTLEMENT:
-
-            /**** Code for finding a node *********/
-            nodeNum = 0;
-
-            if ((ptrOldX != x) || (ptrOldY != y))
-            {
-                ptrOldX = x;
-                ptrOldY = y;
-                nodeNum = findNode(xb, yb);
-
-                //if (!otherPlayer.isPotentialSettlement(nodeNum))
-                //  nodeNum = 0;
-                if (hilight != nodeNum)
-                {
-                    hilight = nodeNum;
-                    hilightIsShip = false;
-                    repaint();
-                }
-            }
-
-            break;
-
-        case CONSIDER_LM_ROAD:
-        case CONSIDER_LT_ROAD:
-
-            /**** Code for finding an edge ********/
-            edgeNum = 0;
-
-            if ((ptrOldX != x) || (ptrOldY != y))
-            {
-                ptrOldX = x;
-                ptrOldY = y;
-                edgeNum = findEdge(xb, yb, false);
-
-                if (!otherPlayer.isPotentialRoad(edgeNum))
-                {
-                    edgeNum = 0;
-                }
-
-                if (hilight != edgeNum)
-                {
-                    hilight = edgeNum;
-                    hilightIsShip = false;
-                    repaint();
-                }
-            }
-
-            break;
-
-        case CONSIDER_LM_CITY:
-        case CONSIDER_LT_CITY:
-
-            /**** Code for finding a node *********/
-            nodeNum = 0;
-
-            if ((ptrOldX != x) || (ptrOldY != y))
-            {
-                ptrOldX = x;
-                ptrOldY = y;
-                nodeNum = findNode(xb, yb);
-
-                if (!otherPlayer.isPotentialCity(nodeNum))
-                {
-                    nodeNum = 0;
-                }
-
-                if (hilight != nodeNum)
-                {
-                    hilight = nodeNum;
-                    hilightIsShip = false;
-                    repaint();
-                }
-            }
-
-            break;
-
-        case NONE:
-        case TURN_STARTING:
-        case GAME_OVER:
-            // see hover
-            if ((ptrOldX != x) || (ptrOldY != y))
-            {
-                ptrOldX = x;
-                ptrOldY = y;
-                hoverTip.handleHover(x,y);
-            }
-            
-            break;
-            
-        case GAME_FORMING:
-            // No hover for forming
-            break;
-        
-        }
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
         }
@@ -5007,297 +5009,298 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     public void mouseClicked(MouseEvent evt)
     {
-        try {
-        int x = evt.getX();
-        int y = evt.getY();
-
-        if (evt.isPopupTrigger())
+        try
         {
-            popupMenuSystime = evt.getWhen();
+            int x = evt.getX();
+            int y = evt.getY();
+
+            if (evt.isPopupTrigger())
+            {
+                popupMenuSystime = evt.getWhen();
+                evt.consume();
+                doBoardMenuPopup(x,y);
+                return;  // <--- Pop up menu, nothing else to do ---
+            }
+
+            if (evt.getWhen() < (popupMenuSystime + POPUP_MENU_IGNORE_MS))
+            {
+                return;  // <--- Ignore click: too soon after popup click ---
+            }
+
+            boolean tempChangedMode = false;
+            if ((mode == NONE) && game.isDebugFreePlacement() && hoverTip.isVisible())
+            {
+                // Normally, NONE mode ignores single clicks.
+                // But in the Free Placement debug mode, these
+                // can be used to place pieces.
+
+                if (hoverTip.hoverSettlementID != 0)
+                {
+                    hilight = hoverTip.hoverSettlementID;
+                    hilightIsShip = false;
+                    mode = PLACE_SETTLEMENT;
+                    tempChangedMode = true;
+                } else if (hoverTip.hoverCityID != 0)
+                {
+                    hilight = hoverTip.hoverCityID;
+                    hilightIsShip = false;
+                    mode = PLACE_CITY;
+                    tempChangedMode = true;
+                } else if (hoverTip.hoverRoadID != 0)
+                {
+                    hilight = hoverTip.hoverRoadID;
+                    hilightIsShip = false;
+                    mode = PLACE_ROAD;
+                    tempChangedMode = true;
+                } else if (hoverTip.hoverShipID != 0)
+                {
+                    hilight = hoverTip.hoverShipID;
+                    hilightIsShip = true;
+                    mode = PLACE_SHIP;
+                    tempChangedMode = true;
+                }
+            }
+
+            if ((hilight != 0) && (player != null) && (x == ptrOldX) && (y == ptrOldY))
+            {
+                SOCPlayerClient client = playerInterface.getClient();
+
+                switch (mode)
+                {
+                case NONE:
+                    break;
+
+                case TURN_STARTING:
+                    break;
+
+                case PLACE_INIT_ROAD:
+                case PLACE_ROAD:
+                case PLACE_FREE_ROAD_OR_SHIP:
+
+                    if (hilight == -1)
+                        hilight = 0;  // Road on edge 0x00
+                    if (player.isPotentialRoad(hilight) && ! hilightIsShip)
+                    {
+                        client.getGameManager().putPiece(game, new SOCRoad(player, hilight, board));
+
+                        // Now that we've placed, clear the mode and the hilight.
+                        clearModeAndHilight(SOCPlayingPiece.ROAD);
+                        if (tempChangedMode)
+                            hoverTip.hideHoverAndPieces();
+                    }
+                    else if (game.canPlaceShip(player, hilight))  // checks isPotentialShip, pirate ship
+                    {
+                        client.getGameManager().putPiece(game, new SOCShip(player, hilight, board));
+
+                        // Now that we've placed, clear the mode and the hilight.
+                        clearModeAndHilight(SOCPlayingPiece.SHIP);
+                        if (tempChangedMode)
+                            hoverTip.hideHoverAndPieces();
+                    }
+
+                    break;
+
+                case MOVE_SHIP:
+                    // check and move ship to hilight from fromEdge; also sets moveShip_fromEdge = 0, calls clearModeAndHilight.
+                    tryMoveShipToHilight();
+                    break;
+
+                case PLACE_INIT_SETTLEMENT:
+                    if (playerNumber == playerInterface.getClientPlayerNumber())
+                    {
+                        initstlmt = hilight;
+                    }
+                    // no break: fall through
+
+                case PLACE_SETTLEMENT:
+
+                    if (player.canPlaceSettlement(hilight))
+                    {
+                        client.getGameManager().putPiece(game, new SOCSettlement(player, hilight, board));
+                        clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
+                        if (tempChangedMode)
+                            hoverTip.hideHoverAndPieces();
+                    }
+
+                    break;
+
+                case PLACE_CITY:
+
+                    if (player.isPotentialCity(hilight))
+                    {
+                        client.getGameManager().putPiece(game, new SOCCity(player, hilight, board));
+                        clearModeAndHilight(SOCPlayingPiece.CITY);
+                        if (tempChangedMode)
+                            hoverTip.hideHoverAndPieces();
+                    }
+
+                    break;
+
+                case PLACE_SHIP:
+
+                    if (game.canPlaceShip(player, hilight))  // checks isPotentialShip, pirate ship
+                    {
+                        client.getGameManager().putPiece(game, new SOCShip(player, hilight, board));
+                        clearModeAndHilight(SOCPlayingPiece.SHIP);
+                        if (tempChangedMode)
+                            hoverTip.hideHoverAndPieces();
+                    }
+                    break;
+
+                case PLACE_ROBBER:
+
+                    if (hilight != board.getRobberHex())
+                    {
+                        // do we have an adjacent settlement/city?
+                        boolean cliAdjacent = false;
+                        {
+                            for (SOCPlayer pl : game.getPlayersOnHex(hilight))
+                            {
+                                if (pl.getPlayerNumber() == playerNumber)
+                                {
+                                    cliAdjacent = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (cliAdjacent)
+                        {
+                            // ask player to confirm first
+                            java.awt.EventQueue.invokeLater(new MoveRobberConfirmDialog(player, hilight));
+                        }
+                        else
+                        {
+                            // ask server to move it
+                            client.getGameManager().moveRobber(game, player, hilight);
+                            clearModeAndHilight(-1);
+                        }
+                    }
+
+                    break;
+
+                case PLACE_PIRATE:
+
+                    if (hilight != ((SOCBoardLarge) board).getPirateHex())
+                    {
+                        // do we have an adjacent ship?
+                        boolean cliAdjacent = false;
+                        {
+                            for (SOCPlayer pl : game.getPlayersShipsOnHex(hilight))
+                            {
+                                if (pl.getPlayerNumber() == playerNumber)
+                                {
+                                    cliAdjacent = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (cliAdjacent)
+                        {
+                            // ask player to confirm first
+                            java.awt.EventQueue.invokeLater(new MoveRobberConfirmDialog(player, -hilight));
+                        }
+                        else
+                        {
+                            // ask server to move it
+                            client.getGameManager().moveRobber(game, player, -hilight);
+                            clearModeAndHilight(-1);
+                        }
+                    }
+
+                    break;
+
+                case CONSIDER_LM_SETTLEMENT:
+
+                    if (otherPlayer.canPlaceSettlement(hilight))
+                    {
+                        client.getGameManager().considerMove(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
+                        clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
+                    }
+
+                    break;
+
+                case CONSIDER_LM_ROAD:
+
+                    if (otherPlayer.isPotentialRoad(hilight))
+                    {
+                        client.getGameManager().considerMove(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
+                        clearModeAndHilight(SOCPlayingPiece.ROAD);
+                    }
+
+                    break;
+
+                case CONSIDER_LM_CITY:
+
+                    if (otherPlayer.isPotentialCity(hilight))
+                    {
+                        client.getGameManager().considerMove(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
+                        clearModeAndHilight(SOCPlayingPiece.CITY);
+                    }
+
+                    break;
+
+                case CONSIDER_LT_SETTLEMENT:
+
+                    if (otherPlayer.canPlaceSettlement(hilight))
+                    {
+                        client.getGameManager().considerTarget(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
+                        clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
+                    }
+
+                    break;
+
+                case CONSIDER_LT_ROAD:
+
+                    if (otherPlayer.isPotentialRoad(hilight))
+                    {
+                        client.getGameManager().considerTarget(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
+                        clearModeAndHilight(SOCPlayingPiece.ROAD);
+                    }
+
+                    break;
+
+                case CONSIDER_LT_CITY:
+
+                    if (otherPlayer.isPotentialCity(hilight))
+                    {
+                        client.getGameManager().considerTarget(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
+                        clearModeAndHilight(SOCPlayingPiece.CITY);
+                    }
+
+                    break;
+                }
+            }
+            else if ((player != null)
+                     && ((game.getCurrentPlayerNumber() == playerNumber)
+                         || game.isDebugFreePlacement()))
+            {
+                // No hilight. But, they clicked the board, expecting something.
+                // It's possible the mode is incorrect.
+                // Update and wait for the next click.
+                updateMode();
+                ptrOldX = 0;
+                ptrOldY = 0;
+                mouseMoved(evt);  // mouseMoved will establish hilight using click's x,y
+            }
+
             evt.consume();
-            doBoardMenuPopup(x,y);
-            return;  // <--- Pop up menu, nothing else to do ---
-        }
-
-        if (evt.getWhen() < (popupMenuSystime + POPUP_MENU_IGNORE_MS))
-        {
-            return;  // <--- Ignore click: too soon after popup click ---
-        }
-
-        boolean tempChangedMode = false;
-        if ((mode == NONE) && game.isDebugFreePlacement() && hoverTip.isVisible())
-        {
-            // Normally, NONE mode ignores single clicks.
-            // But in the Free Placement debug mode, these
-            // can be used to place pieces.
-
-            if (hoverTip.hoverSettlementID != 0)
-            {
-                hilight = hoverTip.hoverSettlementID;
-                hilightIsShip = false;
-                mode = PLACE_SETTLEMENT;
-                tempChangedMode = true;
-            } else if (hoverTip.hoverCityID != 0)
-            {
-                hilight = hoverTip.hoverCityID;
-                hilightIsShip = false;
-                mode = PLACE_CITY;
-                tempChangedMode = true;
-            } else if (hoverTip.hoverRoadID != 0)
-            {
-                hilight = hoverTip.hoverRoadID;
-                hilightIsShip = false;
-                mode = PLACE_ROAD;
-                tempChangedMode = true;
-            } else if (hoverTip.hoverShipID != 0)
-            {
-                hilight = hoverTip.hoverShipID;
-                hilightIsShip = true;
-                mode = PLACE_SHIP;
-                tempChangedMode = true;
-            }
-        }
-
-        if ((hilight != 0) && (player != null) && (x == ptrOldX) && (y == ptrOldY))
-        {
-            SOCPlayerClient client = playerInterface.getClient();
-
-            switch (mode)
-            {
-            case NONE:
-                break;
-
-            case TURN_STARTING:
-                break;
-
-            case PLACE_INIT_ROAD:
-            case PLACE_ROAD:
-            case PLACE_FREE_ROAD_OR_SHIP:
-
-                if (hilight == -1)
-                    hilight = 0;  // Road on edge 0x00
-                if (player.isPotentialRoad(hilight) && ! hilightIsShip)
-                {
-                    client.getGameManager().putPiece(game, new SOCRoad(player, hilight, board));
-
-                    // Now that we've placed, clear the mode and the hilight.
-                    clearModeAndHilight(SOCPlayingPiece.ROAD);
-                    if (tempChangedMode)
-                        hoverTip.hideHoverAndPieces();
-                }
-                else if (game.canPlaceShip(player, hilight))  // checks isPotentialShip, pirate ship
-                {
-                    client.getGameManager().putPiece(game, new SOCShip(player, hilight, board));
-
-                    // Now that we've placed, clear the mode and the hilight.
-                    clearModeAndHilight(SOCPlayingPiece.SHIP);
-                    if (tempChangedMode)
-                        hoverTip.hideHoverAndPieces();
-                }
-
-                break;
-
-            case MOVE_SHIP:
-                // check and move ship to hilight from fromEdge; also sets moveShip_fromEdge = 0, calls clearModeAndHilight.
-                tryMoveShipToHilight();
-                break;
-
-            case PLACE_INIT_SETTLEMENT:
-                if (playerNumber == playerInterface.getClientPlayerNumber())
-                {
-                    initstlmt = hilight;
-                }
-                // no break: fall through
-
-            case PLACE_SETTLEMENT:
-
-                if (player.canPlaceSettlement(hilight))
-                {
-                    client.getGameManager().putPiece(game, new SOCSettlement(player, hilight, board));
-                    clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
-                    if (tempChangedMode)
-                        hoverTip.hideHoverAndPieces();
-                }
-
-                break;
-
-            case PLACE_CITY:
-
-                if (player.isPotentialCity(hilight))
-                {
-                    client.getGameManager().putPiece(game, new SOCCity(player, hilight, board));
-                    clearModeAndHilight(SOCPlayingPiece.CITY);
-                    if (tempChangedMode)
-                        hoverTip.hideHoverAndPieces();
-                }
-
-                break;
-
-            case PLACE_SHIP:
-
-                if (game.canPlaceShip(player, hilight))  // checks isPotentialShip, pirate ship
-                {
-                    client.getGameManager().putPiece(game, new SOCShip(player, hilight, board));
-                    clearModeAndHilight(SOCPlayingPiece.SHIP);
-                    if (tempChangedMode)
-                        hoverTip.hideHoverAndPieces();
-                }
-                break;
-
-            case PLACE_ROBBER:
-
-                if (hilight != board.getRobberHex())
-                {
-                    // do we have an adjacent settlement/city?
-                    boolean cliAdjacent = false;
-                    {
-                        for (SOCPlayer pl : game.getPlayersOnHex(hilight))
-                        {
-                            if (pl.getPlayerNumber() == playerNumber)
-                            {
-                                cliAdjacent = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (cliAdjacent)
-                    {
-                        // ask player to confirm first
-                        java.awt.EventQueue.invokeLater(new MoveRobberConfirmDialog(player, hilight));
-                    }
-                    else
-                    {
-                        // ask server to move it
-                        client.getGameManager().moveRobber(game, player, hilight);
-                        clearModeAndHilight(-1);
-                    }
-                }
-
-                break;
-
-            case PLACE_PIRATE:
-
-                if (hilight != ((SOCBoardLarge) board).getPirateHex())
-                {
-                    // do we have an adjacent ship?
-                    boolean cliAdjacent = false;
-                    {
-                        for (SOCPlayer pl : game.getPlayersShipsOnHex(hilight))
-                        {
-                            if (pl.getPlayerNumber() == playerNumber)
-                            {
-                                cliAdjacent = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (cliAdjacent)
-                    {
-                        // ask player to confirm first
-                        java.awt.EventQueue.invokeLater(new MoveRobberConfirmDialog(player, -hilight));
-                    }
-                    else
-                    {
-                        // ask server to move it
-                        client.getGameManager().moveRobber(game, player, -hilight);
-                        clearModeAndHilight(-1);
-                    }
-                }
-
-                break;
-
-            case CONSIDER_LM_SETTLEMENT:
-
-                if (otherPlayer.canPlaceSettlement(hilight))
-                {
-                    client.getGameManager().considerMove(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
-                    clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
-                }
-
-                break;
-
-            case CONSIDER_LM_ROAD:
-
-                if (otherPlayer.isPotentialRoad(hilight))
-                {
-                    client.getGameManager().considerMove(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
-                    clearModeAndHilight(SOCPlayingPiece.ROAD);
-                }
-
-                break;
-
-            case CONSIDER_LM_CITY:
-
-                if (otherPlayer.isPotentialCity(hilight))
-                {
-                    client.getGameManager().considerMove(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
-                    clearModeAndHilight(SOCPlayingPiece.CITY);
-                }
-
-                break;
-
-            case CONSIDER_LT_SETTLEMENT:
-
-                if (otherPlayer.canPlaceSettlement(hilight))
-                {
-                    client.getGameManager().considerTarget(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
-                    clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
-                }
-
-                break;
-
-            case CONSIDER_LT_ROAD:
-
-                if (otherPlayer.isPotentialRoad(hilight))
-                {
-                    client.getGameManager().considerTarget(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
-                    clearModeAndHilight(SOCPlayingPiece.ROAD);
-                }
-
-                break;
-
-            case CONSIDER_LT_CITY:
-
-                if (otherPlayer.isPotentialCity(hilight))
-                {
-                    client.getGameManager().considerTarget(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
-                    clearModeAndHilight(SOCPlayingPiece.CITY);
-                }
-
-                break;
-            }
-        }
-        else if ((player != null)
-                 && ((game.getCurrentPlayerNumber() == playerNumber)
-                     || game.isDebugFreePlacement()))
-        {
-            // No hilight. But, they clicked the board, expecting something.
-            // It's possible the mode is incorrect.
-            // Update and wait for the next click.
-            updateMode();
-            ptrOldX = 0;
-            ptrOldY = 0;
-            mouseMoved(evt);  // mouseMoved will establish hilight using click's x,y
-        }
-
-        evt.consume();
-        if (tempChangedMode)
-            mode = NONE;
+            if (tempChangedMode)
+                mode = NONE;
 
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
         }
     }
-    
+
     /**
      * Bring up the popup menu; called from mousePressed.
      *
      * @param x x-coordinate of click, actual screen pixels (not unscaled internal)
      * @param y y-coordinate of click, actual screen pixels (not unscaled internal)
      */
-    protected void doBoardMenuPopup (int x, int y)
+    protected void doBoardMenuPopup (final int x, final int y)
     {
         // Determine mode, to see if we're building or cancelling.
         switch (mode)
@@ -5331,11 +5334,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     (x, y, hilightRoad, 0, 0, hilightShip);
             }
             break;
-            
+
         case PLACE_INIT_SETTLEMENT:
             popupMenu.showBuild(x, y, 0, hilight, 0, 0);
             break;
-            
+
         default:  // NONE, GAME_FORMING, PLACE_ROBBER, etc
 
             if ((hoverTip.hoverPiece != null) && (hoverTip.hoverPiece instanceof SOCFortress))
@@ -5367,7 +5370,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             popupMenu.showBuild(x, y, hilightRoad, hoverTip.hoverSettlementID, hoverTip.hoverCityID, hilightShip);
         }
     }
-    
+
     /** If the client has used the board popup menu to request building a piece,
      *  this method is used in client network-receive message treatment.
      */
@@ -5415,11 +5418,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             buildReqTimerTask = null;
         }
     }
-    
+
     /** Have received gamestate placing message; send the building request in reply. */
     public void popupFireBuildingRequest()
     {
-        Timer piTimer = playerInterface.getEventTimer();
+        final Timer piTimer = playerInterface.getEventTimer();
         synchronized (piTimer)
         {
             if (buildReqTimerTask == null)
@@ -5730,7 +5733,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Set the interaction mode, for debugging purposes.
      *
      * @param m  mode, such as {@link #CONSIDER_LM_SETTLEMENT} or {@link #CONSIDER_LT_CITY}
-     * 
+     *
      * @see #updateMode()
      * @see #setModeMoveShip(int)
      * @see SOCPlayerClient#doLocalCommand(SOCGame, String)
@@ -5999,8 +6002,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     protected class BoardToolTip
     {
-        private SOCBoardPanel bpanel;
-        
+        private final SOCBoardPanel bpanel;
+
         /** Text to hover-display, or null if nothing to show */
         private String hoverText;
 
@@ -6078,10 +6081,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          *  If boxw == 0, also indicates need fontmetrics - will be set in paint().
          */
         private int boxW, boxH;
-        
+
         private final int TEXT_INSET = 3;
         private final int PADDING_HORIZ = 2 * TEXT_INSET + 2;
-        
+
         BoardToolTip(SOCBoardPanel ourBoardPanel)
         {
             bpanel = ourBoardPanel;
@@ -6100,9 +6103,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             offsetX = 0;
             boxW = 0;
         }
-        
+
         /** Currently displayed text.
-         * 
+         *
          * @return Tooltip text, or null if nothing.
          */
         public String getHoverText()
@@ -6198,10 +6201,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 setHoverText_modeChangedOrMouseMoved = false;
                 return;
             }
+
             boxW = 0;  // Paint method will calculate it
             positionToMouse(mouseX, mouseY);  // Also calls repaint, clears setHoverText_modeChangedOrMouseMoved
         }
-        
+
         /**
          * Clear hover text, and cancel any hovering roads/settlements/cities.
          * Repaint the board.
@@ -6221,7 +6225,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             setHoverText_modeChangedOrMouseMoved = false;
             bpanel.repaint();
         }
-        
+
         /** Draw; Graphics should be the boardpanel's gc, as seen in its paint method. */
         public void paint(Graphics g)
         {
@@ -6253,6 +6257,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (panelMarginX != 0)
                     g.translate(-panelMarginX, 0);
             }
+
             String ht = hoverText;  // cache against last-minute change in another thread
             if (ht == null)
                 return;
@@ -6278,6 +6283,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (boxY + boxH > bpheight)
                     boxY = bpheight - boxH - 2;
             }
+
             g.setColor(Color.WHITE);
             g.fillRect(boxX, boxY, boxW, boxH - 1);
             g.setColor(Color.BLACK);
@@ -6340,6 +6346,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             /** Coordinates on board (a node, edge, or hex) */
             int id;
+
             boolean modeAllowsHoverPieces = ((mode != PLACE_INIT_SETTLEMENT)
                 && (mode != PLACE_INIT_ROAD) && (mode != PLACE_ROBBER) && (mode != PLACE_PIRATE)
                 && (mode != TURN_STARTING) && (mode != GAME_OVER));
@@ -6367,7 +6374,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     positionToMouse(x,y);
                     return;  // <--- Early ret: No work needed ---
                 }
-                
+
                 // Is anything there?
                 SOCPlayingPiece p = board.settlementAtNode(id);
                 if (p == null)
@@ -6482,6 +6489,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                                         htext = "board.sc_piri.lone.stlmt.after";  // "Lone Settlement location allowed on pirate island after initial placement"
                                     else
                                         htext = "board.sc_piri.lone.stlmt";  // "Lone Settlement location allowed on pirate island"
+
                                     break;
                                 }
                             }
@@ -6632,7 +6640,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     }
                 }
             }
-            
+
             // By now we've set hoverRoadID, hoverShipID, hoverCityID, hoverSettlementID, hoverIsPort.
             if (hoverTextSet)
             {
@@ -6661,13 +6669,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     final int htype = board.getHexTypeFromCoord(id);
                     final int dicenum = board.getNumberOnHexFromCoord(id);
-                    
+
                     StringBuffer key = new StringBuffer("game.hex.hoverformat");
                     String hname = "";
                     String addinfo = "";
                     int hid = htype;
                     boolean showDice = false;
-                    
+
                     switch (htype)
                     {
                     case SOCBoard.DESERT_HEX:
@@ -6759,6 +6767,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             addinfo = "game.hex.addinfo.cantsettle";
                         }
                     }
+
                     hname = strings.get(hname, hid);
                     if(showDice){
                         key.append(".dice");
@@ -6769,7 +6778,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     }
                     setHoverText(strings.get(key.toString(), hname, dicenum, addinfo));
                 }
-                
+
                 return;  // <--- Early return: Found hex ---
             }
 
@@ -6851,7 +6860,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             return portDesc;
         }
-        
+
     }  // inner class BoardToolTip
 
 
@@ -6868,22 +6877,22 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         implements java.awt.event.ActionListener
     {
       /** our parent boardpanel */
-      SOCBoardPanel bp;
+      final SOCBoardPanel bp;
 
-      MenuItem buildRoadItem, buildSettleItem, upgradeCityItem;
+      final MenuItem buildRoadItem, buildSettleItem, upgradeCityItem;
 
       /**
        * Menu item to build or move a ship if {@link SOCGame#hasSeaBoard}, or null.
        * @since 2.0.00
        */
-      MenuItem buildShipItem;
+      final MenuItem buildShipItem;
 
       /**
        * Menu item to cancel a build as we're placing it,
        * or to cancel moving a ship.
        * Piece type to cancel is {@link #cancelBuildType}.
        */
-      MenuItem cancelBuildItem;
+      final MenuItem cancelBuildItem;
 
       /** determined at menu-show time, only over a useable port. Added then, and removed at next menu-show */
       SOCHandPanel.ResourceTradePopupMenu portTradeSubmenu;
@@ -6971,7 +6980,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
       /** Custom 'cancel' show method for when placing a road/settlement/city,
        *  giving the build/cancel options for that type of piece.
-       * 
+       *
        * @param buildType piece type (SOCPlayingPiece.ROAD, CITY, SETTLEMENT)
        * @param x   Mouse x-position
        * @param y   Mouse y-position
@@ -7051,7 +7060,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
           super.show(bp, x, y);
       }
-      
+
       /**
        * Custom show method that finds current game status and player status.
        * Also checks for hovering-over-port for port-trade submenu.
@@ -7162,7 +7171,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                       menuPlayerIsCurrent = false;  // Not in a state to place items
               }
           }
-          
+
           if (! menuPlayerIsCurrent)
           {
               buildRoadItem.setEnabled(false);
@@ -7230,7 +7239,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               hoverSettlementID = hSe;
               hoverCityID = hC;
               hoverShipID = hSh;
-              
+
               // Is it a port?
               int portType = -1;
               int portId = 0;
@@ -7312,7 +7321,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               return;
           Object target = e.getSource();
           if (target == buildRoadItem)
+          {
               tryBuild(SOCPlayingPiece.ROAD);
+          }
           else if (target == buildSettleItem)
           {
               if (hoverSettlementID != -1)
@@ -7321,7 +7332,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                   confirmAttackPirateFortress();
           }
           else if (target == upgradeCityItem)
+          {
               tryBuild(SOCPlayingPiece.CITY);
+          }
           else if ((target == buildShipItem) && (target != null))
           {
               if (mode == MOVE_SHIP)
@@ -7332,7 +7345,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                   tryBuild(SOCPlayingPiece.SHIP);
           }
           else if (target == cancelBuildItem)
+          {
               tryCancel();
+          }
       }
 
       /**
@@ -7346,24 +7361,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
       void tryBuild(int ptype)
       {
           final boolean debugPP = game.isDebugFreePlacement();
-          int cpn = (debugPP)
+          final int cpn = (debugPP)
               ? playerNumber   // boardpanel's temporary player number
               : playerInterface.getClientPlayerNumber();
           int buildLoc;      // location
           boolean canBuild;  // resources, rules
           String btarget;    // button name on buildpanel
-          
+
           // If we're in initial placement, or cancel/build during game,
           // or debugPP, or free-road placement, then send putpiece right now.
           // Otherwise, multi-phase send.
           final int gstate = game.getGameState();
           final boolean sendNow = isInitialPlacement || wantsCancel || debugPP
               || (gstate == SOCGame.PLACING_FREE_ROAD1) || (gstate == SOCGame.PLACING_FREE_ROAD2);
-          
+
           // Note that if we're in gameplay have clicked the "buy road" button
           // and trying to place it, game.couldBuildRoad will be false because
           // we've already spent the resources.  So, wantsCancel won't check it.
-          
+
           switch (ptype)
           {
           case SOCPlayingPiece.ROAD:
@@ -7389,7 +7404,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               }
               btarget = SOCBuildingPanel.STLMT;
               break;
-          
+
           case SOCPlayingPiece.CITY:
               buildLoc = hoverCityID;
               canBuild = player.isPotentialCity(buildLoc);
@@ -7413,13 +7428,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           default:
               throw new IllegalArgumentException ("Bad build type: " + ptype);
           }
-          
+
           if (! canBuild)
           {
               playerInterface.printKeyed("board.msg.cannot.build.there");  // * "Sorry, you cannot build there."
               return;
           }
-          
+
           if (sendNow)
           {
               // - Easy, we've sent it right away.  Done with placing this piece.
@@ -7533,8 +7548,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     /* package-access */ static class ResourceTradeAllMenu extends SOCHandPanel.ResourceTradePopupMenu
     {
-        private SOCBoardPanel bpanel;
-        private SOCHandPanel.ResourceTradeTypeMenu[] tradeFromTypes;
+        private final SOCBoardPanel bpanel;
+        private final SOCHandPanel.ResourceTradeTypeMenu[] tradeFromTypes;
 
         /**
          * Temporary menu for board popup menu
@@ -7561,7 +7576,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Show menu at this position. Before showing, enable or
          * disable based on gamestate and player's resources.
-         * 
+         *
          * @param x   Mouse x-position relative to colorsquare
          * @param y   Mouse y-position relative to colorsquare
          */
@@ -7615,11 +7630,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Used for the delay between sending a build-request message,
      * and receiving a game-state message.
-     * 
+     *
      * This timer will probably not be called, unless there's a large lag
      * between the server and client.  It's here just in case.
      * Ideally the server responds right away, and the client responds then.
-     * 
+     *
      * @see SOCHandPanel#autoRollSetupTimer()
      */
     protected class BoardPanelSendBuildTask extends java.util.TimerTask
@@ -7628,7 +7643,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         protected boolean wasSentAlready;
 
         /** Send this after maximum delay.
-         * 
+         *
          * @param coord Board coordinates, as used in SOCPutPiece message. Does not accept -1 for road edge 0x00.
          * @param ptype Piece type, as used in SOCPlayingPiece / SOCPutPiece
          */
@@ -7638,19 +7653,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             pieceType = ptype;
             wasSentAlready = false;
         }
-        
+
         /** Board coordinates, as used in SOCPutPiece message */
         public int getBuildLoc()
         {
             return buildLoc;
         }
-        
+
         /** Piece type, as used in SOCPlayingPiece / SOCPutPiece */
         public int getPieceType()
         {
             return pieceType;
         }
-        
+
         /**
          * This timer will probably not be called, unless there's a large lag
          * between the server and client.  It's here just in case.
@@ -7666,7 +7681,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
                 catch (Throwable e) {}
             }
-            
+
             // Time is up.
             sendOnceFromClientIfCurrentPlayer();
         }
@@ -7697,7 +7712,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             // Should only get here once, in one thread.
             if (! playerInterface.clientIsCurrentPlayer())
                 return;  // Stale request, player's already changed
-            
+
             SOCPlayerClient client = playerInterface.getClient();
 
             switch (pieceType)
@@ -7725,7 +7740,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             clearModeAndHilight(pieceType);
         }
-        
+
     }  // inner class BoardPanelSendBuildTask
 
 
@@ -7767,6 +7782,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 ((newRobHex > 0) ? /*I*/"Move Robber"/*18N*/ : /*I*/"Move Pirate"/*18N*/),
                 /*I*/"Don't move there"/*18N*/,
                 null, 2);
+
             pl = player;
             robHex = newRobHex;
         }
