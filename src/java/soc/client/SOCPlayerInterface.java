@@ -3537,13 +3537,13 @@ public class SOCPlayerInterface extends Frame
          * To display the dialog without tying up the client's message-treater thread,
          * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          */
-        protected ChooseMoveRobberOrPirateDialog()
+        private ChooseMoveRobberOrPirateDialog()
         {
             super(getGameDisplay(), SOCPlayerInterface.this,
                 strings.get("dialog.choosemove.robber.or.pirate"), // "Move robber or pirate?"
                 strings.get("dialog.choosemove.ask.rob.pirate"),   // "Do you want to move the robber or the pirate ship?"
-                strings.get("dialog.choosemove.robber"),  // "Move Robber"
-                strings.get("dialog.choosemove.pirate"),  // "Move Pirate"
+                strings.get("dialog.base.move.robber"),  // "Move Robber"
+                strings.get("dialog.base.move.pirate"),  // "Move Pirate"
                 null, 1);
         }
 

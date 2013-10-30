@@ -7743,17 +7743,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     }  // inner class BoardPanelSendBuildTask
 
-
-
     /**
      * Modal dialog to confirm moving the robber next to our own settlement or city.
      * Use the AWT event thread to show, so message treating can continue while the dialog is showing.
      * If the move is confirmed, call playerClient.moveRobber and clearModeAndHilight.
      *
-     * @author Jeremy D Monin <jeremy@nand.net>
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 1.1.11
      */
-    protected class MoveRobberConfirmDialog extends AskDialog implements Runnable
+    private class MoveRobberConfirmDialog extends AskDialog implements Runnable
     {
         /** prevent serializable warning */
         private static final long serialVersionUID = 2000L;
@@ -7772,15 +7770,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * @param newRobHex  The new robber hex, if confirmed; not validated.
          *          Use a negative value if moving the pirate.
          */
-        protected MoveRobberConfirmDialog(SOCPlayer player, final int newRobHex)
+        private MoveRobberConfirmDialog(SOCPlayer player, final int newRobHex)
         {
             super(playerInterface.getGameDisplay(), playerInterface,
-                ((newRobHex > 0) ? /*I*/"Move robber to your hex?"/*18N*/ : /*I*/"Move pirate to your hex?"/*18N*/),
-                ((newRobHex > 0)
-                    ? /*I*/"Are you sure you want to move the robber to your own hex?"/*18N*/
-                    : /*I*/"Are you sure you want to move the pirate to your own hex?"/*18N*/),
-                ((newRobHex > 0) ? /*I*/"Move Robber"/*18N*/ : /*I*/"Move Pirate"/*18N*/),
-                /*I*/"Don't move there"/*18N*/,
+                strings.get((newRobHex > 0) ? "dialog.moverobber.to.hex" : "dialog.moverobber.to.hex.pirate"),
+                    // "Move robber to your hex?" / "Move pirate to your hex?"
+                strings.get((newRobHex > 0) ? "dialog.moverobber.are.you.sure" : "dialog.moverobber.are.you.sure.pirate"),
+                    // "Are you sure you want to move the robber to your own hex?"
+                    // / "Are you sure you want to move the pirate to your own hex?"
+                strings.get((newRobHex > 0) ? "dialog.base.move.robber" : "dialog.base.move.pirate"),
+                    // "Move Robber" / "Move Pirate"
+                strings.get("dialog.moverobber.dont"),  // "Don't move there"
                 null, 2);
 
             pl = player;
