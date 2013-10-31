@@ -4878,7 +4878,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                                 && ((SOCBoardLarge) board).isHexInLandAreas
                                     (hexNum, ((SOCBoardLarge) board).getRobberExcludedLandAreas()))
                             {
-                                hoverTip.setHoverText(/*I*/"Cannot move the robber here."/*18N*/);
+                                hoverTip.setHoverText(strings.get("board.robber.not.here"));  // "Cannot move the robber here."
                             } else {
                                 hoverTip.setHoverText(null);  // clear any previous
                             }
@@ -6406,7 +6406,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     }
                     String plName = p.getPlayer().getName();
                     if (plName == null)
-                        plName = /*I*/"unowned"/*18N*/;
+                        plName = strings.get("board.unowned");  // "unowned"
                     if (p instanceof SOCFortress)
                         sb.append(".piratefortress");
                     setHoverText(strings.get(sb.toString(), plName, board.getPortTypeFromNodeCoord(id)));
@@ -6572,7 +6572,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         hoverID = id;
                         String plName = rs.getPlayer().getName();
                         if (plName == null)
-                            plName = /*I*/"unowned"/*18N*/;
+                            plName = strings.get("board.unowned");  // "unowned"
 
                         if (isRoad)
                         {
