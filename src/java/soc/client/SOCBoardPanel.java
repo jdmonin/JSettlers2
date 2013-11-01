@@ -6408,7 +6408,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     if (plName == null)
                         plName = strings.get("board.unowned");  // "unowned"
                     if (p instanceof SOCFortress)
-                        sb.append(".piratefortress");
+                    {
+                        // fortress is never a port or city
+                        sb.setLength(0);
+                        sb.append("board.sc_piri.piratefortress");
+                    }
                     setHoverText(strings.get(sb.toString(), plName, board.getPortTypeFromNodeCoord(id)));
                     hoverTextSet = true;
 
