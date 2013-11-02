@@ -27,6 +27,7 @@ import java.util.StringTokenizer;
 
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;  // for javadocs
+import soc.game.SOCScenario;    // for javadocs
 
 
 /**
@@ -37,7 +38,7 @@ import soc.game.SOCBoardLarge;  // for javadocs
  * This message does not contain information about where the
  * player's pieces are on the board.
  *<P>
- * Names of typical parts of the board layout:
+ * Names of typical parts of the board layout: (Not all layouts include all these parts)
  *<UL>
  *<LI> HL: The hexes, from {@link SOCBoard#getHexLayout()}.<br>
  *         Not sent if <tt>LH</tt> is sent.  See note below on value mapping.
@@ -54,9 +55,10 @@ import soc.game.SOCBoardLarge;  // for javadocs
  *</UL>
  * A few game scenarios in jsettlers v2.0.00 may add other parts; see {@link #getAddedParts()}.
  *<UL>
- *<LI> CV: Cloth Village layout, for {@code _SC_CLVI}, from {@link SOCBoardLarge#getVillageAndClothLayout()}
+ *<LI> CV: Cloth Village layout, for {@code _SC_CLVI}, from {@link SOCBoardLarge#getVillageAndClothLayout()};
+ *         at the client, call {@link SOCBoardLarge#setVillageAndClothLayout(int[])} if this layout part is sent.
  *<LI> LS: Each player's lone additional Legal Settlement location, for {@code _SC_PIRI}: Node coordinates,
- *            one per player number, for the player's lone build location on the way to the pirate fortress. 
+ *         one per player number, for the player's lone build location on the way to the pirate fortress.
  *<LI> PP: Pirate fleet Path, for {@code _SC_PIRI}; hex coordinates for {@link SOCBoardLarge#movePirateHexAlongPath(int)}
  *</UL>
  *<P>
@@ -84,7 +86,10 @@ public class SOCBoardLayout2 extends SOCMessage
     implements SOCMessageForGame
 {
     /**
-     * Known layout part keys.  To be ignored by {@link #getAddedParts()}.
+     * Known layout part keys.  To be ignored by {@link #getAddedParts()} because the client calls
+     * specific {@link SOCBoardLarge} methods for each of these, instead of generically calling
+     * {@link SOCBoardLarge#setAddedLayoutParts(HashMap)}.  See {@code getAddedParts()} javadoc
+     * for details.
      * @since 2.0.00
      */
     private final String[] KNOWN_KEYS = { "HL", "NL", "RH", "PL", "LH", "PH", "PX", "RX", "CV" };
@@ -114,6 +119,10 @@ public class SOCBoardLayout2 extends SOCMessage
 
     /**
      * Contents are int[] or String (which may be int).
+     * Some are optional depending on game options and scenario;
+     * see class javadoc, {@link #getAddedParts()}, {@link #KNOWN_KEYS},
+     * {@link SOCBoardLarge#getAddedLayoutParts()},
+     * and {@code soc.server.SOCBoardLargeAtServer.setAddedLayoutPart(String, int[])}.
      */
     private Hashtable<String, Object> layoutParts;
 
@@ -303,9 +312,17 @@ public class SOCBoardLayout2 extends SOCMessage
 
     /**
      * Some game scenarios may add other layout part keys and int[] values.
+     * For example, scenario {@link SOCScenario#K_SC_PIRI SC_PIRI} adds
+     * <tt>"PP" = { 0x..., 0x... }</tt> for the fixed Pirate Path.
      * This is a generic mechanism for adding to layout information
-     * without continually changing <tt>SOCBoardLayout2</tt>.
-     * The returned keys of those parts will be none of the ones listed in this class javadoc.
+     * without continually changing {@code SOCBoardLayout2} or {@link SOCBoardLarge}.
+     *<P>
+     * The returned keys of those parts will be none of the ones in the "typical parts of the board layout"
+     * listed in this class javadoc, unlike {@link SOCBoardLarge#getAddedLayoutParts()} which includes any key
+     * added by the options or scenario.  The difference is that the client calls
+     * {@link SOCBoardLarge#setAddedLayoutParts(HashMap)} once for all the parts returned here.  For the keys
+     * listed in the class javadoc, such as {@code "CV"}, the client calls part-specific methods such as
+     * {@link SOCBoardLarge#setVillageAndClothLayout(int[])} to set up the board when the server sends its layout.
      * @return  Other added parts' keys and values, or null if none
      * @since 2.0.00
      */

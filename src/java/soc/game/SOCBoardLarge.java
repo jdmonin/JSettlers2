@@ -484,7 +484,8 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * For some scenarios, keyed lists of additional layout parts to add to game layout when sent from server to client.
      * For example, scenario {@link SOCScenario#K_SC_PIRI SC_PIRI} adds
-     * <tt>"PP" = { 0x..., 0x... }</tt> for the fixed Pirate Path.
+     * <tt>"PP" = { 0x..., 0x... }</tt> for the fixed Pirate Path, and
+     * {@link SOCScenario#K_SC_CLVI SC_CLVI} adds {@code "CV"} for the cloth village locations.
      * Null for most scenarios.  Initialized in <tt>SOCBoardLargeAtServer.makeNewBoard</tt>.
      */
     private HashMap<String, int[]> addedLayoutParts;
@@ -919,7 +920,12 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Get the keyed lists of additional layout parts to add to game layout, used only in some scenarios.
      * For example, scenario {@link SOCScenario#K_SC_PIRI SC_PIRI} adds
-     * <tt>"PP" = { 0x..., 0x... }</tt> for the fixed Pirate Path.
+     * <tt>"PP" = { 0x..., 0x... }</tt> for the fixed Pirate Path, and
+     * {@link SOCScenario#K_SC_CLVI SC_CLVI} adds {@code "CV"} for the cloth village locations.
+     *<P>
+     * At the client, most of these are get/set with specific methods like {@link #setVillageAndClothLayout(int[])}.
+     * A few such as {@code "PP"} and {@code "LS"} just call {@link #getAddedLayoutPart(String)}.
+     *<P>
      * Please treat the returned value as read-only.
      * The layout part keys are documented at {@link soc.message.SOCBoardLayout2}.
      *<P>
@@ -939,9 +945,9 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Get one "added layout part" by its key name.
+     * For more info, see class javadoc or {@link #getAddedLayoutParts()}.
      * @param key  Key name (short and uppercase)
      * @return  The added layout part, or null if none with that key
-     * @see #getAddedLayoutParts()
      */
     public int[] getAddedLayoutPart(final String key)
     {
