@@ -100,7 +100,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *
      * <h3>If you want to add a game scenario:</h3>
      *<UL>
-     *<LI> Choose an unused key name: for example, "SC_FOG" for Fog Islands.
+     *<LI> Choose an unused key name: for example, {@code "SC_FOG"} for Fog Islands.
      *   The list of already-used key names is here within initAllScenarios().
      *<LI> Decide if all client versions can use your scenario.  Typically, if the scenario
      *   requires server changes but not any client changes, all clients can use it.
@@ -108,15 +108,18 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *<LI> If your scenario requires new {@link SOCGameOption}s to change the rules or game behavior,
      *   create and test those; scenario game options all start with "_SC_".
      *   See {@link SOCGameOption#initAllOptions()} for details.
-     *   If the new scenario has a new game option just for itself, instead of a reusable one like {@code _SC_SANY},
-     *   the option name is "_" + scenario name: {@code _SC_PIRI} for scenario {@code SC_PIRI}.
+     *   If the new scenario has a new game option just for itself, instead of a reusable one like
+     *   {@link SOCGameOption#K_SC_SANY _SC_SANY}, the option name is "_" + scenario name:
+     *   {@code "_SC_PIRI"} for scenario {@link #K_SC_PIRI SC_PIRI}.
+     *<LI> Not all scenarios require a game option.  {@link #K_SC_TTD SC_TTD} has only a board layout,
+     *   and doesn't change any game behavior from standard, so there is no {@code "_SC_TTD"} SOCGameOption.
      *<LI> Add the scenario's key to the list of "game scenario keynames"
      *   as a public static final String, such as {@link #K_SC_FOG}.
-     *   Put a short description in the javadoc there, and the list in this javadoc.
-     *<LI> Create the scenario by calling allSc.put here in initAllScenarios.
+     *   Put a short description in the javadoc there, and in this javadoc's scenario list.
+     *<LI> Create the scenario by calling {@code allSc.put} here in initAllScenarios.
      *   Use the current version for the "last modified" field.
      *<LI> Within {@link SOCGame}, don't change any code based on the scenario name;
-     *   only change code for the {@link SOCGameOption}s that implement the scenario.
+     *   game behavior changes are based only on the {@link SOCGameOption}s implementing the scenario.
      *</UL>
      *
      * <h3>If you want to change a scenario (in a later version):</h3>
@@ -144,10 +147,12 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *
      * <h3>If you want to remove or obsolete a game scenario (in a later version):</h3>
      *
-     * Please think twice beforehand; breaking compatibility with older clients shouldn't
+     * Please think twice beforehand; users may be surprised when something is missing, so this shouldn't
      * be done without a very good reason.  That said, the server is authoritative on scenarios.
      * If a scenario isn't in its known list ({@link #initAllScenarios()}), the client won't be
      * allowed to ask for it.  Any obsolete scenario should be kept around as commented-out code.
+     * See {@link SOCGameOption#initAllOptions()} for things to think about when removing
+     * game options used only in the obsolete scenario.
      *
      * @return a fresh copy of the "known" scenarios, with their hardcoded default values
      */
