@@ -95,6 +95,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *<LI> {@link #K_SC_TTD  SC_TTD}   Through The Desert
      *<LI> {@link #K_SC_CLVI SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}
      *<LI> {@link #K_SC_PIRI SC_PIRI}  Pirate Islands and {@link SOCFortress fortresses}
+     *<LI> {@link #K_SC_FTRI SC_FTRI}  The Forgotten Tribe.
      *</UL>
      *  (See each scenario name field's javadoc for more details.)
      *
@@ -199,6 +200,16 @@ public class SOCScenario implements Cloneable, Comparable<Object>
              + "No robber or largest army.",
              "_SC_PIRI=t,PLL=t,VP=t10"));  // win condition: 10 VP _and_ defeat a pirate fortress
 
+        allSc.put(K_SC_FTRI, new SOCScenario
+                (K_SC_FTRI, 2000, 2000,
+                 "The Forgotten Tribe",
+                 "Far areas of the board have small habitations of a \"forgotten tribe\" of settlers. "
+                 + "When players reach them they are greeted with \"gifts\" of a development card or Special Victory Point. "
+                 + "Harbors at these far areas can be claimed by players and must be moved adjacent to one "
+                 + "of their coastal settlements/cities if possible, or set aside for the "
+                 + "player to place later when they have one.",
+                 "_SC_FTRI=t,PLL=t,VP=t13"));
+
         return allSc;
 
         // OBSOLETE SCENARIOS, REMOVED SCENARIOS - Move its allSc.put down here, commented out,
@@ -243,6 +254,21 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * only extend from their ends.
      */
     public static final String K_SC_PIRI = "SC_PIRI";
+
+    /**
+     * Scenario key {@code SC_FTRI} for the Forgotten Tribe.
+     * Main option is {@link SOCGameOption#K_SC_FTRI "_SC_FTRI"}.
+     *<P>
+     * Far areas of the board have small habitations of a "forgotten tribe" of settlers.
+     * When players reach them (with a boat adjacent to specific single edge coordinates),
+     * they are greeted with "gifts" of a development card or Special Victory Point.
+     *<P>
+     * Harbors at these far areas can be claimed by players and must be moved adjacent to one
+     * of their coastal settlements/cities, unless they have none that isn't at least separated 1 edge
+     * from an existing harbor.  If that's the case, the claimed harbor is "set aside" for the
+     * player to place later when they have such a coastal settlement.
+     */
+    public static final String K_SC_FTRI = "SC_FTRI";
 
     /**
      * Is this an unknown scenario?  Used in cross-version compatibility.

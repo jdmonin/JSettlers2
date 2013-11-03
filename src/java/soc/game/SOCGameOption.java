@@ -371,6 +371,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         opt.put(K_SC_PIRI, new SOCGameOption
                 (K_SC_PIRI, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
                  "Scenarios: Pirate Islands and fortresses"));
+        opt.put(K_SC_FTRI, new SOCGameOption
+                (K_SC_FTRI, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
+                 "Scenarios: The Forgotten Tribe"));
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
@@ -596,6 +599,13 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @since 2.0.00
      */
     public static final String K_SC_PIRI = "_SC_PIRI";
+
+    /**
+     * Scenario key {@code _SC_FTRI} for the Forgotten Tribe.
+     * For more details and special rules see {@link SOCScenario#K_SC_FTRI}.
+     * @since 2.0.00
+     */
+    public static final String K_SC_FTRI = "_SC_FTRI";
 
     // -- End of scenario flag keynames --
 
