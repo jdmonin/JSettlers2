@@ -522,7 +522,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * receive a board layout (new format, as of 20091104 (v 1.1.08))
              */
             case SOCMessage.BOARDLAYOUT2:
-                handleBOARDLAYOUT2((SOCBoardLayout2) mes);  // in soc.client.SOCDisplaylessPlayerClient
+                handleBOARDLAYOUT2(games, (SOCBoardLayout2) mes);  // in soc.client.SOCDisplaylessPlayerClient
                 break;
 
             /**

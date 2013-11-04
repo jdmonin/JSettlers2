@@ -56,6 +56,7 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Vector;
 
 
@@ -476,7 +477,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * receive a board layout (new format, as of 20091104 (v 1.1.08))
              */
             case SOCMessage.BOARDLAYOUT2:
-                handleBOARDLAYOUT2((SOCBoardLayout2) mes);
+                handleBOARDLAYOUT2(games, (SOCBoardLayout2) mes);
                 break;
 
             /**
@@ -1041,14 +1042,16 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * handle the "board layout" message, new format
+     * @param games  Games the client is playing, for method reuse by SOCPlayerClient
      * @param mes  the message
      * @since 1.1.08
+     * @return True if game was found and layout understood, false otherwise
      */
-    protected void handleBOARDLAYOUT2(SOCBoardLayout2 mes)
+    public static boolean handleBOARDLAYOUT2(Map<String, SOCGame> games, SOCBoardLayout2 mes)
     {
         SOCGame ga = games.get(mes.getGame());
         if (ga == null)
-            return;
+            return false;
 
         SOCBoard bd = ga.getBoard();
         final int bef = mes.getBoardEncodingFormat();
@@ -1097,7 +1100,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
             // Should not occur: Server has sent an unrecognized format
             System.err.println
                 ("Cannot recognize game encoding v" + bef + " for game " + ga.getName());
+            return false;
         }
+
+        return true;
     }
 
     /**

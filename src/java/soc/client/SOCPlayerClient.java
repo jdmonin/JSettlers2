@@ -3409,62 +3409,11 @@ public class SOCPlayerClient
     protected void handleBOARDLAYOUT2(SOCBoardLayout2 mes)
     {
         System.err.println("L2602 boardlayout2 at " + System.currentTimeMillis());
-        SOCGame ga = games.get(mes.getGame());
-        if (ga == null)
-            return;
-
-        SOCBoard bd = ga.getBoard();
-        final int bef = mes.getBoardEncodingFormat();
-        bd.setBoardEncodingFormat(bef);
-        if (bef == SOCBoard.BOARD_ENCODING_LARGE)
+        if (SOCDisplaylessPlayerClient.handleBOARDLAYOUT2(games, mes))
         {
-            // v3
-            ((SOCBoardLarge) bd).setLandHexLayout(mes.getIntArrayPart("LH"));
-            ga.setPlayersLandHexCoordinates();
-            int hex = mes.getIntPart("RH");
-            if (hex != 0)
-                bd.setRobberHex(hex, false);
-            hex = mes.getIntPart("PH");
-            if (hex != 0)
-                ((SOCBoardLarge) bd).setPirateHex(hex, false);
-            int[] portLayout = mes.getIntArrayPart("PL");
-            if (portLayout != null)
-                bd.setPortsLayout(portLayout);
-            int[] x = mes.getIntArrayPart("PX");
-            if (x != null)
-                ((SOCBoardLarge) bd).setPlayerExcludedLandAreas(x);
-            x = mes.getIntArrayPart("RX");
-            if (x != null)
-                ((SOCBoardLarge) bd).setRobberExcludedLandAreas(x);
-            x = mes.getIntArrayPart("CV");
-            if (x != null)
-                ((SOCBoardLarge) bd).setVillageAndClothLayout(x);
-            x = mes.getIntArrayPart("LS");
-            if (x != null)
-                ((SOCBoardLarge) bd).addLoneLegalSettlements(ga, x);
-
-            HashMap<String, int[]> others = mes.getAddedParts();
-            if (others != null)
-                ((SOCBoardLarge) bd).setAddedLayoutParts(others);
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
+            pcl.boardLayoutUpdated();
         }
-        else if (bef <= SOCBoard.BOARD_ENCODING_6PLAYER)
-        {
-            // v1 or v2
-            bd.setHexLayout(mes.getIntArrayPart("HL"));
-            bd.setNumberLayout(mes.getIntArrayPart("NL"));
-            bd.setRobberHex(mes.getIntPart("RH"), false);
-            int[] portLayout = mes.getIntArrayPart("PL");
-            if (portLayout != null)
-                bd.setPortsLayout(portLayout);
-        } else {
-            // Should not occur: Server has sent an unrecognized format
-            System.err.println
-                ("Cannot recognize game encoding v" + bef + " for game " + ga.getName());
-            return;
-        }
-
-        PlayerClientListener pcl = clientListeners.get(mes.getGame());
-        pcl.boardLayoutUpdated();
     }
 
     /**
