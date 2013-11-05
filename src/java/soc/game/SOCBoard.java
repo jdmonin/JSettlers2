@@ -1500,6 +1500,9 @@ public class SOCBoard implements Serializable, Cloneable
      * Sets no fields, only rearranges the contents of that array.
      * Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
      * (for ports, the types here are: 3-for-1, or 2-for-1).
+     * If the clumps couldn't be broken after 100 tries, give up trying.
+     * (Maybe the set doesn't have enough 3-for-1, or is too small overall.)
+     *
      * @param portHex Contains port types, 1 per port, as they will appear in clockwise
      *            order around the edge of the board. Must not all be the same type.
      *            {@link #MISC_PORT} is the 3-for-1 port type value.
@@ -1510,6 +1513,8 @@ public class SOCBoard implements Serializable, Cloneable
         throws IllegalStateException
     {
         boolean portsOK = true;
+        int redoCount = 0;
+
         do
         {
             int count, i;
@@ -1564,12 +1569,20 @@ public class SOCBoard implements Serializable, Cloneable
                             break;
                         } else {
                             ++count;
+
                             if (count >= clumpsize)
                             {
                                 portsOK = false;
+
+                                ++redoCount;
+                                if (redoCount > 100)
+                                {
+                                    return;  // <--- Early return: Give up after 100 attempts ---
+                                }
+
                                 break;
                             }
-                        }                        
+                        }
                     }
                 }
             }  // if opt("BC")
