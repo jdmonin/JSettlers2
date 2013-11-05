@@ -96,8 +96,9 @@ import soc.util.IntTriple;
  * &nbsp; * Some "land areas" may include water hexes, to vary the coastline from game to game. <BR>
  *<P>
  * Some scenarios may add other "layout parts" related to their scenario board layout.
- * For example, scenario {@code _SC_PIRI} adds {@code "PP"} for the path the pirate fleet follows.
- * See {@link SOCBoardLarge#getAddedLayoutPart(String)}, {@link SOCBoardLarge#setAddedLayoutPart(String, int[])}.
+ * For example, scenario {@code _SC_PIRI} adds {@code "PP"} for the path followed by the pirate fleet.
+ * See {@link SOCBoardLarge#getAddedLayoutPart(String)}, {@link SOCBoardLarge#setAddedLayoutPart(String, int[])},
+ * and the list of added parts documented at the {@link soc.message.SOCBoardLayout2} class javadoc.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -229,6 +230,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
         final int PORTS_TYPES_MAINLAND[], PORTS_TYPES_ISLANDS[];  // port types, or null if none
         final int PORT_LOC_FACING_MAINLAND[], PORT_LOC_FACING_ISLANDS[];  // port edge locations and facings
+            // Either PORTS_TYPES_MAINLAND or PORTS_TYPES_ISLANDS can be null.
+            // PORTS_TYPES_MAINLAND will be checked for "clumps" of several adjacent 3-for-1 or 2-for-1
+            // ports in makeNewBoard_shufflePorts. PORTS_TYPES_ISLANDS will not be checked.
 
         if (hasScenario4ISL)
         {
@@ -453,22 +457,29 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             setAddedLayoutPart("CV", cl);
         }
 
-        if (PORTS_TYPES_MAINLAND == null)
+        if ((PORTS_TYPES_MAINLAND == null) && (PORTS_TYPES_ISLANDS == null))
         {
             return;  // <--- Early return: No ports to place ---
         }
 
         // check port locations & facings, make sure no overlap with land hexes
-        makeNewBoard_checkPortLocationsConsistent(PORT_LOC_FACING_MAINLAND);
+        if (PORTS_TYPES_MAINLAND != null)
+            makeNewBoard_checkPortLocationsConsistent(PORT_LOC_FACING_MAINLAND);
         if (PORT_LOC_FACING_ISLANDS != null)
             makeNewBoard_checkPortLocationsConsistent(PORT_LOC_FACING_ISLANDS);
 
         // copy and shuffle the ports, and check vs game option BC
-        int[] portTypes_main = new int[PORTS_TYPES_MAINLAND.length];
+        int[] portTypes_main;
         int[] portTypes_islands;
-        System.arraycopy(PORTS_TYPES_MAINLAND, 0, portTypes_main, 0, portTypes_main.length);
-        if ((maxPl == 6) || ! hasScenarioFog)
-            makeNewBoard_shufflePorts(portTypes_main, opt_breakClumps);
+        if (PORTS_TYPES_MAINLAND != null)
+        {
+            portTypes_main = new int[PORTS_TYPES_MAINLAND.length];
+            System.arraycopy(PORTS_TYPES_MAINLAND, 0, portTypes_main, 0, portTypes_main.length);
+            if ((maxPl == 6) || ! hasScenarioFog)
+                makeNewBoard_shufflePorts(portTypes_main, opt_breakClumps);
+        } else {
+            portTypes_main = null;
+        }
         if (PORTS_TYPES_ISLANDS != null)
         {
             portTypes_islands = new int[PORTS_TYPES_ISLANDS.length];
@@ -479,15 +490,17 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         }
 
         // copy port types to beginning of portsLayout[]
-        portsCount = PORTS_TYPES_MAINLAND.length;
+        final int pcountMain = (PORTS_TYPES_MAINLAND != null) ? portTypes_main.length : 0;
+        portsCount = pcountMain;
         if (PORTS_TYPES_ISLANDS != null)
             portsCount += PORTS_TYPES_ISLANDS.length;
         if ((portsLayout == null) || (portsLayout.length != (3 * portsCount)))
             portsLayout = new int[3 * portsCount];
-        System.arraycopy(portTypes_main, 0, portsLayout, 0, portTypes_main.length);
+        if (PORTS_TYPES_MAINLAND != null)
+            System.arraycopy(portTypes_main, 0, portsLayout, 0, pcountMain);
         if (PORTS_TYPES_ISLANDS != null)
             System.arraycopy(portTypes_islands, 0,
-                portsLayout, portTypes_main.length, portTypes_islands.length);
+                portsLayout, pcountMain, portTypes_islands.length);
 
         // place the ports (hex numbers and facing) within portsLayout[] and nodeIDtoPortType.
         // fill out the ports[] vectors with node coordinates where a trade port can be placed.
@@ -496,19 +509,22 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         // - main island(s):
         // i == port type array index
         // j == port edge & facing array index
-        final int L = portTypes_main.length;
-        for (int i = 0, j = 0; i < L; ++i)
+        final int L = (portTypes_main != null) ? portTypes_main.length : 0;
+        if (L > 0)
         {
-            final int ptype = portTypes_main[i];  // also == portsLayout[i]
-            final int edge = PORT_LOC_FACING_MAINLAND[j];
-            ++j;
-            final int facing = PORT_LOC_FACING_MAINLAND[j];
-            ++j;
-            final int[] nodes = getAdjacentNodesToEdge_arr(edge);
-            placePort(ptype, -1, facing, nodes[0], nodes[1]);
-            // portsLayout[i] is set already, from portTypes_main[i]
-            portsLayout[i + portsCount] = edge;
-            portsLayout[i + (2 * portsCount)] = facing;
+            for (int i = 0, j = 0; i < L; ++i)
+            {
+                final int ptype = portTypes_main[i];  // also == portsLayout[i]
+                final int edge = PORT_LOC_FACING_MAINLAND[j];
+                ++j;
+                final int facing = PORT_LOC_FACING_MAINLAND[j];
+                ++j;
+                final int[] nodes = getAdjacentNodesToEdge_arr(edge);
+                placePort(ptype, -1, facing, nodes[0], nodes[1]);
+                // portsLayout[i] is set already, from portTypes_main[i]
+                portsLayout[i + portsCount] = edge;
+                portsLayout[i + (2 * portsCount)] = facing;
+            }
         }
 
         // - outlying islands:
@@ -556,10 +572,14 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * @param numPath  Coordinates within {@link #hexLayoutLg} (also within {@link #numberLayoutLg}) for each land hex;
      *                    same array length as <tt>landHexType[]</tt>
      * @param number   Numbers to place into {@link #numberLayoutLg} for each land hex;
-     *                    array length is <tt>landHexType[].length</tt> minus 1 for each desert in <tt>landHexType[]</tt>
+     *                    array length is <tt>landHexType[].length</tt> minus 1 for each desert in <tt>landHexType[]</tt>.
+     *                    If only some land hexes have dice numbers, <tt>number[]</tt> can be shorter; each
+     *                    <tt>number[i]</tt> will be placed at <tt>numPath[i]</tt> until <tt>i >= number.length</tt>.
+     *                    Can be <tt>null</tt> if none of these land hexes have dice numbers.
      * @param shuffleDiceNumbers  If true, shuffle the dice <tt>number</tt>s before placing along <tt>numPath</tt>.
      *                 Also only if true, calls {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList)}
      *                 to make sure 6s, 8s aren't adjacent and gold hexes aren't on 6 or 8.
+     *                 <tt>number[]</tt> must not be <tt>null</tt>.
      * @param shuffleLandHexes    If true, shuffle <tt>landHexType[]</tt> before placing along <tt>numPath</tt>.
      * @param landAreaNumber  0 unless there will be more than 1 Land Area (group of islands).
      *                    If != 0, updates {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt>
@@ -621,7 +641,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *                    if every land hex has a dice number.
      *                    If only some land hexes have dice numbers, <tt>number[]</tt> can be shorter; each
      *                    <tt>number[i]</tt> will be placed at <tt>numPath[i]</tt> until <tt>i >= number.length</tt>.
+     *                    Can be <tt>null</tt> if none of these land hexes have dice numbers.
      * @param shuffleDiceNumbers  If true, shuffle the dice <tt>number</tt>s before placing along <tt>numPath</tt>.
+     *                    <tt>number[]</tt> must not be <tt>null</tt>.
      * @param shuffleLandHexes    If true, shuffle <tt>landHexType[]</tt> before placing along <tt>numPath</tt>.
      * @param landAreaPathRanges  <tt>numPath[]</tt>'s Land Area Numbers, and the size of each land area.
      *                    Array length is 2 x the count of land areas included.
@@ -754,7 +776,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                     {
                         throw new IllegalArgumentException("landHexType can't contain FOG_HEX");
                     }
-                    else if (cnt < number.length)
+                    else if ((number != null) && (cnt < number.length))
                     {
                         // place the numbers
                         final int diceNum = number[cnt];
