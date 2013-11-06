@@ -3696,6 +3696,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
             }
 
+            // For scenario _SC_FTRI, draw the SVP edges and dev card edges
+            {
+                final int[] svpe = ((SOCBoardLarge) board).getAddedLayoutPart("VE");
+                if (svpe != null)
+                    drawBoardEmpty_SC_FTRI_edges(g, svpe, Color.GREEN);
+
+                final int[] ce = ((SOCBoardLarge) board).getAddedLayoutPart("CE");
+                if (ce != null)
+                    drawBoardEmpty_SC_FTRI_edges(g, ce, Color.YELLOW);
+            }
+
             // For scenario _SC_CLVI, draw the cloth villages
             HashMap<Integer, SOCVillage> villages = ((SOCBoardLarge) board).getVillages();
             if (villages != null)
@@ -3762,6 +3773,38 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         if (g instanceof Graphics2D)
             ((Graphics2D) g).setStroke(prevStroke);
+    }
+
+    /**
+     * For the {@link SOCGameOption#K_SC_FTRI _SC_FTRI} game scenario on {@link SOCBoardLarge},
+     * draw markers at a set of special edges for the player to reach.
+     * @param edges  Set of special edge coordinates
+     * @param color  Color to draw edge markers
+     * @since 2.0.00
+     */
+    private final void drawBoardEmpty_SC_FTRI_edges(final Graphics g, final int[] edges, final Color color)
+    {
+        for (int i = 0; i < edges.length; ++i)
+        {
+            final int edge = edges[i];
+            if (edge == 0)
+                continue;
+
+            int x = edge & 0xFF, y = edge >> 8;  // col, row to calculate x, y
+            final boolean edgeNotVertical = ((y % 2) == 0);
+            x = x * halfdeltaX;
+            y = y * halfdeltaY + HALF_HEXHEIGHT;
+
+            // If the edge is along the top or bottom of a hex (not a vertical edge),
+            // its center is slightly offset from the grid
+            if (edgeNotVertical)
+                x += (halfdeltaX / 2);
+
+            x = scaleToActualX(x);
+            y = scaleToActualY(y);
+
+            drawMarker(g, x, y, color, -1);
+        }
     }
 
     /**
