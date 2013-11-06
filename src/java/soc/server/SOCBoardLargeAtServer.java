@@ -333,6 +333,40 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
             setAddedLayoutPart("PP", PIR_ISL_PPATH[idx]);
         }
+        else if (scen.equals(SOCScenario.K_SC_FTRI))
+        {
+            // Forgotten Tribe
+            landAreasLegalNodes = new HashSet[2];
+            final int idx = (maxPl > 4) ? 1 : 0;  // 4-player or 6-player board
+
+            // - Larger main island
+            makeNewBoard_placeHexes
+                (FOR_TRI_LANDHEX_TYPE_MAIN[idx], FOR_TRI_LANDHEX_COORD_MAIN[idx], FOR_TRI_DICENUM_MAIN[idx],
+                 true, true, 1, opt_breakClumps, scen);
+
+            // - Small outlying islands for tribe
+            //  (LA # 0; Player can't place there)
+            makeNewBoard_placeHexes
+                (FOR_TRI_LANDHEX_TYPE_ISL[idx], FOR_TRI_LANDHEX_COORD_ISL[idx], null,
+                 false, false, 0, null, scen);
+
+            pirateHex = FOR_TRI_PIRATE_HEX[idx];
+
+            // Break up ports (opt_breakClumps) for the 6-player board only.
+            // The 4-player board doesn't have enough 3-for-1 ports for that to work.
+            if (maxPl > 4)
+            {
+                PORTS_TYPES_MAINLAND = FOR_TRI_PORT_TYPE[idx];  // PORTS_TYPES_MAINLAND breaks clumps
+                PORTS_TYPES_ISLANDS = null;
+                PORT_LOC_FACING_MAINLAND = FOR_TRI_PORT_EDGE_FACING[idx];
+                PORT_LOC_FACING_ISLANDS = null;
+            } else {
+                PORTS_TYPES_MAINLAND = null;
+                PORTS_TYPES_ISLANDS = FOR_TRI_PORT_TYPE[idx];  // PORTS_TYPES_ISLAND doesn't break clumps
+                PORT_LOC_FACING_MAINLAND = null;
+                PORT_LOC_FACING_ISLANDS = FOR_TRI_PORT_EDGE_FACING[idx];
+            }
+        }
         else if (! hasScenarioFog)
         {
             // This is the fallback layout, the large sea board used when no scenario is chosen.
@@ -1898,6 +1932,10 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 else
                     heightWidth = PIR_ISL_BOARDSIZE[0];
             }
+            else if (sc.equals(SOCScenario.K_SC_FTRI))
+            {
+                heightWidth = FOR_TRI_BOARDSIZE[(maxPlayers == 6) ? 1 : 0];
+            }
             else if (sc.equals(SOCScenario.K_SC_CLVI) && (maxPlayers == 6))
             {
                 // For now, _SC_CLVI uses the fallback layout.
@@ -3441,6 +3479,142 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     }, {
         // 6 players
         2, 3, 4, 8, 8, 9, 10, 11
+    }};
+
+
+    ////////////////////////////////////////////
+    //
+    // Forgotten Tribe scenario Layout (_SC_FTRI)
+    //   Has 4-player, 6-player versions;
+    //   each array here uses index [0] for 4-player, [1] for 6-player.
+    //   LA#1 is the larger main island.
+    //   LA#0 is the surrounding islands; players can't settle there.
+    //   No ports on the main island, only surrounding islands.
+    //
+
+    /**
+     * Forgotten Tribe: Board size:
+     * 4 players max row 0x0E, max col 0x11.
+     * 6 players max row 0x0E, max col 0x15.
+     */
+    private static final int FOR_TRI_BOARDSIZE[] = { 0x0E11, 0x0E15 };
+
+    /**
+     * Forgotten Tribe: Starting pirate sea hex coordinate for 4, 6 players.
+     */
+    private static final int FOR_TRI_PIRATE_HEX[] = { 0x0108, 0x010E };
+
+    /**
+     * Forgotten Tribe: Land hex types for the main island. Shuffled.
+     */
+    private static final int FOR_TRI_LANDHEX_TYPE_MAIN[][] =
+    {{
+        // 4-player: 18 hexes
+        CLAY_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
+        SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, WHEAT_HEX, WHEAT_HEX,
+        WHEAT_HEX, WHEAT_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX
+    }, {
+        // 6-player: 29 hexes
+        CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX,
+        ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
+        SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+        WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+        WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX
+    }};
+
+    /**
+     * Forgotten Tribe: Land hex coordinates for the main island.
+     */
+    private static final int FOR_TRI_LANDHEX_COORD_MAIN[][] =
+    {{
+        // 4-player: 18 hexes; 3 rows, centered on columns 2 - d
+        0x0502, 0x0504, 0x0506, 0x0508, 0x050A, 0x050C,
+        0x0703, 0x0705, 0x0707, 0x0709, 0x070B, 0x070D,
+        0x0902, 0x0904, 0x0906, 0x0908, 0x090A, 0x090C
+    }, {
+        // 6-player: 29 hexes; 3 rows, centered on columns 2 - 0x14
+        0x0502, 0x0504, 0x0506, 0x0508, 0x050A, 0x050C, 0x050E, 0x0510, 0x0512, 0x0514,
+        0x0703, 0x0705, 0x0707, 0x0709, 0x070B, 0x070D, 0x070F, 0x0711, 0x0713,
+        0x0902, 0x0904, 0x0906, 0x0908, 0x090A, 0x090C, 0x090E, 0x0910, 0x0912, 0x0914
+    }};
+
+    /**
+     * Forgotten Tribe: Dice numbers for hexes on the main island. Shuffled.
+     */
+    private static final int FOR_TRI_DICENUM_MAIN[][] =
+    {{
+        2, 3, 3, 4, 4, 5, 5, 6, 6,
+        8, 8, 9, 9, 10, 10, 11, 11, 12
+    }, {
+        2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6,
+        8, 8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 12
+    }};
+
+    /**
+     * Forgotten Tribe: Port edges and facings. There are no ports on the main island, only the surrounding islands.
+     *<P>
+     * Clockwise, starting at northwest corner of board.
+     * Each port has 2 elements: Edge coordinate (0xRRCC), Port Facing.
+     *<P>
+     * Port Facing is the direction from the port edge, to the land hex touching it
+     * which will have 2 nodes where a port settlement/city can be built.
+     *<P>
+     * Port types ({@link #FOR_TRI_PORT_TYPE}) are shuffled.
+     */
+    private static final int FOR_TRI_PORT_EDGE_FACING[][] =
+    {{
+        // 4 players
+        0x0003, FACING_SE,  0x0009, FACING_SE,  0x0410, FACING_SW,
+        0x0A10, FACING_NW,  0x0E0A, FACING_NW,  0x0E03, FACING_NE
+    }, {
+        // 6 players
+        0x0006, FACING_SW,  0x0009, FACING_SE,  0x000F, FACING_SE, 0x0012, FACING_SW,
+        0x0E0F, FACING_NE,  0x0E0C, FACING_NW,  0x0E05, FACING_NE, 0x0E03, FACING_NE
+    }};
+
+    /**
+     * Forgotten Tribe: Port types; will be shuffled.
+     */
+    private static final int FOR_TRI_PORT_TYPE[][] =
+    {{
+        // 4 players: 6 ports:
+        CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT, MISC_PORT
+    }, {
+        // 6 players: 8 ports:
+        CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT,
+        MISC_PORT, MISC_PORT, MISC_PORT
+    }};
+
+    /**
+     * Forgotten Tribe: Hex land types on the several small islands.
+     * None have dice numbers.  Not shuffled; coordinates for these
+     * land hexes are {@link #FOR_TRI_LANDHEX_COORD_ISL}.
+     */
+    private static final int FOR_TRI_LANDHEX_TYPE_ISL[][] =
+    {{
+        // 4 players: Clockwise from northwest corner of board:
+        GOLD_HEX, ORE_HEX,    DESERT_HEX, ORE_HEX, WHEAT_HEX,    SHEEP_HEX,
+        WOOD_HEX,    GOLD_HEX, DESERT_HEX, CLAY_HEX,    CLAY_HEX, DESERT_HEX
+    }, {
+        // 6 players: Northern islands west to east, then southern west to east:
+        GOLD_HEX, WHEAT_HEX,    CLAY_HEX, ORE_HEX,    DESERT_HEX, DESERT_HEX,
+        SHEEP_HEX, SHEEP_HEX,   GOLD_HEX, GOLD_HEX,   DESERT_HEX, DESERT_HEX
+    }};
+
+    /**
+     * Forgotten Tribe: Land hex coordinates for the several small islands.
+     * Hex types for these small islands are {@link #FOR_TRI_LANDHEX_TYPE_ISL}.
+     * None have dice numbers.
+     */
+    private static final int FOR_TRI_LANDHEX_COORD_ISL[][] =
+    {{
+        // 4 players: Clockwise from northwest corner of board:
+        0x0104, 0x0106,    0x010A, 0x010C, 0x010E,    0x0510,
+        0x0910,    0x0D0E, 0x0D0C, 0x0D0A,    0x0D06, 0x0D04
+    }, {
+        // 6 players: Northern islands west to east, then southern west to east:
+        0x0104, 0x0106,    0x010A, 0x010C,    0x0110, 0x0112,
+        0x0D04, 0x0D06,    0x0D0A, 0x0D0C,    0x0D10, 0x0D12
     }};
 
 
