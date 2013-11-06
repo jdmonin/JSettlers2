@@ -310,9 +310,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {  11,-11,-11, -7,   -7,-10,-10, -7,-7,-10,-10,-7,
          -7,-11,-11, 11,     11,7, 5,  5,  7, 11 };
 
-    /*** village polygon. X is -13 to +13; Y is -9 to +9. @since 2.0.00 */
-    private static final int[] villageX = {  0, 13, 0, -13,  0 };
-    private static final int[] villageY = { -9,  0, 9,   0, -9 };
+    /**
+     * village polygon. X is -13 to +13; Y is -9 to +9.
+     * Used in {@link #drawVillage(Graphics, SOCVillage)}, and as a
+     * generic marker in {@link #drawMarker(Graphics, int, int, Color, int)}.
+     * @since 2.0.00
+     */
+    private static final int[] villageX = {  0, 13, 0, -13,  0 },
+                               villageY = { -9,  0, 9,   0, -9 };
         // TODO just a first draft; village graphic needs adjustment
 
     /** robber polygon. X is -4 to +4; Y is -8 to +8. */
@@ -3002,21 +3007,37 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         final int[] nodexy = nodeToXY(v.getCoordinates());
 
-        g.translate(nodexy[0], nodexy[1]);
-        g.setColor(Color.YELLOW);
+        drawMarker(g, nodexy[0], nodexy[1], Color.YELLOW, v.diceNum);
+   }
+
+    /**
+     * Draw a marker (village symbol) centered at a final (x,y) coordinate.
+     * @param x  Marker center x, must be already scaled and/or rotated
+     * @param y  Marker center x, must be already scaled and/or rotated
+     * @param color  Color to fill the marker
+     * @param val  Value to show on the marker, or -1 for none
+     * @since 2.0.00
+     */
+    private final void drawMarker(Graphics g, final int x, final int y, final Color color, final int val)
+    {
+        g.translate(x, y);
+        g.setColor(color);
         g.fillPolygon(scaledVillageX, scaledVillageY, 4);
         g.setColor(Color.black);
         g.drawPolygon(scaledVillageX, scaledVillageY, 5);
 
         // dice # for village
-        final String numstr = Integer.toString(v.diceNum);
-        int x = -diceNumberCircleFM.stringWidth(numstr) / 2;
-        int y = (diceNumberCircleFM.getAscent() - diceNumberCircleFM.getDescent()) / 2;
-        g.setFont(diceNumberCircleFont);
-        g.drawString(numstr, x, y);
+        if (val >= 0)
+        {
+            final String numstr = Integer.toString(val);
+            int sx = -diceNumberCircleFM.stringWidth(numstr) / 2;
+            int sy = (diceNumberCircleFM.getAscent() - diceNumberCircleFM.getDescent()) / 2;
+            g.setFont(diceNumberCircleFont);
+            g.drawString(numstr, sx, sy);
+        }
 
-        g.translate(-nodexy[0], -nodexy[1]);
-   }
+        g.translate(-x, -y);
+    }
 
     /**
      * draw the arrow that shows whose turn it is.
