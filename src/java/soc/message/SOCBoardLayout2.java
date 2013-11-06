@@ -57,6 +57,10 @@ import soc.game.SOCScenario;    // for javadocs
  *<UL>
  *<LI> CV: Cloth Village layout, for {@code _SC_CLVI}, from {@link SOCBoardLarge#getVillageAndClothLayout()};
  *         at the client, call {@link SOCBoardLarge#setVillageAndClothLayout(int[])} if this layout part is sent.
+ *<LI> CE: dev Card Edge, for {@code _SC_FTRI}; edge coordinates where ship placement gives a free development card.
+ *         As these are each claimed during game play, 0 replaces their coordinate in the layout part element.
+ *<LI> VE: Victory point Edge, for {@code _SC_FTRI}; edge coordinates where ship placement gives a special victory point.
+ *         As these are each claimed during game play, 0 replaces their coordinate in the layout part element.
  *<LI> LS: Each player's lone additional Legal Settlement location, for {@code _SC_PIRI}: Node coordinates,
  *         one per player number, for the player's lone build location on the way to the pirate fortress.
  *<LI> PP: Pirate fleet Path, for {@code _SC_PIRI}; hex coordinates for {@link SOCBoardLarge#movePirateHexAlongPath(int)}
@@ -67,7 +71,7 @@ import soc.game.SOCScenario;    // for javadocs
  *<LI> v1: HL, NL, RH
  *<LI> v2: HL, NL, RH, maybe PL
  *<LI> v3: LH, maybe PL, maybe RH, maybe PH, never HL or NL. <BR>
- *         Sometimes (for game scenarios) one or more of: PX, RX, CV, LS, PP. <BR>
+ *         Sometimes (for game scenarios) one or more of: PX, RX, CE, CV, LS, PP, VE. <BR>
  *         LH is null before makeNewBoard is called.
  *</UL>
  * Unlike {@link SOCBoardLayout}, dice numbers here equal the actual rolled numbers.

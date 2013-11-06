@@ -366,6 +366,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 PORT_LOC_FACING_MAINLAND = null;
                 PORT_LOC_FACING_ISLANDS = FOR_TRI_PORT_EDGE_FACING[idx];
             }
+
+            setAddedLayoutPart("CE", FOR_TRI_DEV_CARD_EDGES[idx]);
+            setAddedLayoutPart("VE", FOR_TRI_SVP_EDGES[idx]);
         }
         else if (! hasScenarioFog)
         {
@@ -3615,6 +3618,34 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         // 6 players: Northern islands west to east, then southern west to east:
         0x0104, 0x0106,    0x010A, 0x010C,    0x0110, 0x0112,
         0x0D04, 0x0D06,    0x0D0A, 0x0D0C,    0x0D10, 0x0D12
+    }};
+
+    /**
+     * Forgotten Tribe: Special Victory Point Edges: edge coordinates where ship placement gives an SVP.
+     * SOCBoardLarge additional part {@code "VE"}.
+     */
+    private static final int FOR_TRI_SVP_EDGES[][] =
+    {{
+        // 4 players
+        0x0004, 0x000A, 0x000E, 0x0511,
+        0x0E04, 0x0E09, 0x0E0E, 0x0911
+    }, {
+        // 6 players
+        0x0003, 0x0005, 0x000A, 0x000B, 0x0010,
+        0x0E06, 0x0E0A, 0x0E0B, 0x0E10, 0x0E12
+    }};
+
+    /**
+     * Forgotten Tribe: Dev Card Edges: Edge coordinates where ship placement gives a free development card.
+     * SOCBoardLarge additional part {@code "CE"}.
+     */
+    private static final int FOR_TRI_DEV_CARD_EDGES[][] =
+    {{
+        // 4 players
+        0x0103, 0x010F, 0x0D03, 0x0D0F
+    }, {
+        // 6 players
+        0x0103, 0x000C, 0x0113, 0x0D03, 0x0E09, 0x0D13
     }};
 
 
