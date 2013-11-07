@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Vector;
 
 import soc.util.IntPair;
@@ -274,6 +275,50 @@ public class SOCBoardLarge extends SOCBoard
     public static final int BOARDHEIGHT_LARGE = 16, BOARDWIDTH_LARGE = 18;
 
     /**
+     * Special Edge Type code that gives a development card when player reaches a special edge.
+     * These edges are Added Layout Part {@code "CE"}.
+     *
+     *<H3>Special Edges:</h3>
+     * For some scenarios, some edges have a special purpose or reward.
+     * For example, {@link SOCScenario#K_SC_FTRI SC_FTRI} gives dev cards
+     * or special victory points when a ship reaches one.
+     *<P>
+     * Some related methods:
+     *<UL>
+     * <LI> {@link #hasSpecialEdges()} - does this board have any special edges?
+     * <LI> {@link #getSpecialEdgeType(int)} - check if an edge is special
+     * <LI> {@link #setSpecialEdge(int, int)} - set or clear an edge
+     * <LI> {@link #clearSpecialEdges(int)} - clear all edges of one special type
+     *</UL>
+     *<P>
+     * The Special Edge Types are constants such as {@link #SPECIAL_EDGE_DEV_CARD}
+     * or {@link #SPECIAL_EDGE_SVP} used by game and board logic.
+     *<P>
+     * These edge type codes are never sent over the network; lists of edges of a special type are
+     * sent as Added Layout Parts such as {@code "CE"} and {@code "VE"} used with {@link #getAddedLayoutPart(String)}.
+     * Calls to {@link #setAddedLayoutParts(HashMap)} or {@link #setAddedLayoutPart(String, int[])} add them
+     * to the Special Edges mapping if it recognizes the layout part as a special edge type.
+     *<P>
+     * If you add a Special Edge Type code, it should probably be added to:
+     *<UL>
+     * <LI> {@link #setAddedLayoutPart(String, int[])}
+     * <LI> {@link #setAddedLayoutParts(HashMap)}
+     * <LI> SOCBoardPanel.drawBoardEmpty
+     * <LI> SOCBoardPanel.BoardToolTip.handleHover
+     * <LI> Any game or board code that needs to check for relevant actions at edges
+     *</UL>
+     * Not many board layouts and scenarios have Special Edges, so usually {@link #hasSpecialEdges()} == {@code false}.
+     */
+    public static final int SPECIAL_EDGE_DEV_CARD = 1;
+
+    /**
+     * Special Edge Type code that gives a Special Victory Point when player reaches a special edge.
+     * These edges are Added Layout Part {@code "VE"}.
+     * For more information on Special Edges see {@link #SPECIAL_EDGE_DEV_CARD}.
+     */
+    public static final int SPECIAL_EDGE_SVP = 2;
+
+    /**
      * For {@link #getAdjacentHexesToHex(int, boolean)}, the offsets to add to the hex
      * row and column to get all adjacent hex coords, starting at
      * index 0 at the northeastern edge of the hex and going clockwise.
@@ -489,6 +534,22 @@ public class SOCBoardLarge extends SOCBoard
      * Null for most scenarios.  Initialized in <tt>SOCBoardLargeAtServer.makeNewBoard</tt>.
      */
     private HashMap<String, int[]> addedLayoutParts;
+
+    /**
+     * Map of special edge coordinates to types.  If an edge has no key
+     * (coordinate) here, it is not a special edge.  Not all possible edges are
+     * in this map, but all special edges are.  Any edge has at most one Special Edge Type.
+     *<P>
+     * The Special Edge Types are constants such as {@link #SPECIAL_EDGE_DEV_CARD}
+     * or {@link #SPECIAL_EDGE_SVP}.  See the {@link #SPECIAL_EDGE_DEV_CARD} javadoc
+     * for more about Special Edges and related methods.
+     *<P>
+     * Calls to {@link #setAddedLayoutPart(String, int[])} add them to the {@code specialEdges} map
+     * if it recognizes the layout part as a special edge type.
+     *<P>
+     * Not many board layouts and scenarios have special edges, so this map is usually empty.
+     */
+    private HashMap<Integer, Integer> specialEdges = new HashMap<Integer, Integer>();
 
     /**
      * Actual hex types and dice numbers hidden under {@link #FOG_HEX}.
@@ -934,6 +995,7 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @return  The added layout parts, or null if none
      * @see #getAddedLayoutPart(String)
+     * @see #setAddedLayoutPart(String, int[])
      */
     public HashMap<String, int[]> getAddedLayoutParts()
     {
@@ -960,6 +1022,12 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Set all the "added layout parts", for use at client.
      * See {@link #setAddedLayoutPart(String, int[])} for details about the added layout parts.
+     *<P>
+     * If any layout part key in {@code adds} is recognized here as a Special Edge Type
+     * for {@link #getSpecialEdgeType(int)}, this method also adds them to the
+     * {@code specialEdges} map. Current Special Edge Type layout parts are
+     * listed in the {@link #setAddedLayoutPart(String, int[])} javadoc.
+     *
      * @param adds  Added parts, or null if none
      * @see #setAddedLayoutPart(String, int[])
      */
@@ -969,6 +1037,22 @@ public class SOCBoardLarge extends SOCBoard
             addedLayoutParts = null;
         else
             addedLayoutParts = adds;
+
+        if (adds == null)
+            return;
+
+        for (Map.Entry<String, int[]> e : adds.entrySet())
+        {
+            final String key = e.getKey();
+
+            if (key.equals("CE"))
+                setSpecialEdges(e.getValue(), SPECIAL_EDGE_DEV_CARD);
+            else if (key.equals("VE"))
+                setSpecialEdges(e.getValue(), SPECIAL_EDGE_SVP);
+
+            // If you add a Special Edge Type layout part, make sure
+            // to also check for it in setAddedLayoutPart(String, int[]).
+        }
     }
 
     /**
@@ -976,6 +1060,12 @@ public class SOCBoardLarge extends SOCBoard
      * Should be set only during {@code SOCBoardLargeAtServer.makeNewBoard}
      * or {@code SOCBoardLargeAtServer.startGame_putInitPieces}, not changed afterwards.
      * Document the new {@code key} at {@link soc.message.SOCBoardLayout2}.
+     *<P>
+     * If the layout part {@code key} is recognized here as a Special Edge Type
+     * for {@link #getSpecialEdgeType(int)}, this method also adds them to the
+     * {@code specialEdges} map. Current Special Edge Type layout parts are
+     * {@code "CE"} and {@code "VE"}.
+     *
      * @param key  Key name (short and uppercase)
      * @param v    Value (typically a list of coordinates)
      * @see #setAddedLayoutParts(HashMap)
@@ -985,6 +1075,14 @@ public class SOCBoardLarge extends SOCBoard
         if (addedLayoutParts == null)
             addedLayoutParts = new HashMap<String, int[]>();
         addedLayoutParts.put(key, v);
+
+        if (key.equals("CE"))
+            setSpecialEdges(v, SPECIAL_EDGE_DEV_CARD);
+        else if (key.equals("VE"))
+            setSpecialEdges(v, SPECIAL_EDGE_SVP);
+
+        // If you add a Special Edge Type layout part, make sure
+        // to also check for it in setAddedLayoutParts(HashMap).
     }
 
     /**
@@ -1349,6 +1447,94 @@ public class SOCBoardLarge extends SOCBoard
         for (int pn = 0; pn < ls.length; ++pn)
             if (ls[pn] != 0)
                 ga.getPlayer(pn).addLegalSettlement(ls[pn]);
+    }
+
+    /**
+     * Does this board contain any Special Edges?
+     * @return  True if a method setting special edges has been called, and the Special Edges map is not empty.
+     */
+    public boolean hasSpecialEdges()
+    {
+        return ! specialEdges.isEmpty();
+    }
+
+    /**
+     * Get this edge's Special Edge Type, if any.
+     * @param edge  Edge coordinate
+     * @return  A Special Edge Type code such as {@link #SPECIAL_EDGE_DEV_CARD} or
+     *          or {@link #SPECIAL_EDGE_SVP}, or 0 if the edge isn't special or
+     *          isn't a valid edge.
+     * @see #setSpecialEdge(int, int)
+     * @see #setSpecialEdges(int[], int)
+     * @see #clearSpecialEdges(int)
+     */
+    public int getSpecialEdgeType(final int edge)
+    {
+        Integer typeObj = specialEdges.get(Integer.valueOf(edge));
+        if (typeObj == null)
+            return 0;
+        else
+            return typeObj.intValue();
+    }
+
+    /**
+     * Set an edge as a Special Edge, or clear that status and make it a normal edge.
+     * If an edge is already a different special edge type, its type will be changed to {@code setype}.
+     * @param edge  Edge coordinate
+     * @param setype  A special edge type code such as {@link #SPECIAL_EDGE_DEV_CARD} or
+     *          or {@link #SPECIAL_EDGE_SVP}, or 0 if the edge isn't special
+     */
+    public void setSpecialEdge(final int edge, final int setype)
+    {
+        final Integer edgeObj = Integer.valueOf(edge);
+        if (setype != 0)
+        {
+            specialEdges.put(edgeObj, Integer.valueOf(setype));
+        } else {
+            specialEdges.remove(edgeObj);  // ok to call if edgeObj not in map
+        }
+    }
+
+    /**
+     * Set a list of edges as a certain type of special edge.
+     * If any of these edges is already a different special edge type, its type will be changed to {@code setype}.
+     * This method adds but does not remove any edges previously marked as that type, they will still be special.
+     * To clear previous edges of this special type, call {@link #clearSpecialEdges(int)}
+     * before calling this method.
+     * @param edges  List of edges to mark as special type code {@code setype}
+     * @param setype  A special edge type code such as {@link #SPECIAL_EDGE_DEV_CARD} or
+     *          or {@link #SPECIAL_EDGE_SVP}, or 0 to clear them (no longer special).
+     */
+    public void setSpecialEdges(final int[] edges, final int setype)
+    {
+        if (setype != 0)
+        {
+            final Integer setypeObj = Integer.valueOf(setype);
+            for (int i = 0; i < edges.length; ++i)
+                specialEdges.put(Integer.valueOf(edges[i]), setypeObj);
+        } else {
+            for (int i = 0; i < edges.length; ++i)
+                specialEdges.remove(Integer.valueOf(edges[i]));
+        }
+    }
+
+    /**
+     * Clear all edges marked as one special type.  All special edges of that type will no longer be special.
+     * @param setype  A special edge type code such as {@link #SPECIAL_EDGE_DEV_CARD} or
+     *          or {@link #SPECIAL_EDGE_SVP}.  0 is ignored.
+     */
+    public void clearSpecialEdges(final int setype)
+    {
+        if (setype == 0)
+            return;
+
+        final Iterator<Map.Entry<Integer, Integer>> seIter = specialEdges.entrySet().iterator();
+        while (seIter.hasNext())
+        {
+            Map.Entry<Integer, Integer> entry = seIter.next();
+            if (entry.getKey().intValue() == setype)
+                seIter.remove();
+        }
     }
 
     /**
