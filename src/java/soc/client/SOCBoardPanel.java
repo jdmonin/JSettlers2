@@ -6707,6 +6707,32 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         }
                     }
                 }
+
+                // If nothing else at this edge, look for a Special Edge (usually none)
+                if ((! hoverTextSet) && isLargeBoard && (hoverRoadID == 0) && (hoverShipID == 0))
+                {
+                    final String hoverTextKey;
+                    switch (((SOCBoardLarge) board).getSpecialEdgeType(id))
+                    {
+                    case SOCBoardLarge.SPECIAL_EDGE_DEV_CARD:
+                        hoverTextKey = "board.edge.devcard";  // "Receive Dev card for placing a ship here"
+                        break;
+
+                    case SOCBoardLarge.SPECIAL_EDGE_SVP:
+                        hoverTextKey = "board.edge.svp";  // "Receive 1 SVP for placing a ship here"
+                        break;
+
+                    default:
+                        // not special or not a recognized type
+                        hoverTextKey = null;
+                    }
+
+                    if (hoverTextKey != null)
+                    {
+                        setHoverText(strings.get(hoverTextKey));
+                        hoverTextSet = true;
+                    }
+                }
             }
 
             // By now we've set hoverRoadID, hoverShipID, hoverCityID, hoverSettlementID, hoverIsPort.
@@ -6715,7 +6741,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 return;  // <--- Early return: Text and hover-pieces set ---
             }
 
-            // If no road, look for a hex
+            // If nothing found yet, look for a hex
             //  - reminder: socboard.getHexTypeFromCoord, getNumberOnHexFromCoord, socgame.getPlayersOnHex
             id = findHex(xb,yb);
             if (id > 0)
