@@ -276,6 +276,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Special Edge Type code that gives a development card when player reaches a special edge.
+     * After the player gets their reward, the special edge is cleared, no other player can be rewarded there.
      * These edges are Added Layout Part {@code "CE"}.
      *
      *<H3>Special Edges:</h3>
@@ -292,12 +293,17 @@ public class SOCBoardLarge extends SOCBoard
      *</UL>
      *<P>
      * The Special Edge Types are constants such as {@link #SPECIAL_EDGE_DEV_CARD}
-     * or {@link #SPECIAL_EDGE_SVP} used by game and board logic.
+     * or {@link #SPECIAL_EDGE_SVP} used by game and board logic.  Game events or
+     * {@link SOCScenarioPlayerEvent}s can happen when something occurs at such an edge.
+     * Often these will clear the edge's type, it will no longer be special.
      *<P>
-     * These edge type codes are never sent over the network; lists of edges of a special type are
-     * sent as Added Layout Parts such as {@code "CE"} and {@code "VE"} used with {@link #getAddedLayoutPart(String)}.
+     * During board setup, lists of edges of a special type are sent with the board layout as
+     * Added Layout Parts such as {@code "CE"} and {@code "VE"} used with {@link #getAddedLayoutPart(String)}.
      * Calls to {@link #setAddedLayoutParts(HashMap)} or {@link #setAddedLayoutPart(String, int[])} add them
      * to the Special Edges mapping if it recognizes the layout part as a special edge type.
+     *<P>
+     * During game play, when a Special Edge is set or cleared the server will send a message to the game
+     * with the edge coordinate and its new special type code.
      *<P>
      * If you add a Special Edge Type code, it should probably be added to:
      *<UL>
@@ -313,6 +319,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Special Edge Type code that gives a Special Victory Point when player reaches a special edge.
+     * After the player gets their reward, the special edge is cleared, no other player can be rewarded there.
      * These edges are Added Layout Part {@code "VE"}.
      * For more information on Special Edges see {@link #SPECIAL_EDGE_DEV_CARD}.
      */
