@@ -267,6 +267,10 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * of their coastal settlements/cities, unless they have none that isn't at least separated 1 edge
      * from an existing harbor.  If that's the case, the claimed harbor is "set aside" for the
      * player to place later when they have such a coastal settlement.
+     *<P>
+     * When a player reaches a Special Edge and is awarded a gift, the game clears that edge's special
+     * type, then fires a {@link SOCScenarioPlayerEvent#DEV_CARD_REACHED_SPECIAL_EDGE} or
+     * {@link SOCScenarioPlayerEvent#SVP_REACHED_SPECIAL_EDGE} event.
      */
     public static final String K_SC_FTRI = "SC_FTRI";
 

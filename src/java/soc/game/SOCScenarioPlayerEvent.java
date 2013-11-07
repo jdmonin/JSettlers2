@@ -87,16 +87,52 @@ public enum SOCScenarioPlayerEvent
      * The new {@link SOCSettlement} will be passed as {@code obj} to
      * {@link SOCScenarioEventListener#playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object)}.
      */
-    PIRI_FORTRESS_RECAPTURED(0x08);
+    PIRI_FORTRESS_RECAPTURED(0x08),
+
+    /**
+     * Dev Card awarded for reaching a Special Edge that gives that reward
+     * (Special Edge type {@link SOCBoardLarge#SPECIAL_EDGE_DEV_CARD}).
+     * Once the edge is claimed, no other player can be rewarded at that edge, but there are others on the board.
+     * Game option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
+     *<P>
+     * The edge coordinate and dev card type will be passed in an {@link soc.util.IntPair IntPair} as {@code obj} to
+     * {@link SOCScenarioEventListener#playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object)}.
+     * The server has the full game state and knows the dev card type revealed. At the client, the event's dev card
+     * type will be {@link SOCDevCardConstants#UNKNOWN}, and the server must send a message to the player's client
+     * with the awarded card type, as if they have just purchased it. Other players' clients will be sent
+     * {@code UNKNOWN} since each player's dev cards in hand are a secret.
+     *<P>
+     * At server and at each client, the game will clear the Special Edge's type before firing the event.
+     * After the event, for clarity the server will also send a message to the game to clear the edge.
+     */
+    DEV_CARD_REACHED_SPECIAL_EDGE(0x10),
+
+    /**
+     * Special victory point awarded for reaching a Special Edge that gives that reward
+     * (Special Edge type {@link SOCBoardLarge#SPECIAL_EDGE_SVP}).
+     * Once the edge is claimed, no other player can be rewarded at that edge, but there are others on the board.
+     * Game option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
+     *<P>
+     * The edge coordinate will be passed as {@code obj} to
+     * {@link SOCScenarioEventListener#playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object)}.
+     *<P>
+     * At server and at each client, the game will clear the Special Edge's type before firing the event.
+     * After the event, for clarity the server will also send a message to the game to clear the edge.
+     */
+    SVP_REACHED_SPECIAL_EDGE(0x20);
 
     /**
      * Value for sending event codes over a network.
      * Each event code must be a different bit. (0x01, 0x02, 0x04, etc)
+     * Some events happen only once per player, {@code flagValue} is
+     * also used in the player's bitmap field that tracks those
+     * ({@link SOCPlayer#getScenarioPlayerEvents()}).
      */
     public final int flagValue;
 
     private SOCScenarioPlayerEvent(final int fv)
     {
-        flagValue = fv; 
+        flagValue = fv;
     }
+
 }
