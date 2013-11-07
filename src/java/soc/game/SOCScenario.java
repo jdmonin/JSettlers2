@@ -95,7 +95,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *<LI> {@link #K_SC_TTD  SC_TTD}   Through The Desert
      *<LI> {@link #K_SC_CLVI SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}
      *<LI> {@link #K_SC_PIRI SC_PIRI}  Pirate Islands and {@link SOCFortress fortresses}
-     *<LI> {@link #K_SC_FTRI SC_FTRI}  The Forgotten Tribe.
+     *<LI> {@link #K_SC_FTRI SC_FTRI}  The Forgotten Tribe
      *</UL>
      *  (See each scenario name field's javadoc for more details.)
      *
@@ -260,7 +260,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * Main option is {@link SOCGameOption#K_SC_FTRI "_SC_FTRI"}.
      *<P>
      * Far areas of the board have small habitations of a "forgotten tribe" of settlers.
-     * When players reach them (with a boat adjacent to specific single edge coordinates),
+     * When players reach them (with a ship adjacent to various edge coordinates),
      * they are greeted with "gifts" of a development card or Special Victory Point.
      *<P>
      * Harbors at these far areas can be claimed by players and must be moved adjacent to one
