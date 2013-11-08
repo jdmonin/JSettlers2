@@ -3027,6 +3027,41 @@ public class SOCGame implements Serializable, Cloneable
 
         }
 
+        /**
+         * _SC_FTRI temp debug: On a certain turn, pretend player has reached each special edge type.
+         * TODO remove this temporary debug when no longer needed
+         */
+        if ((turnCount == 2) && isGameOptionSet(SOCGameOption.K_SC_FTRI)
+            && (players[currentPlayerNumber].getSpecialVP() == 0))
+        {
+            System.err.println("L3564: removing 2 Special Edges");
+            SOCBoardLarge bl = (SOCBoardLarge) board;
+
+            int e0 = bl.getAddedLayoutPart("CE")[0];  // card edge
+            bl.setSpecialEdge(e0, 0);
+            final int cardtype;
+            if (isAtServer)
+            {
+                cardtype = SOCDevCardConstants.KNIGHT;
+                players[currentPlayerNumber].getDevCards().add(1, SOCDevCardSet.NEW, cardtype);
+            } else {
+                cardtype = SOCDevCardConstants.UNKNOWN;
+            }
+            if (scenarioEventListener != null)
+                scenarioEventListener.playerEvent
+                    (this, players[currentPlayerNumber], SOCScenarioPlayerEvent.DEV_CARD_REACHED_SPECIAL_EDGE,
+                     false, new soc.util.IntPair(e0, cardtype));
+
+            e0 = bl.getAddedLayoutPart("VE")[0];  // SVP edge
+            bl.setSpecialEdge(e0, 0);
+            if (isAtServer)
+                players[currentPlayerNumber].setSpecialVP(1 + players[currentPlayerNumber].getSpecialVP());
+            if (scenarioEventListener != null)
+                scenarioEventListener.playerEvent
+                    (this, players[currentPlayerNumber], SOCScenarioPlayerEvent.SVP_REACHED_SPECIAL_EDGE,
+                     false, e0);
+        }
+
         //D.ebugPrintln("  TO "+gameState);
         return true;
     }
@@ -5176,7 +5211,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * The current player has built boats to their pirate fortress, and attacks now to try to conquer and recapture it.
+     * The current player has built ships to their pirate fortress, and attacks now to try to conquer and recapture it.
      * This can happen at most once per turn: Attacking the fortress always ends the player's turn.
      * Assumes {@link #canAttackPirateFortress()} called first, to validate and get the {@code adjacent} ship.
      *<P>
