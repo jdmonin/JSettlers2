@@ -59,6 +59,7 @@ import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 
@@ -3696,16 +3697,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
             }
 
-            // For scenario _SC_FTRI, draw the SVP edges and dev card edges
-            {
-                final int[] svpe = ((SOCBoardLarge) board).getAddedLayoutPart("VE");
-                if (svpe != null)
-                    drawBoardEmpty_SC_FTRI_edges(g, svpe, Color.GREEN);
-
-                final int[] ce = ((SOCBoardLarge) board).getAddedLayoutPart("CE");
-                if (ce != null)
-                    drawBoardEmpty_SC_FTRI_edges(g, ce, Color.YELLOW);
-            }
+            // For scenario _SC_FTRI, draw markers at the SVP edges and dev card edges (added layout parts "CE", "VE")
+            if (((SOCBoardLarge) board).hasSpecialEdges())
+                drawBoardEmpty_specialEdges(g);
 
             // For scenario _SC_CLVI, draw the cloth villages
             HashMap<Integer, SOCVillage> villages = ((SOCBoardLarge) board).getVillages();
@@ -3777,19 +3771,34 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * For the {@link SOCGameOption#K_SC_FTRI _SC_FTRI} game scenario on {@link SOCBoardLarge},
-     * draw markers at a set of special edges for the player to reach.
-     * @param edges  Set of special edge coordinates
-     * @param color  Color to draw edge markers
+     * draw markers at all Special Edges for the players to reach and be rewarded.
+     *<P>
+     * Each marker's color will be determined by its edge's type, such as {@link SOCBoardLarge#SPECIAL_EDGE_DEV_CARD}.
+     * Unknown types will be drawn gray.
      * @since 2.0.00
      */
-    private final void drawBoardEmpty_SC_FTRI_edges(final Graphics g, final int[] edges, final Color color)
+    private final void drawBoardEmpty_specialEdges(final Graphics g)
     {
-        for (int i = 0; i < edges.length; ++i)
+        Iterator<Map.Entry<Integer, Integer>> seIter = ((SOCBoardLarge) board).getSpecialEdges();
+        while (seIter.hasNext())
         {
-            final int edge = edges[i];
-            if (edge == 0)
-                continue;
+            final Map.Entry<Integer, Integer> entry = seIter.next();
+            final Color mc;  // marker color
+            switch (entry.getValue())
+            {
+            case SOCBoardLarge.SPECIAL_EDGE_DEV_CARD:
+                mc = Color.YELLOW;
+                break;
 
+            case SOCBoardLarge.SPECIAL_EDGE_SVP:
+                mc = Color.GREEN;
+                break;
+
+            default:
+                mc = Color.LIGHT_GRAY;
+            }
+
+            final int edge = entry.getKey();
             int x = edge & 0xFF, y = edge >> 8;  // col, row to calculate x, y
             final boolean edgeNotVertical = ((y % 2) == 0);
             x = x * halfdeltaX;
@@ -3803,7 +3812,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             x = scaleToActualX(x);
             y = scaleToActualY(y);
 
-            drawMarker(g, x, y, color, -1);
+            drawMarker(g, x, y, mc, -1);
         }
     }
 
