@@ -282,6 +282,11 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  @since 2.0.00 */
     public static final int SVPTEXTMSG = 1101;  // SVP text messages, 20121221, v2.0.00
 
+    /** Make an edge on the board special or no longer special ({@link SOCBoardSpecialEdge}).
+     *  Used in some game scenarios.
+     * @since 2.0.00 */
+    public static final int BOARDSPECIALEDGE = 1102;  // board special edges, 20131107, v2.0.00
+
 
     /////////////////////////////////////////
     // REQUEST FOR FUTURE MESSAGE NUMBERS: //
@@ -894,6 +899,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case PIRATEFORTRESSATTACKRESULT:  // pirate islands scenario, 20130218, v2.0.00
                 return SOCPirateFortressAttackResult.parseDataStr(data);
+
+            case BOARDSPECIALEDGE:  // board special edges, 20131107, v2.0.00
+                return SOCBoardSpecialEdge.parseDataStr(data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);

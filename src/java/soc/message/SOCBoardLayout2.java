@@ -65,6 +65,8 @@ import soc.game.SOCScenario;    // for javadocs
  *         one per player number, for the player's lone build location on the way to the pirate fortress.
  *<LI> PP: Pirate fleet Path, for {@code _SC_PIRI}; hex coordinates for {@link SOCBoardLarge#movePirateHexAlongPath(int)}
  *</UL>
+ * The "CE" and "VE" layout parts are lists of Special Edges on the board.  During game play, these
+ * edges may change.  The server announces each change with a {@link SOCBoardSpecialEdge} message.
  *<P>
  * Board layout parts by board encoding version:
  *<UL>
