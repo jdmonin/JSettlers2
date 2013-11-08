@@ -61,6 +61,7 @@ import soc.message.SOCAcceptOffer;
 import soc.message.SOCBankTrade;
 import soc.message.SOCBoardLayout;
 import soc.message.SOCBoardLayout2;
+import soc.message.SOCBoardSpecialEdge;
 import soc.message.SOCBuildRequest;
 import soc.message.SOCBuyCardRequest;
 import soc.message.SOCCancelBuildRequest;
@@ -125,6 +126,7 @@ import soc.message.SOCStartGame;
 import soc.message.SOCStatusMessage;
 import soc.message.SOCTurn;
 import soc.server.genericServer.StringConnection;
+import soc.util.IntPair;
 import soc.util.SOCGameList;
 import soc.util.Version;
 
@@ -5337,6 +5339,28 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToGame(gaName, new SOCPieceValue(gaName, vi.getCoordinates(), vi.getCloth(), 0));
                 srv.messageToGame(gaName, new SOCPlayerElement
                     (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, pl.getCloth()));
+            }
+            break;
+
+        case DEV_CARD_REACHED_SPECIAL_EDGE:
+            {
+                sendPlayerEventsBitmask = false;
+                sendSVP = false;
+                IntPair edge_cardType = (IntPair) obj;
+                StringConnection c = srv.getConnection(plName);
+                srv.messageToGameKeyed(ga, true, "action.built.sc_ftri.dev", plName);
+                    // "{0} gets a Development Card as a gift from the Lost Tribe."
+                srv.messageToPlayer(c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, edge_cardType.getB()));
+                srv.messageToGameExcept(gaName, c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
+                srv.messageToGame(gaName, new SOCBoardSpecialEdge(gaName, edge_cardType.getA(), 0));
+            }
+            break;
+
+        case SVP_REACHED_SPECIAL_EDGE:
+            {
+                updatePlayerSVPPendingMessage(ga, pl, 1, /*I*/"a gift from the Lost Tribe"/*18N*/);
+                sendPlayerEventsBitmask = false;
+                srv.messageToGame(gaName, new SOCBoardSpecialEdge(gaName, ((Integer) obj).intValue(), 0));
             }
             break;
 

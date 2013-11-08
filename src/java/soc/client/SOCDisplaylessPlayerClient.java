@@ -756,6 +756,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 handlePIECEVALUE((SOCPieceValue) mes);
                 break;
 
+            /**
+             * set or clear a special edge on the board.
+             * Added 2013-11-07 for v2.0.00.
+             */
+            case SOCMessage.BOARDSPECIALEDGE:
+                handleBOARDSPECIALEDGE(games, (SOCBoardSpecialEdge) mes);
+                break;
+
             }
         }
         catch (Exception e)
@@ -2048,6 +2056,28 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if (fort != null)
                 fort.setStrength(pv);
         }
+    }
+
+    /**
+     * Handle the "board special edge" message: Set or clear a special edge on the board.
+     * @param games  Games the client is playing, for method reuse by SOCPlayerClient
+     * @param mes  the message
+     * @since 2.0.00
+     * @return True if game was found and layout understood, false otherwise;
+     *     false if the game doesn't use {@link SOCBoardLarge}.
+     */
+    public static final boolean handleBOARDSPECIALEDGE(final Map<String, SOCGame> games, final SOCBoardSpecialEdge mes)
+    {
+        SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return false;
+
+        SOCBoard bd = ga.getBoard();
+        if ((bd == null) || ! (bd instanceof SOCBoardLarge))
+            return false;
+
+        ((SOCBoardLarge) bd).setSpecialEdge(mes.getParam1(), mes.getParam2());
+        return true;
     }
 
     /**

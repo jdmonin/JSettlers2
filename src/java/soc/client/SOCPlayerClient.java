@@ -2872,6 +2872,14 @@ public class SOCPlayerClient
                 handlePIRATEFORTRESSATTACKRESULT((SOCPirateFortressAttackResult) mes);
                 break;
 
+            /**
+             * Set or clear a special edge on the board.
+             * Added 2013-11-07 for v2.0.00.
+             */
+            case SOCMessage.BOARDSPECIALEDGE:
+                handleBOARDSPECIALEDGE((SOCBoardSpecialEdge) mes);
+                break;
+
             }  // switch (mes.getType())
         }
         catch (Exception e)
@@ -4614,6 +4622,19 @@ public class SOCPlayerClient
         if (pcl == null)
             return;  // Not one of our games
         pcl.scen_SC_PIRI_pirateFortressAttackResult(false, mes.getParam1(), mes.getParam2());
+    }
+
+    /**
+     * Set or clear a special edge on the board.
+     * @since 2.0.00
+     */
+    private void handleBOARDSPECIALEDGE(final SOCBoardSpecialEdge mes)
+    {
+        if (SOCDisplaylessPlayerClient.handleBOARDSPECIALEDGE(games, mes))
+        {
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
+            pcl.boardLayoutUpdated();
+        }
     }
 
     }  // nested class MessageTreater

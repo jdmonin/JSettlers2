@@ -805,6 +805,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 super.handlePIECEVALUE((SOCPieceValue) mes);
                 break;
 
+            /**
+             * set or clear a special edge on the board.
+             * Added 2013-11-07 for v2.0.00.
+             */
+            case SOCMessage.BOARDSPECIALEDGE:
+                super.handleBOARDSPECIALEDGE(games, (SOCBoardSpecialEdge) mes);
+                break;
+
             }
         }
         catch (Throwable e)
