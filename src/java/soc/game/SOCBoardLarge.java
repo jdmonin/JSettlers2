@@ -288,6 +288,7 @@ public class SOCBoardLarge extends SOCBoard
      *<UL>
      * <LI> {@link #hasSpecialEdges()} - does this board have any special edges?
      * <LI> {@link #getSpecialEdgeType(int)} - check if an edge is special
+     * <LI> {@link #getSpecialEdges()} - get all special edges, if any
      * <LI> {@link #setSpecialEdge(int, int)} - set or clear an edge
      * <LI> {@link #clearSpecialEdges(int)} - clear all edges of one special type
      *</UL>
@@ -1471,6 +1472,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return  A Special Edge Type code such as {@link #SPECIAL_EDGE_DEV_CARD} or
      *          or {@link #SPECIAL_EDGE_SVP}, or 0 if the edge isn't special or
      *          isn't a valid edge.
+     * @see #getSpecialEdges()
      * @see #setSpecialEdge(int, int)
      * @see #setSpecialEdges(int[], int)
      * @see #clearSpecialEdges(int)
@@ -1485,18 +1487,32 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
+     * Get all Special Edge coordiates and their types.
+     * Please treat the returned iterator as read-only.
+     * @return An iterator over all items:<br>
+     *     entry key = edge coordinate<br>
+     *     value = edge's Special Edge Type code such as {@link #SPECIAL_EDGE_DEV_CARD}<br>
+     *     If the board has no special edges, the iterator is empty not null.
+     * @see #getSpecialEdgeType(int)
+     */
+    public Iterator<Map.Entry<Integer, Integer>> getSpecialEdges()
+    {
+        return specialEdges.entrySet().iterator();
+    }
+
+    /**
      * Set an edge as a Special Edge, or clear that status and make it a normal edge.
-     * If an edge is already a different special edge type, its type will be changed to {@code setype}.
+     * If an edge is already a different special edge type, its type will be changed to {@code seType}.
      * @param edge  Edge coordinate
-     * @param setype  A special edge type code such as {@link #SPECIAL_EDGE_DEV_CARD} or
+     * @param seType  A special edge type code such as {@link #SPECIAL_EDGE_DEV_CARD} or
      *          or {@link #SPECIAL_EDGE_SVP}, or 0 if the edge isn't special
      */
-    public void setSpecialEdge(final int edge, final int setype)
+    public void setSpecialEdge(final int edge, final int seType)
     {
         final Integer edgeObj = Integer.valueOf(edge);
-        if (setype != 0)
+        if (seType != 0)
         {
-            specialEdges.put(edgeObj, Integer.valueOf(setype));
+            specialEdges.put(edgeObj, Integer.valueOf(seType));
         } else {
             specialEdges.remove(edgeObj);  // ok to call if edgeObj not in map
         }
@@ -1504,19 +1520,19 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Set a list of edges as a certain type of special edge.
-     * If any of these edges is already a different special edge type, its type will be changed to {@code setype}.
+     * If any of these edges is already a different special edge type, its type will be changed to {@code seType}.
      * This method adds but does not remove any edges previously marked as that type, they will still be special.
      * To clear previous edges of this special type, call {@link #clearSpecialEdges(int)}
      * before calling this method.
-     * @param edges  List of edges to mark as special type code {@code setype}
-     * @param setype  A special edge type code such as {@link #SPECIAL_EDGE_DEV_CARD} or
+     * @param edges  List of edges to mark as special type code {@code seType}
+     * @param seType  A special edge type code such as {@link #SPECIAL_EDGE_DEV_CARD} or
      *          or {@link #SPECIAL_EDGE_SVP}, or 0 to clear them (no longer special).
      */
-    public void setSpecialEdges(final int[] edges, final int setype)
+    public void setSpecialEdges(final int[] edges, final int seType)
     {
-        if (setype != 0)
+        if (seType != 0)
         {
-            final Integer setypeObj = Integer.valueOf(setype);
+            final Integer setypeObj = Integer.valueOf(seType);
             for (int i = 0; i < edges.length; ++i)
                 specialEdges.put(Integer.valueOf(edges[i]), setypeObj);
         } else {
@@ -1527,19 +1543,19 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Clear all edges marked as one special type.  All special edges of that type will no longer be special.
-     * @param setype  A special edge type code such as {@link #SPECIAL_EDGE_DEV_CARD} or
+     * @param seType  A special edge type code such as {@link #SPECIAL_EDGE_DEV_CARD} or
      *          or {@link #SPECIAL_EDGE_SVP}.  0 is ignored.
      */
-    public void clearSpecialEdges(final int setype)
+    public void clearSpecialEdges(final int seType)
     {
-        if (setype == 0)
+        if (seType == 0)
             return;
 
         final Iterator<Map.Entry<Integer, Integer>> seIter = specialEdges.entrySet().iterator();
         while (seIter.hasNext())
         {
             Map.Entry<Integer, Integer> entry = seIter.next();
-            if (entry.getKey().intValue() == setype)
+            if (entry.getValue() == seType)
                 seIter.remove();
         }
     }
