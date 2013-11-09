@@ -1412,7 +1412,7 @@ public class SOCServer extends Server
         GameHandler hand = gameList.getGameTypeHandler(gm);
         if (hand != null)
         {
-            gameDestroyed = (! hand.leaveGame(ga, c)) || gameList.isGameEmpty(gm);
+            gameDestroyed = hand.leaveGame(ga, c) || gameList.isGameEmpty(gm);
         } else {
             gameDestroyed = true;
                 // should not happen. If no handler, game data is inconsistent
