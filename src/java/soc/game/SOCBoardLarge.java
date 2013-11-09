@@ -310,10 +310,13 @@ public class SOCBoardLarge extends SOCBoard
      *<UL>
      * <LI> {@link #setAddedLayoutPart(String, int[])}
      * <LI> {@link #setAddedLayoutParts(HashMap)}
-     * <LI> SOCBoardPanel.drawBoardEmpty
+     * <LI> {@link #SPECIAL_EDGE_TYPES}
+     * <LI> SOCBoardPanel.drawBoardEmpty_specialEdges
      * <LI> SOCBoardPanel.BoardToolTip.handleHover
      * <LI> Any game or board code that needs to check for relevant actions at edges
      *</UL>
+     * To find where to add the new type, search those for {@code SPECIAL_EDGE_DEV_CARD}.
+     *<P>
      * Not many board layouts and scenarios have Special Edges, so usually {@link #hasSpecialEdges()} == {@code false}.
      */
     public static final int SPECIAL_EDGE_DEV_CARD = 1;
@@ -322,9 +325,27 @@ public class SOCBoardLarge extends SOCBoard
      * Special Edge Type code that gives a Special Victory Point when player reaches a special edge.
      * After the player gets their reward, the special edge is cleared, no other player can be rewarded there.
      * These edges are Added Layout Part {@code "VE"}.
-     * For more information on Special Edges see {@link #SPECIAL_EDGE_DEV_CARD}.
+     *<P>
+     * For more information on Special Edges, see {@link #SPECIAL_EDGE_DEV_CARD}.
      */
     public static final int SPECIAL_EDGE_SVP = 2;
+
+    /**
+     * Names of optional Added Layout Parts which contain Special Edges when present, currently {@code "CE"} and {@code "VE"}.
+     * {@link #SPECIAL_EDGE_TYPES}[i] is the Special Edge type for {@code SPECIAL_EDGE_LAYOUT_PARTS}[i],
+     * edge coordinates of that special type are {@link #getAddedLayoutPart(String) getAddedLayoutPart}
+     * ({@code SPECIAL_EDGE_LAYOUT_PARTS}[i]).
+     *<P>
+     * For more information on Special Edges, see {@link #SPECIAL_EDGE_DEV_CARD}.
+     */
+    public static final String[] SPECIAL_EDGE_LAYOUT_PARTS = { "CE", "VE" };
+
+    /**
+     * Special Edge type codes, such as {@link #SPECIAL_EDGE_DEV_CARD}, for
+     * all Added Layout Parts which contain Special Edges when present.
+     * {@code SPECIAL_EDGE_TYPES}[i] is the Special Edge type code for {@link #SPECIAL_EDGE_LAYOUT_PARTS}[i].
+     */
+    public static final int[] SPECIAL_EDGE_TYPES = { SPECIAL_EDGE_DEV_CARD, SPECIAL_EDGE_SVP };
 
     /**
      * For {@link #getAdjacentHexesToHex(int, boolean)}, the offsets to add to the hex

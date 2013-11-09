@@ -67,6 +67,9 @@ import soc.game.SOCScenario;    // for javadocs
  *</UL>
  * The "CE" and "VE" layout parts are lists of Special Edges on the board.  During game play, these
  * edges may change.  The server announces each change with a {@link SOCBoardSpecialEdge} message.
+ * If you add a layout part which is a Special Edge type, be sure to update
+ * {@link SOCBoardLarge#SPECIAL_EDGE_LAYOUT_PARTS} and {@link SOCBoardLarge#SPECIAL_EDGE_TYPES .SPECIAL_EDGE_TYPES}
+ * so players joining during the game will get updated Special Edge data.
  *<P>
  * Board layout parts by board encoding version:
  *<UL>
