@@ -3034,6 +3034,15 @@ public class SOCGame implements Serializable, Cloneable
         if ((turnCount == 2) && isGameOptionSet(SOCGameOption.K_SC_FTRI)
             && (players[currentPlayerNumber].getSpecialVP() == 0))
         {
+            System.err.println("       adding 2 nearby Special Edges");
+            ((SOCBoardLarge) board).setSpecialEdge(0x0501, SOCBoardLarge.SPECIAL_EDGE_DEV_CARD);
+            ((SOCBoardLarge) board).setSpecialEdge(0x0901, SOCBoardLarge.SPECIAL_EDGE_SVP);
+
+            // When the other 2 are removed, client will redraw the board which will also show these.
+            // This temporary debug code runs at server and each client, so we don't send the added edge
+            // over the network; in actual game code, we'd fire a player event which the server would
+            // use to send the new special edge to clients for clarity.
+
             System.err.println("L3564: removing 2 Special Edges");
             SOCBoardLarge bl = (SOCBoardLarge) board;
 
@@ -3060,6 +3069,35 @@ public class SOCGame implements Serializable, Cloneable
                 scenarioEventListener.playerEvent
                     (this, players[currentPlayerNumber], SOCScenarioPlayerEvent.SVP_REACHED_SPECIAL_EDGE,
                      false, e0);
+        }
+
+        /**
+         * _SC_FTRI temp debug: On a certain turn, remove all special edges to test SOCGameHandler.joinGame_sendBoardSpecialEdgeChanges.
+         * TODO remove this temporary debug when no longer needed
+         */
+        if ((turnCount == 6) && ((SOCBoardLarge) board).hasSpecialEdges())
+        {
+            System.err.println("L3080: removing all Special Edges");
+            for (int seType : SOCBoardLarge.SPECIAL_EDGE_TYPES)
+                ((SOCBoardLarge) board).clearSpecialEdges(seType);
+
+            // This temporary debug code runs at server and each client, so we don't send all the removed edges
+            // over the network; in actual game code, we'd fire player events which the server would
+            // use to send the removed special edges to clients for clarity.
+            // Here, we just fire an event for 1 of them.
+            final int e0 = ((SOCBoardLarge) board).getAddedLayoutPart("CE")[1];  // card edge
+            final int cardtype;
+            if (isAtServer)
+            {
+                cardtype = SOCDevCardConstants.KNIGHT;
+                players[currentPlayerNumber].getDevCards().add(1, SOCDevCardSet.NEW, cardtype);
+            } else {
+                cardtype = SOCDevCardConstants.UNKNOWN;
+            }
+            if (scenarioEventListener != null)
+                scenarioEventListener.playerEvent
+                    (this, players[currentPlayerNumber], SOCScenarioPlayerEvent.DEV_CARD_REACHED_SPECIAL_EDGE,
+                     false, new soc.util.IntPair(e0, cardtype));
         }
 
         //D.ebugPrintln("  TO "+gameState);
