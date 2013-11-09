@@ -29,6 +29,8 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -962,6 +964,31 @@ public class SOCGameHandler extends GameHandler
         }
 
         /**
+         * _SC_FTRI: If game has started, send any changed Special Edges.
+         */
+        if (gameData.hasSeaBoard && (gameData.getGameState() >= SOCGame.PLAY))
+        {
+            final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
+            boolean sendEdgeChanges = bl.hasSpecialEdges();
+            if (! sendEdgeChanges)
+            {
+                // In case they've all been removed already during game play,
+                // check the board for any Special Edge layout part
+                for (String ap : SOCBoardLarge.SPECIAL_EDGE_LAYOUT_PARTS)
+                {
+                    if (bl.getAddedLayoutPart(ap) != null)
+                    {
+                        sendEdgeChanges = true;
+                        break;
+                    }
+                }
+            }
+
+            if (sendEdgeChanges)
+                joinGame_sendBoardSpecialEdgeChanges(gameData, bl, c);
+        }
+
+        /**
          * Send the current player number.
          * Before v2.0.00, this wasn't sent so early; was sent
          * just before SOCGameState and the "joined the game" text.
@@ -1219,6 +1246,88 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToPlayer(c, gameName, /*I*/"This game has started. To play, take over a robot."/*18N*/ );
             else
                 srv.messageToPlayer(c, gameName, /*I*/"This game has started, no new players can sit down."/*18N*/ );
+        }
+    }
+
+    /**
+     * Client is joining this game, which uses {@link SOCBoardLarge} with {@link SOCBoardLarge#hasSpecialEdges()};
+     * send any changes to special edges from the starting board layout.
+     *<P>
+     * Compares the current {@link SOCBoardLarge#getSpecialEdges()} against each
+     * {@link SOCBoardLarge#getAddedLayoutPart(String)} which defines special edges
+     * (currently {@code "CE"}, {@code "VE"}).
+     *<P>
+     * Called as part of {@link #joinGame(SOCGame, StringConnection, boolean, boolean)}.
+     * @param game   Game being joined
+     * @param board  Game's board layout
+     * @param c      Client joining
+     */
+    private final void joinGame_sendBoardSpecialEdgeChanges
+        (final SOCGame game, final SOCBoardLarge board, final StringConnection c)
+    {
+        final String gaName = game.getName();
+
+        // - Iterate through added layout parts vs getSpecialEdgeType, to see if any removed or changed.
+        // - Build array of each seType's original edge coordinates;
+        //   seCoord[i] == special edges of type SPECIAL_EDGE_TYPES[i]
+
+        int[][] seCoord = new int[SOCBoardLarge.SPECIAL_EDGE_LAYOUT_PARTS.length][];
+
+        for (int i = 0; i < SOCBoardLarge.SPECIAL_EDGE_LAYOUT_PARTS.length; ++i)
+        {
+            final String part = SOCBoardLarge.SPECIAL_EDGE_LAYOUT_PARTS[i];
+            final int[] edges = board.getAddedLayoutPart(part);
+            if (edges == null)
+                continue;
+            seCoord[i] = edges;
+
+            final int edgeSEType = SOCBoardLarge.SPECIAL_EDGE_TYPES[i];
+            for (int j = 0; j < edges.length; ++j)
+            {
+                final int edge = edges[j];
+                final int seType = board.getSpecialEdgeType(edge);
+
+                if (seType != edgeSEType)
+                    // removed (type 0) or changed type
+                    c.put(SOCBoardSpecialEdge.toCmd(gaName, edge, seType));
+            }
+        }
+
+        // - Iterate through getSpecialEdges map vs type's added layout part, to see if any added.
+
+        final Iterator<Map.Entry<Integer, Integer>> seIter = board.getSpecialEdges();
+        while (seIter.hasNext())
+        {
+            Map.Entry<Integer, Integer> entry = seIter.next();
+            final int edge = entry.getKey(), seType = entry.getValue();
+
+            boolean found = false;
+            for (int i = 0; i < SOCBoardLarge.SPECIAL_EDGE_LAYOUT_PARTS.length; ++i)
+            {
+                if (seType == SOCBoardLarge.SPECIAL_EDGE_TYPES[i])
+                {
+                    if (seCoord[i] != null)
+                    {
+                        // search its type's original-edges array; there aren't
+                        // many edges per type, so simple linear search is okay
+
+                        for (int j = 0; j < seCoord[i].length; ++j)
+                        {
+                            if (edge == seCoord[i][j])
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    break;
+                }
+            }
+
+            if (! found)
+                // added since start of game
+                c.put(SOCBoardSpecialEdge.toCmd(gaName, edge, seType));
         }
     }
 
