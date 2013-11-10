@@ -2347,9 +2347,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         /**
          * before adding a ship, check to see if its trade route is now closed
+         * or if it's reached a Special Edge.
          */
         if (piece instanceof SOCShip)
-            putPiece_roadOrShip_checkNewShipTradeRoute((SOCShip) piece, board);
+            putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges((SOCShip) piece, (SOCBoardLarge) board);
 
         /**
          * remember it
@@ -2444,18 +2445,22 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * If the route becomes closed and is the player's first Cloth Trade route with a {@link SOCVillage},
      * this method sets that player flag and fires {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     *<P>
+     * If the board layout has Special Edges, check if the new ship has reached one, and if so
+     * reward the player and fire an event like {@link SOCScenarioPlayerEvent#SVP_REACHED_SPECIAL_EDGE}
+     * or {@link SOCScenarioPlayerEvent#DEV_CARD_REACHED_SPECIAL_EDGE}.
      *
      * @param newShip  Our new ship being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
      *                 should not yet be added to {@link #roads}
      * @param board  game board
      * @since 2.0.00
      */
-    private void putPiece_roadOrShip_checkNewShipTradeRoute
-        (SOCShip newShip, SOCBoard board)
+    private void putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
+        (SOCShip newShip, SOCBoardLarge board)
     {
         final boolean boardHasVillages = game.isGameOptionSet(SOCGameOption.K_SC_CLVI);
-        final int[] edgeNodes = board.getAdjacentNodesToEdge_arr
-            (newShip.getCoordinates());
+        final int edge = newShip.getCoordinates();
+        final int[] edgeNodes = board.getAdjacentNodesToEdge_arr(edge);
 
         for (int i = 0; i < 2; ++i)
         {
@@ -2495,6 +2500,54 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 }
 
                 break;
+            }
+        }
+
+        final int seType = ((SOCBoardLarge) board).getSpecialEdgeType(edge);
+        if (seType != 0)
+        {
+            SOCPlayer currentPlayer = game.getPlayer(game.getCurrentPlayerNumber());
+
+            switch (seType)
+            {
+            case SOCBoardLarge.SPECIAL_EDGE_DEV_CARD:
+                {
+                    board.setSpecialEdge(edge, 0);
+                    final int cardtype;
+                    if (game.isAtServer)
+                    {
+                        // TODO set aside dev cards at start of game, pick from them now
+                        cardtype = SOCDevCardConstants.KNIGHT;
+                        currentPlayer.getDevCards().add(1, SOCDevCardSet.NEW, cardtype);
+                    } else {
+                        cardtype = SOCDevCardConstants.UNKNOWN;
+                    }
+
+                    if (game.scenarioEventListener != null)
+                        game.scenarioEventListener.playerEvent
+                            (game, currentPlayer, SOCScenarioPlayerEvent.DEV_CARD_REACHED_SPECIAL_EDGE,
+                             false, new soc.util.IntPair(edge, cardtype));
+                }
+                break;
+
+            case SOCBoardLarge.SPECIAL_EDGE_SVP:
+                {
+                    board.setSpecialEdge(edge, 0);
+
+                    ++specialVP;
+                    ++newShip.specialVP;
+                    if (newShip.specialVP == 1)
+                        newShip.specialVPEvent = SOCScenarioPlayerEvent.SVP_REACHED_SPECIAL_EDGE;
+
+                    if (game.scenarioEventListener != null)
+                        game.scenarioEventListener.playerEvent
+                            (game, currentPlayer, SOCScenarioPlayerEvent.SVP_REACHED_SPECIAL_EDGE,
+                             false, edge);
+                }
+                break;
+
+            default:
+                System.err.println("L2549: warning: No handler for reaching SEType " + seType);
             }
         }
     }

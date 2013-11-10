@@ -311,6 +311,7 @@ public class SOCBoardLarge extends SOCBoard
      * <LI> {@link #setAddedLayoutPart(String, int[])}
      * <LI> {@link #setAddedLayoutParts(HashMap)}
      * <LI> {@link #SPECIAL_EDGE_TYPES}
+     * <LI> {@link SOCPlayer#putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges(SOCShip, SOCBoardLarge)}
      * <LI> SOCBoardPanel.drawBoardEmpty_specialEdges
      * <LI> SOCBoardPanel.BoardToolTip.handleHover
      * <LI> Any game or board code that needs to check for relevant actions at edges
