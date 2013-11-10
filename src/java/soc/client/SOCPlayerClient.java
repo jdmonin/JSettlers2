@@ -3627,6 +3627,7 @@ public class SOCPlayerClient
 
             case SOCPlayerElement.SCENARIO_SVP:
                 pl.setSpecialVP(mes.getValue());
+                utype = PlayerClientListener.UpdateType.SpecialVictoryPoints;
                 break;
 
             case SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK:
