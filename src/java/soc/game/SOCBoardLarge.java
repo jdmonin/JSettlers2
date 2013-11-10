@@ -158,6 +158,7 @@ import soc.util.IntPair;
  *    <td><!-- node -->
  *      {@link #isNodeInBounds(int, int)} <br>
  *      {@link #isNodeOnLand(int)} <br>
+ *      {@link #isNodeCoastline(int)} <br>
  *      {@link #settlementAtNode(int)} <br>
  *      {@link #getPortTypeFromNodeCoord(int)} <br>
  *      {@link #getNodeLandArea(int)} <br>
@@ -1372,6 +1373,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return  true if this edge's hexes are land and water,
      *           or a land hex at the edge of the board
      * @see #isHexCoastline(int)
+     * @see #isNodeCoastline(int)
      */
     public final boolean isEdgeCoastline(final int edge)
     {
@@ -1765,6 +1767,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param hexCoord  Hex coordinate, within the board's bounds
      * @return  true if this hex is adjacent to water, or at the edge of the board
      * @see #isEdgeCoastline(int)
+     * @see #isNodeCoastline(int)
      * @throws IllegalArgumentException  if hexCoord is water or not a valid hex coordinate
      */
     public boolean isHexCoastline(final int hexCoord)
@@ -1833,6 +1836,9 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Is this node's land area in this list of land areas?
+     *<P>
+     * Some nodes on land do not have a land area; instead of using this method
+     * to determine if a node is on land, use {@link #isNodeOnLand(int)} or {@link #isNodeCoastline(int)}.
      * @param nodeCoord  The node's coordinate
      * @param las  List of land area numbers, or null for an empty list
      * @return  True if <tt>las</tt> contains {@link #getNodeLandArea(int) getNodeLandArea(nodeCoord)};
@@ -1879,6 +1885,33 @@ public class SOCBoardLarge extends SOCBoard
                 return i;
 
         return 0;
+    }
+
+    /**
+     * Is this node along the coastline (land/water border)?
+     * Off the edge of the board is considered water.
+     * {@link #FOG_HEX} is considered land here.
+     * @param node  Node coordinate, not checked for validity
+     * @return  true if this node's adjacent hexes are land and water,
+     *           or if any adjacent hex would be off the edge of the board
+     * @see #isEdgeCoastline(int)
+     * @see #isHexCoastline(int)
+     */
+    public final boolean isNodeCoastline(final int node)
+    {
+        final Collection<Integer> hexes = getAdjacentHexesToNode(node);
+
+        boolean hasLand = false, hasWater = (hexes.size() < 3);  // check size because we treat off-board as water
+        for (Integer hex : hexes)
+        {
+            final int htype = getHexTypeFromCoord(hex);
+            if ((htype <= MAX_LAND_HEX_LG) && (htype != WATER_HEX))
+                hasLand = true;
+            else
+                hasWater = true;
+        }
+
+        return (hasLand && hasWater);
     }
 
     /**
