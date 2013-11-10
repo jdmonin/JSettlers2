@@ -596,7 +596,12 @@ public class SOCGame implements Serializable, Cloneable
      * {@link SOCScenarioEventListener#playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object) SOCScenarioEventListener.playerEvent(...)},
      * send the usual messages related to that action, then check this list and send out
      * the pending PLAYERELEMENT message so that the game's clients will update that player's
-     * {@link SOCPlayer#setScenarioPlayerEvents(int)} or other related fields.
+     * {@link SOCPlayer#setScenarioPlayerEvents(int)} or other related fields, before the GAMESTATE message.
+     *<P>
+     * <b>Note:</b> Only a few of the server message-handling methods check this field, because
+     * only those few can potentially lead to special victory points or other game/scenario events.
+     * If you add code where other player actions can lead to {@code pendingMessagesOut} adds, be sure
+     * the server handler for those actions checks this list afterwards, to send before GAMESTATE.
      *<P>
      * Because this is server-only, it's null until {@link #startGame()}.
      * @since 2.0.00
