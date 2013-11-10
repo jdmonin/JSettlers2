@@ -4897,9 +4897,19 @@ public class SOCGameHandler extends GameHandler
                 denyRequest = true;
             } else {
                 ga.moveShip(moveShip, toEdge);
+
                 srv.messageToGame(gaName, new SOCMovePiece
                     (gaName, pn, SOCPlayingPiece.SHIP, fromEdge, toEdge));
                 // client will also print "* Joe moved a ship.", no need to send a SOCGameServerText.
+
+                if (! ga.pendingMessagesOut.isEmpty())
+                {
+                    srv.gameList.takeMonitorForGame(gaName);
+                    for (final Object msg : ga.pendingMessagesOut)
+                        srv.messageToGameWithMon(gaName, (SOCMessage) msg);
+                    ga.pendingMessagesOut.clear();
+                    srv.gameList.releaseMonitorForGame(gaName);
+                }
 
                 if (ga.getGameState() >= SOCGame.OVER)
                 {
@@ -5527,7 +5537,8 @@ public class SOCGameHandler extends GameHandler
      * not after.
      *<P>
      * Adds the message to {@link SOCGame#pendingMessagesOut}; note that
-     * right now, that field is checked only in {@link #handlePUTPIECE(SOCGame, StringConnection, SOCPutPiece)},
+     * right now, that field is checked only in {@link #handlePUTPIECE(SOCGame, StringConnection, SOCPutPiece)}
+     * and {@link #handleMOVEPIECEREQUEST(SOCGame, StringConnection, SOCMovePieceRequest)},
      * because no other method currently awards SVP.
      * @param ga  Game
      * @param pl  Player
