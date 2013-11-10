@@ -4998,7 +4998,7 @@ public class SOCPlayerClient
     }
 
     /**
-     * the user wants to trade with the bank
+     * the user wants to trade with the bank or a port.
      *
      * @param ga    the game
      * @param give  what is being offered
@@ -5010,7 +5010,7 @@ public class SOCPlayerClient
     }
 
     /**
-     * the user is making an offer to trade
+     * the user is making an offer to trade with another player.
      *
      * @param ga    the game
      * @param offer the trade offer
