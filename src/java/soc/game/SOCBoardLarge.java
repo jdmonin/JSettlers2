@@ -21,12 +21,14 @@
 
 package soc.game;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -103,6 +105,7 @@ import soc.util.IntPair;
  *      {@link #getAdjacentEdgeToNode2Away(int, int)} <br>
  *      {@link #getAdjacentEdgesToNode(int)} <br>
  *      {@link #getAdjacentEdgesToNode_arr(int)} <br>
+ *      {@link #getAdjacentEdgesToNode_coastal(int)} <br>
  *      {@link #getEdgeBetweenAdjacentNodes(int, int)} <br>
  *      {@link #isEdgeAdjacentToNode(int, int)}
  *    </td>
@@ -1374,6 +1377,7 @@ public class SOCBoardLarge extends SOCBoard
      *           or a land hex at the edge of the board
      * @see #isHexCoastline(int)
      * @see #isNodeCoastline(int)
+     * @see #getAdjacentEdgesToNode_coastal(int)
      */
     public final boolean isEdgeCoastline(final int edge)
     {
@@ -1896,10 +1900,11 @@ public class SOCBoardLarge extends SOCBoard
      *           or if any adjacent hex would be off the edge of the board
      * @see #isEdgeCoastline(int)
      * @see #isHexCoastline(int)
+     * @see #getAdjacentEdgesToNode_coastal(int)
      */
     public final boolean isNodeCoastline(final int node)
     {
-        final Collection<Integer> hexes = getAdjacentHexesToNode(node);
+        final List<Integer> hexes = getAdjacentHexesToNode(node);
 
         boolean hasLand = false, hasWater = (hexes.size() < 3);  // check size because we treat off-board as water
         for (Integer hex : hexes)
@@ -2959,6 +2964,50 @@ public class SOCBoardLarge extends SOCBoard
             return (edgeR == (nodeR + 1));  // S
         else
             return (edgeR == (nodeR - 1));  // N
+    }
+
+    /**
+     * Get the coastal (land+water) edges adjacent to this node, if any.
+     *<P>
+     * Coastal edges are those with an adjacent land hex and an adjacent water hex.
+     * {@link #FOG_HEX} is considered land here.
+     * Hexes off the board are considered water.
+     * Edges off the board are ignored, not checked here.
+     * @param node  Node coordinate; not validated.  Should be a coastal node, with adjacent
+     *          water and land hexes, although you can pass inland or at-sea nodes to this method.
+     * @return  Coastal edges adjacent to {@code node}, or an empty list if none
+     * @see #isEdgeCoastline(int)
+     * @see #isNodeCoastline(int)
+     */
+    public final List<Integer> getAdjacentEdgesToNode_coastal(final int node)
+    {
+        ArrayList<Integer> coastEdges = new ArrayList<Integer>(3);
+
+        for (int edge : getAdjacentEdgesToNode_arr(node))
+        {
+            if (edge == -9)
+                continue;  // edge off the board
+
+            boolean hasLand = false, hasWater = false;
+            for (int hex : getAdjacentHexesToEdge_arr(edge))
+            {
+                if (hex == 0)
+                {
+                    hasWater = true;  // hex off the board
+                } else {
+                    final int htype = getHexTypeFromCoord(hex);
+                    if ((htype <= MAX_LAND_HEX_LG) && (htype != WATER_HEX))
+                        hasLand = true;
+                    else
+                        hasWater = true;
+                }
+            }
+
+            if (hasLand && hasWater)
+                coastEdges.add(Integer.valueOf(edge));
+        }
+
+        return coastEdges;
     }
 
     /**
