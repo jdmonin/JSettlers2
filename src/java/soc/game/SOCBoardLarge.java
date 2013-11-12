@@ -2527,7 +2527,9 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Get the edge coordinates of the 2 to 4 edges adjacent to this edge.
      * @param coord  Edge coordinate; not checked for validity
-     * @return the valid adjacent edges to this edge, as a Vector of Integer coordinates
+     * @return the valid adjacent edges to this edge, as a Vector of Integer coordinates.
+     *     If {@code coord} is off the board, none of its adjacents will be in bounds,
+     *     and this method will return an empty list; never returns {@code null}.
      */
     @Override
     public Vector<Integer> getAdjacentEdgesToEdge(final int coord)

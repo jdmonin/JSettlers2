@@ -4315,6 +4315,63 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI},
+     * calculate if the player has any coastal settlement or city where
+     * they can place a moved port without it being adjacent to another port.
+     * @param  all  Return all (for placement browsing), or just one (to see if they have any)?
+     * @return  One or all potential locations to place a moved port, or {@code null} if none
+     * @since 2.0.00
+     */
+    public List<Integer> getPortMovePotentialLocations(final boolean all)
+    {
+        if (! game.hasSeaBoard)
+            return null;  // <--- Early return: Not a board where this can happen ---
+
+        // For each of player's coastal settles/cities:
+        // - Check if its own node already touches a port
+        // - Find its coastal edges
+        // - If a coastal edge's other node touches a port, that port is on the edge or an adjacent edge
+
+        final SOCBoardLarge board = (SOCBoardLarge) game.getBoard();
+
+        ArrayList<Integer> coastalNodes = new ArrayList<Integer>();
+        for (SOCPlayingPiece piece : settlements)
+        {
+            final int node = piece.getCoordinates();
+            if (board.isNodeCoastline(node) && (-1 == board.getPortTypeFromNodeCoord(node)))
+                coastalNodes.add(node);
+        }
+        for (SOCPlayingPiece piece : cities)
+        {
+            final int node = piece.getCoordinates();
+            if (board.isNodeCoastline(node) && (-1 == board.getPortTypeFromNodeCoord(node)))
+                coastalNodes.add(node);
+        }
+
+        if (coastalNodes.isEmpty())
+            return null;  // <--- Early return: No coastal settlements or cities without ports ---
+
+        ArrayList<Integer> potentialEdges = new ArrayList<Integer>();
+        for (int node : coastalNodes)
+        {
+            for (int edge : board.getAdjacentEdgesToNode_coastal(node))
+            {
+                // Since each port touches 2 nodes, we can check the coastal edge's
+                // other node to find a port on that edge or its adjacent edges.
+
+                if (-1 == board.getPortTypeFromNodeCoord(board.getAdjacentNodeFarEndOfEdge(edge, node)))
+                {
+                    potentialEdges.add(edge);
+                    if (! all)
+                        return potentialEdges;  // <--- Early return: Caller doesn't want full list ---
+                }
+            }
+        }
+
+        return (potentialEdges.isEmpty()) ? null : potentialEdges;
+    }
+
+    /**
      * set a port flag
      *
      * @param portType  the type of port; in range {@link SOCBoard#MISC_PORT} to {@link SOCBoard#WOOD_PORT}
