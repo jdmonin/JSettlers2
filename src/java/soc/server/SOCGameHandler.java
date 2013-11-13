@@ -2404,10 +2404,10 @@ public class SOCGameHandler extends GameHandler
                 for (int pn = 0; pn < ga.maxPlayers; ++pn)
                     ga.getPlayer(pn).setRestrictedLegalShips(legalSeaEdges[pn]);
 
-            if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            if (ga.isGameOptionSet(SOCGameOption.K_SC_FTRI) || ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
             {
                 // scenario has initial pieces
-                SOCBoardLargeAtServer.startGame_putInitPieces(ga);
+                ((SOCBoardLargeAtServer) (ga.getBoard())).startGame_putInitPieces(ga);
             }
         } else {
             legalSeaEdges = null;

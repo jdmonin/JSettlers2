@@ -34,6 +34,7 @@ import java.util.Vector;
 
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
+import soc.game.SOCDevCardConstants;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
@@ -115,6 +116,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *<P>
      * Initialized in {@link #startGame_putInitPieces(SOCGame)} based on game options.
      * Accessed with {@link #drawItemFromStack()}.
+     *<P>
+     * In {@code _SC_FTRI}, each item is a {@link SOCDevCardConstants} card type.
      */
     private Stack<Integer> drawStack;
         // if you add a scenario here that uses drawStack, also update the SOCBoardLarge.drawItemFromStack javadoc.
@@ -391,6 +394,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
             setAddedLayoutPart("CE", FOR_TRI_DEV_CARD_EDGES[idx]);
             setAddedLayoutPart("VE", FOR_TRI_SVP_EDGES[idx]);
+
+            // startGame_putInitPieces will set aside dev cards for players to reach "CE" special edges.
         }
         else if (! hasScenarioFog)
         {
@@ -2031,9 +2036,11 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * For scenario game option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
-     * place each player's initial pieces.  Otherwise do nothing.
+     * place each player's initial pieces.  For {@link SOCGameOption#K_SC_FTRI _SC_FTRI},
+     * set aside some dev cards to be claimed later at Special Edges.
+     * Otherwise do nothing.
      *<P>
-     * Also calls each player's {@link SOCPlayer#addLegalSettlement(int)}
+     * For _SC_PIRI also calls each player's {@link SOCPlayer#addLegalSettlement(int)}
      * for their Lone Settlement location (adds layout part "LS").
      * Vacant player numbers get 0 for their {@code "LS"} element.
      *<P>
@@ -2050,8 +2057,24 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * so the legal and potential arrays will be initialized.
      * @see #getLegalSeaEdges(SOCGame, int)
      */
-    public static void startGame_putInitPieces(SOCGame ga)
+    public void startGame_putInitPieces(SOCGame ga)
     {
+        if (ga.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+        {
+            // Set aside dev cards for players to be given when reaching "CE" Special Edges.
+
+            final int cpn = ga.getCurrentPlayerNumber();
+            ga.setCurrentPlayerNumber(-1);  // to call buyDevCard without giving it to a player
+
+            drawStack = new Stack<Integer>();
+            final int n = FOR_TRI_DEV_CARD_EDGES[(ga.maxPlayers > 4) ? 1 : 0].length;
+            for (int i = 0; i < n; ++i)
+                drawStack.push(ga.buyDevCard());
+
+            ga.setCurrentPlayerNumber(cpn);
+            return;
+        }
+
         if (! ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
             return;
 
@@ -2061,7 +2084,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         final int[] inits = PIR_ISL_INIT_PIECES[(ga.maxPlayers > 4) ? 1 : 0];
         int[] possiLoneSettles = new int[ga.maxPlayers];  // lone possible-settlement node on the way to the island.
             // vacant players will get 0 here, will not get free settlement, ship, or pirate fortress.
-        SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
 
         int i = 0;  // iterate i only when player present, to avoid spacing gaps from vacant players
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
@@ -2070,12 +2092,12 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 continue;
 
             SOCPlayer pl = ga.getPlayer(pn);
-            ga.putPiece(new SOCSettlement(pl, inits[i], board));  ++i;
-            ga.putPiece(new SOCShip(pl, inits[i], board));  ++i;
-            ga.putPiece(new SOCFortress(pl, inits[i], board));  ++i;
+            ga.putPiece(new SOCSettlement(pl, inits[i], this));  ++i;
+            ga.putPiece(new SOCShip(pl, inits[i], this));  ++i;
+            ga.putPiece(new SOCFortress(pl, inits[i], this));  ++i;
             possiLoneSettles[pn] = inits[i];  ga.getPlayer(pn).addLegalSettlement(inits[i]);  ++i;
         }
-        board.setAddedLayoutPart("LS", possiLoneSettles);
+        setAddedLayoutPart("LS", possiLoneSettles);
 
         ga.setGameState(gstate);
     }
