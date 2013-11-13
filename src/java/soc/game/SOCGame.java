@@ -950,13 +950,14 @@ public class SOCGame implements Serializable, Cloneable
     private int playerWithWin;
 
     /**
-     * the number of development cards left
+     * the number of development cards left in {@link #devCardDeck} for {@link #buyDevCard()}.
      */
     private int numDevCards;
 
     /**
      * the development card deck.
      * Each element is a dev card type from {@link SOCDevCardConstants}.
+     * {@link #numDevCards} tracks the cards remaining to buy.
      */
     private int[] devCardDeck;
 
@@ -3325,6 +3326,8 @@ public class SOCGame implements Serializable, Cloneable
         isAtServer = true;
         pendingMessagesOut = new ArrayList<Object>();
 
+        startGame_setupDevCards();
+
         board.makeNewBoard(opts);
         if (hasSeaBoard)
         {
@@ -3343,8 +3346,29 @@ public class SOCGame implements Serializable, Cloneable
                 players[i].setPotentialAndLegalSettlements(psList, true, las);
         }
 
+        allOriginalPlayers = true;
+        gameState = START1A;
+
         /**
-         * shuffle the development cards
+         * choose who goes first
+         */
+        do
+        {
+            currentPlayerNumber = Math.abs(rand.nextInt() % maxPlayers);
+        } while (isSeatVacant(currentPlayerNumber));
+
+        setFirstPlayer(currentPlayerNumber);
+    }
+
+    /**
+     * For {@link #startGame()}, fill and shuffle the development card deck.
+     * {@link #devCardDeck} contents are based on game options and number of players.
+     * @since 2.0.00
+     */
+    private final void startGame_setupDevCards()
+    {
+        /**
+         * set up devCardDeck.  numDevCards is already set in constructor based on maxPlayers.
          */
         final boolean sc_piri_devcards = isGameOptionSet(SOCGameOption.K_SC_PIRI);
         if (maxPlayers > 4)
@@ -3424,6 +3448,9 @@ public class SOCGame implements Serializable, Cloneable
             devCardDeck[33] = SOCDevCardConstants.DISC;
         }
 
+        /**
+         * shuffle.
+         */
         for (j = 0; j < 10; j++)
         {
             for (i = 1; i < devCardDeck.length; i++) // don't swap 0 with 0!
@@ -3435,19 +3462,6 @@ public class SOCGame implements Serializable, Cloneable
                 devCardDeck[i] = tmp;
             }
         }
-
-        allOriginalPlayers = true;
-        gameState = START1A;
-
-        /**
-         * choose who goes first
-         */
-        do
-        {
-            currentPlayerNumber = Math.abs(rand.nextInt() % maxPlayers);
-        } while (isSeatVacant(currentPlayerNumber));
-
-        setFirstPlayer(currentPlayerNumber);
     }
 
     /**
