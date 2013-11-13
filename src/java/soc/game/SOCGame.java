@@ -6335,6 +6335,9 @@ public class SOCGame implements Serializable, Cloneable
      * the current player is buying a dev card.
      *<P>
      *<b>Note:</b> Not checked for validity; please call {@link #couldBuyDevCard(int)} first.
+     *<P>
+     * If called while the game is starting, when {@link #getCurrentPlayerNumber()} == -1,
+     * removes and returns a dev card from the deck without giving it to any player.
      *
      * @return the card that was drawn; a dev card type from {@link SOCDevCardConstants}.
      */
@@ -6343,14 +6346,17 @@ public class SOCGame implements Serializable, Cloneable
         numDevCards--;
         final int card = devCardDeck[numDevCards];
 
-        SOCResourceSet resources = players[currentPlayerNumber].getResources();
-        resources.subtract(1, SOCResourceConstants.ORE);
-        resources.subtract(1, SOCResourceConstants.SHEEP);
-        resources.subtract(1, SOCResourceConstants.WHEAT);
-        players[currentPlayerNumber].getDevCards().add(1, SOCDevCardSet.NEW, card);
-        lastActionTime = System.currentTimeMillis();
-        lastActionWasBankTrade = false;
-        checkForWinner();
+        if (currentPlayerNumber != -1)
+        {
+            SOCResourceSet resources = players[currentPlayerNumber].getResources();
+            resources.subtract(1, SOCResourceConstants.ORE);
+            resources.subtract(1, SOCResourceConstants.SHEEP);
+            resources.subtract(1, SOCResourceConstants.WHEAT);
+            players[currentPlayerNumber].getDevCards().add(1, SOCDevCardSet.NEW, card);
+            lastActionTime = System.currentTimeMillis();
+            lastActionWasBankTrade = false;
+            checkForWinner();
+        }
 
         return (card);
     }
