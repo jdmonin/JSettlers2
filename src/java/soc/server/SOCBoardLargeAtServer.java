@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Stack;
 import java.util.Vector;
 
 import soc.game.SOCBoard;
@@ -108,6 +109,17 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final long serialVersionUID = 2000L;
 
     /**
+     * For game scenarios such as {@link SOCGameOption#K_SC_FTRI _SC_FTRI},
+     * dev cards or other items waiting to be claimed by any player.
+     * Otherwise null.
+     *<P>
+     * Initialized in {@link #startGame_putInitPieces(SOCGame)} based on game options.
+     * Accessed with {@link #drawItemFromStack()}.
+     */
+    private Stack<Integer> drawStack;
+        // if you add a scenario here that uses drawStack, also update the SOCBoardLarge.drawItemFromStack javadoc.
+
+    /**
      * For game scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
      * the pirate fleet's position on its path (PP).  Otherwise unused.
      * @see #movePirateHexAlongPath(int)
@@ -134,6 +146,16 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     {
         super(gameOpts, maxPlayers, boardHeightWidth);
         // Nothing special for now at server
+    }
+
+    // javadoc inherited from SOCBoardLarge.
+    // If this scenario has dev cards or items waiting to be claimed by any player, draw the next item from that stack.
+    public Integer drawItemFromStack()
+    {
+        if ((drawStack == null) || drawStack.isEmpty())
+            return null;
+
+        return drawStack.pop();
     }
 
     /**
@@ -2010,12 +2032,18 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     /**
      * For scenario game option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
      * place each player's initial pieces.  Otherwise do nothing.
+     *<P>
      * Also calls each player's {@link SOCPlayer#addLegalSettlement(int)}
      * for their Lone Settlement location (adds layout part "LS").
      * Vacant player numbers get 0 for their {@code "LS"} element.
      *<P>
-     * This is called before {@link SOCGameHandler#getBoardLayoutMessage}.  So,
-     * if needed, it can call {@link SOCBoardLarge#setAddedLayoutPart(String, int[])}.
+     * Called from {@link SOCGameHandler#startGame(SOCGame)} for those
+     * scenario game options; if you need it called for your game, add
+     * a check there for your scenario's {@link SOCGameOption}.
+     *<P>
+     * This is called after {@link #makeNewBoard(Hashtable)} and before
+     * {@link SOCGameHandler#getBoardLayoutMessage}.  So if needed,
+     * it can call {@link SOCBoardLarge#setAddedLayoutPart(String, int[])}.
      *<P>
      * If ship placement is restricted by the scenario, please call each player's
      * {@link SOCPlayer#setRestrictedLegalShips(int[])} before calling this method,

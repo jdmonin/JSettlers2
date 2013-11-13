@@ -1120,8 +1120,28 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
+     * If this scenario has dev cards or items waiting to be claimed by any player,
+     * draw the next item from that stack.
+     *<P>
+     * This is called at server, but not at client; client instead receives messages from the server
+     * when the player claims such an item.  It's declared here in SOCBoardLarge instead of
+     * {@code SOCBoardLargeAtServer} so that game methods can call it without importing the server-side class.
+     *<P>
+     * In {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, each item is a {@link SOCDevCardConstants} card type.
+     *
+     * @return The next item from the stack, or {@code null} if empty or unused
+     * @throws UnsupportedOperationException if called at client
+     */
+    public Integer drawItemFromStack()
+        throws UnsupportedOperationException
+    {
+        throw new UnsupportedOperationException("Use SOCBoardLargeAtServer instead");
+    }
+
+    /**
      * For game scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
      * move the pirate fleet's position along its path.
+     *<P>
      * This is called at server, but not at client; client instead calls {@link #setPirateHex(int, boolean)}.
      * Call <tt>SOCBoardLargeAtServer.movePirateHexAlongPath</tt> instead of this stub super method.
      * @param numSteps  Number of steps to move along the path
