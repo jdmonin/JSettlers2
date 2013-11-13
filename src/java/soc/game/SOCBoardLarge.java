@@ -612,7 +612,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Land area numbers from which the player is excluded and cannot place settlements, or null.
-     * Used in some game scenarios.
+     * This is never a long list.  Used in some game scenarios.
      */
     private int[] playerExcludedLandAreas;
 
@@ -3440,6 +3440,59 @@ public class SOCBoardLarge extends SOCBoard
         int[] facing = new int[portsCount];
         System.arraycopy(portsLayout, 2 * portsCount, facing, 0, portsCount);
         return facing;
+    }
+
+    /**
+     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI},
+     * can a "gift" port at this edge be removed for placement elsewhere?
+     *<P>
+     * A port can't be removed from a Land Area where the player can place settlements.
+     * So, must be in no land area (LA == 0), or in {@link #getPlayerExcludedLandAreas()}.
+     * Does not check whether {@link SOCGameOption#K_SC_FTRI} is set.
+     *
+     * @param edge  Port's edge coordinate
+     * @return  True if that edge has a port which can be removed
+     * @see SOCPlayer#canPlacePort(int)
+     */
+    public boolean canRemovePort(final int edge)
+    {
+        final int n = portsCount;
+        int i;
+        for (i = 0; i < n; ++i)
+        {
+            if (edge == portsLayout[n + i])
+                break;
+        }
+        if (i == n)
+            return false;  // edge not found in port layout
+
+        final int[] portNodes = getAdjacentNodesToEdge_arr(edge);
+        for (i = 0; i <= 1; ++i)
+        {
+            final int la = getNodeLandArea(portNodes[i]);
+
+            boolean ok = false;
+            if (la == 0)
+            {
+                ok = true;
+            }
+            else if (playerExcludedLandAreas != null)
+            {
+                for (int j = 0; j < playerExcludedLandAreas.length; ++j)
+                {
+                    if (la == playerExcludedLandAreas[j])
+                    {
+                        ok = true;
+                        break;
+                    }
+                }
+            }
+
+            if (! ok)
+                return false;
+        }
+
+        return true;  // both nodes in land area 0 or in playerExcludedLandAreas
     }
 
     /**
