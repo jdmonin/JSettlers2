@@ -1075,18 +1075,14 @@ public class SOCBoardLarge extends SOCBoard
         if (adds == null)
             return;
 
-        for (Map.Entry<String, int[]> e : adds.entrySet())
+        // check for any Special Edge type
+        for (int i = 0; i < SPECIAL_EDGE_LAYOUT_PARTS.length; ++i)
         {
-            final String key = e.getKey();
-
-            if (key.equals("CE"))
-                setSpecialEdges(e.getValue(), SPECIAL_EDGE_DEV_CARD);
-            else if (key.equals("VE"))
-                setSpecialEdges(e.getValue(), SPECIAL_EDGE_SVP);
-
-            // If you add a Special Edge Type layout part, make sure
-            // to also check for it in setAddedLayoutPart(String, int[]).
+            final int[] edgelist = adds.get(SPECIAL_EDGE_LAYOUT_PARTS[i]);  // "CE" "VE", etc
+            if (edgelist != null)
+                setSpecialEdges(edgelist, SPECIAL_EDGE_TYPES[i]);  // SPECIAL_EDGE_DEV_CARD, etc
         }
+
     }
 
     /**
@@ -1110,13 +1106,10 @@ public class SOCBoardLarge extends SOCBoard
             addedLayoutParts = new HashMap<String, int[]>();
         addedLayoutParts.put(key, v);
 
-        if (key.equals("CE"))
-            setSpecialEdges(v, SPECIAL_EDGE_DEV_CARD);
-        else if (key.equals("VE"))
-            setSpecialEdges(v, SPECIAL_EDGE_SVP);
-
-        // If you add a Special Edge Type layout part, make sure
-        // to also check for it in setAddedLayoutParts(HashMap).
+        // check for any Special Edge type
+        for (int i = 0; i < SPECIAL_EDGE_LAYOUT_PARTS.length; ++i)
+            if (key.equals(SPECIAL_EDGE_LAYOUT_PARTS[i]))   // "CE" "VE", etc
+                setSpecialEdges(v, SPECIAL_EDGE_TYPES[i]);  // SPECIAL_EDGE_DEV_CARD, etc
     }
 
     /**
