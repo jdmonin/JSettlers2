@@ -3406,17 +3406,12 @@ public class SOCBoardLarge extends SOCBoard
             final int edge = portTypesAndInfo[i + portsCount],
                       facing = portTypesAndInfo[i + (2 * portsCount)];
 
+            if (edge < 0)
+                continue;  // SOCBoardLarge port isn't currently placed on the board: skip it
+
             final int[] nodes = getAdjacentNodesToEdge_arr(edge);
             placePort(ptype, -1, facing, nodes[0], nodes[1]);
         }
-    }
-
-    @Override
-    public int getPortFacing(int portNum)
-    {
-        if ((portNum < 0) || (portNum >= portsCount))
-            return 0;
-        return portsLayout[portNum - (2 * portsCount)];
     }
 
     @Override

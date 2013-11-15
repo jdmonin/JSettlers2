@@ -376,7 +376,7 @@ public class SOCBoard implements Serializable, Cloneable
      */
 
     /**
-     * Original format (1) for {@link #getBoardEncodingFormat()}:
+     * Original format (v1) for {@link #getBoardEncodingFormat()}:
      * Hexadecimal 0x00 to 0xFF along 2 diagonal axes.
      * Coordinate range on each axis is 0 to 15 decimal. In hex:<pre>
      *   Hexes: 11 to DD
@@ -389,14 +389,15 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int BOARD_ENCODING_ORIGINAL = 1;
 
     /**
-     * 6-player format (2) for {@link #getBoardEncodingFormat()}:
+     * 6-player format (v2) for {@link #getBoardEncodingFormat()}:
      * Land hexes are same encoding as {@link #BOARD_ENCODING_ORIGINAL}.
      * Land starts 1 extra hex west of standard board,
      * and has an extra row of land at north and south end.
+     *<P>
      * Ports are not part of {@link #hexLayout} because their
      * coordinates wouldn't fit within 2 hex digits.
      * Instead, see {@link #getPortTypeFromNodeCoord(int)},
-     *   {@link #getPortFacing(int)}, {@link #getPortsEdges()},
+     *   {@link #getPortsEdges()}, {@link #getPortsFacing()},
      *   {@link #getPortCoordinates(int)} or {@link #getPortsLayout()}.
      * @since 1.1.08
      */
@@ -407,6 +408,8 @@ public class SOCBoard implements Serializable, Cloneable
      * Allows up to 127 x 127 board with an arbitrary mix of land and water tiles.
      * Land, water, and port locations/facings are no longer hardcoded.
      * Use {@link #getPortsCount()} to get the number of ports.
+     * For other port information, use the same methods as in {@link #BOARD_ENCODING_6PLAYER}.
+     *<P>
      * Activated with {@link SOCGameOption} <tt>"PLL"</tt>.
      * @see SOCBoardLarge
      * @since 2.0.00
@@ -654,6 +657,9 @@ public class SOCBoard implements Serializable, Cloneable
      * The port types are stored at the beginning, from index 0 to <em>n</em> - 1.
      * The next <em>n</em> indexes store each port's edge coordinate.
      * The next <em>n</em> store each port's facing (towards land).
+     * <P>
+     * One scenario there has movable ports; a port's edge might temporarily be -1.
+     * Ignore this port if so, it's not currently placed on the board.
      *</UL>
      *
      * @see #ports
@@ -1864,9 +1870,14 @@ public class SOCBoard implements Serializable, Cloneable
      * Each port's edge coordinate.
      * This is the edge whose 2 end nodes can be used to build port settlements/cities.
      * Same order as {@link #getPortsLayout()}: Clockwise from upper-left.
-     * The length of this array is always 2 * {@link #getPortsCount()}.
+     * The length of this array is always {@link #getPortsCount()}.
      *<P>
      * This method should not be called frequently.
+     *<P>
+     * A scenario of {@link SOCBoardLarge} has movable ports; a port's edge there might
+     * temporarily be -1.  Ignore this port if so, it's not currently placed on the board.
+     * This happens only with {@link SOCBoardLarge} (layout encoding v3), not the original or 6-player
+     * (v1 or v2) {@link SOCBoard} layouts.
      *
      * @return the ports' edges
      * @see #getPortsFacing()
@@ -2100,31 +2111,6 @@ public class SOCBoard implements Serializable, Cloneable
     public Vector<Integer> getPortCoordinates(int portType)
     {
         return ports[portType];
-    }
-
-    /**
-     * Get a port's <em>facing</em>.
-     * Facing is the direction from the port hex, to the land hex touching it
-     * which will have 2 nodes where a port settlement/city can be built.
-     * @param portNum Port number, in range 0 to {@link #getPortsCount()} - 1.
-     *           Ordered clockwise from upper-left.
-     * @return facing (1-6), or 0 if not a valid port number.
-     *            Facing 2 is {@link #FACING_E}, 3 is {@link #FACING_SE}, 4 is SW, etc.
-     * @since 1.1.08
-     */
-    public int getPortFacing(int portNum)
-    {
-        int[] pfacings;
-        if (boardEncodingFormat == BOARD_ENCODING_ORIGINAL)
-            pfacings = PORTS_FACING_V1;
-        else
-            pfacings = PORTS_FACING_V2;
-        if ((portNum >= 0) && (portNum < pfacings.length))
-            return pfacings[portNum];
-        else
-            return 0;
-
-        // v3 encoding overrides this method in SOCBoardLarge. 
     }
 
     /**

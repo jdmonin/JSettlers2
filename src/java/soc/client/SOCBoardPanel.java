@@ -3288,10 +3288,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         final int[] portsEdges = board.getPortsEdges();
         for (int i = board.getPortsCount()-1; i>=0; --i)
         {
+            final int edge = portsEdges[i];
+            if (edge < 0)
+                continue;  // SOCBoardLarge port isn't currently placed on the board: skip it
+
             // For each port, get its facing land hex
             // and base (x,y) off that.
             final int landFacing = portsFacing[i];
-            final int landHexCoord = board.getAdjacentHexToEdge(portsEdges[i], landFacing);
+            final int landHexCoord = board.getAdjacentHexToEdge(edge, landFacing);
             px = halfdeltaX * ((landHexCoord & 0xFF) - 1);
             py = halfdeltaY * (landHexCoord >> 8);
             // now move 1 hex "backwards" from that hex's upper-left corner
