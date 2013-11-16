@@ -239,7 +239,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * the final total score (pushed from server at end of game),
      * or 0 if no score has been forced.
-     * 
+     *
      * @see #forceFinalVP(int)
      */
     private int finalTotalVP;
@@ -532,7 +532,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * create a copy of the player
      *
-     * @param player        the player to copy
+     * @param player  the player to copy
      */
     public SOCPlayer(SOCPlayer player)
     {
@@ -989,7 +989,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * set the face image id
      *
-     * @param id        the image id. 1 is the first human face image; 0 is the robot.
+     * @param id  the image id. 1 is the first human face image; 0 is the robot.
      */
     public void setFaceId(int id)
     {
@@ -1226,7 +1226,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *
      * @param edge   Check adjacents of this edge
      * @param wantShip   True to look for ships only, false for roads only
-     * @return  True if we have an adjacent settlement or city, or our route continues on an adjacent edge 
+     * @return  True if we have an adjacent settlement or city, or our route continues on an adjacent edge
      * @since 2.0.00
      */
     private final boolean doesTradeRouteContinuePastEdge(final int edge, final boolean wantShip)
@@ -1573,7 +1573,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     break;  // segment doesn't continue past a village
                 }
             }
-            
+
             // check node's other 2 adjacent edges
             // to see where the trade route goes next
 
@@ -1822,10 +1822,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         return devCards;
     }
-    
+
     /**
      * @return whether this player has any unplayed dev cards
-     * 
+     *
      * @see #getDevCards()
      */
     public boolean hasUnplayedDevCards()
@@ -1867,6 +1867,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         SOCPlayer p = game.getPlayerWithLongestRoad();
         if (p == null)
             return false;
+
         return p.getPlayerNumber() == playerNumber;
     }
 
@@ -1878,6 +1879,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         SOCPlayer p = game.getPlayerWithLargestArmy();
         if (p == null)
             return false;
+
         return p.getPlayerNumber() == playerNumber;
     }
 
@@ -1911,7 +1913,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * end of game, when they've been announced by server.
      * Special Victory Points (SVPs) are included, if the game scenario awards them.
      * Also includes any VP from {@link #getCloth() cloth}.
-     * 
+     *
      * @return the number of publicly known victory points
      * @see #getTotalVP()
      * @see #getSpecialVP()
@@ -1921,7 +1923,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         if (finalTotalVP > 0)
             return finalTotalVP;
-        
+
         int vp = buildingVP + specialVP + (numCloth / 2);
 
         /**
@@ -1964,14 +1966,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * each player to the client.  During play, true scores aren't
      * known, because of hidden victory-point cards.
      * getTotalVP() and getPublicVP() will report this, if set.
-     * 
+     *
      * @param score Total score for the player, or 0 for no forced total.
      */
     public void forceFinalVP(int score)
     {
         if (game.getGameState() != SOCGame.OVER)
             return;  // Consider throw IllegalStateException
-        
+
         finalTotalVP = score;
     }
 
@@ -2011,7 +2013,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Example events: {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA},
      * {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      * Not all player events are returned here; some can't be represented in a single flag bit.
-     * 
+     *
      * @return Player events which have occurred so far this game
      * @see #hasScenarioPlayerEvent(int)
      * @since 2.0.00
@@ -2242,12 +2244,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     settlements.addElement((SOCSettlement) piece);
                     lastSettlementCoord = settlementNode;
                     buildingVP++;
-    
+
                     /**
                      * update what numbers we're touching
                      */
                     ourNumbers.updateNumbers(piece, board);
-    
+
                     /**
                      * update our port flags
                      */
@@ -2376,7 +2378,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
              */
 
             //D.ebugPrintln("(roadNodes.contains(node)) = "+(roadNodes.contains(node)));
-            if (!(roadNodes.contains(node)))
+            if (! roadNodes.contains(node))
             {
                 roadNodes.addElement(node);
             }
@@ -2608,7 +2610,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             ++specialVP;
             newSettle.specialVP = 1;
             newSettle.specialVPEvent = SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA;
-       
+
             if ((game.scenarioEventListener != null) && ! isTempPiece)
             {
                 // Notify (server or GUI)
@@ -2624,7 +2626,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             specialVP += 2;
             newSettle.specialVP = 2;
             newSettle.specialVPEvent = SOCScenarioPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA;
-       
+
             if ((game.scenarioEventListener != null) && ! isTempPiece)
             {
                 // Notify (server or GUI)
@@ -2712,9 +2714,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         final int edge = edgeObj.intValue();
 
                         if (road.getCoordinates() == edge)
-                        {
                             updatePotentials(road);
-                        }
                     }
                 }
             }
@@ -2746,44 +2746,44 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         int nPort = board.getPortCoordinates(portType).size() / 2;
                         only1portOfType = (nPort < 2);
                     }
-                    
-                        if (only1portOfType)
-                        {
-                            // since only one settlement on this kind of port,
-                            // we can just set the port flag to false
-                            setPortFlag(portType, false);
-                        }
-                        else
-                        {
-                            //
-                            // there are muliple ports, so we need to check all
-                            // the settlements and cities
-                            //
-                            boolean havePortType = false;
 
-                            for (SOCSettlement settlement : settlements)
+                    if (only1portOfType)
+                    {
+                        // since only one settlement on this kind of port,
+                        // we can just set the port flag to false
+                        setPortFlag(portType, false);
+                    }
+                    else
+                    {
+                        //
+                        // there are muliple ports, so we need to check all
+                        // the settlements and cities
+                        //
+                        boolean havePortType = false;
+
+                        for (SOCSettlement settlement : settlements)
+                        {
+                            if (board.getPortTypeFromNodeCoord(settlement.getCoordinates()) == portType)
                             {
-                                if (board.getPortTypeFromNodeCoord(settlement.getCoordinates()) == portType)
+                                havePortType = true;
+                                break;
+                            }
+                        }
+
+                        if (! havePortType)
+                        {
+                            for (SOCCity city : cities)
+                            {
+                                if (board.getPortTypeFromNodeCoord(city.getCoordinates()) == portType)
                                 {
                                     havePortType = true;
                                     break;
                                 }
                             }
-
-                            if (!havePortType)
-                            {
-                                for (SOCCity city : cities)
-                                {
-                                    if (board.getPortTypeFromNodeCoord(city.getCoordinates()) == portType)
-                                    {
-                                        havePortType = true;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            setPortFlag(portType, havePortType);
                         }
+
+                        setPortFlag(portType, havePortType);
+                    }
                 }  // if (portType != -1)
             }  // if (ours)
 
@@ -2867,13 +2867,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 }
             }
 
-            if (haveNeighbor == true)
+            if (haveNeighbor)
             {
                 break;
             }
         }
 
-        if (!haveNeighbor)
+        if (! haveNeighbor)
         {
             for (SOCCity city : board.getCities())
             {
@@ -2890,13 +2890,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     }
                 }
 
-                if (haveNeighbor == true)
+                if (haveNeighbor)
                 {
                     break;
                 }
             }
 
-            if (!haveNeighbor)
+            if (! haveNeighbor)
             {
                 //D.ebugPrintln(")))) haveNeighbor = false");
                 //
@@ -2941,7 +2941,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                 }
                             }
 
-                            if (adjRoad == true)
+                            if (adjRoad)
                             {
                                 break;
                             }
@@ -3122,6 +3122,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                           && ((SOCBoardLarge) board).isEdgeCoastline(pieceCoord)
                           && doesTradeRouteContinuePastEdge
                               (pieceCoord, (ptype == SOCPlayingPiece.ROAD));  // look for opposite type for transition
+
                     if (ptype == SOCPlayingPiece.ROAD)
                     {
                         potentialRoads.add(pieceCoordInt);
@@ -3682,6 +3683,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         if (node == 0)
             return;
+
         legalSettlements.add(Integer.valueOf(node));
         addedLegalSettlement = node;
     }
@@ -3945,6 +3947,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         if (edge < 0)
             return false;
+
         return legalShips.contains(Integer.valueOf(edge));
     }
 
@@ -4420,7 +4423,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * set a port flag
      *
      * @param portType  the type of port; in range {@link SOCBoard#MISC_PORT} to {@link SOCBoard#WOOD_PORT}
-     * @param value                        true or false
+     * @param value     true or false
      */
     public void setPortFlag(int portType, boolean value)
     {
@@ -4430,7 +4433,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * @return the port flag for a type of port
      *
-     * @param portType   the type of port; in range {@link SOCBoard#MISC_PORT} to {@link SOCBoard#WOOD_PORT}
+     * @param portType  the type of port; in range {@link SOCBoard#MISC_PORT} to {@link SOCBoard#WOOD_PORT}
      */
     public boolean getPortFlag(int portType)
     {
@@ -4514,7 +4517,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         }
         currentOffer = null;
     }
-    
+
     @Override
     public String toString()
     {
