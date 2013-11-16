@@ -2667,15 +2667,14 @@ public class SOCGameHandler extends GameHandler
                 {
                 case SOCPlayingPiece.ROAD:
 
-                    SOCRoad rd = new SOCRoad(player, coord, null);
-
                     if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.START3B)
                         || (gameState == SOCGame.PLACING_ROAD)
                         || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
                     {
                         if (player.isPotentialRoad(coord) && (player.getNumPieces(SOCPlayingPiece.ROAD) >= 1))
                         {
-                            ga.putPiece(rd);  // Changes state and sometimes player (initial placement)
+                            final SOCRoad rd = new SOCRoad(player, coord, null);
+                            ga.putPiece(rd);  // Changes game state and (if initial placement) player
 
                             // If placing this piece reveals a fog hex, putPiece will call srv.gameEvent
                             // which will send a SOCRevealFogHex message to the game.
@@ -2743,14 +2742,14 @@ public class SOCGameHandler extends GameHandler
 
                 case SOCPlayingPiece.SETTLEMENT:
 
-                    SOCSettlement se = new SOCSettlement(player, coord, null);
-
                     if ((gameState == SOCGame.START1A) || (gameState == SOCGame.START2A)
                         || (gameState == SOCGame.START3A) || (gameState == SOCGame.PLACING_SETTLEMENT))
                     {
                         if (player.canPlaceSettlement(coord) && (player.getNumPieces(SOCPlayingPiece.SETTLEMENT) >= 1))
                         {
-                            ga.putPiece(se);   // Changes game state and (if game start) player
+                            final SOCSettlement se = new SOCSettlement(player, coord, null);
+                            ga.putPiece(se);   // Changes game state and (if initial placement) player
+
                             srv.gameList.takeMonitorForGame(gaName);
                             srv.messageToGameKeyed(ga, false, "action.built.stlmt", plName);  // "Joe built a settlement."
                             srv.messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SETTLEMENT, coord));
@@ -2792,15 +2791,15 @@ public class SOCGameHandler extends GameHandler
 
                 case SOCPlayingPiece.CITY:
 
-                    SOCCity ci = new SOCCity(player, coord, null);
-
                     if (gameState == SOCGame.PLACING_CITY)
                     {
                         if (player.isPotentialCity(coord) && (player.getNumPieces(SOCPlayingPiece.CITY) >= 1))
                         {
                             final boolean houseRuleFirstCity = ga.isGameOptionSet("N7C") && ! ga.hasBuiltCity();
 
+                            final SOCCity ci = new SOCCity(player, coord, null);
                             ga.putPiece(ci);  // changes game state and maybe player
+
                             srv.gameList.takeMonitorForGame(gaName);
                             srv.messageToGameKeyed(ga, false, "action.built.city", plName);  // "Joe built a city."
                             srv.messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.CITY, coord));
@@ -2838,8 +2837,6 @@ public class SOCGameHandler extends GameHandler
 
                 case SOCPlayingPiece.SHIP:
 
-                    SOCShip sh = new SOCShip(player, coord, null);
-
                     if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.START3B)
                         || (gameState == SOCGame.PLACING_SHIP)
                         || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
@@ -2847,7 +2844,8 @@ public class SOCGameHandler extends GameHandler
                         // Place it if we can; canPlaceShip checks potentials and pirate ship location
                         if (ga.canPlaceShip(player, coord) && (player.getNumPieces(SOCPlayingPiece.SHIP) >= 1))
                         {
-                            ga.putPiece(sh);  // Changes state and sometimes player (during initial placement)
+                            final SOCShip sh = new SOCShip(player, coord, null);
+                            ga.putPiece(sh);  // Changes game state and (during initial placement) sometimes player
 
                             srv.gameList.takeMonitorForGame(gaName);
                             srv.messageToGameKeyed(ga, false, "action.built.ship", plName);  // "Joe built a ship."
@@ -5400,9 +5398,11 @@ public class SOCGameHandler extends GameHandler
     public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCScenarioPlayerEvent evt,
         final boolean flagsChanged, final Object obj)
     {
-        // Note: Some SOCServer code assumes that player events are fired only during handlePUTPIECE.
-        // If a new player event breaks this assumption, adjust SOCServer.playerEvent(...) and related code;
-        // search where SOCGame.pendingMessagesOut is used.
+        // Note: Some SOCGameHandler code assumes that player events are fired only during
+        // handlePUTPIECE and handleMOVEPIECEREQUEST.
+        // Most handle* methods don't check pendingMessagesOut before sending game state.
+        // If a new player event breaks this assumption, adjust SOCGameHandler.playerEvent(...)
+        // and related code; search where SOCGame.pendingMessagesOut is used.
 
         final String gaName = ga.getName(),
                      plName = pl.getName();

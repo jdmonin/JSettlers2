@@ -2401,14 +2401,15 @@ public class SOCGame implements Serializable, Cloneable
      * Calls {@link #checkForWinner()}; gamestate may become {@link #OVER}.
      *<P>
      * For example, if game state when called is {@link #START2A} (or {@link #START3A} in
-     * some scenarios), this is their final initial settlement, so give
-     * the player some resources, and call their {@link SOCPlayer#clearPotentialSettlements()}.
+     * some scenarios), this is their final initial settlement, so it gives the player
+     * some resources, and calls their {@link SOCPlayer#clearPotentialSettlements()}.
      *<P>
      * If {@link #hasSeaBoard} and {@link SOCGameOption#K_SC_FOG _SC_FOG},
      * you should check for gamestate {@link #WAITING_FOR_PICK_GOLD_RESOURCE}
      * after calling, to see if they placed next to a gold hex revealed from fog
      * (see paragraph below).
-     *<P>
+     *
+     *<H3>Actions taken:</H3>
      * Calls {@link SOCBoard#putPiece(SOCPlayingPiece)} and each player's
      * {@link SOCPlayer#putPiece(SOCPlayingPiece, boolean) SOCPlayer.putPiece(pp, false)}.
      * Updates longest road if necessary.
@@ -2428,13 +2429,18 @@ public class SOCGame implements Serializable, Cloneable
      * Revealing a gold hex from fog will set that player field and also
      * sets gamestate to {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
      *<P>
-     *<b>Note:</b> Because <tt>pp</tt> is not checked for validity, please call
-     * methods such as {@link SOCPlayer#canPlaceSettlement(int)}
+     * Calls {@link #checkForWinner()} and otherwise advances turn or state.
+     *
+     *<H3>Valid placements:</H3>
+     * Because <tt>pp</tt> is not checked for validity, please call methods such as
+     * {@link SOCPlayer#isPotentialRoad(int)} and {@link SOCPlayer#getNumPieces(int)}
      * to verify <tt>pp</tt> before calling this method, and also check
-     * {@link #getGameState()} to ensure that piece type can be placed now.
+     * {@link #getGameState()} to ensure that piece type can be placed now.<BR>
+     * For settlements, call {@link SOCPlayer#canPlaceSettlement(int)} to check potentials and other game conditions.<BR>
      * For ships, call {@link #canPlaceShip(SOCPlayer, int)} to check
      * the potentials and pirate ship location.
-     *<P>
+     *
+     *<H3>Other things to note:</H3>
      * For some scenarios on the {@link SOCGame#hasSeaBoard large sea board}, placing
      * a settlement in a new Land Area may award the player a Special Victory Point (SVP).
      * This method will increment {@link SOCPlayer#getSpecialVP()}
@@ -2442,12 +2448,12 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Some scenarios use extra initial pieces in fixed locations, placed in
      * <tt>SOCBoardLargeAtServer.startGame_putInitPieces</tt>.  To prevent the state or current player from
-     * advancing when putPiece is called for these, temporarily set game state {@link #READY} before calling.
+     * advancing, temporarily set game state {@link #READY} before calling putPiece for these.
      *<P>
      * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
      * unless the current player gains enough points to win.
      *
-     * @param pp the piece to put on the board; coordinates are not checked for validity
+     * @param pp the piece to put on the board; coordinates are not checked for validity, see "valid placements" note
      */
     public void putPiece(SOCPlayingPiece pp)
     {
