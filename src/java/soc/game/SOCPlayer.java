@@ -2736,55 +2736,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 //
                 final int portType = board.getPortTypeFromNodeCoord(pieceCoord);
                 if (portType != -1)
-                {
-                    boolean only1portOfType;
-                    if (portType == SOCBoard.MISC_PORT)
-                    {
-                        only1portOfType = false;
-                    } else {
-                        // how many 2:1 ports of this type?
-                        int nPort = board.getPortCoordinates(portType).size() / 2;
-                        only1portOfType = (nPort < 2);
-                    }
+                    updatePortFlagsAfterRemove(portType, false);
 
-                    if (only1portOfType)
-                    {
-                        // since only one settlement on this kind of port,
-                        // we can just set the port flag to false
-                        setPortFlag(portType, false);
-                    }
-                    else
-                    {
-                        //
-                        // there are muliple ports, so we need to check all
-                        // the settlements and cities
-                        //
-                        boolean havePortType = false;
-
-                        for (SOCSettlement settlement : settlements)
-                        {
-                            if (board.getPortTypeFromNodeCoord(settlement.getCoordinates()) == portType)
-                            {
-                                havePortType = true;
-                                break;
-                            }
-                        }
-
-                        if (! havePortType)
-                        {
-                            for (SOCCity city : cities)
-                            {
-                                if (board.getPortTypeFromNodeCoord(city.getCoordinates()) == portType)
-                                {
-                                    havePortType = true;
-                                    break;
-                                }
-                            }
-                        }
-
-                        setPortFlag(portType, havePortType);
-                    }
-                }  // if (portType != -1)
             }  // if (ours)
 
             //
@@ -3261,6 +3214,59 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         case SVP_SETTLED_ANY_NEW_LANDAREA:
             clearScenarioPlayerEvent(p.specialVPEvent);
             break;
+        }
+    }
+
+    /**
+     * After removing a player's piece at a port, or removing the port,
+     * check to see if we still have a port of that type.
+     * @param portType  The type of port removed (in range {@link SOCBoard#MISC_PORT MISC_PORT}
+     *            to {@link SOCBoard#WOOD_PORT WOOD_PORT})
+     * @param removedPort  If true, the port was removed, not our piece there; affects port-counting logic
+     * @since 2.0.00
+     */
+    void updatePortFlagsAfterRemove(final int portType, final boolean removedPort)
+    {
+        final SOCBoard board = game.getBoard();
+        final int nPort = board.getPortCoordinates(portType).size() / 2;
+        final boolean wasOurSolePortOfType = (removedPort) ? (nPort == 0) : (nPort <= 1);
+
+        if (wasOurSolePortOfType)
+        {
+            // since we have no other settlement on this kind of port,
+            // we can just set the port flag to false
+            setPortFlag(portType, false);
+        }
+        else
+        {
+            //
+            // there are multiple ports, so we need to check all
+            // the settlements and cities
+            //
+            boolean havePortType = false;
+
+            for (SOCSettlement settlement : settlements)
+            {
+                if (board.getPortTypeFromNodeCoord(settlement.getCoordinates()) == portType)
+                {
+                    havePortType = true;
+                    break;
+                }
+            }
+
+            if (! havePortType)
+            {
+                for (SOCCity city : cities)
+                {
+                    if (board.getPortTypeFromNodeCoord(city.getCoordinates()) == portType)
+                    {
+                        havePortType = true;
+                        break;
+                    }
+                }
+            }
+
+            setPortFlag(portType, havePortType);
         }
     }
 
