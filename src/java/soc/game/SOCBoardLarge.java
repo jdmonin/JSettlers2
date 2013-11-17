@@ -3535,6 +3535,7 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param edge  Port's edge coordinate
      * @return  True if that edge has a port which can be removed
+     * @see #removePort(int)
      * @see SOCGame#canPlacePort(SOCPlayer, int)
      */
     public boolean canRemovePort(final int edge)
@@ -3576,6 +3577,36 @@ public class SOCBoardLarge extends SOCBoard
         }
 
         return true;  // both nodes in land area 0 or in playerExcludedLandAreas
+    }
+
+    /**
+     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI},
+     * remove a "gift" port at this edge for placement elsewhere.
+     *<P>
+     * Assumes {@link #canRemovePort(int)} has already been called to validate.
+     * See that method for necessary board conditions.
+     *
+     * @param edge  A port edge to be removed
+     * @return  The type of port removed (in range {@link SOCBoard#MISC_PORT MISC_PORT}
+     *     to {@link SOCBoard#WOOD_PORT WOOD_PORT})
+     * @see SOCGame#placePort(SOCPlayer, int, int)
+     * @throws IllegalArgumentException  if {@code edge} not found in port layout
+     */
+    public int removePort(final int edge)
+        throws IllegalArgumentException
+    {
+        final int n = portsCount;
+        for (int i = 0; i < n; ++i)
+        {
+            if (edge == portsLayout[n + i])
+            {
+                portsLayout[n + i] = -1;
+                return portsLayout[i];  // pType
+            }
+        }
+
+        // edge not found
+        throw new IllegalArgumentException();
     }
 
     /**
