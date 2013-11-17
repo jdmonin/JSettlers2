@@ -1078,7 +1078,7 @@ public class SOCBoardLarge extends SOCBoard
         // check for any Special Edge type
         for (int i = 0; i < SPECIAL_EDGE_LAYOUT_PARTS.length; ++i)
         {
-            final int[] edgelist = adds.get(SPECIAL_EDGE_LAYOUT_PARTS[i]);  // "CE" "VE", etc
+            final int[] edgelist = adds.get(SPECIAL_EDGE_LAYOUT_PARTS[i]);  // "CE", "VE", etc
             if (edgelist != null)
                 setSpecialEdges(edgelist, SPECIAL_EDGE_TYPES[i]);  // SPECIAL_EDGE_DEV_CARD, etc
         }
@@ -1108,7 +1108,7 @@ public class SOCBoardLarge extends SOCBoard
 
         // check for any Special Edge type
         for (int i = 0; i < SPECIAL_EDGE_LAYOUT_PARTS.length; ++i)
-            if (key.equals(SPECIAL_EDGE_LAYOUT_PARTS[i]))   // "CE" "VE", etc
+            if (key.equals(SPECIAL_EDGE_LAYOUT_PARTS[i]))   // "CE", "VE", etc
                 setSpecialEdges(v, SPECIAL_EDGE_TYPES[i]);  // SPECIAL_EDGE_DEV_CARD, etc
     }
 
@@ -1129,6 +1129,98 @@ public class SOCBoardLarge extends SOCBoard
         throws UnsupportedOperationException
     {
         throw new UnsupportedOperationException("Use SOCBoardLargeAtServer instead");
+    }
+
+    /**
+     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, place a "gift" port at this edge.
+     * Port's facing direction is calculated by checking {@code edge}'s adjacent hexes for land and water;
+     * if a hex is off the edge of the board, it's considered water.
+     *<P>
+     * Called from {@link SOCGame#placePort(SOCPlayer, int, int)} which validates {@code ptype}.
+     *
+     * @param ptype  The type of port (in range {@link SOCBoard#MISC_PORT MISC_PORT} to {@link SOCBoard#WOOD_PORT WOOD_PORT})
+     * @param edge  An available coastal edge
+     * @throws IllegalArgumentException  if {@code edge} is between 2 land hexes or 2 water hexes
+     */
+    void placePort(final int ptype, final int edge)
+        throws IllegalArgumentException
+    {
+        // Adding a new port has similar tasks to setPortsLayout:
+        // If you update this method, consider updating that one too.
+
+        // - Calculate facing, for display;
+        //   similar to code in SOCBoardLargeAtServer.makeNewBoard_checkPortLocationsConsistent
+        final int facing;
+        {
+            final int r = (edge >> 8), c = (edge & 0xFF);
+
+            int f1, f2;  // facings which make sense for this type of edge
+
+            // "|" if r is odd
+            if ((r % 2) == 1)
+            {
+                f1 = FACING_E;   f2 = FACING_W;
+            }
+
+            // "/" if (r/2,c) is even,odd or odd,even
+            else if ((c % 2) != ((r/2) % 2))
+            {
+                f1 = FACING_NW;  f2 = FACING_SE;
+            }
+            else
+            {
+                // "\" if (r/2,c) is odd,odd or even,even
+                f1 = FACING_NE;  f2 = FACING_SW;
+            }
+
+            // if f1 faces land, f2 should face water
+            int hex = getAdjacentHexToEdge(edge, f2);
+            if ((hex == 0) || (getHexTypeFromCoord(hex) == WATER_HEX))
+            {
+                facing = f1;
+            } else {
+                // if f2 faces land, f1 should face water
+                hex = getAdjacentHexToEdge(edge, f1);
+                if ((hex == 0) || (getHexTypeFromCoord(hex) == WATER_HEX))
+                {
+                    facing = f2;
+                } else {
+                    throw new IllegalArgumentException("Edge 0x" + Integer.toHexString(edge) + " is between land hexes");
+                }
+            }
+
+            // Hex in opposite-from-facing direction is water.
+            // Make sure hex in facing direction is land.
+            hex = getAdjacentHexToEdge(edge, facing);
+            if ((hex == 0) || (getHexTypeFromCoord(hex) == WATER_HEX))
+                throw new IllegalArgumentException("Edge 0x" + Integer.toHexString(edge) + " is between water hexes");
+        }
+
+        // - Update portsLayout
+        int i;  // will fill this index in portsLayout
+        for (i = 0; i < portsCount; ++i)
+        {
+            if (portsLayout[i + portsCount] < 0)
+                break;  // found an empty element, probably from removing this port to place it
+        }
+        if (i == portsCount)
+        {
+            // No empty element: Must expand portsLayout to make room
+            int[] npl = new int[3 * (portsCount + 1)];
+            System.arraycopy(portsLayout, 0,              npl, 0,                  portsCount);
+            System.arraycopy(portsLayout, portsCount,     npl, portsCount+1,       portsCount);
+            System.arraycopy(portsLayout, 2 * portsCount, npl, 2 * (portsCount+1), portsCount);
+            portsLayout = npl;
+            ++portsCount;
+            // now, i == portsCount-1, the newly created element
+        }
+        portsLayout[i] = ptype;
+        portsLayout[i + portsCount] = edge;
+        portsLayout[i + (2*portsCount)] = facing;
+
+        // - call placePort
+        final int[] nodes = getAdjacentNodesToEdge_arr(edge);
+        placePort(ptype, -1, facing, nodes[0], nodes[1]);
     }
 
     /**
@@ -3381,6 +3473,9 @@ public class SOCBoardLarge extends SOCBoard
     @Override
     public void setPortsLayout(final int[] portTypesAndInfo)
     {
+        // Tasks here are similar to adding a new port in placePort(type, edge):
+        // If you update this method, consider updating that one too.
+
         /**
          * n = port count = portTypesAndInfo.length / 3.
          * The port types are stored at the beginning, from index 0 to n - 1.
@@ -3407,7 +3502,7 @@ public class SOCBoardLarge extends SOCBoard
                       facing = portTypesAndInfo[i + (2 * portsCount)];
 
             if (edge < 0)
-                continue;  // SOCBoardLarge port isn't currently placed on the board: skip it
+                continue;  // this port isn't currently placed on its SOCBoardLarge board: skip it
 
             final int[] nodes = getAdjacentNodesToEdge_arr(edge);
             placePort(ptype, -1, facing, nodes[0], nodes[1]);
@@ -3440,7 +3535,7 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param edge  Port's edge coordinate
      * @return  True if that edge has a port which can be removed
-     * @see SOCPlayer#canPlacePort(int)
+     * @see SOCGame#canPlacePort(SOCPlayer, int)
      */
     public boolean canRemovePort(final int edge)
     {

@@ -2368,6 +2368,80 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI},
+     * can a "gift" port be placed at this edge? <BR>
+     * All these conditions must be met:
+     *<UL>
+     * <LI> {@link #hasSeaBoard} is true
+     * <LI> Must be a coastal edge: {@link SOCBoardLarge#isEdgeCoastline(int)}
+     * <LI> No port already at this edge or an adjacent edge
+     * <LI> Player must have a settlement or city at one node (one end) of the edge
+     * <LI> Player is current player
+     *</UL>
+     * Does not check whether {@link SOCGameOption#K_SC_FTRI} is set.  Does not check {@link #getGameState()}.
+     *
+     * @param pl  Player who would place
+     * @param edge  Edge where a port is wanted; coordinate not checked for validity.
+     *             {@link SOCPlayer#getPortMovePotentialLocations(boolean)} can calculate edges that
+     *             meet all conditions for {@code canPlacePort}.
+     * @return  True if a port can be placed at this edge
+     * @throws NullPointerException if {@code pl} is null
+     * @see SOCBoardLarge#canRemovePort(int)
+     * @see #placePort(SOCPlayer, int, int)
+     * @since 2.0.00
+     */
+    public boolean canPlacePort(final SOCPlayer pl, final int edge)
+        throws NullPointerException
+    {
+        if (! hasSeaBoard)
+            return false;
+        if (pl.getPlayerNumber() != currentPlayerNumber)
+            return false;
+        if (! ((SOCBoardLarge) board).isEdgeCoastline(edge))
+            return false;
+
+        boolean plHasSettleOrCity = false;
+        final int[] portNodes = board.getAdjacentNodesToEdge_arr(edge);
+        for (int i = 0; i <= 1; ++i)
+        {
+            if (board.getPortTypeFromNodeCoord(portNodes[i]) != -1)
+                return false;  // Already a port at edge or adjacent
+
+            final SOCPlayingPiece ppiece = board.settlementAtNode(portNodes[i]);
+            if ((ppiece != null) && (ppiece.getPlayerNumber() == currentPlayerNumber))
+                plHasSettleOrCity = true;
+        }
+
+        return plHasSettleOrCity;
+    }
+
+    /**
+     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, place a "gift" port at this edge.
+     * Assumes {@link #canPlacePort(SOCPlayer, int)} has already been called to validate.
+     *
+     * @param pl  Player who is placing
+     * @param ptype  The type of port (in range {@link SOCBoard#MISC_PORT MISC_PORT} to {@link SOCBoard#WOOD_PORT WOOD_PORT})
+     * @param edge  An available coastal edge adjacent to {@code pl}'s settlement or city,
+     *          which should be checked with {@link #canPlacePort(SOCPlayer, int)}
+     * @throws IllegalArgumentException if {@code ptype} is out of range, or
+     *           if {@code edge} is between 2 land hexes or 2 water hexes
+     * @throws NullPointerException if {@code pl} is null
+     * @throws UnsupportedOperationException if ! {@link #hasSeaBoard}
+     * @since 2.0.00
+     */
+    public void placePort(final SOCPlayer pl, final int ptype, final int edge)
+        throws IllegalArgumentException, NullPointerException, UnsupportedOperationException
+    {
+        if ((ptype < SOCBoard.MISC_PORT) || (ptype > SOCBoard.WOOD_PORT))
+            throw new IllegalArgumentException("ptype: " + ptype);
+        if (! hasSeaBoard)
+            throw new UnsupportedOperationException();
+
+        ((SOCBoardLarge) board).placePort(ptype, edge);  // validates coastal edge to calculate facing
+        pl.setPortFlag(ptype, true);  // might already be set, that's fine
+    }
+
+    /**
      * Can this player place a ship on this edge?
      * The edge must return {@link SOCPlayer#isPotentialShip(int)}
      * and must not be adjacent to {@link SOCBoardLarge#getPirateHex()}.

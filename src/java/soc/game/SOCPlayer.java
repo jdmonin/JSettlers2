@@ -4321,11 +4321,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI},
      * calculate if the player has any coastal settlement or city where
-     * they can place a moved "gift" port without it being adjacent to another port.
-     * @param  all  Return all (for placement browsing), or just one (to see if they have any)?
-     * @return  One or all potential locations to place a moved port, or {@code null} if none
+     * they can place a moved "gift" port without it being adjacent to another port,
+     * and the edges where it could be placed next to such settlements or cities.
+     * @param  all  Return all such edges (for placement browsing), or just one (to see if they have any)?
+     * @return  One or all potential coastal edge locations to place a moved port, or {@code null} if none
      * @since 2.0.00
-     * @see #canPlacePort(int)
+     * @see SOCGame#canPlacePort(SOCPlayer, int)
      */
     public List<Integer> getPortMovePotentialLocations(final boolean all)
     {
@@ -4374,49 +4375,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         }
 
         return (potentialEdges.isEmpty()) ? null : potentialEdges;
-    }
-
-    /**
-     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI},
-     * can a "gift" port be placed at this edge? <BR>
-     * All these conditions must be met:
-     *<UL>
-     * <LI> {@link SOCGame#hasSeaBoard} is true
-     * <LI> Must be a coastal edge
-     * <LI> No port already at this edge or an adjacent edge
-     * <LI> Player must have a settlement or city at one node (one end) of the edge
-     *</UL>
-     * Does not check whether {@link SOCGameOption#K_SC_FTRI} is set.
-     *
-     * @param edge  Edge where a port is wanted; coordinate not checked for validity
-     * @return  True if a port can be placed at this edge
-     * @see #getPortMovePotentialLocations(boolean)
-     * @see SOCBoardLarge#canRemovePort(int)
-     * @since 2.0.00
-     */
-    public boolean canPlacePort(final int edge)
-    {
-        if (! game.hasSeaBoard)
-            return false;
-
-        final SOCBoardLarge board = (SOCBoardLarge) game.getBoard();
-
-        if (! board.isEdgeCoastline(edge))
-            return false;
-
-        boolean hasSettleOrCity = false;
-        final int[] portNodes = board.getAdjacentNodesToEdge_arr(edge);
-        for (int i = 0; i <= 1; ++i)
-        {
-            if (board.getPortTypeFromNodeCoord(portNodes[i]) != -1)
-                return false;  // Already a port at edge or adjacent
-
-            final SOCPlayingPiece ppiece = board.settlementAtNode(portNodes[i]);
-            if ((ppiece != null) && (ppiece.getPlayerNumber() == playerNumber))
-                hasSettleOrCity = true;
-        }
-
-        return hasSettleOrCity;
     }
 
     /**
