@@ -1752,7 +1752,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             case SOCDevCardAction.PLAY:
-                player.getDevCards().subtract(1, SOCDevCardSet.OLD, ctype);
+                player.getDevCards().subtract(SOCDevCardSet.OLD, ctype);
 
                 break;
 

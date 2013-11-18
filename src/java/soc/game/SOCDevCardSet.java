@@ -22,10 +22,15 @@
 package soc.game;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 
 /**
- * This represents a collection of development cards
+ * This represents a collection of development cards.
+ * Each card's current state can be New to be played soon; Playable; or Kept in hand
+ * until the end of the game (Victory Point cards, which are never New).
  */
 public class SOCDevCardSet implements Serializable, Cloneable
 {
@@ -33,53 +38,57 @@ public class SOCDevCardSet implements Serializable, Cloneable
      * age constants. OLD == 0, NEW == 1 (guaranteed for use in loops).
      */
     public static final int OLD = 0;
+    /** Age constant: Recently bought card **/
     public static final int NEW = 1;
 
     /**
-     * the number of development cards of each type.
-     * [{@link #OLD}] are the old cards.
-     * [{@link #NEW}] are recently bought cards.
-     * Card types as in {@link SOCDevCardConstants}.
+     * Current set of cards with 1 of 3 possible states (new and not playable yet; playable; kept until end of game).
+     * If a card's type has {@link SOCDevCard#isVPCard(cType)}, it is placed in {@code kept}, never in {@code news}.
+     *<P>
+     * This implementation assumes players will have only a few cards at a time, so linear searching for a card type
+     * is acceptable.
+     * @since 2.0.00
      */
-    private int[][] devCards;
+    private final List<SOCDevCard> news, playables, kept;
+
+    // Representation before v2.0.00 refactoring:
+    // private int[][] devCards;  // [new or old][cType]
 
     /**
      * Make an empty development card set
      */
     public SOCDevCardSet()
     {
-        devCards = new int[2][SOCDevCardConstants.MAXPLUSONE];
-        clear();
+        news = new ArrayList<SOCDevCard>();
+        playables = new ArrayList<SOCDevCard>();
+        kept = new ArrayList<SOCDevCard>();
     }
 
     /**
-     * Make a copy of a dev card set
+     * Make a copy of a development card set.
+     * The copy is deep: new copies are instantiated of all contained {@link SOCDevCard} objects.
      *
      * @param set  the dev card set to copy
      */
     public SOCDevCardSet(SOCDevCardSet set)
     {
-        devCards = new int[2][SOCDevCardConstants.MAXPLUSONE];
-
-        for (int i = SOCDevCardConstants.MIN;
-                i < SOCDevCardConstants.MAXPLUSONE; i++)
-        {
-            devCards[OLD][i] = set.devCards[OLD][i];
-            devCards[NEW][i] = set.devCards[NEW][i];
-        }
+        this();
+        for (SOCDevCard c : set.news)
+            news.add(new SOCDevCard(c));
+        for (SOCDevCard c : set.playables)
+            playables.add(new SOCDevCard(c));
+        for (SOCDevCard c : set.kept)
+            kept.add(new SOCDevCard(c));
     }
 
     /**
-     * set the number of old and new dev cards to zero
+     * set the total number of dev cards to zero
      */
     public void clear()
     {
-        for (int i = SOCDevCardConstants.MIN;
-                i < SOCDevCardConstants.MAXPLUSONE; i++)
-        {
-            devCards[OLD][i] = 0;
-            devCards[NEW][i] = 0;
-        }
+        news.clear();
+        playables.clear();
+        kept.clear();
     }
 
     /**
@@ -94,7 +103,19 @@ public class SOCDevCardSet implements Serializable, Cloneable
      */
     public int getAmount(final int ctype)
     {
-        return devCards[OLD][ctype] + devCards[NEW][ctype];
+        int amt = 0;
+
+        for (SOCDevCard c : news)
+            if (c.ctype == ctype)
+                ++amt;
+        for (SOCDevCard c : playables)
+            if (c.ctype == ctype)
+                ++amt;
+        for (SOCDevCard c : kept)
+            if (c.ctype == ctype)
+                ++amt;
+
+        return amt;
     }
 
     /**
@@ -110,7 +131,18 @@ public class SOCDevCardSet implements Serializable, Cloneable
      */
     public int getAmount(int age, int ctype)
     {
-        return devCards[age][ctype];
+        final List<SOCDevCard> clist;
+        if (SOCDevCard.isVPCard(ctype))
+            clist = kept;
+        else
+            clist = (age == NEW) ? news : playables;
+
+        int amt = 0;
+        for (SOCDevCard c : clist)
+            if (c.ctype == ctype)
+                ++amt;
+
+        return amt;
     }
 
     /**
@@ -120,28 +152,7 @@ public class SOCDevCardSet implements Serializable, Cloneable
      */
     public int getTotal()
     {
-        int sum = 0;
-
-        for (int i = SOCDevCardConstants.MIN;
-                 i < SOCDevCardConstants.MAXPLUSONE; i++)
-        {
-            sum += (devCards[OLD][i] + devCards[NEW][i]);
-        }
-
-        return sum;
-    }
-
-    /**
-     * set the amount of a type of card
-     *
-     * @param age   either {@link #OLD} or {@link #NEW}
-     * @param ctype the type of development card, at least
-     *              {@link SOCDevCardConstants#MIN} and less than {@link SOCDevCardConstants#MAXPLUSONE}
-     * @param amt   the amount
-     */
-    public void setAmount(int amt, int age, int ctype)
-    {
-        devCards[age][ctype] = amt;
+        return news.size() + playables.size() + kept.size();
     }
 
     /**
@@ -152,34 +163,61 @@ public class SOCDevCardSet implements Serializable, Cloneable
      *              {@link SOCDevCardConstants#MIN} and less than {@link SOCDevCardConstants#MAXPLUSONE}
      * @param amt   the amount
      */
-    public void add(int amt, int age, int ctype)
+    public void add(int amt, final int age, final int ctype)
     {
-        devCards[age][ctype] += amt;
+        final boolean isNew;
+        final List<SOCDevCard> clist;
+        if (SOCDevCard.isVPCard(ctype))
+        {
+            isNew = false;
+            clist = kept;
+        } else {
+            isNew = (age == NEW);
+            clist = (isNew) ? news : playables;
+        }
+
+        while (amt > 0)
+        {
+            clist.add(new SOCDevCard(ctype, isNew));
+            --amt;
+        }
     }
 
     /**
-     * Subtract an amount from a type of card.
-     * If that many aren't available, subtract from {@link SOCDevCardConstants#UNKNOWN} instead.
+     * Subtract one card of a type from the set.
+     * If that type isn't available, subtract from {@link SOCDevCardConstants#UNKNOWN} instead.
      *
      * @param age   either {@link #OLD} or {@link #NEW}
      * @param ctype the type of development card, at least
      *              {@link SOCDevCardConstants#MIN} and less than {@link SOCDevCardConstants#MAXPLUSONE}
-     * @param amt   the amount
      */
-    public void subtract(int amt, int age, int ctype)
+    public void subtract(final int age, final int ctype)
     {
-        if (amt <= devCards[age][ctype])
-        {
-            devCards[age][ctype] -= amt;
-        }
+        final List<SOCDevCard> clist;
+        if (SOCDevCard.isVPCard(ctype))
+            clist = kept;
         else
+            clist = (age == NEW) ? news : playables;
+
+        final Iterator<SOCDevCard> cIter = clist.iterator();
+        while (cIter.hasNext())
         {
-            devCards[age][ctype] = 0;
-            devCards[age][SOCDevCardConstants.UNKNOWN] -= amt;
+            SOCDevCard c = cIter.next();
+            if (c.ctype == ctype)
+            {
+                cIter.remove();
+                return;  // <--- Early return: found and removed ---
+            }
         }
+
+        // not found
+        if (ctype != SOCDevCardConstants.UNKNOWN)
+            subtract(age, SOCDevCardConstants.UNKNOWN);
     }
 
     /**
+     * Get the number of Victory Point cards in this set:
+     * All cards returning true for {@link SOCDevCard#isVPCard()}.
      * @return the number of victory point cards in
      *         this set
      * @see #getNumUnplayed()
@@ -190,51 +228,29 @@ public class SOCDevCardSet implements Serializable, Cloneable
     {
         int sum = 0;
 
-        sum += devCards[OLD][SOCDevCardConstants.CAP];
-        sum += devCards[OLD][SOCDevCardConstants.LIB];
-        sum += devCards[OLD][SOCDevCardConstants.UNIV];
-        sum += devCards[OLD][SOCDevCardConstants.TEMP];
-        sum += devCards[OLD][SOCDevCardConstants.TOW];
+        // VP cards are never new, don't check the news list
 
-        sum += devCards[NEW][SOCDevCardConstants.CAP];
-        sum += devCards[NEW][SOCDevCardConstants.LIB];
-        sum += devCards[NEW][SOCDevCardConstants.UNIV];
-        sum += devCards[NEW][SOCDevCardConstants.TEMP];
-        sum += devCards[NEW][SOCDevCardConstants.TOW];
+        for (SOCDevCard c : playables)
+            if (c.isVPCard())
+                ++sum;
+        for (SOCDevCard c : kept)
+            if (c.isVPCard())
+                ++sum;
 
         return sum;
     }
-    
+
     /**
      * Some card types stay in your hand after being played.
-     * Count only the unplayed ones (old or new);
-     * victory point cards are skipped.
-     * 
+     * Count only the unplayed ones (old or new); kept VP cards are skipped.
+     *
      * @return the number of unplayed cards in this set
      * @see #getNumVPCards()
      * @see #getTotal()
      */
     public int getNumUnplayed()
     {
-        int sum = 0;
-
-        sum += devCards[OLD][SOCDevCardConstants.UNKNOWN];
-        sum += devCards[OLD][SOCDevCardConstants.ROADS];
-        sum += devCards[OLD][SOCDevCardConstants.DISC];
-        sum += devCards[OLD][SOCDevCardConstants.MONO];
-        sum += devCards[OLD][SOCDevCardConstants.KNIGHT];
-        sum += devCards[OLD][SOCDevCardConstants.SWAP];
-        sum += devCards[OLD][SOCDevCardConstants.DESTROY];
-
-        sum += devCards[NEW][SOCDevCardConstants.UNKNOWN];
-        sum += devCards[NEW][SOCDevCardConstants.ROADS];
-        sum += devCards[NEW][SOCDevCardConstants.DISC];
-        sum += devCards[NEW][SOCDevCardConstants.MONO];
-        sum += devCards[NEW][SOCDevCardConstants.KNIGHT];
-        sum += devCards[NEW][SOCDevCardConstants.SWAP];
-        sum += devCards[NEW][SOCDevCardConstants.DESTROY];
-        
-        return sum;
+        return news.size() + playables.size();
     }
 
     /**
@@ -242,11 +258,13 @@ public class SOCDevCardSet implements Serializable, Cloneable
      */
     public void newToOld()
     {
-        for (int i = SOCDevCardConstants.MIN;
-                i < SOCDevCardConstants.MAXPLUSONE; i++)
+        for (SOCDevCard c : news)
         {
-            devCards[OLD][i] += devCards[NEW][i];
-            devCards[NEW][i] = 0;
+            c.newToOld();
+            playables.add(c);
         }
+
+        news.clear();
     }
+
 }

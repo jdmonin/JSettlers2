@@ -6599,7 +6599,7 @@ public class SOCGame implements Serializable, Cloneable
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
         players[currentPlayerNumber].setPlayedDevCard(true);
-        players[currentPlayerNumber].getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT);
+        players[currentPlayerNumber].getDevCards().subtract(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT);
         if (! isWarshipConvert)
         {
             pl.incrementNumKnights();
@@ -6638,7 +6638,7 @@ public class SOCGame implements Serializable, Cloneable
         lastActionWasBankTrade = false;
         final SOCPlayer player = players[currentPlayerNumber];
         player.setPlayedDevCard(true);
-        player.getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.ROADS);
+        player.getDevCards().subtract(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS);
 
         final int roadShipCount = player.getNumPieces(SOCPlayingPiece.ROAD)
             + player.getNumPieces(SOCPlayingPiece.SHIP);
@@ -6658,7 +6658,7 @@ public class SOCGame implements Serializable, Cloneable
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
         players[currentPlayerNumber].setPlayedDevCard(true);
-        players[currentPlayerNumber].getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.DISC);
+        players[currentPlayerNumber].getDevCards().subtract(SOCDevCardSet.OLD, SOCDevCardConstants.DISC);
         oldGameState = gameState;
         gameState = WAITING_FOR_DISCOVERY;
     }
@@ -6671,7 +6671,7 @@ public class SOCGame implements Serializable, Cloneable
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
         players[currentPlayerNumber].setPlayedDevCard(true);
-        players[currentPlayerNumber].getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.MONO);
+        players[currentPlayerNumber].getDevCards().subtract(SOCDevCardSet.OLD, SOCDevCardConstants.MONO);
         oldGameState = gameState;
         gameState = WAITING_FOR_MONOPOLY;
     }

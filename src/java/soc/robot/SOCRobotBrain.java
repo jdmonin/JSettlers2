@@ -2792,7 +2792,7 @@ public class SOCRobotBrain extends Thread
             break;
 
         case SOCDevCardAction.PLAY:
-            plCards.subtract(1, SOCDevCardSet.OLD, cardType);
+            plCards.subtract(SOCDevCardSet.OLD, cardType);
             break;
 
         case SOCDevCardAction.ADDOLD:

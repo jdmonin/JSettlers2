@@ -50,7 +50,6 @@ public class SOCDevCard implements SOCDevCardConstants
     /**
      * Resource type-and-count text keys for {@link #getCardTypeName(int, SOCGame, boolean, SOCStringManager)}.
      * Each subarray's indexes are the same values as {@link SOCDevCardConstants#UNKNOWN} to {@link SOCDevCardConstants#TOW}.
-     * @since 2.0.00
      */
     private static final String[][] GETCARDTYPENAME_KEYS =
     {
@@ -108,6 +107,16 @@ public class SOCDevCard implements SOCDevCardConstants
     {
         ctype = type;
         cnew = isNew;
+    }
+
+    /**
+     * Copy an existing card to create a new one.
+     * @param src  Copy from this source card
+     */
+    public SOCDevCard(final SOCDevCard src)
+    {
+        ctype = src.ctype;
+        cnew  = src.cnew;
     }
 
     public boolean isNew()

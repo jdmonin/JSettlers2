@@ -2426,7 +2426,7 @@ public class SOCRobotDM
     devCardScore += bonus;
 
     D.ebugPrintln("--- after [end] ---");
-    ourPlayerData.getDevCards().subtract(1, SOCDevCardSet.NEW, SOCDevCardConstants.CAP);
+    ourPlayerData.getDevCards().subtract(SOCDevCardSet.NEW, SOCDevCardConstants.CAP);
     D.ebugPrintln("--- cleanup done ---");
 
     //
