@@ -1372,6 +1372,9 @@ public class SOCGameHandler extends GameHandler
              */
             for (int dcType = SOCDevCardConstants.MIN_KNOWN; dcType < SOCDevCardConstants.MAXPLUSONE; ++dcType)
             {
+                if ((dcAge == SOCDevCardSet.NEW) && SOCDevCard.isVPCard(dcType))
+                    continue;  // VP cards are never new
+
                 int cardAmt = devCards.getAmount(dcAge, dcType);
                 if (cardAmt > 0)
                 {
@@ -2025,7 +2028,7 @@ public class SOCGameHandler extends GameHandler
                     if (! SOCDevCard.isVPCard(devCardType))
                         continue;
 
-                    if (devCards.getAmount(devCardType) <= 0)
+                    if (devCards.getAmount(SOCDevCardSet.OLD, devCardType) <= 0)
                         continue;
 
                     vpCardTypes.add(Integer.valueOf(devCardType));
