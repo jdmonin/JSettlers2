@@ -125,6 +125,8 @@ public class SOCHandPanel extends Panel
     protected static final String CARD = "  " + strings.get("hpan.devcards.play") + "  ";  // "  Play Card  "
     protected static final String GIVE = strings.get("hpan.trade.igive");  // No trailing space (room for wider colorsquares)
     protected static final String GET = strings.get("hpan.trade.iget");
+    /** Dev card list prefix "*NEW* " - includes trailing space */
+    private static final String DEVCARD_NEW = strings.get("hpan.devcards.prefix.new");
     private static final String RESOURCES = strings.get("hpan.rsrc") + " ";  // for other players (! playerIsClient)
     private static final String RESOURCES_TOTAL = strings.get("hpan.rsrc.total") + " ";  // "Total: " for playerIsClient
     protected static final String AUTOROLL_COUNTDOWN = strings.get("hpan.roll.autocountdown");  // "Auto-Roll in: {0}"
@@ -2032,7 +2034,6 @@ public class SOCHandPanel extends Panel
      */
     public void updateDevCards()
     {
-        //TODO i18n being changed by game logic change
         SOCDevCardSet cards = player.getDevCards();
 
         int[] cardTypes = { SOCDevCardConstants.DISC,
@@ -2055,8 +2056,10 @@ public class SOCHandPanel extends Panel
             for (int i = 0; i < cardTypes.length; i++)
             {
                 final int ctype = cardTypes[i];
+
+                // Get the old and new counts. VP cards are valid immediately, never new.
                 int numOld = cards.getAmount(SOCDevCardSet.OLD, ctype);
-                int numNew = cards.getAmount(SOCDevCardSet.NEW, ctype);
+                int numNew = (SOCDevCard.isVPCard(ctype)) ? 0 : cards.getAmount(SOCDevCardSet.NEW, ctype);
                 if (numOld > 0)
                     hasOldCards = true;
 
@@ -2067,10 +2070,7 @@ public class SOCHandPanel extends Panel
                 }
                 for (int j = 0; j < numNew; j++)
                 {
-                    // VP cards are valid immediately, so don't mark them new
-                    String prefix = (SOCDevCard.isVPCard(i))
-                        ? "" : strings.get("hpan.devcards.prefix.new");  // "*NEW* " - includes trailing space
-                    cardList.add(prefix + SOCDevCard.getCardTypeName(ctype, game, false, strings));
+                    cardList.add(DEVCARD_NEW + SOCDevCard.getCardTypeName(ctype, game, false, strings));
                     cardListItems.add(new SOCDevCard(ctype, true));
                 }
             }
