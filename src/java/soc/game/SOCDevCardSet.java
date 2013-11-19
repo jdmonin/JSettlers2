@@ -29,17 +29,40 @@ import java.util.List;
 
 /**
  * This represents a collection of development cards.
+ * Players can have 0, 1, or more of any card type.
  * Each card's current state can be New to be played soon; Playable; or Kept in hand
  * until the end of the game (Victory Point cards, which are never New).
+ *<P>
+ * For use in loops, age constants and card state constants are contiguous:<BR>
+ * {@link #OLD} == 0, {@link #NEW} == 1.<BR>
+ * {@link #NEW} == 1, {@link #PLAYABLE} == 2, {@link #KEPT} == 3.
  */
 public class SOCDevCardSet implements Serializable, Cloneable
 {
     /**
-     * age constants. OLD == 0, NEW == 1 (guaranteed for use in loops).
+     * Age constant: An old card can either be played this turn (state {@link #PLAYABLE})
+     * or is kept in hand until the end of the game (state {@link #KEPT}) such as a Victory Point card.
      */
     public static final int OLD = 0;
-    /** Age constant: Recently bought card **/
+
+    /**
+     * Age constant, card state constant: Recently bought card, playable next turn.<BR>
+     * Other possible age is {@link #OLD}.<BR>
+     * Other possible states are {@link #PLAYABLE} and {@link #KEPT}.
+     */
     public static final int NEW = 1;
+
+    /**
+     * Card state constant: Playable this turn (not {@link #NEW} or {@link #KEPT}).
+     * @since 2.0.00
+     */
+    public static final int PLAYABLE = 2;
+
+    /**
+     * Card state constant: Kept in hand until end of game (not {@link #PLAYABLE}, was never {@link #NEW}).
+     * @since 2.0.00
+     */
+    public static final int KEPT = 3;
 
     /**
      * Current set of cards with 1 of 3 possible states (new and not playable yet; playable; kept until end of game).
@@ -92,11 +115,33 @@ public class SOCDevCardSet implements Serializable, Cloneable
     }
 
     /**
+     * Get the cards, if any, having this state.
+     * Please treat the returned list as read-only.
+     * @param cState  Card state: {@link #NEW}, {@link #PLAYABLE} or {@link #KEPT}
+     * @return Cards or an empty list
+     * @throws IllegalArgumentException if {@code cstate} isn't one of the 3 card states
+     * @since 2.0.00
+     * @see #hasPlayable(int)
+     */
+    public List<SOCDevCard> getByState(final int cState)
+        throws IllegalArgumentException
+    {
+        switch (cState)
+        {
+        case NEW:      return news;
+        case PLAYABLE: return playables;
+        case KEPT:     return kept;
+        default:       throw new IllegalArgumentException("Unknown cState: " + cState);
+        }
+    }
+
+    /**
      * Does this set contain 1 or more playable cards of this type?
-     * (Not new, not already played)
+     * (Playable this turn: Not new, not already played and then kept.)
      * @param ctype  Type of development card from {@link SOCDevCardConstants}
      * @return  True if has at least 1 playable card of this type
      * @since 2.0.00
+     * @see #getByState(int)
      */
     public boolean hasPlayable(final int ctype)
     {
@@ -147,6 +192,7 @@ public class SOCDevCardSet implements Serializable, Cloneable
      *        and less than {@link SOCDevCardConstants#MAXPLUSONE}
      * @see #getAmount(int)
      * @see #hasPlayable(int)
+     * @see #getByState(int)
      */
     public int getAmount(int age, int ctype)
     {
@@ -241,6 +287,7 @@ public class SOCDevCardSet implements Serializable, Cloneable
      *         this set
      * @see #getNumUnplayed()
      * @see #getTotal()
+     * @see #getByState(int)
      * @see SOCDevCard#isVPCard(int)
      */
     public int getNumVPCards()
@@ -266,6 +313,7 @@ public class SOCDevCardSet implements Serializable, Cloneable
      * @return the number of unplayed cards in this set
      * @see #getNumVPCards()
      * @see #getTotal()
+     * @see #getByState(int)
      */
     public int getNumUnplayed()
     {
@@ -273,7 +321,8 @@ public class SOCDevCardSet implements Serializable, Cloneable
     }
 
     /**
-     * change all the new cards to old ones
+     * Change all the new cards to old ones.
+     * Cards' state {@link #NEW} becomes {@link #PLAYABLE}.
      */
     public void newToOld()
     {
