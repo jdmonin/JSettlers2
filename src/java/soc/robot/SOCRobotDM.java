@@ -375,7 +375,7 @@ public class SOCRobotDM
     if ((strategy == SMART_STRATEGY) &&
 	(! ourPlayerData.hasPlayedDevCard()) &&
 	ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2 &&
-	ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) > 0)
+	ourPlayerData.getDevCards().hasPlayable(SOCDevCardConstants.ROADS))
     {
         planRoadBuildingTwoRoads();
     }

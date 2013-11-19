@@ -6469,7 +6469,7 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         }
 
-        if (players[pn].getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT) == 0)
+        if (! players[pn].getDevCards().hasPlayable(SOCDevCardConstants.KNIGHT))
         {
             return false;
         }
@@ -6515,7 +6515,7 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         }
 
-        if (player.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) == 0)
+        if (! player.getDevCards().hasPlayable(SOCDevCardConstants.ROADS))
         {
             return false;
         }
@@ -6546,7 +6546,7 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         }
 
-        if (players[pn].getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.DISC) == 0)
+        if (! players[pn].getDevCards().hasPlayable(SOCDevCardConstants.DISC))
         {
             return false;
         }
@@ -6571,7 +6571,7 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         }
 
-        if (players[pn].getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.MONO) == 0)
+        if (! players[pn].getDevCards().hasPlayable(SOCDevCardConstants.MONO))
         {
             return false;
         }

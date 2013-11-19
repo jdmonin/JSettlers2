@@ -92,6 +92,24 @@ public class SOCDevCardSet implements Serializable, Cloneable
     }
 
     /**
+     * Does this set contain 1 or more playable cards of this type?
+     * (Not new, not already played)
+     * @param ctype  Type of development card from {@link SOCDevCardConstants}
+     * @return  True if has at least 1 playable card of this type
+     * @since 2.0.00
+     */
+    public boolean hasPlayable(final int ctype)
+    {
+        for (SOCDevCard c : playables)
+        {
+            if (c.ctype == ctype)
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Get the amount of a card type (old and new) in the set.
      * @param ctype  Type of development card as described
      *        in {@link SOCDevCardConstants};
@@ -128,6 +146,7 @@ public class SOCDevCardSet implements Serializable, Cloneable
      *        at least {@link SOCDevCardConstants#MIN}
      *        and less than {@link SOCDevCardConstants#MAXPLUSONE}
      * @see #getAmount(int)
+     * @see #hasPlayable(int)
      */
     public int getAmount(int age, int ctype)
     {

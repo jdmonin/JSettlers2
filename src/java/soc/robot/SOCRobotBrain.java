@@ -2203,7 +2203,7 @@ public class SOCRobotBrain extends Thread
                  * if we have a knight card and the robber
                  * is on one of our numbers, play the knight card
                  */
-                if ((ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT) > 0)
+                if (ourPlayerData.getDevCards().hasPlayable(SOCDevCardConstants.KNIGHT)
                     && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT)
                     && (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))  // scenario has no robber; wait until after roll
                     && ! ourPlayerData.getNumbers().hasNoResourcesForHex(game.getBoard().getRobberHex()))
@@ -2283,7 +2283,7 @@ public class SOCRobotBrain extends Thread
         if (gameStatePLAY1
             && (! ourPlayerData.hasPlayedDevCard())
             && (ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2)
-            && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) > 0)
+            && ourPlayerData.getDevCards().hasPlayable(SOCDevCardConstants.ROADS)
             && (rejectedPlayDevCardType != SOCDevCardConstants.ROADS))
         {
             //D.ebugPrintln("** Checking for Road Building Plan **");
@@ -2351,7 +2351,7 @@ public class SOCRobotBrain extends Thread
             ///
             if (gameStatePLAY1
                 && (! ourPlayerData.hasPlayedDevCard())
-                && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.DISC) > 0)
+                && ourPlayerData.getDevCards().hasPlayable(SOCDevCardConstants.DISC)
                 && (rejectedPlayDevCardType != SOCDevCardConstants.DISC))
             {
                 if (chooseFreeResourcesIfNeeded(targetResources, 2, false))
@@ -2375,7 +2375,7 @@ public class SOCRobotBrain extends Thread
                 ///
                 if (gameStatePLAY1
                     && (! ourPlayerData.hasPlayedDevCard())
-                    && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.MONO) > 0)
+                    && ourPlayerData.getDevCards().hasPlayable(SOCDevCardConstants.MONO)
                     && (rejectedPlayDevCardType != SOCDevCardConstants.MONO)
                     && monopolyStrategy.decidePlayMonopoly())
                 {
