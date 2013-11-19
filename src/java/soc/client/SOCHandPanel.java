@@ -295,9 +295,8 @@ public class SOCHandPanel extends Panel
     protected Label knightsLab;
     /** Player's development card names, from {@link #cardListItems}; updated frequently by {@link #updateDevCards()} */
     protected List cardList;
-    /** Player's development cards for {@link #cardList}; updated frequently by {@link #updateDevCards()} */
+    /** Player's development cards in same order as {@link #cardList}; updated frequently by {@link #updateDevCards()} */
     private ArrayList<SOCDevCard> cardListItems;
-        // eventually, cardListItems should be refactored into SOCPlayer.
     protected Button playCardBut;
     /** Trade offer resource squares; visible only for client's own player */
     protected SquaresPanel sqPanel;
@@ -2030,21 +2029,17 @@ public class SOCHandPanel extends Panel
      * Update the displayed list of player's development cards,
      * and enable or disable the "Play Card" button.
      *<P>
+     * Enables the "Play Card" button for {@link SOCDevCardSet#PLAYABLE PLAYABLE} cards,
+     * and also for {@link SOCDevCardSet#KEPT KEPT} cards (VP cards) so the user can
+     * pick those and get a message that that they've already been played, instead of
+     * wondering why they're listed but can't be played.
+     *<P>
      * Updates {@link #cardList} and {@link #cardListItems} to keep them in sync.
      */
     public void updateDevCards()
     {
         SOCDevCardSet cards = player.getDevCards();
 
-        int[] cardTypes = { SOCDevCardConstants.DISC,
-                            SOCDevCardConstants.KNIGHT,
-                            SOCDevCardConstants.MONO,
-                            SOCDevCardConstants.ROADS,
-                            SOCDevCardConstants.CAP,
-                            SOCDevCardConstants.LIB,
-                            SOCDevCardConstants.TEMP,
-                            SOCDevCardConstants.TOW,
-                            SOCDevCardConstants.UNIV };
         boolean hasOldCards = false;
 
         synchronized (cardList.getTreeLock())
@@ -2052,26 +2047,22 @@ public class SOCHandPanel extends Panel
             cardList.removeAll();
             cardListItems.clear();
 
-            // add items to the list for each new and old card, of each type
-            for (int i = 0; i < cardTypes.length; i++)
+            // show all new cards first, then all playable, then all kept (VP cards)
+            for (int cState = SOCDevCardSet.NEW; cState <= SOCDevCardSet.KEPT; ++cState)
             {
-                final int ctype = cardTypes[i];
+                final boolean isNew = (cState == SOCDevCardSet.NEW);
 
-                // Get the old and new counts. VP cards are valid immediately, never new.
-                int numOld = cards.getAmount(SOCDevCardSet.OLD, ctype);
-                int numNew = (SOCDevCard.isVPCard(ctype)) ? 0 : cards.getAmount(SOCDevCardSet.NEW, ctype);
-                if (numOld > 0)
-                    hasOldCards = true;
+                for (final SOCDevCard card : cards.getByState(cState))
+                {
+                    if (isNew)
+                    {
+                        cardList.add(DEVCARD_NEW + SOCDevCard.getCardTypeName(card.ctype, game, false, strings));
+                    } else {
+                        cardList.add(SOCDevCard.getCardTypeName(card.ctype, game, false, strings));
+                        hasOldCards = true;
+                    }
 
-                for (int j = 0; j < numOld; j++)
-                {
-                    cardList.add(SOCDevCard.getCardTypeName(ctype, game, false, strings));
-                    cardListItems.add(new SOCDevCard(ctype, false));
-                }
-                for (int j = 0; j < numNew; j++)
-                {
-                    cardList.add(DEVCARD_NEW + SOCDevCard.getCardTypeName(ctype, game, false, strings));
-                    cardListItems.add(new SOCDevCard(ctype, true));
+                    cardListItems.add(new SOCDevCard(card.ctype, isNew));
                 }
             }
         }

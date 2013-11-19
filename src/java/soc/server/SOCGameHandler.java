@@ -30,6 +30,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.StringTokenizer;
@@ -1361,36 +1362,26 @@ public class SOCGameHandler extends GameHandler
         }
 
         /**
-         * send first all new cards, then all old cards
+         * send all new dev cards first, then all playable, then all kept (VP cards)
          */
-        for (int dcAge = SOCDevCardSet.NEW; dcAge >= SOCDevCardSet.OLD; --dcAge)
+        for (int dcState = SOCDevCardSet.NEW; dcState <= SOCDevCardSet.KEPT; ++dcState)
         {
+            final int dcAge = (dcState == SOCDevCardSet.NEW) ? SOCDevCardSet.NEW : SOCDevCardSet.OLD;
             final int addCmd = (dcAge == SOCDevCardSet.NEW) ? SOCDevCardAction.ADDNEW : SOCDevCardAction.ADDOLD;
 
-            /**
-             * loop for all known card types
-             */
-            for (int dcType = SOCDevCardConstants.MIN_KNOWN; dcType < SOCDevCardConstants.MAXPLUSONE; ++dcType)
+            for (final SOCDevCard card : devCards.getByState(dcState))
             {
-                if ((dcAge == SOCDevCardSet.NEW) && SOCDevCard.isVPCard(dcType))
-                    continue;  // VP cards are never new
+                final int dcType = card.ctype;
+                SOCDevCardAction addMsg;
+                if (cliVersionNew || (dcType != SOCDevCardConstants.KNIGHT))
+                    addMsg = new SOCDevCardAction(gaName, pn, addCmd, dcType);
+                else
+                    addMsg = new SOCDevCardAction(gaName, pn, addCmd, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X);
 
-                int cardAmt = devCards.getAmount(dcAge, dcType);
-                if (cardAmt > 0)
-                {
-                    SOCDevCardAction addMsg;
-                    if (cliVersionNew || (dcType != SOCDevCardConstants.KNIGHT))
-                        addMsg = new SOCDevCardAction(gaName, pn, addCmd, dcType);
-                    else
-                        addMsg = new SOCDevCardAction(gaName, pn, addCmd, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X);
+                srv.messageToPlayer(c, addMsg);
 
-                    for ( ; cardAmt > 0; --cardAmt)
-                        srv.messageToPlayer(c, addMsg);
-                }
-
-            }  // for (dcType)
-
-        }  // for (dcAge)
+            }  // for (card)
+        }  // for (dcState)
 
         /**
          * send game state info such as requests for discards
@@ -2007,33 +1998,20 @@ public class SOCGameHandler extends GameHandler
             }
             srv.messageToGame(gname, new SOCGameStats(gname, scores, isRobot));
         }
-        
+
         ///
         /// send a message saying what VP cards each player has
         ///
         for (int i = 0; i < ga.maxPlayers; i++)
         {
             SOCPlayer pl = ga.getPlayer(i);
-            SOCDevCardSet devCards = pl.getDevCards();
+            List<SOCDevCard> vpCards = pl.getDevCards().getByState(SOCDevCardSet.KEPT);
 
-            if (devCards.getNumVPCards() > 0)
+            if (! vpCards.isEmpty())
             {
-                // assumes dev card deck has at most 1 card of each VP type
                 ArrayList<Integer> vpCardTypes = new ArrayList<Integer>();
-
-                for (int devCardType = SOCDevCardConstants.MIN_KNOWN;
-                         devCardType < SOCDevCardConstants.MAXPLUSONE;
-                         devCardType++)
-                {
-                    if (! SOCDevCard.isVPCard(devCardType))
-                        continue;
-
-                    if (devCards.getAmount(SOCDevCardSet.OLD, devCardType) <= 0)
-                        continue;
-
-                    vpCardTypes.add(Integer.valueOf(devCardType));
-
-                }  // for each devcard type
+                for (SOCDevCard dc : vpCards)
+                    vpCardTypes.add(Integer.valueOf(dc.ctype));
 
                 srv.messageToGameKeyedSpecial
                     (ga, true, "endgame.player.has.vpcards", pl.getName(), vpCardTypes);
