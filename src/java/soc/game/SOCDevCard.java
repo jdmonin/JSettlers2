@@ -27,7 +27,7 @@ import soc.util.SOCStringManager;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
-public class SOCDevCard implements SOCDevCardConstants
+public class SOCDevCard implements SOCDevCardConstants, SOCInventoryItem
 {
     /** Card type, such as {@link SOCDevCardConstants#ROADS} */
     public final int ctype;
@@ -124,18 +124,49 @@ public class SOCDevCard implements SOCDevCardConstants
         return cnew;
     }
 
-    public void newToOld()
-    {
-        cnew = false;
-    }
-
     /**
-     * Is this card type a Victory Point card?
+     * Is this card a Victory Point card?
      * @see #isVPCard(int)
      */
     public boolean isVPCard()
     {
         return isVPCard(ctype);
+    }
+
+    //
+    // Methods from SOCInventoryItem:
+    //  (see there for javadoc for most of these)
+    //
+
+    public boolean isPlayable()
+    {
+        return ! (cnew || isVPCard(ctype));
+    }
+
+    public boolean isVPItem()
+    {
+        return isVPCard(ctype);
+    }
+
+    /**
+     * Is this card to be kept in hand until end of game
+     * (never state {@link SOCDevCardSet#NEW NEW})?
+     * @see #isVPItem()
+     */
+    public boolean isKept()
+    {
+        return isVPCard(ctype);
+    }
+
+    public void newToOld()
+    {
+        cnew = false;
+    }
+
+    public String getItemName
+        (final SOCGame game, final boolean withArticle, final SOCStringManager strings)
+    {
+        return getCardTypeName(ctype, game, withArticle, strings);
     }
 
 }

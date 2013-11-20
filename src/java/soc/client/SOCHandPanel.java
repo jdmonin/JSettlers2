@@ -2056,9 +2056,9 @@ public class SOCHandPanel extends Panel
                 {
                     if (isNew)
                     {
-                        cardList.add(DEVCARD_NEW + SOCDevCard.getCardTypeName(card.ctype, game, false, strings));
+                        cardList.add(DEVCARD_NEW + card.getItemName(game, false, strings));
                     } else {
-                        cardList.add(SOCDevCard.getCardTypeName(card.ctype, game, false, strings));
+                        cardList.add(card.getItemName(game, false, strings));
                         hasOldCards = true;
                     }
 

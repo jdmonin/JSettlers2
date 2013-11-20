@@ -31,6 +31,7 @@ import java.util.ResourceBundle;
 import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
+import soc.game.SOCInventoryItem;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 
@@ -197,7 +198,7 @@ public class SOCStringManager {
      *     Special case: A count of -1 will localize with "a/an", such as "a sheep" or "an ore".
      *     A count of -2 will localize to the plural resource name without a number, for uses such as "Joe monopolized clay".
      *<LI> <tt>{0,dcards}</tt> for a Development Card or list of dev cards.
-     *     {@code arguments} should contain a single Integer, or a {@link List} of them,
+     *     {@code arguments} should contain a single Integer or {@link SOCInventoryItem}, or a {@link List} of them,
      *     in the range {@link SOCDevCardConstants#MIN} - {@link SOCDevCardConstants#TOW}.
      *     <P>
      *     The returned format will include indefinite articles: "a Year of Plenty", "a Market (1 VP)", etc.
@@ -312,12 +313,17 @@ public class SOCStringManager {
             final Object arg = argsLocal[pnum];
             if (arg instanceof Integer)
             {
-                // replace the argument obj with its localized String 
+                // replace the argument obj with its localized String
                 argsLocal[pnum] = SOCDevCard.getCardTypeName(((Integer) arg), game, true, this);
+            }
+            else if (arg instanceof SOCInventoryItem)
+            {
+                // replace the argument obj with its localized String
+                argsLocal[pnum] = ((SOCInventoryItem) arg).getItemName(game, true, this);
             }
             else if (arg instanceof List)
             {
-                // replace the argument obj with String of its localized items 
+                // replace the argument obj with String of its localized items
                 final int L = ((List<?>) arg).size();
                 if (L == 0)
                 {
@@ -328,6 +334,8 @@ public class SOCStringManager {
                     {
                         if (itm instanceof Integer)
                             resList.add(SOCDevCard.getCardTypeName(((Integer) itm).intValue(), game, true, this));
+                        else if (arg instanceof SOCInventoryItem)
+                            argsLocal[pnum] = ((SOCInventoryItem) arg).getItemName(game, true, this);
                         else
                             resList.add(itm.toString());
                     }
