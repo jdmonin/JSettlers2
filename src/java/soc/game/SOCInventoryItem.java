@@ -31,6 +31,20 @@ import soc.util.SOCStringManager;
 public interface SOCInventoryItem
 {
     /**
+     * Get this item's identifying code, which may be used at client and server
+     * and sent over the network to specify this particular kind of item in a game.
+     *<P>
+     * For dev cards, it would be {@link SOCDevCardConstants#KNIGHT}, {@link SOCDevCardConstants#DISC}, etc.
+     * The code number for items which aren't dev cards should be unique within the game scenario being played,
+     * not just unique within its java class.
+     * For a port being moved in scenario {@code _SC_FTRI}, it would be {@link SOCBoard#MISC_PORT},
+     * {@link SOCBoard#SHEEP_PORT}, etc.
+     *
+     * @return a number to identify this item or its type
+     */
+    public int getItemCode();
+
+    /**
      * Is this item playable this turn (state {@link SOCDevCardSet#PLAYABLE PLAYABLE}),
      * not newly given ({@link SOCDevCardSet#NEW NEW})?
      */

@@ -138,6 +138,11 @@ public class SOCDevCard implements SOCDevCardConstants, SOCInventoryItem
     //  (see there for javadoc for most of these)
     //
 
+    public int getItemCode()
+    {
+        return ctype;
+    }
+
     public boolean isPlayable()
     {
         return ! (cnew || isVPCard(ctype));
