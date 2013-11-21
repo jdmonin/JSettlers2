@@ -1775,13 +1775,13 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                           c = (portEdge & 0xFF);
 
                 // "|" if r is odd
-                if ((r%2) == 1)
+                if ((r % 2) == 1)
                 {
                     if ((portFacing != FACING_E) && (portFacing != FACING_W))
                         err = " facing should be E or W";
                 }
 
-                // "/" if (s,c) is even,odd or odd,even
+                // "/" if (r/2,c) is even,odd or odd,even
                 else if ((c % 2) != ((r/2) % 2))
                 {
                     if ((portFacing != FACING_NW) && (portFacing != FACING_SE))
@@ -1789,7 +1789,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 }
                 else
                 {
-                    // "\" if (s,c) is odd,odd or even,even
+                    // "\" if (r/2,c) is odd,odd or even,even
                     if ((portFacing != FACING_NE) && (portFacing != FACING_SW))
                         err = " facing should be NE or SW";
                 }
@@ -1800,7 +1800,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
             // check edge's land hex in Port Facing direction
             int hex = getAdjacentHexToEdge(portEdge, portFacing);
-            if ((err == null) && (hex == 0) || (getHexTypeFromCoord(hex) == WATER_HEX))
+            if ((err == null) && ((hex == 0) || (getHexTypeFromCoord(hex) == WATER_HEX)))
                 err = " faces water, not land, hex 0x" + Integer.toHexString(hex);
 
             // facing + 3 rotates to "sea" direction from the port's edge
@@ -1808,7 +1808,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             if (portFacing > 6)
                 portFacing -= 6;
             hex = getAdjacentHexToEdge(portEdge, portFacing);
-            if ((err == null) && (hex != 0) && (getHexTypeFromCoord(hex) != WATER_HEX))
+            if ((err == null) && ((hex != 0) && (getHexTypeFromCoord(hex) != WATER_HEX)))
                   err = " covers up land hex 0x" + Integer.toHexString(hex);
 
             if (err != null)
