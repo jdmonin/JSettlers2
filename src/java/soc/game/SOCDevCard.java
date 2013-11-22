@@ -27,7 +27,8 @@ import soc.util.SOCStringManager;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
-public class SOCDevCard implements SOCDevCardConstants, SOCInventoryItem
+public class SOCDevCard
+    implements SOCDevCardConstants, SOCInventoryItem  // SOCInventoryItem implies Cloneable
 {
     /** Card type, such as {@link SOCDevCardConstants#ROADS} */
     public final int ctype;
@@ -110,13 +111,15 @@ public class SOCDevCard implements SOCDevCardConstants, SOCInventoryItem
     }
 
     /**
-     * Copy an existing card to create a new one.
-     * @param src  Copy from this source card
+     * Create and return a clone of this {@link SOCDevCard}.
+     * @return super.clone();
+     * @throws CloneNotSupportedException  Declared from super.clone(), should not occur
+     *     since SOCDevCard implements Cloneable via SOCInventoryItem.
      */
-    public SOCDevCard(final SOCDevCard src)
+    public SOCInventoryItem clone()
+        throws CloneNotSupportedException
     {
-        ctype = src.ctype;
-        cnew  = src.cnew;
+        return (SOCInventoryItem) super.clone();
     }
 
     public boolean isNew()

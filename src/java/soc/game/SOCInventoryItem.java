@@ -24,11 +24,15 @@ import soc.util.SOCStringManager;
 /**
  * An inventory item, such as a {@link SOCDevCard} or a scenario-specific item, held
  * in a player's hand to be played later or kept until scoring at the end of the game.
+ *<P>
+ * Inventory items must be {@link Cloneable} for use in set copy constructors,
+ * see {@link #clone()} for details.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
 public interface SOCInventoryItem
+    extends Cloneable
 {
     /**
      * Get this item's identifying code, which may be used at client and server
@@ -36,9 +40,9 @@ public interface SOCInventoryItem
      *<P>
      * For dev cards, it would be {@link SOCDevCardConstants#KNIGHT}, {@link SOCDevCardConstants#DISC}, etc.
      * The code number for items which aren't dev cards should be unique within the game scenario being played,
-     * not just unique within its java class.
-     * For a port being moved in scenario {@code _SC_FTRI}, it would be {@link SOCBoard#MISC_PORT},
-     * {@link SOCBoard#SHEEP_PORT}, etc.
+     * not just unique within its java class, and not overlap with the dev card constants.
+     * For a port being moved in scenario {@code _SC_FTRI}, it would be negative: -{@link SOCBoard#MISC_PORT},
+     * -{@link SOCBoard#SHEEP_PORT}, etc.
      *
      * @return a number to identify this item or its type
      */
@@ -86,5 +90,15 @@ public interface SOCInventoryItem
      */
     public String getItemName
         (final SOCGame game, final boolean withArticle, final SOCStringManager strings);
+
+    /**
+     * For use in set copy constructors, create and return a clone of this {@link SOCInventoryItem}.
+     * See {@link SOCDevCard#clone()} for an example implementation.
+     * @throws CloneNotSupportedException  Declared from super.clone(), should not occur
+     *     since your class implements Cloneable via SOCInventoryItem.
+     * @return super.clone(), with any object fields deep-copied
+     */
+    public SOCInventoryItem clone()
+        throws CloneNotSupportedException;
 
 }
