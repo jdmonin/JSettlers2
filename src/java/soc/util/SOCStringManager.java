@@ -334,8 +334,8 @@ public class SOCStringManager {
                     {
                         if (itm instanceof Integer)
                             resList.add(SOCDevCard.getCardTypeName(((Integer) itm).intValue(), game, true, this));
-                        else if (arg instanceof SOCInventoryItem)
-                            argsLocal[pnum] = ((SOCInventoryItem) arg).getItemName(game, true, this);
+                        else if (itm instanceof SOCInventoryItem)
+                            resList.add(((SOCInventoryItem) itm).getItemName(game, true, this));
                         else
                             resList.add(itm.toString());
                     }
