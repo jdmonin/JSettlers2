@@ -1747,22 +1747,22 @@ public class SOCDisplaylessPlayerClient implements Runnable
             switch (mes.getAction())
             {
             case SOCDevCardAction.DRAW:
-                player.getDevCards().add(1, SOCDevCardSet.NEW, ctype);
+                player.getDevCards().addDevCard(1, SOCDevCardSet.NEW, ctype);
 
                 break;
 
             case SOCDevCardAction.PLAY:
-                player.getDevCards().subtract(SOCDevCardSet.OLD, ctype);
+                player.getDevCards().removeDevCard(SOCDevCardSet.OLD, ctype);
 
                 break;
 
             case SOCDevCardAction.ADDOLD:
-                player.getDevCards().add(1, SOCDevCardSet.OLD, ctype);
+                player.getDevCards().addDevCard(1, SOCDevCardSet.OLD, ctype);
 
                 break;
 
             case SOCDevCardAction.ADDNEW:
-                player.getDevCards().add(1, SOCDevCardSet.NEW, ctype);
+                player.getDevCards().addDevCard(1, SOCDevCardSet.NEW, ctype);
 
                 break;
             }

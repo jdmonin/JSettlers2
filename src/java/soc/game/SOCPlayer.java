@@ -2537,7 +2537,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         // Dev cards were set aside at start of game; get one now
                         Integer ctypeObj = board.drawItemFromStack();
                         cardtype = (ctypeObj != null) ? ctypeObj : SOCDevCardConstants.KNIGHT;
-                        currentPlayer.getDevCards().add(1, SOCDevCardSet.NEW, cardtype);
+                        currentPlayer.getDevCards().addDevCard(1, SOCDevCardSet.NEW, cardtype);
                     } else {
                         cardtype = SOCDevCardConstants.UNKNOWN;
                     }

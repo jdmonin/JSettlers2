@@ -2405,7 +2405,7 @@ public class SOCRobotDM
       brain.getDRecorder().resume();
     }
     D.ebugPrintln("--- before [end] ---");
-    ourPlayerData.getDevCards().add(1, SOCDevCardSet.NEW, SOCDevCardConstants.CAP);
+    ourPlayerData.getDevCards().addDevCard(1, SOCDevCardSet.NEW, SOCDevCardConstants.CAP);
     D.ebugPrintln("--- after [start] ---");
     SOCPlayerTracker.updateWinGameETAs(playerTrackers);
 
@@ -2426,7 +2426,7 @@ public class SOCRobotDM
     devCardScore += bonus;
 
     D.ebugPrintln("--- after [end] ---");
-    ourPlayerData.getDevCards().subtract(SOCDevCardSet.NEW, SOCDevCardConstants.CAP);
+    ourPlayerData.getDevCards().removeDevCard(SOCDevCardSet.NEW, SOCDevCardConstants.CAP);
     D.ebugPrintln("--- cleanup done ---");
 
     //

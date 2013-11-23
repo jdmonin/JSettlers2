@@ -4003,12 +4003,12 @@ public class SOCPlayerClient
             switch (mes.getAction())
             {
             case SOCDevCardAction.DRAW:
-                player.getDevCards().add(1, SOCDevCardSet.NEW, ctype);
+                player.getDevCards().addDevCard(1, SOCDevCardSet.NEW, ctype);
 
                 break;
 
             case SOCDevCardAction.PLAY:
-                player.getDevCards().subtract(SOCDevCardSet.OLD, ctype);
+                player.getDevCards().removeDevCard(SOCDevCardSet.OLD, ctype);
                 // JM temp debug:
                 if (ctype != mes.getCardType())
                     System.out.println("L3947: play dev card type " + ctype + "; srv has " + mes.getCardType());
@@ -4016,12 +4016,12 @@ public class SOCPlayerClient
                 break;
 
             case SOCDevCardAction.ADDOLD:
-                player.getDevCards().add(1, SOCDevCardSet.OLD, ctype);
+                player.getDevCards().addDevCard(1, SOCDevCardSet.OLD, ctype);
 
                 break;
 
             case SOCDevCardAction.ADDNEW:
-                player.getDevCards().add(1, SOCDevCardSet.NEW, ctype);
+                player.getDevCards().addDevCard(1, SOCDevCardSet.NEW, ctype);
 
                 break;
             }

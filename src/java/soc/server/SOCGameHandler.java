@@ -5037,7 +5037,7 @@ public class SOCGameHandler extends GameHandler
         }
 
         SOCDevCardSet dcSet = pl.getDevCards();
-        dcSet.add(1, SOCDevCardSet.NEW, cardType);
+        dcSet.addDevCard(1, SOCDevCardSet.NEW, cardType);
 
         final int pnum = pl.getPlayerNumber();
         if ((cardType != SOCDevCardConstants.KNIGHT) || (game.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES))

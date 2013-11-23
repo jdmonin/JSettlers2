@@ -2788,19 +2788,19 @@ public class SOCRobotBrain extends Thread
         switch (mes.getAction())
         {
         case SOCDevCardAction.DRAW:
-            plCards.add(1, SOCDevCardSet.NEW, cardType);
+            plCards.addDevCard(1, SOCDevCardSet.NEW, cardType);
             break;
 
         case SOCDevCardAction.PLAY:
-            plCards.subtract(SOCDevCardSet.OLD, cardType);
+            plCards.removeDevCard(SOCDevCardSet.OLD, cardType);
             break;
 
         case SOCDevCardAction.ADDOLD:
-            plCards.add(1, SOCDevCardSet.OLD, cardType);
+            plCards.addDevCard(1, SOCDevCardSet.OLD, cardType);
             break;
 
         case SOCDevCardAction.ADDNEW:
-            plCards.add(1, SOCDevCardSet.NEW, cardType);
+            plCards.addDevCard(1, SOCDevCardSet.NEW, cardType);
             break;
         }
     }

@@ -121,7 +121,7 @@ public class SOCDevCardSet implements Serializable, Cloneable
      * Please treat the returned list as read-only.
      * @param cState  Card/item state: {@link #NEW}, {@link #PLAYABLE} or {@link #KEPT}
      * @return Cards and items, or an empty list
-     * @throws IllegalArgumentException if {@code cstate} isn't one of the 3 item states
+     * @throws IllegalArgumentException if {@code cState} isn't one of the 3 item states
      * @since 2.0.00
      * @see #hasPlayable(int)
      */
@@ -133,7 +133,7 @@ public class SOCDevCardSet implements Serializable, Cloneable
         case NEW:      return news;
         case PLAYABLE: return playables;
         case KEPT:     return kept;
-        default:       throw new IllegalArgumentException("Unknown cState: " + cState);
+        default:       throw new IllegalArgumentException("Unknown state: " + cState);
         }
     }
 
@@ -185,6 +185,7 @@ public class SOCDevCardSet implements Serializable, Cloneable
 
     /**
      * Get the amount of a dev card type of certain age in the set.
+     * Does not count other types of inventory item, only {@link SOCDevCard}.
      *
      * @param age  either {@link #OLD} or {@link #NEW}
      * @param ctype
@@ -214,19 +215,28 @@ public class SOCDevCardSet implements Serializable, Cloneable
     /**
      * Get the amount of dev cards or special items by state and type.
      * @param state  {@link #NEW}, {@link #PLAYABLE}, or {@link #KEPT}
-     * @param ctype  Item type code, from {@link SOCInventoryItem#getItemCode()} or {@link SOCDevCardConstants}
+     * @param itype  Item type code, from {@link SOCInventoryItem#getItemCode()} or {@link SOCDevCardConstants}
      * @return  the number of special items or dev cards of this state and type
+     * @throws IllegalArgumentException if {@code state} isn't one of the 3 item states
      * @see #getAmount(int, int)
      * @since 2.0.00
      */
-    public int getAmountByState(final int state, final int ctype)
+    public int getAmountByState(final int state, final int itype)
+        throws IllegalArgumentException
     {
-        final List<SOCInventoryItem> clist = (state == KEPT) ? kept : (state == PLAYABLE) ? playables : news;
+        final List<SOCInventoryItem> ilist;
+        switch (state)
+        {
+        case NEW:      ilist = news;      break;
+        case PLAYABLE: ilist = playables; break;
+        case KEPT:     ilist = kept;      break;
+        default:       throw new IllegalArgumentException("Unknown state: " + state);
+        }
 
         int amt = 0;
 
-        for (SOCInventoryItem c : clist)
-            if (c.getItemCode() == ctype)
+        for (SOCInventoryItem c : ilist)
+            if (c.getItemCode() == itype)
                 ++amt;
 
         return amt;
@@ -252,11 +262,12 @@ public class SOCDevCardSet implements Serializable, Cloneable
      * <LI> Not playable, {@link SOCInventoryItem#isKept() item.isKept()} -> {@link #KEPT}
      * <LI> Not playable, not kept -> {@link #NEW}
      *</UL>
-     * @param item  The dev card or special item being added
+     * @param item  The special item or dev card being added
      * @since 2.0.00
-     * @see #add(int, int, int)
+     * @see #addDevCard(int, int, int)
+     * @see #removeItem(int, int)
      */
-    public void add(final SOCInventoryItem item)
+    public void addItem(final SOCInventoryItem item)
     {
         if (item.isPlayable())
             playables.add(item);
@@ -268,14 +279,19 @@ public class SOCDevCardSet implements Serializable, Cloneable
 
     /**
      * Add an amount to a type of dev card.
+     * VP cards will be added with state {@link #KEPT}.  Otherwise, cards with {@code age} == {@link #OLD}
+     * will have state {@link #PLAYABLE}, new cards will have {@link #NEW}.
+     *<P>
+     * Before v2.0.00, this method was {@code add(amt, age, ctype)}.
      *
      * @param age   either {@link #OLD} or {@link #NEW}
      * @param ctype the type of development card, at least
      *              {@link SOCDevCardConstants#MIN} and less than {@link SOCDevCardConstants#MAXPLUSONE}
      * @param amt   the amount
-     * @see #add(SOCInventoryItem)
+     * @see #addItem(SOCInventoryItem)
+     * @see #removeDevCard(int, int)
      */
-    public void add(int amt, final int age, final int ctype)
+    public void addDevCard(int amt, final int age, final int ctype)
     {
         final boolean isNew;
         final List<SOCInventoryItem> clist;
@@ -296,14 +312,59 @@ public class SOCDevCardSet implements Serializable, Cloneable
     }
 
     /**
-     * Subtract one dev card of a type from the set.
-     * If that type isn't available, subtract from {@link SOCDevCardConstants#UNKNOWN} instead.
+     * Remove a special item or card with a certain state from this set.  If its type isn't found,
+     * try to remove from {@link SOCDevCardConstants#UNKNOWN} instead.
+     *
+     * @param state  Item state: {@link #NEW}, {@link #PLAYABLE} or {@link #KEPT}
+     * @param icode  Item type code from {@link SOCInventoryItem#getItemCode()},
+     *            or card type from {@link SOCDevCardConstants}
+     * @return  true if removed, false if not found
+     * @throws IllegalArgumentException if {@code state} isn't one of the 3 item states
+     * @since 2.0.00
+     * @see #removeDevCard(int, int)
+     */
+    public boolean removeItem(final int state, final int icode)
+        throws IllegalArgumentException
+    {
+        final List<SOCInventoryItem> ilist;
+        switch (state)
+        {
+        case NEW:      ilist = news;      break;
+        case PLAYABLE: ilist = playables; break;
+        case KEPT:     ilist = kept;      break;
+        default:       throw new IllegalArgumentException("Unknown state: " + state);
+        }
+
+        final Iterator<SOCInventoryItem> iIter = ilist.iterator();
+        while (iIter.hasNext())
+        {
+            SOCInventoryItem c = iIter.next();
+            if (c.getItemCode() == icode)
+            {
+                iIter.remove();
+                return true;  // <--- Early return: found and removed ---
+            }
+        }
+
+        // not found
+        if (icode != SOCDevCardConstants.UNKNOWN)
+            return removeItem(state, SOCDevCardConstants.UNKNOWN);
+        else
+            return false;
+    }
+
+    /**
+     * Remove one dev card of a type from the set.
+     * If that type isn't available, remove from {@link SOCDevCardConstants#UNKNOWN} instead.
+     *<P>
+     * Before v2.0.00, this method was {@code subtract(amt, age, ctype)}.
      *
      * @param age   either {@link #OLD} or {@link #NEW}
      * @param ctype the type of development card, at least
      *              {@link SOCDevCardConstants#MIN} and less than {@link SOCDevCardConstants#MAXPLUSONE}
+     * @see #removeItem(int, int)
      */
-    public void subtract(final int age, final int ctype)
+    public void removeDevCard(final int age, final int ctype)
     {
         final List<SOCInventoryItem> clist;
         if (SOCDevCard.isVPCard(ctype))
@@ -324,7 +385,7 @@ public class SOCDevCardSet implements Serializable, Cloneable
 
         // not found
         if (ctype != SOCDevCardConstants.UNKNOWN)
-            subtract(age, SOCDevCardConstants.UNKNOWN);
+            removeDevCard(age, SOCDevCardConstants.UNKNOWN);
     }
 
     /**
@@ -372,7 +433,7 @@ public class SOCDevCardSet implements Serializable, Cloneable
 
     /**
      * Change all the new cards and items to old ones.
-     * Cards' state {@link #NEW} becomes {@link #PLAYABLE}.
+     * Each one's state {@link #NEW} becomes {@link #PLAYABLE}.
      */
     public void newToOld()
     {
