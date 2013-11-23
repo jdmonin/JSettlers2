@@ -47,6 +47,7 @@ import soc.game.SOCForceEndTurnResult;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCInventoryItem;
 import soc.game.SOCMoveRobberResult;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
@@ -1356,7 +1357,7 @@ public class SOCGameHandler extends GameHandler
         final SOCDevCardAction cardUnknown = (cliVersionNew)
             ? new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN)
             : new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X);
-        for (int i = 0; i < devCards.getTotal(); i++)
+        for (int i = devCards.getTotal(); i > 0; --i)
         {
             srv.messageToPlayer(c, cardUnknown);
         }
@@ -1369,16 +1370,24 @@ public class SOCGameHandler extends GameHandler
             final int dcAge = (dcState == SOCDevCardSet.NEW) ? SOCDevCardSet.NEW : SOCDevCardSet.OLD;
             final int addCmd = (dcAge == SOCDevCardSet.NEW) ? SOCDevCardAction.ADDNEW : SOCDevCardAction.ADDOLD;
 
-            for (final SOCDevCard card : devCards.getByState(dcState))
+            for (final SOCInventoryItem card : devCards.getByState(dcState))
             {
-                final int dcType = card.ctype;
-                SOCDevCardAction addMsg;
-                if (cliVersionNew || (dcType != SOCDevCardConstants.KNIGHT))
-                    addMsg = new SOCDevCardAction(gaName, pn, addCmd, dcType);
-                else
-                    addMsg = new SOCDevCardAction(gaName, pn, addCmd, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X);
+                final SOCMessage addMsg;
+                if (card instanceof SOCDevCard)
+                {
+                    final int dcType = ((SOCDevCard) card).ctype;
+                    if (cliVersionNew || (dcType != SOCDevCardConstants.KNIGHT))
+                        addMsg = new SOCDevCardAction(gaName, pn, addCmd, dcType);
+                    else
+                        addMsg = new SOCDevCardAction(gaName, pn, addCmd, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X);
+                } else {
+                    // None yet
+                    System.err.println("L1385: Unrecognized inventory item type " + card.getClass());
+                    addMsg = null;
+                }
 
-                srv.messageToPlayer(c, addMsg);
+                if (addMsg != null)
+                    srv.messageToPlayer(c, addMsg);
 
             }  // for (card)
         }  // for (dcState)
@@ -2005,19 +2014,13 @@ public class SOCGameHandler extends GameHandler
         for (int i = 0; i < ga.maxPlayers; i++)
         {
             SOCPlayer pl = ga.getPlayer(i);
-            List<SOCDevCard> vpCards = pl.getDevCards().getByState(SOCDevCardSet.KEPT);
+            List<SOCInventoryItem> vpCards = pl.getDevCards().getByState(SOCDevCardSet.KEPT);
 
             if (! vpCards.isEmpty())
-            {
-                ArrayList<Integer> vpCardTypes = new ArrayList<Integer>();
-                for (SOCDevCard dc : vpCards)
-                    vpCardTypes.add(Integer.valueOf(dc.ctype));
-
                 srv.messageToGameKeyedSpecial
-                    (ga, true, "endgame.player.has.vpcards", pl.getName(), vpCardTypes);
+                    (ga, true, "endgame.player.has.vpcards", pl.getName(), vpCards);
                     // "Joe has a Gov.House (+1VP) and a Market (+1VP)" ["{0} has {1,dcards}."]
 
-            }  // if devcards
         }  // for each player
 
         /**

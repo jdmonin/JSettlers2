@@ -35,8 +35,7 @@ package soc.game;
  * If you add values here, be sure to update javadocs at
  * SOCGameHandler.DEBUG_COMMANDS_HELP_DEV_TYPES, .debugGiveDevCard and .sendGameStateOVER ,
  * and the code in SOCDevCard.getCardTypeName and handpanel.updateDevCards .
- * If you add VP card types, update {@link SOCDevCard#isVPCard(int)}
- * and {@link SOCDevCardSet#getNumVPCards()}.
+ * If you add VP card types, update {@link SOCDevCard#isVPCard(int)}.
  *<P>
  * In version 2.0.00, the values for {@link #KNIGHT} and {@link #UNKNOWN}
  * were swapped to make room for new card types.  For compatibility with

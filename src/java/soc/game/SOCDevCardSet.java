@@ -28,80 +28,82 @@ import java.util.List;
 
 
 /**
- * This represents a collection of development cards.
- * Players can have 0, 1, or more of any card type.
- * Each card's current state can be New to be played soon; Playable; or Kept in hand
+ * This represents a collection of development cards, and occasional scenario-specific items.
+ * Players can have 0, 1, or more of any card type or item type.
+ * Each item's current state can be New to be played soon; Playable; or Kept in hand
  * until the end of the game (Victory Point cards, which are never New).
  *<P>
- * For use in loops, age constants and card state constants are contiguous:<BR>
+ * For use in loops, age constants and inventory-item state constants are contiguous:<BR>
  * {@link #OLD} == 0, {@link #NEW} == 1.<BR>
  * {@link #NEW} == 1, {@link #PLAYABLE} == 2, {@link #KEPT} == 3.
  */
 public class SOCDevCardSet implements Serializable, Cloneable
 {
     /**
-     * Age constant: An old card can either be played this turn (state {@link #PLAYABLE})
+     * Age constant: An old item can either be played this turn (state {@link #PLAYABLE})
      * or is kept in hand until the end of the game (state {@link #KEPT}) such as a Victory Point card.
      */
     public static final int OLD = 0;
 
     /**
-     * Age constant, card state constant: Recently bought card, playable next turn.<BR>
+     * Age constant, item state constant: Recently bought card, playable next turn.<BR>
      * Other possible age is {@link #OLD}.<BR>
      * Other possible states are {@link #PLAYABLE} and {@link #KEPT}.
      */
     public static final int NEW = 1;
 
     /**
-     * Card state constant: Playable this turn (not {@link #NEW} or {@link #KEPT}).
+     * Item state constant: Playable this turn (not {@link #NEW} or {@link #KEPT}).
      * @since 2.0.00
      */
     public static final int PLAYABLE = 2;
 
     /**
-     * Card state constant: Kept in hand until end of game (not {@link #PLAYABLE}, was never {@link #NEW}).
+     * Item state constant: Kept in hand until end of game (not {@link #PLAYABLE}, was never {@link #NEW}).
      * @since 2.0.00
      */
     public static final int KEPT = 3;
 
     /**
-     * Current set of cards with 1 of 3 possible states (new and not playable yet; playable; kept until end of game).
-     * If a card's type has {@link SOCDevCard#isVPCard(cType)}, it is placed in {@code kept}, never in {@code news}.
+     * Current set of the items having 1 of 3 possible states (New and not playable yet; Playable; Kept until end of game).
+     * If an item's type has {@link SOCDevCard#isVPCard(cType)}, it is placed in {@code kept}, never in {@code news}.
      *<P>
-     * This implementation assumes players will have only a few cards at a time, so linear searching for a card type
-     * is acceptable.
+     * This implementation assumes players will have only a few cards or items at a time, so linear searching for a
+     * {@link SOCInventoryItem#getItemCode()} type is acceptable.
      * @since 2.0.00
      */
-    private final List<SOCDevCard> news, playables, kept;
+    private final List<SOCInventoryItem> news, playables, kept;
 
     // Representation before v2.0.00 refactoring:
     // private int[][] devCards;  // [new or old][cType]
 
     /**
-     * Make an empty development card set
+     * Make an empty dev card and inventory item set.
      */
     public SOCDevCardSet()
     {
-        news = new ArrayList<SOCDevCard>();
-        playables = new ArrayList<SOCDevCard>();
-        kept = new ArrayList<SOCDevCard>();
+        news = new ArrayList<SOCInventoryItem>();
+        playables = new ArrayList<SOCInventoryItem>();
+        kept = new ArrayList<SOCInventoryItem>();
     }
 
     /**
-     * Make a copy of a development card set.
-     * The copy is deep: new copies are instantiated of all contained {@link SOCDevCard} objects.
+     * Make a copy of a dev card and inventory item set.
+     * The copy is deep: all contained {@link SOCDevCard}/{@link SOCInventoryItem} objects are cloned.
      *
-     * @param set  the dev card set to copy
+     * @param set  the inventory set to copy
+     * @throws CloneNotSupportedException  Should not occur; {@link SOCInventoryItem}s should be Cloneable
      */
     public SOCDevCardSet(SOCDevCardSet set)
+        throws CloneNotSupportedException
     {
         this();
-        for (SOCDevCard c : set.news)
-            news.add(new SOCDevCard(c));
-        for (SOCDevCard c : set.playables)
-            playables.add(new SOCDevCard(c));
-        for (SOCDevCard c : set.kept)
-            kept.add(new SOCDevCard(c));
+        for (SOCInventoryItem c : set.news)
+            news.add(c.clone());
+        for (SOCInventoryItem c : set.playables)
+            playables.add(c.clone());
+        for (SOCInventoryItem c : set.kept)
+            kept.add(c.clone());
     }
 
     /**
@@ -115,15 +117,15 @@ public class SOCDevCardSet implements Serializable, Cloneable
     }
 
     /**
-     * Get the cards, if any, having this state.
+     * Get the cards and items, if any, having this state.
      * Please treat the returned list as read-only.
-     * @param cState  Card state: {@link #NEW}, {@link #PLAYABLE} or {@link #KEPT}
-     * @return Cards or an empty list
-     * @throws IllegalArgumentException if {@code cstate} isn't one of the 3 card states
+     * @param cState  Card/item state: {@link #NEW}, {@link #PLAYABLE} or {@link #KEPT}
+     * @return Cards and items, or an empty list
+     * @throws IllegalArgumentException if {@code cstate} isn't one of the 3 item states
      * @since 2.0.00
      * @see #hasPlayable(int)
      */
-    public List<SOCDevCard> getByState(final int cState)
+    public List<SOCInventoryItem> getByState(final int cState)
         throws IllegalArgumentException
     {
         switch (cState)
@@ -136,18 +138,19 @@ public class SOCDevCardSet implements Serializable, Cloneable
     }
 
     /**
-     * Does this set contain 1 or more playable cards of this type?
+     * Does this set contain 1 or more playable cards or items of this type?
      * (Playable this turn: Not new, not already played and then kept.)
-     * @param ctype  Type of development card from {@link SOCDevCardConstants}
+     * @param ctype  Type of development card from {@link SOCDevCardConstants}, or item type
+     *            from {@link SOCInventoryItem#getItemCode()}
      * @return  True if has at least 1 playable card of this type
      * @since 2.0.00
      * @see #getByState(int)
      */
     public boolean hasPlayable(final int ctype)
     {
-        for (SOCDevCard c : playables)
+        for (SOCInventoryItem c : playables)
         {
-            if (c.ctype == ctype)
+            if (c.getItemCode() == ctype)
                 return true;
         }
 
@@ -155,65 +158,84 @@ public class SOCDevCardSet implements Serializable, Cloneable
     }
 
     /**
-     * Get the amount of a card type (old and new) in the set.
-     * @param ctype  Type of development card as described
-     *        in {@link SOCDevCardConstants};
-     *        at least {@link SOCDevCardConstants#MIN}
-     *        and less than {@link SOCDevCardConstants#MAXPLUSONE}
-     * @return  the number of new + of old cards of this type
+     * Get the amount of a dev card type or special item in the set.
+     * @param ctype  Type of development card or item as described
+     *        in {@link SOCDevCardConstants} and {@link SOCInventoryItem#getItemCode()}
+     * @return  the number of new + of old cards/items of this type
      * @see #getAmount(int, int)
+     * @see #getSpecialItemAmount(int, int)
      * @since 2.0.00
      */
     public int getAmount(final int ctype)
     {
         int amt = 0;
 
-        for (SOCDevCard c : news)
-            if (c.ctype == ctype)
+        for (SOCInventoryItem c : news)
+            if (c.getItemCode() == ctype)
                 ++amt;
-        for (SOCDevCard c : playables)
-            if (c.ctype == ctype)
+        for (SOCInventoryItem c : playables)
+            if (c.getItemCode() == ctype)
                 ++amt;
-        for (SOCDevCard c : kept)
-            if (c.ctype == ctype)
+        for (SOCInventoryItem c : kept)
+            if (c.getItemCode() == ctype)
                 ++amt;
 
         return amt;
     }
 
     /**
-     * @return the number of a kind of development card
+     * Get the amount of a dev card type of certain age in the set.
      *
      * @param age  either {@link #OLD} or {@link #NEW}
      * @param ctype
-     *        the type of development card as described
-     *        in {@link SOCDevCardConstants};
-     *        at least {@link SOCDevCardConstants#MIN}
-     *        and less than {@link SOCDevCardConstants#MAXPLUSONE}
+     *        the type of development card as described in {@link SOCDevCardConstants}
+     * @return the amount of a kind of development card
      * @see #getAmount(int)
+     * @see #getAmountByState(int, int)
      * @see #hasPlayable(int)
      * @see #getByState(int)
      */
     public int getAmount(int age, int ctype)
     {
-        final List<SOCDevCard> clist;
+        final List<SOCInventoryItem> clist;
         if (SOCDevCard.isVPCard(ctype))
             clist = kept;
         else
             clist = (age == NEW) ? news : playables;
 
         int amt = 0;
-        for (SOCDevCard c : clist)
-            if (c.ctype == ctype)
+        for (SOCInventoryItem c : clist)
+            if ((c instanceof SOCDevCard) && (((SOCDevCard) c).ctype == ctype))
                 ++amt;
 
         return amt;
     }
 
     /**
-     * @return the total number of development cards
+     * Get the amount of dev cards or special items by state and type.
+     * @param state  {@link #NEW}, {@link #PLAYABLE}, or {@link #KEPT}
+     * @param ctype  Item type code, from {@link SOCInventoryItem#getItemCode()} or {@link SOCDevCardConstants}
+     * @return  the number of special items or dev cards of this state and type
+     * @see #getAmount(int, int)
+     * @since 2.0.00
+     */
+    public int getAmountByState(final int state, final int ctype)
+    {
+        final List<SOCInventoryItem> clist = (state == KEPT) ? kept : (state == PLAYABLE) ? playables : news;
+
+        int amt = 0;
+
+        for (SOCInventoryItem c : clist)
+            if (c.getItemCode() == ctype)
+                ++amt;
+
+        return amt;
+    }
+
+    /**
+     * @return the total number of development cards and special items
      * @see #getNumUnplayed()
-     * @see #getNumVPCards()
+     * @see #getNumVPItems()
      */
     public int getTotal()
     {
@@ -221,17 +243,42 @@ public class SOCDevCardSet implements Serializable, Cloneable
     }
 
     /**
-     * add an amount to a type of card
+     * Add a special item or dev card to this set.
+     *<P>
+     * The item's {@link SOCInventoryItem#isPlayable()} or/and {@link SOCInventoryItem#isKept()}
+     * will be called to determine its initial state:
+     *<UL>
+     * <LI> {@link SOCInventoryItem#isPlayable() item.isPlayable()} -> {@link #PLAYABLE}
+     * <LI> Not playable, {@link SOCInventoryItem#isKept() item.isKept()} -> {@link #KEPT}
+     * <LI> Not playable, not kept -> {@link #NEW}
+     *</UL>
+     * @param item  The dev card or special item being added
+     * @since 2.0.00
+     * @see #add(int, int, int)
+     */
+    public void add(final SOCInventoryItem item)
+    {
+        if (item.isPlayable())
+            playables.add(item);
+        else if (item.isKept())
+            kept.add(item);
+        else
+            news.add(item);
+    }
+
+    /**
+     * Add an amount to a type of dev card.
      *
      * @param age   either {@link #OLD} or {@link #NEW}
      * @param ctype the type of development card, at least
      *              {@link SOCDevCardConstants#MIN} and less than {@link SOCDevCardConstants#MAXPLUSONE}
      * @param amt   the amount
+     * @see #add(SOCInventoryItem)
      */
     public void add(int amt, final int age, final int ctype)
     {
         final boolean isNew;
-        final List<SOCDevCard> clist;
+        final List<SOCInventoryItem> clist;
         if (SOCDevCard.isVPCard(ctype))
         {
             isNew = false;
@@ -249,7 +296,7 @@ public class SOCDevCardSet implements Serializable, Cloneable
     }
 
     /**
-     * Subtract one card of a type from the set.
+     * Subtract one dev card of a type from the set.
      * If that type isn't available, subtract from {@link SOCDevCardConstants#UNKNOWN} instead.
      *
      * @param age   either {@link #OLD} or {@link #NEW}
@@ -258,17 +305,17 @@ public class SOCDevCardSet implements Serializable, Cloneable
      */
     public void subtract(final int age, final int ctype)
     {
-        final List<SOCDevCard> clist;
+        final List<SOCInventoryItem> clist;
         if (SOCDevCard.isVPCard(ctype))
             clist = kept;
         else
             clist = (age == NEW) ? news : playables;
 
-        final Iterator<SOCDevCard> cIter = clist.iterator();
+        final Iterator<SOCInventoryItem> cIter = clist.iterator();
         while (cIter.hasNext())
         {
-            SOCDevCard c = cIter.next();
-            if (c.ctype == ctype)
+            SOCInventoryItem c = cIter.next();
+            if ((c instanceof SOCDevCard) && (((SOCDevCard) c).ctype == ctype))
             {
                 cIter.remove();
                 return;  // <--- Early return: found and removed ---
@@ -281,8 +328,11 @@ public class SOCDevCardSet implements Serializable, Cloneable
     }
 
     /**
-     * Get the number of Victory Point cards in this set:
-     * All cards returning true for {@link SOCDevCard#isVPCard()}.
+     * Get the number of Victory Point cards and VP items in this set:
+     * All cards and items returning true for {@link SOCInventoryItem#isVPItem()}.
+     *<P>
+     * Before v2.0.00, this was {@code getNumVPCards()}.
+     *
      * @return the number of victory point cards in
      *         this set
      * @see #getNumUnplayed()
@@ -290,17 +340,17 @@ public class SOCDevCardSet implements Serializable, Cloneable
      * @see #getByState(int)
      * @see SOCDevCard#isVPCard(int)
      */
-    public int getNumVPCards()
+    public int getNumVPItems()
     {
         int sum = 0;
 
         // VP cards are never new, don't check the news list
 
-        for (SOCDevCard c : playables)
-            if (c.isVPCard())
+        for (SOCInventoryItem c : playables)
+            if (c.isVPItem())
                 ++sum;
-        for (SOCDevCard c : kept)
-            if (c.isVPCard())
+        for (SOCInventoryItem c : kept)
+            if (c.isVPItem())
                 ++sum;
 
         return sum;
@@ -311,7 +361,7 @@ public class SOCDevCardSet implements Serializable, Cloneable
      * Count only the unplayed ones (old or new); kept VP cards are skipped.
      *
      * @return the number of unplayed cards in this set
-     * @see #getNumVPCards()
+     * @see #getNumVPItems()
      * @see #getTotal()
      * @see #getByState(int)
      */
@@ -321,12 +371,12 @@ public class SOCDevCardSet implements Serializable, Cloneable
     }
 
     /**
-     * Change all the new cards to old ones.
+     * Change all the new cards and items to old ones.
      * Cards' state {@link #NEW} becomes {@link #PLAYABLE}.
      */
     public void newToOld()
     {
-        for (SOCDevCard c : news)
+        for (SOCInventoryItem c : news)
         {
             c.newToOld();
             playables.add(c);

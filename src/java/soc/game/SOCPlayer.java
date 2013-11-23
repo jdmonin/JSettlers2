@@ -47,6 +47,9 @@ import java.util.Vector;
  * At the start of each player's turn, {@link SOCGame#updateAtTurn()} will call {@link SOCPlayer#updateAtTurn()},
  * then call the current player's {@link #updateAtOurTurn()}.
  *<P>
+ * The player's hand holds resource cards, unplayed building pieces, and an inventory of development cards
+ * and sometimes scenario-specific items.
+ *<P>
  * For more information about the "legal" and "potential" road/settlement/city terms,
  * see page 61 of Robert S Thomas' dissertation.  Briefly:
  * "Legal" locations are where pieces can be placed, according to the game rules.
@@ -203,9 +206,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private int[] resourceStats;
 
     /**
-     * how many of each type of development card this player has
+     * The {@link SOCDevCard development card}s this player holds,
+     * along with occasional scenario-specific items.
      */
-    private SOCDevCardSet devCards;
+    private SOCDevCardSet inventory;
 
     /**
      * how many knights this player has in play
@@ -533,8 +537,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * create a copy of the player
      *
      * @param player  the player to copy
+     * @throws IllegalStateException if player's dev cards can't be cloned (internal error); should not possibly occur
      */
     public SOCPlayer(SOCPlayer player)
+        throws IllegalStateException
     {
         int i;
         game = player.game;
@@ -552,7 +558,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         resourceStats = new int[player.resourceStats.length];
         System.arraycopy(player.resourceStats, 0, resourceStats, 0, player.resourceStats.length);
         rolledResources = player.rolledResources.copy();
-        devCards = new SOCDevCardSet(player.devCards);
+        try
+        {
+            inventory = new SOCDevCardSet(player.inventory);
+        }
+        catch (CloneNotSupportedException e)
+        {
+            throw new IllegalStateException("Internal error, cards should be cloneable", e);
+        }
         numKnights = player.numKnights;
         buildingVP = player.buildingVP;
         specialVP = player.specialVP;
@@ -654,7 +667,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         resources = new SOCResourceSet();
         resourceStats = new int[SOCResourceConstants.UNKNOWN];
         rolledResources = new SOCResourceSet();
-        devCards = new SOCDevCardSet();
+        inventory = new SOCDevCardSet();
         numKnights = 0;
         buildingVP = 0;
         specialVP = 0;
@@ -755,7 +768,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     void updateAtOurTurn()
     {
-        getDevCards().newToOld();
+        inventory.newToOld();
         lastActionBankTrade_give = null;
         lastActionBankTrade_get = null;
         if (needToPickGoldHexResources > 0)
@@ -1816,11 +1829,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * @return the development card set
+     * Get the player's inventory of {@link SOCDevCard}s and other occasional items.
+     *<P>
+     * Before v2.0.00, this was {@code getDevCards()}.
+     * @return the inventory (development card set)
      */
     public SOCDevCardSet getDevCards()
     {
-        return devCards;
+        return inventory;
     }
 
     /**
@@ -1830,7 +1846,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public boolean hasUnplayedDevCards()
     {
-        return (0 < devCards.getNumUnplayed());
+        return (0 < inventory.getNumUnplayed());
     }
 
     /**
@@ -1946,7 +1962,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * @return the actual number of victory points (including VP cards)
+     * @return the actual number of victory points (including VP cards/items)
      * @see #getPublicVP()
      * @see #forceFinalVP(int)
      */
@@ -1956,7 +1972,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             return finalTotalVP;
 
         int vp = getPublicVP();
-        vp += devCards.getNumVPCards();
+        vp += inventory.getNumVPItems();
 
         return vp;
     }
@@ -4450,7 +4466,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         fortress = null;
         resources = null;
         resourceStats = null;
-        devCards = null;
+        inventory = null;
         ourNumbers = null;
         ports = null;
         roadNodes.removeAllElements();

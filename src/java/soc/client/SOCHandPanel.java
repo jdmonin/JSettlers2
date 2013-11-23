@@ -29,6 +29,7 @@ import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
@@ -293,10 +294,10 @@ public class SOCHandPanel extends Panel
     /** Soldier/Knight count */
     protected ColorSquare knightsSq;
     protected Label knightsLab;
-    /** Player's development card names, from {@link #cardListItems}; updated frequently by {@link #updateDevCards()} */
-    protected List cardList;
-    /** Player's development cards in same order as {@link #cardList}; updated frequently by {@link #updateDevCards()} */
-    private ArrayList<SOCDevCard> cardListItems;
+    /** Player's development card/inventory item names, from {@link #inventoryItems}; updated frequently by {@link #updateDevCards()} */
+    protected List inventory;
+    /** Player's development cards/inventory items, in same order as {@link #inventory}; updated frequently by {@link #updateDevCards()} */
+    private ArrayList<SOCInventoryItem> inventoryItems;
     protected Button playCardBut;
     /** Trade offer resource squares; visible only for client's own player */
     protected SquaresPanel sqPanel;
@@ -616,10 +617,10 @@ public class SOCHandPanel extends Panel
 
         //cardLab = new Label("Cards:");
         //add(cardLab);
-        cardListItems = new ArrayList<SOCDevCard>();
-        cardList = new List(0, false);
-        cardList.addActionListener(this);  // double-click support
-        add(cardList);
+        inventoryItems = new ArrayList<SOCInventoryItem>();
+        inventory = new List(0, false);
+        inventory.addActionListener(this);  // support double-click
+        add(inventory);
 
         final String pieces_available_to_place = strings.get("hpan.pieces.available");
 
@@ -1056,7 +1057,7 @@ public class SOCHandPanel extends Panel
                 }
             }
         }
-        else if ((e.getSource() == cardList) || (target == CARD))
+        else if ((e.getSource() == inventory) || (target == CARD))
         {
             clickPlayCardButton();
         }
@@ -1168,36 +1169,35 @@ public class SOCHandPanel extends Panel
 
     /**
      * Handle a click on the "play card" button, or double-click
-     * on an item in the list of cards held.
+     * on an item in the inventory/list of cards held.
+     *<P>
+     * Inventory items are almost always {@link SOCDevCard}s.
+     * Some scenarios may place other items in the player's inventory,
+     * such as a "gift" port being moved in {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
+     *<P>
      * Called from actionPerformed()
      */
     public void clickPlayCardButton()
     {
-        String item;
+        String itemText;
         int itemNum;  // Which one to play from list?
-        SOCDevCard itemCard = null;
+        SOCInventoryItem itemObj = null;  // SOCDevCard or special item
 
         setRollPrompt(null, false);  // Clear prompt if Play Card clicked (instead of Roll clicked)
-        if (playerIsCurrent && player.hasPlayedDevCard())
-        {
-            playerInterface.print("*** " + strings.get("hpan.devcards.oneperturn"));  // "You may play only one card per turn."
-            playCardBut.setEnabled(false);
-            return;
-        }
 
-        item = cardList.getSelectedItem();
-        itemNum = cardList.getSelectedIndex();
+        itemText = inventory.getSelectedItem();
+        itemNum = inventory.getSelectedIndex();
 
-        if (item == null || item.length() == 0)
+        if ((itemText == null) || (itemText.length() == 0))
         {
-            if (cardList.getItemCount() == 1)
+            if (inventory.getItemCount() == 1)
             {
                 // No card selected, but only one to choose from
-                item = cardList.getItem(0);
+                itemText = inventory.getItem(0);
                 itemNum = 0;
-                if (item.length() == 0)
+                if (itemText.length() == 0)
                     return;
-                itemCard = cardListItems.get(0);
+                itemObj = inventoryItems.get(0);
             } else {
                 /**
                  * No card selected, multiple are in the list.
@@ -1207,22 +1207,22 @@ public class SOCHandPanel extends Panel
                  */
                 itemNum = -1;  // Nothing yet
                 String itemNumText = null;
-                for (int i = cardList.getItemCount() - 1; i >= 0; --i)
+                for (int i = inventory.getItemCount() - 1; i >= 0; --i)
                 {
-                    item = cardList.getItem(i);
-                    if ((item != null) && (item.length() > 0))
+                    itemText = inventory.getItem(i);
+                    if ((itemText != null) && (itemText.length() > 0))
                     {
-                        SOCDevCard dev = cardListItems.get(i);
-                        if (! (dev.isVPCard() || dev.isNew()))
+                        SOCInventoryItem item = inventoryItems.get(i);
+                        if (item.isPlayable())
                         {
-                            // Non-VP non-new card found
-                            if (itemCard == null)
+                            // Playable (not VP card, not new) item found
+                            if (itemObj == null)
                             {
                                 itemNum = i;
-                                itemNumText = item;
-                                itemCard = dev;
+                                itemNumText = itemText;
+                                itemObj = item;
                             }
-                            else if (itemCard.ctype != dev.ctype)
+                            else if (itemObj.getItemCode() != item.getItemCode())
                             {
                                 itemNum = -1;  // More than one found, and they aren't the same type;
                                 break;         // we can't auto-pick among them, so stop looking through the list.
@@ -1230,35 +1230,51 @@ public class SOCHandPanel extends Panel
                         }
                     }
                 }
-                if ((itemNum == -1) || (itemCard == null))
+
+                if ((itemNum == -1) || (itemObj == null))
                 {
                     playerInterface.printKeyed("hpan.devcards.clickfirst");  // * "Please click a card first to select it."
                     return;
                 }
-                item = itemNumText;
+
+                itemText = itemNumText;
             }
         } else {
             // get selected item's Card object
-            if (itemNum < cardListItems.size())
-                itemCard = cardListItems.get(itemNum);
+            if (itemNum < inventoryItems.size())
+                itemObj = inventoryItems.get(itemNum);
         }
 
         // At this point, itemNum is the index of the card we want,
         // and item is its text string.
         // itemCard is its SOCDevCard object (card type and new/old flag).
 
-        if ((! playerIsCurrent) || (itemCard == null))
+        if ((! playerIsCurrent) || (itemObj == null))
         {
             return;  // <--- Early Return: Not current player ---
         }
 
+        if (! (itemObj instanceof SOCDevCard))
+        {
+            clickPlayInventorySpecialItem(itemObj);
+            return;  // <--- Early Return: Special item, not a dev card ---
+        }
+
+        if (player.hasPlayedDevCard())
+        {
+            playerInterface.print("*** " + strings.get("hpan.devcards.oneperturn"));  // "You may play only one card per turn."
+            playCardBut.setEnabled(false);
+            return;
+        }
+
+        final SOCDevCard itemCard = (SOCDevCard) itemObj;
         if (itemCard.isVPCard())
         {
             playerInterface.print("*** " + strings.get("hpan.devcards.vp.secretlyplayed"));
                 // "You secretly played this VP card when you bought it."
-            itemNum = cardList.getSelectedIndex();
+            itemNum = inventory.getSelectedIndex();
             if (itemNum >= 0)
-                cardList.deselect(itemNum);
+                inventory.deselect(itemNum);
 
             return;  // <--- Early Return: Can't play a VP card ---
         }
@@ -1311,7 +1327,7 @@ public class SOCHandPanel extends Panel
             break;
 
         default:
-            playerInterface.printKeyed("hpan.devcards.interror.ctype", itemCard.ctype, item);
+            playerInterface.printKeyed("hpan.devcards.interror.ctype", itemCard.ctype, itemText);
                 // "Internal error: Unknown card type {0,number}: {1}"
 
         }
@@ -1321,6 +1337,17 @@ public class SOCHandPanel extends Panel
             client.getGameManager().playDevCard(game, cardTypeToPlay);
             disableBankUndoButton();
         }
+    }
+
+    /**
+     * Handle a click on a special inventory item (not a {@link SOCDevCard}).
+     * Used only in certain scenarios.
+     * @param item  Special item picked by player
+     * @since 2.0.00
+     */
+    private final void clickPlayInventorySpecialItem(final SOCInventoryItem item)
+    {
+        // nothing yet
     }
 
     /** Handle a click on the roll button.
@@ -1531,7 +1558,7 @@ public class SOCHandPanel extends Panel
         }
 
         //cardLab.setVisible(false);
-        cardList.setVisible(false);
+        inventory.setVisible(false);
         playCardBut.setVisible(false);
 
         giveLab.setVisible(false);
@@ -1707,7 +1734,7 @@ public class SOCHandPanel extends Panel
             updateResourceTradeCosts(true);
 
             //cardLab.setVisible(true);
-            cardList.setVisible(true);
+            inventory.setVisible(true);
             playCardBut.setVisible(true);
 
             giveLab.setVisible(true);
@@ -1891,7 +1918,7 @@ public class SOCHandPanel extends Panel
                 }
             }
             normalTurnStarting = normalTurnStarting && playerIsCurrent;
-            playCardBut.setEnabled(normalTurnStarting && (cardList.getItemCount() > 0));
+            playCardBut.setEnabled(normalTurnStarting && (inventory.getItemCount() > 0));
         }
 
         bankGive = null;
@@ -2026,7 +2053,7 @@ public class SOCHandPanel extends Panel
     }
 
     /**
-     * Update the displayed list of player's development cards,
+     * Update the displayed list of player's development cards and other inventory items,
      * and enable or disable the "Play Card" button.
      *<P>
      * Enables the "Play Card" button for {@link SOCDevCardSet#PLAYABLE PLAYABLE} cards,
@@ -2034,35 +2061,35 @@ public class SOCHandPanel extends Panel
      * pick those and get a message that that they've already been played, instead of
      * wondering why they're listed but can't be played.
      *<P>
-     * Updates {@link #cardList} and {@link #cardListItems} to keep them in sync.
+     * Updates {@link #inventory} and {@link #inventoryItems} to keep them in sync.
      */
     public void updateDevCards()
     {
-        SOCDevCardSet cards = player.getDevCards();
+        SOCDevCardSet items = player.getDevCards();
 
         boolean hasOldCards = false;
 
-        synchronized (cardList.getTreeLock())
+        synchronized (inventory.getTreeLock())
         {
-            cardList.removeAll();
-            cardListItems.clear();
+            inventory.removeAll();
+            inventoryItems.clear();
 
             // show all new cards first, then all playable, then all kept (VP cards)
             for (int cState = SOCDevCardSet.NEW; cState <= SOCDevCardSet.KEPT; ++cState)
             {
                 final boolean isNew = (cState == SOCDevCardSet.NEW);
 
-                for (final SOCDevCard card : cards.getByState(cState))
+                for (final SOCInventoryItem item : items.getByState(cState))  // almost always instanceof SOCDevCard
                 {
                     if (isNew)
                     {
-                        cardList.add(DEVCARD_NEW + card.getItemName(game, false, strings));
+                        inventory.add(DEVCARD_NEW + item.getItemName(game, false, strings));
                     } else {
-                        cardList.add(card.getItemName(game, false, strings));
+                        inventory.add(item.getItemName(game, false, strings));
                         hasOldCards = true;
                     }
 
-                    cardListItems.add(new SOCDevCard(card.ctype, isNew));
+                    inventoryItems.add(item);
                 }
             }
         }
@@ -3209,7 +3236,7 @@ public class SOCHandPanel extends Panel
                 // Development Card list, Play button below
                 final int clW = dim.width - (inset + sheepW + space + ColorSquare.WIDTH + (4 * space) + inset);
                 final int clX = inset + sheepW + space + ColorSquare.WIDTH + (4 * space);
-                cardList.setBounds(clX, devCardsY, clW, (4 * (lineH + space)) - 2);
+                inventory.setBounds(clX, devCardsY, clW, (4 * (lineH + space)) - 2);
                 playCardBut.setBounds(((clW - pcW) / 2) + clX, devCardsY + (4 * (lineH + space)), pcW, lineH);
 
                 // Bottom of panel:
