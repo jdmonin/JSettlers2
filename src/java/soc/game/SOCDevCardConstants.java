@@ -26,7 +26,7 @@ package soc.game;
  * types of development cards in Settlers of Catan.
  *<P>
  * To instantiate a single card using these types, use {@link SOCDevCard}.
- * To track a player's set of cards, use {@link SOCDevCardSet}.
+ * To track a player's set of cards and special items, use {@link SOCInventory}.
  *<P>
  * {@link #UNKNOWN} is the lowest card type value, lower than
  * the lowest "known" {@link #MIN_KNOWN}. {@link #MAXPLUSONE} is

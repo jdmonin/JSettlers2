@@ -73,10 +73,10 @@ import soc.debug.D;  // JM
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCDevCardConstants;
-import soc.game.SOCDevCardSet;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCInventory;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
@@ -4003,12 +4003,12 @@ public class SOCPlayerClient
             switch (mes.getAction())
             {
             case SOCDevCardAction.DRAW:
-                player.getDevCards().addDevCard(1, SOCDevCardSet.NEW, ctype);
+                player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
 
                 break;
 
             case SOCDevCardAction.PLAY:
-                player.getDevCards().removeDevCard(SOCDevCardSet.OLD, ctype);
+                player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
                 // JM temp debug:
                 if (ctype != mes.getCardType())
                     System.out.println("L3947: play dev card type " + ctype + "; srv has " + mes.getCardType());
@@ -4016,12 +4016,12 @@ public class SOCPlayerClient
                 break;
 
             case SOCDevCardAction.ADDOLD:
-                player.getDevCards().addDevCard(1, SOCDevCardSet.OLD, ctype);
+                player.getInventory().addDevCard(1, SOCInventory.OLD, ctype);
 
                 break;
 
             case SOCDevCardAction.ADDNEW:
-                player.getDevCards().addDevCard(1, SOCDevCardSet.NEW, ctype);
+                player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
 
                 break;
             }

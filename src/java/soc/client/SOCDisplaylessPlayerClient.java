@@ -27,10 +27,10 @@ import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
-import soc.game.SOCDevCardSet;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCInventory;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
@@ -1747,22 +1747,22 @@ public class SOCDisplaylessPlayerClient implements Runnable
             switch (mes.getAction())
             {
             case SOCDevCardAction.DRAW:
-                player.getDevCards().addDevCard(1, SOCDevCardSet.NEW, ctype);
+                player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
 
                 break;
 
             case SOCDevCardAction.PLAY:
-                player.getDevCards().removeDevCard(SOCDevCardSet.OLD, ctype);
+                player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
 
                 break;
 
             case SOCDevCardAction.ADDOLD:
-                player.getDevCards().addDevCard(1, SOCDevCardSet.OLD, ctype);
+                player.getInventory().addDevCard(1, SOCInventory.OLD, ctype);
 
                 break;
 
             case SOCDevCardAction.ADDNEW:
-                player.getDevCards().addDevCard(1, SOCDevCardSet.NEW, ctype);
+                player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
 
                 break;
             }

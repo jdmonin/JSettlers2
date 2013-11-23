@@ -49,14 +49,14 @@ public interface SOCInventoryItem
     public int getItemCode();
 
     /**
-     * Is this item playable this turn (state {@link SOCDevCardSet#PLAYABLE PLAYABLE}),
-     * not newly given ({@link SOCDevCardSet#NEW NEW})?
+     * Is this item playable this turn (state {@link SOCInventory#PLAYABLE PLAYABLE}),
+     * not newly given ({@link SOCInventory#NEW NEW})?
      */
     public boolean isPlayable();
 
     /**
      * Is this item to be kept in hand until end of game
-     * (never state {@link SOCDevCardSet#NEW NEW})?
+     * (never state {@link SOCInventory#NEW NEW})?
      *<P>
      * Items with this flag can either be {@link #isPlayable()} before keeping, or not.
      * When the item is added to inventory, {@link #isPlayable()} is checked before {@link #isKept()}
@@ -74,7 +74,7 @@ public interface SOCInventoryItem
 
     /**
      * At the start of the holding player's turn, change state from
-     * {@link SOCDevCardSet#NEW NEW} to {@link SOCDevCardSet#PLAYABLE PLAYABLE}.
+     * {@link SOCInventory#NEW NEW} to {@link SOCInventory#PLAYABLE PLAYABLE}.
      */
     public void newToOld();
 

@@ -22,7 +22,7 @@ package soc.game;
 import soc.util.SOCStringManager;
 
 /**
- * A single Dev Card, probably within a {@link SOCDevCardSet}.
+ * A single Dev Card, probably within a player's {@link SOCInventory}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -158,7 +158,7 @@ public class SOCDevCard
 
     /**
      * Is this card to be kept in hand until end of game
-     * (never state {@link SOCDevCardSet#NEW NEW})?
+     * (never state {@link SOCInventory#NEW NEW})?
      * @see #isVPItem()
      */
     public boolean isKept()

@@ -28,10 +28,10 @@ import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
-import soc.game.SOCDevCardSet;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCInventory;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
@@ -1908,7 +1908,7 @@ public class SOCRobotBrain extends Thread
 
                 canGrowArmy =
                     ((ourPlayerData.getNumKnights()
-                      + ourPlayerData.getDevCards().getAmount(SOCDevCardConstants.KNIGHT))
+                      + ourPlayerData.getInventory().getAmount(SOCDevCardConstants.KNIGHT))
                       >= larmySize);
 
             } else {
@@ -2203,7 +2203,7 @@ public class SOCRobotBrain extends Thread
                  * if we have a knight card and the robber
                  * is on one of our numbers, play the knight card
                  */
-                if (ourPlayerData.getDevCards().hasPlayable(SOCDevCardConstants.KNIGHT)
+                if (ourPlayerData.getInventory().hasPlayable(SOCDevCardConstants.KNIGHT)
                     && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT)
                     && (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))  // scenario has no robber; wait until after roll
                     && ! ourPlayerData.getNumbers().hasNoResourcesForHex(game.getBoard().getRobberHex()))
@@ -2283,7 +2283,7 @@ public class SOCRobotBrain extends Thread
         if (gameStatePLAY1
             && (! ourPlayerData.hasPlayedDevCard())
             && (ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2)
-            && ourPlayerData.getDevCards().hasPlayable(SOCDevCardConstants.ROADS)
+            && ourPlayerData.getInventory().hasPlayable(SOCDevCardConstants.ROADS)
             && (rejectedPlayDevCardType != SOCDevCardConstants.ROADS))
         {
             //D.ebugPrintln("** Checking for Road Building Plan **");
@@ -2351,7 +2351,7 @@ public class SOCRobotBrain extends Thread
             ///
             if (gameStatePLAY1
                 && (! ourPlayerData.hasPlayedDevCard())
-                && ourPlayerData.getDevCards().hasPlayable(SOCDevCardConstants.DISC)
+                && ourPlayerData.getInventory().hasPlayable(SOCDevCardConstants.DISC)
                 && (rejectedPlayDevCardType != SOCDevCardConstants.DISC))
             {
                 if (chooseFreeResourcesIfNeeded(targetResources, 2, false))
@@ -2375,7 +2375,7 @@ public class SOCRobotBrain extends Thread
                 ///
                 if (gameStatePLAY1
                     && (! ourPlayerData.hasPlayedDevCard())
-                    && ourPlayerData.getDevCards().hasPlayable(SOCDevCardConstants.MONO)
+                    && ourPlayerData.getInventory().hasPlayable(SOCDevCardConstants.MONO)
                     && (rejectedPlayDevCardType != SOCDevCardConstants.MONO)
                     && monopolyStrategy.decidePlayMonopoly())
                 {
@@ -2782,25 +2782,25 @@ public class SOCRobotBrain extends Thread
      */
     private void handleDEVCARDACTION(SOCDevCardAction mes)
     {
-        SOCDevCardSet plCards = game.getPlayer(mes.getPlayerNumber()).getDevCards();
+        SOCInventory cardsInv = game.getPlayer(mes.getPlayerNumber()).getInventory();
         final int cardType = mes.getCardType();
 
         switch (mes.getAction())
         {
         case SOCDevCardAction.DRAW:
-            plCards.addDevCard(1, SOCDevCardSet.NEW, cardType);
+            cardsInv.addDevCard(1, SOCInventory.NEW, cardType);
             break;
 
         case SOCDevCardAction.PLAY:
-            plCards.removeDevCard(SOCDevCardSet.OLD, cardType);
+            cardsInv.removeDevCard(SOCInventory.OLD, cardType);
             break;
 
         case SOCDevCardAction.ADDOLD:
-            plCards.addDevCard(1, SOCDevCardSet.OLD, cardType);
+            cardsInv.addDevCard(1, SOCInventory.OLD, cardType);
             break;
 
         case SOCDevCardAction.ADDNEW:
-            plCards.addDevCard(1, SOCDevCardSet.NEW, cardType);
+            cardsInv.addDevCard(1, SOCInventory.NEW, cardType);
             break;
         }
     }

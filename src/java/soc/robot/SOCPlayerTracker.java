@@ -27,10 +27,10 @@ import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
-import soc.game.SOCDevCardSet;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCInventory;
 import soc.game.SOCLRPathData;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayerNumbers;
@@ -2479,9 +2479,9 @@ public class SOCPlayerTracker
         ///
         knightsToBuy = 0;
 
-        if ((player.getNumKnights() + player.getDevCards().getAmount(SOCDevCardConstants.KNIGHT)) < laSize)  // OLD + NEW knights
+        if ((player.getNumKnights() + player.getInventory().getAmount(SOCDevCardConstants.KNIGHT)) < laSize)  // OLD + NEW knights
         {
-            knightsToBuy = laSize - (player.getNumKnights() + player.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT));
+            knightsToBuy = laSize - (player.getNumKnights() + player.getInventory().getAmount(SOCInventory.OLD, SOCDevCardConstants.KNIGHT));
         }
 
         if (player.getGame().getNumDevCards() >= knightsToBuy)
@@ -3557,10 +3557,10 @@ public class SOCPlayerTracker
                         knightsToBuy = 0;
 
                         if ((player.getNumKnights()
-                            + player.getDevCards().getAmount(SOCDevCardConstants.KNIGHT)) < laSize)  // OLD + NEW knights
+                            + player.getInventory().getAmount(SOCDevCardConstants.KNIGHT)) < laSize)  // OLD + NEW knights
                         {
                             knightsToBuy = laSize -
-                                (player.getNumKnights() + player.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT));
+                                (player.getNumKnights() + player.getInventory().getAmount(SOCInventory.OLD, SOCDevCardConstants.KNIGHT));
                         }
 
                         ///

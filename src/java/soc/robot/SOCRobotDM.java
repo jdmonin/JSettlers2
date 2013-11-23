@@ -33,9 +33,9 @@ import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
-import soc.game.SOCDevCardSet;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCInventory;
 import soc.game.SOCLRPathData;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
@@ -375,7 +375,7 @@ public class SOCRobotDM
     if ((strategy == SMART_STRATEGY) &&
 	(! ourPlayerData.hasPlayedDevCard()) &&
 	ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2 &&
-	ourPlayerData.getDevCards().hasPlayable(SOCDevCardConstants.ROADS))
+	ourPlayerData.getInventory().hasPlayable(SOCDevCardConstants.ROADS))
     {
         planRoadBuildingTwoRoads();
     }
@@ -563,11 +563,11 @@ public class SOCRobotDM
       ///
       int knightsToBuy = 0;
       if ((ourPlayerData.getNumKnights() +
-	   ourPlayerData.getDevCards().getAmount(SOCDevCardConstants.KNIGHT))  // OLD + NEW knights
+	   ourPlayerData.getInventory().getAmount(SOCDevCardConstants.KNIGHT))  // OLD + NEW knights
 	  < laSize)
       {
 	knightsToBuy = laSize - (ourPlayerData.getNumKnights() +
-				 ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT));
+				 ourPlayerData.getInventory().getAmount(SOCInventory.OLD, SOCDevCardConstants.KNIGHT));
       }
       D.ebugPrintln("knightsToBuy = "+knightsToBuy);
 
@@ -1317,7 +1317,7 @@ public class SOCRobotDM
     boolean goingToPlayRB = false;
     if (!ourPlayerData.hasPlayedDevCard() &&
 	ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2 &&
-	ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) > 0) {
+	ourPlayerData.getInventory().getAmount(SOCInventory.OLD, SOCDevCardConstants.ROADS) > 0) {
       goingToPlayRB = true;
     }
     */
@@ -1875,7 +1875,7 @@ public class SOCRobotDM
     }
 
     final int warshipCardsBought =
-        ourPlayerData.getDevCards().getAmount(SOCDevCardConstants.KNIGHT);
+        ourPlayerData.getInventory().getAmount(SOCDevCardConstants.KNIGHT);
 
     if (warshipCardsBought > 0)
     {
@@ -1925,7 +1925,7 @@ public class SOCRobotDM
     boolean goingToPlayRB = false;
     if (!ourPlayerData.hasPlayedDevCard() &&
 	ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2 &&
-	ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) > 0) {
+	ourPlayerData.getInventory().getAmount(SOCInventory.OLD, SOCDevCardConstants.ROADS) > 0) {
       goingToPlayRB = true;
     }
     */
@@ -2405,7 +2405,7 @@ public class SOCRobotDM
       brain.getDRecorder().resume();
     }
     D.ebugPrintln("--- before [end] ---");
-    ourPlayerData.getDevCards().addDevCard(1, SOCDevCardSet.NEW, SOCDevCardConstants.CAP);
+    ourPlayerData.getInventory().addDevCard(1, SOCInventory.NEW, SOCDevCardConstants.CAP);
     D.ebugPrintln("--- after [start] ---");
     SOCPlayerTracker.updateWinGameETAs(playerTrackers);
 
@@ -2426,7 +2426,7 @@ public class SOCRobotDM
     devCardScore += bonus;
 
     D.ebugPrintln("--- after [end] ---");
-    ourPlayerData.getDevCards().removeDevCard(SOCDevCardSet.NEW, SOCDevCardConstants.CAP);
+    ourPlayerData.getInventory().removeDevCard(SOCInventory.NEW, SOCDevCardConstants.CAP);
     D.ebugPrintln("--- cleanup done ---");
 
     //

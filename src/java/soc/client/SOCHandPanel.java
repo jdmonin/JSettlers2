@@ -26,9 +26,9 @@ import soc.disableDebug.D;
 import soc.game.SOCBoard;
 import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
-import soc.game.SOCDevCardSet;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCInventory;
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
@@ -2056,8 +2056,8 @@ public class SOCHandPanel extends Panel
      * Update the displayed list of player's development cards and other inventory items,
      * and enable or disable the "Play Card" button.
      *<P>
-     * Enables the "Play Card" button for {@link SOCDevCardSet#PLAYABLE PLAYABLE} cards,
-     * and also for {@link SOCDevCardSet#KEPT KEPT} cards (VP cards) so the user can
+     * Enables the "Play Card" button for {@link SOCInventory#PLAYABLE PLAYABLE} cards,
+     * and also for {@link SOCInventory#KEPT KEPT} cards (VP cards) so the user can
      * pick those and get a message that that they've already been played, instead of
      * wondering why they're listed but can't be played.
      *<P>
@@ -2065,7 +2065,7 @@ public class SOCHandPanel extends Panel
      */
     public void updateDevCards()
     {
-        SOCDevCardSet items = player.getDevCards();
+        SOCInventory items = player.getInventory();
 
         boolean hasOldCards = false;
 
@@ -2075,9 +2075,9 @@ public class SOCHandPanel extends Panel
             inventoryItems.clear();
 
             // show all new cards first, then all playable, then all kept (VP cards)
-            for (int cState = SOCDevCardSet.NEW; cState <= SOCDevCardSet.KEPT; ++cState)
+            for (int cState = SOCInventory.NEW; cState <= SOCInventory.KEPT; ++cState)
             {
-                final boolean isNew = (cState == SOCDevCardSet.NEW);
+                final boolean isNew = (cState == SOCInventory.NEW);
 
                 for (final SOCInventoryItem item : items.getByState(cState))  // almost always instanceof SOCDevCard
                 {
@@ -2829,7 +2829,7 @@ public class SOCHandPanel extends Panel
 
         case DevCards:
 
-            developmentSq.setIntValue(player.getDevCards().getTotal());
+            developmentSq.setIntValue(player.getInventory().getTotal());
 
             break;
 

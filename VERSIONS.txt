@@ -12,7 +12,7 @@ new features, until 2.0.00 is ready.
 
 
 
-    > 2.0.00 (build JM20130xxx)
+    > 2.0.00 (build JM20131xxx)
 - Large board (sea board) support
 - Game Scenario and special-rules support
 - "House rules" dev card types (New game option "DH")
@@ -27,6 +27,7 @@ new features, until 2.0.00 is ready.
 - Game option key names can now be longer (8 characters)
 - Some game options are meant to be set by the server during game creation, not requested by the client.
   Their option keynames all start with '_' and are hidden in the New Game options window.
+- Player's inventory can hold more than just development cards
 - Java 5 features, including parameterized types (thank you Paul Bilnoski)
 - Major client refactoring (separate UI from network interface) thanks to Paul Bilnoski;
     Paul's UI split preserves the spirit and flow of the code, with a more logical layered structure.

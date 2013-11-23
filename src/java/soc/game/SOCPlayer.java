@@ -209,7 +209,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * The {@link SOCDevCard development card}s this player holds,
      * along with occasional scenario-specific items.
      */
-    private SOCDevCardSet inventory;
+    private SOCInventory inventory;
 
     /**
      * how many knights this player has in play
@@ -560,7 +560,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         rolledResources = player.rolledResources.copy();
         try
         {
-            inventory = new SOCDevCardSet(player.inventory);
+            inventory = new SOCInventory(player.inventory);
         }
         catch (CloneNotSupportedException e)
         {
@@ -667,7 +667,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         resources = new SOCResourceSet();
         resourceStats = new int[SOCResourceConstants.UNKNOWN];
         rolledResources = new SOCResourceSet();
-        inventory = new SOCDevCardSet();
+        inventory = new SOCInventory();
         numKnights = 0;
         buildingVP = 0;
         specialVP = 0;
@@ -1831,10 +1831,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Get the player's inventory of {@link SOCDevCard}s and other occasional items.
      *<P>
-     * Before v2.0.00, this was {@code getDevCards()}.
+     * Before v2.0.00, this method was {@code getDevCards()}.
      * @return the inventory (development card set)
      */
-    public SOCDevCardSet getDevCards()
+    public SOCInventory getInventory()
     {
         return inventory;
     }
@@ -1842,7 +1842,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * @return whether this player has any unplayed dev cards
      *
-     * @see #getDevCards()
+     * @see #getInventory()
      */
     public boolean hasUnplayedDevCards()
     {
@@ -2537,7 +2537,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         // Dev cards were set aside at start of game; get one now
                         Integer ctypeObj = board.drawItemFromStack();
                         cardtype = (ctypeObj != null) ? ctypeObj : SOCDevCardConstants.KNIGHT;
-                        currentPlayer.getDevCards().addDevCard(1, SOCDevCardSet.NEW, cardtype);
+                        currentPlayer.getInventory().addDevCard(1, SOCInventory.NEW, cardtype);
                     } else {
                         cardtype = SOCDevCardConstants.UNKNOWN;
                     }

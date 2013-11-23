@@ -42,11 +42,11 @@ import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
-import soc.game.SOCDevCardSet;
 import soc.game.SOCForceEndTurnResult;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCInventory;
 import soc.game.SOCInventoryItem;
 import soc.game.SOCMoveRobberResult;
 import soc.game.SOCPlayer;
@@ -1133,7 +1133,7 @@ public class SOCGameHandler extends GameHandler
 
             c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.NUMKNIGHTS, pl.getNumKnights()));
 
-            final int numDevCards = pl.getDevCards().getTotal();
+            final int numDevCards = pl.getInventory().getTotal();
             final int unknownType;
             if (c.getVersion() >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
                 unknownType = SOCDevCardConstants.UNKNOWN;
@@ -1347,7 +1347,7 @@ public class SOCGameHandler extends GameHandler
         for (int res = SOCPlayerElement.CLAY; res <= SOCPlayerElement.UNKNOWN; ++res)
             srv.messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, res, resources.getAmount(res)));
 
-        SOCDevCardSet devCards = pl.getDevCards();
+        SOCInventory cardsInv = pl.getInventory();
 
         final boolean cliVersionNew = (c.getVersion() >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES);
 
@@ -1357,7 +1357,7 @@ public class SOCGameHandler extends GameHandler
         final SOCDevCardAction cardUnknown = (cliVersionNew)
             ? new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN)
             : new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X);
-        for (int i = devCards.getTotal(); i > 0; --i)
+        for (int i = cardsInv.getTotal(); i > 0; --i)
         {
             srv.messageToPlayer(c, cardUnknown);
         }
@@ -1365,12 +1365,12 @@ public class SOCGameHandler extends GameHandler
         /**
          * send all new dev cards first, then all playable, then all kept (VP cards)
          */
-        for (int dcState = SOCDevCardSet.NEW; dcState <= SOCDevCardSet.KEPT; ++dcState)
+        for (int dcState = SOCInventory.NEW; dcState <= SOCInventory.KEPT; ++dcState)
         {
-            final int dcAge = (dcState == SOCDevCardSet.NEW) ? SOCDevCardSet.NEW : SOCDevCardSet.OLD;
-            final int addCmd = (dcAge == SOCDevCardSet.NEW) ? SOCDevCardAction.ADDNEW : SOCDevCardAction.ADDOLD;
+            final int dcAge = (dcState == SOCInventory.NEW) ? SOCInventory.NEW : SOCInventory.OLD;
+            final int addCmd = (dcAge == SOCInventory.NEW) ? SOCDevCardAction.ADDNEW : SOCDevCardAction.ADDOLD;
 
-            for (final SOCInventoryItem card : devCards.getByState(dcState))
+            for (final SOCInventoryItem card : cardsInv.getByState(dcState))
             {
                 final SOCMessage addMsg;
                 if (card instanceof SOCDevCard)
@@ -2014,7 +2014,7 @@ public class SOCGameHandler extends GameHandler
         for (int i = 0; i < ga.maxPlayers; i++)
         {
             SOCPlayer pl = ga.getPlayer(i);
-            List<SOCInventoryItem> vpCards = pl.getDevCards().getByState(SOCDevCardSet.KEPT);
+            List<SOCInventoryItem> vpCards = pl.getInventory().getByState(SOCInventory.KEPT);
 
             if (! vpCards.isEmpty())
                 srv.messageToGameKeyedSpecial
@@ -5036,8 +5036,7 @@ public class SOCGameHandler extends GameHandler
             return;  // <--- early return ---
         }
 
-        SOCDevCardSet dcSet = pl.getDevCards();
-        dcSet.addDevCard(1, SOCDevCardSet.NEW, cardType);
+        pl.getInventory().addDevCard(1, SOCInventory.NEW, cardType);
 
         final int pnum = pl.getPlayerNumber();
         if ((cardType != SOCDevCardConstants.KNIGHT) || (game.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
