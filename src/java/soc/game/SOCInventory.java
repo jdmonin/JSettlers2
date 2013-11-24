@@ -32,11 +32,11 @@ import java.util.List;
  * Each item's current state can be New to be played soon; Playable; or Kept in hand
  * until the end of the game (Victory Point cards, which are never New).
  *<P>
- * For use in loops, age constants and inventory-item state constants are contiguous:<BR>
+ * For use in loops, age constants and inventory-item state constant ranges are each contiguous:<BR>
  * {@link #OLD} == 0, {@link #NEW} == 1.<BR>
  * {@link #NEW} == 1, {@link #PLAYABLE} == 2, {@link #KEPT} == 3.
  *<P>
- * Before v2.0.00, this class was named {@link SOCDevCardSet}.
+ * Before v2.0.00, this class was named {@code SOCDevCardSet}.
  */
 public class SOCInventory
 {
@@ -70,7 +70,7 @@ public class SOCInventory
      * If an item's type has {@link SOCDevCard#isVPCard(cType)}, it is placed in {@code kept}, never in {@code news}.
      *<P>
      * This implementation assumes players will have only a few cards or items at a time, so linear searching for a
-     * {@link SOCInventoryItem#getItemCode()} type is acceptable.
+     * {@link SOCInventoryItem#itype} type is acceptable.
      * @since 2.0.00
      */
     private final List<SOCInventoryItem> news, playables, kept;
@@ -142,7 +142,7 @@ public class SOCInventory
      * Does this set contain 1 or more playable cards or items of this type?
      * (Playable this turn: Not new, not already played and then kept.)
      * @param ctype  Type of development card from {@link SOCDevCardConstants}, or item type
-     *            from {@link SOCInventoryItem#getItemCode()}
+     *            from {@link SOCInventoryItem#itype}
      * @return  True if has at least 1 playable card of this type
      * @since 2.0.00
      * @see #getByState(int)
@@ -151,7 +151,7 @@ public class SOCInventory
     {
         for (SOCInventoryItem c : playables)
         {
-            if (c.getItemCode() == ctype)
+            if (c.itype == ctype)
                 return true;
         }
 
@@ -161,7 +161,7 @@ public class SOCInventory
     /**
      * Get the amount of a dev card type or special item in the set.
      * @param ctype  Type of development card or item as described
-     *        in {@link SOCDevCardConstants} and {@link SOCInventoryItem#getItemCode()}
+     *        in {@link SOCDevCardConstants} and {@link SOCInventoryItem#itype}
      * @return  the number of new + of old cards/items of this type
      * @see #getAmount(int, int)
      * @see #getSpecialItemAmount(int, int)
@@ -172,13 +172,13 @@ public class SOCInventory
         int amt = 0;
 
         for (SOCInventoryItem c : news)
-            if (c.getItemCode() == ctype)
+            if (c.itype == ctype)
                 ++amt;
         for (SOCInventoryItem c : playables)
-            if (c.getItemCode() == ctype)
+            if (c.itype == ctype)
                 ++amt;
         for (SOCInventoryItem c : kept)
-            if (c.getItemCode() == ctype)
+            if (c.itype == ctype)
                 ++amt;
 
         return amt;
@@ -207,7 +207,7 @@ public class SOCInventory
 
         int amt = 0;
         for (SOCInventoryItem c : clist)
-            if ((c instanceof SOCDevCard) && (((SOCDevCard) c).ctype == ctype))
+            if ((c instanceof SOCDevCard) && (c.itype == ctype))
                 ++amt;
 
         return amt;
@@ -216,7 +216,7 @@ public class SOCInventory
     /**
      * Get the amount of dev cards or special items by state and type.
      * @param state  {@link #NEW}, {@link #PLAYABLE}, or {@link #KEPT}
-     * @param itype  Item type code, from {@link SOCInventoryItem#getItemCode()} or {@link SOCDevCardConstants}
+     * @param itype  Item type code, from {@link SOCInventoryItem#itype} or {@link SOCDevCardConstants}
      * @return  the number of special items or dev cards of this state and type
      * @throws IllegalArgumentException if {@code state} isn't one of the 3 item states
      * @see #getAmount(int, int)
@@ -237,7 +237,7 @@ public class SOCInventory
         int amt = 0;
 
         for (SOCInventoryItem c : ilist)
-            if (c.getItemCode() == itype)
+            if (c.itype == itype)
                 ++amt;
 
         return amt;
@@ -317,14 +317,14 @@ public class SOCInventory
      * try to remove from {@link SOCDevCardConstants#UNKNOWN} instead.
      *
      * @param state  Item state: {@link #NEW}, {@link #PLAYABLE} or {@link #KEPT}
-     * @param icode  Item type code from {@link SOCInventoryItem#getItemCode()},
+     * @param itype  Item type code from {@link SOCInventoryItem#itype},
      *            or card type from {@link SOCDevCardConstants}
      * @return  true if removed, false if not found
      * @throws IllegalArgumentException if {@code state} isn't one of the 3 item states
      * @since 2.0.00
      * @see #removeDevCard(int, int)
      */
-    public boolean removeItem(final int state, final int icode)
+    public boolean removeItem(final int state, final int itype)
         throws IllegalArgumentException
     {
         final List<SOCInventoryItem> ilist;
@@ -340,7 +340,7 @@ public class SOCInventory
         while (iIter.hasNext())
         {
             SOCInventoryItem c = iIter.next();
-            if (c.getItemCode() == icode)
+            if (c.itype == itype)
             {
                 iIter.remove();
                 return true;  // <--- Early return: found and removed ---
@@ -348,7 +348,7 @@ public class SOCInventory
         }
 
         // not found
-        if (icode != SOCDevCardConstants.UNKNOWN)
+        if (itype != SOCDevCardConstants.UNKNOWN)
             return removeItem(state, SOCDevCardConstants.UNKNOWN);
         else
             return false;
@@ -377,7 +377,7 @@ public class SOCInventory
         while (cIter.hasNext())
         {
             SOCInventoryItem c = cIter.next();
-            if ((c instanceof SOCDevCard) && (((SOCDevCard) c).ctype == ctype))
+            if ((c instanceof SOCDevCard) && (c.itype == ctype))
             {
                 cIter.remove();
                 return;  // <--- Early return: found and removed ---

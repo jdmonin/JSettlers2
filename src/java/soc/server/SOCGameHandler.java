@@ -1375,7 +1375,7 @@ public class SOCGameHandler extends GameHandler
                 final SOCMessage addMsg;
                 if (card instanceof SOCDevCard)
                 {
-                    final int dcType = ((SOCDevCard) card).ctype;
+                    final int dcType = card.itype;
                     if (cliVersionNew || (dcType != SOCDevCardConstants.KNIGHT))
                         addMsg = new SOCDevCardAction(gaName, pn, addCmd, dcType);
                     else

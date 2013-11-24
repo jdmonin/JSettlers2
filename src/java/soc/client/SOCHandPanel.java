@@ -1222,7 +1222,7 @@ public class SOCHandPanel extends Panel
                                 itemNumText = itemText;
                                 itemObj = item;
                             }
-                            else if (itemObj.getItemCode() != item.getItemCode())
+                            else if (itemObj.itype != item.itype)
                             {
                                 itemNum = -1;  // More than one found, and they aren't the same type;
                                 break;         // we can't auto-pick among them, so stop looking through the list.
@@ -1267,8 +1267,7 @@ public class SOCHandPanel extends Panel
             return;
         }
 
-        final SOCDevCard itemCard = (SOCDevCard) itemObj;
-        if (itemCard.isVPCard())
+        if (itemObj.isVPItem())
         {
             playerInterface.print("*** " + strings.get("hpan.devcards.vp.secretlyplayed"));
                 // "You secretly played this VP card when you bought it."
@@ -1279,7 +1278,7 @@ public class SOCHandPanel extends Panel
             return;  // <--- Early Return: Can't play a VP card ---
         }
 
-        if (itemCard.isNew())
+        if (itemObj.isNew())
         {
             playerInterface.print("*** " + strings.get("hpan.devcards.wait"));  // "Wait a turn before playing new cards."
             return;  // <--- Early Return: Card is new ---
@@ -1287,7 +1286,7 @@ public class SOCHandPanel extends Panel
 
         int cardTypeToPlay = -1;
 
-        switch (itemCard.ctype)
+        switch (itemObj.itype)
         {
         case SOCDevCardConstants.KNIGHT:
             if (game.canPlayKnight(playerNumber))
@@ -1327,7 +1326,7 @@ public class SOCHandPanel extends Panel
             break;
 
         default:
-            playerInterface.printKeyed("hpan.devcards.interror.ctype", itemCard.ctype, itemText);
+            playerInterface.printKeyed("hpan.devcards.interror.ctype", itemObj.itype, itemText);
                 // "Internal error: Unknown card type {0,number}: {1}"
 
         }

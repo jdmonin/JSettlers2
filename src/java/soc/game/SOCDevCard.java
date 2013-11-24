@@ -28,20 +28,15 @@ import soc.util.SOCStringManager;
  * @since 2.0.00
  */
 public class SOCDevCard
-    implements SOCDevCardConstants, SOCInventoryItem  // SOCInventoryItem implies Cloneable
+    extends SOCInventoryItem implements SOCDevCardConstants  // SOCInventoryItem implies Cloneable
 {
-    /** Card type, such as {@link SOCDevCardConstants#ROADS} */
-    public final int ctype;
-
-    /** Is this card newly given to a player, or old from a previous turn? */
-    private boolean cnew;
 
     /**
      * Is this card type a Victory Point card?
      * @param ctype  A constant such as {@link SOCDevCardConstants#TOW}
      *               or {@link SOCDevCardConstants#ROADS}
      * @return  True for VP types, false otherwise
-     * @see #isVPCard()
+     * @see #isVPItem()
      */
     public static boolean isVPCard(final int ctype)
     {
@@ -70,10 +65,10 @@ public class SOCDevCard
      * @param ctype  A constant such as {@link SOCDevCardConstants#TOW}
      *               or {@link SOCDevCardConstants#ROADS}
      * @param game  Game data, or {@code null}; some game options might change a card name.
-     *               For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
+     *              For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
      * @param withArticle  If true, format is: "a Market (+1VP)"; if false, is "Market (1VP)"
      * @param strings  StringManager to get i18n localized text
-     * @return  The card name, formatted per {@code withArticle}; unknown ctypes return "Unknown card type #"
+     * @return  The localized card name, formatted per {@code withArticle}; unknown ctypes return "Unknown card type #"
      */
     public static String getCardTypeName
         (final int ctype, final SOCGame game, final boolean withArticle, final SOCStringManager strings)
@@ -106,75 +101,24 @@ public class SOCDevCard
      */
     public SOCDevCard(final int type, final boolean isNew)
     {
-        ctype = type;
-        cnew = isNew;
+        this(type, isVPCard(type), isNew);
     }
 
-    /**
-     * Create and return a clone of this {@link SOCDevCard}.
-     * @return super.clone();
-     * @throws CloneNotSupportedException  Declared from super.clone(), should not occur
-     *     since SOCDevCard implements Cloneable via SOCInventoryItem.
-     */
-    public SOCInventoryItem clone()
-        throws CloneNotSupportedException
+    /** constructor call for super, to avoid 3 isVPCard calls */
+    private SOCDevCard(final int type, final boolean isVPCard, final boolean isNew)
     {
-        return (SOCInventoryItem) super.clone();
-    }
-
-    public boolean isNew()
-    {
-        return cnew;
-    }
-
-    /**
-     * Is this card a Victory Point card?
-     * @see #isVPCard(int)
-     */
-    public boolean isVPCard()
-    {
-        return isVPCard(ctype);
+        super(type, ! (isNew || isVPCard), isVPCard, isVPCard);
     }
 
     //
     // Methods from SOCInventoryItem:
-    //  (see there for javadoc for most of these)
+    //  (see there for javadoc)
     //
-
-    public int getItemCode()
-    {
-        return ctype;
-    }
-
-    public boolean isPlayable()
-    {
-        return ! (cnew || isVPCard(ctype));
-    }
-
-    public boolean isVPItem()
-    {
-        return isVPCard(ctype);
-    }
-
-    /**
-     * Is this card to be kept in hand until end of game
-     * (never state {@link SOCInventory#NEW NEW})?
-     * @see #isVPItem()
-     */
-    public boolean isKept()
-    {
-        return isVPCard(ctype);
-    }
-
-    public void newToOld()
-    {
-        cnew = false;
-    }
 
     public String getItemName
         (final SOCGame game, final boolean withArticle, final SOCStringManager strings)
     {
-        return getCardTypeName(ctype, game, withArticle, strings);
+        return getCardTypeName(itype, game, withArticle, strings);
     }
 
 }
