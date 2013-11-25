@@ -32,6 +32,16 @@ public class SOCDevCard
 {
 
     /**
+     * If true, {@link #getItemName(SOCGame, boolean, SOCStringManager)} can just use the
+     * {@link SOCInventoryItem#strKey strKey} or {@link SOCInventoryItem#aStrKey aStrKey}
+     * keys already looked up for the constructor super call.
+     *<P>
+     * If false, the item text varies by game options and must be calculated each time
+     * {@link #getItemName(SOCGame, boolean, SOCStringManager)} is called.
+     */
+    final private boolean nameKeyPrecalc;
+
+    /**
      * Is this card type a Victory Point card?
      * @param ctype  A constant such as {@link SOCDevCardConstants#TOW}
      *               or {@link SOCDevCardConstants#ROADS}
@@ -61,17 +71,17 @@ public class SOCDevCard
     };
 
     /**
-     * Get a card type's name.
+     * Get a card type's name key.
      * @param ctype  A constant such as {@link SOCDevCardConstants#TOW}
      *               or {@link SOCDevCardConstants#ROADS}
      * @param game  Game data, or {@code null}; some game options might change a card name.
      *              For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
      * @param withArticle  If true, format is: "a Market (+1VP)"; if false, is "Market (1VP)"
      * @param strings  StringManager to get i18n localized text
-     * @return  The localized card name, formatted per {@code withArticle}; unknown ctypes return "Unknown card type #"
+     * @return  The card name key for {@code ctype} and {@code withArticle}; unknown ctypes return "spec.dcards.unknown" / "spec.dcards.aunknown".
      */
-    public static String getCardTypeName
-        (final int ctype, final SOCGame game, final boolean withArticle, final SOCStringManager strings)
+    public static String getCardTypeNameKey
+        (final int ctype, final SOCGame game, final boolean withArticle)
     {
         // i18n: These names are also currently hardcoded in SOCServer.DEBUG_COMMANDS_HELP and .DEBUG_COMMANDS_HELP_DEV_TYPES
 
@@ -79,14 +89,39 @@ public class SOCDevCard
 
         if ((ctype == SOCDevCardConstants.KNIGHT) && (game != null) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
         {
-            final String key = (withArticle) ? "spec.dcards.aknightsoldier.warship" : "spec.dcards.knightsoldier.warship";
-            return strings.get(key);  // <--- Early return: special case ---
+            return (withArticle) ? "spec.dcards.aknightsoldier.warship" : "spec.dcards.knightsoldier.warship";
         }
 
         final String[] keyArr = GETCARDTYPENAME_KEYS[(withArticle) ? 1 : 0];
         if ((ctype >= 0) && (ctype < keyArr.length))
         {
-            ctname = strings.get(keyArr[ctype]);
+            ctname = keyArr[ctype];
+        } else {
+            ctname = keyArr[SOCDevCardConstants.UNKNOWN];
+        }
+
+        return ctname;
+    }
+
+    /**
+     * Get a card type's name.
+     * @param ctype  A constant such as {@link SOCDevCardConstants#TOW}
+     *               or {@link SOCDevCardConstants#ROADS}
+     * @param game  Game data, or {@code null}; some game options might change a card name.
+     *              For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
+     * @param withArticle  If true, format is: "a Market (+1VP)"; if false, is "Market (1VP)"
+     * @param strings  StringManager to get i18n localized text
+     * @return  The localized card name, formatted per {@code ctype} and {@code withArticle};
+     *          unknown ctypes return "Unknown card type #"
+     */
+    public static String getCardTypeName
+        (final int ctype, final SOCGame game, final boolean withArticle, final SOCStringManager strings)
+    {
+        final String ctname;
+
+        if ((ctype >= 0) && (ctype < GETCARDTYPENAME_KEYS[0].length))
+        {
+            ctname = strings.get(getCardTypeNameKey(ctype, game, withArticle));
         } else {
             ctname = "Unknown card type " + ctype;  // don't bother I18N, should not occur
         }
@@ -104,10 +139,14 @@ public class SOCDevCard
         this(type, isVPCard(type), isNew);
     }
 
-    /** constructor call for super, to avoid 3 isVPCard calls */
+    /** constructor to call super, to avoid 3 isVPCard(type) calls */
     private SOCDevCard(final int type, final boolean isVPCard, final boolean isNew)
     {
-        super(type, ! (isNew || isVPCard), isVPCard, isVPCard);
+        super(type, ! (isNew || isVPCard), isVPCard, isVPCard,
+              getCardTypeNameKey(type, null, false), getCardTypeNameKey(type, null, true));
+        nameKeyPrecalc =
+            (type > SOCDevCardConstants.UNKNOWN) && (type < GETCARDTYPENAME_KEYS[0].length)
+            && (type != SOCDevCardConstants.KNIGHT);  // KNIGHT changes with game option _SC_PIRI
     }
 
     //
@@ -118,7 +157,10 @@ public class SOCDevCard
     public String getItemName
         (final SOCGame game, final boolean withArticle, final SOCStringManager strings)
     {
-        return getCardTypeName(itype, game, withArticle, strings);
+        if (nameKeyPrecalc)
+            return strings.get((withArticle) ? aStrKey : strKey);
+        else
+            return getCardTypeName(itype, game, withArticle, strings);
     }
 
 }

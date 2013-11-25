@@ -28,13 +28,14 @@ import soc.util.SOCStringManager;
  * Inventory items must be {@link Cloneable} for use in set copy constructors,
  * see {@link #clone()} for details.
  *<P>
- * This class provides the methods needed for game logic.  For user-visible item names,
- * any class extending it must implement {@link #getItemName(SOCGame, boolean, SOCStringManager)}.
+ * This class provides the methods needed for game logic.  For user-visible item names, you must
+ * provide i18n keys and possibly override {@link #getItemName(SOCGame, boolean, SOCStringManager)};
+ * see that method for details.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
-public abstract class SOCInventoryItem
+public class SOCInventoryItem
     implements Cloneable
 {
 
@@ -70,20 +71,32 @@ public abstract class SOCInventoryItem
     /** Is this item worth Victory Points when kept in inventory? */
     private final boolean vpItem;
 
+    /**  i18n string key for this type of item, to be resolved by {@link SOCStringManager} to something like "Market (1VP)" */
+    protected final String strKey;
+
+    /**  i18n string key for an item of this type, to be resolved by {@link SOCStringManager} to something like "a Market (+1VP)" */
+    protected final String aStrKey;
+
     /**
-     * Create a new inventory item.
+     * Create a new generic inventory item.
      * @param type  Item or card type code, to be stored in {@link #itype}
      * @param isPlayable  Is this item playable this turn (state {@link SOCInventory#PLAYABLE PLAYABLE}),
      *            not newly given ({@link SOCInventory#NEW NEW})?
      * @param isKept  Is this item to be kept in hand until end of game?  See {@link #isKept()}.
      * @param isVP  Is this item worth Victory Points when kept in inventory?
+     * @param strKey   i18n string key for this type of item, to be resolved by {@link SOCStringManager} to something like "Market (1VP)"
+     * @param aStrKey  i18m string key for an item of this type, to be resolved by {@link SOCStringManager} to something like "a Market (+1VP)"
      */
-    protected SOCInventoryItem(final int type, final boolean isPlayable, final boolean isKept, final boolean isVP)
+    public SOCInventoryItem
+        (final int type, final boolean isPlayable, final boolean isKept, final boolean isVP,
+         final String strKey, final String aStrKey)
     {
         this.itype = type;
         playable = isPlayable;
         kept = isKept;
         vpItem = isVP;
+        this.strKey = strKey;
+        this.aStrKey = aStrKey;
     }
 
     /**
@@ -147,14 +160,21 @@ public abstract class SOCInventoryItem
      * Get the item's name.
      *<P>
      * Called at server and at client, so any i18n name keys used must be in properties files at server and client.
+     *<P>
+     * SOCInventoryItem's implementation just calls {@link SOCStringManager#get(String) strings.get(key)} with the
+     * string keys passed to the constructor.  If you need something more dynamic, override this in your subclass.
+     *
      * @param game  Game data, or {@code null}; some game options might change an item name.
      *               For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
      * @param withArticle  If true, format is: "a Market (+1VP)"; if false, is "Market (1VP)"
      * @param strings  StringManager to get i18n localized text
      * @return  The localized item name, formatted per {@code withArticle}
      */
-    public abstract String getItemName
-        (final SOCGame game, final boolean withArticle, final SOCStringManager strings);
+    public String getItemName
+        (final SOCGame game, final boolean withArticle, final SOCStringManager strings)
+    {
+        return strings.get((withArticle) ? aStrKey : strKey);
+    }
 
     /**
      * For use in set copy constructors, create and return a clone of this {@link SOCInventoryItem}.
