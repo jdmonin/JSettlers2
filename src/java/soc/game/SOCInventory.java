@@ -267,6 +267,7 @@ public class SOCInventory
      * @since 2.0.00
      * @see #addDevCard(int, int, int)
      * @see #removeItem(int, int)
+     * @see #keepPlayedItem(int)
      */
     public void addItem(final SOCInventoryItem item)
     {
@@ -313,6 +314,29 @@ public class SOCInventory
     }
 
     /**
+     * Keep a played item: Change its state from {@link #PLAYABLE} to {@link #KEPT}.
+     * @param itype  Item type code from {@link SOCInventoryItem#itype}
+     * @return  true if kept, false if not found in Playable state
+     * @since 2.0.00
+     */
+    public boolean keepPlayedItem(final int itype)
+    {
+        final Iterator<SOCInventoryItem> iIter = playables.iterator();
+        while (iIter.hasNext())
+        {
+            SOCInventoryItem c = iIter.next();
+            if (c.itype == itype)
+            {
+                iIter.remove();
+                kept.add(c);
+                return true;  // <--- Early return: found and kept ---
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Remove a special item or card with a certain state from this set.  If its type isn't found,
      * try to remove from {@link SOCDevCardConstants#UNKNOWN} instead.
      *
@@ -323,6 +347,7 @@ public class SOCInventory
      * @throws IllegalArgumentException if {@code state} isn't one of the 3 item states
      * @since 2.0.00
      * @see #removeDevCard(int, int)
+     * @see #keepPlayedItem(int)
      */
     public boolean removeItem(final int state, final int itype)
         throws IllegalArgumentException
