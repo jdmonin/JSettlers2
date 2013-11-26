@@ -2369,6 +2369,74 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI},
+     * can a "gift" port be removed from this edge? <BR>
+     * All these conditions must be met:
+     *<UL>
+     * <LI> {@link #hasSeaBoard} is true
+     * <LI> Player is current player
+     * <LI> Game state is {@link #PLACING_SHIP}, {@link #PLACING_FREE_ROAD1} or {@link #PLACING_FREE_ROAD2}
+     * <LI> {@code edge} has a port
+     * <LI> Port must be in no land area (LA == 0), or in {@link SOCBoardLarge#getPlayerExcludedLandAreas()}
+     *</UL>
+     * Does not check whether {@link SOCGameOption#K_SC_FTRI} is set.
+     *
+     * @param pl  Player who would remove the port
+     * @param edge  Port's edge coordinate
+     * @return  True if that edge has a port which can be removed now by {@code pl}
+     * @throws NullPointerException if {@code pl} is null
+     * @since 2.0.00
+     * @see SOCBoardLarge#canRemovePort(int)
+     * @see #canPlacePort(SOCPlayer, int)
+     */
+    public boolean canRemovePort(final SOCPlayer pl, final int edge)
+        throws NullPointerException
+    {
+        if (! hasSeaBoard)
+            return false;
+        if (pl.getPlayerNumber() != currentPlayerNumber)
+            return false;
+        if ((gameState != PLACING_SHIP) && (gameState != PLACING_FREE_ROAD1) && (gameState != PLACING_FREE_ROAD2))
+            return false;
+
+        return ((SOCBoardLarge) board).canRemovePort(edge);
+    }
+
+    /**
+     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, remove a "gift" port
+     * at this edge for placement elsewhere. Assumes {@link #canRemovePort(int)} has already
+     * been called to validate player, edge, and game state.
+     *<P>
+     * After this method returns, call {@link #getGameState()} to see whether the
+     * port must immediately be placed, or was added to the player's inventory.
+     * Call {@link SOCPlayer#getPortMovePotentialLocations(boolean)} for placement locations.
+     *<P>
+     * Not public because ports are currently removed only by player ship placements;
+     * this method is called only from other game/player methods.
+     *
+     * @param pl  Player who is placing
+     * @param edge  Port's edge coordinate
+     * @throws UnsupportedOperationException if ! {@link #hasSeaBoard}
+     * @throws NullPointerException if {@code pl} is null
+     * @return  The port removed, with its {@link SOCInventoryItem#itype} in range
+     *      -{@link SOCBoard#WOOD_PORT WOOD_PORT} to -{@link SOCBoard#MISC_PORT MISC_PORT}
+     */
+    SOCInventoryItem removePort(final SOCPlayer pl, final int edge)
+        throws UnsupportedOperationException, NullPointerException
+    {
+        if (! hasSeaBoard)
+            throw new UnsupportedOperationException();
+
+        final int ptype = ((SOCBoardLarge) board).removePort(edge);
+        final SOCInventoryItem port = new SOCInventoryItem
+            (-ptype, true, false, false,
+             SOCBoard.getPortDescForType(ptype, false), SOCBoard.getPortDescForType(ptype, true));
+        // TODO call pl.getPortMovePotentialLocations(false): add to item-placement field or pl's inventory
+        pl.getInventory().addItem(port);
+        return port;
+    }
+
+    /**
+     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI},
      * can a "gift" port be placed at this edge? <BR>
      * All these conditions must be met:
      *<UL>
@@ -2386,7 +2454,7 @@ public class SOCGame implements Serializable, Cloneable
      *             meet all conditions for {@code canPlacePort}.
      * @return  True if a port can be placed at this edge
      * @throws NullPointerException if {@code pl} is null
-     * @see SOCBoardLarge#canRemovePort(int)
+     * @see #canRemovePort(int)
      * @see #placePort(SOCPlayer, int, int)
      * @since 2.0.00
      */
@@ -2428,6 +2496,7 @@ public class SOCGame implements Serializable, Cloneable
      * @throws NullPointerException if {@code pl} is null
      * @throws UnsupportedOperationException if ! {@link #hasSeaBoard}
      * @since 2.0.00
+     * @see #removePort(SOCPlayer, int)
      */
     public void placePort(final SOCPlayer pl, final int ptype, final int edge)
         throws IllegalArgumentException, NullPointerException, UnsupportedOperationException
