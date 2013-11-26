@@ -53,7 +53,7 @@ import java.util.StringTokenizer;
  * <LI> Decide on the message type name.  Add to the end of the constant list in this
  *      class.  Add a comment to note the JSettlers version in which it was introduced, and the date.
  * <LI> If the new message is for something that any kind of game can use,
- *      give it the next available type ID number in the list (10xx).
+ *      give it the next available type ID number in the list (11xx).
  *      If the message is specific to the JSettlers game and its interface,
  *      use a message number above 10000.  The intention is that other kinds of games
  *      can be played eventually within this server framework.
@@ -286,6 +286,13 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  Used in some game scenarios.
      * @since 2.0.00 */
     public static final int BOARDSPECIALEDGE = 1102;  // board special edges, 20131107, v2.0.00
+
+    /** {@link SOCInventoryItemAction} message: Add or remove a {@code SOCInventoryItem}
+     *  (excluding {@code SOCDevCard}s) from a player's inventory.
+     *  Used in some game scenarios.
+     * @see #DEVCARDACTION
+     * @since 2.0.00 */
+    public static final int INVENTORYITEMACTION = 1103;  // player inventory special items, 20131126, v2.0.00
 
 
     /////////////////////////////////////////
@@ -902,6 +909,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case BOARDSPECIALEDGE:  // board special edges, 20131107, v2.0.00
                 return SOCBoardSpecialEdge.parseDataStr(data);
+
+            case INVENTORYITEMACTION:         // player inventory special items, 20131126, v2.0.00
+                return SOCInventoryItemAction.parseDataStr(data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);

@@ -35,6 +35,7 @@ import soc.game.SOCDevCardConstants;  // for javadoc's use
  * Before v2.0.00, this message type was {@code DEVCARD} (class name {@code SOCDevCard}).
  *
  * @author Robert S Thomas
+ * @see SOCInventoryItemAction
  */
 public class SOCDevCardAction extends SOCMessage
     implements SOCMessageForGame
@@ -183,7 +184,7 @@ public class SOCDevCardAction extends SOCMessage
      */
     public String toString()
     {
-        String s = "SOCDevCard:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + actionType + "|cardType=" + cardType;
+        String s = "SOCDevCardAction:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + actionType + "|cardType=" + cardType;
 
         return s;
     }
