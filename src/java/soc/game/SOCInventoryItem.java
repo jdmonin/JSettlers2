@@ -31,6 +31,11 @@ import soc.util.SOCStringManager;
  * This class provides the methods needed for game logic.  For user-visible item names, you must
  * provide i18n keys and possibly override {@link #getItemName(SOCGame, boolean, SOCStringManager)};
  * see that method for details.
+ *<P>
+ * When adding a new kind of inventory item, update {@link SOCGame#forceEndTurn()} and
+ * {@link soc.server.SOCGameHandler#forceEndGameTurn(SOCGame, String)} if the item is
+ * playable and is returned to the player's inventory if their turn must be ended;
+ * search where-used for {@link SOCForceEndTurnResult#getReturnedInvItem()}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00

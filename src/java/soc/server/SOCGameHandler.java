@@ -780,34 +780,54 @@ public class SOCGameHandler extends GameHandler
         }
 
         /**
-         * report any dev-card returned to player's hand
+         * report any dev-card or item returned to player's hand
          */
-        int card = res.getDevCardType();
-        if (card != -1)
+        final SOCInventoryItem itemCard = res.getReturnedInvItem();
+        if (itemCard != null)
         {
             StringConnection c = srv.getConnection(plName);
             if ((c != null) && c.isConnected())
             {
-                if ((card == SOCDevCardConstants.KNIGHT) && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
-                    card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
-                srv.messageToPlayer(c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, card));
+                if (itemCard instanceof SOCDevCard)
+                {
+                    int card = itemCard.itype;
+                    if ((card == SOCDevCardConstants.KNIGHT) && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+                        card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
+                    srv.messageToPlayer(c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, card));
+                } else {
+                    // SOCInventoryItem: Add any new kinds here, to announce to the player.
+                }
             }
 
-            if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
+            boolean announceAsUnknown = true;  // Announce this item to game as an unknown dev card type?
+
+            if (! (itemCard instanceof SOCDevCard))
             {
-                srv.messageToGameExcept
-                    (gaName, c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
-            } else {
-                srv.messageToGameForVersionsExcept
-                    (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
-                     c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
-                srv.messageToGameForVersionsExcept
-                    (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
-                     c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
+                // SOCInventoryItem: Add any new kinds here, to announce to all players.
+                // If it needs a special message, do so and set announceAsUnknown = false
+
+                // Fallthrough:
+                System.err.println("forceEndGameTurn: Unhandled inventory item type " + itemCard.itype + " class " + itemCard.getClass());
             }
 
-            srv.messageToGameKeyed(ga, true, "forceend.devcard.returned", plName);
-                // "{0}''s just-played development card was returned."
+            if (announceAsUnknown)
+            {
+                if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
+                {
+                    srv.messageToGameExcept
+                        (gaName, c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
+                } else {
+                    srv.messageToGameForVersionsExcept
+                        (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
+                         c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
+                    srv.messageToGameForVersionsExcept
+                        (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
+                         c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
+                }
+
+                srv.messageToGameKeyed(ga, true, "forceend.devcard.returned", plName);
+                    // "{0}''s just-played development card was returned."
+            }
         }
 
         /**

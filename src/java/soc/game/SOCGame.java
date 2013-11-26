@@ -3872,6 +3872,7 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalStateException("Game not active: state " + gameState);
 
         forcingEndTurn = true;
+        SOCInventoryItem itemCard = null;  // card/inventory item returned to player, if any
 
         switch (gameState)
         {
@@ -3940,11 +3941,11 @@ public class SOCGame implements Serializable, Cloneable
                 if (isFromDevCard)
                 {
                     placingRobberForKnightCard = false;
-                    players[currentPlayerNumber].getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.KNIGHT);
+                    itemCard = new SOCDevCard(SOCDevCardConstants.KNIGHT, false);
+                    players[currentPlayerNumber].getInventory().addItem(itemCard);
                 }
                 return new SOCForceEndTurnResult
-                    (SOCForceEndTurnResult.FORCE_ENDTURN_UNPLACE_ROBBER,
-                     isFromDevCard ? SOCDevCardConstants.KNIGHT : -1);
+                    (SOCForceEndTurnResult.FORCE_ENDTURN_UNPLACE_ROBBER, itemCard);
             }
 
         case PLACING_FREE_ROAD1:
@@ -3963,17 +3964,17 @@ public class SOCGame implements Serializable, Cloneable
 
         case WAITING_FOR_DISCOVERY:
             gameState = PLAY1;
-            players[currentPlayerNumber].getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.DISC);
+            itemCard = new SOCDevCard(SOCDevCardConstants.DISC, false);
+            players[currentPlayerNumber].getInventory().addItem(itemCard);
             return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE,
-                 SOCDevCardConstants.DISC);
+                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
 
         case WAITING_FOR_MONOPOLY:
             gameState = PLAY1;
-            players[currentPlayerNumber].getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.MONO);
+            itemCard = new SOCDevCard(SOCDevCardConstants.MONO, false);
+            players[currentPlayerNumber].getInventory().addItem(itemCard);
             return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE,
-                 SOCDevCardConstants.MONO);
+                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
 
         case WAITING_FOR_ROB_CLOTH_OR_RESOURCE:
             gameState = PLAY1;
@@ -3985,17 +3986,17 @@ public class SOCGame implements Serializable, Cloneable
 
         case WAITING_FOR_DESTROY:
             gameState = PLAY1;
-            players[currentPlayerNumber].getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.DESTROY);
+            itemCard = new SOCDevCard(SOCDevCardConstants.DESTROY, false);
+            players[currentPlayerNumber].getInventory().addItem(itemCard);
             return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE,
-                 SOCDevCardConstants.DESTROY);
+                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
 
         case WAITING_FOR_SWAP:
             gameState = PLAY1;
-            players[currentPlayerNumber].getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.SWAP);
+            itemCard = new SOCDevCard(SOCDevCardConstants.SWAP, false);
+            players[currentPlayerNumber].getInventory().addItem(itemCard);
             return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE,
-                 SOCDevCardConstants.SWAP);
+                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
 
         default:
             throw new IllegalStateException("Internal error in force, un-handled gamestate: "
