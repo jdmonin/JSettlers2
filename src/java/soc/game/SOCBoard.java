@@ -2119,6 +2119,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @return the type of port (in range {@link #MISC_PORT} to {@link #WOOD_PORT}),
      *         or -1 if no port at this node
      * @since 1.1.08
+     * @see #getPortDescForType(int, boolean)
      */
     public int getPortTypeFromNodeCoord(final int nodeCoord)
     {
@@ -2130,6 +2131,45 @@ public class SOCBoard implements Serializable, Cloneable
             return ptype.intValue();
         else
             return -1;
+    }
+
+    /**
+     * String keys without/with articles for each port type, for {@link #getPortDescForType(int, boolean)}.
+     * Index 0 == {@link #MISC_PORT}, 1 == {@link #CLAY_PORT}, etc.
+     * @since 2.0.00
+     */
+    private static final String[][] PORT_DESC_FOR_TYPE =
+    { {
+            "game.port.three", "game.port.clay", "game.port.ore", "game.port.sheep",
+            "game.port.wheat", "game.port.wood", "game.port.generic"
+        }, {
+            "game.aport.three", "game.aport.clay", "game.aport.ore", "game.aport.sheep",
+            "game.aport.wheat", "game.aport.wood", "game.aport.generic"
+    } };
+
+    /**
+     * Descriptive text key for a given port type, for i18n
+     * {@link soc.util.SOCStringManager#get(String) SOCStringManager.get(key)}.
+     *<P>
+     * From v1.1.08 through all v1.1.xx, this method was in {@code SOCBoardPanel}.
+     *
+     * @param portType Port type, as from {@link #getPortTypeFromNodeCoord(int)}.
+     *           Should be in range {@link #MISC_PORT} to {@link #WOOD_PORT}, or -1.
+     * @param withArticle  If true, string key's value format is "a 2:1 clay port", if false "2:1 Clay port"
+     * @return Key for port text description, or {@code null} for -1 (no port at node).
+     *    Text format is "3:1 Port" or "2:1 Wood port".  Defaults to generic type if {@code portType} value is unknown.
+     * @since 2.0.00
+     */
+    public static String getPortDescForType(final int portType, final boolean withArticle)
+    {
+        if (portType == -1)
+            return null;  // <--- No port found ---
+
+        final String[] portDescs = PORT_DESC_FOR_TYPE[(withArticle) ? 1 : 0];
+        if ((portType >= 0) && (portType <= WOOD_PORT))
+            return portDescs[portType];              // "game.port.three", etc
+        else
+            return portDescs[portDescs.length - 1];  // "game.port.generic"
     }
 
     /**

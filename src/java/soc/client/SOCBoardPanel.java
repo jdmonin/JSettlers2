@@ -33,6 +33,7 @@ import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCVillage;
+import soc.util.SOCStringManager;
 
 import java.awt.BasicStroke;
 import java.awt.Canvas;
@@ -94,7 +95,7 @@ import java.util.Timer;
 public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
 {
     /** i18n text strings */
-    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+    private static final SOCStringManager strings = SOCStringManager.getClientManager();
 
     /**
      * Hex and port graphics are in this directory.
@@ -6807,7 +6808,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         } else {
                             // GOLD_HEX is also MISC_PORT_HEX
                             hid = SOCBoard.MISC_PORT;
-                            hname = portDescForType(hid);
+                            hname = SOCBoard.getPortDescForType(hid, false);
                         }
                         break;
 
@@ -6821,7 +6822,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         } else {
                             // FOG_HEX is also CLAY_PORT_HEX
                             hid = SOCBoard.CLAY_PORT;
-                            hname = portDescForType(hid);
+                            hname = SOCBoard.getPortDescForType(hid, false);
                         }
                         break;
 
@@ -6834,7 +6835,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             if ((htype >= SOCBoard.MISC_PORT_HEX) && (htype <= SOCBoard.WOOD_PORT_HEX))
                             {
                                 hid = htype - (SOCBoard.MISC_PORT_HEX - SOCBoard.MISC_PORT);
-                                portDesc = portDescForType(hid);
+                                portDesc = SOCBoard.getPortDescForType(hid, false);
                             }
                             if (portDesc != null)
                             {
@@ -6911,61 +6912,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          *
          * @param id Node coordinate ID for potential port
          *
-         * @return Port text description, or null if no port at that node id.
-         *    Text format is "3:1 Port" or "2:1 Wood port".
+         * @return String key with port text description for {@link SOCStringManager#get(String)},
+         *    or {@code null} if no port at that node id.
+         *    Text format of string key's value is "3:1 Port" or "2:1 Wood port".
          */
         public String portDescAtNode(int id)
         {
-            return portDescForType(board.getPortTypeFromNodeCoord(id));
-        }
-
-        /**
-         * Descriptive text for a given port type.
-         * @param portType Port type, as from {@link SOCBoard#getPortTypeFromNodeCoord(int)}.
-         *           Should be in range {@link SOCBoard#MISC_PORT} to {@link SOCBoard#WOOD_PORT}.
-         * @return Port text description, or null if no port for that value of <tt>portType</tt>
-         *    Text format is "3:1 Port" or "2:1 Wood port".
-         * @since 1.1.08
-         */
-        //TODO i18n add documentation: new return type, now returns string key
-        public String portDescForType(final int portType)
-        {
-            if (portType == -1)
-                return null;  // <--- No port found ---
-
-            String portDesc;
-            switch (portType)
-            {
-            case SOCBoard.MISC_PORT:
-                portDesc = "game.port.three";
-                break;
-
-            case SOCBoard.CLAY_PORT:
-                portDesc = "game.port.clay";
-                break;
-
-            case SOCBoard.ORE_PORT:
-                portDesc = "game.port.ore";
-                break;
-
-            case SOCBoard.SHEEP_PORT:
-                portDesc = "game.port.sheep";
-                break;
-
-            case SOCBoard.WHEAT_PORT:
-                portDesc = "game.port.wheat";
-                break;
-
-            case SOCBoard.WOOD_PORT:
-                portDesc = "game.port.wood";
-                break;
-
-            default:
-                // Just in case
-                portDesc = "game.port.generic";
-            }
-
-            return portDesc;
+            return SOCBoard.getPortDescForType(board.getPortTypeFromNodeCoord(id), false);
         }
 
     }  // inner class BoardToolTip
