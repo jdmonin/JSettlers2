@@ -89,6 +89,7 @@ import soc.message.SOCGameServerText;
 import soc.message.SOCGameState;
 import soc.message.SOCGameStats;
 import soc.message.SOCGameTextMsg;
+import soc.message.SOCInventoryItemAction;
 import soc.message.SOCJoinGame;
 import soc.message.SOCJoinGameAuth;
 import soc.message.SOCRobotJoinGameRequest;
@@ -795,7 +796,10 @@ public class SOCGameHandler extends GameHandler
                         card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
                     srv.messageToPlayer(c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, card));
                 } else {
-                    // SOCInventoryItem: Add any new kinds here, to announce to the player.
+                    srv.messageToPlayer(c, new SOCInventoryItemAction
+                        (gaName, cpn,
+                         (itemCard.isPlayable() ? SOCInventoryItemAction.ADD_PLAYABLE : SOCInventoryItemAction.ADD_OTHER),
+                         itemCard.itype, itemCard.isKept(), itemCard.isVPItem()));
                 }
             }
 
