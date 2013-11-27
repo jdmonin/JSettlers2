@@ -2403,6 +2403,7 @@ public class SOCGame implements Serializable, Cloneable
      * @throws NullPointerException if {@code pl} is null
      * @since 2.0.00
      * @see SOCBoardLarge#canRemovePort(int)
+     * @see #removePort(SOCPlayer, int)
      * @see #canPlacePort(SOCPlayer, int)
      */
     public boolean canRemovePort(final SOCPlayer pl, final int edge)
@@ -2427,32 +2428,35 @@ public class SOCGame implements Serializable, Cloneable
      * player's inventory or set the game's placingItem field; set the game state if placing
      * it immediately; and then fire {@link SOCScenarioPlayerEvent#REMOVED_TRADE_PORT}.
      *<P>
-     * <b>At the server:</b> In the PlayerEvent handler or after this method returns, check
+     * <b>At the server:</b> Not called directly; called only from other game/player methods.
+     * Ports are currently removed only by player ship placements.
+     *<P>
+     * In the PlayerEvent handler or after this method returns, check
      * {@link #getGameState()} == {@link #PLACING_INV_ITEM} to see whether the port must immediately
      * be placed, or was instead added to the player's inventory.
      *<P>
-     * <b>At the client:</b> The server will send messages about game state and player inventory.
-     * Do not call this method at the client; instead call {@link SOCBoardLarge#removePort(int)}.
-     * If the server asks you to choose a location for port placement, call
-     * {@link SOCPlayer#getPortMovePotentialLocations(boolean)} to present options to the user.
-     *<P>
-     * Not public because ports are currently removed only by player ship placements;
-     * this method is called only from other game/player methods.
+     * <b>At the client:</b> Call this method to update the board data and player port flags.
+     * The server will send other messages about game state and player inventory.  If those set
+     * {@link #getGameState()} to {@link #PLACING_INV_ITEM}, the current player must choose a location for
+     * port placement: Call {@link SOCPlayer#getPortMovePotentialLocations(boolean)} to present options to the user.
      *
-     * @param pl  Player who is removing the port: Must be current player
+     * @param pl  Player who is removing the port: Must be current player. Ignored at client, {@code null} is okay there.
      * @param edge  Port's edge coordinate
      * @throws UnsupportedOperationException if ! {@link #hasSeaBoard}
-     * @throws NullPointerException if {@code pl} is null
+     * @throws NullPointerException if {@code pl} is null at server
      * @return  The port removed, with its {@link SOCInventoryItem#itype} in range
      *      -{@link SOCBoard#WOOD_PORT WOOD_PORT} to -{@link SOCBoard#MISC_PORT MISC_PORT}
      */
-    SOCInventoryItem removePort(final SOCPlayer pl, final int edge)
+    public SOCInventoryItem removePort(final SOCPlayer pl, final int edge)
         throws UnsupportedOperationException, NullPointerException
     {
         if (! hasSeaBoard)
             throw new UnsupportedOperationException();
 
         final int ptype = ((SOCBoardLarge) board).removePort(edge);
+        for (int pn = 0; pn < maxPlayers; ++pn)
+            players[pn].updatePortFlagsAfterRemove(ptype, true);
+
         final SOCInventoryItem port = SOCInventoryItem.createForScenario(this, -ptype, true, false, false);
 
         if (isAtServer)
