@@ -31,6 +31,7 @@ import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCInventory;
+import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
@@ -762,6 +763,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.BOARDSPECIALEDGE:
                 handleBOARDSPECIALEDGE(games, (SOCBoardSpecialEdge) mes);
+                break;
+
+            /**
+             * Update player inventory.
+             * Added 2013-11-26 for v2.0.00.
+             */
+            case SOCMessage.INVENTORYITEMACTION:
+                handleINVENTORYITEMACTION(games, (SOCInventoryItemAction) mes);
                 break;
 
             }
@@ -1782,6 +1791,52 @@ public class SOCDisplaylessPlayerClient implements Runnable
             SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
             player.setPlayedDevCard(mes.hasPlayedDevCard());
         }
+    }
+
+    /**
+     * Handle the "inventory item action" message by updating player inventory.
+     * @param games  The hashtable of client's {@link SOCGame}s; key = game name
+     * @param mes  the message
+     * @return  True if this message is a "cannot play this type now" from server for our client player.
+     * @since 2.0.00
+     */
+    public static boolean handleINVENTORYITEMACTION(Hashtable<String, SOCGame> games, SOCInventoryItemAction mes)
+    {
+        SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return false;
+
+        if (mes.playerNumber == -1)
+            return true;
+
+        SOCPlayer pl = ga.getPlayer(mes.playerNumber);
+        if (pl == null)
+            return false;
+
+        SOCInventory inv = pl.getInventory();
+        switch (mes.action)
+        {
+        case SOCInventoryItemAction.ADD_PLAYABLE:
+            // fall through
+
+        case SOCInventoryItemAction.ADD_OTHER:
+            inv.addItem(SOCInventoryItem.createForScenario
+                (ga, mes.itemType, (mes.action == SOCInventoryItemAction.ADD_PLAYABLE), mes.isKept, mes.isVP));
+            break;
+
+        case SOCInventoryItemAction.CANNOT_PLAY:
+            return true;
+
+        case SOCInventoryItemAction.PLAY_KEPT:
+            inv.keepPlayedItem(mes.itemType);
+            break;
+
+        case SOCInventoryItemAction.PLAY_REMOVE:
+            inv.removeItem(SOCInventory.PLAYABLE, mes.itemType);
+            break;
+        }
+
+        return false;
     }
 
     /**

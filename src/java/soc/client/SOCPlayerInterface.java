@@ -3076,7 +3076,7 @@ public class SOCPlayerInterface extends Frame
                 hp.updateDevCards();
                 hp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
             }
-            else
+            else if (player != null)
             {
                 pi.getPlayerHandPanel(player.getPlayerNumber()).updateValue(PlayerClientListener.UpdateType.DevCards);
             }
@@ -3258,6 +3258,11 @@ public class SOCPlayerInterface extends Frame
         {
             pi.getPlayerHandPanel(player.getPlayerNumber()).updateResourcesVP();
             pi.getBoardPanel().updateMode();
+        }
+
+        public void invItemPlayRejected(final int type)
+        {
+            pi.printKeyed("hpan.item.play.cannot");  // * "Cannot play this item right now."
         }
 
         public void scen_SC_PIRI_pirateFortressAttackResult

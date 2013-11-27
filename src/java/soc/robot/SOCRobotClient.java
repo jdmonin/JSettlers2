@@ -813,6 +813,16 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 super.handleBOARDSPECIALEDGE(games, (SOCBoardSpecialEdge) mes);
                 break;
 
+            /**
+             * a special inventory item action: either add or remove,
+             * or we cannot play our requested item.
+             * Added 2013-11-26 for v2.0.00.
+             */
+            case SOCMessage.INVENTORYITEMACTION:
+                super.handleINVENTORYITEMACTION(games, (SOCInventoryItemAction) mes);
+                handlePutBrainQ((SOCInventoryItemAction) mes);
+                break;
+
             }
         }
         catch (Throwable e)

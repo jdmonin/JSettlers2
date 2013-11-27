@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import soc.game.SOCGame;
+import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
@@ -124,7 +125,8 @@ public interface PlayerClientListener
     void playerSVPAwarded(SOCPlayer player, int numSvp, String awardDescription);
 
     /**
-     * A player is drawing or playing a development card.
+     * A player is drawing or playing a development card, or a card or special
+     * {@link SOCInventoryItem} has been added or removed from their hand's inventory.
      * @param player  The player
      */
     void playerDevCardUpdated(SOCPlayer player);
@@ -283,6 +285,12 @@ public interface PlayerClientListener
     void simpleAction(int pn, int acttype, int value1, int value2);
 
     void buildRequestCanceled(SOCPlayer player);
+
+    /**
+     * Client player's request to play a special {@link SOCInventoryItem} was rejected by the server.
+     * @param type  Item type from {@link SOCInventoryItem#itype}
+     */
+    void invItemPlayRejected(final int type);
 
     /**
      * In scenario _SC_PIRI, present the server's response to a Pirate Fortress Attack request from the

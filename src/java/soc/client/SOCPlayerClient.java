@@ -2880,6 +2880,15 @@ public class SOCPlayerClient
                 handleBOARDSPECIALEDGE((SOCBoardSpecialEdge) mes);
                 break;
 
+            /**
+             * a special inventory item action: either add or remove,
+             * or we cannot play our requested item.
+             * Added 2013-11-26 for v2.0.00.
+             */
+            case SOCMessage.INVENTORYITEMACTION:
+                handleINVENTORYITEMACTION((SOCInventoryItemAction) mes);
+                break;
+
             }  // switch (mes.getType())
         }
         catch (Exception e)
@@ -4634,7 +4643,30 @@ public class SOCPlayerClient
         if (SOCDisplaylessPlayerClient.handleBOARDSPECIALEDGE(games, mes))
         {
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            pcl.boardLayoutUpdated();
+            if (pcl != null)
+                pcl.boardLayoutUpdated();
+        }
+    }
+
+    /**
+     * Update player inventory. Refresh our display. If it's a reject message, give feedback to the user.
+     * @since 2.0.00
+     */
+    private void handleINVENTORYITEMACTION(final SOCInventoryItemAction mes)
+    {
+        final boolean isReject = SOCDisplaylessPlayerClient.handleINVENTORYITEMACTION
+            (games, (SOCInventoryItemAction) mes);
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
+            return;
+
+        if (isReject)
+        {
+            pcl.invItemPlayRejected(mes.itemType);
+        } else {
+            SOCGame ga = games.get(mes.getGame());
+            if (ga != null)
+                pcl.playerDevCardUpdated(ga.getPlayer(mes.playerNumber));
         }
     }
 
