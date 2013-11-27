@@ -25,6 +25,7 @@ package soc.game;
 import soc.disableDebug.D;
 
 import soc.message.SOCMessage;  // For static calls only; SOCGame does not interact with network messages
+import soc.util.IntPair;
 import soc.util.SOCGameBoardReset;
 
 import java.io.Serializable;
@@ -2418,21 +2419,27 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, remove a "gift" port
+     * At server: For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, remove a "gift" port
      * at this edge for placement elsewhere. Assumes {@link #canRemovePort(int)} has already
      * been called to validate player, edge, and game state.
      *<P>
-     * <b>At the server:</b> After this method returns, check {@link #getGameState()} == {@link #PLACING_INV_ITEM}
-     * to see whether the port must immediately be placed, or was added to the player's inventory.
+     * This method will remove the port from the board.  At server it will also add it to the
+     * player's inventory or set the game's placingItem field; set the game state if placing
+     * it immediately; and then fire {@link SOCScenarioPlayerEvent#REMOVED_TRADE_PORT}.
+     *<P>
+     * <b>At the server:</b> In the PlayerEvent handler or after this method returns, check
+     * {@link #getGameState()} == {@link #PLACING_INV_ITEM} to see whether the port must immediately
+     * be placed, or was instead added to the player's inventory.
      *<P>
      * <b>At the client:</b> The server will send messages about game state and player inventory.
+     * Do not call this method at the client; instead call {@link SOCBoardLarge#removePort(int)}.
      * If the server asks you to choose a location for port placement, call
      * {@link SOCPlayer#getPortMovePotentialLocations(boolean)} to present options to the user.
      *<P>
      * Not public because ports are currently removed only by player ship placements;
      * this method is called only from other game/player methods.
      *
-     * @param pl  Player who is placing
+     * @param pl  Player who is removing the port: Must be current player
      * @param edge  Port's edge coordinate
      * @throws UnsupportedOperationException if ! {@link #hasSeaBoard}
      * @throws NullPointerException if {@code pl} is null
@@ -2456,6 +2463,13 @@ public class SOCGame implements Serializable, Cloneable
             } else {
                 placingItem = port;
                 gameState = PLACING_INV_ITEM;
+            }
+
+            // Fire the scenario player event, with the removed port's edge coord and type
+            if (scenarioEventListener != null)
+            {
+                scenarioEventListener.playerEvent
+                    (this, pl, SOCScenarioPlayerEvent.REMOVED_TRADE_PORT, false, new IntPair(edge, ptype));
             }
         }
 
@@ -2669,6 +2683,7 @@ public class SOCGame implements Serializable, Cloneable
                 for (i = 0, hi = hexColl.iterator(); hi.hasNext(); ++i)
                     seHexes[i] = hi.next();
                 putPieceCommon_checkFogHexes(seHexes, true);
+
                 // Any settlement might reveal 1-3 fog hexes.
                 // So, the player's revealed getNeedToPickGoldHexResources might be 0 to 3.
                 // For the final initial settlement, this is recalculated below

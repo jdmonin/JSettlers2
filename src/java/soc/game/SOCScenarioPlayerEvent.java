@@ -119,10 +119,28 @@ public enum SOCScenarioPlayerEvent
      * At server and at each client, the game will clear the Special Edge's type before firing the event.
      * After the event, for clarity the server will also send a message to the game to clear the edge.
      */
-    SVP_REACHED_SPECIAL_EDGE(0x20);
+    SVP_REACHED_SPECIAL_EDGE(0x20),
+
+    /**
+     * Player's ships have reached a "gift" port, and removed that trade port from the board.  It must be
+     * placed elsewhere now or later. Currently only in scenario game option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
+     *<P>
+     * An {@link soc.util.IntPair IntPair} with the port's edge coordinate and type (in range
+     * {@link SOCBoard#MISC_PORT MISC_PORT} to {@link SOCBoard#WOOD_PORT WOOD_PORT}) will be passed as {@code obj} to
+     * {@link SOCScenarioEventListener#playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object)}.
+     * If the game state is {@link SOCGame#PLACING_INV_ITEM}, the player must now pick a coastal edge with an adjacent
+     * settlement to place the port.  Otherwise the port's been added to their inventory as a {@link SOCInventoryItem}
+     * to be placed later when possible.
+     *<P>
+     * This event is fired at server only, not at client.  The server will send messages to the game's clients
+     * about the event's result.
+     */
+    REMOVED_TRADE_PORT(0);
 
     /**
      * Value for sending event codes over a network.
+     * Not all player events are sent over the network; if not sent, event's {@code flagValue} can be 0.
+     *<P>
      * Each event code must be a different bit. (0x01, 0x02, 0x04, etc)
      * Some events happen only once per player, {@code flagValue} is
      * also used in the player's bitmap field that tracks those

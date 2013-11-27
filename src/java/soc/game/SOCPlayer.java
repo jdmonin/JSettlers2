@@ -2237,7 +2237,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
              */
             case SOCPlayingPiece.ROAD:
                 numPieces[SOCPlayingPiece.ROAD]--;
-                putPiece_roadOrShip((SOCRoad) piece, board);
+                putPiece_roadOrShip((SOCRoad) piece, board, isTempPiece);
                 break;
 
             /**
@@ -2333,7 +2333,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
              */
             case SOCPlayingPiece.SHIP:
                 numPieces[SOCPlayingPiece.SHIP]--;
-                putPiece_roadOrShip((SOCShip) piece, board);
+                putPiece_roadOrShip((SOCShip) piece, board, isTempPiece);
                 break;
 
             /**
@@ -2359,16 +2359,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Does not update {@link #potentialRoads}/{@link #potentialShips}; see {@link #updatePotentials(SOCPlayingPiece)}.
      * @param piece  The road or ship
      * @param board  The board
+     * @param isTempPiece  Is this a temporary piece?  If so, do not check special edges or "gift" ports.
      * @since 2.0.00
      */
-    private void putPiece_roadOrShip(SOCRoad piece, SOCBoard board)
+    private void putPiece_roadOrShip(SOCRoad piece, SOCBoard board, final boolean isTempPiece)
     {
         /**
          * before adding a ship, check to see if its trade route is now closed
-         * or if it's reached a Special Edge.
+         * or if it's reached a Special Edge or an _SC_FTRI "gift" trade port.
          */
-        if (piece instanceof SOCShip)
-            putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges((SOCShip) piece, (SOCBoardLarge) board);
+        if ((piece instanceof SOCShip))
+            putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges((SOCShip) piece, (SOCBoardLarge) board, isTempPiece);
 
         /**
          * remember it
@@ -2467,14 +2468,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * If the board layout has Special Edges, check if the new ship has reached one, and if so
      * reward the player and fire an event like {@link SOCScenarioPlayerEvent#SVP_REACHED_SPECIAL_EDGE}
      * or {@link SOCScenarioPlayerEvent#DEV_CARD_REACHED_SPECIAL_EDGE}.
+     *<P>
+     * In scenario {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, checks for a "gift" trade port at new ship edge.  If found,
+     * calls {@link SOCGame#removePort(SOCPlayer, int)} and fires {@link SOCScenarioPlayerEvent#REMOVED_TRADE_PORT}.
      *
      * @param newShip  Our new ship being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
      *                 should not yet be added to {@link #roads}
      * @param board  game board
+     * @param isTempPiece  Is this a temporary piece?  If so, do not check special edges or "gift" ports.
      * @since 2.0.00
      */
     private void putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
-        (SOCShip newShip, SOCBoardLarge board)
+        (SOCShip newShip, SOCBoardLarge board, final boolean isTempPiece)
     {
         final boolean boardHasVillages = game.isGameOptionSet(SOCGameOption.K_SC_CLVI);
         final int edge = newShip.getCoordinates();
@@ -2519,6 +2524,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                 break;
             }
+        }
+
+        if (isTempPiece)
+        {
+            return;  // <--- Early return: Temporary piece ---
         }
 
         final int seType = ((SOCBoardLarge) board).getSpecialEdgeType(edge);
@@ -2569,6 +2579,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 System.err.println("L2549: warning: No handler for reaching SEType " + seType);
             }
         }
+
+        /**
+         * _SC_FTRI: Is ship placed at a "gift" port that can be
+         * removed from the board for placement elsewhere?
+         */
+        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI) && ((SOCBoardLarge) board).canRemovePort(edge))
+        {
+            game.removePort(this, edge);  // updates game state, fires SOCScenarioPlayerEvent.REMOVED_TRADE_PORT
+        }
+
     }
 
     /**
