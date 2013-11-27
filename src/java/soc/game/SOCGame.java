@@ -84,7 +84,7 @@ import java.util.Vector;
 public class SOCGame implements Serializable, Cloneable
 {
     /**
-     * Game states.  NEW is a brand-new game, not yet ready to start playing.
+     * Game states.  {@link #NEW} is a brand-new game, not yet ready to start playing.
      * Players are choosing where to sit, or have all sat but no one has yet clicked
      * the "start game" button.
      * Next state from NEW is {@link #READY} if robots, or {@link #START1A} if only humans
@@ -296,6 +296,16 @@ public class SOCGame implements Serializable, Cloneable
      * @since 2.0.00
      */
     public static final int PLACING_SHIP = 35;
+
+    /**
+     * Player is placing the special {@link SOCInventoryItem} held in {@link #placingItem}.
+     *<P>
+     * The placement method depends on the scenario and item type; for example,
+     * {@link SOCGameOption#K_SC_FTRI _SC_FTRI} has trading port items and would
+     * call {@link #placePort(SOCPlayer, int, int)}.
+     * @since 2.0.00
+     */
+    public static final int PLACING_INV_ITEM = 36;
 
     /**
      * Player is placing first free road/ship
@@ -665,7 +675,7 @@ public class SOCGame implements Serializable, Cloneable
      * server whose stringport name is <tt>SOCServer.PRACTICE_STRINGPORT</tt>.
      *<P>
      * Before 1.1.13, this field was called <tt>isLocal</tt>, but that was misleading;
-     * the full client can launch a tcp LAN server.
+     * the full client can launch a locally hosted tcp LAN server.
      */
     public boolean isPractice;
 
@@ -1035,6 +1045,12 @@ public class SOCGame implements Serializable, Cloneable
      * @since 2.0.00
      */
     private Vector<Integer> placedShipsThisTurn;
+
+    /**
+     * The special inventory item currently being placed in state {@link #PLACING_INV_ITEM}, or null.
+     * @since 2.0.00
+     */
+    private SOCInventoryItem placingItem;
 
     /**
      * The number of normal turns (not rounds, not initial placements), including this turn.
@@ -2406,9 +2422,12 @@ public class SOCGame implements Serializable, Cloneable
      * at this edge for placement elsewhere. Assumes {@link #canRemovePort(int)} has already
      * been called to validate player, edge, and game state.
      *<P>
-     * After this method returns, call {@link #getGameState()} to see whether the
-     * port must immediately be placed, or was added to the player's inventory.
-     * Call {@link SOCPlayer#getPortMovePotentialLocations(boolean)} for placement locations.
+     * <b>At the server:</b> After this method returns, check {@link #getGameState()} == {@link #PLACING_INV_ITEM}
+     * to see whether the port must immediately be placed, or was added to the player's inventory.
+     *<P>
+     * <b>At the client:</b> The server will send messages about game state and player inventory.
+     * If the server asks you to choose a location for port placement, call
+     * {@link SOCPlayer#getPortMovePotentialLocations(boolean)} to present options to the user.
      *<P>
      * Not public because ports are currently removed only by player ship placements;
      * this method is called only from other game/player methods.
@@ -2430,8 +2449,18 @@ public class SOCGame implements Serializable, Cloneable
         final SOCInventoryItem port = new SOCInventoryItem
             (-ptype, true, false, false,
              SOCBoard.getPortDescForType(ptype, false), SOCBoard.getPortDescForType(ptype, true));
-        // TODO call pl.getPortMovePotentialLocations(false): add to item-placement field or pl's inventory
-        pl.getInventory().addItem(port);
+
+        if (isAtServer)
+        {
+            if (pl.getPortMovePotentialLocations(false) == null)
+            {
+                pl.getInventory().addItem(port);
+            } else {
+                placingItem = port;
+                gameState = PLACING_INV_ITEM;
+            }
+        }
+
         return port;
     }
 
@@ -2940,6 +2969,9 @@ public class SOCGame implements Serializable, Cloneable
      * If the current player number changes here, {@link #isForcingEndTurn()} is cleared.
      *<P>
      * In {@link #START2B} or {@link #START3B}, calls {@link #updateAtTurn()} after last initial road placement.
+     *<P>
+     * This method is not called after placing a {@link SOCInventoryItem} on the board, which
+     * happens only with some scenario options such as {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
      *
      * @return true if the turn advances, false if all players have left and
      *          the gamestate has been changed here to {@link #OVER}.
@@ -3179,6 +3211,13 @@ public class SOCGame implements Serializable, Cloneable
                 }
             }
             break;
+
+        // case PLACING_INV_ITEM:
+            //    No advance needed if that's the current state; in _SC_FTRI
+            //    we're here because the player placed a ship on a special edge
+            //    with a port, and that changed the state, we're still waiting
+            //    for the player to place their port.  State mentioned here
+            //    only for completeness.
 
         }
 
@@ -3932,6 +3971,20 @@ public class SOCGame implements Serializable, Cloneable
                 final boolean rets = cancelBuildShip(currentPlayerNumber);
                 return new SOCForceEndTurnResult
                     (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, rets ? SHIP_SET : null);
+            }
+
+        case PLACING_INV_ITEM:
+            gameState = PLAY1;
+            if (placingItem != null)
+            {
+                itemCard = placingItem;
+                placingItem = null;
+                players[currentPlayerNumber].getInventory().addItem(itemCard);
+                return new SOCForceEndTurnResult
+                    (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
+            } else {
+                return new SOCForceEndTurnResult
+                    (SOCForceEndTurnResult.FORCE_ENDTURN_NONE);
             }
 
         case PLACING_ROBBER:
