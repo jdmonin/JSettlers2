@@ -83,7 +83,48 @@ public class SOCInventoryItem
     protected final String aStrKey;
 
     /**
+     * Factory method to create a specific scenario's special items, including item name i18n string keys
+     * appropriate for {@code type} among the scenario's item types.
+     *<P>
+     * Currently recognizes and calls:
+     *<UL>
+     * <LI> {@link SOCGameOption#K_SC_FTRI _SC_FTRI}: Trade port:
+     *      {@link SOCBoard#getPortDescForType(int, boolean) SOCBoard.getPortDescForType(-type, withArticle)}
+     *</UL>
+     *<P>
+     * Callable at server and client.  If client version is older than the scenario, this
+     * method will fall back to generic "unknown item" string keys.
+     *
+     * @param ga  Game, to check scenario options
+     * @param type  Item or card type code, to be stored in {@link #itype}
+     * @param isPlayable  Is the item playable this turn?
+     * @param isKept  Is this item to be kept in hand until end of game?  See {@link #isKept()}.
+     * @param isVP  Is this item worth Victory Points when kept in inventory?
+     * @return  An inventory item named from this scenario's item types,
+     *       or with generic name keys if {@code ga} doesn't have a scenario option recognized here
+     */
+    public final static SOCInventoryItem createForScenario
+        (final SOCGame ga, final int type, final boolean isPlayable, final boolean isKept, final boolean isVP)
+    {
+        if (ga.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+        {
+            // items in this scenario are always trade ports
+            return new SOCInventoryItem
+                (type, isPlayable, isKept, isVP,
+                 SOCBoard.getPortDescForType(-type, false), SOCBoard.getPortDescForType(-type, true));
+        }
+
+        // Fallback:
+        return new SOCInventoryItem
+            (type, isPlayable, isKept, isVP, "game.invitem.unknown", "game.aninvitem.unknown");
+    }
+
+    /**
      * Create a new generic inventory item.
+     *<P>
+     * See also the factory method for specific scenarios' items:
+     * {@link #createForScenario(SOCGame, int, boolean, boolean, boolean)}
+     *
      * @param type  Item or card type code, to be stored in {@link #itype}
      * @param isPlayable  Is this item playable this turn (state {@link SOCInventory#PLAYABLE PLAYABLE}),
      *            not newly given ({@link SOCInventory#NEW NEW})?

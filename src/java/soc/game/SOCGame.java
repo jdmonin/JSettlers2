@@ -2446,9 +2446,7 @@ public class SOCGame implements Serializable, Cloneable
             throw new UnsupportedOperationException();
 
         final int ptype = ((SOCBoardLarge) board).removePort(edge);
-        final SOCInventoryItem port = new SOCInventoryItem
-            (-ptype, true, false, false,
-             SOCBoard.getPortDescForType(ptype, false), SOCBoard.getPortDescForType(ptype, true));
+        final SOCInventoryItem port = SOCInventoryItem.createForScenario(this, -ptype, true, false, false);
 
         if (isAtServer)
         {
