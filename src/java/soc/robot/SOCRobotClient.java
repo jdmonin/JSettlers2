@@ -55,7 +55,12 @@ import java.util.Vector;
  *<P>
  * The built-in robots must be the same version as the server, to simplify things.
  * Third-party bots might be based on this code and be other versions, to simplify their maintenance.
- * The {@link soc.message.SOCImARobot IMAROBOT} connect message gives the bot's class name.
+ *<P>
+ * The {@link soc.message.SOCImARobot IMAROBOT} connect message gives the bot's class name and
+ * a required security cookie, which is passed into the robot client constructor and which must
+ * match the server's generated cookie. You can set the server's cookie by setting the
+ * server's {@code jsettlers.bots.cookie} parameter, or view it by setting {@code jsettlers.bots.showcookie},
+ * when starting the server.
  *
  * @author Robert S Thomas
  */
@@ -1714,4 +1719,5 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         SOCRobotClient ex1 = new SOCRobotClient(args[0], Integer.parseInt(args[1]), args[2], args[3], args[4]);
         ex1.init();
     }
+
 }
