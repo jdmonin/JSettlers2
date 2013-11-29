@@ -22,14 +22,17 @@ package soc.message;
 import java.util.StringTokenizer;
 
 /**
- * This generic message from the server to clients handles a simple action for a client player in a game.
- * This is a way to add game actions without adding new SOCMessage subclasses.
+ * This generic message from the server to clients handles a simple action or event for a client player in a game.
+ * This is a way to add game actions and events without adding new SOCMessage subclasses.
  * It has a player number, an action type code, and two optional detail-value fields.
  * This message comes after, not before, any messages that update the game and player data for the action.
  *<P>
  * This message type is useful for functions that don't have a complicated set of
  * details attached, such as telling all players that someone has bought a development card,
- * or telling a bot that it's made a successful bank/port trade.
+ * or telling a bot that it's made a successful bank/port trade, or some event or condition just happened.
+ *<P>
+ * It can also be used to prompt the player that they may or must take some action at this time.
+ * Action types that do this have {@code MAY_} or {@code MUST_} in their name.
  *<P>
  * Depending on the action type code, this message may be broadcast to the entire game
  * or sent to only the affected player.  Clients should ignore action types they don't
@@ -40,6 +43,7 @@ import java.util.StringTokenizer;
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.19
+ * @see SOCSimpleRequest
  */
 public class SOCSimpleAction extends SOCMessageTemplate4i
 {
