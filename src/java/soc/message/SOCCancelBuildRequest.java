@@ -34,7 +34,7 @@ import java.util.StringTokenizer;
  *   Server will reply by returning the player's resources and changing game state.
  *<P>
  *   The special inventory items in PLACING_INV_ITEM each have a different placement message, but if item placement
- *   can be canceled, use this common message type, with {@code pieceType} == -3.
+ *   can be canceled, use this common message type, with {@code pieceType} == -3 ({@link #INV_ITEM_PLACE_CANCEL}).
  *   If placement can't be canceled, server will reply with {@link SOCGameServerText}.
  *
  *<LI> While placing the second free road or ship (PLACING_FREE_ROAD2), means
@@ -48,7 +48,7 @@ import java.util.StringTokenizer;
  *
  *<LI> During game startup (START1B, START2B or START3B): <BR>
  *       Sent from server, CANCELBUILDREQUEST means the current player
- *       wants to undo the placement of their initial settlement.
+ *       is undoing the placement of their initial settlement.
  *
  *<LI> During piece placement (PLACING_ROAD, PLACING_CITY, PLACING_SETTLEMENT,
  *                           PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2): <BR>
@@ -74,8 +74,13 @@ import java.util.StringTokenizer;
 public class SOCCancelBuildRequest extends SOCMessage
     implements SOCMessageForGame
 {
-    /** Structure unchanged since v1.0.00 or earlier */
-    private static final long serialVersionUID = 1000L;
+    /**
+     * pieceType to cancel special {@code SOCInventoryItem} placement.
+     * @since 2.0.00
+     */
+    public static final int INV_ITEM_PLACE_CANCEL = -3;
+
+    private static final long serialVersionUID = 2000L;
 
     /**
      * Name of game
@@ -85,7 +90,8 @@ public class SOCCancelBuildRequest extends SOCMessage
     /**
      * The type of piece to cancel build, such as {@link soc.game.SOCPlayingPiece#CITY}
      * -2 is used from server to reject request to buy a Development Card.
-     * -3 is used from client to request cancel placing a special SOCInventoryItem if possible.
+     * -3 ({@link #INV_ITEM_PLACE_CANCEL}) is used from client to request canceling placement of a
+     *    special SOCInventoryItem if possible.
      */
     private final int pieceType;
 
@@ -95,7 +101,8 @@ public class SOCCancelBuildRequest extends SOCMessage
      * @param ga  the name of the game
      * @param pt  the type of piece to cancel build, such as {@link soc.game.SOCPlayingPiece#CITY}.
      *   -2 is used from server to reject request to buy a Development Card.
-     *   -3 is used from client to request cancel placing a special SOCInventoryItem if possible.
+     *   -3 ({@link #INV_ITEM_PLACE_CANCEL}) is used from client to request canceling placement of a
+     *      special SOCInventoryItem if possible.
      */
     public SOCCancelBuildRequest(String ga, int pt)
     {
@@ -115,7 +122,8 @@ public class SOCCancelBuildRequest extends SOCMessage
     /**
      * @return the type of piece to cancel build, such as {@link soc.game.SOCPlayingPiece#CITY}.
      *   -2 is used from server to reject request to buy a Development Card.
-     *   -3 is used from client to request cancel placing a special SOCInventoryItem if possible.
+     *   -3 ({@link #INV_ITEM_PLACE_CANCEL}) is used from client to request canceling placement of a
+     *      special SOCInventoryItem if possible.
      */
     public int getPieceType()
     {
