@@ -426,6 +426,14 @@ public class SOCGameHandler extends GameHandler
             break;
 
         /**
+         * Special inventory item action (play request) from a player.
+         * Added 2013-11-28 for v2.0.00.
+         */
+        case SOCMessage.INVENTORYITEMACTION:
+            handleINVENTORYITEMACTION(ga, c, (SOCInventoryItemAction) mes);
+            break;
+
+        /**
          * Asking to move a previous piece (a ship) somewhere else on the board.
          * Added 2011-12-04 for v2.0.00.
          */
@@ -809,9 +817,12 @@ public class SOCGameHandler extends GameHandler
             {
                 // SOCInventoryItem: Add any new kinds here, to announce to all players.
                 // If it needs a special message, do so and set announceAsUnknown = false
+                // If it's private and doesn't need a special message, set handled = true and let it announce as unknown
+                boolean handled = false;
 
-                // Fallthrough:
-                System.err.println("forceEndGameTurn: Unhandled inventory item type " + itemCard.itype + " class " + itemCard.getClass());
+                // Fallback:
+                if (announceAsUnknown && ! handled)
+                    System.err.println("forceEndGameTurn: Unhandled inventory item type " + itemCard.itype + " class " + itemCard.getClass());
             }
 
             if (announceAsUnknown)
@@ -4247,6 +4258,23 @@ public class SOCGameHandler extends GameHandler
 
                     break;
 
+                case SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL:
+                    SOCInventoryItem item = null;
+                    if (gstate == SOCGame.PLACING_INV_ITEM)
+                        item = ga.cancelPlaceInventoryItem();
+
+                    if (item != null)
+                    {
+                        srv.messageToGame(gaName, new SOCInventoryItemAction
+                            (gaName, pn, SOCInventoryItemAction.ADD_PLAYABLE, item.itype, item.isKept(), item.isVPItem()));
+                        srv.messageToGameKeyed(ga, true, "reply.placeitem.cancel", player.getName());
+                            // "{0} canceled placement of a special item."
+                    } else {
+                        srv.messageToPlayerKeyed(c, gaName, "reply.placeitem.cancel.cannot");
+                            // "Cannot cancel item placement."
+                    }
+                    break;
+
                 default:
                     throw new IllegalArgumentException("Unknown piece type " + mes.getPieceType());
                 }
@@ -4721,13 +4749,14 @@ public class SOCGameHandler extends GameHandler
         final int pn = mes.getPlayerNumber();
         final boolean clientIsPN = (pn == clientPl.getPlayerNumber());  // probably required for most request types
         final int reqtype = mes.getRequestType();
+        final int cpn = ga.getCurrentPlayerNumber();
+
+        boolean replyDecline = false;  // if true, reply with generic decline (pn = -1, reqtype, 0, 0)
 
         switch (reqtype)
         {
         case SOCSimpleRequest.SC_PIRI_FORT_ATTACK:
             {
-                final int cpn = ga.getCurrentPlayerNumber();
-
                 final SOCShip adjac = ga.canAttackPirateFortress();
                 if ((! clientIsPN) || (pn != cpn) || (adjac == null) || (adjac.getPlayerNumber() != cpn))
                 {
@@ -4781,10 +4810,68 @@ public class SOCGameHandler extends GameHandler
 
         default:
             // deny unknown types
-            c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
+            replyDecline = true;
             System.err.println
                 ("handleSIMPLEREQUEST: Unknown type " + reqtype + " from " + c.getData() + " in game " + ga);
         }
+
+        if (replyDecline)
+            c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
+    }
+
+    /**
+     * Special inventory item action (play request) from a player.
+     * Ignored unless {@link SOCInventoryItemAction#action mes.action} == {@link SOCInventoryItemAction#PLAY PLAY}.
+     * Calls {@link SOCGame#canPlayInventoryItem(int, int)}, {@link SOCGame#playInventoryItem(int)}.
+     * If game state changes here, calls {@link #sendGameState(SOCGame)} just before returning.
+     *
+     * @param ga  game with {@code c} as a client player
+     * @param c  the connection sending the message
+     * @param mes  the message
+     * @since 2.0.00
+     */
+    private void handleINVENTORYITEMACTION(SOCGame ga, StringConnection c, final SOCInventoryItemAction mes)
+    {
+        if (mes.action != SOCInventoryItemAction.PLAY)
+            return;
+
+        final String gaName = ga.getName();
+        SOCPlayer clientPl = ga.getPlayer((String) c.getData());
+        if (clientPl == null)
+            return;
+
+        final int pn = clientPl.getPlayerNumber();
+
+        final int replyCannot = ga.canPlayInventoryItem(pn, mes.itemType);
+        if (replyCannot != 0)
+        {
+            srv.messageToPlayer(c, new SOCInventoryItemAction
+                (gaName, pn, SOCInventoryItemAction.CANNOT_PLAY, mes.itemType, replyCannot));
+            return;
+        }
+
+        final int oldGameState = ga.getGameState();
+
+        final SOCInventoryItem item = ga.playInventoryItem(mes.itemType);  // <--- Play the item ---
+
+        if (item == null)
+        {
+            // Wasn't able to play.  Assume canPlay was recently called and returned OK; the most
+            // volatile of its conditions is player's inventory, so assume that's what changed.
+            srv.messageToPlayer(c, new SOCInventoryItemAction
+                (gaName, pn, SOCInventoryItemAction.CANNOT_PLAY, mes.itemType, 1));  // 1 == item not in inventory
+            return;
+        }
+
+        // Item played.  Announce play and removal (or keep) from player's inventory.
+        // Announce game state if changed.
+        srv.messageToGame(gaName, new SOCInventoryItemAction
+            (gaName, pn, (item.isKept()) ? SOCInventoryItemAction.PLAY_KEPT : SOCInventoryItemAction.PLAY_REMOVE,
+             mes.itemType));
+
+        final int gstate = ga.getGameState();
+        if (gstate != oldGameState)
+            sendGameState(ga);
     }
 
     /**
