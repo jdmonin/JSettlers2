@@ -447,6 +447,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private final static int PLACE_PIRATE = 16;
 
+    /**
+     * In scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI} game state {@link SOCGame#PLACING_INV_ITEM},
+     * boardpanel mode to place a port next to player's coastal settlement/city.
+     * @since 2.0.00
+     */
+    private final static int SC_FTRI_PLACE_PORT = 17;
+
     private final static int TURN_STARTING = 97;
     private final static int GAME_FORMING = 98;
     private final static int GAME_OVER = 99;
@@ -3575,6 +3582,31 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
             break;
 
+        case SC_FTRI_PLACE_PORT:
+            drawSeaEdgeLines(g, player.getPortMovePotentialLocations(true));
+            if (hilight != 0)
+            {
+                // Draw hilight line with some thickness if possible
+                final Stroke prevStroke;
+                if (g instanceof Graphics2D)
+                {
+                    prevStroke = ((Graphics2D) g).getStroke();
+                    ((Graphics2D) g).setStroke(new BasicStroke(2.5f));
+                } else {
+                    prevStroke = null;
+                }
+
+                g.setColor(Color.WHITE);
+                int edge = hilight;
+                if (edge == -1)
+                    edge = 0;
+                drawSeaEdgeLine(g, edge);
+
+                if (prevStroke != null)
+                    ((Graphics2D) g).setStroke(prevStroke);
+            }
+            break;
+
         }  // switch
 
         if (panelMarginX != 0)
@@ -4436,6 +4468,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     mode = PLACE_PIRATE;
                     break;
 
+                case SOCGame.PLACING_INV_ITEM:
+                    if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+                    {
+                        mode = SC_FTRI_PLACE_PORT;
+                        repaint();
+                    } else {
+                        mode = NONE;
+                    }
+                    break;
+
                 case SOCGame.NEW:
                 case SOCGame.READY:
                     mode = GAME_FORMING;
@@ -4795,7 +4837,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             case PLACE_FREE_ROAD_OR_SHIP:
             case MOVE_SHIP:
 
-                /**** Code for finding an edge; see also PLACE_SHIP ********/
+                /**** Code for finding an edge; see also PLACE_SHIP, SC_FTRI_PLACE_PORT ********/
                 edgeNum = 0;
 
                 if ((ptrOldX != x) || (ptrOldY != y))
@@ -4999,6 +5041,43 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     }
                 }
 
+                break;
+
+            case SC_FTRI_PLACE_PORT:
+                /**** Code for finding an edge; see also PLACE_ROAD, PLACE_SHIP ********/
+                edgeNum = 0;
+
+                if ((ptrOldX != x) || (ptrOldY != y))
+                {
+                    ptrOldX = x;
+                    ptrOldY = y;
+                    edgeNum = findEdge(xb, yb, false);
+                }
+
+                if (edgeNum != 0)
+                {
+                    final boolean edgeNeg1;
+                    if (edgeNum == -1)
+                    {
+                        edgeNum = 0;
+                        edgeNeg1 = true;
+                    } else {
+                        edgeNeg1 = false;
+                    }
+                    if (! game.canPlacePort(player, edgeNum))
+                    {
+                        edgeNum = 0;  // not valid for placement
+                    } else {
+                        if (edgeNeg1)
+                            edgeNum = -1;
+                    }
+                }
+
+                if (edgeNum != hilight)
+                {
+                    hilight = edgeNum;
+                    repaint();  // clear previous, or set new hilight
+                }
                 break;
 
             case CONSIDER_LM_SETTLEMENT:
@@ -5308,6 +5387,22 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         }
                     }
 
+                    break;
+
+                case SC_FTRI_PLACE_PORT:
+                    if (hilight != 0)
+                    {
+                        int edge = hilight;
+                        if (edge == -1)
+                            edge = 0;
+                        if (game.canPlacePort(player, edge))
+                        {
+                            // Ask server to place here.
+                            client.getGameManager().sendSimpleRequest
+                                (player, SOCSimpleRequest.TRADE_PORT_PLACE, hilight, 0);
+                            hilight = 0;
+                        }
+                    }
                     break;
 
                 case CONSIDER_LM_SETTLEMENT:
