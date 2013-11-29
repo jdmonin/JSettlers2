@@ -2533,10 +2533,42 @@ public class SOCGame implements Serializable, Cloneable
 
             final SOCPlayingPiece ppiece = board.settlementAtNode(portNodes[i]);
             if ((ppiece != null) && (ppiece.getPlayerNumber() == currentPlayerNumber))
-                plHasSettleOrCity = true;
+                plHasSettleOrCity = true;  // don't return yet, need to check both nodes for ports
         }
 
         return plHasSettleOrCity;
+    }
+
+    /**
+     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI} in game state {@link #PLACING_INV_ITEM}, place
+     * the "gift" port at this edge.  State becomes previous state ({@link #PLAY1} or {@link #SPECIAL_BUILDING}).
+     *<P>
+     * Assumes {@link #canPlacePort(SOCPlayer, int)} has already been called to validate.
+     *
+     * @param edge  An available coastal edge adjacent to {@code pl}'s settlement or city,
+     *          which should be checked with {@link #canPlacePort(SOCPlayer, int)}
+     * @return ptype  The type of port placed (in range {@link SOCBoard#MISC_PORT MISC_PORT}
+     *          to {@link SOCBoard#WOOD_PORT WOOD_PORT})
+     * @throws IllegalStateException if not state {@link #PLACING_INV_ITEM}, or (internal error) {@link #placingItem} is null
+     * @throws IllegalArgumentException if {@code ptype} is out of range, or
+     *           if {@code edge} is not coastal (is between 2 land hexes or 2 water hexes)
+     * @throws UnsupportedOperationException if ! {@link #hasSeaBoard}
+     * @since 2.0.00
+     * @see #placePort(SOCPlayer, int, int)
+     * @see #removePort(SOCPlayer, int)
+     */
+    public int placePort(final int edge)
+        throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException
+    {
+        if ((gameState != PLACING_INV_ITEM) || (placingItem == null))
+            throw new IllegalStateException("state " + gameState + ", placingItem " + placingItem);
+
+        final int ptype = -placingItem.itype;
+        placePort(players[currentPlayerNumber], ptype, edge);
+        placingItem = null;
+        gameState = oldGameState;
+
+        return ptype;
     }
 
     /**
@@ -2548,10 +2580,11 @@ public class SOCGame implements Serializable, Cloneable
      * @param edge  An available coastal edge adjacent to {@code pl}'s settlement or city,
      *          which should be checked with {@link #canPlacePort(SOCPlayer, int)}
      * @throws IllegalArgumentException if {@code ptype} is out of range, or
-     *           if {@code edge} is between 2 land hexes or 2 water hexes
+     *           if {@code edge} is not coastal (is between 2 land hexes or 2 water hexes)
      * @throws NullPointerException if {@code pl} is null
      * @throws UnsupportedOperationException if ! {@link #hasSeaBoard}
      * @since 2.0.00
+     * @see #placePort(int)
      * @see #removePort(SOCPlayer, int)
      */
     public void placePort(final SOCPlayer pl, final int ptype, final int edge)
