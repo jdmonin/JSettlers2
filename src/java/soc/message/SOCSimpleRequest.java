@@ -21,6 +21,8 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.game.SOCGame;  // for javadocs only
+
 /**
  * This generic message handles a simple request from a client player in a game.
  * This is a way to add game actions without adding new SOCMessage subclasses.
@@ -44,6 +46,7 @@ import java.util.StringTokenizer;
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.18
+ * @see SOCSimpleAction
  */
 public class SOCSimpleRequest extends SOCMessageTemplate4i
 {
@@ -61,6 +64,21 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
      * @since 1.1.18
      */
     public static final int SC_PIRI_FORT_ATTACK = 1000;
+
+    /**
+     * The current player wants to place a trade port they've been given.
+     * This typically happens at some point after {@link SOCSimpleAction#TRADE_PORT_REMOVED}.
+     *<P>
+     * In state {@link SOCGame#PLACING_INV_ITEM}, player sends this with an edge coordinate where
+     * they want to place the port. {@code value1} is the edge coordinate, value2 is unused.
+     *<P>
+     * If they can place there now, server will broadcast the new game state ({@link SOCGame#PLAY1} or
+     * {@link SOCGame#SPECIAL_BUILDING}), then broadcast a SOCSimpleRequest to the game with
+     * {@code value1} = the placed port type, {@code value2} = edge.
+     * Otherwise, server responds with a SOCSimpleRequest declining the placement (pn = -1).
+     * @since 2.0.00
+     */
+    public static final int TRADE_PORT_PLACE = 1001;
 
     /**
      * Create a SOCSimpleRequest message.

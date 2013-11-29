@@ -71,6 +71,19 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
     public static final int TRADE_SUCCESSFUL = 2;
 
     /**
+     * The current player has removed a trade port from the board.
+     * {@code value1} is the former port's edge coordinate, {@code value2} is the port type.
+     * Sent to entire game.  If the player must place the port immediately, server will soon send
+     * {@link SOCGameState}({@link soc.game.SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM}) among other messages.
+     *<P>
+     * When the player wants to place the removed port, they will send {@link SOCSimpleRequest#TRADE_PORT_PLACE}
+     * with their chosen location.  If the placement is allowed, the server will broadcast a similar
+     * {@link SOCSimpleRequest#TRADE_PORT_PLACE} to the game; see that javadoc for details.
+     * @since 2.0.00
+     */
+    public static final int TRADE_PORT_REMOVED = 1001;
+
+    /**
      * Create a SOCSimpleAction message.
      *
      * @param ga  the name of the game
