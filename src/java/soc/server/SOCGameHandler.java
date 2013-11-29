@@ -4808,6 +4808,28 @@ public class SOCGameHandler extends GameHandler
             }
             break;
 
+        case SOCSimpleRequest.TRADE_PORT_PLACE:
+            {
+                if (clientIsPN && (pn == cpn))
+                {
+                    final int edge = mes.getValue1();
+                    if ((ga.getGameState() == SOCGame.PLACING_INV_ITEM) && ga.canPlacePort(clientPl, edge))
+                    {
+                        final int ptype = ga.placePort(edge);
+
+                        sendGameState(ga);  // PLAY1 or SPECIAL_BUILDING
+                        srv.messageToGame(gaName, new SOCSimpleRequest
+                            (gaName, cpn, SOCSimpleRequest.TRADE_PORT_PLACE, ptype, edge));
+                    } else {
+                        replyDecline = true;  // client will print a text message, no need to send one
+                    }
+                } else {
+                    srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");
+                    replyDecline = true;
+                }
+            }
+            break;
+
         default:
             // deny unknown types
             replyDecline = true;
@@ -5577,6 +5599,24 @@ public class SOCGameHandler extends GameHandler
             }
             break;
 
+        case REMOVED_TRADE_PORT:
+            {
+                sendPlayerEventsBitmask = false;
+                sendSVP = false;
+                IntPair edge_portType = (IntPair) obj;
+                srv.messageToGame(gaName, new SOCSimpleAction
+                    (gaName, pn, SOCSimpleAction.TRADE_PORT_REMOVED, edge_portType.getA(), edge_portType.getB()));
+                if (ga.getGameState() == SOCGame.PLACING_INV_ITEM)
+                {
+                    // Removal happens during ship piece placement, which is followed at server with sendGameState.
+                    // When sendGameState gives the new state, client will prompt current player to place now.
+                } else {
+                    // port was added to player's inventory
+                    srv.messageToGame(gaName, new SOCInventoryItemAction
+                        (gaName, pn, SOCInventoryItemAction.ADD_PLAYABLE, -edge_portType.getB(), false, false));
+                }
+            }
+            break;
         }
 
         if (sendSVP)
