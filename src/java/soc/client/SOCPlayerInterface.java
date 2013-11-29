@@ -1911,6 +1911,13 @@ public class SOCPlayerInterface extends Frame
                 getBoardPanel().popupFireBuildingRequest();
         }
 
+        if ((gs == SOCGame.PLACING_INV_ITEM) && game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+        {
+            printKeyed("game.invitem.sc_ftri.prompt");
+                // "You have received this trade port as a gift."
+                // "You must now place it next to your coastal settlement which is not adjacent to any existing port."
+        }
+
         // Update our interface at start of first turn;
         // The server won't send a TURN message after the
         // final road is placed (state START2 -> PLAY).
@@ -3242,6 +3249,25 @@ public class SOCPlayerInterface extends Frame
                 scen_SC_PIRI_pirateFortressAttackResult(true, 0, 0);
                 break;
 
+            case SOCSimpleRequest.TRADE_PORT_PLACE:
+                if (pn == -1)
+                {
+                    // rejected
+                    if (pi.getGame().getGameState() == SOCGame.PLACING_INV_ITEM)
+                        pi.printKeyed("game.invitem.sc_ftri.need.coastal");  // * "Requires a coastal settlement not adjacent to an existing port."
+                    else
+                        pi.printKeyed("hpan.item.play.cannot");  // * "Cannot play this item right now."
+                } else {
+                    // placement
+                    SOCPlayer pl = pi.game.getPlayer(pn);
+                    pi.game.placePort(pl, value1, value2);
+                    boardUpdated();
+                    if (pi.clientHand != null)
+                        pi.clientHand.updateResourceTradeCosts(false);
+                    pi.printKeyed("game.invitem.port.placed", pl.getName());  // * "{0} has placed a trade port."
+                }
+                break;
+
             default:
                 // ignore unknown request types
                 System.err.println
@@ -3270,6 +3296,13 @@ public class SOCPlayerInterface extends Frame
                     break;
                 }
 
+            case SOCSimpleAction.TRADE_PORT_REMOVED:
+                {
+                    boardUpdated();
+                    pi.printKeyed("game.invitem.port.picked.up", plName);  // "{0} has picked up a trade port from the board."
+                    break;
+                }
+
             default:
                 // ignore unknown action types
                 System.err.println
@@ -3286,7 +3319,12 @@ public class SOCPlayerInterface extends Frame
 
         public void invItemPlayRejected(final int type, final int reasonCode)
         {
-            pi.printKeyed("hpan.item.play.cannot");  // * "Cannot play this item right now."
+            if ((reasonCode == 4) && pi.getGame().isGameOptionSet(SOCGameOption.K_SC_FTRI))
+            {
+                pi.printKeyed("game.invitem.sc_ftri.need.coastal");  // * "Requires a coastal settlement not adjacent to an existing port."
+            } else {
+                pi.printKeyed("hpan.item.play.cannot");  // * "Cannot play this item right now."
+            }
         }
 
         public void scen_SC_PIRI_pirateFortressAttackResult

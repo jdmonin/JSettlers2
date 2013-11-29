@@ -4457,6 +4457,15 @@ public class SOCPlayerClient
         final int atype = mes.getActionType();
         switch (atype)
         {
+        case SOCSimpleAction.TRADE_PORT_REMOVED:
+            {
+                SOCGame ga = games.get(gaName);
+                if ((ga == null) || ! ga.hasSeaBoard)
+                    return;
+                ga.removePort(null, mes.getValue1());
+            }
+            // fall through so pcl updates displayed board
+
         case SOCSimpleAction.DEVCARD_BOUGHT:
             pcl.simpleAction(mes.getPlayerNumber(), atype, mes.getValue1(), mes.getValue2());
             break;
