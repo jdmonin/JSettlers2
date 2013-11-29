@@ -3788,19 +3788,27 @@ public class SOCPlayerClient
         if (ga == null)
             return;
 
-        final int sta = ga.getGameState();
-        if ((sta != SOCGame.START1B) && (sta != SOCGame.START2B) && (sta != SOCGame.START3B))
+        final int ptype = mes.getPieceType();
+        final SOCPlayer pl;
+        if (ptype >= SOCPlayingPiece.SETTLEMENT)
         {
-            // The human player gets a text message from the server informing
-            // about the bad piece placement.  So, we can ignore this message type.
-            return;
-        }
-        if (mes.getPieceType() != SOCPlayingPiece.SETTLEMENT)
-            return;
+            final int sta = ga.getGameState();
+            if ((sta != SOCGame.START1B) && (sta != SOCGame.START2B) && (sta != SOCGame.START3B))
+            {
+                // The human player gets a text message from the server informing
+                // about the bad piece placement.  So, we can ignore this message type.
+                return;
+            }
+            if (ptype != SOCPlayingPiece.SETTLEMENT)
+                return;
 
-        SOCPlayer pl = ga.getPlayer(ga.getCurrentPlayerNumber());
-        SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
-        ga.undoPutInitSettlement(pp);
+            pl = ga.getPlayer(ga.getCurrentPlayerNumber());
+            SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
+            ga.undoPutInitSettlement(pp);
+        } else {
+            // ptype is -3 (SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL)
+            pl = ga.getPlayer(ga.getCurrentPlayerNumber());
+        }
 
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
         pcl.buildRequestCanceled(pl);
@@ -4428,23 +4436,11 @@ public class SOCPlayerClient
      */
     private final void handleSIMPLEREQUEST(SOCSimpleRequest mes)
     {
-        final String gaName = mes.getGame();
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
         if (pcl == null)
             return;  // Not one of our games
 
-        switch (mes.getRequestType())
-        {
-        case SOCSimpleRequest.SC_PIRI_FORT_ATTACK:
-            // was rejected
-            pcl.scen_SC_PIRI_pirateFortressAttackResult(true, 0, 0);
-            break;
-
-        default:
-            // unknown type
-            System.err.println
-                ("handleSIMPLEREQUEST: Unknown type " + mes.getRequestType() + " in game " + gaName);
-        }
+        pcl.simpleRequest(mes.getPlayerNumber(), mes.getRequestType(), mes.getValue1(), mes.getValue2());
     }
 
     /**
@@ -4656,13 +4652,14 @@ public class SOCPlayerClient
     {
         final boolean isReject = SOCDisplaylessPlayerClient.handleINVENTORYITEMACTION
             (games, (SOCInventoryItemAction) mes);
+
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
         if (pcl == null)
             return;
 
         if (isReject)
         {
-            pcl.invItemPlayRejected(mes.itemType);
+            pcl.invItemPlayRejected(mes.itemType, mes.reasonCode);
         } else {
             SOCGame ga = games.get(mes.getGame());
             if (ga != null)
@@ -4856,15 +4853,43 @@ public class SOCPlayerClient
     }
 
     /**
-     * The player wants to attack their pirate fortress, in scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}. 
-     * @param pl  the current player
+     * The player wants to send a simple request to the server, such as
+     * {@link SOCSimpleRequest#SC_PIRI_FORT_ATTACK} to attack their
+     * pirate fortress in scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     *<P>
+     * Using network message request types within the client breaks abstraction,
+     * but prevents having a lot of very similar methods for simple requests.
+     *
+     * @param pl  the requesting player
+     * @param reqtype  the request type as defined in {@link SOCSimpleRequest}
      * @since 2.0.00
+     * @see #sendSimpleRequest(SOCPlayer, int, int, int)
      */
-    public void scen_SC_PIRI_attackPirateFortressRequest(final SOCPlayer pl)
+    public void sendSimpleRequest(final SOCPlayer pl, final int reqtype)
+    {
+        sendSimpleRequest(pl, reqtype, 0, 0);
+    }
+
+    /**
+     * The player wants to send a simple request to the server, such as
+     * {@link SOCSimpleRequest#SC_PIRI_FORT_ATTACK} to attack their
+     * pirate fortress in scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * with optional {@code value1} and {@code value2} parameters.
+     *<P>
+     * Using network message request types within the client breaks abstraction,
+     * but prevents having a lot of very similar methods for simple requests.
+     *
+     * @param pl  the requesting player
+     * @param reqtype  the request type as defined in {@link SOCSimpleRequest}
+     * @param value1  First optional detail value, or 0
+     * @param value2  Second optional detail value, or 0
+     * @since 2.0.00
+     * @see #sendSimpleRequest(SOCPlayer, int)
+     */
+    public void sendSimpleRequest(final SOCPlayer pl, final int reqtype, final int value1, final int value2)
     {
         final SOCGame ga = pl.getGame();
-        put(SOCSimpleRequest.toCmd
-                (ga.getName(), pl.getPlayerNumber(), SOCSimpleRequest.SC_PIRI_FORT_ATTACK, 0, 0),
+        put(SOCSimpleRequest.toCmd(ga.getName(), pl.getPlayerNumber(), reqtype, value1, value2),
             ga.isPractice);
     }
 
@@ -5068,6 +5093,17 @@ public class SOCPlayerClient
                 dc = SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
         }
         put(SOCPlayDevCardRequest.toCmd(ga.getName(), dc), ga.isPractice);
+    }
+
+    /**
+     * The current user wants to play a special {@link soc.game.SOCInventoryItem SOCInventoryItem}.
+     * @param ga     the game
+     * @param itype  the special item type picked by player, from {@link soc.game.SOCInventoryItem#itype SOCInventoryItem.itype}
+     */
+    public void playInventoryItem(SOCGame ga, final int itype)
+    {
+        put(SOCInventoryItemAction.toCmd
+            (ga.getName(), ga.getCurrentPlayerNumber(), SOCInventoryItemAction.PLAY, itype, 0), ga.isPractice);
     }
 
     /**

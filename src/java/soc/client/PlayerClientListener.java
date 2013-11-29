@@ -274,13 +274,32 @@ public interface PlayerClientListener
     void messageSent(String nickname, String message);
 
     /**
+     * A player's {@link soc.message.SOCSimpleRequest "simple request"} has been sent to the entire game, or the server
+     * has replied to our own simple request, and this should be displayed.
+     * This method lets us display simple things from the server without defining a lot of small similar methods.
+     *<P>
+     * If other game data messages are sent (resource gains/loss, etc), or other client code must update that data
+     * based on info in the SOCSimpleRequest, this method will be called only after other game data is updated.
+     * Some simpleRequest reqtypes update the game data.
+     *
+     * @param pn  The player number requesting or acting, or -1 if our own request was declined
+     * @param reqtype  The request type, from {@link soc.message.SOCSimpleRequest} constants for simplicity
+     * @param value1  First optional detail value, or 0
+     * @param value2  Second optional detail value, or 0
+     * @see #simpleAction(int, int, int, int)
+     */
+    void simpleRequest(int pn, int reqtype, int value1, int value2);
+
+    /**
      * A {@link soc.message.SOCSimpleAction "simple action"} has occurred in the game and should be displayed.
+     * This method lets us show simple things from the server without defining a lot of small similar methods.
      *<P>
      * This will be called only after other game data is updated (number of dev cards, resource gains/loss, etc).
      * @param pn  The player number acting or acted on
      * @param acttype  The action type, from {@link soc.message.SOCSimpleAction} constants for simplicity
      * @param value1  First optional detail value, or 0
      * @param value2  Second optional detail value, or 0
+     * @see #simpleRequest(int, int, int, int)
      */
     void simpleAction(int pn, int acttype, int value1, int value2);
 
@@ -289,8 +308,10 @@ public interface PlayerClientListener
     /**
      * Client player's request to play a special {@link SOCInventoryItem} was rejected by the server.
      * @param type  Item type from {@link SOCInventoryItem#itype}
+     * @param reasonCode  Optional reason code for the {@link SOCInventoryItem#CANNOT_PLAY} action, corresponding
+     *            to {@link SOCGame#canPlayInventoryItem(int, int)} return codes, or 0
      */
-    void invItemPlayRejected(final int type);
+    void invItemPlayRejected(final int type, final int reasonCode);
 
     /**
      * In scenario _SC_PIRI, present the server's response to a Pirate Fortress Attack request from the

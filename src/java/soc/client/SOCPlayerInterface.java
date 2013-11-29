@@ -43,6 +43,7 @@ import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCVillage;
 import soc.message.SOCSimpleAction;  // for action type constants
+import soc.message.SOCSimpleRequest;  // for request type constants
 import soc.util.SOCStringManager;
 
 import java.awt.Color;
@@ -3232,13 +3233,32 @@ public class SOCPlayerInterface extends Frame
             }
         }
 
+        public final void simpleRequest(final int pn, final int reqtype, final int value1, final int value2)
+        {
+            switch (reqtype)
+            {
+            case SOCSimpleRequest.SC_PIRI_FORT_ATTACK:
+                // was rejected
+                scen_SC_PIRI_pirateFortressAttackResult(true, 0, 0);
+                break;
+
+            default:
+                // ignore unknown request types
+                System.err.println
+                    ("PI.simpleRequest: Ignored unknown type " + reqtype + " in game " + pi.game.getName());
+
+            }
+        }
+
         public final void simpleAction(final int pn, final int acttype, final int value1, final int value2)
         {
+            final String plName = pi.game.getPlayer(pn).getName();
+
             switch (acttype)
             {
             case SOCSimpleAction.DEVCARD_BOUGHT:
                 {
-                    pi.printKeyed("game.devcard.bought", pi.game.getPlayer(pn).getName());
+                    pi.printKeyed("game.devcard.bought", plName);
                     final String key;
                     if (value1 > 1)
                         key = "game.devcard.bought.xleft";  // "There are 5 cards left."
@@ -3250,7 +3270,11 @@ public class SOCPlayerInterface extends Frame
                     break;
                 }
 
-            // default: ignore unknown action types
+            default:
+                // ignore unknown action types
+                System.err.println
+                    ("PI.simpleAction: Ignored unknown type " + acttype + " in game " + pi.game.getName());
+
             }
         }
 
@@ -3260,7 +3284,7 @@ public class SOCPlayerInterface extends Frame
             pi.getBoardPanel().updateMode();
         }
 
-        public void invItemPlayRejected(final int type)
+        public void invItemPlayRejected(final int type, final int reasonCode)
         {
             pi.printKeyed("hpan.item.play.cannot");  // * "Cannot play this item right now."
         }
