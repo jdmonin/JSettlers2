@@ -33,6 +33,7 @@ import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCVillage;
+import soc.message.SOCSimpleRequest;  // to request simple things from the server without defining a lot of methods
 import soc.util.SOCStringManager;
 
 import java.awt.BasicStroke;
@@ -56,6 +57,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -379,7 +381,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * BoardPanel's {@link #mode}s. NONE is normal gameplay, or not the client's turn.
      * For correlation to game state, see {@link #updateMode()}.
+     *<P>
      * If a mode is added, please also update {@link #clearModeAndHilight(int)}.
+     * If a piece or item hovers in this mode with the mouse cursor, update
+     * {@link SOCBoardPanel.BoardToolTip#handleHover(int, int)}.
+     * If the player clicks to place or interact in the new mode, update {@link #mouseClicked(MouseEvent)}.
+     * See {@link #hilight} and {@link SOCBoardPanel.BoardToolTip}.
      */
     private final static int NONE = 0;
 
@@ -2948,6 +2955,43 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
+     * Draw a dotted line with some thickness at each of these sea edge coordinates.
+     * Client must have an active {@link #player}: Line color is {@link SOCPlayerInterface#getPlayerColor(int)}.
+     * Calls {@link #drawSeaEdgeLine(Graphics, int)}.
+     * @param g  Graphics
+     * @param lse  Set of edge coordinates, or null
+     * @since 2.0.00
+     */
+    private void drawSeaEdgeLines(Graphics g, final Collection<Integer> lse)
+    {
+        if ((lse == null) || lse.isEmpty())
+            return;
+
+        final Stroke prevStroke;
+        if (g instanceof Graphics2D)
+        {
+            // Draw as a dotted line with some thickness
+            prevStroke = ((Graphics2D) g).getStroke();
+            final int hexPartWidth = scaleToActualX(halfdeltaX);
+            final float[] dash = { hexPartWidth * 0.15f, hexPartWidth * 0.12f };  // length of dash/break
+            ((Graphics2D) g).setStroke
+                (new BasicStroke
+                    ((1.5f * scaledPanelX) / panelMinBW, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
+                     1.5f, dash, hexPartWidth * 0.1f));
+            g.setColor(playerInterface.getPlayerColor(playerNumber));
+        } else {
+            prevStroke = null;
+            g.setColor(playerInterface.getPlayerColor(playerNumber, true));
+        }
+
+        for (Integer edge : lse)
+            drawSeaEdgeLine(g, edge);
+
+        if (g instanceof Graphics2D)
+            ((Graphics2D) g).setStroke(prevStroke);
+    }
+
+    /**
      * For drawing the player's permitted sea edges for ships, draw
      * a line covering the middle 60% of this edge on the board (leaves out 20% on each end).
      * For efficiency, the player color and line stroke must be set before calling this method.
@@ -3675,31 +3719,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
 
                 final HashSet<Integer> lse = (player != null) ? player.getRestrictedLegalShips() : null;
-                if ((lse != null) && ! lse.isEmpty())
-                {
-                    final Stroke prevStroke;
-                    if (g instanceof Graphics2D)
-                    {
-                        // Draw as a dotted line with some thickness
-                        prevStroke = ((Graphics2D) g).getStroke();
-                        final int hexPartWidth = scaleToActualX(halfdeltaX);
-                        final float[] dash = { hexPartWidth * 0.15f, hexPartWidth * 0.12f };  // length of dash/break
-                        ((Graphics2D) g).setStroke
-                            (new BasicStroke
-                                ((1.5f * scaledPanelX) / panelMinBW, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
-                                 1.5f, dash, hexPartWidth * 0.1f));
-                        g.setColor(playerInterface.getPlayerColor(playerNumber));
-                    } else {
-                        prevStroke = null;
-                        g.setColor(playerInterface.getPlayerColor(playerNumber, true));
-                    }
-
-                    for (Integer edge : lse)
-                        drawSeaEdgeLine(g, edge);
-
-                    if (g instanceof Graphics2D)
-                        ((Graphics2D) g).setStroke(prevStroke);
-                }
+                if (lse != null)
+                    drawSeaEdgeLines(g, lse);
             }
 
             // For scenario _SC_FTRI, draw markers at the SVP edges and dev card edges (added layout parts "CE", "VE")
@@ -7536,7 +7557,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
       {
           // Validate and make the request
           if (game.canAttackPirateFortress() != null)
-              playerInterface.getClient().getGameManager().scen_SC_PIRI_attackPirateFortressRequest(player);
+              playerInterface.getClient().getGameManager().sendSimpleRequest(player, SOCSimpleRequest.SC_PIRI_FORT_ATTACK);
           else
               // can't attack, cancel the request
               playerInterface.getClientListener().scen_SC_PIRI_pirateFortressAttackResult(true, 0, 0);
