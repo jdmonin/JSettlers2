@@ -3536,6 +3536,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param edge  Port's edge coordinate
      * @return  True if that edge has a port which can be removed
      * @see #removePort(int)
+     * @see SOCGame#canRemovePort(SOCPlayer, int)
      * @see SOCGame#canPlacePort(SOCPlayer, int)
      */
     public boolean canRemovePort(final int edge)
@@ -3589,6 +3590,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param edge  A port edge to be removed
      * @return  The type of port removed (in range {@link SOCBoard#MISC_PORT MISC_PORT}
      *     to {@link SOCBoard#WOOD_PORT WOOD_PORT})
+     * @see SOCGame#removePort(SOCPlayer, int)
      * @see SOCGame#placePort(SOCPlayer, int, int)
      * @throws IllegalArgumentException  if {@code edge} not found in port layout
      */
@@ -3601,6 +3603,17 @@ public class SOCBoardLarge extends SOCBoard
             if (edge == portsLayout[n + i])
             {
                 portsLayout[n + i] = -1;
+
+                final int[] nodes = getAdjacentNodesToEdge_arr(edge);
+                final int node1Int = Integer.valueOf(nodes[0]),
+                          node2Int = Integer.valueOf(nodes[1]);
+                nodeIDtoPortType.remove(node1Int);
+                nodeIDtoPortType.remove(node2Int);
+
+                final int ptype = portsLayout[i];
+                ports[ptype].remove((Object) node1Int);  // explicit cast: auto-unboxing would call remove(int)
+                ports[ptype].remove((Object) node2Int);
+
                 return portsLayout[i];  // pType
             }
         }
