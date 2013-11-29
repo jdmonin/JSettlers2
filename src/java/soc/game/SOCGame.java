@@ -299,16 +299,6 @@ public class SOCGame implements Serializable, Cloneable
     public static final int PLACING_SHIP = 35;
 
     /**
-     * Player is placing the special {@link SOCInventoryItem} held in {@link #placingItem}.
-     *<P>
-     * The placement method depends on the scenario and item type; for example,
-     * {@link SOCGameOption#K_SC_FTRI _SC_FTRI} has trading port items and would
-     * call {@link #placePort(SOCPlayer, int, int)}.
-     * @since 2.0.00
-     */
-    public static final int PLACING_INV_ITEM = 36;
-
-    /**
      * Player is placing first free road/ship
      */
     public static final int PLACING_FREE_ROAD1 = 40;
@@ -317,6 +307,23 @@ public class SOCGame implements Serializable, Cloneable
      * Player is placing second free road/ship
      */
     public static final int PLACING_FREE_ROAD2 = 41;
+
+    /**
+     * Player is placing the special {@link SOCInventoryItem} held in {@link #placingItem}.
+     * For some kinds of item, placement can be canceled by calling {@link #cancelPlaceInventoryItem()}.
+     *<P>
+     * The placement method depends on the scenario and item type; for example,
+     * {@link SOCGameOption#K_SC_FTRI _SC_FTRI} has trading port items and would
+     * call {@link #placePort(int)}.
+     *<P>
+     * Placement requires its own game state (not {@code PLAY1}) because sometimes
+     * it's triggered by the game after another action, not initiated by player request.
+     *<P>
+     * When setting this gameState: In case placement is canceled, set
+     * {@code oldGameState} to {@link #PLAY1} or {@link #SPECIAL_BUILDING}.
+     * @since 2.0.00
+     */
+    public static final int PLACING_INV_ITEM = 42;
 
     /**
      * Waiting for player(s) to discard, after 7 is rolled.
@@ -878,6 +885,9 @@ public class SOCGame implements Serializable, Cloneable
      *        Unless <tt>oldGameState</tt> is {@link #SPECIAL_BUILDING},
      *        {@link #advanceTurnStateAfterPutPiece()} will set the state to {@link #PLAY1}.
      *        So will {@link #cancelBuildRoad(int)}, {@link #cancelBuildSettlement(int)}, etc.
+     *<LI> {@link #PLACING_INV_ITEM}:
+     *        {@code oldGameState} == {@link #PLAY1} or {@link #SPECIAL_BUILDING},
+     *        same advance/cancel logic as other {@code PLACING_} states mentioned above.
      *<LI> {@link #PLACING_ROBBER}, {@link #WAITING_FOR_ROBBER_OR_PIRATE}:
      *        <tt>oldGameState</tt> = {@link #PLAY1}
      *<LI> {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}, {@link #PLACING_PIRATE}, {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}
@@ -2466,6 +2476,7 @@ public class SOCGame implements Serializable, Cloneable
                 pl.getInventory().addItem(port);
             } else {
                 placingItem = port;
+                oldGameState = (gameState == SPECIAL_BUILDING) ? SPECIAL_BUILDING : PLAY1;
                 gameState = PLACING_INV_ITEM;
             }
 
@@ -3991,18 +4002,13 @@ public class SOCGame implements Serializable, Cloneable
             }
 
         case PLACING_INV_ITEM:
-            gameState = PLAY1;
-            if (placingItem != null)
-            {
-                itemCard = placingItem;
-                placingItem = null;
-                players[currentPlayerNumber].getInventory().addItem(itemCard);
+            itemCard = cancelPlaceInventoryItem();
+            if (itemCard != null)
                 return new SOCForceEndTurnResult
                     (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
-            } else {
+            else
                 return new SOCForceEndTurnResult
                     (SOCForceEndTurnResult.FORCE_ENDTURN_NONE);
-            }
 
         case PLACING_ROBBER:
             {
@@ -6503,6 +6509,28 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * In state {@link #PLACING_INV_ITEM}, the current player is canceling special {@link SOCInventoryItem} placement.
+     * Return it to their hand, and set gameState back to {@link #PLAY1} or {@link #SPECIAL_BUILDING}
+     * based on oldGameState.
+     * @return  The item that was being placed, or {@code null} if none or if placement can't be canceled for this type
+     * @since 2.0.00
+     */
+    public SOCInventoryItem cancelPlaceInventoryItem()
+    {
+        gameState = oldGameState;
+
+        if (placingItem != null)
+        {
+            final SOCInventoryItem itemCard = placingItem;
+            placingItem = null;
+            players[currentPlayerNumber].getInventory().addItem(itemCard);
+            return itemCard;
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, is this ship upgraded to a warship?
      * Counts down {@code sh}'s player's {@link SOCPlayer#getNumWarships()}
      * while it looks for {@code sh} among the ships from {@link SOCPlayer#getRoads()},
@@ -6717,6 +6745,95 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         return true;
+    }
+
+    /**
+     * Can this player play this special {@link SOCInventoryItem} now? Checks the game state, scenario options, and
+     * player's inventory. Returns 0 or the reason why they can't play it right now.
+     *<P>
+     * Assumes server or client player is calling, and thus player has no unknown dev cards (itype == 0).
+     * If calling at client for another player, and the scenario allows special items of type 0, these
+     * currently can't be distinguished from {@link SOCDevCardConstants#UNKNOWN} dev cards.
+     *
+     * <H5>Recognized scenario game options with special items:</H5>
+     *<UL>
+     * <LI> {@link SOCGameOption#K_SC_FTRI _SC_FTRI}: Trade ports received as gifts.
+     *   Playable in state {@link #PLAY1} or {@link #SPECIAL_BUILDING} and only when player has a
+     *   coastal settlement/city with no adjacent existing port.  Returns 4 if
+     *   {@link SOCPlayer#getPortMovePotentialLocations(boolean)} == {@code null}.
+     *   (See "returns" section below for the standard other return codes.)
+     *   Because the rules require building a coastal settlement/city before placing
+     *   the new port, which is done during {@link #PLAY1} or {@link #SPECIAL_BUILDING}, the port can't be placed
+     *   before the dice roll or in other game states.
+     *</UL>
+     *
+     * @param pn  Player number
+     * @param itype  Inventory item type, from {@link SOCInventoryItem#itype}
+     * @return  the results of the check:
+     *   <UL>
+     *     <LI> 0 if can be played now
+     *     <LI> 1 if no playable {@code itype} in player's {@link SOCInventory}
+     *     <LI> 2 if game doesn't have a scenario option that permits special items to be played
+     *     <LI> 3 if cannot be played right now (game state, current player, etc)
+     *     <LI> or any other nonzero scenario-specific detail code for why the item can't be played now
+     *   </UL>
+     * @since 2.0.00
+     * @see #playInventoryItem()
+     */
+    public int canPlayInventoryItem(final int pn, final int itype)
+    {
+        if (! players[pn].getInventory().hasPlayable(itype))
+            return 1;
+
+        if (isGameOptionSet(SOCGameOption.K_SC_FTRI))
+        {
+            if ((pn != currentPlayerNumber) || ((gameState != PLAY1) && (gameState != SPECIAL_BUILDING)))
+                return 3;
+
+            if (null == players[pn].getPortMovePotentialLocations(false))
+                return 4;
+
+            return 0;
+        }
+
+        // Fallback:
+        return 2;
+    }
+
+    /**
+     * Play a special {@link SOCInventoryItem} for the current player.  The current game must have a
+     * scenario {@link SOCGameOption} that uses the inventory item.  Assumes {@link #canPlayInventoryItem(int, int)}
+     * has been called to check game options and state, player inventory, etc.
+     *
+     * <H5>Recognized scenario game options with special items:</H5>
+     *<UL>
+     * <LI> {@link SOCGameOption#K_SC_FTRI _SC_FTRI}: Trade ports received as gifts.
+     *   Game state becomes {@link #PLACING_INV_ITEM}.  Player must now choose and validate a location
+     *   and then call {@link #placePort(int)}.
+     *</UL>
+     *
+     * @param  itype  Special item type, from {@link SOCInventoryItem#itype}
+     * @return  The item played, or {@code null} if not found playable in current player's inventory
+     *     or not recognized in current game. {@link #canPlayInventoryItem(int, int)} checks those things,
+     *     so if you've called that, you shouldn't get {@code null} returned from here.
+     */
+    public SOCInventoryItem playInventoryItem(final int itype)
+    {
+        SOCInventoryItem item = players[currentPlayerNumber].getInventory().removeItem(SOCInventory.PLAYABLE, itype);
+        if (item == null)
+            return null;
+
+        if (isGameOptionSet(SOCGameOption.K_SC_FTRI))
+        {
+            // Player can place a trade port somewhere on the board
+            placingItem = item;
+            oldGameState = (gameState == SPECIAL_BUILDING) ? SPECIAL_BUILDING : PLAY1;
+            gameState = PLACING_INV_ITEM;
+            return item;
+        }
+
+        // Fallback:
+        return null;
     }
 
     /**
