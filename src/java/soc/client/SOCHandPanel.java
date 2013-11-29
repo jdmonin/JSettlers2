@@ -1174,6 +1174,7 @@ public class SOCHandPanel extends Panel
      * Inventory items are almost always {@link SOCDevCard}s.
      * Some scenarios may place other items in the player's inventory,
      * such as a "gift" port being moved in {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
+     * If one of these is chosen, this method calls {@link #clickPlayInventorySpecialItem(SOCInventoryItem)}.
      *<P>
      * Called from actionPerformed()
      */
@@ -1254,19 +1255,6 @@ public class SOCHandPanel extends Panel
             return;  // <--- Early Return: Not current player ---
         }
 
-        if (! (itemObj instanceof SOCDevCard))
-        {
-            clickPlayInventorySpecialItem(itemObj);
-            return;  // <--- Early Return: Special item, not a dev card ---
-        }
-
-        if (player.hasPlayedDevCard())
-        {
-            playerInterface.print("*** " + strings.get("hpan.devcards.oneperturn"));  // "You may play only one card per turn."
-            playCardBut.setEnabled(false);
-            return;
-        }
-
         if (itemObj.isVPItem())
         {
             playerInterface.print("*** " + strings.get("hpan.devcards.vp.secretlyplayed"));
@@ -1282,6 +1270,19 @@ public class SOCHandPanel extends Panel
         {
             playerInterface.print("*** " + strings.get("hpan.devcards.wait"));  // "Wait a turn before playing new cards."
             return;  // <--- Early Return: Card is new ---
+        }
+
+        if (! (itemObj instanceof SOCDevCard))
+        {
+            clickPlayInventorySpecialItem(itemObj);
+            return;  // <--- Early Return: Special item, not a dev card ---
+        }
+
+        if (player.hasPlayedDevCard())
+        {
+            playerInterface.print("*** " + strings.get("hpan.devcards.oneperturn"));  // "You may play only one card per turn."
+            playCardBut.setEnabled(false);
+            return;
         }
 
         int cardTypeToPlay = -1;
@@ -1346,7 +1347,10 @@ public class SOCHandPanel extends Panel
      */
     private final void clickPlayInventorySpecialItem(final SOCInventoryItem item)
     {
-        // nothing yet
+        if (item.isPlayable())
+            client.getGameManager().playInventoryItem(game, item.itype);
+        // else isKept, or is new;
+        // clickPlayCardButton checks these and prints a message to the user.
     }
 
     /** Handle a click on the roll button.
