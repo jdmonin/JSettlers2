@@ -25,7 +25,7 @@ import soc.util.SOCStringManager;
  * An inventory item, such as a {@link SOCDevCard} or a scenario-specific item, held
  * in a player's hand to be played later or kept until scoring at the end of the game.
  *<P>
- * To see if a player can currently play an inventory item, use {@link SOCGame#checkCanPlayInventoryItem(int, int)}.
+ * To see if a player can currently play an inventory item, use {@link SOCGame#canPlayInventoryItem(int, int)}.
  *<P>
  * Inventory items must be {@link Cloneable} for use in set copy constructors,
  * see {@link #clone()} for details.
