@@ -3392,7 +3392,7 @@ public class SOCServer extends Server
                     {
                         if (hand.processCommand(ga, (SOCMessageForGame) mes, c))
                             return;
-                        // else: Message type unknown or ignored. Handle below.
+                        // else: Message type unknown or ignored by handler. Server handles it below.
                     }
                 }
 
