@@ -343,13 +343,13 @@ public class SOCInventory
      * @param state  Item state: {@link #NEW}, {@link #PLAYABLE} or {@link #KEPT}
      * @param itype  Item type code from {@link SOCInventoryItem#itype},
      *            or card type from {@link SOCDevCardConstants}
-     * @return  true if removed, false if not found
+     * @return  item removed, or {@code null} if not found
      * @throws IllegalArgumentException if {@code state} isn't one of the 3 item states
      * @since 2.0.00
      * @see #removeDevCard(int, int)
      * @see #keepPlayedItem(int)
      */
-    public boolean removeItem(final int state, final int itype)
+    public SOCInventoryItem removeItem(final int state, final int itype)
         throws IllegalArgumentException
     {
         final List<SOCInventoryItem> ilist;
@@ -368,7 +368,7 @@ public class SOCInventory
             if (c.itype == itype)
             {
                 iIter.remove();
-                return true;  // <--- Early return: found and removed ---
+                return c;  // <--- Early return: found and removed ---
             }
         }
 
@@ -376,7 +376,7 @@ public class SOCInventory
         if (itype != SOCDevCardConstants.UNKNOWN)
             return removeItem(state, SOCDevCardConstants.UNKNOWN);
         else
-            return false;
+            return null;
     }
 
     /**
