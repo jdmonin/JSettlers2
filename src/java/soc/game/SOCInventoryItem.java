@@ -25,6 +25,8 @@ import soc.util.SOCStringManager;
  * An inventory item, such as a {@link SOCDevCard} or a scenario-specific item, held
  * in a player's hand to be played later or kept until scoring at the end of the game.
  *<P>
+ * To see if a player can currently play an inventory item, use {@link SOCGame#checkCanPlayInventoryItem(int, int)}.
+ *<P>
  * Inventory items must be {@link Cloneable} for use in set copy constructors,
  * see {@link #clone()} for details.
  *<P>
@@ -32,10 +34,26 @@ import soc.util.SOCStringManager;
  * provide i18n keys and possibly override {@link #getItemName(SOCGame, boolean, SOCStringManager)};
  * see that method for details.
  *<P>
- * When adding a new kind of inventory item, update {@link SOCGame#forceEndTurn()} and
- * {@link soc.server.SOCGameHandler#forceEndGameTurn(SOCGame, String)} if the item is
- * playable and is returned to the player's inventory if their turn must be ended;
- * search where-used for {@link SOCForceEndTurnResult#getReturnedInvItem()}.
+ * When adding a new kind of inventory item:
+ *<UL>
+ * <LI> Decide how and when the new kind of item will be played
+ * <LI> Decide which scenario {@link SOCGameOption} will use the new kind of item;
+ *      all code and javadoc updates will check for or mention the option
+ * <LI> Update {@link #getItemName(SOCGame, boolean, SOCStringManager)}
+ * <LI> Update {@link SOCGame#checkCanPlayInventoryItem(int, int)}
+ * <LI> Update {@link SOCGame#playInventoryItem(int)}
+ * <LI> Decide if the server will communicate item-related actions using {@code SOCSimpleRequest}, {@code SOCSimpleAction}
+ *      or {@link SOCInventoryItemAction} messages, or more specific message types.  Update those message handlers at
+ *      clients and at server's SOCGameHandler; search where-used for the message classes that will be used.
+ * <LI> Not all items are placed on the board, and not all of those allow placement to be canceled: check and update
+ *      {@link SOCGame#cancelPlaceInventoryItem()} and SOCGame's javadocs for {@code gameState}, {@code oldGameState},
+ *      and {@link SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM}.
+ * <LI> If the item is playable, update {@link SOCGame#forceEndTurn()} and
+ *      {@link soc.server.SOCGameHandler#forceEndGameTurn(SOCGame, String)} to return it to the player's inventory if
+ *      their turn must be ended; search where-used for {@link SOCForceEndTurnResult#getReturnedInvItem()}.
+ * <LI> If there's already a similar kind of item, search where-used for its SOCGameOption or related constants,
+ *      and decide if your new kind should be checked at the same places in the code.
+ *</UL>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
