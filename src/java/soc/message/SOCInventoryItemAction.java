@@ -20,6 +20,9 @@
 package soc.message;
 
 import java.util.StringTokenizer;
+
+import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCInventoryItem;     // for javadoc's use
 
 
@@ -38,11 +41,32 @@ import soc.game.SOCInventoryItem;     // for javadoc's use
  * Add an item to a player's inventory with a certain state: {@link #ADD_PLAYABLE}, {@link #ADD_OTHER}
  *<LI> From Client: Player is requesting to {@link #PLAY} a playable item
  *<LI> If the client can't currently play that type,
- * server responds with {@link #CANNOT_PLAY}
+ * server responds with {@link #CANNOT_PLAY}, optionally with a {@link #reasonCode}
  *<LI> When a player plays an item, server sends
  * {@link #PLAY_REMOVE} or {@link #PLAY_KEPT} to the client or to all clients
  *</UL>
+ * When the server sends a {@code SOCInventoryItemAction}, it doesn't also send a {@link SOCGameServerText} explaining
+ * the details; the client must print such text based on the {@code SOCInventoryItemAction} received.
+ *<P>
  * Based on {@link SOCDevCardAction}.
+ *<P>
+ *
+ * <H5>Notes for certain special items:</H5>
+ *<UL>
+ * <LI> {@link SOCGameOption#K_SC_FTRI _SC_FTRI}: Trade ports received as gifts. <BR>
+ *   In state {@link SOCGame#PLAY1} or {@link SOCGame#SPECIAL_BUILDING}, current player sends this when they
+ *   have a port in their inventory.  {@code itemType} is the negative of the port type to play.
+ *  <P>
+ *   If they can place now, server broadcasts SOCInventoryItemAction({@link #PLAY_REMOVE}) to the game
+ *   to remove it from player's inventory, and game state becomes {@link SOCGame#PLACING_INV_ITEM}.
+ *   (Player interface shouldn't let them place before the new game state is sent.)
+ *  <P>
+ *   Otherwise, server responds with {@link #CANNOT_PLAY} with one of these {@link #reasonCode}s: <BR>
+ *   1 if the requested port type isn't in the player's inventory <BR>
+ *   2 if the game options don't permit moving trade ports <BR>
+ *   3 if the game state or current player aren't right to request placement now <BR>
+ *   4 if player's {@link soc.game.SOCPlayer#getPortMovePotentialLocations(boolean)} is null <BR>
+ *</UL>
  *
  * @since 2.0.00
  */
@@ -73,13 +97,19 @@ public class SOCInventoryItemAction extends SOCMessage
     /** item action PLAY_KEPT: From server, item was played and stays in inventory with state KEPT */
     public static final int PLAY_KEPT = 6;
 
+    /** {@link #isKept} bit value for sending over network in a bit field */
+    private static final int FLAG_ISKEPT = 0x01;
+
+    /** {@link #isVP} bit value for sending over network in a bit field */
+    private static final int FLAG_ISVP   = 0x02;
+
     /**
      * Name of game; getter required by {@link SOCMessageForGame}
      */
     private final String game;
 
     /**
-     * Player number
+     * Player number, or -1 for action {@link #CANNOT_PLAY}
      */
     public final int playerNumber;
 
@@ -94,23 +124,33 @@ public class SOCInventoryItemAction extends SOCMessage
     public final int action;
 
     /**
+     * Optional reason codes for the {@link #CANNOT_PLAY} action, corresponding
+     * to {@link SOCGame#canPlayInventoryItem(int, int)} return codes, or 0.
+     * Also used within this class to encode {@link #isKept} and {@link #isVP} over the network.
+     */
+    public final int reasonCode;
+
+    /**
      * If true, this item being added is kept in inventory until end of game.
-     * This flag is never set except for actions {@link #ADD_PLAYABLE} and {@link #ADD_OTHER}.
+     * This flag is sent only for actions {@link #ADD_PLAYABLE} and {@link #ADD_OTHER}.
      */
     public final boolean isKept;
 
     /**
      * If true, this item being added is worth victory points.
-     * This flag is never set except for actions {@link #ADD_PLAYABLE} and {@link #ADD_OTHER}.
+     * This flag is sent only for actions {@link #ADD_PLAYABLE} and {@link #ADD_OTHER}.
      */
     public final boolean isVP;
 
     /**
-     * Create an InventoryItemAction message, skipping some flags.
+     * Create an InventoryItemAction message, skipping the boolean flags.
      *<P>
      * If the action is to add a card with {@link #isKept} or {@link #isVP}, use
      * the {@link #SOCInventoryItemAction(String, int, int, int, boolean, boolean)}
      * constructor instead.
+     *<P>
+     * If the action is the server replying with {@link #CANNOT_PLAY} with a reason code,
+     * use the {@link #SOCInventoryItemAction(String, int, int, int, int)} constructor instead.
      *
      * @param ga  name of the game
      * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}
@@ -119,11 +159,12 @@ public class SOCInventoryItemAction extends SOCMessage
      */
     public SOCInventoryItemAction(final String ga, final int pn, final int ac, final int it)
     {
-        this(ga, pn, ac, it, false, false);
+        this(ga, pn, ac, it, 0);
     }
 
     /**
      * Create an InventoryItemAction message, with any possible flags.
+     * {@link #reasonCode} will be 0.
      *
      * @param ga  name of the game
      * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}
@@ -140,8 +181,32 @@ public class SOCInventoryItemAction extends SOCMessage
         playerNumber = pn;
         action = ac;
         itemType = it;
+        reasonCode = ((kept) ? FLAG_ISKEPT : 0) | ((vp) ? FLAG_ISVP : 0);
         isKept = kept;
         isVP = vp;
+    }
+
+    /**
+     * Create an InventoryItemAction message, with optional {@link #reasonCode}.
+     * {@link #isKept} and {@link #isVP} will be false.
+     *
+     * @param ga  name of the game
+     * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}
+     * @param ac  the type of action, such as {@link #ADD_PLAYABLE}
+     * @param it  the item type code, from {@link SOCInventoryItem#itype}
+     * @param rc  reason code, for {@link #reasonCode}
+     */
+    public SOCInventoryItemAction
+        (final String ga, final int pn, final int ac, final int it, final int rc)
+    {
+        messageType = INVENTORYITEMACTION;
+        game = ga;
+        playerNumber = pn;
+        action = ac;
+        itemType = it;
+        reasonCode = rc;
+        isKept = false;
+        isVP = false;
     }
 
     /**
@@ -153,32 +218,31 @@ public class SOCInventoryItemAction extends SOCMessage
     }
 
     /**
-     * INVENTORYITEMACTION sep game sep2 playerNumber sep2 action sep2 itemType [ sep2 isKept sep2 isVP ]
+     * INVENTORYITEMACTION sep game sep2 playerNumber sep2 action sep2 itemType [ sep2 rcode ]
      *
      * @return the command String
      */
     public String toCmd()
     {
-        return toCmd(game, playerNumber, action, itemType, isKept, isVP);
+        return toCmd(game, playerNumber, action, itemType, reasonCode);
     }
 
     /**
-     * INVENTORYITEMACTION sep game sep2 playerNumber sep2 action sep2 itemType [ sep2 isKept sep2 isVP ]
+     * INVENTORYITEMACTION sep game sep2 playerNumber sep2 action sep2 itemType [ sep2 rcode ]
      *
      * @param ga  the game name
      * @param pn  the player number
      * @param ac  the type of action
      * @param it  the item type code
-     * @param kept  If true, this is an add message with the {@link #isKept} flag set
-     * @param vp    If true, this is an add message with the {@link #isVP} flag set
+     * @param rc  the reason code if action == CANNOT_PLAY
      * @return    the command string
      */
     public static String toCmd
-        (final String ga, final int pn, final int ac, final int it, final boolean kept, final boolean vp)
+        (final String ga, final int pn, final int ac, final int it, final int rc)
     {
         String cmd = INVENTORYITEMACTION + sep + ga + sep2 + pn + sep2 + ac + sep2 + it;
-        if (kept || vp)
-            cmd = cmd + sep2 + (kept ? '1' : '0') + sep2 + (vp ? '1' : '0');
+        if (rc != 0)
+            cmd = cmd + sep2 + rc;
         return cmd;
     }
 
@@ -192,7 +256,8 @@ public class SOCInventoryItemAction extends SOCMessage
     {
         final String ga;
         final int pn, ac, it;
-        boolean kept = false, vp = false;
+        int rc = 0;
+        boolean isAdd = false, kept = false, vp = false;
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -203,16 +268,25 @@ public class SOCInventoryItemAction extends SOCMessage
             ac = Integer.parseInt(st.nextToken());
             it = Integer.parseInt(st.nextToken());
             if (st.hasMoreTokens())
-                kept = st.nextToken().equals("1");
-            if (st.hasMoreTokens())
-                vp = st.nextToken().equals("1");
+            {
+                rc = Integer.parseInt(st.nextToken());
+                if ((ac == ADD_PLAYABLE) || (ac == ADD_OTHER))
+                {
+                    isAdd = true;
+                    kept = ((rc & FLAG_ISKEPT) != 0);
+                    vp   = ((rc & FLAG_ISVP)   != 0);
+                }
+            }
         }
         catch (Exception e)
         {
             return null;
         }
 
-        return new SOCInventoryItemAction(ga, pn, ac, it, kept, vp);
+        if (isAdd)
+            return new SOCInventoryItemAction(ga, pn, ac, it, kept, vp);
+        else
+            return new SOCInventoryItemAction(ga, pn, ac, it, rc);
     }
 
     /**
@@ -221,7 +295,12 @@ public class SOCInventoryItemAction extends SOCMessage
     public String toString()
     {
         String s = "SOCInventoryItemAction:game=" + game + "|playerNum=" + playerNumber + "|action=" + action
-            + "|itemType=" + itemType + "|kept=" + isKept + "|isVP=" + isVP;
+            + "|itemType=" + itemType;
+
+        if ((action == ADD_PLAYABLE) || (action == ADD_OTHER))
+            s += "|kept=" + isKept + "|isVP=" + isVP;
+        else
+            s += "|rc=" + reasonCode;
 
         return s;
     }
