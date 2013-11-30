@@ -4150,6 +4150,7 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * handle "cancel build request" message.
+     * Cancel placement and send new game state, if cancel is allowed.
      *
      * @param c  the connection that sent the message
      * @param mes  the messsage
@@ -4269,6 +4270,7 @@ public class SOCGameHandler extends GameHandler
                             (gaName, pn, SOCInventoryItemAction.ADD_PLAYABLE, item.itype, item.isKept(), item.isVPItem()));
                         srv.messageToGameKeyed(ga, true, "reply.placeitem.cancel", player.getName());
                             // "{0} canceled placement of a special item."
+                        sendGameState(ga);
                     } else {
                         srv.messageToPlayerKeyed(c, gaName, "reply.placeitem.cancel.cannot");
                             // "Cannot cancel item placement."
