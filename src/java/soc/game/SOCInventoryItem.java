@@ -46,9 +46,9 @@ import soc.util.SOCStringManager;
  *      or {@link SOCInventoryItemAction} messages, or more specific message types.  Update those message handlers at
  *      clients and at server's SOCGameHandler; search where-used for the message classes that will be used.
  * <LI> Not all items are placed on the board, and not all of those allow placement to be canceled: check and update
- *      {@link SOCGame#cancelPlaceInventoryItem(boolean)} and SOCGame's javadocs for {@code gameState}, {@code oldGameState},
- *      and {@link SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM}.  For cancelable items, set the {@link #canCancelPlay} flag
- *      when calling the constructor.
+ *      {@link #isPlayForPlacement(SOCGame, int)}, {@link SOCGame#cancelPlaceInventoryItem(boolean)}, SOCGame's javadocs
+ *      for {@code gameState}, {@code oldGameState}, and {@link SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM}.
+ *      For cancelable items, set the {@link #canCancelPlay} flag when calling the constructor.
  * <LI> If the item is playable, update {@link SOCGame#forceEndTurn()} and
  *      {@link soc.server.SOCGameHandler#forceEndGameTurn(SOCGame, String)} to return it to the player's inventory if
  *      their turn must be ended; search where-used for {@link SOCForceEndTurnResult#getReturnedInvItem()}.
@@ -121,7 +121,7 @@ public class SOCInventoryItem
      * Callable at server and client.  If client version is older than the scenario, this
      * method will fall back to generic "unknown item" string keys.
      *
-     * @param ga  Game, to check scenario options
+     * @param ga  Game, to check scenario options and determine kind of item being created
      * @param type  Item or card type code, to be stored in {@link #itype}
      * @param isPlayable  Is the item playable this turn?
      * @param isKept  Is this item to be kept in hand until end of game?  See {@link #isKept()}.
@@ -145,6 +145,22 @@ public class SOCInventoryItem
         // Fallback:
         return new SOCInventoryItem
             (type, isPlayable, isKept, isVP, canCancel, "game.invitem.unknown", "game.aninvitem.unknown");
+    }
+
+    /**
+     * Does this type of item require placement on the board (state {@link SOCGame#PLACING_INV_ITEM}) when played?
+     * If so, when the item is played, caller should call {@link SOCGame#setPlacingItem(SOCInventoryItem)}.
+     * @param ga  Game, to check scenario options and determine kind of item being played
+     * @param type  Item or card type code, from {@link #itype}
+     * @return  True if this item must be placed when played; false if not, or if no known scenario game option is active.
+     */
+    public final static boolean isPlayForPlacement(final SOCGame ga, final int type)
+    {
+        if (ga.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+            return true;
+
+        // Fallback:
+        return false;
     }
 
     /**
