@@ -472,7 +472,7 @@ public class SOCHandPanel extends Panel
      * @since 1.1.08
      */
     private boolean offerHidesControls, offerCounterHidesFace;
-    
+
     /**
      * When handpanel isn't tall enough, are we currently in the situation described
      * at {@link #offerHidesControls} or {@link #offerCounterHidesFace}?
@@ -1161,7 +1161,7 @@ public class SOCHandPanel extends Panel
     }
 
     /**
-     * During game play, handle a click on a sitting robot's Lock/Unlock/Mark button, 
+     * During game play, handle a click on a sitting robot's Lock/Unlock/Mark button,
      * ask the server to advance to the next seat lock state.
      * Called from {@link #actionPerformed(ActionEvent)}.
      * @param current  Current lock state/button label
@@ -2408,11 +2408,11 @@ public class SOCHandPanel extends Panel
                 shipSq.setVisible(hideTradeMsg);
                 shipLab.setVisible(hideTradeMsg);
             }
-    
+
             if (inPlay && player.isRobot())
             {
                 final boolean clientAlreadySat = (null != playerInterface.getClientHand());
-    
+
                 if (clientAlreadySat)
                     sittingRobotLockBut.setVisible(hideTradeMsg);
                 else if (game.getSeatLock(playerNumber) != SOCGame.SeatLockState.LOCKED)
@@ -2759,7 +2759,6 @@ public class SOCHandPanel extends Panel
     {
         lroadLab.setText(haveIt ? (game.hasSeaBoard ? /*I*/"L. Route"/*18N*/ : /*I*/"L. Road"/*18N*/) : "");
     }
-
 
     /**
      * This player is playing or placing a special {@link SOCInventoryItem}, such as a gift
@@ -3616,7 +3615,7 @@ public class SOCHandPanel extends Panel
         /**
          * Show menu at this position. Before showing, enable or
          * disable based on gamestate and player's resources.
-         * 
+         *
          * @param x   Mouse x-position relative to colorsquare
          * @param y   Mouse y-position relative to colorsquare
          *
@@ -3702,7 +3701,7 @@ public class SOCHandPanel extends Panel
         /**
          * Show menu at this position. Before showing, enable or
          * disable based on gamestate and player's resources.
-         * 
+         *
          * @param x   Mouse x-position relative to colorsquare
          * @param y   Mouse y-position relative to colorsquare
          */

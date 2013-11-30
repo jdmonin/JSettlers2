@@ -259,11 +259,11 @@ public class SOCBuildingPanel extends Panel
         cardBut.setActionCommand(CARD);
         cardBut.addActionListener(this);
         // Development Card count. Initial amount will be sent from server soon.
-        //TODO Is 'Available X' better than 'X available' in some languages'?
+        //TODO i18n: Is 'Available X' better than 'X available' in some languages?
         cardCountLab = new Label(strings.get("build.available"));  // "available"
         cardCountLab.setAlignment(Label.LEFT);
         add(cardCountLab);
-        cardCount = new ColorSquare(ColorSquare.GREY, 0);        
+        cardCount = new ColorSquare(ColorSquare.GREY, 0);
         cardCount.setTooltipText(strings.get("build.dev.cards.available"));  // "Development cards available to buy"
         cardCount.setTooltipLowWarningLevel(strings.get("build.dev.cards.low"), 3);  // "Almost out of development cards to buy"
         cardCount.setTooltipZeroText(strings.get("build.dev.cards.none"));  // "No more development cards available to buy"
@@ -577,7 +577,7 @@ public class SOCBuildingPanel extends Panel
                 // bottom-right corner of panel, left of Game Info
                 curX -= (1.5f * ColorSquare.WIDTH + margin);
                 vpToWin.setLocation(curX, curY);
-    
+
                 final int vpLabW = fm.stringWidth(vpToWinLab.getText());
                 curX -= (vpLabW + (2*margin));
                 vpToWinLab.setLocation(curX, curY);
@@ -593,7 +593,7 @@ public class SOCBuildingPanel extends Panel
                     // 4-player: align from right
                     curX = dim.width - ColorSquare.WIDTH - margin;
                     vpToWin.setLocation(curX, curY);
-        
+
                     curX -= (vpLabW + (2*margin));
                     vpToWinLab.setLocation(curX, curY);
                 } else {
@@ -655,7 +655,7 @@ public class SOCBuildingPanel extends Panel
             pi.chatPrintStackTrace(th);
         }
     }
-    
+
     /**
      * React to our parent game window being closed.
      * If the {@link GameStatisticsFrame} is showing, dispose it.
