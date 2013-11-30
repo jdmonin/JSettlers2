@@ -46,8 +46,9 @@ import soc.util.SOCStringManager;
  *      or {@link SOCInventoryItemAction} messages, or more specific message types.  Update those message handlers at
  *      clients and at server's SOCGameHandler; search where-used for the message classes that will be used.
  * <LI> Not all items are placed on the board, and not all of those allow placement to be canceled: check and update
- *      {@link SOCGame#cancelPlaceInventoryItem()} and SOCGame's javadocs for {@code gameState}, {@code oldGameState},
- *      and {@link SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM}.
+ *      {@link SOCGame#cancelPlaceInventoryItem(boolean)} and SOCGame's javadocs for {@code gameState}, {@code oldGameState},
+ *      and {@link SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM}.  For cancelable items, set the {@link #canCancelPlay} flag
+ *      when calling the constructor.
  * <LI> If the item is playable, update {@link SOCGame#forceEndTurn()} and
  *      {@link soc.server.SOCGameHandler#forceEndGameTurn(SOCGame, String)} to return it to the player's inventory if
  *      their turn must be ended; search where-used for {@link SOCForceEndTurnResult#getReturnedInvItem()}.
@@ -94,6 +95,13 @@ public class SOCInventoryItem
     /** Is this item worth Victory Points when kept in inventory? */
     private final boolean vpItem;
 
+    /**
+     * While this item is being played or placed on the board, can placement be canceled?
+     * (Not all items can be played or placed.)  The canceled item is returned to the
+     * player's inventory to be played later.
+     */
+    public final boolean canCancelPlay;
+
     /**  i18n string key for this type of item, to be resolved by {@link SOCStringManager} to something like "Market (1VP)" */
     protected final String strKey;
 
@@ -118,47 +126,51 @@ public class SOCInventoryItem
      * @param isPlayable  Is the item playable this turn?
      * @param isKept  Is this item to be kept in hand until end of game?  See {@link #isKept()}.
      * @param isVP  Is this item worth Victory Points when kept in inventory?
+     * @param canCancel  Can this item's play or placement be canceled?  See {@link #canCancelPlay}.
      * @return  An inventory item named from this scenario's item types,
      *       or with generic name keys if {@code ga} doesn't have a scenario option recognized here
      */
     public final static SOCInventoryItem createForScenario
-        (final SOCGame ga, final int type, final boolean isPlayable, final boolean isKept, final boolean isVP)
+        (final SOCGame ga, final int type, final boolean isPlayable, final boolean isKept,
+         final boolean isVP, final boolean canCancel)
     {
         if (ga.isGameOptionSet(SOCGameOption.K_SC_FTRI))
         {
             // items in this scenario are always trade ports
             return new SOCInventoryItem
-                (type, isPlayable, isKept, isVP,
+                (type, isPlayable, isKept, isVP, canCancel,
                  SOCBoard.getPortDescForType(-type, false), SOCBoard.getPortDescForType(-type, true));
         }
 
         // Fallback:
         return new SOCInventoryItem
-            (type, isPlayable, isKept, isVP, "game.invitem.unknown", "game.aninvitem.unknown");
+            (type, isPlayable, isKept, isVP, canCancel, "game.invitem.unknown", "game.aninvitem.unknown");
     }
 
     /**
      * Create a new generic inventory item.
      *<P>
      * See also the factory method for specific scenarios' items:
-     * {@link #createForScenario(SOCGame, int, boolean, boolean, boolean)}
+     * {@link #createForScenario(SOCGame, int, boolean, boolean, boolean, boolean)}
      *
      * @param type  Item or card type code, to be stored in {@link #itype}
      * @param isPlayable  Is this item playable this turn (state {@link SOCInventory#PLAYABLE PLAYABLE}),
      *            not newly given ({@link SOCInventory#NEW NEW})?
      * @param isKept  Is this item to be kept in hand until end of game?  See {@link #isKept()}.
      * @param isVP  Is this item worth Victory Points when kept in inventory?
+     * @param canCancel  Can this item's play or placement be canceled?  See {@link #canCancelPlay}.
      * @param strKey   i18n string key for this type of item, to be resolved by {@link SOCStringManager} to something like "Market (1VP)"
      * @param aStrKey  i18m string key for an item of this type, to be resolved by {@link SOCStringManager} to something like "a Market (+1VP)"
      */
     public SOCInventoryItem
-        (final int type, final boolean isPlayable, final boolean isKept, final boolean isVP,
+        (final int type, final boolean isPlayable, final boolean isKept, final boolean isVP, final boolean canCancel,
          final String strKey, final String aStrKey)
     {
         this.itype = type;
         playable = isPlayable;
         kept = isKept;
         vpItem = isVP;
+        canCancelPlay = canCancel;
         this.strKey = strKey;
         this.aStrKey = aStrKey;
     }

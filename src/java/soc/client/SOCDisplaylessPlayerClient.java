@@ -1821,7 +1821,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         case SOCInventoryItemAction.ADD_OTHER:
             inv.addItem(SOCInventoryItem.createForScenario
-                (ga, mes.itemType, (mes.action == SOCInventoryItemAction.ADD_PLAYABLE), mes.isKept, mes.isVP));
+                (ga, mes.itemType, (mes.action == SOCInventoryItemAction.ADD_PLAYABLE),
+                 mes.isKept, mes.isVP, mes.canCancelPlay));
             break;
 
         case SOCInventoryItemAction.CANNOT_PLAY:

@@ -97,11 +97,14 @@ public class SOCInventoryItemAction extends SOCMessage
     /** item action PLAY_KEPT: From server, item was played and stays in inventory with state KEPT */
     public static final int PLAY_KEPT = 6;
 
-    /** {@link #isKept} bit value for sending over network in a bit field */
+    /** {@link #isKept} flag position for sending over network in a bit field */
     private static final int FLAG_ISKEPT = 0x01;
 
-    /** {@link #isVP} bit value for sending over network in a bit field */
+    /** {@link #isVP} flag position for sending over network in a bit field */
     private static final int FLAG_ISVP   = 0x02;
+
+    /** {@link #canCancelPlay} flag position for sending over network in a bit field */
+    private static final int FLAG_CANCPLAY = 0x04;
 
     /**
      * Name of game; getter required by {@link SOCMessageForGame}
@@ -143,10 +146,16 @@ public class SOCInventoryItemAction extends SOCMessage
     public final boolean isVP;
 
     /**
+     * If true, this item being added and its later play or placement can be canceled: {@link SOCInventoryItem#canCancelPlay}.
+     * This flag is sent only for actions {@link #ADD_PLAYABLE} and {@link #ADD_OTHER}.
+     */
+    public final boolean canCancelPlay;
+
+    /**
      * Create an InventoryItemAction message, skipping the boolean flags.
      *<P>
-     * If the action is to add a card with {@link #isKept} or {@link #isVP}, use
-     * the {@link #SOCInventoryItemAction(String, int, int, int, boolean, boolean)}
+     * If the action is to add a card with {@link #isKept}, {@link #isVP}, or {@link #canCancelPlay}, use
+     * the {@link #SOCInventoryItemAction(String, int, int, int, boolean, boolean, boolean)}
      * constructor instead.
      *<P>
      * If the action is the server replying with {@link #CANNOT_PLAY} with a reason code,
@@ -172,18 +181,21 @@ public class SOCInventoryItemAction extends SOCMessage
      * @param it  the item type code, from {@link SOCInventoryItem#itype}
      * @param kept  If true, this is an add message with the {@link #isKept} flag set
      * @param vp    If true, this is an add message with the {@link #isVP} flag set
+     * @param canCancel  If true, this is an add message with the {@link #canCancelPlay} flag set
      */
     public SOCInventoryItemAction
-        (final String ga, final int pn, final int ac, final int it, final boolean kept, final boolean vp)
+        (final String ga, final int pn, final int ac, final int it,
+         final boolean kept, final boolean vp, final boolean canCancel)
     {
         messageType = INVENTORYITEMACTION;
         game = ga;
         playerNumber = pn;
         action = ac;
         itemType = it;
-        reasonCode = ((kept) ? FLAG_ISKEPT : 0) | ((vp) ? FLAG_ISVP : 0);
+        reasonCode = ((kept) ? FLAG_ISKEPT : 0) | ((vp) ? FLAG_ISVP : 0) | ((canCancel) ? FLAG_CANCPLAY : 0);
         isKept = kept;
         isVP = vp;
+        canCancelPlay = canCancel;
     }
 
     /**
@@ -207,6 +219,7 @@ public class SOCInventoryItemAction extends SOCMessage
         reasonCode = rc;
         isKept = false;
         isVP = false;
+        canCancelPlay = false;
     }
 
     /**
@@ -257,7 +270,7 @@ public class SOCInventoryItemAction extends SOCMessage
         final String ga;
         final int pn, ac, it;
         int rc = 0;
-        boolean isAdd = false, kept = false, vp = false;
+        boolean isAdd = false, kept = false, vp = false, canCancel = false;
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -275,6 +288,7 @@ public class SOCInventoryItemAction extends SOCMessage
                     isAdd = true;
                     kept = ((rc & FLAG_ISKEPT) != 0);
                     vp   = ((rc & FLAG_ISVP)   != 0);
+                    canCancel = ((rc & FLAG_CANCPLAY) != 0);
                 }
             }
         }
@@ -284,7 +298,7 @@ public class SOCInventoryItemAction extends SOCMessage
         }
 
         if (isAdd)
-            return new SOCInventoryItemAction(ga, pn, ac, it, kept, vp);
+            return new SOCInventoryItemAction(ga, pn, ac, it, kept, vp, canCancel);
         else
             return new SOCInventoryItemAction(ga, pn, ac, it, rc);
     }
@@ -298,7 +312,7 @@ public class SOCInventoryItemAction extends SOCMessage
             + "|itemType=" + itemType;
 
         if ((action == ADD_PLAYABLE) || (action == ADD_OTHER))
-            s += "|kept=" + isKept + "|isVP=" + isVP;
+            s += "|kept=" + isKept + "|isVP=" + isVP + "|canCancel=" + canCancelPlay;
         else
             s += "|rc=" + reasonCode;
 

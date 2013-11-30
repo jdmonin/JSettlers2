@@ -310,7 +310,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Player is placing the special {@link SOCInventoryItem} held in {@link #placingItem}.
-     * For some kinds of item, placement can be canceled by calling {@link #cancelPlaceInventoryItem()}.
+     * For some kinds of item, placement can be canceled by calling {@link #cancelPlaceInventoryItem(boolean)}.
      *<P>
      * The placement method depends on the scenario and item type; for example,
      * {@link SOCGameOption#K_SC_FTRI _SC_FTRI} has trading port items and would
@@ -2467,11 +2467,12 @@ public class SOCGame implements Serializable, Cloneable
         for (int pn = 0; pn < maxPlayers; ++pn)
             players[pn].updatePortFlagsAfterRemove(ptype, true);
 
-        final SOCInventoryItem port = SOCInventoryItem.createForScenario(this, -ptype, true, false, false);
+        final boolean placeNow = (pl.getPortMovePotentialLocations(false) == null);
+        final SOCInventoryItem port = SOCInventoryItem.createForScenario(this, -ptype, true, false, false, ! placeNow);
 
         if (isAtServer)
         {
-            if (pl.getPortMovePotentialLocations(false) == null)
+            if (! placeNow)
             {
                 pl.getInventory().addItem(port);
             } else {
@@ -4035,7 +4036,7 @@ public class SOCGame implements Serializable, Cloneable
             }
 
         case PLACING_INV_ITEM:
-            itemCard = cancelPlaceInventoryItem();
+            itemCard = cancelPlaceInventoryItem(true);
             if (itemCard != null)
                 return new SOCForceEndTurnResult
                     (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
@@ -6545,11 +6546,19 @@ public class SOCGame implements Serializable, Cloneable
      * In state {@link #PLACING_INV_ITEM}, the current player is canceling special {@link SOCInventoryItem} placement.
      * Return it to their hand, and set gameState back to {@link #PLAY1} or {@link #SPECIAL_BUILDING}
      * based on oldGameState.
+     *<P>
+     * If ! {@link SOCInventoryItem#canCancelPlay}, does nothing unless {@code forceEndTurn}.
+     * If {@code placingItem} is {@code null}, sets game state to {@code oldGameState} and returns {@code null}.
+     *
+     * @param forceEndTurn  If true, player's turn is being ended.  Return item to inventory even if ! {@code item.canCancelPlay}.
      * @return  The item that was being placed, or {@code null} if none or if placement can't be canceled for this type
      * @since 2.0.00
      */
-    public SOCInventoryItem cancelPlaceInventoryItem()
+    public SOCInventoryItem cancelPlaceInventoryItem(final boolean forceEndTurn)
     {
+        if ((placingItem != null) && ! (forceEndTurn || placingItem.canCancelPlay))
+            return null;  // not cancelable
+
         gameState = oldGameState;
 
         if (placingItem != null)

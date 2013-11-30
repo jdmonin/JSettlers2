@@ -142,7 +142,7 @@ public class SOCDevCard
     /** constructor to call super, to avoid 3 isVPCard(type) calls */
     private SOCDevCard(final int type, final boolean isVPCard, final boolean isNew)
     {
-        super(type, ! (isNew || isVPCard), isVPCard, isVPCard,
+        super(type, ! (isNew || isVPCard), isVPCard, isVPCard, false,
               getCardTypeNameKey(type, null, false), getCardTypeNameKey(type, null, true));
         nameKeyPrecalc =
             (type > SOCDevCardConstants.UNKNOWN) && (type < GETCARDTYPENAME_KEYS[0].length)

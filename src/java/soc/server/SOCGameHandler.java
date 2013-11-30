@@ -807,7 +807,7 @@ public class SOCGameHandler extends GameHandler
                     srv.messageToPlayer(c, new SOCInventoryItemAction
                         (gaName, cpn,
                          (itemCard.isPlayable() ? SOCInventoryItemAction.ADD_PLAYABLE : SOCInventoryItemAction.ADD_OTHER),
-                         itemCard.itype, itemCard.isKept(), itemCard.isVPItem()));
+                         itemCard.itype, itemCard.isKept(), itemCard.isVPItem(), itemCard.canCancelPlay));
                 }
             }
 
@@ -4262,12 +4262,13 @@ public class SOCGameHandler extends GameHandler
                 case SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL:
                     SOCInventoryItem item = null;
                     if (gstate == SOCGame.PLACING_INV_ITEM)
-                        item = ga.cancelPlaceInventoryItem();
+                        item = ga.cancelPlaceInventoryItem(false);
 
                     if (item != null)
                     {
                         srv.messageToGame(gaName, new SOCInventoryItemAction
-                            (gaName, pn, SOCInventoryItemAction.ADD_PLAYABLE, item.itype, item.isKept(), item.isVPItem()));
+                            (gaName, pn, SOCInventoryItemAction.ADD_PLAYABLE, item.itype,
+                             item.isKept(), item.isVPItem(), item.canCancelPlay));
                         srv.messageToGameKeyed(ga, true, "reply.placeitem.cancel", player.getName());
                             // "{0} canceled placement of a special item."
                         sendGameState(ga);
@@ -5615,7 +5616,7 @@ public class SOCGameHandler extends GameHandler
                 } else {
                     // port was added to player's inventory
                     srv.messageToGame(gaName, new SOCInventoryItemAction
-                        (gaName, pn, SOCInventoryItemAction.ADD_PLAYABLE, -edge_portType.getB(), false, false));
+                        (gaName, pn, SOCInventoryItemAction.ADD_PLAYABLE, -edge_portType.getB(), false, false, true));
                 }
             }
             break;
