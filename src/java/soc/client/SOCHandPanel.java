@@ -1766,6 +1766,7 @@ public class SOCHandPanel extends Panel
             updateResourceTradeCosts(true);
 
             //cardLab.setVisible(true);
+            canCancelInvItemPlay = false;
             inventory.setEnabled(true);
             inventory.setVisible(true);
             playCardBut.setVisible(true);
@@ -2640,6 +2641,9 @@ public class SOCHandPanel extends Panel
             if (gs == SOCGame.PLACING_INV_ITEM)
             {
                 // in this state only, "Play Card" becomes "Cancel"
+                SOCInventoryItem placing = game.getPlacingItem();
+                if (placing != null)
+                    canCancelInvItemPlay = placing.canCancelPlay;
                 inventory.setEnabled(false);
                 playCardBut.setLabel(CANCEL);
                 playCardBut.setEnabled(canCancelInvItemPlay);
