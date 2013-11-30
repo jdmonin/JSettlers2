@@ -1828,13 +1828,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
         case SOCInventoryItemAction.CANNOT_PLAY:
             return true;
 
-        case SOCInventoryItemAction.PLAY_KEPT:
-            inv.keepPlayedItem(mes.itemType);
+        case SOCInventoryItemAction.PLAYED:
+            if (mes.isKept)
+                inv.keepPlayedItem(mes.itemType);
+            else
+                inv.removeItem(SOCInventory.PLAYABLE, mes.itemType);
             break;
 
-        case SOCInventoryItemAction.PLAY_REMOVE:
-            inv.removeItem(SOCInventory.PLAYABLE, mes.itemType);
-            break;
         }
 
         return false;

@@ -4891,8 +4891,7 @@ public class SOCGameHandler extends GameHandler
         // Item played.  Announce play and removal (or keep) from player's inventory.
         // Announce game state if changed.
         srv.messageToGame(gaName, new SOCInventoryItemAction
-            (gaName, pn, (item.isKept()) ? SOCInventoryItemAction.PLAY_KEPT : SOCInventoryItemAction.PLAY_REMOVE,
-             mes.itemType));
+            (gaName, pn, SOCInventoryItemAction.PLAYED, item.itype, item.isKept(), item.isVPItem(), item.canCancelPlay));
 
         final int gstate = ga.getGameState();
         if (gstate != oldGameState)

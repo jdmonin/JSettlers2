@@ -42,8 +42,8 @@ import soc.game.SOCInventoryItem;     // for javadoc's use
  *<LI> From Client: Player is requesting to {@link #PLAY} a playable item
  *<LI> If the client can't currently play that type,
  * server responds with {@link #CANNOT_PLAY}, optionally with a {@link #reasonCode}
- *<LI> When a player plays an item, server sends
- * {@link #PLAY_REMOVE} or {@link #PLAY_KEPT} to the client or to all clients
+ *<LI> When a player plays an item, server sends {@link #PLAYED} to all clients,
+ * including all flags such as {@link #isKept} and {@link #canCancelPlay}.
  *</UL>
  * When the server sends a {@code SOCInventoryItemAction}, it doesn't also send a {@link SOCGameServerText} explaining
  * the details; the client must print such text based on the {@code SOCInventoryItemAction} received.
@@ -57,7 +57,7 @@ import soc.game.SOCInventoryItem;     // for javadoc's use
  *   In state {@link SOCGame#PLAY1} or {@link SOCGame#SPECIAL_BUILDING}, current player sends this when they
  *   have a port in their inventory.  {@code itemType} is the negative of the port type to play.
  *  <P>
- *   If they can place now, server broadcasts SOCInventoryItemAction({@link #PLAY_REMOVE}) to the game
+ *   If they can place now, server broadcasts SOCInventoryItemAction({@link #PLAYED}) to the game
  *   to remove it from player's inventory, and game state becomes {@link SOCGame#PLACING_INV_ITEM}.
  *   (Player interface shouldn't let them place before the new game state is sent.)
  *  <P>
@@ -91,11 +91,11 @@ public class SOCInventoryItemAction extends SOCMessage
      */
     public static final int CANNOT_PLAY = 4;
 
-    /** item action PLAY_REMOVE: From server, item was played and should be removed from inventory */
-    public static final int PLAY_REMOVE = 5;
-
-    /** item action PLAY_KEPT: From server, item was played and stays in inventory with state KEPT */
-    public static final int PLAY_KEPT = 6;
+    /**
+     * item action PLAYED: From server, item was played.
+     * Check the {@link #isKept} flag to see if the item should be removed from inventory, or remain with state KEPT.
+     */
+    public static final int PLAYED = 5;
 
     /** {@link #isKept} flag position for sending over network in a bit field */
     private static final int FLAG_ISKEPT = 0x01;
@@ -135,19 +135,19 @@ public class SOCInventoryItemAction extends SOCMessage
 
     /**
      * If true, this item being added is kept in inventory until end of game.
-     * This flag is sent only for actions {@link #ADD_PLAYABLE} and {@link #ADD_OTHER}.
+     * This flag is sent only for actions {@link #ADD_PLAYABLE}, {@link #ADD_OTHER}, and {@link #PLAYED}.
      */
     public final boolean isKept;
 
     /**
      * If true, this item being added is worth victory points.
-     * This flag is sent only for actions {@link #ADD_PLAYABLE} and {@link #ADD_OTHER}.
+     * This flag is sent only for actions {@link #ADD_PLAYABLE}, {@link #ADD_OTHER}, and {@link #PLAYED}.
      */
     public final boolean isVP;
 
     /**
      * If true, this item being added and its later play or placement can be canceled: {@link SOCInventoryItem#canCancelPlay}.
-     * This flag is sent only for actions {@link #ADD_PLAYABLE} and {@link #ADD_OTHER}.
+     * This flag is sent only for actions {@link #ADD_PLAYABLE}, {@link #ADD_OTHER}, and {@link #PLAYED}.
      */
     public final boolean canCancelPlay;
 
@@ -177,11 +177,11 @@ public class SOCInventoryItemAction extends SOCMessage
      *
      * @param ga  name of the game
      * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}
-     * @param ac  the type of action, such as {@link #ADD_PLAYABLE}
+     * @param ac  the type of action, such as {@link #ADD_PLAYABLE} or {@link #PLAYED}
      * @param it  the item type code, from {@link SOCInventoryItem#itype}
-     * @param kept  If true, this is an add message with the {@link #isKept} flag set
-     * @param vp    If true, this is an add message with the {@link #isVP} flag set
-     * @param canCancel  If true, this is an add message with the {@link #canCancelPlay} flag set
+     * @param kept  If true, this is an add or play message with the {@link #isKept} flag set
+     * @param vp    If true, this is an add  or play message with the {@link #isVP} flag set
+     * @param canCancel  If true, this is an add  or play message with the {@link #canCancelPlay} flag set
      */
     public SOCInventoryItemAction
         (final String ga, final int pn, final int ac, final int it,
@@ -200,13 +200,13 @@ public class SOCInventoryItemAction extends SOCMessage
 
     /**
      * Create an InventoryItemAction message, with optional {@link #reasonCode}.
-     * {@link #isKept} and {@link #isVP} will be false.
+     * The {@link #isKept}, {@link #isVP}, and {@link #canCancelPlay} flags will be false.
      *
      * @param ga  name of the game
      * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}
      * @param ac  the type of action, such as {@link #ADD_PLAYABLE}
      * @param it  the item type code, from {@link SOCInventoryItem#itype}
-     * @param rc  reason code, for {@link #reasonCode}
+     * @param rc  reason code for {@link #reasonCode}, or 0
      */
     public SOCInventoryItemAction
         (final String ga, final int pn, final int ac, final int it, final int rc)
