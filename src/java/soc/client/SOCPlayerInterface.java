@@ -1065,6 +1065,7 @@ public class SOCPlayerInterface extends Frame
      * 
      * @return our player's hand interface, or null if not in a game.
      * @see #clientIsCurrentPlayer()
+     * @see #isClientPlayer(SOCPlayer)
      */
     public SOCHandPanel getClientHand()
     {
@@ -1091,6 +1092,7 @@ public class SOCPlayerInterface extends Frame
      * Is the client player active in this game, and the current player?
      * Assertion: If this returns true, {@link #getClientHand()} will return non-null.
      * @see #getClientPlayerNumber()
+     * @see #isClientPlayer(SOCPlayer)
      */
     public boolean clientIsCurrentPlayer()
     {
@@ -3088,6 +3090,12 @@ public class SOCPlayerInterface extends Frame
             {
                 pi.getPlayerHandPanel(player.getPlayerNumber()).updateValue(PlayerClientListener.UpdateType.DevCards);
             }
+        }
+
+        public void playerCanCancelInvItemPlay(SOCPlayer player, final boolean canCancel)
+        {
+            if (pi.isClientPlayer(player))
+                pi.getClientHand().setCanCancelInvItemPlay(canCancel);
         }
 
         public void playerFaceChanged(SOCPlayer player, int faceId)

@@ -127,10 +127,27 @@ public interface PlayerClientListener
     /**
      * A player is drawing or playing a development card, or a card or special
      * {@link SOCInventoryItem} has been added or removed from their hand's inventory.
+     *<P>
+     * If this inventory update comes from playing a special {@link SOCInventoryItem}, call
+     * {@link #playerCanCancelInvItemPlay(SOCPlayer, boolean)} after calling this method.
+     *
      * @param player  The player
      * @param addedPlayable  True if the update added a dev card or item that's playable now
      */
     void playerDevCardUpdated(SOCPlayer player, final boolean addedPlayable);
+
+    /**
+     * A player is playing or placing a special {@link SOCInventoryItem}, such as
+     * a gift trade port in scenario {@code _SC_FTRI}.  Set a flag that indicates
+     * if this play or placement can be canceled (returned to player's inventory).
+     *<P>
+     * It makes sense to call this for only the client player, since we don't cancel
+     * other players' item plays.
+     *
+     * @param player  The player
+     * @param canCancel  True if {@link SOCInventoryItem#canCancelPlay}
+     */
+    void playerCanCancelInvItemPlay(SOCPlayer player, final boolean canCancel);
 
     /**
      * A player has changed their face icon.

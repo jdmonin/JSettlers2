@@ -310,9 +310,16 @@ public class SOCHandPanel extends Panel
      * becomes {@link #CANCEL}, and {@link #inventory} is disabled, while the player
      * places an item on the board.  They can hit Cancel to return the item to their
      * inventory instead.  In any other state, label text is {@link #CARD}.
-     * Updated in {@link #updateRollDoneBankButtons()}.
+     * Updated in {@link #updateRollDoneBankButtons()} which checks {@link #canCancelInvItemPlay}.
      */
     protected Button playCardBut;
+
+    /**
+     * Flag for {@link #playCardBut} in state {@link SOCGame#PLACING_INV_ITEM}.
+     * Checked in {@link #updateRollDoneBankButtons()}.
+     * For details, see {@link #setCanCancelInvItemPlay(boolean)}.
+     */
+    private boolean canCancelInvItemPlay;
 
     /** Trade offer resource squares; visible only for client's own player */
     protected SquaresPanel sqPanel;
@@ -2617,6 +2624,7 @@ public class SOCHandPanel extends Panel
      * v2.0.00+: In game state {@link SOCGame#PLACING_INV_ITEM}, the Play Card button's label
      * becomes {@link #CANCEL}, and {@link #inventory} is disabled, while the player places
      * an item on the board.  They can hit Cancel to return the item to their inventory instead.
+     * (Checks the flag set in {@link #setCanCancelInvItemPlay(boolean)}.)
      * Once that state is over, button and inventory return to normal.
      */
     private void updateRollDoneBankButtons()
@@ -2634,7 +2642,7 @@ public class SOCHandPanel extends Panel
                 // in this state only, "Play Card" becomes "Cancel"
                 inventory.setEnabled(false);
                 playCardBut.setLabel(CANCEL);
-                playCardBut.setEnabled(true);
+                playCardBut.setEnabled(canCancelInvItemPlay);
             } else {
                 if (! inventory.isEnabled())
                     inventory.setEnabled(true);  // note, may still visually appear disabled; repaint doesn't fix it
@@ -2750,6 +2758,28 @@ public class SOCHandPanel extends Panel
     protected void setLRoad(boolean haveIt)
     {
         lroadLab.setText(haveIt ? (game.hasSeaBoard ? /*I*/"L. Route"/*18N*/ : /*I*/"L. Road"/*18N*/) : "");
+    }
+
+
+    /**
+     * This player is playing or placing a special {@link SOCInventoryItem}, such as a gift
+     * trade port in scenario {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.  Set a flag that
+     * indicates if this play or placement can be canceled (returned to player's inventory).
+     *<P>
+     * Should be called only for our own client player, not other players.
+     *<P>
+     * Should be called before entering game state {@link SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM}.
+     * In that state, {@link #updateRollDoneBankButtons()} checks this flag to see if the
+     * "Cancel" button should be enabled.
+     *
+     * @param canCancel  True if {@link SOCInventoryItem#canCancelPlay}
+     */
+    void setCanCancelInvItemPlay(final boolean canCancel)
+    {
+        canCancelInvItemPlay = canCancel;
+
+        if (playerIsClient && playCardBut.getLabel().equals(CANCEL))  // should not be Cancel yet; check just in case
+            playCardBut.setEnabled(canCancel);
     }
 
     /**
@@ -3018,6 +3048,7 @@ public class SOCHandPanel extends Panel
     /**
      * Is this panel showing the client's player?
      * @see #isClientAndCurrentPlayer()
+     * @see SOCPlayerInterface#getClientHand()
      */
     public boolean isClientPlayer()
     {

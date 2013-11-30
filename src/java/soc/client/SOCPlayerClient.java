@@ -4673,8 +4673,13 @@ public class SOCPlayerClient
         } else {
             SOCGame ga = games.get(mes.getGame());
             if (ga != null)
+            {
+                final SOCPlayer pl = ga.getPlayer(mes.playerNumber);
                 pcl.playerDevCardUpdated
-                    (ga.getPlayer(mes.playerNumber), (mes.action == SOCInventoryItemAction.ADD_PLAYABLE));
+                    (pl, (mes.action == SOCInventoryItemAction.ADD_PLAYABLE));
+                if (mes.action == SOCInventoryItemAction.PLAYED)
+                    pcl.playerCanCancelInvItemPlay(pl, mes.canCancelPlay);
+            }
         }
     }
 
