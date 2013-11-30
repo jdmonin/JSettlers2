@@ -35,6 +35,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
+import soc.message.SOCCancelBuildRequest;  // for INV_ITEM_PLACE_CANCEL constant
 import soc.util.SOCStringManager;
 
 import java.awt.Button;
@@ -123,7 +124,10 @@ public class SOCHandPanel extends Panel
     protected static final String SEND = strings.get("hpan.trade.offer");
     protected static final String BANK = strings.get("hpan.trade.bankport");  // "Bank/Port"
     private static final String BANK_UNDO = strings.get("hpan.trade.undo");  // "Undo Trade"
-    protected static final String CARD = "  " + strings.get("hpan.devcards.play") + "  ";  // "  Play Card  "
+    /** "  Play Card  " button label text for {@link #playCardBut} */
+    private static final String CARD = "  " + strings.get("hpan.devcards.play") + "  ";
+    /** "Cancel" button label text, used temporarily in some game states */
+    private static final String CANCEL = strings.get("base.cancel");
     protected static final String GIVE = strings.get("hpan.trade.igive");  // No trailing space (room for wider colorsquares)
     protected static final String GET = strings.get("hpan.trade.iget");
     /** Dev card list prefix "*NEW* " - includes trailing space */
@@ -298,7 +302,18 @@ public class SOCHandPanel extends Panel
     protected List inventory;
     /** Player's development cards/inventory items, in same order as {@link #inventory}; updated frequently by {@link #updateDevCards()} */
     private ArrayList<SOCInventoryItem> inventoryItems;
+
+    /**
+     * Play Card button for {@link #inventory}.
+     *<P>
+     * v2.0.00+: In state {@link SOCGame#PLACING_INV_ITEM} only, this button's label
+     * becomes {@link #CANCEL}, and {@link #inventory} is disabled, while the player
+     * places an item on the board.  They can hit Cancel to return the item to their
+     * inventory instead.  In any other state, label text is {@link #CARD}.
+     * Updated in {@link #updateRollDoneBankButtons()}.
+     */
     protected Button playCardBut;
+
     /** Trade offer resource squares; visible only for client's own player */
     protected SquaresPanel sqPanel;
     /** Cloth count, for scenario _SC_CLVI; null otherwise. @since 2.0.00 */
@@ -1057,7 +1072,7 @@ public class SOCHandPanel extends Panel
                 }
             }
         }
-        else if ((e.getSource() == inventory) || (target == CARD))
+        else if ((e.getSource() == inventory) || (e.getSource() == playCardBut))
         {
             clickPlayCardButton();
         }
@@ -1180,6 +1195,13 @@ public class SOCHandPanel extends Panel
      */
     public void clickPlayCardButton()
     {
+        // Check first for "Cancel"
+        if (game.getGameState() == SOCGame.PLACING_INV_ITEM)
+        {
+            client.getGameManager().cancelBuildRequest(game, SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL);
+            return;
+        }
+
         String itemText;
         int itemNum;  // Which one to play from list?
         SOCInventoryItem itemObj = null;  // SOCDevCard or special item
@@ -2586,6 +2608,11 @@ public class SOCHandPanel extends Panel
      * Client is current player; enable or disable buttons according to game state:
      * {@link #rollBut}, {@link #doneBut}, {@link #bankBut}.
      * Call only if {@link #playerIsCurrent} and {@link #playerIsClient}.
+     *<P>
+     * v2.0.00+: In game state {@link SOCGame#PLACING_INV_ITEM}, the Play Card button's label
+     * becomes {@link #CANCEL}, and {@link #inventory} is disabled, while the player places
+     * an item on the board.  They can hit Cancel to return the item to their inventory instead.
+     * Once that state is over, button and inventory return to normal.
      */
     private void updateRollDoneBankButtons()
     {
@@ -2594,6 +2621,26 @@ public class SOCHandPanel extends Panel
         doneBut.setEnabled((gs == SOCGame.PLAY1) || (gs == SOCGame.SPECIAL_BUILDING)
             || (gs <= SOCGame.START3B) || doneButIsRestart);
         bankBut.setEnabled(gs == SOCGame.PLAY1);
+
+        if (game.hasSeaBoard)
+        {
+            if (gs == SOCGame.PLACING_INV_ITEM)
+            {
+                // in this state only, "Play Card" becomes "Cancel"
+                inventory.setEnabled(false);
+                playCardBut.setLabel(CANCEL);
+                playCardBut.setEnabled(true);
+            } else {
+                if (! inventory.isEnabled())
+                    inventory.setEnabled(true);  // note, may still visually appear disabled; repaint doesn't fix it
+
+                if (playCardBut.getLabel().equals(CANCEL))
+                {
+                    playCardBut.setLabel(CARD);  // " Play Card "
+                    playCardBut.setEnabled(! inventoryItems.isEmpty());
+                }
+            }
+        }
     }
 
     /**
