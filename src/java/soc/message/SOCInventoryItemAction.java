@@ -45,6 +45,12 @@ import soc.game.SOCInventoryItem;     // for javadoc's use
  *<LI> When a player plays an item, server sends {@link #PLAYED} to all clients,
  * including all flags such as {@link #isKept} and {@link #canCancelPlay}.
  * Messages after that will indicate new game state or any other results of playing the item.
+ *<LI> If some other game action or event causes an item to need placement on the board,
+ * but it was never in the player's inventory, server sends {@link #PLACING_EXTRA}
+ * to give the item details such as {@link #itemType} and {@link #canCancelPlay}.
+ * Play/placement rules are specific to each kind of inventory action, and the {@code PLACING_EXTRA}
+ * message may be sent before a game state change or other messages necessary for placement.
+ * See {@link #PLACING_EXTRA}'s javadoc for client handling.
  *</UL>
  * When the server sends a {@code SOCInventoryItemAction}, it doesn't also send a {@link SOCGameServerText} explaining
  * the details; the client must print such text based on the {@code SOCInventoryItemAction} received.
@@ -58,15 +64,26 @@ import soc.game.SOCInventoryItem;     // for javadoc's use
  *   In state {@link SOCGame#PLAY1} or {@link SOCGame#SPECIAL_BUILDING}, current player sends this when they
  *   have a port in their inventory.  {@code itemType} is the negative of the port type to play.
  *  <P>
- *   If they can place now, server broadcasts SOCInventoryItemAction({@link #PLAYED}) to the game
- *   to remove it from player's inventory, and game state becomes {@link SOCGame#PLACING_INV_ITEM}.
+ *   If they can place now, server broadcasts SOCInventoryItemAction({@link #PLAYED}) to the game to remove
+ *   it from player's inventory, then sends {@link SOCGameState}({@link SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM}).
  *   (Player interface shouldn't let them place before the new game state is sent.)
+ *   When the requesting client receives this PLAYED message, it will call {@link SOCGame#setPlacingItem(SOCInventoryItem)}
+ *   because {@link SOCInventoryItem#isPlayForPlacement(SOCGame, int)} is true for {@code _SC_FTRI}.
  *  <P>
  *   Otherwise, server responds with {@link #CANNOT_PLAY} with one of these {@link #reasonCode}s: <BR>
  *   1 if the requested port type isn't in the player's inventory <BR>
  *   2 if the game options don't permit moving trade ports <BR>
  *   3 if the game state or current player aren't right to request placement now <BR>
  *   4 if player's {@link soc.game.SOCPlayer#getPortMovePotentialLocations(boolean)} is null <BR>
+ *  <P>
+ *   The port may be placed immediately if the player puts a ship at its original location and has
+ *   a coastal settlement with room for a port.  Such a port will never be in the player's inventory.
+ *   The server will immediately send that player {@link #PLACING_EXTRA} with the port's details;
+ *   see that action's javadoc for client handling of the message.
+ *  <P>
+ *   When the player chooses their placement location, they should send
+ *   {@link SOCSimpleRequest}({@link SOCSimpleRequest#TRADE_PORT_PLACE TRADE_PORT_PLACE}).
+ *   See that constant's javadoc for details.
  *</UL>
  *
  * @since 2.0.00
@@ -95,8 +112,24 @@ public class SOCInventoryItemAction extends SOCMessage
     /**
      * item action PLAYED: From server, item was played.
      * Check the {@link #isKept} flag to see if the item should be removed from inventory, or remain with state KEPT.
+     * Call {@link SOCInventoryItem#isPlayForPlacement(SOCGame, int)}: If true, playing this item requires placement;
+     * client receiving the message should call {@link SOCGame#setPlacingItem(SOCInventoryItem)}.
      */
     public static final int PLAYED = 5;
+
+    /**
+     * If some other game action or event causes an item to need placement on the board,
+     * but it was never in the player's inventory, server sends {@code PLACING_EXTRA}
+     * to give the item details such as {@link #itemType} and {@link #canCancelPlay}.
+     * May be sent to entire game or just to the placing current player.
+     *<P>
+     * Play/placement rules are specific to each kind of inventory action, and the {@code PLACING_EXTRA}
+     * message may be sent before a game state change or other messages necessary for placement.  The client
+     * handling {@code PLACING_EXTRA} should call {@link SOCGame#setPlacingItem(SOCInventoryItem)} and wait
+     * for those other messages. When they arrive, client can call {@link SOCGame#getPlacingItem()} to
+     * retrieve the item details.
+     */
+    public static final int PLACING_EXTRA = 6;
 
     /** {@link #isKept} flag position for sending over network in a bit field */
     private static final int FLAG_ISKEPT = 0x01;
@@ -136,19 +169,19 @@ public class SOCInventoryItemAction extends SOCMessage
 
     /**
      * If true, this item being added is kept in inventory until end of game.
-     * This flag is sent only for actions {@link #ADD_PLAYABLE}, {@link #ADD_OTHER}, and {@link #PLAYED}.
+     * This flag is sent for all actions except {@link #PLAY} and {@link #CANNOT_PLAY}.
      */
     public final boolean isKept;
 
     /**
      * If true, this item being added is worth victory points.
-     * This flag is sent only for actions {@link #ADD_PLAYABLE}, {@link #ADD_OTHER}, and {@link #PLAYED}.
+     * This flag is sent for all actions except {@link #PLAY} and {@link #CANNOT_PLAY}.
      */
     public final boolean isVP;
 
     /**
      * If true, this item being added and its later play or placement can be canceled: {@link SOCInventoryItem#canCancelPlay}.
-     * This flag is sent only for actions {@link #ADD_PLAYABLE}, {@link #ADD_OTHER}, and {@link #PLAYED}.
+     * This flag is sent for all actions except {@link #PLAY} and {@link #CANNOT_PLAY}.
      */
     public final boolean canCancelPlay;
 
@@ -271,7 +304,7 @@ public class SOCInventoryItemAction extends SOCMessage
         final String ga;
         final int pn, ac, it;
         int rc = 0;
-        boolean isAddOrPlay = false, kept = false, vp = false, canCancel = false;
+        boolean actionHasFlags = false, kept = false, vp = false, canCancel = false;
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -284,9 +317,9 @@ public class SOCInventoryItemAction extends SOCMessage
             if (st.hasMoreTokens())
             {
                 rc = Integer.parseInt(st.nextToken());
-                if ((ac == ADD_PLAYABLE) || (ac == ADD_OTHER) || (ac == PLAYED))
+                if ((ac != PLAY) && (ac != CANNOT_PLAY))
                 {
-                    isAddOrPlay = true;
+                    actionHasFlags = true;
                     kept = ((rc & FLAG_ISKEPT) != 0);
                     vp   = ((rc & FLAG_ISVP)   != 0);
                     canCancel = ((rc & FLAG_CANCPLAY) != 0);
@@ -298,7 +331,7 @@ public class SOCInventoryItemAction extends SOCMessage
             return null;
         }
 
-        if (isAddOrPlay)
+        if (actionHasFlags)
             return new SOCInventoryItemAction(ga, pn, ac, it, kept, vp, canCancel);
         else
             return new SOCInventoryItemAction(ga, pn, ac, it, rc);
@@ -312,7 +345,7 @@ public class SOCInventoryItemAction extends SOCMessage
         String s = "SOCInventoryItemAction:game=" + game + "|playerNum=" + playerNumber + "|action=" + action
             + "|itemType=" + itemType;
 
-        if ((action == ADD_PLAYABLE) || (action == ADD_OTHER))
+        if ((action != PLAY) && (action != CANNOT_PLAY))
             s += "|kept=" + isKept + "|isVP=" + isVP + "|canCancel=" + canCancelPlay;
         else
             s += "|rc=" + reasonCode;

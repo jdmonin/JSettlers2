@@ -1814,6 +1814,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
             return false;
 
         SOCInventory inv = pl.getInventory();
+        SOCInventoryItem item = null;
+
         switch (mes.action)
         {
         case SOCInventoryItemAction.ADD_PLAYABLE:
@@ -1832,9 +1834,19 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if (mes.isKept)
                 inv.keepPlayedItem(mes.itemType);
             else
-                inv.removeItem(SOCInventory.PLAYABLE, mes.itemType);
-            break;
+                item = inv.removeItem(SOCInventory.PLAYABLE, mes.itemType);
 
+            if (! SOCInventoryItem.isPlayForPlacement(ga, mes.itemType))
+                break;
+            // fall through to PLACING_EXTRA if isPlayForPlacement
+
+        case SOCInventoryItemAction.PLACING_EXTRA:
+            if (item == null)
+                item = SOCInventoryItem.createForScenario
+                    (ga, mes.itemType, true, mes.isKept, mes.isVP, mes.canCancelPlay);
+
+            ga.setPlacingItem(item);
+            break;
         }
 
         return false;
