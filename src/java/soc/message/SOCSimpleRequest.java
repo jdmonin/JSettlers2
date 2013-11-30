@@ -74,7 +74,9 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
      *<P>
      * If they can place there now, server will broadcast the new game state ({@link SOCGame#PLAY1} or
      * {@link SOCGame#SPECIAL_BUILDING}), then broadcast a SOCSimpleRequest to the game with
-     * {@code value1} = the placed port type, {@code value2} = edge.
+     * {@code value1} = the placed port type, {@code value2} = edge.  All clients should call
+     * {@link SOCGame#placePort(soc.game.SOCPlayer, int, int)}.
+     *<P>
      * Otherwise, server responds with a SOCSimpleRequest declining the placement (pn = -1).
      * @since 2.0.00
      */
