@@ -1708,7 +1708,7 @@ public class SOCPlayerInterface extends Frame
     public void updateAtTurn(final int pnum)
     {
         if ((pnum >= 0) && (pnum < hands.length))
-            getPlayerHandPanel(pnum).updateDevCards();
+            getPlayerHandPanel(pnum).updateDevCards(false);
 
         for (int i = 0; i < hands.length; i++)
         {
@@ -2908,7 +2908,7 @@ public class SOCPlayerInterface extends Frame
             if (nickname.equals(sitterNickname))
             {
                 hp.updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
-                hp.updateDevCards();
+                hp.updateDevCards(false);
             }
             else
             {
@@ -3076,12 +3076,12 @@ public class SOCPlayerInterface extends Frame
             hpan.updatePickGoldHexResources();
         }
 
-        public void playerDevCardUpdated(SOCPlayer player)
+        public void playerDevCardUpdated(SOCPlayer player, final boolean addedPlayable)
         {
             if (pi.isClientPlayer(player))
             {
                 SOCHandPanel hp = pi.getClientHand();
-                hp.updateDevCards();
+                hp.updateDevCards(addedPlayable);
                 hp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
             }
             else if (player != null)

@@ -128,8 +128,9 @@ public interface PlayerClientListener
      * A player is drawing or playing a development card, or a card or special
      * {@link SOCInventoryItem} has been added or removed from their hand's inventory.
      * @param player  The player
+     * @param addedPlayable  True if the update added a dev card or item that's playable now
      */
-    void playerDevCardUpdated(SOCPlayer player);
+    void playerDevCardUpdated(SOCPlayer player, final boolean addedPlayable);
 
     /**
      * A player has changed their face icon.

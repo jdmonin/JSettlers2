@@ -298,9 +298,9 @@ public class SOCHandPanel extends Panel
     /** Soldier/Knight count */
     protected ColorSquare knightsSq;
     protected Label knightsLab;
-    /** Player's development card/inventory item names, from {@link #inventoryItems}; updated frequently by {@link #updateDevCards()} */
+    /** Player's development card/inventory item names, from {@link #inventoryItems}; updated frequently by {@link #updateDevCards(boolean)} */
     protected List inventory;
-    /** Player's development cards/inventory items, in same order as {@link #inventory}; updated frequently by {@link #updateDevCards()} */
+    /** Player's development cards/inventory items, in same order as {@link #inventory}; updated frequently by {@link #updateDevCards(boolean)} */
     private ArrayList<SOCInventoryItem> inventoryItems;
 
     /**
@@ -1759,6 +1759,7 @@ public class SOCHandPanel extends Panel
             updateResourceTradeCosts(true);
 
             //cardLab.setVisible(true);
+            inventory.setEnabled(true);
             inventory.setVisible(true);
             playCardBut.setVisible(true);
 
@@ -2087,8 +2088,9 @@ public class SOCHandPanel extends Panel
      * wondering why they're listed but can't be played.
      *<P>
      * Updates {@link #inventory} and {@link #inventoryItems} to keep them in sync.
+     * @param addedPlayable  True if the update added a dev card or item that's playable now
      */
-    public void updateDevCards()
+    public void updateDevCards(final boolean addedPlayable)
     {
         SOCInventory items = player.getInventory();
 
@@ -2098,6 +2100,9 @@ public class SOCHandPanel extends Panel
         {
             inventory.removeAll();
             inventoryItems.clear();
+
+            if (addedPlayable && ! inventory.isEnabled())
+                inventory.setEnabled(true);  // can become disabled in game state PLACING_INV_ITEM
 
             // show all new cards first, then all playable, then all kept (VP cards)
             for (int cState = SOCInventory.NEW; cState <= SOCInventory.KEPT; ++cState)

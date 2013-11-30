@@ -4017,7 +4017,8 @@ public class SOCPlayerClient
                     ctype = SOCDevCardConstants.UNKNOWN;
             }
 
-            switch (mes.getAction())
+            final int act = mes.getAction();
+            switch (act)
             {
             case SOCDevCardAction.DRAW:
                 player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
@@ -4044,7 +4045,7 @@ public class SOCPlayerClient
             }
 
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            pcl.playerDevCardUpdated(player);
+            pcl.playerDevCardUpdated(player, (act == SOCDevCardAction.ADDOLD));
         }
     }
 
@@ -4672,7 +4673,8 @@ public class SOCPlayerClient
         } else {
             SOCGame ga = games.get(mes.getGame());
             if (ga != null)
-                pcl.playerDevCardUpdated(ga.getPlayer(mes.playerNumber));
+                pcl.playerDevCardUpdated
+                    (ga.getPlayer(mes.playerNumber), (mes.action == SOCInventoryItemAction.ADD_PLAYABLE));
         }
     }
 
