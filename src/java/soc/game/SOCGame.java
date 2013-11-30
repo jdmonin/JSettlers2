@@ -309,7 +309,7 @@ public class SOCGame implements Serializable, Cloneable
     public static final int PLACING_FREE_ROAD2 = 41;
 
     /**
-     * Player is placing the special {@link SOCInventoryItem} held in {@link #placingItem}.
+     * Player is placing the special {@link SOCInventoryItem} held in {@link #getPlacingItem()}.
      * For some kinds of item, placement can be canceled by calling {@link #cancelPlaceInventoryItem(boolean)}.
      *<P>
      * The placement method depends on the scenario and item type; for example,
@@ -1059,6 +1059,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * The special inventory item currently being placed in state {@link #PLACING_INV_ITEM}, or null.
+     * Can be set with {@link #setPlacingItem(SOCInventoryItem)} before or during that state.
      * @since 2.0.00
      */
     private SOCInventoryItem placingItem;
@@ -2045,6 +2046,35 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Get the special Inventory Item to be placed by the current player in state {@link #PLACING_INV_ITEM},
+     * if any, from the most recent call to {@link #setPlacingItem(SOCInventoryItem)}.
+     * See that method for lifecycle details.
+     * @return  The item being placed, or {@code null}
+     * @since 2.0.00
+     */
+    public SOCInventoryItem getPlacingItem()
+    {
+        return placingItem;
+    }
+
+    /**
+     * Set or clear the special Inventory Item to be placed by the current player in state {@link #PLACING_INV_ITEM}.
+     * Can be set before or during that state, either for convenience or because the server must send multiple messages.
+     *<P>
+     * The item can't be held between turns, and is lost if not placed on the current player's turn.
+     * Inventory Item placement methods such as {@link #placePort(SOCPlayer, int, int)} will clear the item
+     * to {@code null} when called in {@link #PLACING_INV_ITEM}.
+     *
+     * @param item  The item being placed, or {@code null} to clear
+     * @since 2.0.00
+     * @see #getPlacingItem()
+     */
+    public void setPlacingItem(SOCInventoryItem item)
+    {
+        placingItem = item;
+    }
+
+    /**
      * @return the player with the largest army
      */
     public SOCPlayer getPlayerWithLargestArmy()
@@ -2545,7 +2575,8 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI} in game state {@link #PLACING_INV_ITEM}, place
-     * the "gift" port at this edge.  State becomes previous state ({@link #PLAY1} or {@link #SPECIAL_BUILDING}).
+     * the "gift" port at this edge.  The port in {@link #getPlacingItem()} will be placed.  State becomes previous state
+     * ({@link #PLAY1} or {@link #SPECIAL_BUILDING}).  Calls {@link #setPlacingItem(SOCInventoryItem) setPlacingItem(null)}.
      *<P>
      * Assumes {@link #canPlacePort(SOCPlayer, int)} has already been called to validate.
      *
@@ -2568,8 +2599,7 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalStateException("state " + gameState + ", placingItem " + placingItem);
 
         final int ptype = -placingItem.itype;
-        placePort(players[currentPlayerNumber], ptype, edge);
-        placingItem = null;
+        placePort(players[currentPlayerNumber], ptype, edge);  // clears placingItem
         gameState = oldGameState;
 
         return ptype;
@@ -2578,6 +2608,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, place a "gift" port at this edge.
      * Assumes {@link #canPlacePort(SOCPlayer, int)} has already been called to validate.
+     *<P>
+     * Any port placement in state {@link #PLACING_INV_ITEM} calls {@link #setPlacingItem(SOCInventoryItem) setPlacingItem(null)}.
      *
      * @param pl  Player who is placing
      * @param ptype  The type of port (in range {@link SOCBoard#MISC_PORT MISC_PORT} to {@link SOCBoard#WOOD_PORT WOOD_PORT})
@@ -2598,6 +2630,9 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalArgumentException("ptype: " + ptype);
         if (! hasSeaBoard)
             throw new UnsupportedOperationException();
+
+        if (gameState == PLACING_INV_ITEM)
+            placingItem = null;
 
         ((SOCBoardLarge) board).placePort(ptype, edge);  // validates coastal edge to calculate facing
         pl.setPortFlag(ptype, true);  // might already be set, that's fine
@@ -3878,6 +3913,7 @@ public class SOCGame implements Serializable, Cloneable
             movedShipThisTurn = false;
             placedShipsThisTurn.clear();
         }
+        placingItem = null;
 
         if (gameState == PLAY)
         {
