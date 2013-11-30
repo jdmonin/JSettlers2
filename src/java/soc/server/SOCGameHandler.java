@@ -4265,10 +4265,12 @@ public class SOCGameHandler extends GameHandler
                         item = ga.cancelPlaceInventoryItem(false);
 
                     if (item != null)
-                    {
                         srv.messageToGame(gaName, new SOCInventoryItemAction
                             (gaName, pn, SOCInventoryItemAction.ADD_PLAYABLE, item.itype,
                              item.isKept(), item.isVPItem(), item.canCancelPlay));
+
+                    if ((item != null) || (gstate != ga.getGameState()))
+                    {
                         srv.messageToGameKeyed(ga, true, "reply.placeitem.cancel", player.getName());
                             // "{0} canceled placement of a special item."
                         sendGameState(ga);
@@ -5612,6 +5614,10 @@ public class SOCGameHandler extends GameHandler
                 {
                     // Removal happens during ship piece placement, which is followed at server with sendGameState.
                     // When sendGameState gives the new state, client will prompt current player to place now.
+                    // We just need to send the client PLACING_EXTRA, for the port type and not-cancelable flag.
+                    StringConnection c = srv.getConnection(plName);
+                    srv.messageToPlayer(c, new SOCInventoryItemAction
+                        (gaName, pn, SOCInventoryItemAction.PLACING_EXTRA, -edge_portType.getB(), false, false, false));
                 } else {
                     // port was added to player's inventory
                     srv.messageToGame(gaName, new SOCInventoryItemAction
