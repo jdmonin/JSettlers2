@@ -44,6 +44,7 @@ import soc.game.SOCInventoryItem;     // for javadoc's use
  * server responds with {@link #CANNOT_PLAY}, optionally with a {@link #reasonCode}
  *<LI> When a player plays an item, server sends {@link #PLAYED} to all clients,
  * including all flags such as {@link #isKept} and {@link #canCancelPlay}.
+ * Messages after that will indicate new game state or any other results of playing the item.
  *</UL>
  * When the server sends a {@code SOCInventoryItemAction}, it doesn't also send a {@link SOCGameServerText} explaining
  * the details; the client must print such text based on the {@code SOCInventoryItemAction} received.
@@ -270,7 +271,7 @@ public class SOCInventoryItemAction extends SOCMessage
         final String ga;
         final int pn, ac, it;
         int rc = 0;
-        boolean isAdd = false, kept = false, vp = false, canCancel = false;
+        boolean isAddOrPlay = false, kept = false, vp = false, canCancel = false;
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -283,9 +284,9 @@ public class SOCInventoryItemAction extends SOCMessage
             if (st.hasMoreTokens())
             {
                 rc = Integer.parseInt(st.nextToken());
-                if ((ac == ADD_PLAYABLE) || (ac == ADD_OTHER))
+                if ((ac == ADD_PLAYABLE) || (ac == ADD_OTHER) || (ac == PLAYED))
                 {
-                    isAdd = true;
+                    isAddOrPlay = true;
                     kept = ((rc & FLAG_ISKEPT) != 0);
                     vp   = ((rc & FLAG_ISVP)   != 0);
                     canCancel = ((rc & FLAG_CANCPLAY) != 0);
@@ -297,7 +298,7 @@ public class SOCInventoryItemAction extends SOCMessage
             return null;
         }
 
-        if (isAdd)
+        if (isAddOrPlay)
             return new SOCInventoryItemAction(ga, pn, ac, it, kept, vp, canCancel);
         else
             return new SOCInventoryItemAction(ga, pn, ac, it, rc);
