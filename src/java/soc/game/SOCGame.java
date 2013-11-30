@@ -2457,7 +2457,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return  The port removed, with its {@link SOCInventoryItem#itype} in range
      *      -{@link SOCBoard#WOOD_PORT WOOD_PORT} to -{@link SOCBoard#MISC_PORT MISC_PORT}
      */
-    public SOCInventoryItem removePort(final SOCPlayer pl, final int edge)
+    public SOCInventoryItem removePort(SOCPlayer pl, final int edge)
         throws UnsupportedOperationException, NullPointerException
     {
         if (! hasSeaBoard)
@@ -2467,7 +2467,10 @@ public class SOCGame implements Serializable, Cloneable
         for (int pn = 0; pn < maxPlayers; ++pn)
             players[pn].updatePortFlagsAfterRemove(ptype, true);
 
-        final boolean placeNow = (pl.getPortMovePotentialLocations(false) == null);
+        if ((pl == null) || ! isAtServer)
+            pl = players[currentPlayerNumber];
+
+        final boolean placeNow = (pl.getPortMovePotentialLocations(false) != null);
         final SOCInventoryItem port = SOCInventoryItem.createForScenario(this, -ptype, true, false, false, ! placeNow);
 
         if (isAtServer)
