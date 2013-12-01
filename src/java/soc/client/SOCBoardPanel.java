@@ -27,6 +27,7 @@ import soc.game.SOCCity;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCRoad;
@@ -36,10 +37,12 @@ import soc.game.SOCVillage;
 import soc.message.SOCSimpleRequest;  // to request simple things from the server without defining a lot of methods
 import soc.util.SOCStringManager;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -3613,7 +3616,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Scenario game option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}: In board mode {@link #SC_FTRI_PLACE_PORT},
      * draw the possible coastal edges where the port can be placed, and if the {@link #hilight} cursor is at
-     * such an edge, a solid hilight line there.
+     * such an edge, draw the port semi-transparently and a solid hilight line at the edge.
      * @since 2.0.00
      */
     private final void drawBoard_SC_FTRI_placePort(Graphics g)
@@ -3623,11 +3626,38 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (hilight == 0)
             return;
 
+        // Draw the placing port semi-transparently if graphics support it.
         // Draw hilight line with some thickness if possible.
 
         int edge = hilight;
         if (edge == -1)
             edge = 0;
+
+        final SOCInventoryItem portItem = game.getPlacingItem();
+        if (portItem != null)
+        {
+            // draw the port; similar code to drawPorts_largeBoard
+
+            final int landFacing = ((SOCBoardLarge) board).getPortFacingFromEdge(edge);
+            final int landHexCoord = board.getAdjacentHexToEdge(edge, landFacing);
+            int px = halfdeltaX * ((landHexCoord & 0xFF) - 1);
+            int py = halfdeltaY * (landHexCoord >> 8);
+            // now move 1 hex "backwards" from that hex's upper-left corner
+            px -= DELTAX_FACING[landFacing];
+            py -= DELTAY_FACING[landFacing];
+
+            final Composite prevComposite;
+            if (g instanceof Graphics2D)
+            {
+                prevComposite = ((Graphics2D) g).getComposite();
+                ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f));
+            } else {
+                prevComposite = null;
+            }
+            drawHex(g, px, py, -portItem.itype, landFacing, -1);
+            if (prevComposite != null)
+                ((Graphics2D) g).setComposite(prevComposite);
+        }
 
         final Stroke prevStroke;
         if (g instanceof Graphics2D)
