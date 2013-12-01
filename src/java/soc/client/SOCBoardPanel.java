@@ -2481,7 +2481,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (hexType != SOCBoard.MISC_PORT)
                 tmp = portFacing + 5;  // 1-6 -> 6-11 (skip past the misc port images)
             else
-                tmp = portFacing - 1;
+                tmp = portFacing - 1;  // 1-6 -> 0-5
 
             if (isScaled && (scaledPorts[tmp] == portis[tmp]))
             {
@@ -2963,13 +2963,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Draw a dotted line with some thickness at each of these sea edge coordinates.
-     * Client must have an active {@link #player}: Line color is {@link SOCPlayerInterface#getPlayerColor(int)}.
+     * Unless a color is specified, client must have an active {@link #player}.
      * Calls {@link #drawSeaEdgeLine(Graphics, int)}.
      * @param g  Graphics
+     * @param co  Color for lines, or {@code null} to use {@link SOCPlayerInterface#getPlayerColor(int)};
+     *              if {@code null}, client must have an active {@link #playerNumber}.
      * @param lse  Set of edge coordinates, or null
      * @since 2.0.00
      */
-    private void drawSeaEdgeLines(Graphics g, final Collection<Integer> lse)
+    private void drawSeaEdgeLines(Graphics g, Color co, final Collection<Integer> lse)
     {
         if ((lse == null) || lse.isEmpty())
             return;
@@ -2985,12 +2987,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 (new BasicStroke
                     ((1.5f * scaledPanelX) / panelMinBW, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
                      1.5f, dash, hexPartWidth * 0.1f));
-            g.setColor(playerInterface.getPlayerColor(playerNumber));
+            if (co == null)
+                co = playerInterface.getPlayerColor(playerNumber);
         } else {
             prevStroke = null;
-            g.setColor(playerInterface.getPlayerColor(playerNumber, true));
+            if (co == null)
+                co = playerInterface.getPlayerColor(playerNumber, true);
         }
 
+        g.setColor(co);
         for (Integer edge : lse)
             drawSeaEdgeLine(g, edge);
 
@@ -3246,6 +3251,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * This is outside the coordinate system, and doesn't have hex numbers,
      * and so can't be drawn in the standard drawHex loop.
      * @since 1.1.08
+     * @see #drawPorts_LargeBoard(Graphics)
      */
     private final void drawPortsRing(Graphics g)
     {
@@ -3323,6 +3329,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Draw the ports for the {@link #isLargeBoard large board}.
      * These can occur anywhere on the board.
      * @since 2.0.00
+     * @see #drawPortsRing(Graphics)
      */
     private final void drawPorts_LargeBoard(Graphics g)
     {
@@ -3583,28 +3590,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             break;
 
         case SC_FTRI_PLACE_PORT:
-            drawSeaEdgeLines(g, player.getPortMovePotentialLocations(true));
-            if (hilight != 0)
-            {
-                // Draw hilight line with some thickness if possible
-                final Stroke prevStroke;
-                if (g instanceof Graphics2D)
-                {
-                    prevStroke = ((Graphics2D) g).getStroke();
-                    ((Graphics2D) g).setStroke(new BasicStroke(2.5f));
-                } else {
-                    prevStroke = null;
-                }
-
-                g.setColor(Color.WHITE);
-                int edge = hilight;
-                if (edge == -1)
-                    edge = 0;
-                drawSeaEdgeLine(g, edge);
-
-                if (prevStroke != null)
-                    ((Graphics2D) g).setStroke(prevStroke);
-            }
+            drawBoard_SC_FTRI_placePort(g);
             break;
 
         }  // switch
@@ -3622,6 +3608,41 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             drawSuperTextTop(g);
         }
+    }
+
+    /**
+     * Scenario game option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}: In board mode {@link #SC_FTRI_PLACE_PORT},
+     * draw the possible coastal edges where the port can be placed, and if the {@link #hilight} cursor is at
+     * such an edge, a solid hilight line there.
+     * @since 2.0.00
+     */
+    private final void drawBoard_SC_FTRI_placePort(Graphics g)
+    {
+        drawSeaEdgeLines(g, Color.WHITE, player.getPortMovePotentialLocations(true));
+
+        if (hilight == 0)
+            return;
+
+        // Draw hilight line with some thickness if possible.
+
+        int edge = hilight;
+        if (edge == -1)
+            edge = 0;
+
+        final Stroke prevStroke;
+        if (g instanceof Graphics2D)
+        {
+            prevStroke = ((Graphics2D) g).getStroke();
+            ((Graphics2D) g).setStroke(new BasicStroke(2.5f));
+        } else {
+            prevStroke = null;
+        }
+
+        g.setColor(Color.WHITE);
+        drawSeaEdgeLine(g, edge);
+
+        if (prevStroke != null)
+            ((Graphics2D) g).setStroke(prevStroke);
     }
 
     /**
@@ -3752,7 +3773,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 final HashSet<Integer> lse = (player != null) ? player.getRestrictedLegalShips() : null;
                 if (lse != null)
-                    drawSeaEdgeLines(g, lse);
+                    drawSeaEdgeLines(g, null, lse);
             }
 
             // For scenario _SC_FTRI, draw markers at the SVP edges and dev card edges (added layout parts "CE", "VE")
