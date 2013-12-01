@@ -1148,53 +1148,8 @@ public class SOCBoardLarge extends SOCBoard
         // Adding a new port has similar tasks to setPortsLayout:
         // If you update this method, consider updating that one too.
 
-        // - Calculate facing, for display;
-        //   similar to code in SOCBoardLargeAtServer.makeNewBoard_checkPortLocationsConsistent
-        final int facing;
-        {
-            final int r = (edge >> 8), c = (edge & 0xFF);
-
-            int f1, f2;  // facings which make sense for this type of edge
-
-            // "|" if r is odd
-            if ((r % 2) == 1)
-            {
-                f1 = FACING_E;   f2 = FACING_W;
-            }
-
-            // "/" if (r/2,c) is even,odd or odd,even
-            else if ((c % 2) != ((r/2) % 2))
-            {
-                f1 = FACING_NW;  f2 = FACING_SE;
-            }
-            else
-            {
-                // "\" if (r/2,c) is odd,odd or even,even
-                f1 = FACING_NE;  f2 = FACING_SW;
-            }
-
-            // if f1 faces land, f2 should face water
-            int hex = getAdjacentHexToEdge(edge, f2);
-            if ((hex == 0) || (getHexTypeFromCoord(hex) == WATER_HEX))
-            {
-                facing = f1;
-            } else {
-                // if f2 faces land, f1 should face water
-                hex = getAdjacentHexToEdge(edge, f1);
-                if ((hex == 0) || (getHexTypeFromCoord(hex) == WATER_HEX))
-                {
-                    facing = f2;
-                } else {
-                    throw new IllegalArgumentException("Edge 0x" + Integer.toHexString(edge) + " is between land hexes");
-                }
-            }
-
-            // Hex in opposite-from-facing direction is water.
-            // Make sure hex in facing direction is land.
-            hex = getAdjacentHexToEdge(edge, facing);
-            if ((hex == 0) || (getHexTypeFromCoord(hex) == WATER_HEX))
-                throw new IllegalArgumentException("Edge 0x" + Integer.toHexString(edge) + " is between water hexes");
-        }
+        // - Calculate facing
+        final int facing = getPortFacingFromEdge(edge);
 
         // - Update portsLayout
         int i;  // will fill this index in portsLayout
@@ -3522,6 +3477,68 @@ public class SOCBoardLarge extends SOCBoard
     {
         int[] facing = new int[portsCount];
         System.arraycopy(portsLayout, 2 * portsCount, facing, 0, portsCount);
+        return facing;
+    }
+
+    /**
+     * Given a coastal edge, find the "port facing" direction (towards land) for that edge.
+     * Calculated by checking {@code edge}'s adjacent hexes for land and water;
+     * if a hex is off the edge of the board, it's considered water.
+     *
+     * @param edge  A coastal edge; not validated here, must be a possible coordinate for an edge
+     * @throws IllegalArgumentException  if {@code edge} is between 2 land hexes or 2 water hexes
+     * @return  Coastal edge's port facing (towards land): In the range {@link SOCBoard#FACING_NE FACING_NE},
+     *     {@link SOCBoard#FACING_E FACING_E}, ... {@link SOCBoard#FACING_NW FACING_NW}
+     */
+    public int getPortFacingFromEdge(final int edge)
+        throws IllegalArgumentException
+    {
+        // similar to code in SOCBoardLargeAtServer.makeNewBoard_checkPortLocationsConsistent
+
+        final int r = (edge >> 8), c = (edge & 0xFF);
+        final int facing;
+
+        int f1, f2;  // facings which make sense for this type of edge
+
+        // "|" if r is odd
+        if ((r % 2) == 1)
+        {
+            f1 = FACING_E;   f2 = FACING_W;
+        }
+
+        // "/" if (r/2,c) is even,odd or odd,even
+        else if ((c % 2) != ((r/2) % 2))
+        {
+            f1 = FACING_NW;  f2 = FACING_SE;
+        }
+        else
+        {
+            // "\" if (r/2,c) is odd,odd or even,even
+            f1 = FACING_NE;  f2 = FACING_SW;
+        }
+
+        // if f1 faces land, f2 should face water
+        int hex = getAdjacentHexToEdge(edge, f2);
+        if ((hex == 0) || (getHexTypeFromCoord(hex) == WATER_HEX))
+        {
+            facing = f1;
+        } else {
+            // if f2 faces land, f1 should face water
+            hex = getAdjacentHexToEdge(edge, f1);
+            if ((hex == 0) || (getHexTypeFromCoord(hex) == WATER_HEX))
+            {
+                facing = f2;
+            } else {
+                throw new IllegalArgumentException("Edge 0x" + Integer.toHexString(edge) + " is between land hexes");
+            }
+        }
+
+        // Hex in opposite-from-facing direction is water.
+        // Make sure hex in facing direction is land.
+        hex = getAdjacentHexToEdge(edge, facing);
+        if ((hex == 0) || (getHexTypeFromCoord(hex) == WATER_HEX))
+            throw new IllegalArgumentException("Edge 0x" + Integer.toHexString(edge) + " is between water hexes");
+
         return facing;
     }
 
