@@ -225,7 +225,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     public static final String K_SC_4ISL = "SC_4ISL";
 
     /**
-     * Scenario key <tt>SC_FOG</tt> for {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}.
+     * Scenario key <tt>SC_FOG</tt> for {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED} (The Fog Islands scenario).
      * Main option is {@link SOCGameOption#K_SC_FOG}.
      */
     public static final String K_SC_FOG = "SC_FOG";
@@ -263,14 +263,18 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * When players reach them (with a ship adjacent to various edge coordinates),
      * they are greeted with "gifts" of a development card or Special Victory Point.
      *<P>
-     * Harbors at these far areas can be claimed by players and must be moved adjacent to one
+     * Trade ports at these far areas can be claimed by players and must be moved adjacent to one
      * of their coastal settlements/cities, unless they have none that isn't at least separated 1 edge
-     * from an existing harbor.  If that's the case, the claimed harbor is "set aside" for the
+     * from an existing port.  If that's the case, the claimed port is "set aside" for the
      * player to place later when they have such a coastal settlement.
      *<P>
      * When a player reaches a Special Edge and is awarded a gift, the game clears that edge's special
      * type, then fires a {@link SOCScenarioPlayerEvent#DEV_CARD_REACHED_SPECIAL_EDGE} or
      * {@link SOCScenarioPlayerEvent#SVP_REACHED_SPECIAL_EDGE} event.
+     *<P>
+     * When a player reaches a "gift" trade port, either the port is added to their inventory
+     * as a {@link SOCInventoryItem} for later placement, or they must immediately place it:
+     * {@link SOCGame#setPlacingItem(SOCInventoryItem)} is called, state becomes {@link SOCGame#PLACING_INV_ITEM}.
      */
     public static final String K_SC_FTRI = "SC_FTRI";
 

@@ -183,11 +183,12 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *<LI> {@link #K_SC_SEAC _SC_SEAC}  2 SVP each time settle in another new land area:
      *                                  {@link SOCScenarioPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}
      *<LI> {@link #K_SC_FOG  _SC_FOG}   A hex has been revealed from behind fog:
-     *                                  {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}
+     *                                  {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}: See {@link SOCScenario#K_SC_FOG}
      *<LI> {@link #K_SC_0RVP _SC_0RVP}  No VP for longest road / longest trade route
      *<LI> {@link #K_SC_3IP  _SC_3IP}   Third initial settlement and road/ship placement
-     *<LI> {@link #K_SC_CLVI _SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}
-     *<LI> {@link #K_SC_PIRI _SC_PIRI}  Pirate Islands and {@link SOCFortress fortresses}
+     *<LI> {@link #K_SC_CLVI _SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}: See {@link SOCScenario#K_SC_CLVI}
+     *<LI> {@link #K_SC_FTRI _SC_FTRI}  The Forgotten Tribe: See {@link SOCScenario#K_SC_FTRI}
+     *<LI> {@link #K_SC_PIRI _SC_PIRI}  Pirate Islands and {@link SOCFortress fortresses}: See {@link SOCScenario#K_SC_PIRI}
      *</UL>
      *
      * <h3>If you want to add a game option:</h3>
@@ -201,6 +202,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *   If your option supports a {@link SOCScenario}, its name should
      *   start with "_SC_" and it should have a constant name field here
      *   (like {@link #K_SC_3IP}) with a short descriptive javadoc.
+     *   Link in javadoc to the SOCScenario field and add it to the list above.
      *<LI> Decide which {@link #optType option type} your option will be
      *   (boolean, enumerated, int+bool, etc.), and its default value.
      *   Typically the default will let the game behave as it did before
@@ -602,6 +604,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
     /**
      * Scenario key {@code _SC_FTRI} for the Forgotten Tribe.
+     * Special edges with SVP, dev cards, and "gift" ports placed via {@link SOCInventoryItem}.
      * For more details and special rules see {@link SOCScenario#K_SC_FTRI}.
      * @since 2.0.00
      */
