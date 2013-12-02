@@ -5319,10 +5319,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     }
                     else if (game.canPlaceShip(player, hilight))  // checks isPotentialShip, pirate ship
                     {
-                        client.getGameManager().putPiece(game, new SOCShip(player, hilight, board));
+                        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI) && ((SOCBoardLarge) board).canRemovePort(hilight))
+                        {
+                            java.awt.EventQueue.invokeLater(new ConfirmPlaceShipDialog(hilight, false, -1));
+                        } else {
+                            client.getGameManager().putPiece(game, new SOCShip(player, hilight, board));
 
-                        // Now that we've placed, clear the mode and the hilight.
-                        clearModeAndHilight(SOCPlayingPiece.SHIP);
+                            // Now that we've placed, clear the mode and the hilight.
+                            clearModeAndHilight(SOCPlayingPiece.SHIP);
+                        }
+
                         if (tempChangedMode)
                             hoverTip.hideHoverAndPieces();
                     }
@@ -5366,11 +5372,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     break;
 
                 case PLACE_SHIP:
-
                     if (game.canPlaceShip(player, hilight))  // checks isPotentialShip, pirate ship
                     {
-                        client.getGameManager().putPiece(game, new SOCShip(player, hilight, board));
-                        clearModeAndHilight(SOCPlayingPiece.SHIP);
+                        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI) && ((SOCBoardLarge) board).canRemovePort(hilight))
+                        {
+                            java.awt.EventQueue.invokeLater(new ConfirmPlaceShipDialog(hilight, false, -1));
+                        } else {
+                            client.getGameManager().putPiece(game, new SOCShip(player, hilight, board));
+                            clearModeAndHilight(SOCPlayingPiece.SHIP);
+                        }
                         if (tempChangedMode)
                             hoverTip.hideHoverAndPieces();
                     }
@@ -5683,23 +5693,39 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Check and move ship from {@link #moveShip_fromEdge} to {@link #hilight}.  Also sets moveShip_fromEdge = 0,
      * calls {@link #clearModeAndHilight(int) clearModeAndHilight}({@link SOCPlayingPiece#SHIP}).
      * Called from mouse click or popup menu.
+     *<P>
      * Note that if {@link #hilight} != 0, then {@link SOCGame#canMoveShip(int, int, int) SOCGame.canMoveShip}
      * ({@link #playerNumber}, {@link #moveShip_fromEdge}, {@link #hilight}) has probably already been called.
+     *<P>
+     * In scenario {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, checks if a gift port would be claimed by
+     * placing a ship there.  If so, confirms with the user first with {@link ConfirmPlaceShipDialog}.
      * @since 2.0.00
      * @see BoardPopupMenu#tryMoveShipFromHere()
      */
     private final void tryMoveShipToHilight()
     {
+        boolean clearMode = true;
+
         if (moveShip_fromEdge != 0)
         {
             if (game.canMoveShip(playerNumber, moveShip_fromEdge, hilight) != null)
             {
-                playerInterface.getClient().getGameManager().movePieceRequest
-                    (game, playerNumber, SOCPlayingPiece.SHIP, moveShip_fromEdge, hilight);
+                if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI) && ((SOCBoardLarge) board).canRemovePort(hilight))
+                {
+                    java.awt.EventQueue.invokeLater(new ConfirmPlaceShipDialog(hilight, false, moveShip_fromEdge));
+                    clearMode = false;
+                } else {
+                    playerInterface.getClient().getGameManager().movePieceRequest
+                        (game, playerNumber, SOCPlayingPiece.SHIP, moveShip_fromEdge, hilight);
+                }
             }
-            moveShip_fromEdge = 0;
+
+            if (clearMode)
+                moveShip_fromEdge = 0;
         }
-        clearModeAndHilight(SOCPlayingPiece.SHIP);  // exit the mode
+
+        if (clearMode)
+            clearModeAndHilight(SOCPlayingPiece.SHIP);  // exit the mode
     }
 
     /**
@@ -7546,6 +7572,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               return;
           if (! menuPlayerIsCurrent)
               return;
+
           Object target = e.getSource();
           if (target == buildRoadItem)
           {
@@ -7568,6 +7595,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                   tryMoveShipToHilight();
               else if (isShipMovable)
                   tryMoveShipFromHere();
+              else if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI) && ((SOCBoardLarge) board).canRemovePort(hoverShipID))
+                  java.awt.EventQueue.invokeLater(new ConfirmPlaceShipDialog(hoverShipID, true, -1));
               else
                   tryBuild(SOCPlayingPiece.SHIP);
           }
@@ -7580,7 +7609,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
       /**
        * Send message to server to request placing this piece, if allowable.
        * If not initial placement or free placement, also sets up a reaction to send the 2nd message (putpiece)
-       * when server says it's OK to build.
+       * when server says it's OK to build, using value of {@link #hoverSettlementID}, {@link #hoverShipID}, etc
+       * when {@code tryBuild} is called.
+       *<P>
        * Assumes player is current, and player is non-null, when called.
        *
        * @param ptype Piece type, like {@link SOCPlayingPiece#ROAD}
@@ -8113,5 +8144,111 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
 
     }  // nested class ConfirmAttackPirateFortressDialog
+
+    /**
+     * For scenario {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, modal dialog to confirm placing a ship
+     * at an edge with a "gift" trade port.  Player will need to pick up this port, and may need to
+     * immediately place it elsewhere on the board.
+     *<P>
+     * Assumes {@link SOCGame#canPlaceShip(SOCPlayer, int)} has been called to validate.
+     * Use the AWT event thread to show, so message treating can continue while the dialog is showing.
+     * If placement is confirmed, call putPiece, possibly after tryBuild depending on mode when dialog was shown.
+     *
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 2.0.00
+     */
+    private class ConfirmPlaceShipDialog extends AskDialog implements Runnable
+    {
+        private static final long serialVersionUID = 2000L;
+
+        /** Edge to place at or move to */
+        private final int edge;
+
+        /** If true, send Build Request before sending PutPiece */
+        private final boolean sendBuildReqFirst;
+
+        /** If not -1, do a ship move from this edge, not a placement from player's available pieces */
+        private final int isMove_fromEdge;
+
+        /**
+         * Creates a new ConfirmPlaceShipDialog.
+         * To display the dialog without tying up the client's message-treater thread,
+         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
+         *
+         * @param cli     Player client interface
+         * @param gamePI  Current game's player interface
+         * @param sendBuildReqFirst  If true, calling from {@link SOCBoardPanel.BoardPopupMenu BoardPopupMenu}, and
+         *            after user confirms, client will need to send {@link BuildRequest} before placement request
+         * @param isMove_fromEdge  Edge to move ship from, or -1 if a placement from player's available pieces;
+         *            if moving a ship, {@code sendBuildReqFirst} must be {@code false}.
+         * @param edge  The port edge where the ship would be placed
+         */
+        private ConfirmPlaceShipDialog(final int edge, final boolean sendBuildReqFirst, final int isMove_fromEdge)
+        {
+            super(playerInterface.getGameDisplay(), playerInterface,
+                strings.get("dialog.base.place.ship.title"),  // "Place Ship Here?"
+                strings.get( (player.getPortMovePotentialLocations(false) != null)
+                    ? "game.invitem.sc_ftri.pickup.ask.immed"
+                        // "If you place a ship here, this port must be placed now at your coastal settlement or city."
+                    : "game.invitem.sc_ftri.pickup.ask.later" ),
+                        // "If you place a ship here, you will be given this port to be placed later at your coastal settlement or city."
+                strings.get("dialog.base.place.ship"),  // "Place Ship"
+                strings.get("dialog.base.place.dont"),  // "Don't Place Here"
+                null, 1);
+
+            this.edge = edge;
+            this.sendBuildReqFirst = sendBuildReqFirst;
+            this.isMove_fromEdge = isMove_fromEdge;
+        }
+
+        /**
+         * React to the Place Ship button: Call gameManager.buildRequest via BoardPopupMenu.tryBuild,
+         * or gameManager.putPiece or movePieceRequest.
+         */
+        @Override
+        public void button1Chosen()
+        {
+            if (sendBuildReqFirst)
+            {
+                final int currentHover = hoverTip.hoverShipID;
+                hoverTip.hoverShipID = edge;  // set field that tryBuild reads to send PutPiece message after BuildRequest
+                popupMenu.tryBuild(SOCPlayingPiece.SHIP);
+                hoverTip.hoverShipID = currentHover;
+            } else {
+                if (isMove_fromEdge == -1)
+                    pcli.getGameManager().putPiece(game, new SOCShip(player, edge, board));
+                else
+                    pcli.getGameManager().movePieceRequest
+                        (game, playerNumber, SOCPlayingPiece.SHIP, isMove_fromEdge, edge);
+                clearModeAndHilight(SOCPlayingPiece.SHIP);
+            }
+        }
+
+        /** React to the Don't Place button. */
+        @Override
+        public void button2Chosen()
+        {
+            if (! sendBuildReqFirst)
+            {
+                // clear hilight but not mode
+                hilight = 0;
+                SOCBoardPanel.this.repaint();
+            }
+        }
+
+        /** React to the dialog window closed by user. (Don't place the ship) */
+        @Override
+        public void windowCloseChosen() { button2Chosen(); }
+
+        /**
+         * In the AWT event thread, show ourselves. Do not call directly;
+         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
+         */
+        public void run()
+        {
+            setVisible(true);
+        }
+
+    }  // nested class ConfirmPlaceShipDialog
 
 }  // class SOCBoardPanel
