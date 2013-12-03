@@ -5015,6 +5015,8 @@ public class SOCGameHandler extends GameHandler
             {
                 denyRequest = true;
             } else {
+                final int gstate = ga.getGameState();
+
                 ga.moveShip(moveShip, toEdge);
 
                 srv.messageToGame(gaName, new SOCMovePiece
@@ -5030,17 +5032,18 @@ public class SOCGameHandler extends GameHandler
                     srv.gameList.releaseMonitorForGame(gaName);
                 }
 
-                if (ga.getGameState() >= SOCGame.OVER)
-                {
-                    // announce end of game
-                    sendGameState(ga, false);
-                }
-                else if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
                 {
                     // If ship placement reveals a gold hex in _SC_FOG,
                     // the player gets to pick a free resource.
                     sendGameState(ga, false);
                     sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
+                }
+                else if (gstate != ga.getGameState())
+                {
+                    // announce new state (such as PLACING_INV_ITEM in _SC_FTRI),
+                    // or if state is now SOCGame.OVER, announce end of game
+                    sendGameState(ga, false);
                 }
             }
         }
