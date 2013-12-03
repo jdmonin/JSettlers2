@@ -149,6 +149,16 @@ public class SOCDevCard
             && (type != SOCDevCardConstants.KNIGHT);  // KNIGHT changes with game option _SC_PIRI
     }
 
+    /**
+     * Get a human-readable description, including type, isPlayable, isVP.
+     * @return String of form: "SOCDevCard{type=__, playable=__, isVP=__}"
+     * @since 2.0.00
+     */
+    public String toString()
+    {
+        return "SOCDevCard{type=" + itype + ", playable=" + isPlayable() + ", isVP=" + isVPItem() + "}";
+    }
+
     //
     // Methods from SOCInventoryItem:
     //  (see there for javadoc)
