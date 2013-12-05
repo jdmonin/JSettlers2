@@ -217,9 +217,9 @@ public class SOCHandPanel extends Panel
     protected Button sittingRobotLockBut;
 
     /** When true, the game is still forming, player has chosen a seat;
-     *  "Sit Here" button is labeled as "Lock".  Humans can use this to
-     *  lock robots out of that seat, so as to start a game with fewer
-     *  players and some vacant seats.
+     *  "Sit Here" button is labeled as "Lock" or "Unlock".  Humans can
+     *  use this to lock robots out of that seat, to start a game with
+     *  fewer players and some vacant seats.
      *<P>
      *  Set by {@link #renameSitButLock()}, cleared elsewhere.
      *  This affects {@link #sitBut} and not {@link #sittingRobotLockBut}.
@@ -3162,7 +3162,18 @@ public class SOCHandPanel extends Panel
             /* and the 'robot' button     */
             /* and the pname label        */
 
-            final int sitW = (fm != null) ? (24 + fm.stringWidth(sitBut.getLabel())) : 70;
+            final int sitW;
+            if (fm == null)
+                sitW = 70;
+            else if (sitButIsLock)
+            {
+                final int wLock = fm.stringWidth(LOCKSEAT),
+                          wUnlock = fm.stringWidth(UNLOCKSEAT);
+                sitW = 24 + ((wLock > wUnlock) ? wLock : wUnlock);
+            } else {
+                sitW = 24 + fm.stringWidth(sitBut.getLabel());
+            }
+
             sitBut.setBounds((dim.width - sitW) / 2, (dim.height - 82) / 2, sitW, 40);
             pname.setBounds(inset + faceW + inset, inset, pnameW, lineH);
         }
