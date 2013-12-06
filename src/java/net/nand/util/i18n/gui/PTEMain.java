@@ -36,12 +36,16 @@ import javax.swing.JPanel;
 
 /**
  * Main startup for {@link PropertiesTranslatorEditor}.
+ * Gives buttons with choice of new, open, open backup, exit.
  * Prompts whether to open 1 or 2 files, etc.
  * Work in progress.
  */
-public class PTEMain
+@SuppressWarnings("serial")
+public class PTEMain extends JFrame
+    implements ActionListener
 {
-    private StartupChoiceFrame scf;
+    private final JPanel btns;
+    private JButton bNew, bOpen, bOpenSrcDest, bExit;
 
     /**
      * If there's 1 or 2 properties files on the command line, try to open it.
@@ -59,11 +63,28 @@ public class PTEMain
         }
     }
 
+    public PTEMain()
+    {
+        super("PropertiesTranslatorEditor");
+
+        btns = new JPanel();
+        btns.setLayout(new BoxLayout(btns, BoxLayout.PAGE_AXIS));
+        btns.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
+
+        btns.add(new JLabel("Welcome to PropertiesTranslatorEditor. Please choose:"));
+        bNew = addBtn("New...", KeyEvent.VK_N);
+        bOpen = addBtn("Open...", KeyEvent.VK_O);
+        bOpenSrcDest = addBtn("Open Src+Dest...", KeyEvent.VK_D);
+        bExit = addBtn("Exit", KeyEvent.VK_X);
+
+        getContentPane().add(btns);
+        getRootPane().setDefaultButton(bOpen);
+    }
+
     private void initAndShow()
     {
-        scf = new StartupChoiceFrame();
-        scf.pack();
-        scf.setVisible(true);
+        pack();
+        setVisible(true);
     }
 
     /**
@@ -91,96 +112,69 @@ public class PTEMain
         }
     }
 
-    /** Gives buttons with choice of new, open, open backup, exit */
-    @SuppressWarnings("serial")
-    private class StartupChoiceFrame extends JFrame
-    implements ActionListener
+    /**
+     * Add this button to the layout.
+     * @param label Button's label
+     * @param vkN  Shortcut mnemonic from {@link KeyEvent}
+     * @return the new button
+     */
+    private JButton addBtn(final String label, final int vkN)
     {
-        private JPanel btns;
-        private JButton bNew, bOpen, bOpenSrcDest, bExit;
+        JButton b = new JButton(label);
+        b.setMnemonic(vkN);
+        btns.add(b);
+        b.addActionListener(this);
+        Dimension size = b.getPreferredSize();
+        size.width = Short.MAX_VALUE;
+        b.setMaximumSize(size);
+        return b;
+    }
 
-        public StartupChoiceFrame()
+    /** Handle button clicks. */
+    public void actionPerformed(ActionEvent e)
+    {
+        final Object src = e.getSource();
+        if (src == bNew)
         {
-            super("PropertiesTranslatorEditor");
-            btns = new JPanel();
-            btns.setLayout(new BoxLayout(btns, BoxLayout.PAGE_AXIS));
-            btns.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
-
-            btns.add(new JLabel("Welcome to PropertiesTranslatorEditor. Please choose:"));
-            bNew = addBtn("New...", KeyEvent.VK_N);
-            bOpen = addBtn("Open...", KeyEvent.VK_O);
-            bOpenSrcDest = addBtn("Open Src+Dest...", KeyEvent.VK_D);
-            bExit = addBtn("Exit", KeyEvent.VK_X);
-
-            getContentPane().add(btns);
-            getRootPane().setDefaultButton(bOpen);
+            // TODO implement; need to enforce naming standards, or have dialog to ask src/dest lang+region
+            System.err.println("Not implmented yet");
+            // openPropsEditor(null, chooseFile(true), true);
         }
-
-        /**
-         * Add this button to the layout.
-         * @param label Button's label
-         * @param vkN  Shortcut mnemonic from {@link KeyEvent}
-         * @return the new button
-         */
-        private JButton addBtn(final String label, final int vkN)
+        else if (src == bOpen)
         {
-            JButton b = new JButton(label);
-            b.setMnemonic(vkN);
-            btns.add(b);
-            b.addActionListener(this);
-            Dimension size = b.getPreferredSize();
-            size.width = Short.MAX_VALUE;
-            b.setMaximumSize(size);
-            return b;
+            openPropsEditor(null, chooseFile(false), false);
         }
-
-        /** Handle button clicks. */
-        public void actionPerformed(ActionEvent e)
+        else if (src == bOpenSrcDest)
         {
-            final Object src = e.getSource();
-            if (src == bNew)
-            {
-                // TODO implement; need to enforce naming standards, or have dialog to ask src/dest lang+region
-                System.err.println("Not implmented yet");
-                // openPropsEditor(null, chooseFile(true), true);
-            }
-            else if (src == bOpen)
-            {
-                openPropsEditor(null, chooseFile(false), false);
-            }
-            else if (src == bOpenSrcDest)
-            {
-                // TODO implement; need 2 file choosers
-                System.err.println("Not implmented yet");
-            }
-            else if (src == bExit)
-            {
-                System.exit(0);
-            }
+            // TODO implement; need 2 file choosers, or 1 dest chooser & pick a parent or other src
+            System.err.println("Not implmented yet");
         }
-
-        /**
-         * Choose a file to open or save.
-         * @param forNew  If true, use Save dialog, otherwise Open dialog
-         * @return   the chosen file, or null if nothing was chosen
-         */
-        private File chooseFile(final boolean forNew)
+        else if (src == bExit)
         {
-            // TODO filtering: setFileFilter, addChoosableFileFilter, etc
-            final JFileChooser fc = new JFileChooser();
-            int returnVal;
-            if (forNew)
-                returnVal = fc.showSaveDialog(this);
-            else
-                returnVal = fc.showOpenDialog(this);
-
-            if (returnVal != JFileChooser.APPROVE_OPTION)
-                return null;
-
-            File file = fc.getSelectedFile();
-            return file;
+            System.exit(0);
         }
+    }
 
-    }  // inner class StartupChoiceFrame
+    /**
+     * Choose a file to open or save.
+     * @param forNew  If true, use Save dialog, otherwise Open dialog
+     * @return   the chosen file, or null if nothing was chosen
+     */
+    private File chooseFile(final boolean forNew)
+    {
+        // TODO filtering: setFileFilter, addChoosableFileFilter, etc
+        final JFileChooser fc = new JFileChooser();
+        int returnVal;
+        if (forNew)
+            returnVal = fc.showSaveDialog(this);
+        else
+            returnVal = fc.showOpenDialog(this);
+
+        if (returnVal != JFileChooser.APPROVE_OPTION)
+            return null;
+
+        File file = fc.getSelectedFile();
+        return file;
+    }
 
 }
