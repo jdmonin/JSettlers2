@@ -24,7 +24,11 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -42,10 +46,22 @@ import javax.swing.JPanel;
  */
 @SuppressWarnings("serial")
 public class PTEMain extends JFrame
-    implements ActionListener
+    implements ActionListener, WindowListener
 {
     private final JPanel btns;
     private JButton bNew, bOpen, bOpenSrcDest, bExit;
+
+    /** {@link Preferences} key for directory of the prefs file most recently edited */
+    private final static String LAST_EDITED_DIR = "lastEditedDir";
+
+    private Preferences userPrefs;
+
+    /**
+     * 'Current' directory for open/save dialogs, from {@link #LAST_EDITED_DIR}, or null.
+     * Tracked here because Java has no standard way to change the JVM's current directory.
+     * Used and set in {@link StartupChoiceFrame#chooseFile(boolean)}.
+     */
+    private File lastEditedDir;
 
     /**
      * If there's 1 or 2 properties files on the command line, try to open it.
@@ -67,6 +83,11 @@ public class PTEMain extends JFrame
     {
         super("PropertiesTranslatorEditor");
 
+        addWindowListener(this);  // windowClosing: save prefs and exit
+
+        userPrefs = Preferences.userNodeForPackage(PTEMain.class);
+        tryGetLastEditedDir();
+
         btns = new JPanel();
         btns.setLayout(new BoxLayout(btns, BoxLayout.PAGE_AXIS));
         btns.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
@@ -74,7 +95,7 @@ public class PTEMain extends JFrame
         btns.add(new JLabel("Welcome to PropertiesTranslatorEditor. Please choose:"));
         bNew = addBtn("New...", KeyEvent.VK_N);
         bOpen = addBtn("Open...", KeyEvent.VK_O);
-        bOpenSrcDest = addBtn("Open Src+Dest...", KeyEvent.VK_D);
+        bOpenSrcDest = addBtn("Open Dest + Src...", KeyEvent.VK_D);
         bExit = addBtn("Exit", KeyEvent.VK_X);
 
         getContentPane().add(btns);
@@ -110,6 +131,46 @@ public class PTEMain extends JFrame
             final String spath = chooseFileSrc.getAbsolutePath();
             new PropertiesTranslatorEditor(spath, dpath).init();
         }
+    }
+
+    /**
+     * If possible, changes 'current' directory field ({@link #lastEditedDir}) to that of
+     * the most recently edited destination file.
+     */
+    private void tryGetLastEditedDir()
+    {
+        lastEditedDir = null;
+
+        try
+        {
+            if (userPrefs == null)
+                return;  // unlikely, just in case
+
+            final String dir = userPrefs.get(LAST_EDITED_DIR, null);
+            if (dir == null)
+                return;
+
+            final File fdir = new File(dir);
+            if (fdir.exists() && fdir.isDirectory())
+                lastEditedDir = fdir;
+
+        } catch (RuntimeException e) {
+            // ignore SecurityException, IllegalStateException: don't change dir
+        }
+    }
+
+    /**
+     * Store 'current' directory {@link #lastEditedDir} to preferences.
+     */
+    private void trySetDirMostRecent()
+    {
+        if ((lastEditedDir == null) || (userPrefs == null))
+            return;
+
+        try
+        {
+            userPrefs.put(LAST_EDITED_DIR, lastEditedDir.getAbsolutePath());
+        } catch (SecurityException se) {}
     }
 
     /**
@@ -151,12 +212,12 @@ public class PTEMain extends JFrame
         }
         else if (src == bExit)
         {
-            System.exit(0);
+            windowClosing(null);
         }
     }
 
     /**
-     * Choose a file to open or save.
+     * Choose a file to open or save.  Uses and updates {@link #lastEditedDir}.
      * @param forNew  If true, use Save dialog, otherwise Open dialog
      * @return   the chosen file, or null if nothing was chosen
      */
@@ -164,6 +225,9 @@ public class PTEMain extends JFrame
     {
         // TODO filtering: setFileFilter, addChoosableFileFilter, etc
         final JFileChooser fc = new JFileChooser();
+        if ((lastEditedDir != null) && lastEditedDir.exists())
+            fc.setCurrentDirectory(lastEditedDir);
+
         int returnVal;
         if (forNew)
             returnVal = fc.showSaveDialog(this);
@@ -173,8 +237,35 @@ public class PTEMain extends JFrame
         if (returnVal != JFileChooser.APPROVE_OPTION)
             return null;
 
+        lastEditedDir = fc.getCurrentDirectory();
+        trySetDirMostRecent();
+
         File file = fc.getSelectedFile();
         return file;
     }
+
+    /**
+     * Save {@link #userPrefs} if possible, dispose of the main button window,
+     * and call {@link System#exit(int) System.exit(0)}.
+     * @param e  Event, ignored (null is okay)
+     */
+    public void windowClosing(WindowEvent e)
+    {
+        try
+        {
+            if (userPrefs != null)
+                userPrefs.flush();
+        } catch (BackingStoreException ex) {}  // OK if we can't save last-opened-location pref
+
+        dispose();
+        System.exit(0);
+    }
+
+    public void windowActivated(WindowEvent e) {}
+    public void windowClosed(WindowEvent e) {}
+    public void windowDeactivated(WindowEvent e) {}
+    public void windowDeiconified(WindowEvent e) {}
+    public void windowIconified(WindowEvent e) {}
+    public void windowOpened(WindowEvent e) {}
 
 }
