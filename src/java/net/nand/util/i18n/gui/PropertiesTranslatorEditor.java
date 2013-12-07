@@ -44,6 +44,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellEditor;
 
 import net.nand.util.i18n.ParsedPropsFilePair;
 import net.nand.util.i18n.PropsFileParser;
@@ -168,6 +169,7 @@ public class PropertiesTranslatorEditor
 
         mod = new PTSwingTableModel(this);  // sets up model to pair
         jtab = new JTable(mod);
+        jtab.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);  // don't lose current edit when focus lost
         jtab.setDefaultRenderer(Object.class, new PTCellRenderer(mod));  // background colors, etc
         // don't require double-click to edit jtab cell entries; all editable cols are String, so Object is enough
         ((DefaultCellEditor) jtab.getDefaultEditor(Object.class)).setClickCountToStart(1);
@@ -287,7 +289,8 @@ public class PropertiesTranslatorEditor
     }
 
     /**
-     * Add/insert a row before or after the row that was right-clicked on.
+     * Add/insert a row before or after the row that was right-clicked on,
+     * which was stored at click time in {@link #jtabClickedRow}.
      * @param ae  Menu popup action, with right-click location
      * @param beforeRow  If true, insert before (above), otherwise add after (below) this line
      */
@@ -296,8 +299,25 @@ public class PropertiesTranslatorEditor
         if (jtabClickedRow == -1)
             return;
 
+        final int currR = jtab.getEditingRow();
+        if ((currR != -1) && (Math.abs(currR - jtabClickedRow) == 1))
+        {
+            // If currently editing a row near jtabClickedRow, insert above or below
+            // that current row instead of the clicked row.
+            jtabClickedRow = currR;
+        }
+
+        final int r = (beforeRow) ? jtabClickedRow : (jtabClickedRow + 1);  // row number affected by insert
+
+        if ((currR != -1) && (currR <= r))
+        {
+            // Currently editing, row number is changing: Commit edit changes before the insert
+            TableCellEditor ce = jtab.getCellEditor();
+            if (ce != null)
+                ce.stopCellEditing();
+        }
+
         pair.insertRow(jtabClickedRow, beforeRow);
-        final int r = (beforeRow) ? jtabClickedRow : (jtabClickedRow+1);
         mod.fireTableRowsInserted(r, r);
     }
 
