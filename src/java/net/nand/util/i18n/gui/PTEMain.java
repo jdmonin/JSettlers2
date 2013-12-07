@@ -38,12 +38,14 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.UIManager;
 
 /**
  * Main startup for {@link PropertiesTranslatorEditor}.
  * Gives buttons with choice of new, open, open backup, exit.
  * Prompts whether to open 1 or 2 files, etc.
- * Work in progress.
+ *<P>
+ * Work in progress.  See {@link PropertiesTranslatorEditor} for current limitations.
  */
 @SuppressWarnings("serial")
 public class PTEMain extends JFrame
@@ -60,7 +62,7 @@ public class PTEMain extends JFrame
     /**
      * 'Current' directory for open/save dialogs, from {@link #LAST_EDITED_DIR}, or null.
      * Tracked here because Java has no standard way to change the JVM's current directory.
-     * Used and set in {@link StartupChoiceFrame#chooseFile(boolean)}.
+     * Used and set in {@link #chooseFile(boolean, String)}.
      */
     private File lastEditedDir;
 
@@ -70,6 +72,10 @@ public class PTEMain extends JFrame
      */
     public static void main(String[] args)
     {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {}
+
         if (args.length >= 2)
         {
             new PropertiesTranslatorEditor(args[0], args[1]).init();
@@ -88,10 +94,13 @@ public class PTEMain extends JFrame
     static void showAbout(final JFrame parent)
     {
         JOptionPane.showMessageDialog
-            (parent, "PropertiesTranslatorEditor is a side-by-side editor for translators, showing each key's value in the source and destination languages next to each other.",
+            (parent, "PropertiesTranslatorEditor is a side-by-side editor for translators,\nshowing each key's value in the source and destination languages next to each other.",
              "About PropertiesTranslatorEditor", JOptionPane.PLAIN_MESSAGE);
     }
 
+    /**
+     * Initialize layout and fields.  Does not pack or make visible; call {@link #initAndShow()} for that.
+     */
     public PTEMain()
     {
         super("PropertiesTranslatorEditor");
@@ -116,7 +125,10 @@ public class PTEMain extends JFrame
         getRootPane().setDefaultButton(bOpen);
     }
 
-    private void initAndShow()
+    /**
+     * Pack and make visible.
+     */
+    public void initAndShow()
     {
         pack();
         setVisible(true);
@@ -213,11 +225,11 @@ public class PTEMain extends JFrame
         {
             // TODO implement; need to enforce naming standards, or have dialog to ask src/dest lang+region
             System.err.println("Not implmented yet");
-            // openPropsEditor(null, chooseFile(true), true);
+            // openPropsEditor(null, chooseFile(true, null), true);
         }
         else if (src == bOpen)
         {
-            openPropsEditor(null, chooseFile(false), false);
+            openPropsEditor(null, chooseFile(false, null), false);
         }
         else if (src == bOpenDestSrc)
         {
@@ -237,14 +249,17 @@ public class PTEMain extends JFrame
     /**
      * Choose a file to open or save.  Uses and updates {@link #lastEditedDir}.
      * @param forNew  If true, use Save dialog, otherwise Open dialog
+     * @param title  Optional dialog title, or {@code null} for default
      * @return   the chosen file, or null if nothing was chosen
      */
-    private File chooseFile(final boolean forNew)
+    private File chooseFile(final boolean forNew, final String title)
     {
         // TODO filtering: setFileFilter, addChoosableFileFilter, etc
         final JFileChooser fc = new JFileChooser();
         if ((lastEditedDir != null) && lastEditedDir.exists())
             fc.setCurrentDirectory(lastEditedDir);
+        if (title != null)
+            fc.setDialogTitle(title);
 
         int returnVal;
         if (forNew)

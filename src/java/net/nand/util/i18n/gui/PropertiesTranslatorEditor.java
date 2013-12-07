@@ -42,6 +42,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.UIManager;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
@@ -54,14 +55,15 @@ import net.nand.util.i18n.PropsFileWriter;
  * Property file editor for translators (side-by-side source and destination languages).
  * Presents the source and destination language keys and values.
  * Highlights values that still need to be translated into the destination.
- * Saves in ISO-8859-1 encoding, escaping unicode characters where needed.
+ * Saves in ISO-8859-1 encoding required for .properties files, escaping unicode characters where needed.
+ *<P>
+ * The main startup class for this package is {@link PTEMain}, which has buttons for New, Open, About, etc.
  *<P>
  * Work in progress. Current limitations:
  *<UL>
- * <LI> Can only create and change destination file entries, not source
- * <LI> Can't add, insert, delete, or move lines in the files
+ * <LI> Can only change string values, not key names
+ * <LI> Can't delete or move lines in the files
  * <LI> Can only edit existing files, not create new ones
- * <LI> Filename required on command line, no File Open dialog
  * <LI> Search the source for {@code TODO} for other minor items
  *</UL>
  * There are other properties editors out there, I wanted to see what writing one would be like.
@@ -390,15 +392,19 @@ public class PropertiesTranslatorEditor
     {
         // TODO cmdline parsing, help, etc
 
-        final PropertiesTranslatorEditor pted;
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {}
+
         if (args.length >= 2)
         {
-            pted = new PropertiesTranslatorEditor(args[0], args[1]);
+            new PropertiesTranslatorEditor(args[0], args[1]).init();
+        } else if (args.length == 1) {
+            new PropertiesTranslatorEditor(args[0]).init();
         } else {
-            pted = new PropertiesTranslatorEditor(args[0]);
+            new PTEMain().initAndShow();
         }
 
-        pted.init();
     }
 
     //
