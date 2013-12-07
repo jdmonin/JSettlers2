@@ -36,6 +36,7 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 /**
@@ -49,7 +50,7 @@ public class PTEMain extends JFrame
     implements ActionListener, WindowListener
 {
     private final JPanel btns;
-    private JButton bNew, bOpen, bOpenSrcDest, bExit;
+    private JButton bNew, bOpen, bOpenDestSrc, bAbout, bExit;
 
     /** {@link Preferences} key for directory of the prefs file most recently edited */
     private final static String LAST_EDITED_DIR = "lastEditedDir";
@@ -79,6 +80,18 @@ public class PTEMain extends JFrame
         }
     }
 
+    /**
+     * Show the PropertiesTranslatorEditor "About" dialog.
+     * Static to allow calls from any class.
+     * @param parent  Parent for the dialog, as in {@link JOptionPane#showMessageDialog(java.awt.Component, Object)}
+     */
+    static void showAbout(final JFrame parent)
+    {
+        JOptionPane.showMessageDialog
+            (parent, "PropertiesTranslatorEditor is a side-by-side editor for translators, showing each key's value in the source and destination languages next to each other.",
+             "About PropertiesTranslatorEditor", JOptionPane.PLAIN_MESSAGE);
+    }
+
     public PTEMain()
     {
         super("PropertiesTranslatorEditor");
@@ -95,7 +108,8 @@ public class PTEMain extends JFrame
         btns.add(new JLabel("Welcome to PropertiesTranslatorEditor. Please choose:"));
         bNew = addBtn("New...", KeyEvent.VK_N);
         bOpen = addBtn("Open...", KeyEvent.VK_O);
-        bOpenSrcDest = addBtn("Open Dest + Src...", KeyEvent.VK_D);
+        bOpenDestSrc = addBtn("Open Dest + Src...", KeyEvent.VK_D);
+        bAbout = addBtn("About", KeyEvent.VK_A);
         bExit = addBtn("Exit", KeyEvent.VK_X);
 
         getContentPane().add(btns);
@@ -205,10 +219,14 @@ public class PTEMain extends JFrame
         {
             openPropsEditor(null, chooseFile(false), false);
         }
-        else if (src == bOpenSrcDest)
+        else if (src == bOpenDestSrc)
         {
             // TODO implement; need 2 file choosers, or 1 dest chooser & pick a parent or other src
             System.err.println("Not implmented yet");
+        }
+        else if (src == bAbout)
+        {
+            showAbout(this);
         }
         else if (src == bExit)
         {
