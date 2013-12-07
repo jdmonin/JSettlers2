@@ -21,18 +21,22 @@
 package net.nand.util.i18n.gui;
 
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -67,8 +71,37 @@ public class PTEMain extends JFrame
     private File lastEditedDir;
 
     /**
+     * Try to edit a destination file by finding its matching source file's name via the
+     * {@link PropertiesTranslatorEditor#PropertiesTranslatorEditor(String) PropertiesTranslatorEditor(String)}
+     * constructor.  If not found, or if it's a source file instead of a destination, displays an error message
+     * and returns false.   Otherwise calls {@link PropertiesTranslatorEditor#init()} to show the pair for editing.
+     *
+     * @param dest  Destination .properties file (full path or just filename)
+     * @param parent  Parent for any MessageDialog shown, or {@code null}
+     * @return  True if found and shown for editing, false if error message shown instead
+     */
+    public static boolean tryEditFromDestOnly(final String dest, final JFrame parent)
+    {
+        try {
+            new PropertiesTranslatorEditor(dest).init();
+            return true;
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog
+                (parent, "Please select the destination (more specific locale) .properties file, not the source file.",
+                 "Select destination, not source", JOptionPane.INFORMATION_MESSAGE);
+        } catch (FileNotFoundException e) {
+            // wrap error text in case dest is a long path
+            JOptionPane.showMessageDialog
+                (parent, "Could not find less-specific source locale .properties file on disk\nto match " + dest,
+                 "Source .properties file not found", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return false;
+    }
+
+    /**
      * If there's 1 or 2 properties files on the command line, try to open it.
-     * Otherwise, bring up the startup buttons. 
+     * Otherwise, bring up the startup buttons.
      */
     public static void main(String[] args)
     {
@@ -79,9 +112,11 @@ public class PTEMain extends JFrame
         if (args.length >= 2)
         {
             new PropertiesTranslatorEditor(args[0], args[1]).init();
-        } else if (args.length == 1) {
-            new PropertiesTranslatorEditor(args[0]).init();
         } else {
+            if ((args.length == 1) && tryEditFromDestOnly(args[0], null))
+                return;
+                // if can't open args[0], shows error and falls through to PTEMain
+
             new PTEMain().initAndShow();
         }
     }
@@ -115,11 +150,12 @@ public class PTEMain extends JFrame
         btns.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
 
         btns.add(new JLabel("Welcome to PropertiesTranslatorEditor. Please choose:"));
-        bNew = addBtn("New...", KeyEvent.VK_N);
-        bOpen = addBtn("Open...", KeyEvent.VK_O);
-        bOpenDestSrc = addBtn("Open Dest + Src...", KeyEvent.VK_D);
-        bAbout = addBtn("About", KeyEvent.VK_A);
-        bExit = addBtn("Exit", KeyEvent.VK_X);
+        bNew = addBtn(btns, this, "New...", KeyEvent.VK_N);
+        bNew.setEnabled(false);  // TODO add this functionality
+        bOpen = addBtn(btns, this, "Open Dest...", KeyEvent.VK_O);
+        bOpenDestSrc = addBtn(btns, this, "Open Dest + Src...", KeyEvent.VK_D);
+        bAbout = addBtn(btns, this, "About", KeyEvent.VK_A);
+        bExit = addBtn(btns, this, "Exit", KeyEvent.VK_X);
 
         getContentPane().add(btns);
         getRootPane().setDefaultButton(bOpen);
@@ -137,7 +173,9 @@ public class PTEMain extends JFrame
     /**
      * Open these file(s) in a {@link PropertiesTranslatorEditor}.
      * 
-     * @param chooseFileSrc   Source properties file, or {@code null}
+     * @param chooseFileSrc   Source properties file, or {@code null} to determine via the
+     *                        {@link PropertiesTranslatorEditor#PropertiesTranslatorEditor(String) PropertiesTranslatorEditor(String)}
+     *                        constructor.  If {@code null} and not found, displays an error message.
      * @param chooseFileDest  Destination properties file; can't be {@code null} or returns immediately
      * @param isNew           True if {@code chooseFileDest} should be created; not implemented yet.  Assumes
      *                        dest name follows properties naming standards for language and region.
@@ -152,7 +190,7 @@ public class PTEMain extends JFrame
         final String dpath = chooseFileDest.getAbsolutePath();
         if (chooseFileSrc == null)
         {
-            new PropertiesTranslatorEditor(dpath).init();
+            tryEditFromDestOnly(dpath, this);  // calls new PropertiesTranslatorEditor(dpath).init() or shows error message
         } else {
             final String spath = chooseFileSrc.getAbsolutePath();
             new PropertiesTranslatorEditor(spath, dpath).init();
@@ -201,16 +239,18 @@ public class PTEMain extends JFrame
 
     /**
      * Add this button to the layout.
+     * @param btns  Add to this button panel
+     * @param lsnr  Add this action listener to the button
      * @param label Button's label
      * @param vkN  Shortcut mnemonic from {@link KeyEvent}
      * @return the new button
      */
-    private JButton addBtn(final String label, final int vkN)
+    private static JButton addBtn(final JPanel btns, final ActionListener lsnr, final String label, final int vkN)
     {
         JButton b = new JButton(label);
         b.setMnemonic(vkN);
         btns.add(b);
-        b.addActionListener(this);
+        b.addActionListener(lsnr);
         Dimension size = b.getPreferredSize();
         size.width = Short.MAX_VALUE;
         b.setMaximumSize(size);
@@ -233,8 +273,7 @@ public class PTEMain extends JFrame
         }
         else if (src == bOpenDestSrc)
         {
-            // TODO implement; need 2 file choosers, or 1 dest chooser & pick a parent or other src
-            System.err.println("Not implmented yet");
+            clickedOpenDestSrc();
         }
         else if (src == bAbout)
         {
@@ -244,6 +283,15 @@ public class PTEMain extends JFrame
         {
             windowClosing(null);
         }
+    }
+
+    /**
+     * Handle a click on the "Open Dest + Src" button.  Create and show the dialog to choose 2 property files.
+     */
+    private final void clickedOpenDestSrc()
+    {
+        // TODO implement; need 2 file choosers, or 1 dest chooser & pick a parent or other src
+        System.err.println("Not implmented yet");
     }
 
     /**

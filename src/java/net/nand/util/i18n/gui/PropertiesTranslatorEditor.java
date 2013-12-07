@@ -30,6 +30,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
 
@@ -247,32 +248,20 @@ public class PropertiesTranslatorEditor
      *           This filename must end with "_xx.properties" and the
      *           source will be the same filename without the "_xx" part.
      *           (The "_xx" part can be any length, not limited to 2 letters.)
+     * @see #makeParentFilename(String)
+     * @throws IllegalArgumentException  Unless destFilename ends with _xx.properties
+     *     (xx = any code 2 or more chars long)
+     * @throws FileNotFoundException  if no existing parent of {@link destFilename} can be found on disk
+     *     by {@link #makeParentFilename(String)}
      */
     public PropertiesTranslatorEditor(final String destFilename)
-        throws IllegalArgumentException
+        throws IllegalArgumentException, FileNotFoundException
     {
-        final int dfL = destFilename.length();
-        final int iUndersc = destFilename.lastIndexOf('_', dfL - 12);
-
-        if ( (! destFilename.endsWith(".properties"))
-             || (dfL <= 14) || (-1 == iUndersc) )
-            throw new IllegalArgumentException("destFilename must end with _xx.properties");
-
-        // Remove 1 underscore level (_lang.properties or _COUNTRY.properties) for source file
-
-        String srcFilename = destFilename.substring(0, iUndersc) + destFilename.substring(dfL - 11);
-
-        int iUndersc2 = srcFilename.lastIndexOf('_', dfL - 12);
-        if (iUndersc2 != -1)
-        {
-            // It's unlikely that we'd have xyz_lang_COUNTRY.properties derived from
-            // xyz.properties not xyz_lang.properties; just in case, if srcFilename
-            // doesn't exist, try that
-            File srcTest = new File(srcFilename);
-            if (! srcTest.exists())
-                srcFilename = srcFilename.substring(0, iUndersc2) + srcFilename.substring(srcFilename.length() - 11);
-        }
-        pair = new ParsedPropsFilePair(srcFilename, destFilename);
+        File srcFile = makeParentFilename(destFilename);
+            // might throw new IllegalArgumentException("destFilename must end with _xx.properties");
+        if (srcFile == null)
+            throw new FileNotFoundException("No parent on disk for " + destFilename);
+        pair = new ParsedPropsFilePair(srcFile.getPath(), destFilename);
     }
 
     /** Handle button clicks. */
@@ -379,6 +368,52 @@ public class PropertiesTranslatorEditor
             // TODO dialog to user
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Given a more-specific destination locale filename, calculate the less-specific
+     * source filename by removing _xx suffix(es) and check whether that source exists.
+     *
+     * @param destFilename   Destination language properties file, full or relative path.
+     *           This filename must end with "_xx.properties" and the
+     *           source will be the same filename without the "_xx" part.
+     *           (The "_xx" part can be any length, not limited to 2 letters.)
+     * @return  Parent file for this destination, or null if none exists on disk
+     * @throws IllegalArgumentException  Unless destFilename ends with _xx.properties
+     *     (xx = any code 2 or more chars long)
+     */
+    public static File makeParentFilename(final String destFilename)
+        throws IllegalArgumentException
+    {
+        final int dfL = destFilename.length();
+        final int iUndersc = destFilename.lastIndexOf('_', dfL - 12);
+
+        if ( (! destFilename.endsWith(".properties"))
+             || (dfL <= 14) || (-1 == iUndersc) )
+            throw new IllegalArgumentException("destFilename must end with _xx.properties");
+
+        // Remove 1 underscore level (_lang.properties or _COUNTRY.properties) for source file
+
+        String srcFilename = destFilename.substring(0, iUndersc) + destFilename.substring(dfL - 11);
+        File srcFile = new File(srcFilename);
+
+        int iUndersc2 = srcFilename.lastIndexOf('_', dfL - 12);
+        if (iUndersc2 != -1)
+        {
+            // It's unlikely that we'd have xyz_lang_COUNTRY.properties derived from
+            // xyz.properties not xyz_lang.properties; just in case, if srcFilename
+            // doesn't exist, try that
+            if (! srcFile.exists())
+            {
+                srcFilename = srcFilename.substring(0, iUndersc2) + srcFilename.substring(srcFilename.length() - 11);
+                srcFile = new File(srcFilename);
+            }
+        }
+
+        if (srcFile.exists())
+            return srcFile;
+        else
+            return null;
     }
 
     /**
