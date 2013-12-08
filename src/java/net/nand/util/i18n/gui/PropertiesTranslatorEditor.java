@@ -267,7 +267,7 @@ public class PropertiesTranslatorEditor
 
         // show it
         jfra.pack();
-        jfra.setSize(500, 300);
+        jfra.setSize(700, 500);
         jfra.setVisible(true);
     }
 
@@ -405,8 +405,15 @@ public class PropertiesTranslatorEditor
                  "Unsaved Changes", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
             if (choice == JOptionPane.YES_OPTION)
                 saveChangesToAny();  // save changes, then can dispose
-            else if (choice != JOptionPane.NO_OPTION)
-                return false;  // don't dispose the window unless they said yes or no
+            else
+            {
+                if (choice != JOptionPane.NO_OPTION)
+                    return false;  // don't dispose the window if they clicked Cancel
+
+                // Clear flags at No answer, so they aren't asked again if pair is checked later
+                pair.unsavedSrc = false;
+                pair.unsavedDest = false;
+            }
         }
 
         return true;
@@ -467,6 +474,7 @@ public class PropertiesTranslatorEditor
     public static void main(String[] args) throws IllegalStateException, IOException
     {
         // TODO cmdline parsing, help, etc
+        //  although most of that is available in PTEMain
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -538,6 +546,8 @@ public class PropertiesTranslatorEditor
      * Data model for viewing/editing data in {@link PropertiesTranslatorEditor#jtab jtab}.
      * Adds {@link #getCellStatus(int, int)}.
      * Model row and column numbers are 0-based.
+     * Model contains 1 line for each line in {@link #pair}; its row count is
+     * {@link ParsedPropsFilePair#size() pair.size()} + 1 for new data at the end.
      */
     private class PTSwingTableModel
         extends AbstractTableModel
@@ -597,8 +607,9 @@ public class PropertiesTranslatorEditor
 
         public void setValueAt(final Object newVal, final int r, final int c)
         {
-            if (r >= pair.size())
-                return;
+            final int sz = pair.size();
+            if (r > sz)
+                return;  // <--- Early return: should not occur ---
 
             if ((c < 0) || (c > 2))
                 return;  // <--- Early return: ignore unknown column ---
@@ -615,6 +626,14 @@ public class PropertiesTranslatorEditor
 
             boolean changed = false;
             boolean keyChgHasDestValue = false;  // If key is being changed, does it already have a value in dest?
+
+            // check if we're in the "extra" blank row past bottom of list:
+            if (r == sz)
+            {
+                pair.insertRow(r, false);
+                mod.fireTableRowsInserted(r, r);  // may be covered by fireTableCellUpdated below, since r is "new"
+            }
+
             ParsedPropsFilePair.FileEntry fe = pair.getRow(r);
             if (fe instanceof ParsedPropsFilePair.FileKeyEntry)
             {
