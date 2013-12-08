@@ -491,6 +491,7 @@ public class ParsedPropsFilePair
     /** Comment line in source and destination */
     public static final class FileCommentEntry extends FileEntry
     {
+        /** Comment field strings start with {@code #} and are trimmed; may be null or "" on blank lines. */
         public String srcComment, destComment;
 
         public FileCommentEntry(final String srcComment)
