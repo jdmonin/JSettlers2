@@ -600,8 +600,8 @@ public class PropertiesTranslatorEditor
             if (r >= pair.size())
                 return;
 
-            if ((c < 1) && (c > 2))
-                return;  // TODO temporary; can change only src or dest for now, not keys yet
+            if ((c < 0) || (c > 2))
+                return;  // <--- Early return: ignore unknown column ---
 
             String newStr = newVal.toString();
             if (newStr.trim().length() == 0)
