@@ -46,6 +46,7 @@ import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 
 import net.nand.util.i18n.ParsedPropsFilePair;
@@ -107,6 +108,7 @@ public class PropertiesTranslatorEditor
      * Continue GUI startup, once constructor has set {@link #pair} or left it null.
      * Will start the GUI and then parse {@code #pair}'s files from the filenames given.
      */
+    @SuppressWarnings("serial")
     public void init()
     {
         jfra = new JFrame("Properties: Translator's Editor");
@@ -171,7 +173,19 @@ public class PropertiesTranslatorEditor
         opan.setLayout(new BorderLayout());  // stretch JTable on resize
 
         mod = new PTSwingTableModel(this);  // sets up model to pair
-        jtab = new JTable(mod);
+        jtab = new JTable(mod) {            // table header tool tips show full src/dest paths
+            protected JTableHeader createDefaultTableHeader()
+            {
+                return new JTableHeader(columnModel)
+                {
+                    public String getToolTipText(final MouseEvent e)
+                    {
+                        final int viewIdx = columnModel.getColumnIndexAtX(e.getPoint().x);
+                        return mod.getPTEColumnToolTip(columnModel.getColumn(viewIdx).getModelIndex());
+                    }
+                };
+            }
+        };
         jtab.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);  // don't lose current edit when focus lost
         jtab.setDefaultRenderer(Object.class, new PTCellRenderer(mod));  // background colors, etc
         // don't require double-click to edit jtab cell entries; all editable cols are String, so Object is enough
@@ -673,11 +687,33 @@ public class PropertiesTranslatorEditor
             case 0:
                 return "Key";
             case 1:
-                return pair.srcFile.getPath();
+                return pair.srcFile.getName();
             case 2:
-                return pair.destFile.getPath();
+                return pair.destFile.getName();
             default:
                 return Integer.toString(col);
+            }
+        }
+
+        /** Show src/dest file full path; see where-used for details */
+        public String getPTEColumnToolTip(final int col)
+        {
+            try
+            {
+                switch (col)
+                {
+                case 0:
+                    return "Unique key to retrieve this text from java code";
+                case 1:
+                    return pair.srcFile.getAbsolutePath();
+                case 2:
+                    return pair.destFile.getAbsolutePath();
+                default:
+                    return getColumnName(col);
+                }
+            } catch (SecurityException e) {
+                // thrown from getAbsolutePath, unlikely to happen
+                return getColumnName(col);
             }
         }
 
