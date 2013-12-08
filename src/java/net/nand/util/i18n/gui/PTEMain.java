@@ -314,8 +314,7 @@ public class PTEMain extends JFrame
                 // wrap error text in case dest is a long path
                 JOptionPane.showMessageDialog
                     (this, "Could not find less-specific source locale .properties file on disk\nto match " + dest,
-                     "Source .properties file not found", JOptionPane.ERROR_MESSAGE);
-                return;
+                     "Source .properties file not found", JOptionPane.WARNING_MESSAGE);
             }
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog
@@ -391,7 +390,7 @@ public class PTEMain extends JFrame
     public void windowOpened(WindowEvent e) {}
 
     /**
-     * Modal dialog to choose a pair of destination and source prop files to edit.
+     * Modal dialog to choose a pair of destination and source locale files to edit.
      * To use the dialog, call {@link #setVisible(boolean) setVisible(true)} and when that returns,
      * check if {@link #src} != {@code null}.
      *<P>
@@ -399,6 +398,9 @@ public class PTEMain extends JFrame
      * {@code toClient_zz.properties} and {@code toClient.properties}.  If a destination file has no region,
      * {@code toClient_zz.properties}, the source file offered is {@code toClient.properties}.  An option of "other"
      * is always offered to select any file.
+     *<P>
+     * The dialog shows the full path to the destination file.  To reduce clutter, the source file choices show
+     * only the names since they're in the same directory as the destination.  "Other" shows the full path.
      */
     private class OpenDestSrcDialog
         extends JDialog implements ActionListener
@@ -411,14 +413,19 @@ public class PTEMain extends JFrame
 
         private JButton bEdit, bCancel, bBrowseOther;
 
-        /** Source file choices or {@code null}; src2 is null unless {@link #dest} has a language and region. */
+        /**
+         * Source file choices or {@code null}.
+         * {@code src1} is null if no matching source could be found on disk for {@link #dest}.
+         * {@code src2} is null unless {@link #dest} has a language and region.
+         */
         private File src1, src2, srcOther;
 
         /** Text field for {@link #srcOther} */
         private JTextField tfSrcOther;
 
         /**
-         * Radio buttons for {@link #src1}, {@link #src2}, {@link #srcOther}.
+         * Radio buttons to choose {@link #src1}, {@link #src2}, {@link #srcOther}.
+         * {@link #src1} is null if no matching source could be found on disk for dest.
          * {@link #src2} is null unless {@link #dest} has a language and region.
          */
         private JRadioButton bSrc1, bSrc2, bSrcOther;
@@ -428,20 +435,20 @@ public class PTEMain extends JFrame
         /**
          * Create a new dialog, not initially visible; see class javadoc.
          * @param dest  Destination file, not null
-         * @param src1  First source file choice, from {@link PropertiesTranslatorEditor#makeParentFilename(String)},
-         *     not null
-         * @throws IllegalArgumentException if {@code dest} or {@code src1} is {@code null}
+         * @param src1  First source file choice, as found by
+         *     {@link PropertiesTranslatorEditor#makeParentFilename(String)}, or null if none
+         * @throws IllegalArgumentException if {@code dest} is {@code null}
         */
         private OpenDestSrcDialog(final File dest, final File src1)
             throws IllegalArgumentException
         {
             super(PTEMain.this, "Select source and destination files", true);
-            if ((dest == null) || (src1 == null))
-                throw new IllegalArgumentException("null file");
+            if (dest == null)
+                throw new IllegalArgumentException("null dest");
 
             this.dest = dest;
             this.src1 = src1;
-            src = src1;  // default selection
+            src = src1;  // default selection or null
 
             setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             wa = new WindowAdapter()
@@ -468,22 +475,23 @@ public class PTEMain extends JFrame
             addToGrid(p, gbl, gbc, Box.createRigidArea(new Dimension(0,15)));  // space above label
             addToGrid(p, gbl, gbc, new JLabel("Source (less specific locale):"));
 
-            // TODO display filename, not full path
-            bSrc1 = new JRadioButton(src1.getPath());
-            bSrc1.setSelected(true);
-            bSrc1.addActionListener(this);
-            addToGrid(p, gbl, gbc, bSrc1);
+            if (src1 != null)
+            {
+                bSrc1 = new JRadioButton(src1.getName());
+                bSrc1.setSelected(true);
+                bSrc1.addActionListener(this);
+                addToGrid(p, gbl, gbc, bSrc1);
 
-            try
-            {
-                src2 = PropertiesTranslatorEditor.makeParentFilename(src1.getPath());
-            } catch (IllegalArgumentException e) {}
-            if (src2 != null)
-            {
-                // TODO display filename, not full path
-                bSrc2 = new JRadioButton(src2.getPath());
-                bSrc2.addActionListener(this);
-                addToGrid(p, gbl, gbc, bSrc2);
+                try
+                {
+                    src2 = PropertiesTranslatorEditor.makeParentFilename(src1.getPath());
+                } catch (IllegalArgumentException e) {}
+                if (src2 != null)
+                {
+                    bSrc2 = new JRadioButton(src2.getName());
+                    bSrc2.addActionListener(this);
+                    addToGrid(p, gbl, gbc, bSrc2);
+                }
             }
 
             // Other Source: radio, textfield, browse button on same row
@@ -491,6 +499,9 @@ public class PTEMain extends JFrame
             bSrcOther = new JRadioButton("");
             bSrcOther.addActionListener(this);
             addToGrid(p, gbl, gbc, bSrcOther);
+            // even if src1 == null, don't call bSrcOther.setSelected(true);
+            // let the user click it to bring up the file chooser
+
             tfSrcOther = new JTextField();
             gbc.weightx = 1;  // expand tfSrcOther to fill available width
             addToGrid(p, gbl, gbc, tfSrcOther);
@@ -502,14 +513,15 @@ public class PTEMain extends JFrame
             addToGrid(p, gbl, gbc, bBrowseOther);
 
             ButtonGroup radios = new ButtonGroup();
-            radios.add(bSrc1);
+            if (bSrc1 != null)
+                radios.add(bSrc1);
             if (bSrc2 != null)
                 radios.add(bSrc2);
             radios.add(bSrcOther);
 
             addToGrid(p, gbl, gbc, Box.createRigidArea(new Dimension(0, 15)));  // space above label
             addToGrid(p, gbl, gbc, new JLabel("Destination (more specific locale):"));
-            addToGrid(p, gbl, gbc, new JLabel(dest.getPath()));
+            addToGrid(p, gbl, gbc, new JLabel(dest.getPath()));  // show dest's entire path for clarity
 
             JPanel btns = new JPanel(new FlowLayout(FlowLayout.TRAILING, 3, 15));  // 15 for space above buttons
             bEdit = addBtn(btns, this, "Edit", KeyEvent.VK_E);
@@ -603,9 +615,19 @@ public class PTEMain extends JFrame
             }
             else if ((src == null) || ! src.exists())
             {
-                JOptionPane.showMessageDialog
-                    (this, "Source locale file not found.",
-                     "File not found", JOptionPane.WARNING_MESSAGE);
+                if ((src == null)
+                    && ( (bSrc1 == null) || ! bSrc1.isSelected() )
+                    && ( (bSrc2 == null) || ! bSrc2.isSelected() )
+                    && ( tfSrcOther.getText().length() == 0 ))
+                {
+                    JOptionPane.showMessageDialog
+                        (this, "Choose a source locale file.",
+                         "Choose a source locale file.", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog
+                        (this, "Source locale file not found.",
+                         "File not found", JOptionPane.WARNING_MESSAGE);
+                }
             } else {
                 dispose();
             }
