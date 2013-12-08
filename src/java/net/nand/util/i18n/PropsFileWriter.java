@@ -19,6 +19,7 @@
  */
 package net.nand.util.i18n;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -31,7 +32,7 @@ import java.util.List;
  *<P>
  * Usage:
  *<UL>
- * <LI> writer = new {@link #PropsFileWriter(String)} or {@link #PropsFileWriter(PrintWriter)};
+ * <LI> writer = new {@link #PropsFileWriter(File)} or {@link #PropsFileWriter(PrintWriter)};
  * <LI> writer.{@link #write(List, String) .write(pairs, filecomment)};
  * <LI> // Or: <BR>
  *      {@link #writeOne(PrintWriter, String, String, List, boolean) writeOne(writer, key, value, paircomment, spacedEquals)};<BR>
@@ -218,18 +219,19 @@ public class PropsFileWriter
     }
 
     /**
-     * Create and open a new PropsFileWriter to this file path.
-     * @param filename  Filename (relative or full path) of the properties file to write
+     * Create and open a new PropsFileWriter to this file.
+     * @param pFile  Properties file to write
      * @throws FileNotFoundException  if the file can't be created, opened, or written, or is a unix special file
-     * @throws IllegalStateException  if the {@code "ISO-8859-1"} file encoding is somehow not supported;
+     * @throws SecurityException  if write access is denied
+     * @throws UnsupportedEncodingException  if the {@code "ISO-8859-1"} file encoding is somehow not supported;
      *           this is the encoding used by Java properties files, so it should be available;
      *           this error is not expected to occur.
      */
-    public PropsFileWriter(final String filename)
-        throws FileNotFoundException, UnsupportedEncodingException
+    public PropsFileWriter(final File pFile)
+        throws FileNotFoundException, SecurityException, UnsupportedEncodingException
     {
-        pw = new PrintWriter(filename, "ISO-8859-1");
-            // may throw FileNotFoundException, UnsupportedEncodingException as per this constructor's javadoc
+        pw = new PrintWriter(pFile, "ISO-8859-1");
+            // may throw FileNotFoundException, SecurityException or UnsupportedEncodingException as per this constructor's javadoc
     }
 
     public void flush()
@@ -245,7 +247,7 @@ public class PropsFileWriter
 
     /**
      * Write these key-value pairs through the open writer.
-     * @param pairs Key-value pairs to write, same format as {@link ParsedPropsFilePair#parseOneFile(String)}
+     * @param pairs Key-value pairs to write, same format as {@link PropsFileParser#parseOneFile(File)}
      * @param fileComment  Single-line comment to place above output keys, or {@code null}; will prepend "# "
      */
     public void write(List<PropsFileParser.KeyPairLine> pairs, final String fileComment)

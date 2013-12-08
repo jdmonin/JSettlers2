@@ -20,9 +20,11 @@
 package net.nand.util.i18n;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,19 +53,23 @@ public class PropsFileParser
     /**
      * Parse one properties file.  May include a header comment (separated by blank line(s) from the first key line),
      * may include an ending comment after the last key line.
-     * @param fname  Filename to parse
+     * @param pFile  File to parse
      * @return  the file entries as a List.
      *       If the file starts with a header comment, the first list entry will have a comment and null key and value.
      *       If the file ends in a comment, the last list entry will have a comment and null key and value.
      * @throws IOException  If file not found, cannot be read, etc.
+     * @throws SecurityException  if read access is denied
+     * @throws UnsupportedEncodingException  if the {@code "ISO-8859-1"} file encoding is somehow not supported;
+     *           this is the encoding used by Java properties files, so it should be available;
+     *           this error is not expected to occur.
      */
-    public static List<KeyPairLine> parseOneFile(final String fname)
-        throws IOException
+    public static List<KeyPairLine> parseOneFile(final File pFile)
+        throws IOException, SecurityException, UnsupportedEncodingException
     {
         List<KeyPairLine> ret = new ArrayList<KeyPairLine>();
 
         BufferedReader fr = new BufferedReader
-            (new InputStreamReader(new FileInputStream(fname), "ISO-8859-1"));  // bundle encoding is not UTF-8
+            (new InputStreamReader(new FileInputStream(pFile), "ISO-8859-1"));  // bundle encoding is not UTF-8
         List<String> headerComment = null;
         List<String> comment = null;
         boolean firstKeySeen = false;  // true when we reach a line in the file that has a key

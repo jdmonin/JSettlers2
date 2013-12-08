@@ -19,6 +19,7 @@
  */
 package net.nand.util.i18n;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -66,20 +67,20 @@ public class PropsFilePseudoLocalizer
 
     /**
      * Pseudolocalize a source file to a destination.  If the destination exists, it will be overwritten.
-     * @param srcPropFilename  Source filename to localize from, ending with ".properties"
+     * @param srcPropFilename  Source file to localize from, filename ending with ".properties"
      * @param destPropFilename  Pseudo filename to localize to, from {@link #makePseudoPropFilename(String)}
      * @throws IOException  if an error occurs reading or writing the files
      */
-    public static void pseudoLocalizeFile(final String srcPropFilename, final String destPropFilename)
+    public static void pseudoLocalizeFile(final File srcPropFile, final String destPropFilename)
         throws IOException
     {
-        List<PropsFileParser.KeyPairLine> pairs = PropsFileParser.parseOneFile(srcPropFilename);
+        List<PropsFileParser.KeyPairLine> pairs = PropsFileParser.parseOneFile(srcPropFile);
 
         for (PropsFileParser.KeyPairLine pair : pairs)
             pair.value = StringUtil.pseudolocalise(pair.value);
 
-        PropsFileWriter pfw = new PropsFileWriter(destPropFilename);
-        pfw.write(pairs, "This is a generated file: Pseudolocalized from " + srcPropFilename + " on " + new Date());
+        PropsFileWriter pfw = new PropsFileWriter(new File(destPropFilename));
+        pfw.write(pairs, "This is a generated file: Pseudolocalized from " + srcPropFile.getName() + " on " + new Date());
         pfw.close();
     }
 
@@ -110,7 +111,7 @@ public class PropsFilePseudoLocalizer
         try
         {
             final String pseudoPropFilename = makePseudoPropFilename(args[0]);
-            pseudoLocalizeFile(args[0], pseudoPropFilename);
+            pseudoLocalizeFile(new File(args[0]), pseudoPropFilename);
             System.err.println("Wrote " + pseudoPropFilename);
         }
         catch (IllegalArgumentException e)

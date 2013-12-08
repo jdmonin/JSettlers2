@@ -19,6 +19,7 @@
  **/
 package net.nand.util.i18n;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,7 +65,7 @@ public class ParsedPropsFilePair
      */
     public boolean unsavedInsRows;
 
-    public final String srcFilePath, destFilePath;
+    public final File srcFile, destFile;
 
     /** Logical entries, one per key, to be expanded into {@link #cont}:
      *  Source and dest file-pair key-by-key contents, from parsing; does not contain {@link #destOnlyPairs}.
@@ -97,13 +98,13 @@ public class ParsedPropsFilePair
      * call {@link #parseSrc()} and then {@link #parseDest()}
      * to read them into this object.
      *
-     * @param src  Full path and filename to source language's properties file
-     * @param dest  Full path and filename to destination language's properties file
+     * @param src  Source language/locale's properties file
+     * @param dest  Destination language/locale's properties file
      */
-    public ParsedPropsFilePair(final String src, final String dest)
+    public ParsedPropsFilePair(final File src, final File dest)
     {
-        srcFilePath = src;
-        destFilePath = dest;
+        srcFile = src;
+        destFile = dest;
         parsed = new ArrayList<FileKeyEntry>();
         cont = new ArrayList<FileEntry>();
     }
@@ -234,7 +235,7 @@ public class ParsedPropsFilePair
     }
 
     /**
-     * Parse the source-language file at {@code #srcFilePath}.
+     * Parse the source-language file at {@code #srcFile}.
      * @throws IllegalStateException  if we've already read or created entries in this object; {@link #size()} != 0
      * @throws IOException  if file not found, cannot be read, etc
      */
@@ -244,7 +245,7 @@ public class ParsedPropsFilePair
         if (! parsed.isEmpty())
             throw new IllegalStateException("cannot call parseSrc unless object is empty");
 
-        final List<PropsFileParser.KeyPairLine> srcLines = PropsFileParser.parseOneFile(srcFilePath);
+        final List<PropsFileParser.KeyPairLine> srcLines = PropsFileParser.parseOneFile(srcFile);
         if (srcLines.isEmpty())
             return;
 
@@ -277,7 +278,7 @@ public class ParsedPropsFilePair
     }
 
     /**
-     * Parse the destination-language file at {@link #destFilePath};
+     * Parse the destination-language file at {@link #destFile};
      * call {@link #parseSrc()} before calling this method, so this method
      * can merge the structures together into {@link #cont}.
      *<P>
@@ -293,7 +294,7 @@ public class ParsedPropsFilePair
         if (parsed.isEmpty())
             throw new IllegalStateException("call parseSrc first");
 
-        final List<PropsFileParser.KeyPairLine> destLines = PropsFileParser.parseOneFile(destFilePath);
+        final List<PropsFileParser.KeyPairLine> destLines = PropsFileParser.parseOneFile(destFile);
         if (destLines.isEmpty())
             return;
 

@@ -83,15 +83,15 @@ public class PTEMain extends JFrame
 
     /**
      * Try to edit a destination file by finding its matching source file's name via the
-     * {@link PropertiesTranslatorEditor#PropertiesTranslatorEditor(String) PropertiesTranslatorEditor(String)}
+     * {@link PropertiesTranslatorEditor#PropertiesTranslatorEditor(File) PropertiesTranslatorEditor(File)}
      * constructor.  If not found, or if it's a source file instead of a destination, displays an error message
      * and returns false.   Otherwise calls {@link PropertiesTranslatorEditor#init()} to show the pair for editing.
      *
-     * @param dest  Destination .properties file (full path or just filename)
+     * @param dest  Destination .properties file
      * @param parent  Parent for any MessageDialog shown, or {@code null}
      * @return  True if found and shown for editing, false if error message shown instead
      */
-    public static boolean tryEditFromDestOnly(final String dest, final JFrame parent)
+    public static boolean tryEditFromDestOnly(final File dest, final JFrame parent)
     {
         try {
             new PropertiesTranslatorEditor(dest).init();
@@ -122,9 +122,9 @@ public class PTEMain extends JFrame
 
         if (args.length >= 2)
         {
-            new PropertiesTranslatorEditor(args[0], args[1]).init();
+            new PropertiesTranslatorEditor(new File(args[0]), new File(args[1])).init();
         } else {
-            if ((args.length == 1) && tryEditFromDestOnly(args[0], null))
+            if ((args.length == 1) && tryEditFromDestOnly(new File(args[0]), null))
                 return;
                 // if can't open args[0], shows error and falls through to PTEMain
 
@@ -185,7 +185,7 @@ public class PTEMain extends JFrame
      * Open these file(s) in a {@link PropertiesTranslatorEditor}.
      *
      * @param chooseFileSrc   Source properties file, or {@code null} to determine via the
-     *                        {@link PropertiesTranslatorEditor#PropertiesTranslatorEditor(String) PropertiesTranslatorEditor(String)}
+     *                        {@link PropertiesTranslatorEditor#PropertiesTranslatorEditor(File) PropertiesTranslatorEditor(File)}
      *                        constructor.  If {@code null} and not found, displays an error message.
      * @param chooseFileDest  Destination properties file; can't be {@code null} or returns immediately
      * @param isNew           True if {@code chooseFileDest} should be created; not implemented yet.  Assumes
@@ -198,13 +198,12 @@ public class PTEMain extends JFrame
 
         // TODO handle isNew: create file?
 
-        final String dpath = chooseFileDest.getAbsolutePath();
         if (chooseFileSrc == null)
         {
-            tryEditFromDestOnly(dpath, this);  // calls new PropertiesTranslatorEditor(dpath).init() or shows error message
+            tryEditFromDestOnly(chooseFileDest, this);
+                // calls new PropertiesTranslatorEditor(chooseFileDest).init() or shows error message
         } else {
-            final String spath = chooseFileSrc.getAbsolutePath();
-            new PropertiesTranslatorEditor(spath, dpath).init();
+            new PropertiesTranslatorEditor(chooseFileSrc, chooseFileDest).init();
         }
     }
 
@@ -400,7 +399,7 @@ public class PTEMain extends JFrame
      * is always offered to select any file.
      *<P>
      * The dialog shows the full path to the destination file.  To reduce clutter, the source file choices show
-     * only the names since they're in the same directory as the destination.  "Other" shows the full path.
+     * only their filenames since they're in the same directory as the destination.  "Other" shows the full path.
      */
     private class OpenDestSrcDialog
         extends JDialog implements ActionListener

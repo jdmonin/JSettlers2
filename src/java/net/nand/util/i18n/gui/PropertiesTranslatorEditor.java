@@ -75,10 +75,10 @@ public class PropertiesTranslatorEditor
 {
     /**
      * Pair of properties files being edited, and their contents.
-     * The filenames are {@link ParsedPropsFilePair#srcFilePath pair.srcFilePath}
-     * and {@link ParsedPropsFilePair#destFilePath pair.destFilePath}.
+     * The files are {@link ParsedPropsFilePair#srcFile pair.srcFile}
+     * and {@link ParsedPropsFilePair#destFile pair.destFile}.
      *<P>
-     * {@code null} if we start with no parameters, and wait for a file-open dialog.
+     * {@code null} if we start with no parameters, and wait for a file-open dialog from {@link PTEMain}.
      */
     private ParsedPropsFilePair pair;
 
@@ -231,37 +231,39 @@ public class PropertiesTranslatorEditor
     }
 
     /**
-     * Editor with source and destination filenames specified.
+     * Editor with source and destination files specified.
      * Call {@link #init()} to bring up the GUI and parse the properties files.
-     * @param srcFilename  Source language properties file, full or relative path
-     * @param destFilename  Destination language properties file, full or relative path
+     * @param src  Source language/locale properties file
+     * @param dest  Destination language/locale properties file
      */
-    public PropertiesTranslatorEditor(final String srcFilename, final String destFilename)
+    public PropertiesTranslatorEditor(final File src, final File dest)
     {
-        pair = new ParsedPropsFilePair(srcFilename, destFilename);
+        pair = new ParsedPropsFilePair(src, dest);
     }
 
     /**
      * Editor where the source filename will be derived from the destination filename.
      * Call {@link #init()} to bring up the GUI and parse the properties files.
-     * @param destFilename   Destination language properties file, full or relative path.
-     *           This filename must end with "_xx.properties" and the
+     * @param dest  Destination language properties file, full or relative path.
+     *           Its filename must end with "_xx.properties" and the
      *           source will be the same filename without the "_xx" part.
      *           (The "_xx" part can be any length, not limited to 2 letters.)
-     * @see #makeParentFilename(String)
+     *           This constructor will call
+     *           {@link #makeParentFilename(String) makeParentFilename}({@link File#getPath() dest.getPath()).
      * @throws IllegalArgumentException  Unless destFilename ends with _xx.properties
      *     (xx = any code 2 or more chars long)
-     * @throws FileNotFoundException  if no existing parent of {@link destFilename} can be found on disk
+     * @throws FileNotFoundException  if no existing parent of {@code dest} can be found on disk
      *     by {@link #makeParentFilename(String)}
      */
-    public PropertiesTranslatorEditor(final String destFilename)
+    public PropertiesTranslatorEditor(final File dest)
         throws IllegalArgumentException, FileNotFoundException
     {
-        File srcFile = makeParentFilename(destFilename);
+        final String destFilename = dest.getPath();
+        File src = makeParentFilename(destFilename);
             // might throw new IllegalArgumentException("destFilename must end with _xx.properties");
-        if (srcFile == null)
+        if (src == null)
             throw new FileNotFoundException("No parent on disk for " + destFilename);
-        pair = new ParsedPropsFilePair(srcFile.getPath(), destFilename);
+        pair = new ParsedPropsFilePair(src, dest);
     }
 
     /** Handle button clicks. */
@@ -332,7 +334,7 @@ public class PropertiesTranslatorEditor
 
         try
         {
-            PropsFileWriter pfw = new PropsFileWriter(pair.destFilePath);
+            PropsFileWriter pfw = new PropsFileWriter(pair.destFile);
             pfw.write(pair.extractContentsHalf(true), null);
             pfw.close();
             pair.unsavedDest = false;
@@ -357,7 +359,7 @@ public class PropertiesTranslatorEditor
         try
         {
 
-            PropsFileWriter pfw = new PropsFileWriter(pair.srcFilePath);
+            PropsFileWriter pfw = new PropsFileWriter(pair.srcFile);
             pfw.write(pair.extractContentsHalf(false), null);
             pfw.close();
             pair.unsavedSrc = false;
@@ -433,9 +435,9 @@ public class PropertiesTranslatorEditor
 
         if (args.length >= 2)
         {
-            new PropertiesTranslatorEditor(args[0], args[1]).init();
+            new PropertiesTranslatorEditor(new File(args[0]), new File(args[1])).init();
         } else if (args.length == 1) {
-            new PropertiesTranslatorEditor(args[0]).init();
+            new PropertiesTranslatorEditor(new File(args[0])).init();
         } else {
             new PTEMain().initAndShow();
         }
@@ -671,9 +673,9 @@ public class PropertiesTranslatorEditor
             case 0:
                 return "Key";
             case 1:
-                return pair.srcFilePath;
+                return pair.srcFile.getPath();
             case 2:
-                return pair.destFilePath;
+                return pair.destFile.getPath();
             default:
                 return Integer.toString(col);
             }
