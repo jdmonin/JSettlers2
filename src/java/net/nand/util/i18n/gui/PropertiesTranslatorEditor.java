@@ -518,8 +518,10 @@ public class PropertiesTranslatorEditor
                 c.setBackground(Color.GREEN.brighter());
                 break;
 
+            case COMMENT_KEY_COL:
+                // fall through
             case READONLY_NOT_LOCALIZED:
-                c.setForeground(Color.DARK_GRAY);
+                c.setBackground(Color.LIGHT_GRAY);
                 break;
 
             case DEFAULT:
@@ -749,11 +751,18 @@ public class PropertiesTranslatorEditor
 
             final ParsedPropsFilePair.FileEntry fe = pair.getRow(r);
             if (fe instanceof ParsedPropsFilePair.FileCommentEntry)
+            {
                 // in comment rows, no key col
                 return (c != 0);
-            else
+            } else {
                 // in key-pair rows, no key col unless row was added
-                return (c != 0) || ((ParsedPropsFilePair.FileKeyEntry) fe).newAdd;
+                final ParsedPropsFilePair.FileKeyEntry fke = (ParsedPropsFilePair.FileKeyEntry) fe;
+
+                if ((c == 2) && (fke.key != null) && fke.key.startsWith(PropsFileParser.KEY_PREFIX_NO_LOCALIZE))
+                    return false;  // can't edit dest if key starts with "_nolocaliz"
+
+                return (c != 0) || fke.newAdd;
+            }
         }
 
         /**
@@ -789,6 +798,14 @@ public class PropertiesTranslatorEditor
                         return CellStatus.DEST_ONLY_ERROR;
                 }
             }
+            else if ((c == 0) && (fe instanceof ParsedPropsFilePair.FileCommentEntry))
+            {
+                final ParsedPropsFilePair.FileCommentEntry fce = (ParsedPropsFilePair.FileCommentEntry) fe;
+                if ((fce.destComment != null) && (fce.destComment.length() > 0)
+                    || (fce.srcComment != null) && (fce.srcComment.length() > 0))
+                    return CellStatus.COMMENT_KEY_COL;  // for visual effect, comment rows, not blank rows
+            }
+
             return CellStatus.DEFAULT;
         }
 
@@ -799,6 +816,8 @@ public class PropertiesTranslatorEditor
     {
         /** Default status (editable, no errors) */
         DEFAULT,
+        /** Key column in a comment row (not a blank row) */
+        COMMENT_KEY_COL,
         /** Key exists in source, but value is empty in source: Needs a value */
         SRC_EMPTY_ERROR,
         /** Key's value exists in source, destination value is empty: Ready to localize */
