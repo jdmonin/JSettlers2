@@ -105,8 +105,44 @@ public class PropertiesTranslatorEditor
     private int jtabClickedRow = -1;
 
     /**
+     * Editor with source and destination files specified.
+     * Call {@link #init()} to bring up the GUI and parse the properties files.
+     * @param src  Source language/locale properties file
+     * @param dest  Destination language/locale properties file
+     */
+    public PropertiesTranslatorEditor(final File src, final File dest)
+    {
+        pair = new ParsedPropsFilePair(src, dest);
+    }
+
+    /**
+     * Editor where the source filename will be derived from the destination filename.
+     * Call {@link #init()} to bring up the GUI and parse the properties files.
+     * @param dest  Destination language properties file, full or relative path.
+     *           Its filename must end with "_xx.properties" and the
+     *           source will be the same filename without the "_xx" part.
+     *           (The "_xx" part can be any length, not limited to 2 letters.)
+     *           This constructor will call
+     *           {@link #makeParentFilename(String) makeParentFilename}({@link File#getPath() dest.getPath()).
+     * @throws IllegalArgumentException  Unless destFilename ends with _xx.properties
+     *     (xx = any code 2 or more chars long)
+     * @throws FileNotFoundException  if no existing parent of {@code dest} can be found on disk
+     *     by {@link #makeParentFilename(String)}
+     */
+    public PropertiesTranslatorEditor(final File dest)
+        throws IllegalArgumentException, FileNotFoundException
+    {
+        final String destFilename = dest.getPath();
+        File src = makeParentFilename(destFilename);
+            // might throw new IllegalArgumentException("destFilename must end with _xx.properties");
+        if (src == null)
+            throw new FileNotFoundException("No parent on disk for " + destFilename);
+        pair = new ParsedPropsFilePair(src, dest);
+    }
+
+    /**
      * Continue GUI startup, once constructor has set {@link #pair} or left it null.
-     * Will start the GUI and then parse {@code #pair}'s files from the filenames given.
+     * Will start the GUI and then parse {@code pair}'s files from its srcFile and destFile fields.
      */
     @SuppressWarnings("serial")
     public void init()
@@ -118,17 +154,8 @@ public class PropertiesTranslatorEditor
             {
                 public void windowClosing(WindowEvent arg0)
                 {
-                    if (pair.unsavedSrc || pair.unsavedDest)
-                    {
-                        final int choice = JOptionPane.showConfirmDialog
-                            (jfra, "Do you want to save changes before exiting?",
-                            "Unsaved Changes", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
-                        if (choice == JOptionPane.YES_OPTION)
-                            saveChangesToAny();  // save changes, then exit
-                        else if (choice != JOptionPane.NO_OPTION)
-                            return;  // don't close the window unless they say no
-                    }
-                    jfra.dispose();
+                    if (checkUnsavedBeforeDispose())
+                        jfra.dispose();
                 }
             });
 
@@ -244,42 +271,6 @@ public class PropertiesTranslatorEditor
         jfra.setVisible(true);
     }
 
-    /**
-     * Editor with source and destination files specified.
-     * Call {@link #init()} to bring up the GUI and parse the properties files.
-     * @param src  Source language/locale properties file
-     * @param dest  Destination language/locale properties file
-     */
-    public PropertiesTranslatorEditor(final File src, final File dest)
-    {
-        pair = new ParsedPropsFilePair(src, dest);
-    }
-
-    /**
-     * Editor where the source filename will be derived from the destination filename.
-     * Call {@link #init()} to bring up the GUI and parse the properties files.
-     * @param dest  Destination language properties file, full or relative path.
-     *           Its filename must end with "_xx.properties" and the
-     *           source will be the same filename without the "_xx" part.
-     *           (The "_xx" part can be any length, not limited to 2 letters.)
-     *           This constructor will call
-     *           {@link #makeParentFilename(String) makeParentFilename}({@link File#getPath() dest.getPath()).
-     * @throws IllegalArgumentException  Unless destFilename ends with _xx.properties
-     *     (xx = any code 2 or more chars long)
-     * @throws FileNotFoundException  if no existing parent of {@code dest} can be found on disk
-     *     by {@link #makeParentFilename(String)}
-     */
-    public PropertiesTranslatorEditor(final File dest)
-        throws IllegalArgumentException, FileNotFoundException
-    {
-        final String destFilename = dest.getPath();
-        File src = makeParentFilename(destFilename);
-            // might throw new IllegalArgumentException("destFilename must end with _xx.properties");
-        if (src == null)
-            throw new FileNotFoundException("No parent on disk for " + destFilename);
-        pair = new ParsedPropsFilePair(src, dest);
-    }
-
     /** Handle button clicks. */
     public void actionPerformed(final ActionEvent ae)
     {
@@ -326,6 +317,16 @@ public class PropertiesTranslatorEditor
 
         pair.insertRow(jtabClickedRow, beforeRow);
         mod.fireTableRowsInserted(r, r);
+    }
+
+    /**
+     * Are there any unsaved changes in the destination and/or source properties files?
+     * @see #checkUnsavedBeforeDispose()
+     * @see #saveChangesToAny()
+     */
+    public boolean hasUnsavedChanges()
+    {
+        return pair.unsavedDest || pair.unsavedSrc;
     }
 
     /** Save any unsaved changes to the destination and/or source properties files. */
@@ -386,6 +387,30 @@ public class PropertiesTranslatorEditor
         }
     }
 
+    /**
+     * Checks for unsaved changes ({@link #pair}.{@link ParsedPropsFilePair#unsavedSrc unsavedSrc}
+     * || {@link #pair}.{@link ParsedPropsFilePair#unsavedDest unsavedDest}) and if any, ask the
+     * user if they want to save before closing.  Calls {@link #saveChangesToAny()} if user clicks yes.
+     *
+     * @return  True if okay to dispose of this editor frame: Not any unsaved changes, or user clicked Yes to save them,
+     *    or user clicked No (don't save changes).  False if unsaved changes and user clicked Cancel (don't close).
+     * @see #hasUnsavedChanges()
+     */
+    public boolean checkUnsavedBeforeDispose()
+    {
+        if (pair.unsavedSrc || pair.unsavedDest)
+        {
+            final int choice = JOptionPane.showConfirmDialog
+                (jfra, "Do you want to save changes before exiting?",
+                 "Unsaved Changes", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (choice == JOptionPane.YES_OPTION)
+                saveChangesToAny();  // save changes, then can dispose
+            else if (choice != JOptionPane.NO_OPTION)
+                return false;  // don't dispose the window unless they said yes or no
+        }
+
+        return true;
+    }
     /**
      * Given a more-specific destination locale filename, calculate the less-specific
      * source filename by removing _xx suffix(es) and check whether that source exists.
