@@ -256,6 +256,7 @@ Current TODO list
 		probably best done at bottom of SOCServer.parseCmdline_DashedArgs
 	- Possible: Auto-add robots when needed as server runs, with server active-game count
 		only do it if jsettlers.startrobots property is set
+	- refactor: ga.getPlayer(ga.getCurrentPlayer()) or getClient().getClientManager()
 	- Refactor SOCRobotClient: Move simple handle-methods which don't
 		put the message into brainQ, but only update game fields/
 		methods, into SOCDisplayless if possible.
@@ -263,6 +264,8 @@ Current TODO list
 	- refactor: name of dev-cards consolidate
 	- refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
 		current SOCResourceConstants.CLAY vs SOCPlayerElement.CLAY
+	- Refactor: combine the cli/displayless/robot endturn-like methods
+		ex. search for ga.setCurrentDice(0), or newToOld, or ga.resetVoteClear
 	- At board reset, game observers not currently handled properly
 	- Property for read-only database use without errors
 	- Game "owner" with extra powers (kick out player, etc)
@@ -275,8 +278,6 @@ Current TODO list
 		- UI mock-ups
 		- state change / network message plans
 		- robot support
-	- Refactor: combine the cli/displayless/robot endturn-like methods
-		ex. search for ga.setCurrentDice(0), or newToOld, or ga.resetVoteClear
 
 
 Internationalization (I18N)
@@ -297,9 +298,14 @@ Make sure your editor or IDE honors this encoding format.  Unfortunately you mus
 for characters outside that 8-bit encoding's range, directly or with the native2ascii utility:
 	native2ascii -encoding utf8 examplefile.utf8 examplefile.properties
 
-You can use the included net.nand.util.i18n.gui.PropertiesTranslatorEditor to edit language key values
-for the basic and new locales side by side; this editor has unicode support and color hilighting, and
-will convert to ISO-8859-1 automatically when saving.
+You can use the included editor net.nand.util.i18n.gui.PTEMain to edit localized strings
+for two locales side by side; this editor has unicode support and color hilighting, and
+will convert to ISO-8859-1 (with unicode escapes) automatically when saving.
+See src/java/net/nand/util/i18n/README.txt for more details.
+
+When starting the editor this message is harmless, because preferences are stored per-user:
+	Dec 6, 2013 3:59:16 PM java.util.prefs.WindowsPreferences <init>
+	WARNING: Could not open/create prefs root node Software\JavaSoft\Prefs at root 0x80000002. Windows RegCreateKeyEx(...) returned error code 5.
 
 To override system locales for testing, launch the client with vm argument -Djsettlers.locale=es
 
