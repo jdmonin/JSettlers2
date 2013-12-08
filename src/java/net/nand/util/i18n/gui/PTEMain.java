@@ -20,8 +20,13 @@
 
 package net.nand.util.i18n.gui;
 
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -34,14 +39,20 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
 /**
@@ -172,7 +183,7 @@ public class PTEMain extends JFrame
 
     /**
      * Open these file(s) in a {@link PropertiesTranslatorEditor}.
-     * 
+     *
      * @param chooseFileSrc   Source properties file, or {@code null} to determine via the
      *                        {@link PropertiesTranslatorEditor#PropertiesTranslatorEditor(String) PropertiesTranslatorEditor(String)}
      *                        constructor.  If {@code null} and not found, displays an error message.
@@ -245,7 +256,7 @@ public class PTEMain extends JFrame
      * @param vkN  Shortcut mnemonic from {@link KeyEvent}
      * @return the new button
      */
-    private static JButton addBtn(final JPanel btns, final ActionListener lsnr, final String label, final int vkN)
+    private static JButton addBtn(final Container btns, final ActionListener lsnr, final String label, final int vkN)
     {
         JButton b = new JButton(label);
         b.setMnemonic(vkN);
@@ -290,12 +301,40 @@ public class PTEMain extends JFrame
      */
     private final void clickedOpenDestSrc()
     {
-        // TODO implement; need 2 file choosers, or 1 dest chooser & pick a parent or other src
-        System.err.println("Not implmented yet");
+        final File dest = chooseFile(false, "Select destination file");
+        if (dest == null)
+            return;
+
+        final File src1;
+        try
+        {
+            src1 = PropertiesTranslatorEditor.makeParentFilename(dest.getPath());
+            if (src1 == null)
+            {
+                // wrap error text in case dest is a long path
+                JOptionPane.showMessageDialog
+                    (this, "Could not find less-specific source locale .properties file on disk\nto match " + dest,
+                     "Source .properties file not found", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog
+                (this, "Please select the destination (more specific locale) .properties file, not the source file.",
+                 "Select destination, not source", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        final OpenDestSrcDialog dia = new OpenDestSrcDialog(dest, src1);
+        dia.setVisible(true);  // modal, waits for selection
+        if ((dia.dest == null) || (dia.src == null))
+            return;
+
+        openPropsEditor(dia.src, dia.dest, false);
     }
 
     /**
      * Choose a file to open or save.  Uses and updates {@link #lastEditedDir}.
+     * For visual feedback, uses {@link Cursor#WAIT_CURSOR} during the delay before the file chooser appears.
      * @param forNew  If true, use Save dialog, otherwise Open dialog
      * @param title  Optional dialog title, or {@code null} for default
      * @return   the chosen file, or null if nothing was chosen
@@ -303,12 +342,14 @@ public class PTEMain extends JFrame
     private File chooseFile(final boolean forNew, final String title)
     {
         // TODO filtering: setFileFilter, addChoosableFileFilter, etc
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         final JFileChooser fc = new JFileChooser();
         if ((lastEditedDir != null) && lastEditedDir.exists())
             fc.setCurrentDirectory(lastEditedDir);
         if (title != null)
             fc.setDialogTitle(title);
 
+        setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         int returnVal;
         if (forNew)
             returnVal = fc.showSaveDialog(this);
@@ -348,5 +389,255 @@ public class PTEMain extends JFrame
     public void windowDeiconified(WindowEvent e) {}
     public void windowIconified(WindowEvent e) {}
     public void windowOpened(WindowEvent e) {}
+
+    /**
+     * Modal dialog to choose a pair of destination and source prop files to edit.
+     * To use the dialog, call {@link #setVisible(boolean) setVisible(true)} and when that returns,
+     * check if {@link #src} != {@code null}.
+     *<P>
+     * If a destination file includes a region code {@code toClient_zz_rgn.properties}, the two source files offered are
+     * {@code toClient_zz.properties} and {@code toClient.properties}.  If a destination file has no region,
+     * {@code toClient_zz.properties}, the source file offered is {@code toClient.properties}.  An option of "other"
+     * is always offered to select any file.
+     */
+    private class OpenDestSrcDialog
+        extends JDialog implements ActionListener
+    {
+        /** Destination file already chosen by user before this dialog; see {@link #src} */
+        public final File dest;
+
+        /** Source file chosen here by user, if any, or {@code null} if they cancelled; see {@link #dest} */
+        public File src;
+
+        private JButton bEdit, bCancel, bBrowseOther;
+
+        /** Source file choices or {@code null}; src2 is null unless {@link #dest} has a language and region. */
+        private File src1, src2, srcOther;
+
+        /** Text field for {@link #srcOther} */
+        private JTextField tfSrcOther;
+
+        /**
+         * Radio buttons for {@link #src1}, {@link #src2}, {@link #srcOther}.
+         * {@link #src2} is null unless {@link #dest} has a language and region.
+         */
+        private JRadioButton bSrc1, bSrc2, bSrcOther;
+
+        private WindowAdapter wa;
+
+        /**
+         * Create a new dialog, not initially visible; see class javadoc.
+         * @param dest  Destination file, not null
+         * @param src1  First source file choice, from {@link PropertiesTranslatorEditor#makeParentFilename(String)},
+         *     not null
+         * @throws IllegalArgumentException if {@code dest} or {@code src1} is {@code null}
+        */
+        private OpenDestSrcDialog(final File dest, final File src1)
+            throws IllegalArgumentException
+        {
+            super(PTEMain.this, "Select source and destination files", true);
+            if ((dest == null) || (src1 == null))
+                throw new IllegalArgumentException("null file");
+
+            this.dest = dest;
+            this.src1 = src1;
+            src = src1;  // default selection
+
+            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            wa = new WindowAdapter()
+            {
+                public void windowClosing(WindowEvent e)
+                {
+                    src = null;
+                }
+            };
+            addWindowListener(wa);
+
+            GridBagLayout gbl = new GridBagLayout();
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.anchor = GridBagConstraints.LINE_START;
+            gbc.gridwidth = GridBagConstraints.REMAINDER;  // Most components here are 1 per row
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+
+            final JPanel p = new JPanel(gbl);
+
+            p.setBorder(BorderFactory.createEmptyBorder(9, 9, 0, 9));  // button panel has a bottom margin, so 0 here
+
+            addToGrid(p, gbl, gbc, new JLabel("Select the source and destination locale files to edit."));
+
+            addToGrid(p, gbl, gbc, Box.createRigidArea(new Dimension(0,15)));  // space above label
+            addToGrid(p, gbl, gbc, new JLabel("Source (less specific locale):"));
+
+            // TODO display filename, not full path
+            bSrc1 = new JRadioButton(src1.getPath());
+            bSrc1.setSelected(true);
+            bSrc1.addActionListener(this);
+            addToGrid(p, gbl, gbc, bSrc1);
+
+            try
+            {
+                src2 = PropertiesTranslatorEditor.makeParentFilename(src1.getPath());
+            } catch (IllegalArgumentException e) {}
+            if (src2 != null)
+            {
+                // TODO display filename, not full path
+                bSrc2 = new JRadioButton(src2.getPath());
+                bSrc2.addActionListener(this);
+                addToGrid(p, gbl, gbc, bSrc2);
+            }
+
+            // Other Source: radio, textfield, browse button on same row
+            gbc.gridwidth = 1;
+            bSrcOther = new JRadioButton("");
+            bSrcOther.addActionListener(this);
+            addToGrid(p, gbl, gbc, bSrcOther);
+            tfSrcOther = new JTextField();
+            gbc.weightx = 1;  // expand tfSrcOther to fill available width
+            addToGrid(p, gbl, gbc, tfSrcOther);
+            gbc.weightx = 0;
+            bBrowseOther = new JButton("Other...");
+            bBrowseOther.setMnemonic(KeyEvent.VK_O);
+            bBrowseOther.addActionListener(this);
+            gbc.gridwidth = GridBagConstraints.REMAINDER;
+            addToGrid(p, gbl, gbc, bBrowseOther);
+
+            ButtonGroup radios = new ButtonGroup();
+            radios.add(bSrc1);
+            if (bSrc2 != null)
+                radios.add(bSrc2);
+            radios.add(bSrcOther);
+
+            addToGrid(p, gbl, gbc, Box.createRigidArea(new Dimension(0, 15)));  // space above label
+            addToGrid(p, gbl, gbc, new JLabel("Destination (more specific locale):"));
+            addToGrid(p, gbl, gbc, new JLabel(dest.getPath()));
+
+            JPanel btns = new JPanel(new FlowLayout(FlowLayout.TRAILING, 3, 15));  // 15 for space above buttons
+            bEdit = addBtn(btns, this, "Edit", KeyEvent.VK_E);
+            bCancel = addBtn(btns, this, "Cancel", KeyEvent.VK_ESCAPE);
+            addToGrid(p, gbl, gbc, btns);
+
+            setContentPane(p);
+            getRootPane().setDefaultButton(bEdit);
+            getRootPane().registerKeyboardAction
+                (new ActionListener()
+                {
+                    public void actionPerformed(ActionEvent arg0)
+                    {
+                        wa.windowClosing(null);  // set src to null
+                        dispose();
+                    }
+                }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+            pack();
+
+        }
+
+        /** Add this component to a container which uses GridBagLayout. */
+        private final void addToGrid
+            (final Container ct, final GridBagLayout gbl, final GridBagConstraints gbc, final Component cmp)
+        {
+            gbl.setConstraints(cmp, gbc);
+            ct.add(cmp);
+        }
+
+        /**
+         * Handle button clicks and radio button selections:
+         * Clicking a radio button sets {@link #src} from {@link #src1}, {@link #src2}, or {@link #srcOther}.
+         * Edit button validates {@link #src} and may dispose the dialog.  Cancel also disposes here.
+         */
+        public void actionPerformed(final ActionEvent ae)
+        {
+            final Object s = ae.getSource();
+
+            if (s == bCancel)
+            {
+                wa.windowClosing(null);  // set src to null
+                dispose();
+            }
+            else if (s == bSrc1)
+            {
+                src = src1;
+            }
+            else if (s == bSrc2)
+            {
+                src = src2;
+            }
+            else if (s == bSrcOther)
+            {
+                src = srcOther;
+                if ((srcOther == null) || (tfSrcOther.getText().trim().length() == 0))
+                    chooseSrcOther();
+            }
+            else if (s == bBrowseOther)
+            {
+                if (chooseSrcOther())
+                {
+                    src = srcOther;
+                    bSrcOther.setSelected(true);
+                }
+            }
+
+            if (s != bEdit)
+                return;
+
+            // about to validate. If "Other" is selected, update the File objects in case text field contents changed.
+
+            if (bSrcOther.isSelected())
+            {
+                final String other = tfSrcOther.getText().trim();
+                if (other.length() == 0)
+                    srcOther = null;
+                else if ((srcOther == null) || ! other.equals(srcOther.getPath()))
+                    srcOther = new File(other);
+
+                src = srcOther;
+            }
+
+            // validate, dispose if OK
+
+            if ((dest == null) || ! dest.exists())
+            {
+                JOptionPane.showMessageDialog
+                    (this, "Destination locale file not found.",
+                     "File not found", JOptionPane.WARNING_MESSAGE);
+            }
+            else if ((src == null) || ! src.exists())
+            {
+                JOptionPane.showMessageDialog
+                    (this, "Source locale file not found.",
+                     "File not found", JOptionPane.WARNING_MESSAGE);
+            } else {
+                dispose();
+            }
+        }
+
+        /**
+         * Call {@link PTEMain#chooseFile(boolean, String)} for the "Other" source option.
+         * If a file was selected and exists, update {@link #srcOther} and {@link #tfSrcOther}.
+         * Make sure {@link #dest} isn't also selected as {@link #srcOther}.
+         * @return  True if a file was selected and exists, false otherwise
+         */
+        private boolean chooseSrcOther()
+        {
+            File f = chooseFile(false, "Choose source locale file");
+            if (f != null)
+            {
+                if (f.getAbsolutePath().equals(dest.getAbsolutePath()))
+                {
+                    JOptionPane.showMessageDialog
+                        (this, "This file is the destination file, it cannot also be the source.",
+                         "Source is destination", JOptionPane.WARNING_MESSAGE);
+                    return false;
+                }
+
+                srcOther = f;
+                tfSrcOther.setText(srcOther.getPath());
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+    }  // inner class OpenDestSrcDialog
 
 }
