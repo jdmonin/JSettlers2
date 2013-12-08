@@ -59,7 +59,7 @@ import javax.swing.UIManager;
 /**
  * Main startup for {@link PropertiesTranslatorEditor}.
  * Gives buttons with choice of new, open, open backup, exit.
- * Prompts whether to open 1 or 2 files, etc.
+ * Can browse to both dest + src files, or auto-pick src based on dest filename.
  *<P>
  * Work in progress.  See {@link PropertiesTranslatorEditor} for current limitations.
  */
@@ -111,12 +111,14 @@ public class PTEMain extends JFrame
             return true;
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog
-                (parent, "Please select the destination (more specific locale) .properties file, not the source file.",
+                (parent, "Please select the destination (more specific locale) .properties file, not the source file."
+                 + "\nTo open two specific files, use the Open Dest + Src button.",
                  "Select destination, not source", JOptionPane.INFORMATION_MESSAGE);
         } catch (FileNotFoundException e) {
             // wrap error text in case dest is a long path
             JOptionPane.showMessageDialog
-                (parent, "Could not find less-specific source locale .properties file on disk\nto match " + dest,
+                (parent, "Could not find less-specific source locale .properties file on disk\nto match " + dest
+                 + "\nTo open two specific files, use the Open Dest + Src button.",
                  "Source .properties file not found", JOptionPane.ERROR_MESSAGE);
         }
 
