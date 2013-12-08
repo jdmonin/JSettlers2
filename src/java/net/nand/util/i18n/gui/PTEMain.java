@@ -35,6 +35,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -66,6 +67,16 @@ import javax.swing.UIManager;
 public class PTEMain extends JFrame
     implements ActionListener, WindowListener
 {
+    /** Editors we've opened; tracked here for unsaved changes before exit. */
+    final private ArrayList<PropertiesTranslatorEditor> ptes;
+
+    /**
+     * Most recent time when user answered a "Save before exiting?" dialog with
+     * Yes or No (not with Cancel exit), from {@link System#currentTimeMillis()}, or 0.
+     * Set in {@link #askUnsaved(ArrayList)}, checked in {@link #windowClosing(WindowEvent)}.
+     */
+    private long askUnsavedAnsweredAt;
+
     private final JPanel btns;
     private JButton bNew, bOpen, bOpenDestSrc, bAbout, bExit;
 
@@ -91,10 +102,12 @@ public class PTEMain extends JFrame
      * @param parent  Parent for any MessageDialog shown, or {@code null}
      * @return  True if found and shown for editing, false if error message shown instead
      */
-    public static boolean tryEditFromDestOnly(final File dest, final JFrame parent)
+    public boolean tryEditFromDestOnly(final File dest, final JFrame parent)
     {
         try {
-            new PropertiesTranslatorEditor(dest).init();
+            PropertiesTranslatorEditor pte = new PropertiesTranslatorEditor(dest);
+            ptes.add(pte);
+            pte.init();
             return true;
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog
@@ -124,11 +137,13 @@ public class PTEMain extends JFrame
         {
             new PropertiesTranslatorEditor(new File(args[0]), new File(args[1])).init();
         } else {
-            if ((args.length == 1) && tryEditFromDestOnly(new File(args[0]), null))
+            PTEMain ptem = new PTEMain();
+
+            if ((args.length == 1) && ptem.tryEditFromDestOnly(new File(args[0]), null))
                 return;
                 // if can't open args[0], shows error and falls through to PTEMain
 
-            new PTEMain().initAndShow();
+            ptem.initAndShow();
         }
     }
 
@@ -152,9 +167,12 @@ public class PTEMain extends JFrame
         super("PropertiesTranslatorEditor");
 
         addWindowListener(this);  // windowClosing: save prefs and exit
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);  // check unsaved in windowClosing before dispose
 
         userPrefs = Preferences.userNodeForPackage(PTEMain.class);
         tryGetLastEditedDir();
+
+        ptes = new ArrayList<PropertiesTranslatorEditor>();
 
         btns = new JPanel();
         btns.setLayout(new BoxLayout(btns, BoxLayout.PAGE_AXIS));
@@ -203,7 +221,9 @@ public class PTEMain extends JFrame
             tryEditFromDestOnly(chooseFileDest, this);
                 // calls new PropertiesTranslatorEditor(chooseFileDest).init() or shows error message
         } else {
-            new PropertiesTranslatorEditor(chooseFileSrc, chooseFileDest).init();
+            PropertiesTranslatorEditor pte = new PropertiesTranslatorEditor(chooseFileSrc, chooseFileDest);
+            ptes.add(pte);
+            pte.init();
         }
     }
 
@@ -365,17 +385,67 @@ public class PTEMain extends JFrame
     }
 
     /**
+     * Check all open editors' {@link PropertiesTranslatorEditor#hasUnsavedChanges()} and return any.
+     * @return  Editors with unsaved changes to src or dest, or {@code null} if none
+     * @see #askUnsaved(ArrayList)
+     */
+    private ArrayList<PropertiesTranslatorEditor> checkUnsaved()
+    {
+        ArrayList<PropertiesTranslatorEditor> unsaved = null;
+        for (final PropertiesTranslatorEditor pte : ptes)
+        {
+            if (pte.hasUnsavedChanges())
+            {
+                if (unsaved == null)
+                    unsaved = new ArrayList<PropertiesTranslatorEditor>();
+                unsaved.add(pte);
+            }
+        }
+
+        return unsaved;
+    }
+
+    /**
+     * For any editors with unsaved changes, ask the user if they want to save, discard, or cancel exit.  If not
+     * cancelled, sets {@link #askUnsavedAnsweredAt} and calls {@link #windowClosing(WindowEvent) windowClosing(null)}
+     * to exit.
+     * @param unsavedPTE  List of editors with unsaved changes, from {@link #checkUnsaved()}
+     */
+    private void askUnsaved(final ArrayList<PropertiesTranslatorEditor> unsavedPTE)
+    {
+        for (final PropertiesTranslatorEditor pte : unsavedPTE)
+            if (! pte.checkUnsavedBeforeDispose())
+                return;  // false == cancel exit
+
+        askUnsavedAnsweredAt = System.currentTimeMillis();
+        windowClosing(null);
+    }
+
+    /**
+     * Check if any editor has unsaved changes.  If any, call {@link #askUnsaved(ArrayList)} instead of closing.
      * Save {@link #userPrefs} if possible, dispose of the main button window,
      * and call {@link System#exit(int) System.exit(0)}.
      * @param e  Event, ignored (null is okay)
      */
     public void windowClosing(WindowEvent e)
     {
+        ArrayList<PropertiesTranslatorEditor> unsavedPTE = checkUnsaved();
+        if (unsavedPTE != null)
+        {
+            // was user already asked?
+            final long now = System.currentTimeMillis();
+            if ((askUnsavedAnsweredAt == 0) || (now - askUnsavedAnsweredAt > 3000L))
+            {
+                askUnsaved(unsavedPTE);  // will call windowClosing after save or discard decision is made
+                return;
+            }
+        }
+
         try
         {
             if (userPrefs != null)
                 userPrefs.flush();
-        } catch (BackingStoreException ex) {}  // OK if we can't save last-opened-location pref
+        } catch (BackingStoreException ex) {}  // is OK if we can't save last-opened-location pref
 
         dispose();
         System.exit(0);
