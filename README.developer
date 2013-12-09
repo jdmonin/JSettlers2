@@ -303,6 +303,9 @@ for two locales side by side; this editor has unicode support and color hilighti
 will convert to ISO-8859-1 (with unicode escapes) automatically when saving.
 See src/java/net/nand/util/i18n/README.txt for more details.
 
+Before running PTEMain for the first time, you must run the JSettlers ant build so that
+the editor's own externalized strings will be available.
+
 When starting the editor this message is harmless, because preferences are stored per-user:
 	Dec 6, 2013 3:59:16 PM java.util.prefs.WindowsPreferences <init>
 	WARNING: Could not open/create prefs root node Software\JavaSoft\Prefs at root 0x80000002. Windows RegCreateKeyEx(...) returned error code 5.

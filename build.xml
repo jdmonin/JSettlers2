@@ -4,6 +4,7 @@
 
 <!--
  This file is part of Java Settlers - An online multiplayer version of the game Settlers of Catan
+ and also includes a build-i18neditor target for the PTEMain i18n editor (PTE.jar) not built by default.
 
  Copyright (C) 2004-2005 Chadwick A McHenry (mchenryc@acm.org)
  Portions of this file Copyright (C) 2007-2013 Jeremy D Monin (jdmonin@nand.net)
@@ -49,6 +50,7 @@
   <property name="client.class"   value="soc.client.SOCPlayerClient" />
   <property name="server.class"   value="soc.server.SOCServer" />
   <property name="main.class"     value="${client.class}" />
+  <property name="i18neditor.class" value="net.nand.util.i18n.gui.PTEMain" />
 
   <!-- directory names -->
   <!-- These must remain simple values, (relative to basedir) -->
@@ -78,6 +80,7 @@
   <property name="client.jar" value="${Name}.jar" />
   <property name="server.jar" value="${Name}Server.jar" />
   <property name="test.jar"   value="${Name}Test.jar" />
+  <property name="i18neditor.jar" value="PTE.jar" />
 
   <property name="dist.name"     value="${name}-${version}" />
   <property name="dist.src.name" value="${dist.name}-src" />
@@ -106,6 +109,9 @@
     <include name="resources/" />   <!-- client may run local server -->
     <include name="soc/" />         <!-- thus, everything -->
     <include name="net/nand/util/i18n/mgr/" />         <!-- i18n string manager -->
+  </patternset>
+  <patternset id="i18neditor.files">
+    <include name="net/nand/util/i18n/" />         <!-- i18n editor gui, string manager, parser/writer -->
   </patternset>
 
   <!-- external libraries -->
@@ -152,6 +158,12 @@
       </copy>
   </target>
 
+  <target name="resources-i18neditor"
+          description="Copy resources for i18n editor to classes directory" >
+      <copy toDir="${classes}">
+        <fileset dir="${java.src}" includes="net/nand/util/i18n/gui/strings/*.properties" />
+      </copy>
+  </target>
 
   <!-- ************************************** -->
   <!-- Third party dependancy checks -->
@@ -183,8 +195,9 @@
 
   <!-- Compile the java code from ${java.src} into ${classes} so
        that tests can be done on compiled classes without creating
-       distribution tarballs -->
-  <target name="compile" depends="init-libs,resources"
+       distribution tarballs; includes jsettlers and i18neditor
+       because everything is in java.src -->
+  <target name="compile" depends="init-libs,resources,resources-i18neditor"
           description="Compile class files into 'classes'.">
       <!-- version updates when info build.xml changes -->
       <dependset>
@@ -224,6 +237,17 @@
         <manifest>
           <attribute name="Main-Class" value="${server.class}" />
           <attribute name="Class-Path" value="${client.jar}" />
+        </manifest>
+      </jar>
+  </target>
+
+  <!-- i18n editor: Create jar -->
+  <target name="build-i18neditor" depends="compile,resources-i18neditor"
+          description="Create the PTE i18n editor jar file." >
+      <jar destfile="${target}/${i18neditor.jar}" basedir="${classes}">
+        <patternset refid="i18neditor.files" />
+        <manifest>
+          <attribute name="Main-Class" value="${i18neditor.class}" />
         </manifest>
       </jar>
   </target>

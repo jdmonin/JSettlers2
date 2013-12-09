@@ -52,6 +52,7 @@ import javax.swing.table.TableCellEditor;
 import net.nand.util.i18n.ParsedPropsFilePair;
 import net.nand.util.i18n.PropsFileParser;
 import net.nand.util.i18n.PropsFileWriter;
+import net.nand.util.i18n.mgr.StringManager;
 
 /**
  * Property file editor for translators (side-by-side source and destination languages).
@@ -74,6 +75,10 @@ import net.nand.util.i18n.PropsFileWriter;
 public class PropertiesTranslatorEditor
     implements ActionListener
 {
+
+    /** i18n text strings; if null, call {@link #initStringManager()} to initialize. */
+    static StringManager strings;
+
     /**
      * Pair of properties files being edited, and their contents.
      * The files are {@link ParsedPropsFilePair#srcFile pair.srcFile}
@@ -150,7 +155,10 @@ public class PropertiesTranslatorEditor
     @SuppressWarnings("serial")
     public void init()
     {
-        jfra = new JFrame("Properties: Translator's Editor");
+        if (strings == null)
+            initStringManager();
+
+        jfra = new JFrame(strings.get("editor.window_title"));  // "Properties Translator's Editor"
         jfra.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         jfra.addWindowListener  // confirm unsaved changes when window closing
             (new WindowAdapter()
@@ -262,8 +270,8 @@ public class PropertiesTranslatorEditor
         // Table right-click menu
         {
             final JPopupMenu tPopup = new JPopupMenu();
-            menuAddAbove = new JMenuItem("Add above");
-            menuAddBelow = new JMenuItem("Add below");
+            menuAddAbove = new JMenuItem(strings.get("menu.popup.add_above"));
+            menuAddBelow = new JMenuItem(strings.get("menu.popup.add_below"));
             menuAddAbove.addActionListener(this);
             menuAddBelow.addActionListener(this);
             tPopup.add(menuAddAbove);
@@ -276,15 +284,15 @@ public class PropertiesTranslatorEditor
             GridLayout bgl = new GridLayout(1, 0);
             JPanel pba = new JPanel(bgl);
 
-            bHelp = new JButton("Help");
-            bHelp.setToolTipText("Brief explanation of how to use the editor");
+            bHelp = new JButton(strings.get("editor.button.help"));
+            bHelp.setToolTipText(strings.get("editor.button.help.tip"));  // "Brief explanation of how to use the editor"
             bHelp.addActionListener(this);
-            bSaveSrc = new JButton("Save Src");
-            bSaveSrc.setToolTipText("Save changes to the source language file");
+            bSaveSrc = new JButton(strings.get("editor.button.save_src"));
+            bSaveSrc.setToolTipText(strings.get("editor.button.save_src.tip"));  // "Save changes to the source language file"
             bSaveSrc.setEnabled(false);
             bSaveSrc.addActionListener(this);
-            bSaveDest = new JButton("Save Dest");
-            bSaveDest.setToolTipText("Save changes to the destination language file");
+            bSaveDest = new JButton(strings.get("editor.button.save_dest"));
+            bSaveDest.setToolTipText(strings.get("editor.button.save_dest"));  // "Save changes to the destination language file"
             bSaveDest.setEnabled(false);
             bSaveDest.addActionListener(this);
 
@@ -315,12 +323,16 @@ public class PropertiesTranslatorEditor
         {
             JOptionPane.showMessageDialog
                 (jfra,
+                 strings.get("editor.help.text"),
+                 /*
                  "This editor shows the comments, keys, and texts for the source and destination files.\n" +
                    "Click on a cell to change source or destination text. Keys cannot be edited in this version.\n" +
                    "New items can be added at the end, or inserted by right-clicking a line.\n" +
                    "To save changes and continue editing, click the button above the Source or Destination column.\n" +
                    "Green cells are empty and expecting text. Gray cells are unused, such as a comment's key column.",
-                 "PTE Help", JOptionPane.PLAIN_MESSAGE);
+                  */
+                 strings.get("editor.help.title"),  // "PTE Help"
+                 JOptionPane.PLAIN_MESSAGE);
         }
         else if (item == bSaveDest)
             saveChangesToDest();
@@ -444,7 +456,6 @@ public class PropertiesTranslatorEditor
 
         try
         {
-
             PropsFileWriter pfw = new PropsFileWriter(pair.srcFile);
             pfw.write(pair.extractContentsHalf(false), null);
             pfw.close();
@@ -472,8 +483,9 @@ public class PropertiesTranslatorEditor
         if (pair.unsavedSrc || pair.unsavedDest)
         {
             final int choice = JOptionPane.showConfirmDialog
-                (jfra, "Do you want to save changes before exiting?",
-                 "Unsaved Changes", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+                (jfra, strings.get("dialog.save_before_exit.text"),  // "Do you want to save changes before exiting?"
+                 strings.get("dialog.save_before_exit.title"),       // "Unsaved Changes"
+                 JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
             if (choice == JOptionPane.YES_OPTION)
                 saveChangesToAny();  // save changes, then can dispose
             else
@@ -489,6 +501,7 @@ public class PropertiesTranslatorEditor
 
         return true;
     }
+
     /**
      * Given a more-specific destination locale filename, calculate the less-specific
      * source filename by removing _xx suffix(es) and check whether that source exists.
@@ -533,6 +546,18 @@ public class PropertiesTranslatorEditor
             return srcFile;
         else
             return null;
+    }
+
+    /**
+     * Initialize {@link #strings} with the properties bundle at {@code net/nand/util/i18n/gui/strings/pte.properties}
+     * in the default locale.
+     */
+    static void initStringManager()
+    {
+        if (strings != null)
+            return;
+
+        strings = new StringManager("net/nand/util/i18n/gui/strings/pte");
     }
 
     /**
@@ -802,7 +827,7 @@ public class PropertiesTranslatorEditor
             switch (col)
             {
             case 0:
-                return "Key";
+                return strings.get("editor.heading.key");  // "Key"
             case 1:
                 return pair.srcFile.getName();
             case 2:
@@ -820,7 +845,7 @@ public class PropertiesTranslatorEditor
                 switch (col)
                 {
                 case 0:
-                    return "Unique key to retrieve this text from java code";
+                    return strings.get("editor.heading.key.tip");  // "Unique key to retrieve this text from java code"
                 case 1:
                     return pair.srcFile.getAbsolutePath();
                 case 2:

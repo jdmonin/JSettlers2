@@ -56,6 +56,8 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
+import net.nand.util.i18n.mgr.StringManager;
+
 /**
  * Main startup for {@link PropertiesTranslatorEditor}.
  * Gives buttons with choice of new, open, open backup, exit.
@@ -69,8 +71,17 @@ import javax.swing.UIManager;
 public class PTEMain extends JFrame
     implements ActionListener, WindowListener
 {
+    /**
+     * i18n text strings, taken from {@link PropertiesTranslatorEditor#strings};
+     * if that's null, call {@link PropertiesTranslatorEditor#initStringManager()} to initialize.
+     *<P>
+     * Initialization is in PropertiesTranslatorEditor because the editor will always use that class
+     * but not always use PTEMain.
+     */
+    private static StringManager strings;
+
     /** Editors we've opened; tracked here for unsaved changes before exit. */
-    final private ArrayList<PropertiesTranslatorEditor> ptes;
+    private final ArrayList<PropertiesTranslatorEditor> ptes;
 
     /**
      * Most recent time when user answered a "Save before exiting?" dialog with
@@ -160,10 +171,14 @@ public class PTEMain extends JFrame
     {
         JOptionPane.showMessageDialog
             (parent,
+             strings.get("dialog.about.text"),
+             /*
              "PropertiesTranslatorEditor is a side-by-side editor for translators, showing\n" +
                "each key's value in the source and destination languages next to each other.\n" +
                "For more info, while editing click the Help button at the top of the editor.",
-             "About PropertiesTranslatorEditor", JOptionPane.PLAIN_MESSAGE);
+              */
+             strings.get("dialog.about.title"),  // "About Properties Translator's Editor"
+             JOptionPane.PLAIN_MESSAGE);
     }
 
     /**
@@ -172,6 +187,15 @@ public class PTEMain extends JFrame
     public PTEMain()
     {
         super("PropertiesTranslatorEditor");
+
+        if (strings == null)
+        {
+            if (PropertiesTranslatorEditor.strings == null)
+                PropertiesTranslatorEditor.initStringManager();
+            strings = PropertiesTranslatorEditor.strings;
+        }
+
+        setTitle(strings.get("editor.window_title"));  // "Properties Translator's Editor"
 
         addWindowListener(this);  // windowClosing: save prefs and exit
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);  // check unsaved in windowClosing before dispose
@@ -185,13 +209,13 @@ public class PTEMain extends JFrame
         btns.setLayout(new BoxLayout(btns, BoxLayout.PAGE_AXIS));
         btns.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
 
-        btns.add(new JLabel("Welcome to PropertiesTranslatorEditor. Please choose:"));
-        bNew = addBtn(btns, this, "New...", KeyEvent.VK_N);
+        btns.add(new JLabel(strings.get("main.heading")));  // "Welcome to the Translator's Editor. Please choose:"
+        bNew = addBtn(btns, this, strings.get("main.button.new"), KeyEvent.VK_N);      // "New..."
         bNew.setEnabled(false);  // TODO add this functionality
-        bOpenDest = addBtn(btns, this, "Open Destination...", KeyEvent.VK_O);
-        bOpenDestSrc = addBtn(btns, this, "Open Destination + Source...", KeyEvent.VK_D);
-        bAbout = addBtn(btns, this, "About", KeyEvent.VK_A);
-        bExit = addBtn(btns, this, "Exit", KeyEvent.VK_X);
+        bOpenDest = addBtn(btns, this, strings.get("main.button.open_dest"), KeyEvent.VK_O);  // "Open Destination..."
+        bOpenDestSrc = addBtn(btns, this, strings.get("main.button.open_dest_src"), KeyEvent.VK_D);  // "Open Destination + Source..."
+        bAbout = addBtn(btns, this, strings.get("main.button.about"), KeyEvent.VK_A);  // "About"
+        bExit = addBtn(btns, this, strings.get("main.button.exit"), KeyEvent.VK_X);    // "Exit"
 
         getContentPane().add(btns);
         getRootPane().setDefaultButton(bOpenDest);
