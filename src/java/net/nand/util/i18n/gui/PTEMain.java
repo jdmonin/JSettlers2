@@ -62,6 +62,8 @@ import javax.swing.UIManager;
  * Can browse to both dest + src files, or auto-pick src based on dest filename.
  *<P>
  * Work in progress.  See {@link PropertiesTranslatorEditor} for current limitations.
+ *
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
 @SuppressWarnings("serial")
 public class PTEMain extends JFrame

@@ -73,7 +73,7 @@ public class ParsedPropsFilePair
      */
     private List<FileKeyEntry> parsed;
 
-    /** Expanded entries, one per line in file, from {@link #parsed}:
+    /** Expanded entries (contents), one per line in file, from {@link #parsed}:
      *  Source and dest file-pair line-by-line grid contents, from parsing and editing;
      *  also contains {@link #destOnlyPairs}.  Built during {@link #parseDest()}.
      */
@@ -111,6 +111,7 @@ public class ParsedPropsFilePair
 
     /**
      * Get the number of key-value pairs in {@link #getContents()}.
+     * Each row can be retrieved with {@link #getRow(int)}.
      */
     public int size() { return cont.size(); }
 
@@ -414,9 +415,13 @@ public class ParsedPropsFilePair
 
     /**
      * Add/insert a row before or after an existing row.
+     * Added rows are {@link FileKeyEntry} until {@link #convertInsertedRows()} is called,
+     * they may become {@link FileCommentEntry} at that time.
+     *
      * @param r  Row number
-     * @param beforeRow  If true, insert before (above), otherwise add after (below) this line
-     * @throws IndexOutOfBoundsException  if {@code r} is &lt; 0 or &gt;= {@link #size()}
+     * @param beforeRow  If true, insert before (above), otherwise add after (below) this line; ignored if
+     *     adding at end ({@code r} == {@link #size()})
+     * @throws IndexOutOfBoundsException  if {@code r} is &lt; 0 or &gt; {@link #size()}
      */
     public void insertRow(int r, final boolean beforeRow)
         throws IndexOutOfBoundsException
