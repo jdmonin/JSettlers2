@@ -203,7 +203,9 @@ public class PropertiesTranslatorEditor
         opan.setLayout(new BorderLayout());  // stretch JTable on resize
 
         mod = new PTSwingTableModel(this);  // sets up model to pair
-        jtab = new JTable(mod) {            // table header tool tips show full src/dest paths
+        jtab = new JTable(mod)
+        {
+            /** Table header tooltips show full src, dest paths */
             protected JTableHeader createDefaultTableHeader()
             {
                 return new JTableHeader(columnModel)
@@ -214,6 +216,27 @@ public class PropertiesTranslatorEditor
                         return mod.getPTEColumnToolTip(columnModel.getColumn(viewIdx).getModelIndex());
                     }
                 };
+            }
+
+            /** Enable save button when cell editing begins */
+            public Component prepareEditor(final TableCellEditor editor, final int r, final int c)
+            {
+                final Component ed = super.prepareEditor(editor, r, c);
+                switch (c)
+                {
+                case 1:  updateSaveButtonsForEditing(true, true);   break;  // src
+                case 2:  updateSaveButtonsForEditing(true, false);  break;  // dest
+                // default: do nothing extra
+                }
+
+                return ed;
+            }
+
+            /** Possibly disable save buttons when cell edit is complete or cancelled */
+            public void removeEditor()
+            {
+                super.removeEditor();
+                updateSaveButtonsForEditing(false, false);
             }
         };
         jtab.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);  // don't lose current edit when focus lost
@@ -306,6 +329,31 @@ public class PropertiesTranslatorEditor
     }
 
     /**
+     * Enable/disable the Save Src or Save Dest button while editing a cell.
+     * Save is always enabled while editing; after editing, it's disabled if its file's unsaved flag is false.
+     * If the user changes a cell, that will separately fire {@link PTSwingTableModel#setValueAt(Object, int, int)}
+     * which will set the file's unsaved flag and enable the button again.
+     *
+     * @param startEditing  True if the user just started editing the cell, false if they just finished editing
+     * @param isSrc  True for source column, false for destination.  Ignored unless {@code startEditing}
+     *     because the JTable method called after editing doesn't give the column, so we check both buttons.
+     */
+    private void updateSaveButtonsForEditing(final boolean startEditing, final boolean isSrc)
+    {
+        if (startEditing)
+        {
+            final JButton sbtn = ((isSrc) ? bSaveSrc : bSaveDest);
+            if (! sbtn.isEnabled())
+                sbtn.setEnabled(true);
+        } else {
+            if (bSaveSrc.isEnabled() != pair.unsavedSrc)
+                bSaveSrc.setEnabled(pair.unsavedSrc);
+            if (bSaveDest.isEnabled() != pair.unsavedDest)
+                bSaveDest.setEnabled(pair.unsavedDest);
+        }
+    }
+
+    /**
      * Add/insert a row before or after the row that was right-clicked on,
      * which was stored at click time in {@link #jtabClickedRow}.
      * @param ae  Menu popup action, with right-click location
@@ -359,7 +407,9 @@ public class PropertiesTranslatorEditor
 
     /**
      * Save changes to the destination file, and clear the {@link ParsedPropsFilePair#unsavedDest pair.unsavedDest} flag.
-     * Will save even if that flag is false.
+     * If {@link ParsedPropsFilePair#unsavedInsRows pair.unsavedInsRows} is set, calls
+     * {@link ParsedPropsFilePair#convertInsertedRows() pair.convertInsertedRows()} before saving.
+     * Will save even if the {@code pair.unsavedDest} flag is false.
      */
     public void saveChangesToDest()
     {
@@ -383,7 +433,9 @@ public class PropertiesTranslatorEditor
 
     /**
      * Save changes to the source file, and clear the {@link ParsedPropsFilePair#unsavedSrc pair.unsavedSrc} flag.
-     * Will save even if that flag is false.
+     * If {@link ParsedPropsFilePair#unsavedInsRows pair.unsavedInsRows} is set, calls
+     * {@link ParsedPropsFilePair#convertInsertedRows() pair.convertInsertedRows()} before saving.
+     * Will save even if the {@code pair.unsavedSrc} flag is false.
      */
     public void saveChangesToSrc()
     {
