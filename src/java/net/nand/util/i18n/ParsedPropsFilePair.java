@@ -548,7 +548,7 @@ public class ParsedPropsFilePair
 
         /** If true, the key and value are separated by " = " instead of "=".
          *  This is tracked to minimize whitespace changes when editing a properties file.
-         *  False by default, set true after constructor if needed.
+         *  True by default except comment lines; set false after constructor if needed.
          */
         public boolean srcSpacedEquals, destSpacedEquals;
 
@@ -578,6 +578,8 @@ public class ParsedPropsFilePair
             this.key = key;
             this.srcValue = srcValue;
             this.destValue = destValue;
+            srcSpacedEquals = true;
+            destSpacedEquals = true;
         }
 
         /**
