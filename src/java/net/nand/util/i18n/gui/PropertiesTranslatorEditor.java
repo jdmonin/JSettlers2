@@ -89,6 +89,9 @@ public class PropertiesTranslatorEditor
     /** main window's pane, created in {@link #init()}, populated in {@link #showPairInPane()} */
     private JScrollPane jpane;
 
+    /** Help button, brings up a brief text message dialog */
+    private JButton bHelp;
+
     /** Save button for properties file from current editor contents; disabled until changes are made */
     private JButton bSaveSrc, bSaveDest;
 
@@ -247,8 +250,12 @@ public class PropertiesTranslatorEditor
 
         // Buttons above JTable
         {
-            GridLayout bgl = new GridLayout(1, 4);
+            GridLayout bgl = new GridLayout(1, 0);
             JPanel pba = new JPanel(bgl);
+
+            bHelp = new JButton("Help");
+            bHelp.setToolTipText("Brief explanation of how to use the editor");
+            bHelp.addActionListener(this);
             bSaveSrc = new JButton("Save Src");
             bSaveSrc.setToolTipText("Save changes to the source language file");
             bSaveSrc.setEnabled(false);
@@ -257,7 +264,8 @@ public class PropertiesTranslatorEditor
             bSaveDest.setToolTipText("Save changes to the destination language file");
             bSaveDest.setEnabled(false);
             bSaveDest.addActionListener(this);
-            pba.add(new JPanel());  // left spacer
+
+            pba.add(bHelp);
             pba.add(new JPanel());  // left-center spacer
             pba.add(bSaveSrc);
             pba.add(new JPanel());  // spacer between buttons
@@ -280,6 +288,17 @@ public class PropertiesTranslatorEditor
             insertRow(ae, true);
         else if (item == menuAddBelow)
             insertRow(ae, false);
+        else if (item == bHelp)
+        {
+            JOptionPane.showMessageDialog
+                (jfra,
+                 "This editor shows the comments, keys, and texts for the source and destination files.\n" +
+                   "Click on a cell to change source or destination text. Keys cannot be edited in this version.\n" +
+                   "New items can be added at the end, or inserted by right-clicking a line.\n" +
+                   "To save changes and continue editing, click the button above the Source or Destination column.\n" +
+                   "Green cells are empty and expecting text. Gray cells are unused, such as a comment's key column.",
+                 "PTE Help", JOptionPane.PLAIN_MESSAGE);
+        }
         else if (item == bSaveDest)
             saveChangesToDest();
         else if (item == bSaveSrc)

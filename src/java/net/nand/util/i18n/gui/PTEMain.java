@@ -78,7 +78,7 @@ public class PTEMain extends JFrame
     private long askUnsavedAnsweredAt;
 
     private final JPanel btns;
-    private JButton bNew, bOpen, bOpenDestSrc, bAbout, bExit;
+    private JButton bNew, bOpenDest, bOpenDestSrc, bAbout, bExit;
 
     /** {@link Preferences} key for directory of the prefs file most recently edited */
     private final static String LAST_EDITED_DIR = "lastEditedDir";
@@ -112,13 +112,13 @@ public class PTEMain extends JFrame
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog
                 (parent, "Please select the destination (more specific locale) .properties file, not the source file."
-                 + "\nTo open two specific files, use the Open Dest + Src button.",
+                 + "\nTo open two specific files, use the 'Open Destination + Source' button.",
                  "Select destination, not source", JOptionPane.INFORMATION_MESSAGE);
         } catch (FileNotFoundException e) {
             // wrap error text in case dest is a long path
             JOptionPane.showMessageDialog
                 (parent, "Could not find less-specific source locale .properties file on disk\nto match " + dest
-                 + "\nTo open two specific files, use the Open Dest + Src button.",
+                 + "\nTo open two specific files, use the 'Open Destination + Source' button.",
                  "Source .properties file not found", JOptionPane.ERROR_MESSAGE);
         }
 
@@ -157,7 +157,10 @@ public class PTEMain extends JFrame
     static void showAbout(final JFrame parent)
     {
         JOptionPane.showMessageDialog
-            (parent, "PropertiesTranslatorEditor is a side-by-side editor for translators,\nshowing each key's value in the source and destination languages next to each other.",
+            (parent,
+             "PropertiesTranslatorEditor is a side-by-side editor for translators, showing\n" +
+               "each key's value in the source and destination languages next to each other.\n" +
+               "For more info, while editing click the Help button at the top of the editor.",
              "About PropertiesTranslatorEditor", JOptionPane.PLAIN_MESSAGE);
     }
 
@@ -183,13 +186,13 @@ public class PTEMain extends JFrame
         btns.add(new JLabel("Welcome to PropertiesTranslatorEditor. Please choose:"));
         bNew = addBtn(btns, this, "New...", KeyEvent.VK_N);
         bNew.setEnabled(false);  // TODO add this functionality
-        bOpen = addBtn(btns, this, "Open Dest...", KeyEvent.VK_O);
-        bOpenDestSrc = addBtn(btns, this, "Open Dest + Src...", KeyEvent.VK_D);
+        bOpenDest = addBtn(btns, this, "Open Destination...", KeyEvent.VK_O);
+        bOpenDestSrc = addBtn(btns, this, "Open Destination + Source...", KeyEvent.VK_D);
         bAbout = addBtn(btns, this, "About", KeyEvent.VK_A);
         bExit = addBtn(btns, this, "Exit", KeyEvent.VK_X);
 
         getContentPane().add(btns);
-        getRootPane().setDefaultButton(bOpen);
+        getRootPane().setDefaultButton(bOpenDest);
     }
 
     /**
@@ -296,10 +299,10 @@ public class PTEMain extends JFrame
         if (src == bNew)
         {
             // TODO implement; need to enforce naming standards, or have dialog to ask src/dest lang+region
-            System.err.println("Not implmented yet");
+            System.err.println("Not implemented yet");
             // openPropsEditor(null, chooseFile(true, null), true);
         }
-        else if (src == bOpen)
+        else if (src == bOpenDest)
         {
             openPropsEditor(null, chooseFile(false, null), false);
         }
@@ -318,7 +321,7 @@ public class PTEMain extends JFrame
     }
 
     /**
-     * Handle a click on the "Open Dest + Src" button.  Create and show the dialog to choose 2 property files.
+     * Handle a click on the "Open Destination + Source" button.  Create and show the dialog to choose 2 property files.
      */
     private final void clickedOpenDestSrc()
     {
