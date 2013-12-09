@@ -28,6 +28,8 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
+import net.nand.util.i18n.mgr.StringManager;
+
 import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
@@ -36,7 +38,8 @@ import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 
 /**
- * TODO Write JavaDoc.
+ * String Manager for retrieving I18N localized text from {@code .properties} bundle files
+ * with special methods for formatting JSettlers objects.
  *<P>
  * See comments at the top of {@code .properties} files for more details on key-value formatting and message parameters.
  * Remember that {@code .properties} bundle files are encoded not in {@code UTF-8} but in {@code ISO-8859-1}:
@@ -50,7 +53,8 @@ import soc.game.SOCResourceSet;
  * @author lartkma
  * @see soc.util.I18n
  */
-public class SOCStringManager {
+public class SOCStringManager extends StringManager
+{
 
     /**
      * Manager for all client strings. Static is okay because the client is seen by 1 person with 1 locale.
@@ -71,15 +75,14 @@ public class SOCStringManager {
      */
     private static SOCStringManager serverManagerForClientLocale_fallback;
 
-    private ResourceBundle bundle;
-
     /**
      * Create a string manager for the bundles at {@code bundlePath} with the default locale. 
      * Remember that bundle files are encoded not in {@code UTF-8} but in {@code ISO-8859-1}, see class javadoc.
      * @param bundlePath  Bundle path, will be retrieved with {@link ResourceBundle#getBundle(String)}
      */
-    public SOCStringManager(String bundlePath){
-        bundle = ResourceBundle.getBundle(bundlePath);
+    public SOCStringManager(String bundlePath)
+    {
+        super(bundlePath);
     }
 
     /**
@@ -88,37 +91,12 @@ public class SOCStringManager {
      * @param bundlePath  Bundle path, will be retrieved with {@link ResourceBundle#getBundle(String, Locale)}
      * @param loc  Locale to use; not {@code null}
      */
-    public SOCStringManager(final String bundlePath, final Locale loc) {
-        bundle = ResourceBundle.getBundle(bundlePath, loc);
+    public SOCStringManager(final String bundlePath, final Locale loc)
+    {
+        super(bundlePath, loc);
     }
 
     // If you add get methods, for server convenience also add them in StringConnection and classes that implement that.
-
-    /**
-     * Get a localized string (having no parameters) with the given key.
-     * @param key  Key to use for string retrieval
-     * @return the localized string from the manager's bundle or one of its parents
-     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
-     */
-    public final String get(final String key)
-        throws MissingResourceException
-    {
-        return bundle.getString(key);
-    }
-
-    /**
-     * Get and format a localized string (with parameters) with the given key.
-     * @param key  Key to use for string retrieval
-     * @param arguments  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
-     *                   by calling {@link MessageFormat#format(String, Object...)}. 
-     * @return the localized formatted string from the manager's bundle or one of its parents
-     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
-     */
-    public final String get(final String key, final Object ... arguments)
-        throws MissingResourceException
-    {
-        return MessageFormat.format(bundle.getString(key), arguments);
-    }
 
     /**
      * Resource type-and-count text keys for {@link #getSpecial(SOCGame, String, Object...)}.

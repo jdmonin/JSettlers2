@@ -100,10 +100,12 @@
     <include name="resources/" />   <!-- for version file -->
     <include name="soc/" />         <!-- everything... -->
     <exclude name="soc/client/" />  <!-- ...except these -->
+    <include name="net/nand/util/i18n/mgr/" />         <!-- i18n string manager -->
   </patternset>
   <patternset id="client.files">
     <include name="resources/" />   <!-- client may run local server -->
     <include name="soc/" />         <!-- thus, everything -->
+    <include name="net/nand/util/i18n/mgr/" />         <!-- i18n string manager -->
   </patternset>
 
   <!-- external libraries -->
