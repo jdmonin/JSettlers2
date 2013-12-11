@@ -213,6 +213,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *   (For example, "N7" for "roll no 7s early in the game" is strictly server-side.)
      *<LI> Create the option by calling opt.put here in initAllOptions.
      *   Use the current version for the "last modified" field.
+     *<LI> Add the new option's description to the {@code gameopt.*} section of
+     *   {@code server/strings/toClient_*.properties} to be sent to clients if needed.
      *<LI> If only <em>some values</em> of the option will require client changes,
      *   also update {@link #getMinVersion(Hashtable)}.  (For example, if "PL"'s value is 5 or 6,
      *   a new client would be needed to display that many players at once, but 2 - 4
@@ -307,6 +309,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     {
         Hashtable<String, SOCGameOption> opt = new Hashtable<String, SOCGameOption>();
 
+        // I18N: Game option descriptions are also stored as gameopt.* in server/strings/toClient_*.properties
+        //       to be sent to clients if needed.
+
         final SOCGameOption pl = new SOCGameOption
                 ("PL", -1, 1108, 4, 2, 6, 0, "Maximum # players");
         opt.put("PL", pl);
@@ -348,9 +353,10 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
         // Game scenario options (rules and events)
 
-        //      I18N note: SOCPlayerInterface.showScenarioInfoDialog() assumes these
-        //      all start with the text "Scenarios: "; when localizing, be sure to
+        //      I18N note: NewGameOptionsFrame.showScenarioInfoDialog() assumes these
+        //      all start with the text "Scenarios:". When localizing, be sure to
         //      keep a consistent prefix that showScenarioInfoDialog() knows to look for.
+        //      In client/strings/data_*.properties, set game.options.scenario.optprefix to that prefix.
 
         opt.put(K_SC_SANY, new SOCGameOption
                 (K_SC_SANY, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
