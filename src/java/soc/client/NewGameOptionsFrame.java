@@ -58,6 +58,7 @@ import soc.game.SOCGameOption;
 import soc.game.SOCScenario;
 import soc.message.SOCMessage;
 import soc.message.SOCStatusMessage;
+import soc.util.SOCStringManager;
 import soc.util.Version;
 
 /**
@@ -158,8 +159,9 @@ public class NewGameOptionsFrame extends Frame
     private static final Color HEADER_LABEL_BG = new Color(220,255,220);
     private static final Color HEADER_LABEL_FG = new Color( 50, 80, 50);
 
-    /** i18n text strings */
-    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+    /** i18n text strings.
+     *  @since 2.0.00 */
+    private static final SOCStringManager strings = SOCStringManager.getClientManager();
 
     /**
      * Creates a new NewGameOptionsFrame.
@@ -506,7 +508,7 @@ public class NewGameOptionsFrame extends Frame
                 gbc.gridwidth = 1;
                 gbl.setConstraints(blank, gbc);
                 bp.add(blank);
-                scenInfo = new Button(/*I*/"Scenario Info..."/*18N*/);
+                scenInfo = new Button(strings.get("game.options.scenario.info_btn"));  // "Scenario Info..."
                 scenInfo.addActionListener(this);
                 scenInfo.addKeyListener(this);
                 scenInfo.setEnabled(sel != 0);  // disable if "(none)" is selected scenario option
@@ -1406,7 +1408,8 @@ public class NewGameOptionsFrame extends Frame
             return;
 
         StringBuilder sb = new StringBuilder();
-        sb.append(/*I*/"Game Scenario: "/*18N*/);
+        sb.append(strings.get("game.options.scenario.label"));  // "Game Scenario:"
+        sb.append(' ');
         sb.append(sc.scDesc);
         sb.append('\n');
 
@@ -1414,14 +1417,15 @@ public class NewGameOptionsFrame extends Frame
         {
             sb.append('\n');
             sb.append(sc.scLongDesc);
+            sb.append('\n');
         }
 
         // Check game for any other _SC_ game opts in effect:
 
         final String scenOptName = "_" + sc.scKey;  // "_SC_CLVI"
-        final String optDescScenPrefix = /*I*/"Scenarios: "/*18N*/;
-        //      I18N note: showScenarioInfoDialog() assumes these scenario game options
-        //      all start with the text "Scenarios: "; when localizing, be sure to
+        final String optDescScenPrefix = strings.get("game.options.scenario.optprefix");  // "Scenarios:"
+        //      I18N note: showScenarioInfoDialog() assumes scenario game options
+        //      all start with the text "Scenarios:". When localizing, be sure to
         //      keep a consistent prefix that showScenarioInfoDialog() knows to look for.
 
         if ((gameOpts == null) && (sc.scOpts != null))
@@ -1439,15 +1443,16 @@ public class NewGameOptionsFrame extends Frame
                 String optDesc = sgo.optDesc;
                 if (optDesc.startsWith(optDescScenPrefix))
                     optDesc = optDesc.substring(optDescScenPrefix.length()).trim();
-                sb.append('\n');
+                sb.append("\n\u2022 ");  // bullet point before option text
                 sb.append(optDesc);
             }
         }
 
         if (vpWinner != SOCGame.VP_WINNER_STANDARD)
         {
-            sb.append('\n');
-            sb.append(/*I*/"Victory Points to win: "/*18N*/);
+            sb.append("\n\u2022 ");
+            sb.append(strings.get("game.options.scenario.vp"));  // "Victory Points to win:"
+            sb.append(' ');
             sb.append(vpWinner);
         }
 
