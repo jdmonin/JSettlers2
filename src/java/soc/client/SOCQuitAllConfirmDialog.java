@@ -65,7 +65,8 @@ class SOCQuitAllConfirmDialog extends AskDialog
      *
      * @param cli      Player client interface
      * @param gamePIOrSelf   An active game's player interface, or the client's Frame
-     *                 if we're hosting a local server but not actively playing
+     *                 if we're hosting a local server but not actively playing.
+     *                 Showing the dialog will make this frame topmost if possible, then appear over it.
      * @param hostedServerActive Is client hosting a local server with games active?
      *                 Call {@link SOCPlayerClient#anyHostedActiveGames()} to determine.
      */

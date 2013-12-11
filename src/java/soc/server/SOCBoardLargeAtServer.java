@@ -1770,6 +1770,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             int portFacing = portsLocFacing[i++];
 
             // make sure port facing direction makes sense for this type of edge
+            // similar to code in SOCBoardLarge.getPortFacingFromEdge, with more specific error messages
             {
                 final int r = (portEdge >> 8),
                           c = (portEdge & 0xFF);
