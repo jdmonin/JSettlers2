@@ -127,15 +127,20 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *<P>
      * Recognized in v1.1.07 and newer.
      * This is the only flag recognized by clients older than v2.0.00.
-     * Clients older than v2.0.00 also ignores this flag for {@link #OTYPE_INT}, {@link #OTYPE_ENUM}.
+     * Clients older than v2.0.00 also ignore this flag for {@link #OTYPE_INT}, {@link #OTYPE_ENUM}.
      */
     public static final int FLAG_DROP_IF_UNUSED = 0x01;  // OTYPE_* - mention in javadoc how this applies to the new type
 
     /**
      * {@link #optFlags} bitfield constant to indicate option is an internal property.
      * Set if the purpose of this option is to hold information about the option's game or its board.
-     * The user shouldn't be able to set this option when creating this game,
+     * The user shouldn't be able to set this option when creating a game,
      * and it should be hidden not shown in the Game Options window during play ({@code NewGameOptionsFrame}).
+     *<P>
+     * Options with this flag should have an {@link #optKey} starting with '_', although not all options
+     * which start with '_' are hidden for internal use.  (Options starting with '_' are meant to be set
+     * by the server during game creation, not requested by the client.)
+     *
      * @since 2.0.00
      */
     public static final int FLAG_INTERNAL_GAME_PROPERTY = 0x02;  // NEW_OPTION - decide if this applies to your option
@@ -1810,27 +1815,86 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *
      * @param vers  Version to compare known options against
      * @param checkValues  Which mode: Check options' current values and {@link #minVersion},
-     *              not their {@link #lastModVersion}?
-     *              An option's minimum version can increase based
-     *              on its value; see {@link #getMinVersion(Hashtable)}.
+     *              not their {@link #lastModVersion}?  An option's minimum version
+     *              can increase based on its value; see {@link #getMinVersion(Hashtable)}.
      * @param trimEnums  For enum-type options where minVersion changes based on current value,
      *              should we remove too-new values from the returned option info?
      *              This lets us send only the permitted values to an older client.
-     * @param opts  Set of {@link SOCGameOption}s to check current values;
+     * @param opts  Set of {@link SOCGameOption}s to check versions and current values;
      *              if null, use the "known option" set
-     * @return Vector of the newer {@link SOCGameOption}s, or null
+     * @return Vector of the newer (added or changed) {@link SOCGameOption}s, or null
      *     if all are known and unchanged since <tt>vers</tt>.
+     * @see #optionsForVersion(int, Hashtable)
      */
     public static Vector<SOCGameOption> optionsNewerThanVersion
         (final int vers, final boolean checkValues, final boolean trimEnums, Hashtable<String, SOCGameOption> opts)
     {
+        return implOptionsVersionCheck(vers, false, checkValues, trimEnums, opts);
+    }
+
+    /**
+     * Get all options valid at version {@code vers}.  If necessary, trim enum value ranges or int value ranges if
+     * range was smaller at {@code vers}, like {@link #optionsNewerThanVersion(int, boolean, boolean, Hashtable)} does.
+     *<P>
+     * If {@code vers} from a client is newer than this version of SOCGameOption, will return all options known at this
+     * version, which may not include all of the newer version's options.  Client game-option negotiation handles this
+     * by having the newer client send all its new (added or changed) option keynames to the older server to allow,
+     * adjust, or reject.
+     *
+     * @param vers  Version to compare options against
+     * @param opts  Set of {@link SOCGameOption}s to check versions, or {@code null} to use the "known option" set
+     * @return  Vector of all {@link SOCGameOption}s valid at version {@code vers}, or {@code null} if none.
+     * @since 2.0.00
+     */
+    public static Vector<SOCGameOption> optionsForVersion
+        (final int vers, Hashtable<String, SOCGameOption> opts)
+    {
+        return implOptionsVersionCheck(vers, true, false, true, opts);
+    }
+
+    /**
+     * Get all options added or changed since version {@code vers}, or all options valid at {@code vers},
+     * to implement {@link #optionsNewerThanVersion(int, boolean, boolean, Hashtable)}
+     * and {@link #optionsForVersion(int, Hashtable)}.
+     * @param vers  Version to compare options against
+     * @param getAllForVersion  True to get all valid options ({@code optionsForVersion} mode),
+     *              false for newer added or changed options only ({@code optionsNewerThanVersion} modes).
+     *              If true and {@code vers} is newer than this version of SOCGameOption, will return
+     *              all options known at this version.
+     * @param checkValues  If not {@code getAllForVersion}, which mode to run in:
+     *              Check options' current values and {@link #minVersion}, not their {@link #lastModVersion}?
+     *              An option's minimum version can increase based on its value; see {@link #getMinVersion(Hashtable)}.
+     * @param trimEnums  For enum-type options where minVersion changes based on current value,
+     *              should we remove too-new values from the returned option info?
+     *              This lets us send only the permitted values to an older client.
+     * @param opts  Set of {@link SOCGameOption}s to check versions and current values;
+     *              if null, use the "known option" set
+     * @return Vector of the requested {@link SOCGameOption}s, or null if none match the conditions, at {@code vers};
+     *     see {@code optionsNewerThanVersion} and {@code optionsForVersion} for return details.
+     * @throws IllegalArgumentException  if {@code getAllForVersion && checkValues}: Cannot combine these modes
+     * @since 2.0.00
+     */
+    private static Vector<SOCGameOption> implOptionsVersionCheck
+        (final int vers, final boolean getAllForVersion, final boolean checkValues, final boolean trimEnums,
+         Hashtable<String, SOCGameOption> opts)
+        throws IllegalArgumentException
+    {
+        if (getAllForVersion && checkValues)
+            throw new IllegalArgumentException();
+
         if (opts == null)
             opts = allOptions;
-        Vector<SOCGameOption> uopt = null;  // add problems to uopt
-        
+
+        Vector<SOCGameOption> uopt = null;  // collect newer options here, or all options if getAllForVersion
+
         for (SOCGameOption opt : opts.values())
         {
-            if (checkValues)
+            if (getAllForVersion)
+            {
+                if (opt.minVersion > vers)
+                    opt = null;  // too new for vers to use
+            }
+            else if (checkValues)
             {
                 if (opt.getMinVersion(null) <= vers)
                     opt = null;  // not too new
@@ -1839,7 +1903,11 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                     opt = null;  // not modified since vers
             }
 
-            if (trimEnums && (opt != null)
+            if (opt == null)
+                continue;
+
+            if (trimEnums
+                && (opt.lastModVersion > vers)  // opt has been modified since vers
                 && (opt.minVersion <= vers))  // vers is new enough to use this opt
             {
                 if (opt.enumVals != null)
@@ -1859,12 +1927,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                 }
             }
 
-            if (opt != null)
-            {
-                if (uopt == null)
-                    uopt = new Vector<SOCGameOption>();
-                uopt.addElement(opt);
-            }
+            if (uopt == null)
+                uopt = new Vector<SOCGameOption>();
+            uopt.addElement(opt);
         }
 
         return uopt;
