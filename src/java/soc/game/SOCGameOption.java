@@ -1015,6 +1015,20 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     }
 
     /**
+     * Copy constructor for i18n localization of {@link #optDesc}.
+     * @param opt  Option to copy
+     * @param newDesc  Localized option description, or {@code null} to use {@link #optDesc}
+     * @since 2.0.00
+     */
+    public SOCGameOption(final SOCGameOption opt, final String newDesc)
+    {
+        this(opt.optType, opt.optKey, opt.minVersion, opt.lastModVersion,
+             opt.defaultBoolValue, opt.defaultIntValue, opt.minIntValue, opt.maxIntValue,
+             opt.enumVals, opt.optFlags,
+             (newDesc != null) ? newDesc : opt.optDesc);
+    }
+
+    /**
      * Copy constructor for enum-valued types ({@link #OTYPE_ENUM}, {@link #OTYPE_ENUMBOOL}),
      * for restricting (trimming) values for a certain client version.
      * @param enumOpt  Option object to copy.  If its <tt>defaultIntValue</tt> is greater than

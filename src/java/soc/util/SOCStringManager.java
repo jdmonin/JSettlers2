@@ -49,12 +49,20 @@ import soc.game.SOCResourceSet;
  * <LI> <A href="http://stackoverflow.com/questions/4659929/how-to-use-utf-8-in-resource-properties-with-resourcebundle"
  *       >Stack Overflow: How to use UTF-8 in resource properties with ResourceBundle</A> (asked on 2011-01-11)
  *</UL>
+ * Introduced in v2.0.00; network messages sending localized text should check the receiver's version
+ * against {@link #VERSION_FOR_I18N}.
  *
  * @author lartkma
  * @see soc.util.I18n
+ * @since 2.0.00
  */
 public class SOCStringManager extends StringManager
 {
+    /**
+     * Minimum version (2.0.00) of client/server with I18N localization.
+     * Network messages sending localized text should check the receiver's version against this constant.
+     */
+    public static final int VERSION_FOR_I18N = 2000;
 
     /**
      * Manager for all client strings. Static is okay because the client is seen by 1 person with 1 locale.
