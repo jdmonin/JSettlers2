@@ -133,24 +133,11 @@ public class SOCPlayerClient
      */
     private final soc.util.SOCStringManager strings;
 
-    /** main panel, in cardlayout */
-    protected static final String MAIN_PANEL = "main";
-
-    /** message panel, in cardlayout */
-    protected static final String MESSAGE_PANEL = "message";
-
-    /** Connect-or-practice panel (if jar launch), in cardlayout.
-      * Panel field is {@link #connectOrPracticePane}.
-      * Available if {@link #hasConnectOrPractice}.
-      */
-    protected static final String CONNECT_OR_PRACTICE_PANEL = "connOrPractice";
-
     /** text prefix to show games this client cannot join. "(cannot join) "
      * @since 1.1.06
      */
     //TODO i18n logic should be changed
     protected static final String GAMENAME_PREFIX_CANNOT_JOIN = "(cannot join) ";
-    protected static final String STATSPREFEX = "  [";
 
     /**
      * For use in password fields, and possibly by other places, detect if we're running on
@@ -182,9 +169,12 @@ public class SOCPlayerClient
      * Helper object to send outgoing network traffic to the server.
      */
     private GameManager gameManager;
-    
-    private final GameDisplay gameDisplay;
-    
+
+    /**
+     * Display for all user interface, including and beyond games.
+     */
+    private GameDisplay gameDisplay;
+
     /**
      *  Server version number for remote server, sent soon after connect, or -1 if unknown.
      *  A local server's version is always {@link Version#versionNumber()}.
@@ -211,31 +201,6 @@ public class SOCPlayerClient
      * Set in constructor using i18n {@link #strings} lookup.
      */
     public final String DEFAULT_PRACTICE_GAMENAME;
-
-    /**
-     * For practice games, reminder message for network problems.
-     */
-    public static String NET_UNAVAIL_CAN_PRACTICE_MSG = /*I*/"The server is unavailable. You can still play practice games."/*18N*/;
-
-    /**
-     * Hint message if they try to join game without entering a nickname.
-     *
-     * @see #NEED_NICKNAME_BEFORE_JOIN_2
-     */
-    public static String NEED_NICKNAME_BEFORE_JOIN = /*I*/"First enter a nickname, then join a channel or game."/*18N*/;
-    
-    /**
-     * Stronger hint message if they still try to join game without entering a nickname.
-     *
-     * @see #NEED_NICKNAME_BEFORE_JOIN
-     */
-    public static String NEED_NICKNAME_BEFORE_JOIN_2 = /*I*/"You must enter a nickname before you can join a channel or game."/*18N*/;
-
-    /**
-     * Status text to indicate client cannot join a game.
-     * @since 1.1.06
-     */
-    public static String STATUS_CANNOT_JOIN_THIS_GAME = /*I*/"Cannot join, this client is incompatible with features of this game."/*18N*/;
 
     /**
      * the nickname; null until validated and set by
@@ -310,8 +275,21 @@ public class SOCPlayerClient
     {
         void initVisualElements();
 
+        /**
+         * Prepare to connect and give feedback by showing a message panel.
+         * Stores the given username and password in the user interface.
+         *<P>
+         * Does not make a network connection.
+         * Call {@link SOCPlayerClient.ClientNetwork#connect(String, int)} when ready to make the connection.
+         *<P>
+         * User login and authentication don't occur until a game or channel join is requested;
+         * at that time, the user interface will read the name and password stored here.
+         *
+         * @param cpass Password text to put into that TextField (obscured)
+         * @param cuser User nickname text to put into that TextField
+         */
         void connect(String cpass, String cuser);
-        
+
         /**
          * Act as if the "practice game" button has been clicked.
          * Assumes the dialog panels are all initialized.
@@ -363,9 +341,15 @@ public class SOCPlayerClient
 
     /**
      * Create a SOCPlayerClient connecting to localhost port {@link ClientNetwork#SOC_PORT_DEFAULT}.
-     * Must call 'init' or 'initVisualElements' to start up and do layout.
+     *<P>
+     * Must call {@link SOCApplet#init()}, or {@link #setGameDisplay(GameDisplay)} and then
+     * {@link GameDisplay#initVisualElements()}, to start up and do layout.
+     *<P>
+     * Must then call {@link #connect(String, int, String, String)} or {@link ClientNetwork#connect(String, int)}
+     * to join a TCP server, or {@link GameDisplay#clickPracticeButton()}
+     * or {@link GameAwtDisplay#startLocalTCPServer(int)} to start a server locally.
      */
-    public SOCPlayerClient(GameDisplay gd)
+    public SOCPlayerClient()
     {
         gotPassword = false;
         lastFaceChange = 1;  // Default human face
@@ -380,15 +364,26 @@ public class SOCPlayerClient
         strings = soc.util.SOCStringManager.getClientManager(cliLocale);
         DEFAULT_PRACTICE_GAMENAME = strings.get("default.name.practice.game");
 
-        gameDisplay = gd;
         net = new ClientNetwork(this);
         gameManager = new GameManager(this);
         treater = new MessageTreater(this);
     }
 
     /**
+     * Set our game display interface.
+     * Before using the client, caller must also call {@link GameDisplay#initVisualElements()}.
+     * @since 2.0.00
+     */
+    public void setGameDisplay(final GameDisplay gd)
+    {
+        gameDisplay = gd;
+    }
+
+    /**
      * Connect and give feedback by showing MESSAGE_PANEL.
-     * For more details, see {@link #connect()}.
+     * Calls {@link GameDisplay#connect(String, String)} to set username and password,
+     * then {@link ClientNetwork#connect(String, int)} to make the connection.
+     *
      * @param chost Hostname to connect to, or null for localhost
      * @param cport Port number to connect to
      * @param cuser User nickname
@@ -417,6 +412,46 @@ public class SOCPlayerClient
      */
     public static class GameAwtDisplay extends Panel implements GameDisplay
     {
+        /** main panel, in cardlayout */
+        private static final String MAIN_PANEL = "main";
+
+        /** message panel, in cardlayout */
+        private static final String MESSAGE_PANEL = "message";
+
+        /** Connect-or-practice panel (if jar launch), in cardlayout.
+          * Panel field is {@link #connectOrPracticePane}.
+          * Available if {@link #hasConnectOrPractice}.
+          */
+        private static final String CONNECT_OR_PRACTICE_PANEL = "connOrPractice";
+
+        /** Game statistics prefix */
+        protected static final String STATSPREFEX = "  [";  // TODO I18N: must analyze
+
+        /**
+         * For practice games, reminder message for network problems.
+         */
+        public static String NET_UNAVAIL_CAN_PRACTICE_MSG = /*I*/"The server is unavailable. You can still play practice games."/*18N*/;
+
+        /**
+         * Hint message if they try to join game without entering a nickname.
+         *
+         * @see #NEED_NICKNAME_BEFORE_JOIN_2
+         */
+        public static String NEED_NICKNAME_BEFORE_JOIN = /*I*/"First enter a nickname, then join a channel or game."/*18N*/;
+
+        /**
+         * Stronger hint message if they still try to join game without entering a nickname.
+         *
+         * @see #NEED_NICKNAME_BEFORE_JOIN
+         */
+        public static String NEED_NICKNAME_BEFORE_JOIN_2 = /*I*/"You must enter a nickname before you can join a channel or game."/*18N*/;
+
+        /**
+         * Status text to indicate client cannot join a game.
+         * @since 1.1.06
+         */
+        public static String STATUS_CANNOT_JOIN_THIS_GAME = /*I*/"Cannot join, this client is incompatible with features of this game."/*18N*/;
+
         private SOCPlayerClient client;
 
         /**
@@ -529,16 +564,25 @@ public class SOCPlayerClient
          */
         protected Timer eventTimer = new Timer(true);  // use daemon thread
 
-        public GameAwtDisplay(boolean hasConnectOrPractice)
+        /**
+         * Create a new GameAwtDisplay for this client.
+         * Must call {@link #initVisualElements()} after this constructor.
+         * @param hasConnectOrPractice  True if should initially display {@link SOCConnectOrPracticePanel}
+         *     and ask for a server to connect to, false if the server is known
+         *     and should display the main panel (game list, channel list, etc).
+         * @param client  Client using this display
+         * @throws IllegalArgumentException if {@code client} is null
+         */
+        public GameAwtDisplay(boolean hasConnectOrPractice, final SOCPlayerClient client)
+            throws IllegalArgumentException
         {
+            if (client == null)
+                throw new IllegalArgumentException("null client");
+
             this.hasConnectOrPractice = hasConnectOrPractice;
-        }
-        
-        public void setClient(SOCPlayerClient client)
-        {
             this.client = client;
         }
-        
+
         public SOCPlayerClient getClient()
         {
             return client;
@@ -569,9 +613,6 @@ public class SOCPlayerClient
          */
         public void initVisualElements()
         {
-            if (client == null)
-                throw new IllegalStateException("No client set");
-            
             setFont(new Font("SansSerif", Font.PLAIN, 12));
             
             nick = new TextField(20);
@@ -876,9 +917,8 @@ public class SOCPlayerClient
         }
 
         /**
-         * Connect and give feedback by showing {@link #MESSAGE_PANEL}.
-         * @param cpass Password text to put into that TextField
-         * @param cuser User nickname text to put into that TextField
+         * Prepare to connect, give feedback by showing {@link #MESSAGE_PANEL}.
+         * {@inheritDoc}
          */
         public void connect(String cpass, String cuser)
         {
@@ -5331,7 +5371,7 @@ public class SOCPlayerClient
 
     /**
      * Create a game name, and start a practice game.
-     * Assumes {@link #MAIN_PANEL} is initialized.
+     * Assumes {@link GameAwtDisplay#MAIN_PANEL} is initialized.
      */
     public void startPracticeGame()
     {
@@ -5431,13 +5471,10 @@ public class SOCPlayerClient
         GameAwtDisplay gameDisplay = null;
         SOCPlayerClient client = null;
 
-        if (args.length == 0)
-        {
-            gameDisplay = new GameAwtDisplay(true);
-            client = new SOCPlayerClient(gameDisplay);
-            gameDisplay.setClient(client);
-        }
-        else
+        String host = null;  // from args, if not empty
+        int port = -1;
+
+        if (args.length != 0)
         {
             if (args.length != 2)
             {
@@ -5445,20 +5482,19 @@ public class SOCPlayerClient
                 System.exit(1);
             }
 
-            gameDisplay = new GameAwtDisplay(false);
-            client = new SOCPlayerClient(gameDisplay);
-            gameDisplay.setClient(client);
-
             try {
-                String host = args[0];
-                int port = Integer.parseInt(args[1]);
-                client.net.connect(host, port);
+                host = args[0];
+                port = Integer.parseInt(args[1]);
             } catch (NumberFormatException x) {
                 usage();
                 System.err.println("Invalid port: " + args[1]);
                 System.exit(1);
             }
         }
+
+        client = new SOCPlayerClient();
+        gameDisplay = new GameAwtDisplay((args.length == 0), client);
+        client.setGameDisplay(gameDisplay);
 
         Version.printVersionText(System.out, "Java Settlers Client ");
 
@@ -5467,12 +5503,15 @@ public class SOCPlayerClient
         frame.setForeground(Color.black);
         // Add a listener for the close event
         frame.addWindowListener(gameDisplay.createWindowAdapter());
-        
+
         gameDisplay.initVisualElements(); // after the background is set
-        
+
         frame.add(gameDisplay, BorderLayout.CENTER);
         frame.setSize(620, 400);
         frame.setVisible(true);
+
+        if ((host != null) && (port != -1))
+            client.net.connect(host, port);
     }
 
     public ClientNetwork getNet()
@@ -5699,6 +5738,9 @@ public class SOCPlayerClient
          * and the second is the server's response:
          * Either {@link SOCRejectConnection}, or the lists of
          * channels and games ({@link SOCChannels}, {@link SOCGames}).
+         *<P>
+         * Since user login and authentication don't occur until a game or channel join is requested,
+         * no username or password is needed here.
          *<P>
          * Before 1.1.06, the server's response was first,
          * and version was sent in reply to server's version.
@@ -6384,15 +6426,19 @@ public class SOCPlayerClient
         }
         
         /**
-         * Initialize the applet
+         * Initialize the applet.
+         * Calls {@link SOCPlayerClient.ClientNetwork#connect(String, int) connect}
+         * ({@link #getCodeBase()}.{@link java.net.URL#getHost() getHost()},
+         * {@link #getParameter(String) getParameter("PORT")}).
+         * Default port is {@link SOCPlayerClient.ClientNetwork#SOC_PORT_DEFAULT SOC_PORT_DEFAULT}.
          */
         @Override
         public synchronized void init()
         {
-            gameDisplay = new GameAwtDisplay(false);
-            client = new SOCPlayerClient(gameDisplay);
-            gameDisplay.setClient(client);
-            
+            client = new SOCPlayerClient();
+            gameDisplay = new GameAwtDisplay(false, client);
+            client.setGameDisplay(gameDisplay);
+
             Version.printVersionText(System.out, "Java Settlers Client ");
 
             String param = null;
