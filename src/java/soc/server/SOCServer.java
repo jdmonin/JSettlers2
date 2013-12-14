@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.Random;
@@ -553,6 +554,24 @@ public class SOCServer extends Server
     protected HashMap<Integer, Integer> clientPastVersionStats;
 
     /**
+     * Description string for SOCGameOption {@code "PL"} hardcoded into the SOCGameOption class,
+     * from {@link SOCGameOption#getOption(String, boolean) SOCGameOption.getOption("PL", false)}.
+     * Used for determining whether a client's i18n locale has localized option descriptions,
+     * by comparing {@code PL}'s {@link SOCGameOption#optDesc} to StringManager.get("gameopt.PL").
+     *<P>
+     * String value is captured here as soon as SOCServer is referenced, in case SOCPlayerClient's
+     * practice server will localize the descriptions used by {@link SOCGameOption#getOption(String, boolean)}.
+     * @since 2.0.00
+     */
+    private final static String i18n_gameopt_PL_desc;
+    static
+    {
+        final SOCGameOption optPL = SOCGameOption.getOption("PL", false);
+        i18n_gameopt_PL_desc = (optPL != null) ? optPL.optDesc : "";
+    }
+
+
+    /**
      * server robot pinger
      */
     SOCServerRobotPinger serverRobotPinger;
@@ -561,6 +580,7 @@ public class SOCServer extends Server
      * game timeout checker
      */
     SOCGameTimeoutChecker gameTimeoutChecker;
+
     String databaseUserName;
     String databasePassword;
 
@@ -1200,7 +1220,7 @@ public class SOCServer extends Server
                 gVers = SOCGameOption.optionsMinimumVersion(gaOpts);
                 if (gVers > cliVers)
                 {
-                    // Which option(s) are too new for client?
+                    // Which requested option(s) are too new for client?
                     Vector<SOCGameOption> optsValuesTooNew = SOCGameOption.optionsNewerThanVersion
                         (cliVers, true, false, gaOpts);
                     throw new SOCGameOptionVersionException(gVers, cliVers, optsValuesTooNew);
@@ -1657,6 +1677,51 @@ public class SOCServer extends Server
     public Hashtable<String,SOCGameOption> getGameOptions(String gm)
     {
         return gameList.getGameOptions(gm);
+    }
+
+    /**
+     * Given a StringManager (for a client's locale), return all known
+     * game options, localizing the descriptive names if available.
+     * @param loc  Client's locale for StringManager i18n lookups: {@code smgr.get("gameopt." + optKey)}
+     * @param updateStaticKnownOpts  If true, localize each {@link SOCGameOption#optDesc} in the static
+     *          set of known options used by {@link SOCGameOption#getOption(String, boolean)} and
+     *          {@link SOCGameOption#getAllKnownOptions()}; for use only by client's practice-game server
+     * @return  {@link SOCGameOption#getAllKnownOptions()}, with descriptions localized if available
+     * @since 2.0.00
+     */
+    public static Hashtable<String,SOCGameOption> localizeKnownOptions
+        (final Locale loc, final boolean updateStaticKnownOpts)
+    {
+        // Get copy of all known options
+        Hashtable<String,SOCGameOption> knownOpts = SOCGameOption.getAllKnownOptions();
+
+        // See if we have localized opt descs for sm's locale
+        final SOCStringManager sm = SOCStringManager.getServerManagerForClient(loc);
+        final boolean hasLocalDescs = ! i18n_gameopt_PL_desc.equals(sm.get("gameopt.PL"));
+
+        // If we can't localize, just return knownOpts
+        if (! hasLocalDescs)
+        {
+            return knownOpts;
+        }
+
+        // Localize and return
+        Hashtable<String,SOCGameOption> opts = new Hashtable<String, SOCGameOption>();
+        for (SOCGameOption opt : knownOpts.values())
+        {
+            final String optKey = opt.optKey;
+            try {
+                final SOCGameOption oLocal = new SOCGameOption(opt, sm.get("gameopt." + optKey));
+                opts.put(optKey, oLocal);
+                if (updateStaticKnownOpts)
+                    SOCGameOption.addKnownOption(oLocal);
+                    // for-loop iteration isn't affected: updates static originals, not the copy in knownOpts
+            } catch (MissingResourceException e) {
+                opts.put(optKey, opt);
+            }
+        }
+
+        return opts;
     }
 
     /**
@@ -3995,6 +4060,10 @@ public class SOCServer extends Server
 
         SOCClientData scd = (SOCClientData) c.getAppData();
 
+        // Message to send/log if client must be disconnected
+        String rejectMsg = null;
+        String rejectLogMsg = null;
+
         if (clocale == null)
             clocale = "en_US";  // backwards compatibility with clients older than v2.0.00
 
@@ -4010,8 +4079,13 @@ public class SOCServer extends Server
             }
         }
         scd.localeStr = clocale;
-        scd.locale = I18n.parseLocale(clocale);  // TODO may throw IllegalArgumentException
-        System.err.println("client locale is: " + scd.locale);  // JM temp for now; do something with it soon?
+        try
+        {
+            scd.locale = I18n.parseLocale(clocale);
+        } catch (IllegalArgumentException e) {
+            rejectMsg = "Sorry, cannot parse your locale.";
+            rejectLogMsg = "Rejected client: Cannot parse locale";  // unsanitized data, don't print clocale to log
+        }
         c.setI18NStringManager(SOCStringManager.getServerManagerForClient(scd.locale), clocale);
 
         if (prevVers == -1)
@@ -4027,9 +4101,6 @@ public class SOCServer extends Server
         {
             return true;  // <--- Early return: Already knew it ----
         }
-
-        String rejectMsg = null;
-        String rejectLogMsg = null;
 
         if (cvers < CLI_VERSION_MIN)
         {
@@ -5857,16 +5928,26 @@ public class SOCServer extends Server
     {
         if (c == null)
             return;
+
         final int cliVers = c.getVersion();
         boolean alreadyTrimmedEnums = false;
         Vector<String> okeys = mes.getOptionKeys();
         Vector<SOCGameOption> opts = null;
 
+        // check for request for i18n localized descriptions (client v2.0.00 or newer);
+        // if we don't have game opt localization for client's locale, ignore the request.
+        final boolean wantsLocalDescs =
+            mes.hasTokenGetI18nDescs() && (c.getI18NLocale() != null)
+            && ! i18n_gameopt_PL_desc.equals(c.getLocalized("gameopt.PL"));
+
         if (okeys == null)
         {
-            // received "-", look for newer options (cli is older than us).
+            // received "-", look for newer options (cli is older than us), or wantsLocalDescs.
             // okeys will be null if nothing is new.
-            opts = SOCGameOption.optionsNewerThanVersion(cliVers, false, true, null);
+            if (wantsLocalDescs)
+                opts = SOCGameOption.optionsForVersion(cliVers, null);
+            else
+                opts = SOCGameOption.optionsNewerThanVersion(cliVers, false, true, null);
             alreadyTrimmedEnums = true;
 
             if ((opts != null) && (cliVers < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES))
@@ -5879,9 +5960,41 @@ public class SOCServer extends Server
                     if ((op.optKey.length() > 3) || op.optKey.contains("_"))
                         opi.remove();
                 }
+
                 if (opts.isEmpty())
                     opts = null;
             }
+        }
+        else if (wantsLocalDescs)
+        {
+            // Received some okeys: cli is newer than this server, and
+            // also wants localized descriptions.
+            //
+            // We need to send them all the localized options we have,
+            // and also include the okeys they're asking for, which may
+            // not be known to our older server.
+            //
+            // This situation is not common, and okeys won't be a long list,
+            // so linear search should be good enough.
+
+            opts = SOCGameOption.optionsForVersion(cliVers, null);
+            for (final String okey : okeys)
+            {
+                boolean found = false;
+                for (final SOCGameOption opt : opts)
+                {
+                    if (opt.optKey.equals(okey))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (! found)
+                    opts.add(new SOCGameOption(okey));  // OTYPE_UNKNOWN
+            }
+
+            okeys = null;  // merged into opts
         }
 
         if ((opts != null) || (okeys != null))
@@ -5890,16 +6003,35 @@ public class SOCServer extends Server
             for (int i = 0; i < L; ++i)
             {
                 SOCGameOption opt;
+                String localDesc = null;  // i18n-localized opt.optDesc, if wantsLocalDescs
+
                 if (opts != null)
                 {
                     opt = opts.elementAt(i);
                     if (opt.minVersion > cliVers)
+                    {
                         opt = new SOCGameOption(opt.optKey);  // OTYPE_UNKNOWN
+                    }
+                    else if (wantsLocalDescs)
+                    {
+                        try {
+                            localDesc = c.getLocalized("gameopt." + opt.optKey);
+                        } catch (MissingResourceException e) {}
+                    }
                 } else {
                     final String okey = okeys.elementAt(i);
                     opt = SOCGameOption.getOption(okey, false);
+
                     if ((opt == null) || (opt.minVersion > cliVers))  // Don't use opt.getMinVersion() here
+                    {
                         opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
+                    }
+                    else if (wantsLocalDescs)
+                    {
+                        try {
+                            localDesc = c.getLocalized("gameopt." + okey);
+                        } catch (MissingResourceException e) {}
+                    }
                 }
 
                 // Enum-type options may have their values restricted by version.
@@ -5911,7 +6043,7 @@ public class SOCServer extends Server
                     opt = SOCGameOption.trimEnumForVersion(opt, cliVers);
                 }
 
-                c.put(new SOCGameOptionInfo(opt, cliVers).toCmd());
+                c.put(new SOCGameOptionInfo(opt, cliVers, localDesc).toCmd());
             }
         }
 

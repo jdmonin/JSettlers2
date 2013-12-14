@@ -94,6 +94,7 @@ import soc.server.genericServer.StringConnection;
 
 import soc.util.I18n;
 import soc.util.SOCGameList;
+import soc.util.SOCStringManager;
 import soc.util.Version;
 
 /**
@@ -111,9 +112,10 @@ import soc.util.Version;
  * There are three possible servers to which a client can be connected:
  *<UL>
  *  <LI>  A remote server, running on the other end of a TCP connection
- *  <LI>  A local TCP server, for hosting games, launched by this client: {@link #localTCPServer}
+ *  <LI>  A local TCP server, for hosting games, launched by this client:
+ *        {@link SOCPlayerClient.ClientNetwork#localTCPServer localTCPServer}
  *  <LI>  A "practice game" server, not bound to any TCP port, for practicing
- *        locally against robots: {@link #practiceServer}
+ *        locally against robots: {@link SOCPlayerClient.ClientNetwork#practiceServer practiceServer}
  *</UL>
  * At most, the client is connected to the practice server and one TCP server.
  * Each game's {@link SOCGame#isPractice} flag determines which connection to use.
@@ -1350,7 +1352,7 @@ public class SOCPlayerClient
                         // "Create Game" in the NewGameOptionsFrame, causing the new
                         // game to be requested from askStartGameWithOptions.
                         setKnown = true;
-                        opts.optionSet = SOCGameOption.getAllKnownOptions();
+                        opts.optionSet = SOCServer.localizeKnownOptions(client.cliLocale, true);
                     }
                 } else {
                     opts = client.tcpServGameOpts;
@@ -1470,7 +1472,7 @@ public class SOCPlayerClient
          * @param fromPracticeServer  Enumerate games from {@link #practiceServer},
          *     instead of {@link #playerInterfaces}?
          * @return Any found game of ours which is active (state not OVER), or null if none.
-         * @see #anyHostedActiveGames()
+         * @see SOCPlayerClient.ClientNetwork#anyHostedActiveGames()
          */
         protected SOCPlayerInterface findAnyActiveGame(boolean fromPracticeServer)
         {
@@ -2143,7 +2145,7 @@ public class SOCPlayerClient
          * If parent is a Frame, set titlebar to show "server" and port#.
          * Show port number in {@link #versionOrlocalTCPPortLabel}.
          * If the {@link #localTCPServer} is already created, does nothing.
-         * If {@link #connected} already, does nothing.
+         * If {@link ClientNetwork#connected connected} already, does nothing.
          *
          * @param tport Port number to host on; must be greater than zero.
          * @throws IllegalArgumentException If port is 0 or negative
@@ -2923,18 +2925,24 @@ public class SOCPlayerClient
 
         // If we ever require a minimum server version, would check that here.
 
-        // Reply with our client version.
-        // (This was sent already in connect(), in 1.1.06 and later)
+        // Pre-1.1.06 versions would reply here with our client version.
+        // That's been sent to server already in connect() in 1.1.06 and later.
 
         // Check known game options vs server's version. (added in 1.1.07)
         // Server's responses will add, remove or change our "known options".
+        // In v2.0.00 and later, also checks for game option localized descriptions.
         final int cliVersion = Version.versionNumber();
-        if (sVersion > cliVersion)
+        final boolean withTokenI18n =
+            (cliLocale != null) && (isPractice || (sVersion >= SOCStringManager.VERSION_FOR_I18N))
+            && ! ("en".equals(cliLocale.getLanguage()) && "US".equals(cliLocale.getCountry()));
+
+        if ((sVersion > cliVersion) || (withTokenI18n && (sVersion == cliVersion)))
         {
             // Newer server: Ask it to list any options we don't know about yet.
+            // Same version: Ask for all options with localized descs if available.
             if (! isPractice)
                 gameDisplay.optionsRequested();
-            gmgr.put(SOCGameOptionGetInfos.toCmd(null), isPractice);  // sends "-"
+            gmgr.put(SOCGameOptionGetInfos.toCmd(null, withTokenI18n), isPractice);  // sends "-"
         }
         else if (sVersion < cliVersion)
         {
@@ -2967,7 +2975,7 @@ public class SOCPlayerClient
                 {
                     if (! isPractice)
                         gameDisplay.optionsRequested();
-                    gmgr.put(SOCGameOptionGetInfos.toCmd(tooNewOpts.elements()), isPractice);
+                    gmgr.put(SOCGameOptionGetInfos.toCmd(tooNewOpts.elements(), withTokenI18n), isPractice);
                 }
             } else {
                 // server is too old to understand options. Can't happen with local practice srv,
@@ -4306,7 +4314,11 @@ public class SOCPlayerClient
         {
             if (! isPractice)
                 gameDisplay.optionsRequested();
-            gmgr.put(SOCGameOptionGetInfos.toCmd(unknowns.elements()), isPractice);
+
+            final boolean withTokenI18n =
+                (sVersion >= SOCStringManager.VERSION_FOR_I18N) && (cliLocale != null)
+                && ! ("en".equals(cliLocale.getLanguage()) && "US".equals(cliLocale.getCountry()));
+            gmgr.put(SOCGameOptionGetInfos.toCmd(unknowns.elements(), withTokenI18n), isPractice);
         } else {
             opts.newGameWaitingForOpts = false;
             gameDisplay.optionsReceived(opts, isPractice);
@@ -5520,8 +5532,13 @@ public class SOCPlayerClient
         Exception ex = null;
         /** Practice-server error (stringport pipes), or null */
         Exception ex_P = null;
+
+        /**
+         * Are we connected to a TCP server (remote or {@link #localTCPServer})?
+         * {@link #practiceServer} is not a TCP server.
+         */
         boolean connected = false;
-        
+
         /** For debug, our last messages sent, over the net or practice server (pipes) */
         protected String lastMessage_N, lastMessage_P;
 
@@ -5532,7 +5549,7 @@ public class SOCPlayerClient
          * SOCMessages of games where {@link SOCGame#isPractice} is true are sent
          * to practiceServer.
          *<P>
-         * Null before it's started in {@link #startPracticeGame()}.
+         * Null before it's started in {@link SOCPlayerClient#startPracticeGame()}.
          */
         protected SOCServer practiceServer = null;
 
@@ -5782,7 +5799,7 @@ public class SOCPlayerClient
          * Look for active games that we're hosting (state >= START1A, not yet OVER).
          *
          * @return If any hosted games of ours are active
-         * @see #findAnyActiveGame(boolean)
+         * @see SOCPlayerClient.GameAwtDisplay#findAnyActiveGame(boolean)
          */
         public boolean anyHostedActiveGames()
         {
@@ -6112,7 +6129,7 @@ public class SOCPlayerClient
             pcli.gameOptsTask = null;  // Clear reference to this soon-to-expire obj
             srvOpts.noMoreOptions(false);
             pcli.getClient().treater.handleGAMEOPTIONINFO
-                (new SOCGameOptionInfo(new SOCGameOption("-"), Version.versionNumber()), false);
+                (new SOCGameOptionInfo(new SOCGameOption("-"), Version.versionNumber(), null), false);
         }
 
     }  // GameOptionsTimeoutTask

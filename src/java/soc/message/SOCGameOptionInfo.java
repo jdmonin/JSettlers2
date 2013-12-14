@@ -25,8 +25,9 @@ import soc.game.SOCGameOption;
 /**
  * Information on one available {@link SOCGameOption game option}.
  * Reply from server to a client's {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS} message.
- * Provides the option's information, including
- * default value, and current value at the server for new games.
+ * Provides the option's information, including default value and current value at the
+ * server for new games.  In v2.0.00+ the option description can be localized for the client.
+ *<P>
  * If the server doesn't know this option, the returned option type is
  * {@link SOCGameOption#OTYPE_UNKNOWN}.
  * If the client asks about an option too new for it to use,
@@ -51,13 +52,15 @@ import soc.game.SOCGameOption;
  */
 public class SOCGameOptionInfo extends SOCMessageTemplateMs
 {
+    private static final long serialVersionUID = 2000L;
+
     /**
      * If the client is asking for any new options, by sending GAMEOPTIONGETINFOS("-"),
      * server responds with set of GAMEOPTIONINFOs. Mark end of this list with a
      * GAMEOPTIONINFO named "-" with type OTYPE_UNKNOWN.
      */
     public static final SOCGameOptionInfo OPTINFO_NO_MORE_OPTS
-        = new SOCGameOptionInfo(new SOCGameOption("-"), 0);
+        = new SOCGameOptionInfo(new SOCGameOption("-"), 0, null);
 
     /**
      * symbol to represent a null or empty string value,
@@ -69,19 +72,20 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 
     /**
      * Constructor for server to tell client about a game option.
-     * The client's version is used to make sure the message format can be understood
+     * The client's version is checked to make sure the message format can be understood
      * at the client, by omitting fields and flags added after the client's version.
      * @param op  Option to send
      * @param cliVers  Client's version number; 1107 is version 1.1.07
+     * @param localDesc  i18n localized option description, or {@code null} to use {@link SOCGameOption#optDesc}
      */
-    public SOCGameOptionInfo(final SOCGameOption op, final int cliVers)
+    public SOCGameOptionInfo(final SOCGameOption op, final int cliVers, final String localDesc)
     {
         // OTYPE_*
         super(GAMEOPTIONINFO, null,
             new String[12 + ( ((op.optType != SOCGameOption.OTYPE_ENUM)
                                && (op.optType != SOCGameOption.OTYPE_ENUMBOOL))
-                    ? 0
-                    : op.maxIntValue ) ]);
+                            ? 0
+                            : op.maxIntValue ) ]);
         opt = op;
         pa[0] = op.optKey;
         pa[1] = Integer.toString(op.optType);
@@ -106,7 +110,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
         else
             pa[10] = Integer.toString(op.optFlags);
 
-        pa[11] = op.optDesc;
+        pa[11] = (localDesc != null) ? localDesc : op.optDesc;
 
         // for OTYPE_ENUM, _ENUMBOOL, pa[12+] are the enum choices' string values
         if ((op.optType == SOCGameOption.OTYPE_ENUM) || (op.optType == SOCGameOption.OTYPE_ENUMBOOL))

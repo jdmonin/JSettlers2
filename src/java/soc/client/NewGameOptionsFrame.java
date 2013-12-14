@@ -159,8 +159,11 @@ public class NewGameOptionsFrame extends Frame
     private static final Color HEADER_LABEL_BG = new Color(220,255,220);
     private static final Color HEADER_LABEL_FG = new Color( 50, 80, 50);
 
-    /** i18n text strings.
-     *  @since 2.0.00 */
+    /**
+     * i18n text strings; will use same locale as SOCPlayerClient's string manager.
+     * Localized option names are requested from the server when client locale isn't en_US.
+     * @since 2.0.00
+     */
     private static final SOCStringManager strings = SOCStringManager.getClientManager();
 
     /**
@@ -186,8 +189,7 @@ public class NewGameOptionsFrame extends Frame
     {
         super( readOnly
                 ? (strings.get("game.options.title", gaName))
-                :
-                   (forPractice
+                : (forPractice
                     ? strings.get("game.options.title.newpractice")
                     : strings.get("game.options.title.new")));
 
