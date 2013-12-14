@@ -341,6 +341,7 @@ public class SOCPlayerClient
 
     /**
      * Create a SOCPlayerClient connecting to localhost port {@link ClientNetwork#SOC_PORT_DEFAULT}.
+     * Initializes helper objects (except {@link GameDisplay}), locale, {@link SOCStringManager}.
      *<P>
      * Must call {@link SOCApplet#init()}, or {@link #setGameDisplay(GameDisplay)} and then
      * {@link GameDisplay#initVisualElements()}, to start up and do layout.
@@ -355,12 +356,21 @@ public class SOCPlayerClient
         lastFaceChange = 1;  // Default human face
 
         String jsLocale = System.getProperty(I18n.PROP_JSETTLERS_LOCALE);
+        Locale lo = null;
         if (jsLocale != null)
         {
-            cliLocale = I18n.parseLocale(jsLocale.trim());  // TODO may throw IllegalArgumentException
-        } else {
-            cliLocale = Locale.getDefault();
+            try
+            {
+                lo = I18n.parseLocale(jsLocale.trim());
+            } catch (IllegalArgumentException e) {
+                System.err.println("Could not parse locale " + jsLocale);
+            }
         }
+        if (lo != null)
+            cliLocale = lo;
+        else
+            cliLocale = Locale.getDefault();
+
         strings = soc.util.SOCStringManager.getClientManager(cliLocale);
         DEFAULT_PRACTICE_GAMENAME = strings.get("default.name.practice.game");
 
@@ -430,27 +440,27 @@ public class SOCPlayerClient
         /**
          * For practice games, reminder message for network problems.
          */
-        public static String NET_UNAVAIL_CAN_PRACTICE_MSG = /*I*/"The server is unavailable. You can still play practice games."/*18N*/;
+        public final String NET_UNAVAIL_CAN_PRACTICE_MSG;
 
         /**
          * Hint message if they try to join game without entering a nickname.
          *
          * @see #NEED_NICKNAME_BEFORE_JOIN_2
          */
-        public static String NEED_NICKNAME_BEFORE_JOIN = /*I*/"First enter a nickname, then join a channel or game."/*18N*/;
+        public final String NEED_NICKNAME_BEFORE_JOIN;
 
         /**
          * Stronger hint message if they still try to join game without entering a nickname.
          *
          * @see #NEED_NICKNAME_BEFORE_JOIN
          */
-        public static String NEED_NICKNAME_BEFORE_JOIN_2 = /*I*/"You must enter a nickname before you can join a channel or game."/*18N*/;
+        public final String NEED_NICKNAME_BEFORE_JOIN_2;
 
         /**
          * Status text to indicate client cannot join a game.
          * @since 1.1.06
          */
-        public static String STATUS_CANNOT_JOIN_THIS_GAME = /*I*/"Cannot join, this client is incompatible with features of this game."/*18N*/;
+        public final String STATUS_CANNOT_JOIN_THIS_GAME;
 
         private SOCPlayerClient client;
 
@@ -570,7 +580,7 @@ public class SOCPlayerClient
          * @param hasConnectOrPractice  True if should initially display {@link SOCConnectOrPracticePanel}
          *     and ask for a server to connect to, false if the server is known
          *     and should display the main panel (game list, channel list, etc).
-         * @param client  Client using this display
+         * @param client  Client using this display; {@link SOCPlayerClient#strings client.strings} must not be null
          * @throws IllegalArgumentException if {@code client} is null
          */
         public GameAwtDisplay(boolean hasConnectOrPractice, final SOCPlayerClient client)
@@ -581,6 +591,15 @@ public class SOCPlayerClient
 
             this.hasConnectOrPractice = hasConnectOrPractice;
             this.client = client;
+
+            NET_UNAVAIL_CAN_PRACTICE_MSG = client.strings.get("pcli.connect.server.unavailable");
+                // "The server is unavailable. You can still play practice games."
+            NEED_NICKNAME_BEFORE_JOIN = client.strings.get("pcli.main.join.neednickname");
+                // "First enter a nickname, then join a game or channel."
+            NEED_NICKNAME_BEFORE_JOIN_2 = client.strings.get("pcli.main.join.neednickname.2");
+                // "You must enter a nickname before you can join a game or channel."
+            STATUS_CANNOT_JOIN_THIS_GAME = client.strings.get("pcli.main.join.cannot");
+                // "Cannot join, this client is incompatible with features of this game."
         }
 
         public SOCPlayerClient getClient()
@@ -613,8 +632,10 @@ public class SOCPlayerClient
          */
         public void initVisualElements()
         {
+            final SOCStringManager strings = client.strings;
+
             setFont(new Font("SansSerif", Font.PLAIN, 12));
-            
+
             nick = new TextField(20);
             pass = new TextField(20);
             if (isJavaOnOSX)
@@ -628,11 +649,11 @@ public class SOCPlayerClient
             chlist.add(" ");
             gmlist = new java.awt.List(10, false);
             gmlist.add(" ");
-            ng = new Button(/*I*/"New Game..."/*18N*/);
-            jc = new Button(/*I*/"Join Channel"/*18N*/);
-            jg = new Button(/*I*/"Join Game"/*18N*/);
-            pg = new Button(/*I*/"Practice"/*18N*/);  // "practice game" text is too wide
-            gi = new Button(/*I*/"Game Info"/*18N*/);  // show game options
+            ng = new Button(strings.get("pcli.main.newgame"));       // "New Game..."
+            jc = new Button(strings.get("pcli.main.join.channel"));  // "Join Channel"
+            jg = new Button(strings.get("pcli.main.join.game"));     // "Join Game"
+            pg = new Button(strings.get("pcli.main.practice"));      // "Practice" -- "practice game" text is too wide
+            gi = new Button(strings.get("pcli.main.game.info"));     // "Game Info" -- show game options
 
             // Username not entered yet: can't click buttons
             ng.setEnabled(false);
@@ -731,7 +752,7 @@ public class SOCPlayerClient
 
             // Row 2
 
-            l = new Label(/*I*/"Your Nickname:"/*18N*/);
+            l = new Label(strings.get("pcli.main.label.yournickname"));  // "Your Nickname:"
             c.gridwidth = 1;
             gbl.setConstraints(l, c);
             mainPane.add(l);
@@ -745,7 +766,7 @@ public class SOCPlayerClient
             gbl.setConstraints(l, c);
             mainPane.add(l);
 
-            l = new Label(/*I*/"Optional Password:"/*18N*/);
+            l = new Label(strings.get("pcli.main.label.optionalpw"));  // "Optional Password:"
             c.gridwidth = 1;
             gbl.setConstraints(l, c);
             mainPane.add(l);
@@ -771,7 +792,7 @@ public class SOCPlayerClient
 
             // Row 3 (New Channel label & textfield, Practice btn, New Game btn)
 
-            l = new Label(/*I*/"New Channel:"/*18N*/);
+            l = new Label(strings.get("pcli.main.label.newchannel"));  // "New Channel:"
             c.gridwidth = 1;
             gbl.setConstraints(l, c);
             mainPane.add(l);
@@ -851,7 +872,7 @@ public class SOCPlayerClient
 
             // Row 6
 
-            l = new Label(/*I*/"Channels"/*18N*/);
+            l = new Label(strings.get("pcli.main.label.channels"));  // "Channels"
             c.gridwidth = 2;
             gbl.setConstraints(l, c);
             mainPane.add(l);
@@ -861,7 +882,7 @@ public class SOCPlayerClient
             gbl.setConstraints(l, c);
             mainPane.add(l);
 
-            l = new Label(/*I*/"Games"/*18N*/);
+            l = new Label(strings.get("pcli.main.label.games"));  // "Games"
             c.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(l, c);
             mainPane.add(l);
@@ -895,7 +916,7 @@ public class SOCPlayerClient
             messagePane.add(messageLabel, BorderLayout.CENTER);
 
             // bottom of message pane: practice-game button
-            pgm = new Button(/*I*/"Practice Game (against robots)"/*18N*/);
+            pgm = new Button(strings.get("pcli.message.practicebutton"));  // "Practice Game (against robots)"
             pgm.setVisible(false);
             messagePane.add(pgm, BorderLayout.SOUTH);
             pgm.addActionListener(actionListener);
@@ -912,7 +933,7 @@ public class SOCPlayerClient
             add(messagePane, MESSAGE_PANEL); // shown first unless cpPane
             add(mainPane, MAIN_PANEL);
 
-            messageLabel.setText(/*I*/"Waiting to connect."/*18N*/);
+            messageLabel.setText(strings.get("pcli.message.waiting"));  // "Waiting to connect."
             validate();
         }
 
@@ -968,7 +989,7 @@ public class SOCPlayerClient
                 // popup
                 NotifyDialog.createAndShow(this, (Frame) null,
                     STATUS_CANNOT_JOIN_THIS_GAME,
-                    /*I*/"Cancel"/*18N*/, true);
+                    client.strings.get("base.cancel"), true);
         
                 return;
             }
@@ -1044,7 +1065,7 @@ public class SOCPlayerClient
                         return true;  // not filled in yet
                 }
         
-                status.setText(/*I*/"Talking to server..."/*18N*/);
+                status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
                 client.net.putNet(SOCJoin.toCmd(client.nickname, client.password, client.net.getHost(), ch));
             }
             else
@@ -1254,9 +1275,9 @@ public class SOCPlayerClient
                 if (((target == pg) || (target == pgm)) && (null == client.net.ex_P))
                 {
                     if (target == pg)
-                    {
-                        status.setText(/*I*/"Starting practice game setup..."/*18N*/);
-                    }
+                        status.setText
+                            (client.strings.get("pcli.message.startingpractice"));  // "Starting practice game setup..."
+
                     gameWithOptionsBeginSetup(true);  // Also may set WAIT_CURSOR
                 }
                 else
@@ -1268,8 +1289,8 @@ public class SOCPlayerClient
                     // May take a while for server to start game, so set WAIT_CURSOR.
                     // The new-game window will clear this cursor
                     // (SOCPlayerInterface constructor)
-        
-                    status.setText(/*I*/"Talking to server..."/*18N*/);
+
+                    status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
                     setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                     client.net.putNet(SOCJoinGame.toCmd(client.nickname, client.password, client.net.getHost(), gm));
                 }
@@ -1455,7 +1476,7 @@ public class SOCPlayerClient
             // The new-game-options window will clear this cursor
             // (NewGameOptionsFrame constructor)
 
-            status.setText(/*I*/"Talking to server..."/*18N*/);
+            status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             opts.newGameWaitingForOpts = true;
             opts.askedDefaultsAlready = true;
@@ -1499,7 +1520,7 @@ public class SOCPlayerClient
                 System.err.println("      Got all opts,defaults? " + client.tcpServGameOpts.allOptionsReceived + " " + client.tcpServGameOpts.defaultsReceived);
                 client.net.putNet(askMsg);
                 System.out.flush();  // for debug print output (temporary)
-                status.setText(/*I*/"Talking to server..."/*18N*/);
+                status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                 System.err.println("L1320 askStartGameWithOptions done at " + System.currentTimeMillis());
                 System.err.println("      sent: " + client.net.lastMessage_N);
@@ -1628,12 +1649,12 @@ public class SOCPlayerClient
             if (null == client.net.localTCPServer)
             {
                 versionOrlocalTCPPortLabel.setForeground(new Color(252, 251, 243)); // off-white
-                versionOrlocalTCPPortLabel.setText(/*I*/"v " + versionString/*18N*/);
-                new AWTToolTip (/*I*/"Server version is " +versionString
-                                + " build " + buildString
-                                + "; client is " + Version.version()
-                                + " bld " + Version.buildnum()/*18N*/,
-                                versionOrlocalTCPPortLabel);
+                versionOrlocalTCPPortLabel.setText(client.strings.get("pcli.main.version", versionString));  // "v {0}"
+                new AWTToolTip
+                    (client.strings.get("pcli.main.version.tip", versionString, buildString,
+                         Version.version(), Version.buildnum()),
+                         // "Server version is {0} build {1}; client is {2} bld {3}"
+                     versionOrlocalTCPPortLabel);
             }
 
             if ((client.net.practiceServer == null) && (vers < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
@@ -1649,7 +1670,8 @@ public class SOCPlayerClient
             // That status message would be sent after VERSION.
             if (debugWarn)
                 versionOrlocalTCPPortLabel.setText
-                    (/*I*/versionOrlocalTCPPortLabel.getText() + ", debug is on"/*18N*/);
+                    (versionOrlocalTCPPortLabel.getText()
+                     + client.strings.get("pcli.message.append.debugon"));  // ", debug is on"
 
             // If was trying to join a game, reset cursor from WAIT_CURSOR.
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -1679,7 +1701,7 @@ public class SOCPlayerClient
         public void channelJoined(String channelName, String nickname)
         {
             ChannelFrame fr = channels.get(channelName);
-            fr.print("*** " + /*I*/nickname + " has joined this channel."/*18N*/+"\n");
+            fr.print("*** " + client.strings.get("channel.joined", nickname) + "\n");  // "{0} has joined this channel."
             fr.addMember(nickname);
         }
         
@@ -1691,7 +1713,7 @@ public class SOCPlayerClient
         public void channelLeft(String channelName, String nickname)
         {
             ChannelFrame fr = channels.get(channelName);
-            fr.print("*** " + /*I*/nickname + " left."/*18N*/+"\n");
+            fr.print("*** " + client.strings.get("channel.left", nickname) + "\n");  // "{0} left."
             fr.deleteMember(nickname);
         }
 
@@ -1795,7 +1817,8 @@ public class SOCPlayerClient
                 cardLayout.show(GameAwtDisplay.this, MAIN_PANEL);
                 validate();
 
-                status.setText(/*I*/"Login by entering nickname and then joining a channel or game."/*18N*/);
+                status.setText(client.strings.get("pcli.main.join.neednickname"));
+                    // "First enter a nickname, then join a game or channel."
             }
 
             for (String ch : channelNames)
@@ -2959,7 +2982,6 @@ public class SOCPlayerClient
         if (! isPractice)
         {
             sVersion = vers;
-            
             gameDisplay.showVersion(vers, mes.getVersionString(), mes.getBuild());
         }
 
@@ -3087,8 +3109,8 @@ public class SOCPlayerClient
             {
                 errMsg = statusText;  // fallback, not expected to happen
             }
-            
-            gameDisplay.showErrorDialog(errMsg, /*I*/"Cancel"/*18N*/);
+
+            gameDisplay.showErrorDialog(errMsg, strings.get("base.cancel"));
         }
     }
 
@@ -3460,7 +3482,7 @@ public class SOCPlayerClient
         {
             gmgr.put(mes.toCmd(), isPractice);
         } else {
-            net.ex = new RuntimeException("Kicked by player with same name.");
+            net.ex = new RuntimeException(strings.get("pcli.error.kicked.samename"));  // "Kicked by player with same name."
             client.dispose();
         }
     }
@@ -5429,12 +5451,12 @@ public class SOCPlayerClient
         String err;
         if (canPractice)
         {
-            err = /*I*/"Sorry, network trouble has occurred. "/*18N*/;
+            err = strings.get("pcli.error.networktrouble");  // "Sorry, network trouble has occurred."
         } else {
-            err = /*I*/"Sorry, the client has been shut down. "/*18N*/;
+            err = strings.get("pcli.error.clientshutdown");  // "Sorry, the client has been shut down."
         }
-        //TODO i18n a string resource must handle both parts
-        err = err + ((net.ex == null) ? "Load the page again." : net.ex.toString());
+        err = err + " " + ((net.ex == null) ? strings.get("pcli.error.loadpageagain") : net.ex.toString());
+            // "Load the page again."
 
         gameDisplay.channelsClosed(err);
 
@@ -5498,7 +5520,7 @@ public class SOCPlayerClient
 
         Version.printVersionText(System.out, "Java Settlers Client ");
 
-        Frame frame = new Frame(/*I*/"JSettlers client " + Version.version()/*18N*/);
+        Frame frame = new Frame(client.strings.get("pcli.main.title", Version.version()));  // "JSettlers client {0}"
         frame.setBackground(new Color(Integer.parseInt("61AF71",16)));
         frame.setForeground(Color.black);
         // Add a listener for the close event
@@ -5567,8 +5589,16 @@ public class SOCPlayerClient
         DataInputStream in;
         DataOutputStream out;
         Thread reader = null;
-        /** Network error (TCP communication), or null */
+
+        /**
+         * Network error (TCP communication), or null.
+         * The exception's {@link Throwable#toString() toString()} including its
+         * {@link Throwable#getMessage() getMessage()} may be displayed to the user
+         * by {@link SOCPlayerClient#dispose()}; if throwing an error that the user
+         * should see, be sure to set the detail message.
+         */
         Exception ex = null;
+
         /** Practice-server error (stringport pipes), or null */
         Exception ex_P = null;
 
@@ -5635,7 +5665,9 @@ public class SOCPlayerClient
                 }
                 catch (Throwable th)
                 {
-                    client.gameDisplay.showErrorDialog(/*I*/"Problem starting practice server:\n" + th/*18N*/, /*I*/"Cancel"/*18N*/);
+                    client.gameDisplay.showErrorDialog
+                        (client.strings.get("pcli.error.startingpractice") + "\n" + th,  // "Problem starting practice server:"
+                         client.strings.get("base.cancel"));
                 }
             }
             if (prCli == null)
@@ -5706,7 +5738,9 @@ public class SOCPlayerClient
             }
             catch (Throwable th)
             {
-                client.gameDisplay.showErrorDialog(/*I*/"Problem starting server:\n" + th/*18N*/, /*I*/"Cancel"/*18N*/);
+                client.gameDisplay.showErrorDialog
+                    (client.strings.get("pcli.error.startingserv") + "\n" + th,  // "Problem starting server:"
+                     client.strings.get("base.cancel"));
                 return false;
             }
 
@@ -5764,9 +5798,10 @@ public class SOCPlayerClient
             port = cport;
 
             String hostString = (chost != null ? chost : "localhost") + ":" + cport;
-            System.out.println(/*I*/"Connecting to " + hostString/*18N*/);
-            client.gameDisplay.setMessage(/*I*/"Connecting to server..."/*18N*/);
-            
+            System.out.println(/*I*/"Connecting to " + hostString/*18N*/);  // I18N: Not localizing console output yet
+            client.gameDisplay.setMessage
+                (client.strings.get("pcli.message.connecting.serv"));  // "Connecting to server..."
+
             try
             {
                 s = new Socket(host, port);
@@ -5782,8 +5817,8 @@ public class SOCPlayerClient
             catch (Exception e)
             {
                 ex = e;
-                String msg = /*I*/"Could not connect to the server: " + ex/*18N*/;
-                System.err.println(msg);    //TODO i18n not translate debug
+                String msg = client.strings.get("pcli.error.couldnotconnect", ex);  // "Could not connect to the server: " + ex
+                System.err.println(msg);
                 client.gameDisplay.showErrorPanel(msg, (ex_P == null));
                 if (connected)
                 {
@@ -5892,7 +5927,7 @@ public class SOCPlayerClient
             catch (IOException e)
             {
                 ex = e;
-                System.err.println("could not write to the net: " + ex);
+                System.err.println("could not write to the net: " + ex);  // I18N: Not localizing console output yet
                 client.dispose();
 
                 return false;
@@ -6006,7 +6041,7 @@ public class SOCPlayerClient
                     if (net.isConnected())
                     {
                         net.ex = e;
-                        System.out.println("could not read from the net: " + net.ex);
+                        System.out.println("could not read from the net: " + net.ex);  // I18N: Not localizing console output yet
                         client.dispose();
                     }
                 }
@@ -6060,7 +6095,7 @@ public class SOCPlayerClient
                     if (locl.isConnected())
                     {
                         ex_P = e;
-                        System.out.println("could not read from practice server: " + ex_P);
+                        System.out.println("could not read from practice server: " + ex_P);  // I18N: Not localizing console output yet
                         client.dispose();
                     }
                 }
@@ -6439,7 +6474,7 @@ public class SOCPlayerClient
             gameDisplay = new GameAwtDisplay(false, client);
             client.setGameDisplay(gameDisplay);
 
-            Version.printVersionText(System.out, "Java Settlers Client ");
+            Version.printVersionText(System.out, "Java Settlers Client ");  // I18N: Not localizing console output yet
 
             String param = null;
             int intValue;
@@ -6463,7 +6498,7 @@ public class SOCPlayerClient
             if (param != null)
                 gameDisplay.nick.setText(param);
 
-            System.out.println("Getting host...");
+            System.out.println("Getting host...");  // I18N: Not localizing console output yet
             String host = getCodeBase().getHost();
             if (host == null || host.equals(""))
                 //host = null;  // localhost
