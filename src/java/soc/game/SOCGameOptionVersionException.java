@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 package soc.game;
 
 import java.util.Enumeration;
+import java.util.Hashtable;  // for javadocs only
 import java.util.Vector;
 
 /**
@@ -33,6 +34,8 @@ import java.util.Vector;
  */
 public class SOCGameOptionVersionException extends IllegalArgumentException
 {
+    private static final long serialVersionUID = 1107L;
+
     /** Minimum client version required by game options */
     public final int gameOptsVersion;
 
