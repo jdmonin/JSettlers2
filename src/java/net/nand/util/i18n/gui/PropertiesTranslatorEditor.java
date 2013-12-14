@@ -23,6 +23,10 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridLayout;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -103,6 +107,12 @@ public class PropertiesTranslatorEditor
     /** Menu items to add a line above or below this line */
     private JMenuItem menuAddAbove, menuAddBelow;
 
+    /**
+     * Menu item to copy cell contents to clipboard, or null if not allowed.
+     * {@link #init()} calls {@link SecurityManager#checkSystemClipboardAccess()} to check if allowed.
+     */
+    private JMenuItem menuCopyToClip;
+
     /** mainwindow's data table, created and populated in {@link #showPairInPane()} */
     private JTable jtab;
 
@@ -111,6 +121,12 @@ public class PropertiesTranslatorEditor
 
     /** Last-clicked row number in {@link #jtab}, or -1 */
     private int jtabClickedRow = -1;
+
+    /**
+     * Last-clicked model column number in {@link #jtab}, or -1.
+     * Columns stretch to fit the table width, so a click will always be in a column.
+     */
+    private int jtabClickedCol = -1;
 
     /**
      * Editor with source and destination files specified.
@@ -256,20 +272,42 @@ public class PropertiesTranslatorEditor
         opan.add(jpane, BorderLayout.CENTER);
         jfra.setContentPane(opan);
 
+        // Is clipboard available to copy cell contents?
+        boolean canSetClipboard = true;
+        try
+        {
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null)
+                sm.checkSystemClipboardAccess();
+        } catch (SecurityException e) {
+            canSetClipboard = false;
+        }
+
         // Listen for click locations, so right-click menu knows where it was clicked
         jtab.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
-                final int r = jtab.rowAtPoint(e.getPoint());
+                final Point pt = e.getPoint();
+
+                final int r = jtab.rowAtPoint(pt);
                 if ((r >= 0) && (r < mod.getRowCount()))
                     jtabClickedRow = r;
                 else
                     jtabClickedRow = -1;
+
+                jtabClickedCol = jtab.convertColumnIndexToModel(jtab.columnAtPoint(pt));
+                    // columnAtPoint returns -1 if not in a column; convertColumnIndexToModel returns -1 for -1
             }
         });
 
         // Table right-click menu
         {
             final JPopupMenu tPopup = new JPopupMenu();
+            if (canSetClipboard)
+            {
+                menuCopyToClip = new JMenuItem(strings.get("menu.popup.copy_to_clipboard"));
+                menuCopyToClip.addActionListener(this);
+                tPopup.add(menuCopyToClip);
+            }
             menuAddAbove = new JMenuItem(strings.get("menu.popup.add_above"));
             menuAddBelow = new JMenuItem(strings.get("menu.popup.add_below"));
             menuAddAbove.addActionListener(this);
@@ -319,6 +357,21 @@ public class PropertiesTranslatorEditor
             insertRow(ae, true);
         else if (item == menuAddBelow)
             insertRow(ae, false);
+        else if ((menuCopyToClip != null) && (item == menuCopyToClip))
+        {
+            final String cellText = mod.getValueAt(jtabClickedRow, jtabClickedCol).toString();
+            Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+            try
+            {
+                cb.setContents(new StringSelection(cellText), null);
+            } catch (IllegalStateException e) {
+                JOptionPane.showMessageDialog
+                    (jfra, strings.get("editor.cannot_copy_clipboard.text"),
+                         // "Could not copy text. Another program might currently own the clipboard."
+                     strings.get("editor.cannot_copy_clipboard.title"),  // "Could not copy to clipboard"
+                     JOptionPane.WARNING_MESSAGE);
+            }
+        }
         else if (item == bHelp)
         {
             JOptionPane.showMessageDialog
