@@ -293,6 +293,10 @@ The client strings live in soc/client/strings/data*.properties.  An example comm
 The server strings live in soc/server/strings/*.properties.  An example commit is 3e062b7.
 See the comments at the top of any *.properties file for format details.
 
+If an i18n string lookup's english text isn't obvious from the key, add it as a
+comment to make searching the source for strings easier:
+	setTooltipText(strings.get("hpan.points.total.yours"));  // "Your victory point total"
+
 Note that all java properties files use ISO-8859-1, not UTF-8, as their encoding.
 Make sure your editor or IDE honors this encoding format.  Unfortunately you must use \uXXXX
 for characters outside that 8-bit encoding's range, directly or with the native2ascii utility:
@@ -324,6 +328,7 @@ Coding Style
 Scroll down a bit if you just want to see how to set up the style in Eclipse.
 
 This is the project's coding style, based on the original authors' style.
+This section has more detail than you need to know, but it's here if you're interested.
 Although we may not agree with every detail of it, for consistency's sake,
 please keep the conventions of the code that's already there.
 
@@ -348,6 +353,10 @@ all their declarations the same way for easier comparison.
 Some methods return in the middle of their body, depending on conditions.
 That kind of early return should be marked with a prominent comment such as:
 	return;   // <--- Early return: Temporary piece ---
+
+If an i18n string lookup's english text isn't obvious from the key, add it as a
+comment to make searching the source for strings easier:
+	setTooltipText(strings.get("hpan.points.total.yours"));  // "Your victory point total"
 
 Use parentheses around all boolean expressions, to make them easier to see as such:
 	flagvalue = (state == xyz);
