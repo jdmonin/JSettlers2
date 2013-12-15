@@ -40,6 +40,7 @@ import java.net.SocketTimeoutException;
 
 import soc.client.SOCPlayerClient.ClientNetwork;
 import soc.client.SOCPlayerClient.GameAwtDisplay;
+import soc.util.SOCStringManager;
 import soc.util.Version;
 
 
@@ -85,6 +86,12 @@ public class SOCConnectOrPracticePanel extends Panel
 
     private static final Color HEADER_LABEL_BG = new Color(220,255,220);
     private static final Color HEADER_LABEL_FG = new Color( 50, 80, 50);
+
+    /**
+     * i18n text strings; will use same locale as SOCPlayerClient's string manager.
+     * @since 2.0.00
+     */
+    private static final SOCStringManager strings = SOCStringManager.getClientManager();
 
     /**
      * Creates a new SOCConnectOrPracticePanel.
@@ -182,7 +189,7 @@ public class SOCConnectOrPracticePanel extends Panel
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
 
-        topText = new Label(/*I*/"Welcome to JSettlers!  Please choose an option."/*18N*/);
+        topText = new Label(strings.get("pcli.cpp.welcomeheading"));  // "Welcome to JSettlers!  Please choose an option."
         topText.setAlignment(Label.CENTER);
         gbl.setConstraints(topText, gbc);
         bp.add(topText);
@@ -191,7 +198,7 @@ public class SOCConnectOrPracticePanel extends Panel
          * Interface setup: Connect to a Server
          */
 
-        connserv = new Button(/*I*/"Connect to a Server..."/*18N*/);
+        connserv = new Button(strings.get("pcli.cpp.connecttoaserv"));  // "Connect to a Server"
         gbl.setConstraints(connserv, gbc);
         bp.add(connserv);
         connserv.addActionListener(this);
@@ -199,7 +206,7 @@ public class SOCConnectOrPracticePanel extends Panel
         /**
          * Interface setup: Practice
          */
-        prac = new Button(/*I*/"Practice"/*18N*/);
+        prac = new Button(strings.get("pcli.main.practice"));  // "Practice" - same as SOCPlayerClient button
         gbl.setConstraints(prac, gbc);
         bp.add(prac);
         prac.addActionListener(this);
@@ -207,7 +214,7 @@ public class SOCConnectOrPracticePanel extends Panel
         /**
          * Interface setup: Start a Server
          */
-        runserv = new Button(/*I*/"Start a Server..."/*18N*/);
+        runserv = new Button(strings.get("pcli.cpp.startserv"));  // "Start a Server"
         gbl.setConstraints(runserv, gbc);
         if (! canLaunchServer)
             runserv.setEnabled(false);
@@ -234,7 +241,8 @@ public class SOCConnectOrPracticePanel extends Panel
 
         // Final assembly setup
         add(bp, BorderLayout.CENTER);
-        Label verl = new Label("JSettlers " + Version.version() + " build " + Version.buildnum());
+        Label verl = new Label(strings.get("pcli.cpp.jsettlers.versionbuild", Version.version(), Version.buildnum()));
+            // "JSettlers " + Version.version() + " build " + Version.buildnum()
         verl.setAlignment(Label.CENTER);
         verl.setForeground(new Color(252, 251, 243)); // off-white
         add(verl, BorderLayout.SOUTH);
@@ -252,7 +260,7 @@ public class SOCConnectOrPracticePanel extends Panel
         gbc.fill = GridBagConstraints.BOTH;
 
         // heading row
-        L = new Label(/*I*/"Connect to Server"/*18N*/);
+        L = new Label(strings.get("pcli.cpp.connecttoserv"));  // "Connect to Server"
         L.setAlignment(Label.CENTER);
         L.setBackground(HEADER_LABEL_BG);
         L.setForeground(HEADER_LABEL_FG);
@@ -270,7 +278,7 @@ public class SOCConnectOrPracticePanel extends Panel
         gbl.setConstraints(L, gbc);
         pconn.add(L);
 
-        L = new Label(/*I*/"Server"/*18N*/);
+        L = new Label(strings.get("pcli.cpp.server"));
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
@@ -280,7 +288,7 @@ public class SOCConnectOrPracticePanel extends Panel
         conn_servhost.addKeyListener(this);   // for ESC/ENTER
         pconn.add(conn_servhost);
 
-        L = new Label(/*I*/"Port"/*18N*/);
+        L = new Label(strings.get("pcli.cpp.port"));
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
@@ -296,7 +304,7 @@ public class SOCConnectOrPracticePanel extends Panel
         conn_servport.addKeyListener(this);   // for ESC/ENTER
         pconn.add(conn_servport);
 
-        L = new Label(/*I*/"Nickname"/*18N*/);
+        L = new Label(strings.get("pcli.cpp.nickname"));
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
@@ -306,7 +314,7 @@ public class SOCConnectOrPracticePanel extends Panel
         conn_user.addKeyListener(this);
         pconn.add(conn_user);
 
-        L = new Label(/*I*/"Password"/*18N*/);
+        L = new Label(strings.get("pcli.cpp.password"));
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
@@ -324,19 +332,19 @@ public class SOCConnectOrPracticePanel extends Panel
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         pconn.add(L);
-        conn_connect = new Button(/*I*/"Connect..."/*18N*/);
+        conn_connect = new Button(strings.get("pcli.cpp.connect"));
         conn_connect.addActionListener(this);
         conn_connect.addKeyListener(this);  // for win32 keyboard-focus
         gbl.setConstraints(conn_connect, gbc);
         pconn.add(conn_connect);
 
-        conn_cancel = new Button(/*I*/"Cancel"/*18N*/);
+        conn_cancel = new Button(strings.get("base.cancel"));
         conn_cancel.addActionListener(this);
         conn_cancel.addKeyListener(this);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(conn_cancel, gbc);
         pconn.add(conn_cancel);
-        
+
         return pconn;
     }
 
@@ -352,7 +360,7 @@ public class SOCConnectOrPracticePanel extends Panel
         gbc.fill = GridBagConstraints.BOTH;
 
         // heading row
-        L = new Label(/*I*/"Start a Server"/*18N*/);
+        L = new Label(strings.get("pcli.cpp.startserv"));  // "Start a Server"
         L.setAlignment(Label.CENTER);
         L.setBackground(HEADER_LABEL_BG);
         L.setForeground(HEADER_LABEL_FG);
@@ -371,7 +379,7 @@ public class SOCConnectOrPracticePanel extends Panel
         prun.add(L);
 
         // Port#
-        L = new Label(/*I*/"Port"/*18N*/);
+        L = new Label(strings.get("pcli.cpp.port"));
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         prun.add(L);
@@ -395,18 +403,18 @@ public class SOCConnectOrPracticePanel extends Panel
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         prun.add(L);
-        run_startserv = new Button(/*I*/" Start "/*18N*/);
+        run_startserv = new Button(" " + strings.get("pcli.cpp.start") + " ");
         run_startserv.addActionListener(this);
         run_startserv.addKeyListener(this);  // for win32 keyboard-focus
         gbl.setConstraints(run_startserv, gbc);
         prun.add(run_startserv);
 
-        run_cancel = new Button(/*I*/"Cancel"/*18N*/);
+        run_cancel = new Button(strings.get("base.cancel"));
         run_cancel.addActionListener(this);
         run_cancel.addKeyListener(this);
         gbl.setConstraints(run_cancel, gbc);
         prun.add(run_cancel);
-        
+
         return prun;
     }
 
