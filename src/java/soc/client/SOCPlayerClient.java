@@ -592,7 +592,7 @@ public class SOCPlayerClient
             this.hasConnectOrPractice = hasConnectOrPractice;
             this.client = client;
 
-            NET_UNAVAIL_CAN_PRACTICE_MSG = client.strings.get("pcli.connect.server.unavailable");
+            NET_UNAVAIL_CAN_PRACTICE_MSG = client.strings.get("pcli.error.server.unavailable");
                 // "The server is unavailable. You can still play practice games."
             NEED_NICKNAME_BEFORE_JOIN = client.strings.get("pcli.main.join.neednickname");
                 // "First enter a nickname, then join a game or channel."
@@ -2240,6 +2240,13 @@ public class SOCPlayerClient
                 return;  // Unable to start local server, or bind to port
             }
 
+            /**
+             * StringManager.  Note that for TCP port#s we avoid {0,number} and use
+             * Integer.toString() so the port number won't be formatted as "8,880".
+             */
+            final SOCStringManager strings = client.strings;
+            final String tportStr = Integer.toString(tport);
+
             MouseAdapter mouseListener = new MouseAdapter()
             {
                 /**
@@ -2253,12 +2260,14 @@ public class SOCPlayerClient
                     NotifyDialog.createAndShow
                         (GameAwtDisplay.this,
                          null,
-                         /*I*/"For other players to connect to your server,\n" +
-                                 "they need only your IP address and port number.\n" +
+                         strings.get("pcli.localserver.dialog", tportStr),
+                         /*      "Other players connecting to your server\n" +
+                                 "need only your IP address and port number.\n" +
                                  "No other server software install is needed.\n" +
                                  "Make sure your firewall allows inbound traffic on " +
-                                 "port " + client.net.getLocalServerPort() + "."/*18N*/,
-                         /*I*/"OK"/*18N*/,
+                                 "port {0}."
+                         */
+                         strings.get("base.ok"),
                          true);
                 }
 
@@ -2284,15 +2293,15 @@ public class SOCPlayerClient
                         setCursor(Cursor.getDefaultCursor());
                 }
             };
-            
+
             // Set label
-            localTCPServerLabel.setText(/*I*/"Server is Running. (Click for info)"/*18N*/);
+            localTCPServerLabel.setText(strings.get("pcli.localserver.running"));  // "Server is Running. (Click for info)"
             localTCPServerLabel.setFont(getFont().deriveFont(Font.BOLD));
             localTCPServerLabel.addMouseListener(mouseListener);
-            versionOrlocalTCPPortLabel.setText("Port: " + tport);
-            new AWTToolTip(/*I*/"You are running a server on TCP port " + tport
-                + ". Version " + Version.version()
-                + " bld " + Version.buildnum()/*18N*/,
+            versionOrlocalTCPPortLabel.setText(strings.get("pcli.localserver.port", tportStr));  // "Port: {0}"
+            new AWTToolTip
+                (strings.get("pcli.localserver.running.tip", tportStr, Version.version(), Version.buildnum()),
+                    // "You are running a server on TCP port {0}. Version {1} bld {2}"
                 versionOrlocalTCPPortLabel);
             versionOrlocalTCPPortLabel.addMouseListener(mouseListener);
 
@@ -2303,14 +2312,15 @@ public class SOCPlayerClient
                 {
                     try
                     {
-                        ((Frame) parent).setTitle(/*I*/"JSettlers server " + Version.version()
-                            + " - port " + tport/*18N*/);
+                        ((Frame) parent).setTitle
+                            (strings.get("pcli.main.title.localserver", Version.version(), tportStr));
+                            // "JSettlers server {0} - port {1}"
                     } catch (Throwable t) {
-                        // no titlebar is fine
+                        // no titlebar change is fine
                     }
                 }
             }
-            
+
             cardLayout.show(this, MESSAGE_PANEL);
             // Connect to it
             client.net.connect("localhost", tport);  // I18N: no need to localize this hostname
