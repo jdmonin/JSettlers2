@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2012 Jeremy Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012-2013 Jeremy Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -68,7 +68,7 @@ public class ChannelFrame extends Frame
     /** i18n text strings */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
-    /** build a frame with the given title, belonging to the given applet*/
+    /** Build a frame with the given title, belonging to the given frame/applet */
     public ChannelFrame(String t, GameAwtDisplay ccp)
     {
         super(strings.get("channel.channel", t));
@@ -76,7 +76,7 @@ public class ChannelFrame extends Frame
         setForeground(ccp.getForeground());
 
         ta = new SnippingTextArea("", 100);
-        tf = new TextField(strings.get("channel.wait"));
+        tf = new TextField(strings.get("base.please.wait"));  // "Please wait..."
         lst = new java.awt.List(0, false);
         cc = ccp;
         cname = t;

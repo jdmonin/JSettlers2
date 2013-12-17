@@ -205,15 +205,7 @@ public class SOCPlayerInterface extends Frame
      * @see #textInput
      */
     public static final String TEXTINPUT_INITIAL_PROMPT_MSG
-        = /*I*/"Type here to chat."/*18N*/;
-
-    /** Titlebar text for game in progress */
-    public static final String TITLEBAR_GAME
-        = "Settlers of Catan Game: ";  //i18n not neccesary
- 
-    /** Titlebar text for game when over */
-    public static final String TITLEBAR_GAME_OVER
-        = "Settlers of Catan Game Over: "; //i18n not neccesary;
+        = strings.get("interface.type.here.chat");  // "Type here to chat."
 
     /**
      * Used for responding to textfield changes by setting/clearing prompt message.
@@ -441,8 +433,9 @@ public class SOCPlayerInterface extends Frame
      */
     public SOCPlayerInterface(String title, GameAwtDisplay gd, SOCGame ga)
     {
-        super(/*I*/TITLEBAR_GAME + title + (ga.isPractice ? "" : " [" + gd.getNickname() + "]")/*18N*/);
-        
+        super(strings.get("interface.title.game", title) + (ga.isPractice ? "" : " [" + gd.getNickname() + "]"));
+            // "Settlers of Catan Game: {0}"
+
         setResizable(true);
         layoutNotReadyYet = true;  // will set to false at end of doLayout
 
@@ -604,7 +597,7 @@ public class SOCPlayerInterface extends Frame
         textInput.setForeground(Color.black);
         textInput.setEditable(false);
         textInputIsInitial = false;  // due to "please wait"
-        textInput.setText(/*I*/"Please wait..."/*18N*/);
+        textInput.setText(strings.get("base.please.wait"));  // "Please wait..."
         add(textInput);
         textInput.addActionListener(this);
         if (is6player)
@@ -959,9 +952,9 @@ public class SOCPlayerInterface extends Frame
             ++availPl;  // Not yet vacant in game data
         if (! noTextOverlay)
         {
-            String availTxt = (availPl == 1) ? /*I*/"1 seat available"/*18N*/ : /*I*/Integer.toString(availPl) + " seats available"/*18N*/;
             boardPanel.setSuperimposedText
-                (/*I*/"Maximum players: " + maxPl/*18N*/, availTxt);
+                (strings.get("interface.max.players", maxPl),     // "Maximum players: {0}"
+                 strings.get("interface.seats.avail", availPl));  // ChoiceFormat: "1 seat available" / "{0} seats available"
         }
 
         if (isGameStart || ! clientSatAlready)
@@ -1541,8 +1534,8 @@ public class SOCPlayerInterface extends Frame
             textInputSetToInitialPrompt(false);  // Clear, set foreground color
         textInput.setEditable(false);
         textInput.setText(s);
-        textDisplay.append("* "+/*I*/"Sorry, lost connection to the server."/*18N*/+"\n");
-        textDisplay.append("*** "+/*I*/"Game stopped."/*18N*/+" ***\n");
+        textDisplay.append("* " + strings.get("interface.error.lost.conn") + "\n");  // "Lost connection to the server."
+        textDisplay.append("*** " + strings.get("interface.error.game.stopped") + " ***\n");  // "Game stopped."
         game.setCurrentPlayerNumber(-1);
         boardPanel.repaint();
     }
@@ -1696,8 +1689,9 @@ public class SOCPlayerInterface extends Frame
         }
         for (int i = 0; i < finalScores.length; ++i)
             hands[i].updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // Also disables buttons, etc.
-        setTitle(/*I*/TITLEBAR_GAME_OVER + game.getName() +
-                 (game.isPractice ? "" : " [" + client.getNickname() + "]")/*18N*/);
+        setTitle(strings.get("interface.title.game.over", game.getName()) +
+                 (game.isPractice ? "" : " [" + client.getNickname() + "]"));
+                // "Settlers of Catan Game Over: {0}"
         boardPanel.updateMode();
         repaint();
     }
@@ -2272,9 +2266,10 @@ public class SOCPlayerInterface extends Frame
         removeAll();  // old sub-components
         initInterfaceElements(false);  // new sub-components
 
-        // Clear from possible TITLEBAR_GAME_OVER
-        setTitle(/*I*/TITLEBAR_GAME + game.getName() +
-                 (game.isPractice ? "" : " [" + client.getNickname() + "]")/*18N*/);
+        // Clear from possible "game over" titlebar
+        setTitle(strings.get("interface.title.game", game.getName()) +
+                 (game.isPractice ? "" : " [" + client.getNickname() + "]"));
+                // "Settlers of Catan Game: {0}"
         boardPanel.debugShowPotentials = boardDebugShow;
 
         validate();
