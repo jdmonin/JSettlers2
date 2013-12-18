@@ -4548,19 +4548,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         final int no7roundsleft = game.getGameOptionIntValue("N7") - game.getRoundCount();
                         if (no7roundsleft == 0)
                         {
-                            topText = /*I*/"Last round for \"No 7s\""/*18N*/;
+                            topText = strings.get("board.msg.n7.last.round");  // "Last round for "No 7s""
                         } else if (no7roundsleft > 0)
                         {
                             if (playerInterface.clientIsCurrentPlayer()
                               && playerInterface.getClientHand().isClientAndCurrentlyCanRoll())
-                                topText = /*I*/(1 + no7roundsleft) + " rounds left for \"No 7s\""/*18N*/;
+                                topText = strings.get("board.msg.n7.rounds.left", (1 + no7roundsleft));
+                                    // "{0} rounds left for "No 7s""
                         }
                     }
                     break;
 
                 case SOCGame.SPECIAL_BUILDING:
                     mode = NONE;
-                    topText = /*I*/"Special Building: " + player.getName()/*18N*/;
+                    topText = strings.get("board.msg.special.building", player.getName());  // "Special Building: {0}"
                     break;
 
                 default:
@@ -4575,7 +4576,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (game.isSpecialBuilding())
                 {
-                    topText = /*I*/"Special Building: " + game.getPlayer(cpn).getName()/*18N*/;
+                    topText = strings.get("board.msg.special.building", game.getPlayer(cpn).getName());
+                        // "Special Building: {0}"
                 }
                 else if (game.isGameOptionSet("N7"))
                 {
@@ -4583,7 +4585,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     // Show if we're about to be able to roll a 7.  (1.1.09)
                     final int no7roundsleft = game.getGameOptionIntValue("N7") - game.getRoundCount();
                     if (no7roundsleft == 0)
-                        /*I*/topText = "Last round for \"No 7s\""/*18N*/;
+                        topText = strings.get("board.msg.n7.last.round");  // "Last round for "No 7s""
                 }
             }
         }
@@ -6719,7 +6721,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             hoverIsPort = false;
                             hoverTextSet = true;
                             hoverCityID = 0;
-                            setHoverText(/*I*/"Village for cloth trade on " + vi.diceNum + " (" + vi.getCloth() + " cloth)"/*18N*/);
+                            setHoverText(strings.get("board.sc_clvi.village", vi.diceNum, vi.getCloth()));
+                                // "Village for cloth trade on {0} ({1} cloth)"
                         }
                     }
 
@@ -6737,7 +6740,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             }
                             else if (player.isPotentialSettlement(id))
                             {
-                                setHoverText(/*I*/"Not allowed to settle here"/*18N*/);
+                                setHoverText(strings.get("board.settle.not.here"));  // "Not allowed to settle here"
                                 hoverMode = PLACE_ROBBER;  // const used for hovering-at-node
                                 hoverID = id;
                                 hoverIsPort = false;
