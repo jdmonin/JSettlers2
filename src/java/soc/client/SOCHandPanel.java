@@ -111,10 +111,13 @@ public class SOCHandPanel extends Panel
     protected static final String START = strings.get("hpan.start.game");  // "Start Game"
     protected static final String ROBOT = strings.get("hpan.sit.robot");
     protected static final String TAKEOVER = strings.get("hpan.sit.takeover");  // "Take Over"
+    private static final String SEAT_LOCKED = "* " + strings.get("hpan.seat.locked") + " *";  // "* Seat Locked *"
     protected static final String LOCKSEAT = strings.get("hpan.sit.lock");
     protected static final String UNLOCKSEAT = strings.get("hpan.sit.unlock");
-    private static final String LOCKSEATTIP = /*I*/"Lock to prevent a robot from sitting here."/*18N*/;
-    private static final String UNLOCKSEATTIP = /*I*/"Unlock to have a robot sit here when the game starts."/*18N*/;
+    private static final String LOCKSEATTIP = strings.get("hpan.sit.lock.tip");
+        // "Lock to prevent a robot from sitting here."
+    private static final String UNLOCKSEATTIP = strings.get("hpan.sit.unlock.tip");
+        // "Unlock to have a robot sit here when the game starts."
     protected static final String ROLL = strings.get("hpan.roll");
     protected static final String QUIT = strings.get("hpan.quit");
     protected static final String DONE = strings.get("hpan.done");
@@ -136,21 +139,23 @@ public class SOCHandPanel extends Panel
     private static final String RESOURCES_TOTAL = strings.get("hpan.rsrc.total") + " ";  // "Total: " for playerIsClient
     protected static final String AUTOROLL_COUNTDOWN = strings.get("hpan.roll.autocountdown");  // "Auto-Roll in: {0}"
     protected static final String ROLL_OR_PLAY_CARD = strings.get("hpan.roll.rollorplaycard");  // "Roll or Play Card"
-    protected static final String OFFERBUTTIP_ENA = /*I*/"Send trade offer to other players"/*18N*/;
-    protected static final String OFFERBUTTIP_DIS = /*I*/"To offer a trade, first click resources"/*18N*/;
+    private static final String OFFERBUTTIP_ENA = strings.get("hpan.trade.offer.tip.send");
+        // "Send trade offer to other players"
+    private static final String OFFERBUTTIP_DIS = strings.get("hpan.trade.offer.tip.first");
+        // "To offer a trade, first click resources"
     private static final String ROBOTLOCKBUT_U = strings.get("hpan.sit.unlocked");
     private static final String ROBOTLOCKBUT_L = strings.get("hpan.sit.locked");
     private static final String ROBOTLOCKBUT_M = strings.get("hpan.sit.marked");  // for lockstate Clear on Reset
-    private static final String ROBOTLOCKBUTTIP_L
-        = /*I*/"Click to mark or unlock; is locked to prevent a human from taking over this robot."/*18N*/;
-    private static final String ROBOTLOCKBUTTIP_U
-        = /*I*/"Click to lock or mark; is unlocked, a human can take over this robot."/*18N*/;
-    private static final String ROBOTLOCKBUTTIP_M
-        = /*I*/"Click to unmark; is marked to remove this robot if the game is reset."/*18N*/;
-    private static final String ROBOTLOCKBUTTIP_L_OLD
-        = /*I*/"Click to unlock; is locked to prevent a human from taking over this robot."/*18N*/;
-    private static final String ROBOTLOCKBUTTIP_U_OLD
-        = /*I*/"Click to lock; is unlocked, a human can take over this robot."/*18N*/;
+    private static final String ROBOTLOCKBUTTIP_L = strings.get("hpan.sit.locked.tip");
+        // "Click to mark or unlock; is locked to prevent a human from taking over this robot."
+    private static final String ROBOTLOCKBUTTIP_U = strings.get("hpan.sit.unlocked.tip");
+        // "Click to lock or mark; is unlocked, a human can take over this robot."
+    private static final String ROBOTLOCKBUTTIP_M = strings.get("hpan.sit.marked.tip");
+        // "Click to unmark; is marked to remove this robot if the game is reset."
+    private static final String ROBOTLOCKBUTTIP_L_OLD = strings.get("hpan.sit.locked.tip.nomark");
+        // "Click to unlock; is locked to prevent a human from taking over this robot."
+    private static final String ROBOTLOCKBUTTIP_U_OLD = strings.get("hpan.sit.unlocked.tip.nomark");
+        // "Click to lock; is unlocked, a human can take over this robot."
 
     /**
      * Show that a non-client player is discarding resources after 7 is rolled.
@@ -170,6 +175,7 @@ public class SOCHandPanel extends Panel
 
     /** Panel text color, and player name color when not current player */
     protected static final Color COLOR_FOREGROUND = Color.BLACK;
+
     /** Player name background color when current player (foreground does not change) */
     protected Color pnameActiveBG;
 
@@ -560,7 +566,7 @@ public class SOCHandPanel extends Panel
         setForeground(COLOR_FOREGROUND);
         setFont(new Font("SansSerif", Font.PLAIN, 10));
 
-        blankStandIn = new ColorSquare(pcolor, /*I*/"One moment..."/*18N*/);
+        blankStandIn = new ColorSquare(pcolor, strings.get("hpan.one.moment"));  // "One moment..."
         blankStandIn.setVisible(false);
         // playerinterface.initInterfaceElements will add blankStandIn to its layout, and set its size/position.
 
@@ -1028,13 +1034,15 @@ public class SOCHandPanel extends Panel
                 SOCResourceSet giveSet = new SOCResourceSet(give);
                 SOCResourceSet getSet = new SOCResourceSet(get);
 
-                if (!player.getResources().contains(giveSet))
+                if (! player.getResources().contains(giveSet))
                 {
-                    playerInterface.print("*** "+/*I*/"You can't offer what you don't have."/*18N*/);
+                    playerInterface.print("*** " + strings.get("hpan.trade.msg.donthave"));
+                        // "You can't offer what you don't have."
                 }
                 else if ((giveSum == 0) || (getSum == 0))
                 {
-                    playerInterface.print("*** "+/*I*/"A trade must contain at least one resource card from each player."/*18N*/);
+                    playerInterface.print("*** " + strings.get("hpan.trade.msg.eachplayer"));
+                        // "A trade must contain at least one resource from each player."
                 }
                 else
                 {
@@ -1065,7 +1073,8 @@ public class SOCHandPanel extends Panel
 
                     if (! toAny)
                     {
-                        playerInterface.print("*** "+/*I*/"Please choose at least one opponent's checkbox."/*18N*/);
+                        playerInterface.print("*** " + strings.get("hpan.trade.msg.chooseoppo"));
+                            // "Choose at least one opponent's checkbox."
                     }
                     else
                     {
@@ -1077,6 +1086,9 @@ public class SOCHandPanel extends Panel
                         disableBankUndoButton();
                     }
                 }
+            } else {
+                getPlayerInterface().print("* " + strings.get("hpan.trade.msg.notnow") + "\n");
+                    // "You cannot trade at this time."
             }
         }
         else if ((e.getSource() == inventory) || (e.getSource() == playCardBut))
@@ -1095,7 +1107,7 @@ public class SOCHandPanel extends Panel
     public void mouseClicked(MouseEvent e)
     {
         StringBuilder sb = new StringBuilder();
-        sb.append(/*I*/"Total Special Victory Points: " + player.getSpecialVP()/*18N*/);
+        sb.append(strings.get("hpan.svp.total", player.getSpecialVP()));  // "Total Special Victory Points: {0}"
 
         ArrayList<SOCPlayer.SpecialVPInfo> svpis = player.getSpecialVPInfo();
         if ((svpis != null) && (svpis.size() > 0))
@@ -2613,7 +2625,7 @@ public class SOCHandPanel extends Panel
         }
         else
         {
-            takeOverBut.setLabel(/*I*/"* Seat Locked *"/*18N*/);
+            takeOverBut.setLabel(SEAT_LOCKED);
         }
     }
 
@@ -2750,7 +2762,7 @@ public class SOCHandPanel extends Panel
      */
     protected void setLArmy(boolean haveIt)
     {
-        larmyLab.setText(haveIt ? /*I*/"L. Army"/*18N*/ : "");
+        larmyLab.setText(haveIt ? strings.get("hpan.L.army") : "");  // "L. Army"
     }
 
     /**
@@ -2761,7 +2773,8 @@ public class SOCHandPanel extends Panel
      */
     protected void setLRoad(boolean haveIt)
     {
-        lroadLab.setText(haveIt ? (game.hasSeaBoard ? /*I*/"L. Route"/*18N*/ : /*I*/"L. Road"/*18N*/) : "");
+        lroadLab.setText(haveIt ? (game.hasSeaBoard ? strings.get("hpan.L.route") : strings.get("hpan.L.road")) : "");
+            // "L. Route" / "L. Road"
     }
 
     /**
@@ -3179,9 +3192,8 @@ public class SOCHandPanel extends Panel
         }
         else
         {
-            //TODO i18n match with actual label used for display
-            final int stlmtsW = fm.stringWidth("Stlmts:_");  // Bug in stringWidth does not give correct size for ' '
-            final int knightsW = fm.stringWidth("Soldiers:") + 2;  // +2 because Label text is inset from column 0
+            final int stlmtsW = fm.stringWidth(settlementLab.getText()) + 6;  // +6 for spacing afterwards
+            final int knightsW = fm.stringWidth(knightsLab.getText()) + 2;  // +2 because Label text is inset from column 0
             // (for item count labels, either Settlements or Soldiers/Knights is widest text)
 
             // Top of panel: Face icon, player name to right
@@ -3191,6 +3203,7 @@ public class SOCHandPanel extends Panel
             // To right of face, below player name:
             // Victory Points count, Largest Army, Longest Road
             final int vpW = fm.stringWidth(vpLab.getText().replace(' ','_'));
+                // Bug in stringWidth does not give correct size for ' ' in some versions
             int y = inset + lineH + 2*space;
             vpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
             vpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.HEIGHT);
@@ -3597,7 +3610,8 @@ public class SOCHandPanel extends Panel
             SOCGame game = hp.getGame();
             if (game.getGameState() != SOCGame.PLAY1)
             {
-                hp.getPlayerInterface().print("* "+/*I*/"You cannot trade at this time."/*18N*/+"\n");
+                hp.getPlayerInterface().print("* " + strings.get("hpan.trade.msg.notnow") + "\n");
+                    // "You cannot trade at this time."
                 return;
             }
 
