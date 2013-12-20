@@ -58,6 +58,10 @@ import java.util.ArrayList;
 import java.util.Timer;  // For auto-roll
 import java.util.TimerTask;
 
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+
 
 /**
  * This panel displays a player's information.
@@ -176,6 +180,13 @@ public class SOCHandPanel extends Panel
     /** Panel text color, and player name color when not current player */
     protected static final Color COLOR_FOREGROUND = Color.BLACK;
 
+    /**
+     * If true, our constructor has set the Swing tooltip default font/foreground/background.
+     * Currently SOCHandPanel is the only JSettlers class using Swing tooltips.
+     * @since 2.0.00
+     */
+    private static boolean didSwingTooltipDefaults;
+
     /** Player name background color when current player (foreground does not change) */
     protected Color pnameActiveBG;
 
@@ -256,8 +267,8 @@ public class SOCHandPanel extends Panel
      */
     private ColorSquare svpSq;
 
-    protected Label larmyLab;
-    protected Label lroadLab;
+    protected JLabel larmyLab;
+    protected JLabel lroadLab;
     protected ColorSquare claySq;
     protected ColorSquare oreSq;
     protected ColorSquare sheepSq;
@@ -613,14 +624,16 @@ public class SOCHandPanel extends Panel
             svpSq = null;
         }
 
-        larmyLab = new Label("", Label.CENTER);
+        final Font DIALOG_PLAIN_10 = new Font("Dialog", Font.PLAIN, 10);
+
+        larmyLab = new JLabel("", SwingConstants.CENTER);
         larmyLab.setForeground(new Color(142, 45, 10));
-        larmyLab.setFont(new Font("SansSerif", Font.BOLD, 12));
+        larmyLab.setFont(DIALOG_PLAIN_10);  // was bold 12pt SansSerif before v2.0.00 (i18n: needs room for more chars)
         add(larmyLab);
 
-        lroadLab = new Label("", Label.CENTER);
+        lroadLab = new JLabel("", SwingConstants.CENTER);
         lroadLab.setForeground(new Color(142, 45, 10));
-        lroadLab.setFont(new Font("SansSerif", Font.BOLD, 12));
+        lroadLab.setFont(DIALOG_PLAIN_10);  // was bold 12pt SansSerif before v2.0.00
         add(lroadLab);
 
         createAndAddResourceColorSquare(ColorSquare.CLAY, "resources.clay");
@@ -837,6 +850,16 @@ public class SOCHandPanel extends Panel
         offer.setVisible(false);
         offerIsResetMessage = false;
         add(offer);
+
+        // Set tooltip appearance to look like rest of SOCHandPanel; currently only this panel uses Swing tooltips
+        if (! didSwingTooltipDefaults)
+        {
+            UIManager.put("ToolTip.foreground", COLOR_FOREGROUND);
+            UIManager.put("ToolTip.background", Color.WHITE);
+            UIManager.put("ToolTip.font", DIALOG_PLAIN_10);
+
+            didSwingTooltipDefaults = true;
+        }
 
         // set the starting state of the panel
         removePlayer();
@@ -2763,6 +2786,7 @@ public class SOCHandPanel extends Panel
     protected void setLArmy(boolean haveIt)
     {
         larmyLab.setText(haveIt ? strings.get("hpan.L.army") : "");  // "L. Army"
+        larmyLab.setToolTipText(haveIt ? strings.get("hpan.L.army.tip") : null);  // "Largest Army"
     }
 
     /**
@@ -2775,6 +2799,9 @@ public class SOCHandPanel extends Panel
     {
         lroadLab.setText(haveIt ? (game.hasSeaBoard ? strings.get("hpan.L.route") : strings.get("hpan.L.road")) : "");
             // "L. Route" / "L. Road"
+        lroadLab.setToolTipText
+            (haveIt ? (game.hasSeaBoard ? strings.get("hpan.L.route.tip") : strings.get("hpan.L.road.tip")) : null);
+            // "Longest Trade Route" / "Longest Road"
     }
 
     /**
