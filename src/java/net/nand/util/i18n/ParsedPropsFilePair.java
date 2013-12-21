@@ -442,7 +442,7 @@ public class ParsedPropsFilePair
 
     /**
      * Check for rows added by the editor, with the {@link FileKeyEntry#newAdd} flag;
-     * inspect these for keys and values, clear the flag, and if needed convert them to {@link FileCommentEntry}.
+     * inspect these for keys and values, and if needed convert them to {@link FileCommentEntry}.
      * @return  True if any rows had the flag and had their contents converted (keys, values, or comments)
      */
     public boolean convertInsertedRows()
@@ -459,10 +459,8 @@ public class ParsedPropsFilePair
             if (! fke.newAdd)
                 continue;
 
-            if ((fke.key != null) && (fke.key.length() > 0))
+            if ((fke.key == null) || (fke.key.length() == 0))
             {
-                fke.newAdd = false;  // Has a key, just clear the flag
-            } else {
                 // No key: this is a comment or blank line
                 foundAny = true;
 
@@ -522,7 +520,11 @@ public class ParsedPropsFilePair
      */
     public static final class FileKeyEntry extends FileEntry
     {
-        /** Is this line newly added in the editor? */
+        /**
+         * Is this line newly added in the editor during this edit session?
+         * Remains true even after saving the file, so its {@link #key} can still be edited.
+         * @see ParsedPropsFilePair#convertInsertedRows()
+         */
         public boolean newAdd;
 
         /** key for retrieval, or {@code null} for comments at the end of the file */
