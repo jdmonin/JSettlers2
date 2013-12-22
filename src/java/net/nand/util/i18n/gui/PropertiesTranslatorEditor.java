@@ -24,6 +24,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.Point;
+import java.awt.TextComponent;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -47,11 +48,14 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
+import javax.swing.text.JTextComponent;
 
 import net.nand.util.i18n.ParsedPropsFilePair;
 import net.nand.util.i18n.PropsFileParser;
@@ -127,6 +131,13 @@ public class PropertiesTranslatorEditor
      * Columns stretch to fit the table width, so a click will always be in a column.
      */
     private int jtabClickedCol = -1;
+
+    /**
+     * Listener to double-click while editing cell text, to bring up a larger edit dialog.
+     * Added/removed to edit component in {@link JTable#prepareEditor(TableCellEditor, int, int)}
+     * / {@link JTable#removeEditor()}.
+     */
+    private CellEditorMouseListener cellListener;
 
     /**
      * Editor with source and destination files specified.
@@ -246,6 +257,8 @@ public class PropertiesTranslatorEditor
             public Component prepareEditor(final TableCellEditor editor, final int r, final int c)
             {
                 final Component ed = super.prepareEditor(editor, r, c);
+                ed.addMouseListener(cellListener);
+
                 switch (c)
                 {
                 case 1:  updateSaveButtonsForEditing(true, true);   break;  // src
@@ -256,13 +269,18 @@ public class PropertiesTranslatorEditor
                 return ed;
             }
 
-            /** Possibly disable save buttons when cell edit is complete or cancelled */
+            /** Possibly disable save buttons when cell edit is complete or cancelled; remove cellListener */
             public void removeEditor()
             {
+                final Component ed = getEditorComponent();
+                if (ed != null)
+                    ed.removeMouseListener(cellListener);
+
                 super.removeEditor();
                 updateSaveButtonsForEditing(false, false);
             }
         };
+
         jtab.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);  // don't lose current edit when focus lost
         jtab.setDefaultRenderer(Object.class, new PTCellRenderer(mod));  // background colors, etc
         // don't require double-click to edit jtab cell entries; all editable cols are String, so Object is enough
@@ -316,6 +334,8 @@ public class PropertiesTranslatorEditor
             tPopup.add(menuAddBelow);
             jtab.setComponentPopupMenu(tPopup);
         }
+
+        cellListener = new CellEditorMouseListener();
 
         // Buttons above JTable
         {
@@ -645,6 +665,90 @@ public class PropertiesTranslatorEditor
     //
 
     /**
+     * Listener to double-click while editing cell text, to bring up a larger edit dialog.
+     */
+    private class CellEditorMouseListener extends MouseAdapter
+    {
+        public void mouseReleased(MouseEvent e)
+        {
+            if (e.getClickCount() != 2)
+                return;
+
+            // Currently editing, so get any edit changes before bringing up the editor
+            String etext = null;
+            final Component ec = jtab.getEditorComponent();
+            if (ec != null)
+            {
+                if (ec instanceof JTextComponent)
+                    etext = ((JTextComponent) ec).getText();
+                else if (ec instanceof TextComponent)
+                    etext = ((TextComponent) ec).getText();
+            }
+
+            final TableCellEditor ce = jtab.getCellEditor();
+            if (ce != null)
+                ce.cancelCellEditing();
+
+            showCellEditDialog(jtabClickedRow, jtabClickedCol, etext);
+        }
+
+        /**
+         * Edit this row and column of the table in a dialog.
+         * Editor is multi-line except for column 1 (key column).
+         * Assumes is called from the event dispatch thread (from mouseReleased or similar).
+         * If not, use SwingUtilities.invokeLater.
+         * @param row  Row to edit
+         * @param col  Column to edit
+         * @param etext  Starting text for edit, or null to get text from the model cell
+         */
+        private void showCellEditDialog(final int row, final int col, String etext)
+        {
+            if (etext == null)
+                etext = (String) mod.getValueAt(row, col);
+
+            if (col == 0)
+            {
+                etext = JOptionPane.showInputDialog
+                    (jfra, strings.get("dialog.edit.key", (String) mod.getValueAt(row, 0)), etext);  // "Edit key: {0}"
+            } else {
+                final boolean isComment = mod.isRowComment(row);
+
+                if ((! isComment) && (etext.indexOf("\\n") != -1))
+                    etext = etext.replace("\\n", "\n");  // for easier editing, replace all "\n" with actual newlines
+
+                JTextComponent jtc;
+                if (isComment)
+                    jtc = new JTextField(etext, 50);
+                else
+                    jtc = new JTextArea(etext, 7, 50);
+
+                int ret = JOptionPane.showConfirmDialog
+                    (jfra, new JScrollPane(jtc), strings.get("dialog.edit.new_text"),  // "Enter the new text"
+                     JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
+                if (ret == JOptionPane.OK_OPTION)
+                {
+                    etext = jtc.getText();
+
+                    if ((! isComment) && (etext.indexOf('\n') != -1))
+                    {
+                        // TODO what if a multi-line comment is created
+                        etext = etext.replace("\n", "\\n");
+                    }
+
+                    etext = etext.trim();
+                } else {
+                    etext = null;  // canceled
+                }
+            }
+
+            if (etext == null)
+                return;  // was canceled
+
+            mod.setValueAt(etext, row, col);
+        }
+    }
+
+    /**
      * Rendering model (background colors, etc) for {@link #jtab}.
      */
     private static class PTCellRenderer extends DefaultTableCellRenderer
@@ -720,6 +824,11 @@ public class PropertiesTranslatorEditor
 
         public final int getColumnCount() { return 3; }  // key, src value, dest value
 
+        /**
+         * In our model this will always be a String.
+         *<P>
+         * {@inheritDoc}
+         */
         public Object getValueAt(final int rowIndex, final int columnIndex)
         {
             if (rowIndex >= pair.size())
@@ -931,6 +1040,15 @@ public class PropertiesTranslatorEditor
 
                 return (c != 0) || fke.newAdd;
             }
+        }
+
+        /** Is this row a comment row, not a key+value row? */
+        public boolean isRowComment(final int r)
+        {
+            if (r >= pair.size())
+                return false;
+
+            return (pair.getRow(r) instanceof ParsedPropsFilePair.FileCommentEntry);
         }
 
         /**
