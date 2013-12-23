@@ -124,15 +124,24 @@ public class PTEMain extends JFrame
             return true;
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog
-                (parent, "Please select the destination (more specific locale) .properties file, not the source file."
-                 + "\nTo open two specific files, use the 'Open Destination + Source' button.",
-                 "Select destination, not source", JOptionPane.INFORMATION_MESSAGE);
+                (parent, strings.get("dialog.open_dest.select_dest.text"),
+                    /*
+                     Please select the destination (more specific locale) .properties file, not the source file.
+                     To open two specific files, use the 'Open Destination + Source' button.
+                     */
+                 strings.get("dialog.open_dest.select_dest.title"),  // "Select destination, not source"
+                 JOptionPane.INFORMATION_MESSAGE);
         } catch (FileNotFoundException e) {
             // wrap error text in case dest is a long path
             JOptionPane.showMessageDialog
-                (parent, "Could not find less-specific source locale .properties file on disk\nto match " + dest
-                 + "\nTo open two specific files, use the 'Open Destination + Source' button.",
-                 "Source .properties file not found", JOptionPane.ERROR_MESSAGE);
+                (parent, strings.get("dialog.open_dest.no_src.text", dest),
+                    /*
+                     Could not find less-specific source locale .properties file on disk
+                     to match {0}
+                     To open two specific files, use the 'Open Destination + Source' button.
+                     */
+                 strings.get("dialog.open_dest.no_src.title"),  // "Source locale file not found"
+                 JOptionPane.ERROR_MESSAGE);
         }
 
         return false;
@@ -196,7 +205,6 @@ public class PTEMain extends JFrame
         }
 
         setTitle(strings.get("editor.window_title"));  // "Properties Translator's Editor"
-
         addWindowListener(this);  // windowClosing: save prefs and exit
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);  // check unsaved in windowClosing before dispose
 
@@ -347,11 +355,12 @@ public class PTEMain extends JFrame
     }
 
     /**
-     * Handle a click on the "Open Destination + Source" button.  Create and show the dialog to choose 2 property files.
+     * Handle a click on the "Open Destination + Source" button.
+     * Browse to the destination file, then create and show the dialog to choose 2 property files.
      */
     private final void clickedOpenDestSrc()
     {
-        final File dest = chooseFile(false, "Select destination file");
+        final File dest = chooseFile(false, strings.get("dialog.open_dest_src.select_dest_file"));  // "Select destination file"
         if (dest == null)
             return;
 
@@ -363,13 +372,19 @@ public class PTEMain extends JFrame
             {
                 // wrap error text in case dest is a long path
                 JOptionPane.showMessageDialog
-                    (this, "Could not find less-specific source locale .properties file on disk\nto match " + dest,
-                     "Source .properties file not found", JOptionPane.WARNING_MESSAGE);
+                    (this, strings.get("dialog.open_dest_src.no_src.text", dest),
+                        // "Could not find less-specific source locale .properties file on disk\nto match {0}"
+                     strings.get("dialog.open_dest.no_src.title"),
+                        // "Source .properties file not found"
+                     JOptionPane.WARNING_MESSAGE);
             }
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog
-                (this, "Please select the destination (more specific locale) .properties file, not the source file.",
-                 "Select destination, not source", JOptionPane.INFORMATION_MESSAGE);
+                (this, strings.get("dialog.open_dest_src.select_dest.text"),
+                    // "Please select the destination (more specific locale) .properties file, not the source file."
+                 strings.get("dialog.open_dest.select_dest.title"),
+                     // "Select destination, not source"
+                 JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
@@ -542,7 +557,8 @@ public class PTEMain extends JFrame
         private OpenDestSrcDialog(final File dest, final File src1)
             throws IllegalArgumentException
         {
-            super(PTEMain.this, "Select source and destination files", true);
+            super(PTEMain.this, strings.get("dialog.open_dest_src.select_src_dest_files"), true);
+                // "Select source and destination files"
             if (dest == null)
                 throw new IllegalArgumentException("null dest");
 
@@ -570,10 +586,12 @@ public class PTEMain extends JFrame
 
             p.setBorder(BorderFactory.createEmptyBorder(9, 9, 0, 9));  // button panel has a bottom margin, so 0 here
 
-            addToGrid(p, gbl, gbc, new JLabel("Select the source and destination locale files to edit."));
+            addToGrid(p, gbl, gbc, new JLabel(strings.get("dialog.open_dest_src.select_to_edit")));
+                // "Select the source and destination locale files to edit."
 
             addToGrid(p, gbl, gbc, Box.createRigidArea(new Dimension(0,15)));  // space above label
-            addToGrid(p, gbl, gbc, new JLabel("Source (less specific locale):"));
+            addToGrid(p, gbl, gbc, new JLabel(strings.get("dialog.open_dest_src.src_label")));
+                // "Source (less specific locale):"
 
             if (src1 != null)
             {
@@ -606,7 +624,7 @@ public class PTEMain extends JFrame
             gbc.weightx = 1;  // expand tfSrcOther to fill available width
             addToGrid(p, gbl, gbc, tfSrcOther);
             gbc.weightx = 0;
-            bBrowseOther = new JButton("Other...");
+            bBrowseOther = new JButton(strings.get("dialog.open_dest_src.other_"));  // "Other..."
             bBrowseOther.setMnemonic(KeyEvent.VK_O);
             bBrowseOther.addActionListener(this);
             gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -620,12 +638,13 @@ public class PTEMain extends JFrame
             radios.add(bSrcOther);
 
             addToGrid(p, gbl, gbc, Box.createRigidArea(new Dimension(0, 15)));  // space above label
-            addToGrid(p, gbl, gbc, new JLabel("Destination (more specific locale):"));
+            addToGrid(p, gbl, gbc, new JLabel(strings.get("dialog.open_dest_src.dest_label")));
+                // "Destination (more specific locale):"
             addToGrid(p, gbl, gbc, new JLabel(dest.getPath()));  // show dest's entire path for clarity
 
             JPanel btns = new JPanel(new FlowLayout(FlowLayout.TRAILING, 3, 15));  // 15 for space above buttons
-            bEdit = addBtn(btns, this, "Edit", KeyEvent.VK_E);
-            bCancel = addBtn(btns, this, "Cancel", KeyEvent.VK_ESCAPE);
+            bEdit = addBtn(btns, this, strings.get("base.edit"), KeyEvent.VK_E);
+            bCancel = addBtn(btns, this, strings.get("base.cancel"), KeyEvent.VK_ESCAPE);
             addToGrid(p, gbl, gbc, btns);
 
             setContentPane(p);
@@ -710,8 +729,9 @@ public class PTEMain extends JFrame
             if ((dest == null) || ! dest.exists())
             {
                 JOptionPane.showMessageDialog
-                    (this, "Destination locale file not found.",
-                     "File not found", JOptionPane.WARNING_MESSAGE);
+                    (this, strings.get("dialog.open_dest_src.no_dest.text"),  // "Destination locale file not found."
+                     strings.get("dialog.open_dest_src.file_not_found"),      // "File not found",
+                     JOptionPane.WARNING_MESSAGE);
             }
             else if ((src == null) || ! src.exists())
             {
@@ -720,13 +740,16 @@ public class PTEMain extends JFrame
                     && ( (bSrc2 == null) || ! bSrc2.isSelected() )
                     && ( tfSrcOther.getText().length() == 0 ))
                 {
+                    final String choose_src_file = strings.get("dialog.open_dest_src.choose_src_file");
+                        // "Choose a source locale file."
                     JOptionPane.showMessageDialog
-                        (this, "Choose a source locale file.",
-                         "Choose a source locale file.", JOptionPane.INFORMATION_MESSAGE);
+                        (this, choose_src_file,
+                         choose_src_file, JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog
-                        (this, "Source locale file not found.",
-                         "File not found", JOptionPane.WARNING_MESSAGE);
+                        (this, strings.get("dialog.open_dest_src.no_src.title"),  // "Source locale file not found."
+                         strings.get("dialog.open_dest_src.file_not_found"),      // "File not found",
+                         JOptionPane.WARNING_MESSAGE);
                 }
             } else {
                 dispose();
@@ -741,14 +764,18 @@ public class PTEMain extends JFrame
          */
         private boolean chooseSrcOther()
         {
-            File f = chooseFile(false, "Choose source locale file");
+            File f = chooseFile(false, strings.get("dialog.open_dest_src.choose_src_file"));
+                // "Choose a source locale file."
             if (f != null)
             {
                 if (f.getAbsolutePath().equals(dest.getAbsolutePath()))
                 {
                     JOptionPane.showMessageDialog
-                        (this, "This file is the destination file, it cannot also be the source.",
-                         "Source is destination", JOptionPane.WARNING_MESSAGE);
+                        (this, strings.get("dialog.open_dest_src.src_is_dest.text"),
+                             // "This file is the destination file, it cannot also be the source."
+                         strings.get("dialog.open_dest_src.src_is_dest.title"),
+                             // "Source is destination",
+                         JOptionPane.WARNING_MESSAGE);
                     return false;
                 }
 
