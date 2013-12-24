@@ -23,6 +23,7 @@ package soc.server;
 
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Vector;
 
 import soc.debug.D;
@@ -279,7 +280,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @param gaLocaleStr  the game creator's locale, to later set {@link SOCGame#hasMultiLocales} if needed (added in 2.0.00)
      * @param gaOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      *                Should already be validated, by calling
-     *                {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}
+     *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *                with <tt>doServerPreadjust</tt> true.
      * @param typeHandler  Game type handler for this game
      * @return new game object, or null if it already existed

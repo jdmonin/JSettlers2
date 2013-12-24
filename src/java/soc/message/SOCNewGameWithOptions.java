@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011,2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 package soc.message;
 
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGame;
@@ -67,7 +68,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
      *            minVers also designates if the game is joinable.
      * @param optstr Requested game options, in the format returned by
-     *            {@link soc.game.SOCGameOption#packOptionsToString(Hashtable, boolean) SOCGameOption.packOptionsToString(opts, false)},
+     *            {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean) SOCGameOption.packOptionsToString(opts, false)},
      *            or null
      * @param minVers Minimum client version required for this game, or -1.
      */
@@ -102,7 +103,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
 
     /**
      * @return the options for the new game, in the format returned by
-     *         {@link soc.game.SOCGameOption#packOptionsToString(Hashtable, boolean) SOCGameOption.packOptionsToString(opts, false)},
+     *         {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean) SOCGameOption.packOptionsToString(opts, false)},
      *         or null if no options
      */
     public String getOptionsString()
@@ -125,7 +126,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      * @param ga  the name of the game; the game name may have
      *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
      * @param optstr Requested game options, in the format returned by
-     *            {@link soc.game.SOCGameOption#packOptionsToString(Hashtable, boolean)},
+     *            {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean)},
      *            or null
      * @param minVers Minimum client version required, or -1
      * @return the command string

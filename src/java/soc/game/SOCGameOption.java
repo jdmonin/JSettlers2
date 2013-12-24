@@ -61,7 +61,7 @@ import soc.message.SOCMessage;
  * name keys with '_' can't be sent to older clients.
  * Options starting with '_' are meant to be set by the server during game creation,
  * not requested by the client. They're set during
- * {@link #adjustOptionsToKnown(Hashtable, Hashtable, boolean) adjustOptionsToKnown(Hashtable, null, true)}.
+ * {@link #adjustOptionsToKnown(Map, Map, boolean) adjustOptionsToKnown(opts, null, true)}.
  *<P>
  * For the same reason, option string values (and enum choices) must not contain
  * certain characters or span more than 1 line; this is checked by calling
@@ -75,7 +75,7 @@ import soc.message.SOCMessage;
  * Since 1.1.13, when the user changes options while creating a new game, related
  * options can be changed on-screen for consistency; see {@link SOCGameOption.ChangeListener} for details.
  * If you create a ChangeListener, consider adding equivalent code to
- * {@link #adjustOptionsToKnown(Hashtable, Hashtable, boolean)} for the server side.
+ * {@link #adjustOptionsToKnown(Map, Map, boolean)} for the server side.
  *<P>
  * <B>Sea Board Scenarios:</B><br>
  * Game scenarios were introduced with the large sea board in 2.0.00.
@@ -114,7 +114,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * {@link #defaultIntValue} for {@link #OTYPE_INT} or {@link #OTYPE_ENUM})
      *<P>
      * Only recommended for seldom-used options.
-     * The removal is done in {@link #adjustOptionsToKnown(Hashtable, Hashtable, boolean)}.
+     * The removal is done in {@link #adjustOptionsToKnown(Map, Map, boolean)}.
      * Once this flag is set for an option, it should not be un-set if the
      * option is changed in a later version.
      *<P>
@@ -221,7 +221,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *<LI> Add the new option's description to the {@code gameopt.*} section of
      *   {@code server/strings/toClient_*.properties} to be sent to clients if needed.
      *<LI> If only <em>some values</em> of the option will require client changes,
-     *   also update {@link #getMinVersion(Hashtable)}.  (For example, if "PL"'s value is 5 or 6,
+     *   also update {@link #getMinVersion(Map)}.  (For example, if "PL"'s value is 5 or 6,
      *   a new client would be needed to display that many players at once, but 2 - 4
      *   can use any client version.) <BR>
      *   If this is the case and your option type
@@ -230,7 +230,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *   Otherwise, update {@link #getMaxIntValueForVersion(String, int)}.
      *<LI> If the new option can be used by old clients by changing the values of
      *   <em>other</em> related options when game options are sent to those versions,
-     *   add code to {@link #getMinVersion(Hashtable)}. <BR>
+     *   add code to {@link #getMinVersion(Map)}. <BR>
      *   For example, the boolean "PLB" can force use of the 6-player board in
      *   versions 1.1.08 - 1.1.12 by changing "PL"'s value to 5 or 6.
      *<LI> Within {@link SOCGame}, don't add any object fields due to the new option;
@@ -291,7 +291,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *<LI> Change the option here in initAllOptions; change the "last modified" field to
      *   the current game version. Otherwise the server can't tell the client what has
      *   changed about the option.
-     *<LI> If new values require a newer minimum client version, add code to {@link #getMinVersion(Hashtable)}.
+     *<LI> If new values require a newer minimum client version, add code to {@link #getMinVersion(Map)}.
      *<LI> If adding a new enum value for {@link #OTYPE_ENUM} and {@link #OTYPE_ENUMBOOL},
      *   add code to {@link #getMaxEnumValueForVersion(String, int)}.
      *<LI> If increasing the maximum value of an int-valued parameter, and the new maximum
@@ -652,7 +652,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * Minimum game version supporting this option, or -1;
      * same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
      * Public direct usage of this is discouraged;
-     * use {@link #optionsMinimumVersion(Hashtable)} or {@link #getMinVersion(Hashtable)} instead,
+     * use {@link #optionsMinimumVersion(Map)} or {@link #getMinVersion(Map)} instead,
      * because the current value of an option can change its minimum version.
      * For example, a 5- or 6-player game will need a newer client than 4 players,
      * but option "PL"'s minVersion is -1, to allow 2- or 3-player games with any client.
@@ -1036,7 +1036,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param keptEnumVals  Enum values to keep; should be a subset of enumOpt.{@link #enumVals}
      *                 containing the first n values of that list.
      * @see #getMaxEnumValueForVersion(String, int)
-     * @see #optionsNewerThanVersion(int, boolean, boolean, Hashtable)
+     * @see #optionsNewerThanVersion(int, boolean, boolean, Map)
      * @throws NullPointerException  if keptEnumVals is null
      */
     protected SOCGameOption(SOCGameOption enumOpt, String[] keptEnumVals)
@@ -1056,7 +1056,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *                <tt>maxIntValue</tt>, the default will be reduced to that.
      * @param maxIntValue  Maximum value to keep, in the copy
      * @see #getMaxIntValueForVersion(String, int)
-     * @see #optionsNewerThanVersion(int, boolean, boolean, Hashtable)
+     * @see #optionsNewerThanVersion(int, boolean, boolean, Map)
      * @since 1.1.08
      */
     protected SOCGameOption(SOCGameOption intOpt, final int maxIntValue)
@@ -1161,18 +1161,18 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * called at an older-version client.  The server will let the client know if it's too
      * old to join or create a game due to options.
      *
-     * @param  opts  If null, return the minimum version supporting this option.
+     * @param opts  If null, return the minimum version supporting this option.
      *               Otherwise, the minimum version at which this option's value isn't changed
      *               (for compatibility) by the presence of other options.
      * @return minimum version, or -1;
      *     same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
      *     If <tt>opts != null</tt>, the returned version will either be -1 or >= 1107
      *     (the first version with game options).
-     * @see #optionsMinimumVersion(Hashtable)
+     * @see #optionsMinimumVersion(Map)
      * @see #getMaxEnumValueForVersion(String, int)
      * @see #getMaxIntValueForVersion(String, int)
      */
-    public int getMinVersion(Hashtable<?, SOCGameOption> opts)
+    public int getMinVersion(final Map<?, SOCGameOption> opts)
     {
         // Check for unset/droppable options
         switch (optType)
@@ -1375,14 +1375,14 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     }
 
     /**
-     * @param opts  a hashtable of SOCGameOptions, or null
+     * @param opts  a map of SOCGameOptions, or null
      * @return a deep copy of all option objects within opts, or null if opts is null
      */
     public static Hashtable<String, SOCGameOption> cloneOptions(Hashtable<String, SOCGameOption> opts)
     {
     	if (opts == null)
     	    return null;
-    
+
     	Hashtable<String, SOCGameOption> opts2 = new Hashtable<String, SOCGameOption>();
     	for (Map.Entry<String, SOCGameOption> e : opts.entrySet())
     	{
@@ -1395,6 +1395,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     	        throw new IllegalStateException("Clone failed!", ce);
     	    }
     	}
+
     	return opts2;
     }
 
@@ -1430,12 +1431,13 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
     /**
      * Search these options and find any unknown ones (type {@link #OTYPE_UNKNOWN})
-     * @param opts hashtable of SOCGameOption
+     * @param opts  map of SOCGameOptions
      * @return vector(SOCGameOption) of unknown options, or null if all are known
      */
-    public static Vector<String> findUnknowns(Hashtable<String, SOCGameOption> opts)
+    public static Vector<String> findUnknowns(final Map<String, SOCGameOption> opts)
     {
         Vector<String> unknowns = null;
+
         for (Map.Entry<String, SOCGameOption> e : opts.entrySet())
         {
             SOCGameOption op = e.getValue();
@@ -1443,9 +1445,11 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
             {
                 if (unknowns == null)
                     unknowns = new Vector<String>();
+
                 unknowns.addElement(op.optKey);
             }
         }
+
         return unknowns;
     }
 
@@ -1457,7 +1461,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *            Suitable only for sending defaults.
      * @param hideLongNameOpts omit options with long key names or underscores?
      *            Set true if client's version &lt; {@link #VERSION_FOR_LONGER_OPTNAMES}.
-     * @return string of name-value pairs, same format as {@link #packOptionsToString(Hashtable, boolean)};
+     * @return string of name-value pairs, same format as {@link #packOptionsToString(Map, boolean)};
      *         any gameoptions of {@link #OTYPE_UNKNOWN} will not be
      *         part of the string.
      * @see #parseOptionsToHash(String)
@@ -1471,10 +1475,10 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * Utility - build a string of option name-value pairs.
      * This can be unpacked with {@link #parseOptionsToHash(String)}.
      *
-     * @param ohash Hashtable of SOCGameOptions, or null
+     * @param omap  Map of SOCGameOptions, or null
      * @param hideEmptyStringOpts omit string-valued options which are empty?
      *            Suitable only for sending defaults.
-     * @return string of name-value pairs, or "-" for an empty or null ohash;
+     * @return string of name-value pairs, or "-" for an empty or null omap;
      *         any gameoptions of {@link #OTYPE_UNKNOWN} will not be
      *         part of the string. Format: k1=t,k2=f,k3=10,k4=t7,k5=f7.
      * The format for each value depends on its type:
@@ -1485,25 +1489,25 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *<LI>All other optTypes: int value or string value, as appropriate
      *</UL>
      *
-     * @throws ClassCastException if hashtable contains anything other
+     * @throws ClassCastException if {@code omap} contains anything other
      *         than SOCGameOptions
      * @see #parseOptionNameValue(String, boolean)
      * @see #packValue(StringBuffer)
      */
     public static String packOptionsToString
-        (Hashtable<String, SOCGameOption> ohash, boolean hideEmptyStringOpts)
+        (final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts)
 	throws ClassCastException
     {
-        return packOptionsToString(ohash, hideEmptyStringOpts, -2);
+        return packOptionsToString(omap, hideEmptyStringOpts, -2);
     }
 
     /**
      * Utility - build a string of option name-value pairs,
      * adjusting for old clients if necessary.
      * This can be unpacked with {@link #parseOptionsToHash(String)}.
-     * See {@link #packOptionsToString(Hashtable, boolean)} javadoc for details.
+     * See {@link #packOptionsToString(Map, boolean)} javadoc for details.
      * 
-     * @param ohash Hashtable of SOCGameOptions, or null
+     * @param omap  Map of SOCGameOptions, or null
      * @param hideEmptyStringOpts omit string-valued options which are empty?
      *            Suitable only for sending defaults.
      * @param cliVers  Client version; assumed >= {@link soc.message.SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
@@ -1511,27 +1515,27 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *            Use -2 if the client version doesn't matter, or if adjustment should not be done.
      *            Use -3 to omit options with long names, and do no other adjustment;
      *               for use with clients older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES}.
-     * @return string of name-value pairs, or "-" for an empty or null ohash;
-     *         see {@link #packOptionsToString(Hashtable, boolean)} javadoc for details.
-     * @throws ClassCastException if hashtable contains anything other
+     * @return string of name-value pairs, or "-" for an empty or null omap;
+     *         see {@link #packOptionsToString(Map, boolean)} javadoc for details.
+     * @throws ClassCastException if {@code omap} contains anything other
      *         than SOCGameOptions
      */
     public static String packOptionsToString
-        (Hashtable<String, SOCGameOption> ohash, boolean hideEmptyStringOpts, final int cliVers)
+        (final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts, final int cliVers)
         throws ClassCastException
     {
-    	if ((ohash == null) || ohash.size() == 0)
-    	    return "-";
-    
+        if ((omap == null) || omap.size() == 0)
+            return "-";
+
     	// If the "PLB" option is set, old client versions
     	//  may need adjustment of the "PL" option.
-    	final boolean hasOptPLB = (cliVers > -2) && ohash.containsKey("PLB")
-    	    && ohash.get("PLB").boolValue;
-    
+        final boolean hasOptPLB = (cliVers > -2) && omap.containsKey("PLB")
+            && omap.get("PLB").boolValue;
+
     	// Pack all non-unknown options:
     	StringBuffer sb = new StringBuffer();
     	boolean hadAny = false;
-    	for (SOCGameOption op : ohash.values())
+    	for (SOCGameOption op : omap.values())
     	{
     	    if (op.optType == OTYPE_UNKNOWN)
     	        continue;  // <-- Skip this one --
@@ -1548,7 +1552,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     		hadAny = true;
     	    sb.append(op.optKey);
     	    sb.append('=');
-    
+
     	    boolean wroteValueAlready = false;
     	    if (cliVers > -2)
     	    {
@@ -1559,27 +1563,28 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     	            // but the client is too old to recognize PLB,
     	            // make sure "PL" is large enough to make the
     	            // client use that board.
-    
+
     	            final int realValue = op.intValue;
     	            op.intValue = 5;  // big enough for 6-player
     	            op.packValue(sb);
                         wroteValueAlready = true;
     	            op.intValue = realValue;
     	        }
-    
+
     	        // NEW_OPTION - Check your option vs old clients here.
     	    }
     	    if (! wroteValueAlready)
     	        op.packValue(sb);
     	}
+
     	return sb.toString();
     }
 
     /**
      * Pack current value of this option into a string.
-     * This is used in {@link #packOptionsToString(Hashtable, boolean)} and
+     * This is used in {@link #packOptionsToString(Map, boolean)} and
      * read in {@link #parseOptionNameValue(String, boolean)} and {@link #parseOptionsToHash(String)}.
-     * See {@link #packOptionsToString(Hashtable, boolean)} for the string's format.
+     * See {@link #packOptionsToString(Map, boolean)} for the string's format.
      *
      * @param sb Pack into (append to) this buffer
      */
@@ -1617,7 +1622,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * Utility - build a hashtable by parsing a list of option name-value pairs.
      *
      * @param ostr string of name-value pairs, as created by
-     *             {@link #packOptionsToString(Hashtable, boolean)}.
+     *             {@link #packOptionsToString(Map, boolean)}.
      *             A leading comma is OK (possible artifact of StringTokenizer
      *             coming from over the network).
      *             If ostr=="-", hashtable will be null.
@@ -1652,10 +1657,10 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * Utility - parse a single name-value pair produced by packOptionsToString.
      * Expected format of nvpair: "optname=optvalue".
      * Expected format of optvalue depends on its type.
-     * See {@link #packOptionsToString(Hashtable, boolean)} for the format.
+     * See {@link #packOptionsToString(Map, boolean)} for the format.
      *
      * @param nvpair Name-value pair string, as created by
-     *               {@link #packOptionsToString(Hashtable, boolean)}.
+     *               {@link #packOptionsToString(Map, boolean)}.
      *               'T' or 't' is always allowed for bool value, regardless of forceNameUpcase.
      * @param forceNameUpcase Call {@link String#toUpperCase()} on keyname within nvpair?
      *               For friendlier parsing of manually entered (command-line) nvpair strings.
@@ -1754,10 +1759,10 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param opts  a set of SOCGameOptions; not null
      * @return the highest 'minimum version' among these options, or -1
      * @throws ClassCastException if values contain a non-{@link SOCGameOption}
-     * @see #optionsMinimumVersion(Hashtable, boolean)
-     * @see #getMinVersion(Hashtable)
+     * @see #optionsMinimumVersion(Map, boolean)
+     * @see #getMinVersion(Map)
      */
-    public static int optionsMinimumVersion(Hashtable<?, SOCGameOption> opts)
+    public static int optionsMinimumVersion(final Map<?, SOCGameOption> opts)
         throws ClassCastException
     {
         return optionsMinimumVersion(opts, false);
@@ -1788,20 +1793,23 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *         If <tt>minCliVersionForUnchangedOpts</tt>, the returned version will either be -1 or >= 1107
      *         (the first version with game options).
      * @throws ClassCastException if values contain a non-{@link SOCGameOption}
-     * @see #optionsMinimumVersion(Hashtable)
-     * @see #getMinVersion(Hashtable)
+     * @see #optionsMinimumVersion(Map)
+     * @see #getMinVersion(Map)
      */
-    public static int optionsMinimumVersion(Hashtable<?, SOCGameOption> opts, final boolean minCliVersionForUnchangedOpts)
+    public static int optionsMinimumVersion
+        (final Map<?, SOCGameOption> opts, final boolean minCliVersionForUnchangedOpts)
 	throws ClassCastException
     {
     	int minVers = -1;
-    	final Hashtable<?, SOCGameOption> oarg = minCliVersionForUnchangedOpts ? opts : null;
+
+        final Map<?, SOCGameOption> oarg = minCliVersionForUnchangedOpts ? opts : null;
     	for (SOCGameOption op : opts.values())
     	{
             int opMin = op.getMinVersion(oarg);  // includes any option value checking for minVers
     	    if (opMin > minVers)
     	        minVers = opMin;
     	}
+
     	return minVers;
     }
 
@@ -1830,7 +1838,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param vers  Version to compare known options against
      * @param checkValues  Which mode: Check options' current values and {@link #minVersion},
      *              not their {@link #lastModVersion}?  An option's minimum version
-     *              can increase based on its value; see {@link #getMinVersion(Hashtable)}.
+     *              can increase based on its value; see {@link #getMinVersion(Map)}.
      * @param trimEnums  For enum-type options where minVersion changes based on current value,
      *              should we remove too-new values from the returned option info?
      *              This lets us send only the permitted values to an older client.
@@ -1838,17 +1846,17 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *              if null, use the "known option" set
      * @return Vector of the newer (added or changed) {@link SOCGameOption}s, or null
      *     if all are known and unchanged since <tt>vers</tt>.
-     * @see #optionsForVersion(int, Hashtable)
+     * @see #optionsForVersion(int, Map)
      */
     public static Vector<SOCGameOption> optionsNewerThanVersion
-        (final int vers, final boolean checkValues, final boolean trimEnums, Hashtable<String, SOCGameOption> opts)
+        (final int vers, final boolean checkValues, final boolean trimEnums, final Map<String, SOCGameOption> opts)
     {
         return implOptionsVersionCheck(vers, false, checkValues, trimEnums, opts);
     }
 
     /**
      * Get all options valid at version {@code vers}.  If necessary, trim enum value ranges or int value ranges if
-     * range was smaller at {@code vers}, like {@link #optionsNewerThanVersion(int, boolean, boolean, Hashtable)} does.
+     * range was smaller at {@code vers}, like {@link #optionsNewerThanVersion(int, boolean, boolean, Map)} does.
      *<P>
      * If {@code vers} from a client is newer than this version of SOCGameOption, will return all options known at this
      * version, which may not include all of the newer version's options.  Client game-option negotiation handles this
@@ -1861,15 +1869,15 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @since 2.0.00
      */
     public static Vector<SOCGameOption> optionsForVersion
-        (final int vers, Hashtable<String, SOCGameOption> opts)
+        (final int vers, final Map<String, SOCGameOption> opts)
     {
         return implOptionsVersionCheck(vers, true, false, true, opts);
     }
 
     /**
      * Get all options added or changed since version {@code vers}, or all options valid at {@code vers},
-     * to implement {@link #optionsNewerThanVersion(int, boolean, boolean, Hashtable)}
-     * and {@link #optionsForVersion(int, Hashtable)}.
+     * to implement {@link #optionsNewerThanVersion(int, boolean, boolean, Map)}
+     * and {@link #optionsForVersion(int, Map)}.
      * @param vers  Version to compare options against
      * @param getAllForVersion  True to get all valid options ({@code optionsForVersion} mode),
      *              false for newer added or changed options only ({@code optionsNewerThanVersion} modes).
@@ -1877,7 +1885,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *              all options known at this version.
      * @param checkValues  If not {@code getAllForVersion}, which mode to run in:
      *              Check options' current values and {@link #minVersion}, not their {@link #lastModVersion}?
-     *              An option's minimum version can increase based on its value; see {@link #getMinVersion(Hashtable)}.
+     *              An option's minimum version can increase based on its value; see {@link #getMinVersion(Map)}.
      * @param trimEnums  For enum-type options where minVersion changes based on current value,
      *              should we remove too-new values from the returned option info?
      *              This lets us send only the permitted values to an older client.
@@ -1890,7 +1898,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      */
     private static Vector<SOCGameOption> implOptionsVersionCheck
         (final int vers, final boolean getAllForVersion, final boolean checkValues, final boolean trimEnums,
-         Hashtable<String, SOCGameOption> opts)
+         Map<String, SOCGameOption> opts)
         throws IllegalArgumentException
     {
         if (getAllForVersion && checkValues)
@@ -2009,7 +2017,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @throws IllegalArgumentException if newOpts contains a non-SOCGameOption
      */
     public static StringBuffer adjustOptionsToKnown
-        (Hashtable<String, SOCGameOption> newOpts, Hashtable<String, SOCGameOption> knownOpts,
+        (final Map<String, SOCGameOption> newOpts, Map<String, SOCGameOption> knownOpts,
          final boolean doServerPreadjust)
         throws IllegalArgumentException
     {
@@ -2209,10 +2217,10 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param boKey   Key name for boolean option to set
      * @throws NullPointerException  if <tt>boKey</tt> isn't in <tt>newOpts</tt>
      *   and doesn't exist in the set of known options
-     * @see #setIntOption(Hashtable, String, int, boolean)
+     * @see #setIntOption(Map, String, int, boolean)
      * @since 1.1.17
      */
-    public static void setBoolOption(Hashtable<String, SOCGameOption> newOpts, final String boKey)
+    public static void setBoolOption(final Map<String, SOCGameOption> newOpts, final String boKey)
         throws NullPointerException
     {
         SOCGameOption opt = newOpts.get(boKey);
@@ -2245,11 +2253,11 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param bvalue  Set option to this boolean value (ignored if option type not intbool)
      * @throws NullPointerException  if <tt>ioKey</tt> isn't in <tt>newOpts</tt>
      *   and doesn't exist in the set of known options
-     * @see #setBoolOption(Hashtable, String)
+     * @see #setBoolOption(Map, String)
      * @since 1.1.17
      */
     public static void setIntOption
-        (Hashtable<String, SOCGameOption> newOpts, final String ioKey, final int ivalue, final boolean bvalue)
+        (final Map<String, SOCGameOption> newOpts, final String ioKey, final int ivalue, final boolean bvalue)
         throws NullPointerException
     {
         SOCGameOption opt = newOpts.get(ioKey);
@@ -2474,7 +2482,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * Called from <tt>NewGameOptionsFrame</tt>.
      *<P>
      * For <em>server-side</em> consistency adjustment of values before creating games,
-     * add code to {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}
+     * add code to {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      * that's equivalent to your ChangeListener.
      *
      * @see SOCGameOption#addChangeListener(ChangeListener)

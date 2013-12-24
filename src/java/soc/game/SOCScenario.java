@@ -307,7 +307,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 
     /**
      * Scenario's {@link SOCGameOption}s, as a formatted string
-     * from {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
+     * from {@link SOCGameOption#packOptionsToString(Map, boolean)}.
      */
     public String scOpts;
 
@@ -355,7 +355,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param longDesc  Longer descriptive text, or null; see {@link #scLongDesc} for requirements.
      * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
-     *             from {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
+     *             from {@link SOCGameOption#packOptionsToString(Map, boolean)}.
      * @throws IllegalArgumentException if key length is > 8 or not alphanumeric,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 2000 but not -1
@@ -382,7 +382,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param longDesc  Longer descriptive text, or null; see {@link #scLongDesc} for requirements.
      * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
-     *             from {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
+     *             from {@link SOCGameOption#packOptionsToString(Map, boolean)}.
      * @throws IllegalArgumentException
      *        or if key is not alphanumeric or length is > 8,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},

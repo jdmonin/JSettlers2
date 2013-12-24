@@ -1131,7 +1131,7 @@ public class SOCServer extends Server
      * @param gaName  the name of the game
      * @param gaOpts  if creating a game with options, hashtable of {@link SOCGameOption}; otherwise null.
      *                Should already be validated, by calling
-     *                {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}
+     *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *                with <tt>doServerPreadjust</tt> true.
      *
      * @return     true if c was not a member of ch before,
@@ -1140,7 +1140,7 @@ public class SOCServer extends Server
      * @throws SOCGameOptionVersionException if asking to create a game (gaOpts != null),
      *           but client's version is too low to join because of a
      *           requested game option's minimum version in gaOpts.
-     *           Calculated via {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Hashtable)}.
+     *           Calculated via {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Map)}.
      *           (this exception was added in 1.1.07)
      * @throws IllegalArgumentException if client's version is too low to join for any
      *           other reason. (this exception was added in 1.1.06)
@@ -4758,7 +4758,7 @@ public class SOCServer extends Server
      *        STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_UNKNOWN SV_NEWGAME_OPTION_UNKNOWN}) <br>
      *      - if any are too new for client's version, resp with
      *        STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_VALUE_TOONEW SV_NEWGAME_OPTION_VALUE_TOONEW}) <br>
-     *      Comparison is done by {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}.
+     *      Comparison is done by {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}.
      *  <LI> if ok: create new game with params;
      *      socgame will calc game's minCliVersion,
      *      and this method will check that against cli's version.
@@ -4777,7 +4777,7 @@ public class SOCServer extends Server
      *                  and be at most {@link #GAME_NAME_MAX_LENGTH} characters.
      * @param gameOpts  if game has options, contains {@link SOCGameOption} to create new game; if not null, will not join an existing game.
      *                  Will validate and adjust by calling
-     *                  {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}
+     *                  {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *                  with <tt>doServerPreadjust</tt> true.
      *
      * @since 1.1.07

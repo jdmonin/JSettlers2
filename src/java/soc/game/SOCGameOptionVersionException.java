@@ -21,13 +21,13 @@
 package soc.game;
 
 import java.util.Enumeration;
-import java.util.Hashtable;  // for javadocs only
+import java.util.Map;        // for javadocs only
 import java.util.Vector;
 
 /**
  * This exception indicates game option(s) too new for a client.
- * @see SOCGameOption#optionsMinimumVersion(Hashtable)
- * @see SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Hashtable)
+ * @see SOCGameOption#optionsMinimumVersion(Map)
+ * @see SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Map)
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  * @since 1.1.07
@@ -44,7 +44,7 @@ public class SOCGameOptionVersionException extends IllegalArgumentException
 
     /**
      * The {@link SOCGameOption}(s) which are too new,
-     *     as returned by {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Hashtable)}
+     *     as returned by {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Map)}
      */
     public Vector<?> problemOptionsTooNew;
 
@@ -52,7 +52,7 @@ public class SOCGameOptionVersionException extends IllegalArgumentException
      * @param optVers Minimum client version required by game options
      * @param cliVers Requesting client's version
      * @param optsValuesTooNew The {@link SOCGameOption}(s) which are too new,
-     *     as returned by {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Hashtable)}
+     *     as returned by {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Map)}
      */
     public SOCGameOptionVersionException(int optVers, int cliVers, Vector<?> optsValuesTooNew)
     {

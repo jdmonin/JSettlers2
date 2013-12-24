@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Stack;
 import java.util.Vector;
@@ -715,7 +716,7 @@ public class SOCGame implements Serializable, Cloneable
      * For use at server; lowest version of client which can connect to
      * this game (based on game options/features added in a given version),
      * or -1 if unknown.
-     * Calculated by {@link SOCGameOption#optionsMinimumVersion(Hashtable)}.
+     * Calculated by {@link SOCGameOption#optionsMinimumVersion(Map)}.
      * Format is the internal integer format, see {@link soc.util.Version#versionNumber()}.
      * Value may sometimes be too low at client, see {@link #getClientVersionMinRequired()} for details.
      */
@@ -1103,10 +1104,10 @@ public class SOCGame implements Serializable, Cloneable
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param op if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      *           Will validate options by calling
-     *           {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}
+     *           {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *           with <tt>doServerPreadjust</tt> false,
      *           and set game's minimum version by calling
-     *           {@link SOCGameOption#optionsMinimumVersion(Hashtable)}.
+     *           {@link SOCGameOption#optionsMinimumVersion(Map)}.
      * @throws IllegalArgumentException if op contains unknown options, or any
      *             object class besides {@link SOCGameOption}
      * @since 1.1.07
@@ -1142,10 +1143,10 @@ public class SOCGame implements Serializable, Cloneable
      * @param isActive  true if this is an active game, false for inactive
      * @param op if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      *           Will validate options by calling
-     *           {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}
+     *           {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *           with <tt>doServerPreadjust</tt> false,
      *           and set game's minimum version by calling
-     *           {@link SOCGameOption#optionsMinimumVersion(Hashtable)}.
+     *           {@link SOCGameOption#optionsMinimumVersion(Map)}.
      * @throws IllegalArgumentException if op contains unknown options, or any
      *             object class besides {@link SOCGameOption}, or if game name
      *             fails {@link SOCMessage#isSingleLineAndSafe(String)}.
@@ -1800,10 +1801,10 @@ public class SOCGame implements Serializable, Cloneable
      * For use at server; lowest version of client which can connect to
      * this game (based on game options/features added in a given version),
      * or -1 if unknown or if this game has no opts.
-     * Calculated by {@link SOCGameOption#optionsMinimumVersion(Hashtable)}.
+     * Calculated by {@link SOCGameOption#optionsMinimumVersion(Map)}.
      *<P>
      * For options where the minimum version changes with its current value, some
-     * option version data is hardcoded in {@link SOCGameOption#getMinVersion(Hashtable)},
+     * option version data is hardcoded in {@link SOCGameOption#getMinVersion(Map)},
      * executed on the server with a newer version than an older client.  So, the
      * version returned may be too low when called at that client.  The server
      * will let the client know if it's too old to join or create a game due

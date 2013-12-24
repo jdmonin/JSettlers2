@@ -22,6 +22,7 @@
 package soc.message;
 
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.StringTokenizer;
 import soc.game.SOCGameOption;
 
@@ -46,7 +47,7 @@ import soc.game.SOCGameOption;
  */
 public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
 {
-    /** won't be null, even if opts is null, due to {@link SOCGameOption#packOptionsToString(Hashtable, boolean)} format. */
+    /** won't be null, even if opts is null, due to {@link SOCGameOption#packOptionsToString(Map, boolean)} format. */
     private String optsStr;
 
     /** may be null */
@@ -79,7 +80,7 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      * @param hn  host name
      * @param ga  name of the game
      * @param optstr the game options as a string name-value pairs, as created by
-     *             {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
+     *             {@link SOCGameOption#packOptionsToString(Map, boolean)}.
      */
     public SOCNewGameWithOptionsRequest(String nn, String pw, String hn, String ga, String optstr)
     {
@@ -116,7 +117,7 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      * @param hn  the host name
      * @param ga  the game name
      * @param optstr the game options as a string name-value pairs, as created by
-     *             {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
+     *             {@link SOCGameOption#packOptionsToString(Map, boolean)}.
      * @return    the command string
      */
     public static String toCmd(String nn, String pw, String hn, String ga, String optstr)

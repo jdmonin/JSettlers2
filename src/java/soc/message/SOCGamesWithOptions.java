@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2011 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011,2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -66,7 +66,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
     /**
      * Get the list of games (and option strings).
      * List contains each game's name and option strings sent from server, as packed by
-     * {@link soc.game.SOCGameOption#packOptionsToString(java.util.Hashtable, boolean)}.
+     * {@link soc.game.SOCGameOption#packOptionsToString(java.util.Map, boolean) SOCGameOption.packOptionsToString(opts, boolean)}.
      *<P>
      * Game names may be marked with the prefix {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE};
      * this will be removed from their names before adding to the returned game list.
