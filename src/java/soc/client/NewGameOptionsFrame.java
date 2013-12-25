@@ -48,9 +48,9 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
-import java.util.Vector;
 
 import soc.client.SOCPlayerClient.GameAwtDisplay;
 import soc.game.SOCGame;
@@ -1296,7 +1296,7 @@ public class NewGameOptionsFrame extends Frame
             System.err.println();
         }
 
-        Vector<SOCGameOption> refresh = SOCGameOption.getAndClearRefreshList();
+        List<SOCGameOption> refresh = SOCGameOption.getAndClearRefreshList();
         if (refresh == null)
             return;  // <--- Early return: Nothing else changed ---
 
@@ -1305,7 +1305,7 @@ public class NewGameOptionsFrame extends Frame
             return;  // should only be null if readOnly, and thus no changes to values anyway
         for (int i = refresh.size() - 1; i >= 0; --i)
         {
-            final SOCGameOption op = refresh.elementAt(i);
+            final SOCGameOption op = refresh.get(i);
             final Component opComp = optsControls.get(op.optKey);
 
             switch (op.optType)  // OTYPE_*

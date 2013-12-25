@@ -1221,7 +1221,7 @@ public class SOCServer extends Server
                 if (gVers > cliVers)
                 {
                     // Which requested option(s) are too new for client?
-                    Vector<SOCGameOption> optsValuesTooNew = SOCGameOption.optionsNewerThanVersion
+                    List<SOCGameOption> optsValuesTooNew = SOCGameOption.optionsNewerThanVersion
                         (cliVers, true, false, gaOpts);
                     throw new SOCGameOptionVersionException(gVers, cliVers, optsValuesTooNew);
 
@@ -5932,7 +5932,7 @@ public class SOCServer extends Server
         final int cliVers = c.getVersion();
         boolean alreadyTrimmedEnums = false;
         Vector<String> okeys = mes.getOptionKeys();
-        Vector<SOCGameOption> opts = null;
+        List<SOCGameOption> opts = null;
 
         // check for request for i18n localized descriptions (client v2.0.00 or newer);
         // if we don't have game opt localization for client's locale, ignore the request.
@@ -6007,7 +6007,7 @@ public class SOCServer extends Server
 
                 if (opts != null)
                 {
-                    opt = opts.elementAt(i);
+                    opt = opts.get(i);
                     if (opt.minVersion > cliVers)
                     {
                         opt = new SOCGameOption(opt.optKey);  // OTYPE_UNKNOWN

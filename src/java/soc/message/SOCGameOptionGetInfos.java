@@ -22,6 +22,7 @@
 package soc.message;
 
 import java.util.Enumeration;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -152,7 +153,7 @@ public class SOCGameOptionGetInfos extends SOCMessage
     public String toCmd()
     {
     	if (optkeys != null)
-            return toCmd(optkeys.elements(), hasTokenGetI18nDescs);
+            return toCmd(optkeys, hasTokenGetI18nDescs);
     	else
             return toCmd(null, hasTokenGetI18nDescs);
     }
@@ -160,7 +161,7 @@ public class SOCGameOptionGetInfos extends SOCMessage
     /**
      * GAMEOPTIONGETINFOS sep optkeys
      *
-     * @param opts  the list of option keynames, as an enum of Strings or SOCGameOptions,
+     * @param opts  the list of option keynames, as a list of Strings or SOCGameOptions,
      *            or null to use "-" as 'optkeys'
      * @param withTokenI18nDescs  true if client is also asking server for localized game option descriptions
      *            (v2.0.00 and newer); will send {@link #OPTKEY_GET_I18N_DESCS} along with {@code opts}.
@@ -168,27 +169,26 @@ public class SOCGameOptionGetInfos extends SOCMessage
      *            {@link soc.util.SOCStringManager#VERSION_FOR_I18N SOCStringManager.VERSION_FOR_I18N}.
      * @return    the command string
      */
-    public static String toCmd(final Enumeration<?> opts, final boolean withTokenI18nDescs)
+    public static String toCmd(final List<?> opts, final boolean withTokenI18nDescs)
     {
     	StringBuffer cmd = new StringBuffer(Integer.toString(GAMEOPTIONGETINFOS));
     	cmd.append(sep);
 
-        if (opts == null)
+        if ((opts == null) || opts.isEmpty())
         {
             cmd.append("-");
         } else {
             try
             {
-                Object o = opts.nextElement();
-                if (o instanceof SOCGameOption)
-                    cmd.append(((SOCGameOption) o).optKey);
-                else
-                    cmd.append((String) o);
+                boolean hadAny = false;
 
-                while (opts.hasMoreElements())
+                for (final Object o : opts)
                 {
-                    cmd.append(sep2);
-                    o = opts.nextElement();
+                    if (hadAny)
+                        cmd.append(sep2);
+                    else
+                        hadAny = true;
+
                     if (o instanceof SOCGameOption)
                         cmd.append(((SOCGameOption) o).optKey);
                     else

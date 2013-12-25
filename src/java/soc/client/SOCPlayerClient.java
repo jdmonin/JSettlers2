@@ -3022,7 +3022,7 @@ public class SOCPlayerClient
             {
                 // Older server: Look for options created or changed since server's version.
                 // Ask it what it knows about them.
-                Vector<SOCGameOption> tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false, false, null);
+                List<SOCGameOption> tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false, false, null);
                 if ((tooNewOpts != null) && (sVersion < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES) && ! isPractice)
                 {
                     // Server is older than 2.0.00; we can't send it any long option names.
@@ -3047,7 +3047,7 @@ public class SOCPlayerClient
                 {
                     if (! isPractice)
                         gameDisplay.optionsRequested();
-                    gmgr.put(SOCGameOptionGetInfos.toCmd(tooNewOpts.elements(), withTokenI18n), isPractice);
+                    gmgr.put(SOCGameOptionGetInfos.toCmd(tooNewOpts, withTokenI18n), isPractice);
                 }
             } else {
                 // server is too old to understand options. Can't happen with local practice srv,
@@ -3101,7 +3101,7 @@ public class SOCPlayerClient
                 while (st.hasMoreTokens())
                     optNames.addElement(st.nextToken());
                 StringBuffer opts = new StringBuffer();
-                Hashtable<String, SOCGameOption> knowns = isPractice ? practiceServGameOpts.optionSet : tcpServGameOpts.optionSet;
+                final Map<String, SOCGameOption> knowns = isPractice ? practiceServGameOpts.optionSet : tcpServGameOpts.optionSet;
                 for (int i = 0; i < optNames.size(); ++i)
                 {
                     opts.append('\n');
@@ -4374,7 +4374,7 @@ public class SOCPlayerClient
         else
             opts = tcpServGameOpts;
 
-        Vector<String> unknowns;
+        final List<String> unknowns;
         synchronized(opts)
         {
             // receiveDefaults sets opts.defaultsReceived, may set opts.allOptionsReceived
@@ -4390,7 +4390,7 @@ public class SOCPlayerClient
             final boolean withTokenI18n =
                 (sVersion >= SOCStringManager.VERSION_FOR_I18N) && (cliLocale != null)
                 && ! ("en".equals(cliLocale.getLanguage()) && "US".equals(cliLocale.getCountry()));
-            gmgr.put(SOCGameOptionGetInfos.toCmd(unknowns.elements(), withTokenI18n), isPractice);
+            gmgr.put(SOCGameOptionGetInfos.toCmd(unknowns, withTokenI18n), isPractice);
         } else {
             opts.newGameWaitingForOpts = false;
             gameDisplay.optionsReceived(opts, isPractice);
@@ -6368,7 +6368,7 @@ public class SOCPlayerClient
          *                 so ones that we don't know are {@link SOCGameOption#OTYPE_UNKNOWN}.
          * @return null if all are known, or a Vector of key names for unknown options.
          */
-        public Vector<String> receiveDefaults(Hashtable<String,SOCGameOption> servOpts)
+        public List<String> receiveDefaults(final Hashtable<String,SOCGameOption> servOpts)
         {
             // Although javadoc says "update the values", replacing the option objects does the
             // same thing; we already have parsed servOpts for all obj fields, including current value.
@@ -6387,7 +6387,8 @@ public class SOCPlayerClient
                     optionSet.put(oKey, op);  // Even OTYPE_UNKNOWN are added
                 }
             }
-            Vector<String> unknowns = SOCGameOption.findUnknowns(servOpts);
+
+            List<String> unknowns = SOCGameOption.findUnknowns(servOpts);
             allOptionsReceived = (unknowns == null);
             defaultsReceived = true;
             return unknowns;

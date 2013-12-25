@@ -20,11 +20,12 @@
  **/
 package soc.game;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import soc.message.SOCMessage;
 
@@ -157,7 +158,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @see ChangeListener
      * @since 1.1.13
      */
-    private static Vector<SOCGameOption> refreshList;
+    private static List<SOCGameOption> refreshList;
 
     /**
      * Create a set of the known options.
@@ -1404,7 +1405,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param key  Option key
      * @param clone  True if a copy of the option is needed; set this true
      *               unless you're sure you won't be changing any fields of
-     *               its original object, which is a shared copy in a static hash.
+     *               its original object, which is a shared copy in a static namekey->object map.
      * @return information about a known option, or null if none with that key
      * @throws IllegalStateException  if {@code clone} but the object couldn't be cloned; this isn't expected to ever happen
      */
@@ -1432,11 +1433,11 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     /**
      * Search these options and find any unknown ones (type {@link #OTYPE_UNKNOWN})
      * @param opts  map of SOCGameOptions
-     * @return vector(SOCGameOption) of unknown options, or null if all are known
+     * @return List of unknown option {@link #optKey}s, or null if all are known
      */
-    public static Vector<String> findUnknowns(final Map<String, SOCGameOption> opts)
+    public static List<String> findUnknowns(final Map<String, SOCGameOption> opts)
     {
-        Vector<String> unknowns = null;
+        ArrayList<String> unknowns = null;
 
         for (Map.Entry<String, SOCGameOption> e : opts.entrySet())
         {
@@ -1444,9 +1445,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
             if (op.optType == SOCGameOption.OTYPE_UNKNOWN)
             {
                 if (unknowns == null)
-                    unknowns = new Vector<String>();
+                    unknowns = new ArrayList<String>();
 
-                unknowns.addElement(op.optKey);
+                unknowns.add(op.optKey);
             }
         }
 
@@ -1844,11 +1845,11 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *              This lets us send only the permitted values to an older client.
      * @param opts  Set of {@link SOCGameOption}s to check versions and current values;
      *              if null, use the "known option" set
-     * @return Vector of the newer (added or changed) {@link SOCGameOption}s, or null
+     * @return List of the newer (added or changed) {@link SOCGameOption}s, or null
      *     if all are known and unchanged since <tt>vers</tt>.
      * @see #optionsForVersion(int, Map)
      */
-    public static Vector<SOCGameOption> optionsNewerThanVersion
+    public static List<SOCGameOption> optionsNewerThanVersion
         (final int vers, final boolean checkValues, final boolean trimEnums, final Map<String, SOCGameOption> opts)
     {
         return implOptionsVersionCheck(vers, false, checkValues, trimEnums, opts);
@@ -1865,10 +1866,10 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *
      * @param vers  Version to compare options against
      * @param opts  Set of {@link SOCGameOption}s to check versions, or {@code null} to use the "known option" set
-     * @return  Vector of all {@link SOCGameOption}s valid at version {@code vers}, or {@code null} if none.
+     * @return  List of all {@link SOCGameOption}s valid at version {@code vers}, or {@code null} if none.
      * @since 2.0.00
      */
-    public static Vector<SOCGameOption> optionsForVersion
+    public static List<SOCGameOption> optionsForVersion
         (final int vers, final Map<String, SOCGameOption> opts)
     {
         return implOptionsVersionCheck(vers, true, false, true, opts);
@@ -1891,12 +1892,12 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *              This lets us send only the permitted values to an older client.
      * @param opts  Set of {@link SOCGameOption}s to check versions and current values;
      *              if null, use the "known option" set
-     * @return Vector of the requested {@link SOCGameOption}s, or null if none match the conditions, at {@code vers};
+     * @return List of the requested {@link SOCGameOption}s, or null if none match the conditions, at {@code vers};
      *     see {@code optionsNewerThanVersion} and {@code optionsForVersion} for return details.
      * @throws IllegalArgumentException  if {@code getAllForVersion && checkValues}: Cannot combine these modes
      * @since 2.0.00
      */
-    private static Vector<SOCGameOption> implOptionsVersionCheck
+    private static List<SOCGameOption> implOptionsVersionCheck
         (final int vers, final boolean getAllForVersion, final boolean checkValues, final boolean trimEnums,
          Map<String, SOCGameOption> opts)
         throws IllegalArgumentException
@@ -1907,7 +1908,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         if (opts == null)
             opts = allOptions;
 
-        Vector<SOCGameOption> uopt = null;  // collect newer options here, or all options if getAllForVersion
+        ArrayList<SOCGameOption> uopt = null;  // collect newer options here, or all options if getAllForVersion
 
         for (SOCGameOption opt : opts.values())
         {
@@ -1950,8 +1951,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
             }
 
             if (uopt == null)
-                uopt = new Vector<SOCGameOption>();
-            uopt.addElement(opt);
+                uopt = new ArrayList<SOCGameOption>();
+            uopt.add(opt);
         }
 
         return uopt;
@@ -2367,12 +2368,13 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @return the list, or null if refreshDisplay wasn't called on any option
      * @since 1.1.13
      */
-    public static final Vector<SOCGameOption> getAndClearRefreshList()
+    public static final List<SOCGameOption> getAndClearRefreshList()
     {
-        Vector<SOCGameOption> refr = refreshList;
+        List<SOCGameOption> refr = refreshList;
         refreshList = null;
         if ((refr != null) && (refr.size() == 0))
             refr = null;
+
         return refr;
     }
 
@@ -2384,10 +2386,10 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     public void refreshDisplay()
     {
         if (refreshList == null)
-            refreshList = new Vector<SOCGameOption>();
+            refreshList = new ArrayList<SOCGameOption>();
         else if (refreshList.contains(this))
             return;
-        refreshList.addElement(this);
+        refreshList.add(this);
     }
 
     /**

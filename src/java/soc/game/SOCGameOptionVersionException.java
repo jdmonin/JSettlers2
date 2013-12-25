@@ -20,9 +20,8 @@
  **/
 package soc.game;
 
-import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;        // for javadocs only
-import java.util.Vector;
 
 /**
  * This exception indicates game option(s) too new for a client.
@@ -46,7 +45,7 @@ public class SOCGameOptionVersionException extends IllegalArgumentException
      * The {@link SOCGameOption}(s) which are too new,
      *     as returned by {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Map)}
      */
-    public Vector<?> problemOptionsTooNew;
+    public final List<SOCGameOption> problemOptionsTooNew;
 
     /**
      * @param optVers Minimum client version required by game options
@@ -54,7 +53,7 @@ public class SOCGameOptionVersionException extends IllegalArgumentException
      * @param optsValuesTooNew The {@link SOCGameOption}(s) which are too new,
      *     as returned by {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Map)}
      */
-    public SOCGameOptionVersionException(int optVers, int cliVers, Vector<?> optsValuesTooNew)
+    public SOCGameOptionVersionException(final int optVers, final int cliVers, final List<SOCGameOption> optsValuesTooNew)
     {
         super("Client version vs game options");
         gameOptsVersion = optVers;
@@ -64,7 +63,7 @@ public class SOCGameOptionVersionException extends IllegalArgumentException
 
     /**
      * Build the list of "problem options" as a string, separated by "," (SOCMessage.SEP2).
-     * @return list of options (and values?) too new, or "" if none
+     * @return list of option keys too new, or "" if none
      */
     public String problemOptionsList()
     {
@@ -73,19 +72,15 @@ public class SOCGameOptionVersionException extends IllegalArgumentException
 
         StringBuffer sb = new StringBuffer();
         boolean hadAny = false;
-        for (Enumeration<?> e = problemOptionsTooNew.elements(); e.hasMoreElements(); )
+        for (SOCGameOption opt : problemOptionsTooNew)
         {
-            Object opt = e.nextElement();
-            String item;
-            if (opt instanceof SOCGameOption)
-                item = ((SOCGameOption) opt).optKey;
-            else
-                item = opt.toString();
             if (hadAny)
                 sb.append(",");  // "," == SOCMessage.SEP2
-            sb.append(item);
+
+            sb.append(opt.optKey);
             hadAny = true;
         }
+
         return sb.toString();
     }
 
