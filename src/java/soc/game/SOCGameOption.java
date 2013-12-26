@@ -21,7 +21,7 @@
 package soc.game;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +47,7 @@ import soc.message.SOCMessage;
  * objects.  To search the code for uses of a game option, search for
  * its capitalized key string.
  * You will see calls to {@link SOCGame#isGameOptionDefined(String)},
- * {@link SOCGame#getGameOptionIntValue(Hashtable, String, int, boolean)}, etc.
+ * {@link SOCGame#getGameOptionIntValue(Map, String, int, boolean)}, etc.
  * Also search {@link SOCScenario} for the option as part of a string,
  * such as <tt>"PLL=t,VP=12"</tt>.
  *<P>
@@ -150,7 +150,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * Set of "known options".
      * allOptions must never be null, because other places assume it is filled.
      */
-    private static Hashtable<String, SOCGameOption> allOptions = initAllOptions();
+    private static Map<String, SOCGameOption> allOptions = initAllOptions();
 
     /**
      * List of options to refresh on-screen after a change during game creation;
@@ -162,7 +162,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
     /**
      * Create a set of the known options.
-     * This method creates and returns a Hashtable, but does not set the static {@link #allOptions} field.
+     * This method creates and returns a new map, but does not set the static {@link #allOptions} field.
      *
      * <h3>Current known options:</h3>
      *<UL>
@@ -259,7 +259,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *   search the entire source tree for this marker: <code> // NEW_OPTION</code>
      *   <br>
      *   This would include places like
-     *   {@link soc.util.SOCRobotParameters#copyIfOptionChanged(Hashtable)}
+     *   {@link soc.util.SOCRobotParameters#copyIfOptionChanged(Map)}
      *   which ignore most, but not all, game options.
      *</UL>
      *
@@ -311,9 +311,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *
      * @return a fresh copy of the "known" options, with their hardcoded default values
      */
-    public static Hashtable<String, SOCGameOption> initAllOptions()
+    public static Map<String, SOCGameOption> initAllOptions()
     {
-        Hashtable<String, SOCGameOption> opt = new Hashtable<String, SOCGameOption>();
+        HashMap<String, SOCGameOption> opt = new HashMap<String, SOCGameOption>();
 
         // I18N: Game option descriptions are also stored as gameopt.* in server/strings/toClient_*.properties
         //       to be sent to clients if needed.
@@ -400,7 +400,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         pl.addChangeListener(new ChangeListener()
         {
             public void valueChanged
-                (final SOCGameOption opt, Object oldValue, Object newValue, Hashtable<String, SOCGameOption> currentOpts)
+                (final SOCGameOption opt, Object oldValue, Object newValue, Map<String, SOCGameOption> currentOpts)
             {
                 if  (! (oldValue instanceof Integer))
                     return;  // ignore unless int
@@ -422,7 +422,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         plb.addChangeListener(new ChangeListener()
         {
             public void valueChanged
-                (final SOCGameOption opt, Object oldValue, Object newValue, Hashtable<String, SOCGameOption> currentOpts)
+                (final SOCGameOption opt, Object oldValue, Object newValue, Map<String, SOCGameOption> currentOpts)
             {
                 SOCGameOption pl = currentOpts.get("PL");
                 if (pl == null)
@@ -457,7 +457,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         sc.addChangeListener(new ChangeListener()
         {
             public void valueChanged
-                (final SOCGameOption optSc, Object oldValue, Object newValue, Hashtable<String, SOCGameOption> currentOpts)
+                (final SOCGameOption optSc, Object oldValue, Object newValue, Map<String, SOCGameOption> currentOpts)
             {
                 SOCGameOption pll = currentOpts.get("PLL");
                 if ((pll == null) || pll.userChanged)
@@ -497,7 +497,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         ChangeListener testCL = new ChangeListener()
         {
             public void valueChanged
-                (final SOCGameOption opt, Object oldValue, Object newValue, Hashtable currentOpts)
+                (final SOCGameOption opt, Object oldValue, Object newValue, Map<String,SOCGameOption> currentOpts)
             {
                 System.err.println("Test ChangeListener: " + opt.optKey
                     + " changed from " + oldValue + " to " + newValue);
@@ -625,7 +625,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     // -- End of scenario flag keynames --
 
     // If you create a new option type,
-    // please update parseOptionsToHash(), packOptionsToString(),
+    // please update parseOptionsToMap(), packOptionsToString(),
     // adjustOptionsToKnown(), and soc.message.SOCGameOptionGetInfo,
     // and other places.
     // (Search *.java for "// OTYPE_*" to find all locations)
@@ -1073,7 +1073,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     /**
      * Is this option set, if this option's type has a boolean component?
      * @return current boolean value of this option
-     * @see SOCGame#isGameOptionSet(Hashtable, String)
+     * @see SOCGame#isGameOptionSet(Map, String)
      */
     public boolean getBoolValue() { return boolValue; }
 
@@ -1082,8 +1082,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     /**
      * This option's integer value, if this option's type has an integer component.
      * @return current integer value of this option
-     * @see SOCGame#getGameOptionIntValue(Hashtable, String)
-     * @see SOCGame#getGameOptionIntValue(Hashtable, String, int, boolean)
+     * @see SOCGame#getGameOptionIntValue(Map, String)
+     * @see SOCGame#getGameOptionIntValue(Map, String, int, boolean)
      */
     public int getIntValue() { return intValue; }
 
@@ -1104,7 +1104,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     /**
      * @return current string value of this option, or "" (empty string) if not set.
      * Will not contain newlines or otherwise fail {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @see SOCGame#getGameOptionStringValue(Hashtable, String)
+     * @see SOCGame#getGameOptionStringValue(Map, String)
      */
     public String getStringValue()
     {
@@ -1311,7 +1311,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @return a deep copy of all known option objects
      * @see #addKnownOption(SOCGameOption)
      */
-    public static Hashtable<String, SOCGameOption> getAllKnownOptions()
+    public static Map<String, SOCGameOption> getAllKnownOptions()
     {
         return cloneOptions(allOptions);
     }
@@ -1327,11 +1327,17 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     public static boolean addKnownOption(SOCGameOption onew)
     {
 	final String oKey = onew.optKey;
-	final boolean hadIt = allOptions.containsKey(oKey);
-	if (hadIt)
-	    allOptions.remove(oKey);
-	if (onew.optType != OTYPE_UNKNOWN)
-	    allOptions.put(oKey, onew);
+	final boolean hadIt;
+
+	synchronized (allOptions)
+	{
+	    hadIt = allOptions.containsKey(oKey);
+	    if (hadIt)
+	        allOptions.remove(oKey);
+	    if (onew.optType != OTYPE_UNKNOWN)
+	        allOptions.put(oKey, onew);
+	}
+
 	return ! hadIt;
     }
 
@@ -1348,54 +1354,64 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         throws IllegalArgumentException
     {
         final String oKey = ocurr.optKey;
-        SOCGameOption oKnown = allOptions.get(oKey);
-        if (oKnown == null)
-            return;
-        switch (oKnown.optType)  // OTYPE_*
+
+        synchronized (allOptions)
         {
-        case OTYPE_BOOL:
-            oKnown.boolValue = ocurr.boolValue;
-            break;
+            final SOCGameOption oKnown = allOptions.get(oKey);
 
-        case OTYPE_INT:
-        case OTYPE_ENUM:
-            oKnown.setIntValue(ocurr.intValue);
-            break;
+            if (oKnown == null)
+                return;
 
-        case OTYPE_INTBOOL:
-        case OTYPE_ENUMBOOL:
-            oKnown.boolValue = ocurr.boolValue;
-            oKnown.setIntValue(ocurr.intValue);
-            break;
+            switch (oKnown.optType)  // OTYPE_*
+            {
+            case OTYPE_BOOL:
+                oKnown.boolValue = ocurr.boolValue;
+                break;
 
-        case OTYPE_STR:
-        case OTYPE_STRHIDE:
-            oKnown.setStringValue(ocurr.strValue);
-            break;
+            case OTYPE_INT:
+            case OTYPE_ENUM:
+                oKnown.setIntValue(ocurr.intValue);
+                break;
+
+            case OTYPE_INTBOOL:
+            case OTYPE_ENUMBOOL:
+                oKnown.boolValue = ocurr.boolValue;
+                oKnown.setIntValue(ocurr.intValue);
+                break;
+
+            case OTYPE_STR:
+            case OTYPE_STRHIDE:
+                oKnown.setStringValue(ocurr.strValue);
+                break;
+            }
         }
     }
 
     /**
-     * @param opts  a map of SOCGameOptions, or null
+     * Make a deep copy of a group of options.
+     * @param opts  a map of SOCGameOptions, or null; method synchronizes on {@code opts}
      * @return a deep copy of all option objects within opts, or null if opts is null
      */
-    public static Hashtable<String, SOCGameOption> cloneOptions(Hashtable<String, SOCGameOption> opts)
+    public static Map<String, SOCGameOption> cloneOptions(Map<String, SOCGameOption> opts)
     {
     	if (opts == null)
     	    return null;
 
-    	Hashtable<String, SOCGameOption> opts2 = new Hashtable<String, SOCGameOption>();
-    	for (Map.Entry<String, SOCGameOption> e : opts.entrySet())
-    	{
-    	    SOCGameOption op = e.getValue();
-    	    try
-    	    {
-    	        opts2.put(op.optKey, (SOCGameOption) op.clone());
-    	    } catch (CloneNotSupportedException ce) {
-    	        // required, but not expected to happen
-    	        throw new IllegalStateException("Clone failed!", ce);
-    	    }
-    	}
+        HashMap<String, SOCGameOption> opts2 = new HashMap<String, SOCGameOption>();
+        synchronized (opts)
+        {
+            for (Map.Entry<String, SOCGameOption> e : opts.entrySet())
+            {
+                SOCGameOption op = e.getValue();
+                try
+                {
+                    opts2.put(op.optKey, (SOCGameOption) op.clone());
+                } catch (CloneNotSupportedException ce) {
+                    // required, but not expected to happen
+                    throw new IllegalStateException("Clone failed!", ce);
+                }
+            }
+        }
 
     	return opts2;
     }
@@ -1412,7 +1428,11 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     public static SOCGameOption getOption(final String key, final boolean clone)
         throws IllegalStateException
     {
-        SOCGameOption op = allOptions.get(key);
+        SOCGameOption op;
+        synchronized (allOptions)
+        {
+            op = allOptions.get(key);
+        }
         if (op == null)
             return null;
 
@@ -1465,7 +1485,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @return string of name-value pairs, same format as {@link #packOptionsToString(Map, boolean)};
      *         any gameoptions of {@link #OTYPE_UNKNOWN} will not be
      *         part of the string.
-     * @see #parseOptionsToHash(String)
+     * @see #parseOptionsToMap(String)
      */
     public static String packKnownOptionsToString(final boolean hideEmptyStringOpts, final boolean hideLongNameOpts)
     {
@@ -1474,7 +1494,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
     /**
      * Utility - build a string of option name-value pairs.
-     * This can be unpacked with {@link #parseOptionsToHash(String)}.
+     * This can be unpacked with {@link #parseOptionsToMap(String)}.
      *
      * @param omap  Map of SOCGameOptions, or null
      * @param hideEmptyStringOpts omit string-valued options which are empty?
@@ -1505,7 +1525,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     /**
      * Utility - build a string of option name-value pairs,
      * adjusting for old clients if necessary.
-     * This can be unpacked with {@link #parseOptionsToHash(String)}.
+     * This can be unpacked with {@link #parseOptionsToMap(String)}.
      * See {@link #packOptionsToString(Map, boolean)} javadoc for details.
      * 
      * @param omap  Map of SOCGameOptions, or null
@@ -1584,7 +1604,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     /**
      * Pack current value of this option into a string.
      * This is used in {@link #packOptionsToString(Map, boolean)} and
-     * read in {@link #parseOptionNameValue(String, boolean)} and {@link #parseOptionsToHash(String)}.
+     * read in {@link #parseOptionNameValue(String, boolean)} and {@link #parseOptionsToMap(String)}.
      * See {@link #packOptionsToString(Map, boolean)} for the string's format.
      *
      * @param sb Pack into (append to) this buffer
@@ -1620,26 +1640,28 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     }
 
     /**
-     * Utility - build a hashtable by parsing a list of option name-value pairs.
+     * Utility - build a map of keys to SOCGameOptions by parsing a list of option name-value pairs.
+     *<P>
+     * Before v2.0.00, this was {@code parseOptionsToHash}.
      *
      * @param ostr string of name-value pairs, as created by
      *             {@link #packOptionsToString(Map, boolean)}.
      *             A leading comma is OK (possible artifact of StringTokenizer
      *             coming from over the network).
-     *             If ostr=="-", hashtable will be null.
-     * @return hashtable of SOCGameOptions, or null if ostr==null or empty ("-")
+     *             If ostr=="-", returned map will be null.
+     * @return map of SOCGameOptions, or null if ostr==null or empty ("-")
      *         or if ostr is malformed.  Any unrecognized options
-     *         will be in the hashtable as type {@link #OTYPE_UNKNOWN}.
+     *         will be in the map as type {@link #OTYPE_UNKNOWN}.
      *         The returned known SGOs are clones from the set of all known options.
      * @see #parseOptionNameValue(String, boolean)
      */
-    public static Hashtable<String,SOCGameOption> parseOptionsToHash(String ostr)
+    public static Map<String,SOCGameOption> parseOptionsToMap(final String ostr)
     {
         if ((ostr == null) || ostr.equals("-"))
             return null;
-        
-        Hashtable<String,SOCGameOption> ohash = new Hashtable<String,SOCGameOption>();
-        
+
+        HashMap<String,SOCGameOption> ohash = new HashMap<String,SOCGameOption>();
+
         StringTokenizer st = new StringTokenizer(ostr, SOCMessage.sep2);
         String nvpair;
         while (st.hasMoreTokens())
@@ -1650,7 +1672,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                 return null;  // parse error
             ohash.put(copyOpt.optKey, copyOpt);
         }  // while (moreTokens)
-        
+
         return ohash;
     }
 
@@ -1668,7 +1690,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @return Parsed option, or null if parse error;
      *         if known, the returned object is a clone of the SGO from the set of all known options.
      *         if nvpair's option keyname is not a known option, returned optType will be {@link #OTYPE_UNKNOWN}.
-     * @see #parseOptionsToHash(String)
+     * @see #parseOptionsToMap(String)
      * @see #packValue(StringBuffer)
      */
     public static SOCGameOption parseOptionNameValue(final String nvpair, final boolean forceNameUpcase)
@@ -2061,7 +2083,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                             ? opt.intValue
                             : SOCGame.VP_WINNER_STANDARD;
 
-                        final Hashtable<String, SOCGameOption> scOpts = parseOptionsToHash(sc.scOpts);
+                        final Map<String, SOCGameOption> scOpts = parseOptionsToMap(sc.scOpts);
 
                         opt = scOpts.get("VP");
                         if ((opt != null) && ((opt.intValue < prevVP) || ! opt.boolValue))
@@ -2480,7 +2502,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * Once written, the server can't do anything to update the client's
      * ChangeListener code, so be careful and write them defensively.
      *<P>
-     * Callback method is {@link #valueChanged(SOCGameOption, Object, Object, Hashtable)}.
+     * Callback method is {@link #valueChanged(SOCGameOption, Object, Object, Map)}.
      * Called from <tt>NewGameOptionsFrame</tt>.
      *<P>
      * For <em>server-side</em> consistency adjustment of values before creating games,
@@ -2527,7 +2549,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
          */
         public void valueChanged
             (final SOCGameOption opt, final Object oldValue, final Object newValue,
-             Hashtable<String, SOCGameOption> currentOpts);
+             Map<String, SOCGameOption> currentOpts);
     }
 
 }

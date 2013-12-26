@@ -126,8 +126,8 @@ public abstract class GameHandler
      *                      is defunct because of a network problem.
      *                      If <tt>isTakingOver</tt>, don't send anything to other players.
      *
-     * @see #connectToGame(StringConnection, String, java.util.Hashtable)
-     * @see #createOrJoinGameIfUserOK(StringConnection, String, String, String, java.util.Hashtable)
+     * @see #connectToGame(StringConnection, String, java.util.Map)
+     * @see #createOrJoinGameIfUserOK(StringConnection, String, String, String, java.util.Map)
      */
     public abstract void joinGame(SOCGame gameData, StringConnection c, boolean isReset, boolean isTakingOver);
 

@@ -21,7 +21,7 @@
  **/
 package soc.util;
 
-import java.util.Hashtable;
+import java.util.Map;
 
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
@@ -98,10 +98,10 @@ public class SOCRobotParameters
      * For example, game option "NT" means no trading, so if
      * our {@link #getTradeFlag()} is 1, copy and set it to 0.
      *
-     * @param gameOpts A hashtable of {@link SOCGameOption}, or null
+     * @param gameOpts The game's {@link SOCGameOption}s, or null
      * @return This object, or a copy with updated parameters.
      */
-    public SOCRobotParameters copyIfOptionChanged(Hashtable<String, SOCGameOption> gameOpts)
+    public SOCRobotParameters copyIfOptionChanged(Map<String, SOCGameOption> gameOpts)
     {
         if (gameOpts == null)
             return this;

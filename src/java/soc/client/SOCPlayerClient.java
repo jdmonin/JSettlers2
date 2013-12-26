@@ -1164,7 +1164,7 @@ public class SOCPlayerClient
             {
                 // This game is either from the tcp server, or practice server,
                 // both servers' games are in the same GUI list.
-                Hashtable<String,SOCGameOption> opts = null;
+                Map<String,SOCGameOption> opts = null;
                 if ((client.net.practiceServer != null) && (-1 != client.net.practiceServer.getGameState(gm)))
                     opts = client.net.practiceServer.getGameOptions(gm);  // won't ever need to parse from string on practice server
                 else if (client.serverGames != null)
@@ -1494,7 +1494,7 @@ public class SOCPlayerClient
 
         /**
          * Ask server to start a game with options.
-         * If it's practice, will call {@link #startPracticeGame(String, Hashtable, boolean)}.
+         * If it's practice, will call {@link #startPracticeGame(String, Map, boolean)}.
          * Otherwise, ask tcp server, and also set WAIT_CURSOR and status line ("Talking to server...").
          *<P>
          * Assumes {@link #getValidNickname(boolean) getValidNickname(true)}, {@link #getPassword()}, {@link #host},
@@ -1506,7 +1506,8 @@ public class SOCPlayerClient
          * @since 1.1.07
          * @see #readValidNicknameAndPassword()
          */
-        public void askStartGameWithOptions(final String gmName, final boolean forPracticeServer, Hashtable<String, SOCGameOption> opts)
+        public void askStartGameWithOptions
+            (final String gmName, final boolean forPracticeServer, final Map<String, SOCGameOption> opts)
         {
             if (forPracticeServer)
             {
@@ -1517,7 +1518,8 @@ public class SOCPlayerClient
                     ? SOCNewGameWithOptionsRequest.toCmd(client.nickname, client.password, client.net.getHost(), gmName, opts)
                     : SOCJoinGame.toCmd(client.nickname, client.password, client.net.getHost(), gmName);
                 System.err.println("L1314 askStartGameWithOptions at " + System.currentTimeMillis());
-                System.err.println("      Got all opts,defaults? " + client.tcpServGameOpts.allOptionsReceived + " " + client.tcpServGameOpts.defaultsReceived);
+                System.err.println("      Got all opts,defaults? " + client.tcpServGameOpts.allOptionsReceived
+                    + " " + client.tcpServGameOpts.defaultsReceived);
                 client.net.putNet(askMsg);
                 System.out.flush();  // for debug print output (temporary)
                 status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
@@ -1942,7 +1944,7 @@ public class SOCPlayerClient
                     {
                         opts.gameInfoWaitingForOpts = null;
                     }
-                    Hashtable<String,SOCGameOption> gameOpts = client.serverGames.parseGameOptions(gameInfoWaiting);
+                    final Map<String,SOCGameOption> gameOpts = client.serverGames.parseGameOptions(gameInfoWaiting);
                     newGameOptsFrame = NewGameOptionsFrame.createAndShow
                         (GameAwtDisplay.this, gameInfoWaiting, gameOpts, isPractice, true);
                 }
@@ -3101,7 +3103,8 @@ public class SOCPlayerClient
                 while (st.hasMoreTokens())
                     optNames.addElement(st.nextToken());
                 StringBuffer opts = new StringBuffer();
-                final Map<String, SOCGameOption> knowns = isPractice ? practiceServGameOpts.optionSet : tcpServGameOpts.optionSet;
+                final Map<String, SOCGameOption> knowns =
+                    isPractice ? practiceServGameOpts.optionSet : tcpServGameOpts.optionSet;
                 for (int i = 0; i < optNames.size(); ++i)
                 {
                     opts.append('\n');
@@ -3259,12 +3262,12 @@ public class SOCPlayerClient
         gotPassword = true;
 
         final String gaName = mes.getGame();
-        Hashtable<String,SOCGameOption> gameOpts;
+        Map<String,SOCGameOption> gameOpts;
         if (isPractice)
         {
             gameOpts = net.practiceServer.getGameOptions(gaName);
             if (gameOpts != null)
-                gameOpts = new Hashtable<String,SOCGameOption>(gameOpts);  // changes here shouldn't change practiceServ's copy
+                gameOpts = new HashMap<String,SOCGameOption>(gameOpts);  // changes here shouldn't change practiceServ's copy
         } else {
             if (serverGames != null)
                 gameOpts = serverGames.parseGameOptions(gaName);
@@ -4379,7 +4382,7 @@ public class SOCPlayerClient
         {
             // receiveDefaults sets opts.defaultsReceived, may set opts.allOptionsReceived
             unknowns = opts.receiveDefaults
-                (SOCGameOption.parseOptionsToHash((mes.getOpts())));
+                (SOCGameOption.parseOptionsToMap((mes.getOpts())));
         }
 
         if (unknowns != null)
@@ -5421,7 +5424,8 @@ public class SOCPlayerClient
      *         False if we're being called from elsewhere, such as
      *         {@link SOCConnectOrPracticePanel}.
      */
-    public void startPracticeGame(String practiceGameName, Hashtable<String, SOCGameOption> gameOpts, boolean mainPanelIsActive)
+    public void startPracticeGame
+        (String practiceGameName, final Map<String, SOCGameOption> gameOpts, final boolean mainPanelIsActive)
     {
         ++numPracticeGames;
 
@@ -5554,7 +5558,7 @@ public class SOCPlayerClient
     /**
      * Helper object to encapsulate and deal with network connectivity.
      *<P>
-     * Local practice server (if any) is started in {@link #startPracticeGame(String, Hashtable)}.
+     * Local practice server (if any) is started in {@link #startPracticeGame(String, Map)}.
      *<br>
      * Local tcp server (if any) is started in {@link #initLocalServer(int)}.
      *<br>
@@ -5657,9 +5661,9 @@ public class SOCPlayerClient
         /**
          * Start a practice game.  If needed, create and start {@link #practiceServer}.
          * @param practiceGameName  Game name
-         * @param gameOpts  Game {@link SOCGameOption options}
+         * @param gameOpts  Game options
          */
-        public void startPracticeGame(String practiceGameName, Hashtable<String, SOCGameOption> gameOpts)
+        public void startPracticeGame(final String practiceGameName, final Map<String, SOCGameOption> gameOpts)
         {
             if (practiceServer == null)
             {
@@ -5680,6 +5684,7 @@ public class SOCPlayerClient
                          client.strings.get("base.cancel"));
                 }
             }
+
             if (prCli == null)
             {
                 try
@@ -5705,7 +5710,8 @@ public class SOCPlayerClient
             if (gameOpts == null)
                 putPractice(SOCJoinGame.toCmd(client.nickname, client.password, getHost(), practiceGameName));
             else
-                putPractice(SOCNewGameWithOptionsRequest.toCmd(client.nickname, client.password, getHost(), practiceGameName, gameOpts));
+                putPractice(SOCNewGameWithOptionsRequest.toCmd
+                    (client.nickname, client.password, getHost(), practiceGameName, gameOpts));
         }
 
         /**
@@ -6322,7 +6328,7 @@ public class SOCPlayerClient
          * Otherwise, set from {@link SOCGameOption#getAllKnownOptions()}
          * and update from server as needed.
          */
-        public Hashtable<String,SOCGameOption> optionSet = null;
+        public Map<String,SOCGameOption> optionSet = null;
 
         /** Have we asked the server for default values? */
         public boolean   askedDefaultsAlready = false;
@@ -6368,7 +6374,7 @@ public class SOCPlayerClient
          *                 so ones that we don't know are {@link SOCGameOption#OTYPE_UNKNOWN}.
          * @return null if all are known, or a Vector of key names for unknown options.
          */
-        public List<String> receiveDefaults(final Hashtable<String,SOCGameOption> servOpts)
+        public List<String> receiveDefaults(final Map<String,SOCGameOption> servOpts)
         {
             // Although javadoc says "update the values", replacing the option objects does the
             // same thing; we already have parsed servOpts for all obj fields, including current value.

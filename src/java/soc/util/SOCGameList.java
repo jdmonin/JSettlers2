@@ -58,7 +58,7 @@ public class SOCGameList
      */
     protected Hashtable<String, GameInfo> gameInfo;
 
-    /** map of game names to {@link SOCGame} objects */
+    /** synchronized map of game names to {@link SOCGame} objects */
     protected Hashtable<String, SOCGame> gameData;
 
     /** used with gamelist's monitor */
@@ -250,12 +250,12 @@ public class SOCGameList
     /**
      * get a game's {@link SOCGameOption}s, if stored and parsed
      * @param   gaName  game name
-     * @return the game options (hashtable of {@link SOCGameOption}), or null if none or if unparsed
+     * @return the game options (map of {@link SOCGameOption}), or null if none or if unparsed
      * @see #getGameOptionsString(String)
      * @see #parseGameOptions(String)
      * @since 1.1.07
      */
-    public Hashtable<String,SOCGameOption> getGameOptions(String gaName)
+    public Map<String,SOCGameOption> getGameOptions(String gaName)
     {
         GameInfo info = gameInfo.get(gaName);
         if (info == null)
@@ -281,14 +281,15 @@ public class SOCGameList
     }
 
     /**
-     * Parse these game options from string to hashtable.
+     * Parse these game options from string to map.
      * Should not be called at client before any updates to "known options" are received from server.
+     * Calls {@link GameInfo#parseOptsStr()}.
      * @param   gaName  game name
-     * @return the game options (hashtable of {@link SOCGameOption}), or null if none
+     * @return the game options, or null if none
      * @see #getGameOptionsString(String)
      * @since 1.1.07
      */
-    public Hashtable<String,SOCGameOption> parseGameOptions(String gaName)
+    public Map<String,SOCGameOption> parseGameOptions(String gaName)
     {
         GameInfo info = gameInfo.get(gaName);
         if (info == null)
@@ -333,7 +334,8 @@ public class SOCGameList
      * Client-side - Add this game name, with game options.
      * If a game already exists (per {@link #isGame(String)}), at most clear its canJoin flag.
      *<P>
-     * Server should instead call {@link soc.server.SOCGameListAtServer#createGame(String, Hashtable)}.
+     * Server should instead call
+     * {@link soc.server.SOCGameListAtServer#createGame(String, String, String, Map, soc.server.GameHandler)}.
      *
      * @param gaName Name of added game; may be marked with the prefix
      *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
@@ -357,11 +359,12 @@ public class SOCGameList
      *<P>
      * Client should instead call {@link #addGame(String, String, boolean)} because game options should
      * remain unparsed as late as possible.
-     * Server should instead call {@link soc.server.SOCGameListAtServer#createGame(String, String, String, Hashtable, soc.server.GameHandler)}.
+     * Server should instead call
+     * {@link soc.server.SOCGameListAtServer#createGame(String, String, String, Map, soc.server.GameHandler)}.
      *
      * @param gaName Name of added game; may be marked with the prefix
      *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
-     * @param gaOpts Hashtable of {@link SOCGameOption game options} of added game, or null
+     * @param gaOpts Map of {@link SOCGameOption game options} of added game, or null
      * @param gaOptsStr set of {@link SOCGameOption}s as packed by
      *         {@link SOCGameOption#packOptionsToString(Map, boolean)}, or null.
      *         Game options should remain unparsed as late as possible.
@@ -372,7 +375,8 @@ public class SOCGameList
      * @see #addGames(Iterable, int)
      * @since 1.1.07
      */
-    protected synchronized void addGame(String gaName, Hashtable<String, SOCGameOption> gaOpts, String gaOptsStr, boolean cannotJoin)
+    protected synchronized void addGame
+        (String gaName, Map<String, SOCGameOption> gaOpts, String gaOptsStr, boolean cannotJoin)
     {
         if (gaName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
         {
@@ -437,7 +441,7 @@ public class SOCGameList
 
     /**
      * Add several games to this GameList.
-     * Calls {@link #addGame(String, Hashtable, String, boolean)} for each one.
+     * Calls {@link #addGame(String, Map, String, boolean)} for each one.
      *<P>
      * For use at client.
      *
@@ -461,7 +465,7 @@ public class SOCGameList
         for (Object ob : gamelist)
         {
             String gaName;
-            Hashtable<String, SOCGameOption> gaOpts;
+            Map<String, SOCGameOption> gaOpts;
             boolean cannotJoin;
             if (ob instanceof SOCGame)
             {
@@ -510,14 +514,14 @@ public class SOCGameList
     /**
      * Holds most information on one game, except its SOCGame object, which is kept separately.
      * Includes mutexes to synchronize game state access.
-     * Kept within {@link #gameInfo} hashtable.
+     * Kept within the {@link #gameInfo} map.
      * @author Jeremy D Monin <jeremy@nand.net>
      * @since 1.1.07
      */
     protected static class GameInfo
     {
         public MutexFlag mutex;
-        public Hashtable<String,SOCGameOption> opts;  // or null
+        public Map<String,SOCGameOption> opts;  // or null
         public String optsStr;  // or null
         public boolean canJoin;
         /** Flag for when game has been destroyed, in case anything's waiting on its mutex. @since 1.1.15 */
@@ -526,9 +530,9 @@ public class SOCGameList
         /**
          * Constructor: gameOpts is null or contains game option objects
          * @param canJoinGame can we join this game?
-         * @param gameOpts Hashtable of {@link SOCGameOption}s, or null
+         * @param gameOpts The game's {@link SOCGameOption}s, or null
          */
-        public GameInfo(boolean canJoinGame, Hashtable<String,SOCGameOption> gameOpts)
+        public GameInfo(boolean canJoinGame, Map<String,SOCGameOption> gameOpts)
         {
             mutex = new MutexFlag();
             opts = gameOpts;
@@ -552,7 +556,7 @@ public class SOCGameList
          * Parse optsStr to opts, unless it's already been parsed.
          * @return opts, after parsing if necessary, or null if opts==null and optsStr==null.
          */
-        public Hashtable<String,SOCGameOption> parseOptsStr()
+        public Map<String,SOCGameOption> parseOptsStr()
         {
             if (opts != null)  // already parsed
                 return opts;
@@ -560,7 +564,7 @@ public class SOCGameList
                 return null;
             else
             {
-                opts = SOCGameOption.parseOptionsToHash(optsStr);
+                opts = SOCGameOption.parseOptionsToMap(optsStr);
                 return opts;
             }
         }

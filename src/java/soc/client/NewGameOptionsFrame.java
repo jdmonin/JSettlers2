@@ -46,8 +46,7 @@ import java.awt.event.TextEvent;
 import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
@@ -76,7 +75,7 @@ import soc.util.Version;
  * This class also contains the "Scenario Info" popup window, called from
  * this dialog's Scenario Info button, and from {@link SOCPlayerInterface}
  * when first joining a game with a scenario.
- * See {@link #showScenarioInfoDialog(String, Hashtable, int, GameAwtDisplay, Frame)}.
+ * See {@link #showScenarioInfoDialog(String, Map, int, GameAwtDisplay, Frame)}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
@@ -109,10 +108,10 @@ public class NewGameOptionsFrame extends Frame
      * Create is hit.
      * @see #readOptsValuesFromControls(boolean)
      */
-    private Hashtable<String, SOCGameOption> opts;
+    private Map<String, SOCGameOption> opts;
 
     /** Key = AWT control; value = {@link SOCGameOption} within {@link #opts}. Empty if opts is null.  */
-    private Hashtable<Component, SOCGameOption> controlsOpts;
+    private Map<Component, SOCGameOption> controlsOpts;
 
     /**
      * AWT control for each gameopt, for handling {@link SOCGameOption#refreshDisplay()}
@@ -124,13 +123,13 @@ public class NewGameOptionsFrame extends Frame
      * @since 1.1.13
      * @see #fireOptionChangeListener(soc.game.SOCGameOption.ChangeListener, SOCGameOption, Object, Object)
      */
-    private Hashtable<String, Component> optsControls;
+    private Map<String, Component> optsControls;
 
     /** Key = {@link SOCGameOption#optKey}; value = {@link Checkbox} if bool/intbool option.
       * Empty if none, null if readOnly.
       * Used to quickly find an option's associated checkbox.
       */
-    private Hashtable<String, Checkbox> boolOptCheckboxes;
+    private Map<String, Checkbox> boolOptCheckboxes;
 
     /**
      * Scenario choice dropdown, if {@link #opts} contains the {@code "SC"} game option, or null.
@@ -176,7 +175,7 @@ public class NewGameOptionsFrame extends Frame
      *                 to use {@link SOCPlayerClient#DEFAULT_PRACTICE_GAMENAME}.
      * @param opts     Set of {@link SOCGameOption}s; its values will be changed when "New Game" button
      *                 is pressed, so the next OptionsFrame will default to the values the user has chosen.
-     *                 To preserve them, call {@link SOCGameOption#cloneOptions(Hashtable)} beforehand.
+     *                 To preserve them, call {@link SOCGameOption#cloneOptions(Map)} beforehand.
      *                 Null if server doesn't support game options.
      *                 Unknown options ({@link SOCGameOption#OTYPE_UNKNOWN}) will be removed.
      *                 If not <tt>readOnly</tt>, each option's {@link SOCGameOption#userChanged userChanged}
@@ -185,7 +184,7 @@ public class NewGameOptionsFrame extends Frame
      * @param readOnly    Is this display-only (for use during a game), or can it be changed (making a new game)?
      */
     public NewGameOptionsFrame
-        (GameAwtDisplay gd, String gaName, Hashtable<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
+        (GameAwtDisplay gd, String gaName, Map<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
         super( readOnly
                 ? (strings.get("game.options.title", gaName))
@@ -200,11 +199,11 @@ public class NewGameOptionsFrame extends Frame
         this.opts = opts;
         this.forPractice = forPractice;
         this.readOnly = readOnly;
-        controlsOpts = new Hashtable<Component, SOCGameOption>();
+        controlsOpts = new HashMap<Component, SOCGameOption>();
         if (! readOnly)
         {
-            optsControls = new Hashtable<String, Component>();
-            boolOptCheckboxes = new Hashtable<String, Checkbox>();
+            optsControls = new HashMap<String, Component>();
+            boolOptCheckboxes = new HashMap<String, Checkbox>();
         }
         if ((gaName == null) && forPractice)
         {
@@ -237,12 +236,12 @@ public class NewGameOptionsFrame extends Frame
     /**
      * Creates and shows a new NewGameOptionsFrame.
      * Once created, reset the mouse cursor from hourglass to normal, and clear main panel's status text.
-     * See {@link #NewGameOptionsFrame(SOCPlayerClient, String, Hashtable, boolean, boolean) constructor}
+     * See {@link #NewGameOptionsFrame(SOCPlayerClient, String, Map, boolean, boolean) constructor}
      * for notes about <tt>opts</tt> and other parameters.
      * @return the new frame
      */
     public static NewGameOptionsFrame createAndShow
-        (GameAwtDisplay cli, String gaName, Hashtable<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
+        (GameAwtDisplay cli, String gaName, Map<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
         NewGameOptionsFrame ngof = new NewGameOptionsFrame(cli, gaName, opts, forPractice, readOnly);
         ngof.pack();
@@ -396,18 +395,14 @@ public class NewGameOptionsFrame extends Frame
         // instead of at the start of a line.
         // TODO: for now these are on subsequent lines
         //   instead of sharing the same line.
-        Hashtable<String,String> sameLineOpts = new Hashtable<String,String>();  // key=on-same-line opt, value=opt to start line
+        HashMap<String,String> sameLineOpts = new HashMap<String,String>();  // key=on-same-line opt, value=opt to start line
+        for (final String kf3 : opts.keySet())
         {
-            Enumeration<String> okeys = opts.keys();
-            while (okeys.hasMoreElements())
-            {
-                final String kf3 = okeys.nextElement();
-                if (kf3.length() <= 2)
-                    continue;
-                final String kf2 = kf3.substring(0, 2);
-                if (opts.containsKey(kf2))
-                    sameLineOpts.put(kf3, kf2);
-            }
+            if (kf3.length() <= 2)
+                continue;
+            final String kf2 = kf3.substring(0, 2);
+            if (opts.containsKey(kf2))
+                sameLineOpts.put(kf3, kf2);
         }
 
         // Sort and lay out options; remove unknowns and internal-onlys from opts.
@@ -442,10 +437,8 @@ public class NewGameOptionsFrame extends Frame
             {
                 // Group them under this one.
                 // TODO group on same line, not following lines, if there's only 1.
-                Enumeration<String> linekeys = sameLineOpts.keys();
-                while (linekeys.hasMoreElements())
+                for (final String kf3 : sameLineOpts.keySet())
                 {
-                    final String kf3 = linekeys.nextElement();
                     final String kf2 = sameLineOpts.get(kf3);
                     if ((kf2 == null) || ! kf2.equals(op.optKey))
                         continue;  // <-- Goes with a a different option --
@@ -892,7 +885,7 @@ public class NewGameOptionsFrame extends Frame
     /**
      * The "Scenario Info" button was clicked.
      * Reads the current scenario, if any, from {@link #scenChoice}.
-     * Calls {@link #showScenarioInfoDialog(String, Hashtable, int, GameAwtDisplay, Frame)}.
+     * Calls {@link #showScenarioInfoDialog(String, Map, int, GameAwtDisplay, Frame)}.
      * @since 2.0.00
      */
     private void clickScenarioInfo()
@@ -933,9 +926,8 @@ public class NewGameOptionsFrame extends Frame
             return false;  // shouldn't be called in that case
 
         boolean allOK = true;
-        for (Enumeration<Component> e = controlsOpts.keys(); e.hasMoreElements(); )
+        for (Component ctrl : controlsOpts.keySet())
         {
-            Component ctrl = e.nextElement();
             if (ctrl instanceof Label)
                 continue;
             SOCGameOption op = controlsOpts.get(ctrl);
@@ -1399,7 +1391,7 @@ public class NewGameOptionsFrame extends Frame
      * @since 2.0.00
      */
     public static void showScenarioInfoDialog
-        (final String gameSc, Hashtable<String, SOCGameOption> gameOpts, final int vpWinner,
+        (final String gameSc, Map<String, SOCGameOption> gameOpts, final int vpWinner,
          final GameAwtDisplay cli, final Frame parent)
     {
         if (gameSc == null)
@@ -1431,7 +1423,7 @@ public class NewGameOptionsFrame extends Frame
         //      keep a consistent prefix that showScenarioInfoDialog() knows to look for.
 
         if ((gameOpts == null) && (sc.scOpts != null))
-            gameOpts = SOCGameOption.parseOptionsToHash(sc.scOpts);
+            gameOpts = SOCGameOption.parseOptionsToMap(sc.scOpts);
 
         if (gameOpts != null)
         {

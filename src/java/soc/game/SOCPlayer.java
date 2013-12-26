@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;  // for javadoc
 import java.util.Stack;
 import java.util.Vector;
 
@@ -62,7 +63,7 @@ import java.util.Vector;
  *<P>
  * If the board layout changes from game to game, as with {@link SOCLargeBoard} /
  * {@link SOCBoard#BOARD_ENCODING_LARGE}, use these methods to update the player's board data
- * after {@link SOCBoard#makeNewBoard(Hashtable)}, in this order:
+ * after {@link SOCBoard#makeNewBoard(Map)}, in this order:
  *<UL>
  * <LI> {@link #getPlayerNumber()}.{@link SOCPlayerNumbers#setLandHexCoordinates(int[]) setLandHexCoordinates(int[])}
  * <LI> {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])}
@@ -305,7 +306,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * If not {@link SOCGame#hasSeaBoard}, initialized in constructor
      * from {@link SOCBoard#initPlayerLegalRoads()}.
      *<P>
-     * If {@link SOCGame#hasSeaBoard}, empty until {@link SOCBoard#makeNewBoard(Hashtable)
+     * If {@link SOCGame#hasSeaBoard}, empty until {@link SOCBoard#makeNewBoard(Map)}
      * and {@link SOCGame#startGame()}, because the board layout and legal settlements
      * vary from game to game.
      */
@@ -324,7 +325,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * If not {@link SOCGame#hasSeaBoard}, initialized in constructor
      * from {@link SOCBoard#initPlayerLegalAndPotentialSettlements()}.
      *<P>
-     * If {@link SOCGame#hasSeaBoard}, empty until {@link SOCBoard#makeNewBoard(Hashtable)
+     * If {@link SOCGame#hasSeaBoard}, empty until {@link SOCBoard#makeNewBoard(Map)}
      * and {@link SOCGame#startGame()}, because the board layout and legal settlements vary
      * from game to game.
      * @see #potentialSettlements

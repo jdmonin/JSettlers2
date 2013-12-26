@@ -64,8 +64,8 @@ public class SOCGameOptionGetDefaults extends SOCMessage
 
     /**
      * Get the string of option name-value pairs sent over the network.
-     * To turn this into a hashtable of {@link soc.game.SOCGameOption SOCGameOptions},
-     * call {@link soc.game.SOCGameOption#parseOptionsToHash(String) SOCGameOption.parseOptionsToHash()}.
+     * To turn this into a group of {@link soc.game.SOCGameOption SOCGameOptions},
+     * call {@link soc.game.SOCGameOption#parseOptionsToMap(String) SOCGameOption.parseOptionsToMap()}.
      * @return the string of options, or null if none (client to server)
      */
     public String getOpts()

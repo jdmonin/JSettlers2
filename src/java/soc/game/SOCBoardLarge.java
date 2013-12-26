@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -47,12 +46,12 @@ import soc.util.IntPair;
  *<P>
  * To create a new board, use subclass <tt>soc.server.SOCBoardLargeAtServer</tt>.
  * Game boards are initially all water.  The layout contents are set up later by calling
- * {@code SOCBoardLargeAtServer.makeNewBoard(Hashtable)} when the game is about to begin,
+ * {@code SOCBoardLargeAtServer.makeNewBoard(Map)} when the game is about to begin,
  * then sent to the clients over the network.  The client calls methods such as {@link #setLandHexLayout(int[])},
  * {@link #setPortsLayout(int[])}, {@link SOCGame#putPiece(SOCPlayingPiece)}, and
  * {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])} with data from the server.
  *<P>
- * See {@code SOCBoardLargeAtServer}'s class javadoc, and its {@code makeNewBoard(Hashtable)} javadoc, for more details on layout creation.
+ * See {@code SOCBoardLargeAtServer}'s class javadoc, and its {@code makeNewBoard(Map)} javadoc, for more details on layout creation.
  *<P>
  * On this large sea board, there can optionally be multiple "land areas"
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
@@ -624,13 +623,13 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * This board layout's number of ports;
-     * 0 if {@link #makeNewBoard(Hashtable)} hasn't been called yet.
+     * 0 if {@link #makeNewBoard(Map)} hasn't been called yet.
      * Port types, edges and facings are all stored in {@link SOCBoard#portsLayout}.
      */
     protected int portsCount;
 
     /**
-     * the hex coordinate that the pirate is in, or 0; placed in {@link #makeNewBoard(Hashtable)}.
+     * the hex coordinate that the pirate is in, or 0; placed in {@link #makeNewBoard(Map)}.
      * Once the pirate is placed on the board, it cannot be removed (cannot become 0 again) except
      * in scenario {@link SOCGameOption#K_SC_PIRI}.
      */
@@ -649,11 +648,11 @@ public class SOCBoardLarge extends SOCBoard
      * Board height and width will be the default, {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE}.
      *<P>
      * Only the client uses this constructor.
-     * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+     * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
      */
-    public SOCBoardLarge(Hashtable<String,SOCGameOption> gameOpts, int maxPlayers)
+    public SOCBoardLarge(final Map<String,SOCGameOption> gameOpts, int maxPlayers)
         throws IllegalArgumentException
     {
         this(gameOpts, maxPlayers, getBoardSize(gameOpts, maxPlayers));
@@ -663,14 +662,14 @@ public class SOCBoardLarge extends SOCBoard
      * Create a new Settlers of Catan Board, with the v3 encoding and a certain size.
      * The board will be empty (all hexes are water, no dice numbers on any hex), see class javadoc
      * for how the board is filled when the game begins.
-     * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+     * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6
      * @param boardHeightWidth  Board's height and width.
      *        The constants for default size are {@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE}.
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6, or <tt>boardHeightWidth</tt> is null
      */
     public SOCBoardLarge
-        (final Hashtable<String,SOCGameOption> gameOpts, final int maxPlayers, final IntPair boardHeightWidth)
+        (final Map<String,SOCGameOption> gameOpts, final int maxPlayers, final IntPair boardHeightWidth)
         throws IllegalArgumentException
     {
         super(BOARD_ENCODING_LARGE, MAX_LAND_HEX_LG);
@@ -714,9 +713,9 @@ public class SOCBoardLarge extends SOCBoard
      * @param gameOpts  Game options, or null
      * @param maxPlayers  Maximum players; must be 4 or 6
      * @return a new IntPair(height, width)
-     * @see soc.server.SOCBoardLargeAtServer#getBoardSize(Hashtable, int)
+     * @see soc.server.SOCBoardLargeAtServer#getBoardSize(Map, int)
      */
-    private static IntPair getBoardSize(Hashtable<String, SOCGameOption> gameOpts, int maxPlayers)
+    private static IntPair getBoardSize(final Map<String, SOCGameOption> gameOpts, int maxPlayers)
     {
         SOCGameOption bhwOpt = null;
         if (gameOpts != null)
@@ -752,7 +751,7 @@ public class SOCBoardLarge extends SOCBoard
      * @throws UnsupportedOperationException if called at client
      */
     @Override
-    public void makeNewBoard(Hashtable<String, SOCGameOption> opts)
+    public void makeNewBoard(final Map<String, SOCGameOption> opts)
         throws UnsupportedOperationException
     {
         throw new UnsupportedOperationException("Use SOCBoardLargeAtServer instead");
@@ -1682,7 +1681,7 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * For {@link #makeNewBoard(Hashtable)}, with the {@link SOCGameOption#K_SC_CLVI Cloth Village} scenario,
+     * For {@link #makeNewBoard(Map)}, with the {@link SOCGameOption#K_SC_CLVI Cloth Village} scenario,
      * create {@link SOCVillage}s at these node locations.  Adds to {@link #villages}.
      * Also set the board's "general supply" of cloth ({@link #setCloth(int)}).
      * @param villageNodesAndDice  Starting cloth count and each village's node coordinate and dice number,
@@ -2014,7 +2013,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * After calling this, please call
      * {@link SOCGame#setPlayersLandHexCoordinates() game.setPlayersLandHexCoordinates()}.
-     * After {@link #makeNewBoard(Hashtable)} calculates the potential/legal settlements,
+     * After {@link #makeNewBoard(Map)} calculates the potential/legal settlements,
      * call each player's {@link SOCPlayer#setPotentialAndLegalSettlements(Collection, boolean, HashSet[])}.
      * @param  lh  the layout, or null if no land hexes, from {@link #getLandHexLayout()}
      */
@@ -2052,7 +2051,7 @@ public class SOCBoardLarge extends SOCBoard
      * Get the starting land area, if multiple "land areas" are used
      * and the players must start the game in a certain land area.
      *<P>
-     * This is enforced during {@link #makeNewBoard(Hashtable)}, by using
+     * This is enforced during {@link #makeNewBoard(Map)}, by using
      * that land area for the only initial potential/legal settlement locations.
      *
      * @return the starting land area number; also its index in
@@ -2098,7 +2097,7 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Get the legal and potential settlements, after {@link #makeNewBoard(Hashtable)}.
+     * Get the legal and potential settlements, after {@link #makeNewBoard(Map)}.
      * For use mainly by SOCGame at server.
      *<P>
      * Returns the starting land area's nodes, or if no starting
@@ -2176,7 +2175,7 @@ public class SOCBoardLarge extends SOCBoard
      * Create and initialize a {@link SOCPlayer}'s legalRoads set.
      *<P>
      * Because the v3 board layout varies:
-     * At the server, call this after {@link #makeNewBoard(Hashtable)}.
+     * At the server, call this after {@link #makeNewBoard(Map)}.
      * At the client, call this after
      * {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}.
      *
@@ -2194,7 +2193,7 @@ public class SOCBoardLarge extends SOCBoard
      * Contains all 6 edges of each water hex.
      *<P>
      * Because the v3 board layout varies:
-     * At the server, call this after {@link #makeNewBoard(Hashtable)}.
+     * At the server, call this after {@link #makeNewBoard(Map)}.
      * At the client, call this after
      * {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}.
      *
@@ -3443,7 +3442,7 @@ public class SOCBoardLarge extends SOCBoard
 
         // Clear any previous port layout info
         if (nodeIDtoPortType == null)
-            nodeIDtoPortType = new Hashtable<Integer, Integer>();
+            nodeIDtoPortType = new HashMap<Integer, Integer>();
         else
             nodeIDtoPortType.clear();
         for (int i = 0; i < ports.length; ++i)
@@ -3486,9 +3485,9 @@ public class SOCBoardLarge extends SOCBoard
      * if a hex is off the edge of the board, it's considered water.
      *
      * @param edge  A coastal edge; not validated here, must be a possible coordinate for an edge
-     * @throws IllegalArgumentException  if {@code edge} is between 2 land hexes or 2 water hexes
      * @return  Coastal edge's port facing (towards land): In the range {@link SOCBoard#FACING_NE FACING_NE},
      *     {@link SOCBoard#FACING_E FACING_E}, ... {@link SOCBoard#FACING_NW FACING_NW}
+     * @throws IllegalArgumentException  if {@code edge} is between 2 land hexes or 2 water hexes
      */
     public int getPortFacingFromEdge(final int edge)
         throws IllegalArgumentException

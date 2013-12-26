@@ -41,7 +41,8 @@ import soc.util.Version;
  * {@link SOCGame} object, and clients ({@link StringConnection}s).
  *<P>
  * In 1.1.07, parent class SOCGameList was refactored, with
- * some methods moved to this new subclass, such as {@link #createGame(String, String, String, Hashtable) createGame}.
+ * some methods moved to this new subclass, such as
+ * {@link #createGame(String, String, String, Map, GameHandler) createGame}.
  *
  * @see SOCBoardLargeAtServer
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -53,12 +54,12 @@ public class SOCGameListAtServer extends SOCGameList
      * Number of minutes after which a game (created on the list) is expired.
      * Default is 90.
      *
-     * @see #createGame(String, String, String, Hashtable)
+     * @see #createGame(String, String, String, Map)
      * @see SOCServer#checkForExpiredGames(long)
      */
     public static int GAME_EXPIRE_MINUTES = 90;
 
-    /** map of game names to Vector of game members ({@link StringConnection}s) */
+    /** synchronized map of game names to Vector of game members ({@link StringConnection}s) */
     protected Hashtable<String, Vector<StringConnection>> gameMembers;
 
     /**
@@ -278,7 +279,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @param gaName  the name of the game
      * @param gaOwner the game owner/creator's player name, or null (added in 1.1.10)
      * @param gaLocaleStr  the game creator's locale, to later set {@link SOCGame#hasMultiLocales} if needed (added in 2.0.00)
-     * @param gaOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+     * @param gaOpts  if game has options, its {@link SOCGameOption}s; otherwise null.
      *                Should already be validated, by calling
      *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *                with <tt>doServerPreadjust</tt> true.
@@ -288,7 +289,7 @@ public class SOCGameListAtServer extends SOCGameList
      */
     public synchronized SOCGame createGame
         (final String gaName, final String gaOwner, final String gaLocaleStr,
-         Hashtable<String, SOCGameOption> gaOpts, final GameHandler handler)
+         final Map<String, SOCGameOption> gaOpts, final GameHandler handler)
         throws IllegalArgumentException
     {
         if (isGame(gaName))
@@ -491,12 +492,12 @@ public class SOCGameListAtServer extends SOCGameList
 
         /**
          * Constructor, with handler and optional game options.
-         * @param gameOpts Hashtable of {@link SOCGameOption}s, or null
+         * @param gameOpts  Game's {@link SOCGameOption}s, or null
          * @param typeHandler  Game type handler for this game
          * @throws IllegalArgumentException  if {@code handler} is null
          */
         public GameInfoAtServer
-            (final Hashtable<String,SOCGameOption> gameOpts, final GameHandler typeHandler)
+            (final Map<String,SOCGameOption> gameOpts, final GameHandler typeHandler)
             throws IllegalArgumentException
         {
             super(true, gameOpts);

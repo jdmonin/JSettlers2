@@ -56,6 +56,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.Random;
@@ -260,7 +261,8 @@ public class SOCServer extends Server
     /**
      * If game will expire in this or fewer minutes, warn the players. Default 10.
      * Must be at least twice the sleep-time in {@link SOCGameTimeoutChecker#run()}.
-     * The game expiry time is set at game creation in {@link SOCGameListAtServer#createGame(String, String, String, Hashtable, GameHandler)}.
+     * The game expiry time is set at game creation in
+     * {@link SOCGameListAtServer#createGame(String, String, String, Map, GameHandler)}.
      *
      * @see #checkForExpiredGames(long)
      * @see SOCGameTimeoutChecker#run()
@@ -280,7 +282,7 @@ public class SOCServer extends Server
      * Maximum permitted game name length, default 30 characters.
      * Before 1.1.13, the default maximum was 20 characters.
      *
-     * @see #createOrJoinGameIfUserOK(StringConnection, String, String, String, Hashtable)
+     * @see #createOrJoinGameIfUserOK(StringConnection, String, String, String, Map)
      * @since 1.1.07
      */
     public static int GAME_NAME_MAX_LENGTH = 30;
@@ -289,7 +291,7 @@ public class SOCServer extends Server
      * Maximum permitted player name length, default 20 characters.
      * The client already truncates to 20 characters in SOCPlayerClient.getValidNickname.
      *
-     * @see #createOrJoinGameIfUserOK(StringConnection, String, String, String, Hashtable)
+     * @see #createOrJoinGameIfUserOK(StringConnection, String, String, String, Map)
      * @since 1.1.07
      */
     public static int PLAYER_NAME_MAX_LENGTH = 20;
@@ -1129,7 +1131,7 @@ public class SOCServer extends Server
      *
      * @param c    the Connection to be added; its name and version should already be set.
      * @param gaName  the name of the game
-     * @param gaOpts  if creating a game with options, hashtable of {@link SOCGameOption}; otherwise null.
+     * @param gaOpts  if creating a game with options, its {@link SOCGameOption}s; otherwise null.
      *                Should already be validated, by calling
      *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *                with <tt>doServerPreadjust</tt> true.
@@ -1148,7 +1150,7 @@ public class SOCServer extends Server
      * @see #handleSTARTGAME(StringConnection, SOCStartGame)
      * @see #handleJOINGAME(StringConnection, SOCJoinGame)
      */
-    public boolean connectToGame(StringConnection c, final String gaName, Hashtable<String, SOCGameOption> gaOpts)
+    public boolean connectToGame(StringConnection c, final String gaName, Map<String, SOCGameOption> gaOpts)
         throws SOCGameOptionVersionException, IllegalArgumentException
     {
         if (c == null)
@@ -1670,11 +1672,10 @@ public class SOCServer extends Server
      * Given a game name on this server, return its game options.
      *
      * @param gm Game name
-     * @return the game options (hashtable of {@link SOCGameOption}), or
-     *       null if the game doesn't exist or has no options
+     * @return the game options, or null if the game doesn't exist or has no options
      * @since 1.1.07
      */
-    public Hashtable<String,SOCGameOption> getGameOptions(String gm)
+    public Map<String,SOCGameOption> getGameOptions(String gm)
     {
         return gameList.getGameOptions(gm);
     }
@@ -1689,11 +1690,11 @@ public class SOCServer extends Server
      * @return  {@link SOCGameOption#getAllKnownOptions()}, with descriptions localized if available
      * @since 2.0.00
      */
-    public static Hashtable<String,SOCGameOption> localizeKnownOptions
+    public static Map<String,SOCGameOption> localizeKnownOptions
         (final Locale loc, final boolean updateStaticKnownOpts)
     {
         // Get copy of all known options
-        Hashtable<String,SOCGameOption> knownOpts = SOCGameOption.getAllKnownOptions();
+        Map<String,SOCGameOption> knownOpts = SOCGameOption.getAllKnownOptions();
 
         // See if we have localized opt descs for sm's locale
         final SOCStringManager sm = SOCStringManager.getServerManagerForClient(loc);
@@ -1706,7 +1707,7 @@ public class SOCServer extends Server
         }
 
         // Localize and return
-        Hashtable<String,SOCGameOption> opts = new Hashtable<String, SOCGameOption>();
+        HashMap<String,SOCGameOption> opts = new HashMap<String, SOCGameOption>();
         for (SOCGameOption opt : knownOpts.values())
         {
             final String optKey = opt.optKey;
@@ -4784,7 +4785,7 @@ public class SOCServer extends Server
      */
     private void createOrJoinGameIfUserOK
         (StringConnection c, final String msgUser, String msgPass,
-         final String gameName, Hashtable<String, SOCGameOption> gameOpts)
+         final String gameName, Map<String, SOCGameOption> gameOpts)
     {
         System.err.println("L4885 createOrJoinGameIfUserOK at " + System.currentTimeMillis());
         if (msgPass != null)
@@ -5483,7 +5484,7 @@ public class SOCServer extends Server
         }
 
         final String gname = ga.getName();
-        final Hashtable<String, SOCGameOption> gopts = ga.getGameOptions();
+        final Map<String, SOCGameOption> gopts = ga.getGameOptions();
         int seatsOpen = ga.getAvailableSeatCount();
         int idx = 0;
         StringConnection[] robotSeatsConns = new StringConnection[ga.maxPlayers];
@@ -6054,7 +6055,7 @@ public class SOCServer extends Server
     /**
      * process the "new game with options request" message.
      * For messages sent, and other details,
-     * see {@link #createOrJoinGameIfUserOK(StringConnection, String, String, String, Hashtable)}.
+     * see {@link #createOrJoinGameIfUserOK(StringConnection, String, String, String, Map)}.
      * <P>
      * Because this message is sent only by clients newer than 1.1.06, we definitely know that
      * the client has already sent its version information.
@@ -6153,8 +6154,8 @@ public class SOCServer extends Server
      *                      is defunct because of a network problem.
      *                      If <tt>isTakingOver</tt>, don't send anything to other players.
      *
-     * @see #connectToGame(StringConnection, String, Hashtable)
-     * @see #createOrJoinGameIfUserOK(StringConnection, String, String, String, Hashtable)
+     * @see #connectToGame(StringConnection, String, Map)
+     * @see #createOrJoinGameIfUserOK(StringConnection, String, String, String, Map)
      */
     private void joinGame(SOCGame gameData, StringConnection c, boolean isReset, boolean isTakingOver)
     {
@@ -6935,13 +6936,13 @@ public class SOCServer extends Server
      */
     public static void printGameOptions()
     {
-        final Hashtable<String, SOCGameOption> allopts = SOCGameOption.getAllKnownOptions();
+        final Map<String, SOCGameOption> allopts = SOCGameOption.getAllKnownOptions();
 
         System.err.println("-- Current default game options: --");
 
         ArrayList<String> okeys = new ArrayList<String>(allopts.keySet());
         Collections.sort(okeys);
-        for (final String okey : okeys )
+        for (final String okey : okeys)
         {
             SOCGameOption opt = allopts.get(okey);
 

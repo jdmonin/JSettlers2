@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -902,8 +901,8 @@ public class SOCGameHandler extends GameHandler
      *                      is defunct because of a network problem.
      *                      If <tt>isTakingOver</tt>, don't send anything to other players.
      *
-     * @see SOCServer#connectToGame(StringConnection, String, Hashtable)
-     * @see SOCServer#createOrJoinGameIfUserOK(StringConnection, String, String, String, Hashtable)
+     * @see SOCServer#connectToGame(StringConnection, String, Map)
+     * @see SOCServer#createOrJoinGameIfUserOK(StringConnection, String, String, String, Map)
      */
     public void joinGame(SOCGame gameData, StringConnection c, final boolean isReset, final boolean isTakingOver)
     {
@@ -1684,7 +1683,7 @@ public class SOCGameHandler extends GameHandler
                             srv.messageToGameWithMon(gm, new SOCSetSeatLock(gm, playerNumber, SOCGame.SeatLockState.UNLOCKED));
                         }
                         robotConn.put(SOCRobotJoinGameRequest.toCmd(gm, playerNumber, ga.getGameOptions()));
-    
+
                         /**
                          * record the request
                          */

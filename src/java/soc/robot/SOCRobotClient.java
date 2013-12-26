@@ -44,6 +44,7 @@ import java.io.DataOutputStream;
 import java.net.Socket;
 
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Vector;
 
 
@@ -162,12 +163,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * options for all games on the server we've been asked to join.
      * Some games may have no options, so will have no entry here,
      * although they will have an entry in {@link #games} once joined.
-     * Key = game name, Value = hashtable of {@link SOCGameOption}.
+     * Key = game name, Value = map of game's {@link SOCGameOption}s.
      * Entries are added in {@link #handleROBOTJOINGAMEREQUEST(SOCRobotJoinGameRequest)}.
      * Since the robot and server are the same version, the
      * set of "known options" will always be in sync.
      */
-    private Hashtable<String, Hashtable<String, SOCGameOption>> gameOptions = new Hashtable<String, Hashtable<String, SOCGameOption>>();
+    private Hashtable<String, Map<String, SOCGameOption>> gameOptions = new Hashtable<String, Map<String, SOCGameOption>>();
 
     /**
      * number of games this bot has played
@@ -926,7 +927,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     {
         D.ebugPrintln("**** handleROBOTJOINGAMEREQUEST ****");
         final String gaName = mes.getGame();
-        Hashtable<String,SOCGameOption> gaOpts = mes.getOptions();
+        final Map<String,SOCGameOption> gaOpts = mes.getOptions();
         if (gaOpts != null)
             gameOptions.put(gaName, gaOpts);
 

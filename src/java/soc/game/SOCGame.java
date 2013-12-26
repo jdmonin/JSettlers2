@@ -35,7 +35,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -792,7 +791,7 @@ public class SOCGame implements Serializable, Cloneable
      * the game options ({@link SOCGameOption}), or null
      * @since 1.1.07
      */
-    private Hashtable<String, SOCGameOption> opts;
+    private Map<String, SOCGameOption> opts;
 
     /**
      * the players; never contains a null element, use {@link #isSeatVacant(int)}
@@ -1102,7 +1101,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param n  the name of the game.  For network message safety, must not contain
      *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @param op if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+     * @param op if game has options, map of {@link SOCGameOption}; otherwise null.
      *           Will validate options by calling
      *           {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *           with <tt>doServerPreadjust</tt> false,
@@ -1112,7 +1111,7 @@ public class SOCGame implements Serializable, Cloneable
      *             object class besides {@link SOCGameOption}
      * @since 1.1.07
      */
-    public SOCGame(final String n, Hashtable<String, SOCGameOption> op)
+    public SOCGame(final String n, Map<String, SOCGameOption> op)
         throws IllegalArgumentException
     {
         this(n, true, op);
@@ -1141,7 +1140,7 @@ public class SOCGame implements Serializable, Cloneable
      *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param isActive  true if this is an active game, false for inactive
-     * @param op if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+     * @param op if game has options, map of {@link SOCGameOption}; otherwise null.
      *           Will validate options by calling
      *           {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *           with <tt>doServerPreadjust</tt> false,
@@ -1152,7 +1151,7 @@ public class SOCGame implements Serializable, Cloneable
      *             fails {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @since 1.1.07
      */
-    public SOCGame(final String n, final boolean isActive, Hashtable<String, SOCGameOption> op)
+    public SOCGame(final String n, final boolean isActive, Map<String, SOCGameOption> op)
         throws IllegalArgumentException
     {
         // For places to initialize fields, see also resetAsCopy().
@@ -1607,7 +1606,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #isGameOptionSet(String)
      * @see #getGameOptionIntValue(String)
      */
-    public Hashtable<String, SOCGameOption> getGameOptions()
+    public Map<String, SOCGameOption> getGameOptions()
     {
         return opts;
     }
@@ -1648,7 +1647,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Is this boolean-valued game option currently set to true?
-     * @param opts A hashtable of {@link SOCGameOption}, or null
+     * @param opts A map of {@link SOCGameOption}, or null
      * @param optKey Name of a {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_BOOL OTYPE_BOOL},
      *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL}
      *               or {@link SOCGameOption#OTYPE_ENUMBOOL OTYPE_ENUMBOOL}
@@ -1656,10 +1655,10 @@ public class SOCGame implements Serializable, Cloneable
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
-     * @see #getGameOptionIntValue(Hashtable, String)
-     * @see #getGameOptionStringValue(Hashtable, String)
+     * @see #getGameOptionIntValue(Map, String)
+     * @see #getGameOptionStringValue(Map, String)
      */
-    public static boolean isGameOptionSet(Hashtable<String, SOCGameOption> opts, final String optKey)
+    public static boolean isGameOptionSet(Map<String, SOCGameOption> opts, final String optKey)
     {
         // OTYPE_* - if a new type is added, update this method's javadoc.
 
@@ -1699,7 +1698,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Does not reference {@link SOCGameOption#getBoolValue()}, only the int value,
      * so this will return a value even if the bool value is false.
-     * @param opts A hashtable of {@link SOCGameOption}, or null
+     * @param opts A map of {@link SOCGameOption}, or null
      * @param optKey A {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_INT OTYPE_INT},
      *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL},
      *               {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
@@ -1710,9 +1709,9 @@ public class SOCGame implements Serializable, Cloneable
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
-     * @see #getGameOptionIntValue(Hashtable, String, int, boolean)
+     * @see #getGameOptionIntValue(Map, String, int, boolean)
      */
-    public static int getGameOptionIntValue(Hashtable<String, SOCGameOption> opts, final String optKey)
+    public static int getGameOptionIntValue(final Map<String, SOCGameOption> opts, final String optKey)
     {
         // OTYPE_* - if a new type is added, update this method's javadoc.
 
@@ -1723,7 +1722,7 @@ public class SOCGame implements Serializable, Cloneable
      * What is this integer game option's current value?
      *<P>
      * Can optionally reference {@link SOCGameOption#getBoolValue()}, not only the int value.
-     * @param opts A hashtable of {@link SOCGameOption}, or null
+     * @param opts A map of {@link SOCGameOption}, or null
      * @param optKey A {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_INT OTYPE_INT},
      *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL},
      *               {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
@@ -1738,10 +1737,10 @@ public class SOCGame implements Serializable, Cloneable
      * @since 1.1.14
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
-     * @see #getGameOptionIntValue(Hashtable, String)
+     * @see #getGameOptionIntValue(Map, String)
      */
     public static int getGameOptionIntValue
-        (Hashtable<String, SOCGameOption> opts, final String optKey, final int defValue, final boolean onlyIfBoolSet)
+        (final Map<String, SOCGameOption> opts, final String optKey, final int defValue, final boolean onlyIfBoolSet)
     {
         // OTYPE_* - if a new type is added, update this method's javadoc.
 
@@ -1775,7 +1774,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * What is this string game option's current value?
-     * @param opts A hashtable of {@link SOCGameOption}, or null
+     * @param opts A map of {@link SOCGameOption}, or null
      * @param optKey A {@link SOCGameOption} of type
      *               {@link SOCGameOption#OTYPE_STR OTYPE_STR}
      *               or {@link SOCGameOption#OTYPE_STRHIDE OTYPE_STRHIDE}
@@ -1785,7 +1784,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
      */
-    public static String getGameOptionStringValue(Hashtable<String, SOCGameOption> opts, final String optKey)
+    public static String getGameOptionStringValue(final Map<String, SOCGameOption> opts, final String optKey)
     {
         // OTYPE_* - if a new type is added, update this method's javadoc.
 

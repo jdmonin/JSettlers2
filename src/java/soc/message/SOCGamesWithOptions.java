@@ -51,7 +51,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      * Creates opt with the proper type, even if unknown locally.
      * This parses the games+names into a string array,
      * but not the game options into {@link soc.game.SOCGameOption game option}
-     * objects; call {@link soc.game.SOCGameOption#parseOptionsToHash(String)} for that.
+     * objects; call {@link soc.game.SOCGameOption#parseOptionsToMap(String)} for that.
      *<P>
      * There is no server-side constructor, because the server
      * instead calls {@link #toCmd(Vector, int)}.

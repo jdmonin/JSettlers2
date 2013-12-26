@@ -26,9 +26,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import java.util.Vector;
 
@@ -49,7 +49,7 @@ import soc.util.IntTriple;
 
 /**
  * A subclass of {@link SOCBoardLarge} for the server, to isolate
- * {@link #makeNewBoard(Hashtable)} to simplify that parent class.
+ * {@link #makeNewBoard(Map)} and simplify that parent class.
  * See SOCBoardLarge for more details.
  * For the board layout geometry, see that class javadoc's "Coordinate System" section.
  *<P>
@@ -66,7 +66,7 @@ import soc.util.IntTriple;
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
  * Land areas are groups of nodes on land; call {@link #getNodeLandArea(int)} to find a node's land area number.
  * The starting land area is {@link #getStartingLandArea()}, if players must start in a certain area.
- * During board setup, {@link #makeNewBoard(Hashtable)} calls
+ * During board setup, {@link #makeNewBoard(Map)} calls
  * {@link #makeNewBoard_placeHexes(int[], int[], int[], boolean, boolean, int, SOCGameOption, String)}
  * once for each land area.  In some game scenarios, players and the robber can be
  * {@link #getPlayerExcludedLandAreas() excluded} from placing in some land areas.
@@ -86,7 +86,7 @@ import soc.util.IntTriple;
  *<P>
  * Parts of the layout:
  *<UL>
- * <LI> Its height and width, if not default; set in {@link #getBoardSize(Hashtable, int)}
+ * <LI> Its height and width, if not default; set in {@link #getBoardSize(Map, int)}
  * <LI> Its set of land hex types, usually shuffled *
  * <LI> Land hex coordinates *
  * <LI> Dice numbers to place at land hex coordinates, sometimes shuffled
@@ -131,20 +131,20 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * Create a new Settlers of Catan Board, with the v3 encoding.
-     * Called by {@link SOCBoardLargeAtServer.BoardFactoryAtServer#createBoard(Hashtable, boolean, int)}
+     * Called by {@link SOCBoardLargeAtServer.BoardFactoryAtServer#createBoard(Map, boolean, int)}
      * to get the right board size and layout based on game options and optional {@link SOCScenario}.
      * The board will be empty (all hexes are water, no dice numbers on any hex).
-     * The layout contents are set up later by calling {@link #makeNewBoard(Hashtable)} when the game is about to begin,
+     * The layout contents are set up later by calling {@link #makeNewBoard(Map)} when the game is about to begin,
      * see {@link SOCBoardLarge} class javadoc for how the layout is sent to clients.
      *
-     * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+     * @param gameOpts  Game's options if any, otherwise null
      * @param maxPlayers Maximum players; must be 4 or 6
      * @param boardHeightWidth  Board's height and width.
      *        The constants for default size are {@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE}.
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6, or <tt>boardHeightWidth</tt> is null
      */
     public SOCBoardLargeAtServer
-        (final Hashtable<String,SOCGameOption> gameOpts, final int maxPlayers, final IntPair boardHeightWidth)
+        (final Map<String,SOCGameOption> gameOpts, final int maxPlayers, final IntPair boardHeightWidth)
         throws IllegalArgumentException
     {
         super(gameOpts, maxPlayers, boardHeightWidth);
@@ -210,7 +210,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *          (same {@link #getBoardEncodingFormat()}).
      */
     @Override
-    public void makeNewBoard(Hashtable<String, SOCGameOption> opts)
+    public void makeNewBoard(final Map<String, SOCGameOption> opts)
     {
         final SOCGameOption opt_breakClumps = (opts != null ? opts.get("BC") : null);
 
@@ -568,7 +568,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
         // place the ports (hex numbers and facing) within portsLayout[] and nodeIDtoPortType.
         // fill out the ports[] vectors with node coordinates where a trade port can be placed.
-        nodeIDtoPortType = new Hashtable<Integer, Integer>();
+        nodeIDtoPortType = new HashMap<Integer, Integer>();
 
         // - main island(s):
         // i == port type array index
@@ -613,14 +613,14 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     }
 
     /**
-     * For {@link #makeNewBoard(Hashtable)}, place the land hexes, number, and robber,
+     * For {@link #makeNewBoard(Map)}, place the land hexes, number, and robber,
      * after shuffling landHexType[].
      * Sets robberHex, contents of hexLayoutLg[] and numberLayoutLg[].
      * Adds to {@link #landHexLayout} and {@link SOCBoard#nodesOnLand}.
      * Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
      * (for land hex resource types).
      * If <tt>landAreaNumber</tt> != 0, also adds to {@link #landAreasLegalNodes}.
-     * Called from {@link #makeNewBoard(Hashtable)} at server only; client has its board layout sent from the server.
+     * Called from {@link #makeNewBoard(Map)} at server only; client has its board layout sent from the server.
      *<P>
      * For the board layout geometry, see the {@link SOCBoardLarge} class javadoc's "Coordinate System" section.
      *<P>
@@ -669,14 +669,14 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     }
 
     /**
-     * For {@link #makeNewBoard(Hashtable)}, place the land hexes, number, and robber
+     * For {@link #makeNewBoard(Map)}, place the land hexes, number, and robber
      * for multiple land areas, after shuffling their common landHexType[].
      * Sets robberHex, contents of hexLayoutLg[] and numberLayoutLg[].
      * Adds to {@link #landHexLayout} and {@link SOCBoard#nodesOnLand}.
      * Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
      * (for land hex resource types).
      * If Land Area Number != 0, also adds to {@link #landAreasLegalNodes}.
-     * Called from {@link #makeNewBoard(Hashtable)} at server only; client has its board layout sent from the server.
+     * Called from {@link #makeNewBoard(Map)} at server only; client has its board layout sent from the server.
      *<P>
      * This method does not clear out {@link #hexLayoutLg} or {@link #numberLayoutLg}
      * before it starts placement.  You can call it multiple times to set up multiple
@@ -912,7 +912,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     }  // makeNewBoard_placeHexes
 
     /**
-     * For {@link #makeNewBoard(Hashtable)}, after placing
+     * For {@link #makeNewBoard(Map)}, after placing
      * land hexes and dice numbers into {@link #hexLayoutLg},
      * fine-tune the randomized gold hex placement:
      *<UL>
@@ -1168,7 +1168,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     }
 
     /**
-     * For {@link #makeNewBoard(Hashtable)}, after placing
+     * For {@link #makeNewBoard(Map)}, after placing
      * land hexes and dice numbers into {@link SOCBoardLarge#hexLayoutLg hexLayoutLg}
      * and {@link SOCBoardLarge#numberLayoutLg numberLayoutLg},
      * separate adjacent "red numbers" (6s, 8s)
@@ -1742,7 +1742,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     }
 
     /**
-     * For {@link #makeNewBoard(Hashtable)}, check port locations and facings, and make sure
+     * For {@link #makeNewBoard(Map)}, check port locations and facings, and make sure
      * no port overlaps with a land hex.  Each port's edge coordinate has 2 valid perpendicular
      * facing directions, and ports should be on a land/water edge, facing the land side.
      * Call this method after placing all land hexes.
@@ -1880,7 +1880,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     }  // makeNewBoard_makeLegalNodesFromHexes
 
     /**
-     * For {@link #makeNewBoard(Hashtable)}, hide these hexes under {@link #FOG_HEX} to be revealed later.
+     * For {@link #makeNewBoard(Map)}, hide these hexes under {@link #FOG_HEX} to be revealed later.
      * The hexes will be stored in {@link #fogHiddenHexes}; their {@link #hexLayoutLg} and {@link #numberLayoutLg}
      * elements will be set to {@link #FOG_HEX} and -1.
      *<P>
@@ -1911,7 +1911,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * Get the board size for
-     * {@link BoardFactoryAtServer#createBoard(Hashtable, boolean, int) BoardFactoryAtServer.createBoard}:
+     * {@link BoardFactoryAtServer#createBoard(Map, boolean, int) BoardFactoryAtServer.createBoard}:
      * The default size {@link SOCBoardLarge#BOARDHEIGHT_LARGE BOARDHEIGHT_LARGE} by
      * {@link SOCBoardLarge#BOARDWIDTH_LARGE BOARDWIDTH_LARGE},
      * unless <tt>gameOpts</tt> contains a scenario (<tt>"SC"</tt>) whose layout has a custom height/width.
@@ -1920,9 +1920,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * @param gameOpts  Game options, or null
      * @param maxPlayers  Maximum players; must be 4 or 6
      * @return encoded size (0xRRCC), the same format as game option {@code "_BHW"}
-     * @see SOCBoardLarge#getBoardSize(Hashtable, int)
+     * @see SOCBoardLarge#getBoardSize(Map, int)
      */
-    private static int getBoardSize(Hashtable<String, SOCGameOption> gameOpts, final int maxPlayers)
+    private static int getBoardSize(final Map<String, SOCGameOption> gameOpts, final int maxPlayers)
     {
         int heightWidth = 0;
         SOCGameOption scOpt = null;
@@ -2049,7 +2049,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * scenario game options; if you need it called for your game, add
      * a check there for your scenario's {@link SOCGameOption}.
      *<P>
-     * This is called after {@link #makeNewBoard(Hashtable)} and before
+     * This is called after {@link #makeNewBoard(Map)} and before
      * {@link SOCGameHandler#getBoardLayoutMessage}.  So if needed,
      * it can call {@link SOCBoardLarge#setAddedLayoutPart(String, int[])}.
      *<P>
@@ -3720,9 +3720,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
          *<P>
          * From v1.1.11 through 1.1.xx, this was SOCBoard.createBoard.  Moved to new factory class in 2.0.00.
          *
-         * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+         * @param gameOpts  if game has options, its map of {@link SOCGameOption}; otherwise null.
          *                  If <tt>largeBoard</tt>, and
-         *                  {@link SOCBoardLargeAtServer#getBoardSize(Hashtable, int) getBoardSize(Hashtable, int)}
+         *                  {@link SOCBoardLargeAtServer#getBoardSize(Map, int) getBoardSize(Map, int)}
          *                  gives a non-default size, <tt>"_BHW"</tt> will be added to <tt>gameOpts</tt>.
          * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
          * @param maxPlayers Maximum players; must be 4 or 6.
@@ -3730,7 +3730,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
          *                  or (unlikely internal error) game option "_BHW" isn't known in SOCGameOption.getOption.
          */
         public SOCBoard createBoard
-            (Hashtable<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
+            (final Map<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
             throws IllegalArgumentException
         {
             if (! largeBoard)

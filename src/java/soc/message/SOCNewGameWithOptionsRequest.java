@@ -21,7 +21,6 @@
  **/
 package soc.message;
 
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.StringTokenizer;
 import soc.game.SOCGameOption;
@@ -51,20 +50,20 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
     private String optsStr;
 
     /** may be null */
-    private Hashtable<String, SOCGameOption> opts;
+    private Map<String, SOCGameOption> opts;
 
     /**
-     * Create a NEWGameWithOptionsRequest message.
+     * Create a NewGameWithOptionsRequest message.
      *
      * @param nn  nickname
      * @param pw  password
      * @param hn  host name
      * @param ga  name of the game
-     * @param opts the game options (hashtable of {@link SOCGameOption}), or null;
+     * @param opts the game options, or null;
      *           if null, it probably makes sense to create
      *           a {@link SOCJoinGame} message instead.
      */
-    public SOCNewGameWithOptionsRequest(String nn, String pw, String hn, String ga, Hashtable<String, SOCGameOption> opts)
+    public SOCNewGameWithOptionsRequest(String nn, String pw, String hn, String ga, Map<String, SOCGameOption> opts)
     {
         super(nn, pw, hn, ga);
         messageType = NEWGAMEWITHOPTIONSREQUEST;
@@ -87,14 +86,14 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
         super(nn, pw, hn, ga);
         messageType = NEWGAMEWITHOPTIONSREQUEST;
         optsStr = optstr;
-        opts = SOCGameOption.parseOptionsToHash(optstr);
+        opts = SOCGameOption.parseOptionsToMap(optstr);
     }
 
     /**
-     * @return the game options (hashtable of {@link SOCGameOption}), or null;
+     * @return the game options (map of {@link SOCGameOption}), or null;
      *   does not parse optsStr.
      */
-    public Hashtable<String, SOCGameOption> getOptions()
+    public Map<String, SOCGameOption> getOptions()
     {
        return opts;
     }
@@ -134,7 +133,7 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      * @param opts the game options ({@link SOCGameOption})
      * @return    the command string
      */
-    public static String toCmd(String nn, String pw, String hn, String ga, Hashtable<String, SOCGameOption> opts)
+    public static String toCmd(String nn, String pw, String hn, String ga, Map<String, SOCGameOption> opts)
     {
         return toCmd(nn, pw, hn, ga, SOCGameOption.packOptionsToString(opts, false));
     }

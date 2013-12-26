@@ -21,7 +21,7 @@
  **/
 package soc.message;
 
-import java.util.Hashtable;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGameOption;
@@ -58,7 +58,7 @@ public class SOCRobotJoinGameRequest extends SOCMessage
      * {@link SOCGameOption Game options}, or null
      * @since 1.1.07
      */
-    private Hashtable<String,SOCGameOption> opts = null;
+    private Map<String,SOCGameOption> opts = null;
 
     /**
      * Create a RobotJoinGameRequest message.
@@ -67,7 +67,7 @@ public class SOCRobotJoinGameRequest extends SOCMessage
      * @param pn  the seat number
      * @param opts {@link SOCGameOption game options}, or null
      */
-    public SOCRobotJoinGameRequest(String ga, int pn, Hashtable<String,SOCGameOption> opts)
+    public SOCRobotJoinGameRequest(String ga, int pn, Map<String,SOCGameOption> opts)
     {
         messageType = ROBOTJOINGAMEREQUEST;
         game = ga;
@@ -95,7 +95,7 @@ public class SOCRobotJoinGameRequest extends SOCMessage
      * @return game options, or null
      * @since 1.1.07
      */
-    public Hashtable<String,SOCGameOption> getOptions()
+    public Map<String,SOCGameOption> getOptions()
     {
 	return opts;
     }
@@ -117,7 +117,7 @@ public class SOCRobotJoinGameRequest extends SOCMessage
      * @param ga  the game name
      * @return    the command string
      */
-    public static String toCmd(String ga, int pn, Hashtable<String,SOCGameOption> opts)
+    public static String toCmd(String ga, int pn, Map<String,SOCGameOption> opts)
     {
         return ROBOTJOINGAMEREQUEST + sep + ga + sep2 + pn + sep2
             + SOCGameOption.packOptionsToString(opts, false);
@@ -148,7 +148,7 @@ public class SOCRobotJoinGameRequest extends SOCMessage
             return null;
         }
 
-        Hashtable<String,SOCGameOption> opts = SOCGameOption.parseOptionsToHash(optstr);
+        Map<String,SOCGameOption> opts = SOCGameOption.parseOptionsToMap(optstr);
         return new SOCRobotJoinGameRequest(ga, pn, opts);
     }
 
