@@ -50,6 +50,7 @@ new features, until 2.0.00 is ready.
      To set the cookie to a given value, set the jsettlers.bots.cookie parameter.
      To print the cookie value in order to connect other bots, use -Djsettlers.bots.showcookie=Y when starting the server.
 - Server stats include client versions seen since startup
+- Server command line game option settings: Also allow y or Y for boolean options
 - On server startup, exit if a database URL is given but SOCServer can't connect to the database.
 
     > 1.1.18 (build OV20130402)

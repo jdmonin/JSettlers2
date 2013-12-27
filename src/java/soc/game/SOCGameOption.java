@@ -1684,7 +1684,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *
      * @param nvpair Name-value pair string, as created by
      *               {@link #packOptionsToString(Map, boolean)}.
-     *               'T' or 't' is always allowed for bool value, regardless of forceNameUpcase.
+     *               'T' or 't' or 'Y' or 'y' is always allowed for bool value, regardless of forceNameUpcase.
      * @param forceNameUpcase Call {@link String#toUpperCase()} on keyname within nvpair?
      *               For friendlier parsing of manually entered (command-line) nvpair strings.
      * @return Parsed option, or null if parse error;
@@ -1728,7 +1728,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
             switch (copyOpt.optType)  // OTYPE_* - update this switch, must match format produced
             {                         //           in packValue / packOptionsToString
             case OTYPE_BOOL:
-                copyOpt.setBoolValue(optval.equals("t") || optval.equals("T"));
+                copyOpt.setBoolValue
+                    (optval.equals("t") || optval.equals("T") || optval.equals("y") || optval.equals("Y"));
                 break;
 
             case OTYPE_INT:
