@@ -747,8 +747,8 @@ public class PTEMain extends JFrame
                          choose_src_file, JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog
-                        (this, strings.get("dialog.open_dest_src.no_src.title"),  // "Source locale file not found."
-                         strings.get("dialog.open_dest_src.file_not_found"),      // "File not found",
+                        (this, strings.get("dialog.open_dest.no_src.title"),  // "Source locale file not found."
+                         strings.get("dialog.open_dest_src.file_not_found"),  // "File not found",
                          JOptionPane.WARNING_MESSAGE);
                 }
             } else {
