@@ -55,6 +55,7 @@ import soc.client.SOCPlayerClient.GameAwtDisplay;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCScenario;
+import soc.game.SOCVersionedItem;
 import soc.message.SOCMessage;
 import soc.message.SOCStatusMessage;
 import soc.util.SOCStringManager;
@@ -125,7 +126,7 @@ public class NewGameOptionsFrame extends Frame
      */
     private Map<String, Component> optsControls;
 
-    /** Key = {@link SOCGameOption#optKey}; value = {@link Checkbox} if bool/intbool option.
+    /** Key = {@link SOCVersionedItem#key SOCGameOption.key}; value = {@link Checkbox} if bool/intbool option.
       * Empty if none, null if readOnly.
       * Used to quickly find an option's associated checkbox.
       */
@@ -414,23 +415,23 @@ public class NewGameOptionsFrame extends Frame
             SOCGameOption op = optArr[i];
             if (op.optType == SOCGameOption.OTYPE_UNKNOWN)
             {
-                opts.remove(op.optKey);
+                opts.remove(op.key);
                 continue;  // <-- Removed, Go to next entry --
             }
 
             if (op.hasFlag(SOCGameOption.FLAG_INTERNAL_GAME_PROPERTY))
             {
                 if (! readOnly)
-                    opts.remove(op.optKey);  // ignore internal-property options when requesting new game from client
+                    opts.remove(op.key);  // ignore internal-property options when requesting new game from client
                 continue;  // <-- Don't show internal-property options
             }
 
-            if (hideUnderscoreOpts && (op.optKey.charAt(0) == '_'))
+            if (hideUnderscoreOpts && (op.key.charAt(0) == '_'))
                 continue;  // <-- Don't show options starting with '_'
 
-            if (sameLineOpts.containsKey(op.optKey))
+            if (sameLineOpts.containsKey(op.key))
                 continue;  // <-- Shares a line, Go to next entry --
-            final boolean sharesLine = sameLineOpts.containsValue(op.optKey);
+            final boolean sharesLine = sameLineOpts.containsValue(op.key);
 
             initInterface_OptLine(op, bp, gbl, gbc);
             if (sharesLine)
@@ -440,7 +441,7 @@ public class NewGameOptionsFrame extends Frame
                 for (final String kf3 : sameLineOpts.keySet())
                 {
                     final String kf2 = sameLineOpts.get(kf3);
-                    if ((kf2 == null) || ! kf2.equals(op.optKey))
+                    if ((kf2 == null) || ! kf2.equals(op.key))
                         continue;  // <-- Goes with a a different option --
 
                     final SOCGameOption op3 = opts.get(kf3);
@@ -467,7 +468,7 @@ public class NewGameOptionsFrame extends Frame
      */
     private void initInterface_OptLine(SOCGameOption op, Panel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
-        if (op.optKey.equals("SC"))
+        if (op.key.equals("SC"))
         {
             // special handling: Scenario
             // TODO server negotiation
@@ -481,8 +482,9 @@ public class NewGameOptionsFrame extends Frame
             for (final SOCScenario sc : allSc.values())
             {
                 ++i;
-                ch.add(sc.scKey + ": " + sc.scDesc);  // scenarioKeyFromDisplayText() must be able to extract the key
-                if (sc.scKey.equals(op.getStringValue()))
+                ch.add(sc.key + ": " + sc.desc);  // scenarioKeyFromDisplayText() must be able to extract the key
+                    // TODO some other parallel list, so we don't need to display the key string
+                if (sc.key.equals(op.getStringValue()))
                     sel = i;
             }
             if (sel != 0)
@@ -615,7 +617,7 @@ public class NewGameOptionsFrame extends Frame
             bp.add(cb);
             if (! readOnly)
             {
-                boolOptCheckboxes.put(op.optKey, cb);
+                boolOptCheckboxes.put(op.key, cb);
                 cb.addItemListener(this);  // for op's ChangeListener and userChanged
             }
         } else {
@@ -624,7 +626,7 @@ public class NewGameOptionsFrame extends Frame
             bp.add(L);
         }
 
-        final int placeholderIdx = allowPH ? op.optDesc.indexOf('#') : -1;
+        final int placeholderIdx = allowPH ? op.desc.indexOf('#') : -1;
         Panel optp = new Panel();  // with FlowLayout
         try
         {
@@ -635,10 +637,10 @@ public class NewGameOptionsFrame extends Frame
         }
         catch (Throwable fle) {}
 
-        // Any text to the left of placeholder in optDesc?
+        // Any text to the left of placeholder in op.desc?
         if (placeholderIdx > 0)
         {
-            L = new Label(op.optDesc.substring(0, placeholderIdx - 1));
+            L = new Label(op.desc.substring(0, placeholderIdx - 1));
             L.setForeground(LABEL_TXT_COLOR);
             optp.add(L);
             if (hasCB && ! readOnly)
@@ -667,13 +669,13 @@ public class NewGameOptionsFrame extends Frame
             }
         }
         if (! readOnly)
-            optsControls.put(op.optKey, oc);
+            optsControls.put(op.key, oc);
 
         // Any text to the right of placeholder?  Also creates
         // the text label if there is no placeholder (placeholderIdx == -1).
-        if (placeholderIdx + 1 < op.optDesc.length())
+        if (placeholderIdx + 1 < op.desc.length())
         {
-            L = new Label(op.optDesc.substring(placeholderIdx + 1));
+            L = new Label(op.desc.substring(placeholderIdx + 1));
             L.setForeground(LABEL_TXT_COLOR);
             optp.add(L);
             if (hasCB && ! readOnly)
@@ -932,7 +934,7 @@ public class NewGameOptionsFrame extends Frame
                 continue;
             SOCGameOption op = controlsOpts.get(ctrl);
 
-            if (op.optKey.equals("SC"))
+            if (op.key.equals("SC"))
             {
                 // Special case: AWT event listeners have already set its value from controls
                 if (! op.getBoolValue())
@@ -996,7 +998,7 @@ public class NewGameOptionsFrame extends Frame
 
         if (allOK && checkOptionsMinVers && ! forPractice)
         {
-            int optsVers = SOCGameOption.optionsMinimumVersion(controlsOpts);
+            int optsVers = SOCVersionedItem.itemsMinimumVersion(controlsOpts);
             if ((optsVers > -1) && (optsVers > Version.versionNumberMaximumNoWarn()))
             {
                 allOK = false;
@@ -1110,7 +1112,7 @@ public class NewGameOptionsFrame extends Frame
             // If this string or int option also has a bool checkbox,
             // set or clear that based on string/int not empty.
             boolean cbSet = false;
-            Checkbox cb = boolOptCheckboxes.get(opt.optKey);
+            Checkbox cb = boolOptCheckboxes.get(opt.key);
             if ((cb != null) && (notEmpty != cb.getState()))
             {
                 cb.setState(notEmpty);
@@ -1164,13 +1166,13 @@ public class NewGameOptionsFrame extends Frame
         if (opt == null)
             return;
 
-        Checkbox cb = boolOptCheckboxes.get(opt.optKey);
+        Checkbox cb = boolOptCheckboxes.get(opt.key);
         if ((cb != null) && (cb != ctrl))
         {
             // If the user picked a choice, also set the checkbox
             boolean wantsSet;
 
-            if (! (opt.optKey.equals("SC") && (ctrl instanceof Choice)))
+            if (! (opt.key.equals("SC") && (ctrl instanceof Choice)))
             {
                 wantsSet = true;  // any item sets it
             } else {
@@ -1298,7 +1300,7 @@ public class NewGameOptionsFrame extends Frame
         for (int i = refresh.size() - 1; i >= 0; --i)
         {
             final SOCGameOption op = refresh.get(i);
-            final Component opComp = optsControls.get(op.optKey);
+            final Component opComp = optsControls.get(op.key);
 
             switch (op.optType)  // OTYPE_*
             {
@@ -1316,7 +1318,7 @@ public class NewGameOptionsFrame extends Frame
                     final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_INTBOOL);
                     if (hasCheckbox)
                     {
-                        Checkbox cb = boolOptCheckboxes.get(op.optKey);
+                        Checkbox cb = boolOptCheckboxes.get(op.key);
                         if (cb != null)
                             cb.setState(op.getBoolValue());
                     }
@@ -1330,7 +1332,7 @@ public class NewGameOptionsFrame extends Frame
                     final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_ENUMBOOL);
                     if (hasCheckbox)
                     {
-                        Checkbox cb = boolOptCheckboxes.get(op.optKey);
+                        Checkbox cb = boolOptCheckboxes.get(op.key);
                         if (cb != null)
                             cb.setState(op.getBoolValue());
                     }
@@ -1353,7 +1355,7 @@ public class NewGameOptionsFrame extends Frame
         SOCGameOption opt = controlsOpts.get(e.getSource());
         if (opt == null)
             return;
-        Checkbox cb = boolOptCheckboxes.get(opt.optKey);
+        Checkbox cb = boolOptCheckboxes.get(opt.key);
         if (cb == null)
             return;
         final boolean becameChecked = ! cb.getState();
@@ -1404,7 +1406,7 @@ public class NewGameOptionsFrame extends Frame
         StringBuilder sb = new StringBuilder();
         sb.append(strings.get("game.options.scenario.label"));  // "Game Scenario:"
         sb.append(' ');
-        sb.append(sc.scDesc);
+        sb.append(sc.desc);
         sb.append('\n');
 
         if (sc.scLongDesc != null)
@@ -1416,7 +1418,7 @@ public class NewGameOptionsFrame extends Frame
 
         // Check game for any other _SC_ game opts in effect:
 
-        final String scenOptName = "_" + sc.scKey;  // "_SC_CLVI"
+        final String scenOptName = "_" + sc.key;  // "_SC_CLVI"
         final String optDescScenPrefix = strings.get("game.options.scenario.optprefix");  // "Scenarios:"
         //      I18N note: showScenarioInfoDialog() assumes scenario game options
         //      all start with the text "Scenarios:". When localizing, be sure to
@@ -1429,12 +1431,12 @@ public class NewGameOptionsFrame extends Frame
         {
             for (SOCGameOption sgo : gameOpts.values())
             {
-                if (sgo.optKey.equals(scenOptName))
+                if (sgo.key.equals(scenOptName))
                     continue;  // scenario's dedicated game option; we already showed its name from scDesc
-                if (! sgo.optKey.startsWith("_SC_"))
+                if (! sgo.key.startsWith("_SC_"))
                     continue;
 
-                String optDesc = sgo.optDesc;
+                String optDesc = sgo.desc;
                 if (optDesc.startsWith(optDescScenPrefix))
                     optDesc = optDesc.substring(optDescScenPrefix.length()).trim();
                 sb.append("\n\u2022 ");  // bullet point before option text

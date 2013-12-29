@@ -25,7 +25,7 @@ import java.util.Map;        // for javadocs only
 
 /**
  * This exception indicates game option(s) too new for a client.
- * @see SOCGameOption#optionsMinimumVersion(Map)
+ * @see SOCVersionedItem#itemsMinimumVersion(Map)
  * @see SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Map)
  *
  * @author Jeremy D Monin <jeremy@nand.net>
@@ -77,7 +77,7 @@ public class SOCGameOptionVersionException extends IllegalArgumentException
             if (hadAny)
                 sb.append(",");  // "," == SOCMessage.SEP2
 
-            sb.append(opt.optKey);
+            sb.append(opt.key);
             hadAny = true;
         }
 

@@ -19,9 +19,7 @@
  **/
 package soc.game;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;  // for javadoc
 import java.util.Iterator;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -41,7 +39,7 @@ import soc.message.SOCMessage;
  *<P>
  * Scenarios use {@link SOCGameOption}s to change the game to the scenario's concept.
  * Each scenario's {@link #scOpts} field gives the scenario's option names and values.
- * The game also knows its scenario by setting {@link SOCGameOption} "SC" = {@link #scKey}.
+ * The game also knows its scenario by setting {@link SOCGameOption} "SC" = {@link SOCVersionedItem#key key}.
  *<P>
  * Scenario name keys must start with a letter and contain only ASCII uppercase
  * letters ('A' through 'Z'), underscore ('_'), and digits ('0' through '9'), in order to normalize
@@ -69,7 +67,8 @@ import soc.message.SOCMessage;
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
-public class SOCScenario implements Cloneable, Comparable<Object>
+public class SOCScenario
+    extends SOCVersionedItem implements Cloneable, Comparable<Object>
 {
     /**
      * Version 2.0.00 (2000) introduced game scenarios.
@@ -80,6 +79,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     /**
      * Set of "known scenarios".
      * allScenarios must never be null, because other places assume it is filled.
+     * All scenarios here have their {@link SOCVersionedItem#isKnown isKnown} flag set true.
      */
     private static Map<String, SOCScenario> allScenarios = initAllScenarios();
 
@@ -127,14 +127,14 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *
      *   Typical changes to a game scenario would be:
      *<UL>
-     *<LI> Change the {@link #scDesc description}
+     *<LI> Change the {@link SOCVersionedItem#desc description}
      *<LI> Change the {@link #scLongDesc long description}
      *<LI> Change the {@link #scOpts options}
      *</UL>
      *   Things you can't change about a scenario, because inconsistencies would occur:
      *<UL>
-     *<LI> {@link #scKey name key}
-     *<LI> {@link #minVersion}
+     *<LI> {@link SOCVersionedItem#key name key}
+     *<LI> {@link SOCVersionedItem#minVersion minVersion}
      *</UL>
      *
      *   <b>To make the change:</b>
@@ -279,76 +279,44 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     public static final String K_SC_FTRI = "SC_FTRI";
 
     /**
-     * Is this an unknown scenario?  Used in cross-version compatibility.
-     */
-    public final boolean isUnknown;
-
-    /**
-     * Scenario key/technical name: Short alphanumeric name (max 8 characters, uppercase, starting with a letter).
-     */
-    public final String scKey;
-
-    /**
-     * Minimum game version supporting this scenario, or -1 for all;
-     * same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
-     * To get the minimum version of a set of scenarios, use {@link #scenariosMinimumVersion(Map)}.
-     * If this isn't -1, it's &gt;= 2000 (the version that introduced scenarios, {@link #VERSION_FOR_SCENARIOS}).
-     * @see #lastModVersion
-     */
-    public final int minVersion;  // or -1
-
-    /**
-     * Most recent game version in which this scenario changed, or if not modified, the version which added it.
-     * changes would include different {@link #scOpts}, description, etc.
-     * Same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
-     * @see #minVersion
-     */
-    public final int lastModVersion;
-
-    /**
      * Scenario's {@link SOCGameOption}s, as a formatted string
      * from {@link SOCGameOption#packOptionsToString(Map, boolean)}.
      */
     public String scOpts;
 
     /**
-     * Descriptive text for the scenario. Must not contain the network delimiter
-     * characters {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}.
-     * Must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
-     */
-    public String scDesc;
-
-    /**
      * Detailed text for the scenario description and special rules, or null.  Shown as a reminder at start of a game.
      * Must not contain network delimiter character {@link SOCMessage#sep_char}; {@link SOCMessage#sep2_char} is okay.
      * Must pass {@link SOCMessage#isSingleLineAndSafe(String, boolean) SOCMessage.isSingleLineAndSafe(String, true)}.
      * Don't include the description of any scenario game option, such as {@link SOCGameOption#K_SC_SANY};
-     * those will be taken from {@link SOCGameOption#optDesc} and shown in the reminder message.
+     * those will be taken from {@link SOCVersionedItem#desc SOCGameOption.desc} and shown in the reminder message.
      */
     public final String scLongDesc;
 
     /**
-     * Create a new unknown scenario ({@link #isUnknown}).
+     * Create a new unknown scenario ({@link SOCVersionedItem#isKnown isKnown} false).
      * Minimum version will be {@link Integer#MAX_VALUE}.
      * scDesc and scOpts will be an empty string.
      * @param key   Alphanumeric key name for this option;
-     *                see {@link SOCGameOption#isAlphanumericUpcaseAscii(String)} for format.
+     *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
      * @throws IllegalArgumentException if key length is > 8 or not alphanumeric
      */
-    public SOCScenario(String key)
+    public SOCScenario(final String key)
         throws IllegalArgumentException
     {
-        this(true, key, Integer.MAX_VALUE, 0, "", null, "");
+        this(false, key, Integer.MAX_VALUE, 0, "", null, "");
     }
 
     /**
      * Create a new known game scenario.
      *
      * @param key     Alphanumeric key name for this scenario;
-     *                see {@link SOCGameOption#isAlphanumericUpcaseAscii(String)} for format.
+     *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version supporting this scenario, or -1.
+     *                Same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
      *                If not -1, <tt>minVers</tt> must be at least 2000
-     *                ({@link #VERSION_FOR_SCENARIOS}).
+     *                ({@link #VERSION_FOR_SCENARIOS}).  To get the minimum version of a set of
+     *                scenarios, use {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      * @param lastModVers Last-modified version for this scenario, or version which added it
      * @param desc    Descriptive brief text, to appear in the scenarios dialog.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
@@ -361,21 +329,24 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *        or if minVers or lastModVers is under 2000 but not -1
      */
     public SOCScenario
-        (String key, int minVers, int lastModVers, final String desc, final String longDesc, final String opts)
+        (final String key, final int minVers, final int lastModVers,
+         final String desc, final String longDesc, final String opts)
         throws IllegalArgumentException
     {
-	this(false, key, minVers, lastModVers, desc, longDesc, opts);
+	this(true, key, minVers, lastModVers, desc, longDesc, opts);
     }
 
     /**
      * Create a new game scenario - common constructor.
-     * @param unknown True if scenario is unknown here ({@link #isUnknown})
+     * @param isKnown True if scenario is known here ({@link SOCVersionedItem#isKnown isKnown} true)
      * @param key     Alphanumeric uppercase code for this scenario;
-     *                see {@link SOCGameOption#isAlphanumericUpcaseAscii(String)} for format.
+     *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
      *                Keys can be up to 8 characters long.
      * @param minVers Minimum client version supporting this scenario, or -1.
+     *                Same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
      *                If not -1, <tt>minVers</tt> must be at least 2000
-     *                ({@link #VERSION_FOR_SCENARIOS}).
+     *                ({@link #VERSION_FOR_SCENARIOS}).  To get the minimum version of a set of
+     *                scenarios, use {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      * @param lastModVers Last-modified version for this scenario, or version which added it
      * @param desc Descriptive brief text, to appear in the scenarios dialog.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
@@ -390,22 +361,21 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *        or if minVers or lastModVers is under 2000 but not -1
      */
     protected SOCScenario
-        (final boolean unknown, final String key, final int minVers, final int lastModVers,
+        (final boolean isKnown, final String key, final int minVers, final int lastModVers,
          final String desc, final String longDesc, final String opts)
         throws IllegalArgumentException
     {
-	// validate & set scenario properties:
+        super(key, minVers, lastModVers, isKnown, desc);
+            // checks isAlphanumericUpcaseAscii(key), isSingleLineAndSafe(desc)
+
+        // validate & set scenario properties:
 
         if (key.length() > 8)
             throw new IllegalArgumentException("Key length > 8: " + key);
-        if (! (SOCGameOption.isAlphanumericUpcaseAscii(key) || key.equals("-")))  // "-" is for server/network use
-            throw new IllegalArgumentException("Key not alphanumeric: " + key);
         if ((minVers < VERSION_FOR_SCENARIOS) && (minVers != -1))
             throw new IllegalArgumentException("minVers " + minVers + " for key " + key);
         if ((lastModVers < VERSION_FOR_SCENARIOS) && (lastModVers != -1))
             throw new IllegalArgumentException("lastModVers " + lastModVers + " for key " + key);
-        if (! SOCMessage.isSingleLineAndSafe(desc))
-            throw new IllegalArgumentException("desc fails isSingleLineAndSafe");
         if (longDesc != null)
         {
             if (! SOCMessage.isSingleLineAndSafe(longDesc, true))
@@ -416,12 +386,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
         if (opts == null)
             throw new IllegalArgumentException("opts null");
 
-	scKey = key;
-        isUnknown = unknown;
-	minVersion = minVers;
-	lastModVersion = lastModVers;
         scOpts = opts;
-	scDesc = desc;
 	scLongDesc = longDesc;
     }
 
@@ -444,11 +409,12 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      */
     public static boolean addKnownScenario(SOCScenario scNew)
     {
-	final String scKey = scNew.scKey;
+	final String scKey = scNew.key;
 	final boolean hadIt = allScenarios.containsKey(scKey);
 	if (hadIt)
 	    allScenarios.remove(scKey);
 	allScenarios.put(scKey, scNew);
+
 	return ! hadIt;
     }
 
@@ -457,11 +423,11 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * @param scens  a map of {@link SOCScenario}s, or null
      * @return a deep copy of all scenario objects within scens, or null if scens is null
      */
-    public static Map<String, SOCScenario> cloneScenarios(Map<String, SOCScenario> scens)
+    public static Map<String, SOCScenario> cloneScenarios(final Map<String, SOCScenario> scens)
     {
     	if (scens == null)
     	    return null;
-    
+
     	Map<String, SOCScenario> scens2 = new HashMap<String, SOCScenario>();
     	for (Map.Entry<String, SOCScenario> e : scens.entrySet())
     	{
@@ -469,11 +435,12 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 
     	    try
     	    {
-    	        scens2.put(sc.scKey, (SOCScenario) sc.clone());
+                scens2.put(sc.key, (SOCScenario) sc.clone());
     	    } catch (CloneNotSupportedException ce) {
     	        // required, but not expected to happen
     	    }
     	}
+
     	return scens2;
     }
 
@@ -492,7 +459,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *           {@link #getAllKnownScenarios() known scenarios}.
      *
      * @return string of key names, same format as {@link #packScenariosToString(Map)};
-     *         any scenarios with {@link #isUnknown} will not be
+     *         any scenarios with {@link SOCVersionedItem#isKnown isKnown} false will not be
      *         part of the string.
      * @see #parseScenariosToMap(String)
      */
@@ -532,21 +499,22 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     {
     	if ((scMap == null) || scMap.size() == 0)
     	    return "-";
-    
+
     	// Pack all non-unknown scenarios:
     	StringBuffer sb = new StringBuffer();
     	boolean hadAny = false;
     	for (SOCScenario sc : scMap.values())
     	{
-    	    if (sc.isUnknown || (sc.minVersion > cliVers))
+    	    if (! (sc.isKnown && (sc.minVersion <= cliVers)))
     	        continue;
 
     	    if (hadAny)
     		sb.append(SOCMessage.sep2_char);
     	    else
     		hadAny = true;
-    	    sb.append(sc.scKey);
+            sb.append(sc.key);
     	}
+
     	return sb.toString();
     }
 
@@ -560,7 +528,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *             If scstr=="-", the map will be null.
      * @return map of SOCScenarios, or null if scstr==null or empty ("-")
      *         or if scstr is malformed.  Any unrecognized scenarios
-     *         will be in the map with {@link #isUnknown} set.
+     *         will be in the map with {@link SOCVersionedItem#isKnown isKnown} false.
      */
     public static Map<String,SOCScenario> parseScenariosToMap(String scstr)
     {
@@ -590,68 +558,10 @@ public class SOCScenario implements Cloneable, Comparable<Object>
                 copySc = new SOCScenario(nvpair);  // isUnknown
             }
 
-            scMap.put(copySc.scKey, copySc);
+            scMap.put(copySc.key, copySc);
         }  // while (moreTokens)
 
         return scMap;
-    }
-
-    /**
-     * Examine this set of scenarios, finding the minimum required version to support
-     * all these scenarios.
-     *<P>
-     * This calculation is done at the server when creating a new game.  Although the client's
-     * version and scenarios (and thus its copy of scenariosMinimumVersion) may be newer or older,
-     * and would give a different result if called, the server is authoritative for scenarios and game options.
-     * Calls at the client to scenariosMinimumVersion should keep this in mind, especially if
-     * a client's scenario's {@link #lastModVersion} is newer than the server.
-     *
-     * @param scens  a set of SOCScenarios; not null
-     * @return the highest 'minimum version' among these scenarios, or -1
-     */
-    public static int scenariosMinimumVersion(Map<?, SOCScenario> scens)
-    {
-    	int minVers = -1;
-    	for (SOCScenario sc : scens.values())
-    	{
-            int scMin = sc.minVersion;
-    	    if (scMin > minVers)
-    	        minVers = scMin;
-    	}
-    	return minVers;
-    }
-
-    /**
-     * Compare a set of scenarios against the specified version.
-     * Make a list of all which are new or changed since that version.
-     *<P>
-     * This method is called to sync client-server known-scenario info.
-     *
-     * @param vers  Version to compare scens against
-     * @param scens  Set of {@link SOCScenario}s to check current values;
-     *              if null, use the "known scenarios" set
-     * @return List of the newer {@link SOCScenario}s, or null
-     *     if all are known and unchanged since <tt>vers</tt>.
-     */
-    public static ArrayList<SOCScenario> scenariosNewerThanVersion
-        (final int vers, Map<String, SOCScenario> scens)
-    {
-        if (scens == null)
-            scens = allScenarios;
-        ArrayList<SOCScenario> uSc = null;  // add problems to uSc
-        
-        for (SOCScenario sc : scens.values())
-        {
-            if (sc.lastModVersion > vers)
-            {
-                // modified since vers
-                if (uSc == null)
-                    uSc = new ArrayList<SOCScenario>();
-                uSc.add(sc);
-            }
-        }
-
-        return uSc;
     }
 
     /**
@@ -686,17 +596,17 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 	    Map.Entry<String, SOCScenario> sckv = ikv.next();
 
 	    SOCScenario sc = sckv.getValue();
-	    SOCScenario knownSc = knownScenarios.get(sc.scKey);
+	    SOCScenario knownSc = knownScenarios.get(sc.key);
 	    if (knownSc == null)
 	    {
                 allKnown = false;
-                scProblems.append(sc.scKey);
+                scProblems.append(sc.key);
                 scProblems.append(": unknown. ");
 	    } else {
 		if (knownSc.lastModVersion != sc.lastModVersion)
 		{
 		    allKnown = false;
-		    scProblems.append(sc.scKey);
+		    scProblems.append(sc.key);
 		    scProblems.append(": lastModVersion mismatch (");
 		    scProblems.append(knownSc.lastModVersion);
 		    scProblems.append(" != ");
@@ -739,17 +649,17 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 
     /**
      * Get this scenario's key name.
-     * @return {@link #scKey}
+     * @return {@link SOCVersionedItem#key key}
      */
     public String toString()
     {
-        return scKey;
+        return key;
     }
 
     /**
      * Compare two scenarios, for display purposes. ({@link Comparable} interface)
-     * Two game scenarios are considered equal if they have the same {@link #scKey}.
-     * Greater/lesser is determined by {@link #scDesc}.{@link String#compareTo(String) compareTo()}.
+     * Two game scenarios are considered equal if they have the same {@link SOCVersionedItem#key key}.
+     * Greater/lesser is determined by {@link SOCVersionedItem#desc desc}.{@link String#compareTo(String) compareTo()}.
      * @param other A SOCScenario to compare, or another object;  if other isn't a
      *              scenario, the {@link #hashCode()}s are compared.
      */
@@ -758,9 +668,9 @@ public class SOCScenario implements Cloneable, Comparable<Object>
         if (other instanceof SOCScenario)
         {
             SOCScenario osc = (SOCScenario) other;
-            if (scKey.equals(osc.scKey))
+            if (key.equals(osc.key))
                 return 0;
-            return scDesc.compareTo(osc.scDesc);
+            return desc.compareTo(osc.desc);
         } else {
             return hashCode() - other.hashCode();
         }

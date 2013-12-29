@@ -559,7 +559,7 @@ public class SOCServer extends Server
      * Description string for SOCGameOption {@code "PL"} hardcoded into the SOCGameOption class,
      * from {@link SOCGameOption#getOption(String, boolean) SOCGameOption.getOption("PL", false)}.
      * Used for determining whether a client's i18n locale has localized option descriptions,
-     * by comparing {@code PL}'s {@link SOCGameOption#optDesc} to StringManager.get("gameopt.PL").
+     * by comparing {@code PL}'s {@link SOCVersionedItem#desc SOCGameOption.desc} to StringManager.get("gameopt.PL").
      *<P>
      * String value is captured here as soon as SOCServer is referenced, in case SOCPlayerClient's
      * practice server will localize the descriptions used by {@link SOCGameOption#getOption(String, boolean)}.
@@ -569,7 +569,7 @@ public class SOCServer extends Server
     static
     {
         final SOCGameOption optPL = SOCGameOption.getOption("PL", false);
-        i18n_gameopt_PL_desc = (optPL != null) ? optPL.optDesc : "";
+        i18n_gameopt_PL_desc = (optPL != null) ? optPL.desc : "";
     }
 
 
@@ -876,7 +876,7 @@ public class SOCServer extends Server
          * Print game options if we've set them on commandline, or if
          * any option defaults require a minimum client version.
          */
-        if (hasSetGameOptions || (SOCGameOption.optionsMinimumVersion(SOCGameOption.getAllKnownOptions()) > -1))
+        if (hasSetGameOptions || (SOCVersionedItem.itemsMinimumVersion(SOCGameOption.getAllKnownOptions()) > -1))
         {
             Thread.yield();  // wait for other output to appear first
             try { Thread.sleep(200); } catch (InterruptedException ie) {}
@@ -1219,7 +1219,7 @@ public class SOCServer extends Server
             {
                 gVers = -1;
             } else {
-                gVers = SOCGameOption.optionsMinimumVersion(gaOpts);
+                gVers = SOCVersionedItem.itemsMinimumVersion(gaOpts);
                 if (gVers > cliVers)
                 {
                     // Which requested option(s) are too new for client?
@@ -1277,7 +1277,7 @@ public class SOCServer extends Server
 
                     final int gVersMinGameOptsNoChange;
                     if (cversMin < Version.versionNumber())
-                        gVersMinGameOptsNoChange = SOCGameOption.optionsMinimumVersion(gaOpts, true);
+                        gVersMinGameOptsNoChange = SOCVersionedItem.itemsMinimumVersion(gaOpts, true);
                     else
                         gVersMinGameOptsNoChange = -1;  // all clients are our current version
 
@@ -1683,8 +1683,9 @@ public class SOCServer extends Server
     /**
      * Given a StringManager (for a client's locale), return all known
      * game options, localizing the descriptive names if available.
-     * @param loc  Client's locale for StringManager i18n lookups: {@code smgr.get("gameopt." + optKey)}
-     * @param updateStaticKnownOpts  If true, localize each {@link SOCGameOption#optDesc} in the static
+     * @param loc  Client's locale for StringManager i18n lookups:
+     *          <tt>smgr.get("gameopt." + {@link SOCVersionedItem#key SOCGameOption.key})</tt>
+     * @param updateStaticKnownOpts  If true, localize each {@link SOCVersionedItem#desc SOCGameOption.desc} in the static
      *          set of known options used by {@link SOCGameOption#getOption(String, boolean)} and
      *          {@link SOCGameOption#getAllKnownOptions()}; for use only by client's practice-game server
      * @return  {@link SOCGameOption#getAllKnownOptions()}, with descriptions localized if available
@@ -1710,7 +1711,7 @@ public class SOCServer extends Server
         HashMap<String,SOCGameOption> opts = new HashMap<String, SOCGameOption>();
         for (SOCGameOption opt : knownOpts.values())
         {
-            final String optKey = opt.optKey;
+            final String optKey = opt.key;
             try {
                 final SOCGameOption oLocal = new SOCGameOption(opt, sm.get("gameopt." + optKey));
                 opts.put(optKey, oLocal);
@@ -5958,7 +5959,7 @@ public class SOCServer extends Server
                 while (opi.hasNext())
                 {
                     final SOCGameOption op = opi.next();
-                    if ((op.optKey.length() > 3) || op.optKey.contains("_"))
+                    if ((op.key.length() > 3) || op.key.contains("_"))
                         opi.remove();
                 }
 
@@ -5984,7 +5985,7 @@ public class SOCServer extends Server
                 boolean found = false;
                 for (final SOCGameOption opt : opts)
                 {
-                    if (opt.optKey.equals(okey))
+                    if (opt.key.equals(okey))
                     {
                         found = true;
                         break;
@@ -6004,19 +6005,19 @@ public class SOCServer extends Server
             for (int i = 0; i < L; ++i)
             {
                 SOCGameOption opt;
-                String localDesc = null;  // i18n-localized opt.optDesc, if wantsLocalDescs
+                String localDesc = null;  // i18n-localized opt.desc, if wantsLocalDescs
 
                 if (opts != null)
                 {
                     opt = opts.get(i);
                     if (opt.minVersion > cliVers)
                     {
-                        opt = new SOCGameOption(opt.optKey);  // OTYPE_UNKNOWN
+                        opt = new SOCGameOption(opt.key);  // OTYPE_UNKNOWN
                     }
                     else if (wantsLocalDescs)
                     {
                         try {
-                            localDesc = c.getLocalized("gameopt." + opt.optKey);
+                            localDesc = c.getLocalized("gameopt." + opt.key);
                         } catch (MissingResourceException e) {}
                     }
                 } else {
@@ -6711,7 +6712,7 @@ public class SOCServer extends Server
         }
         if (op.optType == SOCGameOption.OTYPE_UNKNOWN)
         {
-            System.err.println("Unknown game option: " + op.optKey);
+            System.err.println("Unknown game option: " + op.key);
             return false;
         }
 
@@ -6721,7 +6722,7 @@ public class SOCServer extends Server
             return true;
         } catch (Throwable t)
         {
-            System.err.println("Bad value, cannot set game option: " + op.optKey);
+            System.err.println("Bad value, cannot set game option: " + op.key);
             return false;
         }
     }
@@ -6963,7 +6964,7 @@ public class SOCServer extends Server
             if (quotes)
                 sb.append('"');
             sb.append("  ");
-            sb.append(opt.optDesc);
+            sb.append(opt.desc);
             System.err.println(sb.toString());
             if (opt.enumVals != null)  // possible values of OTYPE_ENUM
             {
@@ -6980,7 +6981,7 @@ public class SOCServer extends Server
             }
         }
 
-        int optsVers = SOCGameOption.optionsMinimumVersion(allopts);
+        int optsVers = SOCVersionedItem.itemsMinimumVersion(allopts);
         if (optsVers > -1)
         {
             System.err.println

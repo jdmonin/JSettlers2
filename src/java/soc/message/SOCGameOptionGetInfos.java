@@ -21,7 +21,6 @@
  **/
 package soc.message;
 
-import java.util.Enumeration;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -190,7 +189,7 @@ public class SOCGameOptionGetInfos extends SOCMessage
                         hadAny = true;
 
                     if (o instanceof SOCGameOption)
-                        cmd.append(((SOCGameOption) o).optKey);
+                        cmd.append(((SOCGameOption) o).key);
                     else
                         cmd.append((String) o);
                 }

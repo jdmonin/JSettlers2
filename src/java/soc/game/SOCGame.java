@@ -715,7 +715,7 @@ public class SOCGame implements Serializable, Cloneable
      * For use at server; lowest version of client which can connect to
      * this game (based on game options/features added in a given version),
      * or -1 if unknown.
-     * Calculated by {@link SOCGameOption#optionsMinimumVersion(Map)}.
+     * Calculated by {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      * Format is the internal integer format, see {@link soc.util.Version#versionNumber()}.
      * Value may sometimes be too low at client, see {@link #getClientVersionMinRequired()} for details.
      */
@@ -1106,7 +1106,7 @@ public class SOCGame implements Serializable, Cloneable
      *           {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *           with <tt>doServerPreadjust</tt> false,
      *           and set game's minimum version by calling
-     *           {@link SOCGameOption#optionsMinimumVersion(Map)}.
+     *           {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      * @throws IllegalArgumentException if op contains unknown options, or any
      *             object class besides {@link SOCGameOption}
      * @since 1.1.07
@@ -1145,7 +1145,7 @@ public class SOCGame implements Serializable, Cloneable
      *           {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *           with <tt>doServerPreadjust</tt> false,
      *           and set game's minimum version by calling
-     *           {@link SOCGameOption#optionsMinimumVersion(Map)}.
+     *           {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      * @throws IllegalArgumentException if op contains unknown options, or any
      *             object class besides {@link SOCGameOption}, or if game name
      *             fails {@link SOCMessage#isSingleLineAndSafe(String)}.
@@ -1232,7 +1232,7 @@ public class SOCGame implements Serializable, Cloneable
             // the adjust method will also throw IllegalArg if a non-SOCGameOption
             // object is found within opts.
 
-            clientVersionMinRequired = SOCGameOption.optionsMinimumVersion(op);
+            clientVersionMinRequired = SOCVersionedItem.itemsMinimumVersion(op);
         }
 
         if (maxPlayers > 4)
@@ -1800,7 +1800,7 @@ public class SOCGame implements Serializable, Cloneable
      * For use at server; lowest version of client which can connect to
      * this game (based on game options/features added in a given version),
      * or -1 if unknown or if this game has no opts.
-     * Calculated by {@link SOCGameOption#optionsMinimumVersion(Map)}.
+     * Calculated by {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      *<P>
      * For options where the minimum version changes with its current value, some
      * option version data is hardcoded in {@link SOCGameOption#getMinVersion(Map)},

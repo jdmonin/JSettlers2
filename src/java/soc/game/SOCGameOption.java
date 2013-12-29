@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.StringTokenizer;
 
@@ -57,7 +58,7 @@ import soc.message.SOCMessage;
  * Option name keys must start with a letter and contain only ASCII uppercase
  * letters ('A' through 'Z') and digits ('0' through '9'), in order to normalize
  * handling and network message formats.  This is enforced in constructors via
- * {@link #isAlphanumericUpcaseAscii(String)}.
+ * {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)}.
  * Version 2.0.00 and newer allow '_'; please check {@link #minVersion},
  * name keys with '_' can't be sent to older clients.
  * Options starting with '_' are meant to be set by the server during game creation,
@@ -98,7 +99,8 @@ import soc.message.SOCMessage;
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
  */
-public class SOCGameOption implements Cloneable, Comparable<Object>
+public class SOCGameOption
+    extends SOCVersionedItem implements Cloneable, Comparable<Object>
 {
     /**
      * {@link #optFlags} bitfield constant to indicate option should be dropped if unset/default.
@@ -138,7 +140,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * The user shouldn't be able to set this option when creating a game,
      * and it should be hidden not shown in the Game Options window during play ({@code NewGameOptionsFrame}).
      *<P>
-     * Options with this flag should have an {@link #optKey} starting with '_', although not all options
+     * Options with this flag should have a {@link SOCVersionedItem#key key} starting with '_', although not all options
      * which start with '_' are hidden for internal use.  (Options starting with '_' are meant to be set
      * by the server during game creation, not requested by the client.)
      *
@@ -277,7 +279,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *</UL>
      *   Things you can't change about an option, because inconsistencies would occur:
      *<UL>
-     *<LI> {@link #optKey name key}
+     *<LI> {@link SOCVersionedItem#key name key}
      *<LI> {@link #optType}
      *<LI> {@link #minVersion}
      *<LI> {@link #optFlags} such as {@link #FLAG_DROP_IF_UNUSED} -- newly defined flags could maybe be added,
@@ -499,7 +501,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
             public void valueChanged
                 (final SOCGameOption opt, Object oldValue, Object newValue, Map<String,SOCGameOption> currentOpts)
             {
-                System.err.println("Test ChangeListener: " + opt.optKey
+                System.err.println("Test ChangeListener: " + opt.key
                     + " changed from " + oldValue + " to " + newValue);
             }
         };
@@ -521,7 +523,10 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     /** Lowest OTYPE value known at this version */
     public static final int OTYPE_MIN = 0;
 
-    /** Option type: unknown (probably due to version mismatch)  */
+    /**
+     * Option type: unknown (probably due to version mismatch).
+     * Options of this type will also set their {@link SOCVersionedItem#isKnown isKnown} flag false.
+     */
     public static final int OTYPE_UNKNOWN = 0;
 
     /** Option type: boolean  */
@@ -645,31 +650,6 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     public final int optType;  // OTYPE_* - if a new type is added, update this field's javadoc.
 
     /**
-     * Option key/name: Short alphanumeric name (2 characters, uppercase, starting with a letter)
-     */
-    public final String optKey;
-
-    /**
-     * Minimum game version supporting this option, or -1;
-     * same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
-     * Public direct usage of this is discouraged;
-     * use {@link #optionsMinimumVersion(Map)} or {@link #getMinVersion(Map)} instead,
-     * because the current value of an option can change its minimum version.
-     * For example, a 5- or 6-player game will need a newer client than 4 players,
-     * but option "PL"'s minVersion is -1, to allow 2- or 3-player games with any client.
-     * @see #lastModVersion
-     */
-    public final int minVersion;  // or -1
-
-    /**
-     * Most recent game version in which this option changed, or if not modified, the version which added it.
-     * changes would include different min/max values, new choices for an {@link #OTYPE_ENUM}, etc.
-     * Same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
-     * @see #minVersion
-     */
-    public final int lastModVersion;
-
-    /**
      * Sum of all of option's flags, if any, such as {@link #FLAG_DROP_IF_UNUSED}.
      * @see #hasFlag(int)
      * @since 2.0.00
@@ -691,15 +671,6 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * or maximum length of a string value. (There is no minimum length)
      */
     public final int minIntValue, maxIntValue;
-
-    /**
-     * Descriptive text for the option. Must not contain the network delimiter
-     * characters {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}.
-     * If option type is integer-valued ({@link #OTYPE_ENUM}, {@link #OTYPE_INTBOOL}, etc),
-     * may contain a placeholder '#' where the value is typed onscreen.
-     * For {@link #OTYPE_UNKNOWN}, an empty string.
-     */
-    public final String optDesc;   // OTYPE_* - if a new type is added, update this field's javadoc.
 
     /**
      * For type {@link #OTYPE_ENUM} and {@link #OTYPE_ENUMBOOL}, descriptive text for each possible value;
@@ -738,9 +709,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     /**
      * Create a new game option of unknown type ({@link #OTYPE_UNKNOWN}).
      * Minimum version will be {@link Integer#MAX_VALUE}.
-     * Value will be false/0. optDesc will be an empty string.
+     * Value will be false/0. desc will be an empty string.
      * @param key   Alphanumeric 2-character code for this option;
-     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
+     *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
      * @throws IllegalArgumentException if key length is > 3 or not alphanumeric,
      *        or if minVers or lastModVers is under 1000 but not -1
      */
@@ -754,7 +725,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * Create a new boolean game option ({@link #OTYPE_BOOL}).
      *
      * @param key     Alphanumeric 2-character code for this option;
-     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
+     *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default value (true if set, false if not set)
@@ -779,7 +750,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * Before v2.0.00, there was no dropIfUnused flag for integer options.
      *
      * @param key     Alphanumeric 2-character code for this option;
-     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
+     *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default int value
@@ -809,7 +780,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     /**
      * Create a new int+boolean game option ({@link #OTYPE_INTBOOL}).
      * @param key     Alphanumeric 2-character code for this option;
-     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
+     *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultBoolValue Default value (true if set, false if not set)
@@ -843,7 +814,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * Before v2.0.00, there was no dropIfUnused flag for enum options.
      *
      * @param key     Alphanumeric 2-character code for this option;
-     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
+     *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default int value, in range 1 - n (n == number of possible values)
@@ -874,7 +845,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * The {@link #minIntValue} will be 1, {@link #maxIntValue} will be enumVals.length.
      *
      * @param key     Alphanumeric 2-character code for this option;
-     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
+     *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultBoolValue Default value (true if set, false if not set)
@@ -904,7 +875,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * Create a new text game option ({@link #OTYPE_STR} or {@link #OTYPE_STRHIDE}).
      * The {@link #maxIntValue} will be maxLength.
      * @param key     Alphanumeric 2-character code for this option;
-     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
+     *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param maxLength   Maximum length, between 1 and 255 (for network bandwidth conservation)
@@ -936,7 +907,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param otype   Option type; use caution, as this is unvalidated against
      *                {@link #OTYPE_MIN} or {@link #OTYPE_MAX}.
      * @param key     Alphanumeric uppercase code for this option;
-     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
+     *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
      *                Most option keys are 2 or 3 characters; before 2.0.00, the maximum length was 3.
      *                The maximum key length is now 8, but older clients will reject keys longer than 3.
      * @param minVers Minimum client version for games where this option is set (its boolean field is true), or -1.
@@ -968,8 +939,15 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         final String[] enumVals, final int flags, final String desc)
         throws IllegalArgumentException
     {
-	// validate & set option properties:
-        final int L = key.length(); 
+        super(key, minVers, lastModVers, (otype != OTYPE_UNKNOWN), desc);
+            // super checks against these:
+            // (! SOCVersionedItem.isAlphanumericUpcaseAscii(key)) || key.equals("-")
+            // (minVers < 1000) && (minVers != -1)
+            // (lastModVers < 1000) && (lastModVers != -1)
+            // ! SOCMessage.isSingleLineAndSafe(desc)
+
+        // validate & set option properties:
+        final int L = key.length();
         if ((L > 3) && ! key.startsWith("DEBUG"))
         {
             if (L > 8)
@@ -977,28 +955,16 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
             else if (minVers < VERSION_FOR_LONGER_OPTNAMES)
                 throw new IllegalArgumentException("Key length > 3 needs minVers 2000 or newer: " + key);
         }
-        if (! (isAlphanumericUpcaseAscii(key) || key.equals("-")))  // "-" is for server/network use
-            throw new IllegalArgumentException("Key not alphanumeric: " + key);
         if ((minVers < VERSION_FOR_LONGER_OPTNAMES) && key.contains("_"))
             throw new IllegalArgumentException("Key with '_' needs minVers 2000 or newer: " + key);
-        if ((minVers < 1000) && (minVers != -1))
-            throw new IllegalArgumentException("minVers " + minVers + " for key " + key);
-        if ((lastModVers < 1000) && (lastModVers != -1))
-            throw new IllegalArgumentException("lastModVers " + lastModVers + " for key " + key);
-        if (! SOCMessage.isSingleLineAndSafe(desc))
-            throw new IllegalArgumentException("desc fails isSingleLineAndSafe");
 
-	optKey = key;
 	optType = otype;
-	minVersion = minVers;
-	lastModVersion = lastModVers;
 	this.defaultBoolValue = defaultBoolValue;
 	this.defaultIntValue = defaultIntValue;
 	minIntValue = minValue;
 	maxIntValue = maxValue;
 	optFlags = flags;
         this.enumVals = enumVals;
-	optDesc = desc;
 
         if (enumVals != null)
         {
@@ -1016,17 +982,17 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     }
 
     /**
-     * Copy constructor for i18n localization of {@link #optDesc}.
+     * Copy constructor for i18n localization of {@link SOCVersionedItem#desc desc}.
      * @param opt  Option to copy
-     * @param newDesc  Localized option description, or {@code null} to use {@link #optDesc}
+     * @param newDesc  Localized option description, or {@code null} to use {@link SOCVersionedItem#desc desc}
      * @since 2.0.00
      */
     public SOCGameOption(final SOCGameOption opt, final String newDesc)
     {
-        this(opt.optType, opt.optKey, opt.minVersion, opt.lastModVersion,
+        this(opt.optType, opt.key, opt.minVersion, opt.lastModVersion,
              opt.defaultBoolValue, opt.defaultIntValue, opt.minIntValue, opt.maxIntValue,
              opt.enumVals, opt.optFlags,
-             (newDesc != null) ? newDesc : opt.optDesc);
+             (newDesc != null) ? newDesc : opt.desc);
     }
 
     /**
@@ -1040,14 +1006,14 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @see #optionsNewerThanVersion(int, boolean, boolean, Map)
      * @throws NullPointerException  if keptEnumVals is null
      */
-    protected SOCGameOption(SOCGameOption enumOpt, String[] keptEnumVals)
+    protected SOCGameOption(final SOCGameOption enumOpt, final String[] keptEnumVals)
         throws NullPointerException
     {
         // OTYPE_* - If enum-valued, add to javadoc.
-        this(enumOpt.optType, enumOpt.optKey, enumOpt.minVersion, enumOpt.lastModVersion,
+        this(enumOpt.optType, enumOpt.key, enumOpt.minVersion, enumOpt.lastModVersion,
              enumOpt.defaultBoolValue,
              enumOpt.defaultIntValue <= keptEnumVals.length ? enumOpt.defaultIntValue : keptEnumVals.length,
-             1, keptEnumVals.length, keptEnumVals, enumOpt.optFlags, enumOpt.optDesc);
+             1, keptEnumVals.length, keptEnumVals, enumOpt.optFlags, enumOpt.desc);
     }
 
     /**
@@ -1060,14 +1026,14 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @see #optionsNewerThanVersion(int, boolean, boolean, Map)
      * @since 1.1.08
      */
-    protected SOCGameOption(SOCGameOption intOpt, final int maxIntValue)
+    protected SOCGameOption(final SOCGameOption intOpt, final int maxIntValue)
     {
         // OTYPE_* - If int-valued, add to javadoc.
-        this(intOpt.optType, intOpt.optKey, intOpt.minVersion, intOpt.lastModVersion,
+        this(intOpt.optType, intOpt.key, intOpt.minVersion, intOpt.lastModVersion,
              intOpt.defaultBoolValue,
              intOpt.defaultIntValue <= maxIntValue ? intOpt.defaultIntValue : maxIntValue,
              intOpt.minIntValue, maxIntValue,
-             null, intOpt.optFlags, intOpt.optDesc);
+             null, intOpt.optFlags, intOpt.desc);
     }
 
     /**
@@ -1169,11 +1135,12 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *     same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
      *     If <tt>opts != null</tt>, the returned version will either be -1 or >= 1107
      *     (the first version with game options).
-     * @see #optionsMinimumVersion(Map)
+     * @see SOCVersionedItem#itemsMinimumVersion(Map)
      * @see #getMaxEnumValueForVersion(String, int)
      * @see #getMaxIntValueForVersion(String, int)
      */
-    public int getMinVersion(final Map<?, SOCGameOption> opts)
+    @Override
+    public int getMinVersion(final Map<?, ? extends SOCVersionedItem> opts)
     {
         // Check for unset/droppable options
         switch (optType)
@@ -1202,7 +1169,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         // Any option value checking for minVers is done here.
         // None of the current options change minVers based on their value.
         // If your option changes the minVers based on its current value,
-        // check the optKey and current value, and return the appropriate version,
+        // check the key and current value, and return the appropriate version,
         // instead of just returning minVersion.
         //
         // ADDITIONAL BACKWARDS-COMPATIBLE CHECK (opts != null):
@@ -1225,7 +1192,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
         // SAMPLE CODE: (without ADDITIONAL CHECK)
         /*
-        if (optKey.equals("N7") && (intValue == 42))
+        if (key.equals("N7") && (intValue == 42))
         {
             return 1108;
         }
@@ -1233,7 +1200,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         // END OF SAMPLE CODE.
         // The following non-sample code demonstrates the ADDITIONAL CHECK:
 
-        if (optKey.equals("PL"))
+        if (key.equals("PL"))
         {
             if ((opts != null) && (intValue <= 4) && opts.containsKey("PLB"))
             {
@@ -1242,8 +1209,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                 // For clients 1.1.13 and newer, PLB is recognized at the client,
                 // so PL can be less than 5 and still use the 6-player board.
 
-                SOCGameOption plb = opts.get("PLB");
-                if (plb.boolValue)
+                SOCVersionedItem plb = opts.get("PLB");
+                if ((plb instanceof SOCGameOption) && ((SOCGameOption) plb).boolValue)
                     return 1113;
             }
             if (intValue > 4)
@@ -1326,7 +1293,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      */
     public static boolean addKnownOption(SOCGameOption onew)
     {
-	final String oKey = onew.optKey;
+	final String oKey = onew.key;
 	final boolean hadIt;
 
 	synchronized (allOptions)
@@ -1343,8 +1310,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
     /**
      * Set the current value of a known option, based on the current value of
-     * another object with the same {@link #optKey}.
-     * If there is no known option with oCurr.{@link #optKey}, it is ignored and nothing is set.
+     * another object with the same {@link SOCVersionedItem#key key}.
+     * If there is no known option with oCurr.{@link SOCVersionedItem#key key}, it is ignored and nothing is set.
      * @param ocurr Option with the requested current value
      * @throws  IllegalArgumentException if value is not permitted; note that
      *            intValues outside of range are silently clipped, and will not
@@ -1353,7 +1320,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     public static void setKnownOptionCurrentValue(SOCGameOption ocurr)
         throws IllegalArgumentException
     {
-        final String oKey = ocurr.optKey;
+        final String oKey = ocurr.key;
 
         synchronized (allOptions)
         {
@@ -1392,7 +1359,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param opts  a map of SOCGameOptions, or null; method synchronizes on {@code opts}
      * @return a deep copy of all option objects within opts, or null if opts is null
      */
-    public static Map<String, SOCGameOption> cloneOptions(Map<String, SOCGameOption> opts)
+    public static Map<String, SOCGameOption> cloneOptions(final Map<String, SOCGameOption> opts)
     {
     	if (opts == null)
     	    return null;
@@ -1405,7 +1372,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                 SOCGameOption op = e.getValue();
                 try
                 {
-                    opts2.put(op.optKey, (SOCGameOption) op.clone());
+                    opts2.put(op.key, (SOCGameOption) op.clone());
                 } catch (CloneNotSupportedException ce) {
                     // required, but not expected to happen
                     throw new IllegalStateException("Clone failed!", ce);
@@ -1448,30 +1415,6 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         }
 
         return op;
-    }
-
-    /**
-     * Search these options and find any unknown ones (type {@link #OTYPE_UNKNOWN})
-     * @param opts  map of SOCGameOptions
-     * @return List of unknown option {@link #optKey}s, or null if all are known
-     */
-    public static List<String> findUnknowns(final Map<String, SOCGameOption> opts)
-    {
-        ArrayList<String> unknowns = null;
-
-        for (Map.Entry<String, SOCGameOption> e : opts.entrySet())
-        {
-            SOCGameOption op = e.getValue();
-            if (op.optType == SOCGameOption.OTYPE_UNKNOWN)
-            {
-                if (unknowns == null)
-                    unknowns = new ArrayList<String>();
-
-                unknowns.add(op.optKey);
-            }
-        }
-
-        return unknowns;
     }
 
     /**
@@ -1564,20 +1507,20 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     	        && ((op.optType == OTYPE_STR) || (op.optType == OTYPE_STRHIDE))  // OTYPE_* - add here if string-valued
     	        && op.getStringValue().length() == 0)
                     continue;  // <-- Skip this one --
-    	    if ((cliVers == -3) && ((op.optKey.length() > 3) || op.optKey.contains("_")))
+            if ((cliVers == -3) && ((op.key.length() > 3) || op.key.contains("_")))
     	        continue;  // <-- Skip this one -- (VERSION_FOR_LONGER_OPTNAMES)
 
     	    if (hadAny)
     		sb.append(SOCMessage.sep2_char);
     	    else
     		hadAny = true;
-    	    sb.append(op.optKey);
+            sb.append(op.key);
     	    sb.append('=');
 
     	    boolean wroteValueAlready = false;
     	    if (cliVers > -2)
     	    {
-    	        if (hasOptPLB && op.optKey.equals("PL")
+                if (hasOptPLB && op.key.equals("PL")
     	            && (cliVers < 1113) && (op.intValue < 5))
     	        {
     	            // When "PLB" is used (Use 6-player board)
@@ -1670,7 +1613,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
             SOCGameOption copyOpt = parseOptionNameValue(nvpair, false);
             if (copyOpt == null)
                 return null;  // parse error
-            ohash.put(copyOpt.optKey, copyOpt);
+            ohash.put(copyOpt.key, copyOpt);
         }  // while (moreTokens)
 
         return ohash;
@@ -1769,75 +1712,6 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     }
 
     /**
-     * Examine this set of options, finding the minimum required version to support
-     * a game with these options.  The current value of an option can change its minimum version.
-     * For example, a 5- or 6-player game will need a newer client than 4 players,
-     * but option "PL"'s minVersion is -1, to allow 2- or 3-player games with any client.
-     *<P>
-     * This calculation is done at the server when creating a new game.  Although the client's
-     * version and options (and thus its copy of optionsMinimumVersion) may be newer or older,
-     * and would give a different result if called, the server is authoritative for game options.
-     * Calls at the client to optionsMinimumVersion should keep this in mind, especially if
-     * a client's game option's {@link #lastModVersion} is newer than the server.
-     *
-     * @param opts  a set of SOCGameOptions; not null
-     * @return the highest 'minimum version' among these options, or -1
-     * @throws ClassCastException if values contain a non-{@link SOCGameOption}
-     * @see #optionsMinimumVersion(Map, boolean)
-     * @see #getMinVersion(Map)
-     */
-    public static int optionsMinimumVersion(final Map<?, SOCGameOption> opts)
-        throws ClassCastException
-    {
-        return optionsMinimumVersion(opts, false);
-    }
-
-    /**
-     * Examine this set of options, finding the minimum required version to support
-     * a game with these options.  The current value of an option can change its minimum version.
-     * For example, a 5- or 6-player game will need a newer client than 4 players,
-     * but option "PL"'s minVersion is -1, to allow 2- or 3-player games with any client.
-     *<P>
-     * This calculation is done at the server when creating a new game.  Although the client's
-     * version and options (and thus its copy of optionsMinimumVersion) may be newer or older,
-     * and would give a different result if called, the server is authoritative for game options.
-     * Calls at the client to optionsMinimumVersion should keep this in mind, especially if
-     * a client's game option's {@link #lastModVersion} is newer than the server.
-     *<P>
-     * <b>Backwards-compatibility support: <tt>minCliVersionForUnchangedOpts</tt> parameter:</b><br>
-     * Occasionally, an older client version supports a new option, but only by changing
-     * the value of some other options it recognizes.  If this parameter is true,
-     * this method will calculate the minimum client version at which options are understood
-     * without backwards-compatibility changes to their values.
-     *
-     * @param opts  a set of SOCGameOptions; not null
-     * @param minCliVersionForUnchangedOpts  If true, return the minimum version at which these
-     *         options' values aren't changed (for compatibility) by the presence of new options.
-     * @return the highest 'minimum version' among these options, or -1.
-     *         If <tt>minCliVersionForUnchangedOpts</tt>, the returned version will either be -1 or >= 1107
-     *         (the first version with game options).
-     * @throws ClassCastException if values contain a non-{@link SOCGameOption}
-     * @see #optionsMinimumVersion(Map)
-     * @see #getMinVersion(Map)
-     */
-    public static int optionsMinimumVersion
-        (final Map<?, SOCGameOption> opts, final boolean minCliVersionForUnchangedOpts)
-	throws ClassCastException
-    {
-    	int minVers = -1;
-
-        final Map<?, SOCGameOption> oarg = minCliVersionForUnchangedOpts ? opts : null;
-    	for (SOCGameOption op : opts.values())
-    	{
-            int opMin = op.getMinVersion(oarg);  // includes any option value checking for minVers
-    	    if (opMin > minVers)
-    	        minVers = opMin;
-    	}
-
-    	return minVers;
-    }
-
-    /**
      * Compare a set of options against the specified version.
      * Make a list of all which are new or changed since that version.
      *<P>
@@ -1925,57 +1799,51 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
          Map<String, SOCGameOption> opts)
         throws IllegalArgumentException
     {
-        if (getAllForVersion && checkValues)
-            throw new IllegalArgumentException();
-
         if (opts == null)
             opts = allOptions;
 
-        ArrayList<SOCGameOption> uopt = null;  // collect newer options here, or all options if getAllForVersion
+        /** collect newer options here, or all options if getAllForVersion */
+        List<SOCGameOption> uopt
+            = SOCVersionedItem.implItemsVersionCheck(vers, getAllForVersion, checkValues, opts);
+                // throws IllegalArgumentException if (getAllForVersion && checkValues)
 
-        for (SOCGameOption opt : opts.values())
+        if (trimEnums)
         {
-            if (getAllForVersion)
+            ListIterator<SOCGameOption> li = uopt.listIterator();
+            while (li.hasNext())
             {
-                if (opt.minVersion > vers)
-                    opt = null;  // too new for vers to use
-            }
-            else if (checkValues)
-            {
-                if (opt.getMinVersion(null) <= vers)
-                    opt = null;  // not too new
-            } else {
-                if (opt.lastModVersion <= vers)
-                    opt = null;  // not modified since vers
-            }
+                boolean changed = false;
+                SOCGameOption opt = li.next();
 
-            if (opt == null)
-                continue;
+                if ((opt.lastModVersion > vers)   // opt has been modified since vers
+                    && (opt.minVersion <= vers))  // vers is new enough to use this opt
+                {
+                    if (opt.enumVals != null)
+                    {
+                        // Possibly trim enum values. (OTYPE_ENUM, OTYPE_ENUMBOOL)
+                        // OTYPE_* - Add here in comment if enum-valued option type
+                        final int ev = getMaxEnumValueForVersion(opt.key, vers);
+                        if (ev < opt.enumVals.length)
+                        {
+                            opt = trimEnumForVersion(opt, vers);
+                            changed = true;
+                        }
+                    } else if (opt.maxIntValue != opt.minIntValue)
+                    {
+                        // Possibly trim max int value. (OTYPE_INT, OTYPE_INTBOOL)
+                        // OTYPE_* - Add here in comment if int-valued option type
+                        final int iv = getMaxIntValueForVersion(opt.key, vers);
+                        if ((iv != opt.maxIntValue) && (iv != Integer.MAX_VALUE))
+                        {
+                            opt = new SOCGameOption(opt, iv);
+                            changed = true;
+                        }
+                    }
 
-            if (trimEnums
-                && (opt.lastModVersion > vers)  // opt has been modified since vers
-                && (opt.minVersion <= vers))  // vers is new enough to use this opt
-            {
-                if (opt.enumVals != null)
-                {
-                    // Possibly trim enum values. (OTYPE_ENUM, OTYPE_ENUMBOOL)
-                    // OTYPE_* - Add here in comment if enum-valued option type
-                    final int ev = getMaxEnumValueForVersion(opt.optKey, vers);
-                    if (ev < opt.enumVals.length)
-                        opt = trimEnumForVersion(opt, vers);
-                } else if (opt.maxIntValue != opt.minIntValue)
-                {
-                    // Possibly trim max int value. (OTYPE_INT, OTYPE_INTBOOL)
-                    // OTYPE_* - Add here in comment if int-valued option type
-                    final int iv = getMaxIntValueForVersion(opt.optKey, vers);
-                    if ((iv != opt.maxIntValue) && (iv != Integer.MAX_VALUE))
-                        opt = new SOCGameOption(opt, iv);
+                    if (changed)
+                        li.set(opt);
                 }
             }
-
-            if (uopt == null)
-                uopt = new ArrayList<SOCGameOption>();
-            uopt.add(opt);
         }
 
         return uopt;
@@ -1991,9 +1859,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *       values permitted at <tt>vers</tt>.
      *       If no restriction is needed, return <tt>opt</tt>.
      */
-    public static SOCGameOption trimEnumForVersion(SOCGameOption opt, final int vers)
+    public static SOCGameOption trimEnumForVersion(final SOCGameOption opt, final int vers)
     {
-        final int ev = getMaxEnumValueForVersion(opt.optKey, vers);
+        final int ev = getMaxEnumValueForVersion(opt.key, vers);
         if ((ev == Integer.MAX_VALUE) || (ev == opt.enumVals.length))
             return opt;
         String[] evkeep = new String[ev];
@@ -2150,17 +2018,17 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 	    {
                 throw new IllegalArgumentException("wrong class, expected gameoption");
 	    }
-	    SOCGameOption knownOp = knownOpts.get(op.optKey);
+	    SOCGameOption knownOp = knownOpts.get(op.key);
 	    if (knownOp == null)
 	    {
                 allKnown = false;
-                optProblems.append(op.optKey);
+                optProblems.append(op.key);
                 optProblems.append(": unknown. ");
 	    }
 	    else if (knownOp.optType != op.optType)
 	    {
                 allKnown = false;
-                optProblems.append(op.optKey);
+                optProblems.append(op.key);
                 optProblems.append(": optType mismatch (");
                 optProblems.append(knownOp.optType);
                 optProblems.append(" != ");
@@ -2172,7 +2040,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 		if (knownOp.lastModVersion != op.lastModVersion)
 		{
 		    allKnown = false;
-		    optProblems.append(op.optKey);
+		    optProblems.append(op.key);
 		    optProblems.append(": lastModVersion mismatch (");
 		    optProblems.append(knownOp.lastModVersion);
 		    optProblems.append(" != ");
@@ -2349,42 +2217,6 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     }
 
     /**
-     * Test whether a string's characters are all within the strict
-     * ranges 0-9, A-Z. The first character must be A-Z. Option name keys
-     * must start with a letter and contain only ASCII uppercase letters
-     * ('A' through 'Z') and digits ('0' through '9'), in order to normalize
-     * handling and network message formats.
-     *<P>
-     * Version 2.0.00 and newer allow '_'; please check {@link #minVersion},
-     * name keys with '_' can't be sent to older clients.
-     *<P>
-     * This method is also used by {@link SOCScenario}, whose {@link SOCScenario#scKey} keys
-     * must also follow the same restricted format.
-     *
-     * @param s string to test
-     * @return true if all characters are OK, false otherwise
-     */
-    public static final boolean isAlphanumericUpcaseAscii(String s)
-    {
-        for (int i = s.length()-1; i>=0; --i)
-        {
-            final char c = s.charAt(i);
-            if (((c < '0') || (c > '9'))
-                && ((c < 'A') || (c > 'Z'))
-                && (c != '_'))
-                return false;
-            if ((i == 0) && (c < 'A'))
-                return false;
-
-            // We use range checks, and not methods such as
-            // Character.isLetterOrDigit(ch), because those
-            // methods also permit unicode characters beyond
-            // what we'd like to accept here.
-        }
-        return true;
-    }
-
-    /**
      * Get the list of {@link SOCGameOption}s whose {@link #refreshDisplay()}
      * methods have been called, and clear the internal static copy.
      * Not thread-safe, assumes only 1 GUI thread or 1 NewGameOptionsFrame at a time.
@@ -2468,7 +2300,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      */
     public String toString()
     {
-        StringBuffer sb = new StringBuffer(optKey);
+        StringBuffer sb = new StringBuffer(key);
         sb.append('=');
         packValue(sb);
         return sb.toString();
@@ -2476,8 +2308,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
     /**
      * Compare two options, for display purposes. ({@link Comparable} interface)
-     * Two gameoptions are considered equal if they have the same {@link #optKey}.
-     * Greater/lesser is determined by {@link #optDesc}.{@link String#compareTo(String) compareTo()}.
+     * Two gameoptions are considered equal if they have the same {@link SOCVersionedItem#key key}.
+     * Greater/lesser is determined by {@link SOCVersionedItem#desc desc}.{@link String#compareTo(String) compareTo()}.
      * @param other A SOCGameOption to compare, or another object;  if other isn't a
      *              gameoption, the {@link #hashCode()}s are compared.
      */
@@ -2486,9 +2318,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         if (other instanceof SOCGameOption)
         {
             SOCGameOption oopt = (SOCGameOption) other;
-            if (optKey.equals(oopt.optKey))
+            if (key.equals(oopt.key))
                 return 0;
-            return optDesc.compareTo(oopt.optDesc);
+            return desc.compareTo(oopt.desc);
         } else {
             return hashCode() - other.hashCode();
         }

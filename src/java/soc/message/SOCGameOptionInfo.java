@@ -76,7 +76,8 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * at the client, by omitting fields and flags added after the client's version.
      * @param op  Option to send
      * @param cliVers  Client's version number; 1107 is version 1.1.07
-     * @param localDesc  i18n localized option description, or {@code null} to use {@link SOCGameOption#optDesc}
+     * @param localDesc  i18n localized option description, or {@code null} to use
+     *            {@link soc.game.SOCVersionedItem#desc SOCGameOption.desc}
      */
     public SOCGameOptionInfo(final SOCGameOption op, final int cliVers, final String localDesc)
     {
@@ -87,7 +88,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
                             ? 0
                             : op.maxIntValue ) ]);
         opt = op;
-        pa[0] = op.optKey;
+        pa[0] = op.key;
         pa[1] = Integer.toString(op.optType);
         pa[2] = Integer.toString(op.minVersion);
         pa[3] = Integer.toString(op.lastModVersion);
@@ -110,7 +111,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
         else
             pa[10] = Integer.toString(op.optFlags);
 
-        pa[11] = (localDesc != null) ? localDesc : op.optDesc;
+        pa[11] = (localDesc != null) ? localDesc : op.desc;
 
         // for OTYPE_ENUM, _ENUMBOOL, pa[12+] are the enum choices' string values
         if ((op.optType == SOCGameOption.OTYPE_ENUM) || (op.optType == SOCGameOption.OTYPE_ENUMBOOL))
@@ -133,7 +134,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * pa[8] = boolValue ('t' or 'f'; current, not default)
      * pa[9] = intValue (current, not default) or stringvalue
      * pa[10] = optFlags as integer -- before v2.0.00, only FLAG_DROP_IF_UNUSED ('t' or 'f')
-     * pa[11] = optDesc (displayed text) if present; required for all but OTYPE_UNKNOWN
+     * pa[11] = desc (displayed text) if present; required for all but OTYPE_UNKNOWN
      * pa[12] and beyond, if present = each enum choice's text </pre>
      *
      * @throws IllegalArgumentException if pa.length < 11, or type is not a valid {@link SOCGameOption#optType};
@@ -275,7 +276,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * pa[8] = boolValue ('t' or 'f'; current, not default)
      * pa[9] = intValue (current, not default) or stringvalue
      * pa[10] = dropIfUnused ('t' or 'f')
-     * pa[11] = optDesc (displayed text) if present; required for all but OTYPE_UNKNOWN
+     * pa[11] = desc (displayed text) if present; required for all but OTYPE_UNKNOWN
      * pa[12] and beyond, if present = each enum choice's text </pre>
      *
      * @param pa   the String parameters

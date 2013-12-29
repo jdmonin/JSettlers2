@@ -83,6 +83,7 @@ import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCSettlement;
 import soc.game.SOCTradeOffer;
+import soc.game.SOCVersionedItem;
 import soc.game.SOCVillage;
 
 import soc.message.*;
@@ -3036,9 +3037,9 @@ public class SOCPlayerClient
                     {
                         final SOCGameOption op = opi.next();
                         //TODO i18n how to?
-                        if ((op.optKey.length() > 3) || op.optKey.contains("_"))
+                        if ((op.key.length() > 3) || op.key.contains("_"))
                         {
-                            tcpServGameOpts.optionSet.remove(op.optKey);
+                            tcpServGameOpts.optionSet.remove(op.key);
                             opi.remove();
                         }
                     }
@@ -3113,7 +3114,7 @@ public class SOCPlayerClient
                     if (knowns != null)
                         oinfo = knowns.get(oname);
                     if (oinfo != null)
-                        oname = oinfo.optDesc;
+                        oname = oinfo.desc;
                     opts.append(strings.get("options.error.valuesproblem.which", oname));
                 }
                 errMsg = strings.get("options.error.valuesproblem", gameName, errMsg, opts.toString());
@@ -6394,7 +6395,7 @@ public class SOCPlayerClient
                 }
             }
 
-            List<String> unknowns = SOCGameOption.findUnknowns(servOpts);
+            List<String> unknowns = SOCVersionedItem.findUnknowns(servOpts);
             allOptionsReceived = (unknowns == null);
             defaultsReceived = true;
             return unknowns;
@@ -6413,7 +6414,7 @@ public class SOCPlayerClient
             SOCGameOption oinfo = gi.getOptionInfo();
             SOCGameOption oldcopy = optionSet.get(oKey);
 
-            if ((oinfo.optKey.equals("-")) && (oinfo.optType == SOCGameOption.OTYPE_UNKNOWN))
+            if ((oinfo.key.equals("-")) && (oinfo.optType == SOCGameOption.OTYPE_UNKNOWN))
             {
                 // end-of-list marker: no more options from server.
                 // That is end of srv's response to cli sending GAMEOPTIONGETINFOS("-").
