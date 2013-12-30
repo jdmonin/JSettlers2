@@ -476,25 +476,30 @@ public class SOCGameOption
         return opt;
 
         /*
-                // A commented-out debug option is kept here for each option type's testing convenience.
-                // OTYPE_* - Add a commented-out debug of the new type, for testing the new type.
+            // A commented-out debug option is kept here for each option type's testing convenience.
+            // OTYPE_* - Add a commented-out debug of the new type, for testing the new type.
 
+        opt.put("DEBUGBOOL", new SOCGameOption
+                ("DEBUGBOOL", 2000, 2000, false, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option bool"));
         opt.put("DEBUGENUM", new SOCGameOption
-                ("DEBUGENUM", 1107, 1107,
-                 3, true, new String[]{ "First", "Second", "Third", "Fourth"}, "Test option # enum"));
+                ("DEBUGENUM", 1107, 1107, 3,
+                 new String[]{ "First", "Second", "Third", "Fourth"},
+                 SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option # enum"));
         opt.put("DEBUGENUMBOOL", new SOCGameOption
-                ("DEBUGENUMBOOL", 1107, 1108, true,
-                 3, new String[]{ "First", "Second", "Third", "Fourth"}, true, "Test option # enumbool"));
+                ("DEBUGENUMBOOL", 1107, 1108, true, 3,
+                 new String[]{ "First", "Second", "Third", "Fourth"},
+                 SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option # enumbool"));
         opt.put("DEBUGINT", new SOCGameOption
-                ("DEBUGINT", -1, 1113, 500, 1, 1000, true, "Test option int # (range 1-1000)"));
+                ("DEBUGINT", -1, 1113, 500, 1, 1000, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option int # (range 1-1000)"));
         opt.put("DEBUGSTR", new SOCGameOption
-                ("DEBUGSTR", 1107, 1107, 20, false, true, "Test option str"));
+                ("DEBUGSTR", 1107, 1107, 20, false, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option str"));
         opt.put("DEBUGSTRHIDE", new SOCGameOption
-                ("DEBUGSTRHIDE", 1107, 1107, 20, true, true, "Test option strhide"));
+                ("DEBUGSTRHIDE", 1107, 1107, 20, true, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option strhide"));
+
         */
 
         /*
-                // TEST CODE: simple callback for each option, that just echoes old/new value
+            // TEST CODE: simple callback for each option, that just echoes old/new value
 
         ChangeListener testCL = new ChangeListener()
         {
@@ -1691,7 +1696,7 @@ public class SOCGameOption
                 try
                 {
                     final char ch0 = optval.charAt(0);
-                    copyOpt.setBoolValue((ch0 == 't') || (ch0 == 'T'));
+                    copyOpt.setBoolValue((ch0 == 't') || (ch0 == 'T') || (ch0 == 'y') || (ch0 == 'Y'));
                     copyOpt.setIntValue(Integer.parseInt(optval.substring(1)));
                 } catch (NumberFormatException e)
                 {
