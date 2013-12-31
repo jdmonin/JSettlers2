@@ -696,7 +696,7 @@ public class PTEMain extends JFrame
             else if (s == bSrcOther)
             {
                 src = srcOther;
-                if ((srcOther == null) || (tfSrcOther.getText().trim().length() == 0))
+                if ((srcOther == null) && (tfSrcOther.getText().trim().length() == 0))
                     chooseSrcOther();
             }
             else if (s == bBrowseOther)
