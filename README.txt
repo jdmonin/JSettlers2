@@ -90,10 +90,21 @@ SERVER STARTUP:
 Start the server with the following command
 (server requires Java 1.5 or higher):
 
+  java -jar JSettlersServer.jar
+
+This will start the server on the default port of 8880 with 7 robots.
+
+You can also specify parameters at startup:
+
   java -jar JSettlersServer.jar -Djsettlers.startrobots=7 8880 20 socuser socpass
 
 Those parameters are : number of bots; TCP port number; max clients; db user; db password.
-You can also run with no parameters; the server will run on the default port of 8880 with no bots.
+
+The started robots count against your max simultaneous connections (20 in this example).
+If the robots leave less than 6 player connections available, or if they take
+more than half the max connections, a warning message is printed at startup.
+
+To start a server with no robots (human players only), use -Djsettlers.startrobots=0 .
 
 If MySQL or another database is not installed and running (See "Database Setup"),
 you will see a warning with the appropriate explanation:
@@ -106,17 +117,7 @@ users a nickname and password to use when they log in and play.
 People without accounts can still connect, by leaving the password field blank,
 as long as they aren't using a nickname which has a password in the database.
 
-If you would like robots to automatically start when your server starts,
-add the "startrobots" property to your jsettlers java command line, BEFORE the
-port number:
-
-  java -jar JSettlersServer.jar -Djsettlers.startrobots=6 8880 15 socuser socpass
-
-This will start 6 robots on the server.
-
-The started robots count against your max connections (15 in this example).
-If the robots leave less than 6 player connections available, or if they take
-more than half the max connections, a warning message is printed at startup.
+Any command-line switches and options go before the port number on the command line.
 
 To have all games' results stored in the database, use this option:
   -Djsettlers.db.save.games=Y
@@ -128,19 +129,16 @@ This will print all server options, and all Game Option default values.
 To change a Game Option from its default, for example to activate the house rule
 "Robber can't return to the desert", use the "-o" switch with the game option's name and value:
    -o RD=t
-All command-line switches and options go before the port number if specified.
 
 
 CLIENT CONNECT:
 
-Now, from another command line window, start the player client with
-the following command:
+Now, double-click JSettlers.jar to launch the client.
+
+Or, if you want to see the message traffic and debug output, from another command line window
+start the player client with the following command:
 
   java -jar JSettlers.jar localhost 8880
-
-You can instead double-click the JAR file to launch the client, and then
-click "connect to server".  Use the command line if you want to see the
-message traffic and debug output.
 
 In the player client window, enter any name in the Nickname field and
 create a new game.
@@ -265,7 +263,7 @@ Your database system's JDBC drivers can be downloaded at these locations:
 	PostgreSQL:  http://jdbc.postgresql.org/download.html
 	SQLite:  https://bitbucket.org/xerial/sqlite-jdbc
 	          or http://www.sqlite.org/cvstrac/wiki?p=SqliteWrappers
-          If sqlite crashes jsettlers on launch, or gives java.lang.UnsatisfiedLinkError
+	  If sqlite crashes jsettlers on launch, or gives java.lang.UnsatisfiedLinkError
 	  at launch but doesn't crash, add -Dsqlite.purejava=true before -jar on the
 	  java command line and retry.
 

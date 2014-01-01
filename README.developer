@@ -315,6 +315,7 @@ When starting the editor this message is harmless, because preferences are store
 	WARNING: Could not open/create prefs root node Software\JavaSoft\Prefs at root 0x80000002. Windows RegCreateKeyEx(...) returned error code 5.
 
 To override system locales for testing, launch the client with vm argument -Djsettlers.locale=es
+(this goes before -jar if using the command line).
 
 Pseudolocalization for testing (en_AA locale) uses StringUtil from the JBoss Ant-Gettext utilities.
 See command-line utility net.nand.util.i18n.PropsFilePseudoLocalizer.
