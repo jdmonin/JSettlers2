@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, nested class refactoring, parameterize types
  *
@@ -177,7 +177,7 @@ public class SOCPlayerClient
     private GameDisplay gameDisplay;
 
     /**
-     *  Server version number for remote server, sent soon after connect, or -1 if unknown.
+     *  Server version number for remote server, sent soon after connect, 0 if no server, or -1 if version unknown.
      *  A local server's version is always {@link Version#versionNumber()}.
      */
     protected int sVersion;
@@ -3011,7 +3011,8 @@ public class SOCPlayerClient
             (cliLocale != null) && (isPractice || (sVersion >= SOCStringManager.VERSION_FOR_I18N))
             && ! ("en".equals(cliLocale.getLanguage()) && "US".equals(cliLocale.getCountry()));
 
-        if ((sVersion > cliVersion) || (withTokenI18n && (sVersion == cliVersion)))
+        if ( ((! isPractice) && (sVersion > cliVersion))
+            || (withTokenI18n && (isPractice || (sVersion == cliVersion))))
         {
             // Newer server: Ask it to list any options we don't know about yet.
             // Same version: Ask for all options with localized descs if available.
@@ -3019,7 +3020,7 @@ public class SOCPlayerClient
                 gameDisplay.optionsRequested();
             gmgr.put(SOCGameOptionGetInfos.toCmd(null, withTokenI18n), isPractice);  // sends "-"
         }
-        else if (sVersion < cliVersion)
+        else if ((sVersion < cliVersion) && ! isPractice)
         {
             if (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
             {
@@ -3032,6 +3033,7 @@ public class SOCPlayerClient
                     // Remove them from our set of options for games at this server.
                     if (tcpServGameOpts.optionSet == null)
                         tcpServGameOpts.optionSet = SOCGameOption.getAllKnownOptions();
+
                     Iterator<SOCGameOption> opi = tooNewOpts.iterator();
                     while (opi.hasNext())
                     {
@@ -4392,7 +4394,8 @@ public class SOCPlayerClient
                 gameDisplay.optionsRequested();
 
             final boolean withTokenI18n =
-                (sVersion >= SOCStringManager.VERSION_FOR_I18N) && (cliLocale != null)
+                (isPractice || (sVersion >= SOCStringManager.VERSION_FOR_I18N))
+                && (cliLocale != null)
                 && ! ("en".equals(cliLocale.getLanguage()) && "US".equals(cliLocale.getCountry()));
             gmgr.put(SOCGameOptionGetInfos.toCmd(unknowns, withTokenI18n), isPractice);
         } else {
