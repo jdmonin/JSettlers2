@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011-2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1303,11 +1303,17 @@ public class SOCGameOption
 
 	synchronized (allOptions)
 	{
-	    hadIt = allOptions.containsKey(oKey);
-	    if (hadIt)
-	        allOptions.remove(oKey);
+	    SOCGameOption oldcopy = allOptions.remove(oKey);
+	    hadIt = (oldcopy != null);
+
 	    if (onew.optType != OTYPE_UNKNOWN)
+	    {
+                final ChangeListener cl = oldcopy.getChangeListener();
+                if (cl != null)
+                    onew.addChangeListener(cl);
+
 	        allOptions.put(oKey, onew);
+	    }
 	}
 
 	return ! hadIt;
@@ -2337,7 +2343,7 @@ public class SOCGameOption
      * For example, when the max players is changed to 5 or 6,
      * the listener can check the box for "use 6-player board".
      *<P>
-     * Once written, the server can't do anything to update the client's
+     * Once written, a newer server can't do anything to update an older client's
      * ChangeListener code, so be careful and write them defensively.
      *<P>
      * Callback method is {@link #valueChanged(SOCGameOption, Object, Object, Map)}.
