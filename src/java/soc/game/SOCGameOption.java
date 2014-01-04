@@ -112,7 +112,7 @@ public class SOCGameOption
      *<b>Details:</b><BR>
      * Should the server drop this option from game options, and not send over
      * the network, if the value is false or blank?
-     * (Meaning not set (false) for {@link #OTYPE_BOOL}, {@link #OTYPE_ENUMBOOL}
+     * (Meaning false (not set) for {@link #OTYPE_BOOL}, {@link #OTYPE_ENUMBOOL}
      * or {@link #OTYPE_INTBOOL}; blank for {@link #OTYPE_STR} or {@link #OTYPE_STRHIDE};
      * {@link #defaultIntValue} for {@link #OTYPE_INT} or {@link #OTYPE_ENUM})
      *<P>
@@ -147,6 +147,120 @@ public class SOCGameOption
      * @since 2.0.00
      */
     public static final int FLAG_INTERNAL_GAME_PROPERTY = 0x02;  // NEW_OPTION - decide if this applies to your option
+
+    // -- Option Types --
+    // OTYPE_*: See comment above optType for "If you create a new option type"
+
+    /** Lowest OTYPE_ ({@link #optType}) value known at this version */
+    public static final int OTYPE_MIN = 0;
+
+    /**
+     * Option type: unknown (probably due to version mismatch).
+     * Options of this type will also set their {@link SOCVersionedItem#isKnown isKnown} flag false.
+     */
+    public static final int OTYPE_UNKNOWN = 0;
+
+    /** Option type: boolean  */
+    public static final int OTYPE_BOOL = 1;
+
+    /** Option type: integer  */
+    public static final int OTYPE_INT = 2;
+
+    /** Option type: integer + boolean.  Both {@link #boolValue} and {@link #intValue} fields are used. */
+    public static final int OTYPE_INTBOOL = 3;
+
+    /** Option type: enumeration (1 of several possible choices, described with text strings,
+     *  stored here as intVal).  Choices' strings are stored in {@link #enumVals}.
+     */
+    public static final int OTYPE_ENUM = 4;
+
+    /** Option type: enumeration + boolean; see {@link #OTYPE_ENUM}.
+     *  Like {@link #OTYPE_INTBOOL}, both {@link #boolValue} and {@link #intValue} fields are used.
+     */
+    public static final int OTYPE_ENUMBOOL = 5;
+
+    /** Option type: text string (max string length is {@link #maxIntValue}, default value is "") */
+    public static final int OTYPE_STR = 6;
+
+    /** Option type: text string (like {@link #OTYPE_STR}) but hidden from view; is NOT encrypted,
+     *  but contents show up as "*" when typed into a text field.
+     */
+    public static final int OTYPE_STRHIDE = 7;
+
+    /** Highest OTYPE value known at this version */
+    public static final int OTYPE_MAX = OTYPE_STRHIDE;  // OTYPE_* - adj OTYPE_MAX if adding new type
+
+    // -- End of option types --
+
+    // -- Game option keynames for scenario flags --
+    // Not all scenario keynames have scenario events, some are just properties of the game.
+
+    /**
+     * Scenario key <tt>_SC_SANY</tt> for {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}.
+     * @since 2.0.00
+     */
+    public static final String K_SC_SANY = "_SC_SANY";
+
+    /**
+     * Scenario key <tt>_SC_SEAC</tt> for {@link SOCScenarioPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}.
+     * @since 2.0.00
+     */
+    public static final String K_SC_SEAC = "_SC_SEAC";
+
+    /**
+     * Scenario key <tt>_SC_FOG</tt> for {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}.
+     * @see SOCScenario#K_SC_FOG
+     * @since 2.0.00
+     */
+    public static final String K_SC_FOG = "_SC_FOG";
+
+    /**
+     * Scenario key <tt>_SC_0RVP</tt>: No "longest trade route" VP / Longest Road.
+     * @since 2.0.00
+     */
+    public static final String K_SC_0RVP = "_SC_0RVP";
+
+    /**
+     * Scenario key <tt>_SC_3IP</tt>: Third initial placement of settlement and road or ship.
+     * Initial resources are given for this one, not the second settlement.
+     * @since 2.0.00
+     */
+    public static final String K_SC_3IP = "_SC_3IP";
+
+    /**
+     * Scenario key <tt>_SC_CLVI</tt> for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
+     * Cloth Trade with neutral {@link SOCVillage villages}.
+     * Villages and cloth are in a game only if this option is set.
+     * @since 2.0.00
+     * @see SOCScenario#K_SC_CLVI
+     */
+    public static final String K_SC_CLVI = "_SC_CLVI";
+
+    /**
+     * Scenario key <tt>_SC_PIRI</tt> for Pirate Islands and {@link SOCFortress fortresses}.
+     * Fortresses and player warships are in a game only if this option is set.
+     * For more details and special rules see {@link SOCScenario#K_SC_PIRI}.
+     * @since 2.0.00
+     */
+    public static final String K_SC_PIRI = "_SC_PIRI";
+
+    /**
+     * Scenario key {@code _SC_FTRI} for the Forgotten Tribe.
+     * Special edges with SVP, dev cards, and "gift" ports placed via {@link SOCInventoryItem}.
+     * For more details and special rules see {@link SOCScenario#K_SC_FTRI}.
+     * @since 2.0.00
+     */
+    public static final String K_SC_FTRI = "_SC_FTRI";
+
+    // -- End of scenario flag keynames --
+
+    /**
+     * Version 2.0.00 introduced longer option keynames (8 characters, earlier max was 3)
+     * and underscores '_' in option names.
+     * Game option names sent to 1.1.xx servers must be 3 characters or less, alphanumeric, no underscores ('_').
+     * @since 2.0.00
+     */
+    public static final int VERSION_FOR_LONGER_OPTNAMES = 2000;
 
     /**
      * Set of "known options".
@@ -524,115 +638,6 @@ public class SOCGameOption
         // OBSOLETE OPTIONS, REMOVED OPTIONS - Move its opt.put down here, commented out,
         //       including the version, date, and reason of the removal.
     }
-
-    /** Lowest OTYPE value known at this version */
-    public static final int OTYPE_MIN = 0;
-
-    /**
-     * Option type: unknown (probably due to version mismatch).
-     * Options of this type will also set their {@link SOCVersionedItem#isKnown isKnown} flag false.
-     */
-    public static final int OTYPE_UNKNOWN = 0;
-
-    /** Option type: boolean  */
-    public static final int OTYPE_BOOL = 1;
-
-    /** Option type: integer  */
-    public static final int OTYPE_INT = 2;
-
-    /** Option type: integer + boolean.  Both {@link #boolValue} and {@link #intValue} fields are used. */
-    public static final int OTYPE_INTBOOL = 3;
-
-    /** Option type: enumeration (1 of several possible choices, described with text strings,
-     *  stored here as intVal).  Choices' strings are stored in {@link #enumVals}.
-     */
-    public static final int OTYPE_ENUM = 4;
-
-    /** Option type: enumeration + boolean; see {@link #OTYPE_ENUM}.
-     *  Like {@link #OTYPE_INTBOOL}, both {@link #boolValue} and {@link #intValue} fields are used.
-     */
-    public static final int OTYPE_ENUMBOOL = 5;
-
-    /** Option type: text string (max string length is {@link #maxIntValue}, default value is "") */
-    public static final int OTYPE_STR = 6;
-
-    /** Option type: text string (like {@link #OTYPE_STR}) but hidden from view; is NOT encrypted,
-     *  but contents show up as "*" when typed into a text field.
-     */
-    public static final int OTYPE_STRHIDE = 7;
-
-    /** Highest OTYPE value known at this version */
-    public static final int OTYPE_MAX = OTYPE_STRHIDE;  // OTYPE_* - adj OTYPE_MAX if adding new type
-
-    /**
-     * Version 2.0.00 introduced longer option keynames (8 characters, earlier max was 3)
-     * and underscores '_' in option names.
-     * Game option names sent to 1.1.xx servers must be 3 characters or less, alphanumeric, no underscores ('_').
-     * @since 2.0.00
-     */
-    public static final int VERSION_FOR_LONGER_OPTNAMES = 2000;
-
-    // Game option keynames for scenario flags.
-    // Not all scenario keynames have scenario events, some are just properties of the game.
-
-    /**
-     * Scenario key <tt>_SC_SANY</tt> for {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}.
-     * @since 2.0.00
-     */
-    public static final String K_SC_SANY = "_SC_SANY";
-
-    /**
-     * Scenario key <tt>_SC_SEAC</tt> for {@link SOCScenarioPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}.
-     * @since 2.0.00
-     */
-    public static final String K_SC_SEAC = "_SC_SEAC";
-
-    /**
-     * Scenario key <tt>_SC_FOG</tt> for {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}.
-     * @see SOCScenario#K_SC_FOG
-     * @since 2.0.00
-     */
-    public static final String K_SC_FOG = "_SC_FOG";
-
-    /**
-     * Scenario key <tt>_SC_0RVP</tt>: No "longest trade route" VP / Longest Road.
-     * @since 2.0.00
-     */
-    public static final String K_SC_0RVP = "_SC_0RVP";
-
-    /**
-     * Scenario key <tt>_SC_3IP</tt>: Third initial placement of settlement and road or ship.
-     * Initial resources are given for this one, not the second settlement.
-     * @since 2.0.00
-     */
-    public static final String K_SC_3IP = "_SC_3IP";
-
-    /**
-     * Scenario key <tt>_SC_CLVI</tt> for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
-     * Cloth Trade with neutral {@link SOCVillage villages}.
-     * Villages and cloth are in a game only if this option is set.
-     * @since 2.0.00
-     * @see SOCScenario#K_SC_CLVI
-     */
-    public static final String K_SC_CLVI = "_SC_CLVI";
-
-    /**
-     * Scenario key <tt>_SC_PIRI</tt> for Pirate Islands and {@link SOCFortress fortresses}.
-     * Fortresses and player warships are in a game only if this option is set.
-     * For more details and special rules see {@link SOCScenario#K_SC_PIRI}.
-     * @since 2.0.00
-     */
-    public static final String K_SC_PIRI = "_SC_PIRI";
-
-    /**
-     * Scenario key {@code _SC_FTRI} for the Forgotten Tribe.
-     * Special edges with SVP, dev cards, and "gift" ports placed via {@link SOCInventoryItem}.
-     * For more details and special rules see {@link SOCScenario#K_SC_FTRI}.
-     * @since 2.0.00
-     */
-    public static final String K_SC_FTRI = "_SC_FTRI";
-
-    // -- End of scenario flag keynames --
 
     // If you create a new option type,
     // please update parseOptionsToMap(), packOptionsToString(),
