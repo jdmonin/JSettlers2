@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -6637,6 +6637,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hoverShipID = 0;
             }
 
+            /**
+             * Wrap try-catch(ConcurrentModificationException) around thread-unsafe board methods
+             */
+
+            try
+            {
+
             // Look first for settlements/cities or ports
             id = findNode(xb,yb);
             if (id > 0)
@@ -7084,6 +7091,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
 
                 return;  // <--- Early return: Found hex ---
+            }
+
+            } catch (ConcurrentModificationException e) {
+                handleHover(x, y);  // try again now
+                return;
             }
 
             if ((hoverRoadID != 0) || (hoverShipID != 0))
