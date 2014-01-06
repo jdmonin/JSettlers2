@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -207,9 +207,6 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * SIMPLEACTION introduced in 1.1.19.
      * @return Version number, 1119 for JSettlers 1.1.19.
      */
-    public final int getMinimumVersion()
-    {
-        return VERSION_FOR_SIMPLEACTION;
-    }
+    public final int getMinimumVersion() { return VERSION_FOR_SIMPLEACTION; /* == 1119 */ }
 
 }

@@ -89,9 +89,6 @@ public class SOCPickResourcesRequest extends SOCMessageTemplate1i
      * PICKRESOURCESREQUEST introduced in 2.0.00 for gold hexes on the large sea board.
      * @return Version number, 2000 for JSettlers 2.0.00.
      */
-    public int getMinimumVersion()
-    {
-        return 2000;
-    }
+    public int getMinimumVersion() { return 2000; }
 
 }

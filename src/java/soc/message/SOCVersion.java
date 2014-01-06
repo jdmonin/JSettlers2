@@ -188,9 +188,6 @@ public class SOCVersion extends SOCMessage
      * VERSION introduced in 1.1.00 for client/server versioning.
      * @return Version number, 1100 for JSettlers 1.1.00.
      */
-    public int getMinimumVersion()
-    {
-        return 1100;
-    }
+    public int getMinimumVersion() { return 1100; }
 
 }

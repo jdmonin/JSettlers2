@@ -95,9 +95,6 @@ public class SOCBoardSpecialEdge extends SOCMessageTemplate2i
      * BOARDSPECIALEDGE introduced in 2.0.00.
      * @return Version number, 2000 for JSettlers 2.0.00.
      */
-    public final int getMinimumVersion()
-    {
-        return 2000;
-    }
+    public final int getMinimumVersion() { return 2000; }
 
 }

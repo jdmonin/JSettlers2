@@ -114,9 +114,6 @@ public class SOCPirateFortressAttackResult extends SOCMessageTemplate2i
      * PIRATEFORTRESSATTACKRESULT introduced in 2.0.00 for the pirate islands scenario (_SC_PIRI).
      * @return Version number, 2000 for JSettlers 2.0.00.
      */
-    public int getMinimumVersion()
-    {
-        return 2000;
-    }
+    public int getMinimumVersion() { return 2000; }
 
 }

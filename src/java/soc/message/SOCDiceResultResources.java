@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -177,7 +177,7 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
      * DICERESULTRESOURCES introduced in 2.0.00 for dice roll result resources.
      * @return Version number, 2000 for JSettlers 2.0.00.
      */
-    public int getMinimumVersion() { return VERSION_FOR_DICERESULTRESOURCES; }
+    public int getMinimumVersion() { return VERSION_FOR_DICERESULTRESOURCES; /* == 2000 */ }
 
     /**
      * Parse the command String array into a SOCDiceResultResources message.

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -342,12 +342,13 @@ public abstract class SOCMessage implements Serializable, Cloneable
     /**
      * To identify new message types, give the minimum version where this
      * type is used.  Default of 1000 (version 1.0.00) unless overridden.
+     *<P>
+     * When overriding, write the entire method on a single line for easier
+     * visibility of the version when searching the source code.
+     *
      * @return Version number, as in 1006 for JSettlers 1.0.06.
      */
-    public int getMinimumVersion()
-    {
-        return 1000;
-    }
+    public int getMinimumVersion() { return 1000; }
 
     /**
      * To identify obsolete message types, give the maximum version where this

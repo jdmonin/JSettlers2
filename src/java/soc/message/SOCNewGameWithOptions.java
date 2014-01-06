@@ -206,9 +206,6 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      * @return Version number, 1107 for JSettlers 1.1.07.
      */
     @Override
-    public int getMinimumVersion()
-    {
-        return VERSION_FOR_NEWGAMEWITHOPTIONS; // == 1107;
-    }
+    public int getMinimumVersion() { return VERSION_FOR_NEWGAMEWITHOPTIONS; /* == 1107 */ }
 
 }

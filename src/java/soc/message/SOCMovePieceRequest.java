@@ -133,9 +133,6 @@ public class SOCMovePieceRequest extends SOCMessageTemplate4i
      * MOVEPIECEREQUEST introduced in 2.0.00.
      * @return Version number, 2000 for JSettlers 2.0.00.
      */
-    public int getMinimumVersion()
-    {
-        return 2000;
-    }
+    public int getMinimumVersion() { return 2000; }
 
 }

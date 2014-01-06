@@ -206,9 +206,6 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
      * SIMPLEREQUEST introduced in 1.1.18.
      * @return Version number, 1118 for JSettlers 1.1.18.
      */
-    public int getMinimumVersion()
-    {
-        return 1118;
-    }
+    public int getMinimumVersion() { return 1118; }
 
 }

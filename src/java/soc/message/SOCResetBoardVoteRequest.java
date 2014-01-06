@@ -94,9 +94,6 @@ public class SOCResetBoardVoteRequest extends SOCMessageTemplate1i
      * RESETBOARDVOTEREQUEST introduced in 1.1.00 for reset-board feature.
      * @return Version number, 1100 for JSettlers 1.1.00.
      */
-    public int getMinimumVersion()
-    {
-        return 1100;
-    }
+    public int getMinimumVersion() { return 1100; }
 
 }
