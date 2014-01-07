@@ -5205,7 +5205,7 @@ public class SOCServer extends Server
          * make sure this player isn't already sitting
          */
         boolean canSit = true;
-        boolean gameIsFull = false;
+        boolean gameIsFull = false, gameAlreadyStarted = false;
 
         /*
            for (int i = 0; i < SOCGame.MAXPLAYERS; i++) {
@@ -5230,8 +5230,11 @@ public class SOCServer extends Server
         {
             if (ga.isSeatVacant(pn))
             {
-                gameIsFull = (1 > ga.getAvailableSeatCount());
-                if (gameIsFull)
+                gameAlreadyStarted = (ga.getGameState() >= SOCGame.START2A);
+                if (! gameAlreadyStarted)
+                    gameIsFull = (1 > ga.getAvailableSeatCount());
+
+                if (gameAlreadyStarted || gameIsFull)
                     canSit = false;
             } else {
                 SOCPlayer seatedPlayer = ga.getPlayer(pn);
@@ -5299,6 +5302,8 @@ public class SOCServer extends Server
             if (mes.isRobot())
             {
                 c.put(SOCRobotDismiss.toCmd(gaName));
+            } else if (gameAlreadyStarted) {
+                messageToPlayer(c, gaName, /*I*/"This game has already started, to play you must take over a robot."/*18N*/ );
             } else if (gameIsFull) {
                 messageToPlayer(c, gaName, /*I*/"This game is full, you cannot sit down."/*18N*/ );
             }

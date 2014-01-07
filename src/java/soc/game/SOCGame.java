@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -1401,10 +1401,13 @@ public class SOCGame implements Serializable, Cloneable
      * If the new player's {@code pn} is less than {@link #getCurrentPlayerNumber()},
      * they already missed their first settlement and road placement but will get their second one.
      *<P>
-     * Once the game has started and everyone already has placed their
-     * first settlement and road (gamestate is &gt;= {@link #START2A}),
-     * no one new can sit down at a vacant seat.
-     * <em>(added in v2.0.00)</em>
+     * <B>Note:</B> Once the game has started and everyone already has placed their
+     * first settlement and road (gamestate is &gt;= {@link #START2A}), no one new
+     * should sit down at a vacant seat, they won't have initial placements to receive
+     * resources.  This method doesn't know if the seat has always been vacant, or if
+     * a robot has just left the game to vacate the seat. So this restriction must be
+     * enforced earlier, when the player requests sitting down at a vacant seat or at
+     * a robot's position.
      *
      * @param name  the player's name; must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param pn    the player's requested player number; the seat number at which they would sit
@@ -1425,7 +1428,7 @@ public class SOCGame implements Serializable, Cloneable
         final boolean wasVacant = (seats[pn] == VACANT);
         if (wasVacant)
         {
-            if (0 == getAvailableSeatCount())  // will be 0 in state >= START2A
+            if (0 == getAvailableSeatCount())
                 throw new IllegalStateException("Game is full");
         }
         SOCPlayer already = getPlayer(name);
@@ -1491,11 +1494,6 @@ public class SOCGame implements Serializable, Cloneable
      * How many seats are vacant and available for players?
      * Based on {@link #isSeatVacant(int)}, and game
      * option "PL" (maximum players) or {@link #maxPlayers}.
-     *<P>
-     * Once the game has started and everyone already has placed their
-     * first settlement and road (gamestate is &gt;= {@link #START2A}}),
-     * no one new can sit down at a vacant seat, so this method returns 0.
-     * <em>(added in v2.0.00)</em>
      *
      * @return number of available vacant seats
      * @see #isSeatVacant(int)
@@ -1503,9 +1501,6 @@ public class SOCGame implements Serializable, Cloneable
      */
     public int getAvailableSeatCount()
     {
-        if (gameState >= START2A)
-            return 0;
-
         int availSeats;
         if (isGameOptionDefined("PL"))
             availSeats = getGameOptionIntValue("PL");
