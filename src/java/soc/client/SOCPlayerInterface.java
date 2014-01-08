@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, type parameterization, GUI API updates, etc
  *
@@ -343,6 +343,14 @@ public class SOCPlayerInterface extends Frame
     protected SOCGame game;
 
     /**
+     * If true, {@link #updateAtGameState()} has been called at least once,
+     * or the constructor was called with a non-zero {@link SOCGame#getGameState()}.
+     * If false, the 'known' game state (from the constructor) is 0.
+     * @since 2.0.00
+     */
+    private boolean knowsGameState;
+
+    /**
      * Flag to ensure interface is updated, when the first actual
      * turn begins (state changes from {@link SOCGame#START2B} or {@link SOCGame#START3B}
      * to {@link SOCGame#PLAY}).
@@ -443,6 +451,7 @@ public class SOCPlayerInterface extends Frame
         client = gd.getClient();
         game = ga;
         game.setScenarioEventListener(this);
+        knowsGameState = (game.getGameState() != 0);
         clientListener = new ClientBridge(this);
         gameStats = new SOCGameStatistics(game);
         gameIsStarting = false;
@@ -1895,6 +1904,18 @@ public class SOCPlayerInterface extends Frame
     {
         int gs = game.getGameState();
 
+        if (! knowsGameState)
+        {
+            knowsGameState = true;
+
+            // game state was 0 when PI and handpanels were created:
+            // update Sit Here buttons' status now
+            final boolean clientSatAlready = (clientHand != null);
+            for (int i = 0; i < game.maxPlayers; i++)
+                if (game.isSeatVacant(i))
+                    hands[i].addSitButton(clientSatAlready);
+        }
+
         getBoardPanel().updateMode();
         getBuildingPanel().updateButtonStatus();
         getBoardPanel().repaint();
@@ -2249,6 +2270,7 @@ public class SOCPlayerInterface extends Frame
         // Clear out old state (similar to constructor)
         int oldGameState = game.getResetOldGameState();
         game = newGame;
+        knowsGameState = (game.getGameState() != 0);
         if (gameStats != null)
             gameStats.dispose();
         gameStats = new SOCGameStatistics(game);
