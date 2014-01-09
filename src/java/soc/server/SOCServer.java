@@ -5303,9 +5303,11 @@ public class SOCServer extends Server
             {
                 c.put(SOCRobotDismiss.toCmd(gaName));
             } else if (gameAlreadyStarted) {
-                messageToPlayer(c, gaName, /*I*/"This game has already started, to play you must take over a robot."/*18N*/ );
+                messageToPlayerKeyed(c, gaName, "member.sit.game.started");
+                    // "This game has already started; to play you must take over a robot."
             } else if (gameIsFull) {
-                messageToPlayer(c, gaName, /*I*/"This game is full, you cannot sit down."/*18N*/ );
+                messageToPlayerKeyed(c, gaName, "member.sit.game.full");
+                    // "This game is full; you cannot sit down."
             }
         }
     }
@@ -5702,11 +5704,11 @@ public class SOCServer extends Server
                 messageToGameForVersions
                     (ga, 2000, Integer.MAX_VALUE, mes, true);
                 messageToGameForVersions
-                    (ga, -1, 1999, new SOCSetSeatLock(gaName, pn, SOCGame.SeatLockState.LOCKED), true);                
+                    (ga, -1, 1999, new SOCSetSeatLock(gaName, pn, SOCGame.SeatLockState.LOCKED), true);
             }
         }
         catch (IllegalStateException e) {
-            messageToPlayer(c, gaName, /*I*/"Cannot set that lock right now."/*18N*/ );
+            messageToPlayerKeyed(c, gaName, "reply.lock.cannot");  // "Cannot set that lock right now."
         }
     }
 
@@ -6245,7 +6247,7 @@ public class SOCServer extends Server
                 {
                     // Maybe already seated? (network lag)
                     if (! robot)
-                        messageToPlayer(c, gaName, "You cannot sit down here.");
+                        messageToPlayerKeyed(c, gaName, "member.sit.not.here");  // "You cannot sit down here."
                     ga.releaseMonitor();
                     return;  // <---- Early return: cannot sit down ----
                 }

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2013-2014 Jeremy D Monin <jeremy@nand.net>.
  * Contents were formerly part of SOCServer.java;
  * portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -84,7 +84,6 @@ import soc.message.SOCDiscoveryPick;
 import soc.message.SOCEndTurn;
 import soc.message.SOCFirstPlayer;
 import soc.message.SOCGameMembers;
-import soc.message.SOCGameServerText;
 import soc.message.SOCGameState;
 import soc.message.SOCGameStats;
 import soc.message.SOCGameTextMsg;
@@ -913,7 +912,7 @@ public class SOCGameHandler extends GameHandler
             c.put(SOCJoinGameAuth.toCmd(gameName));
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_OK,
-                     "Welcome to Java Settlers of Catan!"));
+                     /*I*/"Welcome to Java Settlers of Catan!"/*18N*/ ));
         }
 
         //c.put(SOCGameState.toCmd(gameName, gameData.getGameState()));
@@ -1279,9 +1278,11 @@ public class SOCGameHandler extends GameHandler
         if ((! isReset) && gameData.getGameState() >= SOCGame.START2A)
         {
             if (hasRobot)
-                srv.messageToPlayer(c, gameName, /*I*/"This game has started. To play, take over a robot."/*18N*/ );
+                srv.messageToPlayerKeyed
+                    (c, gameName, "member.join.game.started.bots");  // "This game has started. To play, take over a robot."
             else
-                srv.messageToPlayer(c, gameName, /*I*/"This game has started, no new players can sit down."/*18N*/ );
+                srv.messageToPlayerKeyed
+                    (c, gameName, "member.join.game.started");  // "This game has started; no new players can sit down."
         }
     }
 
