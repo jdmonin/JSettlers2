@@ -1,6 +1,6 @@
 /*
  * nand.net i18n utilities for Java: Property file editor for translators (side-by-side source and destination languages).
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,6 +30,8 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -39,9 +41,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.DefaultCellEditor;
+import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -50,6 +57,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -66,7 +74,7 @@ import net.nand.util.i18n.mgr.StringManager;
  * Property file editor for translators (side-by-side source and destination languages).
  * Presents the source and destination language keys and values.
  * Highlights values that still need to be translated into the destination.
- * Saves in ISO-8859-1 encoding required for .properties files, escaping unicode characters where needed.
+ * Saves in the ISO-8859-1 encoding required for .properties files, escaping unicode characters where needed.
  *<P>
  * The main startup class for this package is {@link PTEMain}, which has buttons for New, Open, About, etc.
  *<P>
@@ -99,7 +107,7 @@ public class PropertiesTranslatorEditor
     /** main window, set up in {@link #init()} */
     private JFrame jfra;
 
-    /** main window's pane, created in {@link #init()}, populated in {@link #showPairInPane()} */
+    /** main window's pane with {@link #jtab}, created in {@link #init()}, populated in {@link #showPairInPane()} */
     private JScrollPane jpane;
 
     /** Help button, brings up a brief text message dialog */
@@ -117,8 +125,11 @@ public class PropertiesTranslatorEditor
      */
     private JMenuItem menuCopyToClip;
 
-    /** mainwindow's data table, created and populated in {@link #showPairInPane()} */
+    /** mainwindow's data table, shown within {@link #jpane}, created and populated in {@link #showPairInPane()} */
     private JTable jtab;
+
+    /** Find panel, not always visible, at bottom of window below {@link #jtab} */
+    private FindPanel fpan;
 
     /** data model for JTable */
     private PTSwingTableModel mod;
@@ -362,6 +373,23 @@ public class PropertiesTranslatorEditor
             opan.add(pba, BorderLayout.NORTH);
         }
 
+        // Find panel, below JTable
+        fpan = new FindPanel();
+        fpan.setVisible(false);
+        opan.add(fpan, BorderLayout.SOUTH);
+
+        // Keyboard shortcut setup
+        {
+            final InputMap im = opan.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+            final ActionMap am = opan.getActionMap();
+
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK), "find");  // TODO i18n VK_F ?
+            am.put("find", new AbstractAction()
+            {
+                public void actionPerformed(ActionEvent arg0) { doFindHotkey(); }
+            });
+        }
+
         // show it
         jfra.pack();
         jfra.setSize(700, 500);
@@ -411,6 +439,16 @@ public class PropertiesTranslatorEditor
             saveChangesToDest();
         else if (item == bSaveSrc)
             saveChangesToSrc();
+    }
+
+    /**
+     * Show and focus the Find bar when its hotkey is pressed.
+     * If the cell being edited would be covered, scroll up.
+     */
+    public void doFindHotkey()
+    {
+        fpan.showAndFocus();
+        // TODO check cell being edited, scroll up if needed
     }
 
     /**
@@ -745,6 +783,108 @@ public class PropertiesTranslatorEditor
                 return;  // was canceled
 
             mod.setValueAt(etext, row, col);
+        }
+    }
+
+    /**
+     * JPanel for the Find bar. Text field and buttons.
+     * Search keys and values when Enter pressed in textfield. Hide when ESC pressed.
+     */
+    @SuppressWarnings("serial")
+    public class FindPanel
+        extends JPanel implements ActionListener
+    {
+        // Button characters are from Unicode 1.1 (June 1993) per http://www.fileformat.info/info/unicode/
+
+        /** 'X' button to close (hide) the panel */
+        final JButton bXClose = new JButton("\u2716");  // HEAVY MULTIPLICATION X
+
+        /** Previous ('Up' triangle) button */
+        final JButton bPrev = new JButton("\u25B2");  // BLACK UP-POINTING TRIANGLE
+
+        /** Next ('Down' triangle) button */
+        final JButton bNext = new JButton("\u25BC");  // BLACK DOWN-POINTING TRIANGLE
+
+        /** What to find */
+        final JTextField tfFind = new JTextField(40);
+
+        public FindPanel()
+        {
+            super(new BorderLayout());
+
+            // Everything left-aligned, except Close button
+            JPanel pan = new JPanel();
+
+            pan.add(new JLabel(strings.get("editor.find") + " "));  // "Find: "
+
+            tfFind.addActionListener(this);
+            pan.add(tfFind);
+
+            bPrev.addActionListener(this);
+            pan.add(bPrev);
+            bNext.addActionListener(this);
+            pan.add(bNext);
+
+            add(pan, BorderLayout.LINE_START);
+
+            // Close button; gets its own panel for same size as other buttons
+            JPanel xpan = new JPanel();
+            bXClose.addActionListener(this);
+            xpan.add(bXClose);
+            add(xpan, BorderLayout.LINE_END);
+
+            // Keyboard shortcuts: hide on ESC
+
+            final InputMap im = getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+            final ActionMap am = getActionMap();
+
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "hide");
+            am.put("hide", new AbstractAction()
+            {
+                public void actionPerformed(ActionEvent arg0)
+                {
+                    setVisible(false);
+                    invalidate();
+                }
+            });
+        }
+
+        /** Focus in the input box; if panel not visible, makes visible first */
+        public void showAndFocus()
+        {
+            if (! isVisible())
+            {
+                setVisible(true);
+                invalidate();
+            }
+
+            tfFind.requestFocusInWindow();
+        }
+
+        private void find(final boolean fwd)
+        {
+            System.err.println("L867 here");
+            // TODO implement
+        }
+
+        /** Handle button presses, or Enter in search field */
+        public void actionPerformed(final ActionEvent ae)
+        {
+            final Object item = ae.getSource();
+
+            if ((item == tfFind) || (item == bNext))
+            {
+                find(true);
+            }
+            else if (item == bPrev)
+            {
+                find(false);
+            }
+            else if (item == bXClose)
+            {
+                setVisible(false);
+                invalidate();
+            }
         }
     }
 
