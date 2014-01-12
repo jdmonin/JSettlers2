@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1528,13 +1528,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
             /**
              * if the brain isn't alive, then we need to leave
-             * the game
+             * the game here, instead of having the brain leave it
              */
             SOCRobotBrain brain = robotBrains.get(mes.getGame());
 
-            if ((brain == null) || (!brain.isAlive()))
+            if ((brain == null) || (! brain.isAlive()))
             {
-                leaveGame(games.get(mes.getGame()), "brain not alive", false);
+                leaveGame(games.get(mes.getGame()), "brain not alive in handleROBOTDISMISS", false);
             }
         }
     }
