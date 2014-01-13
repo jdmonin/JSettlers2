@@ -4168,7 +4168,7 @@ public class SOCServer extends Server
         if (allowDebugUser)
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_OK_DEBUG_MODE_ON, cvers,
-                     "Debugging is On.  Welcome to Java Settlers of Catan!"));                    
+                     c.getLocalized("member.welcome.debug")));  // "Debugging is On.  Welcome to Java Settlers of Catan!"
 
         // Increment version stats; currently assumes single-threaded access to the map.
         // We don't know yet if client is a bot, so bots are included in the stats.
@@ -4311,7 +4311,7 @@ public class SOCServer extends Server
          */
         c.put(SOCJoinAuth.toCmd(msgUser, ch));
         c.put(SOCStatusMessage.toCmd
-                (SOCStatusMessage.SV_OK, "Welcome to Java Settlers of Catan!"));
+                (SOCStatusMessage.SV_OK, c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
 
         /**
          * Add the StringConnection to the channel

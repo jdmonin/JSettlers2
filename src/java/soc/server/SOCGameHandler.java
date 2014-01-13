@@ -911,8 +911,7 @@ public class SOCGameHandler extends GameHandler
         {
             c.put(SOCJoinGameAuth.toCmd(gameName));
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_OK,
-                     /*I*/"Welcome to Java Settlers of Catan!"/*18N*/ ));
+                    (SOCStatusMessage.SV_OK, c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
         }
 
         //c.put(SOCGameState.toCmd(gameName, gameData.getGameState()));
