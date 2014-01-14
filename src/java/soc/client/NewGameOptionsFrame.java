@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2013 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -97,6 +97,12 @@ public class NewGameOptionsFrame extends Frame
     /** should this be sent to the remote tcp server, or local practice server? */
     private final boolean forPractice;
 
+    /**
+     * Is this NGOF used to set options for a new game, not to show them for an existing one?
+     * @since 1.1.19
+     */
+    private final boolean forNewGame;
+
     /** is this for display only? */
     private final boolean readOnly;
 
@@ -171,8 +177,8 @@ public class NewGameOptionsFrame extends Frame
      * Once created, reset the mouse cursor from hourglass to normal, and clear main panel's status text.
      *
      * @param cli      Player client interface
-     * @param gaName   Requested name of game (can change in this frame),
-     *                 or null for blank or (forPractice)
+     * @param gaName   Name of existing game,
+     *                 or null for new game; will be blank or (forPractice)
      *                 to use {@link SOCPlayerClient#DEFAULT_PRACTICE_GAMENAME}.
      * @param opts     Set of {@link SOCGameOption}s; its values will be changed when "New Game" button
      *                 is pressed, so the next OptionsFrame will default to the values the user has chosen.
@@ -197,6 +203,7 @@ public class NewGameOptionsFrame extends Frame
 
         this.gameDisplay = gd;
         SOCPlayerClient cli = gd.getClient();
+        forNewGame = (gaName == null);
         this.opts = opts;
         this.forPractice = forPractice;
         this.readOnly = readOnly;
@@ -239,6 +246,8 @@ public class NewGameOptionsFrame extends Frame
      * Once created, reset the mouse cursor from hourglass to normal, and clear main panel's status text.
      * See {@link #NewGameOptionsFrame(SOCPlayerClient, String, Map, boolean, boolean) constructor}
      * for notes about <tt>opts</tt> and other parameters.
+     * @param gaName  Name of existing game, or {@code null} to show options for a new game;
+     *     see constructor for details
      * @return the new frame
      */
     public static NewGameOptionsFrame createAndShow
@@ -249,7 +258,7 @@ public class NewGameOptionsFrame extends Frame
         ngof.setVisible(true);
         return ngof;
     }
-    
+
     /**
      * Interface setup for constructor. Assumes BorderLayout.
      * Most elements are part of a sub-panel occupying most of this Frame, and using GridBagLayout.
@@ -327,7 +336,7 @@ public class NewGameOptionsFrame extends Frame
         gbl.setConstraints(cancel, gbc);
         bp.add(cancel);
         cancel.addActionListener(this);
-        
+
         if (! readOnly)
         {
             create = new Button(strings.get("game.options.oknew"));  // "Create Game"
@@ -787,7 +796,6 @@ public class NewGameOptionsFrame extends Frame
     {
         try
         {
-            
             Object src = ae.getSource();
             if (src == create)
             {
@@ -899,7 +907,16 @@ public class NewGameOptionsFrame extends Frame
         if (scKey.length() == 0)
             return;
 
-        showScenarioInfoDialog(scKey, null, SOCGame.VP_WINNER_STANDARD, gameDisplay, this);
+        // find game's vp_winner, if not for new game
+        int vpWinner = SOCGame.VP_WINNER_STANDARD;
+        if ((opts != null) && ! forNewGame)
+        {
+            SOCGameOption vp = opts.get("VP");
+            if (vp.getBoolValue())
+                vpWinner = vp.getIntValue();
+        }
+
+        showScenarioInfoDialog(scKey, null, vpWinner, gameDisplay, this);
     }
 
     /** Dismiss the frame, and clear client's {@link SOCPlayerClient#newGameOptsFrame}
@@ -1358,11 +1375,13 @@ public class NewGameOptionsFrame extends Frame
         Checkbox cb = boolOptCheckboxes.get(opt.key);
         if (cb == null)
             return;
+
         final boolean becameChecked = ! cb.getState();
         cb.setState(becameChecked);
         opt.setBoolValue(becameChecked);
         if (! opt.userChanged)
             opt.userChanged = true;
+
         SOCGameOption.ChangeListener cl = opt.getChangeListener();
         if (cl == null)
             return;
