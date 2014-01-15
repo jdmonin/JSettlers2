@@ -128,8 +128,8 @@ public class PropertiesTranslatorEditor
     /** mainwindow's data table, shown within {@link #jpane}, created and populated in {@link #showPairInPane()} */
     private JTable jtab;
 
-    /** Find panel, not always visible, at bottom of window below {@link #jtab} */
-    private FindPanel fpan;
+    /** Text search panel, not always visible, at bottom of window below {@link #jtab} */
+    private SearchPanel sPan;
 
     /** data model for JTable */
     private PTSwingTableModel mod;
@@ -373,10 +373,10 @@ public class PropertiesTranslatorEditor
             opan.add(pba, BorderLayout.NORTH);
         }
 
-        // Find panel, below JTable
-        fpan = new FindPanel();
-        fpan.setVisible(false);
-        opan.add(fpan, BorderLayout.SOUTH);
+        // Search panel, below JTable
+        sPan = new SearchPanel();
+        sPan.setVisible(false);
+        opan.add(sPan, BorderLayout.SOUTH);
 
         // Keyboard shortcut setup
         {
@@ -386,7 +386,7 @@ public class PropertiesTranslatorEditor
             im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK), "find");  // TODO i18n VK_F ?
             am.put("find", new AbstractAction()
             {
-                public void actionPerformed(ActionEvent arg0) { doFindHotkey(); }
+                public void actionPerformed(ActionEvent arg0) { doSearchHotkey(); }
             });
         }
 
@@ -442,13 +442,13 @@ public class PropertiesTranslatorEditor
     }
 
     /**
-     * Show and focus the Find bar when its hotkey is pressed.
+     * Show and focus the Search bar when its hotkey (Ctrl-F 'Find') is pressed.
      * If the cell being edited would be covered, scroll up.
      */
-    public void doFindHotkey()
+    public void doSearchHotkey()
     {
-        fpan.showAndFocus();
-        // TODO check cell being edited, scroll up if needed
+        sPan.showAndFocus();
+        // TODO check location in window of cell being edited, scroll up if now hidden behind sPan
     }
 
     /**
@@ -787,28 +787,28 @@ public class PropertiesTranslatorEditor
     }
 
     /**
-     * JPanel for the Find bar. Text field and buttons.
+     * JPanel for the text search bar. Text field and buttons.
      * Search keys and values when Enter pressed in textfield. Hide when ESC pressed.
      */
     @SuppressWarnings("serial")
-    public class FindPanel
+    public class SearchPanel
         extends JPanel implements ActionListener
     {
         // Button characters are from Unicode 1.1 (June 1993) per http://www.fileformat.info/info/unicode/
 
         /** 'X' button to close (hide) the panel */
-        final JButton bXClose = new JButton("\u2716");  // HEAVY MULTIPLICATION X
+        private final JButton bXClose = new JButton("\u2716");  // HEAVY MULTIPLICATION X
 
         /** Previous ('Up' triangle) button */
-        final JButton bPrev = new JButton("\u25B2");  // BLACK UP-POINTING TRIANGLE
+        private final JButton bPrev = new JButton("\u25B2");  // BLACK UP-POINTING TRIANGLE
 
         /** Next ('Down' triangle) button */
-        final JButton bNext = new JButton("\u25BC");  // BLACK DOWN-POINTING TRIANGLE
+        private final JButton bNext = new JButton("\u25BC");  // BLACK DOWN-POINTING TRIANGLE
 
-        /** What to find */
-        final JTextField tfFind = new JTextField(40);
+        /** Text to search for */
+        private final JTextField tfSearch = new JTextField(40);
 
-        public FindPanel()
+        public SearchPanel()
         {
             super(new BorderLayout());
 
@@ -817,8 +817,8 @@ public class PropertiesTranslatorEditor
 
             pan.add(new JLabel(strings.get("editor.find") + " "));  // "Find: "
 
-            tfFind.addActionListener(this);
-            pan.add(tfFind);
+            tfSearch.addActionListener(this);
+            pan.add(tfSearch);
 
             bPrev.addActionListener(this);
             pan.add(bPrev);
@@ -843,10 +843,17 @@ public class PropertiesTranslatorEditor
             {
                 public void actionPerformed(ActionEvent arg0)
                 {
-                    setVisible(false);
-                    invalidate();
+                    hideAndEndSearch();
                 }
             });
+        }
+
+        /** Stop searching and hilighting, and hide the search panel */
+        public void hideAndEndSearch()
+        {
+            setVisible(false);
+            invalidate();
+            mod.endSearch();
         }
 
         /** Focus in the input box; if panel not visible, makes visible first */
@@ -858,13 +865,32 @@ public class PropertiesTranslatorEditor
                 invalidate();
             }
 
-            tfFind.requestFocusInWindow();
+            tfSearch.requestFocusInWindow();
         }
 
-        private void find(final boolean fwd)
+        /**
+         * Search forward or backward for the current contents of the search text field.
+         * The cursor will move to the next matching cell, which may wrap around.
+         * Also highlights any matching cells, their entire background will be hilighted (not just the match).
+         * When the search text changes, the next search will go from the top (forward) or bottom (backward)
+         * of the table.
+         * @param forward  True to search top to bottom left to right, false to search bottom to top
+         * @see PropertiesTranslatorEditor.PTSwingTableModel#search(String, boolean)
+         */
+        private void search(final boolean forward)
         {
-            System.err.println("L867 here");
-            // TODO implement
+            final String txt = tfSearch.getText();
+            if (txt.length() == 0)
+                return;
+
+            final boolean gotMatch = mod.search(txt, forward);
+            if (gotMatch)
+            {
+                final int r = mod.sr, c = mod.sc;
+                jtab.changeSelection(r, c, false, false);
+                jtab.scrollRectToVisible(jtab.getCellRect(r, c, true));
+            }
+            // TODO show a msg if no match or if wrapped
         }
 
         /** Handle button presses, or Enter in search field */
@@ -872,18 +898,17 @@ public class PropertiesTranslatorEditor
         {
             final Object item = ae.getSource();
 
-            if ((item == tfFind) || (item == bNext))
+            if ((item == tfSearch) || (item == bNext))
             {
-                find(true);
+                search(true);
             }
             else if (item == bPrev)
             {
-                find(false);
+                search(false);
             }
             else if (item == bXClose)
             {
-                setVisible(false);
-                invalidate();
+                hideAndEndSearch();
             }
         }
     }
@@ -910,6 +935,11 @@ public class PropertiesTranslatorEditor
 
             switch (model.getCellStatus(row, col))
             {
+            case SEARCH_MATCH:
+                c.setForeground(Color.BLACK);
+                c.setBackground(Color.YELLOW);
+                break;
+
             case SRC_EMPTY_ERROR:
                 // fall through
             case DEST_ONLY_ERROR:
@@ -947,7 +977,24 @@ public class PropertiesTranslatorEditor
     {
         private static final long serialVersionUID = 1L;
 
+        /** Number of columns: key, value src, value dest */
+        private static final int NUM_COLS = 3;
+
         public ParsedPropsFilePair pair;
+
+        /** Search: lowercased current search text, or null */
+        private String searchText;
+
+        /**
+         * Search: row, column of previous matching cell, if any.
+         * Next call to {@link #search(String, boolean)} will start after this cell
+         * if the search text is the same as the previous call.  To search from another
+         * cell, you can change {@code sr} and {@code sc} before calling {@code search}.
+         *<P>
+         * If no match was found, {@code sr} may be 0 or may be outside the valid range of rows.
+         * {@code sc} is always valid.
+         */
+        public int sr, sc;
 
         /**
          * Create and populate with existing data.
@@ -957,15 +1004,122 @@ public class PropertiesTranslatorEditor
             pair = pted.pair;
         }
 
+        /**
+         * Done searching for now.  Stop highlighting matching cells.
+         */
+        public void endSearch()
+        {
+            searchText = null;
+            mod.fireTableDataChanged();
+        }
+
+        /**
+         * Case-insensitive text search.  If matches are found, {@link #getCellStatus(int, int)}
+         * will also highlight their cells. When done searching (when closing the search pane), call
+         * {@link #endSearch()} to stop highlighting matches.
+         *<P>
+         * If continuing a previous search, keep moving from the previous match; otherwise start from
+         * top or bottom of table, depending on search direction.
+         *
+         * @param txt  Text to search for, or {@code null} to repeat previous search
+         * @param forward  True to search top to bottom left to right, false to search bottom to top
+         * @return  True if a match found, false otherwise
+         */
+        public boolean search(String txt, final boolean forward)
+        {
+            // TODO consider, if continuing, keep moving from currently selected r,c, in case
+            //       user clicks somewhere else in table, then wants to continue search from there
+
+            final boolean continueSearch =
+                (txt == null) || ((searchText != null) && searchText.equalsIgnoreCase(txt));
+            if (continueSearch && (searchText == null))
+                return false;  // No text and no previous search
+
+            if (continueSearch)
+            {
+                txt = searchText;
+            } else {
+                txt = txt.toLowerCase();
+                searchText = txt;
+            }
+
+            final int rmax = pair.size() - 1;
+
+            if (! continueSearch)
+            {
+                // set up starting position; will increment from here before first string compare
+
+                if (forward)
+                {
+                    sr = rmax;  sc = NUM_COLS - 1;
+                } else {
+                    sr = 0;  sc = 0;
+                }
+            }
+
+            // sr may be above or below pair's rows, indicating start or end of table
+
+            // remember starting point, in case we wrap around
+            final int startRow = sr, startCol = sc;
+            int r = startRow, c = startCol;
+
+            do
+            {
+                if (forward)
+                {
+                    ++c;
+                    if (c >= NUM_COLS)
+                    {
+                        c = 0;
+                        ++r;
+                        if (r > rmax)
+                            r = 0;
+                    }
+                } else {
+                    --c;
+                    if (c < 0)
+                    {
+                        c = NUM_COLS - 1;
+                        --r;
+                        if (r < 0)
+                            r = rmax;
+                    }
+                }
+
+                String cell = ((String) getValueAt(r, c)).toLowerCase();
+                if (cell.contains(txt))
+                {
+                    sr = r;  sc = c;
+                    mod.fireTableDataChanged();  // highlight all matches
+                    return true;
+                }
+
+            } while ((r != startRow) || (c != startCol));
+
+            // If we're here, we've wrapped around to starting position
+
+            String cell = ((String) getValueAt(r, c)).toLowerCase();
+            if (cell.contains(txt))
+            {
+                sr = r;  sc = c;
+                return true;
+            } else {
+                searchText = null;
+                return false;
+            }
+        }
+
+        /** 1 row for each line in matched pair of data files, plus a blank row at the end */
         public final int getRowCount()
         {
             return pair.size() + 1;
         }
 
-        public final int getColumnCount() { return 3; }  // key, src value, dest value
+        /** 3 columns: key, src value, dest value */
+        public final int getColumnCount() { return NUM_COLS; }
 
         /**
-         * In our model this will always be a String.
+         * In our model this object will always be a String, or "" if the cell is empty.
          *<P>
          * {@inheritDoc}
          */
@@ -1206,10 +1360,19 @@ public class PropertiesTranslatorEditor
                 if (fke.key == null)
                     return CellStatus.DEFAULT;  // shouldn't happen; just in case
 
-                if (c == 1)  // source-language column
+                if (c == 0)  // key column
+                {
+                    if ((searchText != null) && fke.key.toLowerCase().contains(searchText))
+                        return CellStatus.SEARCH_MATCH;
+                }
+
+                else if (c == 1)  // source-language column
                 {
                     if (fke.srcValue == null)
                         return CellStatus.SRC_EMPTY_ERROR;
+
+                    if ((searchText != null) && fke.srcValue.toString().toLowerCase().contains(searchText))
+                        return CellStatus.SEARCH_MATCH;
                 }
 
                 else if (c == 2)  // destination-language column
@@ -1220,16 +1383,37 @@ public class PropertiesTranslatorEditor
                     if ((fke.destValue == null) && (fke.srcValue != null))
                         return CellStatus.DEST_EMPTY;
 
+                    if ((fke.destValue != null) && (searchText != null)
+                        && fke.destValue.toString().toLowerCase().contains(searchText))
+                        return CellStatus.SEARCH_MATCH;
+
                     if (pair.isKeyDestOnly(fke.key))
                         return CellStatus.DEST_ONLY_ERROR;
                 }
             }
-            else if ((c == 0) && (fe instanceof ParsedPropsFilePair.FileCommentEntry))
+            else if ((fe instanceof ParsedPropsFilePair.FileCommentEntry)
+                     && ((c == 0) || (searchText != null)))
             {
                 final ParsedPropsFilePair.FileCommentEntry fce = (ParsedPropsFilePair.FileCommentEntry) fe;
-                if ((fce.destComment != null) && (fce.destComment.length() > 0)
-                    || (fce.srcComment != null) && (fce.srcComment.length() > 0))
-                    return CellStatus.COMMENT_KEY_COL;  // for visual effect, comment rows, not blank rows
+
+                if (c == 0)
+                {
+                    if ((fce.destComment != null) && (fce.destComment.length() > 0)
+                        || (fce.srcComment != null) && (fce.srcComment.length() > 0))
+                        return CellStatus.COMMENT_KEY_COL;  // for visual effect, comment rows, not blank rows
+                }
+
+                else if (c == 1)
+                {
+                    if ((fce.srcComment != null) && fce.srcComment.toLowerCase().contains(searchText))
+                        return CellStatus.SEARCH_MATCH;
+                }
+
+                else if (c == 2)
+                {
+                    if ((fce.destComment != null) && fce.destComment.toLowerCase().contains(searchText))
+                        return CellStatus.SEARCH_MATCH;
+                }
             }
 
             return CellStatus.DEFAULT;
@@ -1244,6 +1428,8 @@ public class PropertiesTranslatorEditor
         DEFAULT,
         /** Key column in a comment row (not a blank row) */
         COMMENT_KEY_COL,
+        /** Matches current search */
+        SEARCH_MATCH,
         /** Key exists in source, but value is empty in source: Needs a value */
         SRC_EMPTY_ERROR,
         /** Key's value exists in source, destination value is empty: Ready to localize */
