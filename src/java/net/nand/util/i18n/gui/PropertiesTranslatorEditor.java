@@ -982,7 +982,7 @@ public class PropertiesTranslatorEditor
 
         public ParsedPropsFilePair pair;
 
-        /** Search: lowercased current search text, or null */
+        /** Search: lowercased current search text, or null if no search or no matches found */
         private String searchText;
 
         /**
@@ -1030,6 +1030,7 @@ public class PropertiesTranslatorEditor
             // TODO consider, if continuing, keep moving from currently selected r,c, in case
             //       user clicks somewhere else in table, then wants to continue search from there
 
+            final boolean previousHadMatches = (searchText != null);
             final boolean continueSearch =
                 (txt == null) || ((searchText != null) && searchText.equalsIgnoreCase(txt));
             if (continueSearch && (searchText == null))
@@ -1090,7 +1091,9 @@ public class PropertiesTranslatorEditor
                 if (cell.contains(txt))
                 {
                     sr = r;  sc = c;
-                    mod.fireTableDataChanged();  // highlight all matches
+                    if (! (continueSearch && previousHadMatches))
+                        mod.fireTableDataChanged();  // highlight all matches
+
                     return true;
                 }
 
@@ -1102,9 +1105,13 @@ public class PropertiesTranslatorEditor
             if (cell.contains(txt))
             {
                 sr = r;  sc = c;
+
                 return true;
             } else {
                 searchText = null;
+                if (previousHadMatches)
+                    mod.fireTableDataChanged();  // un-highlight previous matches
+
                 return false;
             }
         }
