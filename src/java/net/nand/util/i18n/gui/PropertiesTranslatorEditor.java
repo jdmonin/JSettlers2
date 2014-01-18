@@ -808,6 +808,9 @@ public class PropertiesTranslatorEditor
         /** Text to search for */
         private final JTextField tfSearch = new JTextField(40);
 
+        /** Brief search message, or hidden; message may be "No matches" or "Wrapped around" */
+        private final JLabel labMsg = new JLabel();
+
         public SearchPanel()
         {
             super(new BorderLayout());
@@ -824,6 +827,8 @@ public class PropertiesTranslatorEditor
             pan.add(bPrev);
             bNext.addActionListener(this);
             pan.add(bNext);
+
+            pan.add(labMsg);
 
             add(pan, BorderLayout.LINE_START);
 
@@ -851,6 +856,7 @@ public class PropertiesTranslatorEditor
         /** Stop searching and hilighting, and hide the search panel */
         public void hideAndEndSearch()
         {
+            labMsg.setText("");
             setVisible(false);
             invalidate();
             mod.endSearch();
@@ -871,7 +877,7 @@ public class PropertiesTranslatorEditor
         /**
          * Search forward or backward for the current contents of the search text field.
          * The cursor will move to the next matching cell, which may wrap around.
-         * Also highlights any matching cells, their entire background will be hilighted (not just the match).
+         * Also highlights any matching cells, their entire background will be highlighted (not just the match).
          * When the search text changes, the next search will go from the top (forward) or bottom (backward)
          * of the table.
          * @param forward  True to search top to bottom left to right, false to search bottom to top
@@ -886,11 +892,13 @@ public class PropertiesTranslatorEditor
             final boolean gotMatch = mod.search(txt, forward);
             if (gotMatch)
             {
+                labMsg.setText(mod.searchWrapped ? strings.get("editor.find.wrapped_around") : "");
                 final int r = mod.sr, c = mod.sc;
                 jtab.changeSelection(r, c, false, false);
                 jtab.scrollRectToVisible(jtab.getCellRect(r, c, true));
+            } else {
+                labMsg.setText(strings.get("editor.find.no_matches"));
             }
-            // TODO show a msg if no match or if wrapped
         }
 
         /** Handle button presses, or Enter in search field */
@@ -986,15 +994,23 @@ public class PropertiesTranslatorEditor
         private String searchText;
 
         /**
-         * Search: row, column of previous matching cell, if any.
+         * Search: {@link #sr} and {@link #sc} are the row and column of the previous matching cell, if any.
          * Next call to {@link #search(String, boolean)} will start after this cell
          * if the search text is the same as the previous call.  To search from another
          * cell, you can change {@code sr} and {@code sc} before calling {@code search}.
          *<P>
          * If no match was found, {@code sr} may be 0 or may be outside the valid range of rows.
          * {@code sc} is always valid.
+         * @see #searchWrapped
          */
         public int sr, sc;
+
+        /**
+         * If true, and the previous call to {@link #search(String, boolean)} was successful,
+         * the search wrapped around the end of the table before finding a match.
+         * @see #sr
+         */
+        public boolean searchWrapped;
 
         /**
          * Create and populate with existing data.
@@ -1020,6 +1036,8 @@ public class PropertiesTranslatorEditor
          *<P>
          * If continuing a previous search, keep moving from the previous match; otherwise start from
          * top or bottom of table, depending on search direction.
+         *<P>
+         * If a match is found, then {@link #sr}, {@link #sc}, and {@link #searchWrapped} are valid afterwards.
          *
          * @param txt  Text to search for, or {@code null} to repeat previous search
          * @param forward  True to search top to bottom left to right, false to search bottom to top
@@ -1063,6 +1081,7 @@ public class PropertiesTranslatorEditor
             // remember starting point, in case we wrap around
             final int startRow = sr, startCol = sc;
             int r = startRow, c = startCol;
+            searchWrapped = false;
 
             do
             {
@@ -1074,7 +1093,11 @@ public class PropertiesTranslatorEditor
                         c = 0;
                         ++r;
                         if (r > rmax)
+                        {
                             r = 0;
+                            if (continueSearch)
+                                searchWrapped = true;
+                        }
                     }
                 } else {
                     --c;
@@ -1083,7 +1106,11 @@ public class PropertiesTranslatorEditor
                         c = NUM_COLS - 1;
                         --r;
                         if (r < 0)
+                        {
                             r = rmax;
+                            if (continueSearch)
+                                searchWrapped = true;
+                        }
                     }
                 }
 
