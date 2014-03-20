@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -135,6 +135,7 @@ public class SOCRobotBrain extends Thread
     /**
      * {@link #pause(int) Pause} for less time;
      * speeds up response in 6-player games.
+     * Ignored if {@link SOCGame#isBotsOnly}, which pauses for even less time.
      * @since 1.1.09
      */
     private boolean pauseFaster;
@@ -3837,6 +3838,9 @@ public class SOCRobotBrain extends Thread
     /**
      * pause for a bit.
      *<P>
+     * When {@link SOCGame#isBotsOnly}, pause only 25% as long, to quicken the simulation
+     * but not make it too fast to allow a person to observe.
+     *<P>
      * In a 6-player game, pause only 75% as long, to shorten the overall game delay,
      * except if {@link #waitingForTradeResponse}.
      * This is indicated by the {@link #pauseFaster} flag.
@@ -3845,7 +3849,9 @@ public class SOCRobotBrain extends Thread
      */
     public void pause(int msec)
     {
-        if (pauseFaster && ! waitingForTradeResponse)
+        if (game.isBotsOnly)
+            msec = msec / 4;
+        else if (pauseFaster && ! waitingForTradeResponse)
             msec = (msec / 2) + (msec / 4);
 
         try
