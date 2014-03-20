@@ -74,6 +74,7 @@ import soc.message.SOCChoosePlayerRequest;
 import soc.message.SOCClearOffer;
 import soc.message.SOCClearTradeMsg;
 import soc.message.SOCDebugFreePlace;
+import soc.message.SOCDeleteGame;
 import soc.message.SOCDevCardAction;
 import soc.message.SOCDevCardCount;
 import soc.message.SOCDiceResult;
@@ -1736,6 +1737,8 @@ public class SOCGameHandler extends GameHandler
      * also sends a RollDicePrompt data message.
      *<P>
      * For more details and references, see {@link #sendGameState(SOCGame, boolean)}.
+     * Be sure that callers to {@code sendGameState} don't assume the game will still
+     * exist after calling this method, if the game state was {@link SOCGame#OVER OVER}.
      *<P>
      * Equivalent to: {@link #sendGameState(SOCGame, boolean) sendGameState(ga, true)}.
      *
@@ -1767,6 +1770,11 @@ public class SOCGameHandler extends GameHandler
      * must pick resources to gain (because of timing).  Please call
      * {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, StringConnection, SOCGame.RollResult)}
      * after sending the resource gain text ("x gets 1 sheep").
+     *<P>
+     * <b>Note:</b> If game is now {@link SOCGame#OVER OVER} and the {@link SOCGame#isBotsOnly} flag is set,
+     * {@link #sendGameStateOVER(SOCGame)} will call {@link SOCServer#destroyGame(String)}.  Be sure that
+     * callers to {@code sendGameState} don't assume the game will still exist after calling this method.
+     * Also, {@code destroyGame} might create more {@link SOCGame#isBotsOnly} games, depending on server settings.
      *<P>
      * <b>Locks:</b> Does not hold {@link SOCGameList#takeMonitor()} or
      * {@link SOCGameList#takeMonitorForGame}<tt>(gaName)</tt> when called.
@@ -2008,6 +2016,10 @@ public class SOCGameHandler extends GameHandler
      *<P>
      *  If db is active, calls {@link SOCServer#storeGameScores(SOCGame)} to save game stats.
      *<P>
+     *  If {@link SOCGame#isBotsOnly}, calls {@link SOCServer#destroyGame(String)} to make room
+     *  for more games to run: The bots don't know on their own to leave, it's easier for the
+     *  server to dismiss them within {@code destroyGame}.
+     *<P>
      *  Make sure {@link SOCGameState}({@link SOCGame#OVER OVER}) is sent before calling this method.
      *
      * @param ga This game is over; state should be OVER
@@ -2164,6 +2176,14 @@ public class SOCGameHandler extends GameHandler
         }  // send game timing stats, win-loss stats
 
         srv.storeGameScores(ga);
+
+        if (ga.isBotsOnly)
+        {
+            srv.gameList.takeMonitor();
+            srv.destroyGame(gname);
+            srv.gameList.releaseMonitor();
+            // TODO broadcast(SOCDeleteGame.toCmd(ga));
+        }
 
         // Server structure more or less ensures sendGameStateOVER is called only once.
         // TODO consider refactor to be completely sure, especially for storeGameScores.
