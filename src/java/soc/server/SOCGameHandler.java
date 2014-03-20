@@ -1720,6 +1720,10 @@ public class SOCGameHandler extends GameHandler
                     gameHasObserver = false;
                 }
             }
+        } else {
+            // observer leaving: If game is bot-only, don't end the game despite no human players/observers
+            if (ga.isBotsOnly && (ga.getGameState() < SOCGame.OVER))
+                gameHasObserver = true;
         }
 
         return ! (gameHasHumanPlayer || gameHasObserver);
