@@ -730,7 +730,7 @@ public class SOCGameHandler extends GameHandler
      *               their name within game object is already null.
      * @return true if the turn was ended and game is still active;
      *          false if we find that all players have left and
-     *          the gamestate has been changed here to {@link #OVER}.
+     *          the gamestate has been changed here to {@link SOCGame#OVER}.
      *
      * @see #endPlayerTurnOrForce(SOCGame, int, String)
      * @see SOCGame#forceEndTurn()
@@ -1763,6 +1763,10 @@ public class SOCGameHandler extends GameHandler
      * must pick resources to gain (because of timing).  Please call
      * {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, StringConnection, SOCGame.RollResult)}
      * after sending the resource gain text ("x gets 1 sheep").
+     *<P>
+     * <b>Locks:</b> Does not hold {@link SOCGameList#takeMonitor()} or
+     * {@link SOCGameList#takeMonitorForGame}<tt>(gaName)</tt> when called.
+     * Some callers call {@link SOCGame#takeMonitor()} before calling; not important here.
      *
      * @see #sendTurn(SOCGame, boolean)
      * @see #sendGameState(SOCGame)
@@ -1999,6 +2003,8 @@ public class SOCGameHandler extends GameHandler
      *  If player has finished more than 1 game since connecting, send win-loss count.
      *<P>
      *  If db is active, calls {@link SOCServer#storeGameScores(SOCGame)} to save game stats.
+     *<P>
+     *  Make sure {@link SOCGameState}({@link SOCGame#OVER OVER}) is sent before calling this method.
      *
      * @param ga This game is over; state should be OVER
      */

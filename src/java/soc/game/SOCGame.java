@@ -689,6 +689,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * true if the game's only players are bots, no humans.  Useful for bot AI experiments.
+     * Not sent over the network: Must be set at server, or set at bot client at start of game.
      *<P>
      * This flag should be set by the server when creating the game.  If a human observer exits
      * a game with this flag, the game should continue play unless its state is {@link #OVER}.
@@ -1939,6 +1940,9 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Current game state.  For general information about
      * what states are expected when, please see the javadoc for {@link #NEW}.
+     *<P>
+     * At the client, a newly joined game has state 0 until the server sends a GAMESTATE message.
+     * Keep this in mind when initializing the game's user interface.
      *
      * @return the current game state
      * @see #isInitialPlacement()

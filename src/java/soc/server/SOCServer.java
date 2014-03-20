@@ -169,8 +169,7 @@ public class SOCServer extends Server
 
     /**
      * Property <tt>jsettlers.bots.botgames.total</tt> will start robot-only games,
-     * a few at a time, until this many have been played.
-     * (The default is 0.)
+     * a few at a time, until this many have been played. (The default is 0.)
      * @since 2.0.00 
      */
     public static final String PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL = "jsettlers.bots.botgames.total";
@@ -1495,7 +1494,7 @@ public class SOCServer extends Server
      * @param gm the game
      * @param gameListLock  true if we have the {@link SOCGameList#takeMonitor()} lock
      * @return true if the game was destroyed (because c was the last non-robot player,
-     *              and no one was watching)
+     *              and no one was watching, and not {@link SOCGame#isBotsOnly})
      */
     public boolean leaveGame(StringConnection c, String gm, final boolean gameListLock)
     {
@@ -1719,7 +1718,7 @@ public class SOCServer extends Server
                 ((SOCClientData) oConn.getAppData()).deletedGame();
         }
 
-        if (wasBotsOnly && numRobotOnlyGamesRemaining > 0)
+        if (wasBotsOnly && (numRobotOnlyGamesRemaining > 0))
             startRobotOnlyGames(true);
     }
 
