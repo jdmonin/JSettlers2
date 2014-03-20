@@ -535,8 +535,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * message that the game is starting
              */
             case SOCMessage.STARTGAME:
-                handleSTARTGAME((SOCStartGame) mes);
-
+                handleSTARTGAME(games, (SOCStartGame) mes);  // in soc.client.SOCDisplaylessPlayerClient
                 break;
 
             /**
@@ -1413,13 +1412,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
         }
     }
-
-    /**
-     * handle the "start game" message
-     * @param mes  the message
-     */
-    @Override
-    protected void handleSTARTGAME(SOCStartGame mes) {}
 
     /**
      * handle the "delete game" message

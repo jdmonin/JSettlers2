@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -485,8 +485,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * message that the game is starting
              */
             case SOCMessage.STARTGAME:
-                handleSTARTGAME((SOCStartGame) mes);
-
+                handleSTARTGAME(games, (SOCStartGame) mes);
                 break;
 
             /**
@@ -1125,9 +1124,27 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * handle the "start game" message
+     * @param games  The hashtable of client's {@link SOCGame}s; key = game name
      * @param mes  the message
      */
-    protected void handleSTARTGAME(SOCStartGame mes) {}
+    protected static void handleSTARTGAME(Hashtable<String, SOCGame> games, SOCStartGame mes)
+    {
+        final SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
+
+        // Look for human players to determine isBotsOnly in game's local copy
+        boolean isBotsOnly = true;
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+        {
+            if (! (ga.isSeatVacant(pn) || ga.getPlayer(pn).isRobot()))
+            {
+                isBotsOnly = false;
+                break;
+            }
+        }
+        ga.isBotsOnly = isBotsOnly;
+    }
 
     /**
      * handle the "game state" message
