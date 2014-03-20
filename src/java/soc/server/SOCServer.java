@@ -168,6 +168,14 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_BOTS_SHOWCOOKIE = "jsettlers.bots.showcookie";
 
     /**
+     * Property <tt>jsettlers.bots.botgames.total</tt> will start robot-only games,
+     * a few at a time, until this many have been played.
+     * (The default is 0.)
+     * @since 2.0.00 
+     */
+    public static final String PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL = "jsettlers.bots.botgames.total";
+
+    /**
      * Property <tt>jsettlers.startrobots</tt> to start some robots when the server starts.
      * (The default is {@link #SOC_STARTROBOTS_DEFAULT}.)
      *<P>
@@ -220,6 +228,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_CLI_MAXCREATECHANNELS,   "Maximum simultaneous channels that a client can create",
         PROP_JSETTLERS_CLI_MAXCREATEGAMES,      "Maximum simultaneous games that a client can create",
         I18n.PROP_JSETTLERS_LOCALE,             "Locale override from the default, such as es or en_US",
+        PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL,     "Run this many robot-only games, a few at a time (default 0)",
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
         SOCDBHelper.PROP_JSETTLERS_DB_USER,     "DB username",
@@ -565,6 +574,13 @@ public class SOCServer extends Server
     protected HashMap<Integer, Integer> clientPastVersionStats;
 
     /**
+     * Number of robot-only games not yet started (optional feature).
+     * Set at startup from {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}.
+     * @since 2.0.00
+     */
+    private int numRobotOnlyGamesRemaining;
+
+    /**
      * Description string for SOCGameOption {@code "PL"} hardcoded into the SOCGameOption class,
      * from {@link SOCGameOption#getOption(String, boolean) SOCGameOption.getOption("PL", false)}.
      * Used for determining whether a client's i18n locale has localized option descriptions,
@@ -889,6 +905,17 @@ public class SOCServer extends Server
         numberOfGamesFinished = 0;
         numberOfUsers = 0;
         clientPastVersionStats = new HashMap<Integer, Integer>();
+        numRobotOnlyGamesRemaining = init_getIntProperty(props, PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0);
+        if (numRobotOnlyGamesRemaining > 0)
+        {
+                final int n = SOCGame.MAXPLAYERS_STANDARD;
+                if (n > init_getIntProperty(props, PROP_JSETTLERS_STARTROBOTS, 0))
+                {
+                    final String errmsg = ("*** To start robot-only games, server needs at least " + n +  " robots started.");
+                    System.err.println(errmsg);
+                    throw new IllegalArgumentException(errmsg);
+                }            
+        }
 
         /**
          * Start various threads.
@@ -984,7 +1011,9 @@ public class SOCServer extends Server
     /**
      * Callback to take care of things when server comes up, after the server socket
      * is bound and listening, in the main thread.
-     * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, start those {@link SOCRobotClient}s now.
+     * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, starts those {@link SOCRobotClient}s now.
+     * If {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL} is specified, waits briefly and then
+     * calls {@link #startRobotOnlyGames()}.
      * @since 1.1.09
      */
     @Override
@@ -1020,6 +1049,29 @@ public class SOCServer extends Server
                                 + " player connections available, because of the robot connections.");
                         }
                     }.start();
+                }
+
+                if (numRobotOnlyGamesRemaining > 0)
+                {
+                    final int n = SOCGame.MAXPLAYERS_STANDARD;
+                    if (n > rcount)
+                    {
+                        // This message is a backup: initSocServer should have already errored on this during startup.
+                        System.err.println
+                            ("** To start robot-only games, server needs at least " + n +  " robots started.");
+                    } else {
+                        new Thread() {
+                            @Override
+                            public void run()
+                            {
+                                try {
+                                    Thread.sleep(1600);  // wait for bots to connect
+                                } catch (InterruptedException e) {}
+        
+                                startRobotOnlyGames(false);
+                            }
+                        }.start();
+                    }
                 }
             }
             catch (NumberFormatException e)
@@ -1265,6 +1317,10 @@ public class SOCServer extends Server
             try
             {
                 // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES .
+                //
+                //    A simplified copy of this code is in startRobotOnlyGames():
+                //    If you update this code, check that method too.
+
                 SOCClientData scd = (SOCClientData) c.getAppData();
                 SOCGame newGame = gameList.createGame(gaName, (String) c.getData(), scd.localeStr, gaOpts, handler);
                 if ((strSocketName != null) && (strSocketName.equals(PRACTICE_STRINGPORT)))
@@ -1602,6 +1658,9 @@ public class SOCServer extends Server
      *
      * WARNING: MUST HAVE THE gameList.takeMonitor() before
      * calling this method
+     *<P>
+     * Note that if this game had the {@link SOCGame#isBotsOnly} flag, and {@link #numRobotOnlyGamesRemaining} &gt; 0,
+     *  will call {@link #startRobotOnlyGames()}.
      *
      * @param gm  the name of the game
      */
@@ -1618,6 +1677,7 @@ public class SOCServer extends Server
         {
             numberOfGamesFinished++;
         }
+        final boolean wasBotsOnly = cg.isBotsOnly;
 
         ///
         /// write out game data
@@ -1658,6 +1718,9 @@ public class SOCServer extends Server
             if (oConn != null)
                 ((SOCClientData) oConn.getAppData()).deletedGame();
         }
+
+        if (wasBotsOnly && numRobotOnlyGamesRemaining > 0)
+            startRobotOnlyGames(true);
     }
 
     /**
@@ -5034,6 +5097,55 @@ public class SOCServer extends Server
         System.err.println("L5099 done createOrJoinGameIfUserOK at " + System.currentTimeMillis());
 
     }  //  createOrJoinGameIfUserOK
+
+    /**
+     * Start a few robot-only games if {@link #numRobotOnlyGamesRemaining} &gt; 0.
+     *<P>
+     * <B>Locks:</b> May or may not have {@link SOCGameList#takeMonitor()} when calling;
+     * see {@code hasGameListMonitor} parameter.  If not already held, this method takes and releases that monitor.
+     *
+     * @param hasGameListMonitor  True if we have the {@link SOCGameList#takeMonitor()} lock
+     * @since 2.0.00
+     */
+    private void startRobotOnlyGames(final boolean hasGameListMonitor)
+    {
+        if (numRobotOnlyGamesRemaining <= 0)
+            return;
+
+        // TODO start more than one here
+        // TODO property to control # "a few" games started here
+
+        String gaName = "~botsOnly~" + numRobotOnlyGamesRemaining;
+        --numRobotOnlyGamesRemaining;
+
+        // This game-creation code is a simplified copy of part of connectToGame:
+        // If you update this code, check that method too.
+
+        if (! hasGameListMonitor)
+            gameList.takeMonitor();
+
+        SOCGame newGame = null;
+        try
+        {
+            // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES .
+            newGame = gameList.createGame(gaName, null, null, SOCGameOption.getAllKnownOptions(), handler);
+            newGame.isBotsOnly = true;
+        } finally {
+            if (! hasGameListMonitor)
+                gameList.releaseMonitor();
+        }
+
+        // TODO do we need to broadcast new game?  Robots be requested to join without that, but humans won't see it.
+
+        if (newGame != null)
+        {
+            System.out.println("Started bot-only game: " + gaName);
+            newGame.setGameState(SOCGame.READY);
+            readyGameAskRobotsJoin(newGame, null);
+        } else {
+            // TODO game name existed
+        }
+    }
 
     /**
      * Handle the "leave game" message

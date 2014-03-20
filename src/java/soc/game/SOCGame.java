@@ -688,6 +688,15 @@ public class SOCGame implements Serializable, Cloneable
     public boolean isPractice;
 
     /**
+     * true if the game's only players are bots, no humans.  Useful for bot AI experiments.
+     *<P>
+     * This flag should be set by the server when creating the game.  If a human observer exits
+     * a game with this flag, the game should continue play unless its state is {@link #OVER}.
+     * @since 2.0.00
+     */
+    public boolean isBotsOnly;
+
+    /**
      * True once any player has built a city.
      * Used with house-rule game option {@code "N7C"}.
      * @since 1.1.19
