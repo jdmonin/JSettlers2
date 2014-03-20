@@ -2,9 +2,9 @@ README.txt - Notes and current status for the nand.net i18n translator's editor
 
 
 This internationalization editor is used by the JSettlers project, so its "home" is here:
-	http://nand.net/jsettlers/devel/
-	http://sourceforge.net/projects/jsettlers2/
-	https://github.com/jdmonin/JSettlers2
+	webpage:     http://nand.net/jsettlers/devel/i18n/
+	bug-tracker: http://sourceforge.net/projects/jsettlers2/
+	source:      https://github.com/jdmonin/JSettlers2
 in the net.nand.util.i18n and net.nand.util.i18n.gui packages.
 
 Java i18n localization strings are typically kept in properties files named with the
@@ -44,3 +44,9 @@ See the PropertiesTranslatorEditor javadoc for current limitations and TODO item
 Patches can be sent by email or by pull request; for email use diff -u format.
 Please make sure your patch follows the project coding style (see /README.developer).
 
+
+Version history
+---------------
+
+0.9.0
+- Being developed now.  Can edit files but not create them.

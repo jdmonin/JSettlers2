@@ -139,6 +139,7 @@ There are several build targets, here are the most useful ones:
  dist       Build distribution tarballs and zips.
  javadoc    Creates JavaDoc files in "target/docs/api"
  src        Create a tarball of the source tree
+ build-i18neditor  Create PTE.jar for maintaining i18n translations (not built by default)
 
 All files created by building are in the "target" directory, including
 JARs, Java .class files, and JavaDoc files. Distribution tarballs, zip
@@ -307,8 +308,8 @@ for two locales side by side; this editor has unicode support and color hilighti
 will convert to ISO-8859-1 (with unicode escapes) automatically when saving.
 See src/java/net/nand/util/i18n/README.txt for more details.
 
-Before running PTEMain for the first time, you must run the JSettlers ant build so that
-the editor's own externalized strings will be available.
+Before running PTEMain for the first time, you must build the JSettlers build target
+(using ant or eclipse) so that the editor's own externalized strings will be available.
 
 When starting the editor this message is harmless, because preferences are stored per-user:
 	Dec 6, 2013 3:59:16 PM java.util.prefs.WindowsPreferences <init>

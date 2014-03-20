@@ -307,6 +307,8 @@ for details. Patches against the latest version may be submitted there
 or at https://github.com/jdmonin/JSettlers2 .
 
 For more information on compiling or developing JSettlers, see README.developer.
+That readme also has information about translating jsettlers to other languages,
+see the "I18N" section.
 
 JSettlers is licensed under the GNU General Public License.  Each source file
 lists contributors by year.  A copyright year range (for example, 2007-2011)
