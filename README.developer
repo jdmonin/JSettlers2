@@ -17,6 +17,7 @@ CONTENTS
 - Current partially-done work
 - Current TODO list
 - Internationalization (I18N)
+- Robots (AI)
 - Coding Style
 - github usage
 
@@ -330,6 +331,37 @@ See command-line utility net.nand.util.i18n.PropsFilePseudoLocalizer.
 
 Thanks to Luis A. Ramirez for building the initial client i18n framework and advocating i18n-friendly
 programming practices throughout the code base with helpful specific suggestions.
+
+
+Robots (AI)
+-----------
+If you're interested in experimental changes to the jsettlers robots, or writing a "third-party"
+robot to connect to jsettlers, read this section.
+
+The project was originally started as Robert S Thomas' PhD dissertation about AI agents, so there's
+some instrumentation for the bots but it's not entirely documented.
+
+If you're looking to make minor changes, it's probably best to fork the soc.robot package and go
+from the classes and javadocs there.  For a larger change, some parts of soc.robot might still be
+useful to talk with the server and track the game's other players.  Robert S Thomas' dissertation
+also has some discussion on those structures.
+
+Right now bots are instantiated within the server for security; for a 3rd-party bot, start with the
+soc.robot.SOCRobotClient class.  You can start a bot separately from the server through the
+SOCRobotClient constructor or main method.
+
+The server generates a security cookie that bots must send at connect. You can view the cookie by
+starting the server with
+      -Djsettlers.bots.showcookie=Y
+or override it with something like
+      -Djsettlers.bots.cookie=foo
+
+For bot testing and statistics, you can have the server run some robot-only games (no human players)
+with the jsettlers.bots.botgames.total property. To run 7 robot-only games in a row, with each game
+randomly choosing from 10 robot players, you could start the server with:
+      -Djsettlers.startrobots=10 -Djsettlers.bots.botgames.total=7
+The robot-only games run at a quick pace, about 2 minutes for a 4-player game. You can use the
+jsettlers client to observe a bot game as it plays.
 
 
 Coding Style
