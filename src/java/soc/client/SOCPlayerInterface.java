@@ -945,7 +945,7 @@ public class SOCPlayerInterface extends Frame
         final int gstate = game.getGameState();
         final boolean clientSatAlready = (clientHand != null);
         boolean noTextOverlay =  ((! show) ||
-            ((gstate >= SOCGame.START1A) && clientSatAlready));
+            (clientSatAlready && ((gstate >= SOCGame.START1A) || game.isBoardReset())));
         if (gstate == SOCGame.NEW)
             isGameStart = true;
 
@@ -2282,7 +2282,8 @@ public class SOCPlayerInterface extends Frame
         }
         final String prevChatText = chatDisplay.getText();
         final boolean[] boardDebugShow = boardPanel.debugShowPotentials.clone();
-        clientHand = null;
+        clientHand = null;  // server will soon send SITDOWN messages for all human players,
+                            // we'll then set clientHand to a new SOCHandPanel
         clientHandPlayerNum = -1;
 
         removeAll();  // old sub-components
