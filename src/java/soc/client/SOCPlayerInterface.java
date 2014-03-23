@@ -678,12 +678,12 @@ public class SOCPlayerInterface extends Frame
             }
         }
 
-
-        /** If player requests window close, ask if they're sure, leave game if so */
         if (firstCall)
         {
+            // If player requests window close, ask if they're sure, leave game if so
             addWindowListener(new PIWindowAdapter(gameDisplay, this));
         }
+
     }
 
     /**
@@ -944,27 +944,25 @@ public class SOCPlayerInterface extends Frame
     {
         final int gstate = game.getGameState();
         final boolean clientSatAlready = (clientHand != null);
-        boolean noTextOverlay =  ((! show) ||
-            (clientSatAlready && ((gstate >= SOCGame.START1A) || game.isBoardReset())));
+        boolean noTextOverlay = ((! show)
+            || (clientSatAlready && ((gstate >= SOCGame.START1A) || game.isBoardReset())));
         if (gstate == SOCGame.NEW)
             isGameStart = true;
 
-        if (noTextOverlay)
-        {
-            boardPanel.setSuperimposedText(null, null);
-        }
         final int maxPl = game.getGameOptionIntValue("PL");
         if (maxPl == game.maxPlayers)
             noTextOverlay = true;
+
         int availPl = game.getAvailableSeatCount();
         if (playerLeaving != -1)
             ++availPl;  // Not yet vacant in game data
-        if (! noTextOverlay)
-        {
+
+        if (noTextOverlay)
+            boardPanel.setSuperimposedText(null, null);
+        else
             boardPanel.setSuperimposedText
                 (strings.get("interface.max.players", maxPl),     // "Maximum players: {0}"
                  strings.get("interface.seats.avail", availPl));  // ChoiceFormat: "1 seat available" / "{0} seats available"
-        }
 
         if (isGameStart || ! clientSatAlready)
         {
