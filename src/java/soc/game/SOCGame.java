@@ -1556,8 +1556,9 @@ public class SOCGame implements Serializable, Cloneable
     public void setSeatLock(final int pn, final SeatLockState sl)
         throws IllegalStateException
     {
-        if (((sl == SeatLockState.CLEAR_ON_RESET) && (gameState == NEW))
-            || (isAtServer && getResetVoteActive()))
+        if (isAtServer
+            && (getResetVoteActive()
+                || ((sl == SeatLockState.CLEAR_ON_RESET) && (gameState == NEW))))
             throw new IllegalStateException();
 
         seatLocks[pn] = sl;
