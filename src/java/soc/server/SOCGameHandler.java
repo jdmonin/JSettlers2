@@ -1772,8 +1772,8 @@ public class SOCGameHandler extends GameHandler
      * after sending the resource gain text ("x gets 1 sheep").
      *<P>
      * <b>Note:</b> If game is now {@link SOCGame#OVER OVER} and the {@link SOCGame#isBotsOnly} flag is set,
-     * {@link #sendGameStateOVER(SOCGame)} will call {@link SOCServer#destroyGame(String)}.  Be sure that
-     * callers to {@code sendGameState} don't assume the game will still exist after calling this method.
+     * {@link #sendGameStateOVER(SOCGame)} will call {@link SOCServer#destroyGameAndBroadcast(String, String)}.
+     * Be sure that callers to {@code sendGameState} don't assume the game will still exist after calling this method.
      * Also, {@code destroyGame} might create more {@link SOCGame#isBotsOnly} games, depending on server settings.
      *<P>
      * <b>Locks:</b> Does not hold {@link SOCGameList#takeMonitor()} or
@@ -2016,7 +2016,7 @@ public class SOCGameHandler extends GameHandler
      *<P>
      *  If db is active, calls {@link SOCServer#storeGameScores(SOCGame)} to save game stats.
      *<P>
-     *  If {@link SOCGame#isBotsOnly}, calls {@link SOCServer#destroyGame(String)} to make room
+     *  If {@link SOCGame#isBotsOnly}, calls {@link SOCServer#destroyGameAndBroadcast(String, String)} to make room
      *  for more games to run: The bots don't know on their own to leave, it's easier for the
      *  server to dismiss them within {@code destroyGame}.
      *<P>
@@ -2179,10 +2179,7 @@ public class SOCGameHandler extends GameHandler
 
         if (ga.isBotsOnly)
         {
-            srv.gameList.takeMonitor();
-            srv.destroyGame(gname);
-            srv.gameList.releaseMonitor();
-            // TODO broadcast(SOCDeleteGame.toCmd(ga));
+            srv.destroyGameAndBroadcast(gname, "sendGameStateOVER");
         }
 
         // Server structure more or less ensures sendGameStateOVER is called only once.

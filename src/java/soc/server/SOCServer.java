@@ -183,6 +183,7 @@ public class SOCServer extends Server
      *<P>
      * Before v1.1.19, the default was 0, no robots were started by default.
      * @since 1.1.09
+     * @see #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL
      */
     public static final String PROP_JSETTLERS_STARTROBOTS = "jsettlers.startrobots";
 
@@ -1662,6 +1663,7 @@ public class SOCServer extends Server
      *  will call {@link #startRobotOnlyGames()}.
      *
      * @param gm  the name of the game
+     * @see #destroyGameAndBroadcast(String, String)
      */
     public void destroyGame(String gm)
     {
@@ -1720,6 +1722,32 @@ public class SOCServer extends Server
 
         if (wasBotsOnly && (numRobotOnlyGamesRemaining > 0))
             startRobotOnlyGames(true);
+    }
+
+    /**
+     * Destroy a game and then broadcast its deletion, including lock handling.
+     * Calls {@link SOCGameList#takeMonitor()}, {@link #destroyGame(String)},
+     * {@link SOCGameList#releaseMonitor()}, and {@link #broadcast(String) broadcast}({@link SOCDeleteGame}).
+     * @param gaName  Game name to destroy
+     * @param descForStackTrace  Activity description in case of exception thrown from destroyGame;
+     *     will debug-print a mesasge "Exception in " + desc, followed by a stack trace.
+     * @since 2.0.00
+     */
+    public void destroyGameAndBroadcast(final String gaName, final String descForStackTrace)
+    {
+        gameList.takeMonitor();
+
+        try
+        {
+            destroyGame(gaName);
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in " + descForStackTrace);
+        }
+
+        gameList.releaseMonitor();
+        broadcast(SOCDeleteGame.toCmd(gaName));
     }
 
     /**
@@ -3828,19 +3856,7 @@ public class SOCServer extends Server
         if (dcmdU.startsWith("*KILLGAME*"))
         {
             messageToGameUrgent(ga, ">>> ********** " + (String) debugCli.getData() + " KILLED THE GAME!!! ********** <<<");
-            gameList.takeMonitor();
-
-            try
-            {
-                destroyGame(ga);
-            }
-            catch (Exception e)
-            {
-                D.ebugPrintStackTrace(e, "Exception in KILLGAME");
-            }
-
-            gameList.releaseMonitor();
-            broadcast(SOCDeleteGame.toCmd(ga));
+            destroyGameAndBroadcast(ga, "KILLGAME");
         }
         else if (dcmdU.startsWith("*GC*"))
         {
@@ -6770,23 +6786,12 @@ public class SOCServer extends Server
 
         //
         // destroy the expired games
+        //    Assumes the list will be short, so the monitor take/release overhead will be acceptable.
         //
         for (Enumeration<String> ex = expired.elements(); ex.hasMoreElements();)
         {
             String ga = ex.nextElement();
-            gameList.takeMonitor();
-
-            try
-            {
-                destroyGame(ga);
-            }
-            catch (Exception e)
-            {
-                D.ebugPrintln("Exception in checkForExpired - " + e);
-            }
-
-            gameList.releaseMonitor();
-            broadcast(SOCDeleteGame.toCmd(ga));
+            destroyGameAndBroadcast(ga, "checkForExpired");
         }
     }
 
