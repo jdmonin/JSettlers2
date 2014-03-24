@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1084,6 +1084,13 @@ public class SOCHandPanel extends Panel implements ActionListener
         else if (item.indexOf("VP)") > 0)
         {
             playerInterface.print("*** You secretly played this VP card when you bought it.");
+            itemNum = cardList.getSelectedIndex();
+            if (itemNum >= 0)
+                cardList.deselect(itemNum);
+        }
+        else if (item.startsWith("*NEW*"))
+        {
+            playerInterface.print("*** Wait a turn before playing new cards.");
             itemNum = cardList.getSelectedIndex();
             if (itemNum >= 0)
                 cardList.deselect(itemNum);
