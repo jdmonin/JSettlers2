@@ -29,6 +29,7 @@ import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Label;
 import java.awt.Panel;
 import java.awt.TextField;
@@ -272,6 +273,8 @@ public class NewGameOptionsFrame extends Frame
         /**
          * Interface setup: Buttons
          */
+
+        gbc.insets = new Insets(4, 2, 0, 2);  // padding between option rows, buttons
 
         if (readOnly)
         {
