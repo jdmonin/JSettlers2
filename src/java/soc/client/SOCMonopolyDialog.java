@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.client;
 
@@ -31,6 +32,7 @@ import java.awt.event.ActionListener;
 class SOCMonopolyDialog extends Dialog implements ActionListener
 {
     Button[] rsrcBut;
+    /** Prompt message. Text alignment is centered. */
     Label msg;
     SOCPlayerInterface pi;
 
@@ -107,7 +109,7 @@ class SOCMonopolyDialog extends Dialog implements ActionListener
 
         try
         {
-            msg.setBounds((width - 188) / 2, getInsets().top, 210, 20);
+            msg.setBounds(getInsets().left, getInsets().top, width, 20);
             rsrcBut[0].setBounds(button2X, (getInsets().bottom + height) - (50 + (2 * space)), buttonW, 25);
             rsrcBut[1].setBounds(button2X + buttonW + space, (getInsets().bottom + height) - (50 + (2 * space)), buttonW, 25);
             rsrcBut[2].setBounds(button3X, (getInsets().bottom + height) - (25 + space), buttonW, 25);
@@ -118,9 +120,9 @@ class SOCMonopolyDialog extends Dialog implements ActionListener
     }
 
     /**
-     * DOCUMENT ME!
+     * Handle button clicks.
      *
-     * @param e DOCUMENT ME!
+     * @param e Event with source button
      */
     public void actionPerformed(ActionEvent e)
     {
