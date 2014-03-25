@@ -1067,7 +1067,7 @@ public class SOCServer extends Server
                                 try {
                                     Thread.sleep(1600);  // wait for bots to connect
                                 } catch (InterruptedException e) {}
-        
+
                                 startRobotOnlyGames(false);
                             }
                         }.start();
@@ -1203,21 +1203,21 @@ public class SOCServer extends Server
 
     /**
      * Adds a connection to a game, unless they're already a member.
-     * If the game doesn't yet exist, create it,
-     * and announce the new game to all clients.
+     * If the game doesn't yet exist, creates it and announces the new game to all clients
+     * by calling {@link #createGameAndBroadcast(StringConnection, String, Map, int)}.
      *<P>
      * After this, human players are free to join, until someone clicks "Start Game".
      * At that point, server will look for robots to fill empty seats.
      *
-     * @param c    the Connection to be added; its name and version should already be set.
+     * @param c    the Connection to be added to the game; its name, version, and locale should already be set.
      * @param gaName  the name of the game
      * @param gaOpts  if creating a game with options, its {@link SOCGameOption}s; otherwise null.
      *                Should already be validated, by calling
      *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *                with <tt>doServerPreadjust</tt> true.
      *
-     * @return     true if c was not a member of ch before,
-     *             false if c was already in this game
+     * @return     true if {@code c} was not a member of the game before, or if new game created;
+     *             false if {@code c} was already in this game
      *
      * @throws SOCGameOptionVersionException if asking to create a game (gaOpts != null),
      *           but client's version is too low to join because of a
@@ -1311,173 +1311,206 @@ public class SOCServer extends Server
                 }
             }
 
-            gameList.takeMonitor();
-            boolean monitorReleased = false;
-
-            try
-            {
-                // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES .
-                //
-                //    A simplified copy of this code is in startRobotOnlyGames():
-                //    If you update this code, check that method too.
-
-                SOCClientData scd = (SOCClientData) c.getAppData();
-                SOCGame newGame = gameList.createGame(gaName, (String) c.getData(), scd.localeStr, gaOpts, handler);
-                if ((strSocketName != null) && (strSocketName.equals(PRACTICE_STRINGPORT)))
-                {
-                    newGame.isPractice = true;  // flag if practice game (set since 1.1.09)
-                }
-
-                // Add this (creating) player to the game
-                gameList.addMember(c, gaName);
-
-                // must release monitor before we broadcast
-                gameList.releaseMonitor();
-                monitorReleased = true;
+            // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES.
+            SOCGame newGame = createGameAndBroadcast(c, gaName, gaOpts, gVers);
+            if (newGame != null)
                 result = true;
-                scd.createdGame();
-
-                // check required client version before we broadcast
-                final int cversMin = getMinConnectedCliVersion();
-
-                if ((gVers <= cversMin) && (gaOpts == null))
-                {
-                    // All clients can join it, and no game options: use simplest message
-                    broadcast(SOCNewGame.toCmd(gaName));
-
-                } else {
-                    // Send messages, based on clients' version
-                    // and whether there are game options.
-
-                    // Client version variables:
-                    // cversMax: maximum version connected to server
-                    // cversMin: minimum version connected to server
-                    // VERSION_FOR_NEWGAMEWITHOPTIONS: minimum to understand game options
-
-                    // Game version variables:
-                    // gVersMinGameOptsNoChange: minimum to understand these game options
-                    //           without backwards-compatibility changes to their values
-                    // gVers: minimum to play the game
-
-                    final int gVersMinGameOptsNoChange;
-                    if (cversMin < Version.versionNumber())
-                        gVersMinGameOptsNoChange = SOCVersionedItem.itemsMinimumVersion(gaOpts, true);
-                    else
-                        gVersMinGameOptsNoChange = -1;  // all clients are our current version
-
-                    if ((cversMin >= gVersMinGameOptsNoChange)
-                        && (cversMin >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
-                    {
-                        // All cli can understand msg with version/options included
-                        broadcast
-                            (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, -2));
-                    } else {
-                        // Only some can understand msg with version/options included;
-                        // send at most 1 message to each connected client, split by client version.
-                        // Send the old simple NEWGAME message to connected clients of version
-                        // newgameSimpleMsgMaxCliVers and lower.  If no game options, send that
-                        // message type to all clients.
-
-                        final int cversMax = getMaxConnectedCliVersion();
-                        final int newgameSimpleMsgMaxCliVers;  // max version to get simple no-opts newgame message
-
-                        if ((gaOpts != null) && (cversMax >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
-                        {
-                            // Announce to the connected clients with versions new enough for game options:
-
-                            if ((cversMin < gVersMinGameOptsNoChange)  // client versions are connected
-                                && (gVers < gVersMinGameOptsNoChange)) // able to play, but needs value changes
-                            {
-                                // Some clients' versions are too old to understand these game
-                                // option values without change; send them an altered set for
-                                // compatibility with those clients.
-
-                                // Since cversMin < gVersMinGameOptsNoChange,
-                                //   we know gVersMinGameOptsNoChange > -1 and thus >= 1107.
-                                // cversMax and VERSION_FOR_NEWGAMEWITHOPTIONS are also 1107.
-                                // So:
-                                //  1107 <= cversMax
-                                //  gVers < gVersMinGameOptsNoChange
-                                //  1107 <= gVersMinGameOptsNoChange
-
-                                // Loop through "joinable" client versions < gVersMinGameOptsNoChange.
-                                // A separate message is sent below to clients < gVers.
-                                int cv = cversMin;  // start loop with min cli version
-                                if (gVers > cv)
-                                    cv = gVers;  // game version is higher, start there
-
-                                for ( ; cv < gVersMinGameOptsNoChange; ++cv)
-                                {
-                                    if (isCliVersionConnected(cv))
-                                        broadcastToVers
-                                          (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, cv),
-                                           cv, cv);
-                                }
-                                // Now send to newer clients, no changes needed
-                                broadcastToVers
-                                  (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, -2),
-                                   gVersMinGameOptsNoChange, Integer.MAX_VALUE);
-                            } else {
-                                // No clients need backwards-compatible option value changes.
-                                broadcastToVers
-                                  (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, -2),
-                                   SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS, Integer.MAX_VALUE);
-                            }
-
-                            // Simple announcement will go only to
-                            // clients too old to understand NEWGAMEWITHOPTIONS
-                            newgameSimpleMsgMaxCliVers = SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS - 1;
-                        } else {
-
-                            // Game has no opts, or no clients are new enough for opts;
-                            // simple announcement will go to all clients
-                            newgameSimpleMsgMaxCliVers = Integer.MAX_VALUE;
-                        }
-
-                        // "Simple" announcement message without game options:
-                        final int newgameSimpleMsgCantJoinVers;  // narrow down the versions for announcement
-                        if (gVers <= newgameSimpleMsgMaxCliVers)
-                        {
-                            // To older clients who can join, announce game without its options/version
-                            broadcastToVers(SOCNewGame.toCmd(gaName), gVers, newgameSimpleMsgMaxCliVers);
-                            newgameSimpleMsgCantJoinVers = gVers - 1;
-                        } else {
-                            // No older clients can join.  This game's already been announced to
-                            // some clients (new enough for NEWGAMEWITHOPTIONS).
-                            newgameSimpleMsgCantJoinVers = newgameSimpleMsgMaxCliVers;
-                        }
-
-                        // To older clients who can't join, announce game with cant-join prefix
-                        if (cversMin <= newgameSimpleMsgCantJoinVers)
-                        {
-                            StringBuffer sb = new StringBuffer();
-                            sb.append(SOCGames.MARKER_THIS_GAME_UNJOINABLE);
-                            sb.append(gaName);
-                            broadcastToVers
-                                (SOCNewGame.toCmd(sb.toString()),
-                                 SOCGames.VERSION_FOR_UNJOINABLE, newgameSimpleMsgCantJoinVers);
-                        }
-                    }
-                }
-            }
-            catch (IllegalArgumentException e)
-            {
-                if (! monitorReleased)
-                    gameList.releaseMonitor();
-                throw e;  // caller handles it
-            }
-            catch (Exception e)
-            {
-                D.ebugPrintStackTrace(e, "Exception in connectToGame");
-            }
-
-            if (!monitorReleased)
-            {
-                gameList.releaseMonitor();
-            }
         }
 
         return result;
+    }
+
+    /**
+     * Create a new game, and announce it with a broadcast.
+     * Called from {@link #connectToGame(StringConnection, String, Map)}.
+     *<P>
+     * The new game is created with {@link SOCGameListAtServer#createGame(String, String, String, Map, GameHandler)}
+     * and will expire in {@link SOCGameListAtServer#GAME_EXPIRE_MINUTES} unless extended during play.
+     *<P>
+     * The broadcast will send {@link SOCNewGameWithOptions} if {@code gaOpts != null}, {@link SOCNewGame} otherwise.
+     * If some connected clients are older than {@code gVers}, the message sent to those older clients will
+     * let them know they can't connect to the new game.
+     *
+     * @param c    the Connection creating and owning this game; its name, version, and locale should already be set.
+     *             This client connection will be added as a member of the game, and its {@link SOCClientData#createdGame()}
+     *             will be called.
+     * @param gaName  the name of the game, no game should exist yet with this name
+     * @param gaOpts  if creating a game with options, its {@link SOCGameOption}s; otherwise null.
+     *                Should already be validated, by calling
+     *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
+     *                with <tt>doServerPreadjust</tt> true.
+     * @param gVers  Game's minimum version, from
+     *                {@link SOCVersionedItem#itemsMinimumVersion(Map) SOCVersionedItem.itemsMinimumVersion}
+     *                {@code (gaOpts)}, or -1 if null gaOpts
+     * @return  Newly created game, or null if game name exists or an unexpected error occurs during creation
+     * @since 2.0.00
+     */
+    private final SOCGame createGameAndBroadcast
+        (StringConnection c, final String gaName, Map<String, SOCGameOption> gaOpts,
+         final int gVers)
+    {
+        final SOCClientData scd = (c != null) ? (SOCClientData) c.getAppData() : null;
+        SOCGame newGame = null;
+
+        gameList.takeMonitor();
+        boolean monitorReleased = false;
+
+        try
+        {
+            // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES.
+
+            newGame = gameList.createGame
+                (gaName, (c != null) ? (String) c.getData() : null, (scd != null) ? scd.localeStr : null,
+                 gaOpts, handler);
+
+            if ((strSocketName != null) && (strSocketName.equals(PRACTICE_STRINGPORT)))
+                newGame.isPractice = true;  // flag if practice game (set since 1.1.09)
+
+            if (c != null)
+                // Add this (creating) player to the game
+                gameList.addMember(c, gaName);
+
+            // must release monitor before we broadcast
+            gameList.releaseMonitor();
+            monitorReleased = true;
+
+            if (scd != null)
+                scd.createdGame();
+
+            // check required client version before we broadcast
+            final int cversMin = getMinConnectedCliVersion();
+
+            if ((gVers <= cversMin) && (gaOpts == null))
+            {
+                // All clients can join it, and no game options: use simplest message
+                broadcast(SOCNewGame.toCmd(gaName));
+
+            } else {
+                // Send messages, based on clients' version
+                // and whether there are game options.
+
+                // Client version variables:
+                // cversMax: maximum version connected to server
+                // cversMin: minimum version connected to server
+                // VERSION_FOR_NEWGAMEWITHOPTIONS: minimum to understand game options
+
+                // Game version variables:
+                // gVersMinGameOptsNoChange: minimum to understand these game options
+                //           without backwards-compatibility changes to their values
+                // gVers: minimum to play the game
+
+                final int gVersMinGameOptsNoChange;
+                if (cversMin < Version.versionNumber())
+                    gVersMinGameOptsNoChange = SOCVersionedItem.itemsMinimumVersion(gaOpts, true);
+                else
+                    gVersMinGameOptsNoChange = -1;  // all clients are our current version
+
+                if ((cversMin >= gVersMinGameOptsNoChange)
+                    && (cversMin >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
+                {
+                    // All cli can understand msg with version/options included
+                    broadcast
+                        (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, -2));
+                } else {
+                    // Only some can understand msg with version/options included;
+                    // send at most 1 message to each connected client, split by client version.
+                    // Send the old simple NEWGAME message to connected clients of version
+                    // newgameSimpleMsgMaxCliVers and lower.  If no game options, send that
+                    // message type to all clients.
+
+                    final int cversMax = getMaxConnectedCliVersion();
+                    final int newgameSimpleMsgMaxCliVers;  // max version to get simple no-opts newgame message
+
+                    if ((gaOpts != null) && (cversMax >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
+                    {
+                        // Announce to the connected clients with versions new enough for game options:
+
+                        if ((cversMin < gVersMinGameOptsNoChange)  // client versions are connected
+                            && (gVers < gVersMinGameOptsNoChange)) // able to play, but needs value changes
+                        {
+                            // Some clients' versions are too old to understand these game
+                            // option values without change; send them an altered set for
+                            // compatibility with those clients.
+
+                            // Since cversMin < gVersMinGameOptsNoChange,
+                            //   we know gVersMinGameOptsNoChange > -1 and thus >= 1107.
+                            // cversMax and VERSION_FOR_NEWGAMEWITHOPTIONS are also 1107.
+                            // So:
+                            //  1107 <= cversMax
+                            //  gVers < gVersMinGameOptsNoChange
+                            //  1107 <= gVersMinGameOptsNoChange
+
+                            // Loop through "joinable" client versions < gVersMinGameOptsNoChange.
+                            // A separate message is sent below to clients < gVers.
+                            int cv = cversMin;  // start loop with min cli version
+                            if (gVers > cv)
+                                cv = gVers;  // game version is higher, start there
+
+                            for ( ; cv < gVersMinGameOptsNoChange; ++cv)
+                            {
+                                if (isCliVersionConnected(cv))
+                                    broadcastToVers
+                                      (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, cv),
+                                       cv, cv);
+                            }
+                            // Now send to newer clients, no changes needed
+                            broadcastToVers
+                              (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, -2),
+                               gVersMinGameOptsNoChange, Integer.MAX_VALUE);
+                        } else {
+                            // No clients need backwards-compatible option value changes.
+                            broadcastToVers
+                              (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, -2),
+                               SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS, Integer.MAX_VALUE);
+                        }
+
+                        // Simple announcement will go only to
+                        // clients too old to understand NEWGAMEWITHOPTIONS
+                        newgameSimpleMsgMaxCliVers = SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS - 1;
+                    } else {
+
+                        // Game has no opts, or no clients are new enough for opts;
+                        // simple announcement will go to all clients
+                        newgameSimpleMsgMaxCliVers = Integer.MAX_VALUE;
+                    }
+
+                    // "Simple" announcement message without game options:
+                    final int newgameSimpleMsgCantJoinVers;  // narrow down the versions for announcement
+                    if (gVers <= newgameSimpleMsgMaxCliVers)
+                    {
+                        // To older clients who can join, announce game without its options/version
+                        broadcastToVers(SOCNewGame.toCmd(gaName), gVers, newgameSimpleMsgMaxCliVers);
+                        newgameSimpleMsgCantJoinVers = gVers - 1;
+                    } else {
+                        // No older clients can join.  This game's already been announced to
+                        // some clients (new enough for NEWGAMEWITHOPTIONS).
+                        newgameSimpleMsgCantJoinVers = newgameSimpleMsgMaxCliVers;
+                    }
+
+                    // To older clients who can't join, announce game with cant-join prefix
+                    if (cversMin <= newgameSimpleMsgCantJoinVers)
+                    {
+                        StringBuffer sb = new StringBuffer();
+                        sb.append(SOCGames.MARKER_THIS_GAME_UNJOINABLE);
+                        sb.append(gaName);
+                        broadcastToVers
+                            (SOCNewGame.toCmd(sb.toString()),
+                             SOCGames.VERSION_FOR_UNJOINABLE, newgameSimpleMsgCantJoinVers);
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in createGameAndBroadcast");
+        }
+        finally
+        {
+            if (! monitorReleased)
+                gameList.releaseMonitor();
+        }
+
+        return newGame;
     }
 
     /**
