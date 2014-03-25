@@ -1312,7 +1312,7 @@ public class SOCServer extends Server
             }
 
             // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES.
-            SOCGame newGame = createGameAndBroadcast(c, gaName, gaOpts, gVers);
+            SOCGame newGame = createGameAndBroadcast(c, gaName, gaOpts, gVers, false, false);
             if (newGame != null)
                 result = true;
         }
@@ -1330,10 +1330,13 @@ public class SOCServer extends Server
      * The broadcast will send {@link SOCNewGameWithOptions} if {@code gaOpts != null}, {@link SOCNewGame} otherwise.
      * If some connected clients are older than {@code gVers}, the message sent to those older clients will
      * let them know they can't connect to the new game.
+     *<P>
+     * <b>Locks:</b> Uses {@link SOCGameList#takeMonitor()} / {@link SOCGameList#releaseMonitor()};
+     * see {@code hasGameListMonitor} parameter.
      *
      * @param c    the Connection creating and owning this game; its name, version, and locale should already be set.
      *             This client connection will be added as a member of the game, and its {@link SOCClientData#createdGame()}
-     *             will be called.
+     *             will be called.  Can be null, especially if {@code isBotsOnly}.
      * @param gaName  the name of the game, no game should exist yet with this name
      * @param gaOpts  if creating a game with options, its {@link SOCGameOption}s; otherwise null.
      *                Should already be validated, by calling
@@ -1342,17 +1345,22 @@ public class SOCServer extends Server
      * @param gVers  Game's minimum version, from
      *                {@link SOCVersionedItem#itemsMinimumVersion(Map) SOCVersionedItem.itemsMinimumVersion}
      *                {@code (gaOpts)}, or -1 if null gaOpts
+     * @param isBotsOnly  True if the game's only players are bots, no humans and no owner
+     * @param hasGameListMonitor  True if caller holds the {@link SOCGameList#takeMonitor()} lock already.
+     *                If true, this method won't take or release that monitor.  Otherwise will take it before creating
+     *                the game, and release it before calling {@link #broadcast(String)}.
      * @return  Newly created game, or null if game name exists or an unexpected error occurs during creation
      * @since 2.0.00
      */
-    private final SOCGame createGameAndBroadcast
+    private SOCGame createGameAndBroadcast
         (StringConnection c, final String gaName, Map<String, SOCGameOption> gaOpts,
-         final int gVers)
+         final int gVers, final boolean isBotsOnly, final boolean hasGameListMonitor)
     {
         final SOCClientData scd = (c != null) ? (SOCClientData) c.getAppData() : null;
         SOCGame newGame = null;
 
-        gameList.takeMonitor();
+        if (! hasGameListMonitor)
+            gameList.takeMonitor();
         boolean monitorReleased = false;
 
         try
@@ -1363,15 +1371,18 @@ public class SOCServer extends Server
                 (gaName, (c != null) ? (String) c.getData() : null, (scd != null) ? scd.localeStr : null,
                  gaOpts, handler);
 
-            if ((strSocketName != null) && (strSocketName.equals(PRACTICE_STRINGPORT)))
+            if (isBotsOnly)
+                newGame.isBotsOnly = true;
+            else if ((strSocketName != null) && (strSocketName.equals(PRACTICE_STRINGPORT)))
                 newGame.isPractice = true;  // flag if practice game (set since 1.1.09)
 
             if (c != null)
                 // Add this (creating) player to the game
                 gameList.addMember(c, gaName);
 
-            // must release monitor before we broadcast
-            gameList.releaseMonitor();
+            // should release monitor before we broadcast
+            if (! hasGameListMonitor)
+                gameList.releaseMonitor();
             monitorReleased = true;
 
             if (scd != null)
@@ -1506,7 +1517,7 @@ public class SOCServer extends Server
         }
         finally
         {
-            if (! monitorReleased)
+            if (! (monitorReleased || hasGameListMonitor))
                 gameList.releaseMonitor();
         }
 
@@ -1633,6 +1644,7 @@ public class SOCServer extends Server
      *     can't be loaded, due to packaging of the server-only JAR.
      * @see #startPracticeGame()
      * @see #startLocalTCPServer(int)
+     * @see #startRobotOnlyGames(boolean)
      * @see SOCLocalRobotClient
      * @since 1.1.00
      */
@@ -5152,7 +5164,7 @@ public class SOCServer extends Server
      * <B>Locks:</b> May or may not have {@link SOCGameList#takeMonitor()} when calling;
      * see {@code hasGameListMonitor} parameter.  If not already held, this method takes and releases that monitor.
      *
-     * @param hasGameListMonitor  True if we have the {@link SOCGameList#takeMonitor()} lock
+     * @param hasGameListMonitor  True if caller holds the {@link SOCGameList#takeMonitor()} lock already
      * @since 2.0.00
      */
     private void startRobotOnlyGames(final boolean hasGameListMonitor)
@@ -5164,29 +5176,14 @@ public class SOCServer extends Server
         // TODO property to control # "a few" games started here
 
         String gaName = "~botsOnly~" + numRobotOnlyGamesRemaining;
-        --numRobotOnlyGamesRemaining;
 
-        // This game-creation code is a simplified copy of part of connectToGame:
-        // If you update this code, check that method too.
-
-        if (! hasGameListMonitor)
-            gameList.takeMonitor();
-
-        SOCGame newGame = null;
-        try
-        {
-            // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES .
-            newGame = gameList.createGame(gaName, null, null, SOCGameOption.getAllKnownOptions(), handler);
-            newGame.isBotsOnly = true;
-        } finally {
-            if (! hasGameListMonitor)
-                gameList.releaseMonitor();
-        }
-
-        // TODO do we need to broadcast new game?  Robots be requested to join without that, but humans won't see it.
+        SOCGame newGame = createGameAndBroadcast
+            (null, gaName, SOCGameOption.getAllKnownOptions(), Version.versionNumber(), true, hasGameListMonitor);
 
         if (newGame != null)
         {
+            --numRobotOnlyGamesRemaining;
+
             System.out.println("Started bot-only game: " + gaName);
             newGame.setGameState(SOCGame.READY);
             readyGameAskRobotsJoin(newGame, null);
