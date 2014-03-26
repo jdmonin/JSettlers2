@@ -1361,8 +1361,9 @@ public class SOCServer extends Server
     /**
      * the connection c leaves the game gm.  Clean up; if needed, call {@link #forceEndGameTurn(SOCGame, String)}.
      *<P>
-     * <B>Locks:</b> May or may not have the gameList.takeMonitorForGame(gm) before
-     * calling this method; should not have {@link SOCGame#takeMonitor()}.
+     * <B>Locks:</b> Has {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gm)}
+     * when calling this method; should not have {@link SOCGame#takeMonitor()}.
+     * May or may not have {@link SOCGameList#takeMonitor()}, see <tt>gameListLock</tt> parameter.
      *
      * @param c  the connection; if c is being dropped because of an error,
      *           this method assumes that {@link StringConnection#disconnect()}
@@ -1370,11 +1371,11 @@ public class SOCServer extends Server
      *           any communication about leaving the game, in case they are
      *           still connected and in other games.
      * @param gm the game
-     * @param gameListLock  true if we have the gameList.takeMonitor() lock
+     * @param gameListLock  true if caller holds the {@link SOCGameList#takeMonitor()} lock
      * @return true if the game was destroyed (because c was the last non-robot player,
      *              and no one was watching)
      */
-    public boolean leaveGame(StringConnection c, String gm, boolean gameListLock)
+    public boolean leaveGame(StringConnection c, final String gm, final boolean gameListLock)
     {
         System.err.println("L712: leaveGame(" + c + ", " + gm + ")");  // JM TEMP
         if (c == null)
@@ -1663,8 +1664,7 @@ public class SOCServer extends Server
 
         /**
          * if the game has no players, or if they're all
-         * robots, then end the game and write the data
-         * to disk.
+         * robots, then end the game and update stats.
          */
         final boolean emptyGame = gameList.isGameEmpty(gm);
 
