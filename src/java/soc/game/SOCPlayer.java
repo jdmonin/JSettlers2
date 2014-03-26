@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012,2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,6 +29,7 @@ import soc.util.NodeLenVis;
 import java.io.Serializable;
 
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Stack;
 import java.util.Vector;
@@ -1822,7 +1823,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             else
             {
                 // see if a nearby potential road has been cut off:
-                // build vector of our road edge IDs placed so far.
+                // build the set of our road edges placed so far.
                 // for each of 3 adjacent edges to node:
                 //  if we have potentialRoad(edge)
                 //    check ourRoads vs that edge's far-end (away from node of new settlement)
@@ -1830,14 +1831,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 //      because we're not getting past opponent's new settlement (on this end
                 //      of the edge) to build it.
 
-                Hashtable ourRoads = new Hashtable();  // TODO more efficient way of looking this up, with fewer temp objs
-                Object hashDummy = new Object();   // a value is needed for hashtable
+                HashSet ourRoads = new HashSet();  // TODO more efficient way of looking this up, with fewer temp objs
                 Enumeration pEnum = (this.pieces).elements();
                 while (pEnum.hasMoreElements())
                 {
                     SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
                     if (p.getType() == SOCPlayingPiece.ROAD)
-                        ourRoads.put(new Integer(p.getCoordinates()), hashDummy);
+                        ourRoads.add(new Integer(p.getCoordinates()));
                 }
 
                 adjac = board.getAdjacentEdgesToNode_arr(id);
@@ -1863,7 +1863,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     // now find the 2 other edges from that node;
                     // we may have actual roads on them already.
                     // If so, we'll still be able to get to the edge (tmp)
-                    // that touches the new settlement's node.
+                    // which connects that node with the new settlement's node,
+                    // from tmp edge's far node.
 
                     final int[] farEdges = board.getAdjacentEdgesToNode_arr(farNode);
                     boolean foundOurRoad = false;
