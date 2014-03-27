@@ -927,6 +927,8 @@ public class SOCHandPanel extends Panel implements ActionListener
                         disableBankUndoButton();
                     }
                 }
+            } else {
+                playerInterface.print("* You cannot trade at this time.");
             }
         }
         else if ((e.getSource() == cardList) || (target == CARD))
