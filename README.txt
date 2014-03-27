@@ -264,7 +264,9 @@ Your database system's JDBC drivers can be downloaded at these locations:
 	PostgreSQL:  http://jdbc.postgresql.org/download.html
 	SQLite:  https://bitbucket.org/xerial/sqlite-jdbc
 	          or http://www.sqlite.org/cvstrac/wiki?p=SqliteWrappers
-	          If sqlite crashes jsettlers on launch, retry with -Dsqlite.purejava=true
+	  If sqlite crashes jsettlers on launch, or gives java.lang.UnsatisfiedLinkError
+	  at launch but doesn't crash, add -Dsqlite.purejava=true before -jar on the
+	  java command line and retry.
 
 In some cases, adding to the classpath won't work because of JVM restrictions
 about JAR files.  If you find that's the case, place the JDBC jar in the same
