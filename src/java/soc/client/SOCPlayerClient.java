@@ -208,6 +208,11 @@ public class SOCPlayerClient extends Applet
     protected Thread reader = null;
     protected Exception ex = null;    // Network errors (TCP communication)
     protected Exception ex_L = null;  // Local errors (stringport pipes)
+
+    /**
+     * Are we connected to a TCP server (remote or {@link #localTCPServer})?
+     * {@link #practiceServer} is not a TCP server.
+     */
     protected boolean connected = false;
 
     /**
@@ -2262,8 +2267,8 @@ public class SOCPlayerClient extends Applet
 
         // If we ever require a minimum server version, would check that here.
 
-        // Reply with our client version.
-        // (This was sent already in connect(), in 1.1.06 and later)
+        // Pre-1.1.06 versions would reply here with our client version.
+        // That's been sent to server already in connect() in 1.1.06 and later.
 
         // Check known game options vs server's version. (added in 1.1.07)
         // Server's responses will add, remove or change our "known options".
