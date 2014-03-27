@@ -1358,7 +1358,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *
      * @param nvpair Name-value pair string, as created by
      *               {@link #packOptionsToString(Hashtable, boolean)}.
-     *               'T' or 't' is always allowed for bool value, regardless of forceNameUpcase.
+     *               'T' or 't' or 'Y' or 'y' is always allowed for bool value, regardless of forceNameUpcase.
      * @param forceNameUpcase Call {@link String#toUpperCase()} on keyname within nvpair?
      *               For friendlier parsing of manually entered (command-line) nvpair strings.
      * @return Parsed option, or null if parse error;
@@ -1402,7 +1402,8 @@ public class SOCGameOption implements Cloneable, Comparable
             switch (copyOpt.optType)  // OTYPE_* - update this switch, must match format produced
             {                         //           in packValue / packOptionsToString
             case OTYPE_BOOL:
-                copyOpt.setBoolValue(optval.equals("t") || optval.equals("T"));
+                copyOpt.setBoolValue
+                    (optval.equals("t") || optval.equals("T") || optval.equals("y") || optval.equals("Y"));
                 break;
 
             case OTYPE_INT:
@@ -1421,7 +1422,7 @@ public class SOCGameOption implements Cloneable, Comparable
                 try
                 {
                     final char ch0 = optval.charAt(0);
-                    copyOpt.setBoolValue((ch0 == 't') || (ch0 == 'T'));
+                    copyOpt.setBoolValue((ch0 == 't') || (ch0 == 'T') || (ch0 == 'y') || (ch0 == 'Y'));
                     copyOpt.setIntValue(Integer.parseInt(optval.substring(1)));
                 } catch (NumberFormatException e)
                 { 
