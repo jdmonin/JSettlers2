@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -184,10 +184,11 @@ public class SOCScenario
         allSc.put(K_SC_CLVI, new SOCScenario
             (K_SC_CLVI, 2000, 2000,
              "Cloth Trade with neutral villages",
-             "The small villages give you Cloth; every 2 cloth you have is 1 extra Victory Point. To gain cloth, "
-             + "build ships to a village. Each player to reach a village get 1 cloth when it's reached, and 1 more "
+             "The small islands' villages give you Cloth; every 2 cloth you have is 1 extra Victory Point. To gain cloth, "
+             + "build ships to a village. Each player to reach a village get of its 1 cloth when reached, and 1 more "
              + "whenever its number is rolled, until the village runs out. You can't move the pirate until you've "
-             + "reached a village.",
+             + "reached a village. If more than half the villages run out, the game ends, and the player "
+             + "with the most VP wins. (If tied, player with most cloth wins.)",
              "_SC_CLVI=t,PLL=t,VP=t14,_SC_3IP=t,_SC_0RVP=t"));
 
         allSc.put(K_SC_PIRI, new SOCScenario
