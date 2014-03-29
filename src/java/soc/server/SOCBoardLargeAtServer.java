@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -397,6 +397,44 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
             // startGame_putInitPieces will set aside dev cards for players to reach "CE" special edges.
         }
+        else if (scen.equals(SOCScenario.K_SC_CLVI))
+        {
+            // Cloth Villages
+            landAreasLegalNodes = new HashSet[2];
+            final int idx = (maxPl > 4) ? 1 : 0;  // 4-player or 6-player board
+
+            // - Larger main islands
+            makeNewBoard_placeHexes
+                (CLVI_LANDHEX_TYPE_MAIN[idx], CLVI_LANDHEX_COORD_MAIN[idx], CLVI_DICENUM_MAIN[idx],
+                 true, true, 1, opt_breakClumps, scen);
+
+            // - Small middle islands for villages
+            //  (LA # 0; Players can't place there)
+            makeNewBoard_placeHexes
+                (CLVI_LANDHEX_TYPE_ISL[idx], CLVI_LANDHEX_COORD_ISL[idx], null,
+                 false, false, 0, null, scen);
+
+            pirateHex = CLVI_PIRATE_HEX[idx];
+
+            // Break up ports (opt_breakClumps) for the 6-player board only.
+            // The 4-player board doesn't have enough 3-for-1 ports for that to work.
+            if (maxPl > 4)
+            {
+                PORTS_TYPES_MAINLAND = CLVI_PORT_TYPE[idx];  // PORTS_TYPES_MAINLAND breaks clumps
+                PORTS_TYPES_ISLANDS = null;
+                PORT_LOC_FACING_MAINLAND = CLVI_PORT_EDGE_FACING[idx];
+                PORT_LOC_FACING_ISLANDS = null;
+            } else {
+                PORTS_TYPES_MAINLAND = null;
+                PORTS_TYPES_ISLANDS = CLVI_PORT_TYPE[idx];  // PORTS_TYPES_ISLAND doesn't break clumps
+                PORT_LOC_FACING_MAINLAND = null;
+                PORT_LOC_FACING_ISLANDS = CLVI_PORT_EDGE_FACING[idx];
+            }
+
+            final int[] cl = CLVI_CLOTH_VILLAGE_AMOUNTS_NODES_DICE[idx];
+            setVillageAndClothLayout(cl);  // also sets board's "general supply"
+            setAddedLayoutPart("CV", cl);
+        }
         else if (! hasScenarioFog)
         {
             // This is the fallback layout, the large sea board used when no scenario is chosen.
@@ -508,17 +546,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 ? FOG_ISL_LANDHEX_COORD_FOG_6PL
                 : ((maxPl < 4) ? FOG_ISL_LANDHEX_COORD_FOG_3PL : FOG_ISL_LANDHEX_COORD_FOG_4PL);
             makeNewBoard_hideHexesInFog(FOGHEXES);
-        }
-
-        // Add villages, if the scenario does that
-        opt = (opts != null ? opts.get(SOCGameOption.K_SC_CLVI) : null);
-        if ((opt != null) && opt.getBoolValue())
-        {
-            final int[] cl =
-                (maxPl == 6) ? SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE_6PL : SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE_4PL;
-
-            setVillageAndClothLayout(cl);  // also sets board's "general supply"
-            setAddedLayoutPart("CV", cl);
         }
 
         if ((PORTS_TYPES_MAINLAND == null) && (PORTS_TYPES_ISLANDS == null))
@@ -1967,11 +1994,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             {
                 heightWidth = FOR_TRI_BOARDSIZE[(maxPlayers == 6) ? 1 : 0];
             }
-            else if (sc.equals(SOCScenario.K_SC_CLVI) && (maxPlayers == 6))
+            else if (sc.equals(SOCScenario.K_SC_CLVI))
             {
-                // For now, _SC_CLVI uses the fallback layout.
-                // For 6 players, height includes an extra row of hexes.
-                heightWidth = ((BOARDHEIGHT_LARGE + 3) << 8) | BOARDWIDTH_LARGE;
+                heightWidth = CLVI_BOARDSIZE[(maxPlayers == 6) ? 1 : 0];
             }
         }
         else if (maxPlayers == 6)
@@ -2180,27 +2205,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     };
 
     /**
-     * 4-player fallback board layout: Outlying islands' cloth village node locations and dice numbers
-     * for the {@link SOCScenario#K_SC_CLVI} Cloth Villages scenario (until its real layout is ready).
-     * Index 0 is the board's "general supply" cloth count.
-     * Index 1 is each village's starting cloth count, from {@link SOCVillage#STARTING_CLOTH}.
-     * Further indexes are the locations and dice.
-     * Paired for each village: [i] = node, [i+1] = dice number.
-     * For testing only: An actual cloth village scenario would have a better layout.
-     * @see SOCGameOption#K_SC_CLVI
-     * @see #setVillageAndClothLayout(int[])
-     */
-    private static final int SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE_4PL[] =
-    {
-        SOCVillage.STARTING_GENERAL_CLOTH,  // Board's "general supply" cloth count
-        SOCVillage.STARTING_CLOTH,
-        0x610, 6,  // SE point of NE island
-        0xA0D, 5,  // N point of SE island
-        0xE0B, 9,  // SW point of SE island
-        0xE05, 4   // midpoint of SW island
-    };
-
-    /**
      * Fallback board layout, 4 players: All the outlying islands' land hex coordinates.
      *<P>
      * The first outlying island (land area 2) is upper-right on board.
@@ -2297,29 +2301,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         0x0B0A, FACING_W,   0x0E08, FACING_NW,
         0x0E05, FACING_NE,  0x0C02, FACING_NE,
         0x0800, FACING_NE
-    };
-
-    /**
-     * 6-player fallback board layout: Outlying islands' cloth village node locations and dice numbers
-     * for the {@link SOCScenario#K_SC_CLVI} Cloth Villages scenario (until its real layout is ready).
-     * Index 0 is the board's "general supply" cloth count.
-     * Index 1 is each village's starting cloth count, from {@link SOCVillage#STARTING_CLOTH}.
-     * Further indexes are the locations and dice.
-     * Paired for each village: [i] = node, [i+1] = dice number.
-     * For testing only: An actual cloth village scenario would have a better layout.
-     * @see SOCGameOption#K_SC_CLVI
-     * @see #setVillageAndClothLayout(int[])
-     */
-    private static final int SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE_6PL[] =
-    {
-        SOCVillage.STARTING_GENERAL_CLOTH,  // Board's "general supply" cloth count
-        SOCVillage.STARTING_CLOTH,
-        0x020C, 6,  // NW part of NE island
-        0x060E, 10, // SE part of NE island
-        0x0A0D, 5,  // N point of SE island
-        0x0E0B, 9,  // SW point of SE island
-        0x1005, 8,  // west on SW island
-        0x1009, 4   // east on SW island
     };
 
     /**
@@ -3697,6 +3678,175 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     }, {
         // 6 players
         0x0103, 0x000C, 0x0113, 0x0D03, 0x0E09, 0x0D13
+    }};
+
+
+    ////////////////////////////////////////////
+    //
+    // Cloth Trade with Villages scenario Layout (_SC_CLVI)
+    //   Has 4-player, 6-player versions;
+    //   each array here uses index [0] for 4-player, [1] for 6-player.
+    //   LA#1 has the two main islands.
+    //   LA#0 has the small middle islands; players can't settle there.
+    //   No ports on the small islands, only main islands.
+    //
+
+    /**
+     * Cloth Villages: Board size:
+     * 4 players max row 0x0E, max col 0x10.
+     * 6 players max row 0x0E, max col 0x14.
+     */
+    private static final int CLVI_BOARDSIZE[] = { 0x0E10, 0x0E14 };
+
+    /**
+     * Cloth Villages: Starting pirate sea hex coordinate for 4, 6 players.
+     */
+    private static final int CLVI_PIRATE_HEX[] = { 0x070F, 0x0713 };
+
+    /**
+     * Cloth Villages: Land hex types for the main island. Shuffled.
+     */
+    private static final int CLVI_LANDHEX_TYPE_MAIN[][] =
+    {{
+        // 4-player:
+        CLAY_HEX, CLAY_HEX, CLAY_HEX,
+        ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
+        SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+        WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+        WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX
+    }, {
+        // 6-player:
+        CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX,
+        ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
+        SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+        WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+        WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX
+    }};
+
+    /**
+     * Cloth Villages: Land hex coordinates for the main islands.
+     */
+    private static final int CLVI_LANDHEX_COORD_MAIN[][] =
+    {{
+        // 4-player: Each 10 hexes; 3 rows, main row centered on columns 4 - c
+        0x0104, 0x0106, 0x0108, 0x010A, 0x010C,
+        0x0303, 0x0305, 0x030B, 0x030D, 0x0502,
+
+        0x0B03, 0x0B05, 0x0B0B, 0x0B0D, 0x090E,
+        0x0D04, 0x0D06, 0x0D08, 0x0D0A, 0x0D0C
+    }, {
+        // 6-player: Each 13 hexes; 3 rows, main row centered on columns 4 - 0x10
+        0x0104, 0x0106, 0x0108, 0x010A, 0x010C, 0x010E, 0x0110,
+        0x0303, 0x0305, 0x030F, 0x0311, 0x0502, 0x0512,
+
+        0x0B03, 0x0B05, 0x0B0F, 0x0B11, 0x0902, 0x0912,
+        0x0D04, 0x0D06, 0x0D08, 0x0D0A, 0x0D0C, 0x0D0E, 0x0D10
+    }};
+
+    /**
+     * Cloth Villages: Dice numbers for hexes on the main island. Shuffled.
+     */
+    private static final int CLVI_DICENUM_MAIN[][] =
+    {{
+        2, 2, 3, 3, 4, 4, 5, 5, 6, 6,
+        8, 8, 9, 9, 10, 10, 11, 11, 12, 12
+    }, {
+        2, 2, 3, 3, 3, 3, 4, 4, 5, 5, 6, 6, 6,
+        8, 8, 8, 9, 9, 10, 10, 11, 11, 11, 11, 12, 12
+    }};
+
+    /**
+     * Cloth Villages: Port edges and facings. There are no ports on the small islands, only the main ones.
+     *<P>
+     * West to east on each island.
+     * Each port has 2 elements: Edge coordinate (0xRRCC), Port Facing.
+     *<P>
+     * Port Facing is the direction from the port edge, to the land hex touching it
+     * which will have 2 nodes where a port settlement/city can be built.
+     *<P>
+     * Port types ({@link #CLVI_PORT_TYPE}) are shuffled.
+     */
+    private static final int CLVI_PORT_EDGE_FACING[][] =
+    {{
+        // 4 players
+        0x0302, FACING_E,  0x0004, FACING_SW,  0x0009, FACING_SE,  0x030E, FACING_W,
+        0x0B02, FACING_E,  0x0E05, FACING_NE,  0x0E0A, FACING_NW,  0x0C0D, FACING_NW,  0x090F, FACING_W
+    }, {
+        // 6 players
+        0x0302, FACING_E,  0x0004, FACING_SW,  0x0009, FACING_SE,  0x000D, FACING_SE,  0x0312, FACING_W,
+        0x0B02, FACING_E,  0x0E05, FACING_NE,  0x0E08, FACING_NW,  0x0E0E, FACING_NW,
+        0x0C11, FACING_NW, 0x0913, FACING_W
+    }};
+
+    /**
+     * Cloth Villages: Port types; will be shuffled.
+     * Port edge coordinates and facings are {@link #CLVI_PORT_EDGE_FACING}.
+     */
+    private static final int CLVI_PORT_TYPE[][] =
+    {{
+        // 4 players: 5 special, 4 generic:
+        CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT,
+        MISC_PORT, MISC_PORT, MISC_PORT, MISC_PORT
+    }, {
+        // 6 players: 6 special, 5 generic:
+        CLAY_PORT, ORE_PORT, SHEEP_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT,
+        MISC_PORT, MISC_PORT, MISC_PORT, MISC_PORT, MISC_PORT
+    }};
+
+    /**
+     * Cloth Villages: Hex land types on the several small middle islands, west to east.
+     * None have dice numbers.  Not shuffled; coordinates for these
+     * land hexes are {@link #CLVI_LANDHEX_COORD_ISL}.
+     */
+    private static final int CLVI_LANDHEX_TYPE_ISL[][] =
+    {{
+        // 4 players:
+        GOLD_HEX, DESERT_HEX, DESERT_HEX, GOLD_HEX
+    }, {
+        // 6 players:
+        GOLD_HEX, DESERT_HEX, DESERT_HEX, DESERT_HEX, DESERT_HEX, GOLD_HEX
+    }};
+
+    /**
+     * Cloth Villages: Land hex coordinates for the several small middle islands, west to east.
+     * Hex types for these small islands are {@link #CLVI_LANDHEX_TYPE_ISL}.
+     * None have dice numbers.
+     * Each has two villages, see {@link #CLVI_CLOTH_VILLAGE_AMOUNTS_NODES_DICE}.
+     */
+    private static final int CLVI_LANDHEX_COORD_ISL[][] =
+    {{
+        // 4 players:
+        0x0705, 0x0508, 0x0908, 0x070B
+    }, {
+        // 6 players:
+        0x0705, 0x0508, 0x0908, 0x050C, 0x090C, 0x070F
+    }};
+
+    /**
+     * Cloth Villages: Small islands' cloth village node locations and dice numbers.
+     * Within the 4pl and 6pl subarrays:
+     * Index 0 is the board's "general supply" cloth count.
+     * Index 1 is each village's starting cloth count, from {@link SOCVillage#STARTING_CLOTH}.
+     * Further indexes are the locations and dice,
+     * paired for each village: [i] = node, [i+1] = dice number.
+     * SOCBoardLarge additional part {@code "CV"}.
+     *<P>
+     * Each small island has two villages; the islands' coordinates are {@link #CLVI_LANDHEX_COORD_ISL}.
+     * @see SOCGameOption#K_SC_CLVI
+     * @see #setVillageAndClothLayout(int[])
+     */
+    private static final int CLVI_CLOTH_VILLAGE_AMOUNTS_NODES_DICE[][] =
+    {{
+        // 4 players:
+        SOCVillage.STARTING_GENERAL_CLOTH,  // Board's "general supply" cloth count is same for 4pl, 6pl
+        SOCVillage.STARTING_CLOTH,
+        0x0605, 10,  0x0805, 9,  0x0408, 11,  0x0608, 8,  0x0808, 6,  0x0A08, 3,  0x060B, 4,  0x080B, 5
+    }, {
+        // 6 players:
+        SOCVillage.STARTING_GENERAL_CLOTH,
+        SOCVillage.STARTING_CLOTH,
+        0x0605, 4,   0x0805, 9,  0x0408, 2,  0x0608, 5,   0x0808, 6,  0x0A08, 12,
+        0x040C, 10,  0x060C, 8,  0x080C, 9,  0x0A0C, 10,  0x060F, 4,  0x080F, 5
     }};
 
 
