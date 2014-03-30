@@ -1829,8 +1829,10 @@ public class SOCGameHandler extends GameHandler
                 StringConnection con = srv.getConnection(player.getName());
                 if (con != null)
                 {
-                    srv.messageToPlayer(con, gname, /*I*/"This game gives you 3 initial settlements and roads."/*18N*/);
-                    srv.messageToPlayer(con, gname, /*I*/"Your free resources will be from the third settlement."/*18N*/);
+                    srv.messageToPlayerKeyed(con, gname, "prompt.gameopt._SC_3IP.part1");
+                        // "This game gives you 3 initial settlements and roads."
+                    srv.messageToPlayerKeyed(con, gname, "prompt.gameopt._SC_3IP.part2");
+                        // "Your free resources will be from the third settlement."
                 }
             }
             break;
