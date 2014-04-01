@@ -1,0 +1,99 @@
+<html>
+<head>
+	<title>README.htm - Notes and current status for the nand.net i18n translator's editor</title>
+</head>
+<body bgcolor="white" text="black">
+<!-- 
+This file Copyright (C) 2014 Jeremy D Monin (jeremy@nand.net)
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 3
+of the License, or (at your option) any later version.
+
+Based on src/net/nand/util/i18n/README.txt; please keep in sync when text changes.
+-->
+
+<h2>README.htm - Notes and current status for the nand.net i18n translator's editor</h2>
+
+<P>This internationalization editor is used by the JSettlers project, so its "home" is here:
+<blockquote><table border=0>
+	<td>webpage: </td><td>
+		<A href="http://nand.net/jsettlers/devel/i18n/">http://nand.net/jsettlers/devel/i18n/</A> </td></tr>
+	<td>bug-tracker: </td><td>
+		<A href="http://sourceforge.net/projects/jsettlers2/">http://sourceforge.net/projects/jsettlers2/</A> </td></tr>
+	<td>source: </td><td>
+		<A href="https://github.com/jdmonin/JSettlers2">https://github.com/jdmonin/JSettlers2</A> </td></tr>
+</table></blockquote>
+in the <tt>net.nand.util.i18n</tt> and <tt>net.nand.util.i18n.gui</tt> packages.</P>
+
+<P>The editor is work in progress.  Right now it can't create or copy new .properties files; you'll
+need to do that on your own and then use the editor on the new file.</P>
+
+
+<h3>Purpose and File Format</h3>
+
+<P>Java i18n localization strings are typically kept in properties files named with the
+language and country/region, falling back to a base language file if the user's language,
+country, or region aren't found:
+<UL>
+	<LI> toClient_es_AR.properties
+	<LI> toClient_es.properties
+	<LI> toClient.properties
+</UL>
+Each file contains key = value lines: The keys used in java code, and each key's value in the language.
+Comment lines are encouraged for context and explanation.</P>
+
+<P>This editor makes translation maintenance a bit easier, including side-by-side comparison.</P>
+
+<P>There are other properties editors out there, I wanted to see what writing one would be like.
+Thank you for trying our i18n editor.</P>
+
+<P>- Jeremy D Monin &lt;jeremy@nand.net&gt;</P>
+
+
+<h3>Using this Editor</h3>
+
+<P>The editor shows any two such "source" and "destination" files side by side by key for comparison and
+translation.  "Source" is the file with a less specific locale, "destination" is more specific.</P>
+
+<P>Start <tt>net.nand.util.i18n.gui.PTEMain</tt>, then browse to the files you want to edit, or choose one
+"destination" file to edit, with its "source" file automatically picked based on the filename.
+This editor has unicode support and color hilighting, and will save files in the required
+ISO-8859-1 encoding (with unicode escapes) automatically.</P>
+
+<P>Keys can be added by right-clicking.  Ctrl-F finds text in the source and destination files.
+Click the main window's Help button for more info.</P>
+
+<P><B>"Open Destination + Source" Dialog:</B><br>
+<img src="pte-0.9.0-open.png" width=376 height=266></P>
+
+<P><B>Main Window:</B><br>
+<img src="pte-0.9.0-main.png" width=862 height=525></P>
+
+<P>
+When starting the editor this message is harmless, because preferences are stored per-user:
+	<blockquote>
+	Dec 6, 2013 3:59:16 PM java.util.prefs.WindowsPreferences &lt;init&gt;<BR>
+	WARNING: Could not open/create prefs root node Software\JavaSoft\Prefs at root 0x80000002. Windows RegCreateKeyEx(...) returned error code 5.
+	</blockquote>
+</P>
+
+
+<h3>Developers</h3>
+
+The project code lives at <A href="https://github.com/jdmonin/JSettlers2">https://github.com/jdmonin/JSettlers2</A> .
+See the <tt>PropertiesTranslatorEditor</tt> javadoc for current limitations and TODO items.
+Patches can be sent by email or by pull request; if emailing, use diff -u format.
+Please make sure your patch follows the project coding style (see <tt>/README.developer</tt>).
+
+
+<h3>Version history</h3>
+
+<b>0.9.0 (2014-03-31)</b>
+<UL>
+	<LI> Current beta version.  Can edit files but not create them.
+</UL>
+
+</body>
+</html>
