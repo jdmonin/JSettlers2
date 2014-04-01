@@ -599,8 +599,14 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         int[] portTypes_islands;
         if (PORTS_TYPES_MAINLAND != null)
         {
-            portTypes_main = new int[PORTS_TYPES_MAINLAND.length];
-            System.arraycopy(PORTS_TYPES_MAINLAND, 0, portTypes_main, 0, portTypes_main.length);
+            final int ptL = PORTS_TYPES_MAINLAND.length, plfL = PORT_LOC_FACING_MAINLAND.length;
+            if ((2 * ptL) != plfL)
+                throw new IllegalArgumentException
+                    ("Mismatched port-array lengths: PORT_LOC_FACING_MAINLAND (" + plfL
+                     + ") should be 2 x PORTS_TYPES_MAINLAND (" + ptL + ")");
+
+            portTypes_main = new int[ptL];
+            System.arraycopy(PORTS_TYPES_MAINLAND, 0, portTypes_main, 0, ptL);
             if ((maxPl == 6) || ! hasScenarioFog)
                 makeNewBoard_shufflePorts(portTypes_main, opt_breakClumps);
         } else {
@@ -608,8 +614,14 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         }
         if (PORTS_TYPES_ISLANDS != null)
         {
-            portTypes_islands = new int[PORTS_TYPES_ISLANDS.length];
-            System.arraycopy(PORTS_TYPES_ISLANDS, 0, portTypes_islands, 0, portTypes_islands.length);
+            final int ptL = PORTS_TYPES_ISLANDS.length, plfL = PORT_LOC_FACING_ISLANDS.length;
+            if ((2 * ptL) != plfL)
+                throw new IllegalArgumentException
+                    ("Mismatched port-array lengths: PORT_LOC_FACING_ISLANDS (" + plfL
+                     + ") should be 2 x PORTS_TYPES_ISLANDS (" + ptL + ")");
+
+            portTypes_islands = new int[ptL];
+            System.arraycopy(PORTS_TYPES_ISLANDS, 0, portTypes_islands, 0, ptL);
             makeNewBoard_shufflePorts(portTypes_islands, null);
         } else {
             portTypes_islands = null;
@@ -4028,7 +4040,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         0x0710, FACING_W,  0x0A07, FACING_NE,  0x0A0A, FACING_NW, 0x0A0E, FACING_NW
     }, {
         // 6 players
-        0x0009, FACING_SE,  0x000F, FACING_SE, 0x0202, FACING_SE,  0x0310, FACING_W,  0x0511, FACING_W,
+        0x0009, FACING_SE,  0x000F, FACING_SE, 0x0206, FACING_SE,  0x0310, FACING_W,  0x0405, FACING_SE,  0x0511, FACING_W,
         0x060C, FACING_SE,  0x0913, FACING_W,  0x0A09, FACING_NE,  0x0A0D, FACING_NE, 0x0A10, FACING_NW
     }};
 
