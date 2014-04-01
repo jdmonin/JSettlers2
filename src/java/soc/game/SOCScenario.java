@@ -96,6 +96,7 @@ public class SOCScenario
      *<LI> {@link #K_SC_CLVI SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}
      *<LI> {@link #K_SC_PIRI SC_PIRI}  Pirate Islands and {@link SOCFortress fortresses}
      *<LI> {@link #K_SC_FTRI SC_FTRI}  The Forgotten Tribe
+     *<LI> {@link #K_SC_WOND SC_WOND}  Wonders
      *</UL>
      *  (See each scenario name field's javadoc for more details.)
      *
@@ -211,6 +212,16 @@ public class SOCScenario
                  + "player to place later when they have one.",
                  "_SC_FTRI=t,PLL=t,VP=t13"));
 
+        allSc.put(K_SC_WOND, new SOCScenario
+                (K_SC_WOND, 2000, 2000,
+                 "Wonders",
+                 "Players must choose a unique Wonder and build all 4 of its levels. "
+                 + "Each Wonder has its own requirements before you may start it, "
+                 + "such as a harbor location or number of cities built. To win, you "
+                 + "must complete your Wonder's 4 levels, or have 10 VP and complete "
+                 + "more levels than any other player.",
+                 "_SC_WOND=t,PLL=t,VP=t10,_SC_SANY=t"));  // win condition: Complete Wonder, or 10 VP _and_ built the most levels
+
         return allSc;
 
         // OBSOLETE SCENARIOS, REMOVED SCENARIOS - Move its allSc.put down here, commented out,
@@ -278,6 +289,21 @@ public class SOCScenario
      * {@link SOCGame#setPlacingItem(SOCInventoryItem)} is called, state becomes {@link SOCGame#PLACING_INV_ITEM}.
      */
     public static final String K_SC_FTRI = "SC_FTRI";
+
+    /**
+     * Scenario key {@code SC_WOND} for Wonders.
+     * Main option is {@link SOCGameOption#K_SC_WOND "_SC_WOND"}.
+     *<P>
+     * Players must choose a unique Wonder and build all 4 of its levels.
+     * Each Wonder has its own requirements before they may start it,
+     * such as a harbor location or number of cities built.
+     *<P>
+     * When a player starts to build a wonder, it's added to their inventory for visibility.
+     *<P>
+     * To win, the player must complete their Wonder's 4 levels, or have 10 VP and
+     * complete more levels than any other player.
+     */
+    public static final String K_SC_WOND = "SC_WOND";
 
     /**
      * Scenario's {@link SOCGameOption}s, as a formatted string

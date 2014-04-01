@@ -252,6 +252,14 @@ public class SOCGameOption
      */
     public static final String K_SC_FTRI = "_SC_FTRI";
 
+    /**
+     * Scenario key {@code _SC_WOND} for Wonders.
+     * Special unique "wonders" claimed by players and built up to several levels.
+     * For more details and special rules see {@link SOCScenario#K_SC_WOND}.
+     * @since 2.0.00
+     */
+    public static final String K_SC_WOND = "_SC_WOND";
+
     // -- End of scenario flag keynames --
 
     /**
@@ -504,6 +512,9 @@ public class SOCGameOption
         opt.put(K_SC_FTRI, new SOCGameOption
                 (K_SC_FTRI, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
                  "Scenarios: The Forgotten Tribe"));
+        opt.put(K_SC_WOND, new SOCGameOption
+                (K_SC_WOND, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
+                 "Scenarios: Wonders"));
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.

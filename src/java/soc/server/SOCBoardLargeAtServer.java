@@ -435,6 +435,43 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             setVillageAndClothLayout(cl);  // also sets board's "general supply"
             setAddedLayoutPart("CV", cl);
         }
+        else if (scen.equals(SOCScenario.K_SC_WOND))
+        {
+            // Wonders
+            landAreasLegalNodes = new HashSet[3];
+            final int idx = (maxPl > 4) ? 1 : 0;  // 4-player or 6-player board
+
+            // - Large main island
+            makeNewBoard_placeHexes
+                (WOND_LANDHEX_TYPE_MAIN[idx], WOND_LANDHEX_COORD_MAIN[idx], WOND_DICENUM_MAIN[idx],
+                 true, true, 1, opt_breakClumps, scen);
+
+            // - Desert on main island (not shuffled with other hexes)
+            /* TODO allow add to land area
+            int[] desert = new int[WOND_LANDHEX_COORD_DESERT[idx].length];
+            Arrays.fill(desert, DESERT_HEX);
+            makeNewBoard_placeHexes
+                (desert, WOND_LANDHEX_COORD_DESERT[idx], null,
+                 false, false, 1, null, scen);
+             */
+
+            // - Small outlying islands for villages (LA #2)
+            makeNewBoard_placeHexes
+                (WOND_LANDHEX_TYPE_ISL[idx], WOND_LANDHEX_COORD_ISL[idx], WOND_DICENUM_ISL[idx],
+                 false, false, 2, null, scen);
+
+            pirateHex = 0;
+
+            // ports
+            PORTS_TYPES_MAINLAND = WOND_PORT_TYPE[idx];  // PORTS_TYPES_MAINLAND breaks clumps
+            PORTS_TYPES_ISLANDS = null;
+            PORT_LOC_FACING_MAINLAND = WOND_PORT_EDGE_FACING[idx];
+            PORT_LOC_FACING_ISLANDS = null;
+
+            setAddedLayoutPart("N1", WOND_SPECIAL_NODES[idx][0]);
+            setAddedLayoutPart("N2", WOND_SPECIAL_NODES[idx][1]);
+            setAddedLayoutPart("N3", WOND_SPECIAL_NODES[idx][2]);
+        }
         else if (! hasScenarioFog)
         {
             // This is the fallback layout, the large sea board used when no scenario is chosen.
@@ -2004,6 +2041,10 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             else if (sc.equals(SOCScenario.K_SC_CLVI))
             {
                 heightWidth = CLVI_BOARDSIZE[(maxPlayers == 6) ? 1 : 0];
+            }
+            else if (sc.equals(SOCScenario.K_SC_WOND))
+            {
+                heightWidth = WOND_BOARDSIZE[(maxPlayers == 6) ? 1 : 0];
             }
         }
 
@@ -3855,6 +3896,186 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         SOCVillage.STARTING_CLOTH,
         0x0605, 4,   0x0805, 9,  0x0408, 2,  0x0608, 5,   0x0808, 6,  0x0A08, 12,
         0x040C, 10,  0x060C, 8,  0x080C, 9,  0x0A0C, 10,  0x060F, 4,  0x080F, 5
+    }};
+
+
+    ////////////////////////////////////////////
+    //
+    // Wonders scenario Layout (_SC_WOND)
+    //   Has 4-player, 6-player versions;
+    //   each array here uses index [0] for 4-player, [1] for 6-player.
+    //   LA#1 has the main island.
+    //   LA#2 has the small outlying islands; players can't start there.
+    //   Has a few small sets of nodes as Added Layout Parts where players can't start.
+    //
+
+    /**
+     * Wonders: Board size:
+     * 4 players max row 0x0E, max col 0x12.
+     * 6 players max row 0x0E, max col 0x14.
+     */
+    private static final int WOND_BOARDSIZE[] = { 0x0E12, 0x0E14 };
+
+    /**
+     * Wonders: Land hex types for the main island, excluding the desert. Shuffled.
+     */
+    private static final int WOND_LANDHEX_TYPE_MAIN[][] =
+    {{
+        // 4-player:
+        CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX,
+        ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
+        SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+        WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+        WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX
+    }, {
+        // 6-player:
+        CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX,
+        ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
+        SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+        WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+        WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX
+    }};
+
+    /**
+     * Wonders: Land hex coordinates for the main island, excluding
+     * deserts ({@link #WOND_LANDHEX_COORD_DESERT}).
+     * Dice numbers (shuffled) are {@link #WOND_DICENUM_MAIN}.
+     * Main part on rows 7 and 9, with outlying parts north and south.
+     */
+    private static final int WOND_LANDHEX_COORD_MAIN[][] =
+    {{
+        // 4-player:
+        0x0108, 0x010A, 0x010E, 0x0307, 0x0309, 0x030D, 0x0508, 0x050E, 0x0510,
+        0x0707, 0x0709, 0x070B, 0x070D, 0x070F,
+        0x0906, 0x0908, 0x090A, 0x090C, 0x090E, 0x0910,
+        0x0B09, 0x0D08
+    }, {
+        // 6-player:
+        0x0108, 0x010A, 0x010E, 0x0110, 0x0307, 0x0309, 0x030D, 0x030F, 0x0506, 0x0508, 0x050A, 0x050E, 0x0510,
+        0x0705, 0x0707, 0x0709, 0x070B, 0x070D, 0x070F, 0x0711,
+        0x0906, 0x0908, 0x090A, 0x090C, 0x090E, 0x0910, 0x0912,
+        0x0B0B, 0x0B0F, 0x0D0A, 0x0D0E
+    }};
+
+    /**
+     * Wonders: Land hex coordinates for the deserts in the southwest of the main island.
+     * The rest of the main island's hexes are {@link #WOND_LANDHEX_COORD_MAIN}.
+     */
+    private static final int WOND_LANDHEX_COORD_DESERT[][] =
+    {{
+        // 4-player:
+        0x0705, 0x0904, 0x0B05
+    }, {
+        // 6-player:
+        0x0703, 0x0904, 0x0B03, 0x0B05
+    }};
+
+    /**
+     * Wonders: Dice numbers for hexes on the main island. Shuffled.
+     * Dice numbers for small islands are {@link #WOND_DICENUM_ISL}.
+     */
+    private static final int WOND_DICENUM_MAIN[][] =
+    {{
+        2, 3, 3, 3, 4, 4, 5, 5, 6, 6,
+        8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 12
+    }, {
+        2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 6, 6,
+        8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11, 12, 12
+    }};
+
+    /**
+     * Wonders: Port edges and facings. There are no ports on the small islands, only the main one.
+     *<P>
+     * North to South on main island.
+     * Each port has 2 elements: Edge coordinate (0xRRCC), Port Facing.
+     *<P>
+     * Port Facing is the direction from the port edge, to the land hex touching it
+     * which will have 2 nodes where a port settlement/city can be built.
+     *<P>
+     * Port types ({@link #WOND_PORT_TYPE}) are shuffled.
+     */
+    private static final int WOND_PORT_EDGE_FACING[][] =
+    {{
+        // 4 players
+        0x0009, FACING_SE, 0x0206, FACING_SE,  0x030E, FACING_W,  0x0406, FACING_NE,  0x060C, FACING_SE,
+        0x0710, FACING_W,  0x0A07, FACING_NE,  0x0A0A, FACING_NW, 0x0A0E, FACING_NW
+    }, {
+        // 6 players
+        0x0009, FACING_SE,  0x000F, FACING_SE, 0x0202, FACING_SE,  0x0310, FACING_W,  0x0511, FACING_W,
+        0x060C, FACING_SE,  0x0913, FACING_W,  0x0A09, FACING_NE,  0x0A0D, FACING_NE, 0x0A10, FACING_NW
+    }};
+
+    /**
+     * Wonders: Port types; will be shuffled.
+     * Port edge coordinates and facings are {@link #WOND_PORT_EDGE_FACING}.
+     */
+    private static final int WOND_PORT_TYPE[][] =
+    {{
+        // 4 players: 5 special, 4 generic:
+        CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT,
+        MISC_PORT, MISC_PORT, MISC_PORT, MISC_PORT
+    }, {
+        // 6 players: 6 special, 5 generic:
+        CLAY_PORT, ORE_PORT, SHEEP_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT,
+        MISC_PORT, MISC_PORT, MISC_PORT, MISC_PORT, MISC_PORT
+    }};
+
+    /**
+     * Wonders: Hex land types on the several small islands, west to east.
+     * Not shuffled; coordinates for these land hexes are {@link #WOND_LANDHEX_COORD_ISL}.
+     * Dice numbers are {@link #WOND_DICENUM_ISL}.
+     */
+    private static final int WOND_LANDHEX_TYPE_ISL[][] =
+    {{
+        // 4 players:
+        GOLD_HEX, WOOD_HEX, WHEAT_HEX, CLAY_HEX, GOLD_HEX
+    }, {
+        // 6 players:
+        WOOD_HEX, GOLD_HEX, GOLD_HEX, GOLD_HEX
+    }};
+
+    /**
+     * Wonders: Land hex coordinates for the several small islands, west to east.
+     * Hex types for these small islands are {@link #WOND_LANDHEX_TYPE_ISL}.
+     * Dice numbers are {@link #WOND_DICENUM_ISL}.
+     */
+    private static final int WOND_LANDHEX_COORD_ISL[][] =
+    {{
+        // 4 players:
+        0x0502, 0x0303, 0x0104, 0x0D0C, 0x0D0E
+    }, {
+        // 6 players:
+        0x0303, 0x0104, 0x0D12, 0x0313
+    }};
+
+    /**
+     * Wonders: Dice numbers for hexes on the several small islands, same order as {@link #WOND_LANDHEX_COORD_ISL}.
+     * Not shuffled.
+     */
+    private static final int WOND_DICENUM_ISL[][] =
+    {{
+        6, 4, 5, 2, 8
+    }, {
+        4, 6, 8, 6
+    }};
+
+    /**
+     * Wonders: Special Node locations.  Subarrays for each of 3 types:
+     * Great wall at desert; great bridge at strait; no-build nodes near strait.
+     *<P>
+     * SOCBoardLarge additional parts {@code "N1", "N2", "N3"}.
+     */
+    private static final int WOND_SPECIAL_NODES[][][] =
+    {{
+        // 4 players:
+        { 0x0606, 0x0806, 0x0805, 0x0A05, 0x0A06 },
+        { 0x020B, 0x020C },
+        { 0x000B, 0x020A, 0x020D, 0x040C },
+    }, {
+        // 6 players:
+        { 0x0604, 0x0804, 0x0805, 0x0A05, 0x0A06 },
+        { 0x020B, 0x020C, 0x0C0C, 0x0C0D },
+        { 0x000B, 0x020A, 0x020D, 0x040C, 0x0A0C, 0x0C0B, 0x0C0E, 0x0E0D }
     }};
 
 
