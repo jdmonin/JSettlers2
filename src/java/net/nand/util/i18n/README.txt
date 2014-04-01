@@ -2,6 +2,7 @@ README.txt - Notes and current status for the nand.net i18n translator's editor
 
 
 This internationalization editor is used by the JSettlers project, so its "home" is here:
+	download:    http://nand.net/jsettlers/devel/i18n/PTE-0.9.0.jar
 	webpage:     http://nand.net/jsettlers/devel/i18n/
 	bug-tracker: http://sourceforge.net/projects/jsettlers2/
 	source:      https://github.com/jdmonin/JSettlers2
