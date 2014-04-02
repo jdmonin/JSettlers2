@@ -3819,6 +3819,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     drawVillage(g, villIter.next());
             }
 
+            // For scenario _SC_WOND, draw special nodes (layout parts N1, N2, N3)
+            if (game.isGameOptionSet(SOCGameOption.K_SC_WOND))
+            {
+                drawBoardEmpty_specialNodes(g, "N1", new Color(180, 90, 40));   // brown
+                drawBoardEmpty_specialNodes(g, "N2", new Color(120, 40, 120));  // violet
+                drawBoardEmpty_specialNodes(g, "N3", Color.RED);
+            }
+
             // check debugShowPotentials[0 - 9]
             drawBoardEmpty_drawDebugShowPotentials(g);
 
@@ -3922,6 +3930,27 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             y = scaleToActualY(y);
 
             drawMarker(g, x, y, mc, -1);
+        }
+    }
+
+    /**
+     * For a game scenario on {@link SOCBoardLarge}, draw markers at a set of Special Nodes for the players
+     * to reach and be rewarded, retrieved with {@link SOCBoardLarge#getAddedLayoutPart(String)}.
+     *
+     * @param partKey  Key string for the added layout part, for {@link SOCBoardLarge#getAddedLayoutPart(String)}
+     * @param color  Color to fill the markers
+     * @since 2.0.00
+     */
+    private final void drawBoardEmpty_specialNodes(final Graphics g, final String partKey, final Color color)
+    {
+        final int[] nodes = ((SOCBoardLarge) board).getAddedLayoutPart(partKey);
+        if (nodes == null)
+            return;
+
+        for (final int node : nodes)
+        {
+            final int[] nodexy = nodeToXY(node);
+            drawMarker(g, nodexy[0], nodexy[1], color, -1);
         }
     }
 

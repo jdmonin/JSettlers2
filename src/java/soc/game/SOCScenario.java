@@ -302,6 +302,14 @@ public class SOCScenario
      *<P>
      * To win, the player must complete their Wonder's 4 levels, or have 10 VP and
      * complete more levels than any other player.
+     *<P>
+     * Certain sets of nodes are special in this scenario's board layout.
+     * Node sets are retrieved from {@link SOCBoardLarge#getAddedLayoutPart(String)} by key:
+     *<UL>
+     * <LI> {@code "N1"}: Desert Wasteland (for Great Wall wonder)
+     * <LI> {@code "N2"}: Strait (for Great Bridge wonder)
+     * <LI> {@code "N3"}: Adjacent to strait ({@code N2}); initial placement not allowed here
+     *</UL>
      */
     public static final String K_SC_WOND = "SC_WOND";
 
