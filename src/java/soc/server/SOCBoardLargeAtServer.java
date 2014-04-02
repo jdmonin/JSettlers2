@@ -200,6 +200,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * Shuffle the hex tiles and layout a board.
+     * Sets up land hex types, water, ports, dice numbers, Land Areas' contents, starting Land Area if any,
+     * and the legal/potential node sets ({@link SOCBoardLarge#getLegalAndPotentialSettlements()}).
+     *<P>
      * This is called at server, but not at client;
      * client instead calls methods such as {@link #setLandHexLayout(int[])}
      * and {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])},
@@ -229,6 +232,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             }
         }
 
+        /** _SC_4ISL doesn't require startingLandArea, it remains 0; all other scenarios require it. */
         final boolean hasScenario4ISL = scen.equals(SOCScenario.K_SC_4ISL);
 
         // For scenario boards, use 3-player or 4-player or 6-player layout?
@@ -246,6 +250,11 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             else
                 maxPl = opt.getIntValue();
         }
+
+        // Players must start on Land Area 1 (mainland, or for SC_FOG the two large islands),
+        // unless hasScenario4ISL. Set that field now, in case a board-setup method wants it.
+        if (! hasScenario4ISL)
+            startingLandArea = 1;
 
         // shuffle and place the land hexes, numbers, and robber:
         // sets robberHex, contents of hexLayout[] and numberLayout[].
@@ -466,9 +475,13 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             PORT_LOC_FACING_MAINLAND = WOND_PORT_EDGE_FACING[idx];
             PORT_LOC_FACING_ISLANDS = null;
 
+            // special node sets: Added Layout Parts, remove from starting legal/potential nodes
+            // (will have to re-add after initial placement)
             setAddedLayoutPart("N1", WOND_SPECIAL_NODES[idx][0]);
             setAddedLayoutPart("N2", WOND_SPECIAL_NODES[idx][1]);
             setAddedLayoutPart("N3", WOND_SPECIAL_NODES[idx][2]);
+            for (int i = 0; i <= 2; ++i)
+                makeNewBoard_removeLegalNodes(WOND_SPECIAL_NODES[idx][i]);
         }
         else if (! hasScenarioFog)
         {
@@ -556,11 +569,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             PORTS_TYPES_ISLANDS = null;  // no ports inside fog island's random layout
             PORT_LOC_FACING_ISLANDS = null;
         }
-
-        // - Players must start on mainland
-        //   (for fog, the two large islands)
-        if (! hasScenario4ISL)  // hasScenario4ISL doesn't require startingLandArea, it remains 0
-            startingLandArea = 1;
 
         // Set up legalRoadEdges:
         initLegalRoadsFromLandNodes();
@@ -703,6 +711,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * before it starts placement.  You can call it multiple times to set up multiple
      * areas of land hexes: Call once for each land area.
      *<P>
+     * If scenario requires some nodes to be removed from legal placement, after the last call to this method
+     * call {@link #makeNewBoard_removeLegalNodes(int[])}.
+     *<P>
      * This method clears {@link #cachedGetLandHexCoords} to <tt>null</tt>.
      *
      * @param landHexType  Resource type to place into {@link #hexLayoutLg} for each land hex; will be shuffled.
@@ -776,6 +787,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * This method must shuffle and place the unobscured land hexes.
      * After the last call to <tt>makeNewBoard_placeHexes</tt>, call
      * {@link #makeNewBoard_hideHexesInFog(int[])}.
+     *<P>
+     * If scenario requires some nodes to be removed from legal placement, after the last call to this method
+     * call {@link #makeNewBoard_removeLegalNodes(int[])}.
      *<P>
      * This method clears {@link #cachedGetLandHexCoords} to <tt>null</tt>.
      *
@@ -1929,6 +1943,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Call this method once for each land area.
      *<P>
      * Before the first call, clear <tt>nodesOnLand</tt>.
+     *<P>
+     * If scenario requires some nodes to be removed from legal placement, after the last call to this method
+     * call {@link #makeNewBoard_removeLegalNodes(int[])}.
      *
      * @param landHexCoords  Coordinates of a contiguous group of land hexes.
      *                    If <tt>startIdx</tt> and <tt>pastEndIdx</tt> partially use this array,
@@ -1986,7 +2003,28 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             // it's ok to add if this set already contains an Integer equal to nodes[j].
         }
 
-    }  // makeNewBoard_makeLegalNodesFromHexes
+    }
+
+    /**
+     * For {@link #makeNewBoard(Map)}, remove some nodes from legal/potential initial placement
+     * locations.  Used in some scenarios ({@link SOCScenario#K_SC_WOND _SC_WOND}) after the
+     * last call to
+     * {@link #makeNewBoard_placeHexes(int[], int[], int[], boolean, boolean, int, boolean, SOCGameOption, String)}.
+     *<P>
+     * When calling this method, {@link SOCBoardLarge#startingLandArea startingLandArea} must already be set to
+     * its final value (0 is okay).
+     *
+     * @param nodeCoords  Nodes to remove from {@link SOCBoardLarge#landAreasLegalNodes landAreasLegalNodes}
+     *     [{@link SOCBoardLarge#startingLandArea startingLandArea}] and
+     *     {@link SOCBoardLarge#getLegalAndPotentialSettlements()}
+     */
+    private final void makeNewBoard_removeLegalNodes(final int[] nodeCoords)
+    {
+        final HashSet<Integer> legals = landAreasLegalNodes[startingLandArea];
+
+        for (final int node : nodeCoords)
+            legals.remove(Integer.valueOf(node));
+    }
 
     /**
      * For {@link #makeNewBoard(Map)}, hide these hexes under {@link #FOG_HEX} to be revealed later.
