@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -722,10 +722,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Set all nodes to not be potential settlements.
-     * Called by {@link SOCGame#putPiece(SOCPlayingPiece)}
+     * At start of normal game play, set all nodes to not be potential settlements.
+     * Called by {@code SOCGame.updateAtGameFirstTurn()}
      * in state {@link SOCGame#START2A} or {@link SOCGame#START3A} after final initial settlement placement.
-     * After they have placed another road, that road's
+     *<P>
+     * Once they have placed another road, that road's
      * {@link #putPiece(SOCPlayingPiece, boolean)} call will call
      * {@link #updatePotentials(SOCPlayingPiece)}, which
      * will set potentialSettlements at the road's new end node.
