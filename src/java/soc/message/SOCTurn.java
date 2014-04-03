@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,6 +26,11 @@ import java.util.StringTokenizer;
 /**
  * This message from server to client signals end of the current player's turn.
  * Client should end current turn, clear dice, set current player number, reset votes, etc.
+ *<P>
+ * This message is always preceded by a {@link SOCGameState} with the new turn's state.  There may
+ * be a few minor messages (such as {@link SOCSetPlayedDevCard}) sent between them.  Client should
+ * set current game state based on that GAMESTATE message.  Then, when this TURN message changes the
+ * player number, the game will have a known state to inform the new player's options and actions.
  *
  * @author Robert S. Thomas
  * @see SOCSetTurn
