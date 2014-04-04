@@ -107,6 +107,8 @@ import soc.game.SOCScenario;    // for javadocs
 public class SOCBoardLayout2 extends SOCMessage
     implements SOCMessageForGame
 {
+    private static final long serialVersionUID = 2000L;
+
     /**
      * Known layout part keys.  To be ignored by {@link #getAddedParts()} because the client calls
      * specific {@link SOCBoardLarge} methods for each of these, instead of generically calling
