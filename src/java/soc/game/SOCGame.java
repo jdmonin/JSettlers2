@@ -3879,6 +3879,14 @@ public class SOCGame implements Serializable, Cloneable
      * Update game state as needed after initial placement before the first turn of normal play:
      *<UL>
      *<LI> Call each player's {@link SOCPlayer#clearPotentialSettlements()}
+     *<LI> If {@link #hasSeaBoard}, check board for Added Layout Part {@code AL} for node lists that
+     *     become legal locations for settlements after initial placement, and make them legal now.
+     *     (This Added Layout Part is rarely used, currently is in scenario {@link SOCScenario#K_SC_WOND SC_WOND}.)
+     *    <P>
+     *     Calls {@link SOCBoardLarge#addLegalNodes(int[], int)} for each referenced node list.
+     *     Does not adjust players' potential settlement locations, because at the start of a game,
+     *     players won't have roads to any node 2 away from their settlements, so they will have no
+     *     new potential settlements yet.  Does call players' {@link SOCPlayer#addLegalSettlement(int)}.
      *</UL>
      *<P>
      * Called at server and client by {@link #advanceTurnStateAfterPutPiece()}, before {@link #updateAtTurn()}.
@@ -3893,6 +3901,37 @@ public class SOCGame implements Serializable, Cloneable
     {
         for (int pn = 0; pn < maxPlayers; ++pn)
             players[pn].clearPotentialSettlements();
+
+        final int[] partAL =
+            (board instanceof SOCBoardLarge) ? ((SOCBoardLarge) board).getAddedLayoutPart("AL") : null;
+        if (partAL != null)
+        {
+            // Look through board's Added Layout Part AL for node list numbers:
+            // Part AL was already strictly parsed in SOCBoardLarge.initLegalRoadsFromLandNodes(),
+            // so there shouldn't be any problems in it. Ignore problems here instead of throwing exceptions.
+            // If you update the "AL" parser here, update the similar one there too.
+
+            for (int i = 0; i < partAL.length; ++i)
+            {
+                final int elem = partAL[i];
+                if (elem <= 0)
+                    continue;  // ignore unless it's a node list number
+
+                ++i;
+                final int lan = partAL[i];  // land area number follows elem
+
+                final String nodeListKey = "N" + elem;
+                final int[] nodeList = ((SOCBoardLarge) board).getAddedLayoutPart(nodeListKey);
+                if (nodeList == null)
+                    continue;
+
+                ((SOCBoardLarge) board).addLegalNodes(nodeList, lan);
+
+                for (int j = 0; j < nodeList.length; ++j)
+                    for (int pn = maxPlayers - 1; pn >= 0; --pn)
+                        players[pn].addLegalSettlement(nodeList[j]);
+            }
+        }
     }
 
     /**
