@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -55,6 +55,15 @@ import soc.game.SOCScenario;    // for javadocs
  *</UL>
  * A few game scenarios in jsettlers v2.0.00 may add other parts; see {@link #getAddedParts()}.
  *<UL>
+ *<LI> AL: Added List numbers of nodes or edges, originally for {@code _SC_WOND}: After Initial Placement,
+ *         the lists referred here are added to all players' legal nodes / legal edges.
+ *         <UL>
+ *         <LI> Negative numbers (not implemented yet) in {@code AL} refer to layout parts {@code E1} through {@code E9}
+ *              for edges to add.
+ *         <LI> Positive numbers refer to parts {@code N1} through {@code N9} for nodes to add.
+ *              A positive number is always followed in {@code AL} by a Land Area Number, or 0, to add the nodes to.
+ *              For each added node, its edges to adjacent legal nodes will also be added if not already there.
+ *         </UL>
  *<LI> CV: Cloth Village layout, for {@code _SC_CLVI}, from {@link SOCBoardLarge#getVillageAndClothLayout()};
  *         at the client, call {@link SOCBoardLarge#setVillageAndClothLayout(int[])} if this layout part is sent.
  *<LI> CE: dev Card Edge, for {@code _SC_FTRI}; edge coordinates where ship placement gives a free development card.
@@ -64,6 +73,10 @@ import soc.game.SOCScenario;    // for javadocs
  *<LI> LS: Each player's lone additional Legal Settlement location, for {@code _SC_PIRI}: Node coordinates,
  *         one per player number, for the player's lone build location on the way to the pirate fortress.
  *<LI> PP: Pirate fleet Path, for {@code _SC_PIRI}; hex coordinates for {@link SOCBoardLarge#movePirateHexAlongPath(int)}
+ *<LI> E1 through E9: Reserved but not implemented: Special edge lists.  Can be used for any purpose by the
+ *         scenario, and/or for additional legal edges (see layout part {@code AL}).
+ *<LI> N1 through N9: Special node lists, originally for {@code _SC_WOND}.  Can be used for any purpose by a
+ *         scenario, and/or for additional legal nodes (see layout part {@code AL}).
  *</UL>
  * The "CE" and "VE" layout parts are lists of Special Edges on the board.  During game play, these
  * edges may change.  The server announces each change with a {@link SOCBoardSpecialEdge} message.
@@ -76,7 +89,7 @@ import soc.game.SOCScenario;    // for javadocs
  *<LI> v1: HL, NL, RH
  *<LI> v2: HL, NL, RH, maybe PL
  *<LI> v3: LH, maybe PL, maybe RH, maybe PH, never HL or NL. <BR>
- *         Sometimes (for game scenarios) one or more of: PX, RX, CE, CV, LS, PP, VE. <BR>
+ *         Sometimes (for game scenarios) one or more of: PX, RX, CE, CV, LS, PP, VE, AL, N1, N2, N3. <BR>
  *         LH is null before makeNewBoard is called.
  *</UL>
  * Unlike {@link SOCBoardLayout}, dice numbers here equal the actual rolled numbers.
