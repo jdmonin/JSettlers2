@@ -475,13 +475,10 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             PORT_LOC_FACING_MAINLAND = WOND_PORT_EDGE_FACING[idx];
             PORT_LOC_FACING_ISLANDS = null;
 
-            // special node sets: Added Layout Parts, remove from starting legal/potential nodes
-            // (will have to re-add after initial placement)
-            setAddedLayoutPart("N1", WOND_SPECIAL_NODES[idx][0]);
-            setAddedLayoutPart("N2", WOND_SPECIAL_NODES[idx][1]);
-            setAddedLayoutPart("N3", WOND_SPECIAL_NODES[idx][2]);
+            // special node sets: Added Layout Parts, remove from starting legal/potential nodes.
+            // Will have to re-add after initial placement, via addLegalNodes from SOCGame.updateAtGameFirstTurn().
             for (int i = 0; i <= 2; ++i)
-                makeNewBoard_removeLegalNodes(WOND_SPECIAL_NODES[idx][i]);
+                makeNewBoard_removeLegalNodes(WOND_SPECIAL_NODES[idx][i], startingLandArea, i + 1);
         }
         else if (! hasScenarioFog)
         {
@@ -712,7 +709,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * areas of land hexes: Call once for each land area.
      *<P>
      * If scenario requires some nodes to be removed from legal placement, after the last call to this method
-     * call {@link #makeNewBoard_removeLegalNodes(int[])}.
+     * call {@link #makeNewBoard_removeLegalNodes(int[], int, int)}.
      *<P>
      * This method clears {@link #cachedGetLandHexCoords} to <tt>null</tt>.
      *
@@ -789,7 +786,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * {@link #makeNewBoard_hideHexesInFog(int[])}.
      *<P>
      * If scenario requires some nodes to be removed from legal placement, after the last call to this method
-     * call {@link #makeNewBoard_removeLegalNodes(int[])}.
+     * call {@link #makeNewBoard_removeLegalNodes(int[], int, int)}.
      *<P>
      * This method clears {@link #cachedGetLandHexCoords} to <tt>null</tt>.
      *
@@ -1945,7 +1942,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Before the first call, clear <tt>nodesOnLand</tt>.
      *<P>
      * If scenario requires some nodes to be removed from legal placement, after the last call to this method
-     * call {@link #makeNewBoard_removeLegalNodes(int[])}.
+     * call {@link #makeNewBoard_removeLegalNodes(int[], int, int)}.
      *
      * @param landHexCoords  Coordinates of a contiguous group of land hexes.
      *                    If <tt>startIdx</tt> and <tt>pastEndIdx</tt> partially use this array,
@@ -2007,23 +2004,62 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * For {@link #makeNewBoard(Map)}, remove some nodes from legal/potential initial placement
-     * locations.  Used in some scenarios ({@link SOCScenario#K_SC_WOND _SC_WOND}) after the
-     * last call to
+     * locations.  Does not remove from {@link SOCBoard#nodesOnLand nodesOnLand}.
+     * Used in some scenarios ({@link SOCScenario#K_SC_WOND _SC_WOND}) after the last call to
      * {@link #makeNewBoard_placeHexes(int[], int[], int[], boolean, boolean, int, boolean, SOCGameOption, String)}.
      *<P>
-     * When calling this method, {@link SOCBoardLarge#startingLandArea startingLandArea} must already be set to
-     * its final value (0 is okay).
+     * To re-add nodes after initial placement, call {@link SOCBoardLarge#addLegalNodes(int[], int)}.
+     * This is done automatically by {@link SOCGame#updateAtGameFirstTurn()} if the nodes are
+     * in lists referenced from Added Layout Part {@code AL} (see parameter {@code addNodeListNumber}).
      *
      * @param nodeCoords  Nodes to remove from {@link SOCBoardLarge#landAreasLegalNodes landAreasLegalNodes}
-     *     [{@link SOCBoardLarge#startingLandArea startingLandArea}] and
-     *     {@link SOCBoardLarge#getLegalAndPotentialSettlements()}
+     *     [{@code landAreaNumber}] and {@link SOCBoardLarge#getLegalAndPotentialSettlements()}
+     * @param landAreaNumber  Land Area to remove nodes from.  If this is
+     *     {@link SOCBoardLarge#startingLandArea startingLandArea},
+     *     will also remove the nodes from potential initial settlement locations.
+     * @param addNodeListNumber  If != 0, these nodes will be re-added to legal locations after initial placement.
+     *     Adds this node list number to Added Layout Part {@code AL} and calls
+     *     {@link #setAddedLayoutPart(String, int[]) setAddedLayoutPart("N" + addNodeListNumber, nodeCoords)}
+     *     to add a Layout Part such as {@code N1}, {@code N2}, etc.
+     *     For details see the {@code SOCBoardLayout2} message javadoc.
+     * @throws IllegalArgumentException if {@code landAreaNumber} &lt;= 0 or {@code addNodeListNumber} &lt; 0
      */
-    private final void makeNewBoard_removeLegalNodes(final int[] nodeCoords)
+    private final void makeNewBoard_removeLegalNodes
+        (final int[] nodeCoords, final int landAreaNumber, final int addNodeListNumber)
+        throws IllegalArgumentException
     {
-        final HashSet<Integer> legals = landAreasLegalNodes[startingLandArea];
+        if (landAreaNumber <= 0)
+            throw new IllegalArgumentException("landAreaNumber: " + landAreaNumber);
+        if (addNodeListNumber < 0)
+            throw new IllegalArgumentException("addNodeListNumber: " + addNodeListNumber);
+
+        final HashSet<Integer> legals = landAreasLegalNodes[landAreaNumber];
 
         for (final int node : nodeCoords)
             legals.remove(Integer.valueOf(node));
+
+        if (addNodeListNumber != 0)
+        {
+            setAddedLayoutPart("N" + addNodeListNumber, nodeCoords);
+
+            // create or append to Part "AL"
+            int L;
+            int[] partAL = getAddedLayoutPart("AL");
+            if (partAL == null)
+            {
+                L = 0;
+                partAL = new int[2];
+            } else {
+                L = partAL.length;
+                int[] newAL = new int[L + 2];
+                System.arraycopy(partAL, 0, newAL, 0, L);
+                partAL = newAL;
+            }
+
+            partAL[L] = addNodeListNumber;
+            partAL[L + 1] = landAreaNumber;
+            setAddedLayoutPart("AL", partAL);
+        }
     }
 
     /**

@@ -1873,8 +1873,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * handle the "list of potential settlements" message
      * @param mes  the message
      * @param games  The hashtable of client's {@link SOCGame}s; key = game name
+     * @throws IllegalStateException if the board has
+     *     {@link SOCBoardLarge#getAddedLayoutPart(String) SOCBoardLarge.getAddedLayoutPart("AL")} != {@code null} but
+     *     badly formed (node list number 0, or a node list number not followed by a land area number).
+     *     This Added Layout Part is rarely used, and this would be discovered quickly while testing
+     *     the board layout that contained it.
      */
     public static void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes, Hashtable<String, SOCGame> games)
+        throws IllegalStateException
     {
         SOCGame ga = games.get(mes.getGame());
         if (ga == null)
@@ -1891,7 +1897,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
             SOCBoardLarge bl = ((SOCBoardLarge) ga.getBoard());
             if ((pn == -1) || bl.getLegalAndPotentialSettlements().isEmpty())
                 bl.setLegalAndPotentialSettlements
-                  (vset, mes.startingLandArea, las);
+                  (vset, mes.startingLandArea, las);  // throws IllegalStateException if board layout
+                                                      // has malformed Added Layout Part AL
             loneSettles = bl.getAddedLayoutPart("LS");  // usually null, except in _SC_PIRI
         } else {
             loneSettles = null;

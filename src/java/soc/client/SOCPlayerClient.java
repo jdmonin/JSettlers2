@@ -4153,8 +4153,14 @@ public class SOCPlayerClient
     /**
      * handle the "list of potential settlements" message
      * @param mes  the message
+     * @throws IllegalStateException if the board has
+     *     {@link SOCBoardLarge#getAddedLayoutPart(String) SOCBoardLarge.getAddedLayoutPart("AL")} != {@code null} but
+     *     badly formed (node list number 0, or a node list number not followed by a land area number).
+     *     This Added Layout Part is rarely used, and this would be discovered quickly while testing
+     *     the board layout that contained it.
      */
     protected void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes)
+        throws IllegalStateException
     {
         System.err.println("L3292 potentialsettles at " + System.currentTimeMillis());
         SOCDisplaylessPlayerClient.handlePOTENTIALSETTLEMENTS(mes, games);

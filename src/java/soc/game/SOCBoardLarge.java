@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -521,9 +521,8 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * The legal set of land edge coordinates to build roads,
      * based on {@link #nodesOnLand}.
-     * Calculated in {@link #initLegalRoadsFromLandNodes()},
-     * after {@link #nodesOnLand} is filled by
-     * <tt>SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)</tt>.
+     * Calculated in {@link #initLegalRoadsFromLandNodes()}, after {@link #nodesOnLand} is filled by
+     * {@code SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}.
      * Used by {@link #initPlayerLegalRoads()}.
      * @see #legalShipEdges
      */
@@ -532,9 +531,9 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * The legal set of water/coastline edge coordinates to build ships,
      * based on {@link #hexLayoutLg}.
-     * Calculated in {@link #initLegalShipEdges()},
-     * after {@link #hexLayoutLg} is filled by
-     * <tt>SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)</tt>.
+     * Calculated in {@link #initLegalShipEdges()}, after {@link #hexLayoutLg} is filled by
+     * {@code SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}.
+     *<P>
      * Used by {@link #initPlayerLegalShips()}.
      * Updated in {@link #revealFogHiddenHex(int, int, int)} for {@link SOCBoard#WATER_HEX WATER_HEX}.
      *<P>
@@ -761,28 +760,82 @@ public class SOCBoardLarge extends SOCBoard
      * Once the legal settlement/city nodes ({@link #nodesOnLand})
      * are established from land hexes, fill {@link #legalRoadEdges}.
      * Not iterative; clears all previous legal roads.
-     * Call this only after the very last call to
-     * <tt>SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)</tt>.
      *<P>
-     * Called at server and at client.
+     * For scenarios, if Added Layout Part {@code AL} is present, checks it for
+     * references to node lists (Parts {@code N1, N2}, etc) and if found, adds their
+     * edges now so that initial settlements' roads can be built towards those nodes.
+     * For more info see the {@code SOCBoardLayout2} message javadoc.
+     *<P>
+     * Called at server and at client. At server, call this only after the very last call to
+     * {@code SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}.
+     * At client, called from {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}.
+     *
+     * @throws IllegalStateException if Part {@code AL} is present but badly formed (node list number 0,
+     *     or a node list number not followed by a land area number) or refers to a node list Part ({@code N1, N2}, etc)
+     *     not present in the layout
+     * @see #initLegalShipEdges()
      */
     protected void initLegalRoadsFromLandNodes()
+        throws IllegalStateException
     {
         // About corners/concave parts:
         //   Set of the valid nodes will contain both ends of the edge;
         //   anything concave across a sea would be missing at least 1 node, in the water along the way.
 
-        // Go from nodesOnLand, iterate all nodes:
-
         legalRoadEdges.clear();
 
-        for (Integer nodeVal : nodesOnLand)
+        // Go from nodesOnLand.  If Part AL refers to node lists, build and
+        // use a temporary landNodes set with nodesOnLand + those nodes
+        // instead. (Part AL is rare)
+
+        HashSet<Integer> landNodes = nodesOnLand;
+        final int[] partAL = getAddedLayoutPart("AL");
+        if (partAL != null)
+        {
+            boolean foundNodes = false;
+
+            // Strictly parse the contents of "AL", throw exceptions if a problem is found.
+            // Part AL will be parsed again in SOCGame.updateAtGameFirstTurn().
+            // If you update the "AL" parser here, update the similar one there too.
+
+            for (int i = 0; i < partAL.length; ++i)
+            {
+                final int elem = partAL[i];
+                if (elem < 0)
+                    continue;  // edge list number, skip it
+                else if (elem == 0)
+                    throw new IllegalStateException("Bad Layout Part: AL[" + i + "] == 0");
+                else if (i == (partAL.length - 1))
+                    throw new IllegalStateException("Bad Layout Part: AL[" + i + "] must be followed by LA#");
+
+                ++i;  // skip land area number that follows elem
+
+                final String nodeListKey = "N" + elem;
+                final int[] nodeList = getAddedLayoutPart(nodeListKey);
+                if (nodeList == null)
+                    throw new IllegalStateException
+                        ("Bad Layout Part: AL[" + i + "] == " + elem + " but Part " + nodeListKey + " missing");
+
+                if (! foundNodes)
+                {
+                    landNodes = new HashSet<Integer>(nodesOnLand);
+                    foundNodes = true;
+                }
+
+                for (int j = 0; j < nodeList.length; ++j)
+                    landNodes.add(Integer.valueOf(nodeList[j]));
+            }
+        }
+
+        // Go from nodesOnLand or landNodes, iterate all nodes:
+
+        for (Integer nodeVal : landNodes)
         {
             final int node = nodeVal.intValue();
             for (int dir = 0; dir < 3; ++dir)
             {
                 int nodeAdjac = getAdjacentNodeToNode(node, dir);
-                if (nodesOnLand.contains(new Integer(nodeAdjac)))
+                if (landNodes.contains(Integer.valueOf(nodeAdjac)))
                 {
                     final int edge = getAdjacentEdgeToNode(node, dir);
 
@@ -811,7 +864,38 @@ public class SOCBoardLarge extends SOCBoard
             }
         }
 
-    }  // makeNewBoard_makeLegalRoadsFromNodes
+    }
+
+    /**
+     * Add nodes to Nodes On Land and optionally to a a Land Area's legal nodes.
+     *<P>
+     * Called at server and client from {@link SOCGame#updateAtGameFirstTurn()}
+     * for node lists referenced in in Added Layout Part {@code AL}.
+     * For details see {@code AL} in the javadoc for message {@link SOCBoardLayout2}.
+     *<P>
+     * Currently does not add the new nodes' edges to {@link #legalRoadEdges},
+     * because it assumes the nodes are from Part {@code AL}, so their edges
+     * were added in {@link #initLegalRoadsFromLandNodes()}.
+     *
+     * @param nodes  Node coordinates to add. Not checked for validity, not checked to be land not water
+     * @param lan  Land Area number to add legal nodes, or 0 to add only to Nodes On Land
+     * @since 2.0.00
+     */
+    public final void addLegalNodes(final int[] nodes, final int lan)
+    {
+        HashSet<Integer> area = (lan > 0) ? landAreasLegalNodes[lan] : null;
+
+        for (int i = 0; i < nodes.length; ++i)
+        {
+            Integer iobj = Integer.valueOf(nodes[i]);
+            nodesOnLand.add(iobj);
+            if (area != null)
+                area.add(iobj);
+        }
+
+        // If new nodes weren't in layout part AL, would need to add their edges
+        // to legalRoadEdges; could refactor initLegalRoadsFromLandNodes.
+    }
 
     /**
      * Once the legal settlement/city nodes ({@link #nodesOnLand})
@@ -821,10 +905,12 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Not iterative; clears all previous legal ship edges.
      * Call this only after the very last call to
-     * <tt>SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)</tt>.
+     * {@code SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}
+     * so that all land hexes are already placed.
      *<P>
      * Called at server and at client.
      * @see #initPlayerLegalShips()
+     * @see #initLegalRoadsFromLandNodes()
      */
     protected void initLegalShipEdges()
     {
@@ -2119,8 +2205,15 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Set the legal and potential settlements, and recalculate
-     * the legal roads and ship edges; called at client only.
+     * Set the legal and potential settlements, and calculate the Nodes On Land, legal roads and ship edges.
+     * Called at client only, when server sends potential settlements following the board layout message.
+     *<P>
+     * Nodes On Land will be the union of all {@code lan[]} nodes; legal roads are calculated from Nodes On Land.
+     * If {@code sla != 0}, then {@code lan[sla]} is also the set of potential settlement locations for initial
+     * placement. If any nodes have been removed from {@code lan[sla]} due to scenario rules, but will be valid
+     * after initial placement, those nodes must be referenced in Added Layout Part {@code AL} for that to
+     * automatically happen and for their adjacent edges to be part of the legal roads calculated here. For details
+     * see the javadoc for message {@code SOCBoardLayout2}.
      *<P>
      * Call this only after {@link #setLandHexLayout(int[])}.
      * After calling this method, you can get the new legal road set
@@ -2140,9 +2233,13 @@ public class SOCBoardLarge extends SOCBoard
      * @param sla  The required starting Land Area number, or 0
      * @param lan If non-null, all Land Areas' legal node coordinates.
      *     Index 0 is ignored; land area numbers start at 1.
+     * @throws IllegalStateException if Added Layout Part {@code AL} is present but badly formed (node list number 0,
+     *     or a node list number not followed by a land area number). This Added Layout Part is rarely used,
+     *     and this would be discovered quickly while testing the board layout that contained it.
      */
     public void setLegalAndPotentialSettlements
         (final Collection<Integer> psNodes, final int sla, final HashSet<Integer>[] lan)
+        throws IllegalStateException
     {
         if (lan == null)
         {
@@ -2167,7 +2264,7 @@ public class SOCBoardLarge extends SOCBoard
                 nodesOnLand.addAll(lan[i]);
         }
 
-        initLegalRoadsFromLandNodes();
+        initLegalRoadsFromLandNodes();  // throws IllegalStateException if malformed Added Layout Part AL
         initLegalShipEdges();
     }
 
