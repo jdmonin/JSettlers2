@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,8 +23,12 @@ import java.util.StringTokenizer;
 
 /**
  * This message from server updates the value(s) of a piece on the board.
- * Example: Cloth count for a village in the cloth trade scenario.
- *<P>
+ *
+ * <H5>Current uses (v2.0.00):</H5>
+ *<UL>
+ * <LI> Cloth count for a village in the {@code SC_CLVI} cloth trade scenario
+ * <LI> Fortress strength in the {@code SC_PIRI} pirate islands scenario
+ *</UL>
  * Param 1: Coordinate of the piece to be updated <br>
  * Param 2: New value for the piece <br>
  * Param 3: New secondary value (if piece has 2 value fields), or 0
