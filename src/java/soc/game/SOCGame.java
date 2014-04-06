@@ -997,6 +997,15 @@ public class SOCGame implements Serializable, Cloneable
     private int[] devCardDeck;
 
     /**
+     * Game's {@link SOCSpecialItem}s, if any, by type.
+     * This is not the union of each player's {@code spItems}, but a separately maintained Map of item lists.
+     * See getter/setter javadocs for details on type keys and rationale for lack of synchronization.
+     * ArrayList is used to guarantee we can store null items.
+     * @since 2.0.00
+     */
+    private HashMap<String, ArrayList<SOCSpecialItem>> spItems;
+
+    /**
      * used to generate random numbers
      */
     private Random rand = new Random();
@@ -1207,6 +1216,7 @@ public class SOCGame implements Serializable, Cloneable
         seats = new int[maxPlayers];
         seatLocks = new SeatLockState[maxPlayers];
         boardResetVotes = new int[maxPlayers];
+        spItems = new HashMap<String, ArrayList<SOCSpecialItem>>();
 
         for (int i = 0; i < maxPlayers; i++)
         {
@@ -2056,6 +2066,95 @@ public class SOCGame implements Serializable, Cloneable
     public void setNumDevCards(final int nd)
     {
         numDevCards = nd;
+    }
+
+    /**
+     * Get a list of all special items of a given type in this game.
+     * This is not the union of each player's {@code spItems}, but a separately maintained list of items.
+     * Only some scenarios and expansions use Special Items.
+     *<P>
+     * <B>Locks:</B> This getter is not synchronized: It's assumed that the structure of Special Item lists
+     * is set up at game creation time, and not often changed.  If a specific item type or access pattern
+     * requires synchronization, do so outside this class and document the details.
+     *
+     * @param typeKey  Special item type.  Typically a {@link SOCGameOption} keyname; see the {@link SOCSpecialItem}
+     *     class javadoc for details.
+     * @return  List of all special items of that type, or {@code null} if none; will never return an empty list.
+     *     Some list items may be {@code null} depending on the list structure created by the scenario or expansion.
+     * @since 2.0.00
+     * @see SOCPlayer#getSpecialItems(String)
+     */
+    public ArrayList<SOCSpecialItem> getSpecialItems(final String typeKey)
+    {
+        final ArrayList<SOCSpecialItem> ret = spItems.get(typeKey);
+        if ((ret == null) || ret.isEmpty())
+            return null;
+
+        return ret;
+    }
+
+    /**
+     * Get a special item of a given type, by index within the list of all items of that type in this game.
+     * This is not the union of each player's {@code spItems}, but a separately maintained list of items.
+     * Only some scenarios and expansions use Special Items.
+     *<P>
+     * <B>Locks:</B> This getter is not synchronized: It's assumed that the structure of Special Item lists
+     * is set up at game creation time, and not often changed.  If a specific item type or access pattern
+     * requires synchronization, do so outside this class and document the details.
+     *
+     * @param typeKey  Special item type.  Typically a {@link SOCGameOption} keyname; see the {@link SOCSpecialItem}
+     *     class javadoc for details.
+     * @param idx  Index within the list of special items of that type; must be within the list's current size
+     * @return  The special item, or {@code null} if none of that type or if that index is {@code null} within the list
+     * @throws IndexOutOfBoundsException  if {@code idx} &lt; 0 or {@code idx} &gt;= list's current size
+     * @since 2.0.00
+     * @see SOCPlayer#getSpecialItem(String, int)
+     */
+    public SOCSpecialItem getSpecialItem(final String typeKey, final int idx)
+        throws IndexOutOfBoundsException
+    {
+        final ArrayList<SOCSpecialItem> li = spItems.get(typeKey);
+        if (li == null)
+            return null;
+
+        return li.get(idx);
+    }
+
+    /**
+     * Add or replace a special item in the game's list of items of that type.
+     * This is not the union of each player's {@code spItems}, but a separately maintained list of items.
+     * Only some scenarios and expansions use Special Items.
+     * @param typeKey  Special item type.  Typically a {@link SOCGameOption} keyname; see the {@link SOCSpecialItem}
+     *     class javadoc for details.  If no list with this key exists, it will be created here.
+     * @param idx  Index within the list of special items of that type; if this is past the list's current size,
+     *     {@code null} elements will be inserted as needed until {@code idx} is a valid index
+     *     If {@code idx} is within the list, the current element at that index will be replaced.
+     * @param itm  Item object to set within the list
+     * @return  The item previously at this index, or {@code null} if none
+     * @throws IndexOutOfBoundsException  if {@code idx} &lt; 0
+     * @see SOCPlayer#setSpecialItem(String, int, SOCSpecialItem)
+     */
+    public SOCSpecialItem setSpecialItem(final String typeKey, final int idx, SOCSpecialItem itm)
+        throws IndexOutOfBoundsException
+    {
+        ArrayList<SOCSpecialItem> li = spItems.get(typeKey);
+        if (li == null)
+        {
+            li = new ArrayList<SOCSpecialItem>();
+            spItems.put(typeKey, li);
+        }
+
+        final int L = li.size();
+        if (idx < L)
+        {
+            return li.set(idx, itm);
+        } else {
+            for (int n = idx - L; n > 0; --n)  // if idx == L, n is 0, no nulls are needed
+                li.add(null);
+
+            li.add(itm);
+            return null;
+        }
     }
 
     /**

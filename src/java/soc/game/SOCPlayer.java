@@ -32,6 +32,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -152,6 +153,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @since 2.0.00
      */
     private SOCFortress fortress;
+
+    /**
+     * Player's {@link SOCSpecialItem}s, if any, by type.
+     * See getter/setter javadocs for details on type keys and
+     * rationale for lack of synchronization.
+     * ArrayList is used to guarantee we can store null items.
+     * @since 2.0.00
+     */
+    private HashMap<String, ArrayList<SOCSpecialItem>> spItems;
 
     /**
      * The node coordinate of our most recent settlement.
@@ -551,6 +561,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         roads = new Vector<SOCRoad>(player.roads);
         settlements = new Vector<SOCSettlement>(player.settlements);
         cities = new Vector<SOCCity>(player.cities);
+        spItems = new HashMap<String, ArrayList<SOCSpecialItem>>();  // TODO deep copy
         fortress = player.fortress;
         numWarships = player.numWarships;
         longestRoadLength = player.longestRoadLength;
@@ -663,6 +674,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         roads = new Vector<SOCRoad>(15);
         settlements = new Vector<SOCSettlement>(5);
         cities = new Vector<SOCCity>(4);
+        spItems = new HashMap<String, ArrayList<SOCSpecialItem>>();
         longestRoadLength = 0;
         lrPaths = new Vector<SOCLRPathData>();
         resources = new SOCResourceSet();
@@ -1139,6 +1151,92 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public Vector<SOCCity> getCities()
     {
         return cities;
+    }
+
+    /**
+     * Get a list of all special items of a given type held by the player.
+     * Only some scenarios and expansions use Special Items.
+     *<P>
+     * <B>Locks:</B> This getter is not synchronized: It's assumed that the structure of Special Item lists
+     * is set up at game creation time, and not often changed.  If a specific item type or access pattern
+     * requires synchronization, do so outside this class and document the details.
+     *
+     * @param typeKey  Special item type.  Typically a {@link SOCGameOption} keyname; see the {@link SOCSpecialItem}
+     *     class javadoc for details.
+     * @return  List of all special items of that type, or {@code null} if none; will never return an empty list.
+     *     Some list items may be {@code null} depending on the list structure created by the scenario or expansion.
+     * @since 2.0.00
+     * @see SOCGame#getSpecialItems(String)
+     */
+    public ArrayList<SOCSpecialItem> getSpecialItems(final String typeKey)
+    {
+        final ArrayList<SOCSpecialItem> ret = spItems.get(typeKey);
+        if ((ret == null) || ret.isEmpty())
+            return null;
+
+        return ret;
+    }
+
+    /**
+     * Get a special item of a given type, by index within the list of all items of that type held by the player.
+     * Only some scenarios and expansions use Special Items.
+     *<P>
+     * <B>Locks:</B> This getter is not synchronized: It's assumed that the structure of Special Item lists
+     * is set up at game creation time, and not often changed.  If a specific item type or access pattern
+     * requires synchronization, do so outside this class and document the details.
+     *
+     * @param typeKey  Special item type.  Typically a {@link SOCGameOption} keyname; see the {@link SOCSpecialItem}
+     *     class javadoc for details.
+     * @param idx  Index within the list of special items of that type; must be within the list's current size
+     * @return  The special item, or {@code null} if none of that type or if that index is {@code null} within the list
+     * @throws IndexOutOfBoundsException  if {@code idx} &lt; 0 or {@code idx} &gt;= list's current size
+     * @since 2.0.00
+     * @see SOCGame#getSpecialItem(String, int)
+     */
+    public SOCSpecialItem getSpecialItem(final String typeKey, final int idx)
+        throws IndexOutOfBoundsException
+    {
+        final ArrayList<SOCSpecialItem> li = spItems.get(typeKey);
+        if (li == null)
+            return null;
+
+        return li.get(idx);
+    }
+
+    /**
+     * Add or replace a special item in the player's list of items of that type.
+     * Only some scenarios and expansions use Special Items.
+     * @param typeKey  Special item type.  Typically a {@link SOCGameOption} keyname; see the {@link SOCSpecialItem}
+     *     class javadoc for details.  If no list with this key exists, it will be created here.
+     * @param idx  Index within the list of special items of that type; if this is past the list's current size,
+     *     {@code null} elements will be inserted as needed until {@code idx} is a valid index
+     *     If {@code idx} is within the list, the current element at that index will be replaced.
+     * @param itm  Item object to set within the list
+     * @return  The item previously at this index, or {@code null} if none
+     * @throws IndexOutOfBoundsException  if {@code idx} &lt; 0
+     * @see SOCGame#setSpecialItem(String, int, SOCSpecialItem)
+     */
+    public SOCSpecialItem setSpecialItem(final String typeKey, final int idx, SOCSpecialItem itm)
+        throws IndexOutOfBoundsException
+    {
+        ArrayList<SOCSpecialItem> li = spItems.get(typeKey);
+        if (li == null)
+        {
+            li = new ArrayList<SOCSpecialItem>();
+            spItems.put(typeKey, li);
+        }
+
+        final int L = li.size();
+        if (idx < L)
+        {
+            return li.set(idx, itm);
+        } else {
+            for (int n = idx - L; n > 0; --n)  // if idx == L, n is 0, no nulls are needed
+                li.add(null);
+
+            li.add(itm);
+            return null;
+        }
     }
 
     /**
@@ -4485,6 +4583,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         settlements = null;
         cities.removeAllElements();
         cities = null;
+        spItems.clear();
+        spItems = null;
         fortress = null;
         resources = null;
         resourceStats = null;
