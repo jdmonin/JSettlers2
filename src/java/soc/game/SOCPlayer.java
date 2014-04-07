@@ -561,7 +561,30 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         roads = new Vector<SOCRoad>(player.roads);
         settlements = new Vector<SOCSettlement>(player.settlements);
         cities = new Vector<SOCCity>(player.cities);
-        spItems = new HashMap<String, ArrayList<SOCSpecialItem>>();  // TODO deep copy
+        spItems = new HashMap<String, ArrayList<SOCSpecialItem>>();
+        if (! player.spItems.isEmpty())
+        {
+            // deep copy
+            for (final String optKey : player.spItems.keySet())
+            {
+                final ArrayList<SOCSpecialItem> old = player.spItems.get(optKey);
+                if (old.isEmpty())
+                    continue;
+
+                ArrayList<SOCSpecialItem> anew = new ArrayList<SOCSpecialItem>();
+                final int L = old.size();
+                try
+                {
+                    for (i = 0; i < L; ++i)
+                    {
+                        SOCSpecialItem itm = old.get(i);
+                        anew.add((itm != null) ? itm.clone() : null);
+                    }
+                } catch (CloneNotSupportedException e) {}  // Should not occur: SOCSpecialItem implements Cloneable
+
+                spItems.put(optKey, anew);
+            }
+        }
         fortress = player.fortress;
         numWarships = player.numWarships;
         longestRoadLength = player.longestRoadLength;
