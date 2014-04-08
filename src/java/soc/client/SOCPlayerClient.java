@@ -3480,7 +3480,8 @@ public class SOCPlayerClient
             bd.setHexLayout(mes.getHexLayout());
             bd.setNumberLayout(mes.getNumberLayout());
             bd.setRobberHex(mes.getRobberHex(), false);
-            
+            ga.updateAtBoardLayout();
+
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
             pcl.boardLayoutUpdated();
         }

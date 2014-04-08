@@ -255,7 +255,7 @@ public class SOCGameOption
     /**
      * Scenario key {@code _SC_WOND} for Wonders.
      * Special unique "wonders" claimed by players and built up to several levels.
-     * For more details and special rules see {@link SOCScenario#K_SC_WOND}.
+     * For more details, special rules, and Special Items, see {@link SOCScenario#K_SC_WOND}.
      * @since 2.0.00
      */
     public static final String K_SC_WOND = "_SC_WOND";

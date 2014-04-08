@@ -1053,6 +1053,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             bd.setHexLayout(mes.getHexLayout());
             bd.setNumberLayout(mes.getNumberLayout());
             bd.setRobberHex(mes.getRobberHex(), false);
+            ga.updateAtBoardLayout();
         }
     }
 
@@ -1119,6 +1120,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             return false;
         }
 
+        ga.updateAtBoardLayout();
         return true;
     }
 

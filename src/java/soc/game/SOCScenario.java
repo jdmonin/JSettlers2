@@ -218,7 +218,7 @@ public class SOCScenario
                  "Players must choose a unique Wonder and build all 4 of its levels. "
                  + "Each Wonder has its own requirements before you may start it, "
                  + "such as a harbor location or number of cities built. To win, you "
-                 + "must complete your Wonder's 4 levels, or have 10 VP and complete "
+                 + "must complete your Wonder's 4 levels, or reach 10 VP and complete "
                  + "more levels than any other player.",
                  "_SC_WOND=t,PLL=t,VP=t10,_SC_SANY=t"));  // win condition: Complete Wonder, or 10 VP _and_ built the most levels
 
@@ -298,9 +298,9 @@ public class SOCScenario
      * Each Wonder has its own requirements before they may start it,
      * such as a harbor location or number of cities built.
      *<P>
-     * When a player starts to build a wonder, it's added to their inventory for visibility.
+     * When a player starts to build a wonder, it's added to their Special Items for visibility; see below.
      *<P>
-     * To win, the player must complete their Wonder's 4 levels, or have 10 VP and
+     * To win, the player must complete their Wonder's 4 levels, or reach 10 VP and
      * complete more levels than any other player.
      *<P>
      * Certain sets of nodes are special in this scenario's board layout.
@@ -308,8 +308,13 @@ public class SOCScenario
      *<UL>
      * <LI> {@code "N1"}: Desert Wasteland (for Great Wall wonder)
      * <LI> {@code "N2"}: Strait (for Great Bridge wonder)
-     * <LI> {@code "N3"}: Adjacent to strait ({@code N2}); initial placement not allowed here
+     * <LI> {@code "N3"}: Adjacent to Strait ({@code N2}); initial placement not allowed here
      *</UL>
+     * The Wonders are stored as per-game Special Items: There are (1 + {@link SOCGame#maxPlayers}) wonders available,
+     * held in game Special Item indexes 1 - n, with type key {@link SOCGameOption#K_SC_WOND},
+     * initialized in {@link SOCGame#updateAtBoardLayout()}.  When a player starts to build a Wonder, a reference
+     * to its {@link SOCSpecialItem} is placed into index 0 of their Special Items:
+     * {@link SOCPlayer#setSpecialItem(String, int, SOCSpecialItem) pl.setSpecialItem("_SC_WOND", 0, item)}.
      */
     public static final String K_SC_WOND = "SC_WOND";
 

@@ -2244,6 +2244,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * {@link SOCPlayer#setRestrictedLegalShips(int[])} before calling this method,
      * so the legal and potential arrays will be initialized.
      * @see #getLegalSeaEdges(SOCGame, int)
+     * @see SOCGame#updateAtBoardLayout()
      */
     public void startGame_putInitPieces(SOCGame ga)
     {

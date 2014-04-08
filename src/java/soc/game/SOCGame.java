@@ -3703,7 +3703,8 @@ public class SOCGame implements Serializable, Cloneable
      * choose first player.
      * gameState becomes {@link #START1A}.
      *<P>
-     * Called only at server, not client.
+     * Called only at server, not client.  For a method called during game start
+     * at server and clients, see {@link #updateAtBoardLayout()}.
      *<P>
      * Some scenarios require other methods to finish setting up the game;
      * call them in this order before any other board or game methods:
@@ -3737,6 +3738,7 @@ public class SOCGame implements Serializable, Cloneable
             for (int i = 0; i < maxPlayers; ++i)
                 players[i].setPotentialAndLegalSettlements(psList, true, las);
         }
+        updateAtBoardLayout();
 
         allOriginalPlayers = true;
         gameState = START1A;
@@ -3972,6 +3974,32 @@ public class SOCGame implements Serializable, Cloneable
 
         if ((players[currentPlayerNumber].getTotalVP() >= vp_winner) || hasScenarioWinCondition)
             checkForWinner();  // Will do nothing during Special Building Phase
+    }
+
+    /**
+     * Update any miscellaneous game info as needed after the board layout is set, before the game starts.
+     *<P>
+     * Called at server and clients during game startup, immediately after all board-layout methods
+     * and related game methods like {@link #setPlayersLandHexCoordinates()} have been called.
+     *<P>
+     * When called at the client, the board layout is set, but neither the gameState nor the players'
+     * potential settlements have been sent from the server yet.
+     *<P>
+     * Currently used only for Special Item placement by the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario,
+     * where (1 + {@link #maxPlayers}) wonders are available for the players to choose from, held in game
+     * Special Item indexes 1 - n.  Because of this limited and non-dynamic use, it's easier to set them up in code
+     * here than to create, send, and parse messages about the game's Special Items.
+     *
+     * @since 2.0.00
+     */
+    public void updateAtBoardLayout()
+    {
+        if (! isGameOptionSet(SOCGameOption.K_SC_WOND))
+            return;
+
+        final int numWonders = 1 + maxPlayers;
+        for (int i = 1; i <= numWonders; ++i)
+            setSpecialItem(SOCGameOption.K_SC_WOND, i, new SOCSpecialItem(null, -1));
     }
 
     /**
@@ -7585,8 +7613,8 @@ public class SOCGame implements Serializable, Cloneable
      */
     public SOCGame resetAsCopy()
     {
-        // the constructor will set most fields based on game options
         SOCGame cp = new SOCGame(name, active, SOCGameOption.cloneOptions(opts));
+            // the constructor will set most fields, based on game options
 
         cp.isFromBoardReset = true;
         oldGameState = gameState;  // for getResetOldGameState()
