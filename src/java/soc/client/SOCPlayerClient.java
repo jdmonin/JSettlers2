@@ -2967,6 +2967,14 @@ public class SOCPlayerClient
                 handleINVENTORYITEMACTION((SOCInventoryItemAction) mes);
                 break;
 
+            /**
+             * Special Item change announcements.
+             * Added 2014-04-16 for v2.0.00.
+             */
+            case SOCMessage.SETSPECIALITEM:
+                SOCDisplaylessPlayerClient.handleSETSPECIALITEM(games, (SOCSetSpecialItem) mes);
+                break;
+
             }  // switch (mes.getType())
         }
         catch (Exception e)

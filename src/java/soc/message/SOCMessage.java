@@ -292,7 +292,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  Used in some game scenarios.
      * @see #DEVCARDACTION
      * @since 2.0.00 */
-    public static final int INVENTORYITEMACTION = 1103;  // player inventory special items, 20131126, v2.0.00
+    public static final int INVENTORYITEMACTION = 1103;  // player inventory items, 20131126, v2.0.00
+
+    /** {@link SOCSetSpecialItem} - Special Item requests and change announcements.
+     *  {@code SOCSpecialItem}s are used in some game scenarios.
+     *  @since 2.0.00 */
+    public static final int SETSPECIALITEM = 1104;  // Special Items, 20140416, v2.0.00
 
 
     /////////////////////////////////////////
@@ -889,7 +894,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case PICKRESOURCESREQUEST:  // gold hex resources, 20120112, v2.0.00
                 return SOCPickResourcesRequest.parseDataStr(data);
-                
+
             case PICKRESOURCES:     // gold hex resources, 20120112, v2.0.00
                 return SOCPickResources.parseDataStr(data);
 
@@ -911,8 +916,11 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case BOARDSPECIALEDGE:  // board special edges, 20131107, v2.0.00
                 return SOCBoardSpecialEdge.parseDataStr(data);
 
-            case INVENTORYITEMACTION:         // player inventory special items, 20131126, v2.0.00
+            case INVENTORYITEMACTION:         // player inventory items, 20131126, v2.0.00
                 return SOCInventoryItemAction.parseDataStr(data);
+
+            case SETSPECIALITEM:       // Special Items, 20140416, v2.0.00
+                return SOCSetSpecialItem.parseDataStr(data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);

@@ -39,6 +39,7 @@ import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
+import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 
@@ -770,6 +771,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.INVENTORYITEMACTION:
                 handleINVENTORYITEMACTION(games, (SOCInventoryItemAction) mes);
+                break;
+
+            /**
+             * Special Item change announcements.
+             * Added 2014-04-16 for v2.0.00.
+             */
+            case SOCMessage.SETSPECIALITEM:
+                handleSETSPECIALITEM(games, (SOCSetSpecialItem) mes);
                 break;
 
             }
@@ -2172,6 +2181,83 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         ((SOCBoardLarge) bd).setSpecialEdge(mes.getParam1(), mes.getParam2());
         return true;
+    }
+
+    /**
+     * Handle the "set special item" message.
+     * This method handles only {@link SOCSetSpecialItem#OP_SET OP_SET} and {@link SOCSetSpecialItem#OP_CLEAR OP_CLEAR}
+     * and ignores other operations, such as {@link SOCSetSpecialItem#OP_PICK OP_PICK}.  If your client needs to react
+     * to those other operations, override this method.
+     *
+     * @param games  Games the client is playing, for method reuse by SOCPlayerClient
+     * @param mes  the message
+     * @since 2.0.00
+     */
+    protected static void handleSETSPECIALITEM(final Map<String, SOCGame> games, SOCSetSpecialItem mes)
+    {
+        final SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
+
+        final String typeKey = mes.typeKey;
+        final int gi = mes.gameItemIndex, pi = mes.playerItemIndex, pn = mes.playerNumber;
+
+        switch (mes.op)
+        {
+        case SOCSetSpecialItem.OP_CLEAR:
+            {
+                if (gi != -1)
+                    ga.setSpecialItem(typeKey, gi, null);
+
+                if ((pn != -1) && (pi != -1))
+                {
+                    SOCPlayer pl = ga.getPlayer(pn);
+                    if (pl != null)
+                        pl.setSpecialItem(typeKey, pi, null);
+                }
+            }
+            break;
+
+        case SOCSetSpecialItem.OP_SET:
+            {
+                SOCSpecialItem item = null;
+                SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
+
+                if ((pn != -1) && (pi != -1))
+                {
+                    // If setting both, check game before player for existing object
+                    if (gi != -1)
+                        item = ga.getSpecialItem(typeKey, gi);
+
+                    if ((pl != null) && (item == null))
+                        item = pl.getSpecialItem(typeKey, pi);
+                }
+                else if (gi != -1)
+                {
+                    item = ga.getSpecialItem(typeKey, gi);
+                }
+                else
+                {
+                    return;  // malformed message
+                }
+
+                if (item != null)
+                {
+                    item.setPlayer(pl);
+                    item.setCoordinates(mes.coord);
+                    item.setLevel(mes.level);
+                } else {
+                    item = new SOCSpecialItem(pl, mes.coord, mes.level);
+                }
+
+                if (gi != -1)
+                    ga.setSpecialItem(typeKey, gi, item);
+
+                if ((pi != -1) && (pl != null))
+                    pl.setSpecialItem(typeKey, pi, item);
+            }
+            break;
+        }
     }
 
     /**

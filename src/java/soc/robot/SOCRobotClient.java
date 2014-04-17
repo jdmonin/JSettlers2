@@ -828,6 +828,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 handlePutBrainQ((SOCInventoryItemAction) mes);
                 break;
 
+            /**
+             * Special Item change announcements.
+             * Added 2014-04-16 for v2.0.00.
+             */
+            case SOCMessage.SETSPECIALITEM:
+                super.handleSETSPECIALITEM(games, (SOCSetSpecialItem) mes);
+                break;
+
             }
         }
         catch (Throwable e)

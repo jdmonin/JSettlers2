@@ -90,11 +90,28 @@ public class SOCSpecialItem
     }
 
     /**
+     * Set or clear the player who owns this item.
+     * @param pl  the owner of this item, or {@code null}
+     */
+    public void setPlayer(SOCPlayer pl)
+    {
+        player = pl;
+    }
+
+    /**
      * @return the node or edge coordinate for this item, or -1 if none
      */
     public int getCoordinates()
     {
         return coord;
+    }
+
+    /**
+     * @param co the node or edge coordinate for this item, or -1 if none
+     */
+    public void setCoordinates(final int co)
+    {
+        coord = co;
     }
 
     /**
