@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net> - GameStatisticsFrame
  *
  * This program is free software; you can redistribute it and/or
@@ -120,6 +120,7 @@ public class SOCBuildingPanel extends Panel
      */
     private Panel sbPanel;
     private Button sbBut;
+    /** "Special Building Phase" label. Not used on Large Board due to space constraints. */
     private Label sbLab;
     private boolean sbIsHilight;  // Yellow, not grey, when true
 
@@ -336,7 +337,7 @@ public class SOCBuildingPanel extends Panel
                 public void doLayout() {
                     final Dimension dim = getSize();
                     final FontMetrics fm = this.getFontMetrics(this.getFont());
-                    if ((dim.height == 0) || (sbLab == null) || (sbBut == null) || (fm == null))
+                    if ((dim.height == 0) || (sbBut == null) || (fm == null))
                     {
                         invalidate();
                         return;  // <--- not ready for layout yet ---
@@ -347,7 +348,7 @@ public class SOCBuildingPanel extends Panel
                     if (lineH == 0)
                         lineH = ColorSquare.HEIGHT;
 
-                    final int lblW = fm.stringWidth(sbLab.getText());
+                    final int lblW = (sbLab != null) ? fm.stringWidth(sbLab.getText()) : 0;
                     int btnW = sbBut.getPreferredSize().width;
                     final int btnTxtW = 8 + sbBut.getFontMetrics(sbBut.getFont()).stringWidth(sbBut.getLabel());
                     if (btnTxtW > btnW)
@@ -356,14 +357,20 @@ public class SOCBuildingPanel extends Panel
                         btnW = dim.width;
 
                     final int bothW = (lblW + btnW + 4 + 2 + 2);
-                    if (bothW <= dim.width)
+                    if ((sbLab == null) || (bothW <= dim.width))
                     {
                         // layout on 1 line
-                        final int y = (dim.height - lineH) / 2;
+                        int y = (dim.height - lineH) / 2;
                         int x = (dim.width - bothW) / 2;
-                        sbLab.setLocation(x, y);
-                        sbLab.setSize(lblW, lineH);
-                        x += lblW + 4;
+                        if (sbLab != null)
+                        {
+                            sbLab.setLocation(x, y);
+                            sbLab.setSize(lblW, lineH);
+                            x += lblW + 4;
+                        } else {
+                            x += 2;
+                            ++y;
+                        }
                         sbBut.setLocation(x, y);
                         sbBut.setSize(btnW, lineH);
                     } else {
@@ -377,19 +384,28 @@ public class SOCBuildingPanel extends Panel
                 }
             };
             sbPanel.setBackground(ColorSquare.GREY);
-            sbLab = new Label(strings.get("build.special.build.phase"), Label.CENTER);  // "Special Building Phase"
-            sbBut = new Button(strings.get("build.buybuild"));  // "Buy/Build"
+            if (ga.hasSeaBoard)
+            {
+                // Large board: 1 line, no label
+                sbBut = new Button(strings.get("build.special.build"));  // "Special Build"
+            } else {
+                // Standard board: 2 lines, label and button
+                sbLab = new Label(strings.get("build.special.build.phase"), Label.CENTER);  // "Special Building Phase"
+                sbBut = new Button(strings.get("build.buybuild"));  // "Buy/Build"
+            }
             sbBut.setEnabled(false);
             sbBut.setActionCommand(SBP);
             sbBut.addActionListener(this);
-            sbPanel.add(sbLab);
+            if (sbLab != null)
+                sbPanel.add(sbLab);
             sbPanel.add(sbBut);
             add(sbPanel);
 
             final String TTIP_SBP_TEXT = strings.get("build.special.build.tip");
                 // "This phase allows building between player turns."
             new AWTToolTip(TTIP_SBP_TEXT, sbPanel);
-            new AWTToolTip(TTIP_SBP_TEXT, sbLab);
+            if (sbLab != null)
+                new AWTToolTip(TTIP_SBP_TEXT, sbLab);
         }
 
     }
@@ -400,7 +416,8 @@ public class SOCBuildingPanel extends Panel
      * If you change the line spacing or total height laid out here,
      * please update {@link #MINHEIGHT}.
      *<P>
-     * For 6-player games, {@link #sbPanel} is 2 "layout lines" tall here,
+     * For 6-player games, {@link #sbPanel} is 2 "layout lines" tall here
+     * on the standard board, 1 line tall on the large board,
      * and has its own custom {@code doLayout()} based on whether its label
      * and button will fit on the same line or must be wrapped to 2 lines.
      */
@@ -408,6 +425,7 @@ public class SOCBuildingPanel extends Panel
     {
         final Dimension dim = getSize();
         final int maxPlayers = pi.getGame().maxPlayers;
+        final boolean hasLargeBoard = pi.getGame().hasSeaBoard;
         int curY = 1;
         int curX;
         FontMetrics fm = this.getFontMetrics(this.getFont());
@@ -501,10 +519,18 @@ public class SOCBuildingPanel extends Panel
         {
             // Special Building Phase button for 6-player game
             curX += (ColorSquare.WIDTH + 3);
-            sbPanel.setSize(dim.width - curX - margin, rowSpaceH + 2 * lineH);
-            sbPanel.setLocation(curX, curY);
-            // sbBut.setSize(dim.width - curX - margin - 2 * buttonMargin, lineH);
-            // (can't set size, FlowLayout will override it)
+            if (hasLargeBoard)
+            {
+                // Large Board: 1 line, no label
+                sbPanel.setSize(dim.width - curX - margin, rowSpaceH + lineH);
+                sbPanel.setLocation(curX, curY - (rowSpaceH / 2));
+            } else {
+                // Standard board: 2 lines, label and button
+                sbPanel.setSize(dim.width - curX - margin, rowSpaceH + 2 * lineH);
+                // sbBut.setSize(dim.width - curX - margin - 2 * buttonMargin, lineH);
+                // (can't set size, FlowLayout will override it)
+                sbPanel.setLocation(curX, curY);
+            }
         }
 
         curY += (rowSpaceH + lineH);
@@ -551,28 +577,29 @@ public class SOCBuildingPanel extends Panel
         cardCountLab.setLocation(curX, curY);
         cardCountLab.setSize(cardCLabW + 2, lineH);
 
-        // Game Info button is bottom-right of panel
-        // Game Statistics button is just above it for 4-player games,
-        //     top-right for 6-player games (to make room for Special Building button)
-        // On 4-player classic board, both are moved up to make room for the dev card count.
-        if ((maxPlayers <= 4) && ! pi.getGame().hasSeaBoard)
+        // Game Info button is bottom-right of panel.
+        // Game Statistics button is just above it on the classic board, top-right for large board.
+        // On 4-player classic board, Game Info is moved up to make room for the dev card count.
+        if ((maxPlayers <= 4) && ! hasLargeBoard)
             curY -= (lineH + 5);
+
         curX = dim.width - (2 * butW) - margin;
         gameInfoBut.setSize(butW * 2, lineH);
         gameInfoBut.setLocation(curX, curY);
         statsBut.setSize(butW * 2, lineH);
-        if (maxPlayers <= 4)
+        if (hasLargeBoard)
             statsBut.setLocation(curX, curY - lineH - 5);
         else
             statsBut.setLocation(curX, 1);
-        if ((maxPlayers <= 4) && ! pi.getGame().hasSeaBoard)
+
+        if ((maxPlayers <= 4) && ! hasLargeBoard)
             curY += (lineH + 5);
 
         // VP to Win label moves to make room for various buttons.
         if (vpToWin != null)
         {
             // #VP total to Win
-            if (pi.getGame().hasSeaBoard)
+            if (hasLargeBoard)
             {
                 // bottom-right corner of panel, left of Game Info
                 curX -= (1.5f * ColorSquare.WIDTH + margin);
@@ -901,7 +928,8 @@ public class SOCBuildingPanel extends Panel
                         ? ColorSquare.WARN_LEVEL_COLOR_BG_FROMGREY
                         : ColorSquare.GREY;
                     sbPanel.setBackground(want);
-                    sbLab.setBackground(want);
+                    if (sbLab != null)
+                        sbLab.setBackground(want);
                     sbIsHilight = askedSB;
                 }
                 sbBut.setEnabled(game.canAskSpecialBuild(pnum, false) && ! askedSB);
