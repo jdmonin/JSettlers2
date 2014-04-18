@@ -481,17 +481,6 @@ public class SOCBuildingPanel extends Panel
             shipSheep.setLocation(curX, curY);
         }
 
-        if (cloth != null)
-        {
-            // Cloth General Supply count is top-right of panel
-            //    TODO: position for 6-player (vs Special Building Phase button, etc)
-            final int clothTW = fm.stringWidth(clothLab.getText());
-            curX = dim.width - (3 * margin) - clothTW - ColorSquare.WIDTH;
-            clothLab.setLocation(curX, curY);
-            curX += clothTW + (2 * margin);
-            cloth.setLocation(curX, curY);
-        }
-
         curY += (rowSpaceH + lineH);
 
         settlementT.setSize(settlementTW, lineH);
@@ -549,6 +538,18 @@ public class SOCBuildingPanel extends Panel
         curX += (ColorSquare.WIDTH + 3);
         cityOre.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         cityOre.setLocation(curX, curY);
+
+        if (cloth != null)
+        {
+            // Cloth General Supply count is 3rd row, 2 squares to right of City costs
+            final int clothTW = fm.stringWidth(clothLab.getText());
+            curX += 3 * (ColorSquare.WIDTH + 3);
+            clothLab.setSize(clothTW + (2 * margin) - 1, lineH);
+            clothLab.setLocation(curX, curY);
+            curX += clothTW + (2 * margin);
+            cloth.setLocation(curX, curY);
+        }
+
         curY += (rowSpaceH + lineH);
 
         cardT.setSize(fm.stringWidth(cardT.getText()), lineH);
