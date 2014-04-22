@@ -39,6 +39,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
 
@@ -2069,6 +2070,18 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Get all types of this game's {@link SOCSpecialItem}s, if any.
+     * Only some scenarios and expansions use Special Items.
+     * See {@link #getSpecialItems(String)} for Special Item details and locking.
+     * @return  Special item type keys, or {@code null} if none
+     * @since 2.0.00
+     */
+    public Set<String> getSpecialItemTypes()
+    {
+        return (spItems.isEmpty()) ? null : spItems.keySet();
+    }
+
+    /**
      * Get a list of all special items of a given type in this game.
      * This is not the union of each player's {@code spItems}, but a separately maintained list of items.
      * Only some scenarios and expansions use Special Items.
@@ -2083,6 +2096,7 @@ public class SOCGame implements Serializable, Cloneable
      *     Some list items may be {@code null} depending on the list structure created by the scenario or expansion.
      * @since 2.0.00
      * @see SOCPlayer#getSpecialItems(String)
+     * @see #getSpecialItemTypes()
      */
     public ArrayList<SOCSpecialItem> getSpecialItems(final String typeKey)
     {

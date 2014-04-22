@@ -27,11 +27,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -58,6 +60,7 @@ import soc.game.SOCScenarioGameEvent;
 import soc.game.SOCScenarioPlayerEvent;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
+import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.SOCAcceptOffer;
@@ -122,6 +125,7 @@ import soc.message.SOCRollDicePrompt;
 import soc.message.SOCSVPTextMessage;
 import soc.message.SOCSetPlayedDevCard;
 import soc.message.SOCSetSeatLock;
+import soc.message.SOCSetSpecialItem;
 import soc.message.SOCSetTurn;
 import soc.message.SOCSimpleAction;
 import soc.message.SOCSimpleRequest;
@@ -1032,6 +1036,100 @@ public class SOCGameHandler extends GameHandler
         c.put(SOCSetTurn.toCmd(gameName, gameData.getCurrentPlayerNumber()));
 
         /**
+         * Send the game's Special Item info, if any, if game has started:
+         */
+        final String[] gameSITypes;
+        if (gameData.getGameState() >= SOCGame.START1A)
+        {
+            Set<String> ty = gameData.getSpecialItemTypes();
+            gameSITypes = (ty != null) ? ty.toArray(new String[ty.size()]) : null;
+        } else {
+            gameSITypes = null;
+        }
+
+        /**
+         * Holds any special items shared between game and player. Those must be sent just once, not twice,
+         * when per-game and then per-player special item info is sent. Per-player loop should check
+         * {@code gameSItoPlayer.get(typeKey)[playerNumber].get(itemIndex)}; unused per-player lists
+         * and typeKeys are null, so check each dereference; also check itemIndex versus list length.
+         */
+        final HashMap<String, ArrayList<SOCSpecialItem>[]> gameSItoPlayer;
+
+        if (gameSITypes == null)
+        {
+            gameSItoPlayer = null;
+        } else {
+            gameSItoPlayer = new HashMap<String, ArrayList<SOCSpecialItem>[]>();
+
+            for (int i = 0; i < gameSITypes.length; ++i)
+            {
+                final String tkey = gameSITypes[i];
+                ArrayList<SOCSpecialItem> gsi = gameData.getSpecialItems(tkey);
+                if (gsi == null)
+                    continue;  // shouldn't happen
+
+                final int L = gsi.size();
+                for (int gi = 0; gi < L; ++gi)  // use this loop type to avoid ConcurrentModificationException if locking bug
+                {
+                    final SOCSpecialItem si = gsi.get(gi);
+                    if (si == null)
+                    {
+                        c.put(new SOCSetSpecialItem(gameName, SOCSetSpecialItem.OP_CLEAR, tkey, gi, -1, -1, -1, 0).toCmd());
+                        continue;
+                    }
+
+                    int pi = -1;  // player index, or -1: if pl != null, must search pl's items for a match
+                    final SOCPlayer pl = si.getPlayer();
+                    if (pl != null)
+                    {
+                        ArrayList<SOCSpecialItem> iList = pl.getSpecialItems(tkey);
+                        if (iList != null)
+                        {
+                            for (int k = 0; k < iList.size(); ++k)
+                            {
+                                if (si == iList.get(k))
+                                {
+                                    pi = k;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    c.put(new SOCSetSpecialItem(gameData, SOCSetSpecialItem.OP_SET, tkey, gi, pi, si).toCmd());
+
+                    if (pi != -1)
+                    {
+                        // remember for use when sending per-player info
+
+                        ArrayList<SOCSpecialItem>[] toAllPl = gameSItoPlayer.get(tkey);
+                        if (toAllPl == null)
+                        {
+                            toAllPl = new ArrayList[gameData.maxPlayers];
+                            gameSItoPlayer.put(tkey, toAllPl);
+                        }
+
+                        ArrayList<SOCSpecialItem> iList = toAllPl[pl.getPlayerNumber()];
+                        if (iList == null)
+                        {
+                            iList = new ArrayList<SOCSpecialItem>();
+                            toAllPl[pl.getPlayerNumber()] = iList;
+                        }
+
+                        int iLL = iList.size();
+                        while (iLL <= pi)
+                        {
+                            iList.add(null);
+                            ++iLL;
+                        }
+
+                        iList.set(pi, si);
+                    }
+                }
+            }
+        }
+
+        /**
          * send the per-player information
          */
         for (int i = 0; i < gameData.maxPlayers; i++)
@@ -1176,6 +1274,40 @@ public class SOCGameHandler extends GameHandler
             for (int j = 0; j < numDevCards; j++)
             {
                 c.put(cardUnknownCmd);
+            }
+
+            if (gameSITypes != null)
+            {
+                // per-player Special Item info
+
+                for (int j = 0; j < gameSITypes.length; ++j)
+                {
+                    final String tkey = gameSITypes[j];
+                    ArrayList<SOCSpecialItem> plsi = pl.getSpecialItems(tkey);
+                    if (plsi == null)
+                        continue;  // shouldn't happen
+
+                    // pi loop body checks gameSItoPlayer to see if already sent (object shared with game)
+                    final ArrayList<SOCSpecialItem>[] toAllPl = gameSItoPlayer.get(tkey);
+                    final ArrayList<SOCSpecialItem> iList = (toAllPl != null) ? toAllPl[i] : null;
+
+                    final int L = plsi.size();
+                    for (int pi = 0; pi < L; ++pi)  // use this loop type to avoid ConcurrentModificationException
+                    {
+                        final SOCSpecialItem si = plsi.get(pi);
+                        if (si == null)
+                        {
+                            c.put(new SOCSetSpecialItem
+                                    (gameName, SOCSetSpecialItem.OP_CLEAR, tkey, -1, pi, i, -1, 0).toCmd());
+                            continue;
+                        }
+
+                        if ((iList != null) && (iList.size() > pi) && (iList.get(pi) == si))
+                            continue;  // already sent (shared with game)
+
+                        c.put(new SOCSetSpecialItem(gameData, SOCSetSpecialItem.OP_SET, tkey, -1, pi, si).toCmd());
+                    }
+                }
             }
 
             if (i == 0)
