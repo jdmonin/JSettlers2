@@ -3997,12 +3997,16 @@ public class SOCGame implements Serializable, Cloneable
      * and related game methods like {@link #setPlayersLandHexCoordinates()} have been called.
      *<P>
      * When called at the client, the board layout is set, but neither the gameState nor the players'
-     * potential settlements have been sent from the server yet.
+     * potential settlements have been sent from the server yet.  Even if the client joined after game start,
+     * this method will still be called at that client.
      *<P>
      * Currently used only for Special Item placement by the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario,
      * where (1 + {@link #maxPlayers}) wonders are available for the players to choose from, held in game
      * Special Item indexes 1 - n.  Because of this limited and non-dynamic use, it's easier to set them up in code
-     * here than to create, send, and parse messages about the game's Special Items.
+     * here than to create, send, and parse messages with all details of the game's Special Items.  This method
+     * sets up the Special Items as they are during game start.  If the game has started before a client joins,
+     * other messages sent during the join will then update Special Item info in case they've changed since
+     * game start.
      *
      * @since 2.0.00
      */

@@ -36,6 +36,10 @@ import soc.game.SOCSpecialItem;  // for javadocs only
  * The server can decline that request, or announce a change or pick to all members of the game.
  * The server can also send a {@code SOCSetSpecialItem} message when anything happens in-game that causes a change.
  *<P>
+ * If client joins the game after it starts, these messages will be sent after the {@link SOCBoardLayout2} message.
+ * So, {@link SOCGame#updateAtBoardLayout()} will have been called at the client and created Special Item objects
+ * before any {@code SOCSetSpecialItem} is received.
+ *<P>
  * For traffic details see {@link #OP_SET}, {@link #OP_CLEAR}, {@link #OP_PICK} and {@link #OP_DECLINE} javadocs.
  * For game details see the {@link SOCSpecialItem} class javadoc.
  *

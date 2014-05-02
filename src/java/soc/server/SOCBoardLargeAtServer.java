@@ -2232,6 +2232,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * for their Lone Settlement location (adds layout part "LS").
      * Vacant player numbers get 0 for their {@code "LS"} element.
      *<P>
+     * Called only at server. For a method called during game start
+     * at server and clients, see {@link SOCGame#updateAtBoardLayout()}.
+     *<P>
      * Called from {@link SOCGameHandler#startGame(SOCGame)} for those
      * scenario game options; if you need it called for your game, add
      * a check there for your scenario's {@link SOCGameOption}.
@@ -2243,8 +2246,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * If ship placement is restricted by the scenario, please call each player's
      * {@link SOCPlayer#setRestrictedLegalShips(int[])} before calling this method,
      * so the legal and potential arrays will be initialized.
+     *
      * @see #getLegalSeaEdges(SOCGame, int)
-     * @see SOCGame#updateAtBoardLayout()
      */
     public void startGame_putInitPieces(SOCGame ga)
     {
