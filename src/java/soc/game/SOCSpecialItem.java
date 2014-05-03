@@ -433,23 +433,23 @@ public class SOCSpecialItem
     public static final class Requirement
     {
         /** 'S' for settlement, 'C' for city, 'V' for victory points, 'L' for length of player's longest route */
-        public char reqType;
+        public final char reqType;
 
         /** Number of pieces, victory points, or length of route required */
-        public int count;
+        public final int count;
 
         /**
          * If true, a {@code reqType} piece must be at a 3:1 or 2:1 port.
          * Currently, only {@code reqType} C (City) is supported here,
          * because no current scenario justified the extra coding for S-or-C.
          */
-        public boolean atPort;
+        public final boolean atPort;
 
         /**
          * Board layout coordinate list such as "N1", or null.  If non-null, a reqType piece must
          * be at a node coordinate in this named list within the board layout's {@code getAddedLayoutPart}s.
          */
-        public String atCoordList;
+        public final String atCoordList;
 
         /**
          * Parse a requirement specification string into {@link Requirement} objects.
