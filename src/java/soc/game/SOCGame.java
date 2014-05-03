@@ -4017,7 +4017,7 @@ public class SOCGame implements Serializable, Cloneable
 
         final int numWonders = 1 + maxPlayers;
         for (int i = 1; i <= numWonders; ++i)
-            setSpecialItem(SOCGameOption.K_SC_WOND, i, new SOCSpecialItem(null, -1));
+            setSpecialItem(SOCGameOption.K_SC_WOND, i, SOCSpecialItem.makeKnownItem(SOCGameOption.K_SC_WOND, i));
     }
 
     /**

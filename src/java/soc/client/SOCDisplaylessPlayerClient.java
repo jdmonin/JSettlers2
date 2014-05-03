@@ -2247,7 +2247,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                     item.setCoordinates(mes.coord);
                     item.setLevel(mes.level);
                 } else {
-                    item = new SOCSpecialItem(pl, mes.coord, mes.level);
+                    item = new SOCSpecialItem(pl, mes.coord, mes.level, null, null);
                 }
 
                 if (gi != -1)

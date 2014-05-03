@@ -37,7 +37,15 @@ import java.util.List;
  *<P>
  * In some scenarios, Special Items may have requirements for players to build or use them.
  * See {@link SOCSpecialItem.Requirement} javadoc for more details.  To check requirements,
- * call {@link SOCSpecialItem#hasRequirements(SOCPlayer, String)}.
+ * call {@link SOCSpecialItem#checkRequirements(SOCPlayer, String)}.
+ *<P>
+ * <B>Non-Networked Fields:</B><BR>
+ * The cost and requirement fields are initialized at the server and at the client, not sent over the network.
+ * Because of their limited and known use, it's easier to set them up in a factory method here than to create,
+ * send, and parse messages with all details of the game's Special Items.  If a new Special Item type is created
+ * for a new scenario or expansion, the client would most likely need new code to handle that scenario or
+ * expansion, so the new item type's field initialization can be added to the factory at that time.
+ * See {@link #makeKnownItem(String, int)}.
  *<P>
  * <B>Locks:</B> Field values are not synchronized here. If a specific item type or access pattern
  * requires synchronization, do so outside this class and document the details.
@@ -49,6 +57,74 @@ import java.util.List;
 public class SOCSpecialItem
     implements Cloneable
 {
+
+    /**
+     * Requirements for the Wonders in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
+     * Index 0 unused.  The 6-player game includes another copy of the first two wonders.
+     * Used by {@link #makeKnownItem(String, int)}.
+     */
+    private static final String[] REQ_SC_WOND = { null, "2C", "S@N2", "C@P,5L", "S@N1", "C,6V", "2C", "S@N2" };
+
+    /**
+     * Costs for the Wonders in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
+     * Index 0 unused.  The 6-player game includes another copy of the first two wonders.
+     * Each 5-element array is { clay, ore, sheep, wheat, wood }. Used by {@link #makeKnownItem(String, int)}.
+     */
+    private static final int[][] COST_SC_WOND =
+    {
+        null,
+        // clay, ore, sheep, wheat, wood
+        { 1, 0, 3, 0, 1 },  // theater
+        { 0, 0, 1, 1, 3 },  // great bridge
+        { 0, 2, 0, 3, 0 },  // monument
+        { 3, 0, 0, 1, 1 },  // great wall
+        { 1, 3, 0, 1, 0 },  // cathedral
+        { 1, 0, 3, 0, 1 },  // theater
+        { 0, 0, 1, 1, 3 }   // great bridge
+    };
+
+    /**
+     * Create a scenario/expansion's special item if known. This is a factory method for game setup convenience.
+     * The known item's {@link #req requirements} and cost will be filled from static data.
+     *<P>
+     * Currently known {@code typeKey}s:
+     *<UL>
+     *<LI> {@link SOCGameOption#K_SC_WOND _SC_WOND}: Wonders
+     *</UL>
+     * If {@code typeKey} is unknown, the item will be created with {@code null} cost and requirements,
+     * equivalent to calling {@link #SOCSpecialItem(SOCPlayer, int, SOCResourceSet, String) new SOCSpecialItem}
+     * {@code (null, -1, null, null)}.
+     *
+     * @param typeKey  Special item type.  Typically a {@link SOCGameOption} keyname;
+     *    see {@link SOCSpecialItem class javadoc} for details.
+     * @param idx  Index within game's Special Item list
+     * @return A Special Item at no coordinate (-1) and unowned by any player, with cost/requirements if known,
+     *     or {@code null} cost and requirements otherwise.
+     */
+    public static final SOCSpecialItem makeKnownItem(final String typeKey, final int idx)
+    {
+        if (! typeKey.equals(SOCGameOption.K_SC_WOND))
+        {
+            return new SOCSpecialItem(null, -1, null, null);  // <--- Early return: Unknown typeKey ---
+        }
+
+        final String[] typeReqs = REQ_SC_WOND;
+        final int[][] typeCosts = COST_SC_WOND;
+
+        final SOCResourceSet costRS;
+        if ((idx < 0) || (idx >= typeCosts.length))
+        {
+            costRS = null;
+        } else {
+            final int[] cost = typeCosts[idx];
+            costRS = (cost == null) ? null : new SOCResourceSet(cost);
+        }
+
+        final String req = ((idx < 0) || (idx >= typeReqs.length)) ? null : typeReqs[idx];
+
+        return new SOCSpecialItem(null, -1, costRS, req);
+    }
+
     /**
      * The player who owns this item, if any. Will be null for certain items
      * which belong to the game and not to players.
@@ -62,15 +138,33 @@ public class SOCSpecialItem
     protected int level;
 
     /**
+     * Optional cost to buy, use, or build the next level, or {@code null}.
+     * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
+     */
+    protected SOCResourceSet cost;
+
+    /**
+     * Optional requirements to buy, use, or build the next level, or {@code null}.
+     * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
+     */
+    public final List<Requirement> req;
+
+    /**
      * Make a new item, optionally owned by a player.
      * Its optional Level will be 0.
      *
      * @param pl  player who owns the item, or {@code null}
      * @param co  coordinates, or -1
+     * @param cost  cost to buy, use, or build the next level, or null
+     * @param req  requirements to buy, use, or build the next level, or null.
+     *      If provided, this requirement specification string will be
+     *      parsed by {@link SOCSpecialItem.Requirement#parse(String)}.
+     * @throws IllegalArgumentException  if {@code req != null} but isn't a syntactically valid specification
      */
-    public SOCSpecialItem(SOCPlayer pl, final int co)
+    public SOCSpecialItem(SOCPlayer pl, final int co, SOCResourceSet cost, final String req)
+        throws IllegalArgumentException
     {
-        this(pl, co, 0);
+        this(pl, co, 0, cost, req);
     }
 
     /**
@@ -79,12 +173,20 @@ public class SOCSpecialItem
      * @param pl  player who owns the item, or {@code null}
      * @param co  coordinates, or -1
      * @param lv  current level of construction or strength, or 0
+     * @param cost  cost to buy, use, or build the next level, or null
+     * @param req  requirements to buy, use, or build the next level, or null.
+     *      If provided, this requirement specification string will be
+     *      parsed by {@link SOCSpecialItem.Requirement#parse(String)}.
+     * @throws IllegalArgumentException  if {@code req != null} but isn't a syntactically valid specification
      */
-    public SOCSpecialItem(SOCPlayer pl, final int co, final int lv)
+    public SOCSpecialItem(SOCPlayer pl, final int co, final int lv, SOCResourceSet cost, final String req)
+        throws IllegalArgumentException
     {
         player = pl;
         coord = co;
         level = lv;
+        this.cost = cost;
+        this.req = (req != null) ? Requirement.parse(req) : null;
     }
 
     /**
@@ -140,6 +242,26 @@ public class SOCSpecialItem
     }
 
     /**
+     * Get the optional cost to buy, use, or build the next level.
+     * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
+     * @return  Cost, or {@code null}
+     */
+    public SOCResourceSet getCost()
+    {
+        return cost;
+    }
+
+    /**
+     * Set or clear the optional cost to buy, use, or build the next level.
+     * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
+     * @param co  New cost, or {@code null} to clear
+     */
+    public void setCost(SOCResourceSet co)
+    {
+        cost = co;
+    }
+
+    /**
      * Does this player meet a special item's requirements?
      *
      * @param pl  Player to check
@@ -150,7 +272,7 @@ public class SOCSpecialItem
      * @throws UnsupportedOperationException if requirement type S (Settlement) includes {@code atPort} location;
      *     this is not implemented
      */
-    public static boolean hasRequirements(final SOCPlayer pl, final String reqs)
+    public static boolean checkRequirements(final SOCPlayer pl, final String reqs)
         throws IllegalArgumentException, UnsupportedOperationException
     {
         final List<Requirement> reqsList = Requirement.parse(reqs);
@@ -253,7 +375,8 @@ public class SOCSpecialItem
     @Override
     public String toString()
     {
-        return "SOCSpecialItem:player=" + player + "|coord=" + Integer.toHexString(coord) + "|level=" + level;
+        return "SOCSpecialItem:player=" + player + "|coord=" + Integer.toHexString(coord) + "|level=" + level
+            + "|cost=[" + cost + "]|req=" + req;
     }
 
     /**
@@ -284,6 +407,7 @@ public class SOCSpecialItem
      * For use in set copy constructors, create and return a clone of this {@link SOCSpecialItem}.
      * The {@code SOCSpecialItem} implementation just calls {@code super.clone()}.
      * If subclasses have any lists or structures, be sure to deeply copy them.
+     * Requirements aren't deep-copied, because they are final and won't change.
      * @throws CloneNotSupportedException  Declared from super.clone(), should not occur
      *     since SOCSpecialItem implements Cloneable.
      * @return a clone of this item
@@ -291,7 +415,9 @@ public class SOCSpecialItem
     public SOCSpecialItem clone()
         throws CloneNotSupportedException
     {
-        return (SOCSpecialItem) super.clone();
+        SOCSpecialItem cl = (SOCSpecialItem) super.clone();
+        cl.cost = cost.copy();
+        return cl;
     }
 
     /**
@@ -302,7 +428,7 @@ public class SOCSpecialItem
      * Settlement or City items.
      *
      * @see #parse(String)
-     * @see SOCSpecialItem#hasRequirements(SOCPlayer, String)
+     * @see SOCSpecialItem#checkRequirements(SOCPlayer, String)
      */
     public static final class Requirement
     {
