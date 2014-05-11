@@ -2220,26 +2220,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         case SOCSetSpecialItem.OP_SET:
             {
-                SOCSpecialItem item = null;
-                SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
-
-                if ((pn != -1) && (pi != -1))
-                {
-                    // If setting both, check game before player for existing object
-                    if (gi != -1)
-                        item = ga.getSpecialItem(typeKey, gi);
-
-                    if ((pl != null) && (item == null))
-                        item = pl.getSpecialItem(typeKey, pi);
-                }
-                else if (gi != -1)
-                {
-                    item = ga.getSpecialItem(typeKey, gi);
-                }
-                else
+                if ((gi == -1) && ((pi == -1) || (pn == -1)))
                 {
                     return;  // malformed message
                 }
+
+                SOCSpecialItem item = ga.getSpecialItem(typeKey, gi, pi, pn);
+                final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
 
                 if (item != null)
                 {

@@ -2122,6 +2122,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return  The special item, or {@code null} if none of that type or if that index is {@code null} within the list
      * @throws IndexOutOfBoundsException  if {@code idx} &lt; 0 or {@code idx} &gt;= list's current size
      * @since 2.0.00
+     * @see #getSpecialItem(String, int, int, int)
      * @see SOCPlayer#getSpecialItem(String, int)
      */
     public SOCSpecialItem getSpecialItem(final String typeKey, final int idx)
@@ -2132,6 +2133,40 @@ public class SOCGame implements Serializable, Cloneable
             return null;
 
         return li.get(idx);
+    }
+
+    /**
+     * Get a special item of a given type, by index within the game's or player's list of all items of that type.
+     * When both {@code gi} and {@code pi} are used, checks game first for an existing object, and if none (null),
+     * checks the player. Only some scenarios and expansions use Special Items.
+     *<P>
+     * <B>Locks:</B> This getter is not synchronized: It's assumed that the structure of Special Item lists
+     * is set up at game creation time, and not often changed.  If a specific item type or access pattern
+     * requires synchronization, do so outside this class and document the details.
+     *
+     * @param typeKey  Special item type.  Typically a {@link SOCGameOption} keyname; see the {@link SOCSpecialItem}
+     *     class javadoc for details.
+     * @param gi  Index within the game's list of special items of that type, or -1; must be within the list's current size
+     * @param pi  Player item index (requires {@code pn} != -1), or -1
+     * @param pn  Owning player number, or -1
+     * @return  The special item, or {@code null} if none of that type or if that index is {@code null} within the list
+     * @throws IndexOutOfBoundsException  if {@code gi} or {@code pi} are != -1 but outside their list's current size
+     * @since 2.0.00
+     * @see #getSpecialItem(String, int)
+     * @see SOCPlayer#getSpecialItem(String, int)
+     */
+    public SOCSpecialItem getSpecialItem(final String typeKey, final int gi, final int pi, final int pn)
+        throws IndexOutOfBoundsException
+    {
+        SOCSpecialItem item = null;
+
+        if (gi != -1)
+            item = getSpecialItem(typeKey, gi);
+
+        if ((item == null) && (pn != -1) && (pi != -1))
+            item = players[pn].getSpecialItem(typeKey, pi);
+
+        return item;
     }
 
     /**
@@ -2146,6 +2181,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param itm  Item object to set within the list
      * @return  The item previously at this index, or {@code null} if none
      * @throws IndexOutOfBoundsException  if {@code idx} &lt; 0
+     * @since 2.0.00
      * @see SOCPlayer#setSpecialItem(String, int, SOCSpecialItem)
      */
     public SOCSpecialItem setSpecialItem(final String typeKey, final int idx, SOCSpecialItem itm)
