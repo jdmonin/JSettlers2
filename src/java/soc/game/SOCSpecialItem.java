@@ -37,7 +37,7 @@ import java.util.List;
  *<P>
  * In some scenarios, Special Items may have requirements for players to build or use them.
  * See {@link SOCSpecialItem.Requirement} javadoc for more details.  To check requirements,
- * call {@link SOCSpecialItem#checkRequirements(SOCPlayer, String)}.
+ * call {@link SOCSpecialItem#checkRequirements(SOCPlayer)}.
  *<P>
  * <B>Non-Networked Fields:</B><BR>
  * The cost and requirement fields are initialized at the server and at the client, not sent over the network.
@@ -84,6 +84,30 @@ public class SOCSpecialItem
     };
 
     /**
+     * The player who owns this item, if any. Will be null for certain items
+     * which belong to the game and not to players.
+     */
+    protected SOCPlayer player;
+
+    /** Optional coordinates on the board for this item, or -1. An edge or a node, depending on item type. */
+    protected int coord;
+
+    /** Optional level of construction or strength, or 0. */
+    protected int level;
+
+    /**
+     * Optional cost to buy, use, or build the next level, or {@code null}.
+     * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
+     */
+    protected SOCResourceSet cost;
+
+    /**
+     * Optional requirements to buy, use, or build the next level, or {@code null}.
+     * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
+     */
+    public final List<Requirement> req;
+
+    /**
      * Create a scenario/expansion's special item if known. This is a factory method for game setup convenience.
      * The known item's {@link #req requirements} and cost will be filled from static data.
      *<P>
@@ -124,30 +148,6 @@ public class SOCSpecialItem
 
         return new SOCSpecialItem(null, -1, costRS, req);
     }
-
-    /**
-     * The player who owns this item, if any. Will be null for certain items
-     * which belong to the game and not to players.
-     */
-    protected SOCPlayer player;
-
-    /** Optional coordinates on the board for this item, or -1. An edge or a node, depending on item type. */
-    protected int coord;
-
-    /** Optional level of construction or strength, or 0. */
-    protected int level;
-
-    /**
-     * Optional cost to buy, use, or build the next level, or {@code null}.
-     * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
-     */
-    protected SOCResourceSet cost;
-
-    /**
-     * Optional requirements to buy, use, or build the next level, or {@code null}.
-     * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
-     */
-    public final List<Requirement> req;
 
     /**
      * Make a new item, optionally owned by a player.
@@ -262,20 +262,36 @@ public class SOCSpecialItem
     }
 
     /**
+     * Does this player meet this special item's {@link #req} requirements?
+     * @param pl  Player to check
+     * @return  True if player meets the requirements, false otherwise; true if {@link #req} is null or empty
+     * @throws IllegalArgumentException if {@link #req} has an unknown requirement type,
+     *     or refers to an Added Layout Part {@code "N1"} through {@code "N9"} that isn't defined in the board layout
+     * @throws UnsupportedOperationException if requirement type S (Settlement) includes {@code atPort} location;
+     *     this is not implemented
+     * @see #checkRequirements(SOCPlayer, List)
+     */
+    public final boolean checkRequirements(final SOCPlayer pl)
+        throws IllegalArgumentException, UnsupportedOperationException
+    {
+        return checkRequirements(pl, req);
+    }
+
+    /**
      * Does this player meet a special item's requirements?
      *
      * @param pl  Player to check
-     * @param reqs  Requirements string; for syntax see {@link SOCSpecialItem.Requirement#parse(String)}
-     * @return  True if player meets the requirements, false otherwise; true if {@code reqs} is ""
-     * @throws IllegalArgumentException if {@code reqs} has incorrect syntax, or refers to an Added Layout Part
-     *     {@code "N1"} through {@code "N9"} that isn't defined in the board layout
+     * @param reqsList  Requirements list; to parse from a string, use {@link SOCSpecialItem.Requirement#parse(String)}
+     * @return  True if player meets the requirements, false otherwise; true if {@code reqsList} is null or empty
+     * @throws IllegalArgumentException if {@code reqsList} has an unknown requirement type,
+     *     or refers to an Added Layout Part {@code "N1"} through {@code "N9"} that isn't defined in the board layout
      * @throws UnsupportedOperationException if requirement type S (Settlement) includes {@code atPort} location;
      *     this is not implemented
+     * @see #checkRequirements(SOCPlayer)
      */
-    public static boolean checkRequirements(final SOCPlayer pl, final String reqs)
+    public static boolean checkRequirements(final SOCPlayer pl, final List<SOCSpecialItem.Requirement> reqsList)
         throws IllegalArgumentException, UnsupportedOperationException
     {
-        final List<Requirement> reqsList = Requirement.parse(reqs);
         if (reqsList == null)
             return true;  // no requirements, nothing to fail
 
