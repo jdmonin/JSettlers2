@@ -1190,6 +1190,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *     Some list items may be {@code null} depending on the list structure created by the scenario or expansion.
      * @since 2.0.00
      * @see SOCGame#getSpecialItems(String)
+     * @see SOCGame#getSpecialItemTypes()
      */
     public ArrayList<SOCSpecialItem> getSpecialItems(final String typeKey)
     {
@@ -1211,19 +1212,26 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param typeKey  Special item type.  Typically a {@link SOCGameOption} keyname; see the {@link SOCSpecialItem}
      *     class javadoc for details.
      * @param idx  Index within the list of special items of that type; must be within the list's current size
-     * @return  The special item, or {@code null} if none of that type or if that index is {@code null} within the list
-     * @throws IndexOutOfBoundsException  if {@code idx} &lt; 0 or {@code idx} &gt;= list's current size
+     * @return  The special item, or {@code null} if none of that type, or if that index is {@code null} within the list
+     *     or is beyond the size of the list
      * @since 2.0.00
      * @see SOCGame#getSpecialItem(String, int)
+     * @see SOCGame#getSpecialItem(String, int, int, int)
+     * @see SOCSpecialItem#playerPickItem(String, SOCGame, SOCPlayer, int, int)
+     * @see SOCSpecialItem#playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)
      */
     public SOCSpecialItem getSpecialItem(final String typeKey, final int idx)
-        throws IndexOutOfBoundsException
     {
         final ArrayList<SOCSpecialItem> li = spItems.get(typeKey);
         if (li == null)
             return null;
 
-        return li.get(idx);
+        try
+        {
+            return li.get(idx);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
     }
 
     /**

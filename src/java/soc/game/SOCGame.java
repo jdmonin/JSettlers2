@@ -1271,7 +1271,8 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * take the monitor for this game
+     * Take the synchronization monitor for this game.
+     * When done, release it with {@link #releaseMonitor()}.
      */
     public synchronized void takeMonitor()
     {
@@ -1293,6 +1294,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * release the monitor for this game
+     * @see #takeMonitor()
      */
     public synchronized void releaseMonitor()
     {
@@ -2119,20 +2121,26 @@ public class SOCGame implements Serializable, Cloneable
      * @param typeKey  Special item type.  Typically a {@link SOCGameOption} keyname; see the {@link SOCSpecialItem}
      *     class javadoc for details.
      * @param idx  Index within the list of special items of that type; must be within the list's current size
-     * @return  The special item, or {@code null} if none of that type or if that index is {@code null} within the list
-     * @throws IndexOutOfBoundsException  if {@code idx} &lt; 0 or {@code idx} &gt;= list's current size
+     * @return  The special item, or {@code null} if none of that type, or if that index is {@code null} within the list
+     *     or is beyond the size of the list
      * @since 2.0.00
      * @see #getSpecialItem(String, int, int, int)
      * @see SOCPlayer#getSpecialItem(String, int)
+     * @see SOCSpecialItem#playerPickItem(String, SOCGame, SOCPlayer, int, int)
+     * @see SOCSpecialItem#playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)
      */
     public SOCSpecialItem getSpecialItem(final String typeKey, final int idx)
-        throws IndexOutOfBoundsException
     {
         final ArrayList<SOCSpecialItem> li = spItems.get(typeKey);
         if (li == null)
             return null;
 
-        return li.get(idx);
+        try
+        {
+            return li.get(idx);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
     }
 
     /**
@@ -2140,9 +2148,7 @@ public class SOCGame implements Serializable, Cloneable
      * When both {@code gi} and {@code pi} are used, checks game first for an existing object, and if none (null),
      * checks the player. Only some scenarios and expansions use Special Items.
      *<P>
-     * <B>Locks:</B> This getter is not synchronized: It's assumed that the structure of Special Item lists
-     * is set up at game creation time, and not often changed.  If a specific item type or access pattern
-     * requires synchronization, do so outside this class and document the details.
+     * <B>Locks:</B> Call {@link #takeMonitor()} before calling this method.
      *
      * @param typeKey  Special item type.  Typically a {@link SOCGameOption} keyname; see the {@link SOCSpecialItem}
      *     class javadoc for details.
@@ -2154,6 +2160,8 @@ public class SOCGame implements Serializable, Cloneable
      * @since 2.0.00
      * @see #getSpecialItem(String, int)
      * @see SOCPlayer#getSpecialItem(String, int)
+     * @see SOCSpecialItem#playerPickItem(String, SOCGame, SOCPlayer, int, int)
+     * @see SOCSpecialItem#playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)
      */
     public SOCSpecialItem getSpecialItem(final String typeKey, final int gi, final int pi, final int pn)
         throws IndexOutOfBoundsException
