@@ -2156,7 +2156,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pi  Player item index (requires {@code pn} != -1), or -1
      * @param pn  Owning player number, or -1
      * @return  The special item, or {@code null} if none of that type or if that index is {@code null} within the list
-     * @throws IndexOutOfBoundsException  if {@code gi} or {@code pi} are != -1 but outside their list's current size
+     *     or is beyond the size of the list
      * @since 2.0.00
      * @see #getSpecialItem(String, int)
      * @see SOCPlayer#getSpecialItem(String, int)
@@ -2164,7 +2164,6 @@ public class SOCGame implements Serializable, Cloneable
      * @see SOCSpecialItem#playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)
      */
     public SOCSpecialItem getSpecialItem(final String typeKey, final int gi, final int pi, final int pn)
-        throws IndexOutOfBoundsException
     {
         SOCSpecialItem item = null;
 
@@ -3992,6 +3991,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * end the turn for the current player, and check for winner.
+     * If no winner yet, set up for the next player's turn (see below).
      * Check for gamestate >= {@link #OVER} after calling endTurn.
      *<P>
      * endTurn() is called <b>only at server</b> - client instead calls
@@ -4007,6 +4007,8 @@ public class SOCGame implements Serializable, Cloneable
      * The winner check is needed because a player can win only
      * during their own turn; if they reach winning points ({@link #vp_winner}
      * or more) during another player's turn, they must wait.
+     * So, this method calls {@link #checkForWinner()} if the new current player has
+     * {@link #vp_winner} or if the game's {@link #hasScenarioWinCondition} is true.
      *<P>
      * In 1.1.09 and later, player is allowed to Special Build at start of their
      * own turn, only if they haven't yet rolled or played a dev card.
@@ -7478,8 +7480,12 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * check current player's vp total to see if the
-     * game is over.  Set game state to OVER,
+     * game is over.  If so, Set game state to {@link #OVER},
      * set player with win.
+     *<P>
+     * This method is called from other game methods which may award VPs or may cause a win,
+     * such as {@link #buyDevCard()} and {@link #putPiece(SOCPlayingPiece)}, and at the start
+     * of each turn by {@link #endTurn()} under some conditions (see that method).
      *<P>
      * Per rules FAQ, a player can win only during their own turn.
      * If a player reaches winning points ({@link #vp_winner} or more) but it's
@@ -7514,10 +7520,11 @@ public class SOCGame implements Serializable, Cloneable
 
         if ((players[pn].getTotalVP() >= vp_winner))
         {
-            if (hasScenarioWinCondition && isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            if (hasScenarioWinCondition)
             {
-                if (null != players[pn].getFortress())
-                    return;  // <--- can't win without defeating pirate fortress ---
+                if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                    if (null != players[pn].getFortress())
+                        return;  // <--- can't win without defeating pirate fortress ---
             }
 
             gameState = OVER;
