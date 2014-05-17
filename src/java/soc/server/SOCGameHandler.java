@@ -3798,6 +3798,8 @@ public class SOCGameHandler extends GameHandler
                 sendDenyReply = true;
                 paidCost = false;
             } else {
+                final int prevState = ga.getGameState();
+
                 if (op == SOCSetSpecialItem.OP_PICK)
                 {
                     // Only if game index and player index are both given,
@@ -3892,13 +3894,18 @@ public class SOCGameHandler extends GameHandler
                     else
                         srv.messageToGame(gaName, new SOCSetSpecialItem(ga, op, typeKey, gi, pi, itm));
                 }
-            }
 
-            // send rsrc-loss if cost paid
-            if (paidCost && (itm != null))
-            {
-                reportRsrcGainLoss(gaName, itm.getCost(), true, pn, -1, null, null);
-                // TODO i18n-neutral rsrc text to report cost paid?  or, encapsulate that into reportRsrcGainLoss
+                // send resource-loss if cost paid
+                if (paidCost && (itm != null))
+                {
+                    reportRsrcGainLoss(gaName, itm.getCost(), true, pn, -1, null, null);
+                    // TODO i18n-neutral rsrc text to report cost paid?  or, encapsulate that into reportRsrcGainLoss
+                }
+
+                // check game state, check for winner
+                final int gstate = ga.getGameState();
+                if (gstate != prevState)
+                    sendGameState(ga);  // might be OVER, if player won
             }
         }
         catch (IllegalStateException e)
