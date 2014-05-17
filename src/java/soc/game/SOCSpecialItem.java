@@ -69,6 +69,7 @@ import java.util.List;
  *<UL>
  * <LI> On their own turn, a player can {@code PICK} a wonder from the game's list.  Each player can pick at most 1;
  *    no other player can pick the same one.  If they are able to pick that wonder, doing so builds its first level.
+ * <LI> Game state must be {@link SOCGame#PLAY1 PLAY1}
  * <LI> There are requirements ({@link #req}) to pick each wonder, different wonders have different requirements
  * <LI> There is a resource cost to build each level, different wonders have different costs
  * <LI> When the player first picks a Wonder to build its first level, player loses 1 ship.
@@ -188,6 +189,9 @@ public class SOCSpecialItem
      * Implements scenario-specific rules and behavior for the item.
      * Called at server, not at client.
      *<P>
+     * In some scenarios, calls {@link SOCGame#checkForWinner()}; after calling
+     * this method, check {@link SOCGame#getGameState()} &gt;= {@link SOCGame#OVER}.
+     *<P>
      * When both {@code gi} and {@code pi} are specified, the item is retrieved
      * by calling {@link SOCGame#getSpecialItem(String, int, int, int)} before
      * making any changes.  That object's {@link #getCost()}, if any, is what was
@@ -206,14 +210,18 @@ public class SOCSpecialItem
      * @param pi  Pick this index within {@code pl}'s Special Item list, or -1
      * @return  true if the item's cost was deducted from {@code pl}'s resources
      * @throws IllegalStateException if {@code pl} cannot set or clear this item right now
-     *     (due to cost, requirements, game state, or anything else), or if {@code typeKey} is unknown here,
-     *     or if this {@code typeKey} doesn't use {@code PICK} requests from client players.
+     *     (due to cost, requirements, game state, is not their turn, or anything else),
+     *     or if {@code typeKey} is unknown here, or if this {@code typeKey} doesn't
+     *     use {@code PICK} requests from client players.
      * @see #playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)
      */
     public static boolean playerPickItem
         (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi)
         throws IllegalStateException
     {
+        if ((pl.getPlayerNumber() != ga.getCurrentPlayerNumber()) || (ga.getGameState() != SOCGame.PLAY1))
+            throw new IllegalStateException();
+
         if (typeKey != SOCGameOption.K_SC_WOND)
             throw new IllegalStateException("unknown typeKey: " + typeKey);
 
@@ -254,8 +262,10 @@ public class SOCSpecialItem
 
         itm.level++;
 
-        // TODO win condition: check for level 4
-        // TODO win condition: check for >= 10 VP and highest build level (no ties)
+        // win condition: check for level 4
+        // win condition: check for >= 10 VP and highest build level (no ties)
+        if ((itm.level > SC_WOND_WIN_LEVEL) || (pl.getTotalVP() >= ga.vp_winner))
+            ga.checkForWinner();
 
         return (cost != null);
     }
@@ -264,6 +274,9 @@ public class SOCSpecialItem
      * Process a request from a player to {@code SET} or {@code CLEAR} a known special item.
      * Implements scenario-specific rules and behavior for the item.
      * Called at server, not at client.
+     *<P>
+     * In some scenarios, calls {@link SOCGame#checkForWinner()}; after calling
+     * this method, check {@link SOCGame#getGameState()} &gt;= {@link SOCGame#OVER}.
      *<P>
      * To see which scenario and option {@code typeKey}s use this method, and scenario-specific usage details,
      * see the {@link SOCSpecialItem} class javadoc.

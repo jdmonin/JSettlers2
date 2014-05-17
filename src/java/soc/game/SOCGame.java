@@ -1197,7 +1197,8 @@ public class SOCGame implements Serializable, Cloneable
                 maxPlayers = 4;
             vp_winner = getGameOptionIntValue(op, "VP", VP_WINNER_STANDARD, true);
             hasScenarioWinCondition = isGameOptionSet(op, SOCGameOption.K_SC_CLVI)
-                || isGameOptionSet(op, SOCGameOption.K_SC_PIRI);
+                || isGameOptionSet(op, SOCGameOption.K_SC_PIRI)
+                || isGameOptionSet(op, SOCGameOption.K_SC_WOND);
         } else {
             maxPlayers = 4;
             hasSeaBoard = false;
@@ -7504,6 +7505,9 @@ public class SOCGame implements Serializable, Cloneable
      *     The winner is not necessarily the current player.
      *<LI> Scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI} requires the player to
      *     defeat and recapture 'their' pirate fortress to win.
+     *<LI> Scenario {@link SOCGameOption#K_SC_WOND _SC_WOND} requires the player to
+     *     build a Wonder to a higher level than any other player's Wonder; the player
+     *     can win even without reaching {@link #vp_winner} VP.
      *</UL>
      *
      * @see #getGameState()
@@ -7525,6 +7529,26 @@ public class SOCGame implements Serializable, Cloneable
                 if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
                     if (null != players[pn].getFortress())
                         return;  // <--- can't win without defeating pirate fortress ---
+
+                if (isGameOptionSet(SOCGameOption.K_SC_WOND))
+                {
+                    final SOCSpecialItem plWond = players[pn].getSpecialItem(SOCGameOption.K_SC_WOND, 0);
+                    if (plWond == null)
+                        return;  // <--- can't win without starting to build a Wonder ---
+
+                    // Check other players' levels
+                    for (int p = 0; p < maxPlayers; ++p)
+                    {
+                        if (p == pn)
+                            continue;
+
+                        final SOCSpecialItem pWond = players[p].getSpecialItem(SOCGameOption.K_SC_WOND, 0);
+                        if ((pWond != null) && (pWond.getLevel() >= plWond.getLevel()))
+                        {
+                            return;  // <--- another player has same or higher Wonder level ---
+                        }
+                    }
+                }
             }
 
             gameState = OVER;
@@ -7545,6 +7569,17 @@ public class SOCGame implements Serializable, Cloneable
                 if (scenarioEventListener != null)
                     scenarioEventListener.gameEvent
                         (this, SOCScenarioGameEvent.SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY, players[playerWithWin]);
+            }
+        }
+
+        // _SC_WOND: Check if the current player's built all 4 levels of their Wonder
+        if (isGameOptionSet(SOCGameOption.K_SC_WOND))
+        {
+            final SOCSpecialItem plWond = players[pn].getSpecialItem(SOCGameOption.K_SC_WOND, 0);
+            if ((plWond != null) && (plWond.getLevel() >= SOCSpecialItem.SC_WOND_WIN_LEVEL))
+            {
+                gameState = OVER;
+                playerWithWin = pn;
             }
         }
 
