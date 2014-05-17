@@ -453,6 +453,14 @@ public class SOCGameHandler extends GameHandler
             break;
 
         /**
+         * Special Item requests.
+         * Added 2014-05-17 for v2.0.00.
+         */
+        case SOCMessage.SETSPECIALITEM:
+            handleSETSPECIALITEM(ga, c, (SOCSetSpecialItem) mes);
+            break;
+
+        /**
          * Ignore all other message types, unknown message types.
          */
         default:
@@ -3759,6 +3767,156 @@ public class SOCGameHandler extends GameHandler
         }
 
         ga.releaseMonitor();
+    }
+
+    /**
+     * Handle Special Item requests from a player.
+     * Calls {@link SOCSpecialItem#playerPickItem(String, SOCGame, SOCPlayer, int, int)}
+     * or {@link SOCSpecialItem#playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)}
+     * which provide scenario-specific responses or decline the request.
+     * @param c  the connection that sent the message
+     * @param mes  the messsage
+     * @since 2.0.00
+     */
+    private final void handleSETSPECIALITEM(SOCGame ga, StringConnection c, final SOCSetSpecialItem mes)
+    {
+        final String gaName = ga.getName();
+        final SOCPlayer pl = ga.getPlayer((String) c.getData());
+        final String typeKey = mes.typeKey;
+        final int op = mes.op, gi = mes.gameItemIndex, pi = mes.playerItemIndex;
+        final int pn = (pl != null) ? pl.getPlayerNumber() : -1;  // don't trust mes.playerNumber
+        boolean sendDenyReply = false;
+
+        try
+        {
+            SOCSpecialItem itm = null;
+            final boolean paidCost;  // if true, itm's cost was paid by player to PICK or SET or CLEAR
+
+            ga.takeMonitor();
+            if ((pl == null) || (op < SOCSetSpecialItem.OP_SET) || (op > SOCSetSpecialItem.OP_PICK))
+            {
+                sendDenyReply = true;
+                paidCost = false;
+            } else {
+                if (op == SOCSetSpecialItem.OP_PICK)
+                {
+                    // Only if game index and player index are both given,
+                    // compare items before and after PICK in case they change
+                    final SOCSpecialItem gBefore, pBefore;
+                    if ((gi != -1) && (pi != -1))
+                    {
+                        gBefore = ga.getSpecialItem(typeKey, gi);
+                        pBefore = pl.getSpecialItem(typeKey, pi);
+                    } else {
+                        gBefore = null;  pBefore = null;
+                    }
+
+                    itm = ga.getSpecialItem(typeKey, gi, pi, pn);
+                        // before pick, get item for cost as per playerPickItem javadoc
+                    paidCost = SOCSpecialItem.playerPickItem(typeKey, ga, pl, gi, pi);
+
+                    // For now, this send logic handles everything we need it to do.
+                    // Depending on usage of PICK messages in future scenarios,
+                    // we might need more info returned from playerPickItem then.
+
+                    srv.messageToGame(gaName, new SOCSetSpecialItem
+                        (gaName, SOCSetSpecialItem.OP_PICK, typeKey, gi, pi, pn, -1, 0));
+
+                    if ((gi == -1) || (pi == -1))
+                    {
+                        // request didn't specify both gi and pi: only 1 SET/CLEAR message to send
+
+                        final SOCSpecialItem itmAfter = ga.getSpecialItem(typeKey, gi, pi, pn);
+                        final SOCSetSpecialItem msg = (itmAfter != null)
+                            ? new SOCSetSpecialItem(ga, SOCSetSpecialItem.OP_SET, typeKey, gi, pi, itmAfter)
+                            : new SOCSetSpecialItem
+                                (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn, -1, 0);
+                        srv.messageToGame(gaName, msg);
+                    } else {
+                        // request specified both gi and pi: might need to send 1 SET/CLEAR message if shared,
+                        // or 2 messages if not the same object for both
+
+                        final SOCSpecialItem gAfter, pAfter;
+                        gAfter = ga.getSpecialItem(typeKey, gi);
+                        pAfter = pl.getSpecialItem(typeKey, pi);
+
+                        if (gAfter == pAfter)
+                        {
+                            final SOCSetSpecialItem msg = (gAfter != null)
+                                ? new SOCSetSpecialItem(ga, SOCSetSpecialItem.OP_SET, typeKey, gi, pi, gAfter)
+                                : new SOCSetSpecialItem
+                                    (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn, -1, 0);
+                            srv.messageToGame(gaName, msg);
+                        } else {
+                            // gi and pi don't share the same object; might need to send 2 messages out if both changed.
+
+                            if (gAfter == null)
+                            {
+                                if (gBefore != null)
+                                    srv.messageToGame(gaName, new SOCSetSpecialItem
+                                        (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, -1, -1, -1, 0));
+                            } else {
+                                srv.messageToGame(gaName, new SOCSetSpecialItem
+                                    (ga, SOCSetSpecialItem.OP_SET, typeKey, gi, -1, gAfter));
+                            }
+
+                            if (pAfter == null)
+                            {
+                                if (pBefore != null)
+                                    srv.messageToGame(gaName, new SOCSetSpecialItem
+                                        (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, -1, pi, pn, -1, 0));
+                            } else {
+                                srv.messageToGame(gaName, new SOCSetSpecialItem
+                                    (ga, SOCSetSpecialItem.OP_SET, typeKey, -1, pi, pAfter));
+                            }
+                         }
+                    }
+
+                } else {
+                    // OP_SET or OP_CLEAR
+
+                    if (op == SOCSetSpecialItem.OP_CLEAR)
+                        // get item before CLEAR
+                        itm = ga.getSpecialItem(typeKey, gi, pi, pn);
+
+                    paidCost = SOCSpecialItem.playerSetItem
+                        (typeKey, ga, pl, gi, pi, (op == SOCSetSpecialItem.OP_SET));
+
+                    // get item after SET, in case it's changed
+                    if (op != SOCSetSpecialItem.OP_CLEAR)
+                        itm = ga.getSpecialItem(typeKey, gi, pi, pn);
+
+                    if ((op == SOCSetSpecialItem.OP_CLEAR) || (itm == null))
+                        srv.messageToGame(gaName, new SOCSetSpecialItem
+                            (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn, -1, 0));
+                    else
+                        srv.messageToGame(gaName, new SOCSetSpecialItem(ga, op, typeKey, gi, pi, itm));
+                }
+            }
+
+            // send rsrc-loss if cost paid
+            if (paidCost && (itm != null))
+            {
+                reportRsrcGainLoss(gaName, itm.getCost(), true, pn, -1, null, null);
+                // TODO i18n-neutral rsrc text to report cost paid?  or, encapsulate that into reportRsrcGainLoss
+            }
+        }
+        catch (IllegalStateException e)
+        {
+            sendDenyReply = true;
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception caught");
+        }
+        finally
+        {
+            ga.releaseMonitor();
+        }
+
+        if (sendDenyReply)
+            c.put(new SOCSetSpecialItem
+                (gaName, SOCSetSpecialItem.OP_DECLINE, typeKey, gi, pi, mes.playerNumber, -1, 0).toCmd());
     }
 
     /**
