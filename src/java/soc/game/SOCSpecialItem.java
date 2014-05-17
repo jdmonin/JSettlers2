@@ -87,6 +87,12 @@ public class SOCSpecialItem
 {
 
     /**
+     * To win the game in {@link SOCGameOption#K_SC_WOND _SC_WOND}, player can build this many
+     * levels (4) of their Wonder.
+     */
+    public static final int SC_WOND_WIN_LEVEL = 4;
+
+    /**
      * Requirements for the Wonders in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
      * Index 0 unused.  The 6-player game includes another copy of the first two wonders.
      * Used by {@link #makeKnownItem(String, int)}.
@@ -182,6 +188,12 @@ public class SOCSpecialItem
      * Implements scenario-specific rules and behavior for the item.
      * Called at server, not at client.
      *<P>
+     * When both {@code gi} and {@code pi} are specified, the item is retrieved
+     * by calling {@link SOCGame#getSpecialItem(String, int, int, int)} before
+     * making any changes.  That object's {@link #getCost()}, if any, is what was
+     * paid if this method returns {@code true}.  If the caller needs to know
+     * the cost paid, call that method before this one.
+     *<P>
      * To see which scenario and option {@code typeKey}s use this method, and scenario-specific usage details,
      * see the {@link SOCSpecialItem} class javadoc.
      *<P>
@@ -210,11 +222,10 @@ public class SOCSpecialItem
         if ((gi < 1) || (pi != 0))
             throw new IllegalStateException();
 
-        SOCSpecialItem itm = null;
-        try
-        {
-            itm = ga.getSpecialItem(typeKey, gi);
-        } catch (IndexOutOfBoundsException e) { }
+        SOCSpecialItem itm = ga.getSpecialItem(typeKey, gi);
+            // same logic for _SC_WOND as getSpecialItem(typeKey,gi,pi)
+            // because that method checks gi before pi, and for this
+            // scenario the item at valid gi will never be null.
 
         if ((itm == null) || ((itm.player != null) && (itm.player != pl)))
             throw new IllegalStateException();  // another player owns it, or item not found
