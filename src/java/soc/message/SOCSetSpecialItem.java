@@ -36,6 +36,10 @@ import soc.game.SOCSpecialItem;  // for javadocs only
  * The server can decline that request, or announce a change or pick to all members of the game.
  * The server can also send a {@code SOCSetSpecialItem} message when anything happens in-game that causes a change.
  *<P>
+ * In some scenarios, there may be a resource or other cost for picking, setting, or clearing an item.  If so,
+ * the server will check whether the requesting player can pay, and if so, the response from the server will be
+ * followed by {@link SOCPlayerElement} messages reporting the player's losses to pay the cost.
+ *<P>
  * If client joins the game after it starts, these messages will be sent after the {@link SOCBoardLayout2} message.
  * So, {@link SOCGame#updateAtBoardLayout()} will have been called at the client and created Special Item objects
  * before any {@code SOCSetSpecialItem} is received.
@@ -62,6 +66,8 @@ public class SOCSetSpecialItem extends SOCMessage
      * That is: If the game and player previously had different objects (not null) at the specified special item indices,
      * now they will both have a reference to the game's object. If the game's list item at this index was null,
      * the player's object will now also be referenced in the game's Special Item list.
+     *<P>
+     * {@code OP_SET} is the lowest-numbered operation.
      */
     public static final int OP_SET = 1;
 
@@ -78,8 +84,12 @@ public class SOCSetSpecialItem extends SOCMessage
      *<P>
      * If sent from server to client(s), this item has been picked for some action.  The server isn't required to
      * announce the pick to all players, only to the requesting player.  Depending on the situation in which the
-     * item is being picked, it may or may not make sense to announce it.  Any change to the contents of a Special Item
-     * list must be done with {@link #OP_SET} or {@link #OP_CLEAR}, never implied by sending only {@link #OP_PICK}.
+     * item is being picked, it may or may not make sense to announce it.  For clarity, any change to the contents
+     * of a Special Item list must be done with {@link #OP_SET} or {@link #OP_CLEAR}, never implied by sending
+     * only {@link #OP_PICK}.  The server's PICK message will not include the {@link #coord} and {@link #level} field
+     * values, unless the scenario doc says otherwise.
+     *<P>
+     * {@code OP_PICK} is currently the highest-numbered operation that a client can send as a request.
      */
     public static final int OP_PICK = 3;
 
@@ -113,6 +123,7 @@ public class SOCSetSpecialItem extends SOCMessage
      * Owning player number, or -1.
      * The item doesn't need to be in the owner's Special Item list;
      * if it should be, set {@link #playerItemIndex}.
+     * A player can only request with their own playerNumber, server ignores this field.
      */
     public final int playerNumber;
 
