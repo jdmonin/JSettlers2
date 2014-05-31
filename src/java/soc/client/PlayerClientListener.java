@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2013-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;  // for javadocs only
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
@@ -367,9 +368,20 @@ public interface PlayerClientListener
         City,
         Ship,
         Knight,
+
+        /** Number of Warships built, in {@link SOCGameOption#K_SC_PIRI _SC_PIRI} scenario */
         Warship,
+
+        /** Cloth Count update, in {@link SOCGameOption#K_SC_CLVI _SC_CLVI} scenario */
         Cloth,
-        
+
+        /**
+         * Wonder build level, in {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
+         * As a side effect, updating this during game play will print an announcement
+         * of the build into the player interface game text area.
+         */
+        WonderLevel,
+
         VictoryPoints,
         SpecialVictoryPoints,
         DevCards,
