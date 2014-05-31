@@ -34,6 +34,7 @@ import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
+import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 import soc.message.SOCCancelBuildRequest;  // for INV_ITEM_PLACE_CANCEL constant
 import soc.util.SOCStringManager;
@@ -340,9 +341,22 @@ public class SOCHandPanel extends Panel
 
     /** Trade offer resource squares; visible only for client's own player */
     protected SquaresPanel sqPanel;
-    /** Cloth count, for scenario _SC_CLVI; null otherwise. @since 2.0.00 */
+
+    /**
+     * Cloth count, for scenario {@link SOCGameOption#K_SC_CLVI _SC_CLVI}; null otherwise.
+     * Appears in same area as {@link #wonderLab}.
+     * @since 2.0.00
+     */
     protected ColorSquare clothSq;
     protected Label clothLab;
+
+    /**
+     * Wonder Level label, for scenario {@link SOCGameOption#K_SC_WOND _SC_WOND}; null otherwise.
+     * Blank ("") if player has no current wonder level.
+     * Appears in same areas as {@link #clothLab} and {@link #clothSq}.
+     * @since 2.0.00
+     */
+    private JLabel wonderLab;
 
     // Trading interface
 
@@ -709,8 +723,15 @@ public class SOCHandPanel extends Panel
             clothSq = new ColorSquare(ColorSquare.GREY, 0);
             add(clothSq);
             clothSq.setTooltipText(strings.get("hpan.cloth.amounttraded"));  // "Amount of cloth traded from villages"
+        }
+        else if (game.isGameOptionSet(SOCGameOption.K_SC_WOND))
+        {
+            wonderLab = new JLabel("");  // Blank at wonder level 0; other levels' text set by updateValue(WonderLevel)
+            wonderLab.setForeground(new Color(142, 45, 10));
+            wonderLab.setFont(DIALOG_PLAIN_10);  // same color and font as larmyLab, lroadLab
+            add(wonderLab);
         } else {
-            // clothSq, clothLab already null
+            // clothSq, clothLab, wonderLab already null
         }
 
         knightsLab = new Label(strings.get("hpan.soldiers"));  // No trailing space (room for wider colorsquares at left)
@@ -1587,6 +1608,10 @@ public class SOCHandPanel extends Panel
             clothLab.setVisible(false);
             clothSq.setVisible(false);
         }
+        else if (wonderLab != null)
+        {
+            wonderLab.setVisible(false);
+        }
 
         offer.setVisible(false);
 
@@ -1741,6 +1766,13 @@ public class SOCHandPanel extends Panel
         {
             clothLab.setVisible(true);
             clothSq.setVisible(true);
+        }
+        else if (wonderLab != null)
+        {
+            wonderLab.setText("");  // clear previous; will be updated soon by updateValue(WonderLevel)
+            wonderLab.setToolTipText(null);
+            wonderLab.setVisible(true);
+            // alignment is set below, after playerIsClient is known
         }
 
         resourceLab.setVisible(true);
@@ -1906,6 +1938,9 @@ public class SOCHandPanel extends Panel
             removeSitBut();
             removeRobotBut();
         }
+
+        if (wonderLab != null)
+            wonderLab.setHorizontalAlignment((playerIsClient) ? SwingConstants.RIGHT : SwingConstants.LEFT);
 
         inPlay = true;
 
@@ -2442,6 +2477,10 @@ public class SOCHandPanel extends Panel
             {
                 clothLab.setVisible(hideTradeMsg);
                 clothSq.setVisible(hideTradeMsg);
+            }
+            else if (wonderLab != null)
+            {
+                wonderLab.setVisible(hideTradeMsg);
             }
             resourceLab.setVisible(hideTradeMsg);
             resourceSq.setVisible(hideTradeMsg);
@@ -2984,6 +3023,23 @@ public class SOCHandPanel extends Panel
                 clothSq.setIntValue(player.getCloth());
             break;
 
+        case WonderLevel:
+            if (wonderLab != null)
+            {
+                SOCSpecialItem pWond = player.getSpecialItem(SOCGameOption.K_SC_WOND, 0);
+                final int pLevel = (pWond != null) ? pWond.getLevel() : 0;
+                if (pLevel == 0)
+                {
+                    wonderLab.setText("");
+                    wonderLab.setToolTipText(null);
+                } else {
+                    wonderLab.setText(strings.get("hpan.wonderlevel", pLevel));  // "Wonder Level: #"
+                    wonderLab.setToolTipText(strings.get("hpan.wonderlevel.tip", pLevel));
+                        // "Player has built # levels of their Wonder."
+                }
+            }
+            break;
+
         case Warship:
         case Unknown:
             // do nothing (avoid compiler enum warning).
@@ -3346,6 +3402,12 @@ public class SOCHandPanel extends Panel
                     clothLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY - (lineH + space), knightsW, lineH);
                     clothSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY - (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
                 }
+                else if (wonderLab != null)
+                {
+                    // Wonder Level shows above trade area, left edge is above left edge of Bank/Trade buttons
+                    final int x = tbX + tbW + space;
+                    wonderLab.setBounds(x, tradeY - (lineH + space), dim.width - x - space, lineH);
+                }
                 knightsLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY, knightsW, lineH);
                 knightsSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
                 roadLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY + lineH + space, knightsW, lineH);
@@ -3482,6 +3544,12 @@ public class SOCHandPanel extends Panel
                 {
                     clothLab.setBounds(inset, inset + balloonH, dcardsW, lineH);
                     clothSq.setBounds(inset + dcardsW + space, inset + balloonH, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                }
+                else if (wonderLab != null)
+                {
+                    // In left column and also extends to right, since this row is above Lock/Unlock button
+                    wonderLab.setBounds(inset, inset + balloonH,
+                        dim.width - (2*inset) - stlmtsW - ColorSquare.WIDTH - (2*space), lineH);
                 }
 
                 // Lower-right: Column of piece counts:
