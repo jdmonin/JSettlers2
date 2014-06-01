@@ -22,6 +22,7 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGame;  // for javadocs only
+import soc.game.SOCPlayer;  // for javadocs only
 import soc.game.SOCSpecialItem;  // for javadocs only
 
 /**
@@ -35,10 +36,13 @@ import soc.game.SOCSpecialItem;  // for javadocs only
  * A client player can request that a player or game Special Item list index be picked, set, or cleared.
  * The server can decline that request, or announce a change or pick to all members of the game.
  * The server can also send a {@code SOCSetSpecialItem} message when anything happens in-game that causes a change.
+ * If the special item change has also caused a change to game state, the server will announce that
+ * after sending the special item message(s).
  *<P>
  * In some scenarios, there may be a resource or other cost for picking, setting, or clearing an item.  If so,
- * the server will check whether the requesting player can pay, and if so, the response from the server will be
- * followed by {@link SOCPlayerElement} messages reporting the player's losses to pay the cost.
+ * the server will check whether the requesting player can pay, and if so, the {@code SOCSetSpecialItem} response
+ * message(s) from the server will be preceded by {@link SOCPlayerElement} messages reporting the player's losses to
+ * pay the cost.
  *<P>
  * If client joins the game after it starts, these messages will be sent after the {@link SOCBoardLayout2} message.
  * So, {@link SOCGame#updateAtBoardLayout()} will have been called at the client and created Special Item objects
@@ -86,8 +90,30 @@ public class SOCSetSpecialItem extends SOCMessage
      * announce the pick to all players, only to the requesting player.  Depending on the situation in which the
      * item is being picked, it may or may not make sense to announce it.  For clarity, any change to the contents
      * of a Special Item list must be done with {@link #OP_SET} or {@link #OP_CLEAR}, never implied by sending
-     * only {@link #OP_PICK}.  The server's PICK message will not include the {@link #coord} and {@link #level} field
-     * values, unless the scenario doc says otherwise.
+     * only {@link #OP_PICK}.
+     *<P>
+     * The sequence of messages sent from the server for a player's PICK are:
+     *<OL>
+     * <LI> {@link SOCPlayerElement} message(s) to pay the cost, if any
+     * <LI> {@link #OP_SET} or {@link #OP_CLEAR} message(s) resulting from the pick
+     * <LI> {@link #OP_PICK} itself
+     * <LI> {@link SOCGameState} and related messages, if the state changed or the game is now over
+     *</OL>
+     *<P>
+     * For convenience, the server's PICK message includes the {@link #coord} and {@link #level} field
+     * values of the special item being picked.  Different scenarios might change picked objects in different ways,
+     * so these fields are filled by:
+     *<UL>
+     * <LI> If the pick causes the item to become {@code null} and be cleared, the values before the pick
+     *      as retrieved by {@link SOCGame#getSpecialItem(String, int, int, int)}
+     * <LI> Otherwise, the field values after the pick
+     * <LI> If the pick specifies both {@link #gameItemIndex} and {@link #playerItemIndex}, and afterwards
+     *      these are two different {@link SOCSpecialItem} objects, then the values are taken from
+     *      {@code gameItemIndex}'s item if not {@code null}, otherwise from {@code playerItemIndex}'s item.
+     *</UL>
+     * When the client receives the PICK, they can get the field values if needed by calling
+     * {@link SOCGame#getSpecialItem(String, int)} or {@link SOCPlayer#getSpecialItem(String, int)},
+     * because the SET or CLEAR messages are sent out before the PICK.
      *<P>
      * {@code OP_PICK} is currently the highest-numbered operation that a client can send as a request.
      */

@@ -3802,7 +3802,9 @@ public class SOCGameHandler extends GameHandler
 
                 if (op == SOCSetSpecialItem.OP_PICK)
                 {
-                    // Only if game index and player index are both given,
+                    int pickCoord = -1, pickLevel = 0;  // field values to send in reply/announcement
+
+                    // When game index and player index are both given,
                     // compare items before and after PICK in case they change
                     final SOCSpecialItem gBefore, pBefore;
                     if ((gi != -1) && (pi != -1))
@@ -3813,26 +3815,44 @@ public class SOCGameHandler extends GameHandler
                         gBefore = null;  pBefore = null;
                     }
 
+                    // Before pick, get item as per playerPickItem javadoc for cost, coord, level,
+                    // in case it's cleared by the pick. If not cleared, will get it again afterwards.
                     itm = ga.getSpecialItem(typeKey, gi, pi, pn);
-                        // before pick, get item for cost as per playerPickItem javadoc
+                    if (itm != null)
+                    {
+                        pickCoord = itm.getCoordinates();
+                        pickLevel = itm.getLevel();
+                    }
+
+                    // perform the PICK in game
                     paidCost = SOCSpecialItem.playerPickItem(typeKey, ga, pl, gi, pi);
+
+                    // if cost paid, send resource-loss first
+                    if (paidCost && (itm != null))
+                        reportRsrcGainLoss(gaName, itm.getCost(), true, pn, -1, null, null);
+                        // TODO i18n-neutral rsrc text to report cost paid?  or, encapsulate that into reportRsrcGainLoss
+
+                    // Next, send SET/CLEAR before sending PICK announcement
 
                     // For now, this send logic handles everything we need it to do.
                     // Depending on usage of PICK messages in future scenarios,
                     // we might need more info returned from playerPickItem then.
-
-                    srv.messageToGame(gaName, new SOCSetSpecialItem
-                        (gaName, SOCSetSpecialItem.OP_PICK, typeKey, gi, pi, pn, -1, 0));
 
                     if ((gi == -1) || (pi == -1))
                     {
                         // request didn't specify both gi and pi: only 1 SET/CLEAR message to send
 
                         final SOCSpecialItem itmAfter = ga.getSpecialItem(typeKey, gi, pi, pn);
-                        final SOCSetSpecialItem msg = (itmAfter != null)
-                            ? new SOCSetSpecialItem(ga, SOCSetSpecialItem.OP_SET, typeKey, gi, pi, itmAfter)
-                            : new SOCSetSpecialItem
+                        final SOCSetSpecialItem msg;
+                        if (itmAfter != null)
+                        {
+                            msg = new SOCSetSpecialItem(ga, SOCSetSpecialItem.OP_SET, typeKey, gi, pi, itmAfter);
+                            pickCoord = itmAfter.getCoordinates();
+                            pickLevel = itmAfter.getLevel();
+                        } else {
+                            msg = new SOCSetSpecialItem
                                 (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn, -1, 0);
+                        }
                         srv.messageToGame(gaName, msg);
                     } else {
                         // request specified both gi and pi: might need to send 1 SET/CLEAR message if shared,
@@ -3844,13 +3864,21 @@ public class SOCGameHandler extends GameHandler
 
                         if (gAfter == pAfter)
                         {
-                            final SOCSetSpecialItem msg = (gAfter != null)
-                                ? new SOCSetSpecialItem(ga, SOCSetSpecialItem.OP_SET, typeKey, gi, pi, gAfter)
-                                : new SOCSetSpecialItem
+                            final SOCSetSpecialItem msg;
+                            if (gAfter != null)
+                            {
+                                msg = new SOCSetSpecialItem(ga, SOCSetSpecialItem.OP_SET, typeKey, gi, pi, gAfter);
+                                pickCoord = gAfter.getCoordinates();
+                                pickLevel = gAfter.getLevel();
+                            } else {
+                                msg = new SOCSetSpecialItem
                                     (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn, -1, 0);
+                            }
                             srv.messageToGame(gaName, msg);
                         } else {
                             // gi and pi don't share the same object; might need to send 2 messages out if both changed.
+
+                            boolean hasgAfterCoordLevel = false;
 
                             if (gAfter == null)
                             {
@@ -3860,6 +3888,9 @@ public class SOCGameHandler extends GameHandler
                             } else {
                                 srv.messageToGame(gaName, new SOCSetSpecialItem
                                     (ga, SOCSetSpecialItem.OP_SET, typeKey, gi, -1, gAfter));
+                                pickCoord = gAfter.getCoordinates();
+                                pickLevel = gAfter.getLevel();
+                                hasgAfterCoordLevel = true;
                             }
 
                             if (pAfter == null)
@@ -3870,9 +3901,17 @@ public class SOCGameHandler extends GameHandler
                             } else {
                                 srv.messageToGame(gaName, new SOCSetSpecialItem
                                     (ga, SOCSetSpecialItem.OP_SET, typeKey, -1, pi, pAfter));
+                                if (! hasgAfterCoordLevel)
+                                {
+                                    pickCoord = pAfter.getCoordinates();
+                                    pickLevel = pAfter.getLevel();
+                                }
                             }
                          }
                     }
+
+                    srv.messageToGame(gaName, new SOCSetSpecialItem
+                            (gaName, SOCSetSpecialItem.OP_PICK, typeKey, gi, pi, pn, pickCoord, pickLevel));
 
                 } else {
                     // OP_SET or OP_CLEAR
@@ -3884,6 +3923,11 @@ public class SOCGameHandler extends GameHandler
                     paidCost = SOCSpecialItem.playerSetItem
                         (typeKey, ga, pl, gi, pi, (op == SOCSetSpecialItem.OP_SET));
 
+                    // if cost paid, send resource-loss first
+                    if (paidCost && (itm != null))
+                        reportRsrcGainLoss(gaName, itm.getCost(), true, pn, -1, null, null);
+                        // TODO i18n-neutral rsrc text to report cost paid?  or, encapsulate that into reportRsrcGainLoss
+
                     // get item after SET, in case it's changed
                     if (op != SOCSetSpecialItem.OP_CLEAR)
                         itm = ga.getSpecialItem(typeKey, gi, pi, pn);
@@ -3893,13 +3937,6 @@ public class SOCGameHandler extends GameHandler
                             (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn, -1, 0));
                     else
                         srv.messageToGame(gaName, new SOCSetSpecialItem(ga, op, typeKey, gi, pi, itm));
-                }
-
-                // send resource-loss if cost paid
-                if (paidCost && (itm != null))
-                {
-                    reportRsrcGainLoss(gaName, itm.getCost(), true, pn, -1, null, null);
-                    // TODO i18n-neutral rsrc text to report cost paid?  or, encapsulate that into reportRsrcGainLoss
                 }
 
                 // check game state, check for winner
