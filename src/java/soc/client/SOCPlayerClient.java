@@ -82,6 +82,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCSettlement;
+import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCVersionedItem;
 import soc.game.SOCVillage;
@@ -2972,7 +2973,7 @@ public class SOCPlayerClient
              * Added 2014-04-16 for v2.0.00.
              */
             case SOCMessage.SETSPECIALITEM:
-                SOCDisplaylessPlayerClient.handleSETSPECIALITEM(games, (SOCSetSpecialItem) mes);
+                handleSETSPECIALITEM(games, (SOCSetSpecialItem) mes);
                 break;
 
             }  // switch (mes.getType())
@@ -4786,6 +4787,47 @@ public class SOCPlayerClient
                 if (mes.action == SOCInventoryItemAction.PLAYED)
                     pcl.playerCanCancelInvItemPlay(pl, mes.canCancelPlay);
             }
+        }
+    }
+
+    /**
+     * Handle the "set special item" message.
+     * Calls {@link SOCDisplaylessPlayerClient#handleSETSPECIALITEM(Map, SOCSetSpecialItem)},
+     * then calls {@link PlayerClientListener} to update the game display.
+     *
+     * @param games  Games the client is playing
+     * @param mes  the message
+     * @since 2.0.00
+     */
+    private void handleSETSPECIALITEM(final Map<String, SOCGame> games, SOCSetSpecialItem mes)
+    {
+        SOCDisplaylessPlayerClient.handleSETSPECIALITEM(games, (SOCSetSpecialItem) mes);
+
+        final PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
+            return;
+
+        final SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
+
+        final String typeKey = mes.typeKey;
+        final int gi = mes.gameItemIndex, pi = mes.playerItemIndex, pn = mes.playerNumber;
+        final SOCPlayer pl = ((pn != -1) && (pi != -1)) ? ga.getPlayer(pn) : null;
+
+        switch (mes.op)
+        {
+        case SOCSetSpecialItem.OP_SET:
+            // fall through
+        case SOCSetSpecialItem.OP_CLEAR:
+            pcl.playerSetSpecialItem(typeKey, ga, pl, gi, pi, (mes.op == SOCSetSpecialItem.OP_SET));
+            break;
+
+        case SOCSetSpecialItem.OP_PICK:
+            // fall through
+        case SOCSetSpecialItem.OP_DECLINE:
+            pcl.playerPickSpecialItem(typeKey, ga, pl, gi, pi, (mes.op == SOCSetSpecialItem.OP_PICK), mes.coord, mes.level);
+            break;
         }
     }
 

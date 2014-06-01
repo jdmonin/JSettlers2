@@ -32,6 +32,7 @@ import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
+import soc.game.SOCSpecialItem;
 
 /**
  * A listener on the {@link SOCPlayerClient} to decouple the presentation from the networking.
@@ -333,6 +334,49 @@ public interface PlayerClientListener
     void invItemPlayRejected(final int type, final int reasonCode);
 
     /**
+     * Show the results of a player's {@code PICK} of a known {@link SOCSpecialItem Special Item},
+     * or the server's {@code DECLINE} of the client player's pick request.
+     *<P>
+     * To see which scenario and option {@code typeKey}s pick Special Items,
+     * and scenario-specific usage details, see the {@link SOCSpecialItem} class javadoc.
+     *<P>
+     * {@code coord} and {@code level} are sent for convenience, and sometimes may not be from the Special Item you need;
+     * see {@link soc.message.SOCSetSpecialItem#OP_PICK} for details.
+     *
+     * @param typeKey  Item's {@code typeKey}, as described in the {@link SOCSpecialItem} class javadoc
+     * @param ga  Game containing {@code pl} and special items
+     * @param pl  Player who picked; never {@code null}
+     * @param gi  Picked this index within game's Special Item list, or -1
+     * @param pi  Picked this index within {@code pl}'s Special Item list, or -1
+     * @param isPick  True if calling for {@code PICK}, false if server has {@code DECLINE}d the client player's request
+     * @param coord  Optional coordinates on the board for this item, or -1. An edge or a node, depending on item type
+     * @param level  Optional level of construction or strength, or 0
+     * @see #playerSetSpecialItem(String, SOCGame, SOCPlayer, int, int, boolean)
+     * @see SOCSpecialItem#playerPickItem(String, SOCGame, SOCPlayer, int, int)
+     */
+    void playerPickSpecialItem
+        (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi, final boolean isPick,
+         final int coord, final int level);
+
+    /**
+     * Show the results of a player's {@code SET} or {@code CLEAR} of a known {@link SOCSpecialItem Special Item}.
+     *<P>
+     * To see which scenario and option {@code typeKey}s set or clear Special Items,
+     * and scenario-specific usage details, see the {@link SOCSpecialItem} class javadoc.
+     *
+     * @param typeKey  Item's {@code typeKey}, as described in the {@link SOCSpecialItem} class javadoc
+     * @param ga  Game containing {@code pl} and special items
+     * @param pl  Requesting player; never {@code null}
+     * @param gi  Set or clear this index within game's Special Item list, or -1
+     * @param pi  Set or clear this index within {@code pl}'s Special Item list, or -1
+     * @param isSet  True if player has set, false if player has cleared, this item index
+     * @see #playerPickSpecialItem(String, SOCGame, SOCPlayer, int, int)
+     * @see SOCSpecialItem#playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)
+     */
+    void playerSetSpecialItem
+        (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi, final boolean isSet);
+
+    /**
      * In scenario _SC_PIRI, present the server's response to a Pirate Fortress Attack request from the
      * current player (the client or another player), which may be: Rejected, Lost, Tied, or Won.
      *<P>
@@ -375,11 +419,7 @@ public interface PlayerClientListener
         /** Cloth Count update, in {@link SOCGameOption#K_SC_CLVI _SC_CLVI} scenario */
         Cloth,
 
-        /**
-         * Wonder build level, in {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
-         * As a side effect, updating this during game play will print an announcement
-         * of the build into the player interface game text area.
-         */
+        /** Wonder build level, in {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario */
         WonderLevel,
 
         VictoryPoints,

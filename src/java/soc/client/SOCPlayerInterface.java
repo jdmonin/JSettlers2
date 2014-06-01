@@ -41,6 +41,7 @@ import soc.game.SOCScenarioGameEvent;
 import soc.game.SOCScenarioPlayerEvent;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
+import soc.game.SOCSpecialItem;
 import soc.game.SOCVillage;
 import soc.message.SOCSimpleAction;  // for action type constants
 import soc.message.SOCSimpleRequest;  // for request type constants
@@ -3053,7 +3054,11 @@ public class SOCPlayerInterface extends Frame
             case Warship:
                 pi.updateAtPiecesChanged();
                 break;
-                
+
+            case WonderLevel:
+                hpan.updateValue(PlayerClientListener.UpdateType.WonderLevel);
+                break;
+
             default:
                 System.out.println("Unhandled case in PlayerClientListener["+utype+"]");
                 break;
@@ -3349,6 +3354,44 @@ public class SOCPlayerInterface extends Frame
             } else {
                 pi.printKeyed("hpan.item.play.cannot");  // * "Cannot play this item right now."
             }
+        }
+
+        public void playerPickSpecialItem
+            (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi,
+             final boolean isPick, final int coord, final int level)
+        {
+            if (pl == null)
+                return;  // <--- Early return: So far, everything implemented is player-specific ---
+
+            if (! typeKey.equals(SOCGameOption.K_SC_WOND))
+                return;  // <--- Early return: So far, the only known typeKey is _SC_WOND ---
+
+            if (isPick)
+            {
+                if (level == 1)
+                    this.pi.printKeyed("game.specitem.sc_wond.started", pl.getName()); // "{0} started building a Wonder!"
+                else
+                    this.pi.printKeyed("game.specitem.sc_wond.built", pl.getName(), level);
+                        // "{0} has built level # of their Wonder."
+
+                // TODO any visual effect?
+            } else {
+                this.pi.printKeyed("game.specitem.sc_wond.decl");  // "You cannot build that Wonder right now."
+            }
+        }
+
+        public void playerSetSpecialItem
+            (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi, final boolean isSet)
+        {
+            if (pl == null)
+                return;  // <--- Early return: So far, everything implemented is player-specific ---
+
+            if (! typeKey.equals(SOCGameOption.K_SC_WOND))
+                return;  // <--- Early return: So far, the only known typeKey is _SC_WOND ---
+
+            final SOCHandPanel hp = this.pi.getPlayerHandPanel(pl.getPlayerNumber());
+            if (hp != null)
+                hp.updateValue(PlayerClientListener.UpdateType.WonderLevel);
         }
 
         public void scen_SC_PIRI_pirateFortressAttackResult
