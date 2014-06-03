@@ -264,7 +264,7 @@ public class SOCSpecialItem
 
         // win condition: check for level 4
         // win condition: check for >= 10 VP and highest build level (no ties)
-        if ((itm.level > SC_WOND_WIN_LEVEL) || (pl.getTotalVP() >= ga.vp_winner))
+        if ((itm.level >= SC_WOND_WIN_LEVEL) || (pl.getTotalVP() >= ga.vp_winner))
             ga.checkForWinner();
 
         return (cost != null);
