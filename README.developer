@@ -109,8 +109,7 @@ command line when starting the server:
 	-Djsettlers.bots.botgames.total=5
 As each game finishes, a new bot-only game will be started until 5 have been played.
 You can optionally use the client to observe a bot-only game.
-(This flag and behavior is experimental work in progress.)
-
+See the "Robots (AI)" section for details.
 
 Setup instructions for JSettlers as an Eclipse project
 ------------------------------------------------------
@@ -501,7 +500,7 @@ The project code lives at https://github.com/jdmonin/JSettlers2 .
 Patches can be sent by email or by pull request.
 Please make sure your patch follows the project coding style.
 
-The master branch receives new features and enhancements for next 'minor'
+The master branch receives new features and enhancements for the next 'minor'
 release.  As soon as a bug is fixed or a feature's design is fairly stable, it
 should be committed to master.
 
