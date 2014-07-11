@@ -2482,35 +2482,35 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (portFacing != -1)
         {
             final Image[] portis = (isRotated ? rotatPorts : ports);  // Fall back to original, or to rotated?
+            final int ptypeIdx = portFacing - 1;  // index 0-5 = facing 1-6
 
-            final int tmp = portFacing - 1;  // index 0-5; TODO rename to ptypeIdx
-
-            if (isScaled && (scaledPorts[tmp] == portis[tmp]))
+            if (isScaled && (scaledPorts[ptypeIdx] == portis[ptypeIdx]))
             {
                 recenterPrevMiss = true;
-                int w = portis[tmp].getWidth(null);
-                int h = portis[tmp].getHeight(null);
+                int w = portis[ptypeIdx].getWidth(null);
+                int h = portis[ptypeIdx].getHeight(null);
                 xm = (scaleToActualX(w) - w) / 2;
                 ym = (scaleToActualY(h) - h) / 2;
                 x += xm;
                 y += ym;
             }
-            if (! g.drawImage(scaledPorts[tmp], x, y, this))
+
+            if (! g.drawImage(scaledPorts[ptypeIdx], x, y, this))
             {
-                g.drawImage(portis[tmp], x, y, null);  // show smaller unscaled port graphic, instead of a blank space
+                g.drawImage(portis[ptypeIdx], x, y, null);  // show smaller unscaled port graphic, instead of a blank space
                 missedDraw = true;
                 if (isScaled && (7000 < (drawnEmptyAt - scaledAt)))
                 {
-                    if (scaledPortFail[tmp])
+                    if (scaledPortFail[ptypeIdx])
                     {
-                        scaledPorts[tmp] = portis[tmp];  // fallback
+                        scaledPorts[ptypeIdx] = portis[ptypeIdx];  // fallback
                     }
                     else
                     {
-                        scaledPortFail[tmp] = true;
+                        scaledPortFail[ptypeIdx] = true;
                         int w = scaleToActualX(portis[1].getWidth(null));
                         int h = scaleToActualY(portis[1].getHeight(null));
-                        scaledPorts[tmp] = portis[tmp].getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                        scaledPorts[ptypeIdx] = portis[ptypeIdx].getScaledInstance(w, h, Image.SCALE_SMOOTH);
                     }
                 }
             }
