@@ -41,7 +41,7 @@ import java.util.List;
  *<P>
  * In some scenarios, Special Items may have requirements for players to build or use them.
  * See {@link SOCSpecialItem.Requirement} javadoc for more details.  To check requirements,
- * call {@link SOCSpecialItem#checkRequirements(SOCPlayer)}.
+ * call {@link SOCSpecialItem#checkRequirements(SOCPlayer, boolean)}.
  *<P>
  * <B>Non-Networked Fields:</B><BR>
  * The cost and requirement fields are initialized at the server and at the client, not sent over the network.
@@ -250,7 +250,7 @@ public class SOCSpecialItem
         // if unowned (first level), check requirements and then acquire item if met
         if (itm.player == null)
         {
-            if (! itm.checkRequirements(pl))
+            if (! itm.checkRequirements(pl, false))
                 throw new IllegalStateException("requirements");
 
             itm.setPlayer(pl);
@@ -417,16 +417,21 @@ public class SOCSpecialItem
     /**
      * Does this player meet this special item's {@link #req} requirements?
      * @param pl  Player to check
-     * @return  True if player meets the requirements, false otherwise; true if {@link #req} is null or empty
+     * @param checkCost  If true, also check the cost against player's current resources
+     * @return  True if player meets the requirements, false otherwise; true if {@link #req} is null or empty.
+     *     If {@code checkCost} and {@link #cost} != null, false unless player's resources contain {@code cost}.
      * @throws IllegalArgumentException if {@link #req} has an unknown requirement type,
      *     or refers to an Added Layout Part {@code "N1"} through {@code "N9"} that isn't defined in the board layout
      * @throws UnsupportedOperationException if requirement type S (Settlement) includes {@code atPort} location;
      *     this is not implemented
      * @see #checkRequirements(SOCPlayer, List)
      */
-    public final boolean checkRequirements(final SOCPlayer pl)
+    public final boolean checkRequirements(final SOCPlayer pl, final boolean checkCost)
         throws IllegalArgumentException, UnsupportedOperationException
     {
+        if (checkCost && (cost != null) && ! pl.getResources().contains(cost))
+            return false;
+
         return checkRequirements(pl, req);
     }
 
@@ -440,7 +445,7 @@ public class SOCSpecialItem
      *     or refers to an Added Layout Part {@code "N1"} through {@code "N9"} that isn't defined in the board layout
      * @throws UnsupportedOperationException if requirement type S (Settlement) includes {@code atPort} location;
      *     this is not implemented
-     * @see #checkRequirements(SOCPlayer)
+     * @see #checkRequirements(SOCPlayer, boolean)
      */
     public static boolean checkRequirements(final SOCPlayer pl, final List<SOCSpecialItem.Requirement> reqsList)
         throws IllegalArgumentException, UnsupportedOperationException
@@ -597,7 +602,7 @@ public class SOCSpecialItem
      * Settlement or City items.
      *
      * @see #parse(String)
-     * @see SOCSpecialItem#checkRequirements(SOCPlayer, String)
+     * @see SOCSpecialItem#checkRequirements(SOCPlayer, boolean)
      */
     public static final class Requirement
     {
