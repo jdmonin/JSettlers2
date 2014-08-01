@@ -66,6 +66,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.Timer;
 
@@ -6604,6 +6605,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          *<LI> Look first for settlements or ports
          *<LI> If not over a settlement, look for a road or ship
          *<LI> If no road, look for a hex
+         *<LI> If no piece currently at the point, look for potential pieces and
+         *     scenario-specific items such as Villages, the Pirate Path (Added Layout Part {@code PP}),
+         *     and members of Special Node lists ({@code N1 - N3}).
          *</UL>
          *
          * @param x Cursor x, from upper-left of board: actual coordinates, not board-internal coordinates
@@ -6841,6 +6845,49 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         }
                     }
 
+                    // Check special nodes in sea board scenarios.
+                    //     Currently hardcoded to _SC_WOND only; if other scenarios use node lists, code
+                    //     here must be generalized to check for added layout part "N1" and game option "SC".
+                    if ((! hoverTextSet) && game.hasSeaBoard && game.isGameOptionSet(SOCGameOption.K_SC_WOND))
+                    {
+                        // Check node lists "N1"-"N3" for this node coordinate. If found, use node list's name string
+                        int i;
+                        int[] nlist;
+                        for (i = 1, nlist = ((SOCBoardLarge) board).getAddedLayoutPart("N1");
+                             (nlist != null) && ! hoverTextSet;
+                             ++i, nlist = ((SOCBoardLarge) board).getAddedLayoutPart("N" + i))
+                        {
+                            for (int j = 0; j < nlist.length; ++j)
+                            {
+                                if (nlist[j] == id)
+                                {
+                                    String nlDesc = null;
+
+                                    try {
+                                        nlDesc = strings.get("board.nodelist._SC_WOND.N" + i);
+                                    } catch (MissingResourceException e) {}
+
+                                    if (nlDesc == null)
+                                    {
+                                        try {
+                                            nlDesc = strings.get("board.nodelist.no_desc", i);
+                                        } catch (MissingResourceException e) {}
+                                    }
+
+                                    if (nlDesc != null)
+                                    {
+                                        setHoverText(nlDesc);
+                                        hoverMode = PLACE_ROBBER;  // const used for hovering-at-node
+                                        hoverID = id;
+                                        hoverIsPort = false;
+                                        hoverTextSet = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                 }  // end if-node-has-settlement
             }
             else
@@ -6849,7 +6896,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hoverCityID = 0;
             }
 
-            // If not over a settlement, look for a road or ship
+            // If not over a node (settlement), look for an edge (road or ship)
             id = findEdge(xb, yb, false);
             if (id != 0)
             {
