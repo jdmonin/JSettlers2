@@ -202,6 +202,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Shuffle the hex tiles and layout a board.
      * Sets up land hex types, water, ports, dice numbers, Land Areas' contents, starting Land Area if any,
      * and the legal/potential node sets ({@link SOCBoardLarge#getLegalAndPotentialSettlements()}).
+     * Sets up any Added Layout Parts such as {@code "PP", "CE", "VE", "N1"}, etc.
      *<P>
      * This is called at server, but not at client;
      * client instead calls methods such as {@link #setLandHexLayout(int[])}
@@ -475,7 +476,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             PORT_LOC_FACING_MAINLAND = WOND_PORT_EDGE_FACING[idx];
             PORT_LOC_FACING_ISLANDS = null;
 
-            // special node sets: Added Layout Parts, remove from starting legal/potential nodes.
+            // special node sets "N1","N2","N3": set Added Layout Parts and remove from starting legal/potential nodes.
             // Will have to re-add after initial placement, via addLegalNodes from SOCGame.updateAtGameFirstTurn().
             for (int i = 0; i <= 2; ++i)
                 makeNewBoard_removeLegalNodes(WOND_SPECIAL_NODES[idx][i], startingLandArea, i + 1);
