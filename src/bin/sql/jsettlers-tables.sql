@@ -24,7 +24,7 @@ CREATE TABLE games (
 	starttime TIMESTAMP
 	);
 
-CREATE INDEX "games__n" ON games(gamename);
+CREATE INDEX `games__n` ON games(gamename);
 
 CREATE TABLE robotparams (
 	robotname VARCHAR(20),
