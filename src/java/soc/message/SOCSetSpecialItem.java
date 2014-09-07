@@ -188,10 +188,10 @@ public class SOCSetSpecialItem extends SOCMessage
      * @param typeKey    Special item type key; see the {@link SOCSpecialItem} class javadoc for details
      * @param gi  Game item index, or -1
      * @param pi  Player item index (requires pn != -1), or -1
-     * @param pn  Owning player number, or -1
+     * @param pn  Currently owning player number, or -1
      * @param co  Optional coordinate on board, or -1
      * @param lv  Optional built level/strength, or 0
-     * @throws IllegalArgumentException  if ga or typeKey is null, or pi != -1 but pn == -1,
+     * @throws IllegalArgumentException  if ga or typeKey is null, or pn != -1 but pi == -1,
      *            or gi == -1 and pi == -1
      */
     public SOCSetSpecialItem
@@ -199,7 +199,7 @@ public class SOCSetSpecialItem extends SOCMessage
          final int pn, final int co, final int lv)
         throws IllegalArgumentException
     {
-        if ((ga == null) || (typeKey == null) || ((pi != -1) && (pn == -1))
+        if ((ga == null) || (typeKey == null) || ((pn != -1) && (pi == -1))
             || ((pi == -1) && (gi == -1)))
             throw new IllegalArgumentException();
 

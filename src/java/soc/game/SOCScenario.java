@@ -311,10 +311,12 @@ public class SOCScenario
      * <LI> {@code "N3"}: Adjacent to Strait ({@code N2}); initial placement not allowed here
      *</UL>
      * The Wonders are stored as per-game Special Items: There are (1 + {@link SOCGame#maxPlayers}) wonders available,
-     * held in game Special Item indexes 1 - n, with type key {@link SOCGameOption#K_SC_WOND},
+     * held in game Special Item indexes 1 - <em>n</em>, with type key {@link SOCGameOption#K_SC_WOND},
      * initialized in {@link SOCGame#updateAtBoardLayout()}.  When a player starts to build a Wonder, a reference
      * to its {@link SOCSpecialItem} is placed into index 0 of their Special Items:
      * {@link SOCPlayer#setSpecialItem(String, int, SOCSpecialItem) pl.setSpecialItem("_SC_WOND", 0, item)}.
+     *<P>
+     * The player's request to build must use player item index (pi) 0, game item index (gi) 1 to <em>n</em>.
      */
     public static final String K_SC_WOND = "SC_WOND";
 

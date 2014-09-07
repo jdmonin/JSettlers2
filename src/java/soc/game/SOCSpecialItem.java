@@ -69,6 +69,8 @@ import java.util.List;
  *<UL>
  * <LI> On their own turn, a player can {@code PICK} a wonder from the game's list.  Each player can pick at most 1;
  *    no other player can pick the same one.  If they are able to pick that wonder, doing so builds its first level.
+ *    When sending a PICK request, the wonder's game item index and player item index must meet the requirements
+ *    of {@link SOCScenario#K_SC_WOND}.
  * <LI> Game state must be {@link SOCGame#PLAY1 PLAY1}
  * <LI> There are requirements ({@link #req}) to pick each wonder, different wonders have different requirements
  * <LI> There is a resource cost to build each level, different wonders have different costs
@@ -198,6 +200,7 @@ public class SOCSpecialItem
      * paid if this method returns {@code true}.  If the caller needs to know
      * the cost paid, call that method before this one.
      *<P>
+     * Currently only {@link SOCGameOption#K_SC_WOND _SC_WOND} is recognized as a {@code typeKey} here.
      * To see which scenario and option {@code typeKey}s use this method, and scenario-specific usage details,
      * see the {@link SOCSpecialItem} class javadoc.
      *<P>
@@ -222,7 +225,7 @@ public class SOCSpecialItem
         if ((pl.getPlayerNumber() != ga.getCurrentPlayerNumber()) || (ga.getGameState() != SOCGame.PLAY1))
             throw new IllegalStateException();
 
-        if (typeKey != SOCGameOption.K_SC_WOND)
+        if (! SOCGameOption.K_SC_WOND.equals(typeKey))
             throw new IllegalStateException("unknown typeKey: " + typeKey);
 
         // _SC_WOND
@@ -600,6 +603,9 @@ public class SOCSpecialItem
      * A requirement is a minimum count of items (Settlements, Cities, Victory Points, or Length of player's longest
      * route) with an optional required position (at a Port, or at a list of special nodes) for at least one of the
      * Settlement or City items.
+     *<P>
+     * At the client, requirements are rendered in {@code SOCSpecialItemDialog.buildRequirementsText};
+     * if new fields or requirement types are added, please update that method.
      *
      * @see #parse(String)
      * @see SOCSpecialItem#checkRequirements(SOCPlayer, boolean)
