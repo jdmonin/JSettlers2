@@ -4074,11 +4074,13 @@ public class SOCGame implements Serializable, Cloneable
      *<LI> If {@link #hasSeaBoard}, check board for Added Layout Part {@code AL} for node lists that
      *     become legal locations for settlements after initial placement, and make them legal now.
      *     (This Added Layout Part is rarely used, currently is in scenario {@link SOCScenario#K_SC_WOND SC_WOND}.)
+     *     If any node has an adjacent settlement or city, that node won't be made legal.
      *    <P>
      *     Calls {@link SOCBoardLarge#addLegalNodes(int[], int)} for each referenced node list.
      *     Does not adjust players' potential settlement locations, because at the start of a game,
      *     players won't have roads to any node 2 away from their settlements, so they will have no
-     *     new potential settlements yet.  Does call players' {@link SOCPlayer#addLegalSettlement(int)}.
+     *     new potential settlements yet.  Does call each player's
+     *     {@link SOCPlayer#addLegalSettlement(int, boolean) pl.addLegalSettlement(coord, true)}.
      *</UL>
      *<P>
      * Called at server and client by {@link #advanceTurnStateAfterPutPiece()}, before {@link #updateAtTurn()}.
@@ -4121,7 +4123,7 @@ public class SOCGame implements Serializable, Cloneable
 
                 for (int j = 0; j < nodeList.length; ++j)
                     for (int pn = maxPlayers - 1; pn >= 0; --pn)
-                        players[pn].addLegalSettlement(nodeList[j]);
+                        players[pn].addLegalSettlement(nodeList[j], true);
             }
         }
     }
@@ -7481,7 +7483,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * check current player's vp total to see if the
-     * game is over.  If so, Set game state to {@link #OVER},
+     * game is over.  If so, set game state to {@link #OVER},
      * set player with win.
      *<P>
      * This method is called from other game methods which may award VPs or may cause a win,

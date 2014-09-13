@@ -1920,7 +1920,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             SOCPlayer player = ga.getPlayer(pn);
             player.setPotentialAndLegalSettlements(vset, true, las);
             if (loneSettles != null)
-                player.addLegalSettlement(loneSettles[pn]);
+                player.addLegalSettlement(loneSettles[pn], false);
             if (legalSeaEdges != null)
                 player.setRestrictedLegalShips(legalSeaEdges[0]);
         } else {
@@ -1929,7 +1929,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 SOCPlayer pl = ga.getPlayer(pn);
                 pl.setPotentialAndLegalSettlements(vset, true, las);
                 if (loneSettles != null)
-                    pl.addLegalSettlement(loneSettles[pn]);
+                    pl.addLegalSettlement(loneSettles[pn], false);
                 if (legalSeaEdges != null)
                     pl.setRestrictedLegalShips(legalSeaEdges[pn]);
             }

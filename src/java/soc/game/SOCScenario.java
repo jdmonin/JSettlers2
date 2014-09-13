@@ -310,6 +310,9 @@ public class SOCScenario
      * <LI> {@code "N2"}: Strait (for Great Bridge wonder)
      * <LI> {@code "N3"}: Adjacent to Strait ({@code N2}); initial placement not allowed here
      *</UL>
+     * This scenario also uses added layout part {@code "AL"} to specify that the nodes in {@code N1, N2,}
+     * and {@code N3} become legal locations for settlements after initial placement.
+     *<P>
      * The Wonders are stored as per-game Special Items: There are (1 + {@link SOCGame#maxPlayers}) wonders available,
      * held in game Special Item indexes 1 - <em>n</em>, with type key {@link SOCGameOption#K_SC_WOND},
      * initialized in {@link SOCGame#updateAtBoardLayout()}.  When a player starts to build a Wonder, a reference

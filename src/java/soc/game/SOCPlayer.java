@@ -344,7 +344,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private HashSet<Integer> legalSettlements;
 
     /**
-     * The most recently added node from {@link #addLegalSettlement(int)}, or 0.
+     * The most recently added node from {@link #addLegalSettlement(int, boolean)}, or 0.
      * @since 2.0.00
      */
     private int addedLegalSettlement;
@@ -3815,7 +3815,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param legalLandAreaNodes If non-null and <tt>setLegalsToo</tt>,
      *     all Land Areas' legal (but not currently potential) node coordinates.
      *     Index 0 is ignored; land area numbers start at 1.
-     * @see #addLegalSettlement(int)
+     * @see #addLegalSettlement(int, boolean)
      */
     public void setPotentialAndLegalSettlements
         (Collection<Integer> psList, final boolean setLegalsToo, final HashSet<Integer>[] legalLandAreaNodes)
@@ -3848,14 +3848,27 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * after calling {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])}.
      * This would be a lone location beyond the usual starting/legal LandAreas on the scenario's board.
      * @param node  A node coordinate to add, or 0 to do nothing
+     * @param checkAdjacents  If true, check adjacent nodes before adding.
+     *      If {@code node} is adjacent to a settlement, it won't be added and {@link #getAddedLegalSettlement()}
+     *      won't be updated to {@code node}.
      * @since 2.0.00
      * @see #isLegalSettlement(int)
      * @see #getAddedLegalSettlement()
      */
-    public void addLegalSettlement(final int node)
+    public void addLegalSettlement(final int node, final boolean checkAdjacents)
     {
         if (node == 0)
             return;
+
+        if (checkAdjacents)
+        {
+            final SOCBoard board = game.getBoard();
+            final int[] adjacNodes = board.getAdjacentNodesToNode_arr(node);
+
+            for (int i = 0; i < 3; ++i)
+                if ((adjacNodes[i] != -9) && (null != board.settlementAtNode(adjacNodes[i])))
+                    return;  // <--- Early return: adjacent settlement/city found ---
+        }
 
         legalSettlements.add(Integer.valueOf(node));
         addedLegalSettlement = node;
@@ -3928,12 +3941,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Get the legal-settlement location, if any, added by {@link #addLegalSettlement(int)}.
+     * Get the legal-settlement location, if any, added by {@link #addLegalSettlement(int, boolean)}.
      *<P>
      * That method could be called multiple times, but only the most recently added node
      * is returned by this method.
      *
-     * @return  Legal settlement node added by {@link #addLegalSettlement(int)}, or 0
+     * @return  Legal settlement node added by most recent call to {@link #addLegalSettlement(int, boolean)}, or 0
      * @since 2.0.00
      */
     public int getAddedLegalSettlement()

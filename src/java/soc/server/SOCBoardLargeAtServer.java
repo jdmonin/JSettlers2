@@ -477,6 +477,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             PORT_LOC_FACING_ISLANDS = null;
 
             // special node sets "N1","N2","N3": set Added Layout Parts and remove from starting legal/potential nodes.
+            // (This adds the node set numbers to Added Layout Part "AL".)
             // Will have to re-add after initial placement, via addLegalNodes from SOCGame.updateAtGameFirstTurn().
             for (int i = 0; i <= 2; ++i)
                 makeNewBoard_removeLegalNodes(WOND_SPECIAL_NODES[idx][i], startingLandArea, i + 1);
@@ -2011,7 +2012,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *<P>
      * To re-add nodes after initial placement, call {@link SOCBoardLarge#addLegalNodes(int[], int)}.
      * This is done automatically by {@link SOCGame#updateAtGameFirstTurn()} if the nodes are
-     * in lists referenced from Added Layout Part {@code AL} (see parameter {@code addNodeListNumber}).
+     * in lists referenced from Added Layout Part {@code "AL"} (see parameter {@code addNodeListNumber}).
      *
      * @param nodeCoords  Nodes to remove from {@link SOCBoardLarge#landAreasLegalNodes landAreasLegalNodes}
      *     [{@code landAreaNumber}] and {@link SOCBoardLarge#getLegalAndPotentialSettlements()}
@@ -2019,7 +2020,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *     {@link SOCBoardLarge#startingLandArea startingLandArea},
      *     will also remove the nodes from potential initial settlement locations.
      * @param addNodeListNumber  If != 0, these nodes will be re-added to legal locations after initial placement.
-     *     Adds this node list number to Added Layout Part {@code AL} and calls
+     *     Adds this node list number to Added Layout Part {@code "AL"} and calls
      *     {@link #setAddedLayoutPart(String, int[]) setAddedLayoutPart("N" + addNodeListNumber, nodeCoords)}
      *     to add a Layout Part such as {@code N1}, {@code N2}, etc.
      *     For details see the {@code SOCBoardLayout2} message javadoc.
@@ -2229,7 +2230,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * set aside some dev cards to be claimed later at Special Edges.
      * Otherwise do nothing.
      *<P>
-     * For _SC_PIRI also calls each player's {@link SOCPlayer#addLegalSettlement(int)}
+     * For {@code _SC_PIRI}, also calls each player's {@link SOCPlayer#addLegalSettlement(int, boolean)}
      * for their Lone Settlement location (adds layout part "LS").
      * Vacant player numbers get 0 for their {@code "LS"} element.
      *<P>
@@ -2288,7 +2289,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             ga.putPiece(new SOCSettlement(pl, inits[i], this));  ++i;
             ga.putPiece(new SOCShip(pl, inits[i], this));  ++i;
             ga.putPiece(new SOCFortress(pl, inits[i], this));  ++i;
-            possiLoneSettles[pn] = inits[i];  ga.getPlayer(pn).addLegalSettlement(inits[i]);  ++i;
+            possiLoneSettles[pn] = inits[i];  ga.getPlayer(pn).addLegalSettlement(inits[i], false);  ++i;
         }
         setAddedLayoutPart("LS", possiLoneSettles);
 
