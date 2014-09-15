@@ -589,7 +589,7 @@ public class SOCBuildingPanel extends Panel
         gameInfoBut.setLocation(curX, curY);
         statsBut.setSize(butW * 2, lineH);
         if (hasLargeBoard)
-            statsBut.setLocation(curX, curY - lineH - 5);
+            statsBut.setLocation(curX, 1 + (2 * (rowSpaceH + lineH)));
         else
             statsBut.setLocation(curX, 1);
 
