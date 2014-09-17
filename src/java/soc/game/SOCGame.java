@@ -853,10 +853,13 @@ public class SOCGame implements Serializable, Cloneable
      * Is this game played on the {@link SOCBoardLarge} large board / sea board?
      * If true, our board's {@link SOCBoard#getBoardEncodingFormat()}
      * must be {@link SOCBoard#BOARD_ENCODING_LARGE}.
-     * When <tt>hasSeaBoard</tt>, {@link #getBoard()} can be cast to {@link SOCBoardLarge}.
+     * When {@code hasSeaBoard}, {@link #getBoard()} can always be cast to {@link SOCBoardLarge}.
      *<P>
-     * The 6-player extensions ({@link #maxPlayers} == 6) are orthogonal to <tt>hasSeaBoard</tt>
+     * The 6-player extensions ({@link #maxPlayers} == 6) are orthogonal to {@code hasSeaBoard}
      * or other board types/expansions; one doesn't imply or exclude the other.
+     *<P>
+     * Except in some scenarios, the sea board has a pirate ship that can be moved instead of
+     * the robber.  See game states {@link #WAITING_FOR_ROBBER_OR_PIRATE} and {@link #PLACING_PIRATE}.
      * @since 2.0.00
      */
     public final boolean hasSeaBoard;
@@ -1851,7 +1854,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Get the game board.
-     * When {@link #hasSeaBoard}, <tt>getBoard()</tt> can be cast to {@link SOCBoardLarge}.
+     * When {@link #hasSeaBoard}, {@code getBoard()} can always be cast to {@link SOCBoardLarge}.
      * @return the game board
      */
     public SOCBoard getBoard()

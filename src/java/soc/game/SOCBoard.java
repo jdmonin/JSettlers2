@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -2300,13 +2300,14 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * put a piece on the board.
+     * Put a piece on the board.
      *<P>
      * Call this only after calling
-     * {@link SOCPlayer#putPiece(SOCPlayingPiece, boolean) pl.putPiece(pp)}
+     * {@link SOCPlayer#putPiece(SOCPlayingPiece, boolean) pl.putPiece(pp, isTempPiece)}
      * for each player.
      *
      * @param pp  Piece to place on the board; coordinates are not checked for validity
+     * @see #removePiece(SOCPlayingPiece)
      */
     public void putPiece(SOCPlayingPiece pp)
     {
@@ -2338,6 +2339,7 @@ public class SOCBoard implements Serializable, Cloneable
      * call this method first.
      * @param piece  Piece to be removed from the board
      *     (identified by its piece type, coordinate, and player number)
+     * @see #putPiece(SOCPlayingPiece)
      */
     public void removePiece(SOCPlayingPiece piece)
     {

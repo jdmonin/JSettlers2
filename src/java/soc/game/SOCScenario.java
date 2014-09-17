@@ -113,6 +113,8 @@ public class SOCScenario
      *   If the new scenario has a new game option just for itself, instead of a reusable one like
      *   {@link SOCGameOption#K_SC_SANY _SC_SANY}, the option name is "_" + scenario name:
      *   {@code "_SC_PIRI"} for scenario {@link #K_SC_PIRI SC_PIRI}.
+     *<LI> Rarely, a scenario changes the pirate or robber behavior.  If the new scenario does this,
+     *   see {@link SOCGame#canChooseMovePirate()} or {@link SOCGame#rollDice()}.
      *<LI> Not all scenarios require a game option.  {@link #K_SC_TTD SC_TTD} has only a board layout,
      *   and doesn't change any game behavior from standard, so there is no {@code "_SC_TTD"} SOCGameOption.
      *<LI> Add the scenario's key to the list of "game scenario keynames"
