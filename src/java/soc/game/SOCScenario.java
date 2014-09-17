@@ -295,6 +295,7 @@ public class SOCScenario
     /**
      * Scenario key {@code SC_WOND} for Wonders.
      * Main option is {@link SOCGameOption#K_SC_WOND "_SC_WOND"}.
+     * The pirate ship is not used in this scenario.
      *<P>
      * Players must choose a unique Wonder and build all 4 of its levels.
      * Each Wonder has its own requirements before they may start it,

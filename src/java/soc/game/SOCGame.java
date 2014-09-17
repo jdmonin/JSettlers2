@@ -5282,8 +5282,14 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Based on game options, can the pirate ship be moved instead of the robber?
      * True only if {@link #hasSeaBoard}.
-     * For scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, the player
+     *<UL>
+     *<LI> For scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, the player
      * must have {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     *<LI> Scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI} has a pirate fleet
+     * and no robber; this scenario is checked in {@link #rollDice()} and does not call
+     * {@code canChooseMovePirate()}.
+     *<LI> Scenario option {@link SOCGameOption#K_SC_WOND _SC_WOND} does not use the pirate ship.
+     *</UL>
      * @return  true if the pirate ship can be moved
      * @see #WAITING_FOR_ROBBER_OR_PIRATE
      * @see #chooseMovePirate(boolean)
@@ -5293,6 +5299,10 @@ public class SOCGame implements Serializable, Cloneable
     {
         if (! hasSeaBoard)
             return false;
+
+        if (isGameOptionSet(SOCGameOption.K_SC_WOND))
+            return false;
+
         if (isGameOptionSet(SOCGameOption.K_SC_CLVI)
             && ! players[currentPlayerNumber].hasScenarioPlayerEvent
                  (SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))

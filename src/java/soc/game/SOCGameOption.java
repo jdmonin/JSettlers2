@@ -254,7 +254,7 @@ public class SOCGameOption
 
     /**
      * Scenario key {@code _SC_WOND} for Wonders.
-     * Special unique "wonders" claimed by players and built up to several levels.
+     * Special unique "wonders" claimed by players and built up to several levels. No pirate ship.
      * For more details, special rules, and Special Items, see {@link SOCScenario#K_SC_WOND}.
      * @since 2.0.00
      */
@@ -319,6 +319,7 @@ public class SOCGameOption
      *<LI> {@link #K_SC_CLVI _SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}: See {@link SOCScenario#K_SC_CLVI}
      *<LI> {@link #K_SC_FTRI _SC_FTRI}  The Forgotten Tribe: See {@link SOCScenario#K_SC_FTRI}
      *<LI> {@link #K_SC_PIRI _SC_PIRI}  Pirate Islands and {@link SOCFortress fortresses}: See {@link SOCScenario#K_SC_PIRI}
+     *<LI> {@link #K_SC_WOND _SC_WOND}  Wonders: See {@link SOCScenario#K_SC_WOND}
      *</UL>
      *
      * <h3>If you want to add a game option:</h3>
