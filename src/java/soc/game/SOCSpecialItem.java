@@ -401,6 +401,7 @@ public class SOCSpecialItem
      * Get the optional cost to buy, use, or build the next level.
      * Not sent over the network; see {@link SOCSpecialItem class javadoc}.
      * @return  Cost, or {@code null}
+     * @see #checkCost(SOCPlayer)
      */
     public SOCResourceSet getCost()
     {
@@ -418,21 +419,33 @@ public class SOCSpecialItem
     }
 
     /**
+     * Does this player have resources for this special item's {@link #getCost()}, if any?
+     * @param pl  Player to check
+     * @return  True if cost is {@code null} or {@link SOCPlayer#getResources() pl.getResources()} contains the cost
+     * @see #checkRequirements(SOCPlayer, boolean)
+     */
+    public final boolean checkCost(final SOCPlayer pl)
+    {
+        return (cost == null) || pl.getResources().contains(cost);
+    }
+
+    /**
      * Does this player meet this special item's {@link #req} requirements?
      * @param pl  Player to check
      * @param checkCost  If true, also check the cost against player's current resources
      * @return  True if player meets the requirements, false otherwise; true if {@link #req} is null or empty.
-     *     If {@code checkCost} and {@link #cost} != null, false unless player's resources contain {@code cost}.
+     *     If {@code checkCost} and {@link #getCost()} != null, false unless player's resources contain {@code cost}.
      * @throws IllegalArgumentException if {@link #req} has an unknown requirement type,
      *     or refers to an Added Layout Part {@code "N1"} through {@code "N9"} that isn't defined in the board layout
      * @throws UnsupportedOperationException if requirement type S (Settlement) includes {@code atPort} location;
      *     this is not implemented
      * @see #checkRequirements(SOCPlayer, List)
+     * @see #checkCost(SOCPlayer)
      */
     public final boolean checkRequirements(final SOCPlayer pl, final boolean checkCost)
         throws IllegalArgumentException, UnsupportedOperationException
     {
-        if (checkCost && (cost != null) && ! pl.getResources().contains(cost))
+        if (checkCost && ! checkCost(pl))
             return false;
 
         return checkRequirements(pl, req);

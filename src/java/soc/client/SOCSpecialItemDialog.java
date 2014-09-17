@@ -230,7 +230,7 @@ class SOCSpecialItemDialog
             final boolean playerCanBuildThis =
                 (ga.getGameState() >= SOCGame.PLAY1)
                 && ((owner != null)
-                    ? (owner == cliPlayer)
+                    ? ((owner == cliPlayer) && itm.checkCost(cliPlayer))
                     : ((! playerOwnsWonder) && itm.checkRequirements(cliPlayer, true)));
             final JButton b = new JButton(strings.get("base.build"));
             if (playerCanBuildThis)
