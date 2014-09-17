@@ -345,7 +345,8 @@ public interface PlayerClientListener
      *
      * @param typeKey  Item's {@code typeKey}, as described in the {@link SOCSpecialItem} class javadoc
      * @param ga  Game containing {@code pl} and special items
-     * @param pl  Player who picked; never {@code null}
+     * @param pl  Player who picked: Never {@code null} when {@code isPick},
+     *                is {@code null} if server declined our player's request
      * @param gi  Picked this index within game's Special Item list, or -1
      * @param pi  Picked this index within {@code pl}'s Special Item list, or -1
      * @param isPick  True if calling for {@code PICK}, false if server has {@code DECLINE}d the client player's request

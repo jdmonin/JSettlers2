@@ -3360,8 +3360,8 @@ public class SOCPlayerInterface extends Frame
             (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi,
              final boolean isPick, final int coord, final int level)
         {
-            if (pl == null)
-                return;  // <--- Early return: So far, everything implemented is player-specific ---
+            if ((pl == null) && isPick)
+                return;  // <--- Early return: So far, every pick implemented is player-specific ---
 
             if (! typeKey.equals(SOCGameOption.K_SC_WOND))
                 return;  // <--- Early return: So far, the only known typeKey is _SC_WOND ---
