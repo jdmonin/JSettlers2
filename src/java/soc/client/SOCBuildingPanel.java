@@ -100,6 +100,12 @@ public class SOCBuildingPanel extends Panel
     private ColorSquare cloth;
     private Label clothLab;
 
+    /** For game scenario {@link SOCGameOption#K_SC_WOND _SC_WOND}, the
+     *  "Wonders" button that brings up a dialog with info and Build buttons. Null otherwise.
+     *  @since 2.0.00
+     */
+    private Button wondersBut;
+
     // Large Sea Board Ship button; @since 2.0.00
     private Label shipT;  // text
     private Label shipC;  // cost
@@ -305,8 +311,15 @@ public class SOCBuildingPanel extends Panel
                 add(cloth);
                 cloth.setTooltipText(TTIP_CLOTH_TEXT);
             }
+            else if (ga.isGameOptionSet(SOCGameOption.K_SC_WOND))
+            {
+                wondersBut = new Button(strings.get("build.specitem._SC_WOND"));  // "Wonders..."
+                add(wondersBut);
+                new AWTToolTip(strings.get("build.specitem._SC_WOND.tip"), wondersBut);  // "Build or get info about the Wonders"
+                wondersBut.addActionListener(this);
+            }
         } else {
-            // shipBut, cloth already null
+            // shipBut, cloth, wondersBut already null
         }
 
         if (ga.hasSeaBoard || (ga.vp_winner != 10))  // 10, not SOCGame.VP_WINNER_STANDARD, in case someone changes that
@@ -550,6 +563,14 @@ public class SOCBuildingPanel extends Panel
             cloth.setLocation(curX, curY);
         }
 
+        if (wondersBut != null)
+        {
+            // Wonders button takes same place that clothLab would: 3rd row, 2 squares to right of City costs
+            curX += 3 * (ColorSquare.WIDTH + 3);
+            wondersBut.setSize(dim.width - curX - (2 * butW) - (2 * margin), lineH);
+            wondersBut.setLocation(curX, curY);
+        }
+
         curY += (rowSpaceH + lineH);
 
         cardT.setSize(fm.stringWidth(cardT.getText()), lineH);
@@ -671,6 +692,14 @@ public class SOCBuildingPanel extends Panel
             f.setVisible(true);
             f.setLocation(this.getLocationOnScreen());
             statsFrame = f;
+
+            return;
+        }
+        else if (e.getSource() == wondersBut)
+        {
+            final SOCSpecialItemDialog dia = new SOCSpecialItemDialog(pi, SOCGameOption.K_SC_WOND);
+            dia.pack();
+            dia.setVisible(true);  // is modal
 
             return;
         }

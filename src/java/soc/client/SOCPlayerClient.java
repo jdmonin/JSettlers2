@@ -5261,13 +5261,32 @@ public class SOCPlayerClient
 
     /**
      * The current user wants to play a special {@link soc.game.SOCInventoryItem SOCInventoryItem}.
+     * Send the server a {@link SOCInventoryItemAction}{@code (currentPlayerNumber, PLAY, itype, rc=0)} message.
      * @param ga     the game
-     * @param itype  the special item type picked by player, from {@link soc.game.SOCInventoryItem#itype SOCInventoryItem.itype}
+     * @param itype  the special inventory item type picked by player,
+     *     from {@link soc.game.SOCInventoryItem#itype SOCInventoryItem.itype}
      */
     public void playInventoryItem(SOCGame ga, final int itype)
     {
         put(SOCInventoryItemAction.toCmd
             (ga.getName(), ga.getCurrentPlayerNumber(), SOCInventoryItemAction.PLAY, itype, 0), ga.isPractice);
+    }
+
+    /**
+     * The current user wants to pick a {@link SOCSpecialItem Special Item}.
+     * Send the server a {@link SOCSetSpecialItem}{@code (PICK, typeKey, gi, pi, owner=-1, coord=-1, level=0)} message.
+     * @param ga  Game
+     * @param typeKey  Special item type.  Typically a {@link SOCGameOption} keyname; see the {@link SOCSpecialItem}
+     *     class javadoc for details.
+     * @param gi  Game Item Index, as in {@link SOCGame#getSpecialItem(String, int)} or
+     *     {@link SOCSpecialItem#playerPickItem(String, SOCGame, SOCPlayer, int, int)}, or -1
+     * @param pi  Player Item Index, as in {@link SOCSpecialItem#playerPickItem(String, SOCGame, SOCPlayer, int, int)},
+     *     or -1
+     */
+    public void pickSpecialItem(SOCGame ga, final String typeKey, final int gi, final int pi)
+    {
+        put(new SOCSetSpecialItem
+            (ga.getName(), SOCSetSpecialItem.OP_PICK, typeKey, gi, pi, -1, -1, 0).toCmd(), ga.isPractice);
     }
 
     /**
@@ -5417,6 +5436,7 @@ public class SOCPlayerClient
             msg += (" " + piece.getCoordinates());
             put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, msg), ga.isPractice);
         }
+
     }  // nested class GameManager
 
     /**
