@@ -2883,11 +2883,7 @@ public class SOCGameHandler extends GameHandler
                             srv.messageToGameKeyed(ga, false, "action.built.road", plName);  // "Joe built a road."
                             srv.messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.ROAD, coord));
                             if (! ga.pendingMessagesOut.isEmpty())
-                            {
-                                for (final Object msg : ga.pendingMessagesOut)
-                                    srv.messageToGameWithMon(gaName, (SOCMessage) msg);
-                                ga.pendingMessagesOut.clear();
-                            }
+                                sendGamePendingMessages(ga, false);
                             srv.gameList.releaseMonitorForGame(gaName);
 
                             boolean toldRoll = sendGameState(ga, false);
@@ -2941,11 +2937,7 @@ public class SOCGameHandler extends GameHandler
                             srv.messageToGameKeyed(ga, false, "action.built.stlmt", plName);  // "Joe built a settlement."
                             srv.messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SETTLEMENT, coord));
                             if (! ga.pendingMessagesOut.isEmpty())
-                            {
-                                for (final Object msg : ga.pendingMessagesOut)
-                                    srv.messageToGameWithMon(gaName, (SOCMessage) msg);
-                                ga.pendingMessagesOut.clear();
-                            }
+                                sendGamePendingMessages(ga, false);
                             srv.gameList.releaseMonitorForGame(gaName);
 
                             // Check and send new game state
@@ -2991,11 +2983,7 @@ public class SOCGameHandler extends GameHandler
                             srv.messageToGameKeyed(ga, false, "action.built.city", plName);  // "Joe built a city."
                             srv.messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.CITY, coord));
                             if (! ga.pendingMessagesOut.isEmpty())
-                            {
-                                for (final Object msg : ga.pendingMessagesOut)
-                                    srv.messageToGameWithMon(gaName, (SOCMessage) msg);
-                                ga.pendingMessagesOut.clear();
-                            }
+                                sendGamePendingMessages(ga, false);
                             if (houseRuleFirstCity)
                                 srv.messageToGameKeyed(ga, false, "action.built.nextturn.7.houserule");
                                 // "Starting next turn, dice rolls of 7 may occur (house rule)."
@@ -3038,11 +3026,7 @@ public class SOCGameHandler extends GameHandler
                             srv.messageToGameKeyed(ga, false, "action.built.ship", plName);  // "Joe built a ship."
                             srv.messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SHIP, coord));
                             if (! ga.pendingMessagesOut.isEmpty())
-                            {
-                                for (final Object msg : ga.pendingMessagesOut)
-                                    srv.messageToGameWithMon(gaName, (SOCMessage) msg);
-                                ga.pendingMessagesOut.clear();
-                            }
+                                sendGamePendingMessages(ga, false);
                             srv.gameList.releaseMonitorForGame(gaName);
 
                             boolean toldRoll = sendGameState(ga, false);
@@ -5386,13 +5370,7 @@ public class SOCGameHandler extends GameHandler
                 // client will also print "* Joe moved a ship.", no need to send a SOCGameServerText.
 
                 if (! ga.pendingMessagesOut.isEmpty())
-                {
-                    srv.gameList.takeMonitorForGame(gaName);
-                    for (final Object msg : ga.pendingMessagesOut)
-                        srv.messageToGameWithMon(gaName, (SOCMessage) msg);
-                    ga.pendingMessagesOut.clear();
-                    srv.gameList.releaseMonitorForGame(gaName);
-                }
+                    sendGamePendingMessages(ga, true);
 
                 if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
                 {
@@ -6052,12 +6030,43 @@ public class SOCGameHandler extends GameHandler
      * @param svp  Number of SVP
      * @param desc  Description of player's action that led to SVP
      * @since 2.0.00
+     * @see #sendGamePendingMessages(SOCGame, boolean)
      */
-    private final void updatePlayerSVPPendingMessage(SOCGame ga, SOCPlayer pl, final int svp, final String desc)
+    private static void updatePlayerSVPPendingMessage(SOCGame ga, SOCPlayer pl, final int svp, final String desc)
     {
         pl.addSpecialVPInfo(svp, desc);
         final String gaName = ga.getName();
         ga.pendingMessagesOut.add(new SOCSVPTextMessage(gaName, pl.getPlayerNumber(), svp, desc));
+    }
+
+    /**
+     * Sends the contents of this game's {@link SOCGame#pendingMessagesOut}, then empties that list.
+     * To avoid unnecessary work here, check if empty before calling this method.
+     *<P>
+     * <B>Locks:</B> If {@code takeMon} is true, takes and releases
+     * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}.
+     * Otherwise call {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}
+     * before calling this method.
+     * @param ga  game with pending messages
+     * @param takeMon Should this method take and release game's monitor via
+     *     {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}?
+     *     True unless caller already holds that monitor.
+     * @see #updatePlayerSVPPendingMessage(SOCGame, SOCPlayer, int, String)
+     * @since 2.0.00
+     */
+    private void sendGamePendingMessages(SOCGame ga, final boolean takeMon)
+    {
+        final String gaName = ga.getName();
+
+        if (takeMon)
+            srv.gameList.takeMonitorForGame(gaName);
+
+        for (final Object msg : ga.pendingMessagesOut)
+            srv.messageToGameWithMon(gaName, (SOCMessage) msg);
+        ga.pendingMessagesOut.clear();
+
+        if (takeMon)
+            srv.gameList.releaseMonitorForGame(gaName);
     }
 
 }

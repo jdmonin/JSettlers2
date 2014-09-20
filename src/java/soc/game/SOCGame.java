@@ -627,6 +627,8 @@ public class SOCGame implements Serializable, Cloneable
      * the server handler for those actions checks this list afterwards, to send before GAMESTATE.
      *<P>
      * Because this is server-only, it's null until {@link #startGame()}.
+     * To send and clear this list's contents, the server should call
+     * {@code SOCGameHandler.sendGamePendingMessages(SOCGame, boolean)}.
      * @since 2.0.00
      */
     public transient List<Object> pendingMessagesOut;
