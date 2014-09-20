@@ -2335,6 +2335,90 @@ public class SOCServer extends Server
     }
 
     /**
+     * Send a game a message containing data fields and also a text field to be localized.
+     * Same as {@link #messageToGame(String, SOCMessage)} but calls each member connection's
+     * {@link StringConnection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
+     *<P>
+     * <B>Locks:</B> If {@code takeMon} is true, takes and releases
+     * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}.
+     * Otherwise call {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}
+     * before calling this method.
+     *
+     * @param ga  The game
+     * @param msg  The data message to be sent after localizing text.
+     *     This message's fields are not changed here, the localization results are not kept with {@code msg}.
+     * @param takeMon Should this method take and release game's monitor via
+     *     {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}?
+     *     True unless caller already holds that monitor.
+     * @see #messageToGameKeyed(SOCGame, boolean, String)
+     * @see #messageToGameKeyed(SOCGame, boolean, String, Object...)
+     * @since 2.0.00
+     */
+    public void messageToGameKeyedType(SOCGame ga, SOCKeyedMessage msg, final boolean takeMon)
+    {
+        // similar code as the two messageToGameKeyed methods;
+        // if you change code here, consider changing it there too
+
+        final boolean hasMultiLocales = ga.hasMultiLocales;
+        final String gaName = ga.getName();
+        boolean rsrcMissing = false;
+
+        if (takeMon)
+            gameList.takeMonitorForGame(gaName);
+
+        try
+        {
+            Vector<StringConnection> v = gameList.getMembers(gaName);
+
+            if (v != null)
+            {
+                Enumeration<StringConnection> menum = v.elements();
+
+                final String msgKey = msg.getKey();
+                String gameLocalMsg = null, localText = null, gameTxtLocale = null;
+                while (menum.hasMoreElements())
+                {
+                    StringConnection c = menum.nextElement();
+                    if (c == null)
+                        continue;
+
+                    final String cliLocale = c.getI18NLocale();
+                    if ((gameLocalMsg == null)
+                        || (hasMultiLocales
+                             && (  (cliLocale == null)
+                                   ? (gameTxtLocale != null)
+                                   : ! cliLocale.equals(gameTxtLocale)  )))
+                    {
+                        if (msgKey != null)
+                            try
+                            {
+                                localText = c.getLocalized(msgKey);
+                            } catch (MissingResourceException e) {
+                                localText = msgKey;  // fallback so data fields will still be sent
+                                rsrcMissing = true;
+                            }
+
+                        gameLocalMsg = msg.toCmd(localText);
+                        gameTxtLocale = cliLocale;
+                    }
+
+                    c.put(gameLocalMsg);
+                }
+
+                if (rsrcMissing)
+                    D.ebugPrintln("Missing string key in messageToGameKeyedType: " + msgKey);
+            }
+        }
+        catch (Throwable e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in messageToGameKeyedType");
+        }
+
+        if (takeMon)
+            gameList.releaseMonitorForGame(gaName);
+    }
+
+    /**
      * Send a localized {@link SOCServerGameText} game text message to a game.
      * Same as {@link #messageToGame(String, String)} but calls each member connection's
      * {@link StringConnection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
@@ -2357,13 +2441,15 @@ public class SOCServer extends Server
      * @see #messageToGameKeyed(SOCGame, boolean, String, Object...)
      * @see #messageToGameKeyedSpecial(SOCGame, boolean, String, Object...)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, boolean, StringConnection, String, Object...)
+     * @see #messageToGameKeyedType(SOCGame, SOCKeyedMessage, boolean)
      * @see #messageToGame(String, String)
      * @since 2.0.00
      */
     public void messageToGameKeyed(SOCGame ga, final boolean takeMon, final String key)
         throws MissingResourceException
     {
-        // same code as the other messageToGameKeyed, except for the call to cli.getKeyed;
+        // same code as the other messageToGameKeyed, except for the call to cli.getLocalized;
+        // messageToGameKeyedType is also very similar.
         // if you change code here, change it there too
 
         final boolean hasMultiLocales = ga.hasMultiLocales;
@@ -2440,13 +2526,15 @@ public class SOCServer extends Server
      * @see #messageToGameKeyed(SOCGame, boolean, String)
      * @see #messageToGameKeyedSpecial(SOCGame, boolean, String, Object...)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, boolean, StringConnection, String, Object...)
+     * @see #messageToGameKeyedType(SOCGame, SOCKeyedMessage, boolean)
      * @see #messageToGame(String, String)
      * @since 2.0.00
      */
     public void messageToGameKeyed(SOCGame ga, final boolean takeMon, final String key, final Object ... params)
         throws MissingResourceException
     {
-        // same code as the other messageToGameKeyed, except for the call to cli.getKeyed;
+        // same code as the other messageToGameKeyed, except for the call to cli.getLocalized;
+        // messageToGameKeyedType is also very similar.
         // if you change code here, change it there too
 
         final boolean hasMultiLocales = ga.hasMultiLocales;
