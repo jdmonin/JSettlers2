@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,7 +35,7 @@ import java.util.StringTokenizer;
  * @since 2.0.00
  */
 public class SOCSVPTextMessage extends SOCMessage
-    implements SOCMessageForGame
+    implements SOCKeyedMessage, SOCMessageForGame
 {
     private static final long serialVersionUID = 2000L;
 
@@ -56,6 +56,8 @@ public class SOCSVPTextMessage extends SOCMessage
 
     /**
      * Description of the player's action that led to the SVP.
+     * At the server this is an I18N string key, at the client it's localized text sent from the server.
+     * This allows new SVP actions and descriptions without client changes.
      * Constructor checks this against {@link SOCMessage#isSingleLineAndSafe(String, boolean)}.
      */
     public final String desc;
@@ -66,7 +68,10 @@ public class SOCSVPTextMessage extends SOCMessage
      * @param ga  the game name
      * @param pn  Player number
      * @param svp  Number of Special Victory Points (SVP) awarded
-     * @param desc  Description of the player's action that led to the SVP
+     * @param desc  Description of the player's action that led to the SVP.
+     *     At the server this is an I18N string key which the server must localize before sending,
+     *     at the client it's localized text sent from the server. This allows new SVP actions
+     *     and descriptions without client changes.
      * @throws IllegalArgumentException if <tt>desc</tt> is null or
      *     fails {@link SOCMessage#isSingleLineAndSafe(String, boolean) SOCMessage.isSingleLineAndSafe(desc, true)}
      */
@@ -117,6 +122,21 @@ public class SOCSVPTextMessage extends SOCMessage
     }
 
     /**
+     * {@inheritDoc}
+     *<P>
+     * This message type's key field is {@link #desc}.
+     */
+    public String getKey()
+    {
+        return desc;
+    }
+
+    public String toCmd(final String localizedText)
+    {
+        return toCmd(messageType, game, pn, svp, localizedText);
+    }
+
+    /**
      * Parse the command string into a SOCSVPTextMessage message.
      *
      * @param s   the String to parse; format: game sep2 pn sep2 svp sep2 desc
@@ -158,4 +178,5 @@ public class SOCSVPTextMessage extends SOCMessage
         return getClassNameShort() + ":game=" + game
             + "|pn=" + pn + "|svp=" + svp + "|desc=" + desc;
     }
+
 }

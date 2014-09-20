@@ -2130,7 +2130,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * {@link SOCGame#scenarioEventListener} != null, and sent out to clients.
      * Clients call it from the network message handler.
      * @param svp  Number of SVP
-     * @param desc  Description of player's action that led to the SVP
+     * @param desc  Description of player's action that led to the SVP.
+     *     At the server this is an I18N string key, at the client it's
+     *     localized text sent from the server.
      * @see #getSpecialVPInfo()
      * @since 2.0.00
      */
@@ -4681,7 +4683,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         /** Number of special victory points */
         public final int svp;
 
-        /** Description of the player's action that led to the SVP */
+        /**
+         * Description of the player's action that led to the SVP.
+         * At the server this is an I18N string key, at the client it's
+         * localized text sent from the server.
+         */
         public final String desc;
 
         public SpecialVPInfo(final int svp, final String desc)

@@ -94,6 +94,7 @@ import soc.message.SOCGameTextMsg;
 import soc.message.SOCInventoryItemAction;
 import soc.message.SOCJoinGame;
 import soc.message.SOCJoinGameAuth;
+import soc.message.SOCKeyedMessage;
 import soc.message.SOCRobotJoinGameRequest;
 import soc.message.SOCLargestArmy;
 import soc.message.SOCLastSettlement;
@@ -1157,7 +1158,7 @@ public class SOCGameHandler extends GameHandler
                 ArrayList<SOCPlayer.SpecialVPInfo> svpis = pl.getSpecialVPInfo();
                 if (svpis != null)
                     for (SOCPlayer.SpecialVPInfo svpi : svpis)
-                        srv.messageToPlayer(c, new SOCSVPTextMessage(gameName, i, svpi.svp, svpi.desc));
+                        srv.messageToPlayer(c, new SOCSVPTextMessage(gameName, i, svpi.svp, c.getLocalized(svpi.desc)));
             }
 
             itm = pl.getScenarioPlayerEvents();
@@ -5880,10 +5881,9 @@ public class SOCGameHandler extends GameHandler
             {
                 final String newSettleEventStr =
                     (playerEvent_newSettlementIsByShip(ga, (SOCSettlement) obj))
-                    ? "growing past the main island"
-                    : "growing to a new area";
+                    ? "event.svp.sc_sany.island"  // "growing past the main island"
+                    : "event.svp.sc_sany.area";   // "growing to a new area"
                 updatePlayerSVPPendingMessage(ga, pl, 1, newSettleEventStr);
-                // TODO adjust wording
             }
             break;
 
@@ -5891,8 +5891,8 @@ public class SOCGameHandler extends GameHandler
             {
                 final String newSettleEventStr =
                     (playerEvent_newSettlementIsByShip(ga, (SOCSettlement) obj))
-                    ? "settling a new island"
-                    : "settling a new area";
+                    ? "event.svp.sc_seac.island"  // "settling a new island"
+                    : "event.svp.sc_seac.area";   // "settling a new area"
                 updatePlayerSVPPendingMessage(ga, pl, 2, newSettleEventStr);
                 sendPlayerEventsBitmask = false;
                 final int las = pl.getScenarioSVPLandAreas();
@@ -5940,7 +5940,7 @@ public class SOCGameHandler extends GameHandler
 
         case SVP_REACHED_SPECIAL_EDGE:
             {
-                updatePlayerSVPPendingMessage(ga, pl, 1, /*I*/"a gift from the Lost Tribe"/*18N*/);
+                updatePlayerSVPPendingMessage(ga, pl, 1, "event.svp.sc_ftri.gift");  // "a gift from the Lost Tribe"
                 sendPlayerEventsBitmask = false;
                 srv.messageToGame(gaName, new SOCBoardSpecialEdge(gaName, ((Integer) obj).intValue(), 0));
             }
@@ -6028,20 +6028,24 @@ public class SOCGameHandler extends GameHandler
      * @param ga  Game
      * @param pl  Player
      * @param svp  Number of SVP
-     * @param desc  Description of player's action that led to SVP
+     * @param descKey  String key for description of the player's action that led to SVP
      * @since 2.0.00
      * @see #sendGamePendingMessages(SOCGame, boolean)
      */
-    private static void updatePlayerSVPPendingMessage(SOCGame ga, SOCPlayer pl, final int svp, final String desc)
+    private static void updatePlayerSVPPendingMessage(SOCGame ga, SOCPlayer pl, final int svp, final String descKey)
     {
-        pl.addSpecialVPInfo(svp, desc);
+        pl.addSpecialVPInfo(svp, descKey);
         final String gaName = ga.getName();
-        ga.pendingMessagesOut.add(new SOCSVPTextMessage(gaName, pl.getPlayerNumber(), svp, desc));
+        ga.pendingMessagesOut.add(new SOCSVPTextMessage(gaName, pl.getPlayerNumber(), svp, descKey));
     }
 
     /**
      * Sends the contents of this game's {@link SOCGame#pendingMessagesOut}, then empties that list.
-     * To avoid unnecessary work here, check if empty before calling this method.
+     * To avoid unnecessary work here, check if the list is empty before calling this method.
+     *<P>
+     * <B>I18N:</B> Checks {@code pendingMessagesOut} for {@link SOCKeyedMessage}s and handles them accordingly.
+     * Currently this is the only method that checks for those, because other places send text messages
+     * immediately instead of queueing them and localizing/sending later.
      *<P>
      * <B>Locks:</B> If {@code takeMon} is true, takes and releases
      * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}.
@@ -6062,7 +6066,12 @@ public class SOCGameHandler extends GameHandler
             srv.gameList.takeMonitorForGame(gaName);
 
         for (final Object msg : ga.pendingMessagesOut)
-            srv.messageToGameWithMon(gaName, (SOCMessage) msg);
+        {
+            if (msg instanceof SOCKeyedMessage)
+                srv.messageToGameKeyedType(ga, (SOCKeyedMessage) msg, false);
+            else
+                srv.messageToGameWithMon(gaName, (SOCMessage) msg);
+        }
         ga.pendingMessagesOut.clear();
 
         if (takeMon)

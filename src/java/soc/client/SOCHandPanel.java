@@ -1163,7 +1163,7 @@ public class SOCHandPanel extends Panel
             for (SOCPlayer.SpecialVPInfo svpi : svpis)
             {
                 sb.append("\n");
-                sb.append(/*I*/svpi.svp+": "+svpi.desc/*18N*/);
+                sb.append(svpi.svp + ": " + svpi.desc);  // I18N: Server sends localized desc
             }
         }
 
