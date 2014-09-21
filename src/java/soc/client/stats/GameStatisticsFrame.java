@@ -57,6 +57,9 @@ import soc.game.SOCPlayer;
 @SuppressWarnings("serial")
 public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Listener
 {
+    /** i18n text strings */
+    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+
     private final SOCPlayerInterface pi;
     private SOCGameStatistics.ListenerRegistration reg;
     private RollPanel rollPanel;
@@ -65,7 +68,7 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
 
     public GameStatisticsFrame(SOCPlayerInterface pi)
     {
-        setTitle("Game Statistics");
+        setTitle(strings.get("dialog.stats.title"));  // "Game Statistics"
         this.pi = pi;
 
         Container cpane = getContentPane();
@@ -105,12 +108,12 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
     {
         JTabbedPane tabs = new JTabbedPane();
         rollPanel = new RollPanel();
-        tabs.addTab("Dice Rolls", rollPanel);
+        tabs.addTab(strings.get("dialog.stats.dice_rolls.title"), rollPanel);  // "Dice Rolls"
         getContentPane().add(tabs);
 
         tabs = new JTabbedPane();
         miscPanel = new MiscStatsPanel();
-        tabs.addTab(/*I*/"Other Stats"/*18N*/, miscPanel);
+        tabs.addTab(strings.get("dialog.stats.other_stats.title"), miscPanel);  // "Other Stats"
         getContentPane().add(tabs);
 
         getRootPane().registerKeyboardAction
@@ -142,7 +145,7 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             setLayout(gbl);
             gbc.ipadx = 8;
             gbc.ipady = 8;
-            roundNum = createStatControlRow(0, /*I*/"Current Round:"/*18N*/, gbc);
+            roundNum = createStatControlRow(0,  strings.get("dialog.stats.current_round"), gbc);  // "Current Round:"
         }
 
         /**
@@ -204,7 +207,7 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             {
                 int r = 0;
                 StringBuilder sb = new StringBuilder();
-                sb.append("Roll: ").append(i).append("<br/>");
+                sb.append(strings.get("dialog.stats.dice_rolls.ttip_roll", i));  // "Roll: {0}<br/>"
                 final SOCGame ga = pi.getGame();
                 for (SOCPlayer p : ga.getPlayers())
                 {
@@ -245,7 +248,7 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             this.add(selectPanel);
             SOCPlayer[] players = pi.getGame().getPlayers();
             selectPanel.setLayout(new BoxLayout(selectPanel, BoxLayout.X_AXIS));
-            JButton all = new JButton("All");
+            JButton all = new JButton(strings.get("dialog.stats.dice_rolls.all"));  // "All" [players]
             selectPanel.add(all);
             
             playerEnabled = new ArrayList<JCheckBox>();
