@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2012-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,6 +31,7 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,12 +43,18 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 
 import soc.client.SOCPlayerInterface;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 
+/**
+ * Game Statistics frame.  Shows misc stats (dice roll histogram, number of rounds).
+ * If this stays visible as the game is played, the stats will update.
+ */
+@SuppressWarnings("serial")
 public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Listener
 {
     private final SOCPlayerInterface pi;
@@ -92,7 +99,8 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
     {
         dispose();
     }
-    
+
+    /** Add rows of stats, register ESC keyboard shortcut */
     private void createControls()
     {
         JTabbedPane tabs = new JTabbedPane();
@@ -104,6 +112,16 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
         miscPanel = new MiscStatsPanel();
         tabs.addTab(/*I*/"Other Stats"/*18N*/, miscPanel);
         getContentPane().add(tabs);
+
+        getRootPane().registerKeyboardAction
+            (new ActionListener()
+            {
+                public void actionPerformed(ActionEvent arg0)
+                {
+                    dispose();
+                }
+            },
+            KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
     }
 
     /**
