@@ -139,6 +139,15 @@ public class NewGameOptionsFrame extends Frame
     private Map<String, Checkbox> boolOptCheckboxes;
 
     /**
+     * Scenario info for {@link #scenChoice}, if {@link #opts} contains the {@code "SC"} game option, or null.
+     * Initialized from {@link SOCScenario#getAllKnownScenarios()} during
+     * {@link #initInterface_Options(Panel, GridBagLayout, GridBagConstraints)},
+     * which is called after any server negotiations.
+     * @since 2.0.00
+     */
+    private Map<String, SOCScenario> allSc;
+
+    /**
      * Scenario choice dropdown, if {@link #opts} contains the {@code "SC"} game option, or null.
      * When an item is selected, {@link #itemStateChanged(ItemEvent)} reacts specially for this control
      * to update {@code "SC"} within {@link #opts} and enable/disable {@link #scenInfo}.
@@ -398,6 +407,9 @@ public class NewGameOptionsFrame extends Frame
                 opt.userChanged = false;  // clear flag from any previously shown NGOF
         }
 
+        if (opts.containsKey("SC"))
+            allSc = SOCScenario.getAllKnownScenarios();  // TODO server negotiation
+
         gbc.anchor = GridBagConstraints.WEST;
 
         // Look for options that should be on the same
@@ -435,8 +447,14 @@ public class NewGameOptionsFrame extends Frame
                 continue;  // <-- Don't show internal-property options
             }
 
-            if (hideUnderscoreOpts && (op.key.charAt(0) == '_'))
-                continue;  // <-- Don't show options starting with '_'
+            if (op.key.charAt(0) == '_')
+            {
+                if (hideUnderscoreOpts)
+                    continue;  // <-- Don't show options starting with '_'
+
+                if ((allSc != null) && allSc.containsKey(op.key.substring(1)))
+                    continue;  // <-- Don't show options which are scenario names (use SC dropdown to pick at most one)
+            }
 
             if (sameLineOpts.containsKey(op.key))
                 continue;  // <-- Shares a line, Go to next entry --
@@ -480,8 +498,6 @@ public class NewGameOptionsFrame extends Frame
         if (op.key.equals("SC"))
         {
             // special handling: Scenario
-            // TODO server negotiation
-            Map<String, SOCScenario> allSc = SOCScenario.getAllKnownScenarios();
             if ((allSc == null) || allSc.isEmpty())
                 return;
 
