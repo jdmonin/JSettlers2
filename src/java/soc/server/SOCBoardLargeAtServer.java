@@ -2464,11 +2464,11 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int PORT_EDGE_FACING_MAINLAND_6PL[] =
     {
         0x0501, FACING_E,   0x0202, FACING_SE,
-        0x0006, FACING_SW,  0x0209, FACING_SW,
-        0x050B, FACING_W,   0x080B, FACING_NW,
-        0x0B0A, FACING_W,   0x0E08, FACING_NW,
+        0x0005, FACING_SE,  0x0008, FACING_SW,
+        0x040A, FACING_SW,  0x070C, FACING_W,
+        0x0A0A, FACING_NW,  0x0E08, FACING_NW,
         0x0E05, FACING_NE,  0x0C02, FACING_NE,
-        0x0800, FACING_NE
+        0x0901, FACING_E
     };
 
     /**
@@ -2529,9 +2529,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      */
     private static final int PORT_EDGE_FACING_ISLANDS_6PL[] =
     {
-        0x060F, FACING_NE,   // - northeast island
-        0x0A0E, FACING_SE,  0x0E0D, FACING_NE,        // - southeast island
-        0x1007, FACING_SE    // - southwest island
+        0x060F, FACING_NE,  0x010D, FACING_E,    // - northeast island
+        0x0A0F, FACING_SW,  0x0E0D, FACING_NE,   // - southeast island
+        0x1006, FACING_SW    // - southwest island
     };
 
     /**
@@ -2540,7 +2540,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      */
     private static final int PORT_TYPE_ISLANDS_6PL[] =
     {
-        MISC_PORT, MISC_PORT, CLAY_PORT, WOOD_PORT
+        MISC_PORT, MISC_PORT, CLAY_PORT, WOOD_PORT, MISC_PORT
     };
 
 
