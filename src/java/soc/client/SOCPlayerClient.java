@@ -5600,9 +5600,14 @@ public class SOCPlayerClient extends Applet
                 return true;
             } else {
                 // remove old, replace with new from server (if any)
-                SOCGameOption.addKnownOption(oinfo);
                 if (oldcopy != null)
+                {
                     optionSet.remove(oKey);
+                    final SOCGameOption.ChangeListener cl = oldcopy.getChangeListener();
+                    if (cl != null)
+                        oinfo.addChangeListener(cl);
+                }
+                SOCGameOption.addKnownOption(oinfo);
                 if (oinfo.optType != SOCGameOption.OTYPE_UNKNOWN)
                     optionSet.put(oKey, oinfo);
                 return false;

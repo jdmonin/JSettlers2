@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011-2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1031,17 +1031,27 @@ public class SOCGameOption implements Cloneable, Comparable
      * or update the option's information.
      * @param onew New option, or a changed version of an option we already know.
      *             If onew.optType == {@link #OTYPE_UNKNOWN}, will remove from the known table.
+     *             If this option is already known and the old copy has a {@link SOCGameOption#getChangeListener()},
+     *             that listener is copied to {@code onew}.
      * @return true if it's new, false if we already had that key and it was updated
      * @see #getAllKnownOptions()
      */
     public static boolean addKnownOption(SOCGameOption onew)
     {
 	final String oKey = onew.optKey;
-	final boolean hadIt = allOptions.containsKey(oKey);
-	if (hadIt)
-	    allOptions.remove(oKey);
+	final SOCGameOption oldcopy = (SOCGameOption) allOptions.remove(oKey);
+	final boolean hadIt = (oldcopy != null);
 	if (onew.optType != OTYPE_UNKNOWN)
+	{
+	    if (hadIt)
+	    {
+	        final ChangeListener cl = oldcopy.getChangeListener();
+	        if (cl != null)
+	            onew.addChangeListener(cl);
+	    }
 	    allOptions.put(oKey, onew);
+	}
+
 	return ! hadIt;
     }
 
