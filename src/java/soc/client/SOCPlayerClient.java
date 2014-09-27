@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -216,8 +216,9 @@ public class SOCPlayerClient extends Applet
     protected boolean connected = false;
 
     /**
-     *  Server version number for remote server, sent soon after connect, or -1 if unknown.
-     *  A local server's version is always {@link Version#versionNumber()}.
+     *  Server version number for remote server, sent soon after connect, 0 if no server, or -1 if unknown.
+     *  A local or practice server's version is always {@link Version#versionNumber()}, not {@code sVersion},
+     *  so always check {@link SOCGame#isPractice} before checking this field.
      */
     protected int sVersion;
 
@@ -2273,13 +2274,13 @@ public class SOCPlayerClient extends Applet
         // Check known game options vs server's version. (added in 1.1.07)
         // Server's responses will add, remove or change our "known options".
         final int cliVersion = Version.versionNumber();
-        if (sVersion > cliVersion)
+        if ((sVersion > cliVersion) && ! isPractice)
         {
             // Newer server: Ask it to list any options we don't know about yet.
-            if (! isPractice)
-                gameOptionsSetTimeoutTask();
+            gameOptionsSetTimeoutTask();
             put(SOCGameOptionGetInfos.toCmd(null), isPractice);  // sends "-"
-        } else if (sVersion < cliVersion)
+        }
+        else if ((sVersion < cliVersion) && ! isPractice)
         {
             if (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
             {
@@ -2288,15 +2289,13 @@ public class SOCPlayerClient extends Applet
                 Vector tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false, false, null);
                 if (tooNewOpts != null)
                 {
-                    if (! isPractice)
-                        gameOptionsSetTimeoutTask();
+                    gameOptionsSetTimeoutTask();
                     put(SOCGameOptionGetInfos.toCmd(tooNewOpts.elements()), isPractice);
                 }
             } else {
                 // server is too old to understand options. Can't happen with local practice srv,
                 // because that's our version (it runs from our own JAR file).
-                if (! isPractice)
-                    tcpServGameOpts.noMoreOptions(true);
+                tcpServGameOpts.noMoreOptions(true);
             }
         } else {
             // sVersion == cliVersion, so we have same code as server for getAllKnownOptions.
