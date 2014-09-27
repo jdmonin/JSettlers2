@@ -115,10 +115,17 @@ public class SOCServer extends Server
     public static final int SOC_PORT_DEFAULT = 8880;
 
     /**
+     * Default number of bots to start (7; {@link #PROP_JSETTLERS_STARTROBOTS} property).
+     * @since 1.1.19
+     */
+    public static final int SOC_STARTROBOTS_DEFAULT = 7;
+
+    /**
      * Default maximum number of connected clients (30; {@link #maxConnections} field).
+     * Always at least 20 more than {@link #SOC_STARTROBOTS_DEFAULT}.
      * @since 1.1.15
      */
-    public static final int SOC_MAXCONN_DEFAULT = 30;
+    public static final int SOC_MAXCONN_DEFAULT = Math.max(30, 20 + SOC_STARTROBOTS_DEFAULT);
 
     // If a new property is added, please add a PROP_JSETTLERS_ constant
     // and also add it to PROPS_LIST.
@@ -155,10 +162,12 @@ public class SOCServer extends Server
 
     /**
      * Property <tt>jsettlers.startrobots</tt> to start some robots when the server starts.
-     * (The default is 0, no robots are started by default.)
+     * (The default is {@link #SOC_STARTROBOTS_DEFAULT}.)
      *<P>
      * 30% will be "smart" robots, the other 70% will be "fast" robots.
      * Remember that robots count against the {@link #PROP_JSETTLERS_CONNECTIONS max connections} limit.
+     *<P>
+     * Before v1.1.19 the default was 0, no robots were started by default.
      * @since 1.1.09
      */
     public static final String PROP_JSETTLERS_STARTROBOTS = "jsettlers.startrobots";
@@ -200,8 +209,8 @@ public class SOCServer extends Server
     public static final String[] PROPS_LIST =
     {
         PROP_JSETTLERS_PORT,     "TCP port number for server to bind to",
-        PROP_JSETTLERS_CONNECTIONS,   "Maximum connection count, including robots",
-        PROP_JSETTLERS_STARTROBOTS,   "Number of robots to create at startup",
+        PROP_JSETTLERS_CONNECTIONS,   "Maximum connection count, including robots (default " + SOC_MAXCONN_DEFAULT + ")",
+        PROP_JSETTLERS_STARTROBOTS,   "Number of robots to create at startup (default " + SOC_STARTROBOTS_DEFAULT + ")",
         PROP_JSETTLERS_ALLOW_DEBUG,   "Allow remote debug commands? (if Y)",
         PROP_JSETTLERS_CLI_MAXCREATECHANNELS,   "Maximum simultaneous channels that a client can create",
         PROP_JSETTLERS_CLI_MAXCREATEGAMES,      "Maximum simultaneous games that a client can create",
@@ -557,6 +566,9 @@ public class SOCServer extends Server
      * You must start its thread yourself.
      * Optionally connect to a database for user info and game stats.
      *<P>
+     * No bots will be started here ({@link #PROP_JSETTLERS_STARTROBOTS} == 0),
+     * call {@link #setupLocalRobots(int, int)} if bots are wanted.
+     *<P>
      * In 1.1.07 and later, will also print game options to stderr if
      * any option defaults require a minimum client version, or if 
      * {@link #hasSetGameOptions} is set.
@@ -601,7 +613,10 @@ public class SOCServer extends Server
      * 
      * @param p    the TCP port that the server listens on
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
-     *               and any other desired properties. 
+     *       and any other desired properties.
+     *       <P>
+     *       If <code>props</code> != null but doesn't contain {@link #PROP_JSETTLERS_STARTROBOTS},
+     *       the default value {@link #SOC_STARTROBOTS_DEFAULT} will be used.
      * @since 1.1.09
      * @see #PROPS_LIST
      * @throws SocketException  If a network setup problem occurs
@@ -624,6 +639,9 @@ public class SOCServer extends Server
     /**
      * Create a Settlers of Catan server listening on local stringport s.
      * You must start its thread yourself.
+     *<P>
+     * No bots will be started here ({@link #PROP_JSETTLERS_STARTROBOTS} == 0),
+     * call {@link #setupLocalRobots(int, int)} if bots are wanted.
      *<P>
      * In 1.1.07 and later, will also print game options to stderr if
      * any option defaults require a minimum client version, or if 
@@ -672,7 +690,10 @@ public class SOCServer extends Server
      * @param databasePassword Used for DB connect - not retained
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
      *       and any other desired properties. 
-     *       If <code>props</code> is null, the properties will be created empty.
+     *       If <code>props</code> is null, the properties will be created empty
+     *       and no bots will be started ({@link #PROP_JSETTLERS_STARTROBOTS} == 0).
+     *       If <code>props</code> != null but doesn't contain {@link #PROP_JSETTLERS_STARTROBOTS},
+     *       the default value {@link #SOC_STARTROBOTS_DEFAULT} will be used.
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now
      * @throws SQLException   If db setup script fails, or need db but can't connect
@@ -693,7 +714,15 @@ public class SOCServer extends Server
         }
 
         if (props == null)
+        {
             props = new Properties();
+        } else {
+            // Add any default properties if not specified.
+
+            if (! props.containsKey(PROP_JSETTLERS_STARTROBOTS))
+                props.setProperty(PROP_JSETTLERS_STARTROBOTS, Integer.toString(SOC_STARTROBOTS_DEFAULT));
+        }
+
         this.props = props;
 
         if (allowDebugUser)
@@ -9625,6 +9654,9 @@ public class SOCServer extends Server
      *<P>
      * If <tt>args[]</tt> is empty, it will use defaults for
      * {@link #PROP_JSETTLERS_PORT} and {@link #PROP_JSETTLERS_CONNECTIONS}}.
+     *<P>
+     * Does not use a {@link #PROP_JSETTLERS_STARTROBOTS} default, that's
+     * handled in {@link #initSocServer(String, String, Properties)}.
      *<P>
      * Sets {@link #hasStartupPrintAndExit} if appropriate.
      *
