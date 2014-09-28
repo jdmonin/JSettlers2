@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -472,8 +472,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Hex pix - shared unscaled original-resolution from GIF files.
-     * Note that miscPort0.gif - miscPort5.gif are stored in {@link #hexes};
-     * {@link #ports} stores the resource ports.
+     * {@link #hexes} also contains {@code miscPort.gif} for drawing 3:1 ports' base image.
+     * {@link #ports} stores the resource ports and the 6 per-facing port overlays.
+     * For indexes, see {@link #loadHexesPortsImages(Image[], Image[], String, MediaTracker, Toolkit, Class)}.
      * @see #scaledHexes
      * @see #rotatHexes
      */
@@ -1817,7 +1818,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         boolean missedDraw = false;
         Image[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original or rotated?
 
-        tmp = hexType & 15; // get only the last 4 bits;
+        if ((hexType < 7) || (hexType > 12))
+            tmp = hexType & 15;  // get only the last 4 bits: hex type or port resource type
+        else
+            tmp = 7;             // 3:1 port
 
         if (isScaled && (scaledHexes[tmp] == hexis[tmp]))
         {
@@ -1872,7 +1876,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Draw the port graphic
          */
-        tmp = hexType >> 4; // get the facing of the port
+        if ((hexType >= 7) && (hexType <= 12))
+            tmp = hexType - 6;   // facing of 3:1 port
+        else
+            tmp = hexType >> 4;  // facing of the port, or 0 if not a port
 
         if (tmp > 0)
         {
@@ -1889,7 +1896,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
             if (! g.drawImage(scaledPorts[tmp], x, y, this))
             {
-                g.drawImage(portis[tmp], x, y, null);  // show small port graphic, instead of a blank space
+                g.drawImage(portis[tmp], x, y, null);  // show smaller unscaled port graphic, instead of a blank space
                 missedDraw = true;
                 if (isScaled && (7000 < (drawnEmptyAt - scaledAt)))
                 {
@@ -4114,7 +4121,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             MediaTracker tracker = new MediaTracker(c);
         
-            hexes = new Image[13];
+            hexes = new Image[8];  // desert, 5 resources, water, 3:1 port
             ports = new Image[7];
             dice = new Image[14];
 
@@ -4142,7 +4149,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             MediaTracker tracker = new MediaTracker(c);
 
-            rotatHexes = new Image[13];
+            rotatHexes = new Image[8];  // desert, 5 resources, water, 3:1 port
             rotatPorts = new Image[7];
             loadHexesPortsImages(rotatHexes, rotatPorts, IMAGEDIR + "/rotat", tracker, tk, clazz);
 
@@ -4161,8 +4168,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Load hex and port images from either normal, or rotated, resource location.
-     * Remember that miscPort0.gif - miscPort5.gif are loaded into hexes, not ports.
-     * @param newHexes Array to store hex images into; {@link #hexes} or {@link #rotatHexes}
+     * @param newHexes Array to store hex images and 3:1 port image into; {@link #hexes} or {@link #rotatHexes}
      * @param newPorts Array to store port images into; {@link #ports} or {@link #rotatPorts}
      * @param imageDir Location for {@link Class#getResource(String)}
      * @param tracker Track image loading progress here
@@ -4181,15 +4187,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         newHexes[4] = tk.getImage(clazz.getResource(imageDir + "/wheatHex.gif"));
         newHexes[5] = tk.getImage(clazz.getResource(imageDir + "/woodHex.gif"));
         newHexes[6] = tk.getImage(clazz.getResource(imageDir + "/waterHex.gif"));
-        for (int i = 0; i < 7; i++)
+        newHexes[7] = tk.getImage(clazz.getResource(imageDir + "/miscPort.gif"));
+        for (int i = 0; i < 8; i++)
         {
             tracker.addImage(newHexes[i], 0);
-        }
-
-        for (int i = 0; i < 6; i++)
-        {
-            newHexes[i + 7] = tk.getImage(clazz.getResource(imageDir + "/miscPort" + i + ".gif"));
-            tracker.addImage(newHexes[i + 7], 0);
         }
 
         for (int i = 0; i < 6; i++)
