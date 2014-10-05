@@ -1310,6 +1310,8 @@ public class SOCGameOption
      * or update the option's information.
      * @param onew New option, or a changed version of an option we already know.
      *             If onew.optType == {@link #OTYPE_UNKNOWN}, will remove from the known table.
+     *             If this option is already known and the old copy has a {@link SOCGameOption#getChangeListener()},
+     *             that listener is copied to {@code onew}.
      * @return true if it's new, false if we already had that key and it was updated
      * @see #getAllKnownOptions()
      */
@@ -1320,14 +1322,17 @@ public class SOCGameOption
 
 	synchronized (allOptions)
 	{
-	    SOCGameOption oldcopy = allOptions.remove(oKey);
+	    final SOCGameOption oldcopy = allOptions.remove(oKey);
 	    hadIt = (oldcopy != null);
 
 	    if (onew.optType != OTYPE_UNKNOWN)
 	    {
-                final ChangeListener cl = oldcopy.getChangeListener();
-                if (cl != null)
-                    onew.addChangeListener(cl);
+	        if (hadIt)
+	        {
+                    final ChangeListener cl = oldcopy.getChangeListener();
+                    if (cl != null)
+                        onew.addChangeListener(cl);
+	        }
 
 	        allOptions.put(oKey, onew);
 	    }
