@@ -2448,6 +2448,7 @@ public class SOCGameHandler extends GameHandler
         reportRsrcGainLoss(gaName, give, true, cpn, -1, null, null);
         reportRsrcGainLoss(gaName, get, false, cpn, -1, null, null);
 
+        // use total rsrc counts to determine bank or port
         final int giveTotal = give.getTotal(),
                   getTotal  = get.getTotal();
         final int tradeFrom;  // 1 = "the bank" -- 4:1 trade; 2 = "a port" -- 3:1 or 2:1 trade
