@@ -179,7 +179,8 @@ public class SOCPlayerClient
 
     /**
      *  Server version number for remote server, sent soon after connect, 0 if no server, or -1 if version unknown.
-     *  A local server's version is always {@link Version#versionNumber()}.
+     *  A local practice server's version is always {@link Version#versionNumber()}, not {@code sVersion},
+     *  so always check {@link SOCGame#isPractice} before checking this field.
      */
     protected int sVersion;
 

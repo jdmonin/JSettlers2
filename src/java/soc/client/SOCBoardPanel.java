@@ -752,7 +752,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Port images - shared unscaled original-resolution from {@link #IMAGEDIR}'s GIF files.
      * Image references are copied to {@link #scaledPorts} from here.
-     * Contains the 6 per-direction port overlays.
+     * Contains the 6 per-facing port overlays.
      * {@code miscPort.gif} is in {@link #hexes} along with the land hex images used for 2:1 ports.
      * For indexes, see {@link #loadHexesPortsImages(Image[], Image[], String, MediaTracker, Toolkit, Class, boolean)}.
      * @see #hexes

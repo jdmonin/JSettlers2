@@ -42,6 +42,7 @@ new features, until 2.0.00 is ready.
 - New game option "N7C" for house rule: Roll no 7s until a city is built
 - Bugfix when new client sits during first initial-settlement placement round
 - Bugfix: potential roads now allowed next to opponent's newly placed settlement, if player already has a road touching the potential road
+- Trading port/harbor graphics refreshed for directional clarity and scaling
 - Reset board during initial placement: Pick randomly-selected robots, instead of keeping same robots
 - Reset board: If only 1 human player, don't reset if all bots are locked
 - On server startup, start some bots by default (previous versions required -Djsettlers.startrobots)

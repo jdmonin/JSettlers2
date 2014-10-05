@@ -129,10 +129,10 @@ public class SOCServer extends Server
 
     /**
      * Default maximum number of connected clients (30; {@link #maxConnections} field).
-     * Always at least 10 more than {@link #SOC_STARTROBOTS_DEFAULT}.
+     * Always at least 20 more than {@link #SOC_STARTROBOTS_DEFAULT}.
      * @since 1.1.15
      */
-    public static final int SOC_MAXCONN_DEFAULT = Math.max(30, 10 + SOC_STARTROBOTS_DEFAULT);
+    public static final int SOC_MAXCONN_DEFAULT = Math.max(30, 20 + SOC_STARTROBOTS_DEFAULT);
 
     // If a new property is added, please add a PROP_JSETTLERS_ constant
     // and also add it to PROPS_LIST.
@@ -181,7 +181,7 @@ public class SOCServer extends Server
      * 30% will be "smart" robots, the other 70% will be "fast" robots.
      * Remember that robots count against the {@link #PROP_JSETTLERS_CONNECTIONS max connections} limit.
      *<P>
-     * Before v1.1.19, the default was 0, no robots were started by default.
+     * Before v1.1.19 the default was 0, no robots were started by default.
      * @since 1.1.09
      * @see #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL
      */
@@ -741,8 +741,9 @@ public class SOCServer extends Server
      * @param databasePassword Used for DB connect - not retained
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
      *       and any other desired properties.
-     *       If <code>props</code> is null, the properties will be created empty.
-     *       If <code>props</code> != null but doesn't contain {@link #PROP_JSETTLERS_STARTROBOTS},
+     *       If {@code props} is null, the properties will be created empty
+     *       and no bots will be started ({@link #PROP_JSETTLERS_STARTROBOTS} == 0).
+     *       If {@code props} != null but doesn't contain {@link #PROP_JSETTLERS_STARTROBOTS},
      *       the default value {@link #SOC_STARTROBOTS_DEFAULT} will be used.
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now
