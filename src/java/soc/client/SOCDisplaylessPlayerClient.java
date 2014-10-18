@@ -779,7 +779,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *<P>
      * If somehow the server isn't our version, print an error and disconnect.
      *
-     * @param isPractice Is the server local, or remote?  Client can be connected
+     * @param isLocal  Is the server local, or remote?  Client can be connected
      *                only to local, or remote.
      * @param mes  the messsage
      */

@@ -50,7 +50,7 @@ public class SOCPlayerElement extends SOCMessage
 
     /**
      * For the 6-player board, player element type for asking to build
-     * during the {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
+     * during the {@link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
      * This element is {@link #SET} to 1 or 0.
      * @since 1.1.08
      */

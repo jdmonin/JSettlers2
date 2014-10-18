@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2010,2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  *
  * This program is free software; you can redistribute it and/or
@@ -21,6 +21,8 @@ package soc.message;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
+
+import soc.game.SOCBoard;  // for javadoc only
 
 
 /**
@@ -87,10 +89,10 @@ public class SOCBoardLayout2 extends SOCMessage
     }
 
     /**
-     * Create a SOCBoardLayout2 message
+     * Create a SOCBoardLayout2 message; see class javadoc for parameters' meanings.
      *
      * @param ga   the name of the game
-     * @param bev  the board encoding format number, from {@link SOCBoard#getBoardEncodingFormat()}
+     * @param bef  the board encoding format number, from {@link SOCBoard#getBoardEncodingFormat()}
      * @param hl   the hex layout
      * @param nl   the number layout
      * @param pl   the port layout

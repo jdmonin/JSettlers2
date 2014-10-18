@@ -211,7 +211,7 @@ public class SOCGameListAtServer extends SOCGameList
      * Replace member from all games, with a new connection with same name (after a network problem).
      *
      * @param  oldConn  the member's old connection
-     * @param  oldConn  the member's new connection
+     * @param  newConn  the member's new connection
      * @throws IllegalArgumentException  if oldConn's keyname (via {@link StringConnection#getData() getData()})
      *            differs from newConn's keyname
      *

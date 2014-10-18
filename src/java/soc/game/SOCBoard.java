@@ -637,7 +637,7 @@ public class SOCBoard implements Serializable, Cloneable
      * a list of nodes on the land of the board; key is node's Integer coordinate, value is Boolean.
      * nodes on outer edges of surrounding water/ports are not on the board.
      * See dissertation figure A.2.
-     * See also {@link SOCPlayer#initLegalAndPotentialSettlements()}.
+     * See also {@link #initPlayerLegalAndPotentialSettlements()}.
      */
     protected Hashtable nodesOnBoard;
 
@@ -1636,7 +1636,7 @@ public class SOCBoard implements Serializable, Cloneable
      *         in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
      *         If called on a non-port hex, returns 0 
      *         (which is <tt>MISC_PORT</tt>).
-     * @param hex  the hex type, as in {@link #hexLayout}
+     * @param hexType  the hex type, as in {@link #hexLayout}
      * @see #getHexTypeFromCoord(int)
      * @see #getPortTypeFromNodeCoord(int)
      */

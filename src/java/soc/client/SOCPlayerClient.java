@@ -217,7 +217,7 @@ public class SOCPlayerClient extends Applet
 
     /**
      *  Server version number for remote server, sent soon after connect, 0 if no server, or -1 if unknown.
-     *  A local or practice server's version is always {@link Version#versionNumber()}, not {@code sVersion},
+     *  A local or practice server's version is always {@link Version#versionNumber()}, not <tt>sVersion</tt>,
      *  so always check {@link SOCGame#isPractice} before checking this field.
      */
     protected int sVersion;

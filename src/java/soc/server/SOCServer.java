@@ -465,7 +465,7 @@ public class SOCServer extends Server
      * Number of seconds before a connection is considered disconnected, and
      * its nickname can be "taken over" by a new connection with the right password.
      * Used only when a password is given by the new connection.
-     * @see #checkNickname(String, StringConnection)
+     * @see #checkNickname(String, StringConnection, boolean)
      * @since 1.1.08
      */
     public static final int NICKNAME_TAKEOVER_SECONDS_SAME_PASSWORD = 15;
@@ -474,7 +474,7 @@ public class SOCServer extends Server
      * Number of seconds before a connection is considered disconnected, and
      * its nickname can be "taken over" by a new connection from the same IP.
      * Used when no password is given by the new connection.
-     * @see #checkNickname(String, StringConnection)
+     * @see #checkNickname(String, StringConnection, boolean)
      * @since 1.1.08
      */
     public static final int NICKNAME_TAKEOVER_SECONDS_SAME_IP = 30;
@@ -483,7 +483,7 @@ public class SOCServer extends Server
      * Number of seconds before a connection is considered disconnected, and
      * its nickname can be "taken over" by a new connection from a different IP.
      * Used when no password is given by the new connection.
-     * @see #checkNickname(String, StringConnection)
+     * @see #checkNickname(String, StringConnection, boolean)
      * @since 1.1.08
      */
     public static final int NICKNAME_TAKEOVER_SECONDS_DIFFERENT_IP = 150;
@@ -1748,7 +1748,7 @@ public class SOCServer extends Server
      *          and release it before returning.
      * @return true if the turn was ended and game is still active;
      *          false if we find that all players have left and
-     *          the gamestate has been changed here to {@link #OVER}.
+     *          the gamestate has been changed here to {@link SOCGame#OVER OVER}.
      */
     boolean endGameTurnOrForce(SOCGame ga, final int plNumber, final String plName, StringConnection plConn, final boolean hasMonitorFromGameList)
     {
@@ -1930,8 +1930,8 @@ public class SOCServer extends Server
      * @return True if robots were set up, false if an exception occurred.
      *     This typically happens if a robot class, or SOCDisplaylessClient,
      *     can't be loaded, due to packaging of the server-only JAR.
-     * @see #startPracticeGame()
-     * @see #startLocalTCPServer(int)
+     * @see soc.client.SOCPlayerClient#startPracticeGame()
+     * @see soc.client.SOCPlayerClient#startLocalTCPServer(int)
      * @since 1.1.00
      */
     public boolean setupLocalRobots(final int numFast, final int numSmart)
@@ -6226,9 +6226,9 @@ public class SOCServer extends Server
      *               their name within game object is already null.
      * @return true if the turn was ended and game is still active;
      *          false if we find that all players have left and
-     *          the gamestate has been changed here to {@link #OVER}.
+     *          the gamestate has been changed here to {@link SOCGame#OVER OVER}.
      *
-     * @see #endPlayerTurnOrForce(SOCGame, int, String)
+     * @see #endGameTurnOrForce(SOCGame, int, String, StringConnection, boolean)
      * @see SOCGame#forceEndTurn()
      */
     private boolean forceEndGameTurn(SOCGame ga, final String plName)
@@ -9987,7 +9987,7 @@ public class SOCServer extends Server
      * Equivalent to main thread in SOCRobotClient in network games.
      *<P>
      * Before 1.1.09, this class was part of SOCPlayerClient.
-     * @see SOCServer#setupLocalRobots(int, int, int)
+     * @see SOCServer#setupLocalRobots(int, int)
      * @since 1.1.00
      */
     private static class SOCPlayerLocalRobotRunner implements Runnable

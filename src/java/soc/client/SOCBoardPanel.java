@@ -98,7 +98,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * x-offset to move over 1 hex, for each port facing direction (1-6). 0 is unused.
      * Facing is the direction to the land hex touching the port.
-     * Facing 2 is E, 3 is SE, 4 is SW, etc: see {@link #hexLayout}.
+     * Facing 2 is E, 3 is SE, 4 is SW, etc: see {@link SOCBoard#FACING_E} etc.
      * @see #DELTAY_FACING
      * @since 1.1.08
      */
@@ -472,7 +472,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Hex pix - shared unscaled original-resolution from GIF files.
-     * {@link #hexes} also contains {@code miscPort.gif} for drawing 3:1 ports' base image.
+     * {@link #hexes} also contains <tt>miscPort.gif</tt> for drawing 3:1 ports' base image.
      * {@link #ports} stores the resource ports and the 6 per-facing port overlays.
      * For indexes, see {@link #loadHexesPortsImages(Image[], Image[], String, MediaTracker, Toolkit, Class)}.
      * @see #scaledHexes
@@ -3902,7 +3902,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * player decided to not build something, so cancel the {@link TimerTask}
+     * player decided to not build something, so cancel the {@link java.util.TimerTask}
      * that's waiting to tell the server what they wanted to build.
      * @since 1.1.00
      */
@@ -5376,15 +5376,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     }  /* static nested class ResourceTradeAllMenu */
 
-    /** 
+    /**
      * Used for the delay between sending a build-request message,
      * and receiving a game-state message.
-     * 
+     *
      * This timer will probably not be called, unless there's a large lag
      * between the server and client.  It's here just in case.
-     * Ideally the server responds right away, and the client responds then.
-     * 
+     * Ideally the server responds right away, and the client responds to that.
+     *
      * @see SOCHandPanel#autoRollSetupTimer()
+     * @since 1.1.00
      */
     protected class BoardPanelSendBuildTask extends java.util.TimerTask
     {
@@ -5508,8 +5509,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * Creates a new MoveRobberConfirmDialog.
          * To display the dialog, call {@link #showInNewThread()}.
          *
-         * @param cli     Player client interface
-         * @param gamePI  Current game's player interface
          * @param player  Current player
          * @param newRobHex  The new robber hex, if confirmed; not validated.
          */

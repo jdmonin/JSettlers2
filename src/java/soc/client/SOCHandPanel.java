@@ -57,7 +57,7 @@ import java.util.TimerTask;
  *<P>
  * To update most of the values shown in the handpanel,
  * call {@link #updateValue(int)} after receiving
- * a {@link SOCPlayerElement} message or after something
+ * a {@link soc.message.SOCPlayerElement} message or after something
  * else changes the game state.
  *<P>
  * Custom layout: see {@link #doLayout()}.
@@ -132,7 +132,6 @@ public class SOCHandPanel extends Panel implements ActionListener
     /**
      * Show that a non-client player is discarding resources after 7 is rolled.
      * Call {@link #setDiscardMsg()} to show.
-     * Same methods are used by discard and by {@link #TRADEMSG_PICKING}.
      * @since 1.1.00
      */
     private static final String TRADEMSG_DISCARD = "Discarding..."; 
@@ -944,8 +943,8 @@ public class SOCHandPanel extends Panel implements ActionListener
      * Create and send a bank/port trade request.
      * Remember the resources for the "undo" button.
      * @param game  Our game
-     * @param give  Resources to give, same format as {@link SOCResourceSet#SOCResourceSet(int[])
-     * @param get   Resources to get, same format as {@link SOCResourceSet#SOCResourceSet(int[])
+     * @param give  Resources to give, same format as {@link SOCResourceSet#SOCResourceSet(int[])}
+     * @param get   Resources to get, same format as {@link SOCResourceSet#SOCResourceSet(int[])}
      * @since 1.1.13
      */
     private void createSendBankTradeRequest
@@ -2373,7 +2372,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      * and update (player name label, victory-points tooltip, disable bank/trade btn)
      *
      * @param vt  the type of value, such as {@link #VICTORYPOINTS}
-     *            or {@link SOCPlayerElement#SHEEP}.
+     *            or {@link #SHEEP}.
      */
     public void updateValue(int vt)
     {

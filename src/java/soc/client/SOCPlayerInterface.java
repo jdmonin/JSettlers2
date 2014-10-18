@@ -76,13 +76,13 @@ import java.io.StringWriter;
 public class SOCPlayerInterface extends Frame implements ActionListener, MouseListener
 {
     /**
-     * System property os.name; For use by {@link #isPlatformWindows}.
+     * System property os.name; For use by {@link #SOCPI_isPlatformWindows}.
      * @since 1.1.08
      */
     private final static String SOCPI_osName = System.getProperty("os.name");
 
     /**
-     * Are we running on the Windows platform, according to {@link #osName}?
+     * Are we running on the Windows platform, according to {@link #SOCPI_osName}?
      * @since 1.1.08
      */
     private final static boolean SOCPI_isPlatformWindows = (SOCPI_osName != null) && (SOCPI_osName.toLowerCase().indexOf("windows") != -1);

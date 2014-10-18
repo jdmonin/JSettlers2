@@ -986,7 +986,7 @@ public class NewGameOptionsFrame extends Frame
 
     /**
      * Called when a Choice or Checkbox value changes.  Two purposes:
-     * Check Choices or Checkboxes to see if their game option has a {@link ChangeListener}.
+     * Check Choices or Checkboxes to see if their game option has a {@link SOCGameOption.ChangeListener ChangeListener}.
      * Set the checkbox when the popup-menu Choice value is changed for a
      * {@link SOCGameOption#OTYPE_INTBOOL} or {@link SOCGameOption#OTYPE_ENUMBOOL}. (ItemListener)
      * @param e itemevent from a Choice or Checkbox in {@link #controlsOpts}
@@ -1050,7 +1050,7 @@ public class NewGameOptionsFrame extends Frame
      * If <tt>oldValue</tt>.equals(<tt>newValue</tt>), nothing happens and
      * the ChangeListener is not called.
      * @param cl  The ChangeListener; must not be null
-     * @param op  The game option
+     * @param opt  The game option
      * @param oldValue  Old value, string or boxed primitive
      * @param newValue  New value, string or boxed primitive
      * @since 1.1.13

@@ -326,7 +326,7 @@ public class SOCGameList
      * Client-side - Add this game name, with game options.
      * If a game already exists (per {@link #isGame(String)}), at most clear its canJoin flag.
      *<P>
-     * Server should instead call {@link soc.server.SOCGameListAtServer#createGame(String, Hashtable)}.
+     * Server should instead call {@link soc.server.SOCGameListAtServer#createGame(String, String, Hashtable)}.
      *
      * @param gaName Name of added game; may be marked with the prefix
      *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.

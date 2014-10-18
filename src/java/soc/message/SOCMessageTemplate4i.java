@@ -168,9 +168,11 @@ public abstract class SOCMessageTemplate4i extends SOCMessage
      * MESSAGETYPE sep game sep2 param1 sep2 param2 sep2 param3 sep2 param4
      *
      * @param messageType The message type id
-     * @param ga  the new game name
-     * @param param1 The first parameter
-     * @param param2 The second parameter
+     * @param ga  the game name
+     * @param p1  the first parameter
+     * @param p2  the second parameter
+     * @param p3  the third parameter
+     * @param p4  the fourth parameter
      * @return    the command string
      */
     protected static String toCmd(final int messageType, final String ga, final int p1, final int p2, final int p3, final int p4)

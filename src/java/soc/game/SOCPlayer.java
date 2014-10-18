@@ -499,7 +499,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * May be called during initial placement.
      * Is called at the end of initial placement, before the first player's first roll.
      * On the 6-player board, is called at the start of
-     * the player's {@link #SPECIAL_BUILDING Special Building Phase}.
+     * the player's {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
      *<UL>
      *<LI> Mark our new dev cards as old
      *<LI> Clear the "last-action bank trade" flag/list
@@ -602,7 +602,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * To set or clear this flag, use {@link #setAskedSpecialBuild(boolean)}.
      *
      * @return  if the player has asked to build
-     * @see #getAskSpecialBuildPieces()
      * @see #hasSpecialBuilt()
      * @since 1.1.08
      */
@@ -1988,7 +1987,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Set this edge to not be a potential road.
      * For use (by robots) when the server denies our request to build at a certain spot.
      *
-     * @param node  coordinates of a an edge on the board. Accepts -1 for edge 0x00.
+     * @param edge  coordinates of a an edge on the board. Accepts -1 for edge 0x00.
      * @see #isPotentialRoad(int)
      * @since 1.1.09
      */
@@ -2072,7 +2071,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param pieceType  Piece type, such as {@link SOCPlayingPiece#SETTLEMENT}
      * @since 1.1.12
      * @return true if this piece type is the next to be placed
-     * @throws IllegalStateException if gameState is past initial placement (> {@link #START2B})
+     * @throws IllegalStateException if gameState is past initial placement (> {@link SOCGame#START2B START2B})
      */
     public boolean canBuildInitialPieceType(final int pieceType)
         throws IllegalStateException

@@ -175,7 +175,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *    within {@link #removeConnection(StringConnection)}; if this is null,
      *    the message is printed immediately, and not added to this map.
      *
-     * @see #CLI_CONN_DISCON_PRINT_TIMER_FIRE_MS
+     * @see #CLI_DISCON_PRINT_TIMER_FIRE_MS
      * @since 1.1.07
      */
     public HashMap cliConnDisconPrintsPending = new HashMap();
@@ -1242,7 +1242,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @author Jeremy D Monin <jeremy@nand.net>
      * @since 1.1.07
      * @see Server#addConnection(StringConnection).
-     * @see Server#CLI_CONN_DISCON_PRINT_TIMER_FIRE_MS
+     * @see Server#CLI_DISCON_PRINT_TIMER_FIRE_MS
      */
     protected class ConnExcepDelayedPrintTask extends TimerTask
     {

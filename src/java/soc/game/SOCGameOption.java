@@ -970,7 +970,8 @@ public class SOCGameOption implements Cloneable, Comparable
      * and send only the permitted values to an older client.
      *
      * @param optKey Option's keyname
-     * @param vers   Version of client, same format as {@link SOCVersion#getVersionNumber()}
+     * @param vers   Version of client, same format as {@link soc.message.SOCVersion#getVersionNumber()}
+     *               and {@link soc.util.Version#versionNumber()}
      * @return  Maximum permitted value for this version, or {@link Integer#MAX_VALUE}
      *          if this option has no restriction.
      *          Enum values range from 1 to n, not from 0 to n-1.
@@ -999,7 +1000,8 @@ public class SOCGameOption implements Cloneable, Comparable
      * The server, when giving option info to a connecting client, can remove the too-new values.
      *
      * @param optKey Option's keyname
-     * @param vers   Version of client, same format as {@link SOCVersion#getVersionNumber()}
+     * @param vers   Version of client, same format as {@link soc.message.SOCVersion#getVersionNumber()}
+     *               and {@link soc.util.Version#versionNumber()}
      * @return  Maximum permitted value for this version, or {@link Integer#MAX_VALUE}
      *          if this option has no restriction.
      * @since 1.1.08
@@ -1032,7 +1034,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * @param onew New option, or a changed version of an option we already know.
      *             If onew.optType == {@link #OTYPE_UNKNOWN}, will remove from the known table.
      *             If this option is already known and the old copy has a {@link SOCGameOption#getChangeListener()},
-     *             that listener is copied to {@code onew}.
+     *             that listener is copied to <tt>onew</tt>.
      * @return true if it's new, false if we already had that key and it was updated
      * @see #getAllKnownOptions()
      */

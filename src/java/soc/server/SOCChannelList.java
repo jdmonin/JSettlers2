@@ -266,7 +266,7 @@ public class SOCChannelList
      * Replace member from all chat channels, with a new connection (after a network problem).
      *
      * @param  oldConn  the member's old connection
-     * @param  oldConn  the member's new connection
+     * @param  newConn  the member's new connection
      * @since 1.1.08
      */
     public synchronized void replaceMemberAllChannels(StringConnection oldConn, StringConnection newConn)
