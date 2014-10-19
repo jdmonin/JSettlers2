@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,14 +21,18 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.game.SOCBoard;  // for javadocs only
+
 /**
  * This message from server reveals a hex previously hidden by fog on the large sea board.
  * Hexes are revealed by placing roads or ships that touch a corner of a fog hex.
  * This message is sent out before the {@link SOCPutPiece} for the new road or ship.
  *<P>
  * Param 1: Coordinate of the land hex to reveal <br>
- * Param 2: Revealed hex type, same value as {@link #getHexTypeFromCoord(int)} <br>
- * Param 3: Revealed hex dice number, same value as {@link #getNumberOnHexFromCoord(int)}, or 0
+ * Param 2: Revealed hex type, same value as {@link SOCBoard#getHexTypeFromCoord(int)} <br>
+ * Param 3: Revealed hex dice number, same value as {@link SOCBoard#getNumberOnHexFromCoord(int)}, or 0
+ *<P>
+ * Used with game option/scenario {@link soc.game.SOCGameOption#K_SC_FOG SOCGameOption.K_SC_FOG}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -42,8 +46,8 @@ public class SOCRevealFogHex extends SOCMessageTemplate3i
      *
      * @param ga  the name of the game
      * @param hexCoord  Coordinate of the land hex to reveal
-     * @param hexType   Revealed hex type, same value as {@link #getHexTypeFromCoord(int)}
-     * @param diceNum   Revealed hex dice number, same value as {@link #getNumberOnHexFromCoord(int)}, or 0
+     * @param hexType   Revealed hex type, same value as {@link SOCBoard#getHexTypeFromCoord(int)}
+     * @param diceNum   Revealed hex dice number, same value as {@link SOCBoard#getNumberOnHexFromCoord(int)}, or 0
      */
     public SOCRevealFogHex(final String ga, final int hexCoord, final int hexType, final int diceNum)
     {
@@ -55,8 +59,8 @@ public class SOCRevealFogHex extends SOCMessageTemplate3i
      *
      * @param ga  the name of the game
      * @param hexCoord  Coordinate of the land hex to reveal
-     * @param hexType   Revealed hex type, same value as {@link #getHexTypeFromCoord(int)}
-     * @param diceNum   Revealed hex dice number, same value as {@link #getNumberOnHexFromCoord(int)}, or 0
+     * @param hexType   Revealed hex type, same value as {@link SOCBoard#getHexTypeFromCoord(int)}
+     * @param diceNum   Revealed hex dice number, same value as {@link SOCBoard#getNumberOnHexFromCoord(int)}, or 0
      * @return the command string
      */
     public static String toCmd(final String ga, final int hexCoord, final int hexType, final int diceNum)

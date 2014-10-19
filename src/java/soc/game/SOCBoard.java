@@ -83,7 +83,7 @@ import java.util.Vector;
  *</TR>
  *<TR><td> Node </td>
  *    <td><!-- Node adjac to hex -->
- *      {@link #getAdjacentNodeToHex(int)} <br>
+ *      {@link #getAdjacentNodeToHex(int, int)} <br>
  *      {@link #getAdjacentNodesToHex(int)}
  *    </td>
  *    <td><!-- Node adjac to edge -->
@@ -161,7 +161,7 @@ import java.util.Vector;
  * For the large sea board (encoding v3: {@link #BOARD_ENCODING_LARGE}), see subclass {@link SOCBoardLarge}.
  * Remember that ship pieces extend the {@link SOCRoad} class.
  * Most methods of {@link SOCBoard}, {@link SOCGame} and {@link SOCPlayer} differentiate them
- * ({@link SOCPlayer#hasPotentialRoad() vs {@link SOCPlayer#hasPotentialShip()}),
+ * ({@link SOCPlayer#hasPotentialRoad()} vs {@link SOCPlayer#hasPotentialShip()}),
  * but a few methods group them together:
  *<UL>
  *<LI> {@link #roadAtEdge(int)}
@@ -899,7 +899,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6. (Added in 1.1.08)
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
-     * @see #createBoard(Map, int)
+     * @see BoardFactory#createBoard(Map, boolean, int)
      */
     protected SOCBoard(Map<String,SOCGameOption> gameOpts, final int maxPlayers)
         throws IllegalArgumentException
@@ -2021,7 +2021,7 @@ public class SOCBoard implements Serializable, Cloneable
      *         in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
      *         If called on a non-port hex, returns 0 
      *         (which is <tt>MISC_PORT</tt>).
-     * @param hex  the hex type, as in {@link #hexLayout}
+     * @param hexType  the hex type, as in {@link #hexLayout}
      * @see #getHexTypeFromCoord(int)
      * @see #getPortTypeFromNodeCoord(int)
      */

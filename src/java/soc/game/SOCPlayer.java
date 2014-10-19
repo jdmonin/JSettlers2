@@ -62,7 +62,7 @@ import java.util.Vector;
  * all potential settlement locations are cleared.  Only when they build 2 connected road
  * segments, will another potential settlement location be set.
  *<P>
- * If the board layout changes from game to game, as with {@link SOCLargeBoard} /
+ * If the board layout changes from game to game, as with {@link SOCBoardLarge} /
  * {@link SOCBoard#BOARD_ENCODING_LARGE}, use these methods to update the player's board data
  * after {@link SOCBoard#makeNewBoard(Map)}, in this order:
  *<UL>
@@ -71,7 +71,7 @@ import java.util.Vector;
  * <LI> Optionally, {@link #setRestrictedLegalShips(int[])}
  *</UL>
  *<P>
- * On the {@link SOCLargeBoard large sea board}, our list of the player's roads also
+ * On the {@link SOCBoardLarge large sea board}, our list of the player's roads also
  * contains their ships.  They are otherwise treated separately.
  *
  * @author Robert S Thomas
@@ -669,7 +669,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * {@link SOCBoard#initPlayerLegalAndPotentialSettlements()}.
      *<P>
      * Once the game board is set up, be sure to call
-     * {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet)}
+     * {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])}
      * to update our data.
      *
      * @param pn the player number
@@ -794,7 +794,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * May be called during initial placement.
      * Is called at the end of initial placement, before the first player's first roll.
      * On the 6-player board, is called at the start of
-     * the player's {@link #SPECIAL_BUILDING Special Building Phase}.
+     * the player's {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
      *<UL>
      *<LI> Mark our new dev cards as old
      *<LI> Set {@link #getNeedToPickGoldHexResources()} to 0
@@ -897,7 +897,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * To set or clear this flag, use {@link #setAskedSpecialBuild(boolean)}.
      *
      * @return  if the player has asked to build
-     * @see #getAskSpecialBuildPieces()
      * @see #hasSpecialBuilt()
      * @since 1.1.08
      */
@@ -1917,7 +1916,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Add to this player's resources and resource-roll totals.
      *<P>
-     * If {@link #hasSeaBoard}, treat {@link SOCResourceConstants#GOLD_LOCAL}
+     * If {@link SOCGame#hasSeaBoard}, treat {@link SOCResourceConstants#GOLD_LOCAL}
      * as the gold-hex resources they must pick, and set
      * {@link #getNeedToPickGoldHexResources()} to that amount.
      * Once the resources from gold from a dice roll are picked, the
@@ -2164,7 +2163,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Not all player events are returned here; some can't be represented in a single flag bit.
      *
      * @return Player events which have occurred so far this game
-     * @see #hasScenarioPlayerEvent(int)
+     * @see #hasScenarioPlayerEvent(SOCScenarioPlayerEvent)
      * @since 2.0.00
      */
     public int getScenarioPlayerEvents()
@@ -2252,7 +2251,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * this player's starting settlement land areas, encoded to send over the network
      * from server to client. 0 otherwise.
      * @return  Encoded starting land area numbers 1 and 2
-     * @see SOCPlayerElement#STARTING_LANDAREAS
+     * @see soc.message.SOCPlayerElement#STARTING_LANDAREAS
      * @since 2.0.00
      */
     public int getStartingLandAreasEncoded()
@@ -2727,8 +2726,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Check this new settlement for adjacent open ships, to see their its trade route
      * will be closed.  Close it if so.
-     * @param newSettlement  Our new settlement being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
-     *                 should not yet be added to {@link #settlements}
+     * @param newSettle  Our new settlement being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
+     *            should not yet be added to {@link #settlements}
      * @param board  game board
      * @since 2.0.00
      */
@@ -4000,7 +3999,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Set this edge to not be a potential road.
      * For use (by robots) when the server denies our request to build at a certain spot.
      *
-     * @param node  coordinates of a an edge on the board. Accepts -1 for edge 0x00.
+     * @param edge  coordinates of an edge on the board. Accepts -1 for edge 0x00.
      * @see #isPotentialRoad(int)
      * @since 1.1.09
      */
@@ -4116,7 +4115,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Set this edge to not be a potential ship.
      * For use (by robots) when the server denies our request to build at a certain spot.
      *
-     * @param node  coordinates of a an edge on the board
+     * @param edge  coordinates of an edge on the board
      * @see #isPotentialRoad(int)
      * @since 2.0.00
      */
@@ -4260,7 +4259,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param pieceType  Piece type, such as {@link SOCPlayingPiece#SETTLEMENT}
      * @since 1.1.12
      * @return true if this piece type is the next to be placed
-     * @throws IllegalStateException if gameState is past initial placement (> {@link #START3B})
+     * @throws IllegalStateException if gameState is past initial placement (> {@link SOCGame#START3B})
      */
     public boolean canBuildInitialPieceType(final int pieceType)
         throws IllegalStateException

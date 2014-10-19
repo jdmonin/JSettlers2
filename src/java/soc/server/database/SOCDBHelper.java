@@ -729,7 +729,7 @@ public class SOCDBHelper
     /**
      * Record this game's time, players, and scores in the database.
      *
-     * @param game  Game that's just completed
+     * @param ga  Game that's just completed
      * @param gameLengthSeconds  Duration of game
      *
      * @return true if the save succeeded

@@ -183,7 +183,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * same client that just disconnected, it should find both of the tasks in
      * this HashMap, call {@link TimerTask#cancel()} on them, and remove them.
      *
-     * @see #CLI_CONN_DISCON_PRINT_TIMER_FIRE_MS
+     * @see #CLI_DISCON_PRINT_TIMER_FIRE_MS
      * @since 1.1.07
      */
     public HashMap<Object, ConnExcepDelayedPrintTask> cliConnDisconPrintsPending = new HashMap<Object, ConnExcepDelayedPrintTask>();
@@ -1249,7 +1249,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @author Jeremy D Monin <jeremy@nand.net>
      * @since 1.1.07
      * @see Server#addConnection(StringConnection).
-     * @see Server#CLI_CONN_DISCON_PRINT_TIMER_FIRE_MS
+     * @see Server#CLI_DISCON_PRINT_TIMER_FIRE_MS
      */
     protected class ConnExcepDelayedPrintTask extends TimerTask
     {

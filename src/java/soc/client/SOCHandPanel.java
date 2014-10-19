@@ -70,8 +70,8 @@ import javax.swing.UIManager;
  * displayed than in another player's hand panel.
  *<P>
  * To update most of the values shown in the handpanel,
- * call {@link #updateValue(int)} after receiving
- * a {@link SOCPlayerElement} message or after something
+ * call {@link #updateValue(PlayerClientListener.UpdateType)} after receiving
+ * a {@link soc.message.SOCPlayerElement} message or after something
  * else changes the game state.
  *<P>
  * Custom layout: see {@link #doLayout()}.
@@ -85,8 +85,8 @@ public class SOCHandPanel extends Panel
     /** Minimum desired width, in pixels */
     public static final int WIDTH_MIN = 218;
 
-    /** Items to update via {@link #updateValue(int)};
-     * for items not appearing in {@link SOCPlayerElement}.
+    /** Items to update via {@link #updateValue(PlayerClientListener.UpdateType)};
+     * for items not appearing in {@link soc.message.SOCPlayerElement}.
      * All these item numbers are negative, so they won't
      * conflict with any SOCPlayerElement element type.
      *<P>
@@ -1186,8 +1186,8 @@ public class SOCHandPanel extends Panel
      * Create and send a bank/port trade request.
      * Remember the resources for the "undo" button.
      * @param game  Our game
-     * @param give  Resources to give, same format as {@link SOCResourceSet#SOCResourceSet(int[])
-     * @param get   Resources to get, same format as {@link SOCResourceSet#SOCResourceSet(int[])
+     * @param give  Resources to give, same format as {@link SOCResourceSet#SOCResourceSet(int[])}
+     * @param get   Resources to get, same format as {@link SOCResourceSet#SOCResourceSet(int[])}
      * @since 1.1.13
      */
     private void createSendBankTradeRequest
@@ -2655,7 +2655,7 @@ public class SOCHandPanel extends Panel
      * Assumes player can't be discarding and asking for board-reset at same time.
      * Not called for the client player, only for other players.
      *<P>
-     * Normally, this will be cleared by {@link #updateValue(int)} for NUMRESOURCES,
+     * Normally, this will be cleared by {@link #updateValue(PlayerClientListener.UpdateType)} for NUMRESOURCES,
      * because that's what the server sends all other players on the player's discard or pick.
      *
      * @see #clearDiscardOrPickMsg()
@@ -2885,8 +2885,8 @@ public class SOCHandPanel extends Panel
      * If {@link #VICTORYPOINTS} is updated, and game state is {@link SOCGame#OVER}, check for winner
      * and update (player name label, victory-points tooltip, disable bank/trade btn)
      *
-     * @param vt  the type of value, such as {@link #VICTORYPOINTS}
-     *            or {@link SOCPlayerElement#SHEEP}.
+     * @param utype  the type of value update, such as {@link #VICTORYPOINTS}
+     *            or {@link PlayerClientListener.UpdateType#Sheep}.
      */
     public void updateValue(PlayerClientListener.UpdateType utype)
     {

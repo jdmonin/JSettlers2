@@ -1249,7 +1249,8 @@ public class SOCGameOption
      * and send only the permitted values to an older client.
      *
      * @param optKey Option's keyname
-     * @param vers   Version of client, same format as {@link SOCVersion#getVersionNumber()}
+     * @param vers   Version of client, same format as {@link soc.message.SOCVersion#getVersionNumber()}
+     *               and {@link soc.util.Version#versionNumber()}
      * @return  Maximum permitted value for this version, or {@link Integer#MAX_VALUE}
      *          if this option has no restriction.
      *          Enum values range from 1 to n, not from 0 to n-1.
@@ -1278,7 +1279,8 @@ public class SOCGameOption
      * The server, when giving option info to a connecting client, can remove the too-new values.
      *
      * @param optKey Option's keyname
-     * @param vers   Version of client, same format as {@link SOCVersion#getVersionNumber()}
+     * @param vers   Version of client, same format as {@link soc.message.SOCVersion#getVersionNumber()}
+     *               and {@link soc.util.Version#versionNumber()}
      * @return  Maximum permitted value for this version, or {@link Integer#MAX_VALUE}
      *          if this option has no restriction.
      * @since 1.1.08

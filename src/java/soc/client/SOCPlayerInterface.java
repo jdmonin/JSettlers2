@@ -1241,6 +1241,7 @@ public class SOCPlayerInterface extends Frame
      * @param cmd  Local client command string, which starts with \
      * @return true if a command was handled
      * @since 2.0.00
+     * @see SOCPlayerClient.GameAwtDisplay#doLocalCommand(String, String)
      */
     private boolean doLocalCommand(String cmd)
     {
@@ -1841,7 +1842,7 @@ public class SOCPlayerInterface extends Frame
      * Show the {@link ChooseRobClothOrResourceDialog} to choose what to rob from a player.
      * @param vpn  Victim player number
      * @since 2.0.00
-     * @see #showChoosePlayerDialog(int, int[])
+     * @see #showChoosePlayerDialog(int, int[], boolean)
      */
     public void showChooseRobClothOrResourceDialog(final int vpn)
     {
@@ -1873,7 +1874,7 @@ public class SOCPlayerInterface extends Frame
      * Update interface after the server sends us a new board layout.
      * Call after setting game data and board data.
      * Calls {@link SOCBoardPanel#flushBoardLayoutAndRepaint()}.
-     * Updates display of board-related counters, such as {@link SOCBoardLarge#getCloth()}.
+     * Updates display of board-related counters, such as {@link soc.game.SOCBoardLarge#getCloth()}.
      * Not needed if calling {@link #resetBoard(SOCGame, int, int)}.
      * @since 2.0.00
      */
@@ -3655,9 +3656,8 @@ public class SOCPlayerInterface extends Frame
     /**
      * Modal dialog to ask whether to move the robber or the pirate ship.
      * Use the AWT event thread to show, so message treating can continue while the dialog is showing.
-     * When the choice is made, calls {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int)}
-     * with {@link SOCChoosePlayer#CHOICE_MOVE_ROBBER CHOICE_MOVE_ROBBER}
-     * or {@link SOCChoosePlayer#CHOICE_MOVE_PIRATE CHOICE_MOVE_PIRATE}.
+     * When the choice is made, calls {@link SOCPlayerClient.GameManager#chooseRobber(SOCGame)}
+     * or {@link SOCPlayerClient.GameManager#choosePirate(SOCGame)}.
      *
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 2.0.00
@@ -4042,7 +4042,7 @@ public class SOCPlayerInterface extends Frame
         /**
          * Create a new SOCPIDiscardOrPickMsgTask.
          * After creating, you must schedule it
-         * with {@link SOCPlayerClient#getEventTimer()}.{@link Timer#schedule(TimerTask, long) schedule(msgTask,delay)} .
+         * with {@link SOCPlayerClient.GameAwtDisplay#getEventTimer()}.{@link Timer#schedule(TimerTask, long) schedule(msgTask,delay)} .
          * @param spi  Our player interface
          * @param forDiscard  True for discard, false for picking gold-hex resources
          */

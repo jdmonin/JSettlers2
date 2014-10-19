@@ -54,7 +54,7 @@ public class SOCGameListAtServer extends SOCGameList
      * Number of minutes after which a game (created on the list) is expired.
      * Default is 90.
      *
-     * @see #createGame(String, String, String, Map)
+     * @see #createGame(String, String, String, Map, GameHandler)
      * @see SOCServer#checkForExpiredGames(long)
      */
     public static int GAME_EXPIRE_MINUTES = 90;
@@ -236,7 +236,7 @@ public class SOCGameListAtServer extends SOCGameList
      * Replace member from all games, with a new connection with same name (after a network problem).
      *
      * @param  oldConn  the member's old connection
-     * @param  oldConn  the member's new connection
+     * @param  newConn  the member's new connection
      * @throws IllegalArgumentException  if oldConn's keyname (via {@link StringConnection#getData() getData()})
      *            differs from newConn's keyname
      *
@@ -283,7 +283,7 @@ public class SOCGameListAtServer extends SOCGameList
      *                Should already be validated, by calling
      *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *                with <tt>doServerPreadjust</tt> true.
-     * @param typeHandler  Game type handler for this game
+     * @param handler  Game type handler for this game
      * @return new game object, or null if it already existed
      * @throws IllegalArgumentException  if {@code handler} is null
      */

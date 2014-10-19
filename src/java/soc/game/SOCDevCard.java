@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -77,8 +77,8 @@ public class SOCDevCard
      * @param game  Game data, or {@code null}; some game options might change a card name.
      *              For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
      * @param withArticle  If true, format is: "a Market (+1VP)"; if false, is "Market (1VP)"
-     * @param strings  StringManager to get i18n localized text
      * @return  The card name key for {@code ctype} and {@code withArticle}; unknown ctypes return "spec.dcards.unknown" / "spec.dcards.aunknown".
+     * @see #getCardTypeName(int, SOCGame, boolean, SOCStringManager)
      */
     public static String getCardTypeNameKey
         (final int ctype, final SOCGame game, final boolean withArticle)
@@ -113,6 +113,7 @@ public class SOCDevCard
      * @param strings  StringManager to get i18n localized text
      * @return  The localized card name, formatted per {@code ctype} and {@code withArticle};
      *          unknown ctypes return "Unknown card type #"
+     * @see #getCardTypeNameKey(int, SOCGame, boolean)
      */
     public static String getCardTypeName
         (final int ctype, final SOCGame game, final boolean withArticle, final SOCStringManager strings)

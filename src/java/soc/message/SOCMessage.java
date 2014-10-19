@@ -424,7 +424,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
     /**
      * For use in toString: Append string enum contents to stringbuffer,
      * formatted as "a,b,c,d,e".
-     * @param sv  Enum of String to append. 0 length is allowed, null is not allowed.
+     * @param se  Enum of String to append. 0 length is allowed, null is not allowed.
      * @param sb  StringBuffer to which <tt>se</tt> will be appended, as "a,b,c,d,e"
      * @throws ClassCastException if <tt>se.nextElement()</tt> returns non-String
      * @throws NullPointerException if <tt>se</tt> or <tt>sb</tt> is null

@@ -1388,7 +1388,7 @@ public class SOCGame implements Serializable, Cloneable
      * For games at the server, the owner (creator) of the game.
      * Will be the name of a player / server connection.
      * Even if the owner leaves the game, their name may be retained here.
-     * @return the owner's player name, or null if {@link #setOwner(String)} was never called
+     * @return the owner's player name, or null if {@link #setOwner(String, String)} was never called
      * @since 1.1.10
      * @see #getOwnerLocale()
      */
@@ -2574,10 +2574,10 @@ public class SOCGame implements Serializable, Cloneable
      * If a {@link SOCBoard#WATER_HEX} is revealed, updates players' legal ship edges.
      *
      * @param hexCoord  Coordinate of the hex to reveal
-     * @param hexType   Revealed hex type, same value as {@link #getHexTypeFromCoord(int)},
+     * @param hexType   Revealed hex type, same value as {@link SOCBoard#getHexTypeFromCoord(int)},
      *                    from {@link SOCBoardLarge#revealFogHiddenHexPrep(int)}
-     * @param diceNum   Revealed hex dice number, same value as {@link #getNumberOnHexFromCoord(int)}, or 0
-     * @throws IllegalArgumentException if <tt>hexCoord</tt> isn't currently a {@link #FOG_HEX}
+     * @param diceNum   Revealed hex dice number, same value as {@link SOCBoard#getNumberOnHexFromCoord(int)}, or 0
+     * @throws IllegalArgumentException if <tt>hexCoord</tt> isn't currently a {@link SOCBoardLarge#FOG_HEX FOG_HEX}
      * @throws IllegalStateException if <tt>! game.{@link #hasSeaBoard}</tt>
      * @since 2.0.00
      */
@@ -2636,7 +2636,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * At server: For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, remove a "gift" port
-     * at this edge for placement elsewhere. Assumes {@link #canRemovePort(int)} has already
+     * at this edge for placement elsewhere. Assumes {@link #canRemovePort(SOCPlayer, int)} has already
      * been called to validate player, edge, and game state.
      *<P>
      * This method will remove the port from the board.  At server it will also add it to the
@@ -2719,7 +2719,7 @@ public class SOCGame implements Serializable, Cloneable
      *             meet all conditions for {@code canPlacePort}.
      * @return  True if a port can be placed at this edge
      * @throws NullPointerException if {@code pl} is null
-     * @see #canRemovePort(int)
+     * @see #canRemovePort(SOCPlayer, int)
      * @see #placePort(SOCPlayer, int, int)
      * @since 2.0.00
      */
@@ -3533,7 +3533,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pn   Player number
      * @param fromEdge  Edge coordinate to move the ship from; must contain this player's ship
      * @return  The ship, if the player can move the ship now; null otherwise
-     * @see canMoveShip(int, int, int)
+     * @see #canMoveShip(int, int, int)
      * @since 2.0.00
      */
     public SOCShip canMoveShip(final int pn, final int fromEdge)
@@ -3619,7 +3619,7 @@ public class SOCGame implements Serializable, Cloneable
      * Calls {@link #checkForWinner()}; gamestate may become {@link #OVER}
      * if a player gets the longest trade route.
      *<P>
-     * Calls {@link #undoPutPieceCommon(SOCPlayingPiece) undoPutPieceCommon(sh, false)}
+     * Calls {@link #undoPutPieceCommon(SOCPlayingPiece, boolean) undoPutPieceCommon(sh, false)}
      * and {@link #putPiece(SOCPlayingPiece)}.
      * Updates longest trade route.
      * Not for use with temporary pieces.
@@ -3658,7 +3658,7 @@ public class SOCGame implements Serializable, Cloneable
      * Used in scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}
      * by {@link #attackPirateFortress(SOCShip)} and at the client.
      *<P>
-     * Calls {@link #undoPutPieceCommon(SOCPlayingPiece) undoPutPieceCommon(sh, false)}.
+     * Calls {@link #undoPutPieceCommon(SOCPlayingPiece, boolean) undoPutPieceCommon(sh, false)}.
      * Not for use with temporary pieces.
      *
      * @param sh  the ship to remove
@@ -6135,7 +6135,7 @@ public class SOCGame implements Serializable, Cloneable
      *                    if player has 0 {@link SOCPlayer#getResources() resources}.
      * @return the type of resource that was stolen, as in {@link SOCResourceConstants},
      *         or {@link SOCResourceConstants#CLOTH_STOLEN_LOCAL} for cloth.
-     * @see #stealFromPlayerPirateFleet(int)
+     * @see #stealFromPlayerPirateFleet(int, int)
      */
     public int stealFromPlayer(final int pn, boolean choseCloth)
     {
@@ -7132,7 +7132,7 @@ public class SOCGame implements Serializable, Cloneable
      *     <LI> or any other nonzero scenario-specific detail code for why the item can't be played now
      *   </UL>
      * @since 2.0.00
-     * @see #playInventoryItem()
+     * @see #playInventoryItem(int)
      */
     public int canPlayInventoryItem(final int pn, final int itype)
     {

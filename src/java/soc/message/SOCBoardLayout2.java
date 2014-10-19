@@ -151,7 +151,7 @@ public class SOCBoardLayout2 extends SOCMessage
     private Hashtable<String, Object> layoutParts;
 
     /**
-     * Create a SOCBoardLayout2 message
+     * Create a SOCBoardLayout2 message; see class javadoc for parts' meanings.
      *
      * @param ga   the name of the game
      * @param bef  the board encoding format number, from {@link SOCBoard#getBoardEncodingFormat()}
@@ -168,7 +168,7 @@ public class SOCBoardLayout2 extends SOCMessage
     }
 
     /**
-     * Create a SOCBoardLayout2 message for encoding format v1 or v2.
+     * Create a SOCBoardLayout2 message for encoding format v1 or v2; see class javadoc for parameters' meanings.
      * ({@link SOCBoard#BOARD_ENCODING_ORIGINAL} or {@link SOCBoard#BOARD_ENCODING_6PLAYER}.)
      *
      * @param ga   the name of the game
@@ -402,14 +402,14 @@ public class SOCBoardLayout2 extends SOCMessage
      *
      * @return the command string
      */
-    public static String toCmd(String ga, int bev, Hashtable<String, Object> parts)
+    public static String toCmd(String ga, int bef, Hashtable<String, Object> parts)
     {
         StringBuffer cmd = new StringBuffer();
         cmd.append(BOARDLAYOUT2);
         cmd.append(sep);
         cmd.append(ga);
         cmd.append(sep2);
-        cmd.append(bev);
+        cmd.append(bef);
         for (String okey : parts.keySet())
         {
             cmd.append(sep2);

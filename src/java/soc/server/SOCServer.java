@@ -490,7 +490,7 @@ public class SOCServer extends Server
      * Number of seconds before a connection is considered disconnected, and
      * its nickname can be "taken over" by a new connection with the right password.
      * Used only when a password is given by the new connection.
-     * @see #checkNickname(String, StringConnection)
+     * @see #checkNickname(String, StringConnection, boolean)
      * @since 1.1.08
      */
     public static final int NICKNAME_TAKEOVER_SECONDS_SAME_PASSWORD = 15;
@@ -499,7 +499,7 @@ public class SOCServer extends Server
      * Number of seconds before a connection is considered disconnected, and
      * its nickname can be "taken over" by a new connection from the same IP.
      * Used when no password is given by the new connection.
-     * @see #checkNickname(String, StringConnection)
+     * @see #checkNickname(String, StringConnection, boolean)
      * @since 1.1.08
      */
     public static final int NICKNAME_TAKEOVER_SECONDS_SAME_IP = 30;
@@ -508,7 +508,7 @@ public class SOCServer extends Server
      * Number of seconds before a connection is considered disconnected, and
      * its nickname can be "taken over" by a new connection from a different IP.
      * Used when no password is given by the new connection.
-     * @see #checkNickname(String, StringConnection)
+     * @see #checkNickname(String, StringConnection, boolean)
      * @since 1.1.08
      */
     public static final int NICKNAME_TAKEOVER_SECONDS_DIFFERENT_IP = 150;
@@ -1014,7 +1014,7 @@ public class SOCServer extends Server
      * is bound and listening, in the main thread.
      * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, starts those {@link SOCRobotClient}s now.
      * If {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL} is specified, waits briefly and then
-     * calls {@link #startRobotOnlyGames()}.
+     * calls {@link #startRobotOnlyGames(boolean)}.
      * @since 1.1.09
      */
     @Override
@@ -1205,7 +1205,7 @@ public class SOCServer extends Server
     /**
      * Adds a connection to a game, unless they're already a member.
      * If the game doesn't yet exist, creates it and announces the new game to all clients
-     * by calling {@link #createGameAndBroadcast(StringConnection, String, Map, int)}.
+     * by calling {@link #createGameAndBroadcast(StringConnection, String, Map, int, boolean, boolean)}.
      *<P>
      * After this, human players are free to join, until someone clicks "Start Game".
      * At that point, server will look for robots to fill empty seats.
@@ -1641,10 +1641,10 @@ public class SOCServer extends Server
      * @param numFast number of fast robots, with {@link soc.robot.SOCRobotDM#FAST_STRATEGY FAST_STRATEGY}
      * @param numSmart number of smart robots, with {@link soc.robot.SOCRobotDM#SMART_STRATEGY SMART_STRATEGY}
      * @return True if robots were set up, false if an exception occurred.
-     *     This typically happens if a robot class, or SOCDisplaylessClient,
+     *     This typically happens if a robot class or SOCDisplaylessClient
      *     can't be loaded, due to packaging of the server-only JAR.
-     * @see #startPracticeGame()
-     * @see #startLocalTCPServer(int)
+     * @see soc.client.SOCPlayerClient#startPracticeGame()
+     * @see soc.client.SOCPlayerClient.GameAwtDisplay#startLocalTCPServer(int)
      * @see #startRobotOnlyGames(boolean)
      * @see SOCLocalRobotClient
      * @since 1.1.00
@@ -1706,7 +1706,7 @@ public class SOCServer extends Server
      * calling this method
      *<P>
      * Note that if this game had the {@link SOCGame#isBotsOnly} flag, and {@link #numRobotOnlyGamesRemaining} &gt; 0,
-     *  will call {@link #startRobotOnlyGames()}.
+     *  will call {@link #startRobotOnlyGames(boolean)}.
      *
      * @param gm  the name of the game
      * @see #destroyGameAndBroadcast(String, String)
@@ -2148,7 +2148,7 @@ public class SOCServer extends Server
      * @param c   the player connection; if their version is 2.0.00 or newer,
      *            they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
      *            Null {@code c} is ignored and not an error.
-     * @param ga  game name
+     * @param gaName  game name
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
      * @since 2.0.00
      * @see #messageToPlayerKeyed(StringConnection, String, String, Object...)
@@ -2175,7 +2175,7 @@ public class SOCServer extends Server
      * @param c   the player connection; if their version is 2.0.00 or newer,
      *            they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
      *            Null {@code c} is ignored and not an error.
-     * @param ga  game name
+     * @param gaName  game name
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
      * @param args  Any parameters within {@code txt}'s placeholders
      * @since 2.0.00
@@ -2239,7 +2239,7 @@ public class SOCServer extends Server
      *            (See {@link #messageToGameUrgent(String, String)})
      * @see #messageToGame(String, String)
      * @see #messageToGameWithMon(String, SOCMessage)
-     * @see #messageToGameForVersions(String, int, int, SOCMessage, boolean)
+     * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
      */
     public void messageToGame(String ga, SOCMessage mes)
     {
@@ -2420,7 +2420,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send a localized {@link SOCServerGameText} game text message to a game.
+     * Send a localized {@link SOCGameServerText} game text message to a game.
      * Same as {@link #messageToGame(String, String)} but calls each member connection's
      * {@link StringConnection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
      *<P>
@@ -2807,7 +2807,7 @@ public class SOCServer extends Server
      * @param mes the message to send
      * @see #messageToGame(String, SOCMessage)
      * @see #messageToGameKeyed(SOCGame, boolean, String)
-     * @see #messageToGameForVersions(String, int, int, SOCMessage, boolean)
+     * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
      */
     public void messageToGameWithMon(String ga, SOCMessage mes)
     {

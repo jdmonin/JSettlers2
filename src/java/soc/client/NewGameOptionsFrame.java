@@ -76,7 +76,7 @@ import soc.util.Version;
  * This class also contains the "Scenario Info" popup window, called from
  * this dialog's Scenario Info button, and from {@link SOCPlayerInterface}
  * when first joining a game with a scenario.
- * See {@link #showScenarioInfoDialog(String, Map, int, GameAwtDisplay, Frame)}.
+ * See {@link #showScenarioInfoDialog(String, Map, int, SOCPlayerClient.GameAwtDisplay, Frame)}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
@@ -185,7 +185,7 @@ public class NewGameOptionsFrame extends Frame
      * Creates a new NewGameOptionsFrame.
      * Once created, reset the mouse cursor from hourglass to normal, and clear main panel's status text.
      *
-     * @param cli      Player client interface
+     * @param gd      Game display interface
      * @param gaName   Name of existing game,
      *                 or null for new game; will be blank or (forPractice)
      *                 to use {@link SOCPlayerClient#DEFAULT_PRACTICE_GAMENAME}.
@@ -253,7 +253,7 @@ public class NewGameOptionsFrame extends Frame
     /**
      * Creates and shows a new NewGameOptionsFrame.
      * Once created, reset the mouse cursor from hourglass to normal, and clear main panel's status text.
-     * See {@link #NewGameOptionsFrame(SOCPlayerClient, String, Map, boolean, boolean) constructor}
+     * See {@link #NewGameOptionsFrame(SOCPlayerClient.GameAwtDisplay, String, Map, boolean, boolean) constructor}
      * for notes about <tt>opts</tt> and other parameters.
      * @param gaName  Name of existing game, or {@code null} to show options for a new game;
      *     see constructor for details
@@ -384,7 +384,7 @@ public class NewGameOptionsFrame extends Frame
      * If not read-only, clear {@link SOCGameOption#userChanged} flag for
      * each option in {@link #opts}.
      *<P>
-     * If options are null, put a label with {@link #TXT_SERVER_TOO_OLD}.
+     * If options are null, put a label with "This server version does not support game options" (localized).
      */
     private void initInterface_Options(Panel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
@@ -911,7 +911,7 @@ public class NewGameOptionsFrame extends Frame
     /**
      * The "Scenario Info" button was clicked.
      * Reads the current scenario, if any, from {@link #scenChoice}.
-     * Calls {@link #showScenarioInfoDialog(String, Map, int, GameAwtDisplay, Frame)}.
+     * Calls {@link #showScenarioInfoDialog(String, Map, int, SOCPlayerClient.GameAwtDisplay, Frame)}.
      * @since 2.0.00
      */
     private void clickScenarioInfo()
@@ -935,14 +935,15 @@ public class NewGameOptionsFrame extends Frame
         showScenarioInfoDialog(scKey, null, vpWinner, gameDisplay, this);
     }
 
-    /** Dismiss the frame, and clear client's {@link SOCPlayerClient#newGameOptsFrame}
-     *  ref to this frame
+    /** Dismiss the frame, and clear client's {@link GameAwtDisplay#newGameOptsFrame}
+     *  reference to null if it's to this frame.
      */
     @Override
     public void dispose()
     {
         if (this == gameDisplay.newGameOptsFrame)
             gameDisplay.newGameOptsFrame = null;
+
         super.dispose();
     }
 
@@ -1184,7 +1185,7 @@ public class NewGameOptionsFrame extends Frame
      * <LI>
      * Set {@link SOCGameOption#userChanged}
      * <LI>
-     * Check Choices or Checkboxes to see if their game option has a {@link ChangeListener}.
+     * Check Choices or Checkboxes to see if their game option has a {@link SOCGameOption.ChangeListener ChangeListener}.
      * <LI>
      * Set the checkbox when the popup-menu Choice value is changed for a
      * {@link SOCGameOption#OTYPE_INTBOOL} or {@link SOCGameOption#OTYPE_ENUMBOOL}.
@@ -1297,7 +1298,7 @@ public class NewGameOptionsFrame extends Frame
      * If <tt>oldValue</tt>.equals(<tt>newValue</tt>), nothing happens and
      * the ChangeListener is not called.
      * @param cl  The ChangeListener; must not be null
-     * @param op  The game option
+     * @param opt  The game option
      * @param oldValue  Old value, string or boxed primitive
      * @param newValue  New value, string or boxed primitive
      * @since 1.1.13

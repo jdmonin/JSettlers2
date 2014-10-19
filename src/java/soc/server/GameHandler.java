@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -126,8 +126,8 @@ public abstract class GameHandler
      *                      is defunct because of a network problem.
      *                      If <tt>isTakingOver</tt>, don't send anything to other players.
      *
-     * @see #connectToGame(StringConnection, String, java.util.Map)
-     * @see #createOrJoinGameIfUserOK(StringConnection, String, String, String, java.util.Map)
+     * @see SOCServer#connectToGame(StringConnection, String, java.util.Map)
+     * @see SOCServer#createOrJoinGameIfUserOK(StringConnection, String, String, String, java.util.Map)
      */
     public abstract void joinGame(SOCGame gameData, StringConnection c, boolean isReset, boolean isTakingOver);
 
@@ -153,7 +153,8 @@ public abstract class GameHandler
      * Players are already seated when this method is called.
      *<P>
      * Send all game members the piece counts, other public information for the game and each player,
-     * set up and send the board layout, game state, and finally send a {@link SOCStartGame} and {@link SOCTurn}.
+     * set up and send the board layout, game state, and finally send the {@link soc.message.SOCStartGame STARTGAME}
+     * and {@link soc.message.SOCTurn TURN} messages.
      *
      * @param ga  the game
      */

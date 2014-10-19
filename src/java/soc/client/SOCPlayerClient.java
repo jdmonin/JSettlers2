@@ -108,7 +108,7 @@ import soc.util.Version;
  * argument in the html source. If you run this as a stand-alone, you have to
  * specify the port.
  *<P>
- * At startup or init, will try to connect to server via {@link #connect()}.
+ * At startup or init, will try to connect to server via {@link SOCPlayerClient.ClientNetwork#connect(String, int)}.
  * See that method for more details.
  *<P>
  * There are three possible servers to which a client can be connected:
@@ -186,7 +186,7 @@ public class SOCPlayerClient
 
     /**
      * Track the game options available at the remote server, at the practice server.
-     * Initialized by {@link #gameWithOptionsBeginSetup(boolean)}
+     * Initialized by {@link SOCPlayerClient.GameAwtDisplay#gameWithOptionsBeginSetup(boolean)}
      * and/or {@link MessageTreater#handleVERSION(boolean, SOCVersion)}.
      * These fields are never null, even if the respective server is not connected or not running.
      *<P>
@@ -207,7 +207,7 @@ public class SOCPlayerClient
 
     /**
      * the nickname; null until validated and set by
-     * {@link #getValidNickname(boolean) getValidNickname(true)}
+     * {@link SOCPlayerClient.GameAwtDisplay#getValidNickname(boolean) getValidNickname(true)}
      */
     protected String nickname = null;
 
@@ -238,10 +238,10 @@ public class SOCPlayerClient
      * we're in) which we can join (version is not higher than our version).
      *<P>
      * Key is the game name, without the UNJOINABLE prefix.
-     * This field is null until {@link #handleGAMES(SOCGames, boolean) handleGAMES},
-     *   {@link #handleGAMESWITHOPTIONS(SOCGamesWithOptions, boolean) handleGAMESWITHOPTIONS},
-     *   {@link #handleNEWGAME(SOCNewGame, boolean) handleNEWGAME}
-     *   or {@link #handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions, boolean) handleNEWGAMEWITHOPTIONS}
+     * This field is null until {@link SOCPlayerClient.MessageTreater#handleGAMES(SOCGames, boolean) handleGAMES},
+     *   {@link SOCPlayerClient.MessageTreater#handleGAMESWITHOPTIONS(SOCGamesWithOptions, boolean) handleGAMESWITHOPTIONS},
+     *   {@link SOCPlayerClient.MessageTreater#handleNEWGAME(SOCNewGame, boolean) handleNEWGAME}
+     *   or {@link SOCPlayerClient.MessageTreater#handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions, boolean) handleNEWGAMEWITHOPTIONS}
      *   is called.
      * @since 1.1.07
      */
@@ -410,7 +410,7 @@ public class SOCPlayerClient
 
     /**
      * @return the nickname of this user
-     * @see #getValidNickname(boolean)
+     * @see SOCPlayerClient.GameAwtDisplay#getValidNickname(boolean)
      */
     public String getNickname()
     {
@@ -1387,7 +1387,7 @@ public class SOCPlayerClient
          * and the client/server interaction about their values, see
          * {@link GameOptionServerSet}.
          *
-         * @param forPracticeServer  Ask {@link #practiceServer}, instead of remote tcp server?
+         * @param forPracticeServer  Ask {@link ClientNetwork#practiceServer}, instead of remote tcp server?
          * @since 1.1.07
          */
         protected void gameWithOptionsBeginSetup(final boolean forPracticeServer)
@@ -1500,7 +1500,7 @@ public class SOCPlayerClient
          * If it's practice, will call {@link #startPracticeGame(String, Map, boolean)}.
          * Otherwise, ask tcp server, and also set WAIT_CURSOR and status line ("Talking to server...").
          *<P>
-         * Assumes {@link #getValidNickname(boolean) getValidNickname(true)}, {@link #getPassword()}, {@link #host},
+         * Assumes {@link #getValidNickname(boolean) getValidNickname(true)}, {@link #getPassword()}, {@link ClientNetwork#host},
          * and {@link #gotPassword} are already called and valid.
          *
          * @param gmName Game name; for practice, null is allowed
@@ -1535,7 +1535,7 @@ public class SOCPlayerClient
         /**
          * Look for active games that we're playing
          *
-         * @param fromPracticeServer  Enumerate games from {@link #practiceServer},
+         * @param fromPracticeServer  Enumerate games from {@link ClientNetwork#practiceServer},
          *     instead of {@link #playerInterfaces}?
          * @return Any found game of ours which is active (state not OVER), or null if none.
          * @see SOCPlayerClient.ClientNetwork#anyHostedActiveGames()
@@ -2146,6 +2146,7 @@ public class SOCPlayerClient
          *
          * @param cmd  Local client command string, such as \ignore or \&shy;unignore
          * @return true if a command was handled
+         * @see SOCPlayerInterface#doLocalCommand(String)
          */
         public boolean doLocalCommand(String ch, String cmd)
         {
@@ -2212,7 +2213,7 @@ public class SOCPlayerClient
          * If needed, a {@link ClientNetwork#localTCPServer local server} and robots are started, and client connects to it.
          * If parent is a Frame, set titlebar to show "server" and port#.
          * Show port number in {@link #versionOrlocalTCPPortLabel}.
-         * If the {@link #localTCPServer} is already created, does nothing.
+         * If the {@link ClientNetwork#localTCPServer} is already created, does nothing.
          * If {@link ClientNetwork#connected connected} already, does nothing.
          *
          * @param tport Port number to host on; must be greater than zero.
@@ -2994,7 +2995,7 @@ public class SOCPlayerClient
      * and display the version on the main panel.
      * (Local server's version is always {@link Version#versionNumber()}.)
      *
-     * @param isPractice Is the server {@link #practiceServer}, not remote?  Client can be connected
+     * @param isPractice Is the server {@link ClientNetwork#practiceServer}, not remote?  Client can be connected
      *                only to one at a time.
      * @param mes  the messsage
      */
@@ -5878,11 +5879,11 @@ public class SOCPlayerClient
          * and version was sent in reply to server's version.
          *
          * @param chost  Server host to connect to, or {@code null} for localhost
-         * @param port   Server TCP port to connect to; the default server port is {@link ClientNetwork#SOC_PORT_DEFAULT}.
+         * @param sPort  Server TCP port to connect to; the default server port is {@link ClientNetwork#SOC_PORT_DEFAULT}.
          * @throws IllegalStateException if already connected
          * @see soc.server.SOCServer#newConnection1(StringConnection)
          */
-        public synchronized void connect(String chost, int cport)
+        public synchronized void connect(String chost, int sPort)
             throws IllegalStateException
         {
             if (connected)
@@ -5893,9 +5894,9 @@ public class SOCPlayerClient
 
             ex = null;
             host = chost;
-            port = cport;
+            port = sPort;
 
-            String hostString = (chost != null ? chost : "localhost") + ":" + cport;
+            String hostString = (chost != null ? chost : "localhost") + ":" + sPort;
             System.out.println(/*I*/"Connecting to " + hostString/*18N*/);  // I18N: Not localizing console output yet
             client.gameDisplay.setMessage
                 (client.strings.get("pcli.message.connecting.serv"));  // "Connecting to server..."
@@ -6003,7 +6004,7 @@ public class SOCPlayerClient
          *
          * @param s  the message
          * @return true if the message was sent, false if not
-         * @see #put(String, boolean)
+         * @see SOCPlayerClient.GameManager#put(String, boolean)
          */
         public synchronized boolean putNet(String s)
         {
@@ -6044,7 +6045,7 @@ public class SOCPlayerClient
          *
          * @param s  the message
          * @return true if the message was sent, false if not
-         * @see #put(String, boolean)
+         * @see SOCPlayerClient.GameManager#put(String, boolean)
          */
         public synchronized boolean putPractice(String s)
         {
@@ -6279,7 +6280,7 @@ public class SOCPlayerClient
      * Set up when sending {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
      *<P>
      * When timer fires, assume no more options will be received.
-     * Call {@link SOCPlayerClient#handleGAMEOPTIONINFO(SOCGameOptionInfo, boolean) handleGAMEOPTIONINFO("-",false)}
+     * Call {@link SOCPlayerClient.MessageTreater#handleGAMEOPTIONINFO(SOCGameOptionInfo, boolean) handleGAMEOPTIONINFO("-",false)}
      * to trigger end-of-list behavior at client.
      * @author jdmonin
      * @since 1.1.07
@@ -6315,7 +6316,7 @@ public class SOCPlayerClient
      * {@link SOCGameOption game option defaults}.
      * (in case of slow connection or server bug).
      * Set up when sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}
-     * in {@link SOCPlayerClient#gameWithOptionsBeginSetup(boolean)}.
+     * in {@link SOCPlayerClient.GameAwtDisplay#gameWithOptionsBeginSetup(boolean)}.
      *<P>
      * When timer fires, assume no defaults will be received.
      * Display the new-game dialog.

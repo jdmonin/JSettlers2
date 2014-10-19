@@ -111,7 +111,7 @@ import soc.util.IntPair;
  *</TR>
  *<TR><td> Node </td>
  *    <td><!-- Node adjac to hex -->
- *      {@link #getAdjacentNodeToHex(int)} <br>
+ *      {@link #getAdjacentNodeToHex(int, int)} <br>
  *      {@link #getAdjacentNodesToHex(int)}
  *    </td>
  *    <td><!-- Node adjac to edge -->
@@ -314,7 +314,7 @@ public class SOCBoardLarge extends SOCBoard
      * <LI> {@link #setAddedLayoutPart(String, int[])}
      * <LI> {@link #setAddedLayoutParts(HashMap)}
      * <LI> {@link #SPECIAL_EDGE_TYPES}
-     * <LI> {@link SOCPlayer#putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges(SOCShip, SOCBoardLarge)}
+     * <LI> {@link SOCPlayer#putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges(SOCShip, SOCBoardLarge, boolean)}
      * <LI> SOCBoardPanel.drawBoardEmpty_specialEdges
      * <LI> SOCBoardPanel.BoardToolTip.handleHover
      * <LI> Any game or board code that needs to check for relevant actions at edges
@@ -366,7 +366,7 @@ public class SOCBoardLarge extends SOCBoard
      * For each direction, array of delta to the row & column. (Not to the encoded coordinate.)
      * Indexed by the facing direction - 1: {@link SOCBoard#FACING_NE FACING_NE} is 1,
      * {@link SOCBoard#FACING_E FACING_E} is 2, etc; {@link SOCBoard#FACING_NW FACING_NW} is 6.
-     * Index here for {@link SOCBoard#FACING_NE FACING_NE} is 0, {@link SOCBoard#FACING_N FACING_NW} is 5.
+     * Index here for {@link SOCBoard#FACING_NE FACING_NE} is 0, {@link SOCBoard#FACING_NW FACING_NW} is 5.
      */
     private final static int[][] A_HEX2HEX = {
         { -2, +1 }, { 0, +2 }, { +2, +1 },  // NE, E, SE
@@ -442,7 +442,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * For land hexes, the dice number on <tt>hexLayoutLg</tt>[r][c] is {@link #numberLayoutLg}[r][c].
      *<P>
-     * For the set of all land hex coordinates, see {@link #landHex}.
+     * For the set of all land hex coordinates, see {@link #landHexLayout}.
      * Hexes obscured by {@link #FOG_HEX}, if any, are stored in {@link #fogHiddenHexes} (server only).
      * Because of bit shifts there, please don't use the top 8 bits of <tt>hexLayoutLg</tt>.
      *<P>
@@ -871,7 +871,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Called at server and client from {@link SOCGame#updateAtGameFirstTurn()}
      * for node lists referenced in in Added Layout Part {@code AL}.
-     * For details see {@code AL} in the javadoc for message {@link SOCBoardLayout2}.
+     * For details see {@code AL} in the javadoc for message {@link soc.message.SOCBoardLayout2 BOARDLAYOUT2}.
      *<P>
      * Currently does not add the new nodes' edges to {@link #legalRoadEdges},
      * because it assumes the nodes are from Part {@code AL}, so their edges

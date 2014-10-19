@@ -81,7 +81,7 @@ class SOCSpecialItemDialog
     /** Special items' {@code typeKey}, such as {@link SOCGameOption#K_SC_WOND _SC_WOND}. */
     private final String typeKey;
 
-    /** Item pick buttons. Length is {@link #number}. */
+    /** Item pick buttons. */
     private JButton[] buttons;
     /** Button to close dialog without taking any action. */
     private JButton bClose;

@@ -542,7 +542,7 @@ public class OpeningBuildStrategy {
      * If the server rejects our road choice, then {@link SOCRobotBrain#cancelWrongPiecePlacementLocal(SOCPlayingPiece)}
      * will need to know which settlement node we were aiming for,
      * and call {@link SOCPlayer#clearPotentialSettlement(int) ourPlayerData.clearPotentialSettlement(nodeCoord)}.
-     * The {@link #lastStartingRoadTowardsNode} field holds this coordinate.
+     * The {@link SOCRobotBrain#lastStartingRoadTowardsNode} field holds this coordinate.
      *
      * @return road edge adjacent to initial settlement node
      */

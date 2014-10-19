@@ -117,7 +117,7 @@ public class SOCConnectOrPracticePanel extends Panel
 
     /**
      * Check with the {@link java.lang.SecurityManager} about being a tcp server.
-     * Port {@link SOCPlayerClient#SOC_PORT_DEFAULT} and some subsequent ports are checked (to be above 1024).
+     * Port {@link SOCPlayerClient.ClientNetwork#SOC_PORT_DEFAULT} and some subsequent ports are checked (to be above 1024).
      * @return True if we have perms to start a server and listen on a port
      */
     public static boolean checkCanLaunchServer()

@@ -59,8 +59,8 @@ public interface PlayerClientListener
      * Receive a notification that the dice roll resulted in players gaining resources.
      * Call this after updating player resources with the gains.
      * Often follows a call to {@link #diceRolled(SOCPlayer, int)}.
-     * @param pnum  Player numbers, same format as {@link #playerNum}
-     * @param rsrc Resources gained by each {@code pn}, same format as {@link #playerRsrc}
+     * @param pnum  Player numbers, same format as {@link soc.message.SOCDiceResultResources#playerNum}
+     * @param rsrc Resources gained by each {@code pn}, same format as {@link soc.message.SOCDiceResultResources#playerRsrc}
      */
     void diceRolledResources(List<Integer> pnum, List<SOCResourceSet> rsrc);
 
@@ -102,7 +102,7 @@ public interface PlayerClientListener
 
     /**
      * A player has moved a piece on the board.
-     * Most pieces are not movable.  {@link SOCShip} can sometimes be moved.
+     * Most pieces are not movable.  {@link soc.game.SOCShip SOCShip} pieces can sometimes be moved.
      * Not used when the robber or pirate is moved; see {@link #robberMoved()}.
      * @param pieceType A piece type identifier, such as {@link SOCPlayingPiece#CITY}
      */
@@ -328,8 +328,8 @@ public interface PlayerClientListener
     /**
      * Client player's request to play a special {@link SOCInventoryItem} was rejected by the server.
      * @param type  Item type from {@link SOCInventoryItem#itype}
-     * @param reasonCode  Optional reason code for the {@link SOCInventoryItem#CANNOT_PLAY} action, corresponding
-     *            to {@link SOCGame#canPlayInventoryItem(int, int)} return codes, or 0
+     * @param reasonCode  Optional reason code for the {@link soc.message.SOCInventoryItemAction#CANNOT_PLAY} action,
+     *            corresponding to {@link SOCGame#canPlayInventoryItem(int, int)} return codes, or 0
      */
     void invItemPlayRejected(final int type, final int reasonCode);
 
@@ -371,7 +371,7 @@ public interface PlayerClientListener
      * @param gi  Set or clear this index within game's Special Item list, or -1
      * @param pi  Set or clear this index within {@code pl}'s Special Item list, or -1
      * @param isSet  True if player has set, false if player has cleared, this item index
-     * @see #playerPickSpecialItem(String, SOCGame, SOCPlayer, int, int)
+     * @see #playerPickSpecialItem(String, SOCGame, SOCPlayer, int, int, boolean, int, int)
      * @see SOCSpecialItem#playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)
      */
     void playerSetSpecialItem

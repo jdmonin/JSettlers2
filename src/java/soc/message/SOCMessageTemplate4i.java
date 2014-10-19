@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -169,8 +169,10 @@ public abstract class SOCMessageTemplate4i extends SOCMessage
      *
      * @param messageType The message type id
      * @param ga  the new game name
-     * @param param1 The first parameter
-     * @param param2 The second parameter
+     * @param p1  The first parameter
+     * @param p2  The second parameter
+     * @param p3  the third parameter
+     * @param p4  the fourth parameter
      * @return    the command string
      */
     protected static String toCmd(final int messageType, final String ga, final int p1, final int p2, final int p3, final int p4)

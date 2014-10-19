@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007,2009,2012-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007,2009,2012-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -67,7 +67,8 @@ public class SOCInventory
 
     /**
      * Current set of the items having 1 of 3 possible states (New and not playable yet; Playable; Kept until end of game).
-     * If an item's type has {@link SOCDevCard#isVPCard(cType)}, it is placed in {@code kept}, never in {@code news}.
+     * If an item's type has {@link SOCDevCard#isVPCard(int) SOCDevCard.isVPCard(ctype)} it is placed in {@code kept},
+     * never in {@code news}.
      *<P>
      * This implementation assumes players will have only a few cards or items at a time, so linear searching for a
      * {@link SOCInventoryItem#itype} type is acceptable.
@@ -164,7 +165,7 @@ public class SOCInventory
      *        in {@link SOCDevCardConstants} and {@link SOCInventoryItem#itype}
      * @return  the number of new + of old cards/items of this type
      * @see #getAmount(int, int)
-     * @see #getSpecialItemAmount(int, int)
+     * @see #getAmountByState(int, int)
      * @since 2.0.00
      */
     public int getAmount(final int ctype)

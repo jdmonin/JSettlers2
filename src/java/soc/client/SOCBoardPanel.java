@@ -176,7 +176,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * x-offset to move over 1 hex, for each port facing direction (1-6). 0 is unused.
      * Facing is the direction to the land hex touching the port.
-     * Facing 1 is NE, 2 is E, 3 is SE, 4 is SW, etc: see {@link SOCBoard#hexLayout}.
+     * Facing 1 is NE, 2 is E, 3 is SE, 4 is SW, etc: see {@link SOCBoard#FACING_E} etc.
      * @see #DELTAY_FACING
      * @since 1.1.08
      */
@@ -412,7 +412,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Place an initial settlement, or just hover at a port.
-     * @see #hoverIsPort
+     * @see SOCBoardPanel.BoardToolTip#hoverIsPort
      */
     private final static int PLACE_INIT_SETTLEMENT = 5;
 
@@ -685,7 +685,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Changed via {@link #setDebugShowPotentialsFlag(int, boolean, boolean)} with
      * SOCPlayerInterface debug command {@code =*= show: n} or {@code =*= hide: n}.
      *<P>
-     * Has package-level visibility, for use by {@link SOCPlayerInterface#updateAtPutPiece(SOCPlayingPiece)}.
+     * Has package-level visibility, for use by {@link SOCPlayerInterface#updateAtPutPiece(int, int, int, boolean, int)}.
      * @since 2.0.00
      */
     boolean[] debugShowPotentials;
@@ -2609,7 +2609,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Draw the robber.
      *<P>
      * The pirate ship (if any) is drawn via
-     * {@link #drawRoadOrShip(Graphics, int, int, boolean, boolean)}.
+     * {@link #drawRoadOrShip(Graphics, int, int, boolean, boolean, boolean)}.
      *
      * @param g       Graphics context
      * @param hexID   Board hex encoded position
@@ -3060,7 +3060,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Draw a cloth trade village (used in some scenarios in the large sea board).
-     * Same logic for determining (x,y) from nodeNum as {@link #drawSettlementOrCity(Graphics, int, int, boolean, boolean)}.
+     * Same logic for determining (x,y) from nodeNum as
+     * {@link #drawSettlementOrCity(Graphics, int, int, boolean, boolean, boolean)}.
      * @param v  Village
      * @since 2.0.00
      */
@@ -5688,7 +5689,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * player decided to not build something, so cancel the {@link TimerTask}
+     * player decided to not build something, so cancel the {@link java.util.TimerTask}
      * that's waiting to tell the server what they wanted to build.
      * @since 1.1.00
      */
@@ -6038,7 +6039,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *
      * @see #updateMode()
      * @see #setModeMoveShip(int)
-     * @see SOCPlayerClient#doLocalCommand(SOCGame, String)
+     * @see SOCPlayerInterface#doLocalCommand(String)
      */
     public void setMode(int m)
     {
@@ -7866,7 +7867,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
        * Assumes player is current, and the ship at {@link #hoverShipID} is movable, when called.
        * Repaints the board.
        *
-       * @param ptype Piece type, like {@link SOCPlayingPiece#ROAD}
        * @since 2.0.00
        * @see SOCBoardPanel#tryMoveShipToHilight()
        */
@@ -7976,9 +7976,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *
      * This timer will probably not be called, unless there's a large lag
      * between the server and client.  It's here just in case.
-     * Ideally the server responds right away, and the client responds then.
+     * Ideally the server responds right away, and the client responds to that.
      *
      * @see SOCHandPanel#autoRollSetupTimer()
+     * @since 1.1.00
      */
     protected class BoardPanelSendBuildTask extends java.util.TimerTask
     {
@@ -8107,8 +8108,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * To display the dialog without tying up the client's message-treater thread,
          * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          *
-         * @param cli     Player client interface
-         * @param gamePI  Current game's player interface
          * @param player  Current player
          * @param newRobHex  The new robber hex, if confirmed; not validated.
          *          Use a negative value if moving the pirate.
@@ -8260,13 +8259,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * To display the dialog without tying up the client's message-treater thread,
          * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          *
-         * @param cli     Player client interface
-         * @param gamePI  Current game's player interface
+         * @param edge  The port edge where the ship would be placed
          * @param sendBuildReqFirst  If true, calling from {@link SOCBoardPanel.BoardPopupMenu BoardPopupMenu}, and
-         *            after user confirms, client will need to send {@link BuildRequest} before placement request
+         *            after user confirms, client will need to send {@link soc.message.SOCBuildRequest BUILDREQUEST}
+         *            before placement request
          * @param isMove_fromEdge  Edge to move ship from, or -1 if a placement from player's available pieces;
          *            if moving a ship, {@code sendBuildReqFirst} must be {@code false}.
-         * @param edge  The port edge where the ship would be placed
          */
         private ConfirmPlaceShipDialog(final int edge, final boolean sendBuildReqFirst, final int isMove_fromEdge)
         {

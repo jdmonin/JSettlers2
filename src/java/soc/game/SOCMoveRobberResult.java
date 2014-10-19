@@ -44,7 +44,7 @@ public class SOCMoveRobberResult
      * the resources stolen from victim.  Otherwise null and ignored.
      * When {@link #sc_piri_loot} is set, the other {@link #loot} field is -1.
      * When {@link #victims} is empty, ignore this field.
-     * @see SOCGame#stealFromPlayerPirateFleet(int)
+     * @see SOCGame#stealFromPlayerPirateFleet(int, int)
      * @since 2.0.00
      */
     public SOCResourceSet sc_piri_loot;

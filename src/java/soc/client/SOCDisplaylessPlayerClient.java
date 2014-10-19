@@ -816,7 +816,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *<P>
      * If somehow the server isn't our version, print an error and disconnect.
      *
-     * @param isPractice Is the server local, or remote?  Client can be connected
+     * @param isLocal  Is the server local, or remote?  Client can be connected
      *                only to local, or remote.
      * @param mes  the messsage
      */
@@ -1302,7 +1302,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * Handles ASK_SPECIAL_BUILD, NUM_PICK_GOLD_HEX_RESOURCES, SCENARIO_CLOTH_COUNT, etc.
      *<P>
      * To avoid code duplication, also called from
-     * {@link SOCPlayerClient#handlePLAYERELEMENT(SOCPlayerElement)}
+     * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
      *
      * @param mes  Message with amount and action (SET/GAIN/LOSE)
@@ -1376,7 +1376,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * Update a player's amount of a playing piece, for {@link #handlePLAYERELEMENT(SOCPlayerElement)}.
      * To avoid code duplication, also called from
-     * {@link SOCPlayerClient#handlePLAYERELEMENT(SOCPlayerElement)}
+     * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
      *
      * @param mes       Message with amount and action (SET/GAIN/LOSE)
@@ -1409,7 +1409,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * Update a player's amount of knights, and game's largest army,
      * for {@link #handlePLAYERELEMENT(SOCPlayerElement)}.
      * To avoid code duplication, also called from
-     * {@link SOCPlayerClient#handlePLAYERELEMENT(SOCPlayerElement)}
+     * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
      *
      * @param mes  Message with amount and action (SET/GAIN/LOSE)
@@ -1452,7 +1452,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *</ul>
      *<P>
      * To avoid code duplication, also called from
-     * {@link SOCPlayerClient#handlePLAYERELEMENT(SOCPlayerElement)}
+     * {@link SOCPlayerClient.MessageTreater#handlePLAYERELEMENT(SOCPlayerElement)}
      * and {@link soc.robot.SOCRobotBrain#run()}.
      *
      * @param mes    Message with amount and action (SET/GAIN/LOSE)

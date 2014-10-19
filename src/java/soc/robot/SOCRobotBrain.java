@@ -365,7 +365,7 @@ public class SOCRobotBrain extends Thread
      * True if we're expecting the PLACING_ROBBER state.
      * {@link #playKnightCard()} sets this field and {@link #waitingForGameState}.
      *<P>
-     * In scenario {@link _SC_PIRI}, this flag is also used when we've just played
+     * In scenario {@link SOCGameOption#K_SC_PIRI SC_PIRI}, this flag is also used when we've just played
      * a "Convert to Warship" card (Knight/Soldier card) and we're waiting for the
      * server response.  The response won't be a GAMESTATE(PLACING_SOLDIER) message,
      * it will either be PLAYERLEMENT(GAIN, SCENARIO_WARSHIP_COUNT) or DEVCARDACTION(CANNOT_PLAY).
@@ -459,7 +459,7 @@ public class SOCRobotBrain extends Thread
      * an "expect" flag ({@link #expectPLACING_ROBBER}, {@link #expectWAITING_FOR_DISCOVERY}, etc).
      *<P>
      * <b>Special case:</b><br>
-     * In scenario {@link _SC_PIRI}, this flag is also set when we've just played
+     * In scenario {@link SOCGameOption#K_SC_PIRI SC_PIRI}, this flag is also set when we've just played
      * a "Convert to Warship" card (Knight/Soldier card), although the server won't
      * respond with a GAMESTATE message; see {@link #expectPLACING_ROBBER} javadoc.
      *
@@ -532,7 +532,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * During START1B and START2B states, coordinate of the potential settlement node
-     * towards which we're building, as calculated by {@link #placeInitRoad()}.
+     * towards which we're building, as calculated by {@link OpeningBuildStrategy#planInitRoad()}.
      * Used to avoid repeats in {@link #cancelWrongPiecePlacementLocal(SOCPlayingPiece)}.
      * @since 1.1.09
      */
@@ -961,7 +961,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Here is the run method.  Just keep receiving game events
      * through {@link #gameEventQ} and deal with each one.
-     * Remember that we're sent a {@link SOCTimingPing} event once per second,
+     * Remember that we're sent a {@link soc.message.SOCTimingPing} event once per second,
      * incrementing {@link #counter}.  That allows the bot to wait a certain
      * time for other players before it decides whether to do something.
      *<P>
@@ -2261,7 +2261,7 @@ public class SOCRobotBrain extends Thread
      *</UL>
      *
      * @since 1.1.08
-     * @throw IllegalStateException  if {@link #buildingPlan}{@link Stack#empty() .empty()}
+     * @throws IllegalStateException  if {@link #buildingPlan}{@link Stack#empty() .empty()}
      */
     private void buildOrGetResourceByTradeOrCard()
         throws IllegalStateException
@@ -2437,7 +2437,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Handle a PUTPIECE for this game, by updating game data.
      * For initial roads, also track their initial settlement in SOCPlayerTracker.
-     * In general, most tracking is done a bit later in {@link #handlePUTPIECE_updateTrackers(SOCPutPiece)}.
+     * In general, most tracking is done a bit later in {@link #handlePUTPIECE_updateTrackers(int, int, int)}.
      * @since 1.1.08
      */
     private void handlePUTPIECE_updateGameData(SOCPutPiece mes)
@@ -3946,7 +3946,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Respond to server's request to pick resources to gain from the Gold Hex.
      * Use {@link #buildingPlan} or, if that's empty (initial placement),
-     * pick what's rare in {@link #resourceEstimates}.
+     * pick what's rare from {@link OpeningBuildStrategy#estimateResourceRarity()}.
      * @param numChoose  Number of resources to pick
      * @since 2.0.00
      */

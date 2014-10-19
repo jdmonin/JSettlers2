@@ -313,7 +313,7 @@ public abstract class SOCVersionedItem implements Cloneable
 
     /**
      * Get all items added or changed since version {@code vers}, or all items valid at {@code vers},
-     * to implement {@link #itemsNewerThanVersion(int, boolean, boolean, Map)}
+     * to implement {@link #itemsNewerThanVersion(int, boolean, Map)}
      * and {@link #itemsForVersion(int, Map)}.
      * @param vers  Version to compare items against
      * @param getAllForVersion  True to get all valid items ({@code itemsForVersion} mode),

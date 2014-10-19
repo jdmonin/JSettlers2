@@ -176,7 +176,7 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * Debug help: 1-line summary of dev card types, from {@link SOCDevCardConstants}.
-     * @see #DEBUG_COMMANDS_HELP
+     * @see #SOC_DEBUG_COMMANDS_HELP
      * @since 1.1.17
      */
     private static final String DEBUG_COMMANDS_HELP_DEV_TYPES =
@@ -740,13 +740,13 @@ public class SOCGameHandler extends GameHandler
      * </UL>
      * @param ga Game to force end turn
      * @param plName Current player's name. Needed because if they have been disconnected by
-     *               {@link #leaveGame(StringConnection, String)},
+     *               {@link #leaveGame(SOCGame, StringConnection)},
      *               their name within game object is already null.
      * @return true if the turn was ended and game is still active;
      *          false if we find that all players have left and
      *          the gamestate has been changed here to {@link SOCGame#OVER}.
      *
-     * @see #endPlayerTurnOrForce(SOCGame, int, String)
+     * @see #endGameTurnOrForce(SOCGame, int, String, StringConnection, boolean)
      * @see SOCGame#forceEndTurn()
      */
     private final boolean forceEndGameTurn(SOCGame ga, final String plName)
@@ -902,7 +902,7 @@ public class SOCGameHandler extends GameHandler
      * Among other messages, player names are sent via SITDOWN, and pieces on board
      * sent by PUTPIECE.  See comments here for further details.
      * If <tt>isTakingOver</tt>, some details are sent by calling
-     * {@link #sitDown_sendPrivateInfo(SOCGame, StringConnection, int, String)}.
+     * {@link #sitDown_sendPrivateInfo(SOCGame, StringConnection, int)}.
      * The group of messages sent here ends with GAMEMEMBERS, SETTURN and GAMESTATE.
      * Then, the entire game is sent a JOINGAME for the new game member.
      *<P>
@@ -2760,7 +2760,7 @@ public class SOCGameHandler extends GameHandler
      *
      * @param  ga   the game
      * @return   a board layout message
-     * @throw IllegalArgumentException  if game board's encoding is unrecognized
+     * @throws IllegalArgumentException  if game board's encoding is unrecognized
      */
     private SOCMessage getBoardLayoutMessage(SOCGame ga)
         throws IllegalArgumentException
@@ -5605,7 +5605,7 @@ public class SOCGameHandler extends GameHandler
      *          and release it before returning.
      * @return true if the turn was ended and game is still active;
      *          false if we find that all players have left and
-     *          the gamestate has been changed here to {@link #OVER}.
+     *          the gamestate has been changed here to {@link SOCGame#OVER OVER}.
      */
     boolean endGameTurnOrForce(SOCGame ga, final int plNumber, final String plName, StringConnection plConn, final boolean hasMonitorFromGameList)
     {

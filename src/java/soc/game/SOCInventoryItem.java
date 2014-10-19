@@ -40,10 +40,10 @@ import soc.util.SOCStringManager;
  * <LI> Decide which scenario {@link SOCGameOption} will use the new kind of item;
  *      all code and javadoc updates will check for or mention the option
  * <LI> Update {@link #getItemName(SOCGame, boolean, SOCStringManager)}
- * <LI> Update {@link SOCGame#checkCanPlayInventoryItem(int, int)}
+ * <LI> Update {@link SOCGame#canPlayInventoryItem(int, int)}
  * <LI> Update {@link SOCGame#playInventoryItem(int)}
  * <LI> Decide if the server will communicate item-related actions using {@code SOCSimpleRequest}, {@code SOCSimpleAction}
- *      or {@link SOCInventoryItemAction} messages, or more specific message types.  Update those message handlers at
+ *      or {@code SOCInventoryItemAction} messages, or more specific message types.  Update those message handlers at
  *      clients and at server's SOCGameHandler; search where-used for the message classes that will be used.
  * <LI> Not all items are placed on the board, and not all of those allow placement to be canceled: check and update
  *      {@link #isPlayForPlacement(SOCGame, int)}, {@link SOCGame#cancelPlaceInventoryItem(boolean)}, SOCGame's javadocs

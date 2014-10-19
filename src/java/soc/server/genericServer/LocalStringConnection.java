@@ -52,7 +52,7 @@ import soc.util.SOCStringManager;
  *                       common constructor code moved to init().
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed
  *  1.0.5.2- 2010-04-05- add toString for debugging
- *  1.2.0 - 2013-09-07 - for I18N, add {@link #setI18NStringManager(SOCStringManager)} and {@link #getLocalized(String)}.
+ *  1.2.0 - 2013-09-07 - for I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and {@link #getLocalized(String)}.
  *                       StringConnection is now a superclass, not an interface
  *</PRE>
  *
