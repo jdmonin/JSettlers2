@@ -3966,6 +3966,10 @@ public class SOCPlayerClient extends Applet
         final int atype = mes.getActionType();
         switch (atype)
         {
+        case SOCSimpleAction.DEVCARD_BOUGHT:
+            pi.simpleAction(mes.getPlayerNumber(), atype, mes.getValue1(), mes.getValue2());
+            break;
+
         default:
             // ignore unknown types
             System.err.println

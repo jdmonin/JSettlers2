@@ -1296,15 +1296,14 @@ public class SOCRobotBrain extends Thread
                         waitingForTradeMsg = false;
                     }
 
-                    if (waitingForDevCard && (mesType == SOCMessage.GAMETEXTMSG) && (((SOCGameTextMsg) mes).getNickname().equals(SOCServer.SERVERNAME)))
+                    if (waitingForDevCard && (mesType == SOCMessage.SIMPLEACTION)
+                        && (((SOCSimpleAction) mes).getPlayerNumber() == ourPN)
+                        && (((SOCSimpleAction) mes).getActionType() == SOCSimpleAction.DEVCARD_BOUGHT))
                     {
                         //
-                        // This might be the dev card message we've been waiting for
+                        // This is the "dev card bought" message we've been waiting for
                         //
-                        if (((SOCGameTextMsg) mes).getText().equals(client.getNickname() + " bought a development card."))
-                        {
-                            waitingForDevCard = false;
-                        }
+                        waitingForDevCard = false;
                     }
 
                     if (((game.getGameState() == SOCGame.PLAY1) || (game.getGameState() == SOCGame.SPECIAL_BUILDING))

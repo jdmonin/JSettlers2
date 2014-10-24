@@ -7030,19 +7030,36 @@ public class SOCServer extends Server
                     messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.DRAW, card));
 
                     messageToGameExcept(gaName, c, new SOCDevCard(gaName, pn, SOCDevCard.DRAW, SOCDevCardConstants.UNKNOWN), true);
-                    messageToGame(gaName, (String) c.getData() + " bought a development card.");
 
-                    if (ga.getNumDevCards() > 1)
+                    final int remain = ga.getNumDevCards();
+                    final SOCSimpleAction actmsg = new SOCSimpleAction
+                        (gaName, pn, SOCSimpleAction.DEVCARD_BOUGHT, remain, 0);
+
+                    if (ga.clientVersionLowest >= SOCSimpleAction.VERSION_FOR_SIMPLEACTION)
                     {
-                        messageToGame(gaName, "There are " + ga.getNumDevCards() + " cards left.");
-                    }
-                    else if (ga.getNumDevCards() == 1)
-                    {
-                        messageToGame(gaName, "There is 1 card left.");
-                    }
-                    else
-                    {
-                        messageToGame(gaName, "There are no more Development cards.");
+                        messageToGame(gaName, actmsg);
+                    } else {
+                        gameList.takeMonitorForGame(gaName);
+
+                        messageToGameForVersions
+                            (ga, SOCSimpleAction.VERSION_FOR_SIMPLEACTION, Integer.MAX_VALUE, actmsg, false);
+
+                        // Only pre-1.1.19 clients will see the game text messages
+                        messageToGameForVersions(ga, -1, SOCSimpleAction.VERSION_FOR_SIMPLEACTION - 1,
+                            new SOCGameTextMsg(gaName, SERVERNAME, (String) c.getData() + " bought a development card."),
+                            false);
+
+                        final String remainTxt;
+                        switch (ga.getNumDevCards())
+                        {
+                        case 1:  remainTxt = "There is 1 card left.";  break;
+                        case 0:  remainTxt = "There are no more Development cards.";  break;
+                        default: remainTxt = "There are " + ga.getNumDevCards() + " cards left.";
+                        }
+                        messageToGameForVersions(ga, -1, SOCSimpleAction.VERSION_FOR_SIMPLEACTION - 1,
+                            new SOCGameTextMsg(gaName, SERVERNAME, remainTxt), false);
+
+                        gameList.releaseMonitorForGame(gaName);
                     }
 
                     sendGameState(ga);

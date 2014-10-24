@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011,2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2011,2013-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,6 +24,7 @@ import soc.debug.D;  // JM
 
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
+import soc.message.SOCSimpleAction;  // for action type constants
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -783,8 +784,47 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     }
 
     /**
+     * A {@link soc.message.SOCSimpleAction "simple action"} has occurred in the game and should be displayed.
+     *<P>
+     * This will be called only after other game data is updated (number of dev cards, resource gains/loss, etc).
+     * @param pn  The player number acting or acted on
+     * @param acttype  The action type, from {@link soc.message.SOCSimpleAction} constants for simplicity
+     * @param value1  First optional detail value, or 0
+     * @param value2  Second optional detail value, or 0
+     * @since 1.1.19
+     */
+    public final void simpleAction(final int pn, final int acttype, final int value1, final int value2)
+    {
+        switch (acttype)
+        {
+        case SOCSimpleAction.DEVCARD_BOUGHT:
+            {
+                final SOCPlayer pl = game.getPlayer(pn);
+                if (pl == null)
+                    return;
+
+                print("* " + pl.getName() + " bought a development card.");
+
+                final String remainTxt;
+                switch (value1)
+                {
+                case 1:  remainTxt = "* There is 1 card left.";  break;
+                case 0:  remainTxt = "* There are no more Development cards.";  break;
+                default: remainTxt = "* There are " + value1 + " cards left.";
+                }
+                print(remainTxt);
+            }
+            break;
+
+         // default: ignore unknown action types
+        }
+    }
+
+    /**
      * The game's count of development cards remaining has changed.
      * Update the display.
+     *<P>
+     * See also {@link #simpleAction(int, int, int, int)} with {@link SOCSimpleAction#DEVCARD_BOUGHT}.
      */
     public void updateDevCardCount()
     {

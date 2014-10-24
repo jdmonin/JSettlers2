@@ -32,7 +32,7 @@ import java.util.StringTokenizer;
  * or telling a bot that it's made a successful bank/port trade, or some event or condition just happened.
  *<P>
  * It can also be used to prompt the player that they may or must take some action at this time.
- * Action types that do this have {@code MAY_} or {@code MUST_} in their name.
+ * Action types that do this have <tt>MAY_</tt> or <tt>MUST_</tt> in their name.
  *<P>
  * Depending on the action type code, this message may be broadcast to the entire game
  * or sent to only the affected player.  Clients should ignore action types they don't
@@ -57,14 +57,14 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
 
     /**
      * The current player has bought a development card.
-     * {@code value1} is the number of cards remaining to be bought, value2 is unused.
+     * <tt>value1</tt> is the number of cards remaining to be bought, <tt>value2</tt> is unused.
      * @since 1.1.19
      */
     public static final int DEVCARD_BOUGHT = 1;
 
     /**
      * The requested resource trade with the bank/ports was successful.
-     * {@code value1} and {@code value2} are unused.
+     * <tt>value1</tt> and <tt>value2</tt> are unused.
      * Sent to bots only; human players see a text message sent to the entire game.
      * @since 1.1.19
      */
@@ -126,7 +126,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
     }
 
     /**
-     * @return the optional {@code value1} detail field
+     * @return the optional <tt>value1</tt> detail field
      */
     public final int getValue1()
     {
@@ -134,7 +134,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
     }
 
     /**
-     * @return the optional {@code value2} detail field
+     * @return the optional <tt>value2</tt> detail field
      */
     public final int getValue2()
     {
@@ -161,7 +161,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      *
      * @param s   the String to parse: {@link SOCMessage#SIMPLEACTION SIMPLEACTION}
      *            sep game sep2 playernumber sep2 acttype sep2 value1 sep2 value2
-     * @return    a SOCSimpleAction message, or {@code null} if the data is garbled
+     * @return    a SOCSimpleAction message, or <tt>null</tt> if the data is garbled
      */
     public static SOCSimpleAction parseDataStr(final String s)
     {
