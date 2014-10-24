@@ -1393,7 +1393,12 @@ public class SOCHandPanel extends Panel
             }
             else if (player.getNumPieces(SOCPlayingPiece.ROAD) == 0)
             {
-                playerInterface.printKeyed("hpan.devcards.roads.none");  // * "You have no roads left to place."
+                if (game.hasSeaBoard && (player.getNumPieces(SOCPlayingPiece.SHIP) == 0))
+                    playerInterface.printKeyed("hpan.devcards.roads_ships.none");
+                        // "You have no roads or ships left to place."
+                else
+                    playerInterface.printKeyed("hpan.devcards.roads.none");
+                        // "You have no roads left to place."
             }
             break;
 
