@@ -2363,6 +2363,7 @@ public class SOCServer extends Server
      *            (See {@link #messageToGameUrgent(String, String)})
      * @see #messageToGame(String, String)
      * @see #messageToGameWithMon(String, SOCMessage)
+     * @see #messageToGameForVersions(String, int, int, SOCMessage, boolean)
      */
     public void messageToGame(String ga, SOCMessage mes)
     {
@@ -2454,6 +2455,7 @@ public class SOCServer extends Server
      * @param ga  the name of the game
      * @param mes the message to send
      * @see #messageToGame(String, SOCMessage)
+     * @see #messageToGameForVersions(String, int, int, SOCMessage, boolean)
      */
     public void messageToGameWithMon(String ga, SOCMessage mes)
     {
@@ -2486,6 +2488,7 @@ public class SOCServer extends Server
      * @param mes the message
      * @param takeMon Should this method take and release
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     * @see #messageToGameExcept(String, StringConnection, SOCMessage, boolean)
      */
     public void messageToGameExcept(String gn, Vector ex, SOCMessage mes, boolean takeMon)
     {
@@ -2531,6 +2534,8 @@ public class SOCServer extends Server
      * @param mes the message
      * @param takeMon Should this method take and release
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     * @see #messageToGameExcept(String, Vector, SOCMessage, boolean)
+     * @see #messageToGameForVersionsExcept(SOCGame, int, int, StringConnection, SOCMessage, boolean)
      */
     public void messageToGameExcept(String gn, StringConnection ex, SOCMessage mes, boolean takeMon)
     {
@@ -2567,12 +2572,95 @@ public class SOCServer extends Server
     }
 
     /**
+     * Send a message to all the connections in a game in a certain version range.
+     * Used for backwards compatibility.
+     *
+     * @param ga  the game
+     * @param vmin  Minimum version to send to, or -1. Same format as
+     *              {@link Version#versionNumber()} and {@link StringConnection#getVersion()}.
+     * @param vmax  Maximum version to send to, or {@link Integer#MAX_VALUE}
+     * @param mes  the message
+     * @param takeMon  Should this method take and release game's monitor
+     *                 via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                 If the game's clients are all older than <tt>vmin</tt> or
+     *                 newer than <tt>vmax</tt>, nothing happens and the monitor isn't taken.
+     * @since 1.1.19
+     */
+    public final void messageToGameForVersions
+        (final SOCGame ga, final int vmin, final int vmax, final SOCMessage mes, final boolean takeMon)
+    {
+        messageToGameForVersionsExcept(ga, vmin, vmax, null, mes, takeMon);
+    }
+
+    /**
+     * Send a message to all the connections in a game in a certain version range, excluding one.
+     * Used for backwards compatibility.
+     *
+     * @param ga  the game
+     * @param vmin  Minimum version to send to, or -1. Same format as
+     *              {@link Version#versionNumber()} and {@link StringConnection#getVersion()}.
+     * @param vmax  Maximum version to send to, or {@link Integer#MAX_VALUE}
+     * @param ex  the excluded connection, or null
+     * @param mes  the message
+     * @param takeMon  Should this method take and release game's monitor
+     *                 via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                 If the game's clients are all older than <tt>vmin</tt> or
+     *                 newer than <tt>vmax</tt>, nothing happens and the monitor isn't taken.
+     * @since 1.1.19
+     * @see #messageToGameExcept(String, StringConnection, SOCMessage, boolean)
+     */
+    public final void messageToGameForVersionsExcept
+        (final SOCGame ga, final int vmin, final int vmax, final StringConnection ex,
+         final SOCMessage mes, final boolean takeMon)
+    {
+        if ((ga.clientVersionLowest > vmax) || (ga.clientVersionHighest < vmin))
+            return;  // <--- All clients too old or too new ---
+
+        final String gn = ga.getName();
+
+        if (takeMon)
+            gameList.takeMonitorForGame(gn);
+
+        try
+        {
+            Vector v = gameList.getMembers(gn);
+            if (v != null)
+            {
+                String mesCmd = null;  // lazy init, will be mes.toCmd()
+                Enumeration menum = v.elements();
+
+                while (menum.hasMoreElements())
+                {
+                    StringConnection con = (StringConnection) menum.nextElement();
+                    if ((con == null) || (con == ex))
+                        continue;
+
+                    final int cv = con.getVersion();
+                    if ((cv < vmin) || (cv > vmax))
+                        continue;
+
+                    if (mesCmd == null)
+                        mesCmd = mes.toCmd();
+                    con.put(mesCmd);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in messageToGameForVersions");
+        }
+
+        if (takeMon)
+            gameList.releaseMonitorForGame(gn);
+    }
+
+    /**
      * Send an urgent SOCGameTextMsg to the given game.
      * An "urgent" message is a SOCGameTextMsg whose text
      * begins with ">>>"; the client should draw the user's
      * attention in some way.
      *<P>
-     * Like messageToGame, will take and release the game's monitor.
+     * <b>Locks:</b> Like {@link #messageToGame(String, String)}, will take and release the game's monitor.
      *
      * @param ga  the name of the game
      * @param mes the message to send. If mes does not begin with ">>>",
