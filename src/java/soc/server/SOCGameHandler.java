@@ -4703,8 +4703,8 @@ public class SOCGameHandler extends GameHandler
                         srv.messageToGameForVersions
                             (ga, SOCSimpleAction.VERSION_FOR_SIMPLEACTION, Integer.MAX_VALUE, actmsg, false);
 
-                        // Only pre-1.1.19 clients will get the game text messages, so they're
-                        // older than the i18n work; skip text key lookups, give them english
+                        // Only pre-1.1.19 clients will see the game text messages. Since they're
+                        // older than the i18n work: Skip text key lookups, always use english,
                         // and use SOCGameTextMsg not SOCGameServerText.
 
                         final String boughtTxt = MessageFormat.format("{0} bought a development card.", player.getName());
@@ -4712,13 +4712,15 @@ public class SOCGameHandler extends GameHandler
                                 new SOCGameTextMsg(gaName, SOCGameTextMsg.SERVERNAME, boughtTxt), false);
 
                         final String remainTxt;
-                        if (remain > 1)
-                            remainTxt = MessageFormat.format("There are {0,number} cards left.", ga.getNumDevCards());
-                        else if (remain == 1)
-                            remainTxt = "There is 1 card left.";
-                        else
-                            remainTxt = "There are no more Development cards.";
-
+                        switch(remain)
+                        {
+                        case 0:
+                            remainTxt = "There are no more Development cards.";  break;
+                        case 1:
+                            remainTxt = "There is 1 card left.";  break;
+                        default:
+                            remainTxt = MessageFormat.format("There are {0,number} cards left.", ga.getNumDevCards());  // I18N OK: for old version compat
+                        }
                         srv.messageToGameForVersions(ga, -1, SOCSimpleAction.VERSION_FOR_SIMPLEACTION - 1,
                                 new SOCGameTextMsg(gaName, SOCGameTextMsg.SERVERNAME, remainTxt), false);
 

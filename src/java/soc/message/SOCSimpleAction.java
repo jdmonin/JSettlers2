@@ -57,7 +57,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
 
     /**
      * The current player has bought a development card.
-     * {@code value1} is the number of cards remaining to be bought, value2 is unused.
+     * {@code value1} is the number of cards remaining to be bought, {@code value2} is unused.
      * @since 1.1.19
      */
     public static final int DEVCARD_BOUGHT = 1;
@@ -180,7 +180,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
     {
         final String ga; // the game name
         final int pn;    // the player number
-        final int at;    // actionj type code
+        final int at;    // action type code
         final int v1;    // optional value1
         final int v2;    // optional value2
 

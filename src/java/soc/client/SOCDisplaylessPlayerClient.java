@@ -2046,10 +2046,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * Handle "simple action" announcements from the server.
-     * Currently a stub for SOCDisplaylessPlayerClient.
+     * Currently a stub in SOCDisplaylessPlayerClient.
      * @since 1.1.19
      */
-    private final void handleSIMPLEACTION(final SOCSimpleAction mes)
+    protected void handleSIMPLEACTION(final SOCSimpleAction mes)
     {
         /*
           code if not a stub:
@@ -2059,11 +2059,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga == null)
             return;  // Not one of our games
 
-        switch (mes.getActionType())
+        final int atype = mes.getActionType();
+        switch (atype)
         {
         default:
             // ignore unknown types
         }
+
         */
     }
 

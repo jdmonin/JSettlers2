@@ -2967,10 +2967,10 @@ public class SOCServer extends Server
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
      *                If the game's clients are all older than <tt>vmin</tt> or
      *                newer than <tt>vmax</tt>, nothing happens and the monitor isn't taken.
-     * @since 2.0.00
+     * @since 1.1.19
      */
-    public void messageToGameForVersions
-        (SOCGame ga, final int vmin, final int vmax, SOCMessage mes, final boolean takeMon)
+    public final void messageToGameForVersions
+        (final SOCGame ga, final int vmin, final int vmax, final SOCMessage mes, final boolean takeMon)
     {
         messageToGameForVersionsExcept(ga, vmin, vmax, null, mes, takeMon);
     }
@@ -2989,11 +2989,12 @@ public class SOCServer extends Server
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
      *                If the game's clients are all older than <tt>vmin</tt> or
      *                newer than <tt>vmax</tt>, nothing happens and the monitor isn't taken.
-     * @since 2.0.00
+     * @since 1.1.19
      * @see #messageToGameExcept(String, StringConnection, SOCMessage, boolean)
      */
-    public void messageToGameForVersionsExcept
-        (SOCGame ga, final int vmin, final int vmax, StringConnection ex, SOCMessage mes, final boolean takeMon)
+    public final void messageToGameForVersionsExcept
+        (final SOCGame ga, final int vmin, final int vmax, final StringConnection ex,
+         final SOCMessage mes, final boolean takeMon)
     {
         if ((ga.clientVersionLowest > vmax) || (ga.clientVersionHighest < vmin))
             return;  // <--- All clients too old or too new ---
@@ -3008,7 +3009,7 @@ public class SOCServer extends Server
             Vector<StringConnection> v = gameList.getMembers(gn);
             if (v != null)
             {
-                String mesCmd = null;  // will be mes.toCmd()
+                String mesCmd = null;  // lazy init, will be mes.toCmd()
                 Enumeration<StringConnection> menum = v.elements();
 
                 while (menum.hasMoreElements())
@@ -3018,13 +3019,13 @@ public class SOCServer extends Server
                         continue;
 
                     final int cv = con.getVersion();
-                    if ((cv >= vmin) && (cv <= vmax))
-                    {
-                        //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", con.getData()));
-                        if (mesCmd == null)
-                            mesCmd = mes.toCmd();
-                        con.put(mesCmd);
-                    }
+                    if ((cv < vmin) || (cv > vmax))
+                        continue;
+
+                    //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", con.getData()));
+                    if (mesCmd == null)
+                        mesCmd = mes.toCmd();
+                    con.put(mesCmd);
                 }
             }
         }
@@ -3043,7 +3044,7 @@ public class SOCServer extends Server
      * begins with ">>>"; the client should draw the user's
      * attention in some way.
      *<P>
-     * Like {@link #messageToGame(String, String)}, will take and release the game's monitor.
+     * <b>Locks:</b> Like {@link #messageToGame(String, String)}, will take and release the game's monitor.
      *
      * @param ga  the name of the game
      * @param mes the message to send. If mes does not begin with ">>>",

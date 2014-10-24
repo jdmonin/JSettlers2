@@ -859,6 +859,8 @@ public class SOCPlayerInterface extends Frame
     /**
      * The game's count of development cards remaining has changed.
      * Update the display.
+     *<P>
+     * See also {@link ClientBridge#simpleAction(int, int, int, int)} with {@link SOCSimpleAction#DEVCARD_BOUGHT}.
      */
     public void updateDevCardCount()
     {
@@ -3315,23 +3317,26 @@ public class SOCPlayerInterface extends Frame
             case SOCSimpleAction.DEVCARD_BOUGHT:
                 {
                     pi.printKeyed("game.devcard.bought", plName);
-                    final String key;
-                    if (value1 > 1)
-                        key = "game.devcard.bought.xleft";  // "There are 5 cards left."
-                    else if (value1 == 1)
-                        key = "game.devcard.bought.1left";  // "There is 1 card left."
-                    else
-                        key = "game.devcard.bought.0left";  // "There are no more Development cards."
-                    pi.printKeyed(key, value1);
-                    break;
+                    final String remainKey;
+                    switch (value1)
+                    {
+                    case 0:
+                        remainKey = "game.devcard.bought.0left";  break;  // "There are no more Development cards."
+                    case 1:
+                        remainKey = "game.devcard.bought.1left";  break;  // "There is 1 card left."
+                    default:
+                        remainKey = "game.devcard.bought.xleft";  // "There are 5 cards left."
+                    }
+                    pi.printKeyed(remainKey, value1);
                 }
+                break;
 
             case SOCSimpleAction.TRADE_PORT_REMOVED:
                 {
                     boardUpdated();
                     pi.printKeyed("game.invitem.port.picked.up", plName);  // "{0} has picked up a trade port from the board."
-                    break;
                 }
+                break;
 
             default:
                 // ignore unknown action types
