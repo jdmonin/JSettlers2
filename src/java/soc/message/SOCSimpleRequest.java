@@ -44,6 +44,7 @@ import java.util.StringTokenizer;
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.18
+ * @see SOCSimpleAction
  */
 public class SOCSimpleRequest extends SOCMessageTemplate4i
 {

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012,2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -91,6 +91,7 @@ import soc.message.SOCRollDice;
 import soc.message.SOCSetPlayedDevCard;
 import soc.message.SOCSetSeatLock;
 import soc.message.SOCSetTurn;
+import soc.message.SOCSimpleAction;
 import soc.message.SOCSitDown;
 import soc.message.SOCStartGame;
 import soc.message.SOCStatusMessage;
@@ -742,6 +743,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
             case SOCMessage.RESETBOARDAUTH:
                 handleRESETBOARDAUTH((SOCResetBoardAuth) mes);
 
+                break;
+
+            /**
+             * generic "simple action" announcements from the server.
+             * Added 2014-10-24 for v1.1.19.
+             */
+            case SOCMessage.SIMPLEACTION:
+                handleSIMPLEACTION((SOCSimpleAction) mes);
                 break;
 
             }
@@ -1714,6 +1723,31 @@ public class SOCDisplaylessPlayerClient implements Runnable
         greset.isPractice = ga.isPractice;
         games.put(gname, greset);
         ga.destroyGame();
+    }
+
+    /**
+     * Handle "simple action" announcements from the server.
+     * Currently a stub in SOCDisplaylessPlayerClient.
+     * @since 1.1.19
+     */
+    protected void handleSIMPLEACTION(final SOCSimpleAction mes)
+    {
+        /*
+          code if not a stub:
+
+        final String gaName = mes.getGame();
+        SOCGame ga = (SOCGame) games.get(gaName);
+        if (ga == null)
+            return; // Not one of our games
+
+        final int atype = mes.getActionType();
+        switch (atype)
+        {
+        default:
+            // ignore unknown types
+        }
+
+         */
     }
 
     /**

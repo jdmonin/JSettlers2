@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011,2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2011,2013-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -49,7 +49,7 @@ import java.util.StringTokenizer;
  *<P>
  * To create and add a new message type:
  *<UL>
- * <LI> Decide the message type name.  Add to the end of the constant list in this
+ * <LI> Decide on the message type name.  Add to the end of the constant list in this
  *      class.  Add a comment to note the JSettlers version in which it was introduced, and the date.
  * <LI> If the new message is for something that any kind of game can use,
  *      give it the next available type ID number in the list (10xx).
@@ -207,6 +207,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
     /** {@link SOCSimpleRequest} - Generic message type for simple requests by players.
      *  @since 1.1.18 */
     public static final int SIMPLEREQUEST = 1089;  // simple player requests, 20130217, v1.1.18
+
+    /** {@link SOCSimpleAction} - Generic message type for simple actions for players.
+     *  @since 1.1.19 */
+    public static final int SIMPLEACTION = 1090;  // simple player actions, 20141024, v1.1.19
 
 
     /////////////////////////////////////////
@@ -744,6 +748,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case SIMPLEREQUEST:     // simple player requests, 20130217, v1.1.18
                 return SOCSimpleRequest.parseDataStr(data);
+
+            case SIMPLEACTION:      // simple actions for players, 20141024, v1.1.19
+                return SOCSimpleAction.parseDataStr(data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);

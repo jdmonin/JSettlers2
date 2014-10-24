@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -727,7 +727,27 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.RESETBOARDAUTH:
                 handleRESETBOARDAUTH((SOCResetBoardAuth) mes);
+                break;
 
+            /**
+             * Generic "simple action" announcements from the server.
+             * Added 2014-10-24 for v1.1.19.
+             */
+            case SOCMessage.SIMPLEACTION:
+                {
+                    CappedQueue brainQ = (CappedQueue) brainQs.get(((SOCSimpleAction) mes).getGame());
+                    if (brainQ != null)
+                    {
+                        try
+                        {
+                            brainQ.put((SOCSimpleAction) mes);
+                        }
+                        catch (CutoffExceededException exc)
+                        {
+                            D.ebugPrintln("CutoffExceededException" + exc);
+                        }
+                    }
+                }
                 break;
             }
         }

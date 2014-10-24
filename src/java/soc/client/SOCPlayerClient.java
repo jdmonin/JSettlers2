@@ -2219,6 +2219,14 @@ public class SOCPlayerClient extends Applet
                 handleSIMPLEREQUEST((SOCSimpleRequest) mes);
                 break;
 
+            /**
+             * generic 'simple action' announcements from the server.
+             * Added 2014-10-24 for v1.1.19.
+             */
+            case SOCMessage.SIMPLEACTION:
+                handleSIMPLEACTION((SOCSimpleAction) mes);
+                break;
+
             }  // switch (mes.getType())            
         }
         catch (Exception e)
@@ -3941,6 +3949,27 @@ public class SOCPlayerClient extends Applet
             // unknown type
             System.err.println
                 ("handleSIMPLEREQUEST: Unknown type " + mes.getRequestType() + " in game " + gaName);
+        }
+    }
+
+    /**
+     * Handle "simple action" announcements from the server.
+     * @since 1.1.19
+     */
+    private final void handleSIMPLEACTION(final SOCSimpleAction mes)
+    {
+        final String gaName = mes.getGame();
+        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gaName);
+        if (pi == null)
+            return;  // Not one of our games
+
+        final int atype = mes.getActionType();
+        switch (atype)
+        {
+        default:
+            // ignore unknown types
+            System.err.println
+                ("handleSIMPLEACTION: Unknown type ignored: " + atype + " in game " + gaName);
         }
     }
 

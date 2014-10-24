@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -58,6 +58,7 @@ import soc.message.SOCRejectOffer;
 import soc.message.SOCResourceCount;
 import soc.message.SOCSetPlayedDevCard;
 import soc.message.SOCSetTurn;
+import soc.message.SOCSimpleAction;
 import soc.message.SOCTurn;
 
 import soc.server.SOCServer;
@@ -1286,15 +1287,13 @@ public class SOCRobotBrain extends Thread
                         }
                     }
 
-                    if (waitingForTradeMsg && (mesType == SOCMessage.GAMETEXTMSG) && (((SOCGameTextMsg) mes).getNickname().equals(SOCServer.SERVERNAME)))
+                    if (waitingForTradeMsg && (mesType == SOCMessage.SIMPLEACTION)
+                        && (((SOCSimpleAction) mes).getActionType() == SOCSimpleAction.TRADE_SUCCESSFUL))
                     {
                         //
-                        // This might be the trade message we've been waiting for
+                        // This is the trade message we've been waiting for
                         //
-                        if (((SOCGameTextMsg) mes).getText().startsWith(client.getNickname() + " traded"))
-                        {
-                            waitingForTradeMsg = false;
-                        }
+                        waitingForTradeMsg = false;
                     }
 
                     if (waitingForDevCard && (mesType == SOCMessage.GAMETEXTMSG) && (((SOCGameTextMsg) mes).getNickname().equals(SOCServer.SERVERNAME)))
