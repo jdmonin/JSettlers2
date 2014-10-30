@@ -4597,8 +4597,9 @@ public class SOCServer extends Server
             messageToPlayer(c, gaName, "> Games finished: " + numberOfGamesFinished);
             messageToPlayer(c, gaName, "> Total Memory: " + rt.totalMemory());
             messageToPlayer(c, gaName, "> Free Memory: " + rt.freeMemory());
+            final int vers = Version.versionNumber();
             messageToPlayer(c, gaName, "> Version: "
-                + Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum());
+                + vers + " (" + Version.version() + ") build " + Version.buildnum());
 
             if (! clientPastVersionStats.isEmpty())
             {
@@ -4618,6 +4619,11 @@ public class SOCServer extends Server
                     }
                 }
             }
+
+            // show range of current game's member client versions if not server version (added to *STATS* in 1.1.19)
+            if ((ga.clientVersionLowest != vers) || (ga.clientVersionLowest != ga.clientVersionHighest))
+                messageToPlayer(c, gaName, "> This game's client versions: "
+                    + Version.version(ga.clientVersionLowest) + " - " + Version.version(ga.clientVersionHighest));
 
             processDebugCommand_checktime(c, gaName, ga);
         }
