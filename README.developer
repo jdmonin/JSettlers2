@@ -261,6 +261,8 @@ Here's how to set up the coding style in Eclipse:
 	displayed tab width: 8
 	[x] show print margin
 	print margin column: 120
+	[x] show whitespace characters
+		configure visibility -> trailing space, trailing ideographic space, trailing tab
 
 	project properties -> java compiler -> configure workspace settings
 	  compiler compliance level: 1.4
@@ -310,8 +312,8 @@ Here's how to set up the coding style in Eclipse:
 	    are configured on the formatter preference page.  The current indentation size
 	    is 4, using spaces."
 
-When you hit enter and insert a new line in Eclipse, watch the whitespace, it
-will add whitespace to the blank line to match the current indent.
+When you hit enter twice to skip a line in Eclipse, watch for unwanted whitespace because
+Eclipse will add whitespace to each blank line to match the current indent.
 
 If desired, in Eclipse preferences, you can bind a key combination to Remove Trailing Whitespace.
 This will trim it from the entire file when the key is pressed.
@@ -352,6 +354,6 @@ You can also see an overview of commit comments in the git log
 histories of src/java/resources/version.info.in and VERSIONS.txt.
 
 The github repo includes the full JSettlers2 CVS history formerly hosted at
-http://sourceforge.net/projects/jsettlers2/develop through 2012-09-28.
+http://sourceforge.net/projects/jsettlers2/ through 2012-09-28.
 The old old source history from Robert S Thomas (2004-2005) can be found at
-http://sourceforge.net/projects/jsettlers/develop .
+http://sourceforge.net/projects/jsettlers/ .
