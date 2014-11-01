@@ -2977,7 +2977,7 @@ public class SOCGame implements Serializable, Cloneable
         //     Use > not >= because roundCount includes current round
         final boolean okToRoll7
             = ((isGameOptionSet("N7C")) ? hasBuiltCity : true)
-              && (! isGameOptionSet("N7")) || (roundCount > getGameOptionIntValue("N7"));
+              && ((! isGameOptionSet("N7")) || (roundCount > getGameOptionIntValue("N7")));
 
         int die1, die2;
         do
