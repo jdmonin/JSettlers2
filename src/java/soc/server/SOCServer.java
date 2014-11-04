@@ -6378,11 +6378,19 @@ public class SOCServer extends Server
         final int cliVers = c.getVersion();
 
         //
-        // check to see if there is an account with
-        // the requested nickname
+        // check to see if the requested nickname is permissable,
+        // and if there is an account with that requested nickname.
         //
         final String userName = mes.getNickname();
         String userPassword = null;
+
+        if (! SOCMessage.isSingleLineAndSafe(userName))
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
+            return;
+        }
 
         try
         {
