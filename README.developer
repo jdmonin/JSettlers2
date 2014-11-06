@@ -13,6 +13,8 @@ CONTENTS
 - Tips for debugging
 - Setup instructions for JSettlers as an Eclipse project
 	(although you may use any IDE you want)
+- Recommended debug/run configurations for testing
+- If you want to configure a sqlite database for testing
 - Build setup and results
 - Current partially-done work
 - Current TODO list
@@ -165,10 +167,10 @@ Java applet: soc.client.SOCPlayerClient$SOCApplet
 Java applications:
   cli-noargs  soc.client.SOCPlayerClient
   socserver   soc.server.SOCServer
-     arguments: -o NT=t -o PL=5 -Djsettlers.startrobots=7 -Djsettlers.client.maxcreategames=2
+     arguments: -o N7=t7 -o RD=y -Djsettlers.startrobots=7
                 -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
   socserver-sqlite  soc.server.SOCServer
-     arguments: -o NT=t -o NT=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.startrobots=7
+     arguments: -o N7=t7 -o RD=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.startrobots=7
                 -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
 
   The server will start 7 bots with the above configuration.  If you need to stop and start your
