@@ -16,6 +16,7 @@ CONTENTS
 - Build setup and results
 - Current partially-done work
 - Current TODO list
+- Developing with a database (JDBC)
 - Internationalization (I18N)
 - Robots (AI)
 - Coding Style
@@ -183,6 +184,7 @@ Java applications:
 If you want to configure a sqlite database for testing
 ------------------------------------------------------
   These instructions are written for Eclipse 3.6.
+  See also the "Developing with a database (JDBC)" section of this readme.
   JSettlers+sqlite works with standard Eclipse; the j2ee eclipse also has a convenient data browser.
   Note that README.txt mentions a command-line option -Djsettlers.db.jar=driverfile.jar ; that's
   needed only while running the jsettlers JAR from the command line, not running inside eclipse.
@@ -286,6 +288,21 @@ Current TODO list
 		- UI mock-ups
 		- state change / network message plans
 		- robot support
+
+
+Developing with a database (JDBC)
+---------------------------------
+JSettlers can optionally use a database to store users and passwords, game score history,
+and robot parameters.  If databases interest you, the project welcomes contributions.
+Please keep these things in mind:
+
+- The DB is an optional part of jsettlers, other functions can't rely on it.
+- DB code should be vendor-neutral and run on mysql, postgres, sqlite, oracle, etc.
+- See README.txt for JDBC driver download sites, URL syntax, and server command-line arguments.
+- For test runs inside Eclipse, add the JDBC driver to the project's build path -> Libraries -> Add External JAR,
+  or add it to the classpath tab of SOCServer's eclipse Run Configuration; that option is
+  useful when testing against multiple database types.
+- See also the "If you want to configure a sqlite database for testing" section of this readme.
 
 
 Internationalization (I18N)
