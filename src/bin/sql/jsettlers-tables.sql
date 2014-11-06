@@ -1,35 +1,39 @@
--- DB tables/indexes create script for jsettlers.  Run jsettlers-create.sql before this script.
+-- DB tables/indexes create script for jsettlers.
+-- Run jsettlers-create.sql before this script.
+-- Make sure socdata is the database you are connected to when running this script:
+--      MySQL:    $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables.sql"
+--      Postgres: $ psql --file jsettlers-tables.sql socdata
+-- See bottom of file for copyright and license information (GPLv3+).
 -- Always use lowercase for table names and field names.  0-9 and underscore (_) are also safe.
 -- Remember that the sql must be valid for mysql, postgresql, sqlite, and oracle.
 -- For indexes, use the table name + __ + one lowercase letter.
 -- For multi-line SQLs, indent so that SOCDBHelper.runSetupScript can combine them.
--- See bottom of file for copyright and license information (GPLv3+).
 
-USE socdata;
 
 CREATE TABLE users (
-	nickname VARCHAR(20), host VARCHAR(50), password VARCHAR(20), email VARCHAR(50), lastlogin DATE,
+	nickname VARCHAR(20) not null, host VARCHAR(50), password VARCHAR(20), email VARCHAR(50), lastlogin DATE,
 	PRIMARY KEY (nickname)
 	);
 
 CREATE TABLE logins (
-	nickname VARCHAR(20), host VARCHAR(50), lastlogin DATE,
+	nickname VARCHAR(20) not null, host VARCHAR(50), lastlogin DATE,
 	PRIMARY KEY (nickname)
 	);
 
 CREATE TABLE games (
-	gamename VARCHAR(20),
+	gamename VARCHAR(20) not null,
 	player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20), player4 VARCHAR(20),
 	score1 SMALLINT, score2 SMALLINT, score3 SMALLINT, score4 SMALLINT,
-	starttime TIMESTAMP
+	starttime TIMESTAMP not null
 	);
 
-CREATE INDEX "games__n" ON games(gamename);
+CREATE INDEX games__n ON games(gamename);
 
+-- tradeFlag is always 1 or 0; using SMALLINT to be db-neutral.
 CREATE TABLE robotparams (
-	robotname VARCHAR(20),
+	robotname VARCHAR(20) not null,
 	maxgamelength INT, maxeta INT, etabonusfactor FLOAT, adversarialfactor FLOAT, leaderadversarialfactor FLOAT, devcardmultiplier FLOAT, threatmultiplier FLOAT,
-	strategytype INT, starttime TIMESTAMP, endtime TIMESTAMP, gameswon INT, gameslost INT, tradeFlag BOOL,
+	strategytype INT, starttime TIMESTAMP, endtime TIMESTAMP, gameswon INT, gameslost INT, tradeFlag SMALLINT,
 	PRIMARY KEY (robotname)
 	);
 
@@ -37,7 +41,7 @@ CREATE TABLE robotparams (
 
 -- This file is part of the JSettlers project.
 -- 
---  This file Copyright (C) 2012 Jeremy D Monin (jdmonin@nand.net)
+--  This file Copyright (C) 2012,2014 Jeremy D Monin (jdmonin@nand.net)
 --  Portions of this file Copyright (C) 2004-2005 Chadwick A McHenry (mchenryc@acm.org)
 -- 
 --  This program is free software: you can redistribute it and/or modify
