@@ -342,16 +342,16 @@ public class SOCServer extends Server
 
     // These AUTH_OR_REJECT constants are int not enum for backwards compatibility with 1.1.xx (java 1.4)
 
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int)} result: Authentication succeeded */
-    private static final int AUTH_OR_REJECT__OK = 1;
-
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int)} result: Failed authentication,
+    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean)} result: Failed authentication,
      *  failed name validation, or name is already logged in and that connection hasn't timed out yet
      */
     private static final int AUTH_OR_REJECT__FAILED = 1;
 
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int)} result: Taking over another connection */
-    private static final int AUTH_OR_REJECT__TAKING_OVER = 2;
+    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean)} result: Authentication succeeded */
+    private static final int AUTH_OR_REJECT__OK = 2;
+
+    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean)} result: Taking over another connection */
+    private static final int AUTH_OR_REJECT__TAKING_OVER = 3;
 
     /**
      * So we can get random numbers.
@@ -4198,17 +4198,21 @@ public class SOCServer extends Server
      * @param msgPass  Password to supply to {@link #authenticateUser(StringConnection, String, String)},
      *     or ""; please trim string before calling
      * @param cliVers  Client version, from {@link StringConnection#getVersion()}
+     * @param allowTakeover  True if the new connection can "take over" an older connection in response to the
+     *     message it sent.  If true, the caller must be prepared to send all game info/channel info that the
+     *     old connection had joined, so the new connection has full info to participate in them.
      * @return  Result of the auth check: {@link #AUTH_OR_REJECT__FAILED},
      *     {@link #AUTH_OR_REJECT__OK} or {@link #AUTH_OR_REJECT__TAKING_OVER}
      * @since 1.1.19
      */
-    private int authOrRejectClientUser(StringConnection c, final String msgUser, String msgPass, final int cliVers)
+    private int authOrRejectClientUser
+        (StringConnection c, final String msgUser, String msgPass, final int cliVers, final boolean allowTakeover)
     {
-        /**
-         * Check that the nickname is ok
-         */
-        boolean isTakingOver = false;  // true if a human player is replacing another player in the game
+        boolean isTakingOver = false;  // will set true if a human player is replacing another player in the game
 
+        /**
+         * If connection doesn't already have a nickname, check that the nickname is ok
+         */
         if (c.getData() == null)
         {
             if (msgUser.length() > PLAYER_NAME_MAX_LENGTH)
@@ -4228,7 +4232,15 @@ public class SOCServer extends Server
 
             if (nameTimeout == -1)
             {
-                isTakingOver = true;
+                if (allowTakeover)
+                {
+                    isTakingOver = true;
+                } else {
+                    c.put(SOCStatusMessage.toCmd
+                            (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
+                             MSG_NICKNAME_ALREADY_IN_USE));
+                    return AUTH_OR_REJECT__FAILED;
+                }
             } else if (nameTimeout == -2)
             {
                 c.put(SOCStatusMessage.toCmd
@@ -4245,13 +4257,13 @@ public class SOCServer extends Server
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                         checkNickname_getRetryText(nameTimeout)));
+                         (allowTakeover) ? checkNickname_getRetryText(nameTimeout) : MSG_NICKNAME_ALREADY_IN_USE));
                 return AUTH_OR_REJECT__FAILED;
             }
         }
 
         /**
-         * password check new connection from database, if possible
+         * password check new connection from database, if not done already and if possible
          */
         if ((c.getData() == null) && (! authenticateUser(c, msgUser, msgPass)))
         {
@@ -4534,7 +4546,7 @@ public class SOCServer extends Server
         /**
          * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
          */
-        final int authResult = authOrRejectClientUser(c, msgUser, msgPass, cliVers);
+        final int authResult = authOrRejectClientUser(c, msgUser, msgPass, cliVers, false);
         if (authResult == AUTH_OR_REJECT__FAILED)
             return;  // <---- Early return ----
 
@@ -5097,7 +5109,7 @@ public class SOCServer extends Server
         /**
          * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
          */
-        final int authResult = authOrRejectClientUser(c, msgUser, msgPass, cliVers);
+        final int authResult = authOrRejectClientUser(c, msgUser, msgPass, cliVers, true);
         if (authResult == AUTH_OR_REJECT__FAILED)
             return;  // <---- Early return ----
 
