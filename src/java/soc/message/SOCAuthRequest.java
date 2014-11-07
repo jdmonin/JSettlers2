@@ -37,6 +37,7 @@ import java.util.StringTokenizer;
  *<UL>
  * <LI> {@link SOCStatusMessage#SV_OK} if the username and password were authenticated
  * <LI> {@link SOCStatusMessage#SV_NOT_OK_GENERIC} if the auth scheme number is unknown
+ *      or if the client hasn't already sent {@link SOCVersion} to the server
  * <LI> {@link SOCStatusMessage#SV_PW_WRONG} if the username and password are not a valid combination:
  *      The password is wrong, or if the nickname is unknown at the server.
  *      The server never replies to this message with {@link SOCStatusMessage#SV_NAME_NOT_FOUND}.
