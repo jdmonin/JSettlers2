@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2010,2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2010,2013-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,7 +36,7 @@ package soc.message;
 public abstract class SOCMessageTemplateJoinGame extends SOCMessage
 {
     /**
-     * symbol to represent a null password
+     * symbol to represent a null or empty password over the network, to avoid 2 adjacent field-delimiter characters
      */
     protected static final String NULLPASS = "\t";
 
@@ -46,7 +46,7 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     protected String nickname;
 
     /**
-     * Optional password
+     * Optional password, or "" if none
      */
     protected String password;
 
@@ -56,7 +56,8 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     protected String game;
 
     /**
-     * Host name
+     * Server host name to which the client is connecting.
+     * Since the client is already connected when it sends the message, this is only informational.
      */
     protected String host;
 
@@ -64,8 +65,8 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
      * Create a Join message.
      *
      * @param nn  nickname
-     * @param pw  password
-     * @param hn  host name
+     * @param pw  password, or ""
+     * @param hn  server host name
      * @param ga  name of the game
      */
     public SOCMessageTemplateJoinGame(String nn, String pw, String hn, String ga)
@@ -86,7 +87,7 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     }
 
     /**
-     * @return the password
+     * @return the optional password, or "" if none
      */
     public String getPassword()
     {
@@ -94,7 +95,7 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     }
 
     /**
-     * @return the host name
+     * @return the server host name to which client is connecting
      */
     public String getHost()
     {
