@@ -217,7 +217,7 @@ public class SOCPlayerClient
     protected String password = null;
 
     /**
-     * true if we've stored the password
+     * true if we've stored the password and the server's replied that it's correct
      */
     protected boolean gotPassword;
 
@@ -1125,7 +1125,7 @@ public class SOCPlayerClient
             }
             else if (target == ng)  // "New Game" button
             {
-                if (null != getValidNickname(false))  // name check, but don't set nick field yet
+                if (null != getValidNickname(false))  // that method does a name check, but doesn't set nick field yet
                 {
                     gameWithOptionsBeginSetup(false);  // Also may set status, WAIT_CURSOR
                 } else {
@@ -1310,6 +1310,7 @@ public class SOCPlayerClient
          * Validate and return the nickname textfield, or null if blank or not ready.
          * If successful, also set {@link #nickname} field.
          * @param precheckOnly If true, only validate the name, don't set {@link #nickname}.
+         * @see #readValidNicknameAndPassword()
          * @since 1.1.07
          */
         protected String getValidNickname(boolean precheckOnly)
@@ -1402,7 +1403,8 @@ public class SOCPlayerClient
 
             // What server are we going against? Do we need to ask it for options?
             {
-                boolean setKnown = false;
+                boolean fullSetIsKnown = false;
+
                 if (forPracticeServer)
                 {
                     opts = client.practiceServGameOpts;
@@ -1415,7 +1417,7 @@ public class SOCPlayerClient
                         // The practice server will be started when the player clicks
                         // "Create Game" in the NewGameOptionsFrame, causing the new
                         // game to be requested from askStartGameWithOptions.
-                        setKnown = true;
+                        fullSetIsKnown = true;
                         opts.optionSet = SOCServer.localizeKnownOptions(client.cliLocale, true);
                     }
                 } else {
@@ -1423,12 +1425,12 @@ public class SOCPlayerClient
                     if ((! opts.allOptionsReceived) && (client.sVersion < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
                     {
                         // Server doesn't support them.  Don't ask it.
-                        setKnown = true;
+                        fullSetIsKnown = true;
                         opts.optionSet = null;
                     }
                 }
 
-                if (setKnown)
+                if (fullSetIsKnown)
                 {
                     opts.allOptionsReceived = true;
                     opts.defaultsReceived = true;
