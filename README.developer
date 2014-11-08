@@ -300,6 +300,7 @@ Please keep these things in mind:
 
 - The DB is an optional part of jsettlers, other functions can't rely on it.
 - DB code should be vendor-neutral and run on mysql, postgres, sqlite, oracle, etc.
+  Please test against sqlite and at least one other db type before sending a pull request.
 - See README.txt for JDBC driver download sites, URL syntax, and server command-line arguments.
 - For test runs inside Eclipse, add the JDBC driver to the project's build path -> Libraries -> Add External JAR,
   or add it to the classpath tab of SOCServer's eclipse Run Configuration; that option is
