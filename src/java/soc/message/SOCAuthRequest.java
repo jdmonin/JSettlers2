@@ -65,6 +65,9 @@ public class SOCAuthRequest extends SOCMessage
     /** Scheme #1, for client to connect using a plaintext password */
     public static final int SCHEME_CLIENT_PLAINTEXT = 1;
 
+    /** Token to indicate host is {@code null} or "", to avoid adjacent delimiters */
+    private final static String NULLHOST = "\t";
+
     /** Nickname (username) of the joining client */
     public final String nickname;
 
@@ -77,8 +80,9 @@ public class SOCAuthRequest extends SOCMessage
     public final int authScheme;
 
     /**
-     * Server host name to which the client is connecting.
+     * Server host name to which the client is connecting, or null for client's local TCP server.
      * Since the client is already connected when it sends the message, this is only informational.
+     * The empty string "" is stored as null here.
      */
     public final String host;
 
@@ -89,7 +93,7 @@ public class SOCAuthRequest extends SOCMessage
      * @param pw  optional password, or ""; this is the last field of the message
      *     so that it can contain delimiter chars
      * @param sch  auth scheme number, such as {@link #SCHEME_CLIENT_PLAINTEXT}
-     * @param hn  server host name
+     * @param hn  server host name, or null; "" is stored as null in the {@link #host} field
      * @throws IllegalArgumentException if {@code nn} or {@code hn} contains a delimiter character
      *     or otherwise doesn't pass {@link SOCMessage#isSingleLineAndSafe(String)}
      */
@@ -98,13 +102,13 @@ public class SOCAuthRequest extends SOCMessage
     {
         if (! SOCMessage.isSingleLineAndSafe(nn))
             throw new IllegalArgumentException("nickname: " + nn);
-        if (! SOCMessage.isSingleLineAndSafe(hn))
+        if ((hn != null) && ! SOCMessage.isSingleLineAndSafe(hn))
             throw new IllegalArgumentException("hostname: " + hn);
 
         messageType = AUTHREQUEST;
         nickname = nn;
         authScheme = sch;
-        host = hn;
+        host = ((hn != null) && (hn.length() > 0)) ? hn : null;
         password = pw;
     }
 
@@ -125,7 +129,7 @@ public class SOCAuthRequest extends SOCMessage
      * @param pw  the optional password, or ""; this is the last field of the message
      *     so that it can contain delimiter chars
      * @param sch  auth scheme number, such as {@link #SCHEME_CLIENT_PLAINTEXT}
-     * @param hn  the server host name
+     * @param hn  the server host name, or null
      * @return    the command string
      * @throws IllegalArgumentException if {@code nn} or {@code hn} contains a delimiter character
      *     or otherwise doesn't pass {@link SOCMessage#isSingleLineAndSafe(String)}
@@ -135,10 +139,10 @@ public class SOCAuthRequest extends SOCMessage
     {
         if (! SOCMessage.isSingleLineAndSafe(nn))
             throw new IllegalArgumentException("nickname: " + nn);
-        if (! SOCMessage.isSingleLineAndSafe(hn))
+        if ((hn != null) && ! SOCMessage.isSingleLineAndSafe(hn))
             throw new IllegalArgumentException("hostname: " + hn);
 
-        return AUTHREQUEST + sep + nn + sep2 + sch + sep2 + hn + sep2 + pw;
+        return AUTHREQUEST + sep + nn + sep2 + sch + sep2 + ((hn != null) ? hn : NULLHOST) + sep2 + pw;
     }
 
     /**
@@ -165,6 +169,8 @@ public class SOCAuthRequest extends SOCMessage
             nn = st.nextToken();
             sch = Integer.parseInt(st.nextToken());
             hn = st.nextToken();
+            if (hn.equals(NULLHOST))
+                hn = null;
 
             // get all of the rest for password, by choosing an unlikely delimiter character
             pw = st.nextToken(Character.toString( (char) 1 )).trim();

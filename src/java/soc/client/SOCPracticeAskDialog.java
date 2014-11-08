@@ -66,7 +66,7 @@ class SOCPracticeAskDialog extends AskDialog
     @Override
     public void button2Chosen()
     {
-        pcli.gameWithOptionsBeginSetup(true);
+        pcli.gameWithOptionsBeginSetup(true, false);
     }
 
     /**

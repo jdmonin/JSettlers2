@@ -29,6 +29,7 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Cursor;
+import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -186,7 +187,7 @@ public class SOCPlayerClient
 
     /**
      * Track the game options available at the remote server, at the practice server.
-     * Initialized by {@link SOCPlayerClient.GameAwtDisplay#gameWithOptionsBeginSetup(boolean)}
+     * Initialized by {@link SOCPlayerClient.GameAwtDisplay#gameWithOptionsBeginSetup(boolean, boolean)}
      * and/or {@link MessageTreater#handleVERSION(boolean, SOCVersion)}.
      * These fields are never null, even if the respective server is not connected or not running.
      *<P>
@@ -212,14 +213,25 @@ public class SOCPlayerClient
     protected String nickname = null;
 
     /**
-     * the password
+     * the password for {@link #nickname}. If the server's authenticated this password,
+     * the {@link #gotPassword} flag is set.
      */
     protected String password = null;
 
     /**
      * true if we've stored the password and the server's replied that it's correct
+     * @see #isNGOFWaitingForAuthStatus
      */
     protected boolean gotPassword;
+
+    /**
+     * true if user clicked "new game" and, before showing {@link NewGameOptionsFrame}, we've
+     * sent the nickname (username) and password to the server and are waiting for a response.
+     *<P>
+     * Used only with TCP servers, not with {@link SOCPlayerClient.ClientNetwork#practiceServer practiceServer}.
+     * @since 1.1.19
+     */
+    protected boolean isNGOFWaitingForAuthStatus;
 
     /**
      * face ID chosen most recently (for use in new games)
@@ -331,6 +343,22 @@ public class SOCPlayerClient
         void messageReceived(String channelName, String nickname, String message);
 
         PlayerClientListener gameJoined(SOCGame game);
+
+        /**
+         * Want to start a new game, on a server which supports options.
+         * Do we know the valid options already?  If so, bring up the options window.
+         * If not, ask the server for them. If a {@link NewGameOptionsFrame} is already
+         * showing, give it focus instead of creating a new one.
+         *<P>
+         * For a summary of the flags and variables involved with game options,
+         * and the client/server interaction about their values, see
+         * {@link GameOptionServerSet}.
+         *
+         * @param forPracticeServer  Ask {@link ClientNetwork#practiceServer}, instead of TCP server?
+         * @param didAuth  If true, the server has authenticated our username and password;
+         *     set those input fields read-only.
+         */
+        void gameWithOptionsBeginSetup(final boolean forPracticeServer, final boolean didAuth);
 
         void optionsRequested();
         void optionsReceived(GameOptionServerSet opts, boolean isPractice);
@@ -485,7 +513,7 @@ public class SOCPlayerClient
          * Task for timeout when asking remote server for {@link SOCGameOption game options defaults}.
          * Set up when sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}.
          * In case of slow connection or server bug.
-         * @see #gameWithOptionsBeginSetup(boolean)
+         * @see #gameWithOptionsBeginSetup(boolean, boolean)
          * @since 1.1.07
          */
         protected GameOptionDefaultsTimeoutTask gameOptsDefsTask = null;
@@ -1127,7 +1155,7 @@ public class SOCPlayerClient
             {
                 if (null != getValidNickname(false))  // that method does a name check, but doesn't set nick field yet
                 {
-                    gameWithOptionsBeginSetup(false);  // Also may set status, WAIT_CURSOR
+                    gameWithOptionsBeginSetup(false, false);  // Also may set status, WAIT_CURSOR
                 } else {
                     nick.requestFocusInWindow();  // Not a valid player nickname
                 }
@@ -1245,7 +1273,7 @@ public class SOCPlayerClient
                 if (pi.getGame().getGameState() == SOCGame.OVER)
                 {
                     // No point joining, just get options to start a new one.
-                    gameWithOptionsBeginSetup(true);
+                    gameWithOptionsBeginSetup(true, false);
                 }
                 else
                 {
@@ -1281,7 +1309,7 @@ public class SOCPlayerClient
                         status.setText
                             (client.strings.get("pcli.message.startingpractice"));  // "Starting practice game setup..."
 
-                    gameWithOptionsBeginSetup(true);  // Also may set WAIT_CURSOR
+                    gameWithOptionsBeginSetup(true, false);  // Also may set WAIT_CURSOR
                 }
                 else
                 {
@@ -1377,26 +1405,43 @@ public class SOCPlayerClient
         }
 
         /**
-         * Want to start a new game, on a server which supports options.
-         * Do we know the valid options already?  If so, bring up the options window.
-         * If not, ask the server for them.
-         * Updates tcpServGameOpts, practiceServGameOpts, newGameOptsFrame.
-         * If a {@link NewGameOptionsFrame} is already showing, give it focus
-         * instead of creating a new one.
+         * {@inheritDoc}
          *<P>
-         * For a summary of the flags and variables involved with game options,
-         * and the client/server interaction about their values, see
-         * {@link GameOptionServerSet}.
-         *
-         * @param forPracticeServer  Ask {@link ClientNetwork#practiceServer}, instead of remote tcp server?
+         * Updates tcpServGameOpts, practiceServGameOpts, newGameOptsFrame.
          * @since 1.1.07
          */
-        protected void gameWithOptionsBeginSetup(final boolean forPracticeServer)
+        public void gameWithOptionsBeginSetup(final boolean forPracticeServer, final boolean didAuth)
         {
             if (newGameOptsFrame != null)
             {
                 newGameOptsFrame.setVisible(true);
                 return;
+            }
+
+            // Have we authenticated our password?  If not, do so now before creating newGameOptsFrame
+            if ((! (forPracticeServer || client.gotPassword))
+                && (client.sVersion >= SOCAuthRequest.VERSION_FOR_AUTHREQUEST))
+            {
+                if (! readValidNicknameAndPassword())
+                    return;
+
+                // handleSTATUSMESSAGE(SV_OK) will check this flag and call gameWithOptionsBeginSetup again if set.
+                // At that point client.gotPassword will be true, so we'll bypass this section.
+
+                client.isNGOFWaitingForAuthStatus = true;
+                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // NGOF create calls setCursor(DEFAULT_CURSOR)
+                client.net.putNet
+                    (SOCAuthRequest.toCmd(client.nickname, client.password,
+                     SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, client.net.getHost()));
+
+                return;
+            }
+
+            if (didAuth)
+            {
+                nick.setEditable(false);
+                pass.setText("");
+                pass.setEditable(false);
             }
 
             GameOptionServerSet opts;
@@ -3087,6 +3132,11 @@ public class SOCPlayerClient
      * handle the {@link SOCStatusMessage "status"} message.
      * Used for server events, also used if player tries to join a game
      * but their nickname is not OK.
+     * Also used (v1.1.19 and newer) as a reply to {@link SOCAuthRequest} sent
+     * before showing {@link NewGameOptionsFrame}, so check whether the
+     * {@link SOCPlayerClient#isNGOFWaitingForAuthStatus isNGOFWaitingForAuthStatus client.isNGOFWaitingForAuthStatus}
+     * flag is set.
+     *
      * @param mes  the message
      * @param isPractice from practice server, not remote server?
      */
@@ -3103,6 +3153,24 @@ public class SOCPlayerClient
             srvDebugMode = statusText.toLowerCase().contains("debug");
 
         gameDisplay.showStatus(statusText, srvDebugMode);
+
+        if ((! isPractice) && client.isNGOFWaitingForAuthStatus)
+        {
+            client.isNGOFWaitingForAuthStatus = false;
+
+            if (sv == SOCStatusMessage.SV_OK)
+            {
+                client.gotPassword = true;
+
+                EventQueue.invokeLater(new Runnable()
+                {
+                    public void run()
+                    {
+                        gameDisplay.gameWithOptionsBeginSetup(false, true);
+                    }
+                });
+            }
+        }
 
         if (sv == SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW)
         {
@@ -5711,8 +5779,8 @@ public class SOCPlayerClient
         protected String lastMessage_N, lastMessage_P;
 
         /**
-         * Server for practice games via {@link #prCli}; not connected to
-         * the network, not suited for multi-player games. Use {@link #localTCPServer}
+         * Server for practice games via {@link #prCli}; not connected to the network,
+         * not suited for hosting multi-player games. Use {@link #localTCPServer}
          * for those.
          * SOCMessages of games where {@link SOCGame#isPractice} is true are sent
          * to practiceServer.
@@ -6318,7 +6386,7 @@ public class SOCPlayerClient
      * {@link SOCGameOption game option defaults}.
      * (in case of slow connection or server bug).
      * Set up when sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}
-     * in {@link SOCPlayerClient.GameAwtDisplay#gameWithOptionsBeginSetup(boolean)}.
+     * in {@link SOCPlayerClient.GameAwtDisplay#gameWithOptionsBeginSetup(boolean, boolean)}.
      *<P>
      * When timer fires, assume no defaults will be received.
      * Display the new-game dialog.
@@ -6347,7 +6415,7 @@ public class SOCPlayerClient
             pcli.gameOptsDefsTask = null;  // Clear reference to this soon-to-expire obj
             srvOpts.noMoreOptions(true);
             if (srvOpts.newGameWaitingForOpts)
-                pcli.gameWithOptionsBeginSetup(forPracticeServer);
+                pcli.gameWithOptionsBeginSetup(forPracticeServer, false);
         }
 
     }  // GameOptionDefaultsTimeoutTask
