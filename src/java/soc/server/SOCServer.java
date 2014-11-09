@@ -7915,14 +7915,23 @@ public class SOCServer extends Server
         final int cliVers = c.getVersion();
 
         //
-        // check to see if there is an account with
-        // the requested nickname
+        // check to see if the requested nickname is permissable,
+        // and if there is an account with that requested nickname.
         //
+        final String userName = mes.getNickname();
         String userPassword = null;
+
+        if (! SOCMessage.isSingleLineAndSafe(userName))
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
+            return;
+        }
 
         try
         {
-            userPassword = SOCDBHelper.getUserPassword(mes.getNickname());
+            userPassword = SOCDBHelper.getUserPassword(userName);
         }
         catch (SQLException sqle)
         {
@@ -7937,7 +7946,7 @@ public class SOCServer extends Server
         {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                     "The nickname '" + mes.getNickname() + "' is already in use."));
+                     "The nickname '" + userName + "' is already in use."));
 
             return;
         }
@@ -7951,18 +7960,21 @@ public class SOCServer extends Server
 
         try
         {
-            success = SOCDBHelper.createAccount(mes.getNickname(), c.host(), mes.getPassword(), mes.getEmail(), currentTime.getTime());
+            success = SOCDBHelper.createAccount(userName, c.host(), mes.getPassword(), mes.getEmail(), currentTime.getTime());
         }
         catch (SQLException sqle)
         {
-            System.err.println("Error creating account in db.");
+            System.err.println("SQL Error creating account in db.");
         }
 
         if (success)
         {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_ACCT_CREATED_OK, cliVers,
-                     "Account created for '" + mes.getNickname() + "'."));
+                     "Account created for '" + userName + "'."));
+
+            System.out.println("Audit: Created jsettlers account '" + userName
+                + "' from " + c.host() + " at " + currentTime);
         }
         else
         {

@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
@@ -24,6 +25,9 @@ import java.util.StringTokenizer;
 
 /**
  * This message is a request to create an account
+ *<P>
+ * The server will respond with a {@link SOCStatusMessage} indicating whether the account was created,
+ * with status {@link SOCStatusMessage#SV_ACCT_CREATED_OK} or an error/rejection status and brief text.
  *
  * @author Robert S Thomas
  */
@@ -57,7 +61,9 @@ public class SOCCreateAccount extends SOCMessage
     /**
      * Create a CreateAccount message.
      *
-     * @param nn  nickname
+     * @param nn  nickname  Nickname (username) to give to requested account.
+     *     The name must pass {@link SOCMessage#isSingleLineAndSafe(String)}
+     *     in server v1.1.19 and higher.
      * @param pw  password
      * @param hn  host name
      * @param em  email
@@ -72,6 +78,9 @@ public class SOCCreateAccount extends SOCMessage
     }
 
     /**
+     * Nickname (username) to give to requested account.
+     * The name must pass {@link SOCMessage#isSingleLineAndSafe(String)}
+     * in server v1.1.19 and higher.
      * @return the nickname
      */
     public String getNickname()
