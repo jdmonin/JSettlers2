@@ -48,6 +48,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Properties;
@@ -9731,12 +9732,15 @@ public class SOCServer extends Server
     /**
      * Quick-and-dirty command line parsing of game options.
      * Calls {@link SOCGameOption#setKnownOptionCurrentValue(SOCGameOption)}.
-     * @param optNameValue Game option name+value, of form expected by
+     * @param optNameValue Game option name+value, of <tt>optname=optvalue</tt> form expected by
      *                     {@link SOCGameOption#parseOptionNameValue(String, boolean)}
-     * @return true if OK, false if bad name or value
+     * @param optsAlreadySet  For tracking, game option names we've already encountered on the command line.
+     *                        This method will add <tt>optNameValue</tt>'s name to this set.
+     * @return true if OK; false if bad name, bad value, or already set from command line;
+     *         also prints an error message to {@code System.err} when returning false.
      * @since 1.1.07
      */
-    public static boolean parseCmdline_GameOption(final String optNameValue)
+    public static boolean parseCmdline_GameOption(final String optNameValue, HashSet optsAlreadySet)
     {
         SOCGameOption op = SOCGameOption.parseOptionNameValue(optNameValue, true);
         if (op == null) 
@@ -9749,10 +9753,16 @@ public class SOCServer extends Server
             System.err.println("Unknown game option: " + op.optKey);
             return false;
         }
+        if (optsAlreadySet.contains(op.optKey))
+        {
+            System.err.println("Game option cannot appear twice on command line: " + op.optKey);
+            return false;
+        }
 
         try
         {
             SOCGameOption.setKnownOptionCurrentValue(op);
+            optsAlreadySet.add(op.optKey);
             return true;
         } catch (Throwable t)
         {
@@ -9788,6 +9798,7 @@ public class SOCServer extends Server
     public static Properties parseCmdline_DashedArgs(String[] args)
     {
         Properties argp = new Properties();
+        HashSet gameOptsAlreadySet = new HashSet();  // optKey strings; used and updated by parseCmdline_GameOption
 
         int aidx = 0;
         while ((aidx < args.length) && (args[aidx].startsWith("-")))
@@ -9820,7 +9831,7 @@ public class SOCServer extends Server
                 }
                 if (argValue != null)
                 {
-                    if (! parseCmdline_GameOption(argValue))
+                    if (! parseCmdline_GameOption(argValue, gameOptsAlreadySet))
                         argValue = null;
                 }
                 if (argValue == null)
@@ -9867,6 +9878,11 @@ public class SOCServer extends Server
                     System.err.println("Missing value for property " + name);
                     return null;
                 }
+                if (argp.containsKey(name))
+                {
+                    System.err.println("Property cannot appear twice on command line: " + name);
+                    return null;
+                }
                 argp.setProperty(name, value);
 
             } else {
@@ -9899,6 +9915,15 @@ public class SOCServer extends Server
             }
             argp.setProperty(PROP_JSETTLERS_PORT, args[aidx]);  ++aidx;
             argp.setProperty(PROP_JSETTLERS_CONNECTIONS, args[aidx]);  ++aidx;
+
+            // Check DB user and password against any -D parameters in properties
+            if (argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_USER)
+                || argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_PASS))
+            {
+                System.err.println("SOCServer: DB user and password cannot appear twice on command line.");
+                printUsage(false);
+                return null;
+            }
             argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, args[aidx]);  ++aidx;
             argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, args[aidx]);  ++aidx;
         }
