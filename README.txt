@@ -237,8 +237,12 @@ Database Setup
 
 If you want to maintain user accounts, you will need to set up a MySQL, SQLite,
 or PostgreSQL database. This will eliminate the "Problem connecting to database"
-errors from the server. We assume you have installed it correctly.
-SQLite is recommended because it's just a JAR file, not a separate large install.
+errors from the server. We assume you have installed it correctly.  SQLite is an
+easy database choice because it's just a JAR file, not a separate large install,
+if you're looking to avoid that.
+
+You will need a JDBC driver JAR file in your classpath or the same directory as
+the JSettlers JAR, see below for details.
 
 The default name for the database is "socdata".  To use another name,
 you'll need to specify it as a JDBC URL on the command line, such as:
@@ -247,9 +251,16 @@ or
 	-Djsettlers.db.url=jdbc:postgresql://localhost/socdata
 or
 	-Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
+If needed you can also specify a database username and password as:
+	-Djsettlers.db.user=socuser -Djsettlers.db.pass=socpass
+or place them on the command line after the port number and max connections:
+	$ java -jar JSettlersServer.jar -Djsettlers.db.url=jdbc:mysql://localhost/socdata -Djsettlers.db.jar=mysql-connector-java-5.1.34-bin.jar 8880 20 socuser socpass
 
-The default JDBC driver is com.mysql.jdbc.Driver.  PostgreSQL is also
-recognized.  To use PostgreSQL, use a postgresql url like the one shown above,
+
+Finding a JDBC driver JAR:
+
+The default JDBC driver is com.mysql.jdbc.Driver.  PostgreSQL and SQLite are also
+recognized.  To use PostgreSQL, use a postgresql URL like the one shown above,
 or specify the driver on the SOCServer command line:
 	-Djsettlers.db.driver=org.postgresql.Driver
 To use SQLite, use a sqlite url like the one shown above, or specify a
@@ -273,20 +284,38 @@ about JAR files.  If you find that's the case, place the JDBC jar in the same
 location as JSettlersServer.jar, and specify on the jsettlers command line:
 	-Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar
 
+
+Database Creation:
+
 To create the jsettlers database in mysql, execute the SQL db scripts
 jsettlers-create.sql and jsettlers-tables.sql located in src/bin/sql:
 
-$ mysql -u root -p -e "SOURCE jsettlers-create.sql"
+$ mysql -u root -p -e "SOURCE jsettlers-create-mysql.sql"
 This will connect as root, prompt for the root password, create a 'socuser' user with the password
 'socpass', and create the 'socdata' database.
 
 To build the empty tables, run:
-$ mysql -u root -p -e "SOURCE jsettlers-tables.sql"
+$ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables.sql"
 
-or, for sqlite, run this command in the target directory:
+For Postgres, create the db and tables with:
+$ psql --file jsettlers-create-postgres.sql
+$ psql --file jsettlers-tables.sql socdata
+
+For sqlite, run this command in the target directory (jar filename may vary):
 $ java -jar JSettlersServer.jar -Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar  -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=../src/bin/sql/jsettlers-tables.sql
 
-This will build the empty tables.  This script will fail if the tables already exist.
+This will create jsettlers.sqlite containing the empty tables.
+This script will fail if the tables already exist.
+
+
+Optional: Storing Game Scores in the DB:
+
+To automatically save all completed game results in database, use this option when
+starting the JSettlers server:
+	-Djsettlers.db.save.games=Y
+
+
+Optional: Creating JSettlers Player Accounts in the DB:
 
 To create player accounts, run the simple account creation client with the
 following command:
@@ -294,7 +323,7 @@ following command:
   java -jar JSettlers.jar soc.client.SOCAccountClient localhost 8880
 
 Users with accounts must type their password to log into the server to play.
-People without accounts can still connect, by leaving the password field blank,
+People without accounts can still connect by leaving the password field blank,
 as long as they aren't using a nickname which has a password in the database.
 
 

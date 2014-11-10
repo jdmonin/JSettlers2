@@ -1,4 +1,4 @@
-README.developer - Notes and current status of 2013 JSettlers development
+README.developer - Notes and current status of 2014 JSettlers development
 	(version 1.1.xx, running at nand.net)
 	http://nand.net/jsettlers/devel/
 	http://sourceforge.net/projects/jsettlers2/
@@ -7,7 +7,6 @@ README.developer - Notes and current status of 2013 JSettlers development
 At this point (after 1.1.13), the 1.1.xx series is for stable bugfixes and
 backports of minor new features.  New JSettlers development is version 2.0.xx.
 
-Scroll down a bit for the current TODO list.
 See VERSIONS.txt for recent changes.
 
 CONTENTS
@@ -16,7 +15,11 @@ CONTENTS
 - Tips for debugging
 - Setup instructions for JSettlers as an Eclipse project
 	(although you may use any IDE you want)
+- Recommended debug/run configurations for testing
 - Build setup and results
+- If you want to configure a sqlite database for testing
+- Current TODO list -> See README.developer in the master branch (2.0.00).
+- Developing with a database (JDBC)
 - Coding Style
 - github usage
 
@@ -103,10 +106,10 @@ Java applet: soc.client.SOCPlayerClient
 Java applications:
   cli-noargs  soc.client.SOCPlayerClient
   socserver   soc.server.SOCServer
-     arguments: -o NT=t -o PL=5 -Djsettlers.startrobots=7 -Djsettlers.client.maxcreategames=2
+     arguments: -o N7=t7 -o RD=y -Djsettlers.startrobots=7
                 -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
   socserver-sqlite  soc.server.SOCServer
-     arguments: -o NT=t -o NT=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.startrobots=7
+     arguments: -o N7=t7 -o RD=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.startrobots=7
                 -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
 
   The server will start 7 bots with the above configuration.  If you need to stop and start your
@@ -150,6 +153,7 @@ files, and installation files are placed in "dist".
 If you want to configure a sqlite database for testing
 ------------------------------------------------------
   These instructions are written for Eclipse 3.6.
+  See also the "Developing with a database (JDBC)" section of this readme.
   JSettlers+sqlite works with standard Eclipse; the j2ee eclipse also has a convenient data browser.
   Note that README.txt mentions a command-line option -Djsettlers.db.jar=driverfile.jar ; that's
   needed only while running the jsettlers JAR from the command line, not running inside eclipse.
@@ -202,6 +206,22 @@ If you want to configure a sqlite database for testing
 Current TODO list
 -----------------
 See README.developer in the master branch (version 2.0.xx) for the project TODO list.
+
+
+Developing with a database (JDBC)
+---------------------------------
+JSettlers can optionally use a database to store users and passwords, game score history,
+and robot parameters.  If databases interest you, the project welcomes contributions.
+Please keep these things in mind:
+
+- The DB is an optional part of jsettlers, other functions can't rely on it.
+- DB code should be vendor-neutral and run on mysql, postgres, sqlite, oracle, etc.
+  Please test against sqlite and at least one other db type before sending a pull request.
+- See README.txt for JDBC driver download sites, URL syntax, and server command-line arguments.
+- For test runs inside Eclipse, add the JDBC driver to the project's build path -> Libraries -> Add External JAR,
+  or add it to the classpath tab of SOCServer's eclipse Run Configuration; that option is
+  useful when testing against multiple database types.
+- See also the "If you want to configure a sqlite database for testing" section of this readme.
 
 
 Coding Style
@@ -331,7 +351,7 @@ The project code lives at https://github.com/jdmonin/JSettlers2 .
 Patches can be sent by email or by pull request.
 Please make sure your patch follows the project coding style.
 
-The master branch receives new features and enhancements for next 'minor'
+The master branch receives new features and enhancements for the next 'minor'
 release.  As soon as a bug is fixed or a feature's design is fairly stable, it
 should be committed to master.
 
