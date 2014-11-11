@@ -4001,6 +4001,9 @@ public class SOCServer extends Server
      * If this user is already logged into another connection, checks here whether this new
      * replacement connection can "take over" the existing one according to a timeout calculation
      * in {@link #checkNickname(String, StringConnection, boolean)}.
+     *<P>
+     * If this connection is already logged on and named ({@link StringConnection#getData() c.getData()} != <tt>null</tt>),
+     * does nothing.  Won't check username or password, just returns {@link #AUTH_OR_REJECT__OK}.
      *
      * @param c  Client's connection
      * @param msgUser  Client username (nickname) to validate and authenticate
@@ -4017,64 +4020,66 @@ public class SOCServer extends Server
     private int authOrRejectClientUser
         (StringConnection c, final String msgUser, String msgPass, final int cliVers, final boolean allowTakeover)
     {
+        if (c.getData() != null)
+        {
+            return AUTH_OR_REJECT__OK;  // <---- Early return: Already authenticated ----
+        }
+
         boolean isTakingOver = false;  // will set true if a human player is replacing another player in the game
 
         /**
          * If connection doesn't already have a nickname, check that the nickname is ok
          */
-        if (c.getData() == null)
+        if (msgUser.length() > PLAYER_NAME_MAX_LENGTH)
         {
-            if (msgUser.length() > PLAYER_NAME_MAX_LENGTH)
-            {
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));
-                return AUTH_OR_REJECT__FAILED;
-            }
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));
+            return AUTH_OR_REJECT__FAILED;
+        }
 
-            /**
-             * check if a nickname is okay, and, if they're already logged in,
-             * whether a new replacement connection can "take over" the existing one.
-             */
-            final int nameTimeout = checkNickname(msgUser, c, (msgPass != null) && (msgPass.trim().length() > 0));
-            System.err.println("L4910 past checkNickname at " + System.currentTimeMillis());
+        /**
+         * check if a nickname is okay, and, if they're already logged in,
+         * whether a new replacement connection can "take over" the existing one.
+         */
+        final int nameTimeout = checkNickname(msgUser, c, (msgPass != null) && (msgPass.trim().length() > 0));
+        System.err.println("L4910 past checkNickname at " + System.currentTimeMillis());
 
-            if (nameTimeout == -1)
+        if (nameTimeout == -1)
+        {
+            if (allowTakeover)
             {
-                if (allowTakeover)
-                {
-                    isTakingOver = true;
-                } else {
-                    c.put(SOCStatusMessage.toCmd
-                            (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                             MSG_NICKNAME_ALREADY_IN_USE));
-                    return AUTH_OR_REJECT__FAILED;
-                }
-            } else if (nameTimeout == -2)
-            {
+                isTakingOver = true;
+            } else {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                          MSG_NICKNAME_ALREADY_IN_USE));
                 return AUTH_OR_REJECT__FAILED;
-            } else if (nameTimeout <= -1000)
-            {
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                         checkNickname_getVersionText(-nameTimeout)));
-                return AUTH_OR_REJECT__FAILED;
-            } else if (nameTimeout > 0)
-            {
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                         (allowTakeover) ? checkNickname_getRetryText(nameTimeout) : MSG_NICKNAME_ALREADY_IN_USE));
-                return AUTH_OR_REJECT__FAILED;
             }
+        } else if (nameTimeout == -2)
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
+                     MSG_NICKNAME_ALREADY_IN_USE));
+            return AUTH_OR_REJECT__FAILED;
+        } else if (nameTimeout <= -1000)
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
+                     checkNickname_getVersionText(-nameTimeout)));
+            return AUTH_OR_REJECT__FAILED;
+        } else if (nameTimeout > 0)
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
+                     (allowTakeover) ? checkNickname_getRetryText(nameTimeout) : MSG_NICKNAME_ALREADY_IN_USE));
+            return AUTH_OR_REJECT__FAILED;
         }
 
         /**
          * password check new connection from database, if not done already and if possible
          */
-        if ((c.getData() == null) && (! authenticateUser(c, msgUser, msgPass)))
+        if (! authenticateUser(c, msgUser, msgPass))
         {
             return AUTH_OR_REJECT__FAILED;  // <---- Early return: Password auth failed ----
         }
@@ -4083,12 +4088,9 @@ public class SOCServer extends Server
          * Now that everything's validated, name this connection/user/player.
          * If isTakingOver, also copies their current game/channel count.
          */
-        if (c.getData() == null)
-        {
-            c.setData(msgUser);
-            nameConnection(c, isTakingOver);
-            numberOfUsers++;
-        }
+        c.setData(msgUser);
+        nameConnection(c, isTakingOver);
+        numberOfUsers++;
 
         return (isTakingOver) ? AUTH_OR_REJECT__TAKING_OVER : AUTH_OR_REJECT__OK;
     }
