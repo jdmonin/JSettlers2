@@ -94,6 +94,13 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * the SOCMessage subclass for the message type.
      * Example: For {@link #DELETEGAME}, see javadocs for {@link SOCDeleteGame}.
      */
+
+    /**
+     * Authentication request, to do so without creating or joining a game or channel; see {@link SOCAuthRequest}.
+     * @since 1.1.19
+     */
+    public static final int AUTHREQUEST = 999;
+
     public static final int NULLMESSAGE = 1000;
     public static final int NEWCHANNEL = 1001;
     public static final int MEMBERS = 1002;
@@ -479,6 +486,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
              */
             switch (msgId)
             {
+            case AUTHREQUEST:        // authentication request, 20141106, v1.1.19
+                return SOCAuthRequest.parseDataStr(data);
+
             case NULLMESSAGE:
                 return null;
 
