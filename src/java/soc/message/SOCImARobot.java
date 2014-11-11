@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,6 +36,9 @@ import java.util.StringTokenizer;
  *<P>
  * The IMAROBOT message includes a {@link #getRBClass()} parameter to indicate
  * whether the robot is 3rd-party or is {@link #RBCLASS_BUILTIN the original built-in AI}.
+ *<P>
+ * In 1.1.19 and later, the IMAROBOT message includes a shared secret cookie
+ * to authenticate the bot to the server.
  *
  * @author Robert S Thomas
  */

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,7 +34,7 @@ import soc.game.SOCGameOption;
  * Robot clients don't need to know about or handle this message type,
  * because they don't create games.
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
  */
 public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
@@ -46,11 +46,11 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
     private Hashtable opts;
 
     /**
-     * Create a NEWGameWithOptionsRequest message.
+     * Create a NewGameWithOptionsRequest message.
      *
      * @param nn  nickname
-     * @param pw  password
-     * @param hn  host name
+     * @param pw  optional password, or "" if none
+     * @param hn  server host name
      * @param ga  name of the game
      * @param opts the game options (hashtable of {@link SOCGameOption}), or null;
      *           if null, it probably makes sense to create
@@ -65,11 +65,11 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
     }
 
     /**
-     * Create a NEWGameWithOptionsRequest message.
+     * Create a NewGameWithOptionsRequest message.
      *
      * @param nn  nickname
-     * @param pw  password
-     * @param hn  host name
+     * @param pw  optional password, or "" if none
+     * @param hn  server host name
      * @param ga  name of the game
      * @param optstr the game options as a string name-value pairs, as created by
      *             {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
@@ -105,8 +105,8 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      * NEWGAMEWITHOPTIONSREQUEST sep nickname sep2 password sep2 host sep2 game sep2 options
      *
      * @param nn  the nickname
-     * @param pw  the password
-     * @param hn  the host name
+     * @param pw  the optional password, or "" if none
+     * @param hn  the server host name
      * @param ga  the game name
      * @param optstr the game options as a string name-value pairs, as created by
      *             {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
