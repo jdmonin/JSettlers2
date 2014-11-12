@@ -54,6 +54,7 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Cursor;
+import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -224,7 +225,7 @@ public class SOCPlayerClient extends Applet
 
     /**
      * Track the game options available at the remote server, at the practice server.
-     * Initialized by {@link #gameWithOptionsBeginSetup(boolean)}
+     * Initialized by {@link #gameWithOptionsBeginSetup(boolean, boolean)}
      * and/or {@link #handleVERSION(boolean, SOCVersion)}.
      * These fields are never null, even if the respective server is not connected or not running.
      *<P>
@@ -250,7 +251,7 @@ public class SOCPlayerClient extends Applet
      * Task for timeout when asking remote server for {@link SOCGameOption game options defaults}.
      * Set up when sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}.
      * In case of slow connection or server bug.
-     * @see #gameWithOptionsBeginSetup(boolean)
+     * @see #gameWithOptionsBeginSetup(boolean, boolean)
      * @since 1.1.07
      */
     protected GameOptionDefaultsTimeoutTask gameOptsDefsTask = null;
@@ -336,14 +337,25 @@ public class SOCPlayerClient extends Applet
     protected String nickname = null;
 
     /**
-     * the password
+     * the password for {@link #nickname}. If the server's authenticated this password,
+     * the {@link #gotPassword} flag is set.
      */
     protected String password = null;
 
     /**
-     * true if we've stored the password
+     * true if we've stored the password and the server's replied that it's correct
+     * @see #isNGOFWaitingForAuthStatus
      */
     protected boolean gotPassword;
+
+    /**
+     * true if user clicked "new game" and, before showing {@link NewGameOptionsFrame}, we've
+     * sent the nickname (username) and password to the server and are waiting for a response.
+     *<P>
+     * Used only with TCP servers, not with {@link #practiceServer}.
+     * @since 1.1.19
+     */
+    protected boolean isNGOFWaitingForAuthStatus;
 
     /**
      * face ID chosen most recently (for use in new games)
@@ -396,8 +408,8 @@ public class SOCPlayerClient extends Applet
     protected Vector ignoreList = new Vector();
 
     /**
-     * for local-practice game via {@link #prCli}; not connected to
-     * the network, not suited for multi-player games. Use {@link #localTCPServer}
+     * for local-practice game via {@link #prCli}; not connected to the network,
+     * not suited for hosting multi-player games. Use {@link #localTCPServer}
      * for those.
      * SOCMessages of games where {@link SOCGame#isPractice} is true are sent
      * to practiceServer.
@@ -1106,9 +1118,9 @@ public class SOCPlayerClient extends Applet
         }
         else if (target == ng)  // "New Game" button
         {
-            if (null != getValidNickname(false))  // name check, but don't set nick field yet
+            if (null != getValidNickname(false))  // that method does a name check, but doesn't set nick field yet
             {
-                gameWithOptionsBeginSetup(false);  // Also may set status, WAIT_CURSOR
+                gameWithOptionsBeginSetup(false, false);  // Also may set status, WAIT_CURSOR
             } else {
                 nick.requestFocusInWindow();  // Not a valid player nickname
             }
@@ -1226,7 +1238,7 @@ public class SOCPlayerClient extends Applet
             if (pi.getGame().getGameState() == SOCGame.OVER)
             {
                 // No point joining, just get options to start a new one.
-                gameWithOptionsBeginSetup(true);
+                gameWithOptionsBeginSetup(true, false);
             }
             else
             {
@@ -1262,7 +1274,7 @@ public class SOCPlayerClient extends Applet
                 {
                     status.setText("Starting practice game setup...");
                 }
-                gameWithOptionsBeginSetup(true);  // Also may set WAIT_CURSOR
+                gameWithOptionsBeginSetup(true, false);  // Also may set WAIT_CURSOR
             }
             else
             {
@@ -1291,6 +1303,7 @@ public class SOCPlayerClient extends Applet
      * Validate and return the nickname textfield, or null if blank or not ready.
      * If successful, also set {@link #nickname} field.
      * @param precheckOnly If true, only validate the name, don't set {@link #nickname}.
+     * @see #readValidNicknameAndPassword()
      * @since 1.1.07
      */
     protected String getValidNickname(boolean precheckOnly)
@@ -1369,9 +1382,11 @@ public class SOCPlayerClient extends Applet
      * {@link GameOptionServerSet}.
      *
      * @param forPracticeServer  Ask {@link #practiceServer}, instead of remote tcp server?
+     * @param didAuth  If true, the server has authenticated our username and password;
+     *     set those input fields read-only.
      * @since 1.1.07
      */
-    protected void gameWithOptionsBeginSetup(final boolean forPracticeServer)
+    protected void gameWithOptionsBeginSetup(final boolean forPracticeServer, final boolean didAuth)
     {
         if (newGameOptsFrame != null)
         {
@@ -1379,11 +1394,38 @@ public class SOCPlayerClient extends Applet
             return;
         }
 
+        // Have we authenticated our password?  If not, do so now before creating newGameOptsFrame
+        if ((! (forPracticeServer || gotPassword))
+            && (sVersion >= SOCAuthRequest.VERSION_FOR_AUTHREQUEST))
+        {
+            if (! readValidNicknameAndPassword())
+                return;
+
+            // handleSTATUSMESSAGE(SV_OK) will check the isNGOFWaitingForAuthStatus flag and
+            // call gameWithOptionsBeginSetup again if set.  At that point client.gotPassword
+            // will be true, so we'll bypass this section.
+
+            isNGOFWaitingForAuthStatus = true;
+            status.setText("Talking to server...");
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // NGOF create calls setCursor(DEFAULT_CURSOR)
+            putNet(SOCAuthRequest.toCmd(nickname, password, SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, host));
+
+            return;
+        }
+
+        if (didAuth)
+        {
+            nick.setEditable(false);
+            pass.setText("");
+            pass.setEditable(false);
+        }
+
         GameOptionServerSet opts;
 
         // What server are we going against? Do we need to ask it for options?
         {
-            boolean setKnown = false;
+            boolean fullSetIsKnown = false;
+
             if (forPracticeServer)
             {
                 opts = practiceServGameOpts;
@@ -1396,7 +1438,7 @@ public class SOCPlayerClient extends Applet
                     // The practice server will be started when the player clicks
                     // "Create Game" in the NewGameOptionsFrame, causing the new
                     // game to be requested from askStartGameWithOptions.
-                    setKnown = true;
+                    fullSetIsKnown = true;
                     opts.optionSet = SOCGameOption.getAllKnownOptions();
                 }
             } else {
@@ -1404,12 +1446,12 @@ public class SOCPlayerClient extends Applet
                 if ((! opts.allOptionsReceived) && (sVersion < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
                 {
                     // Server doesn't support them.  Don't ask it.
-                    setKnown = true;
+                    fullSetIsKnown = true;
                     opts.optionSet = null;
                 }
             }
 
-            if (setKnown)
+            if (fullSetIsKnown)
             {
                 opts.allOptionsReceived = true;
                 opts.defaultsReceived = true;
@@ -2319,6 +2361,11 @@ public class SOCPlayerClient extends Applet
      * handle the {@link SOCStatusMessage "status"} message.
      * Used for server events, also used if player tries to join a game
      * but their nickname is not OK.
+     *<P>
+     * Also used (v1.1.19 and newer) as a reply to {@link SOCAuthRequest} sent
+     * before showing {@link NewGameOptionsFrame}, so check whether the
+     * {@link #isNGOFWaitingForAuthStatus} flag is set.
+     *
      * @param mes  the message
      * @param isPractice from practice server, not remote server?
      */
@@ -2335,6 +2382,25 @@ public class SOCPlayerClient extends Applet
 
         // If was trying to join a game, reset cursor from WAIT_CURSOR.
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+
+        // Are we waiting for auth response in order to show NGOF?
+        if ((! isPractice) && isNGOFWaitingForAuthStatus)
+        {
+            isNGOFWaitingForAuthStatus = false;
+
+            if (mes.getStatusValue() == SOCStatusMessage.SV_OK)
+            {
+                gotPassword = true;
+
+                EventQueue.invokeLater(new Runnable()
+                {
+                    public void run()
+                    {
+                        gameWithOptionsBeginSetup(false, true);
+                    }
+                });
+            }
+        }
 
         if (mes.getStatusValue() == SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW)
         {
@@ -5448,7 +5514,7 @@ public class SOCPlayerClient extends Applet
      * {@link SOCGameOption game option defaults}.
      * (in case of slow connection or server bug).
      * Set up when sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}
-     * in {@link SOCPlayerClient#gameWithOptionsBeginSetup(boolean)}.
+     * in {@link SOCPlayerClient#gameWithOptionsBeginSetup(boolean, boolean)}.
      *<P>
      * When timer fires, assume no defaults will be received.
      * Display the new-game dialog.
@@ -5475,7 +5541,7 @@ public class SOCPlayerClient extends Applet
             pcli.gameOptsDefsTask = null;  // Clear reference to this soon-to-expire obj
             srvOpts.noMoreOptions(true);
             if (srvOpts.newGameWaitingForOpts)
-                pcli.gameWithOptionsBeginSetup(forPracticeServer);
+                pcli.gameWithOptionsBeginSetup(forPracticeServer, false);
         }
 
     }  // GameOptionDefaultsTimeoutTask
