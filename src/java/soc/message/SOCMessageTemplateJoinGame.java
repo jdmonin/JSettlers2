@@ -35,6 +35,8 @@ package soc.message;
  */
 public abstract class SOCMessageTemplateJoinGame extends SOCMessage
 {
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
+
     /**
      * symbol to represent a null or empty password over the network, to avoid 2 adjacent field-delimiter characters
      */

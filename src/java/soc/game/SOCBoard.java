@@ -175,6 +175,8 @@ import java.util.Vector;
  */
 public class SOCBoard implements Serializable, Cloneable
 {
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
+
     //
     // Hex types
     //

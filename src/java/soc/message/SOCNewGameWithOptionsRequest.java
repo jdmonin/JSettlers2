@@ -46,6 +46,8 @@ import soc.game.SOCGameOption;
  */
 public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
 {
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
+
     /** won't be null, even if opts is null, due to {@link SOCGameOption#packOptionsToString(Map, boolean)} format. */
     private String optsStr;
 

@@ -59,7 +59,8 @@ package soc.message;
  * For notes on the section you must add to {@link SOCMessage#toMsg(String)},
  * see {@link SOCMessageMulti}.
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 1.1.00
  */
 public abstract class SOCMessageTemplateMi extends SOCMessageMulti
     implements SOCMessageForGame

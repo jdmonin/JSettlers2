@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008 Jeremy D. Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008,2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,10 +28,13 @@ import java.util.StringTokenizer;
  * This won't be sent to robots: robots are assumed to vote yes and go along.
  *
  * @see SOCResetBoardRequest
- * @author Jeremy D. Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 1.1.00
  */
 public class SOCResetBoardVoteRequest extends SOCMessageTemplate1i
 {
+    private static final long serialVersionUID = 1100L;  // last structural change v1.1.00
+
     /**
      * Create a SOCResetBoardVoteRequest message.
      *

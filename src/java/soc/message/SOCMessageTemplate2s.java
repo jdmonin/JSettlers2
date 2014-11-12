@@ -58,7 +58,8 @@ package soc.message;
  *   }
  *</pre></code>
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 1.1.00
  */
 public abstract class SOCMessageTemplate2s extends SOCMessage
     implements SOCMessageForGame

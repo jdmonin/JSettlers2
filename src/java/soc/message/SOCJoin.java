@@ -30,6 +30,8 @@ import java.util.StringTokenizer;
  */
 public class SOCJoin extends SOCMessage
 {
+    private static final long serialVersionUID = 100L;  // last structural change v1.0.0 or earlier
+
     /**
      * symbol to represent a null or empty password over the network, to avoid 2 adjacent field-delimiter characters
      */

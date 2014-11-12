@@ -33,6 +33,8 @@ import java.util.StringTokenizer;
  */
 public class SOCCreateAccount extends SOCMessage
 {
+    private static final long serialVersionUID = 100L;  // last structural change v1.0.0 or earlier
+
     /**
      * symbol to represent a null email
      */

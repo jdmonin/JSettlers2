@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2012,2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,11 +31,13 @@ import soc.game.SOCPlayer;
  * Robot clients don't need to know about or handle this message type,
  * because they don't care about their player stats.
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.09
  */
 public class SOCPlayerStats extends SOCMessageTemplateMi
 {
+    private static final long serialVersionUID = 1109L;  // last structural change v1.1.09
+
     /** Lowest-numbered stats type (1) */
     public static final int STYPE_MIN = 1;
 

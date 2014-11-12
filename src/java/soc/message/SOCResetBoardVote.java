@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008-2009 Jeremy D. Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2009,2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,10 +35,13 @@ import java.util.StringTokenizer;
  * For details of messages sent, see 
  * {@link soc.server.SOCServer#resetBoardAndNotify(String, int)}.
  *
- * @author Jeremy D. Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 1.1.00
  */
 public class SOCResetBoardVote extends SOCMessageTemplate2i
 {
+    private static final long serialVersionUID = 1100L;  // last structural change v1.1.00
+
     /**
      * Create a SOCResetBoardVote message.
      *

@@ -94,6 +94,8 @@ import java.util.StringTokenizer;
  */
 public abstract class SOCMessage implements Serializable, Cloneable
 {
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
+
     /**
      * message type IDs.
      * This list of constants does not provide javadocs, instead please see

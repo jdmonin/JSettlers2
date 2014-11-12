@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008 Jeremy D. Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008,2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,11 +26,13 @@ package soc.message;
  * Follows {@link SOCResetBoardRequest}, and then usually {@link SOCResetBoardVote}, messages.
  *
  * @see SOCResetBoardRequest
- * @author Jeremy D. Monin <jeremy@nand.net>
- *
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 1.1.00
  */
 public class SOCResetBoardReject extends SOCMessageTemplate0
 {
+    private static final long serialVersionUID = 1100L;  // last structural change v1.1.00
+
     /**
      * Create a SOCResetBoardReject message.
      *

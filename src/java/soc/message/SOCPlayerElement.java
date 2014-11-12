@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,6 +35,8 @@ import java.util.StringTokenizer;
 public class SOCPlayerElement extends SOCMessage
     implements SOCMessageForGame
 {
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
+
     /**
      * player element types.  CLAY has same value
      * as {@link soc.game.SOCResourceConstants#CLAY};
