@@ -34,7 +34,7 @@ import java.util.StringTokenizer;
  * Before 1.1.06, in SOCPlayerClient, was sent first from server to client, then client responds.
  * Robot clients always sent first (since introduction in 1.1.00 of client-server versioning (2008-08-07)).
  *
- * @version 1.1.06
+ * @version 2.0.00
  * @since 1.1.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
@@ -74,9 +74,15 @@ public class SOCVersion extends SOCMessage
      * @param verBuild The version build, or null, as in {@link soc.util.Version#buildnum()}
      * @param verLocale The client's JVM locale, or null, as in {@link java.util.Locale#toString()};
      *                  not sent by jsettlers clients older than 2.0.00.
+     * @throws IllegalArgumentException if {@code verBuild} is null and {@code verLocale} != null;
+     *     not supported by message encoding.
      */
     public SOCVersion(final int verNum, final String verStr, final String verBuild, final String verLocale)
+        throws IllegalArgumentException
     {
+        if ((verBuild == null) && (verLocale != null))
+            throw new IllegalArgumentException("null verBuild, non-null verLocale");
+
         messageType = VERSION;
         versNum = verNum;
         versStr = verStr;
@@ -127,9 +133,15 @@ public class SOCVersion extends SOCMessage
      * @param verLocale The client's JVM locale, or null, as in {@link java.util.Locale#toString()};
      *                  not sent by jsettlers clients older than 2.0.00.
      * @return    the command string
+     * @throws IllegalArgumentException if {@code verBuild} is null and {@code verLocale} != null;
+     *     not supported by message encoding.
      */
     public static String toCmd(final int verNum, final String verStr, final String verBuild, final String verLocale)
+        throws IllegalArgumentException
     {
+        if ((verBuild == null) && (verLocale != null))
+            throw new IllegalArgumentException("null verBuild, non-null verLocale");
+
         return VERSION + sep + verNum + sep2 + verStr
             + sep2 + (verBuild != null ? verBuild : "")
             + sep2 + (verLocale != null ? verLocale : "");
@@ -181,8 +193,8 @@ public class SOCVersion extends SOCMessage
     public String toString()
     {
         return "SOCVersion:" + versNum + ",str=" + versStr + ",verBuild="
-            + (versBuild != null ? versBuild : "(null)"
-            + ",locale=" + (locale != null ? locale : "(null)"));
+            + (versBuild != null ? versBuild : "(null)")
+            + ",locale=" + (locale != null ? locale : "(null)");
     }
 
     /**
