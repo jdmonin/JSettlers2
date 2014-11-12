@@ -121,7 +121,7 @@ public class SOCJoin extends SOCMessage
      * JOIN sep nickname sep2 password sep2 host sep2 channel
      *
      * @param nn  the nickname
-     * @param pw  the password
+     * @param pw  the optional password, or "" if none
      * @param hn  the server host name
      * @param ch  the channel name
      * @return    the command string

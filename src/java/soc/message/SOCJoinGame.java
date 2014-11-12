@@ -42,7 +42,7 @@ public class SOCJoinGame extends SOCMessageTemplateJoinGame
      * Create a Join Game message.
      *
      * @param nn  nickname
-     * @param pw  password
+     * @param pw  optional password, or "" if none
      * @param hn  server host name to which client is connecting
      * @param ga  name of the game
      */
