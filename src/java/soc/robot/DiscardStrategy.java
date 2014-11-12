@@ -28,7 +28,6 @@ import java.util.Stack;
 
 // import org.apache.log4j.Logger;
 
-import soc.disableDebug.D;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
