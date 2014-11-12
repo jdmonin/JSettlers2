@@ -342,20 +342,20 @@ public class SOCServer extends Server
 
     // These AUTH_OR_REJECT constants are int not enum for backwards compatibility with 1.1.xx (java 1.4)
 
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
+    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean) authOrRejectClientUser(....)}
      *  result: Failed authentication, failed name validation, or name is already logged in and that
      *  connection hasn't timed out yet
      *  @since 1.1.19
      */
     private static final int AUTH_OR_REJECT__FAILED = 1;
 
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
+    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean) authOrRejectClientUser(....)}
      *  result: Authentication succeeded
      *  @since 1.1.19
      */
     private static final int AUTH_OR_REJECT__OK = 2;
 
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
+    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean) authOrRejectClientUser(....)}
      *  result: Taking over another connection
      *  @since 1.1.19
      */
@@ -4200,7 +4200,7 @@ public class SOCServer extends Server
     /**
      * Check that the username and password (if any) is okay: Length versus {@link #PLAYER_NAME_MAX_LENGTH}, name
      * in use but not timed out versus takeover, etc. Calls {@link #checkNickname(String, StringConnection, boolean)}
-     * and {@link #authenticateUser(StringConnection, String, String, boolean)}.
+     * and {@link #authenticateUser(StringConnection, String, String)}.
      *<P>
      * If not okay, sends client a {@link SOCStatusMessage} with an appropriate status code.
      *<P>
@@ -4213,21 +4213,18 @@ public class SOCServer extends Server
      *
      * @param c  Client's connection
      * @param msgUser  Client username (nickname) to validate and authenticate
-     * @param msgPass  Password to supply to {@link #authenticateUser(StringConnection, String, String, boolean)},
+     * @param msgPass  Password to supply to {@link #authenticateUser(StringConnection, String, String)},
      *     or ""; please trim string before calling
      * @param cliVers  Client version, from {@link StringConnection#getVersion()}
      * @param allowTakeover  True if the new connection can "take over" an older connection in response to the
      *     message it sent.  If true, the caller must be prepared to send all game info/channel info that the
      *     old connection had joined, so the new connection has full info to participate in them.
-     * @param allowNameNotFound  True if server can reply with {@link SOCStatusMessage#SV_NAME_NOT_FOUND};
-     *     if false, {@link SOCStatusMessage#SV_PW_WRONG} is sent instead
      * @return  Result of the auth check: {@link #AUTH_OR_REJECT__FAILED},
      *     {@link #AUTH_OR_REJECT__OK}, or (only if {@code allowTakeover}) {@link #AUTH_OR_REJECT__TAKING_OVER}
      * @since 1.1.19
      */
     private int authOrRejectClientUser
-        (StringConnection c, final String msgUser, String msgPass, final int cliVers,
-         final boolean allowTakeover, final boolean allowNameNotFound)
+        (StringConnection c, final String msgUser, String msgPass, final int cliVers, final boolean allowTakeover)
     {
         if (c.getData() != null)
         {
@@ -4288,7 +4285,7 @@ public class SOCServer extends Server
         /**
          * password check new connection from database, if not done already and if possible
          */
-        if (! authenticateUser(c, msgUser, msgPass, allowNameNotFound))
+        if (! authenticateUser(c, msgUser, msgPass))
         {
             return AUTH_OR_REJECT__FAILED;  // <---- Early return: Password auth failed ----
         }
@@ -4314,12 +4311,9 @@ public class SOCServer extends Server
      * @param c         the user's connection
      * @param userName  the user's nickname
      * @param password  the user's password; trim before calling
-     * @param allowNameNotFound  True if server can reply with {@link SOCStatusMessage#SV_NAME_NOT_FOUND};
-     *     if false, {@link SOCStatusMessage#SV_PW_WRONG} is sent instead
      * @return true if the user has been authenticated
      */
-    private boolean authenticateUser
-        (StringConnection c, final String userName, final String password, final boolean allowNameNotFound)
+    private boolean authenticateUser(StringConnection c, final String userName, final String password)
     {
         String userPassword = null;
 
@@ -4348,18 +4342,15 @@ public class SOCServer extends Server
             // (Or, no database connected.)
             // If they supplied a password, it won't work here.
 
-            replySV = (allowNameNotFound) ? SOCStatusMessage.SV_NAME_NOT_FOUND : SOCStatusMessage.SV_PW_WRONG;
+            replySV = SOCStatusMessage.SV_PW_WRONG;
         }
 
         if (replySV != 0)
         {
-            final String txt;  // I18N TODO: Check client; might already substitute text based on SV value
-            if (replySV == SOCStatusMessage.SV_NAME_NOT_FOUND)
-                txt = /*I*/"No user with the nickname '" + userName + "' is registered with the system." /*18N*/;
-            else
-                txt = /*I*/"Incorrect password for '" + userName + "'." /*18N*/;
+            final String txt  // I18N TODO: Check client; might already substitute text based on SV value
+                = /*I*/"Incorrect password for '" + userName + "'." /*18N*/;
 
-            c.put(SOCStatusMessage.toCmd(replySV, c.getVersion(), txt ));
+            c.put(SOCStatusMessage.toCmd(replySV, c.getVersion(), txt));
             return false;
         }
 
@@ -4572,7 +4563,7 @@ public class SOCServer extends Server
         /**
          * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
          */
-        final int authResult = authOrRejectClientUser(c, msgUser, msgPass, cliVers, false, true);
+        final int authResult = authOrRejectClientUser(c, msgUser, msgPass, cliVers, false);
         if (authResult == AUTH_OR_REJECT__FAILED)
             return;  // <---- Early return ----
 
@@ -5078,7 +5069,7 @@ public class SOCServer extends Server
                 return;
             }
 
-            final int authResult = authOrRejectClientUser(c, mes.nickname, mes.password, cliVersion, false, false);
+            final int authResult = authOrRejectClientUser(c, mes.nickname, mes.password, cliVersion, false);
 
             if (authResult == AUTH_OR_REJECT__FAILED)
                 return;  // <---- Early return; authOrRejectClientUser sent the status message ----
@@ -5180,7 +5171,7 @@ public class SOCServer extends Server
         /**
          * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
          */
-        final int authResult = authOrRejectClientUser(c, msgUser, msgPass, cliVers, true, true);
+        final int authResult = authOrRejectClientUser(c, msgUser, msgPass, cliVers, true);
         if (authResult == AUTH_OR_REJECT__FAILED)
             return;  // <---- Early return ----
 
