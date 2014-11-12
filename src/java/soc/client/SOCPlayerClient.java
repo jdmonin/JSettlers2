@@ -1425,10 +1425,12 @@ public class SOCPlayerClient
                 if (! readValidNicknameAndPassword())
                     return;
 
-                // handleSTATUSMESSAGE(SV_OK) will check this flag and call gameWithOptionsBeginSetup again if set.
-                // At that point client.gotPassword will be true, so we'll bypass this section.
+                // handleSTATUSMESSAGE(SV_OK) will check the isNGOFWaitingForAuthStatus flag and
+                // call gameWithOptionsBeginSetup again if set.  At that point client.gotPassword
+                // will be true, so we'll bypass this section.
 
                 client.isNGOFWaitingForAuthStatus = true;
+                status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // NGOF create calls setCursor(DEFAULT_CURSOR)
                 client.net.putNet
                     (SOCAuthRequest.toCmd(client.nickname, client.password,
@@ -3132,6 +3134,7 @@ public class SOCPlayerClient
      * handle the {@link SOCStatusMessage "status"} message.
      * Used for server events, also used if player tries to join a game
      * but their nickname is not OK.
+     *<P>
      * Also used (v1.1.19 and newer) as a reply to {@link SOCAuthRequest} sent
      * before showing {@link NewGameOptionsFrame}, so check whether the
      * {@link SOCPlayerClient#isNGOFWaitingForAuthStatus isNGOFWaitingForAuthStatus client.isNGOFWaitingForAuthStatus}
@@ -3154,6 +3157,7 @@ public class SOCPlayerClient
 
         gameDisplay.showStatus(statusText, srvDebugMode);
 
+        // Are we waiting for auth response in order to show NGOF?
         if ((! isPractice) && client.isNGOFWaitingForAuthStatus)
         {
             client.isNGOFWaitingForAuthStatus = false;
