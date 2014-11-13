@@ -6470,6 +6470,17 @@ public class SOCServer extends Server
     {
         final int cliVers = c.getVersion();
 
+        if (! SOCDBHelper.isInitialized())
+        {
+            // Use same SV_ status code as previous versions (before 1.1.19) which didn't check isInitialized
+            // but instead fell through and sent "Account not created due to error."
+
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_ACCT_NOT_CREATED_ERR, cliVers,
+                     c.getLocalized("account.common.no_accts")));  // "This server does not use accounts and passwords."
+            return;
+        }
+
         //
         // check to see if the requested nickname is permissable,
         // and if there is an account with that requested nickname.

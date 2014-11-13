@@ -20,6 +20,8 @@
  **/
 package soc.message;
 
+import soc.util.SOCServerFeatures;  // for javadocs only
+
 
 /**
  * This is a text message that shows in a status box on the client.
@@ -106,7 +108,7 @@ public class SOCStatusMessage extends SOCMessage
     public static final int SV_CANT_JOIN_GAME_VERSION = 5;
 
     /**
-     * Cannot log in due to a database problem = 6
+     * Cannot log in or create account due to a temporary database problem = 6
      * @since 1.1.06
      */
     public static final int SV_PROBLEM_WITH_DB = 6;
@@ -119,7 +121,10 @@ public class SOCStatusMessage extends SOCMessage
 
     /**
      * For account creation, an error prevented the account from
-     * being created = 8
+     * being created, or server doesn't use accounts, = 8.
+     *<P>
+     * To see whether a server v1.1.19 or newer uses accounts and passwords, check
+     * its {@link SOCServerFeatures} sent to the client during connection.
      * @since 1.1.06
      */
     public static final int SV_ACCT_NOT_CREATED_ERR = 8;
