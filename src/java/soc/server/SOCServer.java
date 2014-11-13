@@ -38,6 +38,7 @@ import soc.util.I18n;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;  // used in javadoc
 import soc.util.SOCRobotParameters;
+import soc.util.SOCServerFeatures;
 import soc.util.SOCStringManager;
 import soc.util.Version;
 
@@ -328,6 +329,12 @@ public class SOCServer extends Server
      * Maximum number of chat channels that a client can create at the same time (default 2).
      * Once this limit is reached, the client must delete a channel before creating a new one.
      * Set this to -1 to disable it; 0 will disallow any chat channel creation.
+     *<P>
+     * If this field is nonzero when the server is initialized, the server calls
+     * {@link SOCServerFeatures#add(String) features.add}({@link SOCServerFeatures#FEAT_CHANNELS}).
+     * If the field value is changed afterwards, that affects new clients joining the server
+     * but does not clear {@code FEAT_CHANNELS} from the {@code features} list.
+     *
      * @since 1.1.10
      */
     public static int CLIENT_MAX_CREATE_CHANNELS = 2;
@@ -389,11 +396,19 @@ public class SOCServer extends Server
     /**
      * Properties for the server, or empty if that constructor wasn't used.
      * Property names are held in PROP_* and SOCDBHelper.PROP_* constants.
+     * Some properties activate optional {@link #features}.
      * @see #SOCServer(int, Properties)
      * @see #PROPS_LIST
      * @since 1.1.09
      */
     private Properties props;
+
+    /**
+     * Active optional server features, if any.
+     * Features are activated through the command line or {@link #props}.
+     * @since 1.1.19
+     */
+    private SOCServerFeatures features = new SOCServerFeatures(false);
 
     /**
      * Game type handler, currently shared by all game instances.
@@ -832,6 +847,7 @@ public class SOCServer extends Server
         try
         {
             SOCDBHelper.initialize(databaseUserName, databasePassword, props);
+            features.add(SOCServerFeatures.FEAT_USERS);
             System.err.println("User database initialized.");
 
             if (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
@@ -939,6 +955,9 @@ public class SOCServer extends Server
                     throw new IllegalArgumentException(errmsg);
                 }            
         }
+
+        if (CLIENT_MAX_CREATE_CHANNELS != 0)
+            features.add(SOCServerFeatures.FEAT_CHANNELS);
 
         /**
          * Start various threads.
@@ -3199,7 +3218,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send welcome messages (server version, and the lists of channels and games
+     * Send welcome messages (server version and features, and the lists of channels and games
      * ({@link SOCChannels}, {@link SOCGames})) when a new
      * connection comes, part 2 - c has been accepted and added to a connection list.
      * Unlike {@link #newConnection1(StringConnection)},
@@ -3217,7 +3236,8 @@ public class SOCServer extends Server
         c.setAppData(cdata);
 
         // VERSION of server
-        c.put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
+        c.put(SOCVersion.toCmd
+            (Version.versionNumber(), Version.version(), Version.buildnum(), features.getEncodedList()));
 
         // CHANNELS
         Vector<String> cl = new Vector<String>();
@@ -4399,7 +4419,7 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
-        setClientVersSendGamesOrReject(c, mes.getVersionNumber(), mes.locale, true);
+        setClientVersSendGamesOrReject(c, mes.getVersionNumber(), mes.localeOrFeats, true);
     }
 
     /**

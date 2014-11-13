@@ -46,6 +46,7 @@ import soc.game.SOCVillage;
 import soc.message.*;
 import soc.robot.SOCRobotClient;
 import soc.server.genericServer.LocalStringConnection;
+import soc.util.SOCServerFeatures;
 import soc.util.Version;
 
 import java.io.DataInputStream;
@@ -92,6 +93,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * {@link #sLocalVersion} should always equal our own version.
      */
     protected int sVersion, sLocalVersion;
+
+    /**
+     * Server's active optional features, sent soon after connect, or null if unknown.
+     * {@link #sLocalFeatures} goes with our locally hosted server, if any.
+     * @since 1.1.19
+     */
+    protected SOCServerFeatures sFeatures, sLocalFeatures;
+
     protected Thread reader = null;
     protected Exception ex = null;
     protected boolean connected = false;
@@ -824,10 +833,19 @@ public class SOCDisplaylessPlayerClient implements Runnable
     {
         D.ebugPrintln("handleVERSION: " + mes);
         int vers = mes.getVersionNumber();
+        final SOCServerFeatures feats =
+            (vers >= SOCServerFeatures.VERSION_FOR_SERVERFEATURES)
+            ? new SOCServerFeatures(mes.localeOrFeats)
+            : new SOCServerFeatures(true);
+
         if (isLocal)
+        {
             sLocalVersion = vers;
-        else
+            sLocalFeatures = feats;
+        } else {
             sVersion = vers;
+            sFeatures = feats;
+        }
 
         final int ourVers = Version.versionNumber();
         if (vers != ourVers)

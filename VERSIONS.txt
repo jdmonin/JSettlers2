@@ -51,6 +51,7 @@ new features, until 2.0.00 is ready.
 - Client Connect to Server, Start Server screens: If port number field is empty, use default 8880
 - Check client password when "New game" is clicked, not after filling out game options
 - Security: Reply with "incorrect password" when username doesn't exist in server's database
+- When client connects, server sends list of its active optional features
 - Bugfix in version tracking when player joins and replaces only bot in a game in progress
 - Bots connecting require a security cookie, randomly generated at server startup.
      The built-in bots started automatically by SOCServer will know the cookie value.

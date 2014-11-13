@@ -97,6 +97,7 @@ import soc.server.genericServer.StringConnection;
 
 import soc.util.I18n;
 import soc.util.SOCGameList;
+import soc.util.SOCServerFeatures;
 import soc.util.SOCStringManager;
 import soc.util.Version;
 
@@ -186,6 +187,14 @@ public class SOCPlayerClient
     protected int sVersion;
 
     /**
+     * Server's active optional features, sent soon after connect, or null if unknown.
+     * Not used with a local practice server, so always check {@link SOCGame#isPractice} before checking this field.
+     * @see #tcpServGameOpts
+     * @since 1.1.19
+     */
+    protected SOCServerFeatures sFeatures;
+
+    /**
      * Track the game options available at the remote server, at the practice server.
      * Initialized by {@link SOCPlayerClient.GameAwtDisplay#gameWithOptionsBeginSetup(boolean, boolean)}
      * and/or {@link MessageTreater#handleVERSION(boolean, SOCVersion)}.
@@ -195,6 +204,7 @@ public class SOCPlayerClient
      * and the client/server interaction about their values, see
      * {@link GameOptionServerSet}'s javadoc.
      *
+     * @see #sFeatures
      * @since 1.1.07
      */
     protected GameOptionServerSet tcpServGameOpts = new GameOptionServerSet(),
@@ -3052,9 +3062,14 @@ public class SOCPlayerClient
     {
         D.ebugPrintln("handleVERSION: " + mes);
         int vers = mes.getVersionNumber();
+
         if (! isPractice)
         {
             sVersion = vers;
+            sFeatures = (vers >= SOCServerFeatures.VERSION_FOR_SERVERFEATURES)
+                ? new SOCServerFeatures(mes.localeOrFeats)
+                : new SOCServerFeatures(true);
+
             gameDisplay.showVersion(vers, mes.getVersionString(), mes.getBuild());
         }
 
