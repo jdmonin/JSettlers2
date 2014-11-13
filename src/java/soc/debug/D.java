@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2012,2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -98,7 +98,7 @@ public class D
      * Calls {@link #ebugPrintln(String)}.
      * @param text Text to debug-print
      */
-    public static final void debug(String text) { ebugPrintln(text); }
+    public final void debug(String text) { ebugPrintln(text); }
 
     /**
      * If debug is enabled, print the stack trace of this exception
