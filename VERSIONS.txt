@@ -61,6 +61,7 @@ new features, until 2.0.00 is ready.
 - Server command line game option settings: Also allow y or Y for boolean options
 - Server command line: Exit if any -D or -o parameter appears more than once
 - On server startup, exit if a database URL is given but SOCServer can't connect to the database.
+- Account creation: Check that the optional user-accounts server feature is active when connecting from account client
 - Account creation: Check that requested username contains no reserved characters at server and client
 
     > 1.1.18 (build OV20130402)
