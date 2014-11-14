@@ -66,12 +66,19 @@ public class SOCCreateAccount extends SOCMessage
      * @param nn  nickname  Nickname (username) to give to requested account.
      *     The name must pass {@link SOCMessage#isSingleLineAndSafe(String)}
      *     in server v1.1.19 and higher.
-     * @param pw  password
-     * @param hn  host name
+     * @param pw  password; must not be null or ""
+     * @param hn  host name; must not be null or ""
      * @param em  email
+     * @throws IllegalArgumentException if {@code pw} or {@code hn} are null or empty ("")
      */
     public SOCCreateAccount(String nn, String pw, String hn, String em)
+        throws IllegalArgumentException
     {
+        if ((pw == null) || (pw.length() == 0))
+            throw new IllegalArgumentException("pw");
+        if ((hn == null) || (hn.length() == 0))
+            throw new IllegalArgumentException("hn");
+
         messageType = CREATEACCOUNT;
         nickname = nn;
         password = pw;
@@ -128,13 +135,20 @@ public class SOCCreateAccount extends SOCMessage
      * CREATEACCOUNT sep nickname sep2 password sep2 host sep2 email
      *
      * @param nn  the nickname
-     * @param pw  the password
-     * @param hn  the host name
+     * @param pw  the password; must not be null or ""
+     * @param hn  the host name; must not be null or ""
      * @param em  the email
      * @return    the command string
+     * @throws IllegalArgumentException if {@code pw} or {@code hn} are null or empty ("")
      */
     public static String toCmd(String nn, String pw, String hn, String em)
+        throws IllegalArgumentException
     {
+        if ((pw == null) || (pw.length() == 0))
+            throw new IllegalArgumentException("pw");
+        if ((hn == null) || (hn.length() == 0))
+            throw new IllegalArgumentException("hn");
+
         String tempem;
 
         if (em == null)
