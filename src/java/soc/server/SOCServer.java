@@ -847,7 +847,7 @@ public class SOCServer extends Server
         try
         {
             SOCDBHelper.initialize(databaseUserName, databasePassword, props);
-            features.add(SOCServerFeatures.FEAT_USERS);
+            features.add(SOCServerFeatures.FEAT_ACCTS);
             System.err.println("User database initialized.");
 
             if (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
