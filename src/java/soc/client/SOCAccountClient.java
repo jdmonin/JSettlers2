@@ -579,7 +579,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
             ? new SOCServerFeatures(mes.feats)
             : new SOCServerFeatures(true);
 
-        if (! sFeatures.isActive(SOCServerFeatures.FEAT_USERS))
+        if (! sFeatures.isActive(SOCServerFeatures.FEAT_ACCTS))
         {
             disconnect();
 

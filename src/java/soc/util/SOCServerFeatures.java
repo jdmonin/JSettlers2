@@ -22,9 +22,11 @@ package soc.util;
 /**
  * Set of optional server features that are currently active.
  * Sent from server to client during connect via {@link soc.message.SOCVersion} fields.
- * Added in v1.1.19; earlier clients assume the server has the two features defined in 1.1.19.
+ *<P>
+ * Added in v1.1.19; earlier clients assume the server is using the features defined in 1.1.19.
  * Use the {@link #SOCServerFeatures(boolean) SOCServerFeatures(true)} constructor when connecting
- * to a server older than 1.1.19.
+ * to a server older than 1.1.19. See that constructor's javadoc for the list of features always assumed
+ * active before 1.1.19.
  *<P>
  * Feature names are kept simple (lowercase alphanumerics, underscore, dash) for encoding into network message fields.
  *<P>
@@ -39,11 +41,11 @@ public class SOCServerFeatures
     public static final int VERSION_FOR_SERVERFEATURES = 1119;
 
     /**
-     * Users defined in a persistent database.
+     * User accounts defined in a persistent database.
      * If this feature is active, nicknames and passwords are authenticated.
      * Otherwise there are no passwords defined.
      */
-    public static final String FEAT_USERS = "users";
+    public static final String FEAT_ACCTS = "accts";
 
     /**
      * Chat channels.
@@ -51,6 +53,13 @@ public class SOCServerFeatures
      * Otherwise no channels are allowed.
      */
     public static final String FEAT_CHANNELS = "ch";
+
+    /**
+     * Open registration.
+     * If this feature is active, anyone can create their own user accounts.
+     * Otherwise only existing users can create new users.
+     */
+    public static final String FEAT_OPEN_REG = "oreg";
 
     /**
      * Separator character ';' between features in {@link #featureList}.
@@ -69,15 +78,15 @@ public class SOCServerFeatures
      * After construction, use {@link #add(String)} to add active features.
      * @param withOldDefaults  If false, nothing is active. If true, include the default features
      *     which were assumed always active in servers older than v1.1.19:
-     *     {@link #FEAT_CHANNELS}, {@link #FEAT_USERS}.
+     *     {@link #FEAT_ACCTS}, {@link #FEAT_CHANNELS}, {@link #FEAT_OPEN_REG}.
      */
     public SOCServerFeatures(final boolean withOldDefaults)
     {
         if (withOldDefaults)
         {
-            featureList = SEP_CHAR + FEAT_CHANNELS + SEP_CHAR + FEAT_USERS + SEP_CHAR;
+            featureList = SEP_CHAR + FEAT_ACCTS + SEP_CHAR + FEAT_CHANNELS + SEP_CHAR + FEAT_OPEN_REG + SEP_CHAR;
         } else {
-            // featureList is already null
+            // featureList is already empty (null).
         }
     }
 
@@ -104,7 +113,7 @@ public class SOCServerFeatures
 
     /**
      * Is this feature active?
-     * @param featureName  A defined feature name, such as {@link #FEAT_USERS}
+     * @param featureName  A defined feature name, such as {@link #FEAT_ACCTS}
      * @return  True if <tt>featureName</tt> is in the features list
      * @throws IllegalArgumentException if <tt>featureName</tt> is null or ""
      */
@@ -122,7 +131,7 @@ public class SOCServerFeatures
 
     /**
      * Add this active feature.
-     * @param featureName  A defined feature name, such as {@link #FEAT_USERS}
+     * @param featureName  A defined feature name, such as {@link #FEAT_ACCTS}
      * @throws IllegalArgumentException if <tt>featureName</tt> is null or ""
      */
     public void add(final String featureName)
@@ -150,7 +159,7 @@ public class SOCServerFeatures
      * Human-readable representation of active features.
      * Based on super.toString + featureList. Possible Formats:
      *<UL>
-     * <LI> soc.util.SOCServerFeatures@86c347{;ch;users;}
+     * <LI> soc.util.SOCServerFeatures@86c347{;accts;ch;}
      * <LI> soc.util.SOCServerFeatures@f7e6a96{(empty)}
      *</UL>
      */
