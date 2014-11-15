@@ -193,6 +193,7 @@ public class SOCDBHelper
     private static String LASTLOGIN_UPDATE = "UPDATE users SET lastlogin = ?  WHERE nickname = ? ;";
     private static String SAVE_GAME_COMMAND = "INSERT INTO games VALUES (?,?,?,?,?,?,?,?,?,?);";
     private static String ROBOT_PARAMS_QUERY = "SELECT * FROM robotparams WHERE robotname = ?;";
+    private static final String USER_COUNT_QUERY = "SELECT count(*) FROM users;";
 
     private static PreparedStatement createAccountCommand = null;
     private static PreparedStatement recordLoginCommand = null;
@@ -205,6 +206,11 @@ public class SOCDBHelper
      *  Used in {@link #retrieveRobotParams(String)}.
      */
     private static PreparedStatement robotParamsQuery = null;
+
+    /** Query how many users, if any, exist in the users table; {@link #USER_COUNT_QUERY}.
+     *  @since 1.1.19
+     */
+    private static PreparedStatement userCountQuery = null;
 
     /**
      * This makes a connection to the database
@@ -425,6 +431,7 @@ public class SOCDBHelper
         lastloginUpdate = connection.prepareStatement(LASTLOGIN_UPDATE);
         saveGameCommand = connection.prepareStatement(SAVE_GAME_COMMAND);
         robotParamsQuery = connection.prepareStatement(ROBOT_PARAMS_QUERY);
+        userCountQuery = connection.prepareStatement(USER_COUNT_QUERY);
 
         return true;
     }
@@ -928,6 +935,40 @@ public class SOCDBHelper
     }
 
     /**
+     * Count the number of users, if any, currently in the users table.
+     * @return User count, or -1 if not connected.
+     * @throws SQLException if unexpected problem retrieving the params
+     * @since 1.1.19
+     */
+    public static int countUsers()
+        throws SQLException
+    {
+        if (! checkConnection())
+            return -1;
+
+        if (userCountQuery == null)
+            return -1;  // <--- Early return: Table not found in db, is probably empty ---
+
+        try
+        {
+            ResultSet resultSet = userCountQuery.executeQuery();
+
+            int count = -1;
+            if (resultSet.next())
+                count = resultSet.getInt(1);
+
+            resultSet.close();
+            return count;
+        }
+        catch (SQLException sqlE)
+        {
+            errorCondition = true;
+            sqlE.printStackTrace();
+            throw sqlE;
+        }
+    }
+
+    /**
      * Query to see if a column exists in a table.
      * Any exception is caught here and returns false.
      * @param tabname  Table name to check <tt>colname</tt> within; case-sensitive in some db types
@@ -1019,6 +1060,7 @@ public class SOCDBHelper
                 lastloginUpdate.close();
                 saveGameCommand.close();
                 robotParamsQuery.close();
+                userCountQuery.close();
             }
             catch (Throwable thr)
             {

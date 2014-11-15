@@ -57,7 +57,7 @@ public class SOCServerFeatures
     /**
      * Open registration.
      * If this feature is active, anyone can create their own user accounts.
-     * Otherwise only existing users can create new users.
+     * Otherwise only existing users can create new accounts.
      */
     public static final String FEAT_OPEN_REG = "oreg";
 
@@ -109,6 +109,18 @@ public class SOCServerFeatures
         }
 
         featureList = encodedList;
+    }
+
+    /**
+     * Create a new SOCServerFeatures by copying another.
+     * @param feats  Copy from this to create the new SOCServerFeatures
+     * @throws NullPointerException if {@code feats} == null
+     */
+    public SOCServerFeatures(SOCServerFeatures feats)
+        throws NullPointerException
+    {
+        super();
+        featureList = feats.featureList;
     }
 
     /**

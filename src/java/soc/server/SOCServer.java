@@ -190,6 +190,19 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_STARTROBOTS = "jsettlers.startrobots";
 
     /**
+     * Boolean property {@code jsettlers.accounts.open} to permit open registration.
+     * If this property is Y, anyone can create their own user accounts.
+     * Otherwise only existing users can create new accounts.
+     *<P>
+     * The default is N in version 1.1.19 and newer; previously was Y by default.
+     *<P>
+     * If this field is Y when the server is initialized, the server calls
+     * {@link SOCServerFeatures#add(String) features.add}({@link SOCServerFeatures#FEAT_OPEN_REG}).
+     * @since 1.1.19
+     */
+    public static final String PROP_JSETTLERS_ACCOUNTS_OPEN = "jsettlers.accounts.open";
+
+    /**
      * Property <tt>jsettlers.allow.debug</tt> to permit debug commands over TCP.
      * (The default is N; to allow, set to Y)
      * @since 1.1.14
@@ -200,7 +213,10 @@ public class SOCServer extends Server
      * Property <tt>jsettlers.client.maxcreategames</tt> to limit the amount of
      * games that a client can create at once. (The default is 5.)
      * Once a game is completed and deleted (all players leave), they can create another.
+     * Set this to -1 to disable it; 0 will disallow any game creation.
+     * This limit is ignored for practice games.
      * @since 1.1.10
+     * @see #CLIENT_MAX_CREATE_GAMES
      */
     public static final String PROP_JSETTLERS_CLI_MAXCREATEGAMES = "jsettlers.client.maxcreategames";
 
@@ -208,7 +224,10 @@ public class SOCServer extends Server
      * Property <tt>jsettlers.client.maxcreatechannels</tt> to limit the amount of
      * chat channels that a client can create at once. (The default is 2.)
      * Once a channel is deleted (all members leave), they can create another.
+     * Set this to -1 to disable it; 0 will disallow any chat channel creation.
      * @since 1.1.10
+     * @see #CLIENT_MAX_CREATE_CHANNELS
+     * @see SOCServerFeatures#FEAT_CHANNELS
      */
     public static final String PROP_JSETTLERS_CLI_MAXCREATECHANNELS = "jsettlers.client.maxcreatechannels";
 
@@ -226,6 +245,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_PORT,     "TCP port number for server to bind to",
         PROP_JSETTLERS_CONNECTIONS,   "Maximum connection count, including robots (default " + SOC_MAXCONN_DEFAULT + ")",
         PROP_JSETTLERS_STARTROBOTS,   "Number of robots to create at startup (default " + SOC_STARTROBOTS_DEFAULT + ")",
+        PROP_JSETTLERS_ACCOUNTS_OPEN, "Permit open self-registration of new user accounts? (if Y and using a database)",
         PROP_JSETTLERS_ALLOW_DEBUG,   "Allow remote debug commands? (if Y)",
         PROP_JSETTLERS_CLI_MAXCREATECHANNELS,   "Maximum simultaneous channels that a client can create",
         PROP_JSETTLERS_CLI_MAXCREATEGAMES,      "Maximum simultaneous games that a client can create",
@@ -322,6 +342,7 @@ public class SOCServer extends Server
      * Set this to -1 to disable it; 0 will disallow any game creation.
      * This limit is ignored for practice games.
      * @since 1.1.10
+     * @see #PROP_JSETTLERS_CLI_MAXCREATEGAMES
      */
     public static int CLIENT_MAX_CREATE_GAMES = 5;
 
@@ -336,6 +357,7 @@ public class SOCServer extends Server
      * but does not clear {@code FEAT_CHANNELS} from the {@code features} list.
      *
      * @since 1.1.10
+     * @see #PROP_JSETTLERS_CLI_MAXCREATECHANNELS
      */
     public static int CLIENT_MAX_CREATE_CHANNELS = 2;
 
@@ -415,6 +437,22 @@ public class SOCServer extends Server
      * @since 2.0.00
      */
     private final SOCGameHandler handler = new SOCGameHandler(this);
+
+    /**
+     * Server internal flag to indicate that user accounts are active, and authentication
+     * is required to create accounts, and there aren't any accounts in the database yet.
+     * (Server's active features include {@link SOCServerFeatures#FEAT_ACCTS} but not
+     * {@link SOCServerFeatures#FEAT_OPEN_REG}.) This flag is set at startup, instead of
+     * querying {@link SOCDBHelper#countUsers()} every time a client connects.
+     *<P>
+     * Used for signaling to {@code SOCAccountClient} that it shouldn't ask for a
+     * password when connecting to create the first account, by sending the client
+     * {@link SOCServerFeatures#FEAT_OPEN_REG} along with the actually active features.
+     *<P>
+     * The first successful account creation will clear this flag.
+     * @since 1.1.19
+     */
+    private boolean acctsNotOpenRegButNoUsers;
 
     /**
      * JM temp - generated password to allow clean server shutdown.
@@ -854,6 +892,16 @@ public class SOCServer extends Server
             {
                 // the sql script was ran by initialize
                 throw new EOFException("DB setup script successful");
+            }
+
+            // open reg for user accounts?  if not, see if we have any yet
+            if (init_getBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_OPEN, false))
+            {
+                features.add(SOCServerFeatures.FEAT_OPEN_REG);
+                System.err.println("User database Open Registration is active, anyone can create accounts.");
+            } else {
+                if (SOCDBHelper.countUsers() == 0)
+                    acctsNotOpenRegButNoUsers = true;
             }
         }
         catch (SQLException x) // just a warning
@@ -3236,8 +3284,15 @@ public class SOCServer extends Server
         c.setAppData(cdata);
 
         // VERSION of server
+        SOCServerFeatures feats = features;
+        if (acctsNotOpenRegButNoUsers)
+        {
+            feats = new SOCServerFeatures(features);
+            feats.add(SOCServerFeatures.FEAT_OPEN_REG);  // no accounts: can't require a password from SOCAccountClient
+        }
+
         c.put(SOCVersion.toCmd
-            (Version.versionNumber(), Version.version(), Version.buildnum(), features.getEncodedList()));
+            (Version.versionNumber(), Version.version(), Version.buildnum(), feats.getEncodedList()));
 
         // CHANNELS
         Vector<String> cl = new Vector<String>();
@@ -6472,13 +6527,41 @@ public class SOCServer extends Server
 
         if (! SOCDBHelper.isInitialized())
         {
-            // Use same SV_ status code as previous versions (before 1.1.19) which didn't check isInitialized
+            // Send same SV_ status code as previous versions (before 1.1.19) which didn't check db.isInitialized
             // but instead fell through and sent "Account not created due to error."
 
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_ACCT_NOT_CREATED_ERR, cliVers,
                      c.getLocalized("account.common.no_accts")));  // "This server does not use accounts and passwords."
             return;
+        }
+
+        // If client is not authenticated; does this server have open registration,
+        // or is an account required to create user accounts?
+        if ((c.getData() == null) && ! features.isActive(SOCServerFeatures.FEAT_OPEN_REG))
+        {
+            // If account is required, are there any accounts in the db at all?
+            // if none, that first one should be allowed.
+            int count;
+            try
+            {
+                count = SOCDBHelper.countUsers();
+            }
+            catch (SQLException e)
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_PROBLEM_WITH_DB, cliVers,
+                         /*I*/"Problem connecting to database, please try again later."/*18N*/ ));
+                return;
+            }
+
+            if (count > 0)
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_PW_WRONG, cliVers, c.getLocalized("account.common.must_auth")));
+                             // "You must log in with a username and password before you can create accounts."
+                return;
+            }
         }
 
         //
@@ -6541,6 +6624,9 @@ public class SOCServer extends Server
                      "Account created for '" + userName + "'."));
 
             System.out.println("Audit: Created jsettlers account '" + userName + "' from " + c.host() + " at " + currentTime);
+
+            if (acctsNotOpenRegButNoUsers)
+                acctsNotOpenRegButNoUsers = false;
         }
         else
         {

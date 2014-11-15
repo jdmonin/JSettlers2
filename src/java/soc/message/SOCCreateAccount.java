@@ -28,6 +28,10 @@ import java.util.StringTokenizer;
  *<P>
  * The server will respond with a {@link SOCStatusMessage} indicating whether the account was created,
  * with status {@link SOCStatusMessage#SV_ACCT_CREATED_OK} or an error/rejection status and brief text.
+ *<P>
+ * In version 1.1.19 and higher, by default users must authenticate before creating user accounts.
+ * (See {@link soc.util.SOCServerFeatures#FEAT_OPEN_REG}.)  If the user needs to log in but hasn't
+ * before sending {@code SOCCreateAccount}, the server replies with {@link SOCStatusMessage#SV_PW_WRONG}.
  *
  * @author Robert S Thomas
  */
