@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,6 +28,10 @@ package soc.message;
  * or rejection if client can't join that game (or channel).
  * Also used in {@link soc.client.SOCAccountClient SOCAccountClient}
  * to tell the user if their change was made successfully.
+ *<P>
+ * Sent in response to any message type used by clients to request authentication
+ * and create or connect to a game or channel: {@link SOCJoinGame}, {@link SOCJoin},
+ * {@link SOCImARobot}, {@link SOCAuthRequest}, {@link SOCNewGameWithOptionsRequest}.
  *<P>
  * <b>Added in Version 1.1.06:</b>
  * Status value parameter (nonnegative integer).
@@ -64,13 +68,17 @@ public class SOCStatusMessage extends SOCMessage
     public static final int SV_NOT_OK_GENERIC = 1;
 
     /**
-     * Name not found in server's accounts = 2
+     * Name not found in server's accounts = 2.
+     * In version 1.1.19 and higher, the server never replies with this to any authentication
+     * request message type; {@link #SV_PW_WRONG} is sent even if the name doesn't exist.
      * @since 1.1.06
      */
     public static final int SV_NAME_NOT_FOUND = 2;
 
     /**
-     * Incorrect password = 3
+     * Incorrect password = 3.
+     * Also used in v1.1.19 and higher for authentication replies when the
+     * account name is not found, instead of {@link #SV_NAME_NOT_FOUND}.
      * @since 1.1.06
      */
     public static final int SV_PW_WRONG = 3;
