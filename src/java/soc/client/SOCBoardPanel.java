@@ -4909,9 +4909,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
       SOCHandPanel.ResourceTradePopupMenu portTradeSubmenu;
 
       /** determined at menu-show time */
-      private int menuPlayerID;
-
-      /** determined at menu-show time */
       private boolean menuPlayerIsCurrent;
 
       /** determined at menu-show time */

@@ -955,8 +955,6 @@ public class SOCRobotDM {
     int numRoads = 500;
     Pair bestPathNode = null;
     final SOCBoard board = pl.getGame().getBoard();
-    final int MINEDGE = board.getMinEdge(),
-              MAXEDGE = board.getMaxEdge();
     Stack pending = new Stack();
     pending.push(new Pair(new NodeLenVis(startNode, pathLength, new Vector()), null));
 

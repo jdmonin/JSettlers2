@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007-2010,2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -54,11 +54,14 @@ import java.util.StringTokenizer;
  * {@link #windowCloseChosen()}, and (for a three-choice
  * question) override {@link #button3Chosen()}.
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 1.1.00
  */
 public abstract class AskDialog extends Dialog
     implements ActionListener, WindowListener, KeyListener, MouseListener
 {
+    private static final long serialVersionUID = 1100L;  // No structural change since v1.1.00
+
     /** Player client; passed to constructor, not null */
     protected final SOCPlayerClient pcli;
 
@@ -287,7 +290,7 @@ public abstract class AskDialog extends Dialog
                 pmsg.setLayout(new GridLayout(0, 1));
                 Font ourfont = getFont();
                 FontMetrics fm = ourfont != null ? getFontMetrics(getFont()) : null;
-                for (int i = 0; st.hasMoreTokens(); ++i)
+                while (st.hasMoreTokens())
                 {
                     String promptline = st.nextToken();
                     pmsg.add(new Label(promptline, Label.CENTER));
