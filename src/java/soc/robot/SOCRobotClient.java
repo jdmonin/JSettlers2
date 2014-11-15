@@ -256,7 +256,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
             //resetThread = new SOCRobotResetThread(this);
             //resetThread.start();
-            put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+            put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
             put(SOCImARobot.toCmd(nickname, cookie, SOCImARobot.RBCLASS_BUILTIN)); 
         }
         catch (Exception e)
@@ -296,7 +296,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
             //resetThread = new SOCRobotResetThread(this);
             //resetThread.start();
-            put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+            put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
             put(SOCImARobot.toCmd(nickname, cookie, SOCImARobot.RBCLASS_BUILTIN));
         }
         catch (Exception e)

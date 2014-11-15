@@ -37,6 +37,7 @@ import soc.util.IntPair;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;  // used in javadoc
 import soc.util.SOCRobotParameters;
+import soc.util.SOCServerFeatures;
 import soc.util.Version;
 
 import java.io.EOFException;
@@ -106,6 +107,8 @@ import java.util.Vector;
  */
 public class SOCServer extends Server
 {
+    private static final long serialVersionUID = 1119L;  // Last structural change v1.1.19
+
     /**
      * Default tcp port number 8880 to listen, and for client to connect to remote server.
      * Should match SOCPlayerClient.SOC_PORT_DEFAULT.
@@ -320,6 +323,12 @@ public class SOCServer extends Server
      * Maximum number of chat channels that a client can create at the same time (default 2).
      * Once this limit is reached, the client must delete a channel before creating a new one.
      * Set this to -1 to disable it; 0 will disallow any chat channel creation.
+     *<P>
+     * If this field is nonzero when the server is initialized, the server calls
+     * {@link SOCServerFeatures#add(String) features.add}({@link SOCServerFeatures#FEAT_CHANNELS}).
+     * If the field value is changed afterwards, that affects new clients joining the server
+     * but does not clear <tt>FEAT_CHANNELS</tt> from the <tt>features</tt> list.
+     *
      * @since 1.1.10
      */
     public static int CLIENT_MAX_CREATE_CHANNELS = 2;
@@ -381,11 +390,19 @@ public class SOCServer extends Server
     /**
      * Properties for the server, or empty if that constructor wasn't used.
      * Property names are held in PROP_* and SOCDBHelper.PROP_* constants.
+     * Some properties activate optional {@link #features}.
      * @see #SOCServer(int, Properties)
      * @see #PROPS_LIST
      * @since 1.1.09
      */
     private Properties props;
+
+    /**
+     * Active optional server features, if any.
+     * Features are activated through the command line or {@link #props}.
+     * @since 1.1.19
+     */
+    private SOCServerFeatures features = new SOCServerFeatures(false);
 
     /**
      * Randomly generated cookie string required for robot clients to connect
@@ -779,7 +796,9 @@ public class SOCServer extends Server
         try
         {
             SOCDBHelper.initialize(databaseUserName, databasePassword, props);
+            features.add(SOCServerFeatures.FEAT_USERS);
             System.err.println("User database initialized.");
+
             if (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
             {
                 // the sql script was ran by initialize
@@ -872,6 +891,9 @@ public class SOCServer extends Server
         numberOfGamesFinished = 0;
         numberOfUsers = 0;
         clientPastVersionStats = new HashMap();
+
+        if (CLIENT_MAX_CREATE_CHANNELS != 0)
+            features.add(SOCServerFeatures.FEAT_CHANNELS);
 
         /**
          *  Start various threads.
@@ -2811,8 +2833,8 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send welcome messages (server version, and the lists of channels and games
-     * ({@link SOCChannels}, {@link SOCGames})) when a new
+     * Send welcome messages (server version and features, and the lists of
+     * channels and games ({@link SOCChannels}, {@link SOCGames})) when a new
      * connection comes, part 2 - c has been accepted and added to a connection list.
      * Unlike {@link #newConnection1(StringConnection)},
      * no connection-list locks are held when this method is called.
@@ -2828,7 +2850,8 @@ public class SOCServer extends Server
         c.setAppData(cdata);
 
         // VERSION of server
-        c.put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+        c.put(SOCVersion.toCmd
+            (Version.versionNumber(), Version.version(), Version.buildnum(), features.getEncodedList()));
 
         // CHANNELS
         Vector cl = new Vector();
@@ -9818,7 +9841,7 @@ public class SOCServer extends Server
      * @param optsAlreadySet  For tracking, game option names we've already encountered on the command line.
      *                        This method will add <tt>optNameValue</tt>'s name to this set.
      * @return true if OK; false if bad name, bad value, or already set from command line;
-     *         also prints an error message to {@code System.err} when returning false.
+     *         also prints an error message to <tt>System.err</tt> when returning false.
      * @since 1.1.07
      */
     public static boolean parseCmdline_GameOption(final String optNameValue, HashSet optsAlreadySet)

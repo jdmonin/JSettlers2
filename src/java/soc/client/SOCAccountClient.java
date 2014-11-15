@@ -68,6 +68,8 @@ import java.net.Socket;
  */
 public class SOCAccountClient extends Applet implements Runnable, ActionListener
 {
+    private static final long serialVersionUID = 1119L;  // Last structural change v1.1.19
+
     private static final String MAIN_PANEL = "main";
     private static final String MESSAGE_PANEL = "message";
 
@@ -351,7 +353,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
             connected = true;
             (reader = new Thread(this)).start();
             // send VERSION right away (1.1.07 and later)
-            put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+            put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
         }
         catch (Exception e)
         {

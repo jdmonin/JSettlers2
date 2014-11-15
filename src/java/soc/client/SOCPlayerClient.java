@@ -43,6 +43,7 @@ import soc.server.genericServer.LocalStringServerSocket;
 import soc.server.genericServer.StringConnection;
 
 import soc.util.SOCGameList;
+import soc.util.SOCServerFeatures;
 import soc.util.Version;
 
 import java.applet.Applet;
@@ -115,6 +116,8 @@ import java.util.Vector;
 public class SOCPlayerClient extends Applet
     implements Runnable, ActionListener, TextListener, ItemListener, MouseListener
 {
+    private static final long serialVersionUID = 1119L;  // Last structural change v1.1.19
+
     /** main panel, in cardlayout */
     protected static final String MAIN_PANEL = "main";
 
@@ -224,6 +227,14 @@ public class SOCPlayerClient extends Applet
     protected int sVersion;
 
     /**
+     * Server's active optional features, sent soon after connect, or null if unknown.
+     * Not used with a local practice server, so always check {@link SOCGame#isPractice} before checking this field.
+     * @see #tcpServGameOpts
+     * @since 1.1.19
+     */
+    protected SOCServerFeatures sFeatures;
+
+    /**
      * Track the game options available at the remote server, at the practice server.
      * Initialized by {@link #gameWithOptionsBeginSetup(boolean, boolean)}
      * and/or {@link #handleVERSION(boolean, SOCVersion)}.
@@ -233,6 +244,7 @@ public class SOCPlayerClient extends Applet
      * and the client/server interaction about their values, see
      * {@link GameOptionServerSet}'s javadoc.
      *
+     * @see #sFeatures
      * @since 1.1.07
      */
     protected GameOptionServerSet tcpServGameOpts = new GameOptionServerSet(),
@@ -876,7 +888,7 @@ public class SOCPlayerClient extends Applet
             connected = true;
             (reader = new Thread(this)).start();
             // send VERSION right away (1.1.06 and later)
-            putNet(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+            putNet(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
         }
         catch (Exception e)
         {
@@ -1066,7 +1078,7 @@ public class SOCPlayerClient extends Applet
         }
         else
         {
-            cf.show();
+            cf.setVisible(true);
         }
 
         channel.setText("");
@@ -1242,7 +1254,7 @@ public class SOCPlayerClient extends Applet
             }
             else
             {
-                new SOCPracticeAskDialog(this, pi).show();
+                new SOCPracticeAskDialog(this, pi).setVisible(true);
             }
 
             return true;
@@ -1293,7 +1305,7 @@ public class SOCPlayerClient extends Applet
         }
         else
         {
-            pi.show();
+            pi.setVisible(true);
         }
 
         return true;
@@ -2294,9 +2306,13 @@ public class SOCPlayerClient extends Applet
     {
         D.ebugPrintln("handleVERSION: " + mes);
         int vers = mes.getVersionNumber();
+
         if (! isPractice)
         {
             sVersion = vers;
+            sFeatures = (vers >= SOCServerFeatures.VERSION_FOR_SERVERFEATURES)
+                ? new SOCServerFeatures(mes.feats)
+                : new SOCServerFeatures(true);
 
             // Display the version on main panel, unless we're running a server.
             // (If so, want to display its listening port# instead)
@@ -4093,7 +4109,7 @@ public class SOCPlayerClient extends Applet
 
         // String gameName = thing + STATSPREFEX + "-- -- -- --]";
 
-        if ((gmlist.countItems() > 0) && (gmlist.getItem(0).equals(" ")))
+        if ((gmlist.getItemCount() > 0) && (gmlist.getItem(0).equals(" ")))
         {
             gmlist.replaceItem(gameName, 0);
             gmlist.select(0);
@@ -4993,7 +5009,7 @@ public class SOCPlayerClient extends Applet
                 new SOCPlayerLocalStringReader((LocalStringConnection) prCli);
                 // Reader will start its own thread.
                 // Send VERSION right away (1.1.06 and later)
-                putPractice(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+                putPractice(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
 
                 // local server will support per-game options
                 if (so != null)
