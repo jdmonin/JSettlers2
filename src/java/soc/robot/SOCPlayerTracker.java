@@ -35,11 +35,8 @@ import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 
 import soc.util.CutoffExceededException;
-import soc.util.NodeLenVis;
 import soc.util.Pair;
 import soc.util.Queue;
-
-import java.text.DecimalFormat;
 
 import java.util.Enumeration;
 import java.util.HashMap;

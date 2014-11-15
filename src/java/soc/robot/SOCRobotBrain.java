@@ -61,8 +61,6 @@ import soc.message.SOCSetTurn;
 import soc.message.SOCSimpleAction;
 import soc.message.SOCTurn;
 
-import soc.server.SOCServer;
-
 import soc.util.CappedQueue;
 import soc.util.CutoffExceededException;
 import soc.util.DebugRecorder;

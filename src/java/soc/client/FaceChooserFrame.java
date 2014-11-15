@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2007 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007,2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -100,12 +100,13 @@ public class FaceChooserFrame extends Frame implements ActionListener, WindowLis
      * @param pnum     Player number in game
      * @param faceWidth Width and height of one face button, in pixels. Assumes icon is square.
      *
-     * @throws IllegalArgumentException If fbutton, cli, or gamePI is null, or faceWidth is 0 or negative,
+     * @throws IllegalArgumentException If fbutton is null, faceWidth is 0 or negative,
      *    or pnum is negative or more than SOCGame.MAXPLAYERS.
+     * @throws NullPointerException if cli or gamePI is null
      */
     public FaceChooserFrame(SOCFaceButton fbutton, SOCPlayerClient cli,
             SOCPlayerInterface gamePI, int pnum, int faceID, int faceWidth)
-        throws IllegalArgumentException
+        throws IllegalArgumentException, NullPointerException
     {
         super("Choose Face Icon: "
                 + gamePI.getGame().getName() + " ["
@@ -113,10 +114,6 @@ public class FaceChooserFrame extends Frame implements ActionListener, WindowLis
 
         if (fbutton == null)
             throw new IllegalArgumentException("fbutton cannot be null");
-        if (cli == null)
-            throw new IllegalArgumentException("cli cannot be null");
-        if (gamePI == null)
-            throw new IllegalArgumentException("gamePI cannot be null");
         if ((pnum < 0) || (pnum >= SOCGame.MAXPLAYERS))
             throw new IllegalArgumentException("pnum out of range: " + pnum);
         if (faceWidth <= 0)
