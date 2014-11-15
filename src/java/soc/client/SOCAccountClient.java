@@ -29,6 +29,7 @@ import soc.message.SOCRejectConnection;
 import soc.message.SOCStatusMessage;
 import soc.message.SOCVersion;
 
+import soc.util.SOCServerFeatures;
 import soc.util.Version;
 
 import java.applet.Applet;
@@ -93,6 +94,18 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
     protected Thread reader = null;
     protected Exception ex = null;
     protected boolean connected = false;
+
+    /**
+     * Server version number for remote server, sent soon after connect.
+     * @since 1.1.19
+     */
+    protected int sVersion;
+
+    /**
+     * Server's active optional features, sent soon after connect, or null if unknown.
+     * @since 1.1.19
+     */
+    protected SOCServerFeatures sFeatures;
 
     /**
      * the nickname
@@ -514,7 +527,14 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
             switch (mes.getType())
             {
             /**
-             * list of channels on the server (first message from server)
+             * server's version and feature report (among first messages from server)
+             */
+            case SOCMessage.VERSION:
+                handleVERSION((SOCVersion) mes);
+                break;
+
+            /**
+             * list of channels on the server (among first messages from server)
              */
             case SOCMessage.CHANNELS:
                 handleCHANNELS((SOCChannels) mes);
@@ -545,6 +565,29 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
         }
     }
 
+    /**
+     * Handle the "version" message: Server's version and feature report.
+     *
+     * @param mes  the message
+     * @since 1.1.19
+     */
+    private void handleVERSION(SOCVersion mes)
+    {
+        sVersion = mes.getVersionNumber();
+        sFeatures =
+            (sVersion >= SOCServerFeatures.VERSION_FOR_SERVERFEATURES)
+            ? new SOCServerFeatures(mes.feats)
+            : new SOCServerFeatures(true);
+
+        if (! sFeatures.isActive(SOCServerFeatures.FEAT_USERS))
+        {
+            disconnect();
+
+            messageLabel.setText("This server does not use accounts and passwords.");
+            cardLayout.show(this, MESSAGE_PANEL);
+            validate();
+        }
+    }
 
     /**
      * handle the "list of channels" message
