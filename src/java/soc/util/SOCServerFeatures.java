@@ -23,7 +23,7 @@ package soc.util;
  * Set of optional server features that are currently active.
  * Sent from server to client during connect via {@link soc.message.SOCVersion} fields.
  *<P>
- * Added in v1.1.19; earlier clients assume the server is using the three features defined in 1.1.19.
+ * Added in v1.1.19; earlier clients assume the server is using the features defined in 1.1.19.
  * Use the {@link #SOCServerFeatures(boolean) SOCServerFeatures(true)} constructor when connecting
  * to a server older than 1.1.19. See that constructor's javadoc for the list of features always assumed
  * active before 1.1.19.
@@ -171,7 +171,7 @@ public class SOCServerFeatures
      * Human-readable representation of active features.
      * Based on super.toString + featureList. Possible Formats:
      *<UL>
-     * <LI> soc.util.SOCServerFeatures@86c347{;ch;users;}
+     * <LI> soc.util.SOCServerFeatures@86c347{;accts;ch;}
      * <LI> soc.util.SOCServerFeatures@f7e6a96{(empty)}
      *</UL>
      */

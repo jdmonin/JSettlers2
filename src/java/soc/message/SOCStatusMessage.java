@@ -124,7 +124,7 @@ public class SOCStatusMessage extends SOCMessage
      * being created, or server doesn't use accounts, = 8.
      *<P>
      * To see whether a server v1.1.19 or newer uses accounts and passwords, check
-     * its {@link SOCServerFeatures} sent to the client during connection.
+     * whether {@link SOCServerFeatures#FEAT_ACCTS} is sent when the client connects.
      * @since 1.1.06
      */
     public static final int SV_ACCT_NOT_CREATED_ERR = 8;
