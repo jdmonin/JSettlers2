@@ -22,6 +22,7 @@ package soc.client;
 
 import soc.disableDebug.D;
 
+import soc.message.SOCAuthRequest;
 import soc.message.SOCChannels;
 import soc.message.SOCCreateAccount;
 import soc.message.SOCMessage;
@@ -48,6 +49,8 @@ import java.awt.Panel;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -67,12 +70,15 @@ import java.net.Socket;
  *
  * @author Robert S Thomas
  */
-public class SOCAccountClient extends Applet implements Runnable, ActionListener
+public class SOCAccountClient extends Applet
+    implements Runnable, ActionListener, KeyListener
 {
     private static final long serialVersionUID = 1119L;  // Last structural change v1.1.19
 
     private static final String MAIN_PANEL = "main";
     private static final String MESSAGE_PANEL = "message";
+    /** CardLayout string for {@link #connPanel}. */
+    private static final String CONN_PANEL = "conn";
 
     protected TextField nick;
     protected TextField pass;
@@ -83,6 +89,32 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
     protected Label messageLabel;
     protected AppletContext ac;
     protected boolean submitLock;
+
+    /**
+     * Connect and Authenticate panel ({@link #CONN_PANEL}), for when
+     * server needs authentication to create a user account.
+     * Created in {@link #initInterface_conn()}.
+     * @since 1.1.19
+     */
+    private Panel connPanel;
+
+    /**
+     * Username, password, and status fields on {@link #connPanel}.
+     * @since 1.1.19
+     */
+    private TextField conn_user, conn_pass, conn_status;
+
+    /**
+     * Connect and Cancel buttons on {@link #connPanel}.
+     * @since 1.1.19
+     */
+    private Button conn_connect, conn_cancel;
+
+    /**
+     * If true, a username/password {@link SOCAuthRequest} has been sent to the server from {@link #connPanel}.
+     * @since 1.1.19
+     */
+    private boolean conn_sentAuth;
 
     protected CardLayout cardLayout;
     
@@ -149,7 +181,8 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
     }
 
     /**
-     * init the visual elements
+     * init the visual elements at startup: {@link #MESSAGE_PANEL}, {@link #MAIN_PANEL}.
+     * @see #initInterface_conn()
      */
     protected void initVisualElements()
     {
@@ -281,6 +314,118 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
     }
 
     /**
+     * Connect setup for username and password authentication: {@link #connPanel} / {@link #CONN_PANEL}.
+     * Called if server doesn't have {@link SOCServerFeatures#FEAT_OPEN_REG}.
+     * @since 1.1.19
+     * @see #initVisualElements()
+     */
+    private void initInterface_conn()
+    {
+        Panel pconn = new Panel();
+        Label L;
+
+        GridBagLayout gbl = new GridBagLayout();
+        GridBagConstraints gbc = new GridBagConstraints();
+        pconn.setLayout(gbl);
+        gbc.fill = GridBagConstraints.BOTH;
+
+        // heading row
+        L = new Label("You must log in with a username and password before you can create accounts.");
+        L.setAlignment(Label.CENTER);
+        gbc.gridwidth = 4;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+        L = new Label(" ");  // Spacing for rest of form's rows
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+
+        // blank row
+        L = new Label();
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+
+        L = new Label("Server");
+        gbc.gridwidth = 1;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+        L = new Label(host);
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+
+        L = new Label("Port");
+        gbc.gridwidth = 1;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+        L = new Label(Integer.toString(port));
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+
+        L = new Label("Nickname");
+        gbc.gridwidth = 1;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+        conn_user = new TextField(20);
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(conn_user, gbc);
+        conn_user.addKeyListener(this);
+        pconn.add(conn_user);
+
+        L = new Label("Password");
+        gbc.gridwidth = 1;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+        conn_pass = new TextField(20);
+        conn_pass.setEchoChar ((SOCPlayerClient.isJavaOnOSX) ? '\u2022' : '*');  // OSX: round bullet (option-8)
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(conn_pass, gbc);
+        conn_pass.addKeyListener(this);
+        pconn.add(conn_pass);
+
+        L = new Label(" ");  // spacer row
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+
+        // Connect and Cancel buttons shouldn't stretch entire width, so they get their own sub-Panel
+        Panel btnsRow = new Panel();
+
+        conn_connect = new Button("Connect");
+        conn_connect.addActionListener(this);
+        conn_connect.addKeyListener(this);  // for win32 keyboard-focus ESC/ENTER
+        btnsRow.add(conn_connect);
+
+        conn_cancel = new Button("Cancel");
+        conn_cancel.addActionListener(this);
+        conn_cancel.addKeyListener(this);
+        btnsRow.add(conn_cancel);
+
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbl.setConstraints(btnsRow, gbc);
+        pconn.add(btnsRow);
+
+        L = new Label(" ");  // spacer row
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+        conn_status = new TextField(50);
+        conn_status.setEditable(false);
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(conn_status, gbc);
+        pconn.add(conn_status);
+
+        connPanel = pconn;
+
+        add(pconn, CONN_PANEL);
+        cardLayout.show(this, CONN_PANEL);
+        validate();
+    }
+
+    /**
      * Retrieve a parameter and translate to a hex value.
      *
      * @param name a parameter name. null is ignored
@@ -378,6 +523,52 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
     }
 
     /**
+     * "Connect" button, from connect/authenticate panel; check nickname & password fields,
+     * send auth request to server, set {@link #conn_sentAuth} flag.
+     * When the server responds with {@link SOCStatusMessage#SV_OK}, the {@link #MAIN_PANEL} will be shown.
+     * @since 1.1.19
+     */
+    private void clickConnConnect()
+    {
+        final String user = conn_user.getText().trim(), pw = conn_pass.getText();
+
+        if (user.length() == 0)
+        {
+            conn_status.setText("You must enter a nickname.");
+            conn_user.requestFocus();
+            return;
+        }
+
+        if (pw.length() == 0)
+        {
+            conn_status.setText("You must enter a password.");
+            conn_pass.requestFocus();
+            return;
+        }
+
+        conn_sentAuth = true;
+        put(SOCAuthRequest.toCmd(user, pw, SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, host));
+    }
+
+    /**
+     * Disconnect from connect/auth panel, show "disconnected" message.
+     * @since 1.1.19
+     */
+    private void clickConnCancel()
+    {
+        if ((connPanel != null) && connPanel.isVisible())
+        {
+            connPanel.setVisible(false);
+        }
+
+        disconnect();
+
+        messageLabel.setText("Connection canceled.");
+        cardLayout.show(this, MESSAGE_PANEL);
+        validate();
+    }
+
+    /**
      * Handle mouse clicks and keyboard
      */
     public void actionPerformed(ActionEvent e)
@@ -451,6 +642,14 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
                 status.setText("Creating account ...");
                 put(SOCCreateAccount.toCmd(nickname, password, host, emailAddress));
             }
+        }
+        else if (target == conn_connect)
+        {
+            clickConnConnect();
+        }
+        else if (target == conn_cancel)
+        {
+            clickConnCancel();
         }
     }
 
@@ -586,6 +785,12 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
             messageLabel.setText("This server does not use accounts and passwords.");
             cardLayout.show(this, MESSAGE_PANEL);
             validate();
+            return;
+        }
+
+        if (! sFeatures.isActive(SOCServerFeatures.FEAT_OPEN_REG))
+        {
+            initInterface_conn();  // adds connPanel, sets it active, calls validate()
         }
     }
 
@@ -598,6 +803,9 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
         //
         // this message indicates that we're connected to the server
         //
+        if ((connPanel != null) && connPanel.isVisible())
+            return;
+
         cardLayout.show(this, MAIN_PANEL);
         validate();
     }
@@ -621,6 +829,23 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
      */
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes)
     {
+        if ((connPanel != null) && connPanel.isVisible())
+        {
+            // Initial connect/authentication panel is showing.
+            // This is either the initial STATUSMESSAGE from server,
+            // or a response to the authrequest we've sent.
+
+            if ((mes.getStatusValue() != SOCStatusMessage.SV_OK) || ! conn_sentAuth)
+            {
+                conn_status.setText(mes.getStatus());
+                return;
+            }
+
+            connPanel.setVisible(false);
+            cardLayout.show(this, MAIN_PANEL);
+            validate();
+        }
+
         status.setText(mes.getStatus());
         submitLock = false;
     }
@@ -726,4 +951,33 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
             nick.requestFocus();
         }
     }
+
+    /**
+     * For Connect panel, handle Enter or Esc key (KeyListener).
+     * @since 1.1.19
+     */
+    public void keyPressed(KeyEvent e)
+    {
+        if (e.isConsumed())
+            return;
+
+        switch (e.getKeyCode())
+        {
+        case KeyEvent.VK_ENTER:
+            clickConnConnect();
+            break;
+
+        case KeyEvent.VK_CANCEL:
+        case KeyEvent.VK_ESCAPE:
+            clickConnCancel();
+            break;
+        }  // switch(e)
+    }
+
+    /** Stub required by KeyListener */
+    public void keyReleased(KeyEvent e) { }
+
+    /** Stub required by KeyListener */
+    public void keyTyped(KeyEvent e) { }
+
 }
