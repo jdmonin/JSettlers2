@@ -2300,7 +2300,7 @@ public class SOCPlayerClient extends Applet
      *
      * @param isPractice Is the server {@link #practiceServer}, not remote?  Client can be connected
      *                only to one at a time.
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleVERSION(final boolean isPractice, SOCVersion mes)
     {

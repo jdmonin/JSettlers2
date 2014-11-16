@@ -1986,7 +1986,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Set this edge to not be a potential road.
      * For use (by robots) when the server denies our request to build at a certain spot.
      *
-     * @param edge  coordinates of a an edge on the board. Accepts -1 for edge 0x00.
+     * @param edge  coordinates of an edge on the board. Accepts -1 for edge 0x00.
      * @see #isPotentialRoad(int)
      * @since 1.1.09
      */

@@ -4279,7 +4279,7 @@ public class SOCServer extends Server
      * This is sent when the client asks (after VERSION) for {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleVERSION(StringConnection c, SOCVersion mes)
     {
@@ -4392,7 +4392,7 @@ public class SOCServer extends Server
      * version 1.0.00 ({@link #CLI_VERSION_ASSUMED_GUESS}), disconnect if too low.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleJOIN(StringConnection c, SOCJoin mes)
     {
@@ -4528,7 +4528,7 @@ public class SOCServer extends Server
      * Handle the "leave a channel" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleLEAVE(StringConnection c, SOCLeave mes)
     {
@@ -4565,7 +4565,7 @@ public class SOCServer extends Server
      * match this server's {@link #robotCookie}.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleIMAROBOT(StringConnection c, SOCImARobot mes)
     {
@@ -5038,7 +5038,7 @@ public class SOCServer extends Server
      * If the client is too old to join a specific game, return a STATUSMESSAGE. (since 1.1.06)
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleJOINGAME(StringConnection c, SOCJoinGame mes)
     {
@@ -5271,7 +5271,7 @@ public class SOCServer extends Server
      * Handle the "leave game" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleLEAVEGAME(StringConnection c, SOCLeaveGame mes)
     {
@@ -5421,7 +5421,7 @@ public class SOCServer extends Server
      * handle "sit down" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleSITDOWN(StringConnection c, SOCSitDown mes)
     {
@@ -5536,7 +5536,7 @@ public class SOCServer extends Server
      * handle "put piece" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handlePUTPIECE(StringConnection c, SOCPutPiece mes)
     {
@@ -5743,7 +5743,7 @@ public class SOCServer extends Server
      * handle "move robber" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleMOVEROBBER(StringConnection c, SOCMoveRobber mes)
     {
@@ -5819,7 +5819,7 @@ public class SOCServer extends Server
      * empty seats, or {@link #startGame(SOCGame) begin the game} if no robots needed.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleSTARTGAME(StringConnection c, SOCStartGame mes)
     {
@@ -6075,7 +6075,7 @@ public class SOCServer extends Server
      * handle "roll dice" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleROLLDICE(StringConnection c, SOCRollDice mes)
     {
@@ -6226,7 +6226,7 @@ public class SOCServer extends Server
      * handle "discard" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleDISCARD(StringConnection c, SOCDiscard mes)
     {
@@ -6303,7 +6303,7 @@ public class SOCServer extends Server
      * {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleENDTURN(StringConnection c, SOCEndTurn mes)
     {
@@ -6566,7 +6566,7 @@ public class SOCServer extends Server
      * handle "choose player" message during robbery
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleCHOOSEPLAYER(StringConnection c, SOCChoosePlayer mes)
     {
@@ -6612,7 +6612,7 @@ public class SOCServer extends Server
      * handle "make offer" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleMAKEOFFER(StringConnection c, SOCMakeOffer mes)
     {
@@ -6694,7 +6694,7 @@ public class SOCServer extends Server
      * handle "clear offer" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleCLEAROFFER(StringConnection c, SOCClearOffer mes)
     {
@@ -6740,7 +6740,7 @@ public class SOCServer extends Server
      * handle "reject offer" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleREJECTOFFER(StringConnection c, SOCRejectOffer mes)
     {
@@ -6768,7 +6768,7 @@ public class SOCServer extends Server
      * handle "accept offer" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleACCEPTOFFER(StringConnection c, SOCAcceptOffer mes)
     {
@@ -6839,7 +6839,7 @@ public class SOCServer extends Server
      * handle "bank trade" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleBANKTRADE(StringConnection c, SOCBankTrade mes)
     {
@@ -6900,7 +6900,7 @@ public class SOCServer extends Server
      * {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleBUILDREQUEST(StringConnection c, SOCBuildRequest mes)
     {
@@ -7040,7 +7040,7 @@ public class SOCServer extends Server
      * handle "cancel build request" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleCANCELBUILDREQUEST(StringConnection c, SOCCancelBuildRequest mes)
     {
@@ -7152,7 +7152,7 @@ public class SOCServer extends Server
      * handle "buy card request" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleBUYCARDREQUEST(StringConnection c, SOCBuyCardRequest mes)
     {
@@ -7268,7 +7268,7 @@ public class SOCServer extends Server
      * handle "play development card request" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handlePLAYDEVCARDREQUEST(StringConnection c, SOCPlayDevCardRequest mes)
     {
@@ -7418,7 +7418,7 @@ public class SOCServer extends Server
      * handle "discovery pick" message (while playing Discovery card)
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleDISCOVERYPICK(StringConnection c, SOCDiscoveryPick mes)
     {
@@ -7472,7 +7472,7 @@ public class SOCServer extends Server
      * handle "monopoly pick" message
      *
      * @param c     the connection that sent the message
-     * @param mes   the messsage
+     * @param mes   the message
      */
     private void handleMONOPOLYPICK(StringConnection c, SOCMonopolyPick mes)
     {

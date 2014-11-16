@@ -799,7 +799,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *
      * @param isLocal  Is the server local, or remote?  Client can be connected
      *                only to local, or remote.
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleVERSION(boolean isLocal, SOCVersion mes)
     {
