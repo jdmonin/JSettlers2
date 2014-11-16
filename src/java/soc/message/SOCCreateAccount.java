@@ -28,11 +28,17 @@ import java.util.StringTokenizer;
  *<P>
  * The server will respond with a {@link SOCStatusMessage} indicating whether the account was created,
  * with status {@link SOCStatusMessage#SV_ACCT_CREATED_OK} or an error/rejection status and brief text.
+ *<P>
+ * In version 1.1.19 and higher, by default users must authenticate before creating user accounts.
+ * (See {@link soc.util.SOCServerFeatures#FEAT_OPEN_REG}.)  If the user needs to log in but hasn't
+ * before sending <tt>SOCCreateAccount</tt>, the server replies with {@link SOCStatusMessage#SV_PW_WRONG}.
  *
  * @author Robert S Thomas
  */
 public class SOCCreateAccount extends SOCMessage
 {
+    private static final long serialVersionUID = 100L;  // last structural change v1.0.0 or earlier
+
     /**
      * symbol to represent a null email
      */
@@ -64,12 +70,19 @@ public class SOCCreateAccount extends SOCMessage
      * @param nn  nickname  Nickname (username) to give to requested account.
      *     The name must pass {@link SOCMessage#isSingleLineAndSafe(String)}
      *     in server v1.1.19 and higher.
-     * @param pw  password
-     * @param hn  host name
+     * @param pw  password; must not be null or ""
+     * @param hn  host name; must not be null or ""
      * @param em  email
+     * @throws IllegalArgumentException if <tt>pw</tt> or <tt>hn</tt> are null or empty ("")
      */
     public SOCCreateAccount(String nn, String pw, String hn, String em)
+        throws IllegalArgumentException
     {
+        if ((pw == null) || (pw.length() == 0))
+            throw new IllegalArgumentException("pw");
+        if ((hn == null) || (hn.length() == 0))
+            throw new IllegalArgumentException("hn");
+
         messageType = CREATEACCOUNT;
         nickname = nn;
         password = pw;
@@ -126,13 +139,20 @@ public class SOCCreateAccount extends SOCMessage
      * CREATEACCOUNT sep nickname sep2 password sep2 host sep2 email
      *
      * @param nn  the nickname
-     * @param pw  the password
-     * @param hn  the host name
+     * @param pw  the password; must not be null or ""
+     * @param hn  the host name; must not be null or ""
      * @param em  the email
      * @return    the command string
+     * @throws IllegalArgumentException if <tt>pw</tt> or <tt>hn</tt> are null or empty ("")
      */
     public static String toCmd(String nn, String pw, String hn, String em)
+        throws IllegalArgumentException
     {
+        if ((pw == null) || (pw.length() == 0))
+            throw new IllegalArgumentException("pw");
+        if ((hn == null) || (hn.length() == 0))
+            throw new IllegalArgumentException("hn");
+
         String tempem;
 
         if (em == null)
