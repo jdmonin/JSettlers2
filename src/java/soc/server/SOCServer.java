@@ -112,6 +112,7 @@ import java.util.Vector;
  * Java properties (starting with "jsettlers.") were added in 1.1.09, with constant names
  * starting with PROP_JSETTLERS_, and listed in {@link #PROPS_LIST}.
  */
+@SuppressWarnings("serial")
 public class SOCServer extends Server
 {
     /**
@@ -5987,7 +5988,7 @@ public class SOCServer extends Server
      * @param message  "no player gets anything" string
      * @since 2.0.00
      */
-    private void debug_printPieceDiceNumbers(SOCGame ga, String message)
+    void debug_printPieceDiceNumbers(SOCGame ga, String message)
     {
         final int roll = ga.getCurrentDice();
         final SOCBoard board = ga.getBoard();

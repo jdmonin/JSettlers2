@@ -67,7 +67,7 @@ public class SOCVersion extends SOCMessage
      * Dual-purpose field: Client's JVM locale, or null, as in {@link java.util.Locale#toString()};
      * Or server's active optional features, or null, as in {@link SOCServerFeatures#getEncodedList()}.
      * Locale not sent from server or from jsettlers clients older than 2.0.00.
-     * Features not sent from servers older than 1.1.19.
+     * Features not sent from servers older than 1.1.19. (In v1.1.19 this field is called {@code feats}.)
      * See class javadoc for handling older clients or servers when this field is null.
      * @since 2.0.00
      */
