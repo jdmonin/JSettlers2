@@ -76,7 +76,7 @@ public class D
     public static final void ebugPrint(String text) {}
 
     /**
-     * Debug-println this text; for compatability with log4j.
+     * Debug-println this text; for compatibility with log4j.
      * Calls {@link #ebugPrintln(String)}.
      * @param text Text to debug-print
      */

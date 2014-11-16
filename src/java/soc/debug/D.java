@@ -24,8 +24,6 @@ package soc.debug;
  * Debug output; can be switched on and off.  All output goes to System.out.
  * soc.debug.D and {@link soc.disableDebug.D} have the same interface, to easily switch
  * debug on and off per class.
- *
- * @author $author$
  */
 public class D
 {
@@ -94,7 +92,7 @@ public class D
     }
 
     /**
-     * Debug-println this text; for compatability with log4j.
+     * Debug-println this text; for compatibility with log4j.
      * Calls {@link #ebugPrintln(String)}.
      * @param text Text to debug-print
      */
