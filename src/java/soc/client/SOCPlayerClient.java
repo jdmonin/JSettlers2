@@ -1428,7 +1428,9 @@ public class SOCPlayerClient
                 return;
             }
 
-            // Have we authenticated our password?  If not, do so now before creating newGameOptsFrame
+            // Have we authenticated our password?  If not, do so now before creating newGameOptsFrame.
+            // Even if the server doesn't support accounts or passwords, this will name our connection
+            // and reserve our nickname.
             if ((! (forPracticeServer || client.gotPassword))
                 && (client.sVersion >= SOCAuthRequest.VERSION_FOR_AUTHREQUEST))
             {
@@ -3056,7 +3058,7 @@ public class SOCPlayerClient
      *
      * @param isPractice Is the server {@link ClientNetwork#practiceServer}, not remote?  Client can be connected
      *                only to one at a time.
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleVERSION(final boolean isPractice, SOCVersion mes)
     {

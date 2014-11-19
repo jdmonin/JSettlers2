@@ -2815,7 +2815,7 @@ public class SOCGameHandler extends GameHandler
      * announce the new turn.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handlePUTPIECE(SOCGame ga, StringConnection c, SOCPutPiece mes)
     {
@@ -3096,7 +3096,7 @@ public class SOCGameHandler extends GameHandler
      * handle "move robber" message (move the robber or the pirate).
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleMOVEROBBER(SOCGame ga, StringConnection c, SOCMoveRobber mes)
     {
@@ -3207,7 +3207,7 @@ public class SOCGameHandler extends GameHandler
      * handle "roll dice" message.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleROLLDICE(SOCGame ga, StringConnection c, final SOCRollDice mes)
     {
@@ -3559,7 +3559,7 @@ public class SOCGameHandler extends GameHandler
      * handle "discard" message.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleDISCARD(SOCGame ga, StringConnection c, final SOCDiscard mes)
     {
@@ -3632,7 +3632,7 @@ public class SOCGameHandler extends GameHandler
      * Also used with <tt>_SC_PIRI</tt> after winning a pirate fleet battle at dice roll.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      * @since 2.0.00
      */
     private final void handlePICKRESOURCES(SOCGame ga, StringConnection c, final SOCPickResources mes)
@@ -3760,7 +3760,7 @@ public class SOCGameHandler extends GameHandler
      * or {@link SOCSpecialItem#playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)}
      * which provide scenario-specific responses or decline the request.
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      * @since 2.0.00
      */
     private final void handleSETSPECIALITEM(SOCGame ga, StringConnection c, final SOCSetSpecialItem mes)
@@ -3955,7 +3955,7 @@ public class SOCGameHandler extends GameHandler
      * {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleENDTURN(SOCGame ga, StringConnection c, final SOCEndTurn mes)
     {
@@ -4014,7 +4014,7 @@ public class SOCGameHandler extends GameHandler
      * handle "choose player" message during robbery.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleCHOOSEPLAYER(SOCGame ga, StringConnection c, final SOCChoosePlayer mes)
     {
@@ -4104,7 +4104,7 @@ public class SOCGameHandler extends GameHandler
      * handle "make offer" message.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleMAKEOFFER(SOCGame ga, StringConnection c, final SOCMakeOffer mes)
     {
@@ -4175,7 +4175,7 @@ public class SOCGameHandler extends GameHandler
      * handle "clear offer" message.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleCLEAROFFER(SOCGame ga, StringConnection c, final SOCClearOffer mes)
     {
@@ -4213,7 +4213,7 @@ public class SOCGameHandler extends GameHandler
      * handle "reject offer" message.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleREJECTOFFER(SOCGame ga, StringConnection c, final SOCRejectOffer mes)
     {
@@ -4232,7 +4232,7 @@ public class SOCGameHandler extends GameHandler
      * handle "accept offer" message.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleACCEPTOFFER(SOCGame ga, StringConnection c, final SOCAcceptOffer mes)
     {
@@ -4295,7 +4295,7 @@ public class SOCGameHandler extends GameHandler
      * handle "bank trade" message.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleBANKTRADE(SOCGame ga, StringConnection c, final SOCBankTrade mes)
     {
@@ -4348,7 +4348,7 @@ public class SOCGameHandler extends GameHandler
      * {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleBUILDREQUEST(SOCGame ga, StringConnection c, final SOCBuildRequest mes)
     {
@@ -4500,7 +4500,7 @@ public class SOCGameHandler extends GameHandler
      * Cancel placement and send new game state, if cancel is allowed.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleCANCELBUILDREQUEST(SOCGame ga, StringConnection c, final SOCCancelBuildRequest mes)
     {
@@ -4648,7 +4648,7 @@ public class SOCGameHandler extends GameHandler
      * handle "buy card request" message.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleBUYCARDREQUEST(SOCGame ga, StringConnection c, final SOCBuyCardRequest mes)
     {
@@ -4776,7 +4776,7 @@ public class SOCGameHandler extends GameHandler
      * handle "play development card request" message.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handlePLAYDEVCARDREQUEST(SOCGame ga, StringConnection c, final SOCPlayDevCardRequest mes)
     {
@@ -4960,7 +4960,7 @@ public class SOCGameHandler extends GameHandler
      * handle "discovery pick" message (while playing Discovery/Year of Plenty card).
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleDISCOVERYPICK(SOCGame ga, StringConnection c, final SOCDiscoveryPick mes)
     {
@@ -5005,7 +5005,7 @@ public class SOCGameHandler extends GameHandler
      * handle "monopoly pick" message.
      *
      * @param c     the connection that sent the message
-     * @param mes   the messsage
+     * @param mes   the message
      */
     private void handleMONOPOLYPICK(SOCGame ga, StringConnection c, final SOCMonopolyPick mes)
     {

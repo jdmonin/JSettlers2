@@ -4470,7 +4470,7 @@ public class SOCServer extends Server
      * This is sent when the client asks (after VERSION) for {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleVERSION(StringConnection c, SOCVersion mes)
     {
@@ -4613,7 +4613,7 @@ public class SOCServer extends Server
      * version 1.0.00 ({@link #CLI_VERSION_ASSUMED_GUESS}), disconnect if too low.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleJOIN(StringConnection c, SOCJoin mes)
     {
@@ -4749,7 +4749,7 @@ public class SOCServer extends Server
      * Handle the "leave a channel" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleLEAVE(StringConnection c, SOCLeave mes)
     {
@@ -4793,7 +4793,7 @@ public class SOCServer extends Server
      * {@link Server#cliConnDisconPrintsPending} so they won't be printed.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleIMAROBOT(StringConnection c, SOCImARobot mes)
     {
@@ -5119,7 +5119,7 @@ public class SOCServer extends Server
      * this method replies with {@link SOCStatusMessage#SV_OK} without checking the password in this message.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      * @since 1.1.19
      */
     private void handleAUTHREQUEST(StringConnection c, final SOCAuthRequest mes)
@@ -5166,7 +5166,7 @@ public class SOCServer extends Server
      * If the client is too old to join a specific game, return a STATUSMESSAGE. (since 1.1.06)
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleJOINGAME(StringConnection c, SOCJoinGame mes)
     {
@@ -5444,7 +5444,7 @@ public class SOCServer extends Server
      * Handle the "leave game" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleLEAVEGAME(StringConnection c, SOCLeaveGame mes)
     {
@@ -5594,7 +5594,7 @@ public class SOCServer extends Server
      * handle "sit down" message
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleSITDOWN(StringConnection c, SOCSitDown mes)
     {
@@ -5729,7 +5729,7 @@ public class SOCServer extends Server
      * not called during game board reset.
      *
      * @param c  the connection that sent the message
-     * @param mes  the messsage
+     * @param mes  the message
      */
     private void handleSTARTGAME(StringConnection c, final SOCStartGame mes)
     {
