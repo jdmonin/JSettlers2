@@ -303,6 +303,10 @@ public class SOCPlayerClient
         /**
          * Init the visual elements.  Done before connecting to server,
          * so we don't know its version or active {@link SOCServerFeatures}.
+         * So, most of the Main Panel elements are initialized here but not
+         * laid out or made visible until a later call to
+         * {@link #showVersion(int, String, String, SOCServerFeatures)}
+         * when the version and features are known.
          */
         void initVisualElements();
 
@@ -348,13 +352,18 @@ public class SOCPlayerClient
         void enableOptions();
 
         /**
-         * After connecting, display the remote server's version on main panel.
+         * After connecting, display the remote server's version on main panel,
+         * and update display based on its active {@link SOCServerFeatures}.
+         * Not called for practice server.
          * If we're running a server, display its listening port # instead.
          * @param versionNumber  Version number, like 1119, from server's {@link soc.util.Version#versionNumber()}
          * @param versionString  Version string, like "1.1.19", from server's {@link soc.util.Version#version()}
          * @param buildString  Build number, from server's {@link soc.util.Version#buildnum()}
+         * @param feats  Active optional server features; never null. If server is older than v1.1.19, use the
+         *            {@link SOCServerFeatures#SOCServerFeatures(boolean) SOCServerFeatures(true)} constructor.
          */
-        void showVersion(int versionNumber, String versionString, String buildString);
+        void showVersion
+            (final int versionNumber, final String versionString, final String buildString, final SOCServerFeatures feats);
 
         /**
          * Show server welcome banner or status text.
@@ -617,6 +626,27 @@ public class SOCPlayerClient
          */
         public NewGameOptionsFrame newGameOptsFrame = null;
 
+        // MainPanel GUI elements:
+
+        /**
+         * MainPanel GUI, initialized in {@link #initVisualElements()} and
+         * {@link #showVersion(int, String, String, SOCServerFeatures) showVersion(....)}.
+         *<P>
+         * {@code mainPane}, {@link #mainGBL}, and {@link #mainGBC} are fields not locals so that
+         * the layout can be changed after initialization if needed.  Most of the Main Panel
+         * elements are initialized in {@link #initVisualElements()} but not laid out or made visible
+         * until a later call to {@link #showVersion(int, String, String, SOCServerFeatures)}
+         * when the version and features are known.
+         * @since 1.1.19
+         */
+        private Panel mainPane;
+
+        /** Layout for {@link #mainPane} */
+        private GridBagLayout mainGBL;
+
+        /** Constraints for {@link #mainGBL} */
+        private GridBagConstraints mainGBC;
+
         protected TextField nick;
         protected TextField pass;
         protected TextField status;
@@ -765,6 +795,8 @@ public class SOCPlayerClient
             jg = new Button(strings.get("pcli.main.join.game"));     // "Join Game"
             pg = new Button(strings.get("pcli.main.practice"));      // "Practice" -- "practice game" text is too wide
             gi = new Button(strings.get("pcli.main.game.info"));     // "Game Info" -- show game options
+            versionOrlocalTCPPortLabel = new Label();
+            localTCPServerLabel = new Label();
 
             // Username not entered yet: can't click buttons
             ng.setEnabled(false);
@@ -843,14 +875,90 @@ public class SOCPlayerClient
             pg.addActionListener(actionListener);
             gi.addActionListener(actionListener);
 
-            GridBagLayout gbl = new GridBagLayout();
-            GridBagConstraints c = new GridBagConstraints();
-            Panel mainPane = new Panel(gbl);
+            initMainPanelLayout(true, null);  // status line only, until later call to showVersion
+
+            Panel messagePane = new Panel(new BorderLayout());
+
+            // secondary message at top of message pane, used with pgm button.
+            messageLabel_top = new Label("", Label.CENTER);
+            messageLabel_top.setVisible(false);
+            messagePane.add(messageLabel_top, BorderLayout.NORTH);
+
+            // message label that takes up the whole pane
+            messageLabel = new Label("", Label.CENTER);
+            messageLabel.setForeground(new Color(252, 251, 243)); // off-white
+            messagePane.add(messageLabel, BorderLayout.CENTER);
+
+            // bottom of message pane: practice-game button
+            pgm = new Button(strings.get("pcli.message.practicebutton"));  // "Practice Game (against robots)"
+            pgm.setVisible(false);
+            messagePane.add(pgm, BorderLayout.SOUTH);
+            pgm.addActionListener(actionListener);
+
+            // all together now...
+            cardLayout = new CardLayout();
+            setLayout(cardLayout);
+
+            if (hasConnectOrPractice)
+            {
+                connectOrPracticePane = new SOCConnectOrPracticePanel(this);
+                add (connectOrPracticePane, CONNECT_OR_PRACTICE_PANEL);  // shown first
+            }
+            add(messagePane, MESSAGE_PANEL); // shown first unless cpPane
+            add(mainPane, MAIN_PANEL);
+
+            messageLabel.setText(strings.get("pcli.message.waiting"));  // "Waiting to connect."
+            validate();
+        }
+
+        /**
+         * Lay out the Main Panel: status text, name, password, game/channel names and lists, buttons.
+         * This method is called twice: First during client init to lay out the status display only,
+         * and then again once the server is connected and its features and version are known.
+         *<P>
+         * Because {@link #mainPane} is part of a larger layout, this method does not call {@code validate()}.
+         * Be sure to call {@link Container#validate() validate()} afterwards once the entire layout is ready.
+         *<P>
+         * This was part of {@link #initVisualElements()} before v1.1.19.
+         * @param isStatusRow  If true, this is an initial call and only the status row should be laid out.
+         *     If false, assumes status was already done and adds the rest of the rows.
+         * @param feats  Active optional server features, for second call with {@code isStatusRow == false}.
+         *     Null when {@code isStatusRow == true}.  See {@link #showVersion(int, String, String, SOCServerFeatures)}
+         *     javadoc for expected contents when an older server does not report features.
+         * @since 1.1.19
+         * @throws IllegalArgumentException if {@code feats} is null but {@code isStatusRow} is false
+         */
+        private void initMainPanelLayout(final boolean isStatusRow, final SOCServerFeatures feats)
+            throws IllegalArgumentException
+        {
+            if ((feats == null) && ! isStatusRow)
+                throw new IllegalArgumentException("feats");
+
+            final SOCStringManager strings = client.strings;
+
+            if (mainGBL == null)
+                mainGBL = new GridBagLayout();
+            if (mainGBC == null)
+                mainGBC = new GridBagConstraints();
+            if (mainPane == null)
+                mainPane = new Panel(mainGBL);
+
+            final GridBagLayout gbl = mainGBL;
+            final GridBagConstraints c = mainGBC;
 
             c.fill = GridBagConstraints.BOTH;
             c.gridwidth = GridBagConstraints.REMAINDER;
-            gbl.setConstraints(status, c);
-            mainPane.add(status);
+
+            if (isStatusRow)
+            {
+                gbl.setConstraints(status, c);
+                mainPane.add(status);
+
+                return;  // <---- Early return: Call later to lay out the rest ----
+            }
+
+            // Reminder: Everything here and below is the delayed second call.
+            // So, any fields must be initialized in initVisualElements(), not here.
 
             Label l;
 
@@ -937,7 +1045,6 @@ public class SOCPlayerClient
 
             // Row 4 (spacer)
 
-            localTCPServerLabel = new Label();
             c.gridwidth = 2;
             gbl.setConstraints(localTCPServerLabel, c);
             mainPane.add(localTCPServerLabel);
@@ -949,7 +1056,6 @@ public class SOCPlayerClient
 
             // Row 5 (version/port# label, join channel btn, show-options btn, join game btn)
 
-            versionOrlocalTCPPortLabel = new Label();
             c.gridwidth = 1;
             gbl.setConstraints(versionOrlocalTCPPortLabel, c);
             mainPane.add(versionOrlocalTCPPortLabel);
@@ -1013,39 +1119,6 @@ public class SOCPlayerClient
             c.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(gmlist, c);
             mainPane.add(gmlist);
-
-            Panel messagePane = new Panel(new BorderLayout());
-
-            // secondary message at top of message pane, used with pgm button.
-            messageLabel_top = new Label("", Label.CENTER);
-            messageLabel_top.setVisible(false);
-            messagePane.add(messageLabel_top, BorderLayout.NORTH);
-
-            // message label that takes up the whole pane
-            messageLabel = new Label("", Label.CENTER);
-            messageLabel.setForeground(new Color(252, 251, 243)); // off-white
-            messagePane.add(messageLabel, BorderLayout.CENTER);
-
-            // bottom of message pane: practice-game button
-            pgm = new Button(strings.get("pcli.message.practicebutton"));  // "Practice Game (against robots)"
-            pgm.setVisible(false);
-            messagePane.add(pgm, BorderLayout.SOUTH);
-            pgm.addActionListener(actionListener);
-
-            // all together now...
-            cardLayout = new CardLayout();
-            setLayout(cardLayout);
-
-            if (hasConnectOrPractice)
-            {
-                connectOrPracticePane = new SOCConnectOrPracticePanel(this);
-                add (connectOrPracticePane, CONNECT_OR_PRACTICE_PANEL);  // shown first
-            }
-            add(messagePane, MESSAGE_PANEL); // shown first unless cpPane
-            add(mainPane, MAIN_PANEL);
-
-            messageLabel.setText(strings.get("pcli.message.waiting"));  // "Waiting to connect."
-            validate();
         }
 
         /**
@@ -1775,7 +1848,15 @@ public class SOCPlayerClient
                 gi.setEnabled(true);
         }
 
-        public void showVersion(int vers, String versionString, String buildString)
+        /**
+         * {@inheritDoc}
+         *<P>
+         * {@code showVersion} calls
+         * {@link #initMainPanelLayout(boolean, SOCServerFeatures) initMainPanelLayout(false, feats)}
+         * to complete layout of the Main Panel with the server's version and active features.
+         */
+        public void showVersion
+            (final int vers, final String versionString, final String buildString, final SOCServerFeatures feats)
         {
             if (null == client.net.localTCPServer)
             {
@@ -1787,6 +1868,8 @@ public class SOCPlayerClient
                          // "Server version is {0} build {1}; client is {2} bld {3}"
                      versionOrlocalTCPPortLabel);
             }
+
+            initMainPanelLayout(false, feats);  // complete the layout as appropriate for server
 
             if ((client.net.practiceServer == null) && (vers < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
                     && (gi != null))
@@ -3112,7 +3195,7 @@ public class SOCPlayerClient
                 ? new SOCServerFeatures(mes.localeOrFeats)
                 : new SOCServerFeatures(true);
 
-            gameDisplay.showVersion(vers, mes.getVersionString(), mes.getBuild());
+            gameDisplay.showVersion(vers, mes.getVersionString(), mes.getBuild(), sFeatures);
         }
 
         // If we ever require a minimum server version, would check that here.
