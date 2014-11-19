@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -937,7 +937,7 @@ public class SOCDBHelper
     /**
      * Count the number of users, if any, currently in the users table.
      * @return User count, or -1 if not connected.
-     * @throws SQLException if unexpected problem retrieving the params
+     * @throws SQLException if unexpected problem counting the users
      * @since 1.1.19
      */
     public static int countUsers()
@@ -1090,7 +1090,7 @@ public class SOCDBHelper
     // dispResultSet
     // Displays all columns and rows in the given result set
     //-------------------------------------------------------------------
-    private static void dispResultSet(ResultSet rs) throws SQLException
+    static void dispResultSet(ResultSet rs) throws SQLException
     {
         System.out.println("dispResultSet()");
 

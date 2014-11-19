@@ -193,7 +193,7 @@ public class SOCServer extends Server
     /**
      * Boolean property {@code jsettlers.accounts.open} to permit open registration.
      * If this property is Y, anyone can create their own user accounts.
-     * Otherwise only existing users can create new accounts.
+     * Otherwise only existing users can create new accounts after the first account.
      *<P>
      * The default is N in version 1.1.19 and newer; previously was Y by default.
      *<P>
@@ -451,6 +451,9 @@ public class SOCServer extends Server
      * {@link SOCServerFeatures#FEAT_OPEN_REG} along with the actually active features.
      *<P>
      * The first successful account creation will clear this flag.
+     *<P>
+     * {@link #handleCREATEACCOUNT(StringConnection, SOCCreateAccount)} does call {@code countUsers()}
+     * and requires auth if any account exists, even if this flag is set.
      * @since 1.1.19
      */
     private boolean acctsNotOpenRegButNoUsers;
@@ -3289,9 +3292,8 @@ public class SOCServer extends Server
         if (acctsNotOpenRegButNoUsers)
         {
             feats = new SOCServerFeatures(features);
-            feats.add(SOCServerFeatures.FEAT_OPEN_REG);  // no accounts: can't require a password from SOCAccountClient
+            feats.add(SOCServerFeatures.FEAT_OPEN_REG);  // no accounts: don't require a password from SOCAccountClient
         }
-
         c.put(SOCVersion.toCmd
             (Version.versionNumber(), Version.version(), Version.buildnum(), feats.getEncodedList()));
 
@@ -6542,7 +6544,7 @@ public class SOCServer extends Server
         if ((c.getData() == null) && ! features.isActive(SOCServerFeatures.FEAT_OPEN_REG))
         {
             // If account is required, are there any accounts in the db at all?
-            // if none, that first one should be allowed.
+            // if none, this first account creation won't require auth.
             int count;
             try
             {

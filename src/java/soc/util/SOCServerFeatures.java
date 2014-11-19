@@ -44,6 +44,7 @@ public class SOCServerFeatures
      * User accounts defined in a persistent database.
      * If this feature is active, nicknames and passwords are authenticated.
      * Otherwise there are no passwords defined.
+     * @see #FEAT_OPEN_REG
      */
     public static final String FEAT_ACCTS = "accts";
 
@@ -58,6 +59,12 @@ public class SOCServerFeatures
      * Open registration.
      * If this feature is active, anyone can create their own user accounts.
      * Otherwise only existing users can create new accounts.
+     *<P>
+     * When a newly installed server requires authentication to create new accounts,
+     * but no accounts exist in the database yet, the server tells clients that
+     * {@code FEAT_OPEN_REG} is active so that {@code SOCAccountClient} won't
+     * ask for a username and password.
+     * @see #FEAT_ACCTS
      */
     public static final String FEAT_OPEN_REG = "oreg";
 

@@ -325,15 +325,16 @@ Users with accounts must type their password to log into the server to play.
 People without accounts can still connect by leaving the password field blank,
 as long as they aren't using a nickname which has a password in the database.
 
-In versions before 1.1.19, anyone could create their own user accounts (open
-registration).  In 1.1.19 this default was changed to improve security: An
-existing user must log in before creating any new account.  If you still want
-to allow open registration of user accounts, include this option when you
-start your server:
-  -Djsettlers.accounts.open=y
+In versions before 1.1.19, anyone could create their own user accounts
+(open registration). In 1.1.19 this default was changed to improve security:
+An existing user must log in before creating any new account.  If you still
+want to allow open registration of user accounts, include this option when
+you start your server:
+	-Djsettlers.accounts.open=y
+
 When you first set up the database, there won't be any user accounts, so the
-server will allow anyone to create the first account.  Please be sure to create
-that first user account soon after you set up the database.
+server will allow anyone to create the first account.  Please be sure to
+create that first user account soon after you set up the database.
 
 
 Development and Compiling
