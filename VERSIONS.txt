@@ -48,6 +48,7 @@ new features, until 2.0.00 is ready.
 - On server startup, start some bots by default (previous versions required -Djsettlers.startrobots)
 - Player chat text: At server, don't ignore messages which start with '*'
 - For player consistency, don't allow seat lock changes during board reset vote
+- New Game Options window: If server is too old for game options, show the game name field and no options here
 - Client Connect to Server, Start Server screens: If port number field is empty, use default 8880
 - Check client password when "New game" is clicked, not after filling out game options
 - Security: Reply with "incorrect password" when username doesn't exist in server's database

@@ -1899,7 +1899,7 @@ public class SOCPlayerClient
             initMainPanelLayout(false, feats);  // complete the layout as appropriate for server
 
             if ((client.net.practiceServer == null) && (vers < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
-                    && (gi != null))
+                && (gi != null))
                 gi.setEnabled(false);  // server too old for options, so don't use that button
         }
 
@@ -3285,7 +3285,10 @@ public class SOCPlayerClient
                 // server is too old to understand options. Can't happen with local practice srv,
                 // because that's our version (it runs from our own JAR file).
                 if (! isPractice)
+                {
                     tcpServGameOpts.noMoreOptions(true);
+                    tcpServGameOpts.optionSet = null;
+                }
             }
         } else {
             // sVersion == cliVersion, so we have same code as server for getAllKnownOptions.
@@ -6609,7 +6612,7 @@ public class SOCPlayerClient
     /**
      * Track the server's valid game option set.
      * One instance for remote tcp server, one for practice server.
-     * Not doing getters/setters - Synchronize on the object to set/read its fields.
+     * For simplicity, getters/setters are not included: Synchronize on the object to set/read its fields.
      *<P>
      * Interaction with client-server messages at connect:
      *<OL>
@@ -6618,6 +6621,8 @@ public class SOCPlayerClient
      *     <tt>optionSet</tt> is set at client from {@link SOCGameOption#getAllKnownOptions()}.
      *<LI> At server connect, ask and receive info about options, if our version and the
      *     server's version differ.  Once this is done, <tt>allOptionsReceived</tt> == true.
+     *     If server is older than 1.1.07, <tt>optionSet</tt> becomes null here
+     *     because older servers don't support game options.
      *<LI> When user wants to create a new game, <tt>askedDefaultsAlready</tt> is false;
      *     ask server for its defaults (current option values for any new game).
      *     Also set <tt>newGameWaitingForOpts</tt> = true.
@@ -6662,7 +6667,7 @@ public class SOCPlayerClient
 
         /**
          * Options will be null if {@link SOCPlayerClient#sVersion}
-         * is less than {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
+         * is less than {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS} (1.1.07).
          * Otherwise, set from {@link SOCGameOption#getAllKnownOptions()}
          * and update from server as needed.
          */
@@ -6680,6 +6685,10 @@ public class SOCPlayerClient
          */
         public long askedDefaultsTime;
 
+        /**
+         * Create a new GameOptionServerSet, with an {@link #optionSet} defaulting
+         * to our client version's {@link SOCGameOption#getAllKnownOptions()}.
+         */
         public GameOptionServerSet()
         {
             optionSet = SOCGameOption.getAllKnownOptions();
@@ -6689,6 +6698,10 @@ public class SOCPlayerClient
          * The server doesn't have any more options to send (or none at all, from its version).
          * Set fields as if we've already received the complete set of options, and aren't waiting
          * for any more.
+         *<P>
+         * Check the server version against {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}
+         * (1.1.07). If the server is too old to understand options, right after calling this method
+         * you must set {@link #optionSet} = null.
          * @param askedDefaults Should we also set the askedDefaultsAlready flag? It not, leave it unchanged.
          */
         public void noMoreOptions(boolean askedDefaults)
