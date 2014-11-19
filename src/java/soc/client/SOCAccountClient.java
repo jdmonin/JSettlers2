@@ -91,23 +91,30 @@ public class SOCAccountClient extends Applet
     protected boolean submitLock;
 
     /**
-     * Connect and Authenticate panel, for when server needs authentication to create a user account.
+     * Connect and Authenticate panel ({@link #CONN_PANEL}), for when
+     * server needs authentication to create a user account.
      * Created in {@link #initInterface_conn()}.
      * @since 1.1.19
      */
     private Panel connPanel;
 
     /**
-     * Username, password, and status fields from {@link #initInterface_conn()}
+     * Username, password, and status fields on {@link #connPanel}.
      * @since 1.1.19
      */
     private TextField conn_user, conn_pass, conn_status;
 
     /**
-     * Connect and Cancel buttons from {@link #initInterface_conn()}
+     * Connect and Cancel buttons on {@link #connPanel}.
      * @since 1.1.19
      */
     private Button conn_connect, conn_cancel;
+
+    /**
+     * If true, a username/password {@link SOCAuthRequest} has been sent to the server from {@link #connPanel}.
+     * @since 1.1.19
+     */
+    private boolean conn_sentAuth;
 
     protected CardLayout cardLayout;
     
@@ -310,8 +317,9 @@ public class SOCAccountClient extends Applet
     }
 
     /**
-     * Connect setup for username and password authentication: {@link #CONN_PANEL}.
+     * Connect setup for username and password authentication: {@link #connPanel} / {@link #CONN_PANEL}.
      * Called if server doesn't have {@link SOCServerFeatures#FEAT_OPEN_REG}.
+     * Calls {@link #validate()} and {@link #conn_user}.{@link java.awt.Component#requestFocus() requestFocus()}.
      * @since 1.1.19
      * @see #initVisualElements()
      */
@@ -420,6 +428,8 @@ public class SOCAccountClient extends Applet
         add(pconn, CONN_PANEL);
         cardLayout.show(this, CONN_PANEL);
         validate();
+
+        conn_user.requestFocus();
     }
 
     /**
@@ -521,7 +531,8 @@ public class SOCAccountClient extends Applet
     }
 
     /**
-     * "Connect" button, from connect/authenticate panel; check nickname & password fields, send auth request to server.
+     * "Connect" button, from connect/authenticate panel; check nickname & password fields,
+     * send auth request to server, set {@link #conn_sentAuth} flag.
      * When the server responds with {@link SOCStatusMessage#SV_OK}, the {@link #MAIN_PANEL} will be shown.
      * @since 1.1.19
      */
@@ -543,6 +554,7 @@ public class SOCAccountClient extends Applet
             return;
         }
 
+        conn_sentAuth = true;
         put(SOCAuthRequest.toCmd(user, pw, SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, host));
     }
 
@@ -763,7 +775,7 @@ public class SOCAccountClient extends Applet
     /**
      * Handle the "version" message: Server's version and feature report.
      *
-     * @param mes  the messsage
+     * @param mes  the message
      * @since 1.1.19
      */
     private void handleVERSION(SOCVersion mes)
@@ -781,6 +793,7 @@ public class SOCAccountClient extends Applet
             messageLabel.setText(strings.get("account.common.no_accts"));  // "This server does not use accounts and passwords."
             cardLayout.show(this, MESSAGE_PANEL);
             validate();
+            return;
         }
 
         if (! sFeatures.isActive(SOCServerFeatures.FEAT_OPEN_REG))
@@ -803,6 +816,7 @@ public class SOCAccountClient extends Applet
 
         cardLayout.show(this, MAIN_PANEL);
         validate();
+        nick.requestFocus();
     }
 
     /**
@@ -826,7 +840,11 @@ public class SOCAccountClient extends Applet
     {
         if ((connPanel != null) && connPanel.isVisible())
         {
-            if (mes.getStatusValue() != SOCStatusMessage.SV_OK)
+            // Initial connect/authentication panel is showing.
+            // This is either an initial STATUSMESSAGE from server, such as
+            // when debug is on, or a response to the authrequest we've sent.
+
+            if ((mes.getStatusValue() != SOCStatusMessage.SV_OK) || ! conn_sentAuth)
             {
                 conn_status.setText(mes.getStatus());
                 return;
@@ -835,6 +853,7 @@ public class SOCAccountClient extends Applet
             connPanel.setVisible(false);
             cardLayout.show(this, MAIN_PANEL);
             validate();
+            nick.requestFocus();
         }
 
         status.setText(mes.getStatus());
@@ -955,20 +974,22 @@ public class SOCAccountClient extends Applet
         switch (e.getKeyCode())
         {
         case KeyEvent.VK_ENTER:
+            e.consume();
             clickConnConnect();
             break;
 
         case KeyEvent.VK_CANCEL:
         case KeyEvent.VK_ESCAPE:
+            e.consume();
             clickConnCancel();
             break;
         }  // switch(e)
     }
 
     /** Stub required by KeyListener */
-    public void keyReleased(KeyEvent arg0) { }
+    public void keyReleased(KeyEvent e) { }
 
     /** Stub required by KeyListener */
-    public void keyTyped(KeyEvent arg0) { }
+    public void keyTyped(KeyEvent e) { }
 
 }
