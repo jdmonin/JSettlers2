@@ -653,6 +653,7 @@ public class SOCPlayerClient
 
         /**
          * Chat channel name to create or join with {@link #jc} button.
+         * Hidden in v1.1.19+ if server is missing {@link SOCServerFeatures#FEAT_CHANNELS}.
          */
         protected TextField channel;
 
@@ -660,6 +661,7 @@ public class SOCPlayerClient
 
         /**
          * List of chat channels that can be joined with {@link #jc} button.
+         * Hidden in v1.1.19+ if server is missing {@link SOCServerFeatures#FEAT_CHANNELS}.
          */
         protected java.awt.List chlist;
 
@@ -673,7 +675,8 @@ public class SOCPlayerClient
 
         /**
          * "Join Channel" button, for channel currently highlighted in {@link #chlist},
-         * or create new channel named in {@link #channel}.
+         * or create new channel named in {@link #channel}. Hidden in v1.1.19+ if server
+         * is missing {@link SOCServerFeatures#FEAT_CHANNELS}.
          */
         protected Button jc;
 
@@ -960,9 +963,21 @@ public class SOCPlayerClient
             // Reminder: Everything here and below is the delayed second call.
             // So, any fields must be initialized in initVisualElements(), not here.
 
+            final boolean hasChannels = feats.isActive(SOCServerFeatures.FEAT_CHANNELS);
+            if (! hasChannels)
+            {
+                // These aren't part of a layout, hide them in case other code checks isVisible()
+                channel.setVisible(false);
+                chlist.setVisible(false);
+                jc.setVisible(false);
+            }
+
             Label l;
 
-            // Row 1
+            // Layout is 6 columns wide (item, item, middle spacer, item, spacer, item).
+            // If ! hasChannels, channel-related items won't be laid out; adjust spacing to compensate.
+
+            // Row 1 (spacer)
 
             l = new Label();
             c.gridwidth = GridBagConstraints.REMAINDER;
@@ -1011,23 +1026,26 @@ public class SOCPlayerClient
 
             // Row 3 (New Channel label & textfield, Practice btn, New Game btn)
 
-            l = new Label(strings.get("pcli.main.label.newchannel"));  // "New Channel:"
-            c.gridwidth = 1;
-            gbl.setConstraints(l, c);
-            mainPane.add(l);
+            if (hasChannels)
+            {
+                l = new Label(strings.get("pcli.main.label.newchannel"));  // "New Channel:"
+                c.gridwidth = 1;
+                gbl.setConstraints(l, c);
+                mainPane.add(l);
 
-            c.gridwidth = 1;
-            gbl.setConstraints(channel, c);
-            mainPane.add(channel);
+                c.gridwidth = 1;
+                gbl.setConstraints(channel, c);
+                mainPane.add(channel);
+            }
 
             l = new Label();
-            c.gridwidth = 1;
+            c.gridwidth = (hasChannels) ? 1 : 3;
             gbl.setConstraints(l, c);
             mainPane.add(l);
 
             c.gridwidth = 1;  // this position was "New Game:" label before 1.1.07
             gbl.setConstraints(pg, c);
-            mainPane.add(pg);
+            mainPane.add(pg);  // "Practice"
 
             l = new Label();
             c.gridwidth = 1;
@@ -1036,7 +1054,7 @@ public class SOCPlayerClient
 
             c.gridwidth = 1;
             gbl.setConstraints(ng, c);
-            mainPane.add(ng);
+            mainPane.add(ng); // "New Game..."
 
             l = new Label();
             c.gridwidth = GridBagConstraints.REMAINDER;
@@ -1056,13 +1074,16 @@ public class SOCPlayerClient
 
             // Row 5 (version/port# label, join channel btn, show-options btn, join game btn)
 
-            c.gridwidth = 1;
+            c.gridwidth = (hasChannels) ? 1 : 2;
             gbl.setConstraints(versionOrlocalTCPPortLabel, c);
             mainPane.add(versionOrlocalTCPPortLabel);
 
-            c.gridwidth = 1;
-            gbl.setConstraints(jc, c);
-            mainPane.add(jc);
+            if (hasChannels)
+            {
+                c.gridwidth = 1;
+                gbl.setConstraints(jc, c);
+                mainPane.add(jc);  // "Join Channel"
+            }
 
             l = new Label();
             c.gridwidth = 1;
@@ -1071,7 +1092,7 @@ public class SOCPlayerClient
 
             c.gridwidth = 1;
             gbl.setConstraints(gi, c);
-            mainPane.add(gi);
+            mainPane.add(gi);  // "Game Info"
 
             l = new Label();
             c.gridwidth = 1;
@@ -1080,7 +1101,7 @@ public class SOCPlayerClient
 
             c.gridwidth = 1;
             gbl.setConstraints(jg, c);
-            mainPane.add(jg);
+            mainPane.add(jg);  // "Join Game"
 
             l = new Label();
             c.gridwidth = GridBagConstraints.REMAINDER;
@@ -1089,15 +1110,18 @@ public class SOCPlayerClient
 
             // Row 6
 
-            l = new Label(strings.get("pcli.main.label.channels"));  // "Channels"
-            c.gridwidth = 2;
-            gbl.setConstraints(l, c);
-            mainPane.add(l);
+            if (hasChannels)
+            {
+                l = new Label(strings.get("pcli.main.label.channels"));  // "Channels"
+                c.gridwidth = 2;
+                gbl.setConstraints(l, c);
+                mainPane.add(l);
 
-            l = new Label();
-            c.gridwidth = 1;
-            gbl.setConstraints(l, c);
-            mainPane.add(l);
+                l = new Label();
+                c.gridwidth = 1;
+                gbl.setConstraints(l, c);
+                mainPane.add(l);
+            }
 
             l = new Label(strings.get("pcli.main.label.games"));  // "Games"
             c.gridwidth = GridBagConstraints.REMAINDER;
@@ -1106,15 +1130,18 @@ public class SOCPlayerClient
 
             // Row 7
 
-            c.gridwidth = 2;
-            c.gridheight = GridBagConstraints.REMAINDER;
-            gbl.setConstraints(chlist, c);
-            mainPane.add(chlist);
+            if (hasChannels)
+            {
+                c.gridwidth = 2;
+                c.gridheight = GridBagConstraints.REMAINDER;
+                gbl.setConstraints(chlist, c);
+                mainPane.add(chlist);
 
-            l = new Label();
-            c.gridwidth = 1;
-            gbl.setConstraints(l, c);
-            mainPane.add(l);
+                l = new Label();
+                c.gridwidth = 1;
+                gbl.setConstraints(l, c);
+                mainPane.add(l);
+            }
 
             c.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(gmlist, c);
