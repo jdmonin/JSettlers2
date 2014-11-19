@@ -23,10 +23,10 @@ package soc.util;
  * Set of optional server features that are currently active.
  * Sent from server to client during connect via {@link soc.message.SOCVersion} fields.
  *<P>
- * Added in v1.1.19; earlier clients assume the server is using the features defined in 1.1.19.
- * Use the {@link #SOCServerFeatures(boolean) SOCServerFeatures(true)} constructor when connecting
- * to a server older than 1.1.19. See that constructor's javadoc for the list of features always assumed
- * active before 1.1.19.
+ * Added in v1.1.19 ({@link #VERSION_FOR_SERVERFEATURES}); earlier clients assume the server is using the
+ * features defined in 1.1.19. Use the {@link #SOCServerFeatures(boolean) SOCServerFeatures(true)} constructor
+ * when connecting to a server older than 1.1.19. See that constructor's javadoc for the list of features
+ * always assumed active before 1.1.19.
  *<P>
  * Feature names are kept simple (lowercase alphanumerics, underscore, dash) for encoding into network message fields.
  *<P>
@@ -84,7 +84,7 @@ public class SOCServerFeatures
      * Create a new empty SOCServerFeatures, with none active or defaults active.
      * After construction, use {@link #add(String)} to add active features.
      * @param withOldDefaults  If false, nothing is active. If true, include the default features
-     *     which were assumed always active in servers older than v1.1.19:
+     *     which were assumed always active in servers older than v1.1.19 ({@link #VERSION_FOR_SERVERFEATURES}):
      *     {@link #FEAT_ACCTS}, {@link #FEAT_CHANNELS}, {@link #FEAT_OPEN_REG}.
      */
     public SOCServerFeatures(final boolean withOldDefaults)
