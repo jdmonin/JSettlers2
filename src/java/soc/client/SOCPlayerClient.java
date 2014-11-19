@@ -292,12 +292,18 @@ public class SOCPlayerClient
      * Number of practice games started; used for naming practice games
      */
     protected int numPracticeGames = 0;
-    
+
+
     /**
      * A facade for the SOCPlayerClient to use to invoke actions in the GUI
+     * @since 2.0.00
      */
     public interface GameDisplay
     {
+        /**
+         * Init the visual elements.  Done before connecting to server,
+         * so we don't know its version or active {@link SOCServerFeatures}.
+         */
         void initVisualElements();
 
         /**
@@ -321,14 +327,33 @@ public class SOCPlayerClient
          */
         void clickPracticeButton();
         void practiceGameStarting();
-        
+
         void setMessage(String string);
 
         void showErrorDialog(String errMessage, String buttonText);
+
+        /**
+         * After network trouble, show a panel with the error message
+         * instead of the main user/password/games/channels panel.
+         *<P>
+         * If we have the startup panel (started as JAR client app, not applet) with buttons to connect
+         * to a server or practice, show that instead of the simpler practice-only message panel.
+         *
+         * @param err  Error message to show
+         * @param canPractice  In current state of client, can we start a practice game?
+         * @since 1.1.16
+         */
         void showErrorPanel(String err, boolean canPractice);
 
         void enableOptions();
 
+        /**
+         * After connecting, display the remote server's version on main panel.
+         * If we're running a server, display its listening port # instead.
+         * @param versionNumber  Version number, like 1119, from server's {@link soc.util.Version#versionNumber()}
+         * @param versionString  Version string, like "1.1.19", from server's {@link soc.util.Version#version()}
+         * @param buildString  Build number, from server's {@link soc.util.Version#buildnum()}
+         */
         void showVersion(int versionNumber, String versionString, String buildString);
 
         /**
@@ -373,12 +398,44 @@ public class SOCPlayerClient
         void optionsRequested();
         void optionsReceived(GameOptionServerSet opts, boolean isPractice);
         void optionsReceived(GameOptionServerSet opts, boolean isPractice, boolean isDash, boolean hasAllNow);
-        
+
+        /**
+         * Add a new game to the initial window's list of games.
+         * If client can't join, makes sure the game is marked as unjoinable
+         * in the {@link SOCPlayerClient#serverGames} list.
+         *
+         * @param cannotJoin Can we not join this game?
+         * @param gameName the game name to add to the list;
+         *            must not have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+         * @param gameOptsStr String of packed {@link SOCGameOption game options}, or null
+         * @param addToSrvList Should this game be added to the list of remote-server games?
+         *            Practice games should not be added.
+         */
         void addToGameList(final boolean cannotJoin, String gameName, String gameOptsStr, final boolean addToSrvList);
+
+        /**
+         * Update this game's stats in the game list display.
+         *
+         * @param gameName Name of game to update
+         * @param scores Each player position's score
+         * @param robots Is this position a robot?
+         *
+         * @see soc.message.SOCGameStats
+         */
         void updateGameStats(String gameName, int[] scores, boolean[] robots);
+
+        /**
+         * Delete a game from the list.
+         * If it's on the list, also remove from {@link #serverGames}.
+         *
+         * @param gameName  the game to remove
+         * @param isPractice   Game is practice, not at tcp server?
+         * @return true if deleted, false if not found in list
+         */
         boolean deleteFromGameList(String gameName, final boolean isPractice);
-        
-    }
+
+    }  // public interface GameDisplay
+
 
     /**
      * Create a SOCPlayerClient connecting to localhost port {@link ClientNetwork#SOC_PORT_DEFAULT}.
@@ -454,6 +511,7 @@ public class SOCPlayerClient
     {
         return nickname;
     }
+
 
     /**
      * A {@link GameDisplay} implementation for AWT.
@@ -562,9 +620,19 @@ public class SOCPlayerClient
         protected TextField nick;
         protected TextField pass;
         protected TextField status;
+
+        /**
+         * Chat channel name to create or join with {@link #jc} button.
+         */
         protected TextField channel;
+
         // protected TextField game;  // removed 1.1.07 - NewGameOptionsFrame instead
+
+        /**
+         * List of chat channels that can be joined with {@link #jc} button.
+         */
         protected java.awt.List chlist;
+
         protected java.awt.List gmlist;
 
         /**
@@ -573,7 +641,12 @@ public class SOCPlayerClient
          */
         protected Button ng;  // new game
 
-        protected Button jc;  // join channel
+        /**
+         * "Join Channel" button, for channel currently highlighted in {@link #chlist},
+         * or create new channel named in {@link #channel}.
+         */
+        protected Button jc;
+
         protected Button jg;  // join game
         protected Button pg;  // practice game (against practiceServer, not localTCPServer)
 
@@ -668,9 +741,6 @@ public class SOCPlayerClient
             NotifyDialog.createAndShow(this, null, errMessage, buttonText, true);
         }
 
-        /**
-         * init the visual elements
-         */
         public void initVisualElements()
         {
             final SOCStringManager strings = client.strings;
@@ -997,10 +1067,6 @@ public class SOCPlayerClient
             return client.getNickname();
         }
 
-        /**
-         * Act as if the "practice game" button has been clicked.
-         * Assumes the dialog panels are all initialized.
-         */
         public void clickPracticeButton()
         {
             guardedActionPerform(pgm);
@@ -1648,8 +1714,9 @@ public class SOCPlayerClient
          * After network trouble, show the error panel ({@link #MESSAGE_PANEL})
          * instead of the main user/password/games/channels panel ({@link #MAIN_PANEL}).
          *<P>
-         * If {@link #hasConnectOrPractice we have the startup panel} with buttons to connect
-         * to a server or practice, we'll show that instead of the simpler practice-only message panel.
+         * If {@link #hasConnectOrPractice we have the startup panel} (started as JAR client
+         * app, not applet) with buttons to connect to a server or practice, we'll show that
+         * instead of the simpler practice-only message panel.
          *
          * @param err  Error message to show
          * @param canPractice  In current state of client, can we start a practice game?
@@ -1710,8 +1777,6 @@ public class SOCPlayerClient
 
         public void showVersion(int vers, String versionString, String buildString)
         {
-            // Display the version on main panel, unless we're running a server.
-            // (If so, want to display its listening port# instead)
             if (null == client.net.localTCPServer)
             {
                 versionOrlocalTCPPortLabel.setForeground(new Color(252, 251, 243)); // off-white
@@ -2023,19 +2088,9 @@ public class SOCPlayerClient
                 }
             }
         }
-        
-        /**
-         * add a new game to the initial window's list of games.
-         * If client can't join, also add to {@link #serverGames} as an unjoinable game.
-         *
-         * @param cannotJoin Can we not join this game?
-         * @param gameName the game name to add to the list;
-         *                 must not have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
-         * @param gameOptsStr String of packed {@link SOCGameOption game options}, or null
-         * @param addToSrvList Should this game be added to the list of remote-server games?
-         *                 Practice games should not be added.
-         */
-        public void addToGameList(final boolean cannotJoin, String gameName, String gameOptsStr, final boolean addToSrvList)
+
+        public void addToGameList
+            (final boolean cannotJoin, String gameName, String gameOptsStr, final boolean addToSrvList)
         {
             if (addToSrvList)
             {
@@ -2067,15 +2122,6 @@ public class SOCPlayerClient
             }
         }
 
-        /**
-         * Update this game's stats in the game list display.
-         *
-         * @param gameName Name of game to update
-         * @param scores Each player position's score
-         * @param robots Is this position a robot?
-         * 
-         * @see soc.message.SOCGameStats
-         */
         public void updateGameStats(String gameName, int[] scores, boolean[] robots)
         {
             //D.ebugPrintln("UPDATE GAME STATS FOR "+gameName);
@@ -2134,14 +2180,6 @@ public class SOCPlayerClient
             }
         }
 
-        /**
-         * delete a game from the list.
-         * If it's on the list, also remove from {@link #serverGames}.
-         *
-         * @param gameName  the game to remove
-         * @param isPractice   Game is practice, not at tcp server?
-         * @return true if deleted, false if not found in list
-         */
         public boolean deleteFromGameList(String gameName, final boolean isPractice)
         {
             //String testString = gameName + STATSPREFEX;
@@ -2406,6 +2444,8 @@ public class SOCPlayerClient
 
     /**
      * Nested class for processing incoming messages (treating).
+     *<P>
+     * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
      * @author paulbilnoski
      * @since 2.0.00
      */
@@ -2413,14 +2453,14 @@ public class SOCPlayerClient
     {
         private final SOCPlayerClient client;
         private final GameManager gmgr;
-        
+
         public MessageTreater(SOCPlayerClient client)
         {
             if (client == null)
                 throw new IllegalArgumentException("client is null");
             this.client = client;
             gmgr = client.getGameManager();
-            
+
             if (gmgr == null)
                 throw new IllegalArgumentException("client game manager is null");
         }
@@ -4609,7 +4649,8 @@ public class SOCPlayerClient
 
         final int[] rstat = mes.getParams();
 
-        EnumMap<PlayerClientListener.UpdateType, Integer> stats = new EnumMap<PlayerClientListener.UpdateType, Integer>(PlayerClientListener.UpdateType.class);
+        EnumMap<PlayerClientListener.UpdateType, Integer> stats
+            = new EnumMap<PlayerClientListener.UpdateType, Integer>(PlayerClientListener.UpdateType.class);
         stats.put(PlayerClientListener.UpdateType.Clay, Integer.valueOf(rstat[SOCResourceConstants.CLAY]));
         stats.put(PlayerClientListener.UpdateType.Ore, Integer.valueOf(rstat[SOCResourceConstants.ORE]));
         stats.put(PlayerClientListener.UpdateType.Sheep, Integer.valueOf(rstat[SOCResourceConstants.SHEEP]));
@@ -4926,16 +4967,18 @@ public class SOCPlayerClient
 
     }  // nested class MessageTreater
 
+
     /**
-     * add a new game to the initial window's list of games, and possibly
+     * Add a new game to the initial window's list of games, and possibly
      * to the {@link #serverGames server games list}.
      *
      * @param gameName the game name to add to the list;
-     *                 may have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}
+     *            may have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}
      * @param gameOptsStr String of packed {@link SOCGameOption game options}, or null
      * @param addToSrvList Should this game be added to the list of remote-server games?
-     *                 Practice games should not be added.
-     *                 The {@link #serverGames} list also has a flag for cannotJoin.
+     *            Practice games should not be added.
+     *            The {@link #serverGames} list also has a flag for cannotJoin.
+     * @see GameDisplay#addToGameList(boolean, String, String, boolean)
      */
     public void addToGameList(String gameName, String gameOptsStr, final boolean addToSrvList)
     {
@@ -4946,7 +4989,7 @@ public class SOCPlayerClient
         }
         gameDisplay.addToGameList(hasUnjoinMarker, gameName, gameOptsStr, addToSrvList);
     }
-    
+
     /** If we're playing in a game that's just finished, update the scores.
      *  This is used to show the true scores, including hidden
      *  victory-point cards, at the game's end.
@@ -4988,9 +5031,12 @@ public class SOCPlayerClient
     {
         return gameManager;
     }
-    
+
+
     /**
      * Nested class for processing outgoing messages (putting).
+     *<P>
+     * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
      * @author paulbilnoski
      * @since 2.0.00
      */
@@ -5532,6 +5578,7 @@ public class SOCPlayerClient
 
     }  // nested class GameManager
 
+
     /**
      * @return true if name is on the ignore list
      */
@@ -5729,6 +5776,7 @@ public class SOCPlayerClient
         return net;
     }
 
+
     /**
      * Helper object to encapsulate and deal with network connectivity.
      *<P>
@@ -5737,6 +5785,8 @@ public class SOCPlayerClient
      * Local tcp server (if any) is started in {@link #initLocalServer(int)}.
      *<br>
      * Network shutdown is {@link #disconnect()} or {@link #dispose()}.
+     *<P>
+     * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
      *
      * @author Paul Bilnoski &lt;paul@bilnoski.net&gt;
      * @since 2.0.00
@@ -6194,7 +6244,8 @@ public class SOCPlayerClient
 
             return canPractice;
         }
-        
+
+
         /**
          * A task to continuously read from the server socket.
          * Not used for talking to the practice server.
@@ -6238,6 +6289,7 @@ public class SOCPlayerClient
             }
 
         }  // nested class NetReadTask
+
 
         /**
          * For practice games, reader thread to get messages from the
@@ -6294,6 +6346,7 @@ public class SOCPlayerClient
         }  // nested class SOCPlayerLocalStringReader
 
     }  // nested class ClientNetwork
+
 
     /** React to windowOpened, windowClosing events for GameAwtDisplay's Frame. */
     private static class ClientWindowAdapter extends WindowAdapter
@@ -6364,14 +6417,15 @@ public class SOCPlayerClient
 
     }  // nested class ClientWindowAdapter
 
+
     /**
      * TimerTask used soon after client connect, to prevent waiting forever for
      * {@link SOCGameOptionInfo game options info}
      * (assume slow connection or server bug).
      * Set up when sending {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
      *<P>
-     * When timer fires, assume no more options will be received.
-     * Call {@link SOCPlayerClient.MessageTreater#handleGAMEOPTIONINFO(SOCGameOptionInfo, boolean) handleGAMEOPTIONINFO("-",false)}
+     * When timer fires, assume no more options will be received. Call
+     * {@link SOCPlayerClient.MessageTreater#handleGAMEOPTIONINFO(SOCGameOptionInfo, boolean) handleGAMEOPTIONINFO("-",false)}
      * to trigger end-of-list behavior at client.
      * @author jdmonin
      * @since 1.1.07
@@ -6611,6 +6665,7 @@ public class SOCPlayerClient
 
     }  // class GameOptionServerSet
 
+
     /**
      * Applet methods to display the main screen (list of games), separated out from main GUI class.
      * @author paulbilnoski
@@ -6620,7 +6675,7 @@ public class SOCPlayerClient
     {
         SOCPlayerClient client;
         GameAwtDisplay gameDisplay;
-        
+
         /**
          * Retrieve a parameter and translate to a hex value.
          *
