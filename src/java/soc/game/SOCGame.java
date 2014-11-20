@@ -90,6 +90,12 @@ import java.util.Vector;
 public class SOCGame implements Serializable, Cloneable
 {
     /**
+     * The main game class has a serialVersionUID; pieces and players don't.
+     * Currently we don't expect to persist a game between versions.
+     */
+    private static final long serialVersionUID = 2000L;  // Last structural change in v2.0.00
+
+    /**
      * Game states.  {@link #NEW} is a brand-new game, not yet ready to start playing.
      * Players are choosing where to sit, or have all sat but no one has yet clicked
      * the "start game" button.

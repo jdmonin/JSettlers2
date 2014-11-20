@@ -76,6 +76,7 @@ import java.util.Vector;
  *
  * @author Robert S Thomas
  */
+@SuppressWarnings("serial")
 public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 {
     /**
@@ -3382,6 +3383,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         case SVP_SETTLED_ANY_NEW_LANDAREA:
             clearScenarioPlayerEvent(p.specialVPEvent);
             break;
+
+        default:
+            break;  // Suppress warning; not all enum values need a handler here
         }
     }
 

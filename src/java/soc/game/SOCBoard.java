@@ -865,6 +865,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @since 2.0.00
      * @throws IllegalArgumentException if <tt>boardEncodingFmt</tt> is out of range
      */
+    @SuppressWarnings("unchecked")
     protected SOCBoard(final int boardEncodingFmt, final int maxRobberHextype)
         throws IllegalArgumentException
     {
