@@ -551,18 +551,40 @@ public class SOCPlayerClient
         public final String NET_UNAVAIL_CAN_PRACTICE_MSG;
 
         /**
-         * Hint message if they try to join game without entering a nickname.
+         * Hint message if they try to join a game or channel without entering a nickname.
          *
          * @see #NEED_NICKNAME_BEFORE_JOIN_2
+         * @see #NEED_NICKNAME_BEFORE_JOIN_G
          */
         public final String NEED_NICKNAME_BEFORE_JOIN;
 
         /**
-         * Stronger hint message if they still try to join game without entering a nickname.
+         * Stronger hint message if they still try to join a game or channel without entering a nickname.
          *
          * @see #NEED_NICKNAME_BEFORE_JOIN
+         * @see #NEED_NICKNAME_BEFORE_JOIN_G2
          */
         public final String NEED_NICKNAME_BEFORE_JOIN_2;
+
+        /**
+         * Hint message if they try to join a game without entering a nickname,
+         * on a server which doesn't support chat channels.
+         *
+         * @see #NEED_NICKNAME_BEFORE_JOIN_G2
+         * @see #NEED_NICKNAME_BEFORE_JOIN
+         * @since 1.1.19
+         */
+        public final String NEED_NICKNAME_BEFORE_JOIN_G;
+
+        /**
+         * Stronger hint message if they still try to join a game without entering a nickname,
+         * on a server which doesn't support chat channels.
+         *
+         * @see #NEED_NICKNAME_BEFORE_JOIN_G
+         * @see #NEED_NICKNAME_BEFORE_JOIN_2
+         * @since 1.1.19
+         */
+        public final String NEED_NICKNAME_BEFORE_JOIN_G2;
 
         /**
          * Status text to indicate client cannot join a game.
@@ -752,8 +774,12 @@ public class SOCPlayerClient
                 // "The server is unavailable. You can still play practice games."
             NEED_NICKNAME_BEFORE_JOIN = client.strings.get("pcli.main.join.neednickname");
                 // "First enter a nickname, then join a game or channel."
+            NEED_NICKNAME_BEFORE_JOIN_G = client.strings.get("pcli.main.join.neednickname.g");
+                // "First enter a nickname, then join a game."
             NEED_NICKNAME_BEFORE_JOIN_2 = client.strings.get("pcli.main.join.neednickname.2");
                 // "You must enter a nickname before you can join a game or channel."
+            NEED_NICKNAME_BEFORE_JOIN_G2 = client.strings.get("pcli.main.join.neednickname.g2");
+                // "You must enter a nickname before you can join a game."
             STATUS_CANNOT_JOIN_THIS_GAME = client.strings.get("pcli.main.join.cannot");
                 // "Cannot join, this client is incompatible with features of this game."
         }
@@ -1555,12 +1581,19 @@ public class SOCPlayerClient
         
             if (n.length() == 0)
             {
-                if (status.getText().equals(NEED_NICKNAME_BEFORE_JOIN))
+                final String stat = status.getText();
+                if (stat.equals(NEED_NICKNAME_BEFORE_JOIN) || stat.equals(NEED_NICKNAME_BEFORE_JOIN_G))
                     // Send stronger hint message
-                    status.setText(NEED_NICKNAME_BEFORE_JOIN_2);
+                    status.setText
+                        ((client.sFeatures.isActive(SOCServerFeatures.FEAT_CHANNELS))
+                         ? NEED_NICKNAME_BEFORE_JOIN_2
+                         : NEED_NICKNAME_BEFORE_JOIN_G2 );
                 else
                     // Send first hint message (or re-send first if they've seen _2)
-                    status.setText(NEED_NICKNAME_BEFORE_JOIN);
+                    status.setText
+                        ((client.sFeatures.isActive(SOCServerFeatures.FEAT_CHANNELS))
+                         ? NEED_NICKNAME_BEFORE_JOIN
+                         : NEED_NICKNAME_BEFORE_JOIN_G );
                 return null;
             }
         
@@ -2091,8 +2124,11 @@ public class SOCPlayerClient
                 cardLayout.show(GameAwtDisplay.this, MAIN_PANEL);
                 validate();
 
-                status.setText(client.strings.get("pcli.main.join.neednickname"));
-                    // "First enter a nickname, then join a game or channel."
+                status.setText
+                    ((client.sFeatures.isActive(SOCServerFeatures.FEAT_CHANNELS))
+                     ? NEED_NICKNAME_BEFORE_JOIN    // "First enter a nickname, then join a game or channel."
+                     : NEED_NICKNAME_BEFORE_JOIN_G  // "First enter a nickname, then join a game."
+                     );
             }
 
             for (String ch : channelNames)
