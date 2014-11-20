@@ -159,9 +159,19 @@ public class SOCPlayerClient extends Applet
     protected TextField nick;
     protected TextField pass;
     protected TextField status;
+
+    /**
+     * Chat channel name to create or join with {@link #jc} button.
+     */
     protected TextField channel;
+
     // protected TextField game;  // removed 1.1.07 - NewGameOptionsFrame instead
+
+    /**
+     * List of chat channels that can be joined with {@link #jc} button.
+     */
     protected java.awt.List chlist;
+
     protected java.awt.List gmlist;
 
     /**
@@ -170,7 +180,12 @@ public class SOCPlayerClient extends Applet
      */
     protected Button ng;  // new game
 
-    protected Button jc;  // join channel
+    /**
+     * "Join Channel" button, for channel currently highlighted in {@link #chlist},
+     * or create new channel named in {@link #channel}.
+     */
+    protected Button jc;
+
     protected Button jg;  // join game
     protected Button pg;  // practice game (against practiceServer, not localTCPServer)
 
@@ -328,7 +343,7 @@ public class SOCPlayerClient extends Applet
      * @see #NEED_NICKNAME_BEFORE_JOIN_2
      */
     public static String NEED_NICKNAME_BEFORE_JOIN = "First enter a nickname, then join a channel or game.";
-    
+
     /**
      * Stronger hint message if they still try to join game without entering a nickname.
      *
@@ -502,7 +517,8 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
-     * init the visual elements
+     * Init the visual elements.  Done before connecting to server,
+     * so we don't know its version or active {@link SOCServerFeatures}.
      */
     protected void initVisualElements()
     {
@@ -1406,7 +1422,9 @@ public class SOCPlayerClient extends Applet
             return;
         }
 
-        // Have we authenticated our password?  If not, do so now before creating newGameOptsFrame
+        // Have we authenticated our password?  If not, do so now before creating newGameOptsFrame.
+        // Even if the server doesn't support accounts or passwords, this will name our connection
+        // and reserve our nickname.
         if ((! (forPracticeServer || gotPassword))
             && (sVersion >= SOCAuthRequest.VERSION_FOR_AUTHREQUEST))
         {
@@ -2314,8 +2332,8 @@ public class SOCPlayerClient extends Applet
                 ? new SOCServerFeatures(mes.feats)
                 : new SOCServerFeatures(true);
 
-            // Display the version on main panel, unless we're running a server.
-            // (If so, want to display its listening port# instead)
+            // Display the server's version on main panel, unless we're running a server.
+            // (If so, want to display its listening port # instead)
             if (null == localTCPServer)
             {
                 versionOrlocalTCPPortLabel.setForeground(new Color(252, 251, 243)); // off-white
@@ -4060,15 +4078,15 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
-     * add a new game to the initial window's list of games, and possibly
+     * Add a new game to the initial window's list of games, and possibly
      * to the {@link #serverGames server games list}.
      *
      * @param gameName the game name to add to the list;
-     *                 may have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}
+     *            may have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}
      * @param gameOptsStr String of packed {@link SOCGameOption game options}, or null
      * @param addToSrvList Should this game be added to the list of remote-server games?
-     *                 Local practice games should not be added.
-     *                 The {@link #serverGames} list also has a flag for cannotJoin.
+     *            Local practice games should not be added.
+     *            The {@link #serverGames} list also has a flag for cannotJoin.
      */
     public void addToGameList(String gameName, String gameOptsStr, final boolean addToSrvList)
     {
@@ -4081,15 +4099,15 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
-     * add a new game to the initial window's list of games.
+     * Add a new game to the initial window's list of games.
      * If client can't join, also add to {@link #serverGames} as an unjoinable game.
      *
      * @param cannotJoin Can we not join this game?
      * @param gameName the game name to add to the list;
-     *                 must not have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+     *            must not have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
      * @param gameOptsStr String of packed {@link SOCGameOption game options}, or null
      * @param addToSrvList Should this game be added to the list of remote-server games?
-     *                 Local practice games should not be added.
+     *            Local practice games should not be added.
      */
     public void addToGameList(final boolean cannotJoin, String gameName, String gameOptsStr, final boolean addToSrvList)
     {
@@ -4217,7 +4235,7 @@ public class SOCPlayerClient extends Applet
             }
         }
     }
-    
+
     /** If we're playing in a game that's just finished, update the scores.
      *  This is used to show the true scores, including hidden
      *  victory-point cards, at the game's end.
@@ -4242,7 +4260,7 @@ public class SOCPlayerClient extends Applet
      * If it's on the list, also remove from {@link #serverGames}.
      *
      * @param gameName  the game to remove
-     * @param isPractice   local practice, not at remote server?
+     * @param isPractice   Game is practice, not at tcp server?
      * @return true if deleted, false if not found in list
      */
     public boolean deleteFromGameList(String gameName, final boolean isPractice)
@@ -5189,8 +5207,9 @@ public class SOCPlayerClient extends Applet
      * After network trouble, show the error panel ({@link #MESSAGE_PANEL})
      * instead of the main user/password/games/channels panel ({@link #MAIN_PANEL}).
      *<P>
-     * If {@link #hasConnectOrPractice we have the startup panel} with buttons to connect
-     * to a server or practice, we'll show that instead of the simpler practice-only message panel.
+     * If {@link #hasConnectOrPractice we have the startup panel} (started as JAR client
+     * app, not applet) with buttons to connect to a server or practice, we'll show that
+     * instead of the simpler practice-only message panel.
      *
      * @param err  Error message to show
      * @param canPractice  In current state of client, can we start a practice game?
@@ -5206,13 +5225,13 @@ public class SOCPlayerClient extends Applet
             messageLabel_top.setText(err);
             messageLabel_top.setVisible(true);
             messageLabel.setText(NET_UNAVAIL_CAN_PRACTICE_MSG);
-            pgm.setVisible(true);            
+            pgm.setVisible(true);
         }
         else
         {
             messageLabel_top.setVisible(false);
             messageLabel.setText(err);
-            pgm.setVisible(false);            
+            pgm.setVisible(false);
         }
 
         if (hasConnectOrPractice)
