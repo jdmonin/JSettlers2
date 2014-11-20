@@ -651,13 +651,14 @@ public class SOCPlayerClient
         // MainPanel GUI elements:
 
         /**
-         * MainPanel GUI, initialized in {@link #initVisualElements()} and
-         * {@link #showVersion(int, String, String, SOCServerFeatures) showVersion(....)}.
+         * MainPanel GUI, initialized in {@link #initVisualElements()}
+         * and {@link #initMainPanelLayout(boolean, SOCServerFeatures)}.
          *<P>
          * {@code mainPane}, {@link #mainGBL}, and {@link #mainGBC} are fields not locals so that
          * the layout can be changed after initialization if needed.  Most of the Main Panel
          * elements are initialized in {@link #initVisualElements()} but not laid out or made visible
-         * until a later call to {@link #showVersion(int, String, String, SOCServerFeatures)}
+         * until a later call to {@link #initMainPanelLayout(boolean, SOCServerFeatures)} (from
+         * ({@link #showVersion(int, String, String, SOCServerFeatures) showVersion(....)})
          * when the version and features are known.
          * @since 1.1.19
          */
