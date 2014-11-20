@@ -213,6 +213,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *          the same as passed to constructor, and thus give the same size and layout
      *          (same {@link #getBoardEncodingFormat()}).
      */
+    @SuppressWarnings("unchecked")
     @Override
     public void makeNewBoard(final Map<String, SOCGameOption> opts)
     {
@@ -2363,6 +2364,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Fallback board layout for 4 players: Main island's land hex coordinates, each row west to east.
      * @see #LANDHEX_DICEPATH_MAINLAND_4PL
      */
+    @SuppressWarnings("unused")  // TODO is this field useful to keep for reference?
     private static final int LANDHEX_COORD_MAINLAND[] =
     {
         0x0104, 0x0106, 0x0108,
@@ -2393,6 +2395,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * @see #LANDHEX_COORD_ISLANDS_ALL_4PL
      * @see #LANDHEX_LANDAREA_RANGES_ISLANDS_4PL
      */
+    @SuppressWarnings("unused")  // TODO is this field useful to keep for reference?
     private static final int LANDHEX_COORD_ISLANDS_EACH[][] =
     {
         { 0x010E, 0x030D, 0x030F, 0x050E, 0x0510 },

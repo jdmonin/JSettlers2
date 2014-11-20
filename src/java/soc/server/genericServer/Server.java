@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - parameterize types, removeConnection bugfix
  *
  * This program is free software; you can redistribute it and/or
@@ -83,6 +83,7 @@ import java.util.Vector;
  *  Local (StringConnection) network system by Jeremy D Monin &lt;jeremy@nand.net&gt; <br>
  *  Version-tracking system and other minor mods by Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
+@SuppressWarnings("serial")  // not expecting to persist an instance between versions
 public abstract class Server extends Thread implements Serializable, Cloneable
 {
     StringServerSocket ss;
@@ -1246,7 +1247,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * messages from the pending vector.  This is typically done via the client's username
      * or nickname, as stored in {@link StringConnection#getData()}.
      *
-     * @author Jeremy D Monin <jeremy@nand.net>
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 1.1.07
      * @see Server#addConnection(StringConnection).
      * @see Server#CLI_DISCON_PRINT_TIMER_FIRE_MS

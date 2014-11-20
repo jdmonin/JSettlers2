@@ -916,6 +916,7 @@ public class SOCGameHandler extends GameHandler
      * @see SOCServer#connectToGame(StringConnection, String, Map)
      * @see SOCServer#createOrJoinGameIfUserOK(StringConnection, String, String, String, Map)
      */
+    @SuppressWarnings("unchecked")
     public void joinGame(SOCGame gameData, StringConnection c, final boolean isReset, final boolean isTakingOver)
     {
         boolean hasRobot = false;  // If game's already started, true if a bot is seated (and can be taken over)
@@ -1597,7 +1598,8 @@ public class SOCGameHandler extends GameHandler
 
         boolean gameHasHumanPlayer = false;
         boolean gameHasObserver = false;
-        boolean gameVotingActiveDuringStart = false;
+        @SuppressWarnings("unused")
+        boolean gameVotingActiveDuringStart = false;  // TODO checks/messages
 
         final int gameState = ga.getGameState();
 
@@ -3445,7 +3447,6 @@ public class SOCGameHandler extends GameHandler
                             srv.messageToGame(gn, new SOCPlayerElement
                                 (gn, -1, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, board.getCloth()));
 
-                        StringBuilder sb = null;
                         String clplName = null;   // name of first player to receive cloth
                         ArrayList<String> clpls = null;  // names of all players receiving cloth, if more than one
                         for (int i = 2; i < roll.cloth.length; ++i)
@@ -5970,6 +5971,9 @@ public class SOCGameHandler extends GameHandler
                 }
             }
             break;
+
+        default:
+            break;  // Suppress warning; not all enum values need a handler here
         }
 
         if (sendSVP)
