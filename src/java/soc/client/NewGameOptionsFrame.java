@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2011,2013 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2011,2013-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -64,7 +64,7 @@ import soc.util.Version;
  * If this window already exists and you'd like to make it topmost,
  * call {@link #show()} or {@link #setVisible(boolean)} instead of {@link #requestFocus()}.
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
  */
 public class NewGameOptionsFrame extends Frame
@@ -228,7 +228,7 @@ public class NewGameOptionsFrame extends Frame
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
 
-        if (! readOnly)
+        if ((! readOnly) && (opts != null))
         {
             msgText = new TextField("Choose options for the new game.");
             msgText.setEditable(false);
