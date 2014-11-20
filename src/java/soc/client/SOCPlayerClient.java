@@ -647,6 +647,15 @@ public class SOCPlayerClient
         /** Constraints for {@link #mainGBL} */
         private GridBagConstraints mainGBC;
 
+        /**
+         * Flags for tracking {@link #mainPane} layout status, in case
+         * {@link #initMainPanelLayout(boolean, SOCServerFeatures)} is
+         * called again after losing connection and then connecting to
+         * another server or starting a hosted tcp server.
+         * @since 1.1.19
+         */
+        private boolean mainPaneLayoutIsDone, mainPaneLayoutIsDone_hasChannels;
+
         protected TextField nick;
         protected TextField pass;
         protected TextField status;
@@ -945,6 +954,8 @@ public class SOCPlayerClient
                 mainGBC = new GridBagConstraints();
             if (mainPane == null)
                 mainPane = new Panel(mainGBL);
+            else if (mainPane.getLayout() == null)
+                mainPane.setLayout(mainGBL);
 
             final GridBagLayout gbl = mainGBL;
             final GridBagConstraints c = mainGBC;
@@ -964,13 +975,31 @@ public class SOCPlayerClient
             // So, any fields must be initialized in initVisualElements(), not here.
 
             final boolean hasChannels = feats.isActive(SOCServerFeatures.FEAT_CHANNELS);
-            if (! hasChannels)
+
+            if (mainPaneLayoutIsDone)
             {
-                // These aren't part of a layout, hide them in case other code checks isVisible()
-                channel.setVisible(false);
-                chlist.setVisible(false);
-                jc.setVisible(false);
+                // called again after layout was done; probably connected to a different server
+
+                if (hasChannels != mainPaneLayoutIsDone_hasChannels)
+                {
+                    // hasChannels changed: redo both layout calls
+                    mainPane.removeAll();
+                    mainGBL = null;
+                    mainGBC = null;
+                    mainPane.setLayout(null);
+                    mainPaneLayoutIsDone = false;
+
+                    initMainPanelLayout(true, null);
+                    initMainPanelLayout(false, feats);
+                }
+
+                return;  // <---- Early return: Layout done already ----
             }
+
+            // If ! hasChannels, these aren't part of a layout, hide them in case other code checks isVisible()
+            channel.setVisible(hasChannels);
+            chlist.setVisible(hasChannels);
+            jc.setVisible(hasChannels);
 
             Label l;
 
@@ -1146,6 +1175,9 @@ public class SOCPlayerClient
             c.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(gmlist, c);
             mainPane.add(gmlist);
+
+            mainPaneLayoutIsDone_hasChannels = hasChannels;
+            mainPaneLayoutIsDone = true;
         }
 
         /**
@@ -1897,6 +1929,7 @@ public class SOCPlayerClient
             }
 
             initMainPanelLayout(false, feats);  // complete the layout as appropriate for server
+            validate();
 
             if ((client.net.practiceServer == null) && (vers < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
                 && (gi != null))
