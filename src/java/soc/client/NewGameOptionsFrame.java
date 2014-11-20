@@ -773,6 +773,8 @@ public class NewGameOptionsFrame extends Frame
      * @param checkOptionsMinVers Warn the user if the options will require a
      *           minimum client version?  Won't do so if {@link #forPractice} is set,
      *           because this isn't a problem for local practice games.
+     *           The warning is skipped if that minimum is an old version
+     *           &lt;= {@link Version#versionNumberMaximumNoWarn()}.
      * @return true if all were read OK, false if a problem (such as NumberFormatException)
      */
     private boolean readOptsValuesFromControls(final boolean checkOptionsMinVers)
