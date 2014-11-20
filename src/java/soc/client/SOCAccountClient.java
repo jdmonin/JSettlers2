@@ -310,12 +310,13 @@ public class SOCAccountClient extends Applet
         setLayout(cardLayout);
 
         add(messagePane, MESSAGE_PANEL); // shown first
-        add(mainPane, MAIN_PANEL);        
+        add(mainPane, MAIN_PANEL);
     }
 
     /**
      * Connect setup for username and password authentication: {@link #connPanel} / {@link #CONN_PANEL}.
      * Called if server doesn't have {@link SOCServerFeatures#FEAT_OPEN_REG}.
+     * Calls {@link #validate()} and {@link #conn_user}.{@link java.awt.Component#requestFocus() requestFocus()}.
      * @since 1.1.19
      * @see #initVisualElements()
      */
@@ -423,6 +424,8 @@ public class SOCAccountClient extends Applet
         add(pconn, CONN_PANEL);
         cardLayout.show(this, CONN_PANEL);
         validate();
+
+        conn_user.requestFocus();
     }
 
     /**
@@ -808,6 +811,7 @@ public class SOCAccountClient extends Applet
 
         cardLayout.show(this, MAIN_PANEL);
         validate();
+        nick.requestFocus();
     }
 
     /**
@@ -832,8 +836,8 @@ public class SOCAccountClient extends Applet
         if ((connPanel != null) && connPanel.isVisible())
         {
             // Initial connect/authentication panel is showing.
-            // This is either the initial STATUSMESSAGE from server,
-            // or a response to the authrequest we've sent.
+            // This is either the initial STATUSMESSAGE from server, such as
+            // when debug is on, or a response to the authrequest we've sent.
 
             if ((mes.getStatusValue() != SOCStatusMessage.SV_OK) || ! conn_sentAuth)
             {
@@ -844,6 +848,7 @@ public class SOCAccountClient extends Applet
             connPanel.setVisible(false);
             cardLayout.show(this, MAIN_PANEL);
             validate();
+            nick.requestFocus();
         }
 
         status.setText(mes.getStatus());
@@ -964,11 +969,13 @@ public class SOCAccountClient extends Applet
         switch (e.getKeyCode())
         {
         case KeyEvent.VK_ENTER:
+            e.consume();
             clickConnConnect();
             break;
 
         case KeyEvent.VK_CANCEL:
         case KeyEvent.VK_ESCAPE:
+            e.consume();
             clickConnCancel();
             break;
         }  // switch(e)
