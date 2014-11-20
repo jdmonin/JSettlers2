@@ -27,7 +27,10 @@ import java.util.Vector;
 
 
 /**
- * This message lists all the chat channels on a server
+ * This message lists all the chat channels on a server.
+ * It's one of the first messages sent from the server when
+ * connecting, and is sent even if the server isn't using
+ * {@link soc.util.SOCServerFeatures#FEAT_CHANNELS}.
  *
  * @author Robert S Thomas
  */
@@ -134,4 +137,5 @@ public class SOCChannels extends SOCMessage
             enumIntoStringBuf(channels.elements(), sb);
         return sb.toString();
     }
+
 }

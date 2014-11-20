@@ -1022,7 +1022,7 @@ public class SOCPlayerClient
                 return;  // <---- Early return: Layout done already ----
             }
 
-            // If ! hasChannels, these aren't part of a layout, hide them in case other code checks isVisible()
+            // If ! hasChannels, these aren't part of a layout: hide them in case other code checks isVisible()
             channel.setVisible(hasChannels);
             chlist.setVisible(hasChannels);
             jc.setVisible(hasChannels);
@@ -1109,7 +1109,7 @@ public class SOCPlayerClient
 
             c.gridwidth = 1;
             gbl.setConstraints(ng, c);
-            mainPane.add(ng); // "New Game..."
+            mainPane.add(ng);  // "New Game..."
 
             l = new Label();
             c.gridwidth = GridBagConstraints.REMAINDER;
@@ -3493,7 +3493,8 @@ public class SOCPlayerClient
 
     /**
      * handle the "list of channels" message; this message indicates that
-     * we're newly connected to the server.
+     * we're newly connected to the server, and is sent even if the server
+     * isn't using {@link SOCServerFeatures#FEAT_CHANNELS}.
      * @param mes  the message
      * @param isPractice is the server actually {@link ClientNetwork#practiceServer} (practice game)?
      */
