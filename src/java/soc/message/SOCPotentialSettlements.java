@@ -386,6 +386,7 @@ public class SOCPotentialSettlements extends SOCMessage
      * @param s   the String to parse
      * @return    a PotentialSettlements message, or null of the data is garbled
      */
+    @SuppressWarnings("unchecked")
     public static SOCPotentialSettlements parseDataStr(String s)
     {
         String ga;
