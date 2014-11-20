@@ -162,6 +162,7 @@ public class SOCPlayerClient extends Applet
 
     /**
      * Chat channel name to create or join with {@link #jc} button.
+     * Hidden in v1.1.19+ if server is missing {@link SOCServerFeatures#FEAT_CHANNELS}.
      */
     protected TextField channel;
 
@@ -169,6 +170,7 @@ public class SOCPlayerClient extends Applet
 
     /**
      * List of chat channels that can be joined with {@link #jc} button.
+     * Hidden in v1.1.19+ if server is missing {@link SOCServerFeatures#FEAT_CHANNELS}.
      */
     protected java.awt.List chlist;
 
@@ -182,7 +184,8 @@ public class SOCPlayerClient extends Applet
 
     /**
      * "Join Channel" button, for channel currently highlighted in {@link #chlist},
-     * or create new channel named in {@link #channel}.
+     * or create new channel named in {@link #channel}. Hidden in v1.1.19+ if server
+     * is missing {@link SOCServerFeatures#FEAT_CHANNELS}.
      */
     protected Button jc;
 
@@ -344,6 +347,15 @@ public class SOCPlayerClient extends Applet
     private GridBagConstraints mainGBC;
 
     /**
+     * Flags for tracking {@link #mainPane} layout status, in case
+     * {@link #initMainPanelLayout(boolean, SOCServerFeatures)} is
+     * called again after losing connection and then connecting to
+     * another server or starting a hosted tcp server.
+     * @since 1.1.19
+     */
+    private boolean mainPaneLayoutIsDone, mainPaneLayoutIsDone_hasChannels;
+
+    /**
      * For local practice games, default player name.
      */
     public static String DEFAULT_PLAYER_NAME = "Player";
@@ -359,18 +371,40 @@ public class SOCPlayerClient extends Applet
     public static String NET_UNAVAIL_CAN_PRACTICE_MSG = "The server is unavailable. You can still play practice games.";
 
     /**
-     * Hint message if they try to join game without entering a nickname.
+     * Hint message if they try to join a game or channel without entering a nickname.
      *
      * @see #NEED_NICKNAME_BEFORE_JOIN_2
+     * @see #NEED_NICKNAME_BEFORE_JOIN_G
      */
     public static String NEED_NICKNAME_BEFORE_JOIN = "First enter a nickname, then join a channel or game.";
 
     /**
-     * Stronger hint message if they still try to join game without entering a nickname.
+     * Stronger hint message if they still try to join a game or channel without entering a nickname.
      *
      * @see #NEED_NICKNAME_BEFORE_JOIN
+     * @see #NEED_NICKNAME_BEFORE_JOIN_G2
      */
     public static String NEED_NICKNAME_BEFORE_JOIN_2 = "You must enter a nickname before you can join a channel or game.";
+
+    /**
+     * Hint message if they try to join a game without entering a nickname,
+     * on a server which doesn't support chat channels.
+     *
+     * @see #NEED_NICKNAME_BEFORE_JOIN_G2
+     * @see #NEED_NICKNAME_BEFORE_JOIN
+     * @since 1.1.19
+     */
+    public static String NEED_NICKNAME_BEFORE_JOIN_G = "First enter a nickname, then join a game.";
+
+    /**
+     * Stronger hint message if they still try to join a game without entering a nickname,
+     * on a server which doesn't support chat channels.
+     *
+     * @see #NEED_NICKNAME_BEFORE_JOIN_G
+     * @see #NEED_NICKNAME_BEFORE_JOIN_2
+     * @since 1.1.19
+     */
+    public static String NEED_NICKNAME_BEFORE_JOIN_G2 = "You must enter a nickname before you can join a game.";
 
     /**
      * Status text to indicate client cannot join a game.
@@ -658,6 +692,8 @@ public class SOCPlayerClient extends Applet
             mainGBC = new GridBagConstraints();
         if (mainPane == null)
             mainPane = new Panel(mainGBL);
+        else if (mainPane.getLayout() == null)
+            mainPane.setLayout(mainGBL);
 
         final GridBagLayout gbl = mainGBL;
         final GridBagConstraints c = mainGBC;
@@ -676,9 +712,39 @@ public class SOCPlayerClient extends Applet
         // Reminder: Everything here and below is the delayed second call.
         // So, any fields must be initialized in initVisualElements(), not here.
 
+        final boolean hasChannels = feats.isActive(SOCServerFeatures.FEAT_CHANNELS);
+
+        if (mainPaneLayoutIsDone)
+        {
+            // called again after layout was done; probably connected to a different server
+
+            if (hasChannels != mainPaneLayoutIsDone_hasChannels)
+            {
+                // hasChannels changed: redo both layout calls
+                mainPane.removeAll();
+                mainGBL = null;
+                mainGBC = null;
+                mainPane.setLayout(null);
+                mainPaneLayoutIsDone = false;
+
+                initMainPanelLayout(true, null);
+                initMainPanelLayout(false, feats);
+            }
+
+            return;  // <---- Early return: Layout done already ----
+        }
+
+        // If ! hasChannels, these aren't part of a layout: hide them in case other code checks isVisible()
+        channel.setVisible(hasChannels);
+        chlist.setVisible(hasChannels);
+        jc.setVisible(hasChannels);
+
         Label l;
 
-        // Row 1
+        // Layout is 6 columns wide (item, item, middle spacer, item, spacer, item).
+        // If ! hasChannels, channel-related items won't be laid out; adjust spacing to compensate.
+
+        // Row 1 (spacer)
 
         l = new Label();
         c.gridwidth = GridBagConstraints.REMAINDER;
@@ -727,23 +793,26 @@ public class SOCPlayerClient extends Applet
 
         // Row 3 (New Channel label & textfield, Practice btn, New Game btn)
 
-        l = new Label("New Channel:");
-        c.gridwidth = 1;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
+        if (hasChannels)
+        {
+            l = new Label("New Channel:");
+            c.gridwidth = 1;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
 
-        c.gridwidth = 1;
-        gbl.setConstraints(channel, c);
-        mainPane.add(channel);
+            c.gridwidth = 1;
+            gbl.setConstraints(channel, c);
+            mainPane.add(channel);
+        }
 
         l = new Label();
-        c.gridwidth = 1;
+        c.gridwidth = (hasChannels) ? 1 : 3;
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
         c.gridwidth = 1;  // this position was "New Game:" label before 1.1.07
         gbl.setConstraints(pg, c);
-        mainPane.add(pg);
+        mainPane.add(pg);  // "Practice"
 
         l = new Label();
         c.gridwidth = 1;
@@ -751,7 +820,7 @@ public class SOCPlayerClient extends Applet
         mainPane.add(l);
 
         c.gridwidth = 1;
-        gbl.setConstraints(ng, c);
+        gbl.setConstraints(ng, c);  // "New Game..."
         mainPane.add(ng);
 
         l = new Label();
@@ -772,13 +841,16 @@ public class SOCPlayerClient extends Applet
 
         // Row 5 (version/port# label, join channel btn, show-options btn, join game btn)
 
-        c.gridwidth = 1;
+        c.gridwidth = (hasChannels) ? 1 : 2;
         gbl.setConstraints(versionOrlocalTCPPortLabel, c);
         mainPane.add(versionOrlocalTCPPortLabel);
 
-        c.gridwidth = 1;
-        gbl.setConstraints(jc, c);
-        mainPane.add(jc);
+        if (hasChannels)
+        {
+            c.gridwidth = 1;
+            gbl.setConstraints(jc, c);
+            mainPane.add(jc);  // "Join Channel"
+        }
 
         l = new Label();
         c.gridwidth = 1;
@@ -787,7 +859,7 @@ public class SOCPlayerClient extends Applet
 
         c.gridwidth = 1;
         gbl.setConstraints(so, c);
-        mainPane.add(so);
+        mainPane.add(so);  // "Show Options"
 
         l = new Label();
         c.gridwidth = 1;
@@ -796,7 +868,7 @@ public class SOCPlayerClient extends Applet
 
         c.gridwidth = 1;
         gbl.setConstraints(jg, c);
-        mainPane.add(jg);
+        mainPane.add(jg);  // "Join Game"
 
         l = new Label();
         c.gridwidth = GridBagConstraints.REMAINDER;
@@ -805,15 +877,18 @@ public class SOCPlayerClient extends Applet
 
         // Row 6
 
-        l = new Label("Channels");
-        c.gridwidth = 2;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
+        if (hasChannels)
+        {
+            l = new Label("Channels");
+            c.gridwidth = 2;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
 
-        l = new Label();
-        c.gridwidth = 1;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
+            l = new Label();
+            c.gridwidth = 1;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+        }
 
         l = new Label("Games");
         c.gridwidth = GridBagConstraints.REMAINDER;
@@ -822,19 +897,25 @@ public class SOCPlayerClient extends Applet
 
         // Row 7
 
-        c.gridwidth = 2;
-        c.gridheight = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(chlist, c);
-        mainPane.add(chlist);
+        if (hasChannels)
+        {
+            c.gridwidth = 2;
+            c.gridheight = GridBagConstraints.REMAINDER;
+            gbl.setConstraints(chlist, c);
+            mainPane.add(chlist);
 
-        l = new Label();
-        c.gridwidth = 1;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
+            l = new Label();
+            c.gridwidth = 1;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+        }
 
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(gmlist, c);
         mainPane.add(gmlist);
+
+        mainPaneLayoutIsDone_hasChannels = hasChannels;
+        mainPaneLayoutIsDone = true;
     }
 
     /**
@@ -1406,12 +1487,19 @@ public class SOCPlayerClient extends Applet
 
         if (n.length() == 0)
         {
-            if (status.getText().equals(NEED_NICKNAME_BEFORE_JOIN))
+            final String stat = status.getText();
+            if (stat.equals(NEED_NICKNAME_BEFORE_JOIN) || stat.equals(NEED_NICKNAME_BEFORE_JOIN_G))
                 // Send stronger hint message
-                status.setText(NEED_NICKNAME_BEFORE_JOIN_2);
+                status.setText
+                    ((sFeatures.isActive(SOCServerFeatures.FEAT_CHANNELS))
+                     ? NEED_NICKNAME_BEFORE_JOIN_2
+                     : NEED_NICKNAME_BEFORE_JOIN_G2 );
             else
                 // Send first hint message (or re-send first if they've seen _2)
-                status.setText(NEED_NICKNAME_BEFORE_JOIN);
+                status.setText
+                    ((sFeatures.isActive(SOCServerFeatures.FEAT_CHANNELS))
+                     ? NEED_NICKNAME_BEFORE_JOIN
+                     : NEED_NICKNAME_BEFORE_JOIN_G );
             return null;
         }
 
@@ -2416,6 +2504,7 @@ public class SOCPlayerClient extends Applet
             }
 
             initMainPanelLayout(false, sFeatures);  // complete the layout as appropriate for server
+            validate();
 
             if ((practiceServer == null) && (sVersion < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
                     && (so != null))
@@ -2617,7 +2706,8 @@ public class SOCPlayerClient extends Applet
 
     /**
      * handle the "list of channels" message; this message indicates that
-     * we're newly connected to the server.
+     * we're newly connected to the server, and is sent even if the server
+     * isn't using {@link SOCServerFeatures#FEAT_CHANNELS}.
      * @param mes  the message
      * @param isPractice is the server actually local (practice game)?
      */
@@ -2632,7 +2722,10 @@ public class SOCPlayerClient extends Applet
             validate();
 
             nick.requestFocus();
-            status.setText("Login by entering nickname and then joining a channel or game.");
+            status.setText
+                ((sFeatures.isActive(SOCServerFeatures.FEAT_CHANNELS))
+                 ? "Login by entering a nickname and then joining a channel or game."
+                 : "Login by entering a nickname and then joining a game." );
         }
 
         Enumeration channelsEnum = (mes.getChannels()).elements();
