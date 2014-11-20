@@ -284,9 +284,9 @@ public class NewGameOptionsFrame extends Frame
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
 
-        if (! readOnly)
+        if ((! readOnly) && (opts != null))
         {
-            msgText = new TextField(strings.get("game.options.prompt"));
+            msgText = new TextField(strings.get("game.options.prompt"));  // "Choose options for the new game."
             msgText.setEditable(false);
             msgText.setForeground(LABEL_TXT_COLOR);
             msgText.setBackground(getBackground());
