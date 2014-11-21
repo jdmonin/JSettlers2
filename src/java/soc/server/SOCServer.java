@@ -392,21 +392,21 @@ public class SOCServer extends Server
 
     // These AUTH_OR_REJECT constants are int not enum for backwards compatibility with 1.1.xx (java 1.4)
 
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean) authOrRejectClientUser(....)}
+    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
      *  result: Failed authentication, failed name validation, or name is already logged in and that
      *  connection hasn't timed out yet
      *  @since 1.1.19
      */
     private static final int AUTH_OR_REJECT__FAILED = 1;
 
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean) authOrRejectClientUser(....)}
+    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
      *  result: Authentication succeeded
      *  @since 1.1.19
      */
     private static final int AUTH_OR_REJECT__OK = 2;
 
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean) authOrRejectClientUser(....)}
-     *  result: Taking over another connection
+    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
+     *  result: Authentication succeeded, is taking over another connection
      *  @since 1.1.19
      */
     private static final int AUTH_OR_REJECT__TAKING_OVER = 3;
@@ -3403,8 +3403,16 @@ public class SOCServer extends Server
     /**
      * Name a current connection to the system, which may replace an older connection.
      * Call c.setData(name) just before calling this method.
-     * Calls {@link Server#nameConnection(StringConnection)}.
-     * Will then adjust game list/channel list if <tt>isReplacing</tt>.
+     * Calls {@link Server#nameConnection(StringConnection)} to move the connection
+     * from the unnamed to the named connection list.  Increments {@link #numberOfUsers}.
+     *<P>
+     * If {@code isReplacing}:
+     *<UL>
+     * <LI> Adjusts game list/channel lists, with the new connection replacing the old in all of its games and channels
+     * <LI> Calls {@link SOCClientData#copyClientPlayerStats(SOCClientData)}
+     *      for win/loss record and current game and channel count
+     * <LI> Sends the old connection an informational disconnect {@link SOCServerPing SOCServerPing(-1)}
+     *</UL>
      *
      * @param c  Connected client; its key data ({@link StringConnection#getData()}) must not be null
      * @param isReplacing  Are we replacing / taking over a current connection?
@@ -3444,6 +3452,8 @@ public class SOCServer extends Server
             if (oldConn.getVersion() >= 1108)
                 oldConn.put(SOCServerPing.toCmd(-1));
         }
+
+        numberOfUsers++;
     }
 
     /**
@@ -4347,6 +4357,12 @@ public class SOCServer extends Server
      * replacement connection can "take over" the existing one according to a timeout calculation
      * in {@link #checkNickname(String, StringConnection, boolean)}.
      *<P>
+     * If this connection isn't already logged on and named ({@link StringConnection#getData() c.getData()}
+     * == {@code null}) and all checks pass: Unless {@code doNameConnection} is false, calls
+     * {@link StringConnection#setData(Object) c.setData(msgUser)} and
+     * {@link #nameConnection(StringConnection, boolean) nameConnection(c, isTakingOver)} before
+     * returning {@link #AUTH_OR_REJECT__OK} or {@link #AUTH_OR_REJECT__TAKING_OVER}.
+     *<P>
      * If this connection is already logged on and named ({@link StringConnection#getData() c.getData()} != {@code null}),
      * does nothing.  Won't check username or password, just returns {@link #AUTH_OR_REJECT__OK}.
      *
@@ -4355,6 +4371,15 @@ public class SOCServer extends Server
      * @param msgPass  Password to supply to {@link #authenticateUser(StringConnection, String, String)},
      *     or ""; please trim string before calling
      * @param cliVers  Client version, from {@link StringConnection#getVersion()}
+     * @param doNameConnection  True if successful auth of an unnamed connection should have this method call
+     *     {@link StringConnection#setData(Object) c.setData(msgUser)} and
+     *     {@link #nameConnection(StringConnection, boolean) nameConnection(c, isTakingOver)}.
+     *     <P>
+     *     For the usual connect sequence, callers will want {@code true}.  Some callers might want to check
+     *     other things after this method and possibly reject the connection at that point; they will want
+     *     {@code false}. Those callers must remember to call {@code c.setData(msgUser)} and
+     *     <tt>nameConnection(c, (result == {@link #AUTH_OR_REJECT__TAKING_OVER}))</tt> themselves to finish
+     *     authenticating a connection.
      * @param allowTakeover  True if the new connection can "take over" an older connection in response to the
      *     message it sent.  If true, the caller must be prepared to send all game info/channel info that the
      *     old connection had joined, so the new connection has full info to participate in them.
@@ -4363,7 +4388,8 @@ public class SOCServer extends Server
      * @since 1.1.19
      */
     private int authOrRejectClientUser
-        (StringConnection c, final String msgUser, String msgPass, final int cliVers, final boolean allowTakeover)
+        (StringConnection c, final String msgUser, String msgPass, final int cliVers,
+         final boolean doNameConnection, final boolean allowTakeover)
     {
         if (c.getData() != null)
         {
@@ -4433,9 +4459,11 @@ public class SOCServer extends Server
          * Now that everything's validated, name this connection/user/player.
          * If isTakingOver, also copies their current game/channel count.
          */
-        c.setData(msgUser);
-        nameConnection(c, isTakingOver);
-        numberOfUsers++;
+        if (doNameConnection)
+        {
+            c.setData(msgUser);
+            nameConnection(c, isTakingOver);
+        }
 
         return (isTakingOver) ? AUTH_OR_REJECT__TAKING_OVER : AUTH_OR_REJECT__OK;
     }
@@ -4702,7 +4730,7 @@ public class SOCServer extends Server
         /**
          * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
          */
-        final int authResult = authOrRejectClientUser(c, msgUser, msgPass, cliVers, false);
+        final int authResult = authOrRejectClientUser(c, msgUser, msgPass, cliVers, true, false);
         if (authResult == AUTH_OR_REJECT__FAILED)
             return;  // <---- Early return ----
 
@@ -5207,7 +5235,9 @@ public class SOCServer extends Server
                 return;
             }
 
-            final int authResult = authOrRejectClientUser(c, mes.nickname, mes.password, cliVersion, false);
+            // Check user authentication.  Don't call setData or nameConnection yet, in case
+            // of role-specific things to check and reject during this initial connection.
+            final int authResult = authOrRejectClientUser(c, mes.nickname, mes.password, cliVersion, false, false);
 
             if (authResult == AUTH_OR_REJECT__FAILED)
                 return;  // <---- Early return; authOrRejectClientUser sent the status message ----
@@ -5224,6 +5254,10 @@ public class SOCServer extends Server
                     return;
                 }
             }
+
+            // no role-specific problems: complete the authentication
+            c.setData(mes.nickname);
+            nameConnection(c, false);
         }
 
         c.put(SOCStatusMessage.toCmd
@@ -5322,7 +5356,7 @@ public class SOCServer extends Server
         /**
          * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
          */
-        final int authResult = authOrRejectClientUser(c, msgUser, msgPass, cliVers, true);
+        final int authResult = authOrRejectClientUser(c, msgUser, msgPass, cliVers, true, true);
         if (authResult == AUTH_OR_REJECT__FAILED)
             return;  // <---- Early return ----
 
@@ -6713,7 +6747,10 @@ public class SOCServer extends Server
                     (SOCStatusMessage.SV_ACCT_CREATED_OK, cliVers,
                      "Account created for '" + userName + "'."));
 
-            System.out.println("Audit: Created jsettlers account '" + userName + "' from " + c.host() + " at " + currentTime);
+            System.out.println
+                ("Audit: Created jsettlers account '" + userName
+                 + ((requester != null) ? "' by '" + requester : "")
+                 + "' from " + c.host() + " at " + currentTime);
 
             if (acctsNotOpenRegButNoUsers)
                 acctsNotOpenRegButNoUsers = false;
