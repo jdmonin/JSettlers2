@@ -1676,8 +1676,8 @@ public class SOCPlayerClient
                 client.isNGOFWaitingForAuthStatus = true;
                 status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // NGOF create calls setCursor(DEFAULT_CURSOR)
-                client.net.putNet
-                    (SOCAuthRequest.toCmd(client.nickname, client.password,
+                client.net.putNet(SOCAuthRequest.toCmd
+                    (SOCAuthRequest.ROLE_GAME_PLAYER, client.nickname, client.password,
                      SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, client.net.getHost()));
 
                 return;
