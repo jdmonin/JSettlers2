@@ -126,6 +126,7 @@ public class SOCStatusMessage extends SOCMessage
      * To see whether a server v1.1.19 or newer uses accounts and passwords, check
      * whether {@link SOCServerFeatures#FEAT_ACCTS} is sent when the client connects.
      * @since 1.1.06
+     * @see #SV_ACCT_NOT_CREATED_DENIED
      */
     public static final int SV_ACCT_NOT_CREATED_ERR = 8;
 
@@ -191,11 +192,19 @@ public class SOCStatusMessage extends SOCMessage
     public static final int SV_NEWCHANNEL_TOO_MANY_CREATED = 15;
 
     /**
+     * For account creation, the requesting user's account is not authorized
+     * to create accounts = 16.
+     * @since 1.1.19
+     * @see #SV_ACCT_NOT_CREATED_ERR
+     */
+    public static final int SV_ACCT_NOT_CREATED_DENIED = 16;
+
+    /**
      * Client has connected successfully ({@link #SV_OK}) and the server's Debug Mode is on.
      * Versions older than 2.0.00 get {@link #SV_OK} instead; see {@link #toCmd(int, int, String)}.
      * @since 2.0.00
      */
-    public static final int SV_OK_DEBUG_MODE_ON = 16;
+    public static final int SV_OK_DEBUG_MODE_ON = 17;
 
     // IF YOU ADD A STATUS VALUE:
     // Be sure to update statusValidAtVersion().
@@ -391,6 +400,8 @@ public class SOCStatusMessage extends SOCMessage
             {
             if (cliVersion < 1106)
                 return (statusValue == 0);
+            else if (cliVersion < 1119)
+                return (statusValue < SV_ACCT_NOT_CREATED_DENIED);
             else if (cliVersion < 2000)
                 return (statusValue < SV_OK_DEBUG_MODE_ON);
             else

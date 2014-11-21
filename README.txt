@@ -336,6 +336,12 @@ When you first set up the database, there won't be any user accounts, so the
 server will allow anyone to create the first account.  Please be sure to
 create that first user account soon after you set up the database.
 
+To permit only certain users to create new accounts, instead of all users,
+list them when you start your server:
+	-Djsettlers.accounts.admins=bob,joe,lily
+The server doesn't require or check at startup that the named accounts all
+already exist, this is just a comma-separated list of names.
+
 
 Development and Compiling
 -------------------------
