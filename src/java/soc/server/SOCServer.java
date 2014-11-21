@@ -5063,7 +5063,6 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
-        D.ebugPrintln("handleAUTHREQUEST: " + mes);  // JM temp
         if (c.getData() == null)
         {
             final int cliVersion = c.getVersion();
@@ -5086,6 +5085,18 @@ public class SOCServer extends Server
 
             if (authResult == AUTH_OR_REJECT__FAILED)
                 return;  // <---- Early return; authOrRejectClientUser sent the status message ----
+
+            if (mes.role.equals(SOCAuthRequest.ROLE_USER_ADMIN))
+            {
+                // Check if we're using a user admin whitelist; this check is also in handleCREATEACCOUNT.
+                if ((databaseUserAdmins != null) && ! databaseUserAdmins.contains(mes.nickname))
+                {
+                    c.put(SOCStatusMessage.toCmd
+                            (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVersion,
+                             "Your account is not authorized to create accounts."));
+                    return;
+                }
+            }
         }
 
         c.put(SOCStatusMessage.toCmd
@@ -8167,6 +8178,7 @@ public class SOCServer extends Server
             }
         }
 
+        // Check if we're using a user admin whitelist; this check is also in handleAUTHREQUEST.
         if ((databaseUserAdmins != null) && ! databaseUserAdmins.contains(requester))
         {
             // Requester not on user-admin whitelist.

@@ -1592,7 +1592,9 @@ public class SOCPlayerClient extends Applet
             isNGOFWaitingForAuthStatus = true;
             status.setText("Talking to server...");
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // NGOF create calls setCursor(DEFAULT_CURSOR)
-            putNet(SOCAuthRequest.toCmd(nickname, password, SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, host));
+            putNet(SOCAuthRequest.toCmd
+                (SOCAuthRequest.ROLE_GAME_PLAYER, nickname, password,
+                 SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, host));
 
             return;
         }

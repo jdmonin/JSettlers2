@@ -550,7 +550,8 @@ public class SOCAccountClient extends Applet
         }
 
         conn_sentAuth = true;
-        put(SOCAuthRequest.toCmd(user, pw, SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, host));
+        put(SOCAuthRequest.toCmd
+            (SOCAuthRequest.ROLE_USER_ADMIN, user, pw, SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, host));
     }
 
     /**
