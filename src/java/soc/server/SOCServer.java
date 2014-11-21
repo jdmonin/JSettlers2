@@ -54,6 +54,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -182,12 +183,30 @@ public class SOCServer extends Server
      * Otherwise only existing users can create new accounts after the first account.
      *<P>
      * The default is N in version 1.1.19 and newer; previously was Y by default.
+     * To restrict which users can create accounts, see {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS}.
      *<P>
      * If this field is Y when the server is initialized, the server calls
      * {@link SOCServerFeatures#add(String) features.add}({@link SOCServerFeatures#FEAT_OPEN_REG}).
      * @since 1.1.19
      */
     public static final String PROP_JSETTLERS_ACCOUNTS_OPEN = "jsettlers.accounts.open";
+
+    /**
+     * Property <tt>jsettlers.accounts.admins</tt> to restrict which usernames can create accounts.
+     * If this property is set, it is a comma-separated list of usernames (nicknames), and
+     * a user must authenticate and be on this whitelist to create user accounts.
+     *<P>
+     * If any other user requests account creation, the server will reply with
+     * {@link SOCStatusMessage#SV_ACCT_NOT_CREATED_DENIED}.
+     *<P>
+     * The server doesn't require or check at startup that the named accounts all already
+     * exist, this is just a list of names.
+     *<P>
+     * This property can't be set at the same time as {@link #PROP_JSETTLERS_ACCOUNTS_OPEN},
+     * they ask for opposing security policies.
+     * @since 1.1.19
+     */
+    public static final String PROP_JSETTLERS_ACCOUNTS_ADMINS = "jsettlers.accounts.admins";
 
     /**
      * Property <tt>jsettlers.allow.debug</tt> to permit debug commands over TCP.
@@ -235,6 +254,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_CONNECTIONS,   "Maximum connection count, including robots (default " + SOC_MAXCONN_DEFAULT + ")",
         PROP_JSETTLERS_STARTROBOTS,   "Number of robots to create at startup (default " + SOC_STARTROBOTS_DEFAULT + ")",
         PROP_JSETTLERS_ACCOUNTS_OPEN, "Permit open self-registration of new user accounts? (if Y and using a database)",
+        PROP_JSETTLERS_ACCOUNTS_ADMINS, "Permit only these usernames to create accounts (comma-separated)",
         PROP_JSETTLERS_ALLOW_DEBUG,   "Allow remote debug commands? (if Y)",
         PROP_JSETTLERS_CLI_MAXCREATECHANNELS,   "Maximum simultaneous channels that a client can create",
         PROP_JSETTLERS_CLI_MAXCREATEGAMES,      "Maximum simultaneous games that a client can create",
@@ -636,8 +656,17 @@ public class SOCServer extends Server
      * game timeout checker
      */
     SOCGameTimeoutChecker gameTimeoutChecker;
+
     String databaseUserName;
     String databasePassword;
+
+    /**
+     * User admins whitelist, from {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS}, or <tt>null</tt> if disabled:
+     * a set of Strings.  If not null, only usernames on this list can create user accounts in
+     * {@link #handleCREATEACCOUNT(StringConnection, SOCCreateAccount)}.
+     * @since 1.1.19
+     */
+    private Set databaseUserAdmins;
 
     /**
      * Create a Settlers of Catan server listening on TCP port p.
@@ -945,6 +974,40 @@ public class SOCServer extends Server
 
         if (CLIENT_MAX_CREATE_CHANNELS != 0)
             features.add(SOCServerFeatures.FEAT_CHANNELS);
+
+        if (props.containsKey(PROP_JSETTLERS_ACCOUNTS_ADMINS))
+        {
+            String errmsg = null;
+
+            final String userAdmins = props.getProperty(PROP_JSETTLERS_ACCOUNTS_ADMINS);
+            if (! SOCDBHelper.isInitialized())
+            {
+                errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + " requires a database.";
+            } else if (userAdmins.length() == 0) {
+                errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + " cannot be an empty string.";
+            } else if (features.isActive(SOCServerFeatures.FEAT_OPEN_REG)) {
+                errmsg = "* Cannot use Open Registration with User Accounts Admin List.";
+            } else {
+                databaseUserAdmins = new HashSet();
+                String[] admins = userAdmins.split(SOCMessage.sep2);  // split on "," - sep2 will never be in a username
+                for (int i = 0; i < admins.length; ++i)
+                {
+                    String na = admins[i].trim();
+                    if (na.length() > 0)
+                        databaseUserAdmins.add(na);
+                }
+                if (databaseUserAdmins.isEmpty())  // was it commas only?
+                    errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + " cannot be an empty list.";
+            }
+
+            if (errmsg != null)
+            {
+                System.err.println(errmsg);
+                throw new IllegalArgumentException(errmsg);
+            }
+
+            System.err.println("User account administrators limited to: " + userAdmins);
+        }
 
         /**
          *  Start various threads.
@@ -8074,9 +8137,11 @@ public class SOCServer extends Server
             return;
         }
 
+        final String requester = (String) c.getData();
+
         // If client is not authenticated; does this server have open registration,
         // or is an account required to create user accounts?
-        if ((c.getData() == null) && ! features.isActive(SOCServerFeatures.FEAT_OPEN_REG))
+        if ((requester == null) && ! features.isActive(SOCServerFeatures.FEAT_OPEN_REG))
         {
             // If account is required, are there any accounts in the db at all?
             // if none, this first account creation won't require auth.
@@ -8100,6 +8165,17 @@ public class SOCServer extends Server
                          "You must log in with a username and password before you can create accounts."));
                 return;
             }
+        }
+
+        if ((databaseUserAdmins != null) && ! databaseUserAdmins.contains(requester))
+        {
+            // Requester not on user-admin whitelist.
+            // If databaseUserAdmins != null, then requester != null because FEAT_OPEN_REG can't also be active.
+
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVers,
+                     "Your account is not authorized to create accounts."));
+            return;
         }
 
         //
