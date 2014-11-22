@@ -228,12 +228,19 @@ public class SOCPlayerClient extends Applet
     protected DataInputStream in;
     protected DataOutputStream out;
     protected Thread reader = null;
+
+    /**
+     * Any network error received while connecting or sending messages in {@link #putNet(String)}.
+     * If <tt>ex != null</tt>, putNet will refuse to send.
+     * {@link #destroy()} displays any message stored in <tt>ex</tt>.
+     */
     protected Exception ex = null;    // Network errors (TCP communication)
     protected Exception ex_L = null;  // Local errors (stringport pipes)
 
     /**
      * Are we connected to a TCP server (remote or {@link #localTCPServer})?
      * {@link #practiceServer} is not a TCP server.
+     * @see #ex
      */
     protected boolean connected = false;
 
@@ -1045,6 +1052,7 @@ public class SOCPlayerClient extends Applet
         
         try
         {
+            ex = null;  // clear error from any previous disconnect
             s = new Socket(host, port);
             in = new DataInputStream(s.getInputStream());
             out = new DataOutputStream(s.getOutputStream());
@@ -1863,6 +1871,12 @@ public class SOCPlayerClient extends Applet
     /**
      * write a message to the net: either to a remote server,
      * or to {@link #localTCPServer} for games we're hosting.
+     *<P>
+     * If {@link #ex} != null, or ! {@link #connected}, <tt>putNet</tt>
+     * returns false without attempting to send the message.
+     *<P>
+     * If an IOException occurs while sending, sets {@link #ex}
+     * and calls {@link #destroy()} to show the error message.
      *
      * @param s  the message
      * @return true if the message was sent, false if not
