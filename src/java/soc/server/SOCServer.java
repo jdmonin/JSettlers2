@@ -4171,7 +4171,7 @@ public class SOCServer extends Server
      * in {@link #checkNickname(String, StringConnection, boolean)}.
      *<P>
      * If this connection isn't already logged on and named ({@link StringConnection#getData() c.getData()}
-     * == <tt>null</tt>) and all checks pass: Unless {@code doNameConnection} is false, calls
+     * == <tt>null</tt>) and all checks pass: Unless <tt>doNameConnection</tt> is false, calls
      * {@link StringConnection#setData(Object) c.setData(msgUser)} and
      * {@link #nameConnection(StringConnection, boolean) nameConnection(c, isTakingOver)} before
      * returning {@link #AUTH_OR_REJECT__OK} or {@link #AUTH_OR_REJECT__TAKING_OVER}.
