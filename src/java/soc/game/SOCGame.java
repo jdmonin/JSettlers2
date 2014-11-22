@@ -1941,7 +1941,11 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Has any player built a city?
      * Used with house-rule {@link SOCGameOption game option} {@code "N7C"}.
-     * @return  True if {@link #putPiece}({@link SOCCity}) has been called
+     *<P>
+     * No setter is needed: During normal game play, {@link #putPiece(SOCPlayingPiece) putPiece(SOCCity)} will
+     * update this flag. If a client joins a game after it's started, the server will send PUTPIECE messages
+     * for any cities already on the board.
+     * @return  True if {@link #putPiece}({@link SOCCity}) has been called for a non-temporary piece
      * @since 1.1.19
      */
     public boolean hasBuiltCity()
