@@ -341,7 +341,8 @@ public class SOCGameOption
      *   Its default value on your own server can be changed at runtime.
      *<LI> Decide if all client versions can use your option.  Typically, if the option
      *   requires server changes but not any client changes, all clients can use it.
-     *   (For example, "N7" for "roll no 7s early in the game" is strictly server-side.)
+     *   (For example, "N7" for "roll no 7s early in the game" works with any client
+     *   because dice rolls are done at the server.)
      *<LI> Create the option by calling opt.put here in initAllOptions.
      *   Use the current version for the "last modified" field.
      *<LI> Add the new option's description to the {@code gameopt.*} section of

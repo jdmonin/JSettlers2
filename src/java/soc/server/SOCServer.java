@@ -1053,11 +1053,11 @@ public class SOCServer extends Server
                 errmsg = "* Cannot use Open Registration with User Accounts Admin List.";
             } else {
                 databaseUserAdmins = new HashSet<String>();
-                for (String na : userAdmins.split(SOCMessage.sep2))  // split on "," - sep2 will never be in a username
+                for (String adm : userAdmins.split(SOCMessage.sep2))  // split on "," - sep2 will never be in a username
                 {
-                    String natrim = na.trim();
-                    if (natrim.length() > 0)
-                        databaseUserAdmins.add(na.trim());
+                    String na = adm.trim();
+                    if (na.length() > 0)
+                        databaseUserAdmins.add(na);
                 }
                 if (databaseUserAdmins.isEmpty())  // was it commas only?
                     errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + " cannot be an empty list.";
@@ -3408,7 +3408,7 @@ public class SOCServer extends Server
      *<P>
      * If {@code isReplacing}:
      *<UL>
-     * <LI> Adjusts game list/channel lists, with the new connection replacing the old in all of its games and channels
+     * <LI> Replaces the old connection with the new one in all its games and channels
      * <LI> Calls {@link SOCClientData#copyClientPlayerStats(SOCClientData)}
      *      for win/loss record and current game and channel count
      * <LI> Sends the old connection an informational disconnect {@link SOCServerPing SOCServerPing(-1)}
