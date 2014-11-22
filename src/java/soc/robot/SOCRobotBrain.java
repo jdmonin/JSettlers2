@@ -2736,7 +2736,8 @@ public class SOCRobotBrain extends Thread
      */
     private void handlePLAYERELEMENT(SOCPlayerElement mes)
     {
-        SOCPlayer pl = game.getPlayer(mes.getPlayerNumber());
+        final int pn = mes.getPlayerNumber();
+        SOCPlayer pl = (pn != -1) ? game.getPlayer(pn) : null;
 
         switch (mes.getElementType())
         {
@@ -2810,7 +2811,7 @@ public class SOCRobotBrain extends Thread
             if (0 != mes.getValue())
             {
                 try {
-                    game.askSpecialBuild(pl.getPlayerNumber(), false);  // set per-player, per-game flags
+                    game.askSpecialBuild(pn, false);  // set per-player, per-game flags
                 }
                 catch (RuntimeException e) {}
             } else {

@@ -3264,9 +3264,9 @@ public class SOCPlayerClient extends Applet
         if (ga != null)
         {
             final int pn = mes.getPlayerNumber();
-            final SOCPlayer pl = ga.getPlayer(pn);
+            final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
             final SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-            final SOCHandPanel hpan = pi.getPlayerHandPanel(pn);
+            final SOCHandPanel hpan = (pn != -1) ? pi.getPlayerHandPanel(pn) : null;
             int hpanUpdateRsrcType = -1;  // If not -1, update this type's amount display
 
             switch (mes.getElementType())
@@ -3371,6 +3371,9 @@ public class SOCPlayerClient extends Applet
                 break;
 
             }
+
+            if (hpan == null)
+                return; // <--- early return: not a per-player element ---
 
             if (hpanUpdateRsrcType != -1)
             {
