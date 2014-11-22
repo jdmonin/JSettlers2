@@ -373,6 +373,9 @@ public class SOCPlayerClient
          */
         void showStatus(String statusText, boolean debugWarn);
 
+        /** If the password field is currently visible, focus the cursor there for the user to type something. */
+        public void focusPassword();
+
         void channelJoined(String channelName);
         void channelJoined(String channelName, String nickname);
         void channelMemberList(String channelName, Collection<String> members);
@@ -1985,6 +1988,11 @@ public class SOCPlayerClient
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
 
+        public void focusPassword()
+        {
+            pass.requestFocusInWindow();
+        }
+
         public void channelJoined(String channelName)
         {
             nick.setEditable(false);
@@ -3416,42 +3424,50 @@ public class SOCPlayerClient
             }
         }
 
-        if (sv == SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW)
+        switch (sv)
         {
-            // Extract game name and failing game-opt keynames,
-            // and pop up an error message window.
-            String errMsg;
-            StringTokenizer st = new StringTokenizer(statusText, SOCMessage.sep2);
-            try
-            {
-                String gameName = null;
-                Vector<String> optNames = new Vector<String>();
-                errMsg = st.nextToken();
-                gameName = st.nextToken();
-                while (st.hasMoreTokens())
-                    optNames.addElement(st.nextToken());
-                StringBuffer opts = new StringBuffer();
-                final Map<String, SOCGameOption> knowns =
-                    isPractice ? practiceServGameOpts.optionSet : tcpServGameOpts.optionSet;
-                for (int i = 0; i < optNames.size(); ++i)
-                {
-                    opts.append('\n');
-                    String oname = optNames.elementAt(i);
-                    SOCGameOption oinfo = null;
-                    if (knowns != null)
-                        oinfo = knowns.get(oname);
-                    if (oinfo != null)
-                        oname = oinfo.desc;
-                    opts.append(strings.get("options.error.valuesproblem.which", oname));
-                }
-                errMsg = strings.get("options.error.valuesproblem", gameName, errMsg, opts.toString());
-            }
-            catch (Throwable t)
-            {
-                errMsg = statusText;  // fallback, not expected to happen
-            }
+        case SOCStatusMessage.SV_PW_WRONG:
+            gameDisplay.focusPassword();
+            break;
 
-            gameDisplay.showErrorDialog(errMsg, strings.get("base.cancel"));
+        case SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW:
+            {
+                // Extract game name and failing game-opt keynames,
+                // and pop up an error message window.
+                String errMsg;
+                StringTokenizer st = new StringTokenizer(statusText, SOCMessage.sep2);
+                try
+                {
+                    String gameName = null;
+                    Vector<String> optNames = new Vector<String>();
+                    errMsg = st.nextToken();
+                    gameName = st.nextToken();
+                    while (st.hasMoreTokens())
+                        optNames.addElement(st.nextToken());
+                    StringBuffer opts = new StringBuffer();
+                    final Map<String, SOCGameOption> knowns =
+                        isPractice ? practiceServGameOpts.optionSet : tcpServGameOpts.optionSet;
+                    for (int i = 0; i < optNames.size(); ++i)
+                    {
+                        opts.append('\n');
+                        String oname = optNames.elementAt(i);
+                        SOCGameOption oinfo = null;
+                        if (knowns != null)
+                            oinfo = knowns.get(oname);
+                        if (oinfo != null)
+                            oname = oinfo.desc;
+                        opts.append(strings.get("options.error.valuesproblem.which", oname));
+                    }
+                    errMsg = strings.get("options.error.valuesproblem", gameName, errMsg, opts.toString());
+                }
+                catch (Throwable t)
+                {
+                    errMsg = statusText;  // fallback, not expected to happen
+                }
+
+                gameDisplay.showErrorDialog(errMsg, strings.get("base.cancel"));
+            }
+            break;
         }
     }
 
