@@ -2569,6 +2569,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes, final boolean isPractice)
     {
+        final int sv = mes.getStatusValue();
         final String statusText = mes.getStatus();
         status.setText(statusText);
 
@@ -2586,7 +2587,7 @@ public class SOCPlayerClient extends Applet
         {
             isNGOFWaitingForAuthStatus = false;
 
-            if (mes.getStatusValue() == SOCStatusMessage.SV_OK)
+            if (sv == SOCStatusMessage.SV_OK)
             {
                 gotPassword = true;
 
@@ -2600,44 +2601,52 @@ public class SOCPlayerClient extends Applet
             }
         }
 
-        if (mes.getStatusValue() == SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW)
+        switch (sv)
         {
-            // Extract game name and failing game-opt keynames,
-            // and pop up an error message window.
-            String errMsg;
-            StringTokenizer st = new StringTokenizer(statusText, SOCMessage.sep2);
-            try
+        case SOCStatusMessage.SV_PW_WRONG:
+            pass.requestFocusInWindow();
+            break;
+
+        case SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW:
             {
-                String gameName = null;
-                Vector optNames = new Vector();
-                errMsg = st.nextToken();
-                gameName = st.nextToken();
-                while (st.hasMoreTokens())
-                    optNames.addElement(st.nextToken());
-                StringBuffer err = new StringBuffer("Cannot create game ");
-                err.append(gameName);
-                err.append("\nThere is a problem with the option values chosen.\n");
-                err.append(errMsg);
-                Hashtable knowns = isPractice ? practiceServGameOpts.optionSet : tcpServGameOpts.optionSet;
-                for (int i = 0; i < optNames.size(); ++i)
+                // Extract game name and failing game-opt keynames,
+                // and pop up an error message window.
+                String errMsg;
+                StringTokenizer st = new StringTokenizer(statusText, SOCMessage.sep2);
+                try
                 {
-                    err.append("\nThis option must be changed: ");
-                    String oname = (String) optNames.elementAt(i);
-                    SOCGameOption oinfo = null;
-                    if (knowns != null)
-                        oinfo = (SOCGameOption) knowns.get(oname);
-                    if (oinfo != null)
-                        oname = oinfo.optDesc;
-                    err.append(oname);
+                    String gameName = null;
+                    Vector optNames = new Vector();
+                    errMsg = st.nextToken();
+                    gameName = st.nextToken();
+                    while (st.hasMoreTokens())
+                        optNames.addElement(st.nextToken());
+                    StringBuffer err = new StringBuffer("Cannot create game ");
+                    err.append(gameName);
+                    err.append("\nThere is a problem with the option values chosen.\n");
+                    err.append(errMsg);
+                    Hashtable knowns = isPractice ? practiceServGameOpts.optionSet : tcpServGameOpts.optionSet;
+                    for (int i = 0; i < optNames.size(); ++i)
+                    {
+                        err.append("\nThis option must be changed: ");
+                        String oname = (String) optNames.elementAt(i);
+                        SOCGameOption oinfo = null;
+                        if (knowns != null)
+                            oinfo = (SOCGameOption) knowns.get(oname);
+                        if (oinfo != null)
+                            oname = oinfo.optDesc;
+                        err.append(oname);
+                    }
+                    errMsg = err.toString();
                 }
-                errMsg = err.toString();
+                catch (Throwable t)
+                {
+                    errMsg = statusText;  // fallback, not expected to happen
+                }
+                NotifyDialog.createAndShow(this, (Frame) null,
+                    errMsg, "Cancel", false);
             }
-            catch (Throwable t)
-            {
-                errMsg = statusText;  // fallback, not expected to happen
-            }
-            NotifyDialog.createAndShow(this, (Frame) null,
-                errMsg, "Cancel", false);
+            break;
         }
     }
 
