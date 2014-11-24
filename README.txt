@@ -337,6 +337,10 @@ When you first set up the database, there won't be any user accounts, so the
 server will allow anyone to create the first account.  Please be sure to
 create that first user account soon after you set up the database.
 
+If you want to require that all players have accounts and passwords, include
+this option when you start your server:
+	-Djsettlers.accounts.required=y
+
 To permit only certain users to create new accounts, instead of all users,
 list them when you start your server:
 	-Djsettlers.accounts.admins=bob,joe,lily

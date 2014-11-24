@@ -183,6 +183,7 @@ public class SOCServer extends Server
      * Otherwise only existing users can create new accounts after the first account.
      *<P>
      * The default is N in version 1.1.19 and newer; previously was Y by default.
+     * To require that all players have accounts in the database, see {@link #PROP_JSETTLERS_ACCOUNTS_REQUIRED}.
      * To restrict which users can create accounts, see {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS}.
      *<P>
      * If this field is Y when the server is initialized, the server calls
@@ -190,6 +191,19 @@ public class SOCServer extends Server
      * @since 1.1.19
      */
     public static final String PROP_JSETTLERS_ACCOUNTS_OPEN = "jsettlers.accounts.open";
+
+    /**
+     * Boolean property <tt>jsettlers.accounts.required</tt> to require that all players have user accounts.
+     * If this property is Y, a jdbc database is required and all users must have an account and password
+     * in the database. If a client tries to join or create a game or channel without providing a password,
+     * they will be sent {@link SOCStatusMessage#SV_PW_REQUIRED}.
+     *<P>
+     * The default is N.
+     *<P>
+     * If {@link #PROP_JSETTLERS_ACCOUNTS_OPEN} is used, anyone can create their own account (Open Registration).
+     * @since 1.1.19
+     */
+    public static final String PROP_JSETTLERS_ACCOUNTS_REQUIRED = "jsettlers.accounts.required";
 
     /**
      * Property <tt>jsettlers.accounts.admins</tt> to restrict which usernames can create accounts.
@@ -253,7 +267,8 @@ public class SOCServer extends Server
         PROP_JSETTLERS_PORT,     "TCP port number for server to bind to",
         PROP_JSETTLERS_CONNECTIONS,   "Maximum connection count, including robots (default " + SOC_MAXCONN_DEFAULT + ")",
         PROP_JSETTLERS_STARTROBOTS,   "Number of robots to create at startup (default " + SOC_STARTROBOTS_DEFAULT + ")",
-        PROP_JSETTLERS_ACCOUNTS_OPEN, "Permit open self-registration of new user accounts? (if Y and using a database)",
+        PROP_JSETTLERS_ACCOUNTS_OPEN, "Permit open self-registration of new user accounts? (if Y and using a DB)",
+        PROP_JSETTLERS_ACCOUNTS_REQUIRED, "Require all players to have a user account? (if Y; requires a DB)",
         PROP_JSETTLERS_ACCOUNTS_ADMINS, "Permit only these usernames to create accounts (comma-separated)",
         PROP_JSETTLERS_ALLOW_DEBUG,   "Allow remote debug commands? (if Y)",
         PROP_JSETTLERS_CLI_MAXCREATECHANNELS,   "Maximum simultaneous channels that a client can create",
@@ -942,8 +957,13 @@ public class SOCServer extends Server
 
         // No errors; continue normal startup.
 
+        final boolean accountsRequired = init_getBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_REQUIRED, false);
+
         if (SOCDBHelper.isInitialized())
         {
+            if (accountsRequired)
+                System.err.println("User database accounts are required for all players.");
+
             // Note: This hook is not triggered under eclipse debugging.
             //    https://bugs.eclipse.org/bugs/show_bug.cgi?id=38016  "WONTFIX/README"
             try
@@ -964,6 +984,12 @@ public class SOCServer extends Server
                 // just a warning
                 System.err.println("Warning: Could not register shutdown hook for database disconnect. Check java security settings.");            
             }
+        }
+        else if (accountsRequired)
+        {
+            final String errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_REQUIRED + " requires a database.";
+            System.err.println(errmsg);
+            throw new IllegalArgumentException(errmsg);
         }
 
         startTime = System.currentTimeMillis();
@@ -4258,6 +4284,25 @@ public class SOCServer extends Server
                     (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                      (allowTakeover) ? checkNickname_getRetryText(nameTimeout) : MSG_NICKNAME_ALREADY_IN_USE));
             return AUTH_OR_REJECT__FAILED;
+        }
+
+        /**
+         * account and password required?
+         */
+        if (init_getBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_REQUIRED, false))
+        {
+            if (msgPass.length() == 0)
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (((cliVers >= SOCAuthRequest.VERSION_FOR_AUTHREQUEST)
+                          ? SOCStatusMessage.SV_PW_REQUIRED
+                          : SOCStatusMessage.SV_PW_WRONG),
+                         cliVers, "This server requires user accounts and passwords."));
+                return AUTH_OR_REJECT__FAILED;
+            }
+
+            // Assert: msgPass isn't "".
+            // authenticateUser queries db and requires an account there when msgPass is not "".
         }
 
         /**

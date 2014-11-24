@@ -83,6 +83,10 @@ public class SOCStatusMessage extends SOCMessage
      * Incorrect password = 3.
      * Also used in v1.1.19 and higher for authentication replies when the
      * account name is not found, instead of {@link #SV_NAME_NOT_FOUND}.
+     *<P>
+     * If no password was given but the server requires passwords (a config option in
+     * server v1.1.19 and higher), it will reply with {@link #SV_PW_REQUIRED} if the
+     * client is v1.1.19 or higher, {@link #SV_PW_WRONG} if lower.
      * @since 1.1.06
      */
     public static final int SV_PW_WRONG = 3;
@@ -188,11 +192,21 @@ public class SOCStatusMessage extends SOCMessage
     public static final int SV_NEWCHANNEL_TOO_MANY_CREATED = 15;
 
     /**
-     * For account creation, the requesting user's account is not authorized to create accounts = 16.
+     * Password required but missing = 16.
+     * Used if server config settings require all players to have user accounts and passwords.
+     *<P>
+     * Clients older than v1.1.19 won't recognize this status value; if possible they
+     * should be sent {@link #SV_PW_WRONG} instead.
+     * @since 1.1.19
+     */
+    public static final int SV_PW_REQUIRED = 16;
+
+    /**
+     * For account creation, the requesting user's account is not authorized to create accounts = 17.
      * @since 1.1.19
      * @see #SV_ACCT_NOT_CREATED_ERR
      */
-    public static final int SV_ACCT_NOT_CREATED_DENIED = 16;
+    public static final int SV_ACCT_NOT_CREATED_DENIED = 17;
 
     // IF YOU ADD A STATUS VALUE:
     // Be sure to update statusValidAtVersion().
@@ -382,10 +396,10 @@ public class SOCStatusMessage extends SOCMessage
             if (cliVersion < 1106)
                 return (statusValue == 0);
             else if (cliVersion < 1119)
-                return (statusValue < SV_ACCT_NOT_CREATED_DENIED);
+                return (statusValue < SV_PW_REQUIRED);
             else
                 // newer; check vs highest constant that we know
-                return (statusValue <= SV_NEWCHANNEL_TOO_MANY_CREATED);
+                return (statusValue <= SV_ACCT_NOT_CREATED_DENIED);
             }
         }
     }
