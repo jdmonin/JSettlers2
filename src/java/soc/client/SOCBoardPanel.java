@@ -4587,7 +4587,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                                     // "{0} rounds left for "No 7s""
                         }
                     }
-                    if ((topText == null) && (! game.hasBuiltCity()) && game.isGameOptionSet("N7C"))
+                    if ((topText == null) && (! game.hasBuiltCity())
+                        && playerInterface.getClientHand().isClientAndCurrentlyCanRoll()  // prevent end-of-turn flicker
+                        && game.isGameOptionSet("N7C"))
                     {
                         topText = strings.get("board.msg.n7c.until_city");  // "No 7s rolled until a city is built"
                     }
