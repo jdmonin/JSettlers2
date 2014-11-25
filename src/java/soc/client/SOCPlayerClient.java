@@ -6029,7 +6029,10 @@ public class SOCPlayerClient
         Thread reader = null;
 
         /**
-         * Network error (TCP communication), or null.
+         * Any network error (TCP communication) received while connecting
+         * or sending messages in {@link #putNet(String)}, or null.
+         * If {@code ex != null}, putNet will refuse to send.
+         *<P>
          * The exception's {@link Throwable#toString() toString()} including its
          * {@link Throwable#getMessage() getMessage()} may be displayed to the user
          * by {@link SOCPlayerClient#dispose()}; if throwing an error that the user
@@ -6043,6 +6046,7 @@ public class SOCPlayerClient
         /**
          * Are we connected to a TCP server (remote or {@link #localTCPServer})?
          * {@link #practiceServer} is not a TCP server.
+         * @see #ex
          */
         boolean connected = false;
 
@@ -6341,7 +6345,11 @@ public class SOCPlayerClient
          * write a message to the net: either to a remote server,
          * or to {@link #localTCPServer} for games we're hosting.
          *<P>
-         * This message is copied to {@link #lastMessage_N}; any error sets {@link #ex}.
+         * If {@link #ex} != null, or ! {@link #connected}, {@code putNet}
+         * returns false without attempting to send the message.
+         *<P>
+         * This message is copied to {@link #lastMessage_N}; any error sets {@link #ex}
+         * and calls {@link SOCPlayerClient#dispose()} to show the error message.
          *
          * @param s  the message
          * @return true if the message was sent, false if not
