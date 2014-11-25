@@ -32,13 +32,15 @@ import soc.game.SOCGame;  // for javadocs only
  * set of details attached.  If {@link SOCRollDiceRequest} or the Ask-Special-Build message types
  * were implemented today, they would add request types to this message type.
  *<UL>
- * <LI> Client sends to server: (pn, typecode, value1, value2). {@code pn} must be their own player number.
+ * <LI> Client sends to server: (pn, typecode, value1, value2). Unless the request type code's javadoc says otherwise,
+ *      {@code pn} must be their own player number so that the server could announce the request using the same message
+ *      type and parameters instead of defining another type.
  * <LI> If client can't do this request now, server responds to client only with: (pn = -1, typecode, value1b, value2b).
  *      The meaning of the response's optional {@code value1b} and {@code value2b} are typecode-specific and
  *      might not be the same as {@code value1} or {@code value2}.
  *      If the server is too old to understand this request type, it will respond with (pn = -1, typecode, 0, 0).
- * <LI> If client is permitted to do the request, server's response would depend on the request type.
- *      One option would be to announce the client's request to all players in game,
+ * <LI> If client is permitted to do the request, server's response depends on the request type:
+ *      Announce the client's request to all players in game,
  *      or take some game action and announce the results using other message types.
  *</UL>
  * Request type codes below 1000 are for general types that different kinds of games might be able to use. <BR>
