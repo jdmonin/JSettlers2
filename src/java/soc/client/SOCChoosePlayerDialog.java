@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2010,2012-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2010,2012-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,7 +36,8 @@ import java.awt.event.ActionListener;
 /**
  * This is the dialog to ask a player from whom she wants to steal.
  * One button for each victim player.  When a player is chosen,
- * send the server a choose-player command with that player number.
+ * send the server a choose-player command with that player number or
+ * (if possible to choose none) {@link SOCChoosePlayer#CHOICE_NO_PLAYER}.
  *
  * @author  Robert S. Thomas
  */
@@ -47,12 +48,17 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
      *  @since 2.0.00 */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
-    /** Player names on each button. This array's elements align with {@link #players}. Length is {@link #number}. */
+    /**
+     * Player names on each button. This array's elements align with {@link #players}. Length is {@link #number}.
+     * If constructor is called with {@code allowChooseNone}, there's a "decline" (choose none) button.
+     */
     Button[] buttons;
 
     /** Player index of each to choose. This array's elements align with {@link #buttons}.
      *  Only the first {@link #number} elements are used.
-     */    
+     *  If constructor is called with {@code allowChooseNone}, the "decline" button's
+     *  player number is -1 ({@link SOCChoosePlayer#CHOICE_NO_PLAYER}).
+     */
     final int[] players;
 
     /** Show Count of resources of each player. Length is {@link #number}. */
@@ -60,12 +66,6 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
 
     /** Number of players to choose from for {@link #buttons} and {@link #players}. */
     final int number;
-
-    /** If true, player is allowed to choose to steal from no one.
-     *  Used with game scenario <tt>SC_PIRI</tt>.
-     *  @since 2.0.00
-     */
-    final private boolean allowChooseNone;
 
     final Label msg;
     final SOCPlayerInterface pi;
@@ -91,7 +91,7 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
      *            If <tt>allowChooseNone</tt>, p.length must be at least <tt>num + 1</tt>
      *            to leave room for "no player".
      * @param allowChooseNone  If true, player can choose to rob no one
-     *            (game scenario <tt>SC_PIRI</tt>)
+     *            (used with game scenario {@code SC_PIRI})
      */
     public SOCChoosePlayerDialog
         (SOCPlayerInterface plInt, final int num, final int[] p, final boolean allowChooseNone)
@@ -101,7 +101,6 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
         pi = plInt;
         number = (allowChooseNone) ? (num + 1) : num;
         players = p;
-        this.allowChooseNone = allowChooseNone;
         setBackground(new Color(255, 230, 162));
         setForeground(Color.black);
         setFont(new Font("SansSerif", Font.PLAIN, 12));
