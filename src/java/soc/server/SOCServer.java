@@ -2545,7 +2545,7 @@ public class SOCServer extends Server
      *            (See {@link #messageToGameUrgent(String, String)})
      * @see #messageToGame(String, String)
      * @see #messageToGameWithMon(String, SOCMessage)
-     * @see #messageToGameForVersions(String, int, int, SOCMessage, boolean)
+     * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
      */
     public void messageToGame(String ga, SOCMessage mes)
     {
@@ -2637,7 +2637,7 @@ public class SOCServer extends Server
      * @param ga  the name of the game
      * @param mes the message to send
      * @see #messageToGame(String, SOCMessage)
-     * @see #messageToGameForVersions(String, int, int, SOCMessage, boolean)
+     * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
      */
     public void messageToGameWithMon(String ga, SOCMessage mes)
     {
@@ -9744,8 +9744,8 @@ public class SOCServer extends Server
 
         try
         {
-            // TODO 6-player: save their scores too, if
-            // those fields are in the database.
+            // TODO 6-player: add fields to db schema to save all 6 scores, winner, game options;
+            // save all 6 if those fields are in the database.
             final long gameSeconds = ((System.currentTimeMillis() - ga.getStartTime().getTime())+500L) / 1000L;
             SOCDBHelper.saveGameScores(ga, gameSeconds);
         }

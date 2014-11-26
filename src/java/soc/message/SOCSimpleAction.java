@@ -51,7 +51,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
 
     /**
      * First version number (1.1.19) that has this message type.
-     * Send older clients {@link SOCGameServerText} or other appropriate messages instead.
+     * Send older clients {@link SOCGameTextMsg} or other appropriate messages instead.
      */
     public static final int VERSION_FOR_SIMPLEACTION = 1119;
 
