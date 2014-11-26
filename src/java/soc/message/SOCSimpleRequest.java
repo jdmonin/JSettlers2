@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,13 +30,15 @@ import java.util.StringTokenizer;
  * set of details attached.  If {@link SOCRollDiceRequest} or the Ask-Special-Build message types
  * were implemented today, they would add request types to this message type.
  *<UL>
- * <LI> Client sends to server: (pn, typecode, value1, value2). <tt>pn</tt> must be their own player number.
+ * <LI> Client sends to server: (pn, typecode, value1, value2). Unless the request type code's javadoc says otherwise,
+ *      <tt>pn</tt> must be their own player number so that the server could announce the request using the same message
+ *      type and parameters instead of defining another type.
  * <LI> If client can't do this request now, server responds to client only with: (pn = -1, typecode, value1b, value2b).
  *      The meaning of the response's optional <tt>value1b</tt> and <tt>value2b</tt> are typecode-specific and
  *      might not be the same as <tt>value1</tt> or <tt>value2</tt>.
  *      If the server is too old to understand this request type, it will respond with (pn = -1, typecode, 0, 0).
- * <LI> If client is permitted to do the request, server's response would depend on the request type.
- *      One option would be to announce the client's request to all players in game,
+ * <LI> If client is permitted to do the request, server's response depends on the request type:
+ *      Announce the client's request to all players in game,
  *      or take some game action and announce the results using other message types.
  *</UL>
  * Request type codes below 1000 are for general types that different kinds of games might be able to use. <BR>
