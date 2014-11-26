@@ -805,11 +805,18 @@ public class SOCDBHelper
      * Try and fit names and scores of player 5 and/or player 6
      * into the 4 db slots, for backwards-compatibility.
      * Checks {@link SOCGame#isSeatVacant(int) ga.isSeatVacant(pn)}
+     * and {@link SOCPlayer#isRobot() ga.getPlayer(pn).isRobot()}
      * for the first 4 player numbers, and copies player 5 and 6's
      * data to those positions in <tt>names[]</tt> and <tt>scores[]</tt>.
+     *<P>
+     * v1.1.15: Copy to vacant slots among first 4 players.
+     *<P>
+     * v1.1.19: Copy to vacant slots or robot slots among first 4; if human player
+     * 5 or 6 won, overwrite the lowest-scoring non-winner slot if necessary.
+     *
      * @param ga  Game that's over
-     * @param names  Player names for player number 0-5; contents will be changed
-     * @param scores  Player scores for player number 0-5; contents will be changed
+     * @param names  Player names for player number 0-5; contents of 0-3 may be changed
+     * @param scores  Player scores for player number 0-5; contents of 0-3 may be changed
      * @since 1.1.15
      */
     private static void saveGameScores_fit6pInto4
@@ -818,64 +825,142 @@ public class SOCDBHelper
         // Need to try and fit player 5 and/or player 6
         // into the 4 db slots (backwards-compatibility)
 
-        int nVacantLow = 0;
-        for (int pn = 0; pn < 4; ++pn)
-            if (ga.isSeatVacant(pn))
-                ++nVacantLow;
-
-        int nOccupiedHigh = 0;
-        int plHighA = -1, plHighB = -1;
-        if (! ga.isSeatVacant(4))
+        int winnerPN;
         {
-            ++nOccupiedHigh;
-            plHighA = 4;
+            SOCPlayer pl = ga.getPlayerWithWin();
+            winnerPN = (pl != null) ? pl.getPlayerNumber() : -1;
         }
+
+        int nVacantLow = 0, nBotLow = 0;
+        final boolean[] isBot = new boolean[4], // track isBot locally, since we're rearranging pn 0-3 from game obj
+                        isVacant = new boolean[4];  // same with isVacant
+        for (int pn = 0; pn < 4; ++pn)
+        {
+            if (ga.isSeatVacant(pn))
+            {
+                isVacant[pn] = true;
+                ++nVacantLow;
+            }
+            else if (ga.getPlayer(pn).isRobot())
+            {
+                isBot[pn] = true;
+                if (pn != winnerPN)
+                    ++nBotLow;
+            }
+        }
+
+        int[] pnHigh = { -1, -1 };  // Occupied high pn: Will try to find a place for first and then for second element
+
+        if (! ga.isSeatVacant(4))
+            pnHigh[0] = 4;
+
         if (! ga.isSeatVacant(5))
         {
-            ++nOccupiedHigh;
-            if (plHighA != -1)
-                plHighB = 5;
-            else
-                plHighA = 5;
+            if (pnHigh[0] == -1)
+            {
+                pnHigh[0] = 5;
+            } else {
+                // record score for humans before robots if 4 and 5 are both occupied.
+                // pnHigh[0] takes priority: claim it if pl 5 is human and is winner, or pl 4 is a bot that didn't win
+                if ( (! ga.getPlayer(5).isRobot())
+                      && ( (winnerPN == 5) || (ga.getPlayer(4).isRobot() && (winnerPN != 4)) ) )
+                {
+                    pnHigh[0] = 5;
+                    pnHigh[1] = 4;
+                } else {
+                    pnHigh[1] = 5;
+                    // pnHigh[0] unchanged == 4
+                }
+            }
         }
 
-        if (nVacantLow >= nOccupiedHigh)
+        if ((winnerPN >= 4) && (! ga.getPlayer(winnerPN).isRobot()) && (nVacantLow == 0) && (nBotLow == 0))
         {
-            // Enough room; total non-vacant players <= 4.
+            // No room to replace a bot or take a vacant spot:
+            // Make sure at least the human winner is recorded instead of the lowest non-winner score.
+            // (If nVacantLow > 0 or nBotLow > 0, the main loop would take care of recording the winner.)
+            // Find the lowest-score spot among pn 0 - 3, replace with winner.
+            // TODO Maybe extend this to just sort non-bot scores & names highest to lowest?
 
-            // First, find a spot for plHighA
-            int pn = 0;
-            for (; pn < 4; ++pn)
+            int pnLow = 0, scoreLow = scores[0];
+            for (int pn = 1; pn < 4; ++pn)
             {
-                if (ga.isSeatVacant(pn))
+                if (scores[pn] < scoreLow)
                 {
-                    // pn gets plHighA's info
-                    names[pn] = names[plHighA];
-                    scores[pn] = scores[plHighA];
-                    break;
+                    pnLow = pn;
+                    scoreLow = scores[pn];
                 }
             }
 
-            if (plHighB != -1)
+            names[pnLow] = names[winnerPN];
+            scores[pnLow] = scores[winnerPN];
+
+            return;  // <---- Early return ----
+        }
+
+        // Run through loop twice: pnHigh[0], then pnHigh[1]
+        // Record score for humans before robots:
+        // - if vacant spot, take that
+        // - otherwise take lowest-score bot that didn't win, if any
+        // - otherwise if is a robot that didn't win, don't worry about claiming a spot
+
+        for (int i = 0; i < 2; ++i)
+        {
+            final int pnH = pnHigh[i];
+            if (pnH == -1)
+                break;
+
+            if (nVacantLow > 0)
             {
-                // Find a spot for plHighB
-                ++pn;
-                for (; pn < 4; ++pn)
+                for (int pn = 0; pn < 4; ++pn)
                 {
-                    if (ga.isSeatVacant(pn))
+                    if (isVacant[pn])
                     {
-                        names[pn] = names[plHighB];
-                        scores[pn] = scores[plHighB];
+                        // pn gets pnH's info
+                        names[pn] = names[pnH];
+                        scores[pn] = scores[pnH];
+                        isBot[pn] = ga.getPlayer(pnH).isRobot();
+                        isVacant[pn] = false;
+                        if (winnerPN == pnH)
+                            winnerPN = pn;
+
+                        --nVacantLow;
                         break;
                     }
                 }
             }
-        }
+            else if (nBotLow > 0)
+            {
+                // find lowest-scoring bot pn
+                int pnLowBot = -1, scoreLowBot = Integer.MAX_VALUE;
+                for (int pn = 0; pn < 4; ++pn)
+                {
+                    if ((pn == winnerPN) || ! isBot[pn])
+                        continue;
 
-        // TODO else not enough room.
-        // What if pl5 or pl6 is the winner?
-        // Replace lowest-score within first 4?
-        // Replace a robot if pl5/pl6 is a human? (What if bot won?)
+                    if ((pnLowBot == -1) || (scores[pn] < scoreLowBot))
+                    {
+                        pnLowBot = pn;
+                        scoreLowBot = scores[pn];
+                    }
+                }
+
+                final boolean pnHIsRobot = ga.getPlayer(pnH).isRobot();
+                if ((pnLowBot != -1) && ((! pnHIsRobot) || (winnerPN == pnH) || (scores[pnH] > scores[pnLowBot])))
+                {
+                    // pnLowBot gets pnH's info,
+                    // unless they're both bots and pnH didn't win and pnH's score isn't higher
+                    names[pnLowBot] = names[pnH];
+                    scores[pnLowBot] = scores[pnH];
+                    isBot[pnLowBot] = pnHIsRobot;
+                    if (winnerPN == pnH)
+                        winnerPN = pnLowBot;
+
+                    --nBotLow;
+                }
+            }
+            // else, no spot is open; this player won't be recorded
+        }
     }
 
     /**
