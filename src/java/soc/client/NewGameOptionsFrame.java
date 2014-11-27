@@ -1211,7 +1211,7 @@ public class NewGameOptionsFrame extends Frame
         /** reject entered characters which aren't digits */
         public void keyTyped(KeyEvent e)
         {
-            // TODO this is not working
+            // TODO this is not always rejecting non-digits
 
             switch (e.getKeyCode())
             {
@@ -1226,11 +1226,18 @@ public class NewGameOptionsFrame extends Frame
 
             default:
                 {
-                final char c = e.getKeyChar();
-                if (c == KeyEvent.CHAR_UNDEFINED)  // ctrl characters, arrows, etc
-                    return;
-                if (! Character.isDigit(c))
-                    e.consume();  // ignore non-digits
+                    final char c = e.getKeyChar();
+                    switch (c)
+                    {
+                    case KeyEvent.CHAR_UNDEFINED:  // ctrl characters, arrows, etc
+                    case (char) 8:    // backspace
+                    case (char) 127:  // delete
+                        return;  // don't consume
+
+                    default:
+                        if (! Character.isDigit(c))
+                            e.consume();  // ignore non-digits
+                    }
                 }
             }  // switch(e)
         }
