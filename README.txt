@@ -35,6 +35,7 @@ Contents
   Setting up and testing
   Shutting down the server
   Hosting a JSettlers Server
+  Upgrading from an earlier version
   Database Setup
   Development and Compiling
 
@@ -232,17 +233,57 @@ Users should now be able to visit your web site to run the client
 version of JSettlers.
 
 
+Upgrading from an earlier version
+---------------------------------
+
+If you're doing a new installation, not upgrading a server that's
+already been running JSettlers, skip this section.
+
+It's a simple process to upgrade to the latest version of JSettlers:
+
+- Read VERSIONS.txt for new features, bug fixes, and config changes
+  made from your version to the latest version.  Occasionally defaults
+  change and you'll need to add a server config option to keep the
+  same behavior, so read carefully.
+
+- Save a backup copy of your current JSettlers.jar and JSettlersServer.jar,
+  in case you want to run the old version for any reason.
+
+- If you're using the optional database for user accounts and game scores,
+  make a backup or export its contents.  Note that no schema changes or
+  SQL scripts are needed to upgrade to the latest version.
+
+- Stop the old server
+
+- Copy the new JSettlers.jar and JSettlersServer.jar into place
+
+- Start the new server, including any new options you wanted from VERSIONS.txt
+
+- Test that you can connect and start games as usual, with and without bots.
+  When you connect make sure the version number shown in the left-center of
+  the client window is the new JSettlers version.
+
+
 Database Setup
 --------------
 
 If you want to maintain user accounts, you will need to set up a MySQL, SQLite,
 or PostgreSQL database. This will eliminate the "Problem connecting to database"
-errors from the server. We assume you have installed it correctly.  SQLite is an
-easy database choice because it's just a JAR file, not a separate large install,
-if you're looking to avoid that.
+errors from the server, and also gives you the option to save all game scores
+for reports or community-building.
+
+Note: If you're upgrading to JSettlers 1.1.19, for security reasons the default
+has changed to disallow user account self-registration. If you still want to
+use that option, search below for "open registration".
+
+For these instructions we'll assume you already installed the PostgreSQL or
+MySQL software.  SQLite is an easy database choice because it's just a JAR
+file, not a separate large install, if you're looking to avoid that.
 
 You will need a JDBC driver JAR file in your classpath or the same directory as
-the JSettlers JAR, see below for details.
+the JSettlers JAR, see below for details. Besides PostgreSQL, MySQL, or SQLite
+any JDBC database can be used, including Oracle or MS SQL Server; however only
+those three db types are tested in depth with JSettlers.
 
 The default name for the database is "socdata".  To use another name,
 you'll need to specify it as a JDBC URL on the command line, such as:
