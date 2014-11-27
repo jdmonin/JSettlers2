@@ -25,6 +25,10 @@ import java.util.StringTokenizer;
 
 /**
  * This message means that someone is joining a channel
+ *<P>
+ * Once the client has successfully joined or created a channel or game, the
+ * password field can be left blank in later join/create requests.  All server
+ * versions ignore the password field after a successful request.
  *
  * @author Robert S Thomas
  */
@@ -121,7 +125,7 @@ public class SOCJoin extends SOCMessage
      * JOIN sep nickname sep2 password sep2 host sep2 channel
      *
      * @param nn  the nickname
-     * @param pw  the password
+     * @param pw  the optional password, or "" if none
      * @param hn  the server host name
      * @param ch  the channel name
      * @return    the command string
@@ -182,4 +186,5 @@ public class SOCJoin extends SOCMessage
 
         return s;
     }
+
 }

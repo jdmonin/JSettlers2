@@ -28,6 +28,10 @@ import soc.game.SOCGameOption;
  * This message means that client wants to create a new game, with options;
  * needs same username/password options as {@link SOCJoinGame JOINGAME}.
  *<P>
+ * Once the client has successfully joined or created a game or channel, the
+ * password field can be left blank in later join/create requests.  All server
+ * versions ignore the password field after a successful request.
+ *<P>
  * Introduced in 1.1.07; check server version against {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}
  * before sending this message.  Older servers should be given {@link SOCJoinGame JOINGAME} instead.
  *<P>
@@ -123,6 +127,12 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
     }
 
     /**
+     * NEWGAMEWITHOPTIONSREQUEST sep nickname sep2 password sep2 host sep2 game sep2 options
+     *
+     * @param nn  the nickname
+     * @param pw  the optional password, or "" if none
+     * @param hn  the server host name
+     * @param ga  the game name
      * @param opts the game options ({@link SOCGameOption})
      * @return    the command string
      */
@@ -184,4 +194,5 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
     {
         return super.toString("SOCNewGameWithOptionsRequest", "opts=" + optsStr);
     }
+
 }
