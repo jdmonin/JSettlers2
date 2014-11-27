@@ -333,7 +333,7 @@ public class SOCServer extends Server
 
     /**
      * Force robot to end their turn after this many seconds
-     * of inactivity.
+     * of inactivity. Default is 8.
      * @see #checkForExpiredTurns(long)
      * @since 1.1.11
      */
@@ -341,7 +341,7 @@ public class SOCServer extends Server
 
     /**
      * Force robot to end their turn after this much inactivity,
-     * while they've made a trade offer.
+     * while they've made a trade offer. Default is 60 seconds.
      * @see #checkForExpiredTurns(long)
      * @since 1.1.11
      */

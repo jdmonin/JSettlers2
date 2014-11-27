@@ -2343,9 +2343,9 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * do the things involved in starting a game:
      * shuffle the tiles and cards,
-     * make a board,
-     * choose first player.
+     * make a board, choose first player.
      * gameState becomes {@link #START1A}.
+     * Updates {@link #lastActionTime}.
      *<P>
      * Called only at server, not client.
      */
@@ -2414,6 +2414,9 @@ public class SOCGame implements Serializable, Cloneable
                 devCardDeck[i] = tmp;
             }
         }
+
+        // make sure game doesn't look idle, in case first player is a robot
+        lastActionTime = System.currentTimeMillis();
 
         allOriginalPlayers = true;
         gameState = START1A;
