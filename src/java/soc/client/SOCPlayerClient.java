@@ -1052,7 +1052,12 @@ public class SOCPlayerClient extends Applet
         
         try
         {
-            ex = null;  // clear error from any previous disconnect
+            ex = null;  // clear in case we're reconnecting
+            if (gotPassword)
+            {
+                pass.setText(password);  // when ! gotPassword, getPassword() will read pw from here
+                gotPassword = false;
+            }
             s = new Socket(host, port);
             in = new DataInputStream(s.getInputStream());
             out = new DataOutputStream(s.getOutputStream());
@@ -1245,7 +1250,7 @@ public class SOCPlayerClient extends Applet
             }
 
             status.setText("Talking to server...");
-            putNet(SOCJoin.toCmd(nickname, password, host, ch));
+            putNet(SOCJoin.toCmd(nickname, (gotPassword ? "" : password), host, ch));
         }
         else
         {
@@ -1471,7 +1476,7 @@ public class SOCPlayerClient extends Applet
 
                 status.setText("Talking to server...");
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                putNet(SOCJoinGame.toCmd(nickname, password, host, gm));
+                putNet(SOCJoinGame.toCmd(nickname, (gotPassword ? "" : password), host, gm));
             }
         }
         else
@@ -1733,11 +1738,12 @@ public class SOCPlayerClient extends Applet
         {
             startPracticeGame(gmName, opts, true);  // Also sets WAIT_CURSOR
         } else {
+            final String pw = (gotPassword ? "" : password);  // after successful auth, don't need to send
             String askMsg =
                 (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
                 ? SOCNewGameWithOptionsRequest.toCmd
-                        (nickname, password, host, gmName, opts)
-                : SOCJoinGame.toCmd(nickname, password, host, gmName);
+                        (nickname, pw, host, gmName, opts)
+                : SOCJoinGame.toCmd(nickname, pw, host, gmName);
             putNet(askMsg);
             status.setText("Talking to server...");
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -5234,11 +5240,11 @@ public class SOCPlayerClient extends Applet
             }
         }
 
-        // Ask local "server" to create the game
+        // Ask internal practice server to create the game
         if (gameOpts == null)
-            putPractice(SOCJoinGame.toCmd(nickname, password, host, practiceGameName));
+            putPractice(SOCJoinGame.toCmd(nickname, "", host, practiceGameName));
         else
-            putPractice(SOCNewGameWithOptionsRequest.toCmd(nickname, password, host, practiceGameName, gameOpts));
+            putPractice(SOCNewGameWithOptionsRequest.toCmd(nickname, "", host, practiceGameName, gameOpts));
     }
 
     /**
