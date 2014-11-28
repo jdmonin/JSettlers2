@@ -326,14 +326,15 @@ public class SOCBuildingPanel extends Panel
         {
             final String TTIP_VP_TEXT = strings.get("build.vp.to.win.tip");  // "Victory Points total needed to win the game"
 
+            // add vpToWin above its label (z-order) in case of slight overlap
+            vpToWin = new ColorSquare(ColorSquare.GREY, ga.vp_winner);
+            vpToWin.setTooltipText(TTIP_VP_TEXT);
+            add(vpToWin);
+
             vpToWinLab = new Label(strings.get("build.vp.to.win"));  // "VP to win:"
             vpToWinLab.setAlignment(Label.RIGHT);
             add(vpToWinLab);
             new AWTToolTip(TTIP_VP_TEXT, vpToWinLab);
-
-            vpToWin = new ColorSquare(ColorSquare.GREY, ga.vp_winner);
-            vpToWin.setTooltipText(TTIP_VP_TEXT);
-            add(vpToWin);
         } else {
             vpToWinLab = null;
             vpToWin = null;
@@ -614,20 +615,18 @@ public class SOCBuildingPanel extends Panel
         else
             statsBut.setLocation(curX, 1);
 
-        if ((maxPlayers <= 4) && ! hasLargeBoard)
-            curY += (lineH + 5);
-
         // VP to Win label moves to make room for various buttons.
         if (vpToWin != null)
         {
             // #VP total to Win
+            int vpLabW = fm.stringWidth(vpToWinLab.getText());
+
             if (hasLargeBoard)
             {
                 // bottom-right corner of panel, left of Game Info
                 curX -= (1.5f * ColorSquare.WIDTH + margin);
                 vpToWin.setLocation(curX, curY);
 
-                final int vpLabW = fm.stringWidth(vpToWinLab.getText());
                 curX -= (vpLabW + (2*margin));
                 vpToWinLab.setLocation(curX, curY);
                 vpToWinLab.setSize(vpLabW + margin, lineH);
@@ -635,22 +634,32 @@ public class SOCBuildingPanel extends Panel
                 // upper-right corner of panel
                 //    If 6-player, shift left to make room for Game Stats button
                 //    (which is moved up to make room for Special Building button)
-                curY = 1;
-                final int vpLabW = fm.stringWidth(vpToWinLab.getText());
                 if (maxPlayers <= 4)
                 {
-                    // 4-player: align from right
+                    // 4-player: row 2, align from right; not enough room on row 1 with Game Stats button
+                    curY = 1 + (rowSpaceH + lineH);
+
                     curX = dim.width - ColorSquare.WIDTH - margin;
                     vpToWin.setLocation(curX, curY);
 
                     curX -= (vpLabW + (2*margin));
                     vpToWinLab.setLocation(curX, curY);
                 } else {
-                    // 6-player: align from left, from width of piece-buying buttons/colorsquares
+                    // 6-player: row 1, align from left if possible, above "special building" button's wide panel
+                    curY = 1;
                     curX = buttonMargin + butW + margin + (1 + costW + 3) + (4 * (ColorSquare.WIDTH + 3));
+                    final int statsButX = statsBut.getX();
+                    if (curX + ColorSquare.WIDTH + vpLabW + (2*margin) > statsButX)
+                        curX -= (2 * (ColorSquare.WIDTH + 3));
                     vpToWinLab.setLocation(curX, curY);
 
                     curX += (vpLabW + (2*margin));
+                    final int xmax = statsButX - ColorSquare.WIDTH - margin;
+                    if (curX > xmax)
+                    {
+                        vpLabW = xmax - vpToWinLab.getX() - margin;  // clip to prevent overlap
+                        curX = xmax;
+                    }
                     vpToWin.setLocation(curX, curY);
                 }
                 vpToWinLab.setSize(vpLabW + margin, lineH);
