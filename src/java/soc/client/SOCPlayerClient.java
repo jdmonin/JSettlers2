@@ -376,6 +376,9 @@ public class SOCPlayerClient
         /** If the password field is currently visible, focus the cursor there for the user to type something. */
         public void focusPassword();
 
+        /** Set the contents of the password field. */
+        public void setPassword(final String pw);
+
         void channelJoined(String channelName);
         void channelJoined(String channelName, String nickname);
         void channelMemberList(String channelName, Collection<String> members);
@@ -1335,7 +1338,8 @@ public class SOCPlayerClient
                 }
         
                 status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
-                client.net.putNet(SOCJoin.toCmd(client.nickname, client.password, client.net.getHost(), ch));
+                client.net.putNet(SOCJoin.toCmd
+                    (client.nickname, (client.gotPassword ? "" : client.password), client.net.getHost(), ch));
             }
             else
             {
@@ -1561,7 +1565,8 @@ public class SOCPlayerClient
 
                     status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
                     setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                    client.net.putNet(SOCJoinGame.toCmd(client.nickname, client.password, client.net.getHost(), gm));
+                    client.net.putNet(SOCJoinGame.toCmd
+                        (client.nickname, (client.gotPassword ? "" : client.password), client.net.getHost(), gm));
                 }
             }
             else
@@ -1812,10 +1817,13 @@ public class SOCPlayerClient
             {
                 client.startPracticeGame(gmName, opts, true);  // Also sets WAIT_CURSOR
             } else {
+                final String pw = (client.gotPassword ? "" : client.password);  // after successful auth, don't need to send
                 String askMsg =
                     (client.sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
-                    ? SOCNewGameWithOptionsRequest.toCmd(client.nickname, client.password, client.net.getHost(), gmName, opts)
-                    : SOCJoinGame.toCmd(client.nickname, client.password, client.net.getHost(), gmName);
+                    ? SOCNewGameWithOptionsRequest.toCmd
+                        (client.nickname, pw, client.net.getHost(), gmName, opts)
+                    : SOCJoinGame.toCmd
+                        (client.nickname, pw, client.net.getHost(), gmName);
                 System.err.println("L1314 askStartGameWithOptions at " + System.currentTimeMillis());
                 System.err.println("      Got all opts,defaults? " + client.tcpServGameOpts.allOptionsReceived
                     + " " + client.tcpServGameOpts.defaultsReceived);
@@ -1991,6 +1999,11 @@ public class SOCPlayerClient
         public void focusPassword()
         {
             pass.requestFocusInWindow();
+        }
+
+        public void setPassword(final String pw)
+        {
+            pass.setText(pw);
         }
 
         public void channelJoined(String channelName)
@@ -6134,12 +6147,12 @@ public class SOCPlayerClient
                 }
             }
 
-            // Ask practice server to create the game
+            // Ask internal practice server to create the game
             if (gameOpts == null)
-                putPractice(SOCJoinGame.toCmd(client.nickname, client.password, getHost(), practiceGameName));
+                putPractice(SOCJoinGame.toCmd(client.nickname, "", getHost(), practiceGameName));
             else
                 putPractice(SOCNewGameWithOptionsRequest.toCmd
-                    (client.nickname, client.password, getHost(), practiceGameName, gameOpts));
+                    (client.nickname, "", getHost(), practiceGameName, gameOpts));
         }
 
         /**
@@ -6248,6 +6261,12 @@ public class SOCPlayerClient
 
             try
             {
+                if (client.gotPassword)
+                {
+                    client.gameDisplay.setPassword(client.password);
+                        // when ! gotPassword, GameAwtDisplay.getPassword() will read pw from there
+                    client.gotPassword = false;
+                }
                 s = new Socket(host, port);
                 in = new DataInputStream(s.getInputStream());
                 out = new DataOutputStream(s.getOutputStream());

@@ -59,6 +59,7 @@ new features, until 2.0.00 is ready.
      To require that all players have accounts and passwords, start the server with: -Djsettlers.accounts.required=y
      To permit only certain users to create accounts, use -Djsettlers.accounts.admins=bob,joe,lily
      (comma-separated username list) when starting the server.
+     Once the client has successfully joined or created a game or channel, it won't send a password again.
 - When saving 6-player completed game results to a database table with only 4 player fields,
      rearranges positions to ensure human player 5 and/or 6 are recorded, especially if they won
 - When client connects, server sends list of its active optional features.
