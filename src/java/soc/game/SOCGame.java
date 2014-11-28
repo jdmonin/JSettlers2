@@ -3770,11 +3770,11 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * do the things involved in starting a game:
-     * shuffle the tiles and cards,
-     * make a board,
+     * shuffle the tiles and cards, make a board,
      * set players' legal and potential piece locations,
      * choose first player.
      * gameState becomes {@link #START1A}.
+     * Updates {@link #lastActionTime}.
      *<P>
      * Called only at server, not client.  For a method called during game start
      * at server and clients, see {@link #updateAtBoardLayout()}.
@@ -3812,6 +3812,9 @@ public class SOCGame implements Serializable, Cloneable
                 players[i].setPotentialAndLegalSettlements(psList, true, las);
         }
         updateAtBoardLayout();
+
+        // make sure game doesn't look idle, in case first player is a robot
+        lastActionTime = System.currentTimeMillis();
 
         allOriginalPlayers = true;
         gameState = START1A;

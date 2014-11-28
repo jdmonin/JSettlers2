@@ -152,7 +152,7 @@ public class SOCGameHandler extends GameHandler
 {
     /**
      * Force robot to end their turn after this much inactivity,
-     * while they've made a trade offer.
+     * while they've made a trade offer. Default is 60 seconds.
      *<P>
      * This field was originally in SOCServer, moved in v2.0.00.
      * @see SOCServer#ROBOT_FORCE_ENDTURN_SECONDS

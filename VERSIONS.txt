@@ -62,6 +62,7 @@ new features, until 2.0.00 is ready.
      rearranges positions to ensure human player 5 and/or 6 are recorded, especially if they won
 - When client connects, server sends list of its active optional features.
      If server does not use chat channels, the channel list is hidden from the main panel.
+- Bugfix at game start: To fix occasional forced end turn for robot first player, update lastActionTime
 - Bugfix in version tracking when player joins and replaces only bot in a game in progress
 - Bots connecting require a security cookie, randomly generated at server startup.
      The built-in bots started automatically by SOCServer will know the cookie value.
