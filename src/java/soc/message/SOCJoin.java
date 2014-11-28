@@ -25,6 +25,10 @@ import java.util.StringTokenizer;
 
 /**
  * This message means that someone is joining a channel
+ *<P>
+ * Once the client has successfully joined or created a channel or game, the
+ * password field can be left blank in later join/create requests.  All server
+ * versions ignore the password field after a successful request.
  *
  * @author Robert S Thomas
  */

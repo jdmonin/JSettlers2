@@ -32,6 +32,10 @@ import java.util.StringTokenizer;
  *<P>
  * To request a new game with game options, send {@link SOCNewGameWithOptionsRequest NEWGAMEWITHOPTIONSREQUEST} instead.
  *<P>
+ * Once the client has successfully joined or created a game or channel, the
+ * password field can be left blank in later join/create requests.  All server
+ * versions ignore the password field after a successful request.
+ *<P>
  * Although this is a game-specific message, it's handled by {@code SOCServer} instead of a {@code GameHandler}.
  *
  * @author Robert S Thomas

@@ -24,6 +24,10 @@ package soc.message;
 /**
  * This message means that someone is joining a game.
  *<P>
+ * Once the client has successfully joined or created a game or channel, the
+ * password field can be left blank in later join/create requests.  All server
+ * versions ignore the password field after a successful request.
+ *<P>
  * v1.1.07: This template class is copied from {@link SOCJoinGame} to
  * share functionality with the new {@link SOCNewGameWithOptions}. - JDM
  *<P>
@@ -67,7 +71,7 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
      * Create a Join message.
      *
      * @param nn  nickname
-     * @param pw  password, or ""
+     * @param pw  optional password, or ""
      * @param hn  server host name
      * @param ga  name of the game
      */
