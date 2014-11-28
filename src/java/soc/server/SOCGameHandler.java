@@ -2977,7 +2977,14 @@ public class SOCGameHandler extends GameHandler
                     {
                         if (player.isPotentialCity(coord) && (player.getNumPieces(SOCPlayingPiece.CITY) >= 1))
                         {
-                            final boolean houseRuleFirstCity = ga.isGameOptionSet("N7C") && ! ga.hasBuiltCity();
+                            boolean houseRuleFirstCity = ga.isGameOptionSet("N7C") && ! ga.hasBuiltCity();
+                            if (houseRuleFirstCity && ga.isGameOptionSet("N7")
+                                && (ga.getRoundCount() < ga.getGameOptionIntValue("N7")))
+                            {
+                                // If "No 7s for first # rounds" is active, and this isn't its last round, 7s won't
+                                // be rolled soon: Don't announce "Starting next turn, dice rolls of 7 may occur"
+                                houseRuleFirstCity = false;
+                            }
 
                             final SOCCity ci = new SOCCity(player, coord, null);
                             ga.putPiece(ci);  // changes game state and maybe player
