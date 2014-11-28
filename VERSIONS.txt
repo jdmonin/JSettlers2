@@ -42,7 +42,7 @@ new features, until 2.0.00 is ready.
 - New game option "N7C" for house rule: Roll no 7s until a city is built
 - Bugfix when new client sits during first initial-settlement placement round
 - Bugfix: potential roads now allowed next to opponent's newly placed settlement, if player already has a road touching the potential road
-- Trading port/harbor graphics refreshed for directional clarity and scaling
+- Trading port/harbor graphics updated for directional clarity and scaling
 - Reset board during initial placement: Pick randomly-selected robots, instead of keeping same robots
 - Reset board: If only 1 human player, don't reset if all bots are locked
 - On server startup, start some bots by default (previous versions required -Djsettlers.startrobots)
@@ -51,9 +51,10 @@ new features, until 2.0.00 is ready.
 - For player consistency, don't allow seat lock changes during board reset vote
 - New Game Options window: If server is too old for game options, show the game name field and no options here
 - Client Connect to Server, Start Server screens: If port number field is empty, use default 8880
-- Check client password when "New game" is clicked, not after filling out game options
+- Check client password when "New game" is clicked, not later after filling out game options
 - Security: Reply with "incorrect password" when username doesn't exist in server's database
-- Account Creation/Security: By default, open registration is disabled: Only existing users can create new accounts.
+- Account Creation/Security when using the optional user account database:
+     By default, open registration is now disabled: Only existing users can create new accounts.
      To permit open registration of accounts, use -Djsettlers.accounts.open=y when starting the server.
      To require that all players have accounts and passwords, start the server with: -Djsettlers.accounts.required=y
      To permit only certain users to create accounts, use -Djsettlers.accounts.admins=bob,joe,lily
