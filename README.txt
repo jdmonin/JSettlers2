@@ -57,11 +57,12 @@ Requirements
 ------------
 
 To play JSettlers by connecting to a remote server you will need the
-Java Runtime Version 1.5 or above. To connect as an
-applet, use any browser which is Java enabled (using the browser plug-in).
+Java Runtime Version 5 or above. To connect as an applet, use any
+browser which is Java enabled (using the browser plug-in) or just
+download the JAR from http://nand.net/jsettlers/ and run it.
 
-To Play JSettlers locally you need the Java Runtime 1.5 or above.
-JSettlers-full.jar can connect directly to any server over TCP/IP
+To Play JSettlers locally you need the Java Runtime 5 or above.
+JSettlers-full.jar can connect directly to any server over the Internet.
 
 To host a JSettlers server that provides a web applet for clients, you will
 need an http server such as Apache's httpd, available from http://httpd.apache.org.
@@ -89,7 +90,7 @@ instead of the full tar.gz, use that filename on the command lines shown below.
 SERVER STARTUP:
 
 Start the server with the following command
-(server requires Java 1.5 or higher):
+(server requires Java 5 or higher, or JDK 1.5 or higher):
 
   java -jar JSettlersServer.jar
 
@@ -97,11 +98,11 @@ This will start the server on the default port of 8880 with 7 robots.
 
 You can also specify parameters at startup:
 
-  java -jar JSettlersServer.jar -Djsettlers.startrobots=7 8880 20 socuser socpass
+  java -jar JSettlersServer.jar -Djsettlers.startrobots=9 8880 30 socuser socpass
 
-Those parameters are : number of bots; TCP port number; max clients; db user; db password.
+Those parameters are: start 9 bots; TCP port number 8880; max clients 30; db user; db password.
 
-The started robots count against your max simultaneous connections (20 in this example).
+The started robots count against your max simultaneous connections (30 in this example).
 If the robots leave less than 6 player connections available, or if they take
 more than half the max connections, a warning message is printed at startup.
 
