@@ -728,7 +728,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *                    Can be <tt>null</tt> if none of these land hexes have dice numbers.
      * @param shuffleDiceNumbers  If true, shuffle the dice <tt>number</tt>s before placing along <tt>landPath</tt>.
      *                 Also only if true, calls
-     *                 {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList, String)}
+     *                 {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList, int, String)}
      *                 to make sure 6s, 8s aren't adjacent and gold hexes aren't on 6 or 8.
      *                 <tt>number[]</tt> must not be <tt>null</tt>.
      * @param shuffleLandHexes    If true, shuffle <tt>landHexType[]</tt> before placing along <tt>landPath</tt>.
@@ -744,7 +744,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * @param optBC  Game option "BC" from the options for this board, or <tt>null</tt>.
      * @param scen   Game scenario, such as {@link SOCScenario#K_SC_4ISL}, or "";
      *               some scenarios might want special distribution of certain hex types or dice numbers.
-     *               Handled via {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList, String)}.
+     *               Handled via {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList, int, String)}.
      * @throws IllegalStateException  if <tt>landAreaNumber</tt> != 0 and either
      *             {@link #landAreasLegalNodes} == null, or not long enough, or
      *             {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt> != null
@@ -830,7 +830,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * @param optBC  Game option "BC" from the options for this board, or <tt>null</tt>.
      * @param scen   Game scenario, such as {@link SOCScenario#K_SC_4ISL}, or "";
      *               some scenarios might want special distribution of certain hex types or dice numbers.
-     *               Handled via {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList, String)}.
+     *               Handled via {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList, int, String)}.
      * @throws IllegalStateException  if land area number != 0 and either
      *             {@link #landAreasLegalNodes} == null, or not long enough, or any
      *             {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt> != null
@@ -1005,7 +1005,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             {
                 // Separate adjacent "red numbers" (6s, 8s)
                 //   and make sure gold hex dice aren't too frequent
-                makeNewBoard_placeHexes_moveFrequentNumbers(landPath, redHexes, scen);
+                makeNewBoard_placeHexes_moveFrequentNumbers(landPath, redHexes, maxPl, scen);
             }
 
         } while (clumpsNotOK);
@@ -1304,13 +1304,16 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *
      * @param landPath  Final coordinates for each hex being placed; may contain water
      * @param redHexes  Hex coordinates of placed "red" (frequent) dice numbers (6s, 8s)
+     * @param maxPl  For scenario boards, use 3-player or 4-player or 6-player layout?
+     *               Always tests maxPl for ==6 or &lt; 4; actual value may be 6, 4, 3, or 2.
      * @param scen  Game scenario, such as {@link SOCScenario#K_SC_4ISL}, or "";
      *              some scenarios might want special distribution of certain hex types or dice numbers.
+     *              Currently recognized here: {@link SOCScenario#K_SC_FTRI}, {@link SOCScenario#K_SC_WOND}.
      * @return  true if able to move all adjacent frequent numbers, false if some are still adjacent.
      * @throws IllegalStateException if a {@link #FOG_HEX} is found
      */
     private final boolean makeNewBoard_placeHexes_moveFrequentNumbers
-        (final int[] landPath, ArrayList<Integer> redHexes, final String scen)
+        (final int[] landPath, ArrayList<Integer> redHexes, final int maxPl, final String scen)
         throws IllegalStateException
     {
         if (redHexes.isEmpty())
@@ -1349,6 +1352,113 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 }
             }
         }
+
+        // Next, check for any hexes that forbid too-frequent dice numbers (only a few scenarios).
+        // These will be at most 2 or 3 hexes; try once to move any that are found.
+
+        /** If scenario calls for it, hex coordinates from which to move any "red" dice numbers 6 and 8 */
+        final HashSet<Integer> moveAnyRedFromHexes;
+        /** If true also move 5s and 9s, not just 6s and 8s */
+        final boolean moveAnyRedFromAlso59;
+        {
+            final int[] moveFrom;
+            if (scen.equals(SOCScenario.K_SC_FTRI))
+            {
+                moveFrom = FOR_TRI_LANDHEX_COORD_MAIN_FAR_COASTAL[(maxPl == 6) ? 1 : 0];
+                moveAnyRedFromAlso59 = true;
+            } else if (scen.equals(SOCScenario.K_SC_WOND)) {
+                moveFrom = WOND_LANDHEX_COORD_MAIN_AT_DESERT[(maxPl == 6) ? 1 : 0];
+                moveAnyRedFromAlso59 = false;
+            } else {
+                moveFrom = null;
+                moveAnyRedFromAlso59 = false;
+            }
+
+            if (moveFrom != null)
+            {
+                moveAnyRedFromHexes = new HashSet<Integer>(moveFrom.length);
+                for (int i = 0; i < moveFrom.length; ++i)
+                    moveAnyRedFromHexes.add(Integer.valueOf(moveFrom[i]));
+            } else {
+                moveAnyRedFromHexes = null;
+            }
+        }
+
+        if (moveAnyRedFromHexes != null)
+        {
+            HashSet<Integer> hexesToMove = null;
+
+            // Check if any dice numbers there need to be moved
+            for (int hc : moveAnyRedFromHexes)
+            {
+                final int dnum = getNumberOnHexFromCoord(hc);
+                if ((dnum == 6) || (dnum == 8)
+                    || ( moveAnyRedFromAlso59 && ((dnum == 5) || (dnum == 9)) ))
+                {
+                    if (hexesToMove == null)
+                        hexesToMove = new HashSet<Integer>();
+                    hexesToMove.add(Integer.valueOf(hc));
+                }
+            }
+
+            if (hexesToMove != null)
+            {
+                // Build set of places we can swap dice numbers to.
+                // For moveAnyRedFromAlso59, count possible swap locations.
+                HashSet<Integer> otherCoastalHexes = new HashSet<Integer>(), otherHexes = new HashSet<Integer>();
+                int numLessFreqDice = makeNewBoard_placeHexes_moveFrequentNumbers_buildArrays
+                    (landPath, redHexes, moveAnyRedFromHexes, otherCoastalHexes, otherHexes);
+
+                // Swap each of hexesToMove with another from otherCoastalHexes or otherHexes (6s and 8s)
+                // or landPath (5s and 9s).
+                for (int hc : hexesToMove)
+                {
+                    final int dnum = getNumberOnHexFromCoord(hc);
+                    if ((dnum == 6) || (dnum == 8))
+                    {
+                        // Swap a 6 or 8 with the usual process.
+                        IntTriple swapped = makeNewBoard_placeHexes_moveFrequentNumbers_swapOne
+                            (hc, redHexes.indexOf(Integer.valueOf(hc)), redHexes, otherCoastalHexes, otherHexes);
+                            // TODO even if moveAnyRedFromAlso59, this could swap with a 5 or 9 from coastal/otherHexes
+
+                        if (swapped != null)
+                            redHexes.add(Integer.valueOf(swapped.b));  // Keep in list for the main rearrangement
+                        final int dnNew = getNumberOnHexFromCoord(hc);
+                        if ((dnNew < 5) || (dnNew > 9))
+                            --numLessFreqDice;
+                    }
+                    else if (numLessFreqDice > 0)
+                    {
+                        // Swap a 5 or 9 for moveAnyRedFromAlso59.
+                        // Can't use _swapOne to choose from otherCoastalHexes or otherHexes, they contain 5s and 9s:
+                        // Make random choice from all of landPath, reject dice numbers 5 - 9 and fromHexes coords
+                        for (int retries = 40; retries > 0; --retries)
+                        {
+                            final int oi = rand.nextInt(landPath.length);
+                            final int ohex = landPath[oi];
+                            final int dnOther = getNumberOnHexFromCoord(ohex);
+                            if ((dnOther >= 5) && (dnOther <= 9))
+                                continue;  // retry
+                            if (moveAnyRedFromHexes.contains(Integer.valueOf(ohex)))
+                                continue;  // retry
+
+                            // Can swap these
+                            final int rs = hc >> 8,
+                                      cs = hc & 0xFF,
+                                      ro = ohex >> 8,
+                                      co = ohex & 0xFF;
+                            numberLayoutLg[ro][co] = dnum;
+                            numberLayoutLg[rs][cs] = dnOther;
+
+                            --numLessFreqDice;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Main part of the method begins here.
 
         // Overall plan:
 
@@ -1412,6 +1522,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
         ArrayList<IntTriple> swappedNums = null;
         ArrayList<Integer> redHexesBk = null;
+
         int numRetries = 0;
         boolean retry = false;
         do
@@ -1504,7 +1615,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                     otherCoastalHexes = new HashSet<Integer>();
                     otherHexes = new HashSet<Integer>();
                     makeNewBoard_placeHexes_moveFrequentNumbers_buildArrays
-                        (landPath, redHexes, otherCoastalHexes, otherHexes);
+                        (landPath, redHexes, moveAnyRedFromHexes, otherCoastalHexes, otherHexes);
                 }
 
                 // Now, swap.
@@ -1583,7 +1694,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                         otherCoastalHexes = new HashSet<Integer>();
                         otherHexes = new HashSet<Integer>();
                         makeNewBoard_placeHexes_moveFrequentNumbers_buildArrays
-                            (landPath, redHexes, otherCoastalHexes, otherHexes);
+                            (landPath, redHexes, moveAnyRedFromHexes, otherCoastalHexes, otherHexes);
                     }
 
                     // Now, swap.
@@ -1648,7 +1759,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     }
 
     /**
-     * Build sets used for {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList, String)}.
+     * Build sets used for {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList, int, String)}.
      * Together, otherCoastalHexes and otherHexes are all land hexes in landPath not adjacent to redHexes.
      * otherCoastalHexes holds ones at the edge of the board,
      * which have fewer adjacent land hexes, and thus less chance of
@@ -1657,15 +1768,23 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *
      * @param landPath  Coordinates for each hex being placed; may contain water
      * @param redHexes  Hex coordinates of placed "red" (frequent) dice numbers (6s, 8s)
+     * @param ignoreHexes  Hex coordinates to ignore in adjacency checks while building
+     *            {@code otherCoastalHexes} and {@code otherHexes} and to leave out of those
+     *            sets, or {@code null}. Used only in certain scenarios where any red number
+     *            on these hexes will definitely be moved elsewhere.
      * @param otherCoastalHexes  Empty set to build here
      * @param otherHexes         Empty set to build here
+     * @return  number of hexes in {@code landPath} which have a dice number other than 5, 6, 8, or 9.
+     *     Used in some scenarios where {@code ignoreHexes} != null, otherwise can be ignored by callers.
      * @throws IllegalStateException if a {@link #FOG_HEX} is found
      */
-    private final void makeNewBoard_placeHexes_moveFrequentNumbers_buildArrays
-        (final int[] landPath, final ArrayList<Integer> redHexes,
+    private final int makeNewBoard_placeHexes_moveFrequentNumbers_buildArrays
+        (final int[] landPath, final ArrayList<Integer> redHexes, final HashSet<Integer> ignoreHexes,
          HashSet<Integer> otherCoastalHexes, HashSet<Integer> otherHexes)
         throws IllegalStateException
     {
+        int numLessFreqDice = 0;
+
         for (int h : landPath)
         {
             // Don't consider water, desert, gold
@@ -1680,11 +1799,16 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
             // Don't consider unnumbered or 6s or 8s
             // (check here because some may have already been removed from redHexes)
-            {
-                final int dnum = getNumberOnHexFromCoord(h);
-                if ((dnum <= 0) || (dnum == 6) || (dnum == 8))
-                    continue;
-            }
+            final int dnum = getNumberOnHexFromCoord(h);
+            if ((dnum <= 0) || (dnum == 6) || (dnum == 8))
+                continue;
+
+            // Don't consider hexes on ignore list
+            if ((ignoreHexes != null) && ignoreHexes.contains(Integer.valueOf(h)))
+                continue;
+
+            if ((dnum < 5) || (dnum > 9))
+                ++numLessFreqDice;
 
             final Vector<Integer> ahex = getAdjacentHexesToHex(h, false);
             boolean hasAdjacentRed = false;
@@ -1692,9 +1816,12 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             {
                 for (int ah : ahex)
                 {
-                    final int dnum = getNumberOnHexFromCoord(ah);
-                    if ((dnum == 6) || (dnum == 8))
+                    final int adnum = getNumberOnHexFromCoord(ah);
+                    if ((adnum == 6) || (adnum == 8))
                     {
+                        if ((ignoreHexes != null) && ignoreHexes.contains(Integer.valueOf(ah)))
+                            continue;
+
                         hasAdjacentRed = true;
                         break;
                     }
@@ -1711,20 +1838,32 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                     otherHexes.add(hInt);
             }
         }
+
+        return numLessFreqDice;
     }
 
     /**
      * The dice-number swapping algorithm for
-     * {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList, String)}.
+     * {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList, int, String)}.
      * If we can, pick a hex in otherCoastalHexes or otherHexes, swap and remove <tt>swaphex</tt>
      * from redHexes, then remove/add hexes from/to otherCoastalHexes, otherHexes, redHexes.
      * See comments for details.
-     * @param swaphex  Hex coordinate with a frequent number that needs to be swapped
+     *<P>
+     * This method can also swap non-red dice number hexes with random hexes from
+     * otherCoastalHexes or otherHexes: If calling for that, and <tt>swaphex</tt> isn't
+     * a member of redHexes, use -1 for <tt>swapi</tt>.
+     *
+     * @param swaphex  Hex coordinate with a frequent number that needs to be swapped.
+     *                 Must not be a member of <tt>otherCoastalHexes</tt> or <tt>otherHexes</tt>.
      * @param swapi    Index of <tt>swaphex</tt> within <tt>redHexes</tt>;
      *                 this is for convenience because the caller is iterating through <tt>redHexes</tt>,
      *                 and this method might remove elements below <tt>swapi</tt>.
      *                 See return value "index delta".
-     * @param redHexes  Hex coordinates of placed "red" (frequent) dice numbers
+     *                 If <tt>swaphex</tt> isn't a red number and isn't in <tt>redHexes</tt>, use -1.
+     * @param redHexes  Hex coordinates of placed "red" (frequent) dice numbers.
+     *                  Treated here as a worklist for the caller: The old location <tt>swapHex</tt> is removed from
+     *                  <tt>redHexes</tt>, and its adjacents might also be removed if they no longer have adjacent
+     *                  reds and so don't need to be moved.  The new location isn't added to <tt>redHexes</tt>.
      * @param otherCoastalHexes  Land hexes not adjacent to "red" numbers, at the edge of the island,
      *          for swapping dice numbers.  Coastal hexes have fewer adjacent land hexes, and
      *          thus less chance of taking up the last available non-adjacent places when swapped.
@@ -1781,6 +1920,12 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             numberLayoutLg[rs][cs] = ntmp;
         }
 
+        // - If old location wasn't a red dice# hex, work is done
+        if (swapi == -1)
+        {
+            return triple;  // <---- Early return: Wasn't a red number hex ----
+        }
+
         // - Remove new location and its adjacents from otherCoastalHexes or otherHexes
         others.remove(ohex);
         Vector<Integer> ahex = getAdjacentHexesToHex(ohex, false);
@@ -1799,7 +1944,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         // - Check each of its adjacent non-red lands, to see if each should be added to otherCoastalHexes or otherHexes
         //     because the adjacent no longer has any adjacent reds
         // - Check each of its adjacent reds, to see if the adjacent no longer has adjacent reds
-        //     If so, we won't need to move it: remove from redHexes
+        //     If so, we won't need to move it: remove that adjacent from redHexes
         redHexes.remove(Integer.valueOf(swaphex));
         ahex = getAdjacentHexesToHex(swaphex, false);
         if (ahex != null)
@@ -3741,6 +3886,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * Forgotten Tribe: Land hex coordinates for the main island.
+     * 3 eastern-coast hexes included here which shouldn't be given too-favorable
+     * dice numbers are {@link #FOR_TRI_LANDHEX_COORD_MAIN_FAR_COASTAL}.
      */
     private static final int FOR_TRI_LANDHEX_COORD_MAIN[][] =
     {{
@@ -3753,6 +3900,20 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         0x0502, 0x0504, 0x0506, 0x0508, 0x050A, 0x050C, 0x050E, 0x0510, 0x0512, 0x0514,
         0x0703, 0x0705, 0x0707, 0x0709, 0x070B, 0x070D, 0x070F, 0x0711, 0x0713,
         0x0902, 0x0904, 0x0906, 0x0908, 0x090A, 0x090C, 0x090E, 0x0910, 0x0912, 0x0914
+    }};
+
+    /**
+     * Forgotten Tribe: 3 Land hex coordinates on main island (within
+     * {@link #FOR_TRI_LANDHEX_COORD_MAIN}) on the short eastern side.
+     * These shouldn't be given the favorable "red" dice numbers 6 or 8, nor 5 or 9.
+     */
+    private static final int FOR_TRI_LANDHEX_COORD_MAIN_FAR_COASTAL[][] =
+    {{
+        // 4-player:
+        0x050C, 0x070D, 0x090C
+    }, {
+        // 6-player:
+        0x0514, 0x0713, 0x0914
     }};
 
     /**
@@ -4074,6 +4235,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * deserts ({@link #WOND_LANDHEX_COORD_DESERT}).
      * Dice numbers (shuffled) are {@link #WOND_DICENUM_MAIN}.
      * Main part on rows 7 and 9, with outlying parts north and south.
+     * 2 hexes included here adjacent to the desert are {@link #WOND_LANDHEX_COORD_MAIN_AT_DESERT}.
      */
     private static final int WOND_LANDHEX_COORD_MAIN[][] =
     {{
@@ -4091,8 +4253,23 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     }};
 
     /**
+     * Wonders: 2 land hex coordinates on main island (within {@link #WOND_LANDHEX_COORD_MAIN})
+     * adjacent to the deserts ({@link #WOND_LANDHEX_COORD_DESERT}).
+     * These shouldn't be given the favorable "red" dice numbers 6 or 8.
+     */
+    private static final int WOND_LANDHEX_COORD_MAIN_AT_DESERT[][] =
+    {{
+        // 4-player:
+        0x0707, 0x0906
+    }, {
+        // 6-player:
+        0x0705, 0x0906
+    }};
+
+    /**
      * Wonders: Land hex coordinates for the deserts in the southwest of the main island.
      * The rest of the main island's hexes are {@link #WOND_LANDHEX_COORD_MAIN}.
+     * Main island hexes adjacent to the desert are {@link #WOND_LANDHEX_COORD_MAIN_AT_DESERT}.
      */
     private static final int WOND_LANDHEX_COORD_DESERT[][] =
     {{
