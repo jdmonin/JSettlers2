@@ -119,7 +119,9 @@ users a nickname and password to use when they log in and play.
 People without accounts can still connect, by leaving the password field blank,
 as long as they aren't using a nickname which has a password in the database.
 
-Any command-line switches and options go before the port number on the command line.
+Any command-line switches and options go before the port number if specified
+on the command line.  If the command includes -jar, switches and options go
+after the jar filename.
 
 To have all games' results stored in the database, use this option:
   -Djsettlers.db.save.games=Y
@@ -329,7 +331,8 @@ location as JSettlersServer.jar, and specify on the jsettlers command line:
 Database Creation:
 
 To create the jsettlers database in mysql, execute the SQL db scripts
-jsettlers-create.sql and jsettlers-tables.sql located in src/bin/sql:
+jsettlers-create.sql and jsettlers-tables.sql located in src/bin/sql/
+(included in jsettlers-2.x.xx-full.tar.gz):
 
 $ mysql -u root -p -e "SOURCE jsettlers-create-mysql.sql"
 This will connect as root, prompt for the root password, create a 'socuser' user with the password
@@ -342,8 +345,12 @@ For Postgres, create the db and tables with:
 $ psql --file jsettlers-create-postgres.sql
 $ psql --file jsettlers-tables.sql socdata
 
-For sqlite, run this command in the target directory (jar filename may vary):
-$ java -jar JSettlersServer.jar -Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar  -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=../src/bin/sql/jsettlers-tables.sql
+For sqlite, copy jsettlers-tables.sql to the same directory as
+JSettlersServer.jar and run this command (jar filename may vary):
+$ java -jar JSettlersServer.jar -Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar  -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=jsettlers-tables.sql
+After a few seconds you should see this message:
+	DB setup script was successful. Exiting now.
+The directory should also now contain a jsettlers.sqlite file.
 
 This will create jsettlers.sqlite containing the empty tables.
 This script will fail if the tables already exist.
@@ -419,4 +426,3 @@ Creative Commons Attribution Share Alike (cc-by-sa 3.0 US) or Creative
 Commons Attribution (CC-BY 3.0 US); see each image's gif comments for details.
 goldHex.gif is based on a 2010-12-21 CC-BY 2.0 image by Xuan Che, available at
 http://www.flickr.com/photos/rosemania/5431942688/ , of ancient Greek coins.
-
