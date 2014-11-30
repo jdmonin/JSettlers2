@@ -58,10 +58,11 @@ Requirements
 
 To play JSettlers by connecting to a remote server you will need the
 Java Runtime Version 1.4 or above (1.5 or later recommended). To connect as an
-applet, use any browser which is Java enabled (using the browser plug-in).
+applet, use any browser which is Java enabled (using the browser plug-in)
+or just download the JAR from http://nand.net/jsettlers/ and run it.
 
 To Play JSettlers locally you need the Java Runtime 1.4 or above.
-JSettlers-full.jar can connect directly to any server over TCP/IP
+JSettlers-full.jar can connect directly to any server over the Internet.
 
 To host a JSettlers server that provides a web applet for clients, you will
 need an http server such as Apache's httpd, available from http://httpd.apache.org.
@@ -85,15 +86,27 @@ look in the src/target directory for these files.)
 If you have downloaded jsettlers-1.1.xx-full.jar or jsettlers-1.1.x-server.jar
 instead of the full tar.gz, use that filename on the command lines shown below.
 
+
 SERVER STARTUP:
 
 Start the server with the following command
 (server requires Java 1.4 or higher):
 
-  java -jar JSettlersServer.jar -Djsettlers.startrobots=7 8880 20 socuser socpass
+  java -jar JSettlersServer.jar
 
-Those parameters are : number of bots; TCP port number; max clients; db user; db password.
-You can also run with no parameters; the server will run on the default port of 8880 with no bots.
+This will start the server on the default port of 8880 with 7 robots.
+
+You can also specify parameters at startup:
+
+  java -jar JSettlersServer.jar -Djsettlers.startrobots=9 8880 30 socuser socpass
+
+Those parameters are: start 9 bots; TCP port number 8880; max clients 30; db user; db password.
+
+The started robots count against your max simultaneous connections (30 in this example).
+If the robots leave less than 6 player connections available, or if they take
+more than half the max connections, a warning message is printed at startup.
+
+To start a server with no robots (human players only), use -Djsettlers.startrobots=0 .
 
 If MySQL or another database is not installed and running (See "Database Setup"),
 you will see a warning with the appropriate explanation:
@@ -106,17 +119,8 @@ users a nickname and password to use when they log in and play.
 People without accounts can still connect, by leaving the password field blank,
 as long as they aren't using a nickname which has a password in the database.
 
-If you would like robots to automatically start when your server starts,
-add the "startrobots" property to your jsettlers java command line, BEFORE the
-port number:
-
-  java -jar JSettlersServer.jar -Djsettlers.startrobots=6 8880 15 socuser socpass
-
-This will start 6 robots on the server.
-
-The started robots count against your max connections (15 in this example).
-If the robots leave less than 6 player connections available, or if they take
-more than half the max connections, a warning message is printed at startup.
+Any command-line switches and options go before the port number or -jar if specified
+on the command line.
 
 To have all games' results stored in the database, use this option:
   -Djsettlers.db.save.games=Y
@@ -128,19 +132,16 @@ This will print all server options, and all Game Option default values.
 To change a Game Option from its default, for example to activate the house rule
 "Robber can't return to the desert", use the "-o" switch with the game option's name and value:
    -o RD=t
-All command-line switches and options go before the port number if specified.
 
 
 CLIENT CONNECT:
 
-Now, from another command line window, start the player client with
-the following command:
+Now, double-click JSettlers.jar to launch the client.
+
+Or, if you want to see the message traffic and debug output, from another command line window
+start the player client with the following command:
 
   java -jar JSettlers.jar localhost 8880
-
-You can instead double-click the JAR file to launch the client, and then
-click "connect to server".  Use the command line if you want to see the
-message traffic and debug output.
 
 In the player client window, enter any name in the Nickname field and
 create a new game.
@@ -277,7 +278,7 @@ has changed to disallow user account self-registration. If you still want to
 use that option, search below for "open registration".
 
 For these instructions we'll assume you already installed the PostgreSQL or
-MySQL software.  SQLite is an easy database choice because it's just a JAR
+MySQL software. SQLite is an easy database choice because it's just a JAR
 file, not a separate large install, if you're looking to avoid that.
 
 You will need a JDBC driver JAR file in your classpath or the same directory as
