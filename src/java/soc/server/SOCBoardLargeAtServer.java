@@ -1634,6 +1634,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                         // other hexes were removed from redHexes.
                         // Update our index position with the delta
                         i += midSwap.c;  // c is always negative
+                        if (i < 0)
+                            i = 0;  // if all redHexes were removed, fix i for loop's next iteration test
                     }
                 }
 
@@ -1949,7 +1951,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         ahex = getAdjacentHexesToHex(swaphex, false);
         if (ahex != null)
         {
-            int idelta = 0;
+            int idelta = 0;  // ahex loop does --idelta for each hex removed from redHexes
 
             for (int h : ahex)
             {
