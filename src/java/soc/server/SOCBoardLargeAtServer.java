@@ -540,6 +540,33 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             PORTS_TYPES_ISLANDS = null;  // no ports inside fog island's random layout
             PORT_LOC_FACING_ISLANDS = null;
 
+        } else if (scen.equals(SOCScenario.K_SC_NSHO)) {
+
+            // New Shores: Uses original 4- or 6-player board like fallback layout does, + outlying islands.
+
+            // 3pl has 4 LAs, 4pl has 4, 6pl has 7
+            landAreasLegalNodes = new HashSet[(maxPl == 6) ? 8 : 5];
+
+            final int idx = (maxPl == 6) ? 2 : (maxPl == 4) ? 1 : 0; // 3-player, 4-player, or 6-player board
+
+            // - Main island:
+            makeNewBoard_placeHexes
+                (NSHO_LANDHEX_TYPE_MAIN[idx], NSHO_LANDHEX_COORD_MAIN[idx], NSHO_DICENUM_MAIN[idx],
+                 (maxPl < 4), true, 1, false, maxPl, opt_breakClumps, scen);
+
+            // - Outlying islands:
+            makeNewBoard_placeHexes
+                (NSHO_LANDHEX_TYPE_ISL[idx], NSHO_LANDHEX_COORD_ISL[idx], NSHO_DICENUM_ISL[idx],
+                 true, true, NSHO_LANDHEX_LANDAREA_RANGES[idx], false, maxPl, null, scen);
+
+            pirateHex = NSHO_PIRATE_HEX[idx];
+
+            // ports
+            PORTS_TYPES_MAINLAND = NSHO_PORT_TYPE[idx];
+            PORTS_TYPES_ISLANDS = null;
+            PORT_LOC_FACING_MAINLAND = NSHO_PORT_EDGE_FACING[idx];
+            PORT_LOC_FACING_ISLANDS = null;
+
         } else {
 
             // This is the fallback layout, the large sea board used when no scenario is chosen.
@@ -2352,6 +2379,10 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             {
                 heightWidth = WOND_BOARDSIZE[(maxPlayers == 6) ? 1 : 0];
             }
+            else if (sc.equals(SOCScenario.K_SC_NSHO))
+            {
+                heightWidth = NSHO_BOARDSIZE[(maxPlayers == 6) ? 2 : (maxPlayers == 4) ? 1 : 0];
+            }
         }
 
         if (heightWidth == 0)
@@ -2735,6 +2766,181 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     {
         MISC_PORT, MISC_PORT, CLAY_PORT, WOOD_PORT, MISC_PORT
     };
+
+
+    ////////////////////////////////////////////
+    //
+    // New Shores scenario layout (_SC_NSHO)
+    // Has 3-player, 4-player, 6-player versions;
+    // each array here uses index [0] for 3-player, [1] for 4, [2] for 6.
+    // LA#1 has the main island.
+    // Other Land Areas are the small outlying islands; players can't start there.
+    //
+
+    /**
+     * New Shores: Board size:
+     * 3 players max row 0x0E, max col 0x0E.
+     * 4 players max 0x0E, 0x10.
+     * 6 players max 0x0E, 0x14.
+     */
+    private static final int NSHO_BOARDSIZE[] = { 0x0E0E, 0x0E10, 0x0E14 };
+
+    /**
+     * New Shores: Starting pirate sea hex coordinate for 3, 4, 6 players.
+     * The 6-player layout starts with the pirate off the board.
+     */
+    private static final int NSHO_PIRATE_HEX[] = { 0x070D, 0x070F, 0 };
+
+    /** New Shores: Land hex types for the main island. Shuffled. */
+    private static final int NSHO_LANDHEX_TYPE_MAIN[][] =
+    {
+        {
+            // 3 players:
+            CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+            WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX
+        },
+        SOCBoard.makeNewBoard_landHexTypes_v1,  // 4 players
+        SOCBoard.makeNewBoard_landHexTypes_v2   // 6 players
+    };
+
+    /**
+     * New Shores: Land hex coordinates for the main island.
+     * Defines the path and sequence of dice numbers in {@link #NSHO_DICENUM_MAIN}.
+     * Land hex types (shuffled) are {@link #NSHO_LANDHEX_TYPE_MAIN}.
+     * @see #NSHO_LANDHEX_COORD_ISL
+     */
+    private static final int NSHO_LANDHEX_COORD_MAIN[][] =
+    {{
+        // 3 players: clockwise from west (dice numbers are shuffled)
+        0x0902, 0x0703, 0x0504, 0x0506, 0x0707,
+        0x0908, 0x0B07, 0x0D06, 0x0D04, 0x0B03,
+        0x0904, 0x0705, 0x0906, 0x0B05
+    }, {
+        // 4 players: clockwise from northwest (dice path)
+        0x0504, 0x0506, 0x0508, 0x0709, 0x090A,
+        0x0B09, 0x0D08, 0x0D06, 0x0D04, 0x0B03,
+        0x0902, 0x0703, 0x0705, 0x0707, 0x0908,
+        0x0B07, 0x0B05, 0x0904, 0x0906
+    }, {
+        // 6 players: clockwise from west (dice path)
+        0x0705, 0x0506, 0x0307, 0x0108, 0x010A, 0x010C, 0x030D,
+        0x050E, 0x070F, 0x090E, 0x0B0D, 0x0D0C, 0x0D0A, 0x0D08,
+        0x0B07, 0x0906, 0x0707, 0x0508, 0x0309, 0x030B, 0x050C,
+        0x070D, 0x090C, 0x0B0B, 0x0B09, 0x0908, 0x0709, 0x050A,
+        0x070B, 0x090A
+    }};
+
+    /**
+     * New Shores: Dice numbers for hexes on the main island along {@link #NSHO_LANDHEX_COORD_MAIN}.
+     * Shuffled for 3-player board only.
+     * @see #NSHO_DICENUM_ISL
+     */
+    private static final int NSHO_DICENUM_MAIN[][] =
+    {
+        { 2, 3, 4, 5, 5, 6, 6, 8, 8, 9, 10, 10, 11, 11 },  // 3 players
+        SOCBoard.makeNewBoard_diceNums_v1,  // 4 players
+        SOCBoard.makeNewBoard_diceNums_v2   // 6 players
+    };
+
+    /**
+     * New Shores: Port edges and facings. There are no ports on the small islands, only the main one.
+     *<P>
+     * Clockwise, starting at northwest corner of board.
+     * Each port has 2 elements: Edge coordinate (0xRRCC), Port Facing.
+     *<P>
+     * Port Facing is the direction from the port edge, to the land hex touching it
+     * which will have 2 nodes where a port settlement/city can be built.
+     *<P>
+     * Port types ({@link #NSHO_PORT_TYPE}) are shuffled.
+     */
+    private static final int NSHO_PORT_EDGE_FACING[][] =
+    {{
+        0x0503, FACING_E,   0x0507, FACING_W,   0x0808, FACING_SW,  0x0D07, FACING_W,
+        0x0E05, FACING_NE,  0x0D03, FACING_E,   0x0A01, FACING_NE,  0x0801, FACING_SE
+    }, {
+        0x0403, FACING_SE,  0x0406, FACING_SW,  0x0609, FACING_SW,  0x090B, FACING_W,
+        0x0C09, FACING_NW,  0x0E06, FACING_NW,  0x0E03, FACING_NE,  0x0B02, FACING_E,
+        0x0702, FACING_E
+    }, {
+        0x000A, FACING_SW,  0x020D, FACING_SW,  0x050F, FACING_W,   0x080F, FACING_NW,
+        0x0B0E, FACING_W,   0x0E0C, FACING_NW,  0x0E09, FACING_NE,  0x0C06, FACING_NE,
+        0x0804, FACING_NE,  0x0505, FACING_E,   0x0206, FACING_SE
+    }};
+
+    /** New Shores: Port types on main island; will be shuffled. */
+    private static final int NSHO_PORT_TYPE[][] =
+    {
+        { 0, 0, 0, CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT },  // 3 players
+        SOCBoard.PORTS_TYPE_V1,  // 4 players
+        SOCBoard.PORTS_TYPE_V2   // 6 players
+    };
+
+    /** New Shores: Land hex types on the several small islands. Shuffled. */
+    private static final int NSHO_LANDHEX_TYPE_ISL[][] =
+    {{
+        CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, SHEEP_HEX, WHEAT_HEX, GOLD_HEX, GOLD_HEX
+    }, {
+        CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, SHEEP_HEX, WHEAT_HEX, WOOD_HEX, GOLD_HEX, GOLD_HEX
+    }, {
+        CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, SHEEP_HEX, WHEAT_HEX, WOOD_HEX, GOLD_HEX, GOLD_HEX, GOLD_HEX
+    }};
+
+    /**
+     * New Shores: Island hex counts and land area numbers within {@link #NSHO_LANDHEX_COORD_ISL}.
+     * Allows them to be defined, shuffled, and placed together.
+     */
+    private static final int NSHO_LANDHEX_LANDAREA_RANGES[][] =
+    {{
+        2, 2,  // landarea 2 is the northwest island with 2 hexes
+        3, 4,  // landarea 3 NE, 4 hexes
+        4, 2,  // landarea 4 SE, 2 hexes
+    }, {
+        2, 2,
+        3, 5,
+        4, 2
+    }, {
+        2, 3,
+        3, 3,
+        4, 1,  // single-hex islands on east side of board
+        5, 1,
+        6, 1,
+        7, 1
+    }};
+
+    /**
+     * New Shores: Land hex coordinates for the several small islands.
+     * Each island is a separate land area, split up the array using {@link #NSHO_LANDHEX_LANDAREA_RANGES}.
+     * Dice numbers on the islands (shuffled together) are {@link #NSHO_DICENUM_ISL}.
+     * @see #NSHO_LANDHEX_COORD_MAIN
+     */
+    private static final int NSHO_LANDHEX_COORD_ISL[][] =
+    {{
+        0x0104, 0x0106,
+        0x0309, 0x030B, 0x050A, 0x070B,
+        0x0B0B, 0x0D0A
+    }, {
+        0x0104, 0x0106,
+        0x010A, 0x030B, 0x030D, 0x050C, 0x070D,
+        0x0B0D, 0x0D0C
+    }, {
+        0x0104, 0x0303, 0x0502,
+        0x0902, 0x0B03, 0x0D04,
+        0x0110,   0x0512,   0x0912,   0x0D10
+    }};
+
+    /**
+     * New Shores: Dice numbers for hexes on the several small islands
+     * ({@link #NSHO_LANDHEX_COORD_ISL}).  Shuffled.
+     * @see #NSHO_DICENUM_MAIN
+     */
+    private static final int NSHO_DICENUM_ISL[][] =
+    {{
+        3, 4, 4, 5, 8, 9, 10, 12
+    }, {
+        2, 3, 4, 5, 6, 8, 9, 10, 11
+    }, {
+        2, 3, 4, 5, 6, 8, 9, 10, 11, 12
+    }};
 
 
     ////////////////////////////////////////////

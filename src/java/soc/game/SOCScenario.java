@@ -89,6 +89,7 @@ public class SOCScenario
      *
      * <h3>Current Game Scenarios:</h3>
      *<UL>
+     *<LI> {@link #K_SC_NSHO SC_NSHO}  New Shores
      *<LI> {@link #K_SC_4ISL SC_4ISL}  The Four Islands (Six on the 6-player board)
      *<LI> {@link #K_SC_FOG  SC_FOG}   A hex has been revealed from behind fog:
      *                                  {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}
@@ -241,7 +242,8 @@ public class SOCScenario
 
     /**
      * Scenario key <tt>SC_NSHO</tt> for New Shores.
-     * No main option or special rules, only a board layout and 2 SVP for reaching each island.
+     * Board layout is the standard 4- or 6-player board, or a smaller 3-player main island, plus small
+     * outlying islands. No main option or special rules, only the board layout and 2 SVP for reaching each island.
      */
     public static final String K_SC_NSHO = "SC_NSHO";
 
