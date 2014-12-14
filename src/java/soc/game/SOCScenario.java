@@ -122,6 +122,7 @@ public class SOCScenario
      *   Put a short description in the javadoc there, and in this javadoc's scenario list.
      *<LI> Create the scenario by calling {@code allSc.put} here in initAllScenarios.
      *   Use the current version for the "last modified" field.
+     *<LI> Create the board layout; see {@link soc.server.SOCBoardLargeAtServer} javadoc.
      *<LI> Within {@link SOCGame}, don't change any code based on the scenario name;
      *   game behavior changes are based only on the {@link SOCGameOption}s implementing the scenario.
      *</UL>
@@ -165,6 +166,12 @@ public class SOCScenario
         Map<String, SOCScenario> allSc = new HashMap<String, SOCScenario>();
 
         // Game scenarios, and their SOCGameOptions (rules and events)
+
+        allSc.put(K_SC_NSHO, new SOCScenario
+            (K_SC_NSHO, 2000, 2000,
+             "New Shores",
+             null,
+             "_SC_SEAC=t,PLL=t,VP=t13"));
 
         allSc.put(K_SC_4ISL, new SOCScenario
             (K_SC_4ISL, 2000, 2000,
@@ -231,6 +238,12 @@ public class SOCScenario
     }
 
     // Game scenario keynames.
+
+    /**
+     * Scenario key <tt>SC_NSHO</tt> for New Shores.
+     * No main option or special rules, only a board layout and 2 SVP for reaching each island.
+     */
+    public static final String K_SC_NSHO = "SC_NSHO";
 
     /**
      * Scenario key <tt>SC_4ISL</tt> for The Four Islands.
