@@ -483,37 +483,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             for (int i = 0; i <= 2; ++i)
                 makeNewBoard_removeLegalNodes(WOND_SPECIAL_NODES[idx][i], startingLandArea, i + 1);
         }
-        else if (! hasScenarioFog)
+        else if (hasScenarioFog)  // _SC_FOG
         {
-            // This is the fallback layout, the large sea board used when no scenario is chosen.
-            // Size is BOARDHEIGHT_LARGE by BOARDWIDTH_LARGE for 4 players.
-            // For 6 players, there's an extra row of hexes: BOARDHEIGHT_LARGE + 3.
-
-            landAreasLegalNodes = new HashSet[5];  // hardcoded max number of land areas
-
-            // - Mainland:
-            makeNewBoard_placeHexes
-                ((maxPl > 4) ? makeNewBoard_landHexTypes_v2 : makeNewBoard_landHexTypes_v1,
-                 (maxPl > 4) ? LANDHEX_DICEPATH_MAINLAND_6PL : LANDHEX_DICEPATH_MAINLAND_4PL,
-                 (maxPl > 4) ? makeNewBoard_diceNums_v2 : makeNewBoard_diceNums_v1,
-                 false, true, 1, false, maxPl, opt_breakClumps, scen);
-
-            // - Outlying islands:
-            makeNewBoard_placeHexes
-                ((maxPl > 4) ? LANDHEX_TYPE_ISLANDS_6PL : LANDHEX_TYPE_ISLANDS_4PL,
-                 (maxPl > 4) ? LANDHEX_COORD_ISLANDS_ALL_6PL : LANDHEX_COORD_ISLANDS_ALL_4PL,
-                 (maxPl > 4) ? LANDHEX_DICENUM_ISLANDS_6PL : LANDHEX_DICENUM_ISLANDS_4PL,
-                 true, true,
-                 (maxPl > 4) ? LANDHEX_LANDAREA_RANGES_ISLANDS_6PL : LANDHEX_LANDAREA_RANGES_ISLANDS_4PL,
-                 false, maxPl, null, scen);
-
-            PORTS_TYPES_MAINLAND = (maxPl > 4) ? PORTS_TYPE_V2 : PORTS_TYPE_V1;
-            PORTS_TYPES_ISLANDS = (maxPl > 4) ? PORT_TYPE_ISLANDS_6PL : PORT_TYPE_ISLANDS_4PL;
-            PORT_LOC_FACING_MAINLAND = (maxPl > 4) ? PORT_EDGE_FACING_MAINLAND_6PL : PORT_EDGE_FACING_MAINLAND_4PL;
-            PORT_LOC_FACING_ISLANDS = (maxPl > 4) ? PORT_EDGE_FACING_ISLANDS_6PL : PORT_EDGE_FACING_ISLANDS_4PL;
-
-        } else {
-            // hasScenarioFog
             landAreasLegalNodes = new HashSet[( (maxPl == 6) ? 4 : 3 )];
 
             if (maxPl < 4)
@@ -568,6 +539,35 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             }
             PORTS_TYPES_ISLANDS = null;  // no ports inside fog island's random layout
             PORT_LOC_FACING_ISLANDS = null;
+
+        } else {
+
+            // This is the fallback layout, the large sea board used when no scenario is chosen.
+            // Size is BOARDHEIGHT_LARGE by BOARDWIDTH_LARGE for 4 players.
+            // For 6 players, there's an extra row of hexes: BOARDHEIGHT_LARGE + 3.
+
+            landAreasLegalNodes = new HashSet[5];  // hardcoded max number of land areas
+
+            // - Mainland:
+            makeNewBoard_placeHexes
+                ((maxPl > 4) ? makeNewBoard_landHexTypes_v2 : makeNewBoard_landHexTypes_v1,
+                 (maxPl > 4) ? LANDHEX_DICEPATH_MAINLAND_6PL : LANDHEX_DICEPATH_MAINLAND_4PL,
+                 (maxPl > 4) ? makeNewBoard_diceNums_v2 : makeNewBoard_diceNums_v1,
+                 false, true, 1, false, maxPl, opt_breakClumps, scen);
+
+            // - Outlying islands:
+            makeNewBoard_placeHexes
+                ((maxPl > 4) ? LANDHEX_TYPE_ISLANDS_6PL : LANDHEX_TYPE_ISLANDS_4PL,
+                 (maxPl > 4) ? LANDHEX_COORD_ISLANDS_ALL_6PL : LANDHEX_COORD_ISLANDS_ALL_4PL,
+                 (maxPl > 4) ? LANDHEX_DICENUM_ISLANDS_6PL : LANDHEX_DICENUM_ISLANDS_4PL,
+                 true, true,
+                 (maxPl > 4) ? LANDHEX_LANDAREA_RANGES_ISLANDS_6PL : LANDHEX_LANDAREA_RANGES_ISLANDS_4PL,
+                 false, maxPl, null, scen);
+
+            PORTS_TYPES_MAINLAND = (maxPl > 4) ? PORTS_TYPE_V2 : PORTS_TYPE_V1;
+            PORTS_TYPES_ISLANDS = (maxPl > 4) ? PORT_TYPE_ISLANDS_6PL : PORT_TYPE_ISLANDS_4PL;
+            PORT_LOC_FACING_MAINLAND = (maxPl > 4) ? PORT_EDGE_FACING_MAINLAND_6PL : PORT_EDGE_FACING_MAINLAND_4PL;
+            PORT_LOC_FACING_ISLANDS = (maxPl > 4) ? PORT_EDGE_FACING_ISLANDS_6PL : PORT_EDGE_FACING_ISLANDS_4PL;
         }
 
         // Set up legalRoadEdges:
@@ -742,7 +742,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * @param maxPl  For scenario boards, use 3-player or 4-player or 6-player layout?
      *               Always tests maxPl for ==6 or &lt; 4; actual value may be 6, 4, 3, or 2.
      * @param optBC  Game option "BC" from the options for this board, or <tt>null</tt>.
-     * @param scen   Game scenario, such as {@link SOCScenario#K_SC_4ISL}, or "";
+     * @param scen   Game scenario, such as {@link SOCScenario#K_SC_FTRI}, or "";
      *               some scenarios might want special distribution of certain hex types or dice numbers.
      *               Handled via {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList, int, String)}.
      * @throws IllegalStateException  if <tt>landAreaNumber</tt> != 0 and either
@@ -828,7 +828,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * @param maxPl  For scenario boards, use 3-player or 4-player or 6-player layout?
      *               Always tests maxPl for ==6 or &lt; 4; actual value may be 6, 4, 3, or 2.
      * @param optBC  Game option "BC" from the options for this board, or <tt>null</tt>.
-     * @param scen   Game scenario, such as {@link SOCScenario#K_SC_4ISL}, or "";
+     * @param scen   Game scenario, such as {@link SOCScenario#K_SC_FTRI}, or "";
      *               some scenarios might want special distribution of certain hex types or dice numbers.
      *               Handled via {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList, int, String)}.
      * @throws IllegalStateException  if land area number != 0 and either
@@ -1045,7 +1045,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * @param landAreaPathRanges  <tt>landPath[]</tt>'s Land Area Numbers, and the size of each land area;
      *     see this parameter's javadoc at
      *     {@link #makeNewBoard_placeHexes(int[], int[], int[], boolean, boolean, int[], boolean, int, SOCGameOption, String)}.
-     * @param scen  Game scenario, such as {@link SOCScenario#K_SC_4ISL}, or "";
+     * @param scen  Game scenario, such as {@link SOCScenario#K_SC_TTD}, or "";
      *              some scenarios might want special distribution of certain hex types or dice numbers.
      */
     private final void makeNewBoard_placeHexes_arrangeGolds
@@ -1293,7 +1293,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * and {@link SOCBoardLarge#numberLayoutLg numberLayoutLg},
      * separate adjacent "red numbers" (6s, 8s)
      * and make sure gold hex dice aren't too frequent.
-     * For algorithm details, see comments in this method.
+     * For algorithm details, see comments in this method and
+     * {@link #makeNewBoard_placeHexes_moveFrequentNumbers_checkSpecialHexes(int[], ArrayList, int, String)}.
      *<P>
      * Call {@link #makeNewBoard_placeHexes_arrangeGolds(int[], int[], String)} before this
      * method, not after, so that gold hexes will already be in their final locations.
@@ -1355,91 +1356,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
         // Next, check for any hexes that forbid too-frequent dice numbers (only a few scenarios).
         // These will be at most 2 or 3 hexes; try once to move any that are found.
-
-        /** If scenario calls for it, hex coordinates from which to move any "red" dice numbers 6 and 8 */
-        final HashSet<Integer> moveAnyRedFromHexes;
-        /** If true also move 5s and 9s, not just 6s and 8s */
-        final boolean moveAnyRedFromAlso59;
-        {
-            final int[] moveFrom;
-            if (scen.equals(SOCScenario.K_SC_FTRI))
-            {
-                moveFrom = FOR_TRI_LANDHEX_COORD_MAIN_FAR_COASTAL[(maxPl == 6) ? 1 : 0];
-                moveAnyRedFromAlso59 = true;
-            } else if (scen.equals(SOCScenario.K_SC_WOND)) {
-                moveFrom = WOND_LANDHEX_COORD_MAIN_AT_DESERT[(maxPl == 6) ? 1 : 0];
-                moveAnyRedFromAlso59 = false;
-            } else {
-                moveFrom = null;
-                moveAnyRedFromAlso59 = false;
-            }
-
-            if (moveFrom != null)
-            {
-                moveAnyRedFromHexes = new HashSet<Integer>(moveFrom.length);
-                for (int i = 0; i < moveFrom.length; ++i)
-                    moveAnyRedFromHexes.add(Integer.valueOf(moveFrom[i]));
-            } else {
-                moveAnyRedFromHexes = null;
-            }
-        }
-
-        if (moveAnyRedFromHexes != null)
-        {
-            HashSet<Integer> hexesToMove = null;
-
-            // Check if any dice numbers there need to be moved
-            for (int hc : moveAnyRedFromHexes)
-            {
-                final int dnum = getNumberOnHexFromCoord(hc);
-                if ((dnum == 6) || (dnum == 8)
-                    || ( moveAnyRedFromAlso59 && ((dnum == 5) || (dnum == 9)) ))
-                {
-                    if (hexesToMove == null)
-                        hexesToMove = new HashSet<Integer>();
-                    hexesToMove.add(Integer.valueOf(hc));
-                }
-            }
-
-            if (hexesToMove != null)
-            {
-                // Build set of places we can swap dice numbers to.
-                // For _SC_FTRI (moveAnyRedFromAlso59), build otherHexesForScen with possible swap locations.
-                HashSet<Integer> otherCoastalHexes = new HashSet<Integer>(), otherHexes = new HashSet<Integer>();
-                HashSet<Integer> otherHexesForScen = (moveAnyRedFromAlso59) ? new HashSet<Integer>() : null;
-                makeNewBoard_placeHexes_moveFrequentNumbers_buildArrays
-                    (landPath, redHexes, moveAnyRedFromHexes, otherCoastalHexes, otherHexes, scen, otherHexesForScen);
-
-                // Swap each of hexesToMove with another from otherCoastalHexes or otherHexes (6s and 8s)
-                // or landPath (5s and 9s).
-                for (int hc : hexesToMove)
-                {
-                    final int dnum = getNumberOnHexFromCoord(hc);
-
-                    IntTriple swapped;
-                    if (moveAnyRedFromAlso59)
-                    {
-                        // Swap a 5, 6, 8, or 9.
-                        // After this loop is done, the method checks for clumps of red hexes.
-                        // So, we can swap them here with any hex location (otherHexesForScen),
-                        // not only otherCostalHexes/otherHexes, to avoid limiting options here.
-                        final int rhIdx = ((dnum == 6) || (dnum == 8))
-                            ? redHexes.indexOf(Integer.valueOf(hc))
-                            : -1;
-                        swapped = makeNewBoard_placeHexes_moveFrequentNumbers_swapOne
-                            (hc, rhIdx, redHexes, moveAnyRedFromHexes, otherHexesForScen, null);
-                    } else {
-                        // Swap a 6 or 8 with the usual process.
-                        swapped = makeNewBoard_placeHexes_moveFrequentNumbers_swapOne
-                            (hc, redHexes.indexOf(Integer.valueOf(hc)), redHexes, moveAnyRedFromHexes,
-                             otherCoastalHexes, otherHexes);
-                    }
-
-                    if (((dnum == 6) || (dnum == 8)) && (swapped != null))
-                        redHexes.add(Integer.valueOf(swapped.b));  // Keep in list for the main rearrangement
-                }
-            }
-        }
+        final HashSet<Integer> moveAnyRedFromHexes
+            = makeNewBoard_placeHexes_moveFrequentNumbers_checkSpecialHexes(landPath, redHexes, maxPl, scen);
 
         // Main part of the method begins here.
 
@@ -1833,6 +1751,116 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                     otherHexes.add(hInt);
             }
         }
+    }
+
+    /**
+     * Check for any hexes that forbid too-frequent dice numbers (only a few scenarios).
+     * These will be at most 2 or 3 hexes; try once to move any that are found.
+     * These hexes' coordinates, if any, are returned so that later parts of
+     * {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList, int, String)}
+     * won't move any red numbers back onto them.
+     *
+     * @param landPath  Coordinates for each hex being placed; may contain water
+     * @param redHexes  Hex coordinates of placed "red" (frequent) dice numbers (6s, 8s);
+     *      updated here if anything is moved.
+     * @param maxPl  For scenario boards, use 3-player or 4-player or 6-player layout?
+     *               Always tests maxPl for ==6 or &lt; 4; actual value may be 6, 4, 3, or 2.
+     * @param scen  Game scenario, such as {@link SOCScenario#K_SC_FTRI}, or "";
+     *              some scenarios might want special distribution of certain hex types or dice numbers.
+     *              Currently recognized here: {@link SOCScenario#K_SC_FTRI}, {@link SOCScenario#K_SC_WOND}.
+     * @return  Scenario's set of hexes which shouldn't contain red numbers, or {@code null}
+     */
+    private HashSet<Integer> makeNewBoard_placeHexes_moveFrequentNumbers_checkSpecialHexes
+        (final int[] landPath, ArrayList<Integer> redHexes, final int maxPl, final String scen)
+    {
+        /** If scenario calls for it, hex coordinates from which to move any "red" dice numbers 6 and 8 */
+        final HashSet<Integer> moveAnyRedFromHexes;
+        /** If true also move 5s and 9s, not just 6s and 8s */
+        final boolean moveAnyRedFromAlso59;
+        {
+            final int[] moveFrom;
+            if (scen.equals(SOCScenario.K_SC_FTRI))
+            {
+                moveFrom = FOR_TRI_LANDHEX_COORD_MAIN_FAR_COASTAL[(maxPl == 6) ? 1 : 0];
+                moveAnyRedFromAlso59 = true;
+            } else if (scen.equals(SOCScenario.K_SC_WOND)) {
+                moveFrom = WOND_LANDHEX_COORD_MAIN_AT_DESERT[(maxPl == 6) ? 1 : 0];
+                moveAnyRedFromAlso59 = false;
+            } else {
+                moveFrom = null;
+                moveAnyRedFromAlso59 = false;
+            }
+
+            if (moveFrom != null)
+            {
+                moveAnyRedFromHexes = new HashSet<Integer>(moveFrom.length);
+                for (int i = 0; i < moveFrom.length; ++i)
+                    moveAnyRedFromHexes.add(Integer.valueOf(moveFrom[i]));
+            } else {
+                moveAnyRedFromHexes = null;
+            }
+        }
+
+        if (moveAnyRedFromHexes == null)
+        {
+            return null;  // <--- Early return: Scenario has no special hexes to check ---
+        }
+
+        HashSet<Integer> hexesToMove = null;
+
+        // Check if any dice numbers there need to be moved
+        for (int hc : moveAnyRedFromHexes)
+        {
+            final int dnum = getNumberOnHexFromCoord(hc);
+            if ((dnum == 6) || (dnum == 8)
+                || ( moveAnyRedFromAlso59 && ((dnum == 5) || (dnum == 9)) ))
+            {
+                if (hexesToMove == null)
+                    hexesToMove = new HashSet<Integer>();
+                hexesToMove.add(Integer.valueOf(hc));
+            }
+        }
+
+        if (hexesToMove != null)
+        {
+            // Build set of places we can swap dice numbers to.
+            // For _SC_FTRI (moveAnyRedFromAlso59), build otherHexesForScen with possible swap locations.
+            HashSet<Integer> otherCoastalHexes = new HashSet<Integer>(), otherHexes = new HashSet<Integer>();
+            HashSet<Integer> otherHexesForScen = (moveAnyRedFromAlso59) ? new HashSet<Integer>() : null;
+            makeNewBoard_placeHexes_moveFrequentNumbers_buildArrays
+                (landPath, redHexes, moveAnyRedFromHexes, otherCoastalHexes, otherHexes, scen, otherHexesForScen);
+
+            // Swap each of hexesToMove with another from otherCoastalHexes or otherHexes (6s and 8s)
+            // or landPath (5s and 9s).
+            for (int hc : hexesToMove)
+            {
+                final int dnum = getNumberOnHexFromCoord(hc);
+
+                IntTriple swapped;
+                if (moveAnyRedFromAlso59)
+                {
+                    // Swap a 5, 6, 8, or 9.
+                    // After this loop is done, the method checks for clumps of red hexes.
+                    // So, we can swap them here with any hex location (otherHexesForScen),
+                    // not only otherCostalHexes/otherHexes, to avoid limiting options here.
+                    final int rhIdx = ((dnum == 6) || (dnum == 8))
+                        ? redHexes.indexOf(Integer.valueOf(hc))
+                        : -1;
+                    swapped = makeNewBoard_placeHexes_moveFrequentNumbers_swapOne
+                        (hc, rhIdx, redHexes, moveAnyRedFromHexes, otherHexesForScen, null);
+                } else {
+                    // Swap a 6 or 8 with the usual process.
+                    swapped = makeNewBoard_placeHexes_moveFrequentNumbers_swapOne
+                        (hc, redHexes.indexOf(Integer.valueOf(hc)), redHexes, moveAnyRedFromHexes,
+                         otherCoastalHexes, otherHexes);
+                }
+
+                if (((dnum == 6) || (dnum == 8)) && (swapped != null))
+                    redHexes.add(Integer.valueOf(swapped.b));  // Keep in list for the main rearrangement
+            }
+        }
+
+        return moveAnyRedFromHexes;
     }
 
     /**
