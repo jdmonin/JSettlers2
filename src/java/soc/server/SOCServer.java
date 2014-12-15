@@ -7409,6 +7409,9 @@ public class SOCServer extends Server
      * For details on the java properties file syntax ({@code #} starts a comment line, etc),
      * see {@link Properties#load(java.io.InputStream)}.
      *<P>
+     * If a property appears on the command line and also in {@code jsserver.properties},
+     * the command line's value overrides the file's.
+     *<P>
      * If any game options are set ("-o", "--option"), then
      * {@link #hasSetGameOptions} is set to true, and
      * {@link SOCGameOption#setKnownOptionCurrentValue(SOCGameOption)}
@@ -7433,6 +7436,11 @@ public class SOCServer extends Server
     public static Properties parseCmdline_DashedArgs(String[] args)
     {
         Properties argp = new Properties();
+
+        // check against options twice on command line: Can't just check argp keys because
+        // argp is loaded from jsserver.properties, then command-line properties can override
+        // anything set from there
+        HashSet<String> cmdlineOptsSet = new HashSet<String>();
         HashSet<String> gameOptsAlreadySet = new HashSet<String>();  // used and updated by parseCmdline_GameOption
 
         /**
@@ -7552,12 +7560,13 @@ public class SOCServer extends Server
                     return null;
                 }
 
-                if (argp.containsKey(name))
+                if (cmdlineOptsSet.contains(name))
                 {
                     System.err.println("Property cannot appear twice on command line: " + name);
                     return null;
                 }
                 argp.setProperty(name, value);
+                cmdlineOptsSet.add(name);
 
             } else {
                 System.err.println("Unknown argument: " + arg);
@@ -7570,10 +7579,15 @@ public class SOCServer extends Server
         if ((args.length - aidx) == 0)
         {
             // No positional parameters: Take defaults.
-            argp.setProperty(PROP_JSETTLERS_PORT, Integer.toString(SOC_PORT_DEFAULT));
-            argp.setProperty(PROP_JSETTLERS_CONNECTIONS, Integer.toString(SOC_MAXCONN_DEFAULT));
-            argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "socuser");
-            argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "socpass");
+            // Check each one before setting it, in case was specified in properties file
+            if (! argp.containsKey(PROP_JSETTLERS_PORT))
+                argp.setProperty(PROP_JSETTLERS_PORT, Integer.toString(SOC_PORT_DEFAULT));
+            if (! argp.containsKey(PROP_JSETTLERS_CONNECTIONS))
+                argp.setProperty(PROP_JSETTLERS_CONNECTIONS, Integer.toString(SOC_MAXCONN_DEFAULT));
+            if (! argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_USER))
+                argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "socuser");
+            if (! argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_PASS))
+                argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "socpass");
         } else {
             // Require all 4 parameters
             if ((args.length - aidx) < 4)
@@ -7591,8 +7605,8 @@ public class SOCServer extends Server
             argp.setProperty(PROP_JSETTLERS_CONNECTIONS, args[aidx]);  ++aidx;
 
             // Check DB user and password against any -D parameters in properties
-            if (argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_USER)
-                || argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_PASS))
+            if (cmdlineOptsSet.contains(SOCDBHelper.PROP_JSETTLERS_DB_USER)
+                || cmdlineOptsSet.contains(SOCDBHelper.PROP_JSETTLERS_DB_PASS))
             {
                 System.err.println("SOCServer: DB user and password cannot appear twice on command line.");
                 printUsage(false);
@@ -7732,7 +7746,8 @@ public class SOCServer extends Server
      * Starting the server from the command line
      *<P>
      * Checks for the optional server startup properties file {@code "jsserver.properties"},
-     * and parses the command line for switches.
+     * and parses the command line for switches. If a property appears on the command line and
+     * also in {@code jsserver.properties}, the command line's value overrides the file's.
      *<P>
      * If there are problems with the network setup,
      * or with running a {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP db setup script},
