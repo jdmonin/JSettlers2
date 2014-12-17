@@ -5845,6 +5845,9 @@ public class SOCGameHandler extends GameHandler
             }
             break;
 
+        default:
+            // Some game events, such as SGE_STARTPLAY_BOARD_SPECIAL_NODES_EMPTIED, are ignored at the server.
+            // Default case does nothing, prevents a compiler warning.
         }
     }
 

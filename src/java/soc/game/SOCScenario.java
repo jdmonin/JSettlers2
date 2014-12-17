@@ -327,6 +327,7 @@ public class SOCScenario
      * <LI> {@code "N1"}: Desert Wasteland (for Great Wall wonder)
      * <LI> {@code "N2"}: Strait (for Great Bridge wonder)
      * <LI> {@code "N3"}: Adjacent to Strait ({@code N2}); initial placement not allowed here
+     *     (this set is emptied after initial placement)
      *</UL>
      * This scenario also uses added layout part {@code "AL"} to specify that the nodes in {@code N1, N2,}
      * and {@code N3} become legal locations for settlements after initial placement.

@@ -2158,6 +2158,7 @@ public class SOCPlayerInterface extends Frame
      * <em>Threads:</em> The game's treater thread handles incoming client messages and calls
      * game methods that change state. Those same game methods will trigger the scenario events;
      * so, the treater thread will also run this <tt>gameEvent</tt> callback.
+     * GUI code should use {@link EventQueue#invokeLater(Runnable)}.
      *
      * @param ga  Game
      * @param evt Event code
@@ -2167,7 +2168,19 @@ public class SOCPlayerInterface extends Frame
      */
     public void gameEvent(final SOCGame ga, final SOCScenarioGameEvent evt, final Object detail)
     {
-        // stub for now
+        switch (evt)
+        {
+        case SGE_STARTPLAY_BOARD_SPECIAL_NODES_EMPTIED:
+            EventQueue.invokeLater(new Runnable()
+            {
+                public void run() { boardPanel.flushBoardLayoutAndRepaint(); }
+            });
+            break;
+
+        default:
+            // Most game events are ignored at the client.
+            // Default case does nothing, prevents a compiler warning.
+        }
     }
 
     /**

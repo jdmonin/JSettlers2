@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2014 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,6 +40,19 @@ package soc.game;
  */
 public enum SOCScenarioGameEvent
 {
+    /**
+     * Normal game play is starting at the end of initial placement,
+     * and one or more sets of special nodes (Added Layout Parts "N1" - "N9")
+     * was emptied out.  Any graphical client should redraw the board
+     * to show any remaining sets.
+     *<P>
+     * Fired locally at server or client from {@code SOCGame.updateAtGameFirstTurn()},
+     * not sent over the network. In
+     * {@link SOCScenarioEventListener#gameEvent(SOCGame, SOCScenarioGameEvent, Object)},
+     * the {@code detail} parameter is unused.
+     */
+    SGE_STARTPLAY_BOARD_SPECIAL_NODES_EMPTIED(0),
+
     /**
      * A hex hidden by fog has been revealed by road or ship placement.
      * Game option {@link SOCGameOption#K_SC_FOG _SC_FOG}.

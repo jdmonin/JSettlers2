@@ -481,7 +481,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             // (This adds the node set numbers to Added Layout Part "AL".)
             // Will have to re-add after initial placement, via addLegalNodes from SOCGame.updateAtGameFirstTurn().
             for (int i = 0; i <= 2; ++i)
-                makeNewBoard_removeLegalNodes(WOND_SPECIAL_NODES[idx][i], startingLandArea, i + 1);
+                makeNewBoard_removeLegalNodes(WOND_SPECIAL_NODES[idx][i], startingLandArea, i + 1, (i == 2));
         }
         else if (hasScenarioFog)  // _SC_FOG
         {
@@ -739,7 +739,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * areas of land hexes: Call once for each land area.
      *<P>
      * If scenario requires some nodes to be removed from legal placement, after the last call to this method
-     * call {@link #makeNewBoard_removeLegalNodes(int[], int, int)}.
+     * call {@link #makeNewBoard_removeLegalNodes(int[], int, int, boolean)}.
      *<P>
      * This method clears {@link #cachedGetLandHexCoords} to <tt>null</tt>.
      *
@@ -820,7 +820,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * {@link #makeNewBoard_hideHexesInFog(int[])}.
      *<P>
      * If scenario requires some nodes to be removed from legal placement, after the last call to this method
-     * call {@link #makeNewBoard_removeLegalNodes(int[], int, int)}.
+     * call {@link #makeNewBoard_removeLegalNodes(int[], int, int, boolean)}.
      *<P>
      * This method clears {@link #cachedGetLandHexCoords} to <tt>null</tt>.
      *
@@ -2162,7 +2162,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Before the first call, clear <tt>nodesOnLand</tt>.
      *<P>
      * If scenario requires some nodes to be removed from legal placement, after the last call to this method
-     * call {@link #makeNewBoard_removeLegalNodes(int[], int, int)}.
+     * call {@link #makeNewBoard_removeLegalNodes(int[], int, int, boolean)}.
      *
      * @param landHexCoords  Coordinates of a contiguous group of land hexes.
      *                    If <tt>startIdx</tt> and <tt>pastEndIdx</tt> partially use this array,
@@ -2241,11 +2241,15 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *     Adds this node list number to Added Layout Part {@code "AL"} and calls
      *     {@link #setAddedLayoutPart(String, int[]) setAddedLayoutPart("N" + addNodeListNumber, nodeCoords)}
      *     to add a Layout Part such as {@code N1}, {@code N2}, etc.
-     *     For details see the {@code SOCBoardLayout2} message javadoc.
+     *     For details see "AL" in the "Other layout parts" section of the
+     *     {@link soc.message.SOCBoardLayout2} message javadoc.
+     * @param emptyPartAfterInitPlace  If true, the Added Layout Part ({@code "N1"}, {@code "N2"}, etc) is used only
+     *     during initial placement, and its contents should be emptied after that
      * @throws IllegalArgumentException if {@code landAreaNumber} &lt;= 0 or {@code addNodeListNumber} &lt; 0
      */
     private final void makeNewBoard_removeLegalNodes
-        (final int[] nodeCoords, final int landAreaNumber, final int addNodeListNumber)
+        (final int[] nodeCoords, final int landAreaNumber,
+         final int addNodeListNumber, final boolean emptyPartAfterInitPlace)
         throws IllegalArgumentException
     {
         if (landAreaNumber <= 0)
@@ -2277,7 +2281,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             }
 
             partAL[L] = addNodeListNumber;
-            partAL[L + 1] = landAreaNumber;
+            partAL[L + 1] = (emptyPartAfterInitPlace) ? -landAreaNumber : landAreaNumber;
             setAddedLayoutPart("AL", partAL);
         }
     }

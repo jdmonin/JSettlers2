@@ -602,6 +602,12 @@ public class SOCGame implements Serializable, Cloneable
     public static SOCBoard.BoardFactory boardFactory;
 
     /**
+     * An empty int array for use in method calls.
+     * @since 2.0.00
+     */
+    private static final int[] EMPTY_INT_ARRAY = { };
+
+    /**
      * monitor for synchronization
      */
     boolean inUse;
@@ -4089,7 +4095,7 @@ public class SOCGame implements Serializable, Cloneable
      * Update game state as needed after initial placement before the first turn of normal play:
      *<UL>
      *<LI> Call each player's {@link SOCPlayer#clearPotentialSettlements()}
-     *<LI> If {@link #hasSeaBoard}, check board for Added Layout Part {@code AL} for node lists that
+     *<LI> If {@link #hasSeaBoard}, check board for Added Layout Part {@code "AL"} for node lists that
      *     become legal locations for settlements after initial placement, and make them legal now.
      *     (This Added Layout Part is rarely used, currently is in scenario {@link SOCScenario#K_SC_WOND SC_WOND}.)
      *     If any node has an adjacent settlement or city, that node won't be made legal.
@@ -4118,11 +4124,12 @@ public class SOCGame implements Serializable, Cloneable
             (board instanceof SOCBoardLarge) ? ((SOCBoardLarge) board).getAddedLayoutPart("AL") : null;
         if (partAL != null)
         {
-            // Look through board's Added Layout Part AL for node list numbers:
-            // Part AL was already strictly parsed in SOCBoardLarge.initLegalRoadsFromLandNodes(),
+            // Look through board's Added Layout Part "AL" for node list numbers:
+            // Part "AL" was already strictly parsed in SOCBoardLarge.initLegalRoadsFromLandNodes(),
             // so there shouldn't be any problems in it. Ignore problems here instead of throwing exceptions.
             // If you update the "AL" parser here, update the similar one there too.
 
+            boolean emptiedAnyNodeSet = false;
             for (int i = 0; i < partAL.length; ++i)
             {
                 final int elem = partAL[i];
@@ -4130,7 +4137,15 @@ public class SOCGame implements Serializable, Cloneable
                     continue;  // ignore unless it's a node list number
 
                 ++i;
-                final int lan = partAL[i];  // land area number follows elem
+                int lan = partAL[i];  // land area number follows elem
+                final boolean doEmptyNodeSet;
+                if (lan < 0)
+                {
+                    doEmptyNodeSet = true;
+                    lan = -lan;
+                } else {
+                    doEmptyNodeSet = false;
+                }
 
                 final String nodeListKey = "N" + elem;
                 final int[] nodeList = ((SOCBoardLarge) board).getAddedLayoutPart(nodeListKey);
@@ -4142,7 +4157,17 @@ public class SOCGame implements Serializable, Cloneable
                 for (int j = 0; j < nodeList.length; ++j)
                     for (int pn = maxPlayers - 1; pn >= 0; --pn)
                         players[pn].addLegalSettlement(nodeList[j], true);
+
+                if (doEmptyNodeSet)
+                {
+                    emptiedAnyNodeSet = true;
+                    ((SOCBoardLarge) board).setAddedLayoutPart(nodeListKey, EMPTY_INT_ARRAY);
+                }
             }
+
+            if (emptiedAnyNodeSet && (scenarioEventListener != null))
+                scenarioEventListener.gameEvent
+                    (this, SOCScenarioGameEvent.SGE_STARTPLAY_BOARD_SPECIAL_NODES_EMPTIED, null);
         }
     }
 
