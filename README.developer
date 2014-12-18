@@ -267,11 +267,6 @@ Current TODO list
 	- Control the speed of robots in practice games
 		Adjust SOCRobotBrain.pause, ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS, etc
 	- Sound effects
-	- Property to require an account (user/password) in database in order to connect
-	- Properties for game option defaults for server startup
-		-Djsettlers.game.N7=y  instead of -O N7=y
-		allow lowercase too
-		probably best done at bottom of SOCServer.parseCmdline_DashedArgs
 	- Possible: Auto-add robots when needed as server runs, with server active-game count
 		only do it if jsettlers.startrobots property is set
 	- refactor: ga.getPlayer(ga.getCurrentPlayer()) or getClient().getClientManager()
@@ -289,7 +284,6 @@ Current TODO list
 	- Game "owner" with extra powers (kick out player, etc)
 		What happens if owner loses connection?
 	- Customize bot names (txt file or startup property) in srv.setupLocalRobots
-	- Server-side storage of options between runs (config file, sqlite db, etc)
 	- "Hot seat" mode (multiple human players sharing a screen on 1 client)
 	- Per-game thread/message queue at server (use SOCMessageForGame.getGame)
 	- Cities & Knights support
