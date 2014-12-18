@@ -2240,7 +2240,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * @param addNodeListNumber  If != 0, these nodes will be re-added to legal locations after initial placement.
      *     Adds this node list number to Added Layout Part {@code "AL"} and calls
      *     {@link #setAddedLayoutPart(String, int[]) setAddedLayoutPart("N" + addNodeListNumber, nodeCoords)}
-     *     to add a Layout Part such as {@code N1}, {@code N2}, etc.
+     *     to add a Layout Part such as {@code "N1"}, {@code "N2"}, etc.
      *     For details see "AL" in the "Other layout parts" section of the
      *     {@link soc.message.SOCBoardLayout2} message javadoc.
      * @param emptyPartAfterInitPlace  If true, the Added Layout Part ({@code "N1"}, {@code "N2"}, etc) is used only

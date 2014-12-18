@@ -763,7 +763,7 @@ public class SOCBoardLarge extends SOCBoard
      * Not iterative; clears all previous legal roads.
      *<P>
      * For scenarios, if Added Layout Part {@code "AL"} is present, checks it for
-     * references to node lists (Parts {@code N1, N2}, etc) and if found, adds their
+     * references to node lists (Parts {@code "N1", "N2"}, etc) and if found, adds their
      * edges now so that initial settlements' roads can be built towards those nodes.
      * For more info see the "Other layout parts" section of the javadoc for message
      * {@link soc.message.SOCBoardLayout2}.
@@ -772,8 +772,8 @@ public class SOCBoardLarge extends SOCBoard
      * {@code SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int, boolean)}.
      * At client, called from {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}.
      *
-     * @throws IllegalStateException if Part {@code "AL"} is present but badly formed (node list number 0,
-     *     or a node list number not followed by a land area number) or refers to a node list Part ({@code N1, N2}, etc)
+     * @throws IllegalStateException if Part {@code "AL"} is present but badly formed (node list number 0, or a
+     *     node list number not followed by a land area number) or refers to a node list Part ({@code "N1", "N2"}, etc)
      *     not present in the layout
      * @see #initLegalShipEdges()
      */

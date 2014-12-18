@@ -6613,8 +6613,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          *<LI> If not over a settlement, look for a road or ship
          *<LI> If no road, look for a hex
          *<LI> If no piece currently at the point, look for potential pieces and
-         *     scenario-specific items such as Villages, the Pirate Path (Added Layout Part {@code PP}),
-         *     and members of Special Node lists ({@code N1 - N3}).
+         *     scenario-specific items such as Villages, the Pirate Path (Added Layout Part {@code "PP"}),
+         *     and members of Special Node lists ({@code "N1" - "N3"}).
          *</UL>
          *
          * @param x Cursor x, from upper-left of board: actual coordinates, not board-internal coordinates
