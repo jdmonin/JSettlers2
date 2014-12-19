@@ -8158,15 +8158,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         @Override
         public void windowCloseChosen() {}
 
-        /**
-         * In the AWT event thread, show ourselves. Do not call directly;
-         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
-         */
-        public void run()
-        {
-            setVisible(true);
-        }
-
     }  // nested class MoveRobberConfirmDialog
 
     /**
@@ -8217,21 +8208,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          */
         @Override
         public void windowCloseChosen() { button2Chosen(); }
-
-        /**
-         * In the AWT event thread, show ourselves. Do not call directly;
-         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
-         */
-        public void run()
-        {
-            try
-            {
-                setVisible(true);
-            }
-            catch (Throwable e) {
-                e.printStackTrace();
-            }
-        }
 
     }  // nested class ConfirmAttackPirateFortressDialog
 
@@ -8328,15 +8304,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /** React to the dialog window closed by user. (Don't place the ship) */
         @Override
         public void windowCloseChosen() { button2Chosen(); }
-
-        /**
-         * In the AWT event thread, show ourselves. Do not call directly;
-         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
-         */
-        public void run()
-        {
-            setVisible(true);
-        }
 
     }  // nested class ConfirmPlaceShipDialog
 

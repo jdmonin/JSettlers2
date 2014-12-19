@@ -1423,6 +1423,7 @@ public class NewGameOptionsFrame extends Frame
 
     /**
      * Show a popup window with this scenario's description, special rules, and number of victory points to win.
+     * Calls {@link EventQueue#invokeLater(Runnable)}.
      * @param gameSc  A scenario keyname for {@link SOCScenario#getScenario(String)}, or null to do nothing
      * @param gameOpts  All game options if current game, or null to extract from {@code gameSc}'s {@link SOCScenario#scOpts}
      * @param vpWinner  Number of victory points to win, or {@link SOCGame#VP_WINNER_STANDARD}.
@@ -1491,14 +1492,7 @@ public class NewGameOptionsFrame extends Frame
         }
 
         final String scenStr = sb.toString();
-        EventQueue.invokeLater(new Runnable()
-        {
-            public void run()
-            {
-                NotifyDialog.createAndShow(cli, parent, scenStr, null, true);
-            }
-        });
-
+        NotifyDialog.createAndShow(cli, parent, scenStr, null, true);
     }
 
 

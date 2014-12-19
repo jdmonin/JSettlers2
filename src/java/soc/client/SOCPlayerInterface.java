@@ -1352,7 +1352,7 @@ public class SOCPlayerInterface extends Frame
     {
         if (confirmDialogFirst)
         {
-            new ResetBoardConfirmDialog(gameDisplay, this).run();
+            EventQueue.invokeLater(new ResetBoardConfirmDialog(gameDisplay, this));
             return;
             // ResetBoardConfirmDialog will call resetBoardRequest(false) if its Restart button is clicked
         }
@@ -1454,7 +1454,7 @@ public class SOCPlayerInterface extends Frame
 
             String requester = game.getPlayer(pnRequester).getName();
             boardResetVoteDia = new ResetBoardVoteDialog(gameDisplay, this, requester, gaOver);
-            boardResetVoteDia.showInNewThread();
+            EventQueue.invokeLater(boardResetVoteDia);
                // Separate thread so ours is not tied up; this allows server
                // messages to be received, and screen to refresh, if other
                // players vote before we do, or if voting is cancelled.
@@ -1815,7 +1815,7 @@ public class SOCPlayerInterface extends Frame
     public void showDiscardOrGainDialog(final int nd, final boolean isDiscard)
     {
         discardOrGainDialog = new SOCDiscardOrGainResDialog(this, nd, isDiscard);
-        discardOrGainDialog.setVisible(true);
+        EventQueue.invokeLater(discardOrGainDialog);  // calls setVisible(true)
     }
 
     /**
@@ -1836,7 +1836,7 @@ public class SOCPlayerInterface extends Frame
     public void showChoosePlayerDialog(final int count, final int[] pnums, final boolean allowChooseNone)
     {
         choosePlayerDialog = new SOCChoosePlayerDialog(this, count, pnums, allowChooseNone);
-        choosePlayerDialog.setVisible(true);
+        EventQueue.invokeLater(choosePlayerDialog);  // calls setVisible(true)
     }
 
     /**
@@ -1847,7 +1847,7 @@ public class SOCPlayerInterface extends Frame
      */
     public void showChooseRobClothOrResourceDialog(final int vpn)
     {
-        new ChooseRobClothOrResourceDialog(vpn).showInNewThread();
+        EventQueue.invokeLater(new ChooseRobClothOrResourceDialog(vpn));  // calls setVisible(true)
     }
 
     /**
@@ -1856,7 +1856,7 @@ public class SOCPlayerInterface extends Frame
     public void showMonopolyDialog()
     {
         monopolyDialog = new SOCMonopolyDialog(this);
-        monopolyDialog.setVisible(true);
+        EventQueue.invokeLater(monopolyDialog);  // calls setVisible(true)
     }
 
     /**
@@ -3472,14 +3472,7 @@ public class SOCPlayerInterface extends Frame
                 }
 
                 final String s = sb.toString();
-                EventQueue.invokeLater(new Runnable()
-                {
-                    public void run()
-                    {
-                        NotifyDialog.createAndShow(pi.getGameDisplay(), pi, s, null, true);
-                    }
-                });
-
+                NotifyDialog.createAndShow(pi.getGameDisplay(), pi, s, null, true);
             }
         }
 
@@ -3563,16 +3556,14 @@ public class SOCPlayerInterface extends Frame
      * This is the modal dialog to vote on another player's board reset request.
      * If game in progress, buttons are Reset and Continue Playing; default Continue.
      * If game is over, buttons are Restart and No thanks; default Restart.
-     * Start a new thread to show, so message treating can continue as other players vote.
+     *<P>
+     * Use {@link EventQueue#invokeLater(Runnable)} to show, so message treating can continue as other players vote.
      *
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 1.1.00
      */
     protected static class ResetBoardVoteDialog extends AskDialog implements Runnable
     {
-        /** Runs in own thread, to not tie up client's message-treater thread which initially shows the dialog. */
-        private Thread rdt;
-
         /** If true, don't call any methods from callbacks here */
         private boolean askedDisposeQuietly;
 
@@ -3598,7 +3589,6 @@ public class SOCPlayerInterface extends Frame
                     : strings.get("dialog.base.continue.playing")),  // "Continue playing"
                 null,
                 (gameIsOver ? 1 : 2));
-            rdt = null;
             askedDisposeQuietly = false;
         }
 
@@ -3632,40 +3622,10 @@ public class SOCPlayerInterface extends Frame
                 button2Chosen();
         }
 
-        /**
-         * Make a new thread and show() in that thread.
-         * Keep track of the thread, in case we need to dispose of it.
-         */
-        public void showInNewThread()
-        {
-            rdt = new Thread(this);
-            rdt.setDaemon(true);
-            rdt.setName("resetVoteDialog-" + pcli.getNickname());
-            rdt.start();  // run method will show the dialog
-        }
-
         public void disposeQuietly()
         {
             askedDisposeQuietly = true;
-            //FIXME: Thread#stop is unsafe, need to tell the thread to internally terminate
-            rdt.stop();
             dispose();
-        }
-
-        /**
-         * In new thread, show ourselves. Do not call
-         * directly; call {@link #showInNewThread()}.
-         */
-        public void run()
-        {
-            try
-            {
-                setVisible(true);
-            }
-            catch (ThreadDeath e) {}
-            catch (Throwable e) {
-                e.printStackTrace();
-            }
         }
 
     }  // class ResetBoardVoteDialog
@@ -3724,22 +3684,6 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void windowCloseChosen() { button1Chosen(); }
 
-        /**
-         * In the AWT event thread, show ourselves. Do not call directly;
-         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
-         */
-        public void run()
-        {
-            try
-            {
-                setVisible(true);
-            }
-            catch (ThreadDeath e) {}
-            catch (Throwable e) {
-                e.printStackTrace();
-            }
-        }
-
     }  // nested class ChooseMoveRobberOrPirateDialog
 
     /**
@@ -3754,15 +3698,12 @@ public class SOCPlayerInterface extends Frame
     {
         private static final long serialVersionUID = 2000L;
 
-        /** Runs in own thread, to not tie up client's message-treater thread. */
-        private Thread rdt;
-
         /** victim player number */
         private final int vpn;
 
         /**
          * Creates a new ChooseRobClothOrResourceDialog.
-         * To display the dialog, call {@link #showInNewThread()}.
+         * To display the dialog, call {@link EventQueue#invokeLater(Runnable)}.
          * @param vpn  Victim player number
          */
         protected ChooseRobClothOrResourceDialog(final int vpn)
@@ -3773,7 +3714,6 @@ public class SOCPlayerInterface extends Frame
                 strings.get("dialog.rob.sc_clvi.cloth"),  // "Steal Cloth"
                 strings.get("dialog.rob.sc_clvi.rsrc"),   // "Steal Resource"
                 null, 1);
-            rdt = null;
             this.vpn = vpn;
         }
 
@@ -3802,46 +3742,6 @@ public class SOCPlayerInterface extends Frame
          */
         @Override
         public void windowCloseChosen() { button2Chosen(); }
-
-        /**
-         * Make a new thread and show() in that thread.
-         * Keep track of the thread, in case we need to dispose of it.
-         */
-        public void showInNewThread()
-        {
-            rdt = new Thread(this);
-            rdt.setDaemon(true);
-            rdt.setName("ChooseRobClothOrResourceDialog");
-            rdt.start();  // run method will show the dialog
-        }
-
-        @Override
-        public void dispose()
-        {
-            if (rdt != null)
-            {
-                //FIXME: Thread#stop is unsafe, need to tell the thread to internally terminate
-                rdt.stop();
-                rdt = null;
-            }
-            super.dispose();
-        }
-
-        /**
-         * In new thread, show ourselves. Do not call
-         * directly; call {@link #showInNewThread()}.
-         */
-        public void run()
-        {
-            try
-            {
-                setVisible(true);
-            }
-            catch (ThreadDeath e) {}
-            catch (Throwable e) {
-                e.printStackTrace();
-            }
-        }
 
     }  // nested class ChooseRobClothOrResourceDialog
 
@@ -3892,15 +3792,6 @@ public class SOCPlayerInterface extends Frame
          */
         @Override
         public void windowCloseChosen() {}
-
-        /**
-         * In AWT event thread, show ourselves. Do not call directly unless on that thread;
-         * call {@link EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
-         */
-        public void run()
-        {
-            setVisible(true);
-        }
 
     }  // nested class ResetBoardConfirmDialog
 

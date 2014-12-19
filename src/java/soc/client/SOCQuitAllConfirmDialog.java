@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2008,2010,2013 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008,2010,2013-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -43,6 +43,8 @@ class SOCQuitAllConfirmDialog extends AskDialog
     /**
      * Creates and shows a new SOCQuitAllConfirmDialog.
      * "Continue" is default.
+     *<P>
+     * Assumes currently running on AWT event thread.
      *
      * @param cli      Player client interface
      * @param gamePIOrSelf   An active game's player interface, or the client's Frame

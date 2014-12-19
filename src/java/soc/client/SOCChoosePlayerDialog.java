@@ -38,11 +38,14 @@ import java.awt.event.ActionListener;
  * One button for each victim player.  When a player is chosen,
  * send the server a choose-player command with that player number or
  * (if possible to choose none) {@link SOCChoosePlayer#CHOICE_NO_PLAYER}.
+ *<P>
+ * For convenience with {@link java.awt.EventQueue#invokeLater(Runnable)},
+ * contains a {@link #run()} method which calls {@link #setVisible(boolean) setVisible(true)}.
  *
  * @author  Robert S. Thomas
  */
 @SuppressWarnings("serial")
-class SOCChoosePlayerDialog extends Dialog implements ActionListener
+class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
 {
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
      *  @since 2.0.00 */
@@ -251,4 +254,15 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
             pi.chatPrintStackTrace(th);
         }
     }
+
+    /**
+     * Run method, for convenience with {@link java.awt.EventQueue#invokeLater(Runnable)}.
+     * This method just calls {@link #setVisible(boolean) setVisible(true)}.
+     * @since 2.0.00
+     */
+    public void run()
+    {
+        setVisible(true);
+    }
+
 }

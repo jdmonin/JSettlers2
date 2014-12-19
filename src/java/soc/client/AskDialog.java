@@ -60,13 +60,16 @@ import soc.client.SOCPlayerClient.GameAwtDisplay;
  * {@link #button1Chosen()}, {@link #button2Chosen()},
  * {@link #windowCloseChosen()}, and (for a three-choice
  * question) override {@link #button3Chosen()}.
+ *<P>
+ * For convenience with {@link java.awt.EventQueue#invokeLater(Runnable)},
+ * contains a {@link #run()} method which calls {@link #setVisible(boolean) setVisible(true)}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.00
  */
 @SuppressWarnings("serial")
 public abstract class AskDialog extends Dialog
-    implements ActionListener, WindowListener, KeyListener, MouseListener
+    implements ActionListener, WindowListener, KeyListener, MouseListener, Runnable
 {
     /**
      * Border width around {@link #msg}.
@@ -707,4 +710,23 @@ public abstract class AskDialog extends Dialog
         else
             return f.substring(0, i);
     }
+
+    /**
+     * In the AWT event thread, show ourselves. Do not call directly;
+     * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
+     * This method just calls {@link #setVisible(boolean) setVisible(true)}, and if any error occurs
+     * calls {@link Throwable#printStackTrace()}.
+     * @since 2.0.00
+     */
+    public void run()
+    {
+        try
+        {
+            setVisible(true);
+        }
+        catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
 }

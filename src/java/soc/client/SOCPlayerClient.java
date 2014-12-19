@@ -334,6 +334,11 @@ public class SOCPlayerClient
 
         void setMessage(String string);
 
+        /**
+         * Show an error dialog which has one button.
+         * @param errMessage  Error message to show
+         * @param buttonText  Button text, or null for "OK"
+         */
         void showErrorDialog(String errMessage, String buttonText);
 
         /**
@@ -811,7 +816,13 @@ public class SOCPlayerClient
             messageLabel.setText(message);
         }
 
-        public void showErrorDialog(String errMessage, String buttonText)
+        /**
+         * {@inheritDoc}
+         *<P>
+         * Uses {@link NotifyDialog#createAndShow(GameAwtDisplay, Frame, String, String, boolean)}
+         * which calls {@link EventQueue#invokeLater(Runnable)} to ensure it displays from the proper thread.
+         */
+        public void showErrorDialog(final String errMessage, final String buttonText)
         {
             NotifyDialog.createAndShow(this, null, errMessage, buttonText, true);
         }
