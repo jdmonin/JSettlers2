@@ -825,7 +825,7 @@ public class SOCRobotDM
    * here by finding the shortest path among its {@link SOCPossibleSettlement#getNecessaryRoads()}.
    *<P>
    * Calculates ETA by using our current SOCBuildingSpeedEstimate on the resources
-   * needed to buy the settlement plus roads for its shortest path's length.
+   * needed to buy the settlement plus roads/ships for its shortest path's length.
    *
    * @param settlementETA  ETA for building a settlement from now
    * @param ourBSE  Current building speed estimate, from our {@code SOCPlayer#getNumbers()}
@@ -898,13 +898,14 @@ public class SOCRobotDM
           //
           SOCResourceSet targetResources = new SOCResourceSet();
           targetResources.add(SOCGame.SETTLEMENT_SET);
-          int pathLength = 0;
           Stack<SOCPossibleRoad> path = posSet.getRoadPath();
           if (path != null) {
-              pathLength = path.size();
-          }
-          for (int i = 0; i < pathLength; i++) {
-              targetResources.add(SOCGame.ROAD_SET);
+              int pathLength = path.size();
+              SOCResourceSet rtype = ((pathLength > 0) && (path.peek() instanceof SOCPossibleShip))
+                  ? SOCGame.SHIP_SET
+                  : SOCGame.ROAD_SET;
+              for (int i = 0; i < pathLength; i++)
+                  targetResources.add(rtype);
           }
           posSet.setETA(ourBSE.calculateRollsFast
               (ourPlayerData.getResources(), targetResources, 100, ourPlayerData.getPortFlags()));
