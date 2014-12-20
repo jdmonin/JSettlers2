@@ -527,7 +527,7 @@ public class SOCRobotDM
               // we need to build roads first
               //
               Stack<SOCPossibleRoad> roadPath = favoriteSettlement.getRoadPath();
-              while (!roadPath.empty()) {
+              while (! roadPath.empty()) {
                   buildingPlan.push(roadPath.pop());
               }
           }
@@ -786,7 +786,7 @@ public class SOCRobotDM
 
       case LR_CHOICE:
         D.ebugPrintln("Picked LR");
-        while (!bestLRPath.empty()) {
+        while (! bestLRPath.empty()) {
           SOCPossibleRoad pr = (SOCPossibleRoad)bestLRPath.pop();
           D.ebugPrintln("LR road at "+game.getBoard().edgeCoordToString(pr.getCoordinates()));
           buildingPlan.push(pr);
@@ -801,12 +801,12 @@ public class SOCRobotDM
       case SETTLEMENT_CHOICE:
           D.ebugPrintln("Picked favorite settlement at "+game.getBoard().nodeCoordToString(favoriteSettlement.getCoordinates()));
           buildingPlan.push(favoriteSettlement);
-          if (!favoriteSettlement.getNecessaryRoads().isEmpty()) {
+          if (! favoriteSettlement.getNecessaryRoads().isEmpty()) {
               //
               // we need to build roads first
               //
               Stack<SOCPossibleRoad> roadPath = favoriteSettlement.getRoadPath();
-              while (!roadPath.empty()) {
+              while (! roadPath.empty()) {
                   SOCPossibleRoad pr = roadPath.pop();
                   D.ebugPrintln("Nec road at "+game.getBoard().edgeCoordToString(pr.getCoordinates()));
                   buildingPlan.push(pr);
@@ -1149,7 +1149,7 @@ public class SOCRobotDM
           }
       }
 
-      if (!pathEnd)
+      if (! pathEnd)
       {
           //
           // check if we've connected to another road graph
@@ -1173,7 +1173,7 @@ public class SOCRobotDM
           }
       }
 
-      if (!pathEnd)
+      if (! pathEnd)
       {
           //
           // (len - pathLength) = how many new roads we've built
@@ -1185,7 +1185,7 @@ public class SOCRobotDM
           //D.ebugPrintln("Reached search depth");
       }
 
-      if (!pathEnd)
+      if (! pathEnd)
       {
         /**
          * For each of the 3 adjacent edges of coord's node,
@@ -1282,7 +1282,7 @@ public class SOCRobotDM
       // reverse the order of the roads so that the last one is on top
       //
       Stack<SOCPossibleRoad> path = new Stack<SOCPossibleRoad>();
-      while (!temp.empty())
+      while (! temp.empty())
           path.push(temp.pop());
 
       return path;
@@ -1355,7 +1355,7 @@ public class SOCRobotDM
 
     /*
     boolean goingToPlayRB = false;
-    if (!ourPlayerData.hasPlayedDevCard() &&
+    if (! ourPlayerData.hasPlayedDevCard() &&
 	ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2 &&
 	ourPlayerData.getInventory().getAmount(SOCInventory.OLD, SOCDevCardConstants.ROADS) > 0) {
       goingToPlayRB = true;
@@ -1381,8 +1381,9 @@ public class SOCRobotDM
 	    continue;  // ignore ships in this loop
 
 	if ((posRoad.getNecessaryRoads().isEmpty()) &&
-	    (!threatenedRoads.contains(posRoad)) &&
-	    (!goodRoads.contains(posRoad))) {
+	    (! threatenedRoads.contains(posRoad)) &&
+	    (! goodRoads.contains(posRoad)))
+	{
 	  goodRoads.addElement(posRoad);
 	}
       }
@@ -1444,7 +1445,7 @@ public class SOCRobotDM
       SOCPossibleSettlement threatenedSet = (SOCPossibleSettlement)threatenedSetEnum.nextElement();
       D.ebugPrintln("*** threatened settlement at "+Integer.toHexString(threatenedSet.getCoordinates())+" has a score of "+threatenedSet.getScore());
       if (threatenedSet.getNecessaryRoads().isEmpty() &&
-	  !ourPlayerData.isPotentialSettlement(threatenedSet.getCoordinates())) {
+	  ! ourPlayerData.isPotentialSettlement(threatenedSet.getCoordinates())) {
 	D.ebugPrintln("POTENTIAL SETTLEMENT ERROR");
 	//System.exit(0);
       }
@@ -1454,7 +1455,7 @@ public class SOCRobotDM
       SOCPossibleSettlement goodSet = (SOCPossibleSettlement)goodSetEnum.nextElement();
       D.ebugPrintln("*** good settlement at "+Integer.toHexString(goodSet.getCoordinates())+" has a score of "+goodSet.getScore());
       if (goodSet.getNecessaryRoads().isEmpty() &&
-	  !ourPlayerData.isPotentialSettlement(goodSet.getCoordinates())) {
+	  ! ourPlayerData.isPotentialSettlement(goodSet.getCoordinates())) {
 	D.ebugPrintln("POTENTIAL SETTLEMENT ERROR");
 	//System.exit(0);
       }
@@ -1464,7 +1465,7 @@ public class SOCRobotDM
       SOCPossibleRoad threatenedRoad = (SOCPossibleRoad)threatenedRoadEnum.nextElement();
       D.ebugPrintln("*** threatened road at "+Integer.toHexString(threatenedRoad.getCoordinates())+" has a score of "+threatenedRoad.getScore());
       if (threatenedRoad.getNecessaryRoads().isEmpty() &&
-	  !ourPlayerData.isPotentialRoad(threatenedRoad.getCoordinates())) {
+	  ! ourPlayerData.isPotentialRoad(threatenedRoad.getCoordinates())) {
 	D.ebugPrintln("POTENTIAL ROAD ERROR");
 	//System.exit(0);
       }
@@ -1474,7 +1475,7 @@ public class SOCRobotDM
       SOCPossibleRoad goodRoad = (SOCPossibleRoad)goodRoadEnum.nextElement();
       D.ebugPrintln("*** good road at "+Integer.toHexString(goodRoad.getCoordinates())+" has a score of "+goodRoad.getScore());
       if (goodRoad.getNecessaryRoads().isEmpty() &&
-	  !ourPlayerData.isPotentialRoad(goodRoad.getCoordinates())) {
+	  ! ourPlayerData.isPotentialRoad(goodRoad.getCoordinates())) {
 	D.ebugPrintln("POTENTIAL ROAD ERROR");
 	//System.exit(0);
       }
@@ -1964,7 +1965,7 @@ public class SOCRobotDM
 
     /*
     boolean goingToPlayRB = false;
-    if (!ourPlayerData.hasPlayedDevCard() &&
+    if (! ourPlayerData.hasPlayedDevCard() &&
 	ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2 &&
 	ourPlayerData.getInventory().getAmount(SOCInventory.OLD, SOCDevCardConstants.ROADS) > 0) {
       goingToPlayRB = true;
@@ -1976,9 +1977,9 @@ public class SOCRobotDM
     {
       SOCPossibleSettlement posSet = posSetsIter.next();
       D.ebugPrintln("*** scoring possible settlement at "+Integer.toHexString(posSet.getCoordinates()));
-      if (!threatenedSettlements.contains(posSet)) {
+      if (! threatenedSettlements.contains(posSet)) {
           threatenedSettlements.addElement(posSet);
-      } else if (!goodSettlements.contains(posSet)) {
+      } else if (! goodSettlements.contains(posSet)) {
           goodSettlements.addElement(posSet);
       }
 
@@ -2156,7 +2157,7 @@ public class SOCRobotDM
     SOCPlayerTracker.updateWinGameETAs(trackersCopy);
     float score = calcWGETABonus(playerTrackers, trackersCopy);
 
-    if (!posRoad.getThreats().isEmpty()) {
+    if (! posRoad.getThreats().isEmpty()) {
       score *= threatMultiplier;
       D.ebugPrintln("***  (THREAT MULTIPLIER) score * "+threatMultiplier+" = "+score);
     }
