@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -121,7 +121,10 @@ public class SOCRobotDM
    */
   protected Stack<SOCPossiblePiece> buildingPlan;
 
-  protected SOCGame game;
+  /** The game we're playing in */
+  protected final SOCGame game;
+
+  /** Roads threatened by other players; currently unused. */
   protected Vector<SOCPossibleRoad> threatenedRoads;
 
   /**
@@ -268,14 +271,16 @@ public class SOCRobotDM
    * <LI> Set favoriteRoad, favoriteSettlement, favoriteCity to null
    * <LI> If {@code SMART_STRATEGY}, update all {@link SOCPlayerTracker#updateWinGameETAs(HashMap)}
    * <LI> Get each player's win ETA from their tracker; find leading player (shortest win ETA)
-   * <LI> Reset score and threats for each of our possible pieces in our tracker
+   * <LI> For each of our possible pieces in our tracker, call its {@link SOCPossiblePiece#resetScore() resetScore()}
+   *        and {@link SOCPossiblePiece#clearBiggestThreats() clearBiggestThreats()}
    *    <BR>&nbsp;
    * <LI><B>Call smartGameStrategy or dumbFastGameStrategy</B> using building piece type ETAs
    *    <BR>&nbsp;
    * <LI> If {@code SMART_STRATEGY} and we have a Road Building card, plan and push 2 roads onto {@code buildingPlan}
    *</UL>
    *
-   * @param strategy  an integer that determines which strategy is used (SMART_STRATEGY | FAST_STRATEGY)
+   * @param strategy  an integer that determines which strategy is used
+   *    ({@link #SMART_STRATEGY} | {@link #FAST_STRATEGY})
    */
   public void planStuff(final int strategy)
   {
@@ -391,14 +396,27 @@ public class SOCRobotDM
    *<P>
    * For example, if {@link #favoriteSettlement} is chosen,
    * it's chosen from {@link #ourPlayerTracker}{@link SOCPlayerTracker#getPossibleSettlements() .getPossibleSettlements()}.
-   *<P>
+   *
+   *<H4>Outline:</H4>
    * Possible cities and settlements are looked at first.
+   * Find the city with best {@link SOCPossibleCity#getSpeedupTotal()}, then check each possible
+   * settlement's {@link SOCPossiblePiece#getETA()} against the city's ETA to possibly choose one to build.
    * (If one is chosen, its {@link SOCPossibleSettlement#getNecessaryRoads()}
    * will also be chosen here.)  Then, Knights or Dev Cards.
    * Only then would roads or ships be looked at, for Longest Route
    * (and only if we're at 5 VP or more).
+   *<P>
+   * This method never directly checks
+   * {@code ourPlayerTracker}{@link SOCPlayerTracker#getPossibleRoads() .getPossibleRoads()}, instead
+   * it adds the roads or ships from {@link SOCPossibleSettlement#getNecessaryRoads()} to {@link #buildingPlan}
+   * when a possible settlement is picked to build.
+   *<P>
+   * Some scenarios require special moves or certain actions to win the game.  If we're playing in
+   * such a scenario, after calculating {@link #favoriteSettlement}, {@link #favoriteCity}, etc, calls
+   * {@link #scenarioGameStrategyPlan(float, float, boolean, boolean, SOCBuildingSpeedEstimate, int, boolean)}.
+   * See that method for the list of scenarios which need such planning.
    *
-   * @param buildingETAs  the etas for building something
+   * @param buildingETAs  the ETAs for building something
    * @see #smartGameStrategy(int[])
    */
   protected void dumbFastGameStrategy(final int[] buildingETAs)
@@ -800,7 +818,8 @@ public class SOCRobotDM
 
   /**
    * For each possible settlement in our {@link SOCPlayerTracker},
-   * calculate its ETA and its {@link SOCPossibleSettlement#getRoadPath() getRoadPath()}.
+   * update its {@link SOCPossiblePiece#getETA() getETA()} and
+   * its {@link SOCPossibleSettlement#getRoadPath() getRoadPath()}.
    *<P>
    * Each {@link SOCPossibleSettlement#getRoadPath()} is calculated
    * here by finding the shortest path among its {@link SOCPossibleSettlement#getNecessaryRoads()}.
@@ -808,7 +827,7 @@ public class SOCRobotDM
    * Calculates ETA by using our current SOCBuildingSpeedEstimate on the resources
    * needed to buy the settlement plus roads for its shortest path's length.
    *
-   * @param settlementETA  eta for building a settlement from now
+   * @param settlementETA  ETA for building a settlement from now
    * @param ourBSE  Current building speed estimate, from our {@code SOCPlayer#getNumbers()}
    *
    * @see #scorePossibleSettlements(int, int)
@@ -1274,13 +1293,34 @@ public class SOCRobotDM
 
   /**
    * Plan building for the smart game strategy ({@link #SMART_STRATEGY}).
-   * use WGETA to determine best move
+   * use player trackers' Win Game ETAs (WGETA) to determine best move
    * and update {@link #buildingPlan}.
    *<P>
    * For example, if {@link #favoriteSettlement} is chosen,
    * it's chosen from {@link #goodSettlements} or {{@link #threatenedSettlements}.
+   *<P>
+   * Some scenarios require special moves or certain actions to win the game.  If we're playing in
+   * such a scenario, after calculating {@link #favoriteSettlement}, {@link #favoriteCity}, etc, calls
+   * {@link #scenarioGameStrategyPlan(float, float, boolean, boolean, SOCBuildingSpeedEstimate, int, boolean)}.
+   * See that method for the list of scenarios which need such planning.
    *
-   * @param buildingETAs  the etas for building something
+   *<H4>Outline:</H4>
+   *<UL>
+   * <LI> Determine our Win Game ETA, leading player's WGETA
+   * <LI> {@link #scorePossibleSettlements(int, int) scorePossibleSettlements(BuildETAs, leaderWGETA)}:
+   *      For each settlement we can build now (no roads/ships needed), add its ETA bonus to its score
+   * <LI> Build {@link #goodRoads} from possibleRoads' roads & ships we can build now
+   * <LI> Pick a {@link #favoriteSettlement} from threatened/good settlements, with the highest
+   *      {@link SOCPossiblePiece#getScore() getScore()}  (ETA bonus)
+   * <LI> Pick a {@link #favoriteRoad} from threatened/good, with highest getWinGameETABonusForRoad
+   * <LI> Pick a {@link #favoriteCity} from our possibleCities, with highest score (ETA bonus)
+   * <LI> If {@code favoriteCity} has the best score (best ETA if tied), choose to build the city
+   * <LI> Otherwise choose {@code favoriteRoad} or {@code favoriteSettlement} based on their scores
+   * <LI> If buying a dev card scores higher than the chosen piece, choose to buy one instead of building
+   * <LI> Check for and calc any scenario-specific {@code buildingPlan}
+   *</UL>
+   *
+   * @param buildingETAs  the ETAs for building something
    * @see #dumbFastGameStrategy(int[])
    */
   protected void smartGameStrategy(final int[] buildingETAs)
@@ -1323,14 +1363,14 @@ public class SOCRobotDM
     */
 
     ///
-    /// score the possible settlements
+    /// score the possible settlements into threatenedSettlements and goodSettlements
     ///
     if (ourPlayerData.getNumPieces(SOCPlayingPiece.SETTLEMENT) > 0) {
       scorePossibleSettlements(buildingETAs[SOCBuildingSpeedEstimate.SETTLEMENT], leadersCurrentWGETA);
     }
 
     ///
-    /// collect roads that we can build now
+    /// collect roads that we can build now into goodRoads
     ///
     if (ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) > 0)
     {
@@ -1448,7 +1488,7 @@ public class SOCRobotDM
     ///
 
     ///
-    /// pick a settlement that can be built now
+    /// pick favoriteSettlement that can be built now
     ///
     if (ourPlayerData.getNumPieces(SOCPlayingPiece.SETTLEMENT) > 0)
     {
@@ -1684,13 +1724,13 @@ public class SOCRobotDM
       D.ebugPrintln("###   WITH A TOTAL SPEEDUP OF "+favoriteCity.getSpeedupTotal());
     }
 
-    final int roadetatype = ((favoriteRoad != null) && (favoriteRoad instanceof SOCPossibleShip))
+    final int road_eta_type = ((favoriteRoad != null) && (favoriteRoad instanceof SOCPossibleShip))
         ? SOCBuildingSpeedEstimate.SHIP
         : SOCBuildingSpeedEstimate.ROAD;
 
     if (favoriteRoad != null) {
       D.ebugPrintln("### FAVORITE ROAD IS AT "+Integer.toHexString(favoriteRoad.getCoordinates()));
-      D.ebugPrintln("###   WITH AN ETA OF "+buildingETAs[roadetatype]);
+      D.ebugPrintln("###   WITH AN ETA OF "+buildingETAs[road_eta_type]);
       D.ebugPrintln("###   WITH A SCORE OF "+favoriteRoad.getScore());
     }
 
@@ -1700,8 +1740,8 @@ public class SOCRobotDM
     float pickScore = 0f;  // getScore() of picked piece
 
     ///
-    /// if the best settlement can wait, and the best road can wait,
-    /// and the city is the best speedup and eta, then build the city
+    /// if the favorite settlement and road can wait, and
+    /// favoriteCity has the best score and ETA, then build the city
     ///
     if ((favoriteCity != null) &&
 	(ourPlayerData.getNumPieces(SOCPlayingPiece.CITY) > 0) &&
@@ -1715,7 +1755,7 @@ public class SOCRobotDM
 	 (ourPlayerData.getNumPieces(favoriteRoad.getType()) == 0) ||
 	 (favoriteCity.getScore() > favoriteRoad.getScore()) ||
 	 ((favoriteCity.getScore() == favoriteRoad.getScore()) &&
-	  (buildingETAs[SOCBuildingSpeedEstimate.CITY] < buildingETAs[roadetatype]))))
+	  (buildingETAs[SOCBuildingSpeedEstimate.CITY] < buildingETAs[road_eta_type]))))
     {
       D.ebugPrintln("### PICKED FAVORITE CITY");
       pick = SOCPlayingPiece.CITY;
@@ -1735,7 +1775,7 @@ public class SOCRobotDM
 	      (favoriteSettlement.getScore() < favoriteRoad.getScore())))
     {
       D.ebugPrintln("### PICKED FAVORITE ROAD");
-      pick = SOCPlayingPiece.ROAD;
+      pick = SOCPlayingPiece.ROAD;  // also represents SHIP here
       pickScore = favoriteRoad.getScore();
     }
     else if ((favoriteSettlement != null)
@@ -1912,7 +1952,8 @@ public class SOCRobotDM
    * Score possible settlements for for the smart game strategy ({@link #SMART_STRATEGY}),
    * from {@link #ourPlayerTracker}{@link SOCPlayerTracker#getPossibleSettlements() .getPossibleSettlements()}
    * into {@link #threatenedSettlements} and {@link #goodSettlements};
-   * calculate those settlements' {@link SOCPossiblePiece#getScore()}s
+   * calculate those settlements' {@link SOCPossiblePiece#getScore()}s.
+   * Ignores possible settlements that require roads or ships.
    *
    * @see #scoreSettlementsForDumb(int, SOCBuildingSpeedEstimate)
    */
@@ -2078,6 +2119,7 @@ public class SOCRobotDM
   /**
    * add a bonus to the road score based on the change in
    * win game ETA for this one road
+   * (possible settlements are 1 road closer, longest road bonus, etc).
    *
    * @param posRoad  the possible piece that we're scoring
    * @param roadETA  the eta for the road

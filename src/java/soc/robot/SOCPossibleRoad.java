@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2011-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2011-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -94,6 +94,8 @@ public class SOCPossibleRoad extends SOCPossiblePiece
     }
 
     /**
+     * Get this possible road/ship's list of necessary roads, from
+     * constructor and/or {@link #addNecessaryRoad(SOCPossibleRoad)}.
      * @return the list of necessary roads or ships
      */
     public Vector<SOCPossibleRoad> getNecessaryRoads()
@@ -130,6 +132,7 @@ public class SOCPossibleRoad extends SOCPossiblePiece
     }
 
     /**
+     * Get the list of any possibilities added by {@link #addNewPossibility(SOCPossiblePiece)}.
      * @return the list of new possibilities
      */
     public Vector<SOCPossiblePiece> getNewPossibilities()

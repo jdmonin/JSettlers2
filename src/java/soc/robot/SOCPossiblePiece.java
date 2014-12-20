@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2011-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2011-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ import java.util.Vector;
 
 /**
  * Pieces that a player might build.
+ * Used by {@link SOCRobotDM} for tracking and planning moves.
  *<P>
  * Although it's not a board piece type, {@link SOCPossibleCard} is a type here
  * because the player could buy them as part of a building plan.
@@ -87,7 +88,7 @@ public abstract class SOCPossiblePiece
 
     /**
      * this is how soon we estimate we can build
-     * this piece measured in turns
+     * this piece measured in turns (ETA)
      */
     protected int eta;
 
@@ -148,7 +149,7 @@ public abstract class SOCPossiblePiece
     }
 
     /**
-     * @return the eta for this piece
+     * @return the ETA for this piece
      */
     public int getETA()
     {
@@ -156,9 +157,9 @@ public abstract class SOCPossiblePiece
     }
 
     /**
-     * update the eta for this piece
+     * update the ETA for this piece
      *
-     * @param e  the new eta
+     * @param e  the new ETA
      */
     public void setETA(int e)
     {

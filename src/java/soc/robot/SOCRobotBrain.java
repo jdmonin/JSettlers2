@@ -215,7 +215,10 @@ public class SOCRobotBrain extends Thread
     private boolean waitingForSpecialBuild;
 
     /**
-     * This is what we want to build
+     * This is the piece we want to build now.
+     * Set in {@link #buildOrGetResourceByTradeOrCard()} from {@link #buildingPlan},
+     * used in {@link #placeIfExpectPlacing()}.
+     * @see #whatWeFailedToBuild
      */
     protected SOCPlayingPiece whatWeWantToBuild;
 
@@ -228,6 +231,7 @@ public class SOCRobotBrain extends Thread
      * {@link #negotiator}'s target piece.
      *<P>
      * {@link SOCRobotDM#buildingPlan} is the same Stack.
+     * @see #whatWeWantToBuild
      */
     protected Stack<SOCPossiblePiece> buildingPlan;
 
@@ -445,7 +449,8 @@ public class SOCRobotBrain extends Thread
     protected boolean expectWAITING_FOR_MONOPOLY;
 
     // If any new expect or waitingFor fields are added,
-    // please update debugPrintBrainStatus().
+    // please update debugPrintBrainStatus() and maybe also
+    // the section of run() at (mesType == SOCMessage.TURN).
 
     /**
      * true if we're waiting for a GAMESTATE message from the server.
@@ -568,12 +573,12 @@ public class SOCRobotBrain extends Thread
     protected int currentDRecorder;
 
     /**
-     * keeps track of the last thing we bought for debugging purposes
+     * keeps track of the last thing we bought, for debugging purposes
      */
     protected SOCPossiblePiece lastMove;
 
     /**
-     * keeps track of the last thing we wanted for debugging purposes
+     * keeps track of the last thing we wanted, for debugging purposes
      */
     protected SOCPossiblePiece lastTarget;
 
@@ -989,26 +994,19 @@ public class SOCRobotBrain extends Thread
 
                 while (alive)
                 {
-                    SOCMessage mes;
+                    final SOCMessage mes = gameEventQ.get();  // Sleeps until message received
 
-                    //if (!gameEventQ.empty()) {
-                    mes = gameEventQ.get();  // Sleeps until message received
-
-                    //} else {
-                    //mes = null;
-                    //}
                     final int mesType;
-
                     if (mes != null)
                     {
+                        // Debug aid: When looking at message contents or setting a per-message breakpoint,
+                        // skip the pings; note (mesType != SOCMessage.TIMINGPING) here.
+
                         mesType = mes.getType();
                         if ((mesType != SOCMessage.TIMINGPING) && (mesType != SOCMessage.GAMETEXTMSG))
                             turnEventsCurrent.addElement(mes);
                         if (D.ebugOn)
                             D.ebugPrintln("mes - " + mes);
-
-                        // Debug aid: when looking at message contents: avoid pings:
-                        // check here for (mesType != SOCMessage.TIMINGPING).
                     }
                     else
                     {
@@ -1057,6 +1055,7 @@ public class SOCRobotBrain extends Thread
                     {
                         // Start of a new player's turn.
                         // Update game and reset most of our state fields.
+                        // See also below: if ((mesType == SOCMessage.TURN) && (ourTurn)).
 
                         game.setCurrentPlayerNumber(((SOCTurn) mes).getPlayerNumber());
                         game.updateAtTurn();
@@ -1125,10 +1124,10 @@ public class SOCRobotBrain extends Thread
                         // swap the message-history queues
                         //
                         {
-                            Vector<SOCMessage> tmp = turnEventsPrev;
+                            Vector<SOCMessage> oldPrev = turnEventsPrev;
                             turnEventsPrev = turnEventsCurrent;
-                            tmp.clear();
-                            turnEventsCurrent = tmp;
+                            oldPrev.clear();
+                            turnEventsCurrent = oldPrev;
                         }
                     }
 
@@ -1147,7 +1146,7 @@ public class SOCRobotBrain extends Thread
                         waitingForOurTurn = false;
 
                         // Clear some per-turn variables.
-                        // For others, find the code which calls game.updateAtTurn().
+                        // For others, see above: if (mesType == SOCMessage.TURN)
                         whatWeFailedToBuild = null;
                         failedBuildingAttempts = 0;
                         rejectedPlayDevCardType = -1;
@@ -1155,6 +1154,9 @@ public class SOCRobotBrain extends Thread
 
                     /**
                      * Handle some message types early.
+                     *
+                     * When reading the main flow of this method, skip past here;
+                     * search for "it's time to decide to build or take other normal actions".
                      */
                     switch (mesType)
                     {
@@ -1419,13 +1421,15 @@ public class SOCRobotBrain extends Thread
                         waitingForDevCard = false;
                     }
 
+                    /**
+                     * Planning: If our turn and not waiting for something,
+                     * it's time to decide to build or take other normal actions.
+                     */
                     if (((game.getGameState() == SOCGame.PLAY1) || (game.getGameState() == SOCGame.SPECIAL_BUILDING))
                         && ! (waitingForGameState || waitingForTradeMsg || waitingForTradeResponse || waitingForDevCard
                               || expectPLACING_ROAD || expectPLACING_SETTLEMENT || expectPLACING_CITY || expectPLACING_SHIP
                               || expectPLACING_ROBBER || expectPLACING_FREE_ROAD1 || expectPLACING_FREE_ROAD2 || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY))
                     {
-                        // Time to decide to build, or take other normal actions.
-
                         expectPLAY1 = false;
 
                         // 6-player: check Special Building Phase
@@ -1462,14 +1466,15 @@ public class SOCRobotBrain extends Thread
 
                                 if ( ! buildingPlan.empty())
                                 {
-                                    // Do we have the resources right now?
+                                    // If we have the resources right now, ask to Special Build
+
                                     final SOCPossiblePiece targetPiece = buildingPlan.peek();
                                     final SOCResourceSet targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
 
                                     if ((ourPlayerData.getResources().contains(targetResources)))
                                     {
                                         // Ask server for the Special Building Phase.
-                                        // (TODO) if FAST_STRATEGY: Maybe randomly don't ask?
+                                        // (TODO) if FAST_STRATEGY: Maybe randomly don't ask, to lower opponent difficulty?
                                         waitingForSpecialBuild = true;
                                         client.buildRequest(game, -1);
                                         pause(100);
@@ -1539,7 +1544,11 @@ public class SOCRobotBrain extends Thread
                                     // Time to build something.
 
                                     // Either ask to build a piece, or use trading or development
-                                    // cards to get resources to build it.  See javadoc for flags set.
+                                    // cards to get resources to build it.  See javadoc for flags set
+                                    // (expectPLACING_ROAD, etc).  In a future iteration of the run loop
+                                    // with the expected PLACING_ state, we'll build whatWeWantToBuild
+                                    // in placeIfExpectPlacing().
+
                                     buildOrGetResourceByTradeOrCard();
                                 }
 
@@ -1580,7 +1589,7 @@ public class SOCRobotBrain extends Thread
                      * Call client.putPiece.
                      * Works when it's our turn and we have an expect flag set
                      * (such as expectPLACING_SETTLEMENT, in these game states:
-                     * START1A - START2B
+                     * START1A - START2B or - START3B
                      * PLACING_SETTLEMENT, PLACING_ROAD, PLACING_CITY
                      * PLACING_FREE_ROAD1, PLACING_FREE_ROAD2
                      */
@@ -1932,7 +1941,8 @@ public class SOCRobotBrain extends Thread
     /**
      * If it's our turn and we have an expect flag set
      * (such as {@link #expectPLACING_SETTLEMENT}), then
-     * call {@link SOCRobotClient#putPiece(SOCGame, SOCPlayingPiece) client.putPiece}.
+     * call {@link SOCRobotClient#putPiece(SOCGame, SOCPlayingPiece) client.putPiece}
+     * ({@code game}, {@link #whatWeWantToBuild}).
      *<P>
      * Looks for one of these game states:
      *<UL>
@@ -2230,6 +2240,8 @@ public class SOCRobotBrain extends Thread
     /**
      * Either ask to build a planned piece, or use trading or development cards to get resources to build it.
      * Examines {@link #buildingPlan} for the next piece wanted.
+     * Sets {@link #whatWeWantToBuild} by calling {@link #buildRequestPlannedPiece()}
+     * or using a Road Building dev card.
      *<P>
      * If we need resources and we can't get them through the robber,
      * the {@link SOCDevCardConstants#ROADS Road Building} or
@@ -2256,6 +2268,9 @@ public class SOCRobotBrain extends Thread
      *<LI> {@link #waitingForTradeMsg} or {@link #waitingForTradeResponse} or {@link #doneTrading}
      *<LI> {@link #waitingForDevCard}, or {@link #waitingForGameState} and {@link #expectPLACING_SETTLEMENT} (etc).
      *</UL>
+     *<P>
+     * In a future iteration of the run() loop with the expected {@code PLACING_} state, the
+     * bot will build {@link #whatWeWantToBuild} by calling {@link #placeIfExpectPlacing()}.
      *
      * @since 1.1.08
      * @throws IllegalStateException  if {@link #buildingPlan}{@link Stack#empty() .empty()}
@@ -2936,6 +2951,7 @@ public class SOCRobotBrain extends Thread
      * Have the client ask to build our top planned piece
      * {@link #buildingPlan}{@link Stack#pop() .pop()},
      * unless we've already been told by the server to not build it.
+     * Sets {@link #whatWeWantToBuild} or {@link #waitingForDevCard}.
      * Called from {@link #buildOrGetResourceByTradeOrCard()}.
      *<P>
      * Checks against {@link #whatWeFailedToBuild} to see if server has rejected this already.
@@ -3038,11 +3054,14 @@ public class SOCRobotBrain extends Thread
      * Should be called from {@link #run()} under these conditions: <BR>
      * (!expectPLACING_ROBBER && (buildingPlan.empty()) && (ourPlayerData.getResources().getTotal() > 1) && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
      *<P>
-     * Sets these fields/actions: <BR>
-     *  {@link SOCRobotDM#planStuff(int)} <BR>
-     *  {@link #buildingPlan} <BR>
-     *  {@link #lastTarget} <BR>
-     *  {@link SOCRobotNegotiator#setTargetPiece(int, SOCPossiblePiece)}
+     * Sets these fields and makes these calls:
+     *<UL>
+     * <LI> {@link SOCRobotDM#planStuff(int) SOCRobotDM.planStuff}
+     *      ({@link SOCRobotDM#FAST_STRATEGY FAST_STRATEGY} or {@link SOCRobotDM#SMART_STRATEGY SMART_STRATEGY})
+     * <LI> {@link #buildingPlan}
+     * <LI> {@link #lastTarget}
+     * <LI> {@link SOCRobotNegotiator#setTargetPiece(int, SOCPossiblePiece)}
+     *</UL>
      *
      * @since 1.1.08
      */

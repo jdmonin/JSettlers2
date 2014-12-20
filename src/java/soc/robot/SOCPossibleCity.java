@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2009,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012,2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -81,7 +81,6 @@ public class SOCPossibleCity extends SOCPossiblePiece
         hasBeenExpanded = false;
 
         int[] pcSpeedup = pc.getSpeedup();
-
         for (int buildingType = SOCBuildingSpeedEstimate.MIN;
                 buildingType < SOCBuildingSpeedEstimate.MAXPLUSONE;
                 buildingType++)
@@ -91,7 +90,8 @@ public class SOCPossibleCity extends SOCPossiblePiece
     }
 
     /**
-     * calculate the speedup that this city gives
+     * calculate the speedup that this city gives.
+     * Call when any player's new city or settlement is added to the board.
      * @see #getSpeedup()
      */
     public void updateSpeedup()
@@ -124,6 +124,7 @@ public class SOCPossibleCity extends SOCPossiblePiece
 
     /**
      * @return the sum of all of the speedup numbers
+     * @see #updateSpeedup()
      */
     public int getSpeedupTotal()
     {
