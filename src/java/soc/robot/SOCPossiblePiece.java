@@ -30,6 +30,10 @@ import java.util.Vector;
  * Pieces that a player might build.
  * Used by {@link SOCRobotDM} for tracking and planning moves.
  *<P>
+ * Also tracks threats (opponents' possible pieces) to each of our player's
+ * possible pieces. Examples of threats are opponent roads on the same edge
+ * as this road, settlements or cities that split a road, etc.
+ *<P>
  * Although it's not a board piece type, {@link SOCPossibleCard} is a type here
  * because the player could buy them as part of a building plan.
  *
@@ -247,6 +251,7 @@ public abstract class SOCPossiblePiece
     }
 
     /**
+     * Get the list of opponents' possible pieces that threaten this possible piece.
      * @return the list of threats
      */
     public Vector<SOCPossiblePiece> getThreats()
@@ -255,9 +260,9 @@ public abstract class SOCPossiblePiece
     }
 
     /**
-     * add a threat to the list
+     * add a threat to the list, if not already there
      *
-     * @param piece
+     * @param piece  Opponent's possible piece to add to this possible piece's threat list
      */
     public void addThreat(SOCPossiblePiece piece)
     {

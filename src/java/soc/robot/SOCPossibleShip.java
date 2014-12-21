@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011,2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011,2013-2014 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -31,20 +31,26 @@ import java.util.Vector;
  * Note that it's a subclass of {@link SOCPossibleRoad}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 2.0.00
  */
 public class SOCPossibleShip extends SOCPossibleRoad
 {
+    /** True if this is a coastal edge that could possibly be a road or a ship */
+    public final boolean isCoastalRoadAndShip;
+
     /**
      * constructor
      *
      * @param pl  the owner
      * @param co  coordinates
+     * @param isCoastal  Is this also a possible coastal road ({@link #isCoastalRoadAndShip})?
      * @param nr  necessaryRoads, or {@code null} to create a new empty Vector here
      */
-    public SOCPossibleShip(SOCPlayer pl, int co, Vector<SOCPossibleRoad> nr)
+    public SOCPossibleShip(SOCPlayer pl, int co, final boolean isCoastal, Vector<SOCPossibleRoad> nr)
     {
         super(pl, co, nr);
         pieceType = SOCPossiblePiece.SHIP;
+        isCoastalRoadAndShip = isCoastal;
     }
 
     /**
@@ -58,6 +64,7 @@ public class SOCPossibleShip extends SOCPossibleRoad
     {
         super(pr);
         pieceType = SOCPossiblePiece.SHIP;
+        isCoastalRoadAndShip = pr.isCoastalRoadAndShip;
     }
 
 }

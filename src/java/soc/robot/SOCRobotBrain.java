@@ -2312,7 +2312,12 @@ public class SOCRobotBrain extends Thread
                 {
                     roadBuildingPlan = true;
 
-                    if (topPiece instanceof SOCPossibleShip)
+                    // TODO for now, 2 coastal roads/ships are always built as roads, not ships;
+                    // builds ships only if the 2 possible pieces are non-coastal ships
+                    if ((topPiece instanceof SOCPossibleShip)
+                        && (! ((SOCPossibleShip) topPiece).isCoastalRoadAndShip )
+                        && (secondPiece instanceof SOCPossibleShip)
+                        && (! ((SOCPossibleShip) secondPiece).isCoastalRoadAndShip ))
                         whatWeWantToBuild = new SOCShip(ourPlayerData, topPiece.getCoordinates(), null);
                     else
                         whatWeWantToBuild = new SOCRoad(ourPlayerData, topPiece.getCoordinates(), null);
@@ -3274,6 +3279,8 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Run a newly placed settlement through the playerTrackers.
+     * Called only after {@link SOCGame#putPiece(SOCPlayingPiece)}
+     * or {@link SOCGame#putTempPiece(SOCPlayingPiece)}.
      *<P>
      * During initial board setup, settlements aren't tracked when placed.
      * They are deferred until their corresponding road placement, in case

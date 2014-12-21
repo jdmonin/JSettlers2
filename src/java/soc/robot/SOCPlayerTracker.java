@@ -449,7 +449,9 @@ public class SOCPlayerTracker
     }
 
     /**
-     * @return the list of possible roads and ships
+     * Get the possible roads and ships ({@link SOCPossibleRoad}, {@link SOCPossibleShip}).
+     * Treat the structure of the returned map as read-only, don't add or remove anything.
+     * @return the Map of coordinates to possible roads and ships
      */
     public TreeMap<Integer, SOCPossibleRoad> getPossibleRoads()
     {
@@ -600,7 +602,7 @@ public class SOCPlayerTracker
      * Add one of our roads or ships that has just been built.
      * Look for new adjacent possible settlements.
      * Calls {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}
-     * on newly possible adjacent roads.
+     * on newly possible adjacent roads or ships.
      *
      * @param road         the road or ship
      * @param trackers     player trackers for the players
@@ -772,14 +774,20 @@ public class SOCPlayerTracker
                     if (edgeRequiresCoastalSettlement)
                     {
                         isRoad = ! isRoad;
-                        roadsBetween = 2;
+                        roadsBetween = 2;  // roughly account for effort & cost of new settlement
                     } else {
                         roadsBetween = 0;
                     }
-                    if (isRoad)
+
+                    // use coastal road/ship type (isCoastalRoadAndShip) only if we can
+                    // require a coastal settlement to switch from road-only or ship-only
+                    final boolean isCoastal = edgeRequiresCoastalSettlement
+                        && player.isPotentialRoad(edge) && player.isPotentialShip(edge);
+
+                    if (isRoad && ! isCoastal)
                         newPR = new SOCPossibleRoad(player, edge, null);
                     else
-                        newPR = new SOCPossibleShip(player, edge, null);
+                        newPR = new SOCPossibleShip(player, edge, isCoastal, null);
                     newPR.setNumberOfNecessaryRoads(roadsBetween);  // 0 unless requires settlement
                     newPossibleRoads.addElement(newPR);
                     roadsToExpand.addElement(newPR);
@@ -842,8 +850,10 @@ public class SOCPlayerTracker
         SOCBoard board = game.getBoard();
         final int tgtRoadEdge = targetRoad.getCoordinates();
         SOCRoad dummyRoad;
-        if (targetRoad.isRoadNotShip())
+        if ((targetRoad.isRoadNotShip()
+            || ((targetRoad instanceof SOCPossibleShip) && ((SOCPossibleShip) targetRoad).isCoastalRoadAndShip)))
             dummyRoad = new SOCRoad(dummy, tgtRoadEdge, board);
+            // TODO better handling for coastal roads/ships
         else
             dummyRoad = new SOCShip(dummy, tgtRoadEdge, board);
         dummy.putPiece(dummyRoad, true);
@@ -1028,7 +1038,7 @@ public class SOCPlayerTracker
                     else
                     {
                         //
-                        // else, add new possible road
+                        // else, add new possible road or ship
                         //
                         //D.ebugPrintln("$$$ adding new pr at "+Integer.toHexString(adjEdge.intValue()));
                         Vector<SOCPossibleRoad> neededRoads = new Vector<SOCPossibleRoad>();
@@ -1038,10 +1048,20 @@ public class SOCPlayerTracker
                         boolean isRoad = targetRoad.isRoadNotShip();
                         if (edgeRequiresCoastalSettlement)
                             isRoad = ! isRoad;
-                        if (isRoad)
+
+                        // use coastal road/ship type (isCoastalRoadAndShip) only if the road/ship
+                        // being expanded is coastal, or if we can require a coastal settlement to
+                        // switch from road-only or ship-only
+                        final boolean isCoastal =
+                            dummy.isPotentialRoad(edge) && dummy.isPotentialShip(edge)
+                            && (edgeRequiresCoastalSettlement
+                                || ((targetRoad instanceof SOCPossibleShip)
+                                    && ((SOCPossibleShip) targetRoad).isCoastalRoadAndShip));
+
+                        if (isRoad && ! isCoastal)
                             newPR = new SOCPossibleRoad(player, edge, neededRoads);
                         else
-                            newPR = new SOCPossibleShip(player, edge, neededRoads);
+                            newPR = new SOCPossibleShip(player, edge, isCoastal, neededRoads);
                         newPR.setNumberOfNecessaryRoads(targetRoad.getNumberOfNecessaryRoads() + incrDistance);
                         targetRoad.addNewPossibility(newPR);
                         newPossibleRoads.addElement(newPR);
@@ -1342,7 +1362,9 @@ public class SOCPlayerTracker
     }
 
     /**
-     * add a settlement that has just been built
+     * Add a settlement that has just been built.
+     * Called only after {@link SOCGame#putPiece(SOCPlayingPiece)}
+     * or {@link SOCGame#putTempPiece(SOCPlayingPiece)}.
      *
      * @param settlement       the settlement
      * @param trackers         player trackers for the players
@@ -1390,9 +1412,14 @@ public class SOCPlayerTracker
     /**
      * Add one of our settlements, and newly possible pieces from it.
      * Adds a new possible city; removes conflicting possible settlements (ours or other players).
-     * On the large Sea board, if this is a coastal settlement, adds newly possible ships, and if
+     * On the large Sea board, if this is a coastal settlement adds newly possible ships, and if
      * we've just settled a new island, newly possible roads, because the coastal settlement is
      * a roads {@literal <->} ships transition.
+     *<P>
+     * Newly possible roads or ships next to the settlement are expanded by calling
+     * {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}.
+     * {@link #EXPAND_LEVEL} is the basic expansion length, and ships add
+     * {@link #EXPAND_LEVEL_SHIP_EXTRA} to that for crossing the sea to nearby islands.
      *<P>
      * Called in 2 different conditions:
      *<UL>
@@ -1563,15 +1590,41 @@ public class SOCPlayerTracker
         }
 
         /**
-         * add possible road-ship transitions made possible by the new settlement
+         * Add possible road-ship transitions made possible by the new settlement.
+         * Normally a new settlement placement doesn't need to add possible roads or ships,
+         * because each road/ship placement adds possibles past the new far end of the route
+         * in addOurNewRoadOrShip.
          */
         if (board instanceof SOCBoardLarge)
         {
             Vector<SOCPossibleRoad> roadsToExpand = null;
+
+            /**
+             * Only add new possible roads if we're on a new island
+             * (that is, the newly placed settlement has no adjacent roads already).
+             * Coastal ships/roads may still be added even if settleAlreadyHasRoad.
+             */
             boolean settleAlreadyHasRoad = false;
             Vector<SOCPossibleRoad> possibleNewIslandRoads = null;
 
-            for (Integer edge : board.getAdjacentEdgesToNode(settlementCoords))
+            final Vector<Integer> adjacEdges = board.getAdjacentEdgesToNode(settlementCoords);
+
+            // First, loop to check for settleAlreadyHasRoad
+            for (Integer edge : adjacEdges)
+            {
+                if (possibleRoads.get(edge) != null)
+                    continue;  // already a possible road or ship here
+
+                SOCRoad road = board.roadAtEdge(edge);
+                if ((road != null) && road.isRoadNotShip())
+                {
+                    settleAlreadyHasRoad = true;
+                    break;
+                }
+            }
+
+            // Now, possibly add new roads/ships/coastals
+            for (Integer edge : adjacEdges)
             {
                 // TODO remove these debug prints soon
                 //System.err.println("L1348: examine edge 0x"
@@ -1588,30 +1641,31 @@ public class SOCPlayerTracker
                     continue;  // already a possible road or ship
                 }
 
-                SOCRoad road = board.roadAtEdge(edge);
-                if (road != null)
+                if (board.roadAtEdge(edge) != null)
                 {
-                    if (road.isRoadNotShip())
-                        settleAlreadyHasRoad = true;
-                    continue;  // something's already there
+                    continue;  // not new, something's already there
                 }
-
-                // TODO what if isEdgeCoastline -- for now, until we can model that & add both potentials, assume road
 
                 if (player.isPotentialRoad(edge))
                 {
-                    // Probably won't happen (usually added elsewhere),
+                    // Add newly possible roads from settlement placement.
+                    // Probably won't need to happen (usually added in addOurNewRoadOrShip, see newPossibleRoads)
                     // but could on a new island's first settlement
-                    if (settleAlreadyHasRoad)
+
+                    final boolean isCoastline = player.isPotentialShip(edge);
+                    if (settleAlreadyHasRoad && ! isCoastline)
                         continue;
+
                     if (possibleNewIslandRoads == null)
                         possibleNewIslandRoads = new Vector<SOCPossibleRoad>();
-                    possibleNewIslandRoads.add(new SOCPossibleRoad(player, edge, null));
+                    possibleNewIslandRoads.add( (isCoastline)
+                        ? new SOCPossibleShip(player, edge, true, null)
+                        : new SOCPossibleRoad(player, edge, null));
                 }
                 else if (player.isPotentialShip(edge))
                 {
                     // A way out to a new island
-                    SOCPossibleShip newPS = new SOCPossibleShip(player, edge, null);
+                    SOCPossibleShip newPS = new SOCPossibleShip(player, edge, false, null);
                     possibleRoads.put(edge, newPS);
                     System.err.println("L1383: new possible ship at edge 0x"
                         + Integer.toHexString(edge) + " from coastal settle 0x"
@@ -1623,7 +1677,7 @@ public class SOCPlayerTracker
                 }
             }
 
-            if ((possibleNewIslandRoads != null) && (! settleAlreadyHasRoad)
+            if ((possibleNewIslandRoads != null)
                 && ! player.getGame().isInitialPlacement())
             {
                 // only add new possible roads if we're on a new island
@@ -2050,7 +2104,7 @@ public class SOCPlayerTracker
                         if (adjEdge == realRoad.getCoordinates())
                         {
                             /**
-                             * found a supporting road, now find the node between
+                             * found an adjacent supporting road, now find the node between
                              * the supporting road and the possible road
                              */
                             final int[] adjNodesToRealRoad = realRoad.getAdjacentNodes();
@@ -2137,7 +2191,11 @@ public class SOCPlayerTracker
                 {
                     SOCPossiblePiece curPosPiece = stack.pop();
 
-                    if (curPosPiece.getType() == SOCPossiblePiece.ROAD)
+                    // TODO roads only; need to also decide how ships are threatened
+
+                    if ((curPosPiece.getType() == SOCPossiblePiece.ROAD)
+                        || ((curPosPiece instanceof SOCPossibleShip)
+                             && ((SOCPossibleShip) curPosPiece).isCoastalRoadAndShip))
                     {
                         Enumeration<SOCPossiblePiece> newPosEnum = ((SOCPossibleRoad) curPosPiece).getNewPossibilities().elements();
 
@@ -2145,7 +2203,9 @@ public class SOCPlayerTracker
                         {
                             SOCPossiblePiece newPosPiece = newPosEnum.nextElement();
 
-                            if (newPosPiece.getType() == SOCPossiblePiece.ROAD)
+                            if ((newPosPiece.getType() == SOCPossiblePiece.ROAD)
+                                || ((newPosPiece instanceof SOCPossibleShip)
+                                    && ((SOCPossibleShip) newPosPiece).isCoastalRoadAndShip))
                             {
                                 Vector<SOCPossibleRoad> necRoadVec = ((SOCPossibleRoad) newPosPiece).getNecessaryRoads();
 
@@ -2552,8 +2612,9 @@ public class SOCPlayerTracker
                 // calc longest road value
                 //
                 SOCRoad dummyRoad;
-                if (posRoad.isRoadNotShip())
-                    dummyRoad = new SOCRoad(dummy, posRoad.getCoordinates(), null);
+                if (posRoad.isRoadNotShip()
+                    || ((posRoad instanceof SOCPossibleShip) && ((SOCPossibleShip) posRoad).isCoastalRoadAndShip))
+                    dummyRoad = new SOCRoad(dummy, posRoad.getCoordinates(), null);  // TODO better coastal handling
                 else
                     dummyRoad = new SOCShip(dummy, posRoad.getCoordinates(), null);
                 dummy.putPiece(dummyRoad, true);

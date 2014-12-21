@@ -900,8 +900,11 @@ public class SOCRobotDM
           targetResources.add(SOCGame.SETTLEMENT_SET);
           Stack<SOCPossibleRoad> path = posSet.getRoadPath();
           if (path != null) {
-              int pathLength = path.size();
-              SOCResourceSet rtype = ((pathLength > 0) && (path.peek() instanceof SOCPossibleShip))
+              final int pathLength = path.size();
+              final SOCPossiblePiece pathFirst = (pathLength > 0) ? path.peek() : null;
+              SOCResourceSet rtype =
+                  ((pathFirst != null) && (pathFirst instanceof SOCPossibleShip)
+                   && ! ((SOCPossibleShip) pathFirst).isCoastalRoadAndShip)  // TODO better coastal ETA scoring
                   ? SOCGame.SHIP_SET
                   : SOCGame.ROAD_SET;
               for (int i = 0; i < pathLength; i++)
@@ -948,8 +951,11 @@ public class SOCRobotDM
         //  pretend to put the favorite road down,
         //  and then score the new pos roads
         //
+        //  TODO for now, coastal roads/ships are always built as roads not ships
+        //
         final SOCRoad tmpRoad;
-        if (favoriteRoad instanceof SOCPossibleShip)
+        if ((favoriteRoad instanceof SOCPossibleShip)
+            && ! ((SOCPossibleShip) favoriteRoad).isCoastalRoadAndShip )
             tmpRoad = new SOCShip(ourPlayerData, favoriteRoad.getCoordinates(), null);
         else
             tmpRoad = new SOCRoad(ourPlayerData, favoriteRoad.getCoordinates(), null);
@@ -1379,7 +1385,7 @@ public class SOCRobotDM
       while (posRoadsIter.hasNext()) {
 	SOCPossibleRoad posRoad = posRoadsIter.next();
 	if (! posRoad.isRoadNotShip())
-	    continue;  // ignore ships in this loop
+	    continue;  // ignore ships in this loop, ships have other conditions to check
 
 	if ((posRoad.getNecessaryRoads().isEmpty()) &&
 	    (! threatenedRoads.contains(posRoad)) &&
@@ -1582,9 +1588,11 @@ public class SOCRobotDM
 	//
 	// see how building this piece impacts our winETA
 	//
+	// TODO better ETA scoring for coastal ships/roads
+	//
 	goodRoad.resetScore();
 	final int etype =
-	    (goodRoad instanceof SOCPossibleShip)
+	    ((goodRoad instanceof SOCPossibleShip) && ! ((SOCPossibleShip) goodRoad).isCoastalRoadAndShip)
 	    ? SOCBuildingSpeedEstimate.ROAD
 	    : SOCBuildingSpeedEstimate.SHIP;
 	float wgetaScore = getWinGameETABonusForRoad(goodRoad, buildingETAs[etype], leadersCurrentWGETA, playerTrackers);
@@ -1726,7 +1734,9 @@ public class SOCRobotDM
       D.ebugPrintln("###   WITH A TOTAL SPEEDUP OF "+favoriteCity.getSpeedupTotal());
     }
 
-    final int road_eta_type = ((favoriteRoad != null) && (favoriteRoad instanceof SOCPossibleShip))
+    final int road_eta_type =
+        ((favoriteRoad != null) && (favoriteRoad instanceof SOCPossibleShip)
+         && ! ((SOCPossibleShip) favoriteRoad).isCoastalRoadAndShip)  // TODO better ETA calc for coastal roads/ships
         ? SOCBuildingSpeedEstimate.SHIP
         : SOCBuildingSpeedEstimate.ROAD;
 
@@ -2136,9 +2146,12 @@ public class SOCRobotDM
     int ourCurrentWGETA = ourPlayerTracker.getWinGameETA();
     D.ebugPrintln("ourCurrentWGETA = "+ourCurrentWGETA);
 
-
     HashMap<Integer, SOCPlayerTracker> trackersCopy = null;
     SOCRoad tmpRoad1 = null;
+    // Building road or ship?  TODO Better ETA calc for coastal road/ship
+    final boolean isShip = (posRoad instanceof SOCPossibleShip)
+        && ! ((SOCPossibleShip) posRoad).isCoastalRoadAndShip;
+    final SOCResourceSet rsrcs = (isShip ? SOCGame.SHIP_SET : SOCGame.ROAD_SET);
 
     D.ebugPrintln("--- before [start] ---");
     SOCResourceSet originalResources = ourPlayerData.getResources().copy();
@@ -2147,13 +2160,15 @@ public class SOCRobotDM
     D.ebugPrintln("--- before [end] ---");
     try {
       SOCResSetBuildTimePair btp = estimate.calculateRollsAndRsrcFast
-          (ourPlayerData.getResources(), SOCGame.ROAD_SET, 50, ourPlayerData.getPortFlags());
-      btp.getResources().subtract(SOCGame.ROAD_SET);
+          (ourPlayerData.getResources(), rsrcs, 50, ourPlayerData.getPortFlags());
+      btp.getResources().subtract(rsrcs);
       ourPlayerData.getResources().setAmounts(btp.getResources());
     } catch (CutoffExceededException e) {
       D.ebugPrintln("crap in getWinGameETABonusForRoad - "+e);
     }
-    tmpRoad1 = new SOCRoad(ourPlayerData, posRoad.getCoordinates(), null);
+    tmpRoad1 = (isShip)
+        ? new SOCShip(ourPlayerData, posRoad.getCoordinates(), null)
+        : new SOCRoad(ourPlayerData, posRoad.getCoordinates(), null);
     trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRoad1, game, playerTrackers);
     SOCPlayerTracker.updateWinGameETAs(trackersCopy);
     float score = calcWGETABonus(playerTrackers, trackersCopy);
