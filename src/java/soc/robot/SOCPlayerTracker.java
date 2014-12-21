@@ -473,7 +473,11 @@ public class SOCPlayerTracker
     }
 
     /**
+     * Get the ETA to take Longest Road.
+     * Updated in {@link #updateWinGameETAs(HashMap)} or {@link #recalcLongestRoadETA()}.
      * @return the longest road eta
+     * @see #needsLR()
+     * @see #getRoadsToGo()
      */
     public int getLongestRoadETA()
     {
@@ -481,7 +485,11 @@ public class SOCPlayerTracker
     }
 
     /**
+     * Get how many roads must be built to take Longest Road.
+     * Updated in {@link #updateWinGameETAs(HashMap)} and {@link #recalcLongestRoadETA()}.
      * @return how many roads needed to build to take longest road
+     * @see #needsLR()
+     * @see #getLongestRoadETA()
      */
     public int getRoadsToGo()
     {
@@ -489,7 +497,11 @@ public class SOCPlayerTracker
     }
 
     /**
+     * Get the ETA to take Largest Army.
+     * Updated in {@link #updateWinGameETAs(HashMap)} and {@link #recalcLargestArmyETA()}.
      * @return largest army eta
+     * @see #needsLA()
+     * @see #getKnightsToBuy()
      */
     public int getLargestArmyETA()
     {
@@ -497,7 +509,11 @@ public class SOCPlayerTracker
     }
 
     /**
+     * Get the number of knights needed to take Largest Army.
+     * Updated in {@link #updateWinGameETAs(HashMap)} and {@link #recalcLargestArmyETA()}.
      * @return the number of knights to buy to get LA
+     * @see #needsLA()
+     * @see #getLargestArmyETA()
      */
     public int getKnightsToBuy()
     {
@@ -2364,6 +2380,7 @@ public class SOCPlayerTracker
     /**
      * Calculate the longest road ETA.
      * Always 500 or more if {@link SOCGameOption#K_SC_0RVP} is set.
+     * Updates fields for {@link #getLongestRoadETA()} and {@link #getRoadsToGo()}.
      */
     public void recalcLongestRoadETA()
     {
@@ -2658,6 +2675,8 @@ public class SOCPlayerTracker
     }
 
     /**
+     * Get the calculated Winning the Game ETA (WGETA), based on
+     * the most recent call to {@link #recalcWinGameETA()}.
      * @return the ETA for winning the game
      */
     public int getWinGameETA()
@@ -2666,7 +2685,11 @@ public class SOCPlayerTracker
     }
 
     /**
+     * Does this player need Longest Road to win?
+     * Updated by {@link #recalcWinGameETA()}.
      * @return true if this player needs LR to win
+     * @see #getLongestRoadETA()
+     * @see #getRoadsToGo()
      */
     public boolean needsLR()
     {
@@ -2674,7 +2697,11 @@ public class SOCPlayerTracker
     }
 
     /**
+     * Does this player need Largest Army to win?
+     * Updated by {@link #recalcWinGameETA()}.
      * @return true if this player needs LA to win
+     * @see #getLargestArmyETA()
+     * @see #getKnightsToBuy()
      */
     public boolean needsLA()
     {
@@ -2682,7 +2709,30 @@ public class SOCPlayerTracker
     }
 
     /**
-     * recalculate the ETA for winning the game
+     * Recalculate the tracked player's ETA for winning the game (WGETA) by making and simulating with a copy
+     * of our current potential settlement/city locations, building speed estimates (BSEs), and dice numbers,
+     * looping from player's current {@link SOCPlayer#getTotalVP()} to {@link SOCGame#vp_winner}.
+     *<P>
+     * Calculates the fields for {@link #getWinGameETA()}, {@link #needsLA()}, {@link #needsLR()}.
+     *<P>
+     * Each time through the loop, given potential locations and available pieces, pick the fastest ETA
+     * among each of these 2-VP combinations:
+     *<UL>
+     * <LI> 2 settlements (including necessary roads' ETA)
+     * <LI> 2 cities
+     * <LI> 1 city, 1 settlement (+ roads)
+     * <LI> 1 settlement (+ roads), 1 city
+     * <LI> Buy enough cards for Largest Army
+     * <LI> Build enough roads for Longest Road
+     *</UL>
+     * The temporary potential sets, port trade flags, BSEs and dice numbers are updated with the picked pieces.
+     * The loop body doesn't add new potential roads/ships or potential settlements to its copy of those sets,
+     * or call {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}, so it may run out
+     * of potential locations before {@code vp_winner} is reached.  If the loop doesn't have the locations or
+     * pieces to do anything, 500 ETA and 2 VP are added to the totals to keep things moving.
+     *<P>
+     * If the loop reaches {@link SOCGame#vp_winner} - 1, it calculates ETAs for 1 city or settlement (+ roads)
+     * instead of 2, and Largest Army and Longest Road, to make its choice.
      */
     public void recalcWinGameETA()
     {

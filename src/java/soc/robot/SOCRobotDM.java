@@ -416,7 +416,7 @@ public class SOCRobotDM
    * {@link #scenarioGameStrategyPlan(float, float, boolean, boolean, SOCBuildingSpeedEstimate, int, boolean)}.
    * See that method for the list of scenarios which need such planning.
    *
-   * @param buildingETAs  the ETAs for building something
+   * @param buildingETAs  the ETAs for building each piece type
    * @see #smartGameStrategy(int[])
    */
   protected void dumbFastGameStrategy(final int[] buildingETAs)
@@ -824,10 +824,10 @@ public class SOCRobotDM
    * Each {@link SOCPossibleSettlement#getRoadPath()} is calculated
    * here by finding the shortest path among its {@link SOCPossibleSettlement#getNecessaryRoads()}.
    *<P>
-   * Calculates ETA by using our current SOCBuildingSpeedEstimate on the resources
+   * Calculates ETA by using our current {@link SOCBuildingSpeedEstimate} on the resources
    * needed to buy the settlement plus roads/ships for its shortest path's length.
    *
-   * @param settlementETA  ETA for building a settlement from now
+   * @param settlementETA  ETA for building a settlement from now if it doesn't require any roads or ships
    * @param ourBSE  Current building speed estimate, from our {@code SOCPlayer#getNumbers()}
    *
    * @see #scorePossibleSettlements(int, int)
@@ -1321,7 +1321,7 @@ public class SOCRobotDM
    * <LI> Check for and calc any scenario-specific {@code buildingPlan}
    *</UL>
    *
-   * @param buildingETAs  the ETAs for building something
+   * @param buildingETAs  the ETAs for building each piece type
    * @see #dumbFastGameStrategy(int[])
    */
   protected void smartGameStrategy(final int[] buildingETAs)
@@ -2368,7 +2368,14 @@ public class SOCRobotDM
 
 
   /**
-   * calc dev card score
+   * Calc dev card score bonus for {@link #SMART_STRATEGY} based on improvements to Win Game ETA (WGETA)
+   * from buying knights or +1 VP cards, weighted by their distribution, tunable {@link #devCardMultiplier},
+   * and effects on the leading opponent players' WGETAs.
+   *<P>
+   * Assumes {@link SOCPlayerTracker#getWinGameETA()} is accurate at time of call.
+   * Calls {@link SOCPlayerTracker#updateWinGameETAs(HashMap)} after temporarily adding
+   * a knight or +1VP card, but doesn't call it after cleaning up from the temporary add,
+   * so {@link SOCPlayerTracker#getWinGameETA()} will be inaccurate afterwards.
    */
   public SOCPossibleCard getDevCardScore(final int cardETA, final int leadersCurrentWGETA)
   {
@@ -2449,7 +2456,7 @@ public class SOCRobotDM
       brain.getDRecorder().resume();
     }
     D.ebugPrintln("--- before [end] ---");
-    ourPlayerData.getInventory().addDevCard(1, SOCInventory.NEW, SOCDevCardConstants.CAP);
+    ourPlayerData.getInventory().addDevCard(1, SOCInventory.NEW, SOCDevCardConstants.CAP);  // any +1VP dev card
     D.ebugPrintln("--- after [start] ---");
     SOCPlayerTracker.updateWinGameETAs(playerTrackers);
 
