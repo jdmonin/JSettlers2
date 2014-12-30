@@ -74,7 +74,7 @@ import java.util.Vector;
  *  keeping track of which pieces support the building of others."
  *</blockquote>
  *<p>
- *  For a legible overview of the data in a SOCPlayerTracker, use {@link #playerTrackersDebug(HashMap)}.
+ *  To output a legible overview of the data in a SOCPlayerTracker, use {@link #playerTrackersDebug(HashMap)}.
  *
  * @author Robert S Thomas
  */
@@ -785,9 +785,13 @@ public class SOCPlayerTracker
                         && player.isPotentialRoad(edge) && player.isPotentialShip(edge);
 
                     if (isRoad && ! isCoastal)
+                    {
                         newPR = new SOCPossibleRoad(player, edge, null);
-                    else
+                    } else {
                         newPR = new SOCPossibleShip(player, edge, isCoastal, null);
+                        System.err.println
+                            ("L793: " + toString() + ": new PossibleShip(" + isCoastal + ") at 0x" + Integer.toHexString(edge));
+                    }
                     newPR.setNumberOfNecessaryRoads(roadsBetween);  // 0 unless requires settlement
                     newPossibleRoads.addElement(newPR);
                     roadsToExpand.addElement(newPR);
@@ -1059,9 +1063,13 @@ public class SOCPlayerTracker
                                     && ((SOCPossibleShip) targetRoad).isCoastalRoadAndShip));
 
                         if (isRoad && ! isCoastal)
+                        {
                             newPR = new SOCPossibleRoad(player, edge, neededRoads);
-                        else
+                        } else {
                             newPR = new SOCPossibleShip(player, edge, isCoastal, neededRoads);
+                            System.err.println
+                                ("L1072: " + toString() + ": new PossibleShip(" + isCoastal + ") at 0x" + Integer.toHexString(edge));
+                        }
                         newPR.setNumberOfNecessaryRoads(targetRoad.getNumberOfNecessaryRoads() + incrDistance);
                         targetRoad.addNewPossibility(newPR);
                         newPossibleRoads.addElement(newPR);
@@ -1661,15 +1669,17 @@ public class SOCPlayerTracker
                     possibleNewIslandRoads.add( (isCoastline)
                         ? new SOCPossibleShip(player, edge, true, null)
                         : new SOCPossibleRoad(player, edge, null));
+                    if (isCoastline)
+                        System.err.println
+                            ("L1675: " + toString() + ": new PossibleShip(true) at 0x" + Integer.toHexString(edge));
                 }
                 else if (player.isPotentialShip(edge))
                 {
                     // A way out to a new island
                     SOCPossibleShip newPS = new SOCPossibleShip(player, edge, false, null);
                     possibleRoads.put(edge, newPS);
-                    System.err.println("L1383: new possible ship at edge 0x"
-                        + Integer.toHexString(edge) + " from coastal settle 0x"
-                        + Integer.toHexString(settlementCoords));
+                    System.err.println("L1685: " + toString() + ": new PossibleShip(false) at 0x" + Integer.toHexString(edge)
+                        + " from coastal settle 0x" + Integer.toHexString(settlementCoords));
                     if (roadsToExpand == null)
                         roadsToExpand = new Vector<SOCPossibleRoad>();
                     roadsToExpand.addElement(newPS);
@@ -2979,6 +2989,16 @@ public class SOCPlayerTracker
                                             necRoadQueue.put(new Pair<Integer, Vector<SOCPossibleRoad>>
                                                 (Integer.valueOf(totalNecRoads + 1), nr.getNecessaryRoads()));
                                         }
+
+                                        if (necRoadQueue.size() > 100)
+                                        {
+                                            // Too many necessary, or dupes led to loop. Bug in necessary road construction?
+                                            System.err.println
+                                                ("PT.recalcWinGameETA L2997: Necessary Road Path too long for settle at 0x"
+                                                 + Integer.toHexString(chosenSet.getCoordinates()));
+                                            totalNecRoads = 100;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -3298,6 +3318,16 @@ public class SOCPlayerTracker
                                                 necRoadQueue.put(new Pair<Integer, Vector<SOCPossibleRoad>>
                                                     (Integer.valueOf(totalNecRoads + 1), nr.getNecessaryRoads()));
                                             }
+
+                                            if (necRoadQueue.size() > 100)
+                                            {
+                                                // Too many necessary, or dupes led to loop. Bug in necessary road construction?
+                                                System.err.println
+                                                    ("PT.recalcWinGameETA L3326: Necessary Road Path too long for settle at 0x"
+                                                     + Integer.toHexString(chosenSet[i].getCoordinates()));
+                                                totalNecRoads = 100;
+                                                break;
+                                            }
                                         }
                                     }
                                 }
@@ -3592,6 +3622,16 @@ public class SOCPlayerTracker
                                         SOCPossibleRoad nr = necRoadEnum.nextElement();
                                         necRoadQueue.put(new Pair<Integer, Vector<SOCPossibleRoad>>
                                             (Integer.valueOf(totalNecRoads + 1), nr.getNecessaryRoads()));
+                                    }
+
+                                    if (necRoadQueue.size() > 100)
+                                    {
+                                        // Too many necessary. Bug in necessary road construction?
+                                        System.err.println
+                                            ("PT.recalcWinGameETA L3631: Necessary Road Path too long for settle at 0x"
+                                             + Integer.toHexString(chosenSet[0].getCoordinates()));
+                                        totalNecRoads = 100;
+                                        break;
                                     }
                                 }
                             }
@@ -4254,4 +4294,20 @@ public class SOCPlayerTracker
             }
         }
     }
+
+    /**
+     * SOCPlayerTracker key fields (brain player name, tracked player name) to aid debugging.
+     * Since PTs are copied a lot and we need a way to tell the copies apart, also includes
+     * hex {@code super.}{@link Object#hashCode() hashCode()}.
+     * @return This SOCPlayerTracker's fields, in the format:
+     *     <tt>SOCPlayerTracker@<em>hashCode</em>[<em>brainPlayerName</em>, pl=<em>trackedPlayerName</em>]</tt>
+     * @since 2.0.00
+     */
+    @Override
+    public String toString()
+    {
+        return "SOCPlayerTracker@" + Integer.toHexString(super.hashCode())
+            + "[" + brain.getOurPlayerData().getName() + ", pl=" + player.getName() + "]";
+    }
+
 }

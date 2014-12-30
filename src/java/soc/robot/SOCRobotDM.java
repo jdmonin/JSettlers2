@@ -859,6 +859,7 @@ public class SOCRobotDM
           //
           // Do a BFS of the necessary road paths looking for the shortest one.
           //
+          boolean pathTooLong = false;
           while (! queue.empty())
           {
               Pair<SOCPossibleRoad,?> dataPair = queue.get();
@@ -889,6 +890,17 @@ public class SOCRobotDM
                       D.ebugPrintln("-- queuing necessary road at "+game.getBoard().edgeCoordToString(necRoad2.getCoordinates()));
                       queue.put(new Pair<SOCPossibleRoad,Pair<SOCPossibleRoad,?>>(necRoad2, dataPair));
                   }
+
+                  if (queue.size() > 100)
+                  {
+                      // Too many necessary, or dupes led to loop. Bug in necessary road construction?
+                      System.err.println("rDM.scoreSettlementsForDumb: Necessary Road Path too long for road/ship 0x"
+                          + Integer.toHexString(curRoad.getCoordinates()) + " for settle 0x"
+                          + Integer.toHexString(posSet.getCoordinates()));
+                      pathTooLong = true;
+                      break;
+                  }
+
               }
           }
           D.ebugPrintln("Done searching for path.");
@@ -896,22 +908,26 @@ public class SOCRobotDM
           //
           // calculate ETA
           //
-          SOCResourceSet targetResources = new SOCResourceSet();
-          targetResources.add(SOCGame.SETTLEMENT_SET);
-          Stack<SOCPossibleRoad> path = posSet.getRoadPath();
-          if (path != null) {
-              final int pathLength = path.size();
-              final SOCPossiblePiece pathFirst = (pathLength > 0) ? path.peek() : null;
-              SOCResourceSet rtype =
-                  ((pathFirst != null) && (pathFirst instanceof SOCPossibleShip)
-                   && ! ((SOCPossibleShip) pathFirst).isCoastalRoadAndShip)  // TODO better coastal ETA scoring
-                  ? SOCGame.SHIP_SET
-                  : SOCGame.ROAD_SET;
-              for (int i = 0; i < pathLength; i++)
-                  targetResources.add(rtype);
+          if (pathTooLong) {
+              posSet.setETA(500);
+          } else {
+              SOCResourceSet targetResources = new SOCResourceSet();
+              targetResources.add(SOCGame.SETTLEMENT_SET);
+              Stack<SOCPossibleRoad> path = posSet.getRoadPath();
+              if (path != null) {
+                  final int pathLength = path.size();
+                  final SOCPossiblePiece pathFirst = (pathLength > 0) ? path.peek() : null;
+                  SOCResourceSet rtype =
+                      ((pathFirst != null) && (pathFirst instanceof SOCPossibleShip)
+                       && ! ((SOCPossibleShip) pathFirst).isCoastalRoadAndShip)  // TODO better coastal ETA scoring
+                      ? SOCGame.SHIP_SET
+                      : SOCGame.ROAD_SET;
+                  for (int i = 0; i < pathLength; i++)
+                      targetResources.add(rtype);
+              }
+              posSet.setETA(ourBSE.calculateRollsFast
+                  (ourPlayerData.getResources(), targetResources, 100, ourPlayerData.getPortFlags()));
           }
-          posSet.setETA(ourBSE.calculateRollsFast
-              (ourPlayerData.getResources(), targetResources, 100, ourPlayerData.getPortFlags()));
       } else {
           //
           // no roads are necessary
