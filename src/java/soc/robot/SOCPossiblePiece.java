@@ -330,8 +330,15 @@ public abstract class SOCPossiblePiece
     @Override
     public String toString()
     {
-        String s = "SOCPossiblePiece:type=" + pieceType + "|player=" + player + "|coord=" + Integer.toHexString(coord);
+        String clName;
+        {
+            clName = getClass().getName();
+            int dot = clName.lastIndexOf(".");
+            if (dot > 0)
+                clName = clName.substring(dot + 1);
+        }
 
-        return s;
+        return "SOCPossiblePiece:" + clName + "|type=" + pieceType + "|player=" + player
+            + "|coord=" + Integer.toHexString(coord);
     }
 }

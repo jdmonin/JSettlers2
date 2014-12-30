@@ -250,11 +250,18 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     @Override
     public String toString()
     {
-        String s = "SOCPlayingPiece:type=" + pieceType + "|player=" + player + "|coord=" + Integer.toHexString(coord);
+        String clName;
+        {
+            clName = getClass().getName();
+            int dot = clName.lastIndexOf(".");
+            if (dot > 0)
+                clName = clName.substring(dot + 1);
+        }
 
-        return s;
+        return "SOCPlayingPiece:" + clName + "|type=" + pieceType + "|player=" + player
+            + "|coord=" + Integer.toHexString(coord);
     }
-    
+
     /**
      * Compare this SOCPlayingPiece to another SOCPlayingPiece, or another object.
      * Comparison method:
