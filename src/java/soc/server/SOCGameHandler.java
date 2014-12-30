@@ -2915,6 +2915,13 @@ public class SOCGameHandler extends GameHandler
                         {
                             D.ebugPrintln("ILLEGAL ROAD: 0x" + Integer.toHexString(coord)
                                 + ": player " + pn);
+                            if (player.isRobot() && D.ebugOn)
+                            {
+                                D.ebugPrintln(" - pl.isPotentialRoad: " + player.isPotentialRoad(coord));
+                                SOCPlayingPiece pp = ga.getBoard().roadAtEdge(coord);
+                                D.ebugPrintln(" - roadAtEdge: " + ((pp != null) ? pp : "none"));
+                            }
+
                             srv.messageToPlayer(c, gaName, "You can't build a road there.");
                             sendDenyReply = true;
                         }
@@ -2960,6 +2967,14 @@ public class SOCGameHandler extends GameHandler
                         {
                             D.ebugPrintln("ILLEGAL SETTLEMENT: 0x" + Integer.toHexString(coord)
                                 + ": player " + pn);
+                            if (player.isRobot() && D.ebugOn)
+                            {
+                                D.ebugPrintln(" - pl.isPotentialSettlement: "
+                                    + player.isPotentialSettlement(coord));
+                                SOCPlayingPiece pp = ga.getBoard().settlementAtNode(coord);
+                                D.ebugPrintln(" - settlementAtNode: " + ((pp != null) ? pp : "none"));
+                            }
+
                             srv.messageToPlayer(c, gaName, "You can't build a settlement there.");
                             sendDenyReply = true;
                         }
@@ -3009,6 +3024,13 @@ public class SOCGameHandler extends GameHandler
                         {
                             D.ebugPrintln("ILLEGAL CITY: 0x" + Integer.toHexString(coord)
                                 + ": player " + pn);
+                            if (player.isRobot() && D.ebugOn)
+                            {
+                                D.ebugPrintln(" - pl.isPotentialCity: " + player.isPotentialCity(coord));
+                                SOCPlayingPiece pp = ga.getBoard().settlementAtNode(coord);
+                                D.ebugPrintln(" - city/settlementAtNode: " + ((pp != null) ? pp : "none"));
+                            }
+
                             srv.messageToPlayer(c, gaName, "You can't build a city there.");
                             sendDenyReply = true;
                         }
@@ -3065,6 +3087,13 @@ public class SOCGameHandler extends GameHandler
                         {
                             D.ebugPrintln("ILLEGAL SHIP: 0x" + Integer.toHexString(coord)
                                 + ": player " + pn);
+                            if (player.isRobot() && D.ebugOn)
+                            {
+                                D.ebugPrintln(" - pl.isPotentialShip: " + player.isPotentialShip(coord));
+                                SOCPlayingPiece pp = ga.getBoard().roadAtEdge(coord);
+                                D.ebugPrintln(" - ship/roadAtEdge: " + ((pp != null) ? pp : "none"));
+                            }
+
                             srv.messageToPlayer(c, gaName, "You can't build a ship there.");
                             sendDenyReply = true;
                         }
