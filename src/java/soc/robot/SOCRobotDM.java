@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -259,7 +259,7 @@ public class SOCRobotDM
    * Called as needed by {@link SOCRobotBrain} and related strategy classes.
    * Sets {@link #buildingPlan}, {@link #favoriteSettlement}, etc.
    * Calls either {@link #smartGameStrategy(int[])} or {@link #dumbFastGameStrategy(int[])}.
-   * Both of these will check whether this is our normal turn, or if
+   * Both of those will check whether this is our normal turn, or if
    * it's the 6-player board's {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
    *<P>
    * Some details:
@@ -478,6 +478,7 @@ public class SOCRobotDM
       while (posSetsIter.hasNext())
       {
           SOCPossibleSettlement posSet = posSetsIter.next();
+
           if ((brain != null) && brain.getDRecorder().isOn())
           {
               brain.getDRecorder().startRecording("SETTLEMENT"+posSet.getCoordinates());
@@ -496,6 +497,7 @@ public class SOCRobotDM
               }
               brain.getDRecorder().stopRecording();
           }
+
           if (posSet.getETA() < bestETA) {
               bestETA = posSet.getETA();
               favoriteSettlement = posSet;
@@ -2145,12 +2147,22 @@ public class SOCRobotDM
 
 
   /**
-   * add a bonus to the road score based on the change in
-   * win game ETA for this one road
+   * For {@link #SMART_STRATEGY}, add a bonus to the road or ship score
+   * based on the change in win game ETA for this one road or ship
    * (possible settlements are 1 road closer, longest road bonus, etc).
+   *<UL>
+   * <LI> Calls {@link SOCPlayerTracker#tryPutPiece(SOCPlayingPiece, SOCGame, HashMap)}
+   *      which makes a copy of the player trackers and puts the piece there.
+   *      This also updates our player's VP total, including any special VP from placement.
+   * <LI> Calls {@link SOCPlayerTracker#updateWinGameETAs(HashMap)} on that copy
+   * <LI> Calls {@link #calcWGETABonus(HashMap, HashMap)} to compare WGETA before and after placement
+   * <LI> Calls {@link #getETABonus(int, int, float)} to weigh that bonus
+   * <LI> Adds that to {@code posRoad}'s {@link SOCPossiblePiece#getScore()}
+   * <LI> Cleans up with {@link SOCPlayerTracker#undoTryPutPiece(SOCPlayingPiece, SOCGame)}
+   *</UL>
    *
    * @param posRoad  the possible piece that we're scoring
-   * @param roadETA  the eta for the road
+   * @param roadETA  the ETA for a road or ship, from building speed estimates
    * @param leadersCurrentWGETA  the leaders current WGETA
    * @param playerTrackers  the player trackers (for figuring out road building plan and bonus/ETA)
    */
