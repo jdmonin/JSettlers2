@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1663,7 +1663,9 @@ public class SOCGameOption
      *
      * @param nvpair Name-value pair string, as created by
      *               {@link #packOptionsToString(Map, boolean)}.
-     *               'T' or 't' or 'Y' or 'y' is always allowed for bool value, regardless of forceNameUpcase.
+     *               <BR>
+     *               'T', 't', 'Y', 'y' are always allowed for bool value, regardless of forceNameUpcase.
+     *               'F', 'f', 'N', 'n' are the valid bool false values.
      * @param forceNameUpcase Call {@link String#toUpperCase()} on keyname within nvpair?
      *               For friendlier parsing of manually entered (command-line) nvpair strings.
      * @return Parsed option, or null if parse error;
@@ -1707,8 +1709,32 @@ public class SOCGameOption
             switch (copyOpt.optType)  // OTYPE_* - update this switch, must match format produced
             {                         //           in packValue / packOptionsToString
             case OTYPE_BOOL:
-                copyOpt.setBoolValue
-                    (optval.equals("t") || optval.equals("T") || optval.equals("y") || optval.equals("Y"));
+                if (optval.length() == 1)
+                {
+                    final boolean bv;
+                    switch (optval.charAt(0))
+                    {
+                    case 't':  // fall through
+                    case 'T':
+                    case 'y':
+                    case 'Y':
+                        bv = true;
+                        break;
+
+                    case 'f':  // fall through
+                    case 'F':
+                    case 'n':
+                    case 'N':
+                        bv = false;
+                        break;
+
+                    default:
+                        return null;  // malformed
+                    }
+                    copyOpt.setBoolValue(bv);
+                } else {
+                    return null;  // malformed
+                }
                 break;
 
             case OTYPE_INT:
@@ -1726,8 +1752,27 @@ public class SOCGameOption
             case OTYPE_ENUMBOOL:
                 try
                 {
-                    final char ch0 = optval.charAt(0);
-                    copyOpt.setBoolValue((ch0 == 't') || (ch0 == 'T') || (ch0 == 'y') || (ch0 == 'Y'));
+                    final boolean bv;
+                    switch (optval.charAt(0))
+                    {
+                    case 't':  // fall through
+                    case 'T':
+                    case 'y':
+                    case 'Y':
+                        bv = true;
+                        break;
+
+                    case 'f':  // fall through
+                    case 'F':
+                    case 'n':
+                    case 'N':
+                        bv = false;
+                        break;
+
+                    default:
+                        return null;  // malformed
+                    }
+                    copyOpt.setBoolValue(bv);
                     copyOpt.setIntValue(Integer.parseInt(optval.substring(1)));
                 } catch (NumberFormatException e)
                 {
