@@ -4604,7 +4604,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return The force result, including any discarded resources.
      *         Type will be {@link SOCForceEndTurnResult#FORCE_ENDTURN_RSRC_DISCARD}
      *         or {@link SOCForceEndTurnResult#FORCE_ENDTURN_RSRC_DISCARD_WAIT}.
-     * @see #playerDiscardRandom(int, boolean)
+     * @see #playerDiscardOrGainRandom(int, boolean)
      */
     private SOCForceEndTurnResult forceEndTurnChkDiscardOrGain(final int pn, final boolean isDiscard)
     {
@@ -4640,8 +4640,8 @@ public class SOCGame implements Serializable, Cloneable
      * For discards, randomly choose from contents of <tt>fromHand</tt>.
      * For gains, randomly choose resource types least plentiful in <tt>fromHand</tt>.
      *
-     * @param fromHand     Discard from this set
-     * @param numToPick    This many must be discarded or added
+     * @param fromHand     Discard from this set, or gain to add to this set
+     * @param numToPick    This many must be discarded or gained
      * @param isDiscard    True to discard resources, false to gain
      * @param picks        Add the picked resources to this set (typically new and empty when called)
      * @param rand         Source of random
@@ -4740,16 +4740,20 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Force this non-current player to discard randomly.  Used at server when a
-     * player must discard and they lose connection while the game is waiting for them.
+     * Force this non-current player to discard or gain resources randomly.
+     * Used at server when a player must discard or pick free resources
+     * and player loses connection while the game is waiting for them,
+     * or a bot is unresponsive.
      *<P>
      * On return, gameState will be:
      *<UL>
      * <LI> {@link #WAITING_FOR_DISCARDS} if other players still must discard
-     * <LI> {@link #WAITING_FOR_PICK_GOLD_RESOURCE} if other players stll must pick their resources
+     * <LI> {@link #WAITING_FOR_PICK_GOLD_RESOURCE} if other players still must pick their resources
+     * <LI> {@link #PLAY1} if everyone has picked (gained) resources
      * <LI> {@link #PLAY1} if everyone has discarded, and {@link #isForcingEndTurn()} is set
      * <LI> {@link #PLACING_ROBBER} if everyone has discarded, and {@link #isForcingEndTurn()} is not set
      *</UL>
+     * Before v2.0.00, this method was {@code playerDiscardRandom(..)}.
      *
      * @param pn Player number to discard; player must must need to discard,
      *           must not be current player (use {@link #forceEndTurn()} for that)
@@ -4761,7 +4765,7 @@ public class SOCGame implements Serializable, Cloneable
      *                                  and their {@link SOCPlayer#getNeedToPickGoldHexResources()} == 0,
      *                               or if pn == currentPlayer.
      */
-    public SOCResourceSet playerDiscardRandom(final int pn, final boolean isDiscard)
+    public SOCResourceSet playerDiscardOrGainRandom(final int pn, final boolean isDiscard)
         throws IllegalStateException
     {
         if (pn == currentPlayerNumber)

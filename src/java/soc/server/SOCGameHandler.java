@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2014 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2013-2015 Jeremy D Monin <jeremy@nand.net>.
  * Contents were formerly part of SOCServer.java;
  * portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -768,7 +768,8 @@ public class SOCGameHandler extends GameHandler
             return false;  // <--- Early return: All players have left ---
 
         /**
-         * report any resources lost, gained
+         * Report any resources lost or gained.
+         * See also forceGamePlayerDiscardOrGain for same reporting code.
          */
         SOCResourceSet resGainLoss = res.getResourcesGainedLost();
         if (resGainLoss != null)
@@ -2488,12 +2489,13 @@ public class SOCGameHandler extends GameHandler
      *                If not -1, PLAYERELEMENT messages will also be sent about this player.
      * @param message Append resource numbers/types to this stringbuffer,
      *                format like "3 clay,3 wood"; can be null.
-     * @param playerConn     Null or mainPlayer's connection; send messages here instead of
-     *                sending to all players in game.  Because trades are public, there is no
+     * @param playerConn     Null to announce to the entire game, or mainPlayer's connection to send messages
+     *                there instead of sending to all players in game.  Because trades are public, there is no
      *                such parameter for tradingPlayer.
      *
      * @see #reportTrade(SOCGame, int, int)
      * @see #reportBankTrade(SOCGame, SOCResourceSet, SOCResourceSet)
+     * @see #reportRsrcGainGold(SOCGame, SOCPlayer, int, SOCResourceSet, boolean)
      * @see #handleDISCARD(SOCGame, StringConnection, SOCDiscard)
      * @see #handleDISCOVERYPICK(SOCGame, StringConnection, SOCDiscoveryPick)
      * @see #handleROLLDICE(SOCGame, StringConnection, SOCRollDice)
@@ -5577,31 +5579,40 @@ public class SOCGameHandler extends GameHandler
     // javadoc inherited from GameHandler
     public void endTurnIfInactive(final SOCGame ga, final long currentTimeMillis)
     {
-        SOCPlayer pl = ga.getPlayer(ga.getCurrentPlayerNumber());
-        if (! pl.isRobot())
-            return;  // <-- not the robot's turn --
-
         final int gameState = ga.getGameState();
-        if ((gameState == SOCGame.WAITING_FOR_DISCARDS) || (gameState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
-            || (gameState == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
+        final boolean isDiscardOrPickRsrc = (gameState == SOCGame.WAITING_FOR_DISCARDS)
+            || (gameState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+            || (gameState == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE);
+
+        SOCPlayer pl = ga.getPlayer(ga.getCurrentPlayerNumber());
+
+        if (isDiscardOrPickRsrc)
         {
-            // Check if we're just waiting on humans, not on the robot
-            boolean waitHumans = false;
+            // Check if we're just waiting on humans, not on any robot
+
+            SOCPlayer plEnd = null;  // bot the game is waiting to hear from
             for (int i = 0; i < ga.maxPlayers; ++i)
             {
                 final SOCPlayer pli = ga.getPlayer(i);
-                if (pli.isRobot())
+                if ((! pli.getNeedToDiscard()) && (pli.getNeedToPickGoldHexResources() == 0))
                     continue;
 
-                if (pli.getNeedToDiscard() || (pli.getNeedToPickGoldHexResources() > 0))
+                if (pli.isRobot())
                 {
-                    waitHumans = true;
-                    break;
+                    if (plEnd == null)
+                        plEnd = pli;
+                } else {
+                    return;  // <--- Waiting on humans, don't end bot's turn ---
                 }
             }
 
-            if (waitHumans)
-                return;  // <-- Waiting on humans, don't end bot's turn --
+            if (plEnd == null)
+                return;  // <--- Not waiting on any bot ---
+
+            pl = plEnd;
+        } else {
+            if (! pl.isRobot())
+                return;  // <--- not a robot's turn, and not isDiscardOrPickRsrc ---
         }
 
         if (pl.getCurrentOffer() != null)
@@ -5623,6 +5634,9 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * Can be called for a player still in the game, or for a player
      * who has left ({@link SOCGame#removePlayer(String)} has been called).
+     * Can be called for a player who isn't current player; in that case
+     * it takes action if the game was waiting for the player (picking random
+     * resources for discard or gold-hex picks) but won't end the current turn.
      *<P>
      * If they were placing an initial road, also cancels that road's
      * initial settlement.
@@ -5633,7 +5647,7 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * Not public, but package visibility, for use by {@link SOCForceEndTurnThread} for {@link SOCGameTimeoutChecker}.
      *
-     * @param ga   The game to end turn
+     * @param ga   The game to end turn if called for current player, or to otherwise stop waiting for a player
      * @param plNumber  player.getNumber; may or may not be current player
      * @param plName    player.getName
      * @param plConn    player's client connection
@@ -5759,21 +5773,29 @@ public class SOCGameHandler extends GameHandler
              * To keep the game moving, fabricate their response.
              * - Board-reset voting: Handled above.
              * - Waiting for discard: Handle here.
+             * - Waiting for gold-hex pick: Handle here.
              */
-            if ((gameState == SOCGame.WAITING_FOR_DISCARDS)
-                 && (ga.getPlayer(plNumber).getNeedToDiscard()))
+            if (   ((gameState == SOCGame.WAITING_FOR_DISCARDS) && ga.getPlayer(plNumber).getNeedToDiscard())
+                || (  ((gameState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                       || (gameState == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
+                    && (ga.getPlayer(plNumber).getNeedToPickGoldHexResources() > 0)  ))
             {
                 /**
                  * For discard, tell the discarding player's client that they discarded the resources,
                  * tell everyone else that the player discarded unknown resources.
+                 * For gold pick, announce the picked resources.
                  */
                 srv.gameList.releaseMonitorForGame(gaName);
+                System.err.println("L5789: Waiting too long for bot discard or gain: game="
+                    + ga.getName() + ", pn=" + plNumber + "  " + plName);
                 ga.takeMonitor();
-                forceGamePlayerDiscard(ga, cpn, plConn, plName, plNumber);
-                sendGameState(ga, false);  // WAITING_FOR_DISCARDS or MOVING_ROBBER
+                forceGamePlayerDiscardOrGain(ga, cpn, plConn, plName, plNumber);
+                sendGameState(ga, false);  // WAITING_FOR_DISCARDS or MOVING_ROBBER for discard;
+                    // PLAY1 or WAITING_FOR_PICK_GOLD_RESOURCE for gain
                 ga.releaseMonitor();
                 srv.gameList.takeMonitorForGame(gaName);
             }
+
         }  // current player?
 
         if (! hasMonitorFromGameList)
@@ -5785,9 +5807,12 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * Force this player (not current player) to discard, and report resources to all players.
-     * Does not send gameState, which may have changed; see
+     * Force this player (not current player) to discard, or gain random resources from a gold hex,
+     * and report resources to all players. Does not send gameState, which may have changed; see
      * {@link SOCGame#discardOrGainPickRandom(SOCResourceSet, int, boolean, SOCResourceSet, Random)}
+     *<P>
+     * Discards if {@link SOCGame#getGameState() cg.getGameState()} == {@link SOCGame#WAITING_FOR_DISCARDS},
+     * otherwise picks enough random resources for {@link SOCPlayer#getNeedToPickGoldHexResources()}.
      *<P>
      * Assumes, as {@link #endGameTurn(SOCGame, SOCPlayer, boolean)} does:
      * <UL>
@@ -5797,19 +5822,35 @@ public class SOCGameHandler extends GameHandler
      *
      * @param cg  Game object
      * @param cpn Game's current player number
-     * @param c   Connection of discarding player
-     * @param plName Discarding player's name, for GameTextMsg
-     * @param pn  Player number who must discard
+     * @param c   Connection of discarding/gaining player
+     * @param plName Discarding/gaining player's name, for GameTextMsg
+     * @param pn  Player number who must discard/gain resources
+     * @throws IllegalStateException if {@code pn} is current player, or if incorrect game state or incorrect
+     *     player status; see {@link SOCGame#playerDiscardOrGainRandom(int, boolean)} for details
      */
-    private final void forceGamePlayerDiscard(SOCGame cg, final int cpn, StringConnection c, String plName, final int pn)
+    private final void forceGamePlayerDiscardOrGain
+        (final SOCGame cg, final int cpn, final StringConnection c, final String plName, final int pn)
+        throws IllegalStateException
     {
-        SOCResourceSet discard = cg.playerDiscardRandom(pn, true);
+        final boolean isDiscard = (cg.getGameState() == SOCGame.WAITING_FOR_DISCARDS);
+
+        final SOCResourceSet rset = cg.playerDiscardOrGainRandom(pn, isDiscard);
+
+        // Report resources lost or gained; see also forceEndGameTurn for same reporting code.
+
         final String gaName = cg.getName();
-        if ((c != null) && c.isConnected())
-            reportRsrcGainLoss(gaName, discard, true, cpn, -1, null, c);
-        final int totalRes = discard.getTotal();
-        srv.messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
-        srv.messageToGameKeyed(cg, true, "action.discarded", plName, totalRes);  // "{0} discarded {1} resources."
+        if (isDiscard)
+        {
+            if ((c != null) && c.isConnected())
+                reportRsrcGainLoss(gaName, rset, true, pn, -1, null, c);
+
+            final int totalRes = rset.getTotal();
+            srv.messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
+            srv.messageToGameKeyed(cg, true, "action.discarded", plName, totalRes);  // "{0} discarded {1} resources."
+        } else {
+            // Send SOCPlayerElement messages, "gains" text
+            reportRsrcGainGold(cg, cg.getPlayer(pn), pn, rset, false);
+        }
     }
 
     /**

@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -7286,7 +7286,7 @@ public class SOCServer extends Server
      * check for games that have expired and destroy them.
      * If games are about to expire, send a warning.
      * As of version 1.1.09, practice games ({@link SOCGame#isPractice} flag set) don't expire.
-     * Callback method from {@link SOCGameTimeoutChecker#run()}.
+     * Is callback method every few minutes from {@link SOCGameTimeoutChecker#run()}.
      *
      * @param currentTimeMillis  The time when called, from {@link System#currentTimeMillis()}
      * @see #GAME_EXPIRE_WARN_MINUTES
@@ -7351,10 +7351,14 @@ public class SOCServer extends Server
     }
 
     /**
-     * Check for robot turns that have expired, and end them.
-     * They may end from inactivity or from an illegal placement.
-     * Checks the {@link SOCGame#lastActionTime} field.
-     * Callback method from {@link SOCGameTimeoutChecker#run()}.
+     * Check all games for robot turns that have expired, and end them,
+     * or stop waiting for non-current-player robot actions (discard picks, etc).
+     * Robot turns may end from inactivity or from an illegal placement.
+     * Checks each game's {@link SOCGame#lastActionTime} field, and calls
+     * {@link GameHandler#endTurnIfInactive(SOCGame, long)} if the
+     * last action is older than {@link #ROBOT_FORCE_ENDTURN_SECONDS}.
+     *<P>
+     * Is callback method every few seconds from {@link SOCGameTimeoutChecker#run()}.
      *
      * @param currentTimeMillis  The time when called, from {@link System#currentTimeMillis()}
      * @see #ROBOT_FORCE_ENDTURN_SECONDS
@@ -7378,6 +7382,7 @@ public class SOCServer extends Server
                 long lastActionTime = ga.lastActionTime;
                 if (lastActionTime > inactiveTime)
                     continue;
+
                 if (ga.getGameState() >= SOCGame.OVER)
                 {
                     // bump out that time, so we don't see
