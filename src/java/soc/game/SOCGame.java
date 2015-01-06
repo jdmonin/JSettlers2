@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -5223,6 +5223,8 @@ public class SOCGame implements Serializable, Cloneable
                 gameState = PLAY1;
             }
         }
+
+        lastActionTime = System.currentTimeMillis();
     }
 
     /**
@@ -5279,6 +5281,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         players[pn].getResources().add(rs);
         players[pn].setNeedToPickGoldHexResources(0);
+        lastActionTime = System.currentTimeMillis();
 
         // initial placement?
         if (gameState == STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
