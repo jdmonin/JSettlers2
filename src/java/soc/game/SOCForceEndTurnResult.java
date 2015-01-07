@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008,2010,2012-2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008,2010,2012-2013,2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -91,18 +91,28 @@ public class SOCForceEndTurnResult
     public static final int FORCE_ENDTURN_SKIP_START_TURN   = 4;
 
     /** Sent both for placement of bought pieces, and for "free" pieces from road-building cards.
-     *  Resources for the bought piece are gained (given back to the player).
+     *  Resources for the bought piece are gained (given back to the player). {@link #getResourcesGainedLost()}
+     *  contains the returned resources, or nothing if the piece was free.
      */
     public static final int FORCE_ENDTURN_RSRC_RET_UNPLACE  = 5;
 
     /** Robber movement has been cancelled. Call {@link #getReturnedInvItem()} to see if a Knight card was returned. */
     public static final int FORCE_ENDTURN_UNPLACE_ROBBER    = 6;
 
-    /** Resources have been randomly discarded (or gained from {@link SOCBoardLarge#GOLD_HEX}). Ready to end turn. */
+    /**
+     * Resources have been randomly discarded, or gained from {@link SOCBoardLarge#GOLD_HEX}
+     * or a canceled piece placement. Ready to end turn.
+     * {@link #rsrcLoss} is set or cleared.
+     * {@link #getResourcesGainedLost()} contains the resources.
+     */
     public static final int FORCE_ENDTURN_RSRC_DISCARD      = 7;
 
-    /** Resources have been randomly discarded (or gained from {@link SOCBoardLarge#GOLD_HEX}).
-     *  Cannot end turn yet; other players must discard or gain. {@link SOCGame#isForcingEndTurn()} is set.
+    /**
+     * Resources have been randomly discarded, or gained from {@link SOCBoardLarge#GOLD_HEX}
+     * or a canceled piece placement. Cannot end turn yet; other players must discard or gain.
+     * {@link SOCGame#isForcingEndTurn()} is set.
+     * {@link #rsrcLoss} is set or cleared.
+     * {@link #getResourcesGainedLost()} contains the resources.
      */
     public static final int FORCE_ENDTURN_RSRC_DISCARD_WAIT = 8;
 
@@ -185,7 +195,7 @@ public class SOCForceEndTurnResult
      * This can occur from the robber or knight, the gold hex, or when placing a piece is canceled.
      *
      * @param res Result type, from constants in this class
-     *            ({@link #FORCE_ENDTURN_UNPLACE_ROBBER}, etc.)
+     *            ({@link #FORCE_ENDTURN_RSRC_DISCARD}, etc.)
      * @param gainedLost Resources gained (returned to cancel piece
      *            placement) or lost (discarded), or null.
      * @param isLoss     Resources are lost (discarded), not gained (returned to player).
@@ -237,8 +247,8 @@ public class SOCForceEndTurnResult
     }
 
     /**
-     * Get the resources gained (returned to cancel piece
-     * placement) or lost (discarded), if any.
+     * Get the resources gained (returned to cancel piece placement, or
+     * received from placing at a gold hex) or lost (discarded), if any.
      * Lost resources are signaled by {@link #isLoss()}.
      *
      * @return gained or lost resources, or null

@@ -4264,8 +4264,8 @@ public class SOCGame implements Serializable, Cloneable
      * Exceptions (where caller should not call endTurn) are these return types:
      * <UL>
      * <LI> {@link SOCForceEndTurnResult#FORCE_ENDTURN_RSRC_DISCARD_WAIT}
-     *       - Have forced current player to discard randomly, must now
-     *         wait for other players to discard.
+     *       - Have forced current player to discard or gain resources randomly,
+     *         must now wait for other players to pick their discards or gains.
      *         gameState is {@link #WAITING_FOR_DISCARDS}, current player
      *         as yet unchanged.
      * <LI> {@link SOCForceEndTurnResult#FORCE_ENDTURN_SKIP_START_ADV}
@@ -4601,7 +4601,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn Player number to force to randomly discard or gain
      * @param isDiscard  True to discard resources, false to gain
-     * @return The force result, including any discarded resources.
+     * @return The force result, including any discarded or gained resources.
      *         Type will be {@link SOCForceEndTurnResult#FORCE_ENDTURN_RSRC_DISCARD}
      *         or {@link SOCForceEndTurnResult#FORCE_ENDTURN_RSRC_DISCARD_WAIT}.
      * @see #playerDiscardOrGainRandom(int, boolean)
@@ -4618,9 +4618,6 @@ public class SOCGame implements Serializable, Cloneable
         } else {
             discardOrGainPickRandom(hand, players[pn].getNeedToPickGoldHexResources(), false, picks, rand);
             pickGoldHexResources(pn, picks);  // Checks for other players, sets gameState
-            // TODO - what if not waiting for current pl to pick gains, but other pl?
-            //   (discard could be same scenario)
-            // TODO return type; ones below are for discards
         }
 
         if ((gameState == WAITING_FOR_DISCARDS) || (gameState == WAITING_FOR_PICK_GOLD_RESOURCE))
