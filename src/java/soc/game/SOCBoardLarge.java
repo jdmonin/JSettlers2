@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -252,6 +252,9 @@ public class SOCBoardLarge extends SOCBoard
      * Hex type for the Fog Hex, with actual type revealed when roads or ships are placed.
      * Used with some scenarios (see {@link SOCGameOption#K_SC_FOG}).
      * Bots should treat this as {@link SOCBoard#DESERT_HEX DESERT_HEX} until revealed.
+     *<P>
+     * To simplify the bot, client, and network, hexes can be hidden only at the server during
+     * {@link #makeNewBoard(Map)} before the board layout is finished and sent to the client.
      *<P>
      * The numeric value (8) for <tt>FOG_HEX</tt> is the same as
      * the v1/v2 encoding's {@link SOCBoard#CLAY_PORT_HEX}, but the
@@ -2232,6 +2235,9 @@ public class SOCBoardLarge extends SOCBoard
      * In some scenarios ({@code _SC_PIRI}), not all sea edges are legal for ships.
      * See {@link SOCPlayer#setRestrictedLegalShips(int[])}
      * and {@code SOCBoardLargeAtServer.getLegalSeaEdges(SOCGame, int)}.
+     *<P>
+     * Server doesn't need to call this method, because {@code SOCBoardLargeAtServer.makeNewBoard(Map)}
+     * sets the contents of the same data structures.
      *
      * @param psNodes  The set of potential settlement node coordinates as {@link Integer}s;
      *    either a {@link HashSet} or {@link Vector}.

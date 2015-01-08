@@ -336,9 +336,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * If not {@link SOCGame#hasSeaBoard}, initialized in constructor
      * from {@link SOCBoard#initPlayerLegalAndPotentialSettlements()}.
      *<P>
-     * If {@link SOCGame#hasSeaBoard}, empty until {@link SOCBoard#makeNewBoard(Map)}
+     * If {@link SOCGame#hasSeaBoard}: Empty at server until {@link SOCBoardLarge#makeNewBoard(Map)}
      * and {@link SOCGame#startGame()}, because the board layout and legal settlements vary
-     * from game to game.
+     * from game to game.  Empty at client until
+     * {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])} is called.
+     *
      * @see #potentialSettlements
      * @see SOCBoard#nodesOnLand
      */
@@ -399,6 +401,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * If {@link HashSet#contains(Object) potentialSettlements.contains(new Integer(nodeCoord))},
      * then this is a potential settlement.
      * @see #legalSettlements
+     * @see #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])
      * @see SOCBoard#nodesOnLand
      */
     private HashSet<Integer> potentialSettlements;
@@ -3789,7 +3792,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Set which nodes are potential settlements.
-     * Called at client when joining/creating a game.
+     * Called at client when joining/creating a game
+     * when game's Potential Settlements message is received.
      * At server, unless {@link SOCGame#hasSeaBoard},
      * the potentials list is instead copied at start
      * of game from legalSettlements.

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -539,6 +539,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             }
             PORTS_TYPES_ISLANDS = null;  // no ports inside fog island's random layout
             PORT_LOC_FACING_ISLANDS = null;
+
+            // Fog hex hiding is done below after some other steps; search for hasScenarioFog
 
         } else if (scen.equals(SOCScenario.K_SC_NSHO)) {
 
@@ -2290,6 +2292,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * For {@link #makeNewBoard(Map)}, hide these hexes under {@link #FOG_HEX} to be revealed later.
      * The hexes will be stored in {@link #fogHiddenHexes}; their {@link #hexLayoutLg} and {@link #numberLayoutLg}
      * elements will be set to {@link #FOG_HEX} and -1.
+     * Does not remove anything from {@link #nodesOnLand} or {@link #landAreasLegalNodes}.
      *<P>
      * To simplify the bot, client, and network, hexes can be hidden only during makeNewBoard,
      * before the board layout is made and sent to the client.
