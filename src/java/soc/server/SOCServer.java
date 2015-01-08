@@ -4213,6 +4213,8 @@ public class SOCServer extends Server
      */
     public boolean processDebugCommand(StringConnection debugCli, String ga, final String dcmd, final String dcmdU)
     {
+        // See handleGAMETEXTMSG for "unprivileged" debug commands like *STATS* and *ADDTIME*.
+
         if (dcmdU.startsWith("*HELP"))
         {
             for (int i = 0; i < DEBUG_COMMANDS_HELP.length; ++i)
@@ -5092,6 +5094,19 @@ public class SOCServer extends Server
     /**
      * Handle game text messages, including debug commands.
      * Was part of processCommand before 1.1.07.
+     *<P>
+     * Some commands are unprivileged and can be run by any client:
+     *<UL>
+     * <LI> *ADDTIME*
+     * <LI> *CHECKTIME*
+     * <LI> *VERSION*
+     * <LI> *STATS*
+     * <LI> *WHO*
+     *</UL>
+     * These commands are processed in this method.
+     * Others can be run only by certain users or when certain server flags are set.
+     * Those are processed in {@link #processDebugCommand(StringConnection, String, String, String)}.
+     *
      * @since 1.1.07
      */
     private void handleGAMETEXTMSG(StringConnection c, SOCGameTextMsg gameTextMsgMes)

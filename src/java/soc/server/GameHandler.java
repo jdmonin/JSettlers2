@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -86,6 +86,10 @@ public abstract class GameHandler
     /**
      * Look for a potential debug command in a text message sent by the "debug" client/player.
      * If game debug is on, called for every game text message (chat message) received from that player.
+     *<P>
+     * Server-wide debug commands are processed before gametype-specific debug commands;
+     * see {@link SOCServer#processDebugCommand(StringConnection, String, String, String)}.
+     *
      * @param debugCli  Client sending the potential debug command
      * @param gaName  Game in which the message is sent
      * @param dcmd   Text message which may be a debug command
