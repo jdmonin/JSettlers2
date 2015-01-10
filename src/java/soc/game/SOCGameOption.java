@@ -96,6 +96,11 @@ import soc.message.SOCMessage;
  * JSettlers version number to the server's, and asks for any changes to options if
  * their versions differ.
  *<P>
+ * <B>I18N:</B><br>
+ * Game option descriptions are also stored as {@code gameopt.*} in
+ * {@code server/strings/toClient_*.properties} to be sent to clients if needed
+ * during version negotiation.
+ *<P>
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
  */

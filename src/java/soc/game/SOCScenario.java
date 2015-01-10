@@ -63,6 +63,10 @@ import soc.message.SOCMessage;
  * JSettlers version number to the server's, and asks for any changes if
  * their versions differ.
  *<P>
+ * <B>I18N:</B><br>
+ * Game scenario names and descriptions are also stored as {@code gamescen.*.n}, {@code .p}
+ * in {@code server/strings/toClient_*.properties} to be sent to clients if needed.
+ *<P>
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
