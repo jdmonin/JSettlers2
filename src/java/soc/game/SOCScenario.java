@@ -188,16 +188,16 @@ public class SOCScenario
             (K_SC_CLVI, 2000, 2000,
              "Cloth Trade with neutral villages",
              "The small islands' villages give you Cloth; every 2 cloth you have is 1 extra Victory Point. To gain cloth, "
-             + "build ships to a village. Each player to reach a village get of its 1 cloth when reached, and 1 more "
+             + "build ships to a village. Each player to reach a village gets 1 of its cloth at that time, and 1 more "
              + "whenever its number is rolled, until the village runs out. You can't move the pirate until you've "
-             + "reached a village. If more than half the villages run out, the game ends, and the player "
+             + "reached a village. If more than half the villages run out of cloth, the game ends and the player "
              + "with the most VP wins. (If tied, player with most cloth wins.)",
              "_SC_CLVI=t,PLL=t,VP=t14,_SC_3IP=t,_SC_0RVP=t"));
 
         allSc.put(K_SC_PIRI, new SOCScenario
             (K_SC_PIRI, 2000, 2000,
              "Pirate Islands and Fortresses",
-             "A pirate fleet circulates, stealing resources from weak players with adjacent settlements/cities until "
+             "A pirate fleet patrols, stealing resources from weak players with adjacent settlements/cities until "
              + "the player upgrades their ships to warships.  To win, you must build ships directly to the Fortress "
              + "with your color, which the pirates have captured from you, and defeat it 3 times using warships.  "
              + "So, ship routes can't branch in different directions, only extend from their ends.  "
@@ -209,17 +209,17 @@ public class SOCScenario
                  "The Forgotten Tribe",
                  "Far areas of the board have small habitations of a \"forgotten tribe\" of settlers. "
                  + "When players reach them they are greeted with \"gifts\" of a development card or Special Victory Point. "
-                 + "Harbors at these far areas can be claimed by players and must be moved adjacent to one "
+                 + "Ports at these far areas can be claimed by players and must be moved adjacent to one "
                  + "of their coastal settlements/cities if possible, or set aside for the "
-                 + "player to place later when they have one.",
+                 + "player to place later when they can.",
                  "_SC_FTRI=t,PLL=t,VP=t13"));
 
         allSc.put(K_SC_WOND, new SOCScenario
                 (K_SC_WOND, 2000, 2000,
                  "Wonders",
-                 "Players must choose a unique Wonder and build all 4 of its levels. "
+                 "Each player must choose a unique Wonder and build all 4 of its levels. "
                  + "Each Wonder has its own requirements before you may start it, "
-                 + "such as a harbor location or number of cities built. To win, you "
+                 + "such as a port at a location or the number of cities built. To win, you "
                  + "must complete your Wonder's 4 levels, or reach 10 VP and complete "
                  + "more levels than any other player.",
                  "_SC_WOND=t,PLL=t,VP=t10,_SC_SANY=t"));  // win condition: Complete Wonder, or 10 VP _and_ built the most levels
