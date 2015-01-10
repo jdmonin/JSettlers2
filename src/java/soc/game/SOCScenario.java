@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,9 +30,8 @@ import soc.message.SOCMessage;
  * Scenarios for game rules and options on the {@link SOCBoardLarge large sea board}.
  * Chooseable at game creation.
  * This class holds the known scenarios, at the client or server,
- * in a static dictionary of known scenarios;
- * see {@link #initAllScenarios()} for the current list.
- * To get the list of known scenarios, use {@link #getAllKnownScenarios()}.
+ * in a static dictionary of known scenarios; see {@link #getAllKnownScenarios()}
+ * for the current list of all known scenarios.
  *<P>
  * For information about adding or changing game scenarios in a
  * later version of JSettlers, please see {@link #initAllScenarios()}.
@@ -51,7 +50,7 @@ import soc.message.SOCMessage;
  * {@link SOCMessage#isSingleLineAndSafe(String)} within constructors and setters.
  *<P>
  * The "known scenarios" are initialized via {@link #initAllScenarios()}.  See that
- * method's description for more details on adding a scenario.
+ * method's description for more details on adding or changing a scenario.
  *<P>
  * <B>Version negotiation:</B><br>
  * Game options were introduced in 1.1.07; check server, client versions against
@@ -80,26 +79,14 @@ public class SOCScenario
      * Set of "known scenarios".
      * allScenarios must never be null, because other places assume it is filled.
      * All scenarios here have their {@link SOCVersionedItem#isKnown isKnown} flag set true.
+     * To add or change a scenario, see {@link #initAllScenarios()}.
      */
     private static Map<String, SOCScenario> allScenarios = initAllScenarios();
 
     /**
      * Create a set of the known scenarios.
      * This method creates and returns a Map, but does not set the static {@link #allScenarios} field.
-     *
-     * <h3>Current Game Scenarios:</h3>
-     *<UL>
-     *<LI> {@link #K_SC_NSHO SC_NSHO}  New Shores
-     *<LI> {@link #K_SC_4ISL SC_4ISL}  The Four Islands (Six on the 6-player board)
-     *<LI> {@link #K_SC_FOG  SC_FOG}   A hex has been revealed from behind fog:
-     *                                  {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}
-     *<LI> {@link #K_SC_TTD  SC_TTD}   Through The Desert
-     *<LI> {@link #K_SC_CLVI SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}
-     *<LI> {@link #K_SC_PIRI SC_PIRI}  Pirate Islands and {@link SOCFortress fortresses}
-     *<LI> {@link #K_SC_FTRI SC_FTRI}  The Forgotten Tribe
-     *<LI> {@link #K_SC_WOND SC_WOND}  Wonders
-     *</UL>
-     *  (See each scenario name field's javadoc for more details.)
+     * See {@link #getAllKnownScenarios()} for the current list of known scenarios.
      *
      * <h3>If you want to add a game scenario:</h3>
      *<UL>
@@ -120,7 +107,7 @@ public class SOCScenario
      *   and doesn't change any game behavior from standard, so there is no {@code "_SC_TTD"} SOCGameOption.
      *<LI> Add the scenario's key to the list of "game scenario keynames"
      *   as a public static final String, such as {@link #K_SC_FOG}.
-     *   Put a short description in the javadoc there, and in this javadoc's scenario list.
+     *   Put a short description in the javadoc there and in {@link #getAllKnownScenarios()} javadoc's scenario list.
      *<LI> Create the scenario by calling {@code allSc.put} here in initAllScenarios.
      *   Use the current version for the "last modified" field.
      *<LI> Create the board layout; see {@link soc.server.SOCBoardLargeAtServer} javadoc.
@@ -162,7 +149,7 @@ public class SOCScenario
      *
      * @return a fresh copy of the "known" scenarios, with their hardcoded default values
      */
-    public static Map<String, SOCScenario> initAllScenarios()
+    private static Map<String, SOCScenario> initAllScenarios()
     {
         Map<String, SOCScenario> allSc = new HashMap<String, SOCScenario>();
 
@@ -182,8 +169,9 @@ public class SOCScenario
 
         allSc.put(K_SC_FOG, new SOCScenario
             (K_SC_FOG, 2000, 2000,
-             "Some hexes initially hidden by fog",
-             "When you build a ship or road to a foggy hex, that hex is revealed. Unless it's water, you are given its resource as a reward.",
+             "Fog Islands",
+             "Some hexes are initially hidden by fog. When you build a ship or road to a foggy hex, that hex is revealed. "
+             + "Unless it's water, you are given its resource as a reward.",
              "_SC_FOG=t,PLL=t,VP=t12"));
 
         allSc.put(K_SC_TTD, new SOCScenario
@@ -456,11 +444,28 @@ public class SOCScenario
 
     /**
      * Get all known scenario objects, mapping from their key names (such as {@link #K_SC_4ISL SC_4ISL}).
+     *
+     * <H3>Current Known Scenarios:</H3>
+     *<UL>
+     *<LI> {@link #K_SC_NSHO SC_NSHO}  New Shores
+     *<LI> {@link #K_SC_4ISL SC_4ISL}  The Four Islands (Six on the 6-player board)
+     *<LI> {@link #K_SC_FOG  SC_FOG}   A hex has been revealed from behind fog:
+     *                                  {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}
+     *<LI> {@link #K_SC_TTD  SC_TTD}   Through The Desert
+     *<LI> {@link #K_SC_CLVI SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}
+     *<LI> {@link #K_SC_PIRI SC_PIRI}  Pirate Islands and {@link SOCFortress fortresses}
+     *<LI> {@link #K_SC_FTRI SC_FTRI}  The Forgotten Tribe
+     *<LI> {@link #K_SC_WOND SC_WOND}  Wonders
+     *</UL>
+     *  (See each scenario name field's javadoc for more details.)
+     *
      * @return a deep copy of all known scenario objects
      * @see #addKnownScenario(SOCScenario)
      */
     public static Map<String, SOCScenario> getAllKnownScenarios()
     {
+        // To add a new scenario, see initAllScenarios().
+
         return cloneScenarios(allScenarios);
     }
 
