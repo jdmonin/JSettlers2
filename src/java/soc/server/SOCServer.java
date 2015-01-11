@@ -3939,7 +3939,10 @@ public class SOCServer extends Server
             {
                 if (mes instanceof SOCMessageForGame)
                 {
-                    final String gaName = ((SOCMessageForGame) mes).getGame(); 
+                    final String gaName = ((SOCMessageForGame) mes).getGame();
+                    if ((gaName == null) || gaName.equals(SOCMessage.GAME_NONE))
+                        return;  // <--- Early return: reject this marker from any client ---
+
                     SOCGame ga = gameList.getGameData(gaName);
                     if ((ga == null) || (c == null))
                         return;  // <--- Early return: ignore unknown games ---

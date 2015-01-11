@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -341,6 +341,21 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final char sep2_char = ',';
 
     /**
+     * "Not for any game" marker, for server use when any of the {@code SOCMessageTemplate*} message types
+     * (which all implement {@link SOCMessageForGame}) are used for convenience for non-game messages
+     * such as {@link SOCLocalizedStrings}.
+     *<P>
+     * No actual game will ever have the same name as this marker, because the marker fails
+     * {@link #isSingleLineAndSafe(String, boolean) isSingleLineAndSafe(String, false)} by
+     * including a control character.
+     *<P>
+     * Only the server can send a {@link SOCMessageForGame} with this marker, client messages are rejected.
+     * This restriction may be relaxed in future versions.
+     * @since 2.0.00
+     */
+    public static final String GAME_NONE = "\026";  // 0x16 ^V (SYN)
+
+    /**
      * An ID identifying the type of message
      */
     protected int messageType;
@@ -508,9 +523,11 @@ public abstract class SOCMessage implements Serializable, Cloneable
             && ((-1 != s.indexOf(sep_char))
                 || (-1 != s.indexOf(sep2_char))))
             return false;
+
         int i = s.length();
         if (i == 0)
             return false;
+
         --i;
         for (; i>=0; --i)
         {
