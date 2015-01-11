@@ -53,7 +53,7 @@ import java.util.StringTokenizer;
  * <LI> Decide on the message type name.  Add to the end of the constant list in this
  *      class.  Add a comment to note the JSettlers version in which it was introduced, and the date.
  * <LI> If the new message is for something that any kind of game can use,
- *      give it the next available type ID number in the list (11xx).
+ *      give it the next available type ID number in the list (1xxx).
  *      If the message is specific to the JSettlers game and its interface,
  *      use a message number above 10000.  The intention is that other kinds of games
  *      can be played eventually within this server framework.
@@ -62,7 +62,7 @@ import java.util.StringTokenizer;
  *      If your message class extends SOCMessageTemplateMs or SOCMessageTemplateMi,
  *      instead call <tt>yourMessageType.parseDataStr(multiData)</tt>.
  * <LI> If the message contains a game name, your new class must implement {@link SOCMessageForGame}.
- * <LI> Extend the SOCMessage class, including the required parseDataStr method.
+ * <LI> Extend the SOCMessage class or a template class, including the required parseDataStr method.
  *      ({@link SOCRevealFogHex} and {@link SOCSetTurn} are good example subclasses.)
  *      Template parent-classes can help; the example subclasses extend them.
  *      Be sure to override the minimum version reported in {@link #getMinimumVersion()}.
@@ -307,6 +307,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  {@code SOCSpecialItem}s are used in some game scenarios.
      *  @since 2.0.00 */
     public static final int SETSPECIALITEM = 1104;  // Special Items, 20140416, v2.0.00
+
+    /** {@link SOCLocalizedStrings} - Localized i18n strings for items such as game options or scenarios.
+     *  @since 2.0.00 */
+    public static final int LOCALIZEDSTRINGS = 1105;  // Localized strings, 20150111, v2.0.00
 
 
     /////////////////////////////////////////
@@ -950,6 +954,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case SETSPECIALITEM:       // Special Items, 20140416, v2.0.00
                 return SOCSetSpecialItem.parseDataStr(data);
+
+            case LOCALIZEDSTRINGS:     // Localized strings, 20150111, v2.0.00
+                return SOCLocalizedStrings.parseDataStr(multiData);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);

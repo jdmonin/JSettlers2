@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,6 +24,9 @@ import java.util.Locale;
 
 /**
  * Common helper methods for I18N.
+ *<P>
+ * I18N localization was added in v2.0.00; network messages sending localized text should
+ * check the remote receiver's version against {@link SOCStringManager#VERSION_FOR_I18N}.
  * @since 2.0.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @see SOCStringManager
