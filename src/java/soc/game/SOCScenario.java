@@ -22,6 +22,7 @@ package soc.game;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import soc.message.SOCMessage;
@@ -66,6 +67,8 @@ import soc.message.SOCMessage;
  * <B>I18N:</B><br>
  * Game scenario names and descriptions are also stored as {@code gamescen.*.n}, {@code .p}
  * in {@code server/strings/toClient_*.properties} to be sent to clients if needed.
+ * Like {@link SOCGameOption}, scenario names and descriptions are final fields and updating
+ * their contents means creating a new object; see {@link #copyUpdateText(String, String)}.
  *<P>
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -381,8 +384,10 @@ public class SOCScenario
      * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
      *             from {@link SOCGameOption#packOptionsToString(Map, boolean)}.
      * @throws IllegalArgumentException if key length is > 8 or not alphanumeric,
-     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
+     *        or fail their described requirements,
      *        or if minVers or lastModVers is under 2000 but not -1
+     * @see #copyUpdateText(String, String)
      */
     public SOCScenario
         (final String key, final int minVers, final int lastModVers,
@@ -489,6 +494,31 @@ public class SOCScenario
 	allScenarios.put(scKey, scNew);
 
 	return ! hadIt;
+    }
+
+    /**
+     * For i18n, copy this scenario with updated text fields, and add the copy
+     * to the set used by {@link #getAllKnownScenarios()}.
+     *<P>
+     * Because the {@link SOCVersionedItem#desc desc} and {@link #scLongDesc} fields are final
+     * like {@link SOCGameOption}'s, updating their contents means creating a new object.
+     * After calling this method, don't use the old object anymore.
+     *
+     * @param desc    Descriptive brief text, to appear in the scenarios dialog.
+     *     Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *     and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @param longDesc  Longer descriptive text, or null; see {@link #scLongDesc} for requirements.
+     * @return  The new scenario object with updated fields, already added to {@link #getAllKnownScenarios()}
+     * @throws IllegalArgumentException if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *        or desc or longDesc fails {@link SOCMessage#isSingleLineAndSafe(String, boolean)}
+     * @since 2.0.00
+     */
+    public SOCScenario copyUpdateText(final String desc, final String longDesc)
+        throws IllegalArgumentException
+    {
+        final SOCScenario newSc = new SOCScenario(key, minVersion, lastModVersion, desc, longDesc, scOpts);
+        addKnownScenario(newSc);
+        return newSc;
     }
 
     /**
