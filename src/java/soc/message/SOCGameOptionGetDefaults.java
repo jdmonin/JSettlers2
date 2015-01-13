@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file Copyright (C) 2009,2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2013-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,6 +22,7 @@ package soc.message;
  * Information on current defaults for new games' {@link soc.game.SOCGameOption game options}.
  * Based on server's current values ({@link soc.game.SOCGameOption#getIntValue() .getIntValue()},
  * not {@link soc.game.SOCGameOption#defaultIntValue .defaultIntValue} field).
+ * Client sends this when the user clicks the "New Game" button for the first time.
  *<P>
  * Server responds to client's GAMEOPTIONGETDEFAULTS by sending its own GAMEOPTIONGETDEFAULTS.
  * All of server's known options are sent, except empty string-valued options. 
@@ -35,6 +36,11 @@ package soc.message;
  *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't create games.
+ *<P>
+ * <B>I18N:</B> Since the client's New Game dialog will need localized strings for all
+ * {@link soc.game.SOCScenario SOCScenario}s, v2.0.00 sends those strings before the game option
+ * default values so that the client will have them before showing the dialog.
+ * The strings are sent using {@link SOCLocalizedStrings}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07

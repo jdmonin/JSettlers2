@@ -719,17 +719,37 @@ public class SOCServer extends Server
      * Description string for SOCGameOption {@code "PL"} hardcoded into the SOCGameOption class,
      * from {@link SOCGameOption#getOption(String, boolean) SOCGameOption.getOption("PL", false)}.
      * Used for determining whether a client's i18n locale has localized option descriptions,
-     * by comparing {@code PL}'s {@link SOCVersionedItem#desc SOCGameOption.desc} to StringManager.get("gameopt.PL").
+     * by comparing {@code PL}'s {@link SOCVersionedItem#desc SOCGameOption.desc} to
+     * StringManager.get({@code "gameopt.PL"}).
      *<P>
      * String value is captured here as soon as SOCServer is referenced, in case SOCPlayerClient's
      * practice server will localize the descriptions used by {@link SOCGameOption#getOption(String, boolean)}.
      * @since 2.0.00
+     * @see {@link #i18n_scenario_SC_WOND_desc}
      */
     private final static String i18n_gameopt_PL_desc;
     static
     {
         final SOCGameOption optPL = SOCGameOption.getOption("PL", false);
         i18n_gameopt_PL_desc = (optPL != null) ? optPL.desc : "";
+    }
+
+    /**
+     * Short description string for SOCScenario {@code "SC_WOND"} hardcoded into the SOCScenario class.
+     * Used for determining whether a client's i18n locale has localized scenario descriptions,
+     * by comparing {@code SC_WOND}'s {@link SOCVersionedItem#desc SOCScenario.desc} to
+     * StringManager.get({@code "gamescen.SC_WOND.n"}).
+     *<P>
+     * String value is captured here as soon as SOCServer is referenced, in case SOCPlayerClient's
+     * practice server will localize the scenario descriptions.
+     * @since 2.0.00
+     * @see #i18n_gameopt_PL_desc
+     */
+    final static String i18n_scenario_SC_WOND_desc;
+    static
+    {
+        final SOCScenario scWond = SOCScenario.getScenario(SOCScenario.K_SC_WOND);
+        i18n_scenario_SC_WOND_desc = (scWond != null) ? scWond.desc : "";
     }
 
 
@@ -6555,12 +6575,18 @@ public class SOCServer extends Server
 
     /**
      * process the "game option get defaults" message.
+     * User has clicked the "New Game" button for the first time, client needs {@link SOCGameOption} values.
      * Responds to client by sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}.
      * All of server's known options are sent, except empty string-valued options.
      * Depending on client version, server's response may include option names that
      * the client is too old to use; the client is able to ignore them.
      * If the client is older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES},
      * options with long names won't be sent.
+     *<P>
+     * <B>I18N:</B> Since the New Game dialog will need localized strings for {@link SOCScenario}s,
+     * v2.0.00 sends those strings before the game option default values, so the client will have them
+     * before showing the dialog.
+     *
      * @param c  the connection
      * @param mes  the message
      * @since 1.1.07
@@ -6569,7 +6595,47 @@ public class SOCServer extends Server
     {
         if (c == null)
             return;
-        final boolean hideLongNameOpts = (c.getVersion() < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES);
+
+        final int cliVers = c.getVersion();
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+
+        // handle i18n first
+        if (! scd.sentAllScenarioStrings)
+        {
+            final boolean wantsLocalDescs =
+                (cliVers >= SOCStringManager.VERSION_FOR_I18N) && (c.getI18NLocale() != null)
+                && ! i18n_scenario_SC_WOND_desc.equals(c.getLocalized("gamescen.SC_WOND.n"));
+
+            if (wantsLocalDescs)
+            {
+                List<String> scenStrs = new ArrayList<String>();
+
+                for (final String scKey : SOCScenario.getAllKnownScenarioKeynames())
+                {
+                    String nm = null, desc = null;
+                    try { nm = c.getLocalized("gamescen." + scKey + ".n"); }
+                    catch (MissingResourceException e) {}
+
+                    try { desc = c.getLocalized("gamescen." + scKey + ".d"); }
+                    catch (MissingResourceException e) {}
+
+                    if (nm != null)
+                    {
+                        scenStrs.add(scKey);
+                        scenStrs.add(nm);
+                        scenStrs.add(desc);  // null is OK
+                    }
+                }
+
+                if (! scenStrs.isEmpty())
+                    c.put(SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, scenStrs));
+            }
+
+            scd.sentAllScenarioStrings = true;
+        }
+
+        // now, game options
+        final boolean hideLongNameOpts = (cliVers < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES);
         c.put(SOCGameOptionGetDefaults.toCmd
               (SOCGameOption.packKnownOptionsToString(true, hideLongNameOpts)));
     }

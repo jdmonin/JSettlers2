@@ -469,6 +469,7 @@ public class SOCScenario
      *  (See each scenario name field's javadoc for more details.)
      *
      * @return a deep copy of all known scenario objects
+     * @see #getAllKnownScenarioKeynames()
      * @see #addKnownScenario(SOCScenario)
      */
     public static Map<String, SOCScenario> getAllKnownScenarios()
@@ -476,6 +477,18 @@ public class SOCScenario
         // To add a new scenario, see initAllScenarios().
 
         return cloneScenarios(allScenarios);
+    }
+
+    /**
+     * Get the key names for all known scenarios.
+     * This method avoids the copying overhead of {@link #getAllKnownScenarios()}.
+     * @return The set of all scenarios' key names, such as {@link #K_SC_4ISL SC_4ISL}.
+     *    Please treat the returned set as read-only.
+     * @see #getAllKnownScenarios()
+     */
+    public static Set<String> getAllKnownScenarioKeynames()
+    {
+        return allScenarios.keySet();
     }
 
     /**

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, nested class refactoring, parameterize types
  *
@@ -82,6 +82,7 @@ import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
+import soc.game.SOCScenario;
 import soc.game.SOCSettlement;
 import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
@@ -3291,6 +3292,14 @@ public class SOCPlayerClient
                 handleSETSPECIALITEM(games, (SOCSetSpecialItem) mes);
                 break;
 
+            /**
+             * Localized i18n strings for game items.
+             * Added 2015-01-11 for v2.0.00.
+             */
+            case SOCMessage.LOCALIZEDSTRINGS:
+                handleLOCALIZEDSTRINGS((SOCLocalizedStrings) mes);
+                break;
+
             }  // switch (mes.getType())
         }
         catch (Exception e)
@@ -4854,6 +4863,57 @@ public class SOCPlayerClient
         for (String gaName : msgGames.getGameNames())
         {
             gameDisplay.addToGameList(msgGames.isUnjoinableGame(gaName), gaName, msgGames.getGameOptionsString(gaName), false);
+        }
+    }
+
+    /**
+     * Localized i18n strings for game items.
+     * Added 2015-01-11 for v2.0.00.
+     */
+    private void handleLOCALIZEDSTRINGS(final SOCLocalizedStrings mes)
+    {
+        final String[] str = mes.getParams();
+        final String type = str[0];
+        final int L = str.length;
+
+        if (type.equals(SOCLocalizedStrings.TYPE_GAMEOPT))
+        {
+            for (int i = 1; i < L; i += 2)
+            {
+                SOCGameOption opt = SOCGameOption.getOption(str[i], false);
+                if (opt != null)
+                {
+                    final String desc = str[i+1];
+                    if (! desc.equals(SOCLocalizedStrings.EMPTY))
+                        opt.copyUpdateText(desc);
+                }
+            }
+
+        }
+        else if (type.equals(SOCLocalizedStrings.TYPE_SCENARIO))
+        {
+
+            for (int i = 1; i < L; i += 3)
+            {
+                SOCScenario sc = SOCScenario.getScenario(str[i]);
+                if (sc != null)
+                {
+                    final String nm = str[i+1];
+                    if (! nm.equals(SOCLocalizedStrings.EMPTY))
+                    {
+                        String desc = str[i+2];
+                        if (desc.equals(SOCLocalizedStrings.EMPTY))
+                            desc = null;
+
+                        sc.copyUpdateText(nm, desc);
+                    }
+                }
+            }
+
+        }
+        else
+        {
+            System.err.println("L4916: Unknown localized string type " + type);
         }
     }
 

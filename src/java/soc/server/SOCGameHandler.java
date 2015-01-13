@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.Random;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -55,6 +56,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
+import soc.game.SOCScenario;
 import soc.game.SOCScenarioEventListener;
 import soc.game.SOCScenarioGameEvent;
 import soc.game.SOCScenarioPlayerEvent;
@@ -94,6 +96,7 @@ import soc.message.SOCInventoryItemAction;
 import soc.message.SOCJoinGame;
 import soc.message.SOCJoinGameAuth;
 import soc.message.SOCKeyedMessage;
+import soc.message.SOCLocalizedStrings;
 import soc.message.SOCRobotJoinGameRequest;
 import soc.message.SOCLargestArmy;
 import soc.message.SOCLastSettlement;
@@ -136,6 +139,7 @@ import soc.message.SOCTurn;
 import soc.server.genericServer.StringConnection;
 import soc.util.IntPair;
 import soc.util.SOCGameList;
+import soc.util.SOCStringManager;
 import soc.util.Version;
 
 /**
@@ -897,7 +901,7 @@ public class SOCGameHandler extends GameHandler
      * that should be done before calling this method.
      *<P>
      * Assumes NEWGAME (or NEWGAMEWITHOPTIONS) has already been sent out.
-     * First message sent to connecting client is JOINGAMEAUTH, unless isReset.
+     * The game's first message<B>*</B> sent to the connecting client is JOINGAMEAUTH, unless isReset.
      *<P>
      * Among other messages, player names are sent via SITDOWN, and pieces on board
      * sent by PUTPIECE.  See comments here for further details.
@@ -906,6 +910,9 @@ public class SOCGameHandler extends GameHandler
      * The group of messages sent here ends with GAMEMEMBERS, SETTURN and GAMESTATE.
      * Then, the entire game is sent a JOINGAME for the new game member.
      *<P>
+     * *<B>I18N:</B> If the game has a {@link SOCScenario} and the client needs localized strings
+     * for the scenario name and description, this is sent before JOINGAMEAUTH.
+     *
      * @param gameData Game to join
      * @param c        The connection of joining client
      * @param isReset  Game is a board-reset of an existing game.  This is always false when
@@ -924,6 +931,12 @@ public class SOCGameHandler extends GameHandler
         String gameName = gameData.getName();
         if (! isReset)
         {
+            // Handle i18n first
+            final String gameScen = gameData.getGameOptionStringValue("SC");
+            if (gameScen != null)
+                sendGameScenarioStrings(gameScen, c);
+
+            // Now, join game
             c.put(SOCJoinGameAuth.toCmd(gameName));
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_OK, c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
@@ -2753,6 +2766,73 @@ public class SOCGameHandler extends GameHandler
 
         if (sendRollPrompt)
             srv.messageToGame(gname, new SOCRollDicePrompt(gname, pn));
+    }
+
+    /**
+     * If needed, send this scenario's i18n localized short/long description strings to the client.
+     * Checks whether the scenario has strings in the client's locale, and whether the client has
+     * already been sent this scenario's strings.
+     *
+     * @param scKey  Scenario keyname, from
+     *     {@link SOCGame#getGameOptionStringValue(String) game.getGameOptionStringValue("SC")}, or null.
+     *     Sends nothing if null.
+     * @param c  Client connection.  Sends nothing if client's locale is null or version is older than 2.0.00.
+     *     Otherwise checks and updates the connection's {@link SOCClientData#sentAllScenarioStrings}
+     *     and {@link SOCClientData#scenarioStringsSent} tracking fields.
+     * @since 2.0.00
+     */
+    private void sendGameScenarioStrings(final String scKey, final StringConnection c)
+    {
+        if ((scKey == null) || (c.getVersion() < SOCStringManager.VERSION_FOR_I18N) || (c.getI18NLocale() == null))
+            return;
+
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+        if (scd.sentAllScenarioStrings)
+            return;
+
+        if (SOCServer.i18n_scenario_SC_WOND_desc.equals(c.getLocalized("gamescen.SC_WOND.n")))
+        {
+            // client's locale has no localized scenario strings
+
+            scd.sentAllScenarioStrings = true;
+            return;
+        }
+
+        // have we already sent this scen's strings?
+        // If not, send now and update scd.scenarioStringsSent[].
+
+        String[] scensSent = scd.scenarioStringsSent;
+        if (scensSent != null)
+            for (int i = 0; i < scensSent.length; ++i)
+                if (scKey.equals(scensSent[i]))
+                    return;  // <--- Already sent ---
+
+        String nm = null, desc = null;
+        try { nm = c.getLocalized("gamescen." + scKey + ".n"); }
+        catch (MissingResourceException e) {
+            return;  // <--- No name ---
+        }
+
+        try { desc = c.getLocalized("gamescen." + scKey + ".d"); }
+        catch (MissingResourceException e) {}
+
+        List<String> scenStrs = new ArrayList<String>();
+        scenStrs.add(scKey);
+        scenStrs.add(nm);
+        scenStrs.add(desc);  // null is OK
+
+        c.put(SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, scenStrs));
+
+        // Remember that we sent it
+        if (scensSent == null)
+        {
+            scensSent = new String[4];
+            scd.scenarioStringsSent = scensSent;
+        } else {
+            for (int i = scensSent.length - 1; i > 0; --i)
+                scensSent[i] = scensSent[i - 1];
+        }
+        scensSent[0] = scKey;
     }
 
     /**

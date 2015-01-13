@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2008-2010,2013 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2010,2013,2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -78,6 +78,34 @@ public class SOCClientData
      * @since 1.1.06
      */
     private boolean sentGameList;
+
+    /**
+     * Have we sent localized strings for all {@link soc.game.SOCScenario SOCScenario}s?
+     * To reduce network traffic, those large strings aren't sent unless the client is creating a
+     * new game and needs the scenario dropdown.
+     *<P>
+     * Also true if the client's locale doesn't have localized strings for scenarios,
+     * or if the client is too old (1.1.xx) to use i18n localization.
+     *
+     * @since 2.0.00
+     * @see #scenarioStringsSent
+     */
+    public boolean sentAllScenarioStrings;
+
+    /**
+     * The most recent {@link soc.game.SOCScenario SOCScenario} keynames for which we've
+     * sent localized strings. To reduce network traffic, those large strings aren't sent unless
+     * the client is joining a game with a scenario.
+     *<P>
+     * Null if {@link #sentAllScenarioStrings} or if client hasn't joined any game that
+     * has a scenario.
+     *<P>
+     * {@link soc.game.SOCGameOption SOCGameOption}s are also localized but aren't tracked
+     * the same way, because game option strings are all sent when the client connects.
+     *
+     * @since 2.0.00
+     */
+    public String[] scenarioStringsSent;
 
     /**
      * Is this connection a robot?
