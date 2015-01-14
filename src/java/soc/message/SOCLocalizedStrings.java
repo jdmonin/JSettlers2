@@ -70,9 +70,9 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      *<P>
      * There is no server-side constructor, the server instead calls {@link #toCmd(String, List)}.
      *
-     * @param str String list array
+     * @param str String list
      */
-    protected SOCLocalizedStrings(final String[] strs)
+    protected SOCLocalizedStrings(final List<String> strs)
     {
         super(LOCALIZEDSTRINGS, SOCMessage.GAME_NONE, strs);
     }
@@ -86,14 +86,14 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     public final int getMinimumVersion() { return 2000; }
 
     /**
-     * Parse the command String array into a SOCLocalizedStrings message.
+     * Parse the command String list into a SOCLocalizedStrings message.
      *
-     * @param strs  the data array; length must be at least 1 to indicate the type
+     * @param strs  the data list; length must be at least 1 to indicate the type
      * @return    a SOCLocalizedStrings message, or null if parsing errors
      */
-    public static SOCLocalizedStrings parseDataStr(String[] strs)
+    public static SOCLocalizedStrings parseDataStr(List<String> strs)
     {
-        if ((strs == null) || (strs.length == 0))
+        if ((strs == null) || strs.isEmpty())
             return null;  // must have at least 1 string
 
         return new SOCLocalizedStrings(strs);

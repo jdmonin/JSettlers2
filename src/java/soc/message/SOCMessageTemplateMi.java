@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2008-2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2012,2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -74,6 +74,9 @@ public abstract class SOCMessageTemplateMi extends SOCMessageMulti
 
     /**
      * Array of int parameters, or null if none.
+     *<P>
+     * Although {@link SOCMessageTemplateMs} uses a List in v2.0.00 and newer,
+     * for now this class still uses an array for compact representation.
      */
     protected int[] pa;
 

@@ -4872,18 +4872,18 @@ public class SOCPlayerClient
      */
     private void handleLOCALIZEDSTRINGS(final SOCLocalizedStrings mes)
     {
-        final String[] str = mes.getParams();
-        final String type = str[0];
-        final int L = str.length;
+        final List<String> str = mes.getParams();
+        final String type = str.get(0);
+        final int L = str.size();
 
         if (type.equals(SOCLocalizedStrings.TYPE_GAMEOPT))
         {
             for (int i = 1; i < L; i += 2)
             {
-                SOCGameOption opt = SOCGameOption.getOption(str[i], false);
+                SOCGameOption opt = SOCGameOption.getOption(str.get(i), false);
                 if (opt != null)
                 {
-                    final String desc = str[i+1];
+                    final String desc = str.get(i + 1);
                     if (! desc.equals(SOCLocalizedStrings.EMPTY))
                         opt.copyUpdateText(desc);
                 }
@@ -4895,13 +4895,13 @@ public class SOCPlayerClient
 
             for (int i = 1; i < L; i += 3)
             {
-                SOCScenario sc = SOCScenario.getScenario(str[i]);
+                SOCScenario sc = SOCScenario.getScenario(str.get(i));
                 if (sc != null)
                 {
-                    final String nm = str[i+1];
+                    final String nm = str.get(i + 1);
                     if (! nm.equals(SOCLocalizedStrings.EMPTY))
                     {
-                        String desc = str[i+2];
+                        String desc = str.get(i + 2);
                         if (desc.equals(SOCLocalizedStrings.EMPTY))
                             desc = null;
 

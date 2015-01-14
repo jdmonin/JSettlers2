@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2008-2009,2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2009,2014-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,20 +34,25 @@ package soc.message;
  * This allows use of {@link SOCMessage#sep2_char} within the parameter to
  * separate its sub-fields.
  *<P>
- * The required static parseDataStr method is given an array of one or more Strings,
+ * The required static parseDataStr method is given a List of one or more Strings,
  * each of which is a parameter:
  *<br>
- * <tt> public static SOCMessageType parseDataStr(String[] s) </tt>
+ * <tt> public static SOCMessageType parseDataStr({@literal List<String>} s) </tt>
  *<br>
  * If no parameters were seen, <tt>s</tt> will be null.
  *<P>
- * The section you add to {@link SOCMessage#toMsg(String)} will look like:
- *<code>
- *     case POTENTIALSETTLEMENTS:
- *         if (multiData == null)
- *             multiData = toSingleElemArray(data);
- *         return SOCPotentialSettlements.parseDataStr(multiData);
- *</code>
+ * The section you add to {@link SOCMessage#toMsg(String)} will depend on whether
+ * a message with 1 parameter is valid; if so, {@code multiData} will be null.
+ *
+ *<H5>If your message never expects 1 parameter:</H5>
+ *<pre>
+ *     case GAMESWITHOPTIONS:
+ *         return SOCGamesWithOptions.parseDataStr(multiData); </pre>
+ *
+ * <H5>If your message might be valid with 1 parameter:</H5>
+ *<pre>
+ *     case GAMESWITHOPTIONS:
+ *         return SOCGamesWithOptions.parseDataStr(data, multiData); </pre>
  *<P>
  * Note that if, on the sending end of the network connection, you passed a
  * non-null gamename to the {@link SOCMessageTemplateMs} or {@link SOCMessageTemplateMi}

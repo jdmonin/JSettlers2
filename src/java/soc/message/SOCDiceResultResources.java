@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -73,7 +73,8 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
     }
 
     /**
-     * Constructor for client to parse message from server via {@link #parseDataStr(String[])}.
+     * Constructor for client to parse message from server via
+     * {@link #parseDataStr(List) parseDataStr(List&lt;String>)}.
      * Decodes the integers in {@code pa[]} into {@link #playerNum} and {@link #playerRsrc}.
      *
      * @param gameName Game name
@@ -129,7 +130,7 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
     }
 
     /**
-     * Used by server constructor to build an outbound list of ints from these players and these resources.
+     * Used by server constructor to build an outbound array of ints from these players and these resources.
      * @param pnum Player numbers, same format as {@link #playerNum}
      * @param rsrc Resources gained by each {@code pn}, same format as {@link #playerRsrc}
      * @throws IllegalArgumentException if {@code pn}.size() != {@code rsrc}.size(), or if either is empty
@@ -180,27 +181,27 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
     public int getMinimumVersion() { return VERSION_FOR_DICERESULTRESOURCES; /* == 2000 */ }
 
     /**
-     * Parse the command String array into a SOCDiceResultResources message.
+     * Parse the command String list into a SOCDiceResultResources message.
      * Calls {@link #SOCDiceResultResources(String, int[])} constructor,
      * see its javadoc for parameter details.
      *
      * @param pa   the parameters; length 2 or more required.
      * @return    a parsed message, or null if parsing errors
      */
-    public static SOCDiceResultResources parseDataStr(String[] pa)
+    public static SOCDiceResultResources parseDataStr(List<String> pa)
     {
-        if ((pa == null) || (pa.length < 2))
+        if ((pa == null) || (pa.size() < 2))
             return null;
 
         try
         {
-            String ga = pa[0];
-            int[] ipa = new int[pa.length - 1];
+            final String gaName = pa.get(0);
+            int[] ipa = new int[pa.size() - 1];
             for (int i = 0; i < ipa.length; ++i)
-                ipa[i] = Integer.parseInt(pa[i+1]);
-            return new SOCDiceResultResources(ga, ipa);
-        } catch (Throwable e)
-        {
+                ipa[i] = Integer.parseInt(pa.get(i + 1));
+
+            return new SOCDiceResultResources(gaName, ipa);
+        } catch (Exception e) {
             return null;
         }
     }

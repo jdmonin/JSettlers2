@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2011,2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011,2013-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
  **/
 package soc.message;
 
+import java.util.List;
 import java.util.Vector;
 
 import soc.game.SOCGame;
@@ -46,23 +47,22 @@ import soc.util.SOCGameList;
  */
 public class SOCGamesWithOptions extends SOCMessageTemplateMs
 {
-    private static final long serialVersionUID = 1107L;  // last structural change v1.1.07
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
      * Constructor for client to parse server's list of games.
-     * Creates opt with the proper type, even if unknown locally.
-     * This parses the games+names into a string array,
-     * but not the game options into {@link soc.game.SOCGameOption game option}
+     * This collects the paired games and options into a string list,
+     * but doesn't parse the game option strings into {@link soc.game.SOCGameOption}
      * objects; call {@link soc.game.SOCGameOption#parseOptionsToMap(String)} for that.
      *<P>
      * There is no server-side constructor, because the server
      * instead calls {@link #toCmd(Vector, int)}.
      *
-     * @param gla Game list array
+     * @param gla Game list
      */
-    protected SOCGamesWithOptions(String[] gla)
+    protected SOCGamesWithOptions(List<String> gl)
     {
-        super(GAMESWITHOPTIONS, "-", gla);
+        super(GAMESWITHOPTIONS, "-", gl);
     }
 
     /**
@@ -80,11 +80,12 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
     public SOCGameList getGameList()
     {
         SOCGameList gamelist = new SOCGameList();
-        for (int ii = 0; ii < pa.length; )
+        final int L = pa.size();
+        for (int ii = 0; ii < L; )
         {
-            final String gaName = pa[ii];
+            final String gaName = pa.get(ii);
             ++ii;
-            gamelist.addGame(gaName, pa[ii], false);
+            gamelist.addGame(gaName, pa.get(ii), false);
             ++ii;
         }
         return gamelist;
@@ -101,16 +102,16 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
     /**
      * Parse the command String array into a SOCGamesWithOptions message.
      *
-     * @param gla  the game-list array; must contain an even number of strings
+     * @param gla  the game list; must contain an even number of strings
      *             (pairs of game names+options)
      * @return    a SOCGamesWithOptions message, or null if parsing errors
      */
-    public static SOCGamesWithOptions parseDataStr(String[] gla)
+    public static SOCGamesWithOptions parseDataStr(List<String> gl)
     {
-        if ((gla == null) || ((gla.length % 2) != 0))
+        if ((gl == null) || ((gl.size() % 2) != 0))
             return null;  // must have an even# of strings
 
-        return new SOCGamesWithOptions(gla);
+        return new SOCGamesWithOptions(gl);
     }
 
     /**

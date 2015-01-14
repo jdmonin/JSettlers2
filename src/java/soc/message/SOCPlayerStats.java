@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2012,2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2012,2014-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **/
 package soc.message;
+
+import java.util.List;
 
 import soc.game.SOCPlayer;
 
@@ -36,7 +38,7 @@ import soc.game.SOCPlayer;
  */
 public class SOCPlayerStats extends SOCMessageTemplateMi
 {
-    private static final long serialVersionUID = 1109L;  // last structural change v1.1.09
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /** Lowest-numbered stats type (1) */
     public static final int STYPE_MIN = 1;
@@ -125,26 +127,30 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
     }
 
     /**
-     * Parse the command String array into a SOCPlayerStats message.
+     * Parse the command String list into a SOCPlayerStats message.
      * Calls {@link #SOCPlayerStats(String, int[])} constructor,
      * see its javadoc for parameter details.
      *
      * @param pa   the parameters; length 2 or more required.
      * @return    a SOCPlayerStats message, or null if parsing errors
      */
-    public static SOCPlayerStats parseDataStr(String[] pa)
+    public static SOCPlayerStats parseDataStr(List<String> pa)
     {
-        if ((pa == null) || (pa.length < 2))
+        if (pa == null)
             return null;
+        final int L = pa.size();
+        if (L < 2)
+            return null;
+
         try
         {
-            String ga = pa[0];
-            int[] ipa = new int[pa.length - 1];
+            final String gaName = pa.get(0);
+            int[] ipa = new int[L - 1];
             for (int i = 0; i < ipa.length; ++i)
-                ipa[i] = Integer.parseInt(pa[i+1]);
-            return new SOCPlayerStats(ga, ipa);
-        } catch (Throwable e)
-        {
+                ipa[i] = Integer.parseInt(pa.get(i + 1));
+
+            return new SOCPlayerStats(gaName, ipa);
+        } catch (Exception e) {
             return null;
         }
     }

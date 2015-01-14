@@ -21,6 +21,7 @@ package soc.message;
 
 import java.io.Serializable;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
@@ -544,22 +545,6 @@ public abstract class SOCMessage implements Serializable, Cloneable
     }
 
     /**
-     * Utility, place one string into a new single-element array.
-     * To assist with {@link SOCMessageMulti} parsing.
-     *
-     * @param s  String to place into array, or null
-     * @return New single-element array containing s, or null if s null.
-     */
-    public static String[] toSingleElemArray(String s)
-    {
-        if (s == null)
-            return null;
-        String[] sarr = new String[1];
-        sarr[0] = s;
-        return sarr;
-    }
-
-    /**
      * Convert a string into a SOCMessage.
      * The string is in the form of "id SEP messagename {SEP2 messagedata}*".
      * If the message type id is unknown, this is printed to System.err.
@@ -587,21 +572,26 @@ public abstract class SOCMessage implements Serializable, Cloneable
             /**
              * to handle {@link SOCMessageMulti} subclasses -
              * multiple parameters with sub-fields.
-             * If only one param is seen, this will be null;
-             * use {@link #toSingleElemArray(String)} to build it.
+             * If only 1 param is seen, this will be null; pass {@code data} to your parseDataStr too.
              *<P>
              * Note that if you passed a non-null gamename to the
              * {@link SOCMessageTemplateMs} or {@link SOCMessageTemplateMi} constructor,
              * then multiData[0] here will be gamename,
              * and multiData[1] == param[0] as passed to that constructor.
+             *<P>
+             *<H5>If your message never expects 1 parameter:</H5>
              *<code>
-             *     case POTENTIALSETTLEMENTS:
-             *         if (multiData == null)
-             *             multiData = toSingleElemArray(data);
-             *         return SOCPotentialSettlements.parseDataStr(multiData);
+             *     case GAMESWITHOPTIONS:
+             *         return SOCGamesWithOptions.parseDataStr(multiData);
+             *</code>
+             *
+             *<H5>If your message might be valid with 1 parameter:</H5>
+             *<code>
+             *     case GAMESWITHOPTIONS:
+             *         return SOCGamesWithOptions.parseDataStr(data, multiData);
              *</code>
              */
-            String[] multiData = null;
+            ArrayList<String> multiData = null;
 
             try
             {
@@ -611,15 +601,15 @@ public abstract class SOCMessage implements Serializable, Cloneable
                         // SOCMessageMulti
 
                         int n = st.countTokens();  // remaining (== number of parameters after "data")
-                        multiData = new String[n+1];
-                        multiData[0] = data;
-                        for (int i = 1; st.hasMoreTokens(); ++i)
+                        multiData = new ArrayList<String>(n + 1);
+                        multiData.add(data);
+                        while (st.hasMoreTokens())
                         {
                                 try {
-                                        multiData[i] = st.nextToken();
+                                        multiData.add(st.nextToken());
                                 } catch (NoSuchElementException e)
                                 {
-                                        multiData[i] = null;
+                                        multiData.add(null);
                                 }
                         }
                 }

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2014-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  *
  * This program is free software; you can redistribute it and/or
@@ -18,6 +18,8 @@
  **/
 package soc.message;
 
+import java.util.List;
+
 /**
  * This message from the server holds information on some parts of the player's status,
  * such as resource type counts.  Same structure as {@link SOCPlayerElement} but with
@@ -30,7 +32,7 @@ package soc.message;
  */
 public class SOCPlayerElements extends SOCMessageTemplateMi
 {
-    private static final long serialVersionUID = 1109L;  // last structural change v1.1.09
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /** Introduced in version 1.1.09 */
     public static final int VERSION = 1109;
@@ -134,9 +136,10 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     }
 
     /**
-     * Parse the command String array into a SOCPlayerElements message.
+     * Parse the command String list into a SOCPlayerElements message.
      *
-     * @param pa   the parameters; length 5 or more required. Length must be odd.<pre>
+     * @param pa   the parameters; length 5 or more required.
+     *     Built by constructor at server. Length must be odd. <pre>
      * pa[0] = playerNum
      * pa[1] = actionType
      * pa[2] = elementType[0]
@@ -146,16 +149,21 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
      * (etc.)
      * @return    a SOCPlayerElements message, or null if parsing errors
      */
-    public static SOCPlayerElements parseDataStr(String[] pa)
+    public static SOCPlayerElements parseDataStr(List<String> pa)
     {
-        if ((pa == null) || (pa.length < 5) || ((pa.length % 2) == 0))
+        if (pa == null)
             return null;
+        final int L = pa.size();
+        if ((L < 5) || ((L % 2) == 0))
+            return null;
+
         try
         {
-            String ga = pa[0];
-            int[] ipa = new int[pa.length - 1];
+            final String gaName = pa.get(0);
+            int[] ipa = new int[L - 1];
             for (int i = 0; i < ipa.length; ++i)
-                ipa[i] = Integer.parseInt(pa[i+1]);
+                ipa[i] = Integer.parseInt(pa.get(i + 1));
+
             int playerNumber = ipa[0];
             int actionType = ipa[1];
             final int n = ipa.length / 2 - 1;
@@ -166,9 +174,9 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
                 elementTypes[i] = ipa[pai];  ++pai;
                 values[i] = ipa[pai];  ++pai;
             }
-            return new SOCPlayerElements(ga, playerNumber, actionType, elementTypes, values);
-        } catch (Throwable e)
-        {
+
+            return new SOCPlayerElements(gaName, playerNumber, actionType, elementTypes, values);
+        } catch (Exception e) {
             return null;
         }
     }

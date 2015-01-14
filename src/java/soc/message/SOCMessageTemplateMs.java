@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2008-2012,2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2012,2014-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,6 +19,8 @@
  * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
+
+import java.util.List;
 
 // import java.util.StringTokenizer;
 
@@ -66,22 +68,24 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
     protected String game;
 
     /**
-     * Array of string parameters, or null if none.
+     * List of string parameters, or null if none.
+     *<P>
+     * Before v2.0.00, this was an array of Strings.
      */
-    protected String[] pa;
+    protected List<String> pa;
 
     /**
      * Create a new multi-message with string parameters.
      *
      * @param id  Message type ID
      * @param ga  Name of game this message is for, or null if none
-     * @param parr   Parameters, or null if none
+     * @param pal List of parameters, or null if none
      */
-    protected SOCMessageTemplateMs(int id, String ga, String[] parr)
+    protected SOCMessageTemplateMs(final int id, final String ga, final List<String> pal)
     {
         messageType = id;
         game = ga;
-        pa = parr;
+        pa = pal;
     }
 
     /**
@@ -95,7 +99,7 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
     /**
      * @return the parameters, or null if none
      */
-    public String[] getParams()
+    public List<String> getParams()
     {
         return pa;
     }
@@ -115,27 +119,29 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      *
      * @param messageType The message type id
      * @param ga  the game name, or null
-     * @param parr The parameter array, or null if no additional parameters;
-     *             elements of parr can be null.
+     * @param pal The parameter list, or null if no additional parameters;
+     *             elements of {@code pal} can be null.
      * @return    the command string
      */
-    protected static String toCmd(final int messageType, String ga, String[] parr)
+    protected static String toCmd(final int messageType, final String ga, final List<String> pal)
     {
-        StringBuffer sb = new StringBuffer(Integer.toString(messageType));
+        StringBuilder sb = new StringBuilder(Integer.toString(messageType));
+
         if (ga != null)
         {
             sb.append(sep);
             sb.append(ga);
         }
-        if (parr != null)
+        if (pal != null)
         {
-            for (int i = 0; i < parr.length; ++i)
+            for (final String p : pal)
             {
                 sb.append(sep);
-                if (parr[i] != null)
-                    sb.append(parr[i]);
+                if (p != null)
+                    sb.append(p);
             }
         }
+
         return sb.toString();
     }
 
@@ -166,7 +172,8 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      */
     public String toString()
     {
-        StringBuffer sb = new StringBuffer(getClassNameShort());
+        StringBuilder sb = new StringBuilder(getClassNameShort());
+
         if (game != null)
         {
             sb.append (":game=");
@@ -174,13 +181,14 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
         }
         if (pa != null)
         {
-            for (int i = 0; i < pa.length; ++i)
+            for (final String p : pa)
             {
                 sb.append("|p=");
-                if (pa[i] != null)
-                    sb.append(pa[i]);
+                if (p != null)
+                    sb.append(p);
             }
         }
+
         return sb.toString();
     }
 }

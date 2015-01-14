@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2012-2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2012-2013,2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,6 +19,9 @@
  * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import soc.game.SOCGameOption;
 
@@ -81,41 +84,39 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      */
     public SOCGameOptionInfo(final SOCGameOption op, final int cliVers, final String localDesc)
     {
+        super(GAMEOPTIONINFO, null, new ArrayList<String>());
+
         // OTYPE_*
-        super(GAMEOPTIONINFO, null,
-            new String[12 + ( ((op.optType != SOCGameOption.OTYPE_ENUM)
-                               && (op.optType != SOCGameOption.OTYPE_ENUMBOOL))
-                            ? 0
-                            : op.maxIntValue ) ]);
         opt = op;
-        pa[0] = op.key;
-        pa[1] = Integer.toString(op.optType);
-        pa[2] = Integer.toString(op.minVersion);
-        pa[3] = Integer.toString(op.lastModVersion);
-        pa[4] = (op.defaultBoolValue ? "t" : "f");
-        pa[5] = Integer.toString(op.defaultIntValue);
-        pa[6] = Integer.toString(op.minIntValue);
-        pa[7] = Integer.toString(op.maxIntValue);
-        pa[8] = (op.getBoolValue() ? "t" : "f");
+        /* [0] */ pa.add(op.key);
+        /* [1] */ pa.add(Integer.toString(op.optType));
+        /* [2] */ pa.add(Integer.toString(op.minVersion));
+        /* [3] */ pa.add(Integer.toString(op.lastModVersion));
+        /* [4] */ pa.add(op.defaultBoolValue ? "t" : "f");
+        /* [5] */ pa.add(Integer.toString(op.defaultIntValue));
+        /* [6] */ pa.add(Integer.toString(op.minIntValue));
+        /* [7] */ pa.add(Integer.toString(op.maxIntValue));
+        /* [8] */ pa.add(op.getBoolValue() ? "t" : "f");
         if ((op.optType == SOCGameOption.OTYPE_STR) || (op.optType == SOCGameOption.OTYPE_STRHIDE))
         {
             String sv = op.getStringValue();
             if (sv.length() == 0)
                 sv = EMPTYSTR;  // can't parse a null or 0-length pa[9]
-            pa[9] = sv;
+            /* [9] */ pa.add(sv);
         } else {
-            pa[9] = Integer.toString(op.getIntValue());
+            /* [9] */ pa.add(Integer.toString(op.getIntValue()));
         }
         if (cliVers < 2000)
-            pa[10] = (op.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED) ? "t" : "f");
+            /* [10] */ pa.add(op.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED) ? "t" : "f");
         else
-            pa[10] = Integer.toString(op.optFlags);
+            /* [10] */ pa.add(Integer.toString(op.optFlags));
 
-        pa[11] = (localDesc != null) ? localDesc : op.desc;
+        /* [11] */ pa.add((localDesc != null) ? localDesc : op.desc);
 
         // for OTYPE_ENUM, _ENUMBOOL, pa[12+] are the enum choices' string values
         if ((op.optType == SOCGameOption.OTYPE_ENUM) || (op.optType == SOCGameOption.OTYPE_ENUMBOOL))
-            System.arraycopy(op.enumVals, 0, pa, 12, op.enumVals.length);
+            for (final String ev : op.enumVals)
+                pa.add(ev);
     }
 
     /**
@@ -141,12 +142,15 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      *      if type isn't {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM} or ENUMBOOL, pa.length must == 12 (or 11 for OTYPE_UNKNOWN).
      * @throws NumberFormatException    if pa integer-field contents are incorrectly formatted.
      */
-    protected SOCGameOptionInfo(String[] pa)
+    protected SOCGameOptionInfo(List<String> pal)
         throws IllegalArgumentException, NumberFormatException
     {
-	super(GAMEOPTIONINFO, null, pa);
-	if (pa.length < 11)
-	    throw new IllegalArgumentException("pa.length");
+	super(GAMEOPTIONINFO, null, pal);
+	final int L = pal.size();
+	if (L < 11)
+	    throw new IllegalArgumentException("pal.size");
+
+	final String[] pa = pal.toArray(new String[L]);
 
 	// OTYPE_*
 	int otyp = Integer.parseInt(pa[1]);
@@ -251,7 +255,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      */
     public String getOptionNameKey()
     {
-        return pa[0];
+        return pa.get(0);
     }
 
     /**
@@ -282,10 +286,11 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * @param pa   the String parameters
      * @return    a GameOptionInfo message, or null if parsing errors
      */
-    public static SOCGameOptionInfo parseDataStr(String[] pa)
+    public static SOCGameOptionInfo parseDataStr(List<String> pa)
     {
-        if ((pa == null) || (pa.length < 11))
+        if ((pa == null) || (pa.size() < 11))
             return null;
+
         try
         {
             return new SOCGameOptionInfo(pa);
