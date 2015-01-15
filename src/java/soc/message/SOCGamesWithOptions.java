@@ -21,6 +21,7 @@
  **/
 package soc.message;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -58,7 +59,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      * There is no server-side constructor, because the server
      * instead calls {@link #toCmd(Vector, int)}.
      *
-     * @param gla Game list
+     * @param gl  Game list; can be empty, but not null
      */
     protected SOCGamesWithOptions(List<String> gl)
     {
@@ -80,6 +81,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
     public SOCGameList getGameList()
     {
         SOCGameList gamelist = new SOCGameList();
+
         final int L = pa.size();
         for (int ii = 0; ii < L; )
         {
@@ -88,6 +90,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
             gamelist.addGame(gaName, pa.get(ii), false);
             ++ii;
         }
+
         return gamelist;
     }
 
@@ -102,14 +105,16 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
     /**
      * Parse the command String array into a SOCGamesWithOptions message.
      *
-     * @param gla  the game list; must contain an even number of strings
-     *             (pairs of game names+options)
+     * @param gl  the game list; must contain an even number of strings
+     *            (pairs of game names+options); can be null or empty
      * @return    a SOCGamesWithOptions message, or null if parsing errors
      */
     public static SOCGamesWithOptions parseDataStr(List<String> gl)
     {
-        if ((gl == null) || ((gl.size() % 2) != 0))
-            return null;  // must have an even# of strings
+        if (gl == null)
+            gl = new ArrayList<String>();
+        else if ((gl.size() % 2) != 0)
+            return null;  // must have an even # of strings
 
         return new SOCGamesWithOptions(gl);
     }
@@ -144,4 +149,5 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
         }
         return sb.toString();
     }
+
 }
