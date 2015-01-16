@@ -140,12 +140,13 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
      *
      * @param pa   the parameters; length 5 or more required.
      *     Built by constructor at server. Length must be odd. <pre>
-     * pa[0] = playerNum
-     * pa[1] = actionType
-     * pa[2] = elementType[0]
-     * pa[3] = value[0]
-     * pa[4] = elementType[1]
-     * pa[5] = value[1]</pre>
+     * pa[0] = gameName
+     * pa[1] = playerNum
+     * pa[2] = actionType
+     * pa[3] = elementType[0]
+     * pa[4] = value[0]
+     * pa[5] = elementType[1]
+     * pa[6] = value[1]</pre>
      * (etc.)
      * @return    a SOCPlayerElements message, or null if parsing errors
      */
@@ -160,19 +161,16 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
         try
         {
             final String gaName = pa.get(0);
-            int[] ipa = new int[L - 1];
-            for (int i = 0; i < ipa.length; ++i)
-                ipa[i] = Integer.parseInt(pa.get(i + 1));
+            final int playerNumber = Integer.parseInt(pa.get(1));
+            final int actionType = Integer.parseInt(pa.get(2));
 
-            int playerNumber = ipa[0];
-            int actionType = ipa[1];
-            final int n = ipa.length / 2 - 1;
+            final int n = (L - 3) / 2;
             int[] elementTypes = new int[n];
             int[] values = new int[n];
-            for (int i = 0, pai = 2; i < n; ++i)
+            for (int i = 0, pai = 3; i < n; ++i)
             {
-                elementTypes[i] = ipa[pai];  ++pai;
-                values[i] = ipa[pai];  ++pai;
+                elementTypes[i] = Integer.parseInt(pa.get(pai));  ++pai;
+                values[i]       = Integer.parseInt(pa.get(pai));  ++pai;
             }
 
             return new SOCPlayerElements(gaName, playerNumber, actionType, elementTypes, values);
