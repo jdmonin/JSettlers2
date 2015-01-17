@@ -118,19 +118,19 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      * MESSAGETYPE [sep game] sep param1 sep param2 sep ...
      *
      * @param messageType The message type id
-     * @param ga  the game name, or null
-     * @param pal The parameter list, or null if no additional parameters;
+     * @param gaName  the game name, or null
+     * @param pal  The parameter list, or null if no additional parameters;
      *             elements of {@code pal} can be null.
      * @return    the command string
      */
-    protected static String toCmd(final int messageType, final String ga, final List<String> pal)
+    protected static String toCmd(final int messageType, final String gaName, final List<String> pal)
     {
         StringBuilder sb = new StringBuilder(Integer.toString(messageType));
 
-        if (ga != null)
+        if (gaName != null)
         {
             sb.append(sep);
-            sb.append(ga);
+            sb.append(gaName);
         }
         if (pal != null)
         {
@@ -146,24 +146,26 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
     }
 
     /**
-     * Parse the command String into a MessageType message
+     * Parse the command String into a MessageType message.
+     * Calls {@link #MessageType(gaName, List)} constructor,
+     * see its javadoc for parameter details.
      *
      * @param s   the String parameters
-     * @return    a PotentialSettlements message, or null if parsing errors
-    public static SOCPotentialSettlements parseDataStr(String[] s)
+     * @return    a DiceResultResources message, or null if parsing errors
+    public static SOCDiceResultResources parseDataStr(List<String> s)
     {
-        String ga; // the game name
-        String[] sett; // the settlements
+        String gaName;  // the game name
+        String[] pa;    // the parameters
 
-        if ((s == null) || (s.length < 2))
-            return null;  // must have at least game + 1 settlement param
+        if ((s == null) || (s.size() < 2))
+            return null;  // must have at least game name + 1 further param
 
-        ga = s[0];
-        sett = new String[s.length - 1];
-        for (int i = 1; i < s.length; ++i)
-            sett[i-1] = s[i];
+        gaName = s.get(0);
+        pa = new String[s.size() - 1];
+        for (int i = 0; i < pa.length; ++i)
+            pa[i] = s.get(i + 1);
 
-        return new SOCPotentialSettlements(ga, sett);
+        return new SOCDiceResultResources(gaName, pa);
     }
     */
 
