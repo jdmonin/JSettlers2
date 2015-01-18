@@ -195,11 +195,10 @@ See README.developer if you want that.)
 Hosting a JSettlers server
 --------------------------
   - Start MySQL or PostgreSQL server
-    (the database is optional; if you want a db, file-based sqlite also works)
+    (this database is optional; if you want a db, file-based sqlite also works)
   - Start JSettlers Server
   - Start http server (optional)
-  - Copy JSettlers.jar jar and "web/*.html" server directory (optional)
-  - Copy "docs/users" to the server directory (optional)
+  - Copy JSettlers.jar client JAR and web/*.html to an http-served directory (optional)
 
 To host a JSettlers server, start the server as described in "Setting up
 and Testing". To maintain user accounts, be sure to start the database
@@ -210,29 +209,30 @@ Remote users can simply start their clients as described there,
 and specify your server as host.
 
 To provide a web page from which users can run the applet, you will
-need to set up an html server, such as Apache.  We assume you have
-installed it correctly, and will refer to "${docroot}" as a directory
-your web server is configured to provide.
+need to set up an http server such as Apache.  We assume you have
+installed it already, and will refer to "${docroot}" as a directory
+to place files to be served by your web server.
 
-Copy the sample .html pages from "web" to ${docroot}. Edit them, to
-make sure the PORT parameter in "index.html" and "account.html" applet
-tags match the port of your JSettlers server.
+Copy index.html from src/web/ to ${docroot}.  If you're going to use an
+accounts database and anyone can register their own account (this is not
+the default setting), also copy accounts.html.
 
-Next copy the client files to the server. Copy JSettlers.jar to
-${docroot}. This will allow users to use the web browser plug-in.
+Edit the html to make sure the PORT parameter in "index.html" and "account.html"
+applet tags match the port of your JSettlers server, and the text starting
+"this applet connects to" has the right server name and port for users who can't
+run the applet in their browser.  If you're using account.html, also
+un-comment index.html's link to account.html.
 
-You may also copy the "doc/users" directory (recursively) to the same
-directory as the sample .html pages to provide user documentation:
-    $ jar -xf JSettlers.jar doc/users
+Next copy the JSettlers.jar client file to ${docroot}. This will allow users
+to use the web browser plug-in or download it to connect from their computer.
+If you've downloaded it as JSettlers-{version}-full.jar, rename it to JSettlers.jar.
 
 Your web server directory structure should now contain:
   ${docroot}/index.html
-  ${docroot}/*.html
+  ${docroot}/account.html (optional)
   ${docroot}/JSettlers.jar
-  ${docroot}/users/...
 
-Users should now be able to visit your web site to run the client
-version of JSettlers.
+Users should now be able to visit your web site to run the JSettlers client.
 
 
 Upgrading from an earlier version
