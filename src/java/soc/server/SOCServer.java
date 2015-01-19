@@ -3959,20 +3959,27 @@ public class SOCServer extends Server
             {
                 if (mes instanceof SOCMessageForGame)
                 {
+                    // Try to process message through its game type's handler
+                    // before falling through to server-wide handler
+
                     final String gaName = ((SOCMessageForGame) mes).getGame();
-                    if ((gaName == null) || gaName.equals(SOCMessage.GAME_NONE))
-                        return;  // <--- Early return: reject this marker from any client ---
+                    if (gaName == null)
+                        return;  // <--- Early return: malformed ---
 
-                    SOCGame ga = gameList.getGameData(gaName);
-                    if ((ga == null) || (c == null))
-                        return;  // <--- Early return: ignore unknown games ---
-
-                    final GameHandler hand = gameList.getGameTypeHandler(gaName);
-                    if (hand != null)  // all consistent games will have a handler
+                    if (! gaName.equals(SOCMessage.GAME_NONE))
                     {
-                        if (hand.processCommand(ga, (SOCMessageForGame) mes, c))
-                            return;
-                        // else: Message type unknown or ignored by handler. Server handles it below.
+                        SOCGame ga = gameList.getGameData(gaName);
+                        if ((ga == null) || (c == null))
+                            return;  // <--- Early return: ignore unknown games ---
+
+                        final GameHandler hand = gameList.getGameTypeHandler(gaName);
+                        if (hand != null)  // all consistent games will have a handler
+                        {
+                            if (hand.processCommand(ga, (SOCMessageForGame) mes, c))
+                                return;
+
+                            // else: Message type unknown or ignored by handler. Server handles it below.
+                        }
                     }
                 }
 
