@@ -26,9 +26,10 @@ import java.util.List;
  * Message from server for i18n localization of items such as game options or scenarios.
  *<P>
  * The first element of {@link #getParams()} is a string type such as {@link #TYPE_GAMEOPT}
- * or {@link #TYPE_SCENARIO}.  The rest of {@code getParams()} is organized according to
- * the type; see type constant javadocs.  Since {@code getParams()} can't contain empty strings,
- * check contents for {@link #EMPTY}.
+ * or {@link #TYPE_SCENARIO}.  This is followed by the integer flag field (hex string) which
+ * is removed from the list at the receiving end's parser.
+ * The rest of {@code getParams()} is organized according to the type; see type constant javadocs.
+ * Since {@code getParams()} can't contain empty strings, check contents for {@link #EMPTY}.
  *<P>
  * Not a per-game message; {@link #getGame()} returns {@link SOCMessage#GAME_NONE}.
  *<P>
@@ -59,22 +60,76 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      * Game Scenario localized names and descriptions, for {@link soc.game.SOCScenario}. After the
      * string type at element 0, {@link #getParams()} contents are triples of strings, each of which
      * is a game scenario keyname, localized name, and optional localized long description or {@link #EMPTY}.
+     *<P>
+     * If the client has requested specific scenario keynames for this type, the server replies with all known
+     * localized strings for those items.  Items without localized strings will not be included in the reply.
+     * If none of the items are localized, server replies with an empty list with the {@link #FLAG_SENT_ALL}
+     * flag.
      */
     public static final String TYPE_SCENARIO = "S";
+
+    /** First character of all MARKERs */
+    private static final String MARKER_PREFIX = "\026";  // 0x16 ^V (SYN)
+
+    /**
+     * "Type is unknown" flag, for server's response when it doesn't recognize
+     * the string type requested by the client.
+     */
+    public static final int FLAG_TYPE_UNKNOWN = 0x01;
+
+    /**
+     * "Sent all of them" flag, for server's response when it has sent all known items
+     * of the string type requested by the client.
+     *<P>
+     * This flag can also be sent when no known items are available for a recognized
+     * string type; the server will send an empty list with this flag set.
+     */
+    public static final int FLAG_SENT_ALL = 0x02;
+
+    /**
+     * "Key is unknown" flag, for server's response when it doesn't have a localized
+     * string for the key requested by the client.
+     */
+    public static final String MARKER_KEY_UNKNOWN = "\026K";
 
     private static final long serialVersionUID = 2000L;  // no structural change since introduced in v2.0.00
 
     /**
-     * Constructor for client to parse server's list of localized strings.
-     * See class javadoc for interpreting contents of this message.
-     *<P>
-     * There is no server-side constructor, the server instead calls {@link #toCmd(String, List)}.
-     *
-     * @param str String list
+     * Request or response flags such as {@link #FLAG_SENT_ALL}.
+     * @see #isFlagSet(int)
      */
-    protected SOCLocalizedStrings(final List<String> strs)
+    private int flags;
+
+    /**
+     * Constructor for client to parse server's list of localized strings.
+     * See {@link SOCLocalizedStrings class javadoc} for interpreting contents of this message.
+     *<P>
+     * The {@link #flags} field (for {@link #FLAG_SENT_ALL}, {@link #FLAG_TYPE_UNKNOWN}, etc)
+     * is parsed here and removed from the list of strings.
+     *<P>
+     * There is no server-side constructor, the server instead calls {@link #toCmd(String, int, List)}.
+     *
+     * @param str String list; assumes caller has validated length >= 2 (type, flags).
+     * @throws NumberFormatException  if flags field isn't a valid hex number
+     */
+    private SOCLocalizedStrings(final List<String> strs)
+        throws NumberFormatException
     {
         super(LOCALIZEDSTRINGS, SOCMessage.GAME_NONE, strs);
+
+        // flag field; parse error throws exception for parseDataStr to catch
+        flags = Integer.parseInt(strs.get(1), 16);
+        strs.remove(1);
+    }
+
+    /**
+     * Is this flag bit set in the {@code flags} field?
+     * @param flag  A flag such as {@link #FLAG_SENT_ALL}
+     * @return  True if set
+     */
+    public final boolean isFlagSet(final int flag)
+    {
+        return (0 != (flags & flag));
     }
 
     /**
@@ -93,20 +148,28 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      */
     public static SOCLocalizedStrings parseDataStr(List<String> strs)
     {
-        if ((strs == null) || strs.isEmpty())
-            return null;  // must have at least 1 string
+        if ((strs == null) || (strs.size() < 2))
+            return null;  // must have at least 2 strings: type, flags
 
-        return new SOCLocalizedStrings(strs);
+        try
+        {
+            return new SOCLocalizedStrings(strs);
+        } catch (Exception e) {
+            // catch NumberFormatException and anything else from a malformed message
+            return null;
+        }
     }
 
     /**
      * Build the command string from a type and list of strings; used at server side.
      * @param type  String type such as {@link #TYPE_SCENARIO};
      *     must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @param flags  Any flags such as {@link #FLAG_SENT_ALL}, or 0
      * @param strs  the list of strings, organized in a type-specific way; see {@code type} constant javadocs.
      *     Each element must pass
      *     {@link SOCMessage#isSingleLineAndSafe(String, boolean) isSingleLineAndSafe(String, true)}:
      *     {@link SOCMessage#sep2} characters are allowed, but {@link SOCMessage#sep} are not.
+     *    <P>
      *     The list may be empty but not null.  Empty or null elements are automatically replaced here
      *     with {@link #EMPTY}, but {@link #getParams()} will not automatically replace {@link #EMPTY}
      *     with "" at the receiver.
@@ -115,7 +178,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      *     {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @throws NullPointerException if {@code strs} is null
      */
-    public static String toCmd(final String type, List<String> strs)
+    public static String toCmd(final String type, final int flags, List<String> strs)
         throws IllegalArgumentException, NullPointerException
     {
         if (! isSingleLineAndSafe(type))
@@ -124,6 +187,9 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
         StringBuilder sb = new StringBuilder(Integer.toString(SOCMessage.LOCALIZEDSTRINGS));
         sb.append(sep);
         sb.append(type);
+        sb.append(sep);
+        sb.append(Integer.toHexString(flags));
+
         for (int i = 0; i < strs.size(); ++i)
         {
             sb.append(sep);
@@ -131,7 +197,12 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
             String itm = strs.get(i);
             if ((itm == null) || (itm.length() == 0))
                 itm = EMPTY;
-            else if ( (itm.indexOf(SOCMessage.sep_char) != -1) || ! isSingleLineAndSafe(itm, true))
+            else if (itm.startsWith(MARKER_PREFIX))
+            {
+                if (! itm.equals(MARKER_KEY_UNKNOWN))
+                    throw new IllegalArgumentException("item " + i + ": " + itm);
+            }
+            else if ((itm.indexOf(SOCMessage.sep_char) != -1) || ! isSingleLineAndSafe(itm, true))
                 throw new IllegalArgumentException("item " + i + ": " + itm);
 
             sb.append(itm);

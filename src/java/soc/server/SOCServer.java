@@ -6634,8 +6634,9 @@ public class SOCServer extends Server
                     }
                 }
 
-                if (! scenStrs.isEmpty())
-                    c.put(SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, scenStrs));
+                // if none found, scenStrs will be empty; still sends the flag to let client know that.
+                c.put(SOCLocalizedStrings.toCmd
+                        (SOCLocalizedStrings.TYPE_SCENARIO, SOCLocalizedStrings.FLAG_SENT_ALL, scenStrs));
             }
 
             scd.sentAllScenarioStrings = true;

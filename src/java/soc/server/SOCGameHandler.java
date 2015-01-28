@@ -2821,7 +2821,7 @@ public class SOCGameHandler extends GameHandler
         scenStrs.add(nm);
         scenStrs.add(desc);  // null is OK
 
-        c.put(SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, scenStrs));
+        c.put(SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, 0, scenStrs));
 
         // Remember that we sent it
         if (scensSent == null)
