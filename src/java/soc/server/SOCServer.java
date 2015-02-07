@@ -4176,6 +4176,14 @@ public class SOCServer extends Server
                     break;
 
                 /**
+                 * Handle client request for localized i18n strings for game items.
+                 * Added 2015-01-14 for v2.0.00.
+                 */
+                case SOCMessage.LOCALIZEDSTRINGS:
+                    handleLOCALIZEDSTRINGS(c, (SOCLocalizedStrings) mes);
+                    break;
+
+                /**
                  * Game option messages. For the best writeup of these messages' interaction with
                  * the client, see {@link soc.client.SOCPlayerClient.GameOptionServerSet}'s javadoc.
                  * Added 2009-06-01 for v1.1.07.
@@ -6578,6 +6586,57 @@ public class SOCServer extends Server
             // Vote rejected - Let everyone know.
             messageToGame(gaName, new SOCResetBoardReject(gaName));
         }
+    }
+
+    /**
+     * Handle client request for localized i18n strings for game items.
+     * Added 2015-01-14 for v2.0.00.
+     */
+    private void handleLOCALIZEDSTRINGS(final StringConnection c, final SOCLocalizedStrings mes)
+    {
+        final List<String> str = mes.getParams();
+        final String type = str.get(0);
+        final int L = str.size();
+        List<String> rets = new ArrayList<String>();  // for reply to client
+        int flags = 0;
+
+        if (type.equals(SOCLocalizedStrings.TYPE_GAMEOPT))
+        {
+            // Already handled when client connects
+            flags = SOCLocalizedStrings.FLAG_SENT_ALL;
+        }
+        else if (type.equals(SOCLocalizedStrings.TYPE_SCENARIO))
+        {
+            final boolean hasLocalDescs = (c.getI18NLocale() != null)
+                && ! i18n_scenario_SC_WOND_desc.equals(c.getLocalized("gamescen.SC_WOND.n"));
+
+            if (hasLocalDescs)
+            {
+                for (int i = 1; i < L; ++i)
+                {
+                    final String scKey = str.get(i);
+                    rets.add(scKey);
+
+                    SOCScenario sc = SOCScenario.getScenario(scKey);
+                    if (sc != null)
+                    {
+                        rets.add(c.getLocalized("gamescen." + scKey + ".n"));
+                        rets.add(c.getLocalized("gamescen." + scKey + ".d"));
+                    } else {
+                        rets.add(SOCLocalizedStrings.MARKER_KEY_UNKNOWN);
+                    }
+                }
+            } else {
+                flags = SOCLocalizedStrings.FLAG_SENT_ALL;
+            }
+        }
+        else
+        {
+            // Unrecognized string type
+            flags = SOCLocalizedStrings.FLAG_TYPE_UNKNOWN;
+        }
+
+        c.put(SOCLocalizedStrings.toCmd(type, flags, rets));
     }
 
     /**

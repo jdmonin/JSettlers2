@@ -23,7 +23,26 @@ package soc.message;
 import java.util.List;
 
 /**
- * Message from server for i18n localization of items such as game options or scenarios.
+ * Message from server for i18n localization of item types such as game options or scenarios,
+ * such as {@link #TYPE_GAMEOPT} or {@link #TYPE_SCENARIO}, or request from client to get
+ * localized strings for specific keys of certain item types.
+ *<P>
+ * This message is always about one string type.  The meaning of the keys and their strings may differ per
+ * string type.  For example, keys for {@link #TYPE_SCENARIO} are the same as in {@code SOCScenario}
+ * and the server sends two strings per scenario, its short and long description.
+ *<P>
+ * Normally sent from the server when client needs all keys or some keys for a type; see type constant javadocs.
+ * For example: When joining a game with a scenario, the client needs strings for that
+ * scenario. When creating a new game, the client needs strings for all scenarios in order
+ * to read about them and maybe choose one.  The server's message includes the string type such as
+ * {@link #TYPE_SCENARIO}, the flags field, and then each key and its string(s) as described above.
+ *<P>
+ * This message is not commonly sent from client to server, which is included to allow clients
+ * to get localized strings for scenarios or gameopts newer than the client or changed since
+ * the client's release.  The client's request includes the string type such as {@link #TYPE_SCENARIO},
+ * the flags field, and then any keys for which it wants localized strings.  The server's response
+ * is as described above, including all keys requested by the client.  If a key isn't known at the server,
+ * in the response that key will be followed by {@link #MARKER_KEY_UNKNOWN} instead of by its string(s).
  *<P>
  * The first element of {@link #getParams()} is a string type such as {@link #TYPE_GAMEOPT}
  * or {@link #TYPE_SCENARIO}.  This is followed by the integer flag field (hex string) which
@@ -79,7 +98,8 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
 
     /**
      * "Sent all of them" flag, for server's response when it has sent all known items
-     * of the string type requested by the client.
+     * of the string type requested by the client.  The client should not request any
+     * further items of that string type.
      *<P>
      * This flag can also be sent when no known items are available for a recognized
      * string type; the server will send an empty list with this flag set.
