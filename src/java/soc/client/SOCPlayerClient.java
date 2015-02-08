@@ -58,6 +58,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.EnumMap;
 import java.util.Iterator;
@@ -3297,7 +3298,7 @@ public class SOCPlayerClient
              * Added 2015-01-11 for v2.0.00.
              */
             case SOCMessage.LOCALIZEDSTRINGS:
-                handleLOCALIZEDSTRINGS((SOCLocalizedStrings) mes);
+                handleLOCALIZEDSTRINGS((SOCLocalizedStrings) mes, isPractice);
                 break;
 
             }  // switch (mes.getType())
@@ -4869,8 +4870,9 @@ public class SOCPlayerClient
     /**
      * Localized i18n strings for game items.
      * Added 2015-01-11 for v2.0.00.
+     * @param isPractice  Is the server {@link ClientNetwork#practiceServer}, not remote?
      */
-    private void handleLOCALIZEDSTRINGS(final SOCLocalizedStrings mes)
+    private void handleLOCALIZEDSTRINGS(final SOCLocalizedStrings mes, final boolean isPractice)
     {
         final List<String> str = mes.getParams();
         final String type = str.get(0);
@@ -4892,24 +4894,35 @@ public class SOCPlayerClient
         }
         else if (type.equals(SOCLocalizedStrings.TYPE_SCENARIO))
         {
+            GameOptionServerSet opts = (isPractice ? practiceServGameOpts : tcpServGameOpts);
 
-            for (int i = 1; i < L; i += 3)
+            for (int i = 1; i < L; )
             {
-                SOCScenario sc = SOCScenario.getScenario(str.get(i));
-                if (sc != null)
-                {
-                    final String nm = str.get(i + 1);
-                    if (! nm.equals(SOCLocalizedStrings.EMPTY))
-                    {
-                        String desc = str.get(i + 2);
-                        if (desc.equals(SOCLocalizedStrings.EMPTY))
-                            desc = null;
+                final String scKey = str.get(i);
+                ++i;
+                opts.scenKeys.add(scKey);
 
-                        sc.copyUpdateText(nm, desc);
-                    }
+                final String nm = str.get(i);
+                ++i;
+
+                if (nm.equals(SOCLocalizedStrings.MARKER_KEY_UNKNOWN))
+                    continue;
+
+                String desc = str.get(i);
+                ++i;
+
+                SOCScenario sc = SOCScenario.getScenario(scKey);
+                if ((sc != null) && ! nm.equals(SOCLocalizedStrings.EMPTY))
+                {
+                    if (desc.equals(SOCLocalizedStrings.EMPTY))
+                        desc = null;
+
+                    sc.copyUpdateText(nm, desc);
                 }
             }
 
+            if (mes.isFlagSet(SOCLocalizedStrings.FLAG_SENT_ALL))
+                opts.allScenStringsReceived = true;
         }
         else
         {
@@ -6799,6 +6812,8 @@ public class SOCPlayerClient
      * One instance for remote tcp server, one for practice server.
      * For simplicity, getters/setters are not included: Synchronize on the object to set/read its fields.
      *<P>
+     * In v2.0.00 and newer, also tracks all {@link SOCScenario}s' i18n localized strings.
+     *<P>
      * Interaction with client-server messages at connect:
      *<OL>
      *<LI> First, this object is created; <tt>allOptionsReceived</tt> false,
@@ -6871,12 +6886,31 @@ public class SOCPlayerClient
         public long askedDefaultsTime;
 
         /**
+         * If true, the server sent us all scenarios' i18n strings,
+         * has none for our locale, or is too old to support them.
+         *<P>
+         * The server sends all scenario strings when client has asked
+         * for game option defaults for the dialog to create a new game.
+         * @see #scenKeys
+         * @since 2.0.00
+         */
+        public boolean allScenStringsReceived = false;
+
+        /**
+         * Any scenario keynames for which the server has sent us i18n strings or responded with "unknown".
+         * Empty if server hasn't sent any, ignored if {@link #allScenStringsReceived}.
+         * @since 2.0.00
+         */
+        public HashSet<String> scenKeys;
+
+        /**
          * Create a new GameOptionServerSet, with an {@link #optionSet} defaulting
          * to our client version's {@link SOCGameOption#getAllKnownOptions()}.
          */
         public GameOptionServerSet()
         {
             optionSet = SOCGameOption.getAllKnownOptions();
+            scenKeys = new HashSet<String>();
         }
 
         /**
