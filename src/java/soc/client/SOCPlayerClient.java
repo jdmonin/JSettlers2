@@ -204,13 +204,13 @@ public class SOCPlayerClient
      *<P>
      * For a summary of the flags and variables involved with game options,
      * and the client/server interaction about their values, see
-     * {@link GameOptionServerSet}'s javadoc.
+     * {@link ServerGametypeInfo}'s javadoc.
      *
      * @see #sFeatures
      * @since 1.1.07
      */
-    protected GameOptionServerSet tcpServGameOpts = new GameOptionServerSet(),
-        practiceServGameOpts = new GameOptionServerSet();
+    protected ServerGametypeInfo tcpServGameOpts = new ServerGametypeInfo(),
+        practiceServGameOpts = new ServerGametypeInfo();
 
     /**
      * For practice games, default game name ("Practice").
@@ -409,7 +409,7 @@ public class SOCPlayerClient
          *<P>
          * For a summary of the flags and variables involved with game options,
          * and the client/server interaction about their values, see
-         * {@link GameOptionServerSet}.
+         * {@link ServerGametypeInfo}.
          *
          * @param forPracticeServer  Ask {@link ClientNetwork#practiceServer}, instead of TCP server?
          * @param didAuth  If true, the server has authenticated our username and password;
@@ -418,8 +418,8 @@ public class SOCPlayerClient
         void gameWithOptionsBeginSetup(final boolean forPracticeServer, final boolean didAuth);
 
         void optionsRequested();
-        void optionsReceived(GameOptionServerSet opts, boolean isPractice);
-        void optionsReceived(GameOptionServerSet opts, boolean isPractice, boolean isDash, boolean hasAllNow);
+        void optionsReceived(ServerGametypeInfo opts, boolean isPractice);
+        void optionsReceived(ServerGametypeInfo opts, boolean isPractice, boolean isDash, boolean hasAllNow);
 
         /**
          * Add a new game to the initial window's list of games.
@@ -1711,7 +1711,7 @@ public class SOCPlayerClient
                 pass.setEditable(false);
             }
 
-            GameOptionServerSet opts;
+            ServerGametypeInfo opts;
 
             // What server are we going against? Do we need to ask it for options?
             {
@@ -2259,14 +2259,14 @@ public class SOCPlayerClient
             gameOptionsSetTimeoutTask();
         }
         
-        public void optionsReceived(GameOptionServerSet opts, boolean isPractice)
+        public void optionsReceived(ServerGametypeInfo opts, boolean isPractice)
         {
             gameOptionsCancelTimeoutTask();
             newGameOptsFrame = NewGameOptionsFrame.createAndShow
                 (GameAwtDisplay.this, (String) null, opts.optionSet, isPractice, false);
         }
         
-        public void optionsReceived(GameOptionServerSet opts, boolean isPractice, boolean isDash, boolean hasAllNow)
+        public void optionsReceived(ServerGametypeInfo opts, boolean isPractice, boolean isDash, boolean hasAllNow)
         {
             final boolean newGameWaiting;
             final String gameInfoWaiting;
@@ -3405,7 +3405,7 @@ public class SOCPlayerClient
         } else {
             // sVersion == cliVersion, so we have same code as server for getAllKnownOptions.
             // For practice games, optionSet may already be initialized, so check vs null.
-            GameOptionServerSet opts = (isPractice ? practiceServGameOpts : tcpServGameOpts);
+            ServerGametypeInfo opts = (isPractice ? practiceServGameOpts : tcpServGameOpts);
             if (opts.optionSet == null)
                 opts.optionSet = SOCGameOption.getAllKnownOptions();
             opts.noMoreOptions(isPractice);  // defaults not known unless it's practice
@@ -4752,12 +4752,12 @@ public class SOCPlayerClient
     /**
      * process the "game option get defaults" message.
      * If any default option's keyname is unknown, ask the server.
-     * @see GameOptionServerSet
+     * @see ServerGametypeInfo
      * @since 1.1.07
      */
     private void handleGAMEOPTIONGETDEFAULTS(SOCGameOptionGetDefaults mes, final boolean isPractice)
     {
-        GameOptionServerSet opts;
+        ServerGametypeInfo opts;
         if (isPractice)
             opts = practiceServGameOpts;
         else
@@ -4789,18 +4789,18 @@ public class SOCPlayerClient
 
     /**
      * process the "game option info" message
-     * by calling {@link GameOptionServerSet#receiveInfo(SOCGameOptionInfo)}.
+     * by calling {@link ServerGametypeInfo#receiveInfo(SOCGameOptionInfo)}.
      * If all are now received, possibly show game info/options window for new game or existing game.
      *<P>
      * For a summary of the flags and variables involved with game options,
      * and the client/server interaction about their values, see
-     * {@link GameOptionServerSet}.
+     * {@link ServerGametypeInfo}.
      *
      * @since 1.1.07
      */
     private void handleGAMEOPTIONINFO(SOCGameOptionInfo mes, final boolean isPractice)
     {
-        GameOptionServerSet opts;
+        ServerGametypeInfo opts;
         if (isPractice)
             opts = practiceServGameOpts;
         else
@@ -4894,7 +4894,7 @@ public class SOCPlayerClient
         }
         else if (type.equals(SOCLocalizedStrings.TYPE_SCENARIO))
         {
-            GameOptionServerSet opts = (isPractice ? practiceServGameOpts : tcpServGameOpts);
+            ServerGametypeInfo opts = (isPractice ? practiceServGameOpts : tcpServGameOpts);
 
             for (int i = 1; i < L; )
             {
@@ -6744,9 +6744,9 @@ public class SOCPlayerClient
     private static class GameOptionsTimeoutTask extends TimerTask
     {
         public GameAwtDisplay pcli;
-        public GameOptionServerSet srvOpts;
+        public ServerGametypeInfo srvOpts;
 
-        public GameOptionsTimeoutTask (GameAwtDisplay c, GameOptionServerSet opts)
+        public GameOptionsTimeoutTask (GameAwtDisplay c, ServerGametypeInfo opts)
         {
             pcli = c;
             srvOpts = opts;
@@ -6782,10 +6782,10 @@ public class SOCPlayerClient
     private static class GameOptionDefaultsTimeoutTask extends TimerTask
     {
         public GameAwtDisplay pcli;
-        public GameOptionServerSet srvOpts;
+        public ServerGametypeInfo srvOpts;
         public boolean forPracticeServer;
 
-        public GameOptionDefaultsTimeoutTask (GameAwtDisplay c, GameOptionServerSet opts, boolean forPractice)
+        public GameOptionDefaultsTimeoutTask (GameAwtDisplay c, ServerGametypeInfo opts, boolean forPractice)
         {
             pcli = c;
             srvOpts = opts;
@@ -6805,207 +6805,6 @@ public class SOCPlayerClient
         }
 
     }  // GameOptionDefaultsTimeoutTask
-
-
-    /**
-     * Track the server's valid game option set.
-     * One instance for remote tcp server, one for practice server.
-     * For simplicity, getters/setters are not included: Synchronize on the object to set/read its fields.
-     *<P>
-     * In v2.0.00 and newer, also tracks all {@link SOCScenario}s' i18n localized strings.
-     *<P>
-     * Interaction with client-server messages at connect:
-     *<OL>
-     *<LI> First, this object is created; <tt>allOptionsReceived</tt> false,
-     *     <tt>newGameWaitingForOpts</tt> false.
-     *     <tt>optionSet</tt> is set at client from {@link SOCGameOption#getAllKnownOptions()}.
-     *<LI> At server connect, ask and receive info about options, if our version and the
-     *     server's version differ.  Once this is done, <tt>allOptionsReceived</tt> == true.
-     *     If server is older than 1.1.07, <tt>optionSet</tt> becomes null here
-     *     because older servers don't support game options.
-     *<LI> When user wants to create a new game, <tt>askedDefaultsAlready</tt> is false;
-     *     ask server for its defaults (current option values for any new game).
-     *     Also set <tt>newGameWaitingForOpts</tt> = true.
-     *<LI> Server will respond with its current option values.  This sets
-     *     <tt>defaultsReceived</tt> and updates <tt>optionSet</tt>.
-     *     It's possible that the server's defaults contain option names that are
-     *     unknown at our version.  If so, <tt>allOptionsReceived</tt> is cleared, and we ask the
-     *     server about those specific options.
-     *     Otherwise, clear <tt>newGameWaitingForOpts</tt>.
-     *<LI> If waiting on option info from defaults above, the server replies with option info.
-     *     (They may remain as type {@link SOCGameOption#OTYPE_UNKNOWN}.)
-     *     Once these are all received, set <tt>allOptionsReceived</tt> = true,
-     *     clear <tt>newGameWaitingForOpts</tt>.
-     *<LI> Once  <tt>newGameWaitingForOpts</tt> == false, show the {@link NewGameOptionsFrame}.
-     *</OL>
-     *
-     * @author jdmonin
-     * @since 1.1.07
-     */
-    public static class GameOptionServerSet
-    {
-        /**
-         * If true, we know all options on this server,
-         * or the server is too old to support options.
-         */
-        public boolean   allOptionsReceived = false;
-
-        /**
-         * If true, we've asked the server about defaults or options because
-         * we're about to create a new game.  When all are received,
-         * we should create and show a NewGameOptionsFrame.
-         */
-        public boolean   newGameWaitingForOpts = false;
-
-        /**
-         * If non-null, we're waiting to hear about game options because
-         * user has clicked 'game info' on a game.  When all are
-         * received, we should create and show a NewGameOptionsFrame
-         * with that game's options.
-         */
-        public String    gameInfoWaitingForOpts = null;
-
-        /**
-         * Options will be null if {@link SOCPlayerClient#sVersion}
-         * is less than {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS} (1.1.07).
-         * Otherwise, set from {@link SOCGameOption#getAllKnownOptions()}
-         * and update from server as needed.
-         */
-        public Map<String,SOCGameOption> optionSet = null;
-
-        /** Have we asked the server for default values? */
-        public boolean   askedDefaultsAlready = false;
-
-        /** Has the server told us defaults? */
-        public boolean   defaultsReceived = false;
-
-        /**
-         * If {@link #askedDefaultsAlready}, the time it was asked,
-         * as returned by {@link System#currentTimeMillis()}.
-         */
-        public long askedDefaultsTime;
-
-        /**
-         * If true, the server sent us all scenarios' i18n strings,
-         * has none for our locale, or is too old to support them.
-         *<P>
-         * The server sends all scenario strings when client has asked
-         * for game option defaults for the dialog to create a new game.
-         * @see #scenKeys
-         * @since 2.0.00
-         */
-        public boolean allScenStringsReceived = false;
-
-        /**
-         * Any scenario keynames for which the server has sent us i18n strings or responded with "unknown".
-         * Empty if server hasn't sent any, ignored if {@link #allScenStringsReceived}.
-         * @since 2.0.00
-         */
-        public HashSet<String> scenKeys;
-
-        /**
-         * Create a new GameOptionServerSet, with an {@link #optionSet} defaulting
-         * to our client version's {@link SOCGameOption#getAllKnownOptions()}.
-         */
-        public GameOptionServerSet()
-        {
-            optionSet = SOCGameOption.getAllKnownOptions();
-            scenKeys = new HashSet<String>();
-        }
-
-        /**
-         * The server doesn't have any more options to send (or none at all, from its version).
-         * Set fields as if we've already received the complete set of options, and aren't waiting
-         * for any more.
-         *<P>
-         * Check the server version against {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}
-         * (1.1.07). If the server is too old to understand options, right after calling this method
-         * you must set {@link #optionSet} = null.
-         * @param askedDefaults Should we also set the askedDefaultsAlready flag? It not, leave it unchanged.
-         */
-        public void noMoreOptions(boolean askedDefaults)
-        {
-            allOptionsReceived = true;
-            if (askedDefaults)
-            {
-                defaultsReceived = true;
-                askedDefaultsAlready = true;
-                askedDefaultsTime = System.currentTimeMillis();
-            }
-        }
-
-        /**
-         * Set of default options has been received from the server, examine them.
-         * Sets allOptionsReceived, defaultsReceived, optionSet.  If we already have non-null optionSet,
-         * merge (update the values) instead of replacing the entire set with servOpts.
-         *
-         * @param servOpts The allowable {@link SOCGameOption} received from the server.
-         *                 Assumes has been parsed already against the locally known opts,
-         *                 so ones that we don't know are {@link SOCGameOption#OTYPE_UNKNOWN}.
-         * @return null if all are known, or a Vector of key names for unknown options.
-         */
-        public List<String> receiveDefaults(final Map<String,SOCGameOption> servOpts)
-        {
-            // Although javadoc says "update the values", replacing the option objects does the
-            // same thing; we already have parsed servOpts for all obj fields, including current value.
-            // Option objects are always accessed by key name, so replacement is OK.
-
-            if ((optionSet == null) || optionSet.isEmpty())
-            {
-                optionSet = servOpts;
-            } else {
-                for (String oKey : servOpts.keySet())
-                {
-                    SOCGameOption op = servOpts.get(oKey);
-                    SOCGameOption oldcopy = optionSet.get(oKey);
-                    if (oldcopy != null)
-                        optionSet.remove(oKey);
-                    optionSet.put(oKey, op);  // Even OTYPE_UNKNOWN are added
-                }
-            }
-
-            List<String> unknowns = SOCVersionedItem.findUnknowns(servOpts);
-            allOptionsReceived = (unknowns == null);
-            defaultsReceived = true;
-            return unknowns;
-        }
-
-        /**
-         * After calling receiveDefaults, call this as each GAMEOPTIONGETINFO is received.
-         * Updates allOptionsReceived.
-         *
-         * @param gi  Message from server with info on one parameter
-         * @return true if all are known, false if more are unknown after this one
-         */
-        public boolean receiveInfo(SOCGameOptionInfo gi)
-        {
-            String oKey = gi.getOptionNameKey();
-            SOCGameOption oinfo = gi.getOptionInfo();
-            SOCGameOption oldcopy = optionSet.get(oKey);
-
-            if ((oinfo.key.equals("-")) && (oinfo.optType == SOCGameOption.OTYPE_UNKNOWN))
-            {
-                // end-of-list marker: no more options from server.
-                // That is end of srv's response to cli sending GAMEOPTIONGETINFOS("-").
-                noMoreOptions(false);
-                return true;
-            } else {
-                // remove old, replace with new from server (if any)
-                if (oldcopy != null)
-                {
-                    optionSet.remove(oKey);
-                    final SOCGameOption.ChangeListener cl = oldcopy.getChangeListener();
-                    if (cl != null)
-                        oinfo.addChangeListener(cl);
-                }
-                SOCGameOption.addKnownOption(oinfo);
-                if (oinfo.optType != SOCGameOption.OTYPE_UNKNOWN)
-                    optionSet.put(oKey, oinfo);
-                return false;
-            }
-        }
-
-    }  // class GameOptionServerSet
 
 
     /**
