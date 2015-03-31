@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -3343,9 +3343,36 @@ public class SOCHandPanel extends Panel
                 // Bottom of panel: 1 button row: Quit to left; Roll, Restart to right
 
                 final Dimension sqpDim = sqPanel.getSize();  // Trading SquaresPanel (doesn't include Give/Get labels)
-                final int sheepW = fm.stringWidth("Sheep:_");  // Bug in stringWidth does not give correct size for ' '
+                final int labelspc = fm.stringWidth("_") / 3;  // Bug in stringWidth does not give correct size for ' '
+                final int sheepW;  // width of longest localized string clay/sheep/ore/wheat/wood
+                {
+                    int wmax = 0;
+                    final Label[] rLabs = { clayLab, oreLab, sheepLab, wheatLab, woodLab };
+                    for (int i = 0; i < rLabs.length; ++i)
+                    {
+                        final Label rl = rLabs[i];
+                        if (rl != null)
+                        {
+                            final String txt = rl.getText();
+                            if (txt != null)
+                            {
+                                final int w = fm.stringWidth(rl.getText());
+                                if (w > wmax)
+                                    wmax = w;
+                            }
+                        }
+                    }
+                    if (wmax == 0)
+                        wmax = fm.stringWidth("Sheep:");  // fallback
+
+                    sheepW = wmax + labelspc;
+                }
                 final int pcW = fm.stringWidth(CARD.replace(' ','_'));  // Bug in stringWidth
-                final int giveW = fm.stringWidth(GIVE.replace(' ','_'));  // Width of trading Give/Get labels
+                final int giveW;  // width of trading Give/Get labels
+                {
+                    final int gv = fm.stringWidth(GIVE), gt = fm.stringWidth(GET);
+                    giveW = ((gv > gt) ? gv : gt) + labelspc + 2;
+                }
                 // int clearW = fm.stringWidth(CLEAR.replace(' ','_'));
                 // int bankW = fm.stringWidth(BANK.replace(' ','_'));
                 final int resCardsH = 5 * (lineH + space);   // Clay,Ore,Sheep,Wheat,Wood
