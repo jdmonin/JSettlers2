@@ -170,10 +170,21 @@ public class SOCGameOption
     /** Option type: boolean  */
     public static final int OTYPE_BOOL = 1;
 
-    /** Option type: integer  */
+    /**
+     * Option type: integer.
+     *<P>
+     * In v2.0.00+ while reading values in the NewGameOptionsFrame dialog, a blank textfield is treated as 0.
+     * If 0 is out of range, the user will have to enter a valid number.
+     */
     public static final int OTYPE_INT = 2;
 
-    /** Option type: integer + boolean.  Both {@link #boolValue} and {@link #intValue} fields are used. */
+    /**
+     * Option type: integer + boolean.  Both {@link #boolValue} and {@link #intValue} fields are used.
+     *<P>
+     * In v2.0.00+ while reading values in the NewGameOptionsFrame dialog, a blank int value textfield
+     * is treated as 0. If 0 is out of range, the user will have to enter a valid number.
+     * If the option's boolean value checkbox isn't set, the int value isn't set or changed.
+     */
     public static final int OTYPE_INTBOOL = 3;
 
     /** Option type: enumeration (1 of several possible choices, described with text strings,

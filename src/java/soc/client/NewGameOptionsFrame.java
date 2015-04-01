@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1001,23 +1001,7 @@ public class NewGameOptionsFrame extends Frame
                         ctrl.requestFocusInWindow();
                     }
                 } else {
-                    try   // OTYPE_INT, OTYPE_INTBOOL
-                    {
-                        int iv = Integer.parseInt(txt);
-                        op.setIntValue(iv);
-                        if (iv != op.getIntValue())
-                        {
-                            allOK = false;
-                            msgText.setText
-                                (strings.get("game.options.outofrange", op.minIntValue, op.maxIntValue));
-                            ctrl.requestFocusInWindow();
-                        }
-                    } catch (NumberFormatException ex)
-                    {
-                        allOK = false;
-                        msgText.setText(strings.get("game.options.onlydigits"));
-                        ctrl.requestFocusInWindow();
-                    }
+                    // OTYPE_INT, OTYPE_INTBOOL; defer setting until after all checkboxes have been read
                 }
             }
             else if (ctrl instanceof Choice)
@@ -1030,6 +1014,50 @@ public class NewGameOptionsFrame extends Frame
                     allOK = false;
             }
 
+        }  // for(opts)
+
+        // OTYPE_INT, OTYPE_INTBOOL: now that all checkboxes have been read,
+        //   set int values and see if in range; ignore where bool is not set (checkbox not checked).
+        //   Use 0 if blank (still checks if in range).
+        for (Component ctrl : controlsOpts.keySet())
+        {
+            if (! (ctrl instanceof TextField))
+                continue;
+
+            SOCGameOption op = controlsOpts.get(ctrl);
+            if (op.optType == SOCGameOption.OTYPE_INTBOOL)
+            {
+                if (! op.getBoolValue())
+                    continue;
+            }
+            else if (op.optType != SOCGameOption.OTYPE_INT)
+            {
+                continue;
+            }
+
+            String txt = ((TextField) ctrl).getText().trim();
+            try
+            {
+                int iv;
+                if (txt.length() > 0)
+                    iv = Integer.parseInt(txt);
+                else
+                    iv = 0;
+
+                op.setIntValue(iv);
+                if (iv != op.getIntValue())
+                {
+                    allOK = false;
+                    msgText.setText
+                        (strings.get("game.options.outofrange", op.minIntValue, op.maxIntValue));  // "out of range"
+                    ctrl.requestFocusInWindow();
+                }
+            } catch (NumberFormatException ex)
+            {
+                allOK = false;
+                msgText.setText(strings.get("game.options.onlydigits"));  // "please use only digits here"
+                ctrl.requestFocusInWindow();
+            }
         }  // for(opts)
 
         if (allOK && checkOptionsMinVers && ! forPractice)
