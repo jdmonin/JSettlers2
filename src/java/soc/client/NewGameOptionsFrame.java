@@ -1478,10 +1478,11 @@ public class NewGameOptionsFrame extends Frame
         sb.append(sc.getDesc());
         sb.append('\n');
 
-        if (sc.scLongDesc != null)
+        final String scLongDesc = sc.getLongDesc();
+        if (scLongDesc != null)
         {
             sb.append('\n');
-            sb.append(sc.scLongDesc);
+            sb.append(scLongDesc);
             sb.append('\n');
         }
 

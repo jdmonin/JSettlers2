@@ -99,9 +99,7 @@ import soc.message.SOCMessage;
  * <B>I18N:</B><br>
  * Game option descriptions are also stored as {@code gameopt.*} in
  * {@code server/strings/toClient_*.properties} to be sent to clients if needed
- * during version negotiation.
- * Like {@link SOCScenario}, the game option name is a final field, and updating
- * its contents means creating a new object; see {@link #copyUpdateText(String)}.
+ * during version negotiation.  An option's text can be localized with {@link #setDesc(String)}.
  *<P>
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
@@ -1360,32 +1358,6 @@ public class SOCGameOption
 	}
 
 	return ! hadIt;
-    }
-
-    /**
-     * For i18n, copy this option with an updated description text, and add the copy
-     * to the set used by {@link #getAllKnownOptions()}.
-     *<P>
-     * Because the {@link SOCVersionedItem#getDesc() desc} field is final in {@code SOCGameOption}
-     * and {@link SOCScenario}, updating its contents means creating a new object.
-     * After calling this method, don't use the old object anymore.
-     *
-     * @param desc    Descriptive brief text, to appear in the options dialog.
-     *     Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
-     *     and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @return  The new option object with updated fields, already added to {@link #getAllKnownOptions()}
-     * @throws IllegalArgumentException if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
-     *        or fails {@link SOCMessage#isSingleLineAndSafe(String, boolean)}
-     * @since 2.0.00
-     */
-    public SOCGameOption copyUpdateText(final String newDesc)
-        throws IllegalArgumentException
-    {
-        final SOCGameOption opt = new SOCGameOption
-            (optType, key, minVersion, lastModVersion, defaultBoolValue, defaultIntValue, minIntValue, maxIntValue,
-             enumVals, optFlags, newDesc);
-        addKnownOption(opt);
-        return opt;
     }
 
     /**

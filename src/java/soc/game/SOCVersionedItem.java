@@ -149,7 +149,7 @@ public abstract class SOCVersionedItem implements Cloneable
      * description which might violate the formatting rules mentioned here.  For i18n, v2.0.00 needed to be able to
      * change the field contents, so {@code getDesc()} and {@link #setDesc(String)} were added.
      *
-     * @return  the description
+     * @return  the description; never null
      * @since 2.0.00
      */
     public final String getDesc()
@@ -166,7 +166,7 @@ public abstract class SOCVersionedItem implements Cloneable
      * description which might violate the formatting rules. For i18n, v2.0.00 needed to be able to change the
      * field contents, so {@link #getDesc()} and {@code setDesc(String)} were added.
      *
-     * @param newDesc Descriptive brief text, to appear in the user interface.
+     * @param newDesc Descriptive brief text, to appear in the user interface. Not null.
      *             Must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @throws IllegalArgumentException if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}

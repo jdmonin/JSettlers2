@@ -67,8 +67,7 @@ import soc.message.SOCMessage;
  * <B>I18N:</B><br>
  * Game scenario names and descriptions are also stored as {@code gamescen.*.n}, {@code .p}
  * in {@code server/strings/toClient_*.properties} to be sent to clients if needed.
- * Like {@link SOCGameOption}, scenario names and descriptions are final fields and updating
- * their contents means creating a new object; see {@link #copyUpdateText(String, String)}.
+ * A scenario's text can be localized with {@link #setDesc(String, String)}.
  *<P>
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -76,10 +75,7 @@ import soc.message.SOCMessage;
 public class SOCScenario
     extends SOCVersionedItem implements Cloneable, Comparable<Object>
 {
-    /**
-     * Version 2.0.00 (2000) introduced game scenarios.
-     * @since 2.0.00
-     */
+    /** Version 2.0.00 (2000) introduced game scenarios. */
     public static final int VERSION_FOR_SCENARIOS = 2000;
 
     /**
@@ -127,7 +123,7 @@ public class SOCScenario
      *   Typical changes to a game scenario would be:
      *<UL>
      *<LI> Change the {@link SOCVersionedItem#getDesc() description}
-     *<LI> Change the {@link #scLongDesc long description}
+     *<LI> Change the {@link #getLongDesc() long description}
      *<LI> Change the {@link #scOpts options}
      *</UL>
      *   Things you can't change about a scenario, because inconsistencies would occur:
@@ -344,13 +340,10 @@ public class SOCScenario
     public String scOpts;
 
     /**
-     * Detailed text for the scenario description and special rules, or null.  Shown as a reminder at start of a game.
-     * Must not contain network delimiter character {@link SOCMessage#sep_char}; {@link SOCMessage#sep2_char} is okay.
-     * Must pass {@link SOCMessage#isSingleLineAndSafe(String, boolean) SOCMessage.isSingleLineAndSafe(String, true)}.
-     * Don't include the description of any scenario game option, such as {@link SOCGameOption#K_SC_SANY};
-     * those will be taken from {@link SOCVersionedItem#getDesc() SOCGameOption.desc} and shown in the reminder message.
+     * Detailed text for the scenario description and special rules, or null.
+     * See {@link #getLongDesc()} for more info and requirements.
      */
-    public final String scLongDesc;
+    private String scLongDesc;
 
     /**
      * Create a new unknown scenario ({@link SOCVersionedItem#isKnown isKnown} false).
@@ -380,14 +373,13 @@ public class SOCScenario
      * @param desc    Descriptive brief text, to appear in the scenarios dialog.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @param longDesc  Longer descriptive text, or null; see {@link #scLongDesc} for requirements.
+     * @param longDesc  Longer descriptive text, or null; see {@link #getLongDesc()} for requirements.
      * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
      *             from {@link SOCGameOption#packOptionsToString(Map, boolean)}.
      * @throws IllegalArgumentException if key length is > 8 or not alphanumeric,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
      *        or fail their described requirements,
      *        or if minVers or lastModVers is under 2000 but not -1
-     * @see #copyUpdateText(String, String)
      */
     public SOCScenario
         (final String key, final int minVers, final int lastModVers,
@@ -412,7 +404,7 @@ public class SOCScenario
      * @param desc Descriptive brief text, to appear in the scenarios dialog.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @param longDesc  Longer descriptive text, or null; see {@link #scLongDesc} for requirements.
+     * @param longDesc  Longer descriptive text, or null; see {@link #getLongDesc()} for requirements.
      * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
      *             from {@link SOCGameOption#packOptionsToString(Map, boolean)}.
      * @throws IllegalArgumentException
@@ -507,31 +499,6 @@ public class SOCScenario
 	allScenarios.put(scKey, scNew);
 
 	return ! hadIt;
-    }
-
-    /**
-     * For i18n, copy this scenario with updated text fields, and add the copy
-     * to the set used by {@link #getAllKnownScenarios()}.
-     *<P>
-     * Because the {@link SOCVersionedItem#desc desc} and {@link #scLongDesc} fields are final
-     * like {@link SOCGameOption}'s, updating their contents means creating a new object.
-     * After calling this method, don't use the old object anymore.
-     *
-     * @param desc    Descriptive brief text, to appear in the scenarios dialog.
-     *     Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
-     *     and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @param longDesc  Longer descriptive text, or null; see {@link #scLongDesc} for requirements.
-     * @return  The new scenario object with updated fields, already added to {@link #getAllKnownScenarios()}
-     * @throws IllegalArgumentException if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
-     *        or desc or longDesc fails {@link SOCMessage#isSingleLineAndSafe(String, boolean)}
-     * @since 2.0.00
-     */
-    public SOCScenario copyUpdateText(final String desc, final String longDesc)
-        throws IllegalArgumentException
-    {
-        final SOCScenario newSc = new SOCScenario(key, minVersion, lastModVersion, desc, longDesc, scOpts);
-        addKnownScenario(newSc);
-        return newSc;
     }
 
     /**
@@ -761,6 +728,49 @@ public class SOCScenario
         {
             // required stub; is Cloneable, so won't be thrown
         }
+    }
+
+    /**
+     * Detailed text for the scenario description and special rules, or null.  Shown as a reminder at start of a game.
+     * Must not contain network delimiter character {@link SOCMessage#sep_char}; {@link SOCMessage#sep2_char} is okay.
+     * Must pass {@link SOCMessage#isSingleLineAndSafe(String, boolean) SOCMessage.isSingleLineAndSafe(String, true)}.
+     * Don't include the description of any scenario game option, such as {@link SOCGameOption#K_SC_SANY};
+     * those will be taken from {@link SOCVersionedItem#getDesc() SOCGameOption.desc} and shown in the reminder message.
+     *<P>
+     * To update this field use {@link #setDesc(String, String)}.
+     *
+     * @return The long description, or null if none
+     */
+    public String getLongDesc()
+    {
+        return scLongDesc;
+    }
+
+    /**
+     * For i18n, update the scenario's description text fields:
+     * The name/short description ({@link #getDesc()}) and optional long description ({@link #getLongDesc()}).
+     *
+     * @param desc    Descriptive brief text, to appear in the scenarios dialog. Not null.
+     *     Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *     and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @param longDesc  Longer descriptive text, or null; see {@link #getLongDesc()} for requirements.
+     * @throws IllegalArgumentException if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *        or desc or longDesc fails {@link SOCMessage#isSingleLineAndSafe(String, boolean)}
+     * @see SOCVersionedItem#setDesc(String)
+     */
+    public void setDesc(final String desc, final String longDesc)
+        throws IllegalArgumentException
+    {
+        if (longDesc != null)
+        {
+            if (! SOCMessage.isSingleLineAndSafe(longDesc, true))
+                throw new IllegalArgumentException("longDesc fails isSingleLineAndSafe");
+            if (longDesc.contains(SOCMessage.sep))
+                throw new IllegalArgumentException("longDesc contains " + SOCMessage.sep);
+        }
+
+        setDesc(desc);  // checks isSingleLineAndSafe(desc)
+        scLongDesc = longDesc;
     }
 
     /**

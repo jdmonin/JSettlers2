@@ -4885,7 +4885,7 @@ public class SOCPlayerClient
                 {
                     final String desc = str.get(i + 1);
                     if (! desc.equals(SOCLocalizedStrings.EMPTY))
-                        opt.copyUpdateText(desc);
+                        opt.setDesc(desc);
                 }
             }
 
@@ -4915,7 +4915,7 @@ public class SOCPlayerClient
                     if (desc.equals(SOCLocalizedStrings.EMPTY))
                         desc = null;
 
-                    sc.copyUpdateText(nm, desc);
+                    sc.setDesc(nm, desc);
                 }
             }
 
