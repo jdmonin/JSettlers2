@@ -80,7 +80,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * @param op  Option to send
      * @param cliVers  Client's version number; 1107 is version 1.1.07
      * @param localDesc  i18n localized option description, or {@code null} to use
-     *            {@link soc.game.SOCVersionedItem#desc SOCGameOption.desc}
+     *            {@link soc.game.SOCVersionedItem#getDesc() SOCGameOption.getDesc()}
      */
     public SOCGameOptionInfo(final SOCGameOption op, final int cliVers, final String localDesc)
     {
@@ -111,7 +111,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
         else
             /* [10] */ pa.add(Integer.toString(op.optFlags));
 
-        /* [11] */ pa.add((localDesc != null) ? localDesc : op.desc);
+        /* [11] */ pa.add((localDesc != null) ? localDesc : op.getDesc());
 
         // for OTYPE_ENUM, _ENUMBOOL, pa[12+] are the enum choices' string values
         if ((op.optType == SOCGameOption.OTYPE_ENUM) || (op.optType == SOCGameOption.OTYPE_ENUMBOOL))

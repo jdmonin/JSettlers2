@@ -719,7 +719,7 @@ public class SOCServer extends Server
      * Description string for SOCGameOption {@code "PL"} hardcoded into the SOCGameOption class,
      * from {@link SOCGameOption#getOption(String, boolean) SOCGameOption.getOption("PL", false)}.
      * Used for determining whether a client's i18n locale has localized option descriptions,
-     * by comparing {@code PL}'s {@link SOCVersionedItem#desc SOCGameOption.desc} to
+     * by comparing {@code PL}'s {@link SOCVersionedItem#getDesc() SOCGameOption.desc} to
      * StringManager.get({@code "gameopt.PL"}).
      *<P>
      * String value is captured here as soon as SOCServer is referenced, in case SOCPlayerClient's
@@ -731,13 +731,13 @@ public class SOCServer extends Server
     static
     {
         final SOCGameOption optPL = SOCGameOption.getOption("PL", false);
-        i18n_gameopt_PL_desc = (optPL != null) ? optPL.desc : "";
+        i18n_gameopt_PL_desc = (optPL != null) ? optPL.getDesc() : "";
     }
 
     /**
      * Short description string for SOCScenario {@code "SC_WOND"} hardcoded into the SOCScenario class.
      * Used for determining whether a client's i18n locale has localized scenario descriptions,
-     * by comparing {@code SC_WOND}'s {@link SOCVersionedItem#desc SOCScenario.desc} to
+     * by comparing {@code SC_WOND}'s {@link SOCVersionedItem#getDesc() SOCScenario.desc} to
      * StringManager.get({@code "gamescen.SC_WOND.n"}).
      *<P>
      * String value is captured here as soon as SOCServer is referenced, in case SOCPlayerClient's
@@ -749,7 +749,7 @@ public class SOCServer extends Server
     static
     {
         final SOCScenario scWond = SOCScenario.getScenario(SOCScenario.K_SC_WOND);
-        i18n_scenario_SC_WOND_desc = (scWond != null) ? scWond.desc : "";
+        i18n_scenario_SC_WOND_desc = (scWond != null) ? scWond.getDesc() : "";
     }
 
 
@@ -2089,8 +2089,8 @@ public class SOCServer extends Server
      * game options, localizing the descriptive names if available.
      * @param loc  Client's locale for StringManager i18n lookups:
      *          <tt>smgr.get("gameopt." + {@link SOCVersionedItem#key SOCGameOption.key})</tt>
-     * @param updateStaticKnownOpts  If true, localize each {@link SOCVersionedItem#desc SOCGameOption.desc} in the static
-     *          set of known options used by {@link SOCGameOption#getOption(String, boolean)} and
+     * @param updateStaticKnownOpts  If true, localize each {@link SOCVersionedItem#getDesc() SOCGameOption.desc} in the
+     *          static set of known options used by {@link SOCGameOption#getOption(String, boolean)} and
      *          {@link SOCGameOption#getAllKnownOptions()}; for use only by client's practice-game server
      * @return  {@link SOCGameOption#getAllKnownOptions()}, with descriptions localized if available
      * @since 2.0.00
@@ -8045,7 +8045,7 @@ public class SOCServer extends Server
             if (quotes)
                 sb.append('"');
             sb.append("  ");
-            sb.append(opt.desc);
+            sb.append(opt.getDesc());
             System.err.println(sb.toString());
             if (opt.enumVals != null)  // possible values of OTYPE_ENUM
             {

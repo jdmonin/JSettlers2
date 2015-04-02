@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file from SOCGameOption.java Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -82,13 +82,10 @@ public abstract class SOCVersionedItem implements Cloneable
     /**
      * Descriptive text for the item. Must not contain the network delimiter
      * characters {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}.
-     * If ! {@link #isKnown}, will be {@link #key} or an empty string.
-     *<P>
-     * Subclass <b>{@link SOCGameOption}</b>:<BR>
-     * If option type is integer-valued ({@link SOCGameOption#OTYPE_ENUM}, {@link SOCGameOption#OTYPE_INTBOOL}, etc),
-     * may contain a placeholder '#' where the value is typed onscreen.
+     * See {@link #getDesc()} for more info about this field.
      */
-    public final String desc;  // OTYPE_* - if a new SOCGameOption type is added, update this field's javadoc.
+    protected String desc;  // OTYPE_* - if a new SOCGameOption type is added, update this field's javadoc
+        // and getDesc() javadoc.
 
     /**
      * Create a new unknown item ({@link #isKnown == false}).
@@ -137,6 +134,51 @@ public abstract class SOCVersionedItem implements Cloneable
 	lastModVersion = lastModVers;
 	this.isKnown = isKnown;
 	this.desc = desc;
+    }
+
+    /**
+     * Descriptive text for the item. Must not contain the network delimiter
+     * characters {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}.
+     * If ! {@link #isKnown}, will be {@link #key} or an empty string.
+     *<P>
+     * Subclass <b>{@link SOCGameOption}</b>:<BR>
+     * If option type is integer-valued ({@link SOCGameOption#OTYPE_ENUM}, {@link SOCGameOption#OTYPE_INTBOOL}, etc),
+     * may contain a placeholder '#' where the value is typed onscreen.
+     *<P>
+     * Before v2.0.00, {@code desc} was a public final field. This gave easy access without allowing changes to the
+     * description which might violate the formatting rules mentioned here.  For i18n, v2.0.00 needed to be able to
+     * change the field contents, so {@code getDesc()} and {@link #setDesc(String)} were added.
+     *
+     * @return  the description
+     * @since 2.0.00
+     */
+    public final String getDesc()
+    {
+        return desc;
+
+        // OTYPE_* - if a new SOCGameOption type is added, update javadoc for getDesc() and desc field.
+    }
+
+    /**
+     * Update this item's description text.  See {@link #getDesc()} for formatting rules and info.
+     *<P>
+     * Before v2.0.00, {@code desc} was a public final field. This gave easy access without allowing changes to the
+     * description which might violate the formatting rules. For i18n, v2.0.00 needed to be able to change the
+     * field contents, so {@link #getDesc()} and {@code setDesc(String)} were added.
+     *
+     * @param newDesc Descriptive brief text, to appear in the user interface.
+     *             Must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @throws IllegalArgumentException if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
+     * @since 2.0.00
+     */
+    public void setDesc(final String newDesc)
+        throws IllegalArgumentException
+    {
+        if (! SOCMessage.isSingleLineAndSafe(newDesc))
+            throw new IllegalArgumentException("desc fails isSingleLineAndSafe");
+
+        desc = newDesc;
     }
 
     /**

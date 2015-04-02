@@ -507,7 +507,8 @@ public class NewGameOptionsFrame extends Frame
             for (final SOCScenario sc : allSc.values())
             {
                 ++i;
-                ch.add(sc.key + ": " + sc.desc);  // scenarioKeyFromDisplayText() must be able to extract the key
+                ch.add(sc.key + ": " + sc.getDesc());
+                    // scenarioKeyFromDisplayText() must be able to extract the key
                     // TODO some other parallel list, so we don't need to display the key string
                 if (sc.key.equals(op.getStringValue()))
                     sel = i;
@@ -651,7 +652,8 @@ public class NewGameOptionsFrame extends Frame
             bp.add(L);
         }
 
-        final int placeholderIdx = allowPH ? op.desc.indexOf('#') : -1;
+        final String opDesc = op.getDesc();
+        final int placeholderIdx = allowPH ? opDesc.indexOf('#') : -1;
         Panel optp = new Panel();  // with FlowLayout
         try
         {
@@ -665,7 +667,7 @@ public class NewGameOptionsFrame extends Frame
         // Any text to the left of placeholder in op.desc?
         if (placeholderIdx > 0)
         {
-            L = new Label(op.desc.substring(0, placeholderIdx - 1));
+            L = new Label(opDesc.substring(0, placeholderIdx - 1));
             L.setForeground(LABEL_TXT_COLOR);
             optp.add(L);
             if (hasCB && ! readOnly)
@@ -698,9 +700,9 @@ public class NewGameOptionsFrame extends Frame
 
         // Any text to the right of placeholder?  Also creates
         // the text label if there is no placeholder (placeholderIdx == -1).
-        if (placeholderIdx + 1 < op.desc.length())
+        if (placeholderIdx + 1 < opDesc.length())
         {
-            L = new Label(op.desc.substring(placeholderIdx + 1));
+            L = new Label(opDesc.substring(placeholderIdx + 1));
             L.setForeground(LABEL_TXT_COLOR);
             optp.add(L);
             if (hasCB && ! readOnly)
@@ -1473,7 +1475,7 @@ public class NewGameOptionsFrame extends Frame
         StringBuilder sb = new StringBuilder();
         sb.append(strings.get("game.options.scenario.label"));  // "Game Scenario:"
         sb.append(' ');
-        sb.append(sc.desc);
+        sb.append(sc.getDesc());
         sb.append('\n');
 
         if (sc.scLongDesc != null)
@@ -1503,7 +1505,7 @@ public class NewGameOptionsFrame extends Frame
                 if (! sgo.key.startsWith("_SC_"))
                     continue;
 
-                String optDesc = sgo.desc;
+                String optDesc = sgo.getDesc();
                 if (optDesc.startsWith(optDescScenPrefix))
                     optDesc = optDesc.substring(optDescScenPrefix.length()).trim();
                 sb.append("\n\u2022 ");  // bullet point before option text

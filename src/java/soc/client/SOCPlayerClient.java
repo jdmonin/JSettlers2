@@ -58,7 +58,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.EnumMap;
 import java.util.Iterator;
@@ -87,7 +86,6 @@ import soc.game.SOCScenario;
 import soc.game.SOCSettlement;
 import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
-import soc.game.SOCVersionedItem;
 import soc.game.SOCVillage;
 
 import soc.message.*;
@@ -3489,7 +3487,7 @@ public class SOCPlayerClient
                         if (knowns != null)
                             oinfo = knowns.get(oname);
                         if (oinfo != null)
-                            oname = oinfo.desc;
+                            oname = oinfo.getDesc();
                         opts.append(strings.get("options.error.valuesproblem.which", oname));
                     }
                     errMsg = strings.get("options.error.valuesproblem", gameName, errMsg, opts.toString());

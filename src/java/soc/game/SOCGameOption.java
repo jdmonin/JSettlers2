@@ -1023,9 +1023,9 @@ public class SOCGameOption
     }
 
     /**
-     * Copy constructor for i18n localization of {@link SOCVersionedItem#desc desc}.
+     * Copy constructor for i18n localization of {@link SOCVersionedItem#getDesc() getDesc()}.
      * @param opt  Option to copy
-     * @param newDesc  Localized option description, or {@code null} to use {@link SOCVersionedItem#desc desc}
+     * @param newDesc  Localized option description, or {@code null} to use {@link SOCVersionedItem#getDesc() getDesc()}
      * @since 2.0.00
      */
     public SOCGameOption(final SOCGameOption opt, final String newDesc)
@@ -1366,7 +1366,7 @@ public class SOCGameOption
      * For i18n, copy this option with an updated description text, and add the copy
      * to the set used by {@link #getAllKnownOptions()}.
      *<P>
-     * Because the {@link SOCVersionedItem#desc desc} field is final in {@code SOCGameOption}
+     * Because the {@link SOCVersionedItem#getDesc() desc} field is final in {@code SOCGameOption}
      * and {@link SOCScenario}, updating its contents means creating a new object.
      * After calling this method, don't use the old object anymore.
      *
@@ -2434,7 +2434,8 @@ public class SOCGameOption
     /**
      * Compare two options, for display purposes. ({@link Comparable} interface)
      * Two gameoptions are considered equal if they have the same {@link SOCVersionedItem#key key}.
-     * Greater/lesser is determined by {@link SOCVersionedItem#desc desc}.{@link String#compareTo(String) compareTo()}.
+     * Greater/lesser is determined by
+     * {@link SOCVersionedItem#getDesc() desc}.{@link String#compareTo(String) compareTo()}.
      * @param other A SOCGameOption to compare, or another object;  if other isn't a
      *              gameoption, the {@link #hashCode()}s are compared.
      */

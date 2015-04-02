@@ -126,7 +126,7 @@ public class SOCScenario
      *
      *   Typical changes to a game scenario would be:
      *<UL>
-     *<LI> Change the {@link SOCVersionedItem#desc description}
+     *<LI> Change the {@link SOCVersionedItem#getDesc() description}
      *<LI> Change the {@link #scLongDesc long description}
      *<LI> Change the {@link #scOpts options}
      *</UL>
@@ -348,7 +348,7 @@ public class SOCScenario
      * Must not contain network delimiter character {@link SOCMessage#sep_char}; {@link SOCMessage#sep2_char} is okay.
      * Must pass {@link SOCMessage#isSingleLineAndSafe(String, boolean) SOCMessage.isSingleLineAndSafe(String, true)}.
      * Don't include the description of any scenario game option, such as {@link SOCGameOption#K_SC_SANY};
-     * those will be taken from {@link SOCVersionedItem#desc SOCGameOption.desc} and shown in the reminder message.
+     * those will be taken from {@link SOCVersionedItem#getDesc() SOCGameOption.desc} and shown in the reminder message.
      */
     public final String scLongDesc;
 
@@ -775,7 +775,8 @@ public class SOCScenario
     /**
      * Compare two scenarios, for display purposes. ({@link Comparable} interface)
      * Two game scenarios are considered equal if they have the same {@link SOCVersionedItem#key key}.
-     * Greater/lesser is determined by {@link SOCVersionedItem#desc desc}.{@link String#compareTo(String) compareTo()}.
+     * Greater/lesser is determined by
+     * {@link SOCVersionedItem#getDesc() getDesc()}.{@link String#compareTo(String) compareTo()}.
      * @param other A SOCScenario to compare, or another object;  if other isn't a
      *              scenario, the {@link #hashCode()}s are compared.
      */
