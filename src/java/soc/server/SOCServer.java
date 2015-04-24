@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1423,6 +1423,7 @@ public class SOCServer extends Server
                 // must release monitor before we broadcast
                 gameList.releaseMonitor();
                 monitorReleased = true;
+
                 result = true;
                 ((SOCClientData) c.getAppData()).createdGame();
 
@@ -1560,10 +1561,8 @@ public class SOCServer extends Server
                 D.ebugPrintStackTrace(e, "Exception in connectToGame");
             }
 
-            if (!monitorReleased)
-            {
+            if (! monitorReleased)
                 gameList.releaseMonitor();
-            }
         }
 
         return result;
@@ -9884,12 +9883,14 @@ public class SOCServer extends Server
      */
     public void checkForExpiredGames(final long currentTimeMillis)
     {
-        Vector expired = new Vector();
+        // Take the gameList monitor, build arrays of expired and
+        // expiring-soon games, then release it.
+        ArrayList expiredGameNames = new ArrayList(), expiringSoonGames = new ArrayList();
 
-        gameList.takeMonitor();
-        
         // Add 2 minutes because of coarse 5-minute granularity in SOCGameTimeoutChecker.run()
         long warn_ms = (2 + GAME_EXPIRE_WARN_MINUTES) * 60L * 1000L; 
+
+        gameList.takeMonitor();
 
         try
         {
@@ -9904,23 +9905,9 @@ public class SOCServer extends Server
                 // Start our text messages with ">>>" to mark as urgent to the client.
 
                 if (gameExpir <= currentTimeMillis)
-                {
-                    final String gameName = gameData.getName();
-                    expired.addElement(gameName);
-                    messageToGameUrgent(gameName, ">>> The time limit on this game has expired and will now be destroyed.");
-                }
+                    expiredGameNames.add(gameData.getName());
                 else if ((gameExpir - warn_ms) <= currentTimeMillis)
-                {
-                    //
-                    //  Give people a few minutes' warning (they may have a few warnings)
-                    //
-                    long minutes = ((gameExpir - currentTimeMillis) / 60000);
-                    if (minutes < 1L)
-                        minutes = 1;  // in case of rounding down
-
-                    messageToGameUrgent(gameData.getName(), ">>> Less than "
-                            + minutes + " minutes remaining.  Type *ADDTIME* to extend this game another 30 minutes.");
-                }
+                    expiringSoonGames.add(gameData);
             }
         }
         catch (Exception e)
@@ -9931,11 +9918,37 @@ public class SOCServer extends Server
         gameList.releaseMonitor();
 
         //
+        // give warning on the expiring-soon games
+        //
+        if (! expiringSoonGames.isEmpty())
+        {
+            for (Iterator esoon = expiringSoonGames.iterator(); esoon.hasNext(); )
+            {
+                //
+                //  Give people a few minutes' warning (they may have a few warnings)
+                //
+                SOCGame gameData = (SOCGame) esoon.next();
+                long minutes = ((gameData.getExpiration() - currentTimeMillis) / 60000);
+                if (minutes < 1L)
+                    minutes = 1;  // in case of rounding down
+
+                messageToGameUrgent(gameData.getName(), ">>> Less than "
+                    + minutes + " minutes remaining.  Type *ADDTIME* to extend this game another 30 minutes.");
+            }
+        }
+
+        //
         // destroy the expired games
         //
-        for (Enumeration ex = expired.elements(); ex.hasMoreElements();)
+        if (expiredGameNames.isEmpty())
         {
-            String ga = (String) ex.nextElement();
+            return;  // <--- Early return ---
+        }
+        for (Iterator eg = expiredGameNames.iterator(); eg.hasNext(); )
+        {
+            String ga = (String) eg.next();
+            messageToGameUrgent(ga, ">>> The time limit on this game has expired and will now be destroyed.");
+
             gameList.takeMonitor();
 
             try
@@ -9946,8 +9959,11 @@ public class SOCServer extends Server
             {
                 D.ebugPrintln("Exception in checkForExpired - " + e);
             }
+            finally
+            {
+                gameList.releaseMonitor();
+            }
 
-            gameList.releaseMonitor();
             broadcast(SOCDeleteGame.toCmd(ga));
         }
     }
