@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -972,11 +972,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * During {@link #MOVE_SHIP} mode, the edge coordinate
      * from which we're moving the ship.  0 otherwise.
-     * The hovering "move-to" location under the mouse pointer is {@link #hilight}.
+     * The hovering "move-to" location under the mouse pointer is {@link #hilight}
+     * and then (at left-click to select destination, or right-click to show the menu)
+     * is {@link #moveShip_toEdge}.
      * @see #moveShip_isWarship
      * @since 2.0.00
      */
     private int moveShip_fromEdge;
+
+    /**
+     * During {@link #MOVE_SHIP} mode, the edge coordinate to which we're
+     * moving the ship, 0 otherwise.  While choosing a location to move to,
+     * the hovering ship under the mouse pointer is {@link #hilight}, but
+     * when the menu appears (on Windows at least) hilight becomes 0.
+     * @see #tryMoveShipToEdge()
+     * @see #moveShip_fromEdge
+     * @since 2.0.00
+     */
+    private int moveShip_toEdge;
 
     /**
      * During {@link #MOVE_SHIP} mode, true if the ship being moved
@@ -5374,8 +5387,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     break;
 
                 case MOVE_SHIP:
-                    // check and move ship to hilight from fromEdge; also sets moveShip_fromEdge = 0, calls clearModeAndHilight.
-                    tryMoveShipToHilight();
+                    // check and move ship to hilight from fromEdge;
+                    // also sets moveShip_fromEdge = 0, calls clearModeAndHilight.
+                    moveShip_toEdge = hilight;
+                    tryMoveShipToEdge();
                     break;
 
                 case PLACE_INIT_SETTLEMENT:
@@ -5728,33 +5743,36 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Check and move ship from {@link #moveShip_fromEdge} to {@link #hilight}.  Also sets moveShip_fromEdge = 0,
+     * Check and move ship from {@link #moveShip_fromEdge} to {@link #moveShip_toEdge}.
+     * Also sets {@code moveShip_fromEdge} = 0, {@code moveShip_toEdge} = 0,
      * calls {@link #clearModeAndHilight(int) clearModeAndHilight}({@link SOCPlayingPiece#SHIP}).
      * Called from mouse click or popup menu.
      *<P>
-     * Note that if {@link #hilight} != 0, then {@link SOCGame#canMoveShip(int, int, int) SOCGame.canMoveShip}
-     * ({@link #playerNumber}, {@link #moveShip_fromEdge}, {@link #hilight}) has probably already been called.
+     * Note that if {@code moveShip_toEdge} != 0, then {@link SOCGame#canMoveShip(int, int, int) SOCGame.canMoveShip}
+     * ({@link #playerNumber}, {@link #moveShip_fromEdge}, {@link #moveShip_toEdge}) has probably already been called.
      *<P>
      * In scenario {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, checks if a gift port would be claimed by
      * placing a ship there.  If so, confirms with the user first with {@link ConfirmPlaceShipDialog}.
      * @since 2.0.00
      * @see BoardPopupMenu#tryMoveShipFromHere()
      */
-    private final void tryMoveShipToHilight()
+    private final void tryMoveShipToEdge()
     {
         boolean clearMode = true;
 
         if (moveShip_fromEdge != 0)
         {
-            if (game.canMoveShip(playerNumber, moveShip_fromEdge, hilight) != null)
+            if (game.canMoveShip(playerNumber, moveShip_fromEdge, moveShip_toEdge) != null)
             {
-                if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI) && ((SOCBoardLarge) board).canRemovePort(hilight))
+                if (game.isGameOptionSet
+                    (SOCGameOption.K_SC_FTRI) && ((SOCBoardLarge) board).canRemovePort(moveShip_toEdge))
                 {
-                    java.awt.EventQueue.invokeLater(new ConfirmPlaceShipDialog(hilight, false, moveShip_fromEdge));
+                    java.awt.EventQueue.invokeLater
+                        (new ConfirmPlaceShipDialog(moveShip_toEdge, false, moveShip_fromEdge));
                     clearMode = false;
                 } else {
                     playerInterface.getClient().getGameManager().movePieceRequest
-                        (game, playerNumber, SOCPlayingPiece.SHIP, moveShip_fromEdge, hilight);
+                        (game, playerNumber, SOCPlayingPiece.SHIP, moveShip_fromEdge, moveShip_toEdge);
                 }
             }
 
@@ -6059,6 +6077,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Repaints the board immediately.
      * @param edge  Edge coordinate of our player's ship we're moving.
      *              Not checked for validity.
+     * @see #tryMoveShipToEdge()
+     * @since 2.0.00
      */
     public void setModeMoveShip(final int edge)
     {
@@ -6066,6 +6086,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             throw new IllegalStateException();
         mode = MOVE_SHIP;
         moveShip_fromEdge = edge;
+        moveShip_toEdge = 0;
         hilight = 0;
         repaint();
     }
@@ -7353,8 +7374,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           {
               if (mode == MOVE_SHIP)
               {
-                  buildShipItem.setEnabled((hilightAt != 0) && (hilightAt != moveShip_fromEdge));
+                  final boolean enable = (hilightAt != 0) && (hilightAt != moveShip_fromEdge);
+                  buildShipItem.setEnabled(enable);
                   buildShipItem.setLabel(strings.get("board.build.move.ship"));  // "Move Ship"
+                  if (enable)
+                      moveShip_toEdge = hilightAt;
               } else {
                   buildShipItem.setEnabled(false);
                   buildShipItem.setLabel(strings.get("board.build.ship"));  // "Build Ship"
@@ -7684,7 +7708,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           else if ((target == buildShipItem) && (target != null))
           {
               if (mode == MOVE_SHIP)
-                  tryMoveShipToHilight();
+                  tryMoveShipToEdge();
               else if (isShipMovable)
                   tryMoveShipFromHere();
               else if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI) && ((SOCBoardLarge) board).canRemovePort(hoverShipID))
@@ -7874,12 +7898,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
        * Repaints the board.
        *
        * @since 2.0.00
-       * @see SOCBoardPanel#tryMoveShipToHilight()
+       * @see SOCBoardPanel#tryMoveShipToEdge()
+       * @see SOCBoardPanel#setModeMoveShip(int)
        */
       private void tryMoveShipFromHere()
       {
           playerInterface.printKeyed("board.msg.click.ship.new.loc");  // * "Click the ship's new location."
           moveShip_fromEdge = hoverShipID;
+          moveShip_toEdge = 0;
           moveShip_isWarship = hoverTip.hoverIsWarship;
           mode = MOVE_SHIP;
           hilight = 0;
