@@ -6684,11 +6684,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 (player != null) && (debugPP || playerInterface.clientIsCurrentPlayer());
             boolean hoverTextSet = false;  // True once text is determined
 
-            /** If we're hovering at a node port, store its coordinate here */
+            /** If we're hovering at a node port, store its coordinate here and also set {@link #nodePortType} */
             int nodePortCoord = -1;
 
-            /** Node port description, to show in hoverText if nothing more important is nearby */
-            String nodePortDesc = null;
+            /** Node port type, from board.getPortTypeFromNodeCoord, for hoverText if nothing more important nearby */
+            int nodePortType = -1;
 
             if (! modeAllowsHoverPieces)
             {
@@ -6859,23 +6859,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         }
                     }
 
-                    // Port check.  At most one adjacent will be a port.
-                    if ((hoverMode == PLACE_INIT_SETTLEMENT) && (hoverID == id))
+                    if (! hoverTextSet)
                     {
-                        // Already looking at a port at this coordinate.
-                        positionToMouse(x,y);
-                        hoverTextSet = true;
-                    }
-                    else if (! hoverTextSet)
-                    {
-                        String portDesc = portDescAtNode(id);
-                        if (portDesc != null)
+                        // Check for ports. Show only if nothing else is nearby.
+
+                        nodePortType = board.getPortTypeFromNodeCoord(id);
+                        if (nodePortType != -1)
                         {
                             // Make note of port info, will show it only if nothing more important is
                             // found nearby. This prevents the port from "covering up" pieces on adjacent
                             // edges that the user may want to click on.
                             nodePortCoord = id;
-                            nodePortDesc = strings.get(portDesc, board.getPortTypeFromNodeCoord(id));
                         }
                     }
 
@@ -7065,10 +7059,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             // If nothing more important was found nearby, show port info
             if (nodePortCoord != -1)
             {
-                setHoverText(nodePortDesc);
-                hoverMode = PLACE_INIT_SETTLEMENT;  // const used for hovering-at-port
-                hoverID = nodePortCoord;
-                hoverIsPort = true;
+                if ((hoverMode == PLACE_INIT_SETTLEMENT) && (hoverID == nodePortCoord) && hoverIsPort)
+                {
+                    // Already looking at a port at this coordinate.
+                    positionToMouse(x,y);
+                } else {
+                    setHoverText(strings.get(portDescAtNode(nodePortCoord), nodePortType));
+                    hoverMode = PLACE_INIT_SETTLEMENT;  // const used for hovering-at-port
+                    hoverID = nodePortCoord;
+                    hoverIsPort = true;
+                }
                 return;  // <--- Early return: Text and hover-pieces set ---
             }
 
