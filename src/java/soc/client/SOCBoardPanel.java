@@ -6684,6 +6684,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 (player != null) && (debugPP || playerInterface.clientIsCurrentPlayer());
             boolean hoverTextSet = false;  // True once text is determined
 
+            /** If we're hovering at a node port, store its coordinate here */
+            int nodePortCoord = -1;
+
+            /** Node port description, to show in hoverText if nothing more important is nearby */
+            String nodePortDesc = null;
+
             if (! modeAllowsHoverPieces)
             {
                 hoverRoadID = 0;
@@ -6865,11 +6871,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         String portDesc = portDescAtNode(id);
                         if (portDesc != null)
                         {
-                            setHoverText(strings.get(portDesc, board.getPortTypeFromNodeCoord(id)));
-                            hoverTextSet = true;
-                            hoverMode = PLACE_INIT_SETTLEMENT;  // const used for hovering-at-port
-                            hoverID = id;
-                            hoverIsPort = true;
+                            // Make note of port info, will show it only if nothing more important is
+                            // found nearby. This prevents the port from "covering up" pieces on adjacent
+                            // edges that the user may want to click on.
+                            nodePortCoord = id;
+                            nodePortDesc = strings.get(portDesc, board.getPortTypeFromNodeCoord(id));
                         }
                     }
 
@@ -7050,9 +7056,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
             }
 
-            // By now we've set hoverRoadID, hoverShipID, hoverCityID, hoverSettlementID, hoverIsPort.
+            // By now we've set hoverRoadID, hoverShipID, hoverCityID, hoverSettlementID.
             if (hoverTextSet)
             {
+                return;  // <--- Early return: Text and hover-pieces set ---
+            }
+
+            // If nothing more important was found nearby, show port info
+            if (nodePortCoord != -1)
+            {
+                setHoverText(nodePortDesc);
+                hoverMode = PLACE_INIT_SETTLEMENT;  // const used for hovering-at-port
+                hoverID = nodePortCoord;
+                hoverIsPort = true;
                 return;  // <--- Early return: Text and hover-pieces set ---
             }
 
