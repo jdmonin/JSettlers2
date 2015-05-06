@@ -478,6 +478,8 @@ public class SOCServer extends Server
      * Some properties activate optional {@link #features}.
      * @see #SOCServer(int, Properties)
      * @see #PROPS_LIST
+     * @see #getConfigBoolProperty(Properties, String, boolean)
+     * @see #getConfigIntProperty(Properties, String, int)
      * @since 1.1.09
      */
     private Properties props;
@@ -850,10 +852,10 @@ public class SOCServer extends Server
         throws SocketException, EOFException, SQLException, IllegalArgumentException
     {
         super(p);
-        maxConnections = init_getIntProperty(props, PROP_JSETTLERS_CONNECTIONS, SOC_MAXCONN_DEFAULT);
-        allowDebugUser = init_getBoolProperty(props, PROP_JSETTLERS_ALLOW_DEBUG, false);
-        CLIENT_MAX_CREATE_GAMES = init_getIntProperty(props, PROP_JSETTLERS_CLI_MAXCREATEGAMES, CLIENT_MAX_CREATE_GAMES);
-        CLIENT_MAX_CREATE_CHANNELS = init_getIntProperty(props, PROP_JSETTLERS_CLI_MAXCREATECHANNELS, CLIENT_MAX_CREATE_CHANNELS);
+        maxConnections = getConfigIntProperty(props, PROP_JSETTLERS_CONNECTIONS, SOC_MAXCONN_DEFAULT);
+        allowDebugUser = getConfigBoolProperty(props, PROP_JSETTLERS_ALLOW_DEBUG, false);
+        CLIENT_MAX_CREATE_GAMES = getConfigIntProperty(props, PROP_JSETTLERS_CLI_MAXCREATEGAMES, CLIENT_MAX_CREATE_GAMES);
+        CLIENT_MAX_CREATE_CHANNELS = getConfigIntProperty(props, PROP_JSETTLERS_CLI_MAXCREATECHANNELS, CLIENT_MAX_CREATE_CHANNELS);
         String dbuser = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "socuser");
         String dbpass = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "socpass");
         initSocServer(dbuser, dbpass, props);
@@ -1002,7 +1004,7 @@ public class SOCServer extends Server
             }
 
             // open reg for user accounts?  if not, see if we have any yet
-            if (init_getBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_OPEN, false))
+            if (getConfigBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_OPEN, false))
             {
                 features.add(SOCServerFeatures.FEAT_OPEN_REG);
                 System.err.println("User database Open Registration is active, anyone can create accounts.");
@@ -1069,7 +1071,7 @@ public class SOCServer extends Server
 
         // No errors; continue normal startup.
 
-        final boolean accountsRequired = init_getBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_REQUIRED, false);
+        final boolean accountsRequired = getConfigBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_REQUIRED, false);
 
         if (SOCDBHelper.isInitialized())
         {
@@ -1110,11 +1112,11 @@ public class SOCServer extends Server
         numberOfGamesFinished = 0;
         numberOfUsers = 0;
         clientPastVersionStats = new HashMap<Integer, Integer>();
-        numRobotOnlyGamesRemaining = init_getIntProperty(props, PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0);
+        numRobotOnlyGamesRemaining = getConfigIntProperty(props, PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0);
         if (numRobotOnlyGamesRemaining > 0)
         {
                 final int n = SOCGame.MAXPLAYERS_STANDARD;
-                if (n > init_getIntProperty(props, PROP_JSETTLERS_STARTROBOTS, 0))
+                if (n > getConfigIntProperty(props, PROP_JSETTLERS_STARTROBOTS, 0))
                 {
                     final String errmsg = ("*** To start robot-only games, server needs at least " + n +  " robots started.");
                     System.err.println(errmsg);
@@ -1180,7 +1182,7 @@ public class SOCServer extends Server
             printGameOptions();
         }
 
-        if (init_getBoolProperty(props, PROP_JSETTLERS_BOTS_SHOWCOOKIE, false))
+        if (getConfigBoolProperty(props, PROP_JSETTLERS_BOTS_SHOWCOOKIE, false))
             System.err.println("Robot cookie: " + robotCookie);
 
         System.err.print("The server is ready.");
@@ -1191,15 +1193,22 @@ public class SOCServer extends Server
     }
 
     /**
-     * For initialization, get and parse an integer property, or use its default instead.
-     * @param props  Properties to look in
+     * Get and parse an integer config property, or use its default instead.
+     *<P>
+     * Before v2.0.00, this method was <tt>init_getIntProperty</tt>.
+     *
+     * @param props  Properties to look in, such as {@link SOCServer#props}, or null for <tt>pDefault</tt>
      * @param pName  Property name
      * @param pDefault  Default value to use if not found or not parsable
      * @return The property's parsed integer value, or <tt>pDefault</tt>
      * @since 1.1.10
+     * @see #getConfigBoolProperty(Properties, String, boolean)
      */
-    private static int init_getIntProperty(Properties props, final String pName, final int pDefault)
+    private static int getConfigIntProperty(Properties props, final String pName, final int pDefault)
     {
+        if (props == null)
+            return pDefault;
+
         try
         {
             String mcs = props.getProperty(pName, Integer.toString(pDefault));
@@ -1212,18 +1221,22 @@ public class SOCServer extends Server
     }
 
     /**
-     * Get and parse a boolean property, or use its default instead.
+     * Get and parse a boolean config property, or use its default instead.
      * True values are: T Y 1.
      * False values are: F N 0.
      * Not case-sensitive.
      * Any other value will be ignored and get <tt>pDefault</tt>.
      * @param props  Properties to look in, such as {@link SOCServer#props}, or null for <tt>pDefault</tt>
+     *<P>
+     * Before v2.0.00, this method was <tt>init_getBoolProperty</tt>.
+     *
      * @param pName  Property name
      * @param pDefault  Default value to use if not found or not parsable
      * @return The property's parsed value, or <tt>pDefault</tt>
      * @since 1.1.14
+     * @see #getConfigIntProperty(Properties, String, int)
      */
-    private static boolean init_getBoolProperty(Properties props, final String pName, final boolean pDefault)
+    private static boolean getConfigBoolProperty(Properties props, final String pName, final boolean pDefault)
     {
         if (props == null)
             return pDefault;
@@ -4556,7 +4569,7 @@ public class SOCServer extends Server
         /**
          * account and password required?
          */
-        if (init_getBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_REQUIRED, false))
+        if (getConfigBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_REQUIRED, false))
         {
             if (msgPass.length() == 0)
             {
@@ -7401,7 +7414,7 @@ public class SOCServer extends Server
     {
         if ((ga == null) || ! SOCDBHelper.isInitialized())
             return;
-        if (! init_getBoolProperty(props, SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES, false))
+        if (! getConfigBoolProperty(props, SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES, false))
             return;
 
         //D.ebugPrintln("allOriginalPlayers for "+ga.getName()+" : "+ga.allOriginalPlayers());
