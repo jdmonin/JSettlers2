@@ -1,6 +1,6 @@
 /*
  * nand.net i18n utilities for Java: Property file editor for translators (side-by-side source and destination languages).
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -93,15 +93,20 @@ public class PTEMain extends JFrame
     private final JPanel btns;
     private JButton bNew, bOpenDest, bOpenDestSrc, bAbout, bExit;
 
-    /** {@link Preferences} key for directory of the prefs file most recently edited */
+    /** {@link Preferences} key in {@link #userPrefs} for directory of the most recently edited properties file. */
     private final static String LAST_EDITED_DIR = "lastEditedDir";
 
+    /**
+     * Persistently stored user preferences between runs, such as {@link #LAST_EDITED_DIR}.
+     * Windows stores these in the registry under HKCU, OSX/Unix under the home directory.
+     */
     private Preferences userPrefs;
 
     /**
      * 'Current' directory for open/save dialogs, from {@link #LAST_EDITED_DIR}, or null.
      * Tracked here because Java has no standard way to change the JVM's current directory.
      * Used and set in {@link #chooseFile(boolean, String)}.
+     * Stored between runs within {@link #userPrefs}.
      */
     private File lastEditedDir;
 
@@ -267,8 +272,10 @@ public class PTEMain extends JFrame
     }
 
     /**
-     * If possible, changes 'current' directory field ({@link #lastEditedDir}) to that of
-     * the most recently edited destination file.
+     * If possible, reads from persistent {@link #userPrefs} and changes
+     * 'current' directory field ({@link #lastEditedDir}) to that of
+     * the most recently edited destination properties file.
+     * @see #trySetDirMostRecent()
      */
     private void tryGetLastEditedDir()
     {
@@ -293,7 +300,11 @@ public class PTEMain extends JFrame
     }
 
     /**
-     * Store 'current' directory {@link #lastEditedDir} to preferences.
+     * Store 'current' directory {@link #lastEditedDir} to loaded {@link #userPrefs} preferences.
+     * Catches and ignores {@link SecurityException}s, because this field is stored only for convenience.
+     *<P>
+     * <b>Note: Does not</b> persist to disk; to do so, call {@link #userPrefs}.{@link Preferences#flush() flush()}.
+     * @see #tryGetLastEditedDir()
      */
     private void trySetDirMostRecent()
     {
