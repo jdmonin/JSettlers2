@@ -4319,6 +4319,9 @@ public class SOCGame implements Serializable, Cloneable
         forcingEndTurn = true;
         SOCInventoryItem itemCard = null;  // card/inventory item returned to player, if any
 
+        if (gameState == WAITING_FOR_ROBBER_OR_PIRATE)
+            chooseMovePirate(false);  // gameState becomes PLACING_ROBBER, which is in the switch
+
         switch (gameState)
         {
         case START1A:
@@ -5367,6 +5370,9 @@ public class SOCGame implements Serializable, Cloneable
      * {@link #WAITING_FOR_ROBBER_OR_PIRATE}.
      * Game state becomes {@link #PLACING_ROBBER} or {@link #PLACING_PIRATE}.
      * {@link #getRobberyPirateFlag()} is set or cleared accordingly.
+     *<P>
+     * Called from server's game handler and also from {@link #forceEndTurn()} if necessary.
+     *
      * @param pirateNotRobber  True to move pirate, false to move robber
      * @throws IllegalStateException if gameState != {@link #WAITING_FOR_ROBBER_OR_PIRATE}
      * @since 2.0.00
