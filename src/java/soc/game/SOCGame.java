@@ -295,7 +295,8 @@ public class SOCGame implements Serializable, Cloneable
      * Player is placing the pirate ship on a new water hex,
      * in a game which {@link #hasSeaBoard}.
      * May follow state {@link #WAITING_FOR_ROBBER_OR_PIRATE}.
-     * Next game state may be {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}.
+     * Next game state may be {@link #WAITING_FOR_ROB_CHOOSE_PLAYER} if multiple possible victims.
+     * In scenario {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, next may be {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}.
      * @see #PLACING_ROBBER
      * @see #canMovePirate(int, int)
      * @see #movePirate(int, int)
@@ -337,7 +338,7 @@ public class SOCGame implements Serializable, Cloneable
     public static final int PLACING_INV_ITEM = 42;
 
     /**
-     * Waiting for player(s) to discard, after 7 is rolled.
+     * Waiting for player(s) to discard, after 7 is rolled in {@link #rollDice()}.
      * Next game state is {@link #WAITING_FOR_DISCARDS}
      * (if other players still need to discard),
      * {@link #WAITING_FOR_ROBBER_OR_PIRATE},
@@ -394,10 +395,12 @@ public class SOCGame implements Serializable, Cloneable
     public static final int WAITING_FOR_MONOPOLY = 53;
 
     /**
-     * Waiting for player to choose the robber or the pirate ship.
+     * Waiting for player to choose the robber or the pirate ship,
+     * after {@link #rollDice()} or {@link #playKnight()}.
      * Next game state is {@link #PLACING_ROBBER} or {@link #PLACING_PIRATE}.
      * @see #canChooseMovePirate()
      * @see #chooseMovePirate(boolean)
+     * @see #WAITING_FOR_DISCARDS
      * @since 2.0.00
      */
     public static final int WAITING_FOR_ROBBER_OR_PIRATE = 54;
@@ -872,7 +875,7 @@ public class SOCGame implements Serializable, Cloneable
      * The 6-player extensions ({@link #maxPlayers} == 6) are orthogonal to {@code hasSeaBoard}
      * or other board types/expansions; one doesn't imply or exclude the other.
      *<P>
-     * Except in some scenarios, the sea board has a pirate ship that can be moved instead of
+     * In most scenarios the sea board has a pirate ship that can be moved instead of
      * the robber.  See game states {@link #WAITING_FOR_ROBBER_OR_PIRATE} and {@link #PLACING_PIRATE}.
      * @since 2.0.00
      */
@@ -908,6 +911,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * The saved game state; used in only a few places, where a state can happen from different start states.
      * Not set every time the game state changes.
+     *<P>
      * oldGameState is read in these states:
      *<UL>
      *<LI> {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}:
@@ -930,7 +934,7 @@ public class SOCGame implements Serializable, Cloneable
      *        After picking gold from a dice roll, this will usually be {@link #PLAY1}.
      *        Sometimes will be {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
      *</UL>
-     * Also used if the game board was reset, {@link #getResetOldGameState()} holds the state before the reset.
+     * Also used if the game board was reset: {@link #getResetOldGameState()} holds the state before the reset.
      */
     private int oldGameState;
 
@@ -4801,10 +4805,13 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * roll the dice.  Distribute resources, or (for 7) set gamestate to
      * move robber or to wait for players to discard.
-     * gameState becomes either {@link #WAITING_FOR_DISCARDS},
+     * {@link #getGameState()} will usually become {@link #PLAY1}.
+     * If the board contains gold hexes, it may become {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
+     * For 7, gameState becomes either {@link #WAITING_FOR_DISCARDS},
      * {@link #WAITING_FOR_ROBBER_OR_PIRATE}, or {@link #PLACING_ROBBER}.
      *<br>
      * Checks game option N7: Roll no 7s during first # rounds
+     * and N7C: Roll no 7s until a city is built.
      *<P>
      * For scenario option {@link SOCGameOption#K_SC_CLVI}, calls
      * {@link SOCBoardLarge#distributeClothFromRoll(SOCGame, int)}.
