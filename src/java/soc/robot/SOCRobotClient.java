@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -62,6 +62,12 @@ import java.util.Vector;
  * match the server's generated cookie. You can set the server's cookie by setting the
  * server's {@code jsettlers.bots.cookie} parameter, or view it by setting {@code jsettlers.bots.showcookie},
  * when starting the server.
+ *<P>
+ * Once a bot has connected to the server, it waits to be asked to join games via
+ * {@link SOCRobotJoinGameRequest ROBOTJOINREQUEST} messages. When it receives that
+ * message type, the bot replies with {@link SOCJoinGame JOINGAME} and the server
+ * responds with {@link SOCJoinGameAuth JOINGAMEAUTH}. That message handler creates
+ * a {@link SOCRobotBrain} to play the game it is joining.
  *
  * @author Robert S Thomas
  */
