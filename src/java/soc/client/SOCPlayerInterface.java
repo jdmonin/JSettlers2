@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, type parameterization, GUI API updates, etc
  *
@@ -2085,6 +2085,8 @@ public class SOCPlayerInterface extends Frame
                 mesHp.updateValue(PlayerClientListener.UpdateType.Ship);
             } else {
                 game.moveShip((SOCShip) pp, moveToCoord);
+                if (mesHp == clientHand)
+                    mesHp.disableBankUndoButton();  // just in case; it probably wasn't enabled
             }
 
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7])
