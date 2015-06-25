@@ -76,6 +76,8 @@ import java.util.Timer;
  * It loads gifs from a directory named "images" in the same
  * directory as this class.
  * The board background color is set in {@link SOCPlayerInterface}.
+ * If {@link SOCGame#hasSeaBoard} is true for this board, all areas
+ * outside the board boundaries will be filled with sea hex tiles.
  *<P>
  * When the mouse is over the game board, a tooltip shows information
  * such as a hex's resource, a piece's owner, a port's ratio, or the
