@@ -3743,9 +3743,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             // (r,c) are board coordinates.
             // (x,y) are pixel coordinates.
 
-            final int bw = board.getBoardWidth();
+            // Top border ("row -1"): Easier to draw it separately than deal with row coord -1 in main loop.
+            // The initial x-coord formula aligns just enough water hexes to cover -panelMarginX.
+            for (int x = -(deltaX * ((panelMarginX + deltaX - 1) / deltaX));
+                 x < (scaledPanelX - panelMarginX);
+                 x += deltaX)
+            {
+                drawHex(g, x, -halfdeltaY, SOCBoard.WATER_HEX, -1, -1);
+            }
+
+            // In-bounds board hexes and bottom border:
+            final int bw = board.getBoardWidth(), bh = board.getBoardHeight();
             for (int r = 1, y = halfdeltaY;
-                 r < board.getBoardHeight();
+                 r < bh || y < (scaledPanelY + HEXY_OFF_SLOPE_HEIGHT);
                  r += 2, y += deltaY)
             {
                 final int rshift = (r << 8);
@@ -3775,7 +3785,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 for (; c < bw; c += 2, x += deltaX)
                 {
                     final int hexCoord = rshift | c;
-                    drawHex(g, x, y, board.getHexTypeFromCoord(hexCoord), -1, hexCoord);
+                    final int hexType = (r < bh) ? board.getHexTypeFromCoord(hexCoord) : SOCBoard.WATER_HEX;
+                    drawHex(g, x, y, hexType, -1, hexCoord);
                     if ((landHexShow != null) && landHexShow.contains(new Integer(hexCoord)))
                     {
                        g.setColor(Color.RED);
