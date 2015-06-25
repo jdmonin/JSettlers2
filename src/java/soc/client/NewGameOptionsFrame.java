@@ -71,7 +71,8 @@ import soc.util.Version;
  * call {@link #setVisible(boolean)} instead of {@link #requestFocus()}.
  *<P>
  * Game option "SC" (Scenarios) gets special rendering. Internally it's {@link SOCGameOption#OTYPE_STR},
- * but it's presented as a checkbox and {@link Choice}.
+ * but it's presented as a checkbox and {@link Choice}. When a scenario is picked in the Choice,
+ * related options are updated by "SC"'s {@link SOCGameOption.ChangeListener}.
  *<P>
  * This class also contains the "Scenario Info" popup window, called from
  * this dialog's Scenario Info button, and from {@link SOCPlayerInterface}
@@ -1221,6 +1222,10 @@ public class NewGameOptionsFrame extends Frame
      * <LI>
      * Set the checkbox when the popup-menu Choice value is changed for a
      * {@link SOCGameOption#OTYPE_INTBOOL} or {@link SOCGameOption#OTYPE_ENUMBOOL}.
+     * <LI>
+     * Update game option {@code "SC"} and the {@link #scenInfo} button when a scenario is picked
+     * from {@link #scenChoice}. Other scenario-related updates are handled by this method calling
+     * {@link SOCGameOption.ChangeListener#valueChanged(SOCGameOption, Object, Object, Map)}.
      *</UL>
      * @param e itemevent from a Choice or Checkbox in {@link #controlsOpts}
      */
