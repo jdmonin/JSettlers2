@@ -3771,15 +3771,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if ((panelMarginX != 0) || (x != 0))
                 {
-                    // If board is narrow or has left margin, fill in with water
-                    int xleft = x, cleft = c;
-                    while (xleft > -(panelMarginX + deltaX))  // xleft >= 0 after g.translate
-                    {
-                        final int hexCoord = rshift | cleft;
-                        drawHex(g, xleft, y, SOCBoard.WATER_HEX, -1, hexCoord);
-                        cleft -= 2;
-                        xleft -= deltaX;
-                    }
+                    // If board is narrow or row doesn't start at left side of panel, fill border with water.
+                    // xleft drawn at >= 0 after g.translate for panelMarginX
+                    for (int xleft = x; xleft > -(panelMarginX + deltaX); xleft -= deltaX)
+                        drawHex(g, xleft, y, SOCBoard.WATER_HEX, -1, -1);
                 }
 
                 for (; c < bw; c += 2, x += deltaX)
