@@ -599,12 +599,44 @@ public class SOCGameOption
         });
 
         // If SC (scenario) is chosen, also set PLL (large board)
+        // and VP (vp to win), unless already changed by user.
+        // This is for NGOF responsiveness during new-game option setup at the client;
+        // game creation at the server doesn't rely on these updates.
+
         sc.addChangeListener(new ChangeListener()
         {
             public void valueChanged
                 (final SOCGameOption optSc, Object oldValue, Object newValue, Map<String, SOCGameOption> currentOpts)
             {
-                final boolean isScenPicked = optSc.getBoolValue() && (optSc.getStringValue().length() != 0);
+                final String newSC = optSc.getStringValue();
+                final boolean isScenPicked = optSc.getBoolValue() && (newSC.length() != 0);
+
+                // check/update #VP if scenario specifies it, otherwise revert to standard
+                SOCGameOption vp = currentOpts.get("VP");
+                if ((vp != null) && ! vp.userChanged)
+                {
+                    int newVP = SOCGame.VP_WINNER_STANDARD;
+                    if (isScenPicked)
+                    {
+                        final SOCScenario scen = SOCScenario.getScenario(newSC);
+                        if (scen != null)
+                        {
+                            final Map<String, SOCGameOption> scenOpts = SOCGameOption.parseOptionsToMap(scen.scOpts);
+                            final SOCGameOption scOptVP = (scenOpts != null) ? scenOpts.get("VP") : null;
+                            if (scOptVP != null)
+                                newVP = scOptVP.getIntValue();
+
+                            // TODO possibly update other scen opts, not just VP
+                        }
+                    }
+
+                    if (newVP != vp.getIntValue())
+                    {
+                        vp.setIntValue(newVP);
+                        vp.setBoolValue(newVP != SOCGame.VP_WINNER_STANDARD);
+                        vp.refreshDisplay();
+                    }
+                }
 
                 // check/update PLL
                 SOCGameOption pll = currentOpts.get("PLL");
