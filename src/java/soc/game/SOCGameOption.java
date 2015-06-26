@@ -604,14 +604,17 @@ public class SOCGameOption
             public void valueChanged
                 (final SOCGameOption optSc, Object oldValue, Object newValue, Map<String, SOCGameOption> currentOpts)
             {
+                final boolean isScenPicked = optSc.getBoolValue() && (optSc.getStringValue().length() != 0);
+
+                // check/update PLL
                 SOCGameOption pll = currentOpts.get("PLL");
-                if ((pll == null) || pll.userChanged)
-                    return;
-                final boolean scPicked = optSc.getBoolValue() && (optSc.getStringValue().length() != 0);
-                if (scPicked != pll.getBoolValue())
+                if ((pll != null) && ! pll.userChanged)
                 {
-                    pll.setBoolValue(scPicked);
-                    pll.refreshDisplay();
+                    if (isScenPicked != pll.getBoolValue())
+                    {
+                        pll.setBoolValue(isScenPicked);
+                        pll.refreshDisplay();
+                    }
                 }
             }
         });
