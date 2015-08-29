@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2011-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2011-2013,2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -491,56 +491,50 @@ public class TradeOfferPanel extends Panel
             }
         
             SOCGame ga = hp.getGame();
-            final int maxChars = ((ga.maxPlayers > 4) || ga.hasSeaBoard) ? 30 : 25;
-            //TODO i18n Consider word order of the phase: not always is firstly the phrase, then the names
-            String names1 = strings.get("trade.offered.to") + ' ';  // "Offered to:" + ' '
-            String names2 = null;
+
+            /**
+             * Build the list of player names, retrieve i18n-localized, then wrap at maxChars.
+             */
+            StringBuilder names = new StringBuilder();
 
             int cnt = 0;
-
             for (; cnt < ga.maxPlayers; cnt++)
             {
                 if (offerList[cnt] && ! ga.isSeatVacant(cnt))
                 {
-                    names1 += ga.getPlayer(cnt).getName();
-
+                    names.append(ga.getPlayer(cnt).getName());
                     break;
                 }
             }
 
             cnt++;
 
-            int len = names1.length();
-
             for (; cnt < ga.maxPlayers; cnt++)
             {
                 if (offerList[cnt] && ! ga.isSeatVacant(cnt))
                 {
-                    String name = ga.getPlayer(cnt).getName();
-                    len += name.length();  // May be null if vacant
-                    
-                    if (len < maxChars)
-                    {
-                        names1 += ", ";
-                        names1 += name;
-                    }
-                    else
-                    {
-                        if (names2 == null)
-                        {
-                            names1 += ",";
-                            names2 = new String(name);
-                        }
-                        else
-                        {
-                            names2 += ", ";
-                            names2 += name;
-                        }
-                    }
+                    names.append(", ");
+                    names.append(ga.getPlayer(cnt).getName());
                 }
             }
+
+            final int maxChars = ((ga.maxPlayers > 4) || ga.hasSeaBoard) ? 30 : 25;
+            String names1 = strings.get("trade.offered.to", names);  // "Offered to: p1, p2, p3"
+            String names2 = null;
+            if (names1.length() > maxChars)
+            {
+                // wrap into names2
+                int i = names1.lastIndexOf(", ", maxChars);
+                if (i != -1)
+                {
+                    ++i;  // +1 to keep ','
+                    names2 = names1.substring(i).trim();
+                    names1 = names1.substring(0, i).trim();
+                }
+            }
+
             toWhom1.setText(names1);
-            toWhom2.setText(names2);
+            toWhom2.setText(names2 != null ? names2 : "");
 
             /**
              * Note: this only works if SOCResourceConstants.CLAY == 1
