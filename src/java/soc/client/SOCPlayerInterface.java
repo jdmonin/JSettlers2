@@ -1751,6 +1751,24 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * The client player's available resources have changed. Update displays if needed.
+     *<P>
+     * If any trade offers are currently showing, show or hide the offer Accept button
+     * depending on the updated set of available resources.
+     * @since 2.0.00
+     */
+    public void updateAtClientPlayerResources()
+    {
+        for (int i = 0; i < hands.length; ++i)
+        {
+            if (i == clientHandPlayerNum)
+                continue;
+
+            hands[i].updateCurrentOffer(true);
+        }
+    }
+
+    /**
      * A player has been awarded Special Victory Points (SVP), so announce those details.
      * Example: "Lily gets 2 Special Victory Points for settling a new island."
      * Only prints text, does not update SOCHandPanel's SVP or call {@link SOCPlayer#addSpecialVPInfo(int, String)}.
@@ -3090,6 +3108,10 @@ public class SOCPlayerInterface extends Frame
                 if (hpan.isClientPlayer())
                 {
                     hpan.updateValue(utype);
+
+                    // Because client player's available resources have changed,
+                    // update any trade offers currently showing (show or hide Accept button)
+                    pi.updateAtClientPlayerResources();
                 }
                 else
                 {
@@ -3515,20 +3537,20 @@ public class SOCPlayerInterface extends Frame
 
         public void requestedTrade(SOCPlayer offerer)
         {
-            pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer();
+            pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(false);
         }
 
         public void requestedTradeClear(SOCPlayer offerer)
         {
             if (offerer != null)
             {
-                pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer();
+                pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(false);
             }
             else
             {
                 for (int i = 0; i < pi.game.maxPlayers; ++i)
                 {
-                    pi.getPlayerHandPanel(i).updateCurrentOffer();
+                    pi.getPlayerHandPanel(i).updateCurrentOffer(false);
                 }
             }
         }

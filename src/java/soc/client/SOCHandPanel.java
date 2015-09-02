@@ -2368,11 +2368,22 @@ public class SOCHandPanel extends Panel
      * the trade offer will be refreshed after the reset is cancelled.
      *<P>
      * Does not display if playerIsClient.
+     *
+     * @param resourcesOnly  If true, instead of updating the entire offer,
+     *    only show or hide "Accept" button based on the client player's resources.
+     *    Calls {@link TradeOfferPanel#updateOfferButtons()}.
+     *    If no offer is currently visible, does nothing.
      */
-    public void updateCurrentOffer()
+    public void updateCurrentOffer(final boolean resourcesOnly)
     {
         if (inPlay)
         {
+            if (resourcesOnly)
+            {
+                offer.updateOfferButtons();
+                return;
+            }
+
             SOCTradeOffer currentOffer = player.getCurrentOffer();
 
             if (currentOffer != null)
@@ -2633,7 +2644,7 @@ public class SOCHandPanel extends Panel
             if ((! offerIsMessageWasTrade) || (! inPlay))
                 clearTradeMsg();
             else
-                updateCurrentOffer();
+                updateCurrentOffer(false);
         }
     }
 
