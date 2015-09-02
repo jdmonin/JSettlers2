@@ -308,19 +308,23 @@ public class SOCPlayerInterface extends Frame
     /**
      * the display for the players' hands.
      * Hands start at top-left and go clockwise.
+     * @see #clientHand
      */
     protected SOCHandPanel[] hands;
     
     /**
-     * Tracks our own hand within hands[], if we are
+     * Tracks our own hand within {@link #hands hands[]}, if we are
      * active in a game.  Null otherwise.
-     * Set by SOCHandPanel's removePlayer() and addPlayer() methods.
+     * Set by {@link SOCHandPanel}'s removePlayer() and addPlayer() methods
+     * by calling {@link #setClientHand(SOCHandPanel)}.
+     * @see #clientHandPlayerNum
      */
     protected SOCHandPanel clientHand;
 
     /**
-     * Player ID of clientHand, or -1.
-     * Set by SOCHandPanel's removePlayer() and addPlayer() methods.
+     * Player ID of {@link #clientHand}, or -1.
+     * Set by {@link SOCHandPanel}'s removePlayer() and addPlayer() methods
+     * by calling {@link #setClientHand(SOCHandPanel)}.
      */
     private int clientHandPlayerNum;
 
