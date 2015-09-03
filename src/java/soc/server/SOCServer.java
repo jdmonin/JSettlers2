@@ -7952,7 +7952,7 @@ public class SOCServer extends Server
             if (! ((k instanceof String) && ((String) k).startsWith(PROP_JSETTLERS_GAMEOPT_PREFIX)))
                 continue;
 
-            final String optKey = ((String) k).substring(pfxL);
+            final String optKey = ((String) k).substring(pfxL);  // "jsettlers.gameopt.n7" -> "n7"
             if (optKey.length() == 0)
             {
                 if (problems == null)

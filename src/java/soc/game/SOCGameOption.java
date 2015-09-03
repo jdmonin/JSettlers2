@@ -1399,7 +1399,9 @@ public class SOCGameOption
      * Set the current value of a known option, based on the current value of
      * another object with the same {@link SOCVersionedItem#key key}.
      * If there is no known option with oCurr.{@link SOCVersionedItem#key key}, it is ignored and nothing is set.
-     * @param ocurr Option with the requested current value
+     * @param ocurr Option with the requested current value.
+     *            {@code ocurr}'s value field contents are copied to the known option's values,
+     *            the {@code ocurr} reference won't be added to the known option set.
      * @throws  IllegalArgumentException if value is not permitted; note that
      *            intValues outside of range are silently clipped, and will not
      *            throw this exception.
@@ -2025,6 +2027,9 @@ public class SOCGameOption
      * Then, add that scenario's {@link SOCScenario#scOpts .scOpts} into <tt>newOpts</tt>.
      * Scenario option values always overwrite those in <tt>newOpts</tt>, except for <tt>"VP"</tt>
      * where the highest value is kept.
+     *<P>
+     * Client-side gameopt code also assumes all scenarios use the large board,
+     * and sets game option <tt>"PLL"</tt> when a scenario is chosen by the user.
      *
      * @param newOpts Set of SOCGameOptions to check against knownOpts;
      *            an option's current value will be changed if it's outside of
@@ -2099,7 +2104,7 @@ public class SOCGameOption
                 }
 
                 // Client-side gameopt code also assumes all scenarios use
-                // the large board, and set game option "PLL" when a scenario
+                // the large board, and sets game option "PLL" when a scenario
                 // is chosen by the user.
             }
 
