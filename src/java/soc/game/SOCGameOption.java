@@ -1403,6 +1403,7 @@ public class SOCGameOption
      * @throws  IllegalArgumentException if value is not permitted; note that
      *            intValues outside of range are silently clipped, and will not
      *            throw this exception.
+     * @see #getOption(String, boolean)
      */
     public static void setKnownOptionCurrentValue(SOCGameOption ocurr)
         throws IllegalArgumentException
@@ -1478,6 +1479,7 @@ public class SOCGameOption
      *               its original object, which is a shared copy in a static namekey->object map.
      * @return information about a known option, or null if none with that key
      * @throws IllegalStateException  if {@code clone} but the object couldn't be cloned; this isn't expected to ever happen
+     * @see #getAllKnownOptions()
      */
     public static SOCGameOption getOption(final String key, final boolean clone)
         throws IllegalStateException
@@ -2021,6 +2023,8 @@ public class SOCGameOption
      * the game scenario option <tt>"SC"</tt>. If that option is set, call
      * {@link SOCScenario#getScenario(String)}; the scenario name must be known.
      * Then, add that scenario's {@link SOCScenario#scOpts .scOpts} into <tt>newOpts</tt>.
+     * Scenario option values always overwrite those in <tt>newOpts</tt>, except for <tt>"VP"</tt>
+     * where the highest value is kept.
      *
      * @param newOpts Set of SOCGameOptions to check against knownOpts;
      *            an option's current value will be changed if it's outside of

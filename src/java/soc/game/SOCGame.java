@@ -1142,12 +1142,13 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * create a new, active game with options
+     * and optionally a scenario (game option {@code "SC"}).
      *
      * @param n  the name of the game.  For network message safety, must not contain
      *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param op if game has options, map of {@link SOCGameOption}; otherwise null.
-     *           Will validate options by calling
+     *           Will validate options and include optional scenario's {@link SOCScenario#scOpts} by calling
      *           {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *           with <tt>doServerPreadjust</tt> false,
      *           and set game's minimum version by calling
@@ -1180,13 +1181,14 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * create a new game that can be ACTIVE or INACTIVE, and have options
+     * and optionally a scenario (game option {@code "SC"}).
      *
      * @param n  the name of the game.  For network message safety, must not contain
      *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param isActive  true if this is an active game, false for inactive
      * @param op if game has options, map of {@link SOCGameOption}; otherwise null.
-     *           Will validate options by calling
+     *           Will validate options and include optional scenario's {@link SOCScenario#scOpts} by calling
      *           {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *           with <tt>doServerPreadjust</tt> false,
      *           and set game's minimum version by calling
@@ -1607,8 +1609,10 @@ public class SOCGame implements Serializable, Cloneable
      * @return the player object for a player id; never null if pn is in range
      *
      * @param pn  the player number, in range 0 to {@link #maxPlayers}-1
+     * @throws ArrayIndexOutOfBoundsException if {@code pn} is out of range
      */
     public SOCPlayer getPlayer(final int pn)
+        throws ArrayIndexOutOfBoundsException
     {
         return players[pn];
     }

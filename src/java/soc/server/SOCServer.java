@@ -895,6 +895,7 @@ public class SOCServer extends Server
     /**
      * Common init for all constructors.
      * Prints some progress messages to {@link System#err}.
+     * Sets game option default values via {@link #init_propsSetGameopts(Properties, HashSet)}.
      * Starts all server threads except the main thread.
      * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, those aren't started until {@link #serverUp()}.
      *<P>
@@ -7921,7 +7922,8 @@ public class SOCServer extends Server
      * Set game option defaults from any jsettlers.gameopt.* server properties found ({@code jsettlers.gameopt.*}).
      * Option keynames are case-insensitive past that prefix.
      * See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for expected syntax.
-     * Calls {@link #parseCmdline_GameOption(String, HashSet)} for each one found.
+     * Calls {@link #parseCmdline_GameOption(String, HashSet)} for each one found
+     * to set its current value in {@link SOCGameOptions}'s static set of known opts.
      * @param pr  Properties which may contain {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}* entries
      * @param optsAlreadySet  For tracking, game option names we've already encountered on the command line,
      *      or {@code null} if not needed.  Passed to {@code parseCmdline_GameOption(..)}.
@@ -7964,6 +7966,7 @@ public class SOCServer extends Server
 
             try
             {
+                // parse this gameopt and set its current value in SOCGameOptions static set of known opts
                 parseCmdline_GameOption(optKey + "=" + pr.getProperty((String) k), optsAlreadySet);
                 hasSetGameOptions = true;
             } catch (IllegalArgumentException e) {
@@ -8093,6 +8096,8 @@ public class SOCServer extends Server
      * and parses the command line for switches. If a property appears on the command line and
      * also in {@code jsserver.properties}, the command line's value overrides the file's.
      *<P>
+     * Creates and starts a {@link SOCServer} via {@link #SOCServer(int, Properties)}.
+     *<P>
      * If there are problems with the network setup,
      * or with running a {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP db setup script},
      * this method will call {@link System#exit(int) System.exit(1)}.
@@ -8130,6 +8135,8 @@ public class SOCServer extends Server
                 server.start();  // <---- Start the Main SOCServer Thread ----
 
                 // Most threads are started in the SOCServer constructor, via initSocServer.
+                // initSocServer also handles command line and properties-file contents,
+                // including game option default/current values.
                 // Messages from clients are handled in processCommand's loop.
             }
             catch (SocketException e)
