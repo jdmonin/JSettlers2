@@ -96,43 +96,81 @@ Start the server with the following command
 
 This will start the server on the default port of 8880 with 7 robots.
 
-You can also specify parameters at startup:
-
-  java -jar JSettlersServer.jar -Djsettlers.startrobots=9 8880 30 socuser socpass
-
-Those parameters are: start 9 bots; TCP port number 8880; max clients 30; db user; db password.
-
-The started robots count against your max simultaneous connections (30 in this example).
-If the robots leave less than 6 player connections available, or if they take
-more than half the max connections, a warning message is printed at startup.
-
-To start a server with no robots (human players only), use -Djsettlers.startrobots=0 .
+You can change those values and specify game option defaults; see details below.
 
 If MySQL or another database is not installed and running (See "Database Setup"),
 you will see a warning with the appropriate explanation:
 
   Warning: failed to initialize database: ....
 
-The database is not required: Without it, the server will function normally except
-that user accounts cannot be maintained.  If you do use the database, you can give
-users a nickname and password to use when they log in and play.
-People without accounts can still connect, by leaving the password field blank,
-as long as they aren't using a nickname which has a password in the database.
+The database is not required: Without it, the server will function normally
+except that user accounts cannot be maintained.
+
+If you do use the database, you can give users a nickname and password to use
+when they log in and play.  People without accounts can still connect, by
+leaving the password field blank, as long as they aren't using a nickname
+which has a password in the database.  Optionally game results can also be
+stored in the database, see next section; results are not stored by default.
+
+Parameters and game option defaults:
+
+JSettlers options, parameters, and game option defaults can be specified on the
+command line, or in a jsserver.properties file in the current directory when
+you start the server.
+
+Command line example:
+  java -jar JSettlersServer.jar -Djsettlers.startrobots=9 8880 30 socuser socpass
+
+In this example the parameters are: start 9 bots; TCP port number 8880;
+max clients 30; db user; db password.
+
+The started robots count against your max simultaneous connections (30 in this
+example).  If the robots leave less than 6 player connections available, or if
+they take more than half the max connections, a warning message is printed at
+startup. To start a server with no robots (human players only), use
+-Djsettlers.startrobots=0 .
 
 Any command-line switches and options go before the port number if specified
 on the command line.  If the command includes -jar, switches and options go
 after the jar filename.
 
-To have all games' results stored in the database, use this option:
+To change a Game Option from its default, for example to activate the house rule
+"Robber can't return to the desert", use the "-o" switch with the game option's
+name and value, or equivalently -Djsettlers.gameopt. + the name and value:
+   -o RD=t
+   -Djsettlers.gameopt.RD=t
+
+To have all completed games' results stored in the database, use this option:
   -Djsettlers.db.save.games=Y
 
 To see a list of all jsettlers options (use them with -D), run:
   java -jar JSettlersServer.jar --help
-This will print all server options, and all Game Option default values.
+This will print all server options, and all Game Option default values. Note the
+format of those default values: Some options need both a true/false flag and a
+numeric value. To change the default winning victory points to 12 for example:
+  -o VP=t12
 
-To change a Game Option from its default, for example to activate the house rule
-"Robber can't return to the desert", use the "-o" switch with the game option's name and value:
-   -o RD=t
+jsserver.properties:
+
+Instead of a long command line, any option can be added to jsserver.properties
+which is read at startup if it exists in the current directory.  Any option
+given on the command line overrides the same option in the properties file.
+Comment lines start with # .
+
+This example command line
+  java -jar JSettlersServer.jar -Djsettlers.startrobots=9 -o RD=t 8880 30 socuser socpass
+is the same as jsserver.properties with these contents:
+jsettlers.startrobots=9
+jsettlers.gameopt.RD=t
+jsettlers.port=8880
+jsettlers.connections=30
+# db user and pass are optional
+jsettlers.db.user=socuser
+jsettlers.db.pass=socpass
+
+To determine if the server is reading the properties file, look for this text
+near the start of the console output:
+  Reading startup properties from jsserver.properties
 
 
 CLIENT CONNECT:
