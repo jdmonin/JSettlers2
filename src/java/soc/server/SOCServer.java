@@ -40,6 +40,7 @@ import soc.util.SOCGameList;  // used in javadoc
 import soc.util.SOCRobotParameters;
 import soc.util.SOCServerFeatures;
 import soc.util.SOCStringManager;
+import soc.util.Triple;
 import soc.util.Version;
 
 import java.io.EOFException;
@@ -837,7 +838,10 @@ public class SOCServer extends Server
      *       <P>
      *       {@code props} may contain game option default values (property names starting
      *       with {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}).  Calls {@link #parseCmdline_GameOption(String, HashMap)}
-     *       for each one found to set its default (current) value.
+     *       for each one found to set its default (current) value.  If a default scenario is
+     *       specified (game option {@code "SC"}), the scenario may include game options which
+     *       conflict with those in {@code props}: Consider calling {@link #checkScenarioOpts(Map, boolean)}
+     *       to check for that and warn the user.
      *       <P>
      *       If you provide {@code props}, consider checking for a {@code jsserver.properties} file
      *       ({@link #SOC_SERVER_PROPS_FILENAME}) and calling {@link Properties#load(java.io.InputStream)}
@@ -929,7 +933,10 @@ public class SOCServer extends Server
      *       <P>
      *       {@code props} may contain game option default values (property names starting
      *       with {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}).  Calls {@link #parseCmdline_GameOption(String, HashMap)}
-     *       for each one found to set its default (current) value.
+     *       for each one found to set its default (current) value. If a default scenario is
+     *       specified (game option {@code "SC"}), the scenario may include game options which
+     *       conflict with those in {@code props}: Consider calling {@link #checkScenarioOpts(Map, boolean)}
+     *       to check for that and warn the user.
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now
      * @throws SQLException   If db setup script fails, or need db but can't connect
@@ -7712,6 +7719,7 @@ public class SOCServer extends Server
                     try
                     {
                         init_propsSetGameopts(argp);
+                        init_checkScenarioOpts(argp, true, SOC_SERVER_PROPS_FILENAME);  // prints warnings if conflicts
                     } catch (IllegalArgumentException e) {
                         System.err.println(e.getMessage());
                         System.err.println
@@ -7866,6 +7874,14 @@ public class SOCServer extends Server
             }
             ++aidx;
         }
+        // End of named-parameter loop
+
+        if (! gameOptsAlreadySet.isEmpty())
+        {
+            init_checkScenarioOpts(gameOptsAlreadySet, false, "Command line");  // prints warnings if conflicts
+            // TODO also check cmdline gameOptsAlreadySet for "SC" vs gameopts in properties file;
+            //   maybe just pass cmdline's scName to checkScenarioOpts(argp)
+        }
 
         // Done parsing flagged parameters.
         // Look for the positional ones.
@@ -7945,8 +7961,7 @@ public class SOCServer extends Server
      *     </UL>
      * @since 2.0.00
      */
-    private static final void init_propsSetGameopts
-        (Properties pr)
+    private static final void init_propsSetGameopts(Properties pr)
         throws IllegalArgumentException
     {
         // javadoc note: This method is private; public parseCmdline_DashedArgs calls it, so for visibility
@@ -7989,6 +8004,172 @@ public class SOCServer extends Server
 
         if (problems != null)
             throw new IllegalArgumentException(problems.toString());
+    }
+
+    /**
+     * When a server's properties or command line contain a default scenario (game option {@code "SC"}),
+     * check that the scenario is known and that its game options don't conflict with any others specified
+     * in the properties or command line.
+     *<P>
+     * The scenario will be the default scenario, but its option values aren't set as default at server startup.
+     * When a new game begins using that scenario, at that time scenario options override any other options
+     * specified for the game (except whichever {@code "VP"} is greater is kept).  Since the user may specify
+     * a different scenario, 'conflicting' options in {@code opts} are only potentially a problem and will be
+     * returned as a list for warnings (not errors) to be printed during server init.
+     *
+     * @param opts  Option name key and value strings, typically from command line or
+     *    properties file parsing.  See {@code optsIsFromProps} for format of {@code opts} keys and values.
+     * @param optsAreProps  If true, {@code opts} keys and values are from the properties file:
+     *    key = {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} + optname, value = option value.
+     *    If false, keys and values are from command line parsing:
+     *    key = optname, value = optkey + "=" + optname.
+     * @returns A list of game option names and value strings from {@code opts} which would be overwritten by
+     *     those from opts' {@code "SC"} scenario, or {@code null} if no potential conflicts.
+     *    <P>
+     *     For ease of use by caller, the extracted default scenario is the first item in the list.
+     *     (If there are no conflicts, the list is {@code null}; the scenario will not be returned.)
+     *     This list item's {@link Triple} contains:
+     *     <UL>
+     *      <LI> {@code "SC"}
+     *      <LI> specified scenario name, such as {@code "SC_FOG"}
+     *      <LI> scenario game options string ({@link SOCScenario#scOpts}), never "" or {@code null}
+     *     </UL>
+     *    <P>
+     *     Each other list item is a {@link Triple} containing:
+     *     <UL>
+     *      <LI> option name
+     *      <LI> value in {@code opts}
+     *      <LI> value in default scenario
+     *    </UL>
+     *    <P>
+     *     If the specified scenario is unknown at this version, the returned list will contain only 1 item,
+     *     a {@code Triple} with:
+     *     <UL>
+     *      <LI> {@code "SC"}
+     *      <LI> specified scenario name
+     *      <LI> {@code null}
+     *     </UL>
+     * @since 2.0.00
+     */
+    public static List<Triple> checkScenarioOpts
+        (final Map<?, ?> opts, final boolean optsAreProps)
+    {
+        List<Triple> scenConflictWarns = null;
+
+        final String scKey = (optsAreProps) ? (PROP_JSETTLERS_GAMEOPT_PREFIX + "SC") : "SC";
+        String scName;
+        if (opts.containsKey(scKey))
+        {
+            scName = (String) opts.get(scKey);
+            if (! optsAreProps)
+                scName = scName.substring(scName.indexOf('=') + 1).trim();
+                   // indexOf should be okay, because this is called after parsing cmdline options;
+                   // if somehow it's -1 then we get entire string from substring(0).
+        } else {
+            return null;  // <--- Early return: no default scenario ---
+        }
+
+        scenConflictWarns = new ArrayList<Triple>();
+
+        final SOCScenario sc = SOCScenario.getScenario(scName);
+        if (sc == null)
+        {
+            scenConflictWarns.add(new Triple("SC", scName, null));
+
+            return scenConflictWarns;  // <--- Early return: unknown scenario ---
+        }
+
+        final String scOptsStr = sc.scOpts;
+        if ((scOptsStr == null) || (scOptsStr.length() == 0))
+            return null;  // <--- Early return: no gameopts in scenario ---
+
+        final Map<String, SOCGameOption> scOpts = SOCGameOption.parseOptionsToMap(scOptsStr);
+
+        StringBuffer sb = new StringBuffer();
+        for (SOCGameOption scOpt : scOpts.values())
+        {
+            // TODO robustness: Case-insensitive searching
+
+            final String optKey = (optsAreProps) ? (PROP_JSETTLERS_GAMEOPT_PREFIX + scOpt.key) : scOpt.key;
+            if (! opts.containsKey(optKey))
+                continue;
+
+            String mapOptVal = (String) opts.get(optKey);
+            if (! optsAreProps)
+                mapOptVal = mapOptVal.substring(mapOptVal.indexOf('=') + 1).trim();
+                   // indexOf should be okay, because this is called after parsing cmdline options;
+                   // if somehow it's -1 then we get entire string from substring(0).
+            mapOptVal = mapOptVal.toLowerCase(Locale.US);
+
+            sb.setLength(0);  // reset from previous iteration
+            scOpt.packValue(sb);
+
+            if (! scOpt.key.equals("VP"))
+            {
+                final String scOptVal = sb.toString().toLowerCase(Locale.US);
+                if (! mapOptVal.equals(scOptVal))
+                    scenConflictWarns.add(new Triple(scOpt.key, mapOptVal, scOptVal));
+            } else {
+                // VP: special case: warn only if scen has false or a lower int value
+
+                if (mapOptVal.charAt(0) == 'f')
+                    continue;  // opts map doesn't specify VP
+
+                if (scOpt.getBoolValue())
+                {
+                    int mapVP;
+                    try {
+                        mapVP = Integer.parseInt(mapOptVal.substring(1));
+                    } catch (NumberFormatException e ) {
+                        mapVP = 0;  // unlikely, called after cmdline parsing
+                    }
+
+                    if (mapVP <= scOpt.getIntValue())
+                        continue;  // opts map's VP not greater than scen's VP
+                }
+
+                scenConflictWarns.add(new Triple(scOpt.key, mapOptVal, sb.toString()));
+            }
+        }
+
+        if (scenConflictWarns.isEmpty())
+            return null;
+
+        // insert scenario name and opts at start of list
+        scenConflictWarns.add(0, new Triple("SC", scName, scOptsStr));
+
+        return scenConflictWarns;
+    }
+
+    /**
+     * During startup, call {@link #checkScenarioOpts(Map, boolean)} and print any warnings it returns.
+     * @param opts  Options to check, see {@link #checkScenarioOpts(Map, boolean)}
+     * @param optsAreProps  Are {@code} opts from properties or command line?
+     *     See {@link #checkScenarioOpts(Map, boolean)}.
+     * @param srcDesc  "Command line" or properties filename "jsserver.properties"
+     */
+    private static void init_checkScenarioOpts
+        (final Map<?, ?> opts, final boolean optsAreProps, final String srcDesc)
+    {
+        List<Triple> warns = checkScenarioOpts(opts, optsAreProps);
+        if (warns == null)
+            return;
+
+        final String scName = (String) (warns.get(0).getB());  // first list item is scenario info, optName "SC"
+
+        for (Triple warn : warns)
+        {
+            final String optName = (String) (warn.getA());
+            if (optName.equals("SC"))
+            {
+                if (warn.getC() == null)
+                    System.err.println("Warning: " + srcDesc
+                        + " default scenario " + scName + " is unknown");  // TODO error, or only warning?
+            } else {
+                System.err.println("Warning: " + srcDesc + " game option " + optName + " value " + warn.getB()
+                    + " is changed in default scenario " + scName + " to " + warn.getC());
+            }
+        }
     }
 
     /**
