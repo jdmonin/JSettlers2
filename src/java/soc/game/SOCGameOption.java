@@ -1545,7 +1545,7 @@ public class SOCGameOption
      *</UL>
      *
      * @throws ClassCastException if {@code omap} contains anything other
-     *         than SOCGameOptions
+     *         than {@code SOCGameOption}s
      * @see #parseOptionNameValue(String, boolean)
      * @see #packValue(StringBuffer)
      */
@@ -1573,7 +1573,8 @@ public class SOCGameOption
      * @return string of name-value pairs, or "-" for an empty or null omap;
      *         see {@link #packOptionsToString(Map, boolean)} javadoc for details.
      * @throws ClassCastException if {@code omap} contains anything other
-     *         than SOCGameOptions
+     *         than {@code SOCGameOption}s
+     * @see #packValue(StringBuffer)
      */
     public static String packOptionsToString
         (final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts, final int cliVers)
@@ -1642,6 +1643,7 @@ public class SOCGameOption
      * See {@link #packOptionsToString(Map, boolean)} for the string's format.
      *
      * @param sb Pack into (append to) this buffer
+     * @see #toString()
      */
     public void packValue(StringBuffer sb)
     {
@@ -2438,6 +2440,8 @@ public class SOCGameOption
      * Form a string with the key and current value, useful for debugging purposes.
      * @return string such as "PL=4" or "BC=t3", with the same format
      *    as {@link #packKnownOptionsToString(boolean, boolean)}.
+     * @see #packValue(StringBuffer)
+     * @see #optionTypeName(int)
      */
     public String toString()
     {
