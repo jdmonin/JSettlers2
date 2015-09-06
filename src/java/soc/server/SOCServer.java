@@ -835,6 +835,10 @@ public class SOCServer extends Server
      *       If {@code props} != null but doesn't contain {@link #PROP_JSETTLERS_STARTROBOTS},
      *       the default value {@link #SOC_STARTROBOTS_DEFAULT} will be used.
      *       <P>
+     *       {@code props} may contain game option default values (property names starting
+     *       with {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}).  Calls {@link #parseCmdline_GameOption(String, HashMap)}
+     *       for each one found to set its default (current) value.
+     *       <P>
      *       If you provide {@code props}, consider checking for a {@code jsserver.properties} file
      *       ({@link #SOC_SERVER_PROPS_FILENAME}) and calling {@link Properties#load(java.io.InputStream)}
      *       with it before calling this constructor.
@@ -895,7 +899,7 @@ public class SOCServer extends Server
     /**
      * Common init for all constructors.
      * Prints some progress messages to {@link System#err}.
-     * Sets game option default values via {@link #init_propsSetGameopts(Properties, HashSet)}.
+     * Sets game option default values via {@link #init_propsSetGameopts(Properties)}.
      * Starts all server threads except the main thread.
      * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, those aren't started until {@link #serverUp()}.
      *<P>
@@ -922,6 +926,10 @@ public class SOCServer extends Server
      *       and no bots will be started ({@link #PROP_JSETTLERS_STARTROBOTS} == 0).
      *       If {@code props} != null but doesn't contain {@link #PROP_JSETTLERS_STARTROBOTS},
      *       the default value {@link #SOC_STARTROBOTS_DEFAULT} will be used.
+     *       <P>
+     *       {@code props} may contain game option default values (property names starting
+     *       with {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}).  Calls {@link #parseCmdline_GameOption(String, HashMap)}
+     *       for each one found to set its default (current) value.
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now
      * @throws SQLException   If db setup script fails, or need db but can't connect
@@ -956,7 +964,7 @@ public class SOCServer extends Server
 
             // Set game option defaults from any jsettlers.gameopt.* properties found.
             // If problems found, throws IllegalArgumentException with details.
-            init_propsSetGameopts(props, null);
+            init_propsSetGameopts(props);
         }
 
         this.props = props;
@@ -7586,13 +7594,13 @@ public class SOCServer extends Server
     }
 
     /**
-     * Quick-and-dirty command line parsing of game options.
+     * Quick-and-dirty command line parsing of a game option.
      * Calls {@link SOCGameOption#setKnownOptionCurrentValue(SOCGameOption)}.
      * @param optNameValue Game option name+value, of {@code optname=optvalue} form expected by
      *                     {@link SOCGameOption#parseOptionNameValue(String, boolean)}.
      *                     Option keyname is case-insensitive.
      * @param optsAlreadySet  For tracking, game option names we've already encountered on the command line.
-     *                        This method will add {@code optNameValue}'s name to this set.
+     *                        This method will add ({@code optName}, {@code optNameValue}) to this map.
      *                        Can be {@code null} if not needed.
      * @throws IllegalArgumentException if bad name, bad value, or already set from command line.
      *         {@link Throwable#getMessage()} will have problem details:
@@ -7604,7 +7612,8 @@ public class SOCServer extends Server
      *         </UL>
      * @since 1.1.07
      */
-    public static void parseCmdline_GameOption(final String optNameValue, HashSet<String> optsAlreadySet)
+    public static void parseCmdline_GameOption
+        (final String optNameValue, HashMap<String, String> optsAlreadySet)
         throws IllegalArgumentException
     {
         SOCGameOption op = SOCGameOption.parseOptionNameValue(optNameValue, true);
@@ -7614,14 +7623,14 @@ public class SOCServer extends Server
         if (op.optType == SOCGameOption.OTYPE_UNKNOWN)
             throw new IllegalArgumentException("Unknown game option: " + op.key);
 
-        if ((optsAlreadySet != null) && optsAlreadySet.contains(op.key))
+        if ((optsAlreadySet != null) && optsAlreadySet.containsKey(op.key))
             throw new IllegalArgumentException("Game option cannot appear twice on command line: " + op.key);
 
         try
         {
             SOCGameOption.setKnownOptionCurrentValue(op);
             if (optsAlreadySet != null)
-                optsAlreadySet.add(op.key);
+                optsAlreadySet.put(op.key, optNameValue);
         } catch (Exception e) {
             throw new IllegalArgumentException("Bad value, cannot set game option: " + op.key);
         }
@@ -7650,7 +7659,7 @@ public class SOCServer extends Server
      *<UL>
      * <LI> Empty game option name after {@code jsettlers.gameopt.} prefix
      * <LI> Unknown option name
-     * <LI> Problem with name or value reported from {@link #parseCmdline_GameOption(String, HashSet)}
+     * <LI> Problem with name or value reported from {@link #parseCmdline_GameOption(String, HashMap)}
      * <LI> Name is already in {@code optsAlreadySet}
      *</UL>
      * See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for game option property syntax.
@@ -7683,7 +7692,8 @@ public class SOCServer extends Server
         // argp is loaded from jsserver.properties, then command-line properties can override
         // anything set from there
         HashSet<String> cmdlineOptsSet = new HashSet<String>();
-        HashSet<String> gameOptsAlreadySet = new HashSet<String>();  // used and updated by parseCmdline_GameOption
+        HashMap<String, String> gameOptsAlreadySet = new HashMap<String, String>();
+            // used and updated by parseCmdline_GameOption
 
         /**
          * Read jsserver.properties first
@@ -7701,7 +7711,7 @@ public class SOCServer extends Server
                     fis.close();
                     try
                     {
-                        init_propsSetGameopts(argp, null);
+                        init_propsSetGameopts(argp);
                     } catch (IllegalArgumentException e) {
                         System.err.println(e.getMessage());
                         System.err.println
@@ -7922,22 +7932,21 @@ public class SOCServer extends Server
      * Set game option defaults from any jsettlers.gameopt.* server properties found ({@code jsettlers.gameopt.*}).
      * Option keynames are case-insensitive past that prefix.
      * See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for expected syntax.
-     * Calls {@link #parseCmdline_GameOption(String, HashSet)} for each one found
+     * Calls {@link #parseCmdline_GameOption(String, HashMap)} for each one found
      * to set its current value in {@link SOCGameOptions}'s static set of known opts.
+     *
      * @param pr  Properties which may contain {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}* entries
-     * @param optsAlreadySet  For tracking, game option names we've already encountered on the command line,
-     *      or {@code null} if not needed.  Passed to {@code parseCmdline_GameOption(..)}.
      * @throws IllegalArgumentException if any game option property has a bad name or value.
      *     {@link Throwable#getMessage()} will collect all option problems to 1 string, separated by {@code "\n"}:
      *     <UL>
      *     <LI> Empty game option name after {@code jsettlers.gameopt.} prefix
      *     <LI> Unknown option name
-     *     <LI> Problem with name or value reported from {@link #parseCmdline_GameOption(String, HashSet)}
-     *     <LI> Name is already in {@code optsAlreadySet}
+     *     <LI> Problem with name or value reported from {@link #parseCmdline_GameOption(String, HashMap)}
      *     </UL>
      * @since 2.0.00
      */
-    private static final void init_propsSetGameopts(Properties pr, HashSet<String> optsAlreadySet)
+    private static final void init_propsSetGameopts
+        (Properties pr)
         throws IllegalArgumentException
     {
         // javadoc note: This method is private; public parseCmdline_DashedArgs calls it, so for visibility
@@ -7967,7 +7976,7 @@ public class SOCServer extends Server
             try
             {
                 // parse this gameopt and set its current value in SOCGameOptions static set of known opts
-                parseCmdline_GameOption(optKey + "=" + pr.getProperty((String) k), optsAlreadySet);
+                parseCmdline_GameOption(optKey + "=" + pr.getProperty((String) k), null);
                 hasSetGameOptions = true;
             } catch (IllegalArgumentException e) {
                 if (problems == null)
