@@ -8167,7 +8167,9 @@ public class SOCServer extends Server
      *     "Command line" or properties filename "jsserver.properties"
      * @param scName  Scenario name to check against, or {@code null} to use value of {@code opts.get("SC"}); never ""
      * @param scNameSrcDesc  If {@code scName} isn't from {@code opts}, lowercase description of its source
-     *     for warnings (like {@code srcDesc}), or {@code null}
+     *     for warnings (like {@code srcDesc}), or {@code null}.
+     *     If {@code scNameSrcDesc != null}, will not print a warning if {@code scName} is unknown, to avoid
+     *     repeating the warning already printed when that SC was checked within its source.
      * @since 2.0.00
      */
     private static void init_checkScenarioOpts
@@ -8185,10 +8187,8 @@ public class SOCServer extends Server
             final String optName = (String) (warn.getA());
             if (optName.equals("SC"))
             {
-                if (warn.getC() == null)
-                    System.err.println("Warning: " + srcDesc
-                        + " default scenario " + scName
-                        + ((scNameSrcDesc != null) ? (" from " + scNameSrcDesc) : "")
+                if ((warn.getC() == null) && (scNameSrcDesc == null))
+                    System.err.println("Warning: " + srcDesc + " default scenario " + scName
                         + " is unknown");  // TODO error, or only warning?
             } else {
                 System.err.println("Warning: " + srcDesc + " game option " + optName + " value " + warn.getB()
