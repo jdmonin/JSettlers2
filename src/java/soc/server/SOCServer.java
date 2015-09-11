@@ -745,6 +745,8 @@ public class SOCServer extends Server
      *<P>
      * String value is captured here as soon as SOCServer is referenced, in case SOCPlayerClient's
      * practice server will localize the scenario descriptions.
+     *
+     * @see #clientHasLocalizedStrs_gameScenarios(StringConnection)
      * @since 2.0.00
      * @see #i18n_gameopt_PL_desc
      */
@@ -6619,6 +6621,27 @@ public class SOCServer extends Server
     }
 
     /**
+     * Does this client's locale have localized {@link SOCScenario} names and descriptions?
+     * Checks these conditions:
+     * <UL>
+     *  <LI> {@link StringConnection#getI18NLocale() c.getI18NLocale()} != {@code null}
+     *  <LI> {@link StringConnection#getVersion() c.getVersion()} &gt;= {@link SOCStringManager#VERSION_FOR_I18N}
+     *  <LI> {@link StringConnection#getLocalized(String) c.getLocalized}({@code "gamescen.SC_WOND.n"})
+     *      returns a string different than {@link #i18n_scenario_SC_WOND_desc}:
+     *      This checks whether a fallback is being used because the client's locale has no scenario strings
+     * </UL>
+     * @param c  Client connection
+     * @return  True if the client meets all the conditions listed above, false otherwise
+     * @since 2.0.00
+     */
+    public static final boolean clientHasLocalizedStrs_gameScenarios(final StringConnection c)
+    {
+        return (c.getI18NLocale() != null)
+            && (c.getVersion() >= SOCStringManager.VERSION_FOR_I18N)
+            && ! i18n_scenario_SC_WOND_desc.equals(c.getLocalized("gamescen.SC_WOND.n"));
+    }
+
+    /**
      * Handle client request for localized i18n strings for game items.
      * Added 2015-01-14 for v2.0.00.
      */
@@ -6637,10 +6660,7 @@ public class SOCServer extends Server
         }
         else if (type.equals(SOCLocalizedStrings.TYPE_SCENARIO))
         {
-            final boolean hasLocalDescs = (c.getI18NLocale() != null)
-                && ! i18n_scenario_SC_WOND_desc.equals(c.getLocalized("gamescen.SC_WOND.n"));
-
-            if (hasLocalDescs)
+            if (clientHasLocalizedStrs_gameScenarios(c))
             {
                 for (int i = 1; i < L; ++i)
                 {
@@ -6692,17 +6712,12 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
-        final int cliVers = c.getVersion();
         final SOCClientData scd = (SOCClientData) c.getAppData();
 
         // handle i18n first
         if (! scd.sentAllScenarioStrings)
         {
-            final boolean wantsLocalDescs =
-                (cliVers >= SOCStringManager.VERSION_FOR_I18N) && (c.getI18NLocale() != null)
-                && ! i18n_scenario_SC_WOND_desc.equals(c.getLocalized("gamescen.SC_WOND.n"));
-
-            if (wantsLocalDescs)
+            if (clientHasLocalizedStrs_gameScenarios(c))
             {
                 List<String> scenStrs = new ArrayList<String>();
 
@@ -6732,7 +6747,7 @@ public class SOCServer extends Server
         }
 
         // now, game options
-        final boolean hideLongNameOpts = (cliVers < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES);
+        final boolean hideLongNameOpts = (c.getVersion() < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES);
         c.put(SOCGameOptionGetDefaults.toCmd
               (SOCGameOption.packKnownOptionsToString(true, hideLongNameOpts)));
     }

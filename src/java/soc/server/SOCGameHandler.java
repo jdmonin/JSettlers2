@@ -139,7 +139,6 @@ import soc.message.SOCTurn;
 import soc.server.genericServer.StringConnection;
 import soc.util.IntPair;
 import soc.util.SOCGameList;
-import soc.util.SOCStringManager;
 import soc.util.Version;
 
 /**
@@ -2783,16 +2782,17 @@ public class SOCGameHandler extends GameHandler
      */
     private void sendGameScenarioStrings(final String scKey, final StringConnection c)
     {
-        if ((scKey == null) || (c.getVersion() < SOCStringManager.VERSION_FOR_I18N) || (c.getI18NLocale() == null))
+        if (scKey == null)
             return;
 
         final SOCClientData scd = (SOCClientData) c.getAppData();
         if (scd.sentAllScenarioStrings)
             return;
 
-        if (SOCServer.i18n_scenario_SC_WOND_desc.equals(c.getLocalized("gamescen.SC_WOND.n")))
+        if (! SOCServer.clientHasLocalizedStrs_gameScenarios(c))
         {
-            // client's locale has no localized scenario strings
+            // client's locale has no localized scenario strings, or c.getI18NLocale() == null
+            // or c.getVersion() < SOCStringManager.VERSION_FOR_I18N
 
             scd.sentAllScenarioStrings = true;
             return;
