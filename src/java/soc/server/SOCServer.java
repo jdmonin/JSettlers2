@@ -971,6 +971,7 @@ public class SOCServer extends Server
 
             // Set game option defaults from any jsettlers.gameopt.* properties found.
             // If problems found, throws IllegalArgumentException with details.
+            // Ignores unknown scenario ("SC"), see init_checkScenarioOpts for that.
             init_propsSetGameopts(props);
         }
 
@@ -7603,6 +7604,11 @@ public class SOCServer extends Server
     /**
      * Quick-and-dirty command line parsing of a game option.
      * Calls {@link SOCGameOption#setKnownOptionCurrentValue(SOCGameOption)}.
+     *<P>
+     * Note that an unknown {@link SOCScenario} name (value of game option {@code "SC"})
+     * isn't treated as an error here; {@code SC}'s value will be set to the unknown scenario.
+     * Code elsewhere will print an error and halt startup.
+     *
      * @param optNameValue Game option name+value, of {@code optname=optvalue} form expected by
      *                     {@link SOCGameOption#parseOptionNameValue(String, boolean)}.
      *                     Option keyname is case-insensitive.
@@ -7719,11 +7725,17 @@ public class SOCServer extends Server
                     try
                     {
                         init_propsSetGameopts(argp);
-                        init_checkScenarioOpts(argp, true, SOC_SERVER_PROPS_FILENAME, null, null);
-                            // Prints warnings if conflicts.  When command line game opts are parsed, command line's
-                            // specified "SC" will be checked against both argp and command line's gameopts.
+
+                        // Prints warnings if conflicts. Prints error and returns false if "SC"
+                        // scenario name is unknown. When command line game opts are parsed,
+                        // another call to init_checkScenarioOpts will check the command line's
+                        // specified "SC" (if any) against both argp and command line's gameopts.
+                        if (! init_checkScenarioOpts(argp, true, SOC_SERVER_PROPS_FILENAME, null, null))
+                            throw new IllegalArgumentException();
                     } catch (IllegalArgumentException e) {
-                        System.err.println(e.getMessage());
+                        final String msg = e.getMessage();
+                        if (msg != null)
+                            System.err.println(msg);
                         System.err.println
                             ("*** Error in properties file " + SOC_SERVER_PROPS_FILENAME + ": Exiting.");
                         System.exit(1);
@@ -7880,8 +7892,13 @@ public class SOCServer extends Server
 
         if (! gameOptsAlreadySet.isEmpty())
         {
-            init_checkScenarioOpts(gameOptsAlreadySet, false, "Command line", null, null);
-                // prints warnings if conflicts
+            // check cmdline's "SC" game opt vs any others; prints warnings if conflicts,
+            // prints error and returns false if "SC" scenario name is unknown
+            if (! init_checkScenarioOpts
+                (gameOptsAlreadySet, false, "Command line", null, null))
+            {
+                return null;  // <--- Early return: Unknown scenario name ---
+            }
 
             if (gameOptsAlreadySet.containsKey("SC") && ! argp.isEmpty())
             {
@@ -7959,6 +7976,10 @@ public class SOCServer extends Server
      * See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for expected syntax.
      * Calls {@link #parseCmdline_GameOption(String, HashMap)} for each one found
      * to set its current value in {@link SOCGameOptions}'s static set of known opts.
+     *<P>
+     * Note that an unknown {@link SOCSscenario} name (value of game option {@code "SC"})
+     * is not an error here; {@link #init_checkScenarioOpts(Map, boolean, String, String, String)}
+     * will check for that and its caller will halt startup if found.
      *
      * @param pr  Properties which may contain {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}* entries
      * @throws IllegalArgumentException if any game option property has a bad name or value.
@@ -8158,8 +8179,8 @@ public class SOCServer extends Server
 
     /**
      * During startup, call {@link #checkScenarioOpts(Map, boolean, String)} and print any warnings it returns
-     * to {@link System#err}.  An empty scenario name "" from {@code opts.get("SC")} or {@code scName} is treated
-     * as an unknown scenario.
+     * to {@link System#err}.  An unknown scenario name is printed as an error not a warning.
+     * An empty scenario name "" from {@code opts.get("SC")} or {@code scName} is treated as an unknown scenario.
      * @param opts  Options to check, see {@link #checkScenarioOpts(Map, boolean, String)}
      * @param optsAreProps  Are {@code} opts from properties or command line?
      *     See {@link #checkScenarioOpts(Map, boolean, String)}.
@@ -8170,26 +8191,30 @@ public class SOCServer extends Server
      *     for warnings (like {@code srcDesc}), or {@code null}.
      *     If {@code scNameSrcDesc != null}, will not print a warning if {@code scName} is unknown, to avoid
      *     repeating the warning already printed when that SC was checked within its source.
+     * @return True if the provided scenario name is known or there is no {@code "SC"} option, false if unknown.
      * @since 2.0.00
      */
-    private static void init_checkScenarioOpts
+    private static boolean init_checkScenarioOpts
         (final Map<?, ?> opts, final boolean optsAreProps, final String srcDesc, String scName, String scNameSrcDesc)
     {
         List<Triple> warns = checkScenarioOpts(opts, optsAreProps, scName);
         if (warns == null)
-            return;
+            return true;
 
         if (scName == null)
             scName = (String) (warns.get(0).getB());  // first list item is scenario info, optName "SC"
 
+        boolean scenKnown = true;
         for (Triple warn : warns)
         {
             final String optName = (String) (warn.getA());
             if (optName.equals("SC"))
             {
                 if ((warn.getC() == null) && (scNameSrcDesc == null))
-                    System.err.println("Warning: " + srcDesc + " default scenario " + scName
-                        + " is unknown");  // TODO error, or only warning?
+                {
+                    System.err.println("Error: " + srcDesc + " default scenario " + scName + " is unknown");
+                    scenKnown = false;
+                }
             } else {
                 System.err.println("Warning: " + srcDesc + " game option " + optName + " value " + warn.getB()
                     + ((scNameSrcDesc != null)
@@ -8198,6 +8223,8 @@ public class SOCServer extends Server
                     + scName + " to " + warn.getC());
             }
         }
+
+        return scenKnown;
     }
 
     /**

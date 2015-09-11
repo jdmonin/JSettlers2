@@ -1396,14 +1396,14 @@ public class SOCGameOption
     }
 
     /**
-     * Set the current value of a known option, based on the current value of
-     * another object with the same {@link SOCVersionedItem#key key}.
+     * Set the current value(s) of a known option, based on the current value(s) of
+     * another object {@code ocurr} with the same {@link SOCVersionedItem#key key}.
      * If there is no known option with oCurr.{@link SOCVersionedItem#key key}, it is ignored and nothing is set.
      * @param ocurr Option with the requested current value.
      *            {@code ocurr}'s value field contents are copied to the known option's values,
      *            the {@code ocurr} reference won't be added to the known option set.
-     * @throws  IllegalArgumentException if value is not permitted; note that
-     *            intValues outside of range are silently clipped, and will not
+     * @throws  IllegalArgumentException if string value is not permitted; note that
+     *            int values outside of range are silently clipped, and will not
      *            throw this exception.
      * @see #getOption(String, boolean)
      */
