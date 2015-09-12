@@ -6647,10 +6647,12 @@ public class SOCServer extends Server
      * Fills and returns a list with each {@code scKeys} key, scenario name, scenario description
      * from {@code c.getLocalized("gamescen." + scKey + ".n")} and {@code ("gamescen." + scKey + ".d")}.
      *
-     * @param c  Client connection, for its {@link StringConnection#getLocalized(String)} method
-     * @param scKeys such as a {@link List} of keynames or the {@link Set}
+     * @param loc  Client's locale for StringManager i18n lookups.  This is passed instead of the client connection
+     *    to simplify SOCPlayerClient's localizations before starting its practice server.
+     * @param scKeys  Scenario keynames to localize, such as a {@link List} of keynames or the {@link Set}
      *    returned from {@link SOCScenario#getAllKnownScenarioKeynames()}.
-     * @param checkUnknowns_SkipFirst  Control to allow calling this method from multiple users.
+     *    {@code null} to use {@link SOCScenario#getAllKnownScenarioKeynames()}.
+     * @param checkUnknowns_skipFirst  Switch to allow calling this method from multiple places:
      *    <UL>
      *    <LI> If false, assumes {@code scKeys} has no unknown keys, will not call
      *         {@link SOCScenario#getScenario(String)} to verify them.
@@ -6666,16 +6668,23 @@ public class SOCServer extends Server
      *    </UL>
      * @return  Localized string list, may be empty but will never be null, in same format as the message returned
      *    from server to client: Scenario keys with localized strings have 3 consecutive entries in the list:
-     *    Key, name, description.  If {@code checkUnknowns_SkipFirst}, unknown scenarios have 2 consecutive entries
+     *    Key, name, description.  If {@code checkUnknowns_skipFirst}, unknown scenarios have 2 consecutive entries
      *    in the list: Key, {@link SOCLocalizedStrings#MARKER_KEY_UNKNOWN}.
      * @since 2.0.00
      */
-    private static List<String> localizeGameScenarios
-        (final StringConnection c, Collection<String> scKeys, final boolean checkUnknowns_SkipFirst)
+    public static List<String> localizeGameScenarios
+        (final Locale loc, Collection<String> scKeys, final boolean checkUnknowns_skipFirst)
     {
+        if (scKeys == null)
+            scKeys = SOCScenario.getAllKnownScenarioKeynames();
+
+        final SOCStringManager sm = SOCStringManager.getServerManagerForClient(loc);
+        // No need to check hasLocalDescs = ! i18n_gameopt_PL_desc.equals(sm.get("gameopt.PL"))
+        // because caller has done so
+
         List<String> rets = new ArrayList<String>();  // for reply to client
 
-        boolean skippedAlready = ! checkUnknowns_SkipFirst;
+        boolean skippedAlready = ! checkUnknowns_skipFirst;
         for (final String scKey : scKeys)
         {
             if (! skippedAlready)
@@ -6686,12 +6695,12 @@ public class SOCServer extends Server
 
             String nm = null, desc = null;
 
-            if (! (checkUnknowns_SkipFirst && (SOCScenario.getScenario(scKey) == null)))
+            if (! (checkUnknowns_skipFirst && (SOCScenario.getScenario(scKey) == null)))
             {
-                try { nm = c.getLocalized("gamescen." + scKey + ".n"); }
+                try { nm = sm.get("gamescen." + scKey + ".n"); }
                 catch (MissingResourceException e) {}
 
-                try { desc = c.getLocalized("gamescen." + scKey + ".d"); }
+                try { desc = sm.get("gamescen." + scKey + ".d"); }
                 catch (MissingResourceException e) {}
             }
 
@@ -6700,11 +6709,11 @@ public class SOCServer extends Server
                 rets.add(scKey);
                 rets.add(nm);
                 rets.add(desc);  // null is OK
-            } else if (checkUnknowns_SkipFirst) {
+            } else if (checkUnknowns_skipFirst) {
                 rets.add(scKey);
                 rets.add(SOCLocalizedStrings.MARKER_KEY_UNKNOWN);
             }
-            // else localized not found, and not checkUnknowns_SkipFirst: leave scKey out of rets entirely
+            // else localized not found, and not checkUnknowns_skipFirst: leave scKey out of rets entirely
         }
 
         return rets;
@@ -6728,11 +6737,13 @@ public class SOCServer extends Server
         }
         else if (type.equals(SOCLocalizedStrings.TYPE_SCENARIO))
         {
+            final SOCClientData scd = (SOCClientData) c.getAppData();
             if (clientHasLocalizedStrs_gameScenarios(c))
             {
-                rets = localizeGameScenarios(c, str, true);
+                rets = localizeGameScenarios(scd.locale, str, true);
             } else {
                 flags = SOCLocalizedStrings.FLAG_SENT_ALL;
+                scd.sentAllScenarioStrings = true;
             }
         }
         else
@@ -6776,8 +6787,7 @@ public class SOCServer extends Server
         {
             if (clientHasLocalizedStrs_gameScenarios(c))
             {
-                List<String> scenStrs = localizeGameScenarios
-                    (c, SOCScenario.getAllKnownScenarioKeynames(), false);
+                List<String> scenStrs = localizeGameScenarios(scd.locale, null, false);
 
                 // if none found, scenStrs will be empty; still sends the flag to let client know that.
                 c.put(SOCLocalizedStrings.toCmd
