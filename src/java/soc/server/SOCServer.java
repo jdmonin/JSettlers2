@@ -6642,6 +6642,75 @@ public class SOCServer extends Server
     }
 
     /**
+     * Get localized strings for known {@link SOCScenario}s.  Assumes client locale has scenario strings:
+     * Call {@link #clientHasLocalizedStrs_gameScenarios(StringConnection)} before calling this method.
+     * Fills and returns a list with each {@code scKeys} key, scenario name, scenario description
+     * from {@code c.getLocalized("gamescen." + scKey + ".n")} and {@code ("gamescen." + scKey + ".d")}.
+     *
+     * @param c  Client connection, for its {@link StringConnection#getLocalized(String)} method
+     * @param scKeys such as a {@link List} of keynames or the {@link Set}
+     *    returned from {@link SOCScenario#getAllKnownScenarioKeynames()}.
+     * @param checkUnknowns_SkipFirst  Control to allow calling this method from multiple users.
+     *    <UL>
+     *    <LI> If false, assumes {@code scKeys} has no unknown keys, will not call
+     *         {@link SOCScenario#getScenario(String)} to verify them.
+     *         {@code scKeys} could be {@link SOCScenario#getAllKnownScenarioKeynames()}, for example.
+     *         The localized strings for each scKey are looked up and added to the list if found.
+     *         If any {@code scKey} is missing localized string(s), that key won't be in the returned list.
+     *    <LI> If true, assumes {@code scKeys} is a {@link List} of keys from a client, and may have
+     *         scenario names unknown at this server version. Will ignore the first entry because in the
+     *         client message, the first list entry isn't a scenario key.  Will call
+     *         {@link SOCScenario#getScenario(String)} on each key to verify it exists.  The localized strings
+     *         for each known scKey are looked up and added to the list.  If the scenario is unknown or its
+     *         strings aren't localized, the key and {@link SOCLocalizedStrings#MARKER_KEY_UNKNOWN} are added instead.
+     *    </UL>
+     * @return  Localized string list, may be empty but will never be null, in same format as the message returned
+     *    from server to client: Scenario keys with localized strings have 3 consecutive entries in the list:
+     *    Key, name, description.  If {@code checkUnknowns_SkipFirst}, unknown scenarios have 2 consecutive entries
+     *    in the list: Key, {@link SOCLocalizedStrings#MARKER_KEY_UNKNOWN}.
+     * @since 2.0.00
+     */
+    private static List<String> localizeGameScenarios
+        (final StringConnection c, Collection<String> scKeys, final boolean checkUnknowns_SkipFirst)
+    {
+        List<String> rets = new ArrayList<String>();  // for reply to client
+
+        boolean skippedAlready = ! checkUnknowns_SkipFirst;
+        for (final String scKey : scKeys)
+        {
+            if (! skippedAlready)
+            {
+                skippedAlready = true;
+                continue;  // assumes scKeys is a List
+            }
+
+            String nm = null, desc = null;
+
+            if (! (checkUnknowns_SkipFirst && (SOCScenario.getScenario(scKey) == null)))
+            {
+                try { nm = c.getLocalized("gamescen." + scKey + ".n"); }
+                catch (MissingResourceException e) {}
+
+                try { desc = c.getLocalized("gamescen." + scKey + ".d"); }
+                catch (MissingResourceException e) {}
+            }
+
+            if (nm != null)
+            {
+                rets.add(scKey);
+                rets.add(nm);
+                rets.add(desc);  // null is OK
+            } else if (checkUnknowns_SkipFirst) {
+                rets.add(scKey);
+                rets.add(SOCLocalizedStrings.MARKER_KEY_UNKNOWN);
+            }
+            // else localized not found, and not checkUnknowns_SkipFirst: leave scKey out of rets entirely
+        }
+
+        return rets;
+    }
+
+    /**
      * Handle client request for localized i18n strings for game items.
      * Added 2015-01-14 for v2.0.00.
      */
@@ -6649,8 +6718,7 @@ public class SOCServer extends Server
     {
         final List<String> str = mes.getParams();
         final String type = str.get(0);
-        final int L = str.size();
-        List<String> rets = new ArrayList<String>();  // for reply to client
+        List<String> rets = null;  // for reply to client, built in localizeGameScenarios
         int flags = 0;
 
         if (type.equals(SOCLocalizedStrings.TYPE_GAMEOPT))
@@ -6662,20 +6730,7 @@ public class SOCServer extends Server
         {
             if (clientHasLocalizedStrs_gameScenarios(c))
             {
-                for (int i = 1; i < L; ++i)
-                {
-                    final String scKey = str.get(i);
-                    rets.add(scKey);
-
-                    SOCScenario sc = SOCScenario.getScenario(scKey);
-                    if (sc != null)
-                    {
-                        rets.add(c.getLocalized("gamescen." + scKey + ".n"));
-                        rets.add(c.getLocalized("gamescen." + scKey + ".d"));
-                    } else {
-                        rets.add(SOCLocalizedStrings.MARKER_KEY_UNKNOWN);
-                    }
-                }
+                rets = localizeGameScenarios(c, str, true);
             } else {
                 flags = SOCLocalizedStrings.FLAG_SENT_ALL;
             }
@@ -6686,6 +6741,8 @@ public class SOCServer extends Server
             flags = SOCLocalizedStrings.FLAG_TYPE_UNKNOWN;
         }
 
+        if (rets == null)
+            rets = new ArrayList<String>();
         c.put(SOCLocalizedStrings.toCmd(type, flags, rets));
     }
 
@@ -6719,24 +6776,8 @@ public class SOCServer extends Server
         {
             if (clientHasLocalizedStrs_gameScenarios(c))
             {
-                List<String> scenStrs = new ArrayList<String>();
-
-                for (final String scKey : SOCScenario.getAllKnownScenarioKeynames())
-                {
-                    String nm = null, desc = null;
-                    try { nm = c.getLocalized("gamescen." + scKey + ".n"); }
-                    catch (MissingResourceException e) {}
-
-                    try { desc = c.getLocalized("gamescen." + scKey + ".d"); }
-                    catch (MissingResourceException e) {}
-
-                    if (nm != null)
-                    {
-                        scenStrs.add(scKey);
-                        scenStrs.add(nm);
-                        scenStrs.add(desc);  // null is OK
-                    }
-                }
+                List<String> scenStrs = localizeGameScenarios
+                    (c, SOCScenario.getAllKnownScenarioKeynames(), false);
 
                 // if none found, scenStrs will be empty; still sends the flag to let client know that.
                 c.put(SOCLocalizedStrings.toCmd
