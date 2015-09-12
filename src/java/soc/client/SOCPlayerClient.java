@@ -1732,6 +1732,14 @@ public class SOCPlayerClient
                         fullSetIsKnown = true;
                         opts.optionSet = SOCServer.localizeKnownOptions(client.cliLocale, true);
                     }
+
+                    if (! opts.allScenStringsReceived)
+                    {
+                        // Game scenario localized text. As with game options, the practice client and
+                        // practice server aren't started yet, so we can't request localization from there.
+                        client.localizeGameScenarios
+                            (SOCServer.localizeGameScenarios(client.cliLocale, null, false), false, true, true);
+                    }
                 } else {
                     opts = client.tcpServGameOpts;
                     if ((! opts.allOptionsReceived) && (client.sVersion < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
@@ -5274,7 +5282,7 @@ public class SOCPlayerClient
             SOCScenario sc = SOCScenario.getScenario(scKey);
             if ((sc != null) && ! nm.equals(SOCLocalizedStrings.EMPTY))
             {
-                if (desc.equals(SOCLocalizedStrings.EMPTY))
+                if ((desc != null) && desc.equals(SOCLocalizedStrings.EMPTY))
                     desc = null;
 
                 sc.setDesc(nm, desc);
