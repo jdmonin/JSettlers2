@@ -203,6 +203,8 @@ public class SOCPlayerClient
      * For a summary of the flags and variables involved with game options,
      * and the client/server interaction about their values, see
      * {@link ServerGametypeInfo}'s javadoc.
+     *<P>
+     * Scenario strings are localized by {@link #localizeGameScenarios(List, boolean, boolean, boolean)}.
      *
      * @see #sFeatures
      * @since 1.1.07
@@ -4874,10 +4876,10 @@ public class SOCPlayerClient
     {
         final List<String> str = mes.getParams();
         final String type = str.get(0);
-        final int L = str.size();
 
         if (type.equals(SOCLocalizedStrings.TYPE_GAMEOPT))
         {
+            final int L = str.size();
             for (int i = 1; i < L; i += 2)
             {
                 SOCGameOption opt = SOCGameOption.getOption(str.get(i), false);
@@ -4892,35 +4894,8 @@ public class SOCPlayerClient
         }
         else if (type.equals(SOCLocalizedStrings.TYPE_SCENARIO))
         {
-            ServerGametypeInfo opts = (isPractice ? practiceServGameOpts : tcpServGameOpts);
-
-            for (int i = 1; i < L; )
-            {
-                final String scKey = str.get(i);
-                ++i;
-                opts.scenKeys.add(scKey);
-
-                final String nm = str.get(i);
-                ++i;
-
-                if (nm.equals(SOCLocalizedStrings.MARKER_KEY_UNKNOWN))
-                    continue;
-
-                String desc = str.get(i);
-                ++i;
-
-                SOCScenario sc = SOCScenario.getScenario(scKey);
-                if ((sc != null) && ! nm.equals(SOCLocalizedStrings.EMPTY))
-                {
-                    if (desc.equals(SOCLocalizedStrings.EMPTY))
-                        desc = null;
-
-                    sc.setDesc(nm, desc);
-                }
-            }
-
-            if (mes.isFlagSet(SOCLocalizedStrings.FLAG_SENT_ALL))
-                opts.allScenStringsReceived = true;
+            localizeGameScenarios
+                (str, true, mes.isFlagSet(SOCLocalizedStrings.FLAG_SENT_ALL), isPractice);
         }
         else
         {
@@ -5262,6 +5237,53 @@ public class SOCPlayerClient
 
     }  // nested class MessageTreater
 
+
+    /**
+     * Localize {@link SOCScenario} names and descriptions with strings from the server.
+     * Updates scenario data in {@link #practiceServGameOpts} or {@link #tcpServGameOpts}.
+     *
+     * @param scStrs  Scenario localized strings, same format as {@link SOCLocalizedStrings} params.
+     * @param skipFirst  If true skip the first element of {@code scStrs}, it isn't a scenario keyname.
+     * @param sentAll  True if no further strings will be received; is {@link SOCLocalizedStrings#FLAG_SENT_ALL} set?
+     *     If true, sets {@link ServerGametypeInfo#allScenStringsReceived}.
+     * @param isPractice  Is the server {@link ClientNetwork#practiceServer}, not remote?
+     * @since 2.0.00
+     */
+    protected void localizeGameScenarios
+        (final List<String> scStrs, final boolean skipFirst, final boolean sentAll, final boolean isPractice)
+    {
+        ServerGametypeInfo opts = (isPractice ? practiceServGameOpts : tcpServGameOpts);
+
+        final int L = scStrs.size();
+        int i = (skipFirst) ? 1 : 0;
+        while (i < L)
+        {
+            final String scKey = scStrs.get(i);
+            ++i;
+            opts.scenKeys.add(scKey);
+
+            final String nm = scStrs.get(i);
+            ++i;
+
+            if (nm.equals(SOCLocalizedStrings.MARKER_KEY_UNKNOWN))
+                continue;
+
+            String desc = scStrs.get(i);
+            ++i;
+
+            SOCScenario sc = SOCScenario.getScenario(scKey);
+            if ((sc != null) && ! nm.equals(SOCLocalizedStrings.EMPTY))
+            {
+                if (desc.equals(SOCLocalizedStrings.EMPTY))
+                    desc = null;
+
+                sc.setDesc(nm, desc);
+            }
+        }
+
+        if (sentAll)
+            opts.allScenStringsReceived = true;
+    }
 
     /**
      * Add a new game to the initial window's list of games, and possibly
