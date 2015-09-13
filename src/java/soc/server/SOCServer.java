@@ -5604,7 +5604,7 @@ public class SOCServer extends Server
 
             // Make sure all options are known.  If has game opt "SC" for scenarios,
             // also adds that scenario's options into gameOpts.
-            final StringBuffer optProblems = SOCGameOption.adjustOptionsToKnown(gameOpts, null, true);
+            final StringBuilder optProblems = SOCGameOption.adjustOptionsToKnown(gameOpts, null, true);
             if (optProblems != null)
             {
                 c.put(SOCStatusMessage.toCmd
@@ -6679,7 +6679,7 @@ public class SOCServer extends Server
             scKeys = SOCScenario.getAllKnownScenarioKeynames();
 
         final SOCStringManager sm = SOCStringManager.getServerManagerForClient(loc);
-        // No need to check hasLocalDescs = ! i18n_gameopt_PL_desc.equals(sm.get("gameopt.PL"))
+        // No need to check hasLocalDescs = ! i18n_gameopt_PL_desc.equals(sm.get("gamescen.SC_WOND.n"))
         // because caller has done so
 
         List<String> rets = new ArrayList<String>();  // for reply to client
@@ -8187,7 +8187,7 @@ public class SOCServer extends Server
 
         final Map<String, SOCGameOption> scOpts = SOCGameOption.parseOptionsToMap(scOptsStr);
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (SOCGameOption scOpt : scOpts.values())
         {
             // TODO robustness: Case-insensitive searching
@@ -8361,7 +8361,7 @@ public class SOCServer extends Server
             boolean quotes = (opt.optType == SOCGameOption.OTYPE_STR) || (opt.optType == SOCGameOption.OTYPE_STRHIDE);
             // OTYPE_* - consider any type-specific output in this method.
 
-            StringBuffer sb = new StringBuffer("  ");
+            StringBuilder sb = new StringBuilder("  ");
             sb.append(okey);
             sb.append(" (");
             sb.append(SOCGameOption.optionTypeName(opt.optType));
@@ -8374,9 +8374,11 @@ public class SOCServer extends Server
             sb.append("  ");
             sb.append(opt.getDesc());
             System.err.println(sb.toString());
+
             if (opt.enumVals != null)  // possible values of OTYPE_ENUM
             {
-                sb = new StringBuffer("    option choices (1-n): ");
+                sb.setLength(0);
+                sb.append("    option choices (1-n): ");
                 for (int i = 1; i <= opt.maxIntValue; ++i)
                 {
                     sb.append(' ');

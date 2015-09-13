@@ -1274,7 +1274,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             clientVersionMinRequired = -1;
         } else {
-            final StringBuffer optProblems = SOCGameOption.adjustOptionsToKnown(op, null, false);
+            final StringBuilder optProblems = SOCGameOption.adjustOptionsToKnown(op, null, false);
             if (optProblems != null)
                 throw new IllegalArgumentException("op: unknown option(s): " + optProblems);
 

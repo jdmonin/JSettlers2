@@ -1547,7 +1547,7 @@ public class SOCGameOption
      * @throws ClassCastException if {@code omap} contains anything other
      *         than {@code SOCGameOption}s
      * @see #parseOptionNameValue(String, boolean)
-     * @see #packValue(StringBuffer)
+     * @see #packValue(StringBuilder)
      */
     public static String packOptionsToString
         (final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts)
@@ -1574,7 +1574,7 @@ public class SOCGameOption
      *         see {@link #packOptionsToString(Map, boolean)} javadoc for details.
      * @throws ClassCastException if {@code omap} contains anything other
      *         than {@code SOCGameOption}s
-     * @see #packValue(StringBuffer)
+     * @see #packValue(StringBuilder)
      */
     public static String packOptionsToString
         (final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts, final int cliVers)
@@ -1589,7 +1589,7 @@ public class SOCGameOption
             && omap.get("PLB").boolValue;
 
     	// Pack all non-unknown options:
-    	StringBuffer sb = new StringBuffer();
+    	StringBuilder sb = new StringBuilder();
     	boolean hadAny = false;
     	for (SOCGameOption op : omap.values())
     	{
@@ -1645,7 +1645,7 @@ public class SOCGameOption
      * @param sb Pack into (append to) this buffer
      * @see #toString()
      */
-    public void packValue(StringBuffer sb)
+    public void packValue(StringBuilder sb)
     {
         switch (optType)  // OTYPE_* - update this switch, and javadoc of packOptionsToString and of parseOptionNameValue.
         {                 //           The format produced must match that expected in parseOptionNameValue.
@@ -1729,7 +1729,7 @@ public class SOCGameOption
      *         if known, the returned object is a clone of the SGO from the set of all known options.
      *         if nvpair's option keyname is not a known option, returned optType will be {@link #OTYPE_UNKNOWN}.
      * @see #parseOptionsToMap(String)
-     * @see #packValue(StringBuffer)
+     * @see #packValue(StringBuilder)
      */
     public static SOCGameOption parseOptionNameValue(final String nvpair, final boolean forceNameUpcase)
     {
@@ -2051,7 +2051,7 @@ public class SOCGameOption
      *            </UL>
      * @throws IllegalArgumentException if newOpts contains a non-SOCGameOption
      */
-    public static StringBuffer adjustOptionsToKnown
+    public static StringBuilder adjustOptionsToKnown
         (final Map<String, SOCGameOption> newOpts, Map<String, SOCGameOption> knownOpts,
          final boolean doServerPreadjust)
         throws IllegalArgumentException
@@ -2133,7 +2133,7 @@ public class SOCGameOption
 
         // OTYPE_* - adj javadoc above (re dropIfUnused) if a string-type or bool-type is added.
 
-        StringBuffer optProblems = new StringBuffer();
+        StringBuilder optProblems = new StringBuilder();
 
         boolean allKnown;
 
@@ -2440,12 +2440,12 @@ public class SOCGameOption
      * Form a string with the key and current value, useful for debugging purposes.
      * @return string such as "PL=4" or "BC=t3", with the same format
      *    as {@link #packKnownOptionsToString(boolean, boolean)}.
-     * @see #packValue(StringBuffer)
+     * @see #packValue(StringBuilder)
      * @see #optionTypeName(int)
      */
     public String toString()
     {
-        StringBuffer sb = new StringBuffer(key);
+        StringBuilder sb = new StringBuilder(key);
         sb.append('=');
         packValue(sb);
         return sb.toString();
