@@ -584,7 +584,7 @@ public class SOCScenario
     	    return "-";
 
     	// Pack all non-unknown scenarios:
-    	StringBuffer sb = new StringBuffer();
+    	StringBuilder sb = new StringBuilder();
     	boolean hadAny = false;
     	for (SOCScenario sc : scMap.values())
     	{
@@ -662,14 +662,14 @@ public class SOCScenario
      *            <LI> or a {@link #lastModVersion} differs from in knownScenarios
      *            </UL>
      */
-    public static StringBuffer adjustScenariosToKnown
+    public static StringBuilder adjustScenariosToKnown
         (Map<String, SOCScenario> newScens, Map<String, SOCScenario> knownScenarios,
          final boolean doServerPreadjust)
     {
         if (knownScenarios == null)
             knownScenarios = allScenarios;
 
-        StringBuffer scProblems = new StringBuffer();
+        StringBuilder scProblems = new StringBuilder();
 
         // use Iterator in loop, so we can remove from the map if needed
         boolean allKnown = true;
