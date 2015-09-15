@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -71,10 +71,12 @@ import soc.util.DebugRecorder;
 import soc.util.Queue;
 import soc.util.SOCRobotParameters;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.Stack;
 import java.util.Vector;
@@ -859,29 +861,33 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Print brain variables and status for this game to {@link System#err}.
+     * Print brain variables and status for this game to a list of {@link String}s.
      * Includes all of the expect and waitingFor fields (<tt>expectPLAY</tt>,
      * <tt>waitingForGameState</tt>, etc.)
      * Also prints the game state, and the messages received by this brain
      * during the previous and current turns.
+     *<P>
+     * Before v2.0.00, this printed to {@link System#err} instead of returning the status as Strings.
      * @since 1.1.13
      */
-    public void debugPrintBrainStatus()
+    public List<String> debugPrintBrainStatus()
     {
+        ArrayList<String> rbSta = new ArrayList<String>();
+
         if ((ourPlayerData == null) || (game == null))
         {
-            System.err.println("Robot internal state: Cannot print: null game or player");
-            return;
+            rbSta.add("Robot internal state: Cannot print: null game or player");
+            return rbSta;
         }
 
-        System.err.println("Robot internal state: "
+        rbSta.add("Robot internal state: "
                 + ((client != null) ? client.getNickname() : ourPlayerData.getName())
                 + " in game " + game.getName()
                 + ": gs=" + game.getGameState());
         if (game.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
-            System.err.println("  bot card count = " + ourPlayerData.getResources().getTotal());
+            rbSta.add("  bot card count = " + ourPlayerData.getResources().getTotal());
         if (rejectedPlayDevCardType != -1)
-            System.err.println("  rejectedPlayDevCardType = " + rejectedPlayDevCardType);
+            rbSta.add("  rejectedPlayDevCardType = " + rejectedPlayDevCardType);
         final String[] s = {
             "ourTurn", "doneTrading",
             "waitingForGameState", "waitingForOurTurn", "waitingForTradeMsg", "waitingForDevCard", "waitingForTradeResponse",
@@ -904,16 +910,16 @@ public class SOCRobotBrain extends Thread
         };
         if (s.length != b.length)
         {
-            System.err.println("L745: Internal error: array length");
-            return;
+            rbSta.add("L745: Internal error: array length");
+            return rbSta;
         }
         int slen = 0;
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < s.length; ++i)
         {
             if ((slen + s[i].length() + 8) > 79)
             {
-                System.err.println(sb.toString());
+                rbSta.add(sb.toString());
                 slen = 0;
                 sb.delete(0, sb.length());
             }
@@ -927,35 +933,36 @@ public class SOCRobotBrain extends Thread
             slen = sb.length();
         }
         if (slen > 0)
-            System.err.println(sb.toString());
+            rbSta.add(sb.toString());
 
-        debugPrintTurnMessages(turnEventsPrev, "previous");
-        debugPrintTurnMessages(turnEventsCurrent, "current");
+        debugPrintTurnMessages(turnEventsPrev, "previous", rbSta);
+        debugPrintTurnMessages(turnEventsCurrent, "current", rbSta);
+
+        return rbSta;
     }
 
     /**
-     * Print the contents of this Vector to <tt>System.err</tt>.
+     * Add the contents of this Vector as Strings to the provided list.
      * One element per line, indented by <tt>\t</tt>.
      * Headed by a line formatted as one of:
      *<BR>  Current turn: No messages received.
      *<BR>  Current turn: 5 messages received:
      * @param msgV  Vector of {@link SOCMessage}s from server
      * @param msgDesc  Short description of the vector, like 'previous' or 'current'
+     * @param toList  Add to this list
      * @since 1.1.13
      */
-    private static void debugPrintTurnMessages(Vector<?> msgV, final String msgDesc)
+    private static void debugPrintTurnMessages(Vector<?> msgV, final String msgDesc, List<String> toList)
     {
-        System.err.print("  " + msgDesc);
         final int n = msgV.size();
         if (n == 0)
         {
-            System.err.println(" turn: No messages received.");
+            toList.add("  " + msgDesc + " turn: No messages received.");
         } else {
-            System.err.println(" turn: " + n + " messages received:");
+            toList.add("  " + msgDesc + " turn: " + n + " messages received:");
             for (int i = 0; i < n; ++i)
             {
-                System.err.print("\t");
-                System.err.println(msgV.elementAt(i));
+                toList.add("\t" + msgV.elementAt(i));
             }
         }
     }

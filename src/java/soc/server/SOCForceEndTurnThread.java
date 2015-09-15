@@ -98,7 +98,7 @@ class SOCForceEndTurnThread extends Thread
         {
             SOCRobotClient rcli = SOCLocalRobotClient.robotClients.get(rname);
             if (rcli != null)
-                rcli.debugPrintBrainStatus(ga.getName());
+                rcli.debugPrintBrainStatus(ga.getName(), false);
             else
                 System.err.println("L9397: internal error: can't find robotClient for " + rname);
         } else {
