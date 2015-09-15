@@ -3234,6 +3234,7 @@ public class SOCRobotBrain extends Thread
      * @param rtype    Type of resource, like {@link SOCResourceConstants#CLAY}
      * @param rtypeStr Resource type name, for debugging
      */
+    @SuppressWarnings("unused")  // unnecessary dead-code warning "if (D.ebugOn)"
     protected void handlePLAYERELEMENT_numRsrc
         (SOCPlayerElement mes, SOCPlayer pl, int rtype, String rtypeStr)
     {
