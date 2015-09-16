@@ -1219,6 +1219,17 @@ public class SOCPlayerInterface extends Frame
                     boardPanel.setDebugShowPotentialsFlag(flagnum, false, doSet);
                     return;
                 }
+
+                else if (sLower.indexOf("showcoord") == 4)
+                {
+                    boardPanel.setDebugShowCoordsFlag(true);
+                    return;
+                }
+                else if (sLower.indexOf("hidecoord") == 4)
+                {
+                    boardPanel.setDebugShowCoordsFlag(false);
+                    return;
+                }
             }
 
             final String msg = s + '\n';

@@ -667,6 +667,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private long drawnEmptyAt;
 
     /**
+     * Debugging flag where board item tooltip includes the item's coordinates.
+     * When set, the coordinates become part of the hoverText string.
+     * Set or cleared with {@link #setDebugShowCoordsFlag(boolean)}, from
+     * SOCPlayerInterface debug command {@code =*= showcoords} or {@code =*= hidecoords}.
+     * @see BoardToolTip#setHoverText(String, int)
+     * @since 2.0.00
+     */
+    private boolean debugShowCoordsTooltip = false;
+
+    /**
      * For debugging, flags to show player 0's potential/legal coordinate sets.
      * The drawing happens in {@link #drawBoardEmpty(Graphics)}.
      *<P>
@@ -2246,6 +2256,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             for (int i = yorig.length - 1; i >= 0; --i)
                 xr[i] = (int) ((xr[i] * (long) scaledPanelX) / panelMinBW);
         return xr;
+    }
+
+    /**
+     * Set or clear the debug flag where the board item tooltip includes the item's coordinates.
+     * Takes effect the next time the mouse moves.
+     * @see BoardToolTip#setHoverText(String, int)
+     * @param setOn
+     * @since 2.0.00
+     */
+    void setDebugShowCoordsFlag(final boolean setOn)
+    {
+        if (setOn == debugShowCoordsTooltip)
+            return;
+
+        debugShowCoordsTooltip = setOn;
+
+        // no immediate repaint, because we don't know the coordinate (on)
+        // and the coordinate string is part of the text (off).
     }
 
     /**
@@ -4660,7 +4688,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Update {@link #hoverTip} based on {@link #mode} when it changes;
      * called from {@link #updateMode()}. Might or might not repaint board:
-     * Calls {@link BoardToolTip#setOffsetX(int)} or {@link BoardToolTip#setHoverText(String)}.
+     * Calls {@link BoardToolTip#setOffsetX(int)} or {@link BoardToolTip#setHoverText(String, int)}.
      */
     protected void updateHoverTipToMode()
     {
@@ -4671,11 +4699,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         else if ((mode == PLACE_INIT_SETTLEMENT) || (mode == PLACE_INIT_ROAD))
         {
             hoverTip.setHoverText_modeChangedOrMouseMoved = true;
-            hoverTip.setHoverText(null);
+            hoverTip.setHoverText(null, 0);
             hoverTip.setOffsetX(HOVER_OFFSET_X_FOR_INIT_PLACE);
         } else {
             hoverTip.setHoverText_modeChangedOrMouseMoved = true;
-            hoverTip.setHoverText(null);
+            hoverTip.setHoverText(null, 0);
         }
     }
 
@@ -5131,9 +5159,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                                 && ((SOCBoardLarge) board).isHexInLandAreas
                                     (hexNum, ((SOCBoardLarge) board).getRobberExcludedLandAreas()))
                             {
-                                hoverTip.setHoverText(strings.get("board.robber.not.here"));  // "Cannot move the robber here."
+                                hoverTip.setHoverText(strings.get("board.robber.not.here"), hexNum);
+                                    // "Cannot move the robber here."
                             } else {
-                                hoverTip.setHoverText(null);  // clear any previous
+                                hoverTip.setHoverText(null, 0);  // clear any previous
                             }
 
                             hexNum = 0;
@@ -6401,7 +6430,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         private int mouseX, mouseY;
 
         /**
-         * Flag to tell {@link #setHoverText(String)} to repaint, even if text hasn't changed.
+         * Flag to tell {@link #setHoverText(String, int)} to repaint, even if text hasn't changed.
          * @since 1.1.17
          */
         private boolean setHoverText_modeChangedOrMouseMoved;
@@ -6465,7 +6494,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * Repaint the board.
          * @param x x-coordinate of mouse, actual screen pixels (not unscaled internal)
          * @param y y-coordinate of mouse, actual screen pixels (not unscaled internal)
-         * @see #setHoverText(String)
+         * @see #setHoverText(String, int)
          */
         public void positionToMouse(final int x, int y)
         {
@@ -6517,10 +6546,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * @param t Hover text contents, or null to clear that text (but
          *          not hovering pieces) and repaint.  Do nothing if text is
          *          already equal to <tt>t</tt>, or if both are null.
+         * @param coord  Cursor's board coordinates shown when "show coordinates" debug flag is set, or -1.
+         *          Ignored if {@code t} is {@code null}.  To show only the coordinate, use "" for {@code t}.
          * @see #hideHoverAndPieces()
+         * @see SOCBoardPanel#setDebugShowCoordsFlag(boolean)
          */
-        public void setHoverText(final String t)
+        public void setHoverText(String t, final int coord)
         {
+            if ((t != null) && (coord >= 0) && debugShowCoordsTooltip)
+            {
+                if (t.length() > 0)
+                    t += " - 0x" + Integer.toHexString(coord);
+                else
+                    t = "0x" + Integer.toHexString(coord);
+            }
+
             // If text unchanged, and mouse hasn't moved, do nothing:
             if ( (t == hoverText)  // (also covers both == null)
                  || ((t != null) && t.equals(hoverText)) )
@@ -6764,7 +6804,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         sb.setLength(0);
                         sb.append("board.sc_piri.piratefortress");
                     }
-                    setHoverText(strings.get(sb.toString(), plName, board.getPortTypeFromNodeCoord(id)));
+
+                    setHoverText
+                        (strings.get(sb.toString(), plName, board.getPortTypeFromNodeCoord(id)), id);
                     hoverTextSet = true;
 
                     // If we're at the player's settlement, ready to upgrade to city
@@ -6799,7 +6841,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             hoverIsPort = false;
                             hoverTextSet = true;
                             hoverCityID = 0;
-                            setHoverText(strings.get("board.sc_clvi.village", vi.diceNum, vi.getCloth()));
+                            setHoverText
+                                (strings.get("board.sc_clvi.village", vi.diceNum, vi.getCloth()), id);
                                 // "Village for cloth trade on {0} ({1} cloth)"
                         }
                     }
@@ -6818,7 +6861,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             }
                             else if (player.isPotentialSettlement(id))
                             {
-                                setHoverText(strings.get("board.settle.not.here"));  // "Not allowed to settle here"
+                                setHoverText(strings.get("board.settle.not.here"), id);  // "Not allowed to settle here"
                                 hoverMode = PLACE_ROBBER;  // const used for hovering-at-node
                                 hoverID = id;
                                 hoverIsPort = false;
@@ -6861,7 +6904,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                         if (htext != null)
                         {
-                            setHoverText(strings.get(htext));
+                            setHoverText(strings.get(htext), id);
                             hoverMode = PLACE_ROBBER;  // const used for hovering-at-node
                             hoverID = id;
                             hoverIsPort = false;
@@ -6914,7 +6957,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                                     if (nlDesc != null)
                                     {
-                                        setHoverText(nlDesc);
+                                        setHoverText(nlDesc, id);
                                         hoverMode = PLACE_ROBBER;  // const used for hovering-at-node
                                         hoverID = id;
                                         hoverIsPort = false;
@@ -6969,14 +7012,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                         if (isRoad)
                         {
-                            setHoverText(strings.get("board.road", plName));  // "Road: " + plName
+                            setHoverText(strings.get("board.road", plName), id);  // "Road: " + plName
                         } else {
                             // Scenario _SC_PIRI has warships; check class just in case.
                             hoverIsWarship = (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
                             if (hoverIsWarship)
-                                setHoverText(strings.get("board.warship", plName));  // "Warship: " + plName
+                                setHoverText(strings.get("board.warship", plName), id);  // "Warship: " + plName
                             else
-                                setHoverText(strings.get("board.ship", plName));     // "Ship: " + plName
+                                setHoverText(strings.get("board.ship", plName), id);     // "Ship: " + plName
                         }
 
                         // Can the player move their ship?
@@ -7054,7 +7097,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     if (hoverTextKey != null)
                     {
-                        setHoverText(strings.get(hoverTextKey));
+                        setHoverText(strings.get(hoverTextKey), id);
                         hoverTextSet = true;
                     }
                 }
@@ -7074,7 +7117,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     // Already looking at a port at this coordinate.
                     positionToMouse(x,y);
                 } else {
-                    setHoverText(strings.get(portDescAtNode(nodePortCoord), nodePortType));
+                    setHoverText(strings.get(portDescAtNode(nodePortCoord), nodePortType), nodePortCoord);
                     hoverMode = PLACE_INIT_SETTLEMENT;  // const used for hovering-at-port
                     hoverID = nodePortCoord;
                     hoverIsPort = true;
@@ -7211,7 +7254,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         key.append(".addi");
                         addinfo = strings.get(addinfo);
                     }
-                    setHoverText(strings.get(key.toString(), hname, dicenum, addinfo));
+                    setHoverText(strings.get(key.toString(), hname, dicenum, addinfo), id);
                 }
 
                 return;  // <--- Early return: Found hex ---
@@ -7224,7 +7267,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if ((hoverRoadID != 0) || (hoverShipID != 0))
             {
-                setHoverText(null); // hoverMode = PLACE_ROAD;
+                setHoverText(null, 0); // hoverMode = PLACE_ROAD;
                 bpanel.repaint();
                 return;
             }
@@ -7235,7 +7278,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 setHoverText_modeChangedOrMouseMoved = true;
                 hoverMode = NONE;
             }
-            setHoverText(null);
+            setHoverText(null, 0);
         }
 
         /**
@@ -7862,7 +7905,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
       {
           // Clear the hovering tooltip at fortress, since dialog will change our mouse focus
           hoverTip.setHoverText_modeChangedOrMouseMoved = true;
-          hoverTip.setHoverText(null);
+          hoverTip.setHoverText(null, 0);
 
           java.awt.EventQueue.invokeLater(new ConfirmAttackPirateFortressDialog());
       }

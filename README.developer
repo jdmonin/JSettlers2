@@ -88,6 +88,9 @@ hides them during game setup.  If you want to show them:
 	Click Practice or New Game
 The values you set may still be overridden by the server in SOCGameOption.adjustOptionsToKnown.
 
+To show piece coordinates in the board's tooltips, in the game window chat box type: =*= showcoords
+To no longer show those coordinates, type: =*= hidecoords
+
 To use the "Free Placement" debug mode, type this debug command on your turn:
 	*FREEPLACE* 1
 You can now build and place pieces without consuming resources, by clicking
