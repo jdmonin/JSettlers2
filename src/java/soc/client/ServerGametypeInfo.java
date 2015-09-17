@@ -67,6 +67,17 @@ import soc.message.SOCNewGameWithOptions;
  *<LI> Once  <tt>newGameWaitingForOpts</tt> == false, show the {@link NewGameOptionsFrame}.
  *</OL>
  *<P>
+ * Server scenario info is sent on demand, instead of sending all info when the client connects:
+ *<UL>
+ *<LI> When "Game Info" is clicked for a game, and the game has option "SC" with a scenario
+ *     not found in {@link #scenKeys}, client will ask the server for info about that scenario.
+ *     Meanwhile it will display game info, and assume the server will reply before the user
+ *     clicks "scenario info" in the game info popup.
+ *<LI> When client joins a game, it will need scenario info as in the "Game Info" case above.
+ *<LI> When "New Game" is clicked to create a new game, the client needs all scenarios' info and
+ *     will ask the server for all updated scenario info, just as it does at connect for game options.
+ *</UL>
+ *<P>
  * Before v2.0.00 this class was <tt>{@link SOCPlayerClient}.GameOptionServerSet</tt>.
  *
  * @author jdmonin
