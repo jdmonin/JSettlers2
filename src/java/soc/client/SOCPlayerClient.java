@@ -418,7 +418,31 @@ public class SOCPlayerClient
         void gameWithOptionsBeginSetup(final boolean forPracticeServer, final boolean didAuth);
 
         void optionsRequested();
+
+        /**
+         * Server has sent its game option default values for new games.
+         * Called when {@link ServerGametypeInfo#newGameWaitingForOpts} flag was set and
+         * has just been cleared.  Client should show dialog to create a new game which
+         * will have game options.
+         *
+         * @param opts  Client's game option info, tracking the TCP or local practice server
+         * @param isPractice  True if received from {@link ClientNetwork#practiceServer}, instead of TCP server
+         */
         void optionsReceived(ServerGametypeInfo opts, boolean isPractice);
+
+        /**
+         * Server has sent info about a single game option.  If {@code hasAllNow},
+         * client should check {@link ServerGametypeInfo#newGameWaitingForOpts} and
+         * {@link ServerGametypeInfo#gameInfoWaitingForOpts}, and if either of these
+         * were waiting, show a game info/options dialog for a new game or existing game.
+         *
+         * @param opts  Client's game option info, tracking the TCP or local practice server
+         * @param isPractice  True if received from {@link ClientNetwork#practiceServer}, instead of TCP server
+         * @param isDash  True if the game option was {@code "-"}, indicating the end of the list.
+         *     If so, no further options will be sent and any running timeout task related to the
+         *     game options can be cancelled.
+         * @param hasAllNow  If true, all game option info has now been received by the client
+         */
         void optionsReceived(ServerGametypeInfo opts, boolean isPractice, boolean isDash, boolean hasAllNow);
 
         /**
@@ -1450,9 +1474,13 @@ public class SOCPlayerClient
             {
                 // This game is either from the tcp server, or practice server,
                 // both servers' games are in the same GUI list.
+
                 Map<String,SOCGameOption> opts = null;
+
                 if ((client.net.practiceServer != null) && (-1 != client.net.practiceServer.getGameState(gm)))
+                {
                     opts = client.net.practiceServer.getGameOptions(gm);  // won't ever need to parse from string on practice server
+                }
                 else if (client.serverGames != null)
                 {
                     opts = client.serverGames.getGameOptions(gm);
@@ -1460,10 +1488,14 @@ public class SOCPlayerClient
                     {
                         // If necessary, parse game options from string before displaying.
                         // (Parsed options are cached, they won't be re-parsed)
+                        // If parsed options include a scenario, and we don't have its
+                        // localized strings, ask the server for that but don't wait for
+                        // a reply before showing the NewGameOptionsFrame.
         
                         if (client.tcpServGameOpts.allOptionsReceived)
                         {
                             opts = client.serverGames.parseGameOptions(gm);
+                            client.checkGameoptsForUnknownScenario(opts);
                         } else {
                             // not yet received; remember game name.
                             // when all are received, will show it,
@@ -2296,6 +2328,8 @@ public class SOCPlayerClient
                         opts.gameInfoWaitingForOpts = null;
                     }
                     final Map<String,SOCGameOption> gameOpts = client.serverGames.parseGameOptions(gameInfoWaiting);
+                    if (! isPractice)
+                        client.checkGameoptsForUnknownScenario(gameOpts);
                     newGameOptsFrame = NewGameOptionsFrame.createAndShow
                         (GameAwtDisplay.this, gameInfoWaiting, gameOpts, isPractice, true);
                 }
@@ -4820,7 +4854,7 @@ public class SOCPlayerClient
             hasAllNow = opts.receiveInfo(mes);
         }
 
-        boolean isDash = mes.getOptionNameKey().equals("-");  // I18N: skip this
+        boolean isDash = mes.getOptionNameKey().equals("-");  // I18N: do not localize "-" keyname
         gameDisplay.optionsReceived(opts, isPractice, isDash, hasAllNow);
     }
 
@@ -5245,6 +5279,29 @@ public class SOCPlayerClient
 
     }  // nested class MessageTreater
 
+
+    /**
+     * Check these game options to see if they contain a scenario we don't yet have full info about.
+     * If the options include a scenario and we don't have that scenario's info or localized strings,
+     * ask the server for that but don't wait here for a reply.
+     *<P>
+     * <B>Do not call for practice games:</B> Assumes this is the TCP server, because for practice games
+     * we already have full info about scenarios and their strings.
+     *
+     * @param opts  Game options to check for {@code "SC"}, or {@code null}
+     * @since 2.0.00
+     */
+    protected void checkGameoptsForUnknownScenario(final Map<String,SOCGameOption> opts)
+    {
+        if ((opts == null) || tcpServGameOpts.allScenStringsReceived || ! opts.containsKey("SC"))
+            return;
+
+        final String scenName = opts.get("SC").getStringValue();
+        if ((scenName.length() == 0) || tcpServGameOpts.scenKeys.contains(scenName))
+            return;
+
+        net.putNet(SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, 0, scenName));
+    }
 
     /**
      * Localize {@link SOCScenario} names and descriptions with strings from the server.
