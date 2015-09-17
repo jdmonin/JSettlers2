@@ -4967,7 +4967,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     {
                         hilight = edgeNum;
                         hilightIsShip = isShip;
-                        repaint();
+                        if (debugShowCoordsTooltip)
+                        {
+                            String blank = (edgeNum != 0) ? "" : null;    // "" shows tip, null hides it.
+                            hoverTip.setHoverText(blank, edgeNum, x, y);  // also repaints
+                        } else {
+                            repaint();
+                        }
                     }
                 }
 
@@ -5041,7 +5047,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     {
                         hilight = edgeNum;
                         hilightIsShip = isShip;
-                        repaint();
+                        if (debugShowCoordsTooltip)
+                        {
+                            String blank = (edgeNum != 0) ? "" : null;    // "" shows tip, null hides it.
+                            hoverTip.setHoverText(blank, edgeNum, x, y);  // also repaints
+                        } else {
+                            repaint();
+                        }
                     }
                 }
 
@@ -5068,13 +5080,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     {
                         hilight = nodeNum;
                         hilightIsShip = false;
-                        if (mode == PLACE_INIT_SETTLEMENT)
+                        if ((mode == PLACE_INIT_SETTLEMENT) && ! debugShowCoordsTooltip)
                             hoverTip.handleHover(x,y);
-                        repaint();
+                        else if (debugShowCoordsTooltip)
+                            hoverTip.setHoverText
+                                (((nodeNum != 0) ? "" : null), nodeNum, x, y);
+                        else
+                            repaint();
                     }
                     else if (mode == PLACE_INIT_SETTLEMENT)
                     {
-                        hoverTip.handleHover(x,y);  // Will call repaint() if needed
+                        if (debugShowCoordsTooltip && (nodeNum != 0))
+                            hoverTip.setHoverText("", nodeNum, x, y);
+                        else
+                            hoverTip.handleHover(x,y);  // Will call repaint() if needed
                     }
                 }
 
@@ -5100,7 +5119,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     {
                         hilight = nodeNum;
                         hilightIsShip = false;
-                        repaint();
+                        if (debugShowCoordsTooltip)
+                        {
+                            String blank = (nodeNum != 0) ? "" : null;    // "" shows tip, null hides it.
+                            hoverTip.setHoverText(blank, nodeNum, x, y);  // also repaints
+                        } else {
+                            repaint();
+                        }
                     }
                 }
 
@@ -5128,7 +5153,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     {
                         hilight = edgeNum;
                         hilightIsShip = true;
-                        repaint();
+                        if (debugShowCoordsTooltip)
+                        {
+                            String blank = (edgeNum != 0) ? "" : null;    // "" shows tip, null hides it.
+                            hoverTip.setHoverText(blank, edgeNum, x, y);  // also repaints
+                        } else {
+                            repaint();
+                        }
                     }
                 }
 
@@ -5217,7 +5248,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (edgeNum != hilight)
                 {
                     hilight = edgeNum;
-                    repaint();  // clear previous, or set new hilight
+                    if (debugShowCoordsTooltip)
+                    {
+                        String blank = (edgeNum != 0) ? "" : null;    // "" shows tip, null hides it.
+                        hoverTip.setHoverText(blank, edgeNum, x, y);  // also repaints
+                    } else {
+                        repaint();
+                    }
                 }
                 break;
 
@@ -6495,6 +6532,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * @param x x-coordinate of mouse, actual screen pixels (not unscaled internal)
          * @param y y-coordinate of mouse, actual screen pixels (not unscaled internal)
          * @see #setHoverText(String, int)
+         * @see #setHoverText(String, int, int, int)
          */
         public void positionToMouse(final int x, int y)
         {
@@ -6548,6 +6586,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          *          already equal to <tt>t</tt>, or if both are null.
          * @param coord  Cursor's board coordinates shown when "show coordinates" debug flag is set, or -1.
          *          Ignored if {@code t} is {@code null}.  To show only the coordinate, use "" for {@code t}.
+         * @see #setHoverText(String, int, int, int)
          * @see #hideHoverAndPieces()
          * @see SOCBoardPanel#setDebugShowCoordsFlag(boolean)
          */
@@ -6579,6 +6618,28 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             boxW = 0;  // Paint method will calculate it
             positionToMouse(mouseX, mouseY);  // Also calls repaint, clears setHoverText_modeChangedOrMouseMoved
+        }
+
+        /**
+         * Set tooltip text (or hide tooltip if text is null) and show tooltip at appropriate location
+         * when mouse is at (x,y) relative to the board. Repaint the board.
+         *<P>
+         * Convenience method, calls {@link #positionToMouse(int, int)} and {@link #setHoverText(String, int)}. 
+         *
+         * @param t Hover text contents, or null to clear that text (but
+         *          not hovering pieces) and repaint.  Do nothing if text is
+         *          already equal to {@code t}, or if both are null.
+         * @param coord  Cursor's board coordinates shown when "show coordinates" debug flag is set, or -1.
+         *          Ignored if {@code t} is {@code null}.  To show only the coordinate, use "" for {@code t}.
+         * @param x x-coordinate of mouse, actual screen pixels (not unscaled internal)
+         * @param y y-coordinate of mouse, actual screen pixels (not unscaled internal)
+         * @since 2.0.00
+         */
+        public void setHoverText(final String t, final int coord, final int x, final int y)
+        {
+            // TODO don't repaint twice
+            positionToMouse(x, y);
+            setHoverText(t, coord);
         }
 
         /**
@@ -7104,6 +7165,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
 
             // By now we've set hoverRoadID, hoverShipID, hoverCityID, hoverSettlementID.
+            // If debugShowCoordsTooltip their coordinates aren't shown yet with hoverText,
+            // that's done below only if nothing else sets hoverText and returns.
+
             if (hoverTextSet)
             {
                 return;  // <--- Early return: Text and hover-pieces set ---
@@ -7122,13 +7186,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     hoverID = nodePortCoord;
                     hoverIsPort = true;
                 }
+
                 return;  // <--- Early return: Text and hover-pieces set ---
             }
 
             // If nothing found yet, look for a hex
             //  - reminder: socboard.getHexTypeFromCoord, getNumberOnHexFromCoord, socgame.getPlayersOnHex
             id = findHex(xb,yb);
-            if (id > 0)
+            if ((id > 0) && ! (debugShowCoordsTooltip && (hoverRoadID != 0 || hoverShipID != 0) ))
             {
                 // Are we already looking at it?
                 if (((hoverMode == PLACE_ROBBER) || (hoverMode == PLACE_PIRATE)) && (hoverID == id))
@@ -7141,6 +7206,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     hoverMode = PLACE_PIRATE;
                 else
                     hoverMode = PLACE_ROBBER;  // const used for hovering-at-hex
+
                 hoverPiece = null;
                 hoverID = id;
 
@@ -7265,9 +7331,25 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 return;
             }
 
-            if ((hoverRoadID != 0) || (hoverShipID != 0))
+            // if we're down here, hoverText was never set, but hoverPieceIDs may be set.
+            // If debugShowCoordsTooltip, show their coordinates with hoverText.
+            // Don't check hoverCityID, because we have a settlement there and its tooltip
+            // already shows the coordinate.
+
+            if ((hoverSettlementID != 0) && debugShowCoordsTooltip)
             {
-                setHoverText(null, 0); // hoverMode = PLACE_ROAD;
+                setHoverText("", hoverSettlementID);
+                return;
+            }
+            else if ((hoverRoadID != 0) || (hoverShipID != 0))
+            {
+                // hoverMode == PLACE_ROAD or PLACE_SHIP
+
+                if (debugShowCoordsTooltip)
+                    setHoverText("", (hoverRoadID != 0) ? hoverRoadID : hoverShipID);
+                else
+                    setHoverText(null, 0); 
+
                 bpanel.repaint();
                 return;
             }
