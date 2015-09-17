@@ -6624,8 +6624,8 @@ public class SOCServer extends Server
      * Does this client's locale have localized {@link SOCScenario} names and descriptions?
      * Checks these conditions:
      * <UL>
-     *  <LI> {@link StringConnection#getI18NLocale() c.getI18NLocale()} != {@code null}
-     *  <LI> {@link StringConnection#getVersion() c.getVersion()} &gt;= {@link SOCStringManager#VERSION_FOR_I18N}
+     *  <LI> {@link SOCClientData#wantsI18N c.scd.wantsI18N} flag is set:
+     *      Has locale, new-enough version, has requested I18N strings (see that flag's javadocs).
      *  <LI> {@link StringConnection#getLocalized(String) c.getLocalized}({@code "gamescen.SC_WOND.n"})
      *      returns a string different than {@link #i18n_scenario_SC_WOND_desc}:
      *      This checks whether a fallback is being used because the client's locale has no scenario strings
@@ -6636,8 +6636,9 @@ public class SOCServer extends Server
      */
     public static final boolean clientHasLocalizedStrs_gameScenarios(final StringConnection c)
     {
-        return (c.getI18NLocale() != null)
-            && (c.getVersion() >= SOCStringManager.VERSION_FOR_I18N)
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+        return
+            scd.wantsI18N
             && ! i18n_scenario_SC_WOND_desc.equals(c.getLocalized("gamescen.SC_WOND.n"));
     }
 
@@ -6826,14 +6827,17 @@ public class SOCServer extends Server
             return;
 
         final int cliVers = c.getVersion();
+        final SOCClientData scd = (SOCClientData) c.getAppData();
         boolean alreadyTrimmedEnums = false;
         Vector<String> okeys = mes.getOptionKeys();
         List<SOCGameOption> opts = null;
 
         // check for request for i18n localized descriptions (client v2.0.00 or newer);
         // if we don't have game opt localization for client's locale, ignore the request.
+        if (mes.hasTokenGetI18nDescs() && (c.getI18NLocale() != null))
+            scd.wantsI18N = true;
         final boolean wantsLocalDescs =
-            mes.hasTokenGetI18nDescs() && (c.getI18NLocale() != null)
+            scd.wantsI18N
             && ! i18n_gameopt_PL_desc.equals(c.getLocalized("gameopt.PL"));
 
         if (okeys == null)

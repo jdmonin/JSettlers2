@@ -21,9 +21,11 @@ package soc.server;
 import java.util.Locale;
 import java.util.TimerTask;
 
+import soc.message.SOCGameOptionGetInfos;  // for javadoc
 import soc.message.SOCMessage;  // for javadoc
 import soc.server.genericServer.StringConnection;
 import soc.util.SOCGameList;
+import soc.util.SOCStringManager;  // for javadoc
 
 /**
  * The server's place to track client-specific information across games.
@@ -48,6 +50,7 @@ public class SOCClientData
      * since older versions had all messages in english.
      * Bots always use a {@code null} locale; they don't care about message text contents, and a
      * null locale means they won't set any {@code SOCGame.hasMultiLocales} flag by joining.
+     * @see #wantsI18N
      * @since 2.0.00
      */
     public Locale locale;
@@ -59,9 +62,30 @@ public class SOCClientData
      * if null, should probably assume <tt>en_US</tt>
      * since older versions had all messages in english.
      * Bots always use a {@code null} locale, see {@link #locale} javadoc for details.
+     * @see #wantsI18N
      * @since 2.0.00
      */
     public String localeStr;
+
+    /**
+     * If this flag is set, client has determined it wants localized strings (I18N),
+     * and asked for them early in the connect process by sending a message
+     * that had {@link SOCGameOptionGetInfos#hasTokenGetI18nDescs()} true.
+     * Server can later check this flag to see if responses to various client request
+     * messages should include localized strings.
+     *<P>
+     * Set this flag only if:
+     * <UL>
+     *  <LI> Client has sent a {@link SOCGameOptionGetInfos} request with
+     *     {@link SOCGameOptionGetInfos#hasTokenGetI18nDescs() msg.hasTokenGetI18nDescs()}
+     *  <LI> {@link StringConnection#getI18NLocale() c.getI18NLocale()} != {@code null}
+     *  <LI> {@link StringConnection#getVersion() c.getVersion()} &gt;= {@link SOCStringManager#VERSION_FOR_I18N};
+     *     this is already implied by the client sending a message with {@code hasTokenGetI18nDescs}.
+     * </UL>
+     * @see #locale
+     * @since 2.0.00
+     */
+    public boolean wantsI18N;
 
     /**
      * Number of games/channels this client has created, which currently exist (not deleted)
