@@ -20,6 +20,7 @@
  **/
 package soc.message;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -256,6 +257,35 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
         }
 
         return sb.toString();
+    }
+
+    /**
+     * Build the command string from a type and single string key; used for requests from client side.
+     * @param type  String type such as {@link #TYPE_SCENARIO};
+     *     must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @param flags  Any flags such as {@link #FLAG_SENT_ALL}, or 0
+     * @param str  String key being requested, with type-specific meaning; see {@code type} constant javadocs.
+     *     Must pass
+     *     {@link SOCMessage#isSingleLineAndSafe(String, boolean) isSingleLineAndSafe(String, true)}:
+     *     {@link SOCMessage#sep2} characters are allowed, but {@link SOCMessage#sep} are not.
+     * @return    the command string
+     * @throws IllegalArgumentException  If {@code type} or {@code str} fails
+     *     {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @throws NullPointerException if {@code str} is null
+     */
+    public static String toCmd(final String type, final int flags, String str)
+        throws IllegalArgumentException, NullPointerException
+    {
+        if (str == null)
+            throw new NullPointerException();
+
+        // Convenience method: create a List of Strings
+        // instead of constructing toCmd from the single str,
+        // because required checkParams validator needs a List anyway.
+
+        ArrayList<String> strs = new ArrayList<String>();
+        strs.add(str);
+        return toCmd(type, flags, strs);
     }
 
     /**
