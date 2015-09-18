@@ -41,9 +41,9 @@ import java.util.List;
  * This message is not commonly sent from client to server, which is included to allow clients
  * to get localized strings for scenarios or gameopts newer than the client or changed since
  * the client's release.  The client's request includes the string type such as {@link #TYPE_SCENARIO},
- * the flags field, and then any keys for which it wants localized strings, or the marker token {@link #MARKER_REQ_ALL}
- * to request all items. The server's response is as described above, including all keys requested by the client.
- * If a key isn't known at the server,
+ * the flags field, and then any keys for which it wants localized strings, or an empty list if message also sets
+ * {@link #FLAG_REQ_ALL} to request all items. The server's response is as described above, including all
+ * keys requested by the client. If a key isn't known at the server,
  * in the response that key will be followed by {@link #MARKER_KEY_UNKNOWN} instead of by its string(s).
  *<P>
  * The first element of {@link #getParams()} is a string type such as {@link #TYPE_GAMEOPT}
@@ -99,6 +99,12 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     public static final int FLAG_TYPE_UNKNOWN = 0x01;
 
     /**
+     * "Request all" flag, for client to request all items of a requested type.
+     * This flag is sent with an empty string list.
+     */
+    public static final int FLAG_REQ_ALL = 0x02;
+
+    /**
      * "Sent all of them" flag, for server's response when it has sent all known items
      * of the string type requested by the client.  The client should not request any
      * further items of that string type.
@@ -106,12 +112,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      * This flag can also be sent when no known items are available for a recognized
      * string type; the server will send an empty list with this flag set.
      */
-    public static final int FLAG_SENT_ALL = 0x02;
-
-    /**
-     * "Request all" marker token, for client to request all items of a requested type.
-     */
-    public static final String MARKER_REQ_ALL = "\026A";
+    public static final int FLAG_SENT_ALL = 0x04;
 
     /**
      * "Key is unknown" marker token, for server's response when it doesn't have a localized
@@ -141,17 +142,22 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      *     {@link SOCMessage#isSingleLineAndSafe(String, boolean) isSingleLineAndSafe(String, true)}:
      *     {@link SOCMessage#sep2} characters are allowed, but {@link SOCMessage#sep} are not.
      *    <P>
-     *     The list may be empty but not null.  Since this constructor builds an object and not a
+     *     The list may be empty or null.  Since this constructor builds an object and not a
      *     network message command, will not replace empty or null elements with {@link #EMPTY} or "".
-     *     The constructor will prepend {@code type} to the {@code strs} list.
+     *     The constructor will prepend {@code type} to the {@code strs} list, creating it if null.
+     *    <P>
+     *     If any string starts with {@link #MARKER_PREFIX}, it must be a recognized marker:
+     *     ({@link #MARKER_KEY_UNKNOWN}) declared in this class.
+     *
      * @throws IllegalArgumentException  If {@code type} or any element of {@code strs} fails
      *     {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @throws NullPointerException if {@code strs} is null
      */
-    public SOCLocalizedStrings(final String type, final int flags, List<String> strs)
-        throws IllegalArgumentException, NullPointerException
+    public SOCLocalizedStrings(final String type, final int flags, final List<String> strs)
+        throws IllegalArgumentException
     {
-        super(LOCALIZEDSTRINGS, SOCMessage.GAME_NONE, strs);
+        super(LOCALIZEDSTRINGS, SOCMessage.GAME_NONE,
+              ((strs != null) ? strs : new ArrayList<String>()));
+              // strs becomes pa field
         checkParams(type, strs);  // isSingleLineAndSafe(type), isSingleLineAndSafe(each str), etc
 
         pa.add(0, type);  // client will expect first list element is the type
@@ -165,7 +171,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      * The {@link #flags} field (for {@link #FLAG_SENT_ALL}, {@link #FLAG_TYPE_UNKNOWN}, etc)
      * is parsed here and removed from the list of strings.
      *
-     * @param str String list; assumes caller has validated length >= 2 (type, flags).
+     * @param strs  String list; assumes caller has validated length >= 2 (type, flags).
      * @throws NumberFormatException  if flags field isn't a valid hex number
      */
     private SOCLocalizedStrings(final List<String> strs)
@@ -226,16 +232,20 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      *     {@link SOCMessage#isSingleLineAndSafe(String, boolean) isSingleLineAndSafe(String, true)}:
      *     {@link SOCMessage#sep2} characters are allowed, but {@link SOCMessage#sep} are not.
      *    <P>
-     *     The list may be empty but not null.  Empty or null elements are automatically replaced here
+     *     The list may be empty or null.  Empty or null elements in {@code strs} are automatically replaced here
      *     with {@link #EMPTY}, but {@link #getParams()} will not automatically replace {@link #EMPTY}
      *     with "" at the receiver.
+     *    <P>
+     *     If any string starts with {@link #MARKER_PREFIX}, it must be a recognized marker:
+     *     ({@link #MARKER_KEY_UNKNOWN}) declared in this class.
+     *
      * @return    the command string
      * @throws IllegalArgumentException  If {@code type} or any element of {@code strs} fails
      *     {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @throws NullPointerException if {@code strs} is null
      */
     public static String toCmd(final String type, final int flags, List<String> strs)
-        throws IllegalArgumentException, NullPointerException
+        throws IllegalArgumentException
     {
         checkParams(type, strs);  // isSingleLineAndSafe(type), isSingleLineAndSafe(each str), etc
 
@@ -245,15 +255,18 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
         sb.append(sep);
         sb.append(Integer.toHexString(flags));
 
-        for (int i = 0; i < strs.size(); ++i)
+        if (strs != null)
         {
-            sb.append(sep);
+            for (int i = 0; i < strs.size(); ++i)
+            {
+                sb.append(sep);
 
-            String itm = strs.get(i);
-            if ((itm == null) || (itm.length() == 0))
-                itm = EMPTY;
+                String itm = strs.get(i);
+                if ((itm == null) || (itm.length() == 0))
+                    itm = EMPTY;
 
-            sb.append(itm);
+                sb.append(itm);
+            }
         }
 
         return sb.toString();
@@ -268,6 +281,8 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      *     Must pass
      *     {@link SOCMessage#isSingleLineAndSafe(String, boolean) isSingleLineAndSafe(String, true)}:
      *     {@link SOCMessage#sep2} characters are allowed, but {@link SOCMessage#sep} are not.
+     *     If any string starts with {@link #MARKER_PREFIX}, it must be a recognized marker
+     *     ({@link #MARKER_KEY_UNKNOWN}) declared in this class.
      * @return    the command string
      * @throws IllegalArgumentException  If {@code type} or {@code str} fails
      *     {@link SOCMessage#isSingleLineAndSafe(String)}.
@@ -291,13 +306,16 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     /**
      * Check parameter format.
      * Used by {@link #toCmd(String, int, List)} and {@link #SOCLocalizedStrings(String, int, List)};
-     * see toCmd for required format and thus the checks performed.
+     * see {@code toCmd(..)} for required format and thus the checks performed.
      */
     private static void checkParams(final String type, final List<String> strs)
-        throws IllegalArgumentException, NullPointerException
+        throws IllegalArgumentException
     {
         if (! isSingleLineAndSafe(type))
             throw new IllegalArgumentException("type: " + type);
+
+        if (strs == null)
+            return;
 
         for (int i = 0; i < strs.size(); ++i)
         {
@@ -305,10 +323,8 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
             if ((itm == null) || (itm.length() == 0))
                 continue;
             else if (itm.startsWith(MARKER_PREFIX))
-            {
-                if (! (itm.equals(MARKER_REQ_ALL) || itm.equals(MARKER_KEY_UNKNOWN)))
+                if (! itm.equals(MARKER_KEY_UNKNOWN))
                     throw new IllegalArgumentException("item " + i + ": " + itm);
-            }
             else if ((itm.indexOf(SOCMessage.sep_char) != -1) || ! isSingleLineAndSafe(itm, true))
                 throw new IllegalArgumentException("item " + i + ": " + itm);
         }
