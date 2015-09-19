@@ -232,39 +232,39 @@ public class SOCScenario
     // Game scenario keynames.
 
     /**
-     * Scenario key <tt>SC_NSHO</tt> for New Shores.
+     * Scenario key {@code SC_NSHO} for New Shores.
      * Board layout is the standard 4- or 6-player board, or a smaller 3-player main island, plus small
      * outlying islands. No main option or special rules, only the board layout and 2 SVP for reaching each island.
      */
     public static final String K_SC_NSHO = "SC_NSHO";
 
     /**
-     * Scenario key <tt>SC_4ISL</tt> for The Four Islands.
+     * Scenario key {@code SC_4ISL} for The Four Islands.
      * No main option or special rules, only a board layout and SVP.
      */
     public static final String K_SC_4ISL = "SC_4ISL";
 
     /**
-     * Scenario key <tt>SC_FOG</tt> for {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED} (The Fog Islands scenario).
+     * Scenario key {@code SC_FOG} for {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED} (The Fog Islands scenario).
      * Main option is {@link SOCGameOption#K_SC_FOG}.
      */
     public static final String K_SC_FOG = "SC_FOG";
 
     /**
-     * Scenario key <tt>SC_TTD</tt> for Through The Desert.
+     * Scenario key {@code SC_TTD} for Through The Desert.
      * No main option or special rules, only a board layout and SVP.
      */
     public static final String K_SC_TTD = "SC_TTD";
 
     /**
-     * Scenario key <tt>SC_CLVI</tt> for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
+     * Scenario key {@code SC_CLVI} for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
      * Cloth Trade with neutral {@link SOCVillage villages}.
      * Main option is {@link SOCGameOption#K_SC_CLVI}.
      */
     public static final String K_SC_CLVI = "SC_CLVI";
 
     /**
-     * Scenario key <tt>SC_PIRI</tt> for Pirate Islands and {@link SOCFortress fortresses}.
+     * Scenario key {@code SC_PIRI} for Pirate Islands and {@link SOCFortress fortresses}.
      * Main option is {@link SOCGameOption#K_SC_PIRI}.
      *<P>
      * A pirate fleet circulates on a predefined path, stealing resources from weak players with
@@ -366,7 +366,7 @@ public class SOCScenario
      *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version supporting this scenario, or -1.
      *                Same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
-     *                If not -1, <tt>minVers</tt> must be at least 2000
+     *                If not -1, {@code minVers} must be at least 2000
      *                ({@link #VERSION_FOR_SCENARIOS}).  To get the minimum version of a set of
      *                scenarios, use {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      * @param lastModVers Last-modified version for this scenario, or version which added it
@@ -376,7 +376,9 @@ public class SOCScenario
      * @param longDesc  Longer descriptive text, or null; see {@link #getLongDesc()} for requirements.
      * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
      *             from {@link SOCGameOption#packOptionsToString(Map, boolean)}.
+     *             Never "" or {@code null}.
      * @throws IllegalArgumentException if key length is > 8 or not alphanumeric,
+     *        or if opts is {@code null} or the empty string "",
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
      *        or fail their described requirements,
      *        or if minVers or lastModVers is under 2000 but not -1
@@ -397,7 +399,7 @@ public class SOCScenario
      *                Keys can be up to 8 characters long.
      * @param minVers Minimum client version supporting this scenario, or -1.
      *                Same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
-     *                If not -1, <tt>minVers</tt> must be at least 2000
+     *                If not -1, {@code minVers} must be at least 2000
      *                ({@link #VERSION_FOR_SCENARIOS}).  To get the minimum version of a set of
      *                scenarios, use {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      * @param lastModVers Last-modified version for this scenario, or version which added it
@@ -407,13 +409,13 @@ public class SOCScenario
      * @param longDesc  Longer descriptive text, or null; see {@link #getLongDesc()} for requirements.
      * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
      *             from {@link SOCGameOption#packOptionsToString(Map, boolean)}.
-     * @throws IllegalArgumentException
-     *        or if key is not alphanumeric or length is > 8,
+     *             Never "" or {@code null}.
+     * @throws IllegalArgumentException  if key is not alphanumeric or length is > 8,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
-     *        or if opts is null,
+     *        or if opts is {@code null} or the empty string "",
      *        or if minVers or lastModVers is under 2000 but not -1
      */
-    protected SOCScenario
+    private SOCScenario
         (final boolean isKnown, final String key, final int minVers, final int lastModVers,
          final String desc, final String longDesc, final String opts)
         throws IllegalArgumentException
@@ -438,6 +440,8 @@ public class SOCScenario
         }
         if (opts == null)
             throw new IllegalArgumentException("opts null");
+        if (opts.length() == 0)
+            throw new IllegalArgumentException("opts empty");
 
         scOpts = opts;
 	scLongDesc = longDesc;
@@ -655,9 +659,9 @@ public class SOCScenario
      *            Must not be null.
      * @param knownScenarios Set of known SOCScenarios to check against, or null to use
      *            the server's static copy
-     * @return <tt>null</tt> if all are known; or, a human-readable problem description if:
+     * @return {@code null} if all are known; or, a human-readable problem description if:
      *            <UL>
-     *            <LI> any of <tt>newScens</tt> are unknown
+     *            <LI> any of {@code newScens} are unknown
      *            <LI> or a scenario's type differs from that in knownScenarios
      *            <LI> or a {@link #lastModVersion} differs from in knownScenarios
      *            </UL>
@@ -708,9 +712,9 @@ public class SOCScenario
 
     /**
      * If a set of scenarios doesn't already include this known scenario, clone and add it.
-     * @param newScens Set to set <tt>scKey</tt> within
+     * @param newScens Set to set {@code scKey} within
      * @param scKey   Key name for scenario to include
-     * @throws NullPointerException  if <tt>scKey</tt> isn't in <tt>newScens</tt>
+     * @throws NullPointerException  if {@code scKey} isn't in {@code newScens}
      *   and doesn't exist in the set of known scenarios
      */
     public static void addScenario(Map<String, SOCScenario> newScens, final String scKey)
