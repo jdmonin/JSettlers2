@@ -197,6 +197,8 @@ public abstract class SOCVersionedItem implements Cloneable
      * old to join or create a game due to the requested game items.
      *<P>
      * This implementation just returns {@link #minVersion}; override for more complex behavior.
+     * See {@link SOCGameOption#getMinVersion(Map)} for calculations done for game options ("PL", "SC",
+     * etc) based on their current value.
      *
      * @param  items If null, return the minimum version supporting this item.
      *               Otherwise, the minimum version at which this item's value isn't changed
@@ -238,16 +240,21 @@ public abstract class SOCVersionedItem implements Cloneable
     }
 
     /**
-     * Examine this set of items, finding the minimum required version to support
-     * a game with these items.  The current value of a game option can change its minimum version.
-     * For example, a 5- or 6-player game will need a newer client than 4 players,
-     * but option "PL"'s minVersion is -1, to allow 2- or 3-player games with any client.
+     * Examine this set of items, calculating the minimum required version to support
+     * a game with these items. Calls each item's {@link #getMinVersion(Map)}, where
+     * {@code Map} is {@code null} unless {@code minCliVersionForUnchangedItems} is true.
+     *<P>
+     * The current value of an item can change the item's minimum version.
+     * For example, game option {@code "PL"}'s minVersion is -1 for 2- to 4-player games with any client version,
+     * but a 5- or 6-player game will need client 1.1.08 or newer.
      *<P>
      * This calculation is done at the server when creating a new game.  Although the client's
      * version and classes (and thus its copy of {@code itemsMinimumVersion}) may be newer or older,
      * and would give a different result if called, the server is authoritative for game items.
      * Calls at the client to {@code itemsMinimumVersion} should keep this in mind, especially if
      * a client's game option's {@link #lastModVersion} is newer than the server.
+     *<P>
+     * Calls {@link #itemsMinimumVersion(Map, boolean) itemsMinimumVersion(items, false)}.
      *
      * @param items  a set of items; not null
      * @return the highest 'minimum version' among these items, or -1
@@ -260,10 +267,13 @@ public abstract class SOCVersionedItem implements Cloneable
     }
 
     /**
-     * Examine this set of items, finding the minimum required version to support
-     * a game with these items.  The current value of a game option can change its minimum version.
-     * For example, a 5- or 6-player game will need a newer client than 4 players,
-     * but option "PL"'s minVersion is -1, to allow 2- or 3-player games with any client.
+     * Examine this set of items, calculating the minimum required version to support
+     * a game with these items. Calls each item's {@link #getMinVersion(Map)}, where
+     * {@code Map} is {@code null} unless {@code minCliVersionForUnchangedItems} is true.
+     *<P>
+     * The current value of an item can change the item's minimum version.
+     * For example, game option {@code "PL"}'s minVersion is -1 for 2- to 4-player games with any client version,
+     * but a 5- or 6-player game will need client 1.1.08 or newer.
      *<P>
      * This calculation is done at the server when creating a new game.  Although the client's
      * version and classes (and thus its copy of {@code itemsMinimumVersion}) may be newer or older,
@@ -271,28 +281,32 @@ public abstract class SOCVersionedItem implements Cloneable
      * Calls at the client to {@code itemsMinimumVersion} should keep this in mind, especially if
      * a client's game option's {@link #lastModVersion} is newer than the server.
      *<P>
-     * <b>Backwards-compatibility support: {@code minCliVersionForUnchangedItems} parameter:</b><br>
+     * <b>Backwards-compatibility support: {@code calcMinVersionForUnchanged} parameter:</b><br>
      * Occasionally, an older client version supports a new item, but only by changing
      * the value of some other items it recognizes.  If this parameter is true,
      * this method will calculate the minimum client version at which the items are understood
      * without backwards-compatibility changes to their values.
+     * (If all connected clients are this version or newer, that new game's item values
+     * can be broadcast to all clients without changes.)
+     * If {@code calcMinVersionForUnchanged} is true, the returned version may be higher than if false;
+     * older clients may support {@code items} only by changing some item values for compatibility.
      *
      * @param items  a set of SOCVersionedItems; not null
-     * @param minCliVersionForUnchangedItems  If true, return the minimum version at which these
+     * @param calcMinVersionForUnchanged  If true, return the minimum version at which these
      *         options' values aren't changed (for compatibility) by the presence of new options.
      * @return the highest 'minimum version' among these options, or -1.
-     *         If {@code minCliVersionForUnchangedItems}, the returned version will either be -1 or >= 1107
+     *         If {@code calcMinVersionForUnchanged}, the returned version will either be -1 or >= 1107
      *         (the first version with game options).
      * @throws NullPointerException if {@code items} is null
      * @see #itemsMinimumVersion(Map)
      * @see #getMinVersion(Map)
      */
     public static int itemsMinimumVersion
-        (final Map<?, ? extends SOCVersionedItem> items, final boolean minCliVersionForUnchangedItems)
+        (final Map<?, ? extends SOCVersionedItem> items, final boolean calcMinVersionForUnchanged)
 	throws NullPointerException
     {
     	int minVers = -1;
-    	final Map<?, ? extends SOCVersionedItem> itemsChk = minCliVersionForUnchangedItems ? items : null;
+    	final Map<?, ? extends SOCVersionedItem> itemsChk = calcMinVersionForUnchanged ? items : null;
 
     	for (SOCVersionedItem itm : items.values())
     	{
