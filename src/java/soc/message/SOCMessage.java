@@ -313,6 +313,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  @since 2.0.00 */
     public static final int LOCALIZEDSTRINGS = 1105;  // Localized strings, 20150111, v2.0.00
 
+    /** {@link SOCScenarioInfo} - Client's request about available {@link soc.game.SOCScenario SOCScenario}s,
+     *  or server's reply about a single scenario.
+     * @since 2.0.00
+     */
+    public static final int SCENARIOINFO = 1106;    // Scenario info, 20150920, v2.0.00
+
 
     /////////////////////////////////////////
     // REQUEST FOR FUTURE MESSAGE NUMBERS: //
@@ -944,6 +950,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case LOCALIZEDSTRINGS:     // Localized strings, 20150111, v2.0.00
                 return SOCLocalizedStrings.parseDataStr(multiData);
+
+            case SCENARIOINFO:         // Scenario info, 20150920, v2.0.00
+                return SOCScenarioInfo.parseDataStr(multiData);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);
