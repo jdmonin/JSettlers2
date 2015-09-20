@@ -1187,8 +1187,8 @@ public class SOCGameOption
     /**
      * Minimum game version supporting this option, given {@link #minVersion} and the option's current value.
      * The current value of an option can change its minimum version.
-     * For example, a 5- or 6-player game will need a newer client than 4 players,
-     * but option "PL"'s {@link #minVersion} is -1, to allow 2- or 3-player games with any client.
+     * For example, option {@code "PL"}'s minVersion is -1 for 2- to 4-player games with any client version,
+     * but a 5- or 6-player game will need client 1.1.08 or newer.
      * For boolean-valued option types ({@link #OTYPE_BOOL}, {@link #OTYPE_ENUMBOOL} and
      * {@link #OTYPE_INTBOOL}), the minimum
      * value is -1 unless {@link #getBoolValue()} is true (that is, unless the option is set).
@@ -1239,12 +1239,22 @@ public class SOCGameOption
             break;
         }
 
-        // NEW_OPTION:
+        int minVers = minVersion;
+
         // Any option value checking for minVers is done here.
-        // None of the current options change minVers based on their value.
+
+        if (key.equals("SC"))
+        {
+            SOCScenario sc = SOCScenario.getScenario(getStringValue());
+            if ((sc != null) && (sc.minVersion > minVers))
+                minVers = sc.minVersion;
+        }
+
+        // None of the other current options change minVers based on their value.
+
+        // NEW_OPTION:
         // If your option changes the minVers based on its current value,
-        // check the key and current value, and return the appropriate version,
-        // instead of just returning minVersion.
+        // check the key and current value and set the appropriate version like "SC" does.
         //
         // ADDITIONAL BACKWARDS-COMPATIBLE CHECK (opts != null):
         // If opts != null, also check if your option is supported in lower versions
@@ -1255,6 +1265,7 @@ public class SOCGameOption
         // To simplify the server-side code, do not return less than 1107 (the first
         // version with game options) for this backwards-compatible version number
         // unless you are returning -1.
+        //
         // EXAMPLE:
         // For clients below 1.1.13, if game option PLB is set, option
         // PL must be changed to 5 or 6 to force use of the 6-player board.
@@ -1264,15 +1275,7 @@ public class SOCGameOption
         // versions <= 1112 would need PL changed.
         // If PLB is set, and PL <= 4, return 1108 (the first version with a 6-player board).
 
-        // SAMPLE CODE: (without ADDITIONAL CHECK)
-        /*
-        if (key.equals("N7") && (intValue == 42))
-        {
-            return 1108;
-        }
-        */
-        // END OF SAMPLE CODE.
-        // The following non-sample code demonstrates the ADDITIONAL CHECK:
+        // Gameopt "PL" has an ADDITIONAL CHECK, this can be used as sample code for a new option:
 
         if (key.equals("PL"))
         {
@@ -1287,11 +1290,12 @@ public class SOCGameOption
                 if ((plb instanceof SOCGameOption) && ((SOCGameOption) plb).boolValue)
                     return 1113;
             }
+
             if (intValue > 4)
                 return 1108;  // 5 or 6 players
         }
 
-        return minVersion;
+        return minVers;
     }
 
     /**
