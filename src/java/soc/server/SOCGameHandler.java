@@ -2803,11 +2803,9 @@ public class SOCGameHandler extends GameHandler
         // have we already sent this scen's strings?
         // If not, send now and update scd.scenarioStringsSent[].
 
-        String[] scensSent = scd.scenarioStringsSent;
-        if (scensSent != null)
-            for (int i = 0; i < scensSent.length; ++i)
-                if (scKey.equals(scensSent[i]))
-                    return;  // <--- Already sent ---
+        Set<String> scensSent = scd.scenarioStringsSent;
+        if ((scensSent != null) && scensSent.contains(scKey))
+            return;  // <--- Already sent ---
 
         String nm = null, desc = null;
         try { nm = c.getLocalized("gamescen." + scKey + ".n"); }
@@ -2828,13 +2826,10 @@ public class SOCGameHandler extends GameHandler
         // Remember that we sent it
         if (scensSent == null)
         {
-            scensSent = new String[4];
+            scensSent = new HashSet<String>();
             scd.scenarioStringsSent = scensSent;
-        } else {
-            for (int i = scensSent.length - 1; i > 0; --i)
-                scensSent[i] = scensSent[i - 1];
         }
-        scensSent[0] = scKey;
+        scensSent.add(scKey);
     }
 
     /**

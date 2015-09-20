@@ -19,6 +19,7 @@
 package soc.server;
 
 import java.util.Locale;
+import java.util.Set;
 import java.util.TimerTask;
 
 import soc.message.SOCGameOptionGetInfos;  // for javadoc
@@ -117,19 +118,19 @@ public class SOCClientData
     public boolean sentAllScenarioStrings;
 
     /**
-     * The most recent {@link soc.game.SOCScenario SOCScenario} keynames for which we've
+     * The {@link soc.game.SOCScenario SOCScenario} keynames for which we've
      * sent localized strings. To reduce network traffic, those large strings aren't sent unless
-     * the client is joining a game with a scenario.
+     * the client is joining a game with a scenario, or if the client requests them.
      *<P>
-     * Null if {@link #sentAllScenarioStrings} or if client hasn't joined any game that
-     * has a scenario.
+     * Null if {@link #sentAllScenarioStrings} or if client hasn't requested any
+     * or joined any game that has a scenario.
      *<P>
-     * {@link soc.game.SOCGameOption SOCGameOption}s are also localized but aren't tracked
-     * the same way, because game option strings are all sent when the client connects.
+     * {@link soc.game.SOCGameOption SOCGameOption} strings are also localized, but aren't tracked
+     * the same way because game option strings are all sent when the client connects.
      *
      * @since 2.0.00
      */
-    public String[] scenarioStringsSent;
+    public Set<String> scenarioStringsSent;
 
     /**
      * Is this connection a robot?

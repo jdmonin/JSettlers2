@@ -1770,7 +1770,8 @@ public class SOCPlayerClient
                         // Game scenario localized text. As with game options, the practice client and
                         // practice server aren't started yet, so we can't request localization from there.
                         client.localizeGameScenarios
-                            (SOCServer.localizeGameScenarios(client.cliLocale, null, false), false, true, true);
+                            (SOCServer.localizeGameScenarios(client.cliLocale, null, false, null),
+                             false, true, true);
                     }
                 } else {
                     opts = client.tcpServGameOpts;

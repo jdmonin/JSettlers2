@@ -6667,6 +6667,8 @@ public class SOCServer extends Server
      *         for each known scKey are looked up and added to the list.  If the scenario is unknown or its
      *         strings aren't localized, the key and {@link SOCLocalizedStrings#MARKER_KEY_UNKNOWN} are added instead.
      *    </UL>
+     * @param scd  Optional client data to track which scenario strings are sent to client, or {@code null}.
+     *    This method will update {@link SOCClientData#scenarioStringsSent scd.scenarioStringsSent}.
      * @return  Localized string list, may be empty but will never be null, in same format as the message returned
      *    from server to client: Scenario keys with localized strings have 3 consecutive entries in the list:
      *    Key, name, description.  If {@code checkUnknowns_skipFirst}, unknown scenarios have 2 consecutive entries
@@ -6674,7 +6676,7 @@ public class SOCServer extends Server
      * @since 2.0.00
      */
     public static List<String> localizeGameScenarios
-        (final Locale loc, Collection<String> scKeys, final boolean checkUnknowns_skipFirst)
+        (final Locale loc, Collection<String> scKeys, final boolean checkUnknowns_skipFirst, final SOCClientData scd)
     {
         if (scKeys == null)
             scKeys = SOCScenario.getAllKnownScenarioKeynames();
@@ -6682,6 +6684,19 @@ public class SOCServer extends Server
         final SOCStringManager sm = SOCStringManager.getServerManagerForClient(loc);
         // No need to check hasLocalDescs = ! i18n_gameopt_PL_desc.equals(sm.get("gamescen.SC_WOND.n"))
         // because caller has done so
+
+        Set<String> scensSent;  // for optional tracking
+        if (scd != null)
+        {
+            scensSent = scd.scenarioStringsSent;
+            if (scensSent == null)
+            {
+                scensSent = new HashSet<String>();
+                scd.scenarioStringsSent = scensSent;
+            }
+        } else {
+            scensSent = null;
+        }
 
         List<String> rets = new ArrayList<String>();  // for reply to client
 
@@ -6693,6 +6708,9 @@ public class SOCServer extends Server
                 skippedAlready = true;
                 continue;  // assumes scKeys is a List
             }
+
+            if (scensSent != null)
+                scensSent.add(scKey);
 
             String nm = null, desc = null;
 
@@ -6741,7 +6759,7 @@ public class SOCServer extends Server
             final SOCClientData scd = (SOCClientData) c.getAppData();
             if (clientHasLocalizedStrs_gameScenarios(c))
             {
-                rets = localizeGameScenarios(scd.locale, str, true);
+                rets = localizeGameScenarios(scd.locale, str, true, scd);
             } else {
                 flags = SOCLocalizedStrings.FLAG_SENT_ALL;
                 scd.sentAllScenarioStrings = true;
@@ -6788,7 +6806,7 @@ public class SOCServer extends Server
         {
             if (clientHasLocalizedStrs_gameScenarios(c))
             {
-                List<String> scenStrs = localizeGameScenarios(scd.locale, null, false);
+                List<String> scenStrs = localizeGameScenarios(scd.locale, null, false, null);
 
                 // if none found, scenStrs will be empty; still sends the flag to let client know that.
                 c.put(SOCLocalizedStrings.toCmd
