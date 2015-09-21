@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -72,6 +72,10 @@ import java.util.Vector;
  * The {@link soc.robot.SOCRobotClient} is based on this client.
  * Because of this, some methods (such as {@link #handleVERSION(boolean, SOCVersion)})
  * assume the client and server are the same version.
+ *<P>
+ * Since client and server are the same version, this client ignores game option sync
+ * and scenario synchronization messages ({@link SOCGameOptionInfo}, {@link SOCScenarioInfo}).
+ * Being GUI-less, it ignores i18n localization messages ({@link SOCLocalizedStrings}).
  *
  * @author Robert S Thomas
  */
