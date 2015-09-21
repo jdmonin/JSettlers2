@@ -498,11 +498,12 @@ public class SOCScenario
     }
 
     /**
-     * Add a new known scenario (presumably received from a server of newer or older version),
+     * Add a new known scenario (received from a server having a newer or older version),
      * or update the scenario's information.
      * @param scNew New scenario, or a changed version of one we already know.
      * @return true if it's new, false if we already had that key and it was updated
      * @see #getAllKnownScenarios()
+     * @see #removeUnknownScenario(String)
      */
     public static boolean addKnownScenario(SOCScenario scNew)
     {
@@ -513,6 +514,18 @@ public class SOCScenario
 	allScenarios.put(scKey, scNew);
 
 	return ! hadIt;
+    }
+
+    /**
+     * Remove a scenario from known scenarios, based on info received from a server having an older or newer version.
+     * If {@code scKey} isn't a known scenario, does nothing.
+     * @param scKey  Scenario key marked as unknown by the server
+     * @see #getAllKnownScenarios()
+     * @see #addKnownScenario(SOCScenario)
+     */
+    public static void removeUnknownScenario(final String scKey)
+    {
+        allScenarios.remove(scKey);  // OK if scKey wasn't in map
     }
 
     /**
