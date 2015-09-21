@@ -6668,7 +6668,7 @@ public class SOCServer extends Server
      *         strings aren't localized, the key and {@link SOCLocalizedStrings#MARKER_KEY_UNKNOWN} are added instead.
      *    </UL>
      * @param scd  Optional client data to track which scenario strings are sent to client, or {@code null}.
-     *    This method will update {@link SOCClientData#scenarioStringsSent scd.scenarioStringsSent}.
+     *    This method will update {@link SOCClientData#scenariosInfoSent scd.scenariosInfoSent}.
      * @return  Localized string list, may be empty but will never be null, in same format as the message returned
      *    from server to client: Scenario keys with localized strings have 3 consecutive entries in the list:
      *    Key, name, description.  If {@code checkUnknowns_skipFirst}, unknown scenarios have 2 consecutive entries
@@ -6685,14 +6685,14 @@ public class SOCServer extends Server
         // No need to check hasLocalDescs = ! i18n_gameopt_PL_desc.equals(sm.get("gamescen.SC_WOND.n"))
         // because caller has done so
 
-        Set<String> scensSent;  // for optional tracking
+        Map<String, String> scensSent;  // for optional tracking
         if (scd != null)
         {
-            scensSent = scd.scenarioStringsSent;
+            scensSent = scd.scenariosInfoSent;
             if (scensSent == null)
             {
-                scensSent = new HashSet<String>();
-                scd.scenarioStringsSent = scensSent;
+                scensSent = new HashMap<String, String>();
+                scd.scenariosInfoSent = scensSent;
             }
         } else {
             scensSent = null;
@@ -6709,8 +6709,8 @@ public class SOCServer extends Server
                 continue;  // assumes scKeys is a List
             }
 
-            if (scensSent != null)
-                scensSent.add(scKey);
+            if ((scensSent != null) && ! scensSent.containsKey(scKey))
+                scensSent.put(scKey, SOCClientData.SENT_SCEN_STRINGS);
 
             String nm = null, desc = null;
 

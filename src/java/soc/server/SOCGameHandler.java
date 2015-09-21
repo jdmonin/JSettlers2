@@ -2774,7 +2774,7 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * Sends nothing if client's locale is null or version is older than 2.0.00.
      * Otherwise checks and updates the connection's {@link SOCClientData#sentAllScenarioStrings}
-     * and {@link SOCClientData#scenarioStringsSent} tracking fields.
+     * and {@link SOCClientData#scenariosInfoSent} tracking fields.
      *
      * @param scKey  Scenario keyname, from
      *     {@link SOCGame#getGameOptionStringValue(String) game.getGameOptionStringValue("SC")}, or null.
@@ -2801,10 +2801,10 @@ public class SOCGameHandler extends GameHandler
         }
 
         // have we already sent this scen's strings?
-        // If not, send now and update scd.scenarioStringsSent[].
+        // If not, send now and update scd.scenariosInfoSent.
 
-        Set<String> scensSent = scd.scenarioStringsSent;
-        if ((scensSent != null) && scensSent.contains(scKey))
+        Map<String, String> scensSent = scd.scenariosInfoSent;
+        if ((scensSent != null) && scensSent.containsKey(scKey))
             return;  // <--- Already sent ---
 
         String nm = null, desc = null;
@@ -2826,10 +2826,10 @@ public class SOCGameHandler extends GameHandler
         // Remember that we sent it
         if (scensSent == null)
         {
-            scensSent = new HashSet<String>();
-            scd.scenarioStringsSent = scensSent;
+            scensSent = new HashMap<String, String>();
+            scd.scenariosInfoSent = scensSent;
         }
-        scensSent.add(scKey);
+        scensSent.put(scKey, SOCClientData.SENT_STRINGS);
     }
 
     /**

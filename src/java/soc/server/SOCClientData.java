@@ -19,7 +19,7 @@
 package soc.server;
 
 import java.util.Locale;
-import java.util.Set;
+import java.util.Map;
 import java.util.TimerTask;
 
 import soc.message.SOCGameOptionGetInfos;  // for javadoc
@@ -105,7 +105,7 @@ public class SOCClientData
     private boolean sentGameList;
 
     /**
-     * Have we sent localized strings for all {@link soc.game.SOCScenario SOCScenario}s?
+     * True if we've sent localized strings for all {@link soc.game.SOCScenario SOCScenario}s.
      * To reduce network traffic, those large strings aren't sent unless the client is creating a
      * new game and needs the scenario dropdown.
      *<P>
@@ -113,14 +113,36 @@ public class SOCClientData
      * or if the client is too old (1.1.xx) to use i18n localization.
      *
      * @since 2.0.00
-     * @see #scenarioStringsSent
+     * @see #scenariosInfoSent
      */
     public boolean sentAllScenarioStrings;
 
     /**
+     * For a scenario keyname in {@link #scenariosInfoSent}, value indicating that the client
+     * was sent localized scenario strings (not all scenario info fields), or that the client
+     * requested them and no localized strings were found for that scenario.
+     * @see #SENT_SCEN_INFO
+     * @since 2.0.00
+     */
+    public static final String SENT_SCEN_STRINGS = "S";
+
+    /**
+     * For a scenario keyname in {@link #scenariosInfoSent}, value indicating that the client
+     * was sent all scenario info fields (not only localized scenario strings).
+     * @see #SENT_SCEN_STRINGS
+     * @since 2.0.00
+     */
+    public static final String SENT_SCEN_INFO = "I";
+
+    /**
      * The {@link soc.game.SOCScenario SOCScenario} keynames for which we've
-     * sent localized strings. To reduce network traffic, those large strings aren't sent unless
-     * the client is joining a game with a scenario, or if the client requests them.
+     * sent localized strings or all scenario info fields.
+     * To reduce network traffic, those large strings aren't sent unless
+     * the client is joining a game with a scenario, or has requested them.
+     *<P>
+     * For any scenario's keyname here, the value will be either {@link #SENT_SCEN_STRINGS} or {@link #SENT_SCEN_INFO}.
+     * If a scenario's key isn't contained in this map, nothing has been sent about it
+     * unless the {@link #sentAllScenarioStrings} flag is set.
      *<P>
      * Null if {@link #sentAllScenarioStrings} or if client hasn't requested any
      * or joined any game that has a scenario.
@@ -130,7 +152,7 @@ public class SOCClientData
      *
      * @since 2.0.00
      */
-    public Set<String> scenarioStringsSent;
+    public Map<String, String> scenariosInfoSent;
 
     /**
      * Is this connection a robot?
