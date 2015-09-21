@@ -64,6 +64,7 @@ import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
+import soc.game.SOCVersionedItem;
 import soc.game.SOCVillage;
 import soc.message.SOCAcceptOffer;
 import soc.message.SOCBankTrade;
@@ -126,6 +127,7 @@ import soc.message.SOCRevealFogHex;
 import soc.message.SOCRollDice;
 import soc.message.SOCRollDicePrompt;
 import soc.message.SOCSVPTextMessage;
+import soc.message.SOCScenarioInfo;
 import soc.message.SOCSetPlayedDevCard;
 import soc.message.SOCSetSeatLock;
 import soc.message.SOCSetSpecialItem;
@@ -930,10 +932,10 @@ public class SOCGameHandler extends GameHandler
         String gameName = gameData.getName();
         if (! isReset)
         {
-            // Handle i18n first
+            // First, send updated scenario info or localized strings if needed
             final String gameScen = gameData.getGameOptionStringValue("SC");
             if (gameScen != null)
-                sendGameScenarioStrings(gameScen, c);
+                sendGameScenarioInfo(gameScen, c, false);
 
             // Now, join game
             c.put(SOCJoinGameAuth.toCmd(gameName));
@@ -2768,68 +2770,128 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * If needed, send this scenario's i18n localized short/long description strings to the client.
-     * Checks whether the scenario has strings in the client's locale, and whether the client has
-     * already been sent this scenario's strings.
+     * If needed, send this scenario's updated info and i18n localized short/long description strings to the client.
+     * Checks whether the scenario has been added or changed since the client's version,
+     * whether the scenario has strings in the client's locale, and whether the client has
+     * already been sent this scenario's info or strings.
      *<P>
-     * Sends nothing if client's locale is null or version is older than 2.0.00.
-     * Otherwise checks and updates the connection's {@link SOCClientData#sentAllScenarioStrings}
-     * and {@link SOCClientData#scenariosInfoSent} tracking fields.
+     * Sends nothing if client's version is older than 2.0.00.
+     * Will not send localized strings if locale is null.
+     * Checks and updates the connection's {@link SOCClientData#sentAllScenarioStrings},
+     * {@link SOCClientData#sentAllScenarioInfo}, {@link SOCClientData#scenariosInfoSent} and
+     * related tracking fields.
+     *<P>
+     * Assumes server has already checked that the client can join this game and receive this scenario:
+     * Scenario's {@link SOCVersionedItem#minVersion minVersion} isn't checked here.
      *
      * @param scKey  Scenario keyname, from
      *     {@link SOCGame#getGameOptionStringValue(String) game.getGameOptionStringValue("SC")}, or null.
      *     Sends nothing if null.
      * @param c  Client connection
+     * @param stringsOnly  If true, send only localized strings, not entire {@link SOCScenarioInfo}.
      * @since 2.0.00
      */
-    private void sendGameScenarioStrings(final String scKey, final StringConnection c)
+    private void sendGameScenarioInfo
+        (final String scKey, final StringConnection c, final boolean stringsOnly)
     {
         if (scKey == null)
             return;
 
         final SOCClientData scd = (SOCClientData) c.getAppData();
-        if (scd.sentAllScenarioStrings)
-            return;
+        if (scd.sentAllScenarioInfo || (stringsOnly && scd.sentAllScenarioStrings))
+            return;  // <--- Already checked, nothing left to send ---
 
-        if (! SOCServer.clientHasLocalizedStrs_gameScenarios(c))
+        final int cliVers = c.getVersion();
+        if (cliVers < SOCScenario.VERSION_FOR_SCENARIOS)
         {
-            // client's locale has no localized scenario strings, or c.getI18NLocale() == null
-            // or c.getVersion() < SOCStringManager.VERSION_FOR_I18N
-
             scd.sentAllScenarioStrings = true;
-            return;
+            scd.sentAllScenarioInfo = true;
+
+            return;  // <--- Client is too old ---
         }
 
-        // have we already sent this scen's strings?
+        // Have we already sent this scenario's info or strings?
         // If not, send now and update scd.scenariosInfoSent.
 
         Map<String, String> scensSent = scd.scenariosInfoSent;
-        if ((scensSent != null) && scensSent.containsKey(scKey))
-            return;  // <--- Already sent ---
-
-        String nm = null, desc = null;
-        try { nm = c.getLocalized("gamescen." + scKey + ".n"); }
-        catch (MissingResourceException e) {
-            return;  // <--- No name ---
+        if (scensSent != null)
+        {
+            final String alreadySent = scensSent.get(scKey);
+            if ((alreadySent != null)
+                && (stringsOnly || alreadySent.equals(SOCClientData.SENT_SCEN_INFO)))
+            {
+                return;  // <--- Already sent ---
+            }
         }
 
-        try { desc = c.getLocalized("gamescen." + scKey + ".d"); }
-        catch (MissingResourceException e) {}
+        SOCScenario scSend = null;  // If not null, send full scenario info instead of only strings
 
-        List<String> scenStrs = new ArrayList<String>();
-        scenStrs.add(scKey);
-        scenStrs.add(nm);
-        scenStrs.add(desc);  // null is OK
+        if (! stringsOnly)
+        {
+            SOCScenario sc = SOCScenario.getScenario(scKey);
+            if ((sc != null) && (sc.lastModVersion > cliVers))
+                scSend = sc;
+        }
 
-        c.put(SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, 0, scenStrs));
+        String nm = null, desc = null;
 
-        // Remember that we sent it
+        final boolean localeHasScenStrs;
+        if (scd.checkedLocaleScenStrings)
+        {
+            localeHasScenStrs = scd.localeHasScenStrings;
+        } else {
+            localeHasScenStrs = SOCServer.clientHasLocalizedStrs_gameScenarios(c);
+
+            scd.localeHasScenStrings = localeHasScenStrs;
+            scd.checkedLocaleScenStrings = true;
+
+            if (! localeHasScenStrs)
+            {
+                // client's locale has no localized scenario strings, or c.getI18NLocale() == null
+                scd.sentAllScenarioStrings = true;
+            }
+        }
+
+        if (localeHasScenStrs)
+        {
+            try { nm = c.getLocalized("gamescen." + scKey + ".n"); }
+            catch (MissingResourceException e) {}
+
+            if (nm != null)
+            {
+                try { desc = c.getLocalized("gamescen." + scKey + ".d"); }
+                catch (MissingResourceException e) {}
+            }
+        }
+        else if (scSend == null)
+        {
+            return;  // <--- No scenario strings in locale, and no full info to send ---
+        }
+
+        if (scSend != null)
+        {
+            c.put(new SOCScenarioInfo(scSend, nm, desc).toCmd());
+        } else {
+            List<String> scenStrs = new ArrayList<String>();
+            scenStrs.add(scKey);
+            if (nm != null)
+            {
+                scenStrs.add(nm);
+                scenStrs.add(desc);  // null is OK
+            } else {
+                scenStrs.add(SOCLocalizedStrings.MARKER_KEY_UNKNOWN);
+            }
+
+            c.put(SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, 0, scenStrs));
+        }
+
+        // Remember what we sent it
         if (scensSent == null)
         {
             scensSent = new HashMap<String, String>();
             scd.scenariosInfoSent = scensSent;
         }
-        scensSent.put(scKey, SOCClientData.SENT_STRINGS);
+        scensSent.put(scKey, (stringsOnly) ? SOCClientData.SENT_SCEN_STRINGS : SOCClientData.SENT_SCEN_INFO);
     }
 
     /**

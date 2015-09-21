@@ -133,13 +133,22 @@ class ServerGametypeInfo
      * The server sends all scenario strings when client has asked
      * for game option defaults for the dialog to create a new game.
      * @see #scenKeys
+     * @see #allScenInfoReceived
      * @since 2.0.00
      */
     public boolean allScenStringsReceived = false;
 
     /**
-     * Any scenario keynames for which the server has sent us i18n strings or responded with "unknown".
-     * Empty if server hasn't sent any, ignored if {@link #allScenStringsReceived}.
+     * If true, the server sent us information on all added or changed scenarios,
+     * and any localized i18n scenario strings ({@link #allScenStringsReceived}).
+     * @see #scenKeys
+     * @since 2.0.00
+     */
+    public boolean allScenInfoReceived = false;
+
+    /**
+     * Any scenario keynames for which the server has sent us updated info or i18n strings or responded with "unknown".
+     * Empty if server hasn't sent any, ignored if {@link #allScenStringsReceived} or {@link #allScenStringsReceived}.
      * @since 2.0.00
      */
     public HashSet<String> scenKeys;

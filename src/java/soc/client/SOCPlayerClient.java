@@ -3344,6 +3344,14 @@ public class SOCPlayerClient
                 handleLOCALIZEDSTRINGS((SOCLocalizedStrings) mes, isPractice);
                 break;
 
+            /**
+             * Updated scenario info.
+             * Added 2015-09-21 for v2.0.00.
+             */
+            case SOCMessage.SCENARIOINFO:
+                handleSCENARIOINFO((SOCScenarioInfo) mes, isPractice);
+                break;
+
             }  // switch (mes.getType())
         }
         catch (Exception e)
@@ -4943,6 +4951,41 @@ public class SOCPlayerClient
         else
         {
             System.err.println("L4916: Unknown localized string type " + type);
+        }
+    }
+
+    /**
+     * Updated scenario info.
+     * Added 2015-09-21 for v2.0.00.
+     * @param isPractice  Is the server {@link ClientNetwork#practiceServer}, not remote?
+     */
+    private void handleSCENARIOINFO(final SOCScenarioInfo mes, final boolean isPractice)
+    {
+        ServerGametypeInfo opts;
+        if (isPractice)
+            opts = practiceServGameOpts;
+        else
+            opts = tcpServGameOpts;
+
+        if (mes.noMoreScens)
+        {
+            synchronized (opts)
+            {
+                opts.allScenStringsReceived = true;
+                opts.allScenInfoReceived = true;
+            }
+        } else {
+            final String scKey = mes.getScenarioKey();
+
+            if (mes.isKeyUnknown)
+                SOCScenario.removeUnknownScenario(scKey);
+            else
+                SOCScenario.addKnownScenario(mes.getScenario());
+
+            synchronized (opts)
+            {
+                opts.scenKeys.add(scKey);  // OK if was already present from received localized strings
+            }
         }
     }
 

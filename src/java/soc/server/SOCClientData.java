@@ -105,6 +105,23 @@ public class SOCClientData
     private boolean sentGameList;
 
     /**
+     * If true we've called {@link SOCServer#clientHasLocalizedStrs_gameScenarios(StringConnection)},
+     * storing the result in {@link #localeHasScenStrings}.
+     * @since 2.0.00
+     */
+    public boolean checkedLocaleScenStrings;
+
+    /**
+     * If true we've called {@link SOCServer#clientHasLocalizedStrs_gameScenarios(StringConnection)},
+     * and this client's locale is not {@code null} and has at least some localized scenario strings
+     * (see that method's javadoc for details).
+     * @since 2.0.00
+     * @see #checkedLocaleScenStrings
+     * @see #sentAllScenarioStrings
+     */
+    public boolean localeHasScenStrings;
+
+    /**
      * True if we've sent localized strings for all {@link soc.game.SOCScenario SOCScenario}s.
      * To reduce network traffic, those large strings aren't sent unless the client is creating a
      * new game and needs the scenario dropdown.
@@ -114,8 +131,22 @@ public class SOCClientData
      *
      * @since 2.0.00
      * @see #scenariosInfoSent
+     * @see #sentAllScenarioInfo
+     * @see #localeHasScenStrings
      */
     public boolean sentAllScenarioStrings;
+
+    /**
+     * True if we've sent all updated {@link soc.game.SOCScenario SOCScenario} info.
+     * Like {@link #sentAllScenarioStrings}, scenario info messages aren't sent unless needed.
+     *<P>
+     * Also true if the client is too old (1.1.xx) to use scenarios.
+     *
+     * @since 2.0.00
+     * @see #scenariosInfoSent
+     * @see #sentAllScenarioStrings
+     */
+    public boolean sentAllScenarioInfo;
 
     /**
      * For a scenario keyname in {@link #scenariosInfoSent}, value indicating that the client
