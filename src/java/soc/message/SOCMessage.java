@@ -356,9 +356,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * (which all implement {@link SOCMessageForGame}) are used for convenience for non-game messages
      * such as {@link SOCLocalizedStrings}.
      *<P>
-     * No actual game will ever have the same name as this marker, because the marker fails
+     * No actual game, option, or scenario will ever have the same name as this marker, because the marker fails
      * {@link #isSingleLineAndSafe(String, boolean) isSingleLineAndSafe(String, false)} by
      * including a control character.
+     *
      * @since 2.0.00
      */
     public static final String GAME_NONE = "\026";  // 0x16 ^V (SYN)

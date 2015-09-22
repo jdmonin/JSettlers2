@@ -39,8 +39,21 @@ package soc.message;
 public interface SOCMessageForGame
 {
     /**
-     * @return the name of the game, or (rarely) {@code null} if none.
+     * Name of game this message is for.
      * Must not be {@code null} if message is in per-game structures or code.
+     *<P>
+     * At the server, the message treater dispatches incoming {@code SOCMessageForGame}s
+     * based on their {@code getGame()}:
+     *<UL>
+     * <LI> {@code null}: Message is ignored
+     * <LI> {@link SOCMessage#GAME_NONE}: Message is handled by {@code SOCServer} itself
+     * <LI> Any other game name: Looks for a game with that name, to dispatch to
+     *      the {@code GameHandler} for that game's type. If no game with that name is found,
+     *      the message is ignored.
+     *</UL>
+     *
+     * @return the name of the game, or (rarely) {@code null} if none.
+     *
      * @see SOCMessage#GAME_NONE
      */
     public abstract String getGame();

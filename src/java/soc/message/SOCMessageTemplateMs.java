@@ -64,6 +64,8 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
 
     /**
      * Name of the game, or null if none.
+     * The server's message treater requires a non-null {@link #getGame()} for incoming messages
+     * from clients; see {@link SOCMessageForGame#getGame()} for details.
      */
     protected String game;
 
@@ -78,7 +80,9 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      * Create a new multi-message with string parameters.
      *
      * @param id  Message type ID
-     * @param ga  Name of game this message is for, or null if none
+     * @param ga  Name of game this message is for, or null if none. See {@link #getGame()} for details.
+     *     The server's message treater requires a non-null {@link #getGame()}
+     *     for incoming messages from clients; see {@link SOCMessageForGame#getGame()} for details.
      * @param pal List of parameters, or null if none
      */
     protected SOCMessageTemplateMs(final int id, final String ga, final List<String> pal)
@@ -89,6 +93,9 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
     }
 
     /**
+     * Get the game name; see {@link SOCMessageForGame#getGame()} for details.
+     * If not null, {@link #toCmd()} sends the game name before {@link #getParams()} contents, and
+     * at the receiver {@code parseDataStr(params)} will see that game name as the first parameter.
      * @return the name of the game, or null if none
      */
     public String getGame()
