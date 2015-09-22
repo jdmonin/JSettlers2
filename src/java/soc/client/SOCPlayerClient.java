@@ -5337,14 +5337,14 @@ public class SOCPlayerClient
      */
     protected void checkGameoptsForUnknownScenario(final Map<String,SOCGameOption> opts)
     {
-        if ((opts == null) || tcpServGameOpts.allScenStringsReceived || ! opts.containsKey("SC"))
+        if ((opts == null) || tcpServGameOpts.allScenInfoReceived || ! opts.containsKey("SC"))
             return;
 
-        final String scenName = opts.get("SC").getStringValue();
-        if ((scenName.length() == 0) || tcpServGameOpts.scenKeys.contains(scenName))
+        final String scKey = opts.get("SC").getStringValue();
+        if ((scKey.length() == 0) || tcpServGameOpts.scenKeys.contains(scKey))
             return;
 
-        net.putNet(SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, 0, scenName));
+        net.putNet(new SOCScenarioInfo(scKey, false).toCmd());
     }
 
     /**

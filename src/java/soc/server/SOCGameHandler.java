@@ -2775,14 +2775,14 @@ public class SOCGameHandler extends GameHandler
      * whether the scenario has strings in the client's locale, and whether the client has
      * already been sent this scenario's info or strings.
      *<P>
-     * Sends nothing if client's version is older than 2.0.00.
+     * Sends nothing if client's version is older than 2.0.00 ({@link SOCScenario#VERSION_FOR_SCENARIOS}).
      * Will not send localized strings if locale is null.
      * Checks and updates the connection's {@link SOCClientData#sentAllScenarioStrings},
      * {@link SOCClientData#sentAllScenarioInfo}, {@link SOCClientData#scenariosInfoSent} and
      * related tracking fields.
      *<P>
-     * Assumes server has already checked that the client can join this game and receive this scenario:
-     * Scenario's {@link SOCVersionedItem#minVersion minVersion} isn't checked here.
+     * Scenario's {@link SOCVersionedItem#minVersion minVersion} isn't checked here; may send information
+     * about a scenario that's too new for the client's version to join games with it.
      *
      * @param scKey  Scenario keyname, from
      *     {@link SOCGame#getGameOptionStringValue(String) game.getGameOptionStringValue("SC")}, or null.
@@ -2791,7 +2791,7 @@ public class SOCGameHandler extends GameHandler
      * @param stringsOnly  If true, send only localized strings, not entire {@link SOCScenarioInfo}.
      * @since 2.0.00
      */
-    private void sendGameScenarioInfo
+    void sendGameScenarioInfo
         (final String scKey, final StringConnection c, final boolean stringsOnly)
     {
         if (scKey == null)

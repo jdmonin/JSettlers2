@@ -133,8 +133,9 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
 
     /**
      * {@link #scKey} marker {@code "?"} from client to ask for any new or changed scenarios
-     * between the client and server versions.  The server will reply with a sequence of
-     * messages with scenario info, the last message will have the {@link #noMoreScens} flag.
+     * between the client and server versions.  When present, this is the last item in the parameter list.
+     * The server will reply with a sequence of messages with scenario info, and a sequence-ending empty message
+     * with only the {@link #noMoreScens} flag.
      */
     public static final String MARKER_ANY_CHANGED = "?";
 
@@ -187,7 +188,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      *     {@link SOCVersionedItem#getDesc() SOCScenario.getDesc()}
      * @param localLongDesc  i18n localized long description, or {@code null} to use
      *     {@link SOCScenario#getLongDesc()}
-     * @see #SOCScenarioInfo(String)
+     * @see #SOCScenarioInfo(String, boolean)
      */
     public SOCScenarioInfo(final SOCScenario sc, String localDesc, String localLongDesc)
     {
@@ -225,25 +226,30 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
     }
 
     /**
-     * Constructor for server to tell client that a requested scenario is unknown.
+     * Constructor for client to ask the server for info about a single scenario,
+     * or for server to tell client that a requested scenario is unknown.
      *
-     * @param unknownKey  Keyname of a scenario unknown at server
-     * @throws IllegalArgumentException  If {@code unknownKey} fails {@link SOCMessage#isSingleLineAndSafe(String)}
+     * @param scKey  Keyname of a scenario, requested at client or unknown at server
+     * @param isServerReply  True if replying from server, false if requesting from client
+     * @throws IllegalArgumentException  if {@code scKey} fails {@link SOCMessage#isSingleLineAndSafe(String)}
      * @see #SOCScenarioInfo(SOCScenario, String, String)
      */
-    public SOCScenarioInfo(final String unknownKey)
+    public SOCScenarioInfo(final String scKey, final boolean isServerReply)
         throws IllegalArgumentException
     {
-        super(SCENARIOINFO, null, new ArrayList<String>());
+        super(SCENARIOINFO, ((isServerReply) ? null : SOCMessage.GAME_NONE), new ArrayList<String>());
 
-        if (! isSingleLineAndSafe(unknownKey))
-            throw new IllegalArgumentException("unknownKey: " + unknownKey);
+        if (! isSingleLineAndSafe(scKey))
+            throw new IllegalArgumentException("scKey: " + scKey);
 
         noMoreScens = false;
-        isKeyUnknown = true;
-        scKey = unknownKey;
+        isKeyUnknown = isServerReply;
+        this.scKey = scKey;
 
-        /* [0] */ pa.add(unknownKey);
+        /* [0] */ pa.add(scKey);
+        if (! isServerReply)
+            return;  // <--- Early return: Sending request from client ---
+
         /* [1] */ pa.add("0");  // minVersion
         /* [2] */ pa.add(Integer.toString(MARKER_KEY_UNKNOWN));  // lastModVersion
         /* [3] */ pa.add(EMPTYSTR);  // opts
@@ -251,41 +257,49 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
     }
 
     /**
-     * Constructor for client to parse server's reply about a game scenario.
+     * Constructor to parse an incoming message; see {@link #parseDataStr(List)} for expected {@code pa} format.
+     * If message is from client, removes the {@link SOCMessage#GAME_NONE} first element.
      *
-     * @param pa Parameters for the scenario:
-     *<UL>
-     * <LI> pa[0] = key (name of the scenario, from {@link SOCVersionedItem#key})
-     * <LI> pa[1] = minimum version integer
-     * <LI> pa[2] = last-modified version integer
-     * <LI> pa[3] = scenario's game options if any, or "-", from {@link SOCScenario#scOpts}
-     * <LI> pa[4] = one-line description (displayed text), localized to client if localized text is available
-     * <LI> pa[5] if present = long description (paragraph of displayed text) if any, localized to client if available
-     *</UL>
-     *
-     * @throws IllegalArgumentException if pal length &lt; 5,
-     *    or if any field fails the {@link SOCScenario#SOCScenario(String, int, int, String, String, String)}
+     * @throws IllegalArgumentException if pa length &lt; 5 from server or &lt; 2 from client,
+     *    or if message is from server and any field fails the
+     *    {@link SOCScenario#SOCScenario(String, int, int, String, String, String)}
      *    constructor's requirements for it
-     * @throws NumberFormatException    if pal integer-field contents are incorrectly formatted.
+     * @throws IndexOutOfBoundsException if {@code pa} is empty or its only element is {@link SOCMessage#GAME_NONE}
+     * @throws NumberFormatException    if any {@code pa} integer field's contents are incorrectly formatted.
      */
     private SOCScenarioInfo(List<String> pa)
-        throws IllegalArgumentException, NumberFormatException
+        throws IllegalArgumentException, IndexOutOfBoundsException, NumberFormatException
     {
 	super(SCENARIOINFO, null, pa);
+
 	final int L = pa.size();
-	if (L < 5)
-	    throw new IllegalArgumentException("pa.size");
+	final boolean isFromClient = (pa.get(0).equals(SOCMessage.GAME_NONE));  // may throw IndexOutOfBoundsException
+	if (isFromClient)
+	{
+	    // remove GAME_NONE marker from param list, set game field to it:
+	    // non-null game required for server message handler
+	    game = pa.remove(0);
+	    if (pa.isEmpty())
+	        throw new IndexOutOfBoundsException();
 
-	scKey = pa.get(0);
-	final int minVers = Integer.parseInt(pa.get(1));
-	final int lastModVers = Integer.parseInt(pa.get(2));
-	final String longDesc = (L >= 6) ? pa.get(5) : null;
+	    scKey = null;
+	    isKeyUnknown = false;
+	    noMoreScens = false;
+	} else {
+	    if ((L < 5) && ! isFromClient)
+	        throw new IllegalArgumentException("pa.size");
 
-	isKeyUnknown = (lastModVers == MARKER_KEY_UNKNOWN);
-        noMoreScens = (scKey.equals(MARKER_NO_MORE_SCENS));
+	    scKey = pa.get(0);
+	    final int minVers = Integer.parseInt(pa.get(1));
+	    final int lastModVers = Integer.parseInt(pa.get(2));
+	    final String longDesc = (L >= 6) ? pa.get(5) : null;
 
-	if (! (isKeyUnknown || noMoreScens))
-	    sc = new SOCScenario(scKey, minVers, lastModVers, pa.get(4), longDesc, pa.get(3));
+	    isKeyUnknown = (lastModVers == MARKER_KEY_UNKNOWN);
+	    noMoreScens = (scKey.equals(MARKER_NO_MORE_SCENS));
+
+	    if (! (isKeyUnknown || noMoreScens))
+	        sc = new SOCScenario(scKey, minVers, lastModVers, pa.get(4), longDesc, pa.get(3));
+	}
     }
 
     /**
@@ -318,7 +332,14 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
     }
 
     /**
-     * Parse the command String array into a SOCScenarioInfo message.
+     * Parse the parameter list into a SOCScenarioInfo message.
+     *
+     *<H4>From Client:</H4>
+     * {@code pa} is a list of scenario keynames the client is requesting info about.
+     * {@code pa[0]} is the marker {@link SOCMessage#GAME_NONE}.
+     * List might end with {@link #MARKER_ANY_CHANGED}.
+     *
+     *<H4>From Server:</H4>
      *<UL>
      * <LI> pa[0] = key (name of the scenario)
      * <LI> pa[1] = minimum version integer
@@ -327,13 +348,20 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      * <LI> pa[4] = one-line description (displayed text), localized to client if localized text is available
      * <LI> pa[5] if present = long description (paragraph of displayed text) if any, localized to client if available
      *</UL>
+     *<P>
+     * {@link SOCMessageTemplateMs} has an optional {@link #getGame()} field in the message,
+     * which if non-{@code null} appears here as the first parameter in the string list.
+     * To determine if we're parsing a message from the client or from the server, note that messages
+     * from the client have {@code getGame()} == {@link SOCMessage#GAME_NONE}, those from the server have {@code null}
+     * and their first parameter is a scenario keyname instead. {@code GAME_NONE} is guaranteed to not be
+     * a valid scenario keyname; it contains a character not valid for scenario keys.
      *
-     * @param pa   the String parameters
-     * @return    a SOCScenarioInfo message, or null if parsing errors
+     * @param pa  the String parameters
+     * @return  a SOCScenarioInfo message, or null if parsing errors
      */
     public static SOCScenarioInfo parseDataStr(List<String> pa)
     {
-        if ((pa == null) || (pa.size() < 5))
+        if ((pa == null) || (pa.size() < 2))
             return null;
 
         try

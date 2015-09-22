@@ -4233,6 +4233,14 @@ public class SOCServer extends Server
                     handleNEWGAMEWITHOPTIONSREQUEST(c, (SOCNewGameWithOptionsRequest) mes);
                     break;
 
+                /**
+                 * Client request for updated scenario info.
+                 * Added 2015-09-21 for v2.0.00.
+                 */
+                case SOCMessage.SCENARIOINFO:
+                    handleSCENARIOINFO(c, (SOCScenarioInfo) mes);
+                    break;
+
                 }  // switch (mes.getType)
             }  // if (mes != null)
         }
@@ -6967,6 +6975,36 @@ public class SOCServer extends Server
 
         // mark end of list, even if list was empty
         c.put(SOCGameOptionInfo.OPTINFO_NO_MORE_OPTS.toCmd());  // GAMEOPTIONINFO("-")
+    }
+
+    /**
+     * Process client request for updated {@link SOCScenario} info.
+     * Added 2015-09-21 for v2.0.00.
+     */
+    private void handleSCENARIOINFO(final StringConnection c, final SOCScenarioInfo mes)
+    {
+        if (c == null)
+            return;
+
+        List<String> params = mes.getParams();
+        int L = params.size();
+        if (L == 0)
+            return;  // malformed
+
+        final boolean hasAnyChangedMarker = params.get(L - 1).equals(SOCScenarioInfo.MARKER_ANY_CHANGED);
+        if (hasAnyChangedMarker)
+        {
+            params.remove(L - 1);
+            --L;
+        }
+        else if (L == 1)
+        {
+            // requesting one scenario
+            handler.sendGameScenarioInfo(params.get(0), c, false);
+            return;
+        }
+
+        // TODO calculate and respond
     }
 
     /**
