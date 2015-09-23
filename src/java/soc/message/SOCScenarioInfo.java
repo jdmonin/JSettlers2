@@ -189,6 +189,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      * @param localLongDesc  i18n localized long description, or {@code null} to use
      *     {@link SOCScenario#getLongDesc()}
      * @see #SOCScenarioInfo(String, boolean)
+     * @see #SOCScenarioInfo(List, boolean)
      */
     public SOCScenarioInfo(final SOCScenario sc, String localDesc, String localLongDesc)
     {
@@ -232,6 +233,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      * @param scKey  Keyname of a scenario, requested at client or unknown at server
      * @param isServerReply  True if replying from server, false if requesting from client
      * @throws IllegalArgumentException  if {@code scKey} fails {@link SOCMessage#isSingleLineAndSafe(String)}
+     * @see #SOCScenarioInfo(List, boolean)
      * @see #SOCScenarioInfo(SOCScenario, String, String)
      */
     public SOCScenarioInfo(final String scKey, final boolean isServerReply)
@@ -254,6 +256,42 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
         /* [2] */ pa.add(Integer.toString(MARKER_KEY_UNKNOWN));  // lastModVersion
         /* [3] */ pa.add(EMPTYSTR);  // opts
         /* [4] */ pa.add(EMPTYSTR);  // desc
+    }
+
+    /**
+     * Constructor for client to ask a server for info about any new or changed scenarios
+     * and/or about specific scenario keys.
+     *
+     * @param scKeys  List of scenarios to ask about, or {@code null} for an empty list
+     * @param addMarkerAnyChanged  If true, append {@link #MARKER_ANY_CHANGED} to the sent list
+     * @throws IllegalArgumentException if ! {@code addMarkerAnyChanged} and {@code scKeys} is {@code null} or empty
+     *     (this would be an empty message), or if any element of {@code scKeys} fails
+     *     {@link SOCMessage#isSingleLineAndSafe(String)}
+     * @see #SOCScenarioInfo(String, boolean)
+     * @see #SOCScenarioInfo(SOCScenario, String, String)
+     */
+    public SOCScenarioInfo(final List<String> scKeys, final boolean addMarkerAnyChanged)
+        throws IllegalArgumentException
+    {
+        super(SCENARIOINFO, SOCMessage.GAME_NONE,
+              (scKeys != null) ? scKeys : new ArrayList<String>());
+
+        if ((scKeys == null) || scKeys.isEmpty())
+        {
+            if (! addMarkerAnyChanged)
+                throw new IllegalArgumentException("empty message");
+        } else {
+            for (final String sc : scKeys)
+                if (! SOCMessage.isSingleLineAndSafe(sc))
+                    throw new IllegalArgumentException();
+        }
+
+        if (addMarkerAnyChanged)
+            pa.add(MARKER_ANY_CHANGED);
+
+        scKey = null;
+        isKeyUnknown = false;
+        noMoreScens = false;
     }
 
     /**
