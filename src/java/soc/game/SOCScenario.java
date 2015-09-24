@@ -816,6 +816,7 @@ public class SOCScenario
      * {@link SOCVersionedItem#getDesc() getDesc()}.{@link String#compareTo(String) compareTo()}.
      * @param other A SOCScenario to compare, or another object;  if other isn't a
      *              scenario, the {@link #hashCode()}s are compared.
+     * @see #equals(Object)
      */
     public int compareTo(Object other)
     {
@@ -829,5 +830,32 @@ public class SOCScenario
             return hashCode() - other.hashCode();
         }
     }
+
+    /**
+     * Test if this scenario equals another object.
+     * Two game scenarios are considered equal if they have the same {@link SOCVersionedItem#key key}.
+     * @param other A SOCScenario to compare, or another object;  if other isn't a
+     *      scenario, calls {@link Object#equals(Object) Object.equals(other)}.
+     * @see #compareTo(Object)
+     * @see #hashCode()
+     */
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (other == null)
+            return false;
+        else if (other instanceof SOCScenario)
+            return key.equals(((SOCScenario) other).key);
+        else
+            return super.equals(other);
+    }
+
+    /**
+     * Return this scenario's hashCode for comparison purposes,
+     * which is its {@link SOCVersionedItem#key key}'s {@link String#hashCode()}.
+     * @see #equals(Object)
+     */
+    @Override
+    public int hashCode() { return key.hashCode(); }
 
 }
