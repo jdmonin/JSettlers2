@@ -7000,11 +7000,44 @@ public class SOCServer extends Server
         else if (L == 1)
         {
             // requesting one scenario
-            handler.sendGameScenarioInfo(params.get(0), c, false);
+            handler.sendGameScenarioInfo(params.get(0), null, c, false);
             return;
         }
 
-        // TODO calculate and respond
+        // Calculate and respond; be sure to include any requested scKeys from params
+
+        List<SOCScenario> changes = null;
+        if (hasAnyChangedMarker)
+            changes = SOCVersionedItem.itemsNewerThanVersion
+                (c.getVersion(), false, SOCScenario.getAllKnownScenarios());
+
+        if (L > 0)
+        {
+            if (changes == null)
+                changes = new ArrayList<SOCScenario>();
+
+            for (String scKey : params)
+            {
+                SOCScenario sc = SOCScenario.getScenario(scKey);
+                if (sc == null)
+                    c.put(new SOCScenarioInfo(scKey, true).toCmd());  // unknown scenario
+                else if (! changes.contains(sc))
+                    changes.add(sc);
+            }
+        }
+
+        if (changes != null)
+            for (final SOCScenario sc : changes)
+                handler.sendGameScenarioInfo(null, sc, c, false);
+
+        c.put(new SOCScenarioInfo(null, null, null).toCmd());  // send end of list
+
+        if (hasAnyChangedMarker)
+        {
+            final SOCClientData scd = (SOCClientData) c.getAppData();
+            scd.sentAllScenarioInfo = true;
+            scd.sentAllScenarioStrings = true;
+        }
     }
 
     /**

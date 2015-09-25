@@ -935,7 +935,7 @@ public class SOCGameHandler extends GameHandler
             // First, send updated scenario info or localized strings if needed
             final String gameScen = gameData.getGameOptionStringValue("SC");
             if (gameScen != null)
-                sendGameScenarioInfo(gameScen, c, false);
+                sendGameScenarioInfo(gameScen, null, c, false);
 
             // Now, join game
             c.put(SOCJoinGameAuth.toCmd(gameName));
@@ -2775,6 +2775,7 @@ public class SOCGameHandler extends GameHandler
      * whether the scenario has strings in the client's locale, and whether the client has
      * already been sent this scenario's info or strings.
      *<P>
+     * Sends nothing if {@code scKey} and {@code sc} are both null.
      * Sends nothing if client's version is older than 2.0.00 ({@link SOCScenario#VERSION_FOR_SCENARIOS}).
      * Will not send localized strings if locale is null.
      * Checks and updates the connection's {@link SOCClientData#sentAllScenarioStrings},
@@ -2786,19 +2787,29 @@ public class SOCGameHandler extends GameHandler
      *
      * @param scKey  Scenario keyname, from
      *     {@link SOCGame#getGameOptionStringValue(String) game.getGameOptionStringValue("SC")}, or null.
-     *     Sends nothing if null.
+     *     Sends nothing if {@code scKey} and {@code sc} are both null.
+     * @param sc  Scenario data if known, or null to use
+     *     {@link SOCScenario#getScenario(String) SOCScenario.getScenario(scKey)}.
+     *     When {@code sc != null}, will always send a {@link SOCScenarioInfo} message
+     *     even if {@link SOCClientData#sentAllScenarioInfo} is set, unless client version is too old.
      * @param c  Client connection
      * @param stringsOnly  If true, send only localized strings, not entire {@link SOCScenarioInfo}.
      * @since 2.0.00
      */
     void sendGameScenarioInfo
-        (final String scKey, final StringConnection c, final boolean stringsOnly)
+        (String scKey, final SOCScenario sc, final StringConnection c, final boolean stringsOnly)
     {
         if (scKey == null)
-            return;
+        {
+            if (sc == null)
+                return;
+            else
+                scKey = sc.key;
+        }
 
         final SOCClientData scd = (SOCClientData) c.getAppData();
-        if (scd.sentAllScenarioInfo || (stringsOnly && scd.sentAllScenarioStrings))
+        if ((scd.sentAllScenarioInfo || (stringsOnly && scd.sentAllScenarioStrings))
+            && (sc == null))
             return;  // <--- Already checked, nothing left to send ---
 
         final int cliVers = c.getVersion();
@@ -2814,7 +2825,8 @@ public class SOCGameHandler extends GameHandler
         // If not, send now and update scd.scenariosInfoSent.
 
         Map<String, String> scensSent = scd.scenariosInfoSent;
-        if (scensSent != null)
+
+        if ((sc == null) && (scensSent != null))
         {
             final String alreadySent = scensSent.get(scKey);
             if ((alreadySent != null)
@@ -2826,11 +2838,15 @@ public class SOCGameHandler extends GameHandler
 
         SOCScenario scSend = null;  // If not null, send full scenario info instead of only strings
 
-        if (! stringsOnly)
+        if (sc != null)
         {
-            SOCScenario sc = SOCScenario.getScenario(scKey);
-            if ((sc != null) && (sc.lastModVersion > cliVers))
-                scSend = sc;
+            scSend = sc;
+        }
+        else if (! stringsOnly)
+        {
+            SOCScenario s = SOCScenario.getScenario(scKey);
+            if ((s != null) && (s.lastModVersion > cliVers))
+                scSend = s;
         }
 
         String nm = null, desc = null;
