@@ -86,6 +86,7 @@ import soc.game.SOCScenario;
 import soc.game.SOCSettlement;
 import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
+import soc.game.SOCVersionedItem;
 import soc.game.SOCVillage;
 
 import soc.message.*;
@@ -1836,6 +1837,36 @@ public class SOCPlayerClient
 
             status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+            final int cliVers = Version.versionNumber();
+            if ((! forPracticeServer) && (! opts.allScenInfoReceived)
+                && (cliVers != client.sVersion) && (client.sVersion >= SOCScenario.VERSION_FOR_SCENARIOS))
+            {
+                // Ask for any updated scenario info first; this will be received before game option defaults,
+                // so it should be received before NewGameOptionsFrame appears with the scenarios dropdown.
+
+                List<String> changes = null;
+
+                if (cliVers > client.sVersion)
+                {
+                    // client is newer; ask specifically about any scenarios we know about which server doesn't
+
+                    final List<SOCScenario> changeScens =
+                        SOCVersionedItem.itemsNewerThanVersion
+                            (client.sVersion, false, SOCScenario.getAllKnownScenarios());
+
+                    if (changeScens != null)
+                    {
+                        changes = new ArrayList<String>();
+                        for (SOCScenario sc : changeScens)
+                            changes.add(sc.key);
+                    }
+                }
+                // else, client is older; ask for any scenario changes since our version
+
+                client.gameManager.put(new SOCScenarioInfo(changes, true).toCmd(), false);
+            }
+
             opts.newGameWaitingForOpts = true;
             opts.askedDefaultsAlready = true;
             opts.askedDefaultsTime = System.currentTimeMillis();
