@@ -324,19 +324,23 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
 	    isKeyUnknown = false;
 	    noMoreScens = false;
 	} else {
-	    if ((L < 5) && ! isFromClient)
+	    if (L < 5)
 	        throw new IllegalArgumentException("pa.size");
 
 	    scKey = pa.get(0);
-	    final int minVers = Integer.parseInt(pa.get(1));
-	    final int lastModVers = Integer.parseInt(pa.get(2));
-	    final String longDesc = (L >= 6) ? pa.get(5) : null;
+            noMoreScens = (scKey.equals(MARKER_NO_MORE_SCENS));
+            if (! noMoreScens)
+            {
+                final int minVers = Integer.parseInt(pa.get(1));
+                final int lastModVers = Integer.parseInt(pa.get(2));
+                final String longDesc = (L >= 6) ? pa.get(5) : null;
 
-	    isKeyUnknown = (lastModVers == MARKER_KEY_UNKNOWN);
-	    noMoreScens = (scKey.equals(MARKER_NO_MORE_SCENS));
-
-	    if (! (isKeyUnknown || noMoreScens))
-	        sc = new SOCScenario(scKey, minVers, lastModVers, pa.get(4), longDesc, pa.get(3));
+                isKeyUnknown = (lastModVers == MARKER_KEY_UNKNOWN);
+                if (! isKeyUnknown)
+                    sc = new SOCScenario(scKey, minVers, lastModVers, pa.get(4), longDesc, pa.get(3));
+            } else {
+                isKeyUnknown = false;
+            }
 	}
     }
 
