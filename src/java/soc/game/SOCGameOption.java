@@ -1949,7 +1949,7 @@ public class SOCGameOption
             = SOCVersionedItem.implItemsVersionCheck(vers, getAllForVersion, checkValues, opts);
                 // throws IllegalArgumentException if (getAllForVersion && checkValues)
 
-        if (trimEnums)
+        if ((uopt != null) && trimEnums)
         {
             ListIterator<SOCGameOption> li = uopt.listIterator();
             while (li.hasNext())
