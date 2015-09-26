@@ -1827,7 +1827,7 @@ public class SOCPlayerClient
                 return;  // <--- Early return: Show options to user ----
             }
 
-            // OK, we need the options.
+            // OK, we need to sync scenario and option info.
             // Ask the server by sending GAMEOPTIONGETDEFAULTS.
             // (This will never happen for practice games, see above.)
 
@@ -1840,16 +1840,17 @@ public class SOCPlayerClient
 
             final int cliVers = Version.versionNumber();
             if ((! forPracticeServer) && (! opts.allScenInfoReceived)
-                && (cliVers != client.sVersion) && (client.sVersion >= SOCScenario.VERSION_FOR_SCENARIOS))
+                && (client.sVersion >= SOCScenario.VERSION_FOR_SCENARIOS))
             {
-                // Ask for any updated scenario info first; this will be received before game option defaults,
-                // so it should be received before NewGameOptionsFrame appears with the scenarios dropdown.
+                // Before game option defaults, ask for any updated or localized scenario info;
+                // that will all be received before game option defaults, so client will have it
+                // before NewGameOptionsFrame appears with the scenarios dropdown Choice widget.
 
                 List<String> changes = null;
 
                 if (cliVers > client.sVersion)
                 {
-                    // client is newer; ask specifically about any scenarios we know about which server doesn't
+                    // Client newer than server: Ask specifically about any scenarios server might not know about.
 
                     final List<SOCScenario> changeScens =
                         SOCVersionedItem.itemsNewerThanVersion
@@ -1862,9 +1863,14 @@ public class SOCPlayerClient
                             changes.add(sc.key);
                     }
                 }
-                // else, client is older; ask for any scenario changes since our version
 
-                client.gameManager.put(new SOCScenarioInfo(changes, true).toCmd(), false);
+                // Else, server is newer than our client or same version.
+                //   Server is newer: Ask for any scenario changes since our version.
+                //   Same version: Ask for i18n localized scenarios strings if available.
+                //   In both cases that's requested by sending an empty 'changes' list and MARKER_ANY_CHANGED.
+
+                if ((cliVers != client.sVersion) || client.wantsI18nStrings(false))
+                    client.gameManager.put(new SOCScenarioInfo(changes, true).toCmd(), false);
             }
 
             opts.newGameWaitingForOpts = true;
@@ -4866,11 +4872,7 @@ public class SOCPlayerClient
             if (! isPractice)
                 gameDisplay.optionsRequested();
 
-            final boolean withTokenI18n =
-                (isPractice || (sVersion >= SOCStringManager.VERSION_FOR_I18N))
-                && (cliLocale != null)
-                && ! ("en".equals(cliLocale.getLanguage()) && "US".equals(cliLocale.getCountry()));
-            gmgr.put(SOCGameOptionGetInfos.toCmd(unknowns, withTokenI18n), isPractice);
+            gmgr.put(SOCGameOptionGetInfos.toCmd(unknowns, wantsI18nStrings(isPractice)), isPractice);
         } else {
             opts.newGameWaitingForOpts = false;
             gameDisplay.optionsReceived(opts, isPractice);
@@ -5362,6 +5364,20 @@ public class SOCPlayerClient
 
     }  // nested class MessageTreater
 
+
+    /**
+     * Should this client request localized strings (I18N) from the server if available?
+     * Checks server version, checks whether client locale differs from the fallback {@code "en_US"}.
+     * @param isPractice  True if checking for local practice server, not a remote server
+     * @return  True if client should request localized strings
+     * @since 2.0.00
+     */
+    final boolean wantsI18nStrings(final boolean isPractice)
+    {
+        return (isPractice || (sVersion >= SOCStringManager.VERSION_FOR_I18N))
+            && (cliLocale != null)
+            && ! ("en".equals(cliLocale.getLanguage()) && "US".equals(cliLocale.getCountry()));
+    }
 
     /**
      * Check these game options to see if they contain a scenario we don't yet have full info about.

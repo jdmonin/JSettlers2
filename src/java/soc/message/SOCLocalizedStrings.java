@@ -78,9 +78,18 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     public static final String TYPE_GAMEOPT = "G";
 
     /**
-     * Game Scenario localized names and descriptions, for {@link soc.game.SOCScenario}. After the
-     * string type at element 0, {@link #getParams()} contents are triples of strings, each of which
+     * Game Scenario localized names and descriptions, for {@link soc.game.SOCScenario}.
+     *
+     * <H4>From Client:</H4>
+     * {@link #getParams()} is a list of scenario keys ({@link soc.game.SOCVersionedItem#key sc.key} field)
+     * for which the client is requesting localized strings.  {@link #FLAG_REQ_ALL} is not supported; to get
+     * updated strings or info for all scenarios, send {@link SOCScenarioInfo} instead.
+     *
+     * <H4>From Server:</H4>
+     * After the string type at element 0, {@link #getParams()} contents are triples of strings, each of which
      * is a game scenario keyname, localized name, and optional localized long description or {@link #EMPTY}.
+     * As with any string type, an unknown keyname is a pair of strings here (not a triple): keyname,
+     * {@link #MARKER_KEY_UNKNOWN}.
      *<P>
      * If the client has requested specific scenario keynames for this type, the server replies with all known
      * localized strings for those items.  Items without localized strings will not be included in the reply.
@@ -101,6 +110,8 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     /**
      * "Request all" flag, for client to request all items of a requested type.
      * This flag is sent with an empty string list.
+     * Not all string types support this flag.
+     * @see #FLAG_SENT_ALL
      */
     public static final int FLAG_REQ_ALL = 0x02;
 
@@ -111,6 +122,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      *<P>
      * This flag can also be sent when no known items are available for a recognized
      * string type; the server will send an empty list with this flag set.
+     * @see #FLAG_REQ_ALL
      */
     public static final int FLAG_SENT_ALL = 0x04;
 

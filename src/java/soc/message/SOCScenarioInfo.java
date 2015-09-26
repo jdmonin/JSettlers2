@@ -67,8 +67,7 @@ import soc.game.SOCScenario;
  *      knows to end its reply sequence with a message having the {@link #noMoreScens} flag.
  *      The server's reply sequence will have a message about each scenario key in the client's request.
  * <LI> If client and server are the same version, and client only wants localized i18n scenario strings,
- *      client can either send {@code SOCScenarioInfo} with 1 item, {@link #MARKER_ANY_CHANGED},
- *      or send a {@link SOCLocalizedStrings} request instead.
+ *      client sends {@code SOCScenarioInfo} with 1 item, {@link #MARKER_ANY_CHANGED}.
  *</UL>
  * This scenario info sync protocol for different versions is very similar to that done for {@code SOCGameOption}s
  * with {@link SOCGameOptionGetInfos} at client connect. The list can be calculated with

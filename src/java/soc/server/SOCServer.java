@@ -6754,7 +6754,7 @@ public class SOCServer extends Server
     {
         final List<String> str = mes.getParams();
         final String type = str.get(0);
-        List<String> rets = null;  // for reply to client, built in localizeGameScenarios
+        List<String> rets = null;  // for reply to client; built in localizeGameScenarios or other type-specific method
         int flags = 0;
 
         if (type.equals(SOCLocalizedStrings.TYPE_GAMEOPT))
@@ -6764,6 +6764,8 @@ public class SOCServer extends Server
         }
         else if (type.equals(SOCLocalizedStrings.TYPE_SCENARIO))
         {
+            // Handle individual scenario keys; ignores FLAG_REQ_ALL
+
             final SOCClientData scd = (SOCClientData) c.getAppData();
             if (clientHasLocalizedStrs_gameScenarios(c))
             {
@@ -6807,24 +6809,6 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
-        final SOCClientData scd = (SOCClientData) c.getAppData();
-
-        // handle i18n first
-        if (! scd.sentAllScenarioStrings)
-        {
-            if (clientHasLocalizedStrs_gameScenarios(c))
-            {
-                List<String> scenStrs = localizeGameScenarios(scd.locale, null, false, null);
-
-                // if none found, scenStrs will be empty; still sends the flag to let client know that.
-                c.put(SOCLocalizedStrings.toCmd
-                        (SOCLocalizedStrings.TYPE_SCENARIO, SOCLocalizedStrings.FLAG_SENT_ALL, scenStrs));
-            }
-
-            scd.sentAllScenarioStrings = true;
-        }
-
-        // now, game options
         final boolean hideLongNameOpts = (c.getVersion() < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES);
         c.put(SOCGameOptionGetDefaults.toCmd
               (SOCGameOption.packKnownOptionsToString(true, hideLongNameOpts)));
