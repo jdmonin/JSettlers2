@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import soc.game.SOCGameOption;
+import soc.game.SOCScenario;   // for javadocs only
 import soc.game.SOCVersionedItem;
 
 /**
@@ -35,6 +36,7 @@ import soc.game.SOCVersionedItem;
  * If the server doesn't know this option, the returned option type is
  * {@link SOCGameOption#OTYPE_UNKNOWN}.
  * If the client asks about an option too new for it to use,
+ * by sending the option name or GAMEOPTIONGETINFOS("-"),
  * the server will respond with {@link SOCGameOption#OTYPE_UNKNOWN}.
  *<P>
  * Special case: If the client is asking for any new options, by sending
@@ -47,6 +49,9 @@ import soc.game.SOCVersionedItem;
  *<P>
  * Introduced in 1.1.07; check client version against {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}
  * before sending this message.
+ *<P>
+ * In v2.0.00 and newer, {@link SOCScenario} info is also synchronized with similar logic;
+ * see {@link SOCScenarioInfo}.
  *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't create or browse games.

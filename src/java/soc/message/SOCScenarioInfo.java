@@ -69,8 +69,8 @@ import soc.game.SOCScenario;
  * <LI> If client and server are the same version, and client only wants localized i18n scenario strings,
  *      client sends {@code SOCScenarioInfo} with 1 item, {@link #MARKER_ANY_CHANGED}.
  *</UL>
- * This scenario info sync protocol for different versions is very similar to that done for {@code SOCGameOption}s
- * with {@link SOCGameOptionGetInfos} at client connect. The list can be calculated with
+ * This scenario info sync protocol for different versions is very similar to that done for {@link SOCGameOption}s
+ * at client connect with {@link SOCGameOptionGetInfos}/{@link SOCGameOptionInfo}. The list can be calculated with
  * {@link SOCVersionedItem#itemsNewerThanVersion(int, boolean, java.util.Map)}.
  *<P>
  * <B>I18N:</B> Because client has previously sent {@link SOCGameOptionGetInfos} if needed,
@@ -82,12 +82,17 @@ import soc.game.SOCScenario;
  * There are two message types which may send scenario info to the client:
  *<UL>
  * <LI> If the client is a different version than the server,
- *   a sequence of <B>{@code SOCScenarioInfo}</B> messages sends all info about new or changed scenarios,
+ *   a <B>sequence of {@code SOCScenarioInfo} messages</B> sends all info about new or changed scenarios,
  *   including those scenarios' localized text.
  *   The sequence ends with a message which has the {@link #noMoreScens} flag.
- *   <P>
- *   Separately, when the client asks to join a game the server can also send a single
- *   {@code SOCScenarioInfo} with that game's scenario if not previously sent to the client.
+ *  <P>
+ *   Any scenarios too new for the client (per {@link SOCVersionedItem#minVersion sc.minVersion})
+ *   are included in the sequence with the {@link #isKeyUnknown} flag, in case the client
+ *   encounters them as a listed game's scenario. This is consistent with how too-new {@link SOCGameOption}s
+ *   are sent to clients.
+ *  <P>
+ *   Separately, <B>a single {@code SOCScenarioInfo}</B> can be sent when the client requests info on that
+ *   scenario or asks to join a game with a scenario not previously sent to the client.
  * <LI> If the client is a different locale than the server,
  *   a single <B>{@link SOCLocalizedStrings}</B> message can send all scenarios' localized text if available.
  *   If the client was sent {@code SOCScenarioInfo} about a given scenario,
