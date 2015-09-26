@@ -3469,15 +3469,23 @@ public class SOCPlayerClient
                     if (tooNewOpts.isEmpty())
                         tooNewOpts = null;
                 }
+
                 if (tooNewOpts != null)
                 {
                     if (! isPractice)
                         gameDisplay.optionsRequested();
                     gmgr.put(SOCGameOptionGetInfos.toCmd(tooNewOpts, withTokenI18n), isPractice);
                 }
+                else if (withTokenI18n && ! isPractice)
+                {
+                    // server is older than client but understands i18n: request gameopt localized strings
+
+                    gmgr.put(SOCGameOptionGetInfos.toCmd(null, true), false);  // sends opt list "-,?I18N"
+                }
             } else {
                 // server is too old to understand options. Can't happen with local practice srv,
                 // because that's our version (it runs from our own JAR file).
+
                 if (! isPractice)
                 {
                     tcpServGameOpts.noMoreOptions(true);
