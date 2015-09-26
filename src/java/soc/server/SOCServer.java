@@ -7006,10 +7006,12 @@ public class SOCServer extends Server
 
         // Calculate and respond; be sure to include any requested scKeys from params
 
+        final int cliVers = c.getVersion();
+
         List<SOCScenario> changes = null;
         if (hasAnyChangedMarker)
             changes = SOCVersionedItem.itemsNewerThanVersion
-                (c.getVersion(), false, SOCScenario.getAllKnownScenarios());
+                (cliVers, false, SOCScenario.getAllKnownScenarios());
 
         if (L > 0)
         {
@@ -7019,8 +7021,10 @@ public class SOCServer extends Server
             for (String scKey : params)
             {
                 SOCScenario sc = SOCScenario.getScenario(scKey);
-                if (sc == null)
-                    c.put(new SOCScenarioInfo(scKey, true).toCmd());  // unknown scenario
+                if ((sc == null) || (sc.minVersion > cliVers))
+                    // unknown scenario, or too new; send too-new ones in case client encounters in a listed game's
+                    // options (server also sends too-new SOCGameOptions as unknowns, with the same intention)
+                    c.put(new SOCScenarioInfo(scKey, true).toCmd());
                 else if (! changes.contains(sc))
                     changes.add(sc);
             }
@@ -7028,7 +7032,10 @@ public class SOCServer extends Server
 
         if (changes != null)
             for (final SOCScenario sc : changes)
-                handler.sendGameScenarioInfo(null, sc, c, false);
+                if (sc.minVersion <= cliVers)
+                    handler.sendGameScenarioInfo(null, sc, c, false);
+                else
+                    c.put(new SOCScenarioInfo(sc.key, true).toCmd());
 
         c.put(new SOCScenarioInfo(null, null, null).toCmd());  // send end of list
 
