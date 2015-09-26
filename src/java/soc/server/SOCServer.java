@@ -7007,11 +7007,15 @@ public class SOCServer extends Server
         // Calculate and respond; be sure to include any requested scKeys from params
 
         final int cliVers = c.getVersion();
+        Map<String, SOCScenario> knownScens = null;  // caches SOCScenario.getAllKnownScenarios() if called
 
         List<SOCScenario> changes = null;
         if (hasAnyChangedMarker)
+        {
+            knownScens = SOCScenario.getAllKnownScenarios();
             changes = SOCVersionedItem.itemsNewerThanVersion
-                (cliVers, false, SOCScenario.getAllKnownScenarios());
+                (cliVers, false, knownScens);
+        }
 
         if (L > 0)
         {
@@ -7037,11 +7041,24 @@ public class SOCServer extends Server
                 else
                     c.put(new SOCScenarioInfo(sc.key, true).toCmd());
 
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+
+        if (hasAnyChangedMarker && scd.wantsI18N)
+        {
+            // send each scenario's localized strings, unless we've already sent its full info
+
+            if (knownScens == null)
+                knownScens = SOCScenario.getAllKnownScenarios();
+
+            for (final SOCScenario sc : SOCVersionedItem.itemsForVersion(cliVers, knownScens))
+                if ((changes == null) || ! changes.contains(sc))
+                    handler.sendGameScenarioInfo(sc.key, null, c, true);
+        }
+
         c.put(new SOCScenarioInfo(null, null, null).toCmd());  // send end of list
 
         if (hasAnyChangedMarker)
         {
-            final SOCClientData scd = (SOCClientData) c.getAppData();
             scd.sentAllScenarioInfo = true;
             scd.sentAllScenarioStrings = true;
         }
