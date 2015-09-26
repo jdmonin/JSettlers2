@@ -7010,7 +7010,7 @@ public class SOCServer extends Server
         Map<String, SOCScenario> knownScens = null;  // caches SOCScenario.getAllKnownScenarios() if called
 
         List<SOCScenario> changes = null;
-        if (hasAnyChangedMarker)
+        if (hasAnyChangedMarker && (cliVers < Version.versionNumber()))
         {
             knownScens = SOCScenario.getAllKnownScenarios();
             changes = SOCVersionedItem.itemsNewerThanVersion
@@ -7043,16 +7043,37 @@ public class SOCServer extends Server
 
         final SOCClientData scd = (SOCClientData) c.getAppData();
 
-        if (hasAnyChangedMarker && scd.wantsI18N)
+        if (hasAnyChangedMarker && scd.wantsI18N && ! scd.sentAllScenarioStrings)
         {
-            // send each scenario's localized strings, unless we've already sent its full info
+            // if available send each scenario's localized strings, unless we've already sent its full info
 
-            if (knownScens == null)
-                knownScens = SOCScenario.getAllKnownScenarios();
+            if (! scd.checkedLocaleScenStrings)
+            {
+                scd.localeHasScenStrings = clientHasLocalizedStrs_gameScenarios(c);
+                scd.checkedLocaleScenStrings = true;
+            }
 
-            for (final SOCScenario sc : SOCVersionedItem.itemsForVersion(cliVers, knownScens))
-                if ((changes == null) || ! changes.contains(sc))
-                    handler.sendGameScenarioInfo(sc.key, null, c, true);
+            if (scd.localeHasScenStrings)
+            {
+                if (knownScens == null)
+                    knownScens = SOCScenario.getAllKnownScenarios();
+
+                ArrayList<String> scKeys = new ArrayList<String>();
+                for (final SOCScenario sc : SOCVersionedItem.itemsForVersion(cliVers, knownScens))
+                    if ((changes == null) || ! changes.contains(sc))
+                        scKeys.add(sc.key);
+
+                List<String> scenStrs;
+                if (! scKeys.isEmpty())
+                    scenStrs = localizeGameScenarios(scd.locale, scKeys, false, scd);
+                else
+                    scenStrs = scKeys;  // re-use the empty list object
+
+                c.put(SOCLocalizedStrings.toCmd
+                        (SOCLocalizedStrings.TYPE_SCENARIO, SOCLocalizedStrings.FLAG_SENT_ALL, scenStrs));
+            }
+
+            scd.sentAllScenarioStrings = true;
         }
 
         c.put(new SOCScenarioInfo(null, null, null).toCmd());  // send end of list
