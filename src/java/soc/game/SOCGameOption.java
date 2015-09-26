@@ -1886,6 +1886,9 @@ public class SOCGameOption
      *              if null, use the "known option" set
      * @return List of the newer (added or changed) {@link SOCGameOption}s, or null
      *     if all are known and unchanged since <tt>vers</tt>.
+     *     <BR>
+     *     <B>Note:</B> May include options with {@link #minVersion} &gt; {@code vers};
+     *     the client may want to know about those.
      * @see #optionsForVersion(int, Map)
      */
     public static List<SOCGameOption> optionsNewerThanVersion
@@ -1933,6 +1936,9 @@ public class SOCGameOption
      *              if null, use the "known option" set
      * @return List of the requested {@link SOCGameOption}s, or null if none match the conditions, at {@code vers};
      *     see {@code optionsNewerThanVersion} and {@code optionsForVersion} for return details.
+     *     <BR>
+     *     <B>Note:</B> If not {@code getAllForVersion}, may include options with
+     *     {@link #minVersion} &gt; {@code vers}; the client may want to know about those.
      * @throws IllegalArgumentException  if {@code getAllForVersion && checkValues}: Cannot combine these modes
      * @since 2.0.00
      */

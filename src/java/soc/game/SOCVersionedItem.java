@@ -337,6 +337,9 @@ public abstract class SOCVersionedItem implements Cloneable
      * @param items Set of items to check versions and current values
      * @return List of the newer (added or changed) items, or null
      *     if all are known and unchanged since {@code vers}.
+     *     <BR>
+     *     <B>Note:</B> May include items with {@link #minVersion} &gt; {@code vers};
+     *     for some item types the client may want to know about those.
      * @see #itemsForVersion(int, Map)
      * @throws NullPointerException if {@code items} is null
      */
@@ -348,7 +351,7 @@ public abstract class SOCVersionedItem implements Cloneable
     }
 
     /**
-     * Get all item valid at version {@code vers}.
+     * Get all items valid at version {@code vers}.
      *<P>
      * If {@code vers} from a client is newer than this version of SOCVersionedItem, will return all items known at this
      * version, which may not include all of the newer version's items.  Client game-item negotiation handles this
@@ -382,6 +385,9 @@ public abstract class SOCVersionedItem implements Cloneable
      * @param items  Set of {@link SOCVersionedItem}s to check versions and current values; not null
      * @return List of the requested {@link SOCVersionedItem}s, or null if none match the conditions, at {@code vers};
      *     see {@code itemsNewerThanVersion} and {@code itemsForVersion} for return details.
+     *     <BR>
+     *     <B>Note:</B> If not {@code getAllForVersion}, may include items with {@link #minVersion} &gt; {@code vers};
+     *     for some item types the client may want to know about those.
      * @throws IllegalArgumentException  if {@code getAllForVersion && checkValues}: Cannot combine these modes
      * @throws NullPointerException if {@code items} is null
      */
