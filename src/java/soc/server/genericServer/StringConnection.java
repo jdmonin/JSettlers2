@@ -1,6 +1,6 @@
 /**
  * Local (StringConnection) network system.  Version 1.2.0.
- * This file Copyright (C) 2007-2009,2013 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2007-2009,2013,2015 Jeremy D Monin <jeremy@nand.net>.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at jeremy@nand.net
+ * The maintainer of this program can be reached at jeremy@nand.net
  **/
 package soc.server.genericServer;
 
@@ -40,8 +40,8 @@ import soc.util.SOCStringManager;
  *                       setVersionTracking, isInputAvailable,
  *                       wantsHideTimeoutMessage, setHideTimeoutMessage
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed; remove unused import EOFException
- *  1.2.0 - 2013-09-07 - for I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and {@link #getLocalized(String)}.
- *                       StringConnection is now a superclass, not an interface
+ *  1.2.0 - 2013-09-07 - for I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and
+ *                       {@link #getLocalized(String)}. StringConnection is now a superclass, not an interface.
  *</PRE>
  *
  * @author Jeremy D Monin <jeremy@nand.net>
@@ -64,6 +64,10 @@ public abstract class StringConnection
     /**
      * The server-side locale for this client connection, for app-specific message formatting, or {@code null}.
      * Not used or referenced by the generic server layer.
+     *<P>
+     * App-specific connection data ({@link #getAppData()}) can hold a full {@code Locale} object;
+     * see {@link soc.server.SOCClientData} for an example.
+     *
      * @since 1.2.0
      */
     protected String localeStr;
