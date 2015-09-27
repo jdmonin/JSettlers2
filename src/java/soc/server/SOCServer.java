@@ -7010,8 +7010,8 @@ public class SOCServer extends Server
             {
                 SOCScenario sc = SOCScenario.getScenario(scKey);
                 if ((sc == null) || (sc.minVersion > cliVers))
-                    // unknown scenario, or too new; send too-new ones in case client encounters in a listed game's
-                    // options (server also sends too-new SOCGameOptions as unknowns, with the same intention)
+                    // unknown scenario, or too new; send too-new ones in case client encounters one as a listed game's
+                    // scenario (server also sends too-new SOCGameOptions as unknowns, with the same intention)
                     c.put(new SOCScenarioInfo(scKey, true).toCmd());
                 else if (! changes.contains(sc))
                     changes.add(sc);

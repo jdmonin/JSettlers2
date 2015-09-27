@@ -911,8 +911,10 @@ public class SOCGameHandler extends GameHandler
      * The group of messages sent here ends with GAMEMEMBERS, SETTURN and GAMESTATE.
      * Then, the entire game is sent a JOINGAME for the new game member.
      *<P>
-     * *<B>I18N:</B> If the game has a {@link SOCScenario} and the client needs localized strings
-     * for the scenario name and description, this is sent before JOINGAMEAUTH.
+     * *<B>I18N:</B> If the game has a {@link SOCScenario} and the client needs scenario info or localized strings
+     * for the scenario name and description, {@link SOCScenarioInfo} or {@link SOCLocalizedStrings} is
+     * sent before JOINGAMEAUTH.  This covers i18n and scenarios added or changed between the client's
+     * and server's version.
      *
      * @param gameData Game to join
      * @param c        The connection of joining client
@@ -933,6 +935,8 @@ public class SOCGameHandler extends GameHandler
         if (! isReset)
         {
             // First, send updated scenario info or localized strings if needed
+            // (SOCScenarioInfo or SOCLocalizedStrings); checks c.getVersion(), scd.scenariosInfoSent etc.
+
             final String gameScen = gameData.getGameOptionStringValue("SC");
             if (gameScen != null)
                 sendGameScenarioInfo(gameScen, null, c, false);

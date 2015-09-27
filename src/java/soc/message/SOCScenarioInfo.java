@@ -45,8 +45,8 @@ import soc.game.SOCScenario;
  * <B>Get Game Info:</B> If the user clicks the Game Info button for a game with a scenario,
  * at that point the client can send a {@code SOCScenarioInfo} message to request info about that scenario.
  *<P>
- * <B>Join Game:</B> If the user joins a game with a scenario, before {@link SOCJoinGameAuth}
- * the server can send a {@code SOCScenarioInfo} message to with info about that scenario if needed.
+ * <B>Join Game:</B> If the user joins a game with a scenario, before {@link SOCJoinGameAuth} the server can send
+ * a {@code SOCScenarioInfo} or {@link SOCLocalizedStrings} message with info about that scenario if needed.
  *<P>
  * <B>New Game:</B> When the user wants to create a new game, the client should send a {@code SOCScenarioInfo}
  * to request all updated info for scenarios; the server and client synchronize {@code SOCScenario} info
