@@ -2038,7 +2038,7 @@ public class SOCGameOption
      * {@link SOCScenario#getScenario(String)}; the scenario name must be known.
      * Then, add that scenario's {@link SOCScenario#scOpts .scOpts} into <tt>newOpts</tt>.
      * Scenario option values always overwrite those in <tt>newOpts</tt>, except for <tt>"VP"</tt>
-     * where the highest value is kept.
+     * where <tt>newOpts</tt> value (if any) is kept.
      *<P>
      * Client-side gameopt code also assumes all scenarios use the large board,
      * and sets game option <tt>"PLL"</tt> when a scenario is chosen by the user.
@@ -2099,16 +2099,13 @@ public class SOCGameOption
                         // include this scenario's opts,
                         // overwriting any values for those
                         // opts if already in newOpts, except
-                        // keep VP if higher would be overwrote by lower.
+                        // keep VP if specified.
                         opt = newOpts.get("VP");
-                        final int prevVP = ((opt != null) && opt.boolValue)
-                            ? opt.intValue
-                            : SOCGame.VP_WINNER_STANDARD;
+                        if ((opt != null) && ! opt.boolValue)
+                            opt = null;
 
                         final Map<String, SOCGameOption> scOpts = parseOptionsToMap(sc.scOpts);
-
-                        opt = scOpts.get("VP");
-                        if ((opt != null) && ((opt.intValue < prevVP) || ! opt.boolValue))
+                        if (scOpts.containsKey("VP") && (opt != null))
                             scOpts.remove("VP");
 
                         newOpts.putAll(scOpts);
