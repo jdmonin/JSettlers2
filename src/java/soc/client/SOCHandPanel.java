@@ -975,9 +975,13 @@ public class SOCHandPanel extends Panel
         {
             client.getGameManager().sitDown(game, playerNumber);
         }
-        else if (target == START)
+        else if ((target == START) && startBut.isVisible())
         {
             client.getGameManager().startGame(game);
+
+            // checks isVisible to guard against button action from hitting spacebar
+            // when hidden but has focus because startBut is the first button added to panel;
+            // this bug seen on OSX 10.9.1 (1.5.0 JVM)
         }
         else if (target == ROBOT)
         {
