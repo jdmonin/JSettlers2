@@ -183,7 +183,7 @@ public class SOCServer extends Server
     /**
      * Property <tt>jsettlers.bots.botgames.total</tt> will start robot-only games,
      * a few at a time, until this many have been played. (The default is 0.)
-     * @since 2.0.00 
+     * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL = "jsettlers.bots.botgames.total";
 
@@ -1137,10 +1137,11 @@ public class SOCServer extends Server
                 final int n = SOCGame.MAXPLAYERS_STANDARD;
                 if (n > getConfigIntProperty(props, PROP_JSETTLERS_STARTROBOTS, 0))
                 {
-                    final String errmsg = ("*** To start robot-only games, server needs at least " + n +  " robots started.");
+                    final String errmsg =
+                        ("*** To start robot-only games, server needs at least " + n + " robots started.");
                     System.err.println(errmsg);
                     throw new IllegalArgumentException(errmsg);
-                }            
+                }
         }
 
         if (CLIENT_MAX_CREATE_CHANNELS != 0)
@@ -6040,6 +6041,7 @@ public class SOCServer extends Server
         {
             if (ga.getGameState() == SOCGame.NEW)
             {
+                boolean allowStart = true;
                 boolean seatsFull = true;
                 boolean anyLocked = false;
                 int numEmpty = 0;
@@ -6081,16 +6083,30 @@ public class SOCServer extends Server
                     }
                 }
 
+                if (numPlayers == 0)
+                {
+                    // No one has sat, human client who requested STARTGAME is an observer.
+                    // Is server configured for robot-only games?  Prop's value can be < 0
+                    // to allow this without creating bots-only games at startup.
+
+                    if (0 == getConfigIntProperty(props, PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0))
+                    {
+                        allowStart = false;
+                        messageToGameKeyed(ga, true, "start.player.must.sit");
+                            // "To start the game, at least one player must sit down."
+                    }
+                }
+
                 if (seatsFull && (numPlayers < 2))
                 {
                     // Don't start the game; client must have more humans sit or unlock some seats for bots.
 
-                    seatsFull = false;  // must be true to start game
+                    allowStart = false;
                     numEmpty = 3;
                     messageToGameKeyed(ga, true, "start.only.cannot.lock.all");
                         // "The only player cannot lock all seats. To start the game, other players or robots must join."
                 }
-                else if (! seatsFull)
+                else if (allowStart && ! seatsFull)
                 {
                     // Look for some bots, set seatsFull if we find them
 
@@ -6138,7 +6154,7 @@ public class SOCServer extends Server
 
                                 // recover, so that human players can still start a game
                                 ga.setGameState(SOCGame.NEW);
-                                seatsFull = false;
+                                allowStart = false;
 
                                 gameList.takeMonitorForGame(gn);
                                 messageToGameKeyed(ga, false, "start.robots.cannot.join.problem", e.getMessage());
@@ -6155,7 +6171,7 @@ public class SOCServer extends Server
                  * If this doesn't need robots, then start the game.
                  * Otherwise wait for them to sit before starting the game.
                  */
-                if (seatsFull)
+                if (seatsFull && allowStart)
                 {
                     GameHandler hand = gameList.getGameTypeHandler(gn);
                     if (hand != null)
