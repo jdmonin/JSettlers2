@@ -118,12 +118,14 @@ Run/Debug -> Console, and either un-check "Limit console output", or set it to
 a size larger than the default 80000 characters.  Robots and network messages
 can create a lot of output, so can javadoc generation.
 
-If you want the robots to play a few games without any humans, use this flag on the
-command line when starting the server:
+If you want the robots to play a few games without any humans, set this
+property on the command line when starting the server:
 	-Djsettlers.bots.botgames.total=5
-As each game finishes, a new bot-only game will be started until 5 have been played.
-You can optionally use the client to observe a bot-only game.
-See the "Robots (AI)" section for details.
+As each game finishes, a new bot-only game will be started until 5 have been
+played. You can optionally use the client to observe a bot-only game. Also if
+jsettlers.bots.botgames.total != 0, at any time the client can create a new game
+and start it as bots-only using the debug command *STARTBOTGAME* [maxBots].
+See the "Robots (AI)" section for more details on bot testing.
 
 Setup instructions for JSettlers as an Eclipse project
 ------------------------------------------------------
@@ -386,6 +388,10 @@ randomly choosing from 10 robot players, you could start the server with:
       -Djsettlers.startrobots=10 -Djsettlers.bots.botgames.total=7
 The robot-only games run at a quick pace, about 2 minutes for a 4-player game. You can use the
 jsettlers client to observe a bot game as it plays.
+
+If jsettlers.bots.botgames.total != 0 (including < 0), at any time the client can create a new game,
+join but not sit down at a seat, and start that game as bots-only using the debug command
+*STARTBOTGAME* [maxBots] to test the bots with any given combination of game options and scenarios.
 
 
 Coding Style

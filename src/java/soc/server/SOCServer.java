@@ -183,6 +183,12 @@ public class SOCServer extends Server
     /**
      * Property <tt>jsettlers.bots.botgames.total</tt> will start robot-only games,
      * a few at a time, until this many have been played. (The default is 0.)
+     *<P>
+     * If this property's value != 0, a robots-only game can be started with the
+     * *STARTBOTGAME* debug command. This can be used to test the bots with any given
+     * combination of game options and scenarios.  To permit starting such games without
+     * also starting any at server startup, use a value less than 0.
+     *
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL = "jsettlers.bots.botgames.total";
@@ -4177,7 +4183,7 @@ public class SOCServer extends Server
 
                     //createNewGameEventRecord();
                     //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-                    handleSTARTGAME(c, (SOCStartGame) mes);
+                    handleSTARTGAME(c, (SOCStartGame) mes, 0);
 
                     //ga = (SOCGame)gamesData.get(((SOCStartGame)mes).getGame());
                     //currentGameEventRecord.setSnapshot(ga);
@@ -4271,6 +4277,7 @@ public class SOCServer extends Server
         "*KILLBOT*  botname  End a bot's connection",
         "*KILLGAME*  end the current game",
         "*RESETBOT* botname  End a bot's connection",
+        "*STARTBOTGAME* [maxBots]  Start this game (no humans have sat) with bots only",
         "*STATS*   server stats and current-game stats",
         "*STOP*  kill the server"
         };
@@ -4427,6 +4434,36 @@ public class SOCServer extends Server
             }
             if (! botFound)
                 D.ebugPrintln("L2614 Bot not found to disconnect: " + botName);
+        }
+        else if (dcmdU.startsWith("*STARTBOTGAME*"))
+        {
+            if (0 == getConfigIntProperty(props, PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0))
+            {
+                messageToPlayer(debugCli, ga,
+                    "To start a bots-only game, must restart server with "
+                    + PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL + " != 0.");
+                return true;
+            }
+
+            SOCGame gameObj = getGame(ga);
+            if (gameObj == null)
+                return true;  // we're sitting in this game, shouldn't happen
+            if (gameObj.getGameState() != SOCGame.NEW)
+            {
+                messageToPlayer(debugCli, ga, "This game has already started; you must create a new one.");
+                return true;
+            }
+
+            int maxBots = 0;
+            if (dcmdU.length() > 15)
+            {
+                try {
+                    maxBots = Integer.parseInt(dcmdU.substring(15).trim());
+                } catch (NumberFormatException e) {}
+            }
+
+            handleSTARTGAME(debugCli, new SOCStartGame(ga), maxBots);
+            return true;
         }
         else
         {
@@ -6024,11 +6061,18 @@ public class SOCServer extends Server
      *<P>
      * Called when clients have sat at a new game and a client asks to start it,
      * not called during game board reset.
+     *<P>
+     * For robot debugging, a client can start and observe a robots-only game if the
+     * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL} property != 0 (including &lt; 0).
      *
      * @param c  the connection that sent the message
      * @param mes  the message
+     * @param botsOnly_maxBots  For bot debugging, this parameter is used only when requesting
+     *     a new robots-only game using the *STARTBOTGAME* debug command; 0 to fill all empty seats.
+     *     Ignored otherwise.
      */
-    private void handleSTARTGAME(StringConnection c, final SOCStartGame mes)
+    private void handleSTARTGAME
+        (StringConnection c, final SOCStartGame mes, final int botsOnly_maxBots)
     {
         final String gn = mes.getGame();
         SOCGame ga = gameList.getGameData(gn);
@@ -6094,6 +6138,9 @@ public class SOCServer extends Server
                         allowStart = false;
                         messageToGameKeyed(ga, true, "start.player.must.sit");
                             // "To start the game, at least one player must sit down."
+                    } else {
+                        if (botsOnly_maxBots != 0)
+                            numEmpty = botsOnly_maxBots;
                     }
                 }
 
