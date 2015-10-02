@@ -5768,7 +5768,7 @@ public class SOCServer extends Server
 
             System.out.println("Started bot-only game: " + gaName);
             newGame.setGameState(SOCGame.READY);
-            readyGameAskRobotsJoin(newGame, null);
+            readyGameAskRobotsJoin(newGame, null, 0);
         } else {
             // TODO game name existed
         }
@@ -6056,7 +6056,7 @@ public class SOCServer extends Server
 
     /**
      * handle "start game" message.  Game state must be NEW, or this message is ignored.
-     * {@link #readyGameAskRobotsJoin(SOCGame, StringConnection[]) Ask some robots} to fill
+     * {@link #readyGameAskRobotsJoin(SOCGame, StringConnection[], int) Ask some robots} to fill
      * empty seats, or {@link GameHandler#startGame(SOCGame) begin the game} if no robots needed.
      *<P>
      * Called when clients have sat at a new game and a client asks to start it,
@@ -6067,9 +6067,9 @@ public class SOCServer extends Server
      *
      * @param c  the connection that sent the message
      * @param mes  the message
-     * @param botsOnly_maxBots  For bot debugging, this parameter is used only when requesting
-     *     a new robots-only game using the *STARTBOTGAME* debug command; 0 to fill all empty seats.
-     *     Ignored otherwise.
+     * @param botsOnly_maxBots  For bot debugging, maximum number of bots to add to the game,
+     *     or 0 to fill all empty seats. This parameter is used only when requesting a new
+     *     robots-only game using the *STARTBOTGAME* debug command; ignored otherwise.
      */
     private void handleSTARTGAME
         (StringConnection c, final SOCStartGame mes, final int botsOnly_maxBots)
@@ -6139,7 +6139,7 @@ public class SOCServer extends Server
                         messageToGameKeyed(ga, true, "start.player.must.sit");
                             // "To start the game, at least one player must sit down."
                     } else {
-                        if (botsOnly_maxBots != 0)
+                        if ((botsOnly_maxBots != 0) && (botsOnly_maxBots < numEmpty))
                             numEmpty = botsOnly_maxBots;
                     }
                 }
@@ -6193,7 +6193,7 @@ public class SOCServer extends Server
                              */
                             try
                             {
-                                readyGameAskRobotsJoin(ga, null);
+                                readyGameAskRobotsJoin(ga, null, numEmpty);
                             }
                             catch (IllegalStateException e)
                             {
@@ -6254,6 +6254,7 @@ public class SOCServer extends Server
      *                   Any vacant non-locked seat, with index i,
      *                   is filled with the robot whose connection is robotSeats[i].
      *                   Other indexes should be null, and won't be used.
+     * @param maxBots Maximum number of bots to add, or 0 to fill all empty seats
      *
      * @throws IllegalStateException if {@link SOCGame#getGameState() ga.gamestate} is not READY,
      *         or if {@link SOCGame#getClientVersionMinRequired() ga.version} is
@@ -6261,7 +6262,7 @@ public class SOCServer extends Server
      * @throws IllegalArgumentException if robotSeats is not null but wrong length,
      *           or if a robotSeat element is null but that seat wants a robot (vacant non-locked).
      */
-    private void readyGameAskRobotsJoin(SOCGame ga, StringConnection[] robotSeats)
+    private void readyGameAskRobotsJoin(SOCGame ga, StringConnection[] robotSeats, final int maxBots)
         throws IllegalStateException, IllegalArgumentException
     {
         if (ga.getGameState() != SOCGame.READY)
@@ -6289,6 +6290,9 @@ public class SOCServer extends Server
         final String gname = ga.getName();
         final Map<String, SOCGameOption> gopts = ga.getGameOptions();
         int seatsOpen = ga.getAvailableSeatCount();
+        if ((maxBots > 0) && (maxBots < seatsOpen))
+            seatsOpen = maxBots;
+
         int idx = 0;
         StringConnection[] robotSeatsConns = new StringConnection[ga.maxPlayers];
 
@@ -7749,7 +7753,7 @@ public class SOCServer extends Server
          */
             reGame.setGameState(SOCGame.READY);
             readyGameAskRobotsJoin
-              (reGame, resetWithShuffledBots ? null : reBoard.robotConns);
+              (reGame, resetWithShuffledBots ? null : reBoard.robotConns, 0);
         }
 
         // All set.
