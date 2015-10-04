@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008-2009,2012-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2009,2012-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,8 +30,10 @@ import soc.util.SOCServerFeatures;  // for javadocs only
  * The server also sends its version to the client early, not in response to client's VERSION message.
  * Version numbers are read via {@link soc.util.Version}.
  *<P>
- * Before 2.0.00, the client did not send locale; new servers should probably assume <tt>en_US</tt>
- * since older versions had all messages in english.
+ * Before 2.0.00, the client did not send locale; new servers should probably assume {@code en_US}
+ * since older versions had all messages in english.  For robots the locale field is ignored at server,
+ * because bots don't parse server text messages; sending a {@link SOCImARobot} message will clear the
+ * robot client's locale to {@code null} at the server.
  *<P>
  * Before 1.1.19, the server did not send its active optional features; new clients of older servers
  * should use the {@link SOCServerFeatures#SOCServerFeatures(boolean) SOCServerFeatures(true)} constructor
