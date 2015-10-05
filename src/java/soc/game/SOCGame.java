@@ -747,6 +747,7 @@ public class SOCGame implements Serializable, Cloneable
      * For use at server; lowest version of client which can connect to
      * this game (based on game options/features added in a given version),
      * or -1 if unknown.
+     *<P>
      * Calculated by {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      * Format is the internal integer format, see {@link soc.util.Version#versionNumber()}.
      * Value may sometimes be too low at client, see {@link #getClientVersionMinRequired()} for details.
@@ -1023,6 +1024,10 @@ public class SOCGame implements Serializable, Cloneable
      * This is not the union of each player's {@code spItems}, but a separately maintained Map of item lists.
      * See getter/setter javadocs for details on type keys and rationale for lack of synchronization.
      * ArrayList is used to guarantee we can store null items.
+     *<P>
+     * Initialized at server and client in {@link #updateAtBoardLayout()} using
+     * {@link SOCSpecialItem#makeKnownItem(String, int)}.
+     *
      * @since 2.0.00
      */
     private HashMap<String, ArrayList<SOCSpecialItem>> spItems;
@@ -1848,7 +1853,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * For use at server; lowest version of client which can connect to
      * this game (based on game options/features added in a given version),
-     * or -1 if unknown or if this game has no opts.
+     * or -1 if unknown or if this game has no options.
      * Calculated by {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      *<P>
      * For options where the minimum version changes with its current value, some
@@ -1858,7 +1863,7 @@ public class SOCGame implements Serializable, Cloneable
      * will let the client know if it's too old to join or create a game due
      * to options.
      *
-     * @return game version, in same integer format as {@link soc.util.Version#versionNumber()}.
+     * @return game version, in same format as {@link soc.util.Version#versionNumber()}.
      * @since 1.1.06
      */
     public int getClientVersionMinRequired()
