@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -45,7 +45,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 
 
@@ -238,7 +237,6 @@ class SOCSpecialItemDialog
             else
                 b.setEnabled(false);
 
-            b.setBorder(new CompoundBorder(new EmptyBorder(0, 3, 15, 3), b.getBorder()));  // wide bottom border, as gap between rows
             gbc.gridwidth = 1;
             gbl.setConstraints(b, gbc);
             cpane.add(b);
@@ -258,6 +256,7 @@ class SOCSpecialItemDialog
             }
 
             L = new JLabel(sb.toString());
+            L.setBorder(new EmptyBorder(0, 3, 15, 3));  // wide bottom border, as gap between rows
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(L, gbc);
             cpane.add(L);
