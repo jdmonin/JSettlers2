@@ -31,6 +31,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -106,7 +107,7 @@ class SOCSpecialItemDialog
         (SOCPlayerInterface pi, final String typeKey)
         throws IllegalArgumentException
     {
-        super(pi, "Special Items", true);  // default title text here; setTitle will change this if string found
+        super(pi, "Special Items", true);  // default title text here, in case typeKey has no string
 
         try {
             setTitle(strings.get("dialog.specitem." + typeKey + ".title"));
@@ -124,8 +125,13 @@ class SOCSpecialItemDialog
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.LINE_START;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-
         setLayout(gbl);
+
+        // most components pad to avoid text against adjacent component
+        final Insets insPadLR = new Insets(0, 3, 0, 3),
+            insPadL = new Insets(0, 3, 0, 0),
+            insPadBottom = new Insets(0, 0, 15, 0),    // wide bottom insets, as gap between wonders
+            insNone = gbc.insets;
 
         ga = pi.getGame();
         final int numWonders = 1 + ga.maxPlayers;
@@ -165,7 +171,9 @@ class SOCSpecialItemDialog
         cpane.add(L);
 
         L = new JLabel(strings.get("dialog.specitem._SC_WOND.requires"));  // "Requires:"
-        L.setBorder(new EmptyBorder(0, 3, 0, 3));  // match border of buildRequirementsText labels
+        // match border and insets of buildRequirementsText labels
+        L.setBorder(new EmptyBorder(0, 3, 0, 3));
+        gbc.insets = insPadLR;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(L, gbc);
         cpane.add(L);
@@ -203,9 +211,12 @@ class SOCSpecialItemDialog
             else
                 b.setEnabled(false);
 
+            gbc.insets = insPadL;
             gbl.setConstraints(b, gbc);
             cpane.add(b);
             buttons[i] = b;
+
+            gbc.insets = insPadLR;
 
             // Wonder Name
             {
@@ -223,6 +234,7 @@ class SOCSpecialItemDialog
             }
 
             // Cost
+            gbc.insets = insNone;
             final SOCResourceSet cost = itm.getCost();  // or null
             for (int j = 0; j < 5; ++j)
             {
@@ -232,6 +244,7 @@ class SOCSpecialItemDialog
                 gbl.setConstraints(sq, gbc);
                 cpane.add(sq);
             }
+            gbc.insets = insPadLR;
 
             // Requirements
             final JComponent itmDesc = buildRequirementsText(itm.req);  // returns JLabel or JTextArea
@@ -264,9 +277,9 @@ class SOCSpecialItemDialog
             }
 
             L = new JLabel(sb.toString());
-            L.setBorder(new EmptyBorder(0, 3, 15, 3));  // wide bottom border, as gap between rows
             gbc.gridx = 2;
             gbc.gridwidth = GridBagConstraints.REMAINDER;
+            gbc.insets = insPadBottom;  // wide bottom border, as gap between wonders
             gbl.setConstraints(L, gbc);
             cpane.add(L);
 
