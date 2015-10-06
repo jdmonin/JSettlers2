@@ -153,11 +153,13 @@ class SOCSpecialItemDialog
         // Header row for wonders table:
 
         L = new JLabel(strings.get("dialog.specitem._SC_WOND.wonder"));  // "Wonder:"
+        gbc.gridx = 1;
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
         cpane.add(L);
 
         L = new JLabel(strings.get("build.cost"));  // "Cost:"
+        gbc.gridx = GridBagConstraints.RELATIVE;
         gbc.gridwidth = 5;  // span 5 ColorSquares for the 5 resource types
         gbl.setConstraints(L, gbc);
         cpane.add(L);
@@ -168,7 +170,8 @@ class SOCSpecialItemDialog
         gbl.setConstraints(L, gbc);
         cpane.add(L);
 
-        // Wonders laid out vertically, two rows (name, cost, requirements, button) for each Wonder:
+        // Wonders laid out vertically, two rows for each Wonder:
+        // Shows button, name, cost, requirements, current builder and level.
 
         buttons = new JButton[numWonders];
 
@@ -180,10 +183,29 @@ class SOCSpecialItemDialog
             SOCSpecialItem itm = ga.getSpecialItem(typeKey, i+1);
 
             // GBL Layout rows for a Wonder:
-            // wonder name [sq][sq][sq][sq][sq] (cost) - requirements
-            //     [Build] Builder: ___  - Current level: #  (if being built)
+            // [Build] wonder name [sq][sq][sq][sq][sq] (cost) - requirements
+            //                     Builder: ___  - Current level: #  (if being built)
 
             gbc.gridwidth = 1;
+
+            // First row:
+
+            // Build button
+            final SOCPlayer owner = itm.getPlayer();
+            final boolean playerCanBuildThis =
+                (ga.getGameState() >= SOCGame.PLAY1)
+                && ((owner != null)
+                    ? ((owner == cliPlayer) && itm.checkCost(cliPlayer))
+                    : ((! playerOwnsWonder) && itm.checkRequirements(cliPlayer, true)));
+            final JButton b = new JButton(strings.get("base.build"));
+            if (playerCanBuildThis)
+                b.addActionListener(this);
+            else
+                b.setEnabled(false);
+
+            gbl.setConstraints(b, gbc);
+            cpane.add(b);
+            buttons[i] = b;
 
             // Wonder Name
             {
@@ -200,7 +222,7 @@ class SOCSpecialItemDialog
                 cpane.add(L);
             }
 
-            // Cost, requirements
+            // Cost
             final SOCResourceSet cost = itm.getCost();  // or null
             for (int j = 0; j < 5; ++j)
             {
@@ -223,24 +245,10 @@ class SOCSpecialItemDialog
             gbl.setConstraints(itmDesc, gbc);
             cpane.add(itmDesc);
 
-            // Build button or builder name; current level
-            final StringBuffer sb = new StringBuffer();  // builder if any, current level
-            final SOCPlayer owner = itm.getPlayer();
-            final boolean playerCanBuildThis =
-                (ga.getGameState() >= SOCGame.PLAY1)
-                && ((owner != null)
-                    ? ((owner == cliPlayer) && itm.checkCost(cliPlayer))
-                    : ((! playerOwnsWonder) && itm.checkRequirements(cliPlayer, true)));
-            final JButton b = new JButton(strings.get("base.build"));
-            if (playerCanBuildThis)
-                b.addActionListener(this);
-            else
-                b.setEnabled(false);
+            // Second row:
 
-            gbc.gridwidth = 1;
-            gbl.setConstraints(b, gbc);
-            cpane.add(b);
-            buttons[i] = b;
+            // Builder name; current level (if build in progress)
+            final StringBuffer sb = new StringBuffer();  // builder if any, current level
 
             if (owner != null)
             {
@@ -257,9 +265,12 @@ class SOCSpecialItemDialog
 
             L = new JLabel(sb.toString());
             L.setBorder(new EmptyBorder(0, 3, 15, 3));  // wide bottom border, as gap between rows
+            gbc.gridx = 2;
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(L, gbc);
             cpane.add(L);
+
+            gbc.gridx = GridBagConstraints.RELATIVE;
         }
 
         // Cancel button at bottom
