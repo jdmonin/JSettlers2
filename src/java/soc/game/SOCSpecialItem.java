@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,7 +43,11 @@ import java.util.List;
  * See {@link SOCSpecialItem.Requirement} javadoc for more details.  To check requirements,
  * call {@link SOCSpecialItem#checkRequirements(SOCPlayer, boolean)}.
  *<P>
- * <B>Non-Networked Fields:</B><BR>
+ * <H5>Optional Fields:</H5>
+ * Some {@code typeKey}s may use the {@link #getLevel()} and {@link #getStringValue()} fields;
+ * their meaning is type-specific.
+ *<P>
+ * <H5>Non-Networked Fields:</H5>
  * The cost and requirement fields are initialized at the server and at the client, not sent over the network.
  * Because of their limited and known use, it's easier to set them up in a factory method here than to create,
  * send, and parse messages with all details of the game's Special Items.  If a new Special Item type is created
@@ -131,6 +135,9 @@ public class SOCSpecialItem
 
     /** Optional level of construction or strength, or 0. */
     protected int level;
+
+    /** Optional string value field, or null; this field's meaning is specific to the item's {@code typeKey}. */
+    protected String sv;
 
     /**
      * Optional cost to buy, use, or build the next level, or {@code null}.
@@ -307,7 +314,7 @@ public class SOCSpecialItem
 
     /**
      * Make a new item, optionally owned by a player.
-     * Its optional Level will be 0.
+     * Its optional Level will be 0, string value will be {@code null}.
      *
      * @param pl  player who owns the item, or {@code null}
      * @param co  coordinates, or -1
@@ -320,27 +327,31 @@ public class SOCSpecialItem
     public SOCSpecialItem(SOCPlayer pl, final int co, SOCResourceSet cost, final String req)
         throws IllegalArgumentException
     {
-        this(pl, co, 0, cost, req);
+        this(pl, co, 0, null, cost, req);
     }
 
     /**
-     * Make a new item, optionally owned by a player, with a level.
+     * Make a new item, optionally owned by a player, with an optional level and string value.
      *
      * @param pl  player who owns the item, or {@code null}
      * @param co  coordinates, or -1
      * @param lv  current level of construction or strength, or 0
+     * @param sv  current string value (optional), or {@code null}.
+     *      Meaning is type-specific, see {@link #getStringValue()}.
      * @param cost  cost to buy, use, or build the next level, or null
      * @param req  requirements to buy, use, or build the next level, or null.
      *      If provided, this requirement specification string will be
      *      parsed by {@link SOCSpecialItem.Requirement#parse(String)}.
      * @throws IllegalArgumentException  if {@code req != null} but isn't a syntactically valid specification
      */
-    public SOCSpecialItem(SOCPlayer pl, final int co, final int lv, SOCResourceSet cost, final String req)
+    public SOCSpecialItem
+        (SOCPlayer pl, final int co, final int lv, final String sv, SOCResourceSet cost, final String req)
         throws IllegalArgumentException
     {
         player = pl;
         coord = co;
         level = lv;
+        this.sv = sv;
         this.cost = cost;
         this.req = (req != null) ? Requirement.parse(req) : null;
     }
@@ -395,6 +406,25 @@ public class SOCSpecialItem
     public void setLevel(final int lv)
     {
         level = lv;
+    }
+
+    /**
+     * Get the current string value, if any, of this special item.
+     * This is an optional field whose meaning is specific to the item type (typeKey).
+     * @return  Current string value, or {@code null}
+     */
+    public String getStringValue()
+    {
+        return sv;
+    }
+
+    /**
+     * Set or clear the current string value of this special item.
+     * @param sv  New value, or {@code null} to clear
+     */
+    public void setStringValue(final String sv)
+    {
+        this.sv = sv;
     }
 
     /**
