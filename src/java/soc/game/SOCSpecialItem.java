@@ -22,6 +22,8 @@ package soc.game;
 import java.util.ArrayList;
 import java.util.List;
 
+import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
+
 
 /**
  * A special item for Settlers scenarios or expansions.
@@ -338,11 +340,13 @@ public class SOCSpecialItem
      * @param lv  current level of construction or strength, or 0
      * @param sv  current string value (optional), or {@code null}.
      *      Meaning is type-specific, see {@link #getStringValue()}.
+     *      If not {@code null}, must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param cost  cost to buy, use, or build the next level, or null
      * @param req  requirements to buy, use, or build the next level, or null.
      *      If provided, this requirement specification string will be
      *      parsed by {@link SOCSpecialItem.Requirement#parse(String)}.
-     * @throws IllegalArgumentException  if {@code req != null} but isn't a syntactically valid specification
+     * @throws IllegalArgumentException  if {@code req != null} but isn't a syntactically valid specification,
+     *      or if {@code sv} fails {@link SOCMessage#isSingleLineAndSafe(String)}
      */
     public SOCSpecialItem
         (SOCPlayer pl, final int co, final int lv, final String sv, SOCResourceSet cost, final String req)
@@ -354,6 +358,9 @@ public class SOCSpecialItem
         this.sv = sv;
         this.cost = cost;
         this.req = (req != null) ? Requirement.parse(req) : null;
+
+        if ((sv != null) && ! SOCMessage.isSingleLineAndSafe(sv))
+            throw new IllegalArgumentException("sv");
     }
 
     /**

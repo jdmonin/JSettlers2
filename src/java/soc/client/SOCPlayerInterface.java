@@ -3412,7 +3412,7 @@ public class SOCPlayerInterface extends Frame
 
         public void playerPickSpecialItem
             (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi,
-             final boolean isPick, final int coord, final int level)
+             final boolean isPick, final int coord, final int level, final String sv)
         {
             if ((pl == null) && isPick)
                 return;  // <--- Early return: So far, every pick implemented is player-specific ---

@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2013-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -352,12 +352,13 @@ public interface PlayerClientListener
      * @param isPick  True if calling for {@code PICK}, false if server has {@code DECLINE}d the client player's request
      * @param coord  Optional coordinates on the board for this item, or -1. An edge or a node, depending on item type
      * @param level  Optional level of construction or strength, or 0
+     * @param sv  Optional string value from {@link SOCSpecialItem#getStringValue()}, or {@code null}
      * @see #playerSetSpecialItem(String, SOCGame, SOCPlayer, int, int, boolean)
      * @see SOCSpecialItem#playerPickItem(String, SOCGame, SOCPlayer, int, int)
      */
     void playerPickSpecialItem
         (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi, final boolean isPick,
-         final int coord, final int level);
+         final int coord, final int level, final String sv);
 
     /**
      * Show the results of a player's {@code SET} or {@code CLEAR} of a known {@link SOCSpecialItem Special Item}.
@@ -371,7 +372,7 @@ public interface PlayerClientListener
      * @param gi  Set or clear this index within game's Special Item list, or -1
      * @param pi  Set or clear this index within {@code pl}'s Special Item list, or -1
      * @param isSet  True if player has set, false if player has cleared, this item index
-     * @see #playerPickSpecialItem(String, SOCGame, SOCPlayer, int, int, boolean, int, int)
+     * @see #playerPickSpecialItem(String, SOCGame, SOCPlayer, int, int, boolean, int, int, String)
      * @see SOCSpecialItem#playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)
      */
     void playerSetSpecialItem

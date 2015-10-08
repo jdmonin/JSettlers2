@@ -1102,7 +1102,7 @@ public class SOCGameHandler extends GameHandler
                     final SOCSpecialItem si = gsi.get(gi);
                     if (si == null)
                     {
-                        c.put(new SOCSetSpecialItem(gameName, SOCSetSpecialItem.OP_CLEAR, tkey, gi, -1, -1, -1, 0).toCmd());
+                        c.put(new SOCSetSpecialItem(gameName, SOCSetSpecialItem.OP_CLEAR, tkey, gi, -1, -1).toCmd());
                         continue;
                     }
 
@@ -1326,7 +1326,7 @@ public class SOCGameHandler extends GameHandler
                         if (si == null)
                         {
                             c.put(new SOCSetSpecialItem
-                                    (gameName, SOCSetSpecialItem.OP_CLEAR, tkey, -1, pi, i, -1, 0).toCmd());
+                                    (gameName, SOCSetSpecialItem.OP_CLEAR, tkey, -1, pi, i).toCmd());
                             continue;
                         }
 
@@ -3845,6 +3845,7 @@ public class SOCGameHandler extends GameHandler
                 if (op == SOCSetSpecialItem.OP_PICK)
                 {
                     int pickCoord = -1, pickLevel = 0;  // field values to send in reply/announcement
+                    String pickSV = null;  // sv field value to send
 
                     // When game index and player index are both given,
                     // compare items before and after PICK in case they change
@@ -3864,6 +3865,7 @@ public class SOCGameHandler extends GameHandler
                     {
                         pickCoord = itm.getCoordinates();
                         pickLevel = itm.getLevel();
+                        pickSV = itm.getStringValue();
                     }
 
                     // perform the PICK in game
@@ -3889,11 +3891,13 @@ public class SOCGameHandler extends GameHandler
                         if (itmAfter != null)
                         {
                             msg = new SOCSetSpecialItem(ga, SOCSetSpecialItem.OP_SET, typeKey, gi, pi, itmAfter);
+
                             pickCoord = itmAfter.getCoordinates();
                             pickLevel = itmAfter.getLevel();
+                            pickSV = itmAfter.getStringValue();
                         } else {
                             msg = new SOCSetSpecialItem
-                                (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn, -1, 0);
+                                (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn);
                         }
                         srv.messageToGame(gaName, msg);
                     } else {
@@ -3910,11 +3914,13 @@ public class SOCGameHandler extends GameHandler
                             if (gAfter != null)
                             {
                                 msg = new SOCSetSpecialItem(ga, SOCSetSpecialItem.OP_SET, typeKey, gi, pi, gAfter);
+
                                 pickCoord = gAfter.getCoordinates();
                                 pickLevel = gAfter.getLevel();
+                                pickSV = gAfter.getStringValue();
                             } else {
                                 msg = new SOCSetSpecialItem
-                                    (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn, -1, 0);
+                                    (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn);
                             }
                             srv.messageToGame(gaName, msg);
                         } else {
@@ -3926,12 +3932,14 @@ public class SOCGameHandler extends GameHandler
                             {
                                 if (gBefore != null)
                                     srv.messageToGame(gaName, new SOCSetSpecialItem
-                                        (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, -1, -1, -1, 0));
+                                        (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, -1, -1));
                             } else {
                                 srv.messageToGame(gaName, new SOCSetSpecialItem
                                     (ga, SOCSetSpecialItem.OP_SET, typeKey, gi, -1, gAfter));
+
                                 pickCoord = gAfter.getCoordinates();
                                 pickLevel = gAfter.getLevel();
+                                pickSV = gAfter.getStringValue();
                                 hasgAfterCoordLevel = true;
                             }
 
@@ -3939,7 +3947,7 @@ public class SOCGameHandler extends GameHandler
                             {
                                 if (pBefore != null)
                                     srv.messageToGame(gaName, new SOCSetSpecialItem
-                                        (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, -1, pi, pn, -1, 0));
+                                        (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, -1, pi, pn));
                             } else {
                                 srv.messageToGame(gaName, new SOCSetSpecialItem
                                     (ga, SOCSetSpecialItem.OP_SET, typeKey, -1, pi, pAfter));
@@ -3947,13 +3955,14 @@ public class SOCGameHandler extends GameHandler
                                 {
                                     pickCoord = pAfter.getCoordinates();
                                     pickLevel = pAfter.getLevel();
+                                    pickSV = pAfter.getStringValue();
                                 }
                             }
                          }
                     }
 
                     srv.messageToGame(gaName, new SOCSetSpecialItem
-                            (gaName, SOCSetSpecialItem.OP_PICK, typeKey, gi, pi, pn, pickCoord, pickLevel));
+                            (gaName, SOCSetSpecialItem.OP_PICK, typeKey, gi, pi, pn, pickCoord, pickLevel, pickSV));
 
                 } else {
                     // OP_SET or OP_CLEAR
@@ -3976,7 +3985,7 @@ public class SOCGameHandler extends GameHandler
 
                     if ((op == SOCSetSpecialItem.OP_CLEAR) || (itm == null))
                         srv.messageToGame(gaName, new SOCSetSpecialItem
-                            (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn, -1, 0));
+                            (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn));
                     else
                         srv.messageToGame(gaName, new SOCSetSpecialItem(ga, op, typeKey, gi, pi, itm));
                 }
@@ -4002,7 +4011,7 @@ public class SOCGameHandler extends GameHandler
 
         if (sendDenyReply)
             c.put(new SOCSetSpecialItem
-                (gaName, SOCSetSpecialItem.OP_DECLINE, typeKey, gi, pi, mes.playerNumber, -1, 0).toCmd());
+                (gaName, SOCSetSpecialItem.OP_DECLINE, typeKey, gi, pi, mes.playerNumber).toCmd());
     }
 
     /**

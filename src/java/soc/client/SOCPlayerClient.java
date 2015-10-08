@@ -5357,7 +5357,8 @@ public class SOCPlayerClient
         case SOCSetSpecialItem.OP_PICK:
             // fall through
         case SOCSetSpecialItem.OP_DECLINE:
-            pcl.playerPickSpecialItem(typeKey, ga, pl, gi, pi, (mes.op == SOCSetSpecialItem.OP_PICK), mes.coord, mes.level);
+            pcl.playerPickSpecialItem(typeKey, ga, pl, gi, pi, (mes.op == SOCSetSpecialItem.OP_PICK),
+                mes.coord, mes.level, mes.sv);
             break;
         }
     }
@@ -5906,7 +5907,7 @@ public class SOCPlayerClient
     public void pickSpecialItem(SOCGame ga, final String typeKey, final int gi, final int pi)
     {
         put(new SOCSetSpecialItem
-            (ga.getName(), SOCSetSpecialItem.OP_PICK, typeKey, gi, pi, -1, -1, 0).toCmd(), ga.isPractice);
+            (ga.getName(), SOCSetSpecialItem.OP_PICK, typeKey, gi, pi, -1).toCmd(), ga.isPractice);
     }
 
     /**
