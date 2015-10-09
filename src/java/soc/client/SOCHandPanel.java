@@ -56,6 +56,7 @@ import java.awt.event.MouseListener;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.MissingResourceException;
 import java.util.Timer;  // For auto-roll
 import java.util.TimerTask;
 
@@ -3053,9 +3054,22 @@ public class SOCHandPanel extends Panel
                     wonderLab.setText("");
                     wonderLab.setToolTipText(null);
                 } else {
+                    String ofWonder = null;
+                    try {
+                        String sv = pWond.getStringValue();  // "w3"
+                        if (sv != null)
+                            ofWonder = strings.get("game.specitem.sc_wond.of_" + sv);  // "of the Monument"
+                    } catch (MissingResourceException e) {
+                        try {
+                            ofWonder = strings.get("game.specitem.sc_wond.of_fallback");  // "of a Wonder"
+                        }
+                        catch (MissingResourceException e2) {
+                            ofWonder = "of a Wonder";
+                        }
+                    }
                     wonderLab.setText(strings.get("hpan.wonderlevel", pLevel));  // "Wonder Level: #"
-                    wonderLab.setToolTipText(strings.get("hpan.wonderlevel.tip", pLevel));
-                        // "Player has built # levels of their Wonder."
+                    wonderLab.setToolTipText(strings.get("hpan.wonderlevel.tip", pLevel, ofWonder));
+                        // "Player has built # levels of the Monument."
                 }
             }
             break;

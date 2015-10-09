@@ -69,8 +69,13 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
  *  In this scenario, the game has a list of unique "Wonders", indexed 1 to {@link SOCGame#maxPlayers} + 1.
  *  (The 6-player game includes another copy of the first two wonders.)
  *  To win the game, a player must take ownership of exactly one of these, and build 4 levels of it.
+ *<P>
  *  A reference to the player's {@code SOCSpecialItem} is kept in the game's Special Item list, and also placed
  *  at index 0 of the player's Special Item list.
+ *<P>
+ *  This scenario uses the {@link #getStringValue()} field to identify the wonder object with a localized name:
+ *  "w1" is the Theater, "w5" is the Cathedral, etc. The 6-player game includes another copy of
+ *  the first two wonders: 2 special items will have "w1", 2 will have "w2".
  *
  *<UL>
  * <LI> On their own turn, a player can {@code PICK} a wonder from the game's list.  Each player can pick at most 1;
@@ -127,6 +132,14 @@ public class SOCSpecialItem
     };
 
     /**
+     * {@link #sv} for the Wonders in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
+     * {@code sv} is used in this scenario to identify the wonder with a localized name.
+     * Index 0 unused.  The 6-player game includes another copy of the first two wonders.
+     * Used by {@link #makeKnownItem(String, int)}.
+     */
+    private static final String[] SV_SC_WOND = { null, "w1", "w2", "w3", "w4", "w5", "w1", "w2" };
+
+    /**
      * The player who owns this item, if any. Will be null for certain items
      * which belong to the game and not to players.
      */
@@ -180,6 +193,7 @@ public class SOCSpecialItem
 
         final String[] typeReqs = REQ_SC_WOND;
         final int[][] typeCosts = COST_SC_WOND;
+        final String[] typeSV = SV_SC_WOND;
 
         final SOCResourceSet costRS;
         if ((idx < 0) || (idx >= typeCosts.length))
@@ -191,8 +205,9 @@ public class SOCSpecialItem
         }
 
         final String req = ((idx < 0) || (idx >= typeReqs.length)) ? null : typeReqs[idx];
+        final String sv = ((idx < 0) || (idx >= typeSV.length)) ? null : typeSV[idx];
 
-        return new SOCSpecialItem(null, -1, costRS, req);
+        return new SOCSpecialItem(null, -1, 0, sv, costRS, req);
     }
 
     /**
