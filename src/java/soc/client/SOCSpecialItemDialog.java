@@ -223,7 +223,8 @@ class SOCSpecialItemDialog
                 String wname;
                 try
                 {
-                    wname = strings.get("game.specitem.sc_wond.w" + (i+1));  // game.specitem.sc_wond.w1 -> "Theater", etc
+                    wname = strings.get("game.specitem.sc_wond." + itm.getStringValue());
+                        // game.specitem.sc_wond.w1 -> "Theater", etc
                 } catch (MissingResourceException e) {
                     wname = "WONDERNAME_" + (i+1);  // fallback, should not occur
                 }
