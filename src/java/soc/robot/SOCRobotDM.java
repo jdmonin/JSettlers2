@@ -1918,10 +1918,13 @@ public class SOCRobotDM
        final boolean forSpecialBuildingPhase)
       throws IllegalArgumentException
   {
-    if (ourPlayerData.getTotalVP() < 4)
+    final int ourVP = ourPlayerData.getTotalVP();
+    if (ourVP < 4)
     {
       return false;  // <--- Early return: We don't have 4 VP, don't use resources to build out to sea yet ---
     }
+
+    final int ourNumWarships = ourPlayerData.getNumWarships();
 
     // evaluate game status (current VP, etc); calc scenario-specific options and scores
     //    If bestPlanIsDevCard, don't recalc cardScoreOrETA for buying a warship card
@@ -1931,12 +1934,13 @@ public class SOCRobotDM
     int shipsBuilt = SOCPlayer.SHIP_COUNT - ourPlayerData.getNumPieces(SOCPlayingPiece.SHIP);
 
     boolean mightBuildShip = false;
-    if (shipsBuilt >= 6)
+    if ((shipsBuilt >= 6) && ((ourVP < 6) || (ourNumWarships < 2) || (ourPlayerData.getFortress() == null)))
     {
-        // Enough ships already built for defense (since max dice is 6)
-        //    TODO if no other plans, build another ship here if we can
-        //    TODO later in game, need more ships, to build out to pirate fortress
-        //        See also ourPlayerData.getFortress() -- null if already defeated it
+        // During early game: Enough ships already built to upgrade for defense (since max dice is 6).
+        // Later in game (6+ VP, 2+ warships): need more ships to build out to pirate fortress;
+        // getFortress() null if already defeated it.
+        // TODO if no other plans, build another ship here if we can
+
         shipETA = 100;
         shipScoreOrETA = 0f;
     } else {
@@ -1954,28 +1958,37 @@ public class SOCRobotDM
     }
 
     boolean mightBuyWarshipCard = false;
-    final int warshipCardsBought =
+    final int warshipCardsInHand =
         ourPlayerData.getInventory().getAmount(SOCDevCardConstants.KNIGHT);
 
-    if (warshipCardsBought > 0)
+    if (warshipCardsInHand > 0)
     {
-        // Enough already bought for now
+        // Enough already bought for now, don't bother calculating ETA
         //    TODO if no other plans, consider buying another anyway
         cardScoreOrETA = 100;
     }
     else if (cardScoreOrETA < 0)
     {
+        // ETA not provided by caller: calculate it
+
         if (isScoreNotETA)
             throw new IllegalArgumentException("cardScoreOrETA");  // should already be calculated
 
         if (game.getNumDevCards() > 0)
         {
-            mightBuyWarshipCard = true;
             cardScoreOrETA = ourBSE.calculateRollsFast
               (ourPlayerData.getResources(), SOCGame.CARD_SET, 100, ourPlayerData.getPortFlags());
         } else {
             cardScoreOrETA = 100;
         }
+    }
+
+    if ((ourNumWarships < 6) && (game.getNumDevCards() > 0))
+    {
+        if (warshipCardsInHand == 0)
+            mightBuyWarshipCard = true;
+
+            // TODO if no other plans, consider buying another
     }
 
     System.err.println("L1848 bot " + ourPlayerData.getName() + (isScoreNotETA ? ": best score " : ": best ETA ")
@@ -1986,28 +1999,55 @@ public class SOCRobotDM
         return false;  // <--- Early return: No special action at this time ---
     }
 
-    // TODO use shipScoreOrETA, shipsBuilt, warshipCardsBought, cardScoreOrETA
+    // TODO Weight it for VP or time; ideally we at least have 5 or 6 warships to defend against pirate attacks
 
-    // Weight it for VP or time; ideally we at least have more warships than cities
+    // If it scores highly: Pick a scenario building plan, push it, return true
 
-    // TODO if it scores highly: Pick a scenario building plan, push it, return true
-
-    // for now we'll only build ships west towards the fortress;
-    // TODO need to add decision code, warship code
-    if (mightBuildShip)
+    boolean betterScoreIsBuildShip = false;  // this var is used only if build, buy are both possible options
+    final float scenPlanScoreOrETA;
+    if (! mightBuyWarshipCard)
+        scenPlanScoreOrETA = shipScoreOrETA;
+    else if (! mightBuildShip)
+        scenPlanScoreOrETA = cardScoreOrETA;
+    else
     {
         if (isScoreNotETA)
-        {
-            if (bestScoreOrETA > shipScoreOrETA)
-                return false;
-        } else {
-            if (bestScoreOrETA < shipScoreOrETA)
-                return false;
-        }
+            betterScoreIsBuildShip = (shipScoreOrETA > cardScoreOrETA);
+        else
+            betterScoreIsBuildShip = (shipScoreOrETA < cardScoreOrETA);
 
-        // plan & build it
-        if (scenarioGameStrategyPlan_SC_PIRI_buildNextShip())
+        scenPlanScoreOrETA = (betterScoreIsBuildShip) ? shipScoreOrETA : cardScoreOrETA;
+    }
+
+    // compare to non-scenario bestScoreOrETA
+    if (isScoreNotETA)
+    {
+        if (bestScoreOrETA > scenPlanScoreOrETA)
+            return false;
+    } else {
+        if (bestScoreOrETA < scenPlanScoreOrETA)
+            return false;
+    }
+
+    // OK, at least 1 of the 2 scenario actions scores higher than the non-scenario planned action.
+
+    if (mightBuildShip)
+    {
+        if (mightBuyWarshipCard && ! betterScoreIsBuildShip)
+        {
+            buildingPlan.push(new SOCPossibleCard(ourPlayerData, 1));
             return true;
+        } else {
+            // plan to build it if possible, else fall through.
+            if (scenarioGameStrategyPlan_SC_PIRI_buildNextShip())
+                return true;
+        }
+    }
+
+    if (mightBuyWarshipCard)
+    {
+        buildingPlan.push(new SOCPossibleCard(ourPlayerData, 1));
+        return true;
     }
 
     return false;
