@@ -1140,6 +1140,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Get this player's roads and ships on the board.  Chronological order.
      * Note that if a ship is moved on the board, it may go to the end of this list.
      * @return the list of roads/ships in play
+     * @see #getRoadOrShip(int)
+     * @see #getMostRecentShip()
      */
     public Vector<SOCRoad> getRoads()
     {
@@ -1150,6 +1152,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Get this player's road or ship on an edge.
      * @param  edge  Edge coordinate of the road or ship
      * @return  The player's road or ship in play at this edge, or null
+     * @see #getMostRecentShip()
      * @since 2.0.00
      */
     public SOCRoad getRoadOrShip(final int edge)
@@ -1158,6 +1161,25 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         {
             if (roadOrShip.getCoordinates() == edge)
                 return roadOrShip;
+        }
+
+        return null;
+    }
+
+    /**
+     * Get this player's most recently placed ship, if any.
+     * @return Most recent ship from {@link #getRoads()}, or {@code null}
+     *    if that list contains no {@link SOCShip}s
+     * @see #getRoads()
+     * @since 2.0.00
+     */
+    public SOCShip getMostRecentShip()
+    {
+        for (int i = roads.size() - 1; i >= 0; --i)
+        {
+            SOCRoad rs = roads.get(i);
+            if (rs instanceof SOCShip)
+                return (SOCShip) rs;
         }
 
         return null;
