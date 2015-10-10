@@ -261,6 +261,9 @@ public class SOCRobotDM
    * Calls either {@link #smartGameStrategy(int[])} or {@link #dumbFastGameStrategy(int[])}.
    * Both of those will check whether this is our normal turn, or if
    * it's the 6-player board's {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
+   * Both strategies also call
+   * {@link #scenarioGameStrategyPlan(float, float, boolean, boolean, SOCBuildingSpeedEstimate, int, boolean) scenarioGameStrategyPlan(..)}
+   * if the game has an applicable scenario such as {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
    *<P>
    * Some details:
    *<UL>
@@ -280,7 +283,7 @@ public class SOCRobotDM
    *</UL>
    *
    * @param strategy  an integer that determines which strategy is used
-   *    ({@link #SMART_STRATEGY} | {@link #FAST_STRATEGY})
+   *    ({@link #SMART_STRATEGY} or {@link #FAST_STRATEGY})
    */
   public void planStuff(final int strategy)
   {
@@ -1966,8 +1969,8 @@ public class SOCRobotDM
         }
     }
 
-    System.err.println("L1848 bot " + ourPlayerData.getName() + (isScoreNotETA ? ": score " : ": ETA ") + bestScoreOrETA
-        + "  card " + cardScoreOrETA + ", ship " + shipScoreOrETA);
+    System.err.println("L1848 bot " + ourPlayerData.getName() + (isScoreNotETA ? ": best score " : ": best ETA ")
+        + bestScoreOrETA + "; card " + cardScoreOrETA + ", ship " + shipScoreOrETA + "; shipsBuilt " + shipsBuilt);
 
     // TODO use shipScoreOrETA, shipsBuilt, warshipCardsBought, cardScoreOrETA
 

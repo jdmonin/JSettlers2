@@ -365,7 +365,8 @@ If you're interested in experimental changes to the jsettlers robots, or writing
 robot to connect to jsettlers, read this section.
 
 The project was originally started as Robert S Thomas' PhD dissertation about AI agents, so there's
-some instrumentation for the bots but it's not entirely documented.
+some instrumentation for the bots but it's not entirely documented.  For a technical overview of
+how the bots plan their actions, start at the SOCRobotBrain class javadoc.
 
 If you're looking to make minor changes, it's probably best to fork the soc.robot package and go
 from the classes and javadocs there.  For a larger change, some parts of soc.robot might still be

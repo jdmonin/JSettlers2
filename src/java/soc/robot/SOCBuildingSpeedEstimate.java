@@ -467,7 +467,9 @@ public class SOCBuildingSpeedEstimate
      * @param cutoff              maximum number of rolls
      * @param ports               a list of port flags
      *
-     * @return  the number of rolls, or {@code cutoff} if that maximum is reached
+     * @return  the number of rolls, or {@code cutoff} if that maximum is reached.
+     *     If {@link SOCResourceSet#contains(SOCResourceSet) startingResources.contains(targetResources)},
+     *     returns 0.
      * @since 2.0.00
      */
     protected final int calculateRollsFast
@@ -496,7 +498,9 @@ public class SOCBuildingSpeedEstimate
      * @param cutoff              throw an exception if the total speed is greater than this
      * @param ports               a list of port flags
      *
-     * @return the number of rolls, and startingResources after any trading
+     * @return the number of rolls, and startingResources after any trading.
+     *     If {@link SOCResourceSet#contains(SOCResourceSet) startingResources.contains(targetResources)},
+     *     returns 0 rolls and a copy of {@code startingResources} with identical amounts.
      * @throws CutoffExceededException  if total number of rolls &gt; {@code cutoff}
      * @see #calculateRollsFast(SOCResourceSet, SOCResourceSet, int, boolean[])
      */
@@ -757,9 +761,14 @@ public class SOCBuildingSpeedEstimate
      * @param cutoff              throw an exception if the total speed is greater than this
      * @param ports               a list of port flags
      *
-     * @return the number of rolls
+     * @return the number of rolls and our resources when the target is reached.
+     *    If {@link SOCResourceSet#contains(SOCResourceSet) startingResources.contains(targetResources)},
+     *    returns 0 rolls and a {@code null} resource set.
+     * @throws CutoffExceededException if estimate more than {@code cutoff} turns to obtain {@code targetResources}
      */
-    protected SOCResSetBuildTimePair calculateRollsAccurate(SOCResourceSet startingResources, SOCResourceSet targetResources, int cutoff, boolean[] ports) throws CutoffExceededException
+    protected SOCResSetBuildTimePair calculateRollsAccurate
+        (SOCResourceSet startingResources, SOCResourceSet targetResources, int cutoff, boolean[] ports)
+        throws CutoffExceededException
     {
         D.ebugPrintln("calculateRollsAccurate");
         D.ebugPrintln("  start: " + startingResources);
