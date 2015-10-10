@@ -2401,12 +2401,12 @@ public class SOCRobotBrain extends Thread
      * bot will build {@link #whatWeWantToBuild} by calling {@link #placeIfExpectPlacing()}.
      *
      * @since 1.1.08
-     * @throws IllegalStateException  if {@link #buildingPlan}{@link Stack#empty() .empty()}
+     * @throws IllegalStateException  if {@link #buildingPlan}{@link Stack#isEmpty() .isEmpty()}
      */
     private void buildOrGetResourceByTradeOrCard()
         throws IllegalStateException
     {
-        if (buildingPlan.empty())
+        if (buildingPlan.isEmpty())
             throw new IllegalStateException("buildingPlan empty when called");
 
         /**
@@ -2433,7 +2433,7 @@ public class SOCRobotBrain extends Thread
             //D.ebugPrintln("$ POPPED "+topPiece);
             if ((topPiece != null) && (topPiece instanceof SOCPossibleRoad))
             {
-                SOCPossiblePiece secondPiece = buildingPlan.peek();
+                SOCPossiblePiece secondPiece = (buildingPlan.isEmpty()) ? null : buildingPlan.peek();
 
                 //D.ebugPrintln("secondPiece="+secondPiece);
                 if ((secondPiece != null) && (secondPiece instanceof SOCPossibleRoad))
@@ -3207,7 +3207,7 @@ public class SOCRobotBrain extends Thread
         if (! buildingPlan.empty())
         {
             lastTarget = buildingPlan.peek();
-            negotiator.setTargetPiece(ourPlayerNumber, buildingPlan.peek());
+            negotiator.setTargetPiece(ourPlayerNumber, lastTarget);
         }
     }
 
