@@ -1608,6 +1608,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 ga.putPiece(new SOCCity(pl, coord, null));
                 break;
 
+            case SOCPlayingPiece.SHIP:
+                ga.putPiece(new SOCShip(pl, coord, null));
+                break;
+
             case SOCPlayingPiece.FORTRESS:
                 ga.putPiece(new SOCFortress(pl, coord, ga.getBoard()));
                 break;
@@ -1616,6 +1620,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 ga.putPiece(new SOCVillage(coord, ga.getBoard()));
                 break;
 
+            default:
+                System.err.println
+                    ("Displayless.handlePUTPIECE: game " + ga.getName() + ": Unknown pieceType " + pieceType);
             }
         }
     }
