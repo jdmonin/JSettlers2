@@ -63,6 +63,7 @@ import soc.message.SOCResourceCount;
 import soc.message.SOCSetPlayedDevCard;
 import soc.message.SOCSetTurn;
 import soc.message.SOCSimpleAction;
+import soc.message.SOCSimpleRequest;
 import soc.message.SOCSitDown;  // for javadoc
 import soc.message.SOCTurn;
 
@@ -299,7 +300,8 @@ public class SOCRobotBrain extends Thread
     protected SOCRobotNegotiator negotiator;
 
     // If any new expect or waitingFor fields are added,
-    // please update debugPrintBrainStatus().
+    // please update debugPrintBrainStatus() and the
+    // run() loop at "if (mesType == SOCMessage.TURN)".
 
     /**
      * true if we're expecting the START1A state
@@ -499,6 +501,13 @@ public class SOCRobotBrain extends Thread
      * true if we're waiting for a response to our trade message
      */
     protected boolean waitingForTradeResponse;
+
+    /**
+     * True if we're in a {@link SOCGameOption#K_SC_PIRI _SC_PIRI} game
+     * and waiting for server response to a {@link SOCSimpleRequest}
+     * to attack a pirate fortress.
+     */
+    protected boolean waitingOnSC_PIRI_FortressRequest;
 
     // If any new expect or waitingFor fields are added,
     // please update debugPrintBrainStatus().
@@ -890,7 +899,8 @@ public class SOCRobotBrain extends Thread
             rbSta.add("  rejectedPlayDevCardType = " + rejectedPlayDevCardType);
         final String[] s = {
             "ourTurn", "doneTrading",
-            "waitingForGameState", "waitingForOurTurn", "waitingForTradeMsg", "waitingForDevCard", "waitingForTradeResponse",
+            "waitingForGameState", "waitingForOurTurn", "waitingForTradeMsg", "waitingForDevCard",
+            "waitingForTradeResponse", "waitingOnSC_PIRI_FortressRequest",
             "moveRobberOnSeven", "expectSTART1A", "expectSTART1B", "expectSTART2A", "expectSTART2B", "expectSTART3A", "expectSTART3B",
             "expectPLAY", "expectPLAY1", "expectPLACING_ROAD", "expectPLACING_SETTLEMENT", "expectPLACING_CITY", "expectPLACING_SHIP",
             "expectPLACING_ROBBER", "expectPLACING_FREE_ROAD1", "expectPLACING_FREE_ROAD2",
@@ -1102,6 +1112,8 @@ public class SOCRobotBrain extends Thread
                         negotiator.resetIsSelling();
                         negotiator.resetOffersMade();
 
+                        waitingOnSC_PIRI_FortressRequest = false;
+
                         //
                         // check or reset any special-building-phase decisions
                         //
@@ -1307,6 +1319,45 @@ public class SOCRobotBrain extends Thread
                         SOCPlayer player = game.getPlayer(((SOCSetPlayedDevCard) mes).getPlayerNumber());
                         player.setPlayedDevCard(((SOCSetPlayedDevCard) mes).hasPlayedDevCard());
                         }
+                        break;
+
+                    case SOCMessage.SIMPLEREQUEST:
+                        // These messages can almost always be ignored,
+                        // unless we've just sent a request to attack a pirate fortress.
+
+                        if (ourTurn && waitingOnSC_PIRI_FortressRequest)
+                        {
+                            final SOCSimpleRequest rqMes = (SOCSimpleRequest) mes;
+
+                            if ((rqMes.getRequestType() == SOCSimpleRequest.SC_PIRI_FORT_ATTACK)
+                                && (rqMes.getPlayerNumber() == -1))
+                            {
+                                // Attack request was denied: End our turn now.
+                                // Reset method sets waitingForGameState, which will bypass
+                                // any further actions in the run() loop body.
+
+                                waitingOnSC_PIRI_FortressRequest = false;
+                                resetFieldsAtEndTurn();
+                                client.endTurn(game);
+                            }
+                            // else, from another player; we can ignore it
+                        }
+                        break;
+
+                    case SOCMessage.PIRATEFORTRESSATTACKRESULT:
+                        if (ourTurn && waitingOnSC_PIRI_FortressRequest)
+                        {
+                            // Our player has won or lost an attack on a pirate fortress.
+                            // When we receive this message, other messages have already
+                            // been sent to update related game state. End our turn now.
+                            // Reset method sets waitingForGameState, which will bypass
+                            // any further actions in the run() loop body.
+
+                            waitingOnSC_PIRI_FortressRequest = false;
+                            resetFieldsAtEndTurn();
+                            // client.endTurn not needed; making the attack implies sending endTurn
+                        }
+                        // else, from another player; we can ignore it
                         break;
 
                     }  // switch(mesType)
@@ -1565,34 +1616,37 @@ public class SOCRobotBrain extends Thread
                                 if (! (expectPLACING_SETTLEMENT || expectPLACING_FREE_ROAD1 || expectPLACING_FREE_ROAD2 || expectPLACING_ROAD || expectPLACING_CITY || expectPLACING_SHIP
                                        || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY || expectPLACING_ROBBER || waitingForTradeMsg || waitingForTradeResponse || waitingForDevCard))
                                 {
-                                    resetFieldsAtEndTurn();
-                                        /*
-                                         * These state fields are reset:
-                                         *
+                                    // Any last things for turn from game's scenario?
+                                    boolean scenActionTaken = false;
+                                    if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                                    {
+                                        // possibly attack pirate fortress
+                                        scenActionTaken = considerScenarioTurnFinalActions();
+                                    }
 
-                                        waitingForGameState = true;
-                                        counter = 0;
-                                        expectPLAY = true;
-                                        waitingForOurTurn = true;
+                                    if (! scenActionTaken)
+                                    {
+                                        resetFieldsAtEndTurn();
+                                            /*
+                                             * These state fields are reset:
+                                             *
+                                            waitingForGameState = true;
+                                            counter = 0;
+                                            expectPLAY = true;
+                                            waitingForOurTurn = true;
 
-                                        if (robotParameters.getTradeFlag() == 1)
-                                        {
-                                            doneTrading = false;
-                                        }
-                                        else
-                                        {
-                                            doneTrading = true;
-                                        }
+                                            doneTrading = (robotParameters.getTradeFlag() != 1);
 
-                                        //D.ebugPrintln("!!! ENDING TURN !!!");
-                                        negotiator.resetIsSelling();
-                                        negotiator.resetOffersMade();
-                                        buildingPlan.clear();
-                                        negotiator.resetTargetPieces();
-                                         */
+                                            //D.ebugPrintln("!!! ENDING TURN !!!");
+                                            negotiator.resetIsSelling();
+                                            negotiator.resetOffersMade();
+                                            buildingPlan.clear();
+                                            negotiator.resetTargetPieces();
+                                             */
 
-                                    pause(1500);
-                                    client.endTurn(game);
+                                        pause(1500);
+                                        client.endTurn(game);
+                                    }
                                 }
                             }
                         }
@@ -1863,6 +1917,33 @@ public class SOCRobotBrain extends Thread
         negotiator.resetOffersMade();
         buildingPlan.clear();
         negotiator.resetTargetPieces();
+    }
+
+    /**
+     * Look for and take any scenario-specific final actions before ending the turn.
+     *<P>
+     * For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} will check if we've reached the fortress
+     * and have 5 or more warships, and if so will attack the fortress.  Doing so ends the turn, so
+     * we don't try to attack before end of turn.
+     *<P>
+     * <B>NOTE:</B> For now this method assumes it's called only in the {@code SC_PIRI} scenario.
+     * Caller must check the game for any relevant scenario SOCGameOptions before calling.
+     *
+     * @return true if an action was taken <B>and</B> turn shouldn't be ended yet, false otherwise
+     * @since 2.0.00
+     */
+    private boolean considerScenarioTurnFinalActions()
+    {
+        // NOTE: for now this method assumes it's called only in the SC_PIRI scenario
+
+        // require 5+ warships; game.canAttackPirateFortress checks that we've reached the fortress with adjacent ship
+        if ((ourPlayerData.getNumWarships() < 5) || (null == game.canAttackPirateFortress()))
+            return false;
+
+        waitingOnSC_PIRI_FortressRequest = true;
+        client.simpleRequest(game, ourPlayerNumber, SOCSimpleRequest.SC_PIRI_FORT_ATTACK, 0, 0);
+
+        return true;
     }
 
     /**

@@ -755,6 +755,15 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
+             * generic "simple request" responses or announcements from the server.
+             * Message type added 2013-02-17 for v1.1.18,
+             * bot ignored these until 2015-10-10 for v2.0.00 SC_PIRI.
+             */
+            case SOCMessage.SIMPLEREQUEST:
+                handlePutBrainQ((SOCSimpleRequest) mes);
+                break;
+
+            /**
              * generic "simple action" announcements from the server.
              * Added 2013-09-04 for v1.1.19.
              */
@@ -843,6 +852,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 super.handleSETSPECIALITEM(games, (SOCSetSpecialItem) mes);
                 break;
 
+            /**
+             * Result of a player's pirate fortress attack (SC_PIRI scenario).
+             * Message type added 2013-02-18 for v2.0.00,
+             * bot ignored these until 2015-10-10.
+             */
+            case SOCMessage.PIRATEFORTRESSATTACKRESULT:
+                handlePutBrainQ((SOCPirateFortressAttackResult) mes);
+                break;
             }
         }
         catch (Throwable e)
