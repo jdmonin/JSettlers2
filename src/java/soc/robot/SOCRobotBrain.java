@@ -1565,25 +1565,32 @@ public class SOCRobotBrain extends Thread
                                 if (! (expectPLACING_SETTLEMENT || expectPLACING_FREE_ROAD1 || expectPLACING_FREE_ROAD2 || expectPLACING_ROAD || expectPLACING_CITY || expectPLACING_SHIP
                                        || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY || expectPLACING_ROBBER || waitingForTradeMsg || waitingForTradeResponse || waitingForDevCard))
                                 {
-                                    waitingForGameState = true;
-                                    counter = 0;
-                                    expectPLAY = true;
-                                    waitingForOurTurn = true;
+                                    resetFieldsAtEndTurn();
+                                        /*
+                                         * These state fields are reset:
+                                         *
 
-                                    if (robotParameters.getTradeFlag() == 1)
-                                    {
-                                        doneTrading = false;
-                                    }
-                                    else
-                                    {
-                                        doneTrading = true;
-                                    }
+                                        waitingForGameState = true;
+                                        counter = 0;
+                                        expectPLAY = true;
+                                        waitingForOurTurn = true;
 
-                                    //D.ebugPrintln("!!! ENDING TURN !!!");
-                                    negotiator.resetIsSelling();
-                                    negotiator.resetOffersMade();
-                                    buildingPlan.clear();
-                                    negotiator.resetTargetPieces();
+                                        if (robotParameters.getTradeFlag() == 1)
+                                        {
+                                            doneTrading = false;
+                                        }
+                                        else
+                                        {
+                                            doneTrading = true;
+                                        }
+
+                                        //D.ebugPrintln("!!! ENDING TURN !!!");
+                                        negotiator.resetIsSelling();
+                                        negotiator.resetOffersMade();
+                                        buildingPlan.clear();
+                                        negotiator.resetTargetPieces();
+                                         */
+
                                     pause(1500);
                                     client.endTurn(game);
                                 }
@@ -1823,6 +1830,39 @@ public class SOCRobotBrain extends Thread
         playerTrackers = null;
         pinger.stopPinger();
         pinger = null;
+    }
+
+    /**
+     * Bot is ending its turn; reset state control fields to act during other players' turns.
+     *<UL>
+     * <LI> {@link #waitingForGameState} = true
+     * <LI> {@link #expectPLAY} = true
+     * <LI> {@link #waitingForOurTurn} = true
+     * <LI> {@link #doneTrading} = false only if {@link #robotParameters} allow trade
+     * <LI> {@link #counter} = 0
+     * <LI> clear {@link #buildingPlan}
+     * <LI> {@link SOCRobotNegotiator#resetIsSelling() negotiator.resetIsSelling()},
+     *      {@link SOCRobotNegotiator#resetOffersMade() .resetOffersMade()},
+     *      {@link SOCRobotNegotiator#resetTargetPieces() .resetTargetPieces()}
+     *</UL>
+     *<P>
+     * Does not call {@link SOCRobotClient#endTurn(SOCGame)}.
+     * @since 2.0.00
+     */
+    private final void resetFieldsAtEndTurn()
+    {
+        waitingForGameState = true;
+        counter = 0;
+        expectPLAY = true;
+        waitingForOurTurn = true;
+
+        doneTrading = (robotParameters.getTradeFlag() != 1);
+
+        //D.ebugPrintln("!!! ENDING TURN !!!");
+        negotiator.resetIsSelling();
+        negotiator.resetOffersMade();
+        buildingPlan.clear();
+        negotiator.resetTargetPieces();
     }
 
     /**
