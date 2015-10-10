@@ -24,6 +24,7 @@ package soc.robot;
 import java.text.DecimalFormat;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Stack;
 import java.util.Vector;
@@ -33,6 +34,7 @@ import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
+import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCInventory;
@@ -1928,14 +1930,18 @@ public class SOCRobotDM
     int shipETA;
     int shipsBuilt = SOCPlayer.SHIP_COUNT - ourPlayerData.getNumPieces(SOCPlayingPiece.SHIP);
 
+    boolean mightBuildShip = false;
     if (shipsBuilt >= 6)
     {
         // Enough ships already built for defense (since max dice is 6)
+        //    TODO if no other plans, build another ship here if we can
         //    TODO later in game, need more ships, to build out to pirate fortress
+        //        See also ourPlayerData.getFortress() -- null if already defeated it
         shipETA = 100;
         shipScoreOrETA = 0f;
     } else {
         // Calculate ETA to buy and build another ship
+        mightBuildShip = true;
         shipETA = ourBSE.calculateRollsFast
           (ourPlayerData.getResources(), SOCGame.SHIP_SET, 100, ourPlayerData.getPortFlags());
         if (! isScoreNotETA)
@@ -1947,12 +1953,14 @@ public class SOCRobotDM
         }
     }
 
+    boolean mightBuyWarshipCard = false;
     final int warshipCardsBought =
         ourPlayerData.getInventory().getAmount(SOCDevCardConstants.KNIGHT);
 
     if (warshipCardsBought > 0)
     {
         // Enough already bought for now
+        //    TODO if no other plans, consider buying another anyway
         cardScoreOrETA = 100;
     }
     else if (cardScoreOrETA < 0)
@@ -1962,6 +1970,7 @@ public class SOCRobotDM
 
         if (game.getNumDevCards() > 0)
         {
+            mightBuyWarshipCard = true;
             cardScoreOrETA = ourBSE.calculateRollsFast
               (ourPlayerData.getResources(), SOCGame.CARD_SET, 100, ourPlayerData.getPortFlags());
         } else {
@@ -1972,14 +1981,140 @@ public class SOCRobotDM
     System.err.println("L1848 bot " + ourPlayerData.getName() + (isScoreNotETA ? ": best score " : ": best ETA ")
         + bestScoreOrETA + "; card " + cardScoreOrETA + ", ship " + shipScoreOrETA + "; shipsBuilt " + shipsBuilt);
 
+    if (! (mightBuildShip || mightBuyWarshipCard))
+    {
+        return false;  // <--- Early return: No special action at this time ---
+    }
+
     // TODO use shipScoreOrETA, shipsBuilt, warshipCardsBought, cardScoreOrETA
 
     // Weight it for VP or time; ideally we at least have more warships than cities
 
     // TODO if it scores highly: Pick a scenario building plan, push it, return true
 
+    // for now we'll only build ships west towards the fortress;
+    // TODO need to add decision code, warship code
+    if (mightBuildShip)
+    {
+        if (isScoreNotETA)
+        {
+            if (bestScoreOrETA > shipScoreOrETA)
+                return false;
+        } else {
+            if (bestScoreOrETA < shipScoreOrETA)
+                return false;
+        }
+
+        // plan & build it
+        if (scenarioGameStrategyPlan_SC_PIRI_buildNextShip())
+            return true;
+    }
+
     return false;
   }
+
+  /**
+   * If possible, calculate where our next ship would be placed, and add it to {@link #buildingPlan}.
+   * Assumes our player's {@link SOCPlayer#getFortress()} is west of all boats we've already placed.
+   * @return True if next ship is possible and was added to {@link #buildingPlan}
+   * @since 2.0.00
+   */
+  private final boolean scenarioGameStrategyPlan_SC_PIRI_buildNextShip()
+  {
+    SOCShip prevShip = ourPlayerData.getMostRecentShip();
+    if (prevShip == null)
+        return false;  // player starts with 1 ship, so should never be null
+
+    final int fortressNode;
+    {
+        final SOCFortress fo = ourPlayerData.getFortress();
+        if (fo == null)
+            return false;  // already defeated it
+
+        fortressNode = fo.getCoordinates();
+    }
+
+    final int prevShipNode;
+    {
+        final int[] nodes = prevShip.getAdjacentNodes();
+        final int c0 = nodes[0] & 0xFF,
+                  c1 = nodes[1] & 0xFF;
+
+        if (c0 < c1)
+            prevShipNode = nodes[0];
+        else if (c1 < c0)
+            prevShipNode = nodes[1];
+        else
+        {
+            // prevShip goes north-south; check its node rows vs fortress row
+            final int r0 = nodes[0] >> 8,
+                      r1 = nodes[1] >> 8,
+                      rFort = fortressNode >> 8;
+
+           if (Math.abs(rFort - r0) < Math.abs(rFort - r1))
+               prevShipNode = nodes[0];
+           else
+               prevShipNode = nodes[1];
+        }
+    }
+
+    // Get the player's ship path towards fortressNode from prevShip.
+    // We need to head west, possibly north or south.
+    final HashSet<Integer> lse = ourPlayerData.getRestrictedLegalShips();
+    if (lse == null)
+        return false;  // null lse should not occur in _SC_PIRI
+
+    // Need 1 or 2 edges that are in lse and aren't prevShipEdge,
+    //    and the edge's far node is either further west than prevShipNode,
+    //    or is vertical and takes us closer north or south to the fortress.
+    int edge1 = -9, edge2 = -9;
+    final SOCBoard board = game.getBoard();
+    final int prevShipEdge = prevShip.getCoordinates();
+    int[] nextPossiEdges = board.getAdjacentEdgesToNode_arr(prevShipNode);
+    for (int i = 0; i < nextPossiEdges.length; ++i)
+    {
+        final int edge = nextPossiEdges[i];
+        if ((edge == -9) || (edge == prevShipEdge) || ! lse.contains(Integer.valueOf(edge)))
+            continue;
+
+        // be sure this edge takes us towards fortressNode
+        final int farNode = board.getAdjacentNodeFarEndOfEdge(edge, prevShipNode);
+        final int cShip = prevShipNode & 0xFF,
+                  cEdge = farNode & 0xFF;
+        if (cEdge > cShip)
+        {
+            continue;  // farNode is east, not west
+        } else if (cEdge == cShip) {
+            final int rShip = prevShipNode >> 8,
+                      rEdge = farNode >> 8,
+                      rFort = fortressNode >> 8;
+           if (Math.abs(rFort - rEdge) > Math.abs(rFort - rShip))
+               continue;  // farNode isn't closer to fortress
+        }
+
+        // OK
+        if (edge1 == -9)
+            edge1 = edge;
+        else
+            edge2 = edge;
+    }
+
+    if (edge1 == -9)
+        return false;  // unlikely
+
+    final int newEdge;
+    if ((edge2 == -9) || (Math.random() < 0.5))
+        newEdge = edge1;
+    else
+        newEdge = edge2;
+
+    buildingPlan.add(new SOCPossibleShip(ourPlayerData, newEdge, false, null));
+    System.err.println("L2112 ** " + ourPlayerData.getName()
+        + ": Planned possible ship at 0x" + Integer.toHexString(newEdge) + " towards fortress");
+
+    return true;
+  }
+
 
 /**
    * Score possible settlements for for the smart game strategy ({@link #SMART_STRATEGY}),
