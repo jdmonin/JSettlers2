@@ -897,6 +897,9 @@ public class SOCRobotBrain extends Thread
             rbSta.add("  bot card count = " + ourPlayerData.getResources().getTotal());
         if (rejectedPlayDevCardType != -1)
             rbSta.add("  rejectedPlayDevCardType = " + rejectedPlayDevCardType);
+
+        // Reminder: Add new state fields to both s[] and b[]
+
         final String[] s = {
             "ourTurn", "doneTrading",
             "waitingForGameState", "waitingForOurTurn", "waitingForTradeMsg", "waitingForDevCard",
@@ -910,7 +913,8 @@ public class SOCRobotBrain extends Thread
         };
         final boolean[] b = {
             ourTurn, doneTrading,
-            waitingForGameState, waitingForOurTurn, waitingForTradeMsg, waitingForDevCard, waitingForTradeResponse,
+            waitingForGameState, waitingForOurTurn, waitingForTradeMsg, waitingForDevCard,
+            waitingForTradeResponse, waitingOnSC_PIRI_FortressRequest,
             moveRobberOnSeven, expectSTART1A, expectSTART1B, expectSTART2A, expectSTART2B, expectSTART3A, expectSTART3B,
             expectPLAY, expectPLAY1, expectPLACING_ROAD, expectPLACING_SETTLEMENT, expectPLACING_CITY, expectPLACING_SHIP,
             expectPLACING_ROBBER, expectPLACING_FREE_ROAD1, expectPLACING_FREE_ROAD2,
