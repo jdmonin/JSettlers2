@@ -2383,6 +2383,25 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
+     * Send a {@link SOCSimpleRequest} to the server.
+     * {@code reqType} gives the request type, and the optional
+     * {@code value1} and {@code value2} depend on request type.
+     *
+     * @param ga  the game
+     * @param ourPN  our player's player number
+     * @param reqType  Request type, such as {@link SOCSimpleRequest#SC_PIRI_FORT_ATTACK}.
+     *        See {@link SOCSimpleRequest} public int fields for possible types and their meanings.
+     * @param value1  First optional detail value, or 0
+     * @param value2  Second optional detail value, or 0
+     * @since 2.0.00
+     */
+    public void simpleRequest
+        (final SOCGame ga, final int ourPN, final int reqType, final int value1, final int value2)
+    {
+        put(SOCSimpleRequest.toCmd(ga.getName(), ourPN, reqType, value1, value2));
+    }
+
+    /**
      * send a text message to the people in the game
      *
      * @param ga   the game
