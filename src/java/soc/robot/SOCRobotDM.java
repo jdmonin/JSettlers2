@@ -1918,6 +1918,8 @@ public class SOCRobotDM
        final boolean forSpecialBuildingPhase)
       throws IllegalArgumentException
   {
+    // NOTE: for now this method assumes it's called only in the SC_PIRI scenario
+
     final int ourVP = ourPlayerData.getTotalVP();
     if (ourVP < 4)
     {
@@ -2056,6 +2058,8 @@ public class SOCRobotDM
   /**
    * If possible, calculate where our next ship would be placed, and add it to {@link #buildingPlan}.
    * Assumes our player's {@link SOCPlayer#getFortress()} is west of all boats we've already placed.
+   * If our line of ships has reached the fortress per {@link SOCPlayer#getMostRecentShip()},
+   * nothing to do: That goal is complete.
    * @return True if next ship is possible and was added to {@link #buildingPlan}
    * @since 2.0.00
    */
@@ -2096,6 +2100,13 @@ public class SOCRobotDM
            else
                prevShipNode = nodes[1];
         }
+    }
+
+    if (prevShipNode == fortressNode)
+    {
+        // our line of ships has reached the fortress
+
+        return false;
     }
 
     // Get the player's ship path towards fortressNode from prevShip.
@@ -2140,7 +2151,7 @@ public class SOCRobotDM
     }
 
     if (edge1 == -9)
-        return false;  // unlikely
+        return false;  // happens if we've built ships out to fortressNode already
 
     final int newEdge;
     if ((edge2 == -9) || (Math.random() < 0.5))
