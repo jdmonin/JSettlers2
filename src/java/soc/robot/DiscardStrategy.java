@@ -73,31 +73,32 @@ public class DiscardStrategy {
             decisionMaker.planStuff(robotParameters.getStrategyType());
         }
 
-        if (!buildingPlan.empty())
+        if (! buildingPlan.empty())
         {
             SOCPossiblePiece targetPiece = buildingPlan.peek();
             negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), targetPiece);
 
             //log.debug("targetPiece="+targetPiece);
-            SOCResourceSet targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
+
+            final SOCResourceSet targetResources;
+            if (targetPiece instanceof SOCPossiblePickSpecialItem)
+                targetResources = ((SOCPossiblePickSpecialItem) targetPiece).cost;
+                    // may be null
+            else
+                targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
 
             /**
              * figure out what resources are NOT the ones we need
              */
             SOCResourceSet leftOvers = ourPlayerData.getResources().copy();
 
-            for (int rsrc = SOCResourceConstants.CLAY;
-                    rsrc <= SOCResourceConstants.WOOD; rsrc++)
-            {
-                if (leftOvers.getAmount(rsrc) > targetResources.getAmount(rsrc))
-                {
-                    leftOvers.subtract(targetResources.getAmount(rsrc), rsrc);
-                }
-                else
-                {
-                    leftOvers.setAmount(0, rsrc);
-                }
-            }
+            if (targetResources != null)
+                for (int rsrc = SOCResourceConstants.CLAY;
+                         rsrc <= SOCResourceConstants.WOOD; rsrc++)
+                    if (leftOvers.getAmount(rsrc) > targetResources.getAmount(rsrc))
+                        leftOvers.subtract(targetResources.getAmount(rsrc), rsrc);
+                    else
+                        leftOvers.setAmount(0, rsrc);
 
             SOCResourceSet neededRsrcs = ourPlayerData.getResources().copy();
             neededRsrcs.subtract(leftOvers);
