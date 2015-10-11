@@ -38,6 +38,7 @@ import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
+import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 
 import soc.message.SOCAcceptOffer;
@@ -61,6 +62,7 @@ import soc.message.SOCPutPiece;
 import soc.message.SOCRejectOffer;
 import soc.message.SOCResourceCount;
 import soc.message.SOCSetPlayedDevCard;
+import soc.message.SOCSetSpecialItem;
 import soc.message.SOCSetTurn;
 import soc.message.SOCSimpleAction;
 import soc.message.SOCSimpleRequest;
@@ -503,6 +505,13 @@ public class SOCRobotBrain extends Thread
     protected boolean waitingForTradeResponse;
 
     /**
+     * Non-{@code null} if we're waiting for server response to picking
+     * a {@link SOCSpecialItem}, for certain scenarios; contains the {@code typeKey}
+     * of the special item we're waiting on.
+     */
+    protected String waitingForPickSpecialItem;
+
+    /**
      * True if we're in a {@link SOCGameOption#K_SC_PIRI _SC_PIRI} game
      * and waiting for server response to a {@link SOCSimpleRequest}
      * to attack a pirate fortress.
@@ -893,6 +902,8 @@ public class SOCRobotBrain extends Thread
                 + ((client != null) ? client.getNickname() : ourPlayerData.getName())
                 + " in game " + game.getName()
                 + ": gs=" + game.getGameState());
+        if (waitingForPickSpecialItem != null)
+            rbSta.add("  waitingForPickSpecialItem = " + waitingForPickSpecialItem);
         if (game.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
             rbSta.add("  bot card count = " + ourPlayerData.getResources().getTotal());
         if (rejectedPlayDevCardType != -1)
@@ -1116,6 +1127,7 @@ public class SOCRobotBrain extends Thread
                         negotiator.resetIsSelling();
                         negotiator.resetOffersMade();
 
+                        waitingForPickSpecialItem = null;
                         waitingOnSC_PIRI_FortressRequest = false;
 
                         //
@@ -1490,7 +1502,9 @@ public class SOCRobotBrain extends Thread
                     if (((game.getGameState() == SOCGame.PLAY1) || (game.getGameState() == SOCGame.SPECIAL_BUILDING))
                         && ! (waitingForGameState || waitingForTradeMsg || waitingForTradeResponse || waitingForDevCard
                               || expectPLACING_ROAD || expectPLACING_SETTLEMENT || expectPLACING_CITY || expectPLACING_SHIP
-                              || expectPLACING_ROBBER || expectPLACING_FREE_ROAD1 || expectPLACING_FREE_ROAD2 || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY))
+                              || expectPLACING_ROBBER || expectPLACING_FREE_ROAD1 || expectPLACING_FREE_ROAD2
+                              || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY
+                              || waitingOnSC_PIRI_FortressRequest || (waitingForPickSpecialItem != null)))
                     {
                         expectPLAY1 = false;
 
@@ -1618,7 +1632,8 @@ public class SOCRobotBrain extends Thread
                                  * see if we're done with our turn
                                  */
                                 if (! (expectPLACING_SETTLEMENT || expectPLACING_FREE_ROAD1 || expectPLACING_FREE_ROAD2 || expectPLACING_ROAD || expectPLACING_CITY || expectPLACING_SHIP
-                                       || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY || expectPLACING_ROBBER || waitingForTradeMsg || waitingForTradeResponse || waitingForDevCard))
+                                       || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY || expectPLACING_ROBBER || waitingForTradeMsg || waitingForTradeResponse || waitingForDevCard
+                                       || (waitingForPickSpecialItem != null)))
                                 {
                                     // Any last things for turn from game's scenario?
                                     boolean scenActionTaken = false;
@@ -1813,6 +1828,36 @@ public class SOCRobotBrain extends Thread
                             // Cloth is more valuable.
                             // TODO decide when we should choose resources instead
                             client.choosePlayer(game, -(vpn + 1));
+                        }
+                        break;
+
+                    case SOCMessage.SETSPECIALITEM:
+                        if (waitingForPickSpecialItem != null)
+                        {
+                            final SOCSetSpecialItem siMes = (SOCSetSpecialItem) mes;
+                            if (siMes.typeKey.equals(waitingForPickSpecialItem))
+                            {
+                                // This could be the "pick special item" message we've been waiting for,
+                                // or a related SET/CLEAR message that precedes it
+
+                                switch (siMes.op)
+                                {
+                                case SOCSetSpecialItem.OP_PICK:
+                                    waitingForPickSpecialItem = null;
+
+                                    // Now that this is received, can continue our turn.
+                                    // Any specific action needed? Not for SC_WOND.
+                                    break;
+
+                                case SOCSetSpecialItem.OP_DECLINE:
+                                    waitingForPickSpecialItem = null;
+
+                                    // TODO how to prevent asking again? (similar to whatWeFailedtoBuild)
+                                    break;
+
+                                // ignore SET or CLEAR that precedes the PICK message
+                                }
+                            }
                         }
                         break;
 
@@ -2399,6 +2444,8 @@ public class SOCRobotBrain extends Thread
      *<LI> {@link #waitingForGameState}, and {@link #expectWAITING_FOR_DISCOVERY} or {@link #expectWAITING_FOR_MONOPOLY}
      *<LI> {@link #waitingForTradeMsg} or {@link #waitingForTradeResponse} or {@link #doneTrading}
      *<LI> {@link #waitingForDevCard}, or {@link #waitingForGameState} and {@link #expectPLACING_SETTLEMENT} (etc).
+     *<LI> {@link #waitingForPickSpecialItem}
+     *<LI> Scenario actions such as {@link #waitingOnSC_PIRI_FortressRequest}
      *</UL>
      *<P>
      * In a future iteration of the run() loop with the expected {@code PLACING_} state, the
@@ -2491,7 +2538,12 @@ public class SOCRobotBrain extends Thread
         /// figure out what resources we need
         ///
         SOCPossiblePiece targetPiece = buildingPlan.peek();
-        SOCResourceSet targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
+        SOCResourceSet targetResources;
+        if (targetPiece instanceof SOCPossiblePickSpecialItem)
+            targetResources = ((SOCPossiblePickSpecialItem) targetPiece).cost;
+                // may be null
+        else
+            targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
 
         //D.ebugPrintln("^^^ targetPiece = "+targetPiece);
         //D.ebugPrintln("^^^ ourResources = "+ourPlayerData.getResources());
@@ -2571,13 +2623,15 @@ public class SOCRobotBrain extends Thread
                 ///
                 /// build if we can
                 ///
-                if (!waitingForTradeMsg && !waitingForTradeResponse && ourPlayerData.getResources().contains(targetResources))
+                if ((! (waitingForTradeMsg || waitingForTradeResponse))
+                    && ourPlayerData.getResources().contains(targetResources))
                 {
                     // Remember that targetPiece == buildingPlan.peek().
                     // Calls buildingPlan.pop().
                     // Checks against whatWeFailedToBuild to see if server has rejected this already.
                     // Calls client.buyDevCard or client.buildRequest.
                     // Sets waitingForDevCard, or waitingForGameState and expectPLACING_SETTLEMENT (etc).
+                    // Sets waitingForPickSpecialItem if target piece is SOCPossiblePickSpecialItem.
 
                     buildRequestPlannedPiece();
                 }
@@ -3090,13 +3144,14 @@ public class SOCRobotBrain extends Thread
      * Have the client ask to build our top planned piece
      * {@link #buildingPlan}{@link Stack#pop() .pop()},
      * unless we've already been told by the server to not build it.
-     * Sets {@link #whatWeWantToBuild} or {@link #waitingForDevCard}.
+     * Sets {@link #whatWeWantToBuild}, {@link #waitingForDevCard},
+     * or {@link #waitingForPickSpecialItem}.
      * Called from {@link #buildOrGetResourceByTradeOrCard()}.
      *<P>
      * Checks against {@link #whatWeFailedToBuild} to see if server has rejected this already.
      * Calls <tt>client.buyDevCard()</tt> or <tt>client.buildRequest()</tt>.
-     * Sets {@link #waitingForDevCard}, or {@link #waitingForGameState} and
-     * {@link #expectPLACING_SETTLEMENT} (etc).
+     * Sets {@link #waitingForDevCard} or {@link #waitingForPickSpecialItem},
+     * or sets {@link #waitingForGameState} and {@link #expectPLACING_SETTLEMENT} (etc).
      *
      * @since 1.1.08
      */
@@ -3185,6 +3240,16 @@ public class SOCRobotBrain extends Thread
 
             break;
 
+        case SOCPossiblePiece.PICK_SPECIAL:
+            {
+                final SOCPossiblePickSpecialItem psi = (SOCPossiblePickSpecialItem) targetPiece;
+                waitingForPickSpecialItem = psi.typeKey;
+                whatWeWantToBuild = null;  // targetPiece isn't a SOCPlayingPiece
+                counter = 0;
+
+                client.pickSpecialItem(game, psi.typeKey, psi.gi, psi.pi);
+            }
+            break;
         }
     }
 
@@ -4407,14 +4472,14 @@ public class SOCRobotBrain extends Thread
     /**
      * Make bank trades or port trades to get the target resources, if possible.
      *
-     * @param targetResources  the resources that we want
+     * @param targetResources  the resources that we want, can be {@code null} for an empty set (method returns false)
      * @return true if we sent a request to trade, false if
      *     we already have the resources or if we don't have
      *     enough to trade in for <tt>targetResources</tt>.
      */
     protected boolean tradeToTarget2(SOCResourceSet targetResources)
     {
-        if (ourPlayerData.getResources().contains(targetResources))
+        if ((targetResources == null) || ourPlayerData.getResources().contains(targetResources))
         {
             return false;
         }
@@ -4602,7 +4667,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Do we need to acquire at least <tt>numChoose</tt> resources to build our next piece?
-     * Choose the resources we need most, for we want to play a discovery development card
+     * Choose the resources we need most; used when we want to play a discovery development card
      * or when a Gold Hex number is rolled.
      * If returns true, has called {@link #chooseFreeResources(SOCResourceSet, int, boolean)}
      * and has set {@link #resourceChoices}.
@@ -4610,6 +4675,7 @@ public class SOCRobotBrain extends Thread
      * @param targetResources  Resources needed to build our next planned piece,
      *             from {@link SOCPlayingPiece#getResourcesToBuild(int)}
      *             for {@link #buildingPlan}.peek().
+     *             If {@code null}, returns false (no more resources required).
      * @param numChoose  Number of resources to choose
      * @param chooseIfNotNeeded  Even if we find we don't need them, choose anyway;
      *             set true for Gold Hex choice, false for Discovery card pick.
@@ -4619,6 +4685,9 @@ public class SOCRobotBrain extends Thread
     private boolean chooseFreeResourcesIfNeeded
         (SOCResourceSet targetResources, final int numChoose, final boolean chooseIfNotNeeded)
     {
+        if (targetResources == null)
+            return false;
+
         if (chooseIfNotNeeded)
             resourceChoices.clear();
 

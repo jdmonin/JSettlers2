@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2011-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2011-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -22,12 +22,13 @@
 package soc.robot;
 
 import soc.game.SOCPlayer;
+import soc.message.SOCSetSpecialItem;  // strictly for javadocs
 
 import java.util.Vector;
 
 
 /**
- * Pieces that a player might build.
+ * Pieces that a player might build, or action (buy card) a player might take.
  * Used by {@link SOCRobotDM} for tracking and planning moves.
  *<P>
  * Also tracks threats (opponents' possible pieces) to each of our player's
@@ -69,8 +70,14 @@ public abstract class SOCPossiblePiece
      */
     public static final int CARD = -2;
 
-    /** MIN is -2 for {@link #CARD}, but nothing currently uses -1. {@link #ROAD} is 0. */
-    public static final int MIN = -2;
+    /**
+     * Type constant for {@link SOCSetSpecialItem#OP_PICK} requests, subclass {@link SOCPossiblePickSpecialItem}.
+     * @since 2.0.00
+     */
+    public static final int PICK_SPECIAL = -3;
+
+    /** MIN is -3 for {@link #PICK_SPECIAL}, but nothing currently uses -1. {@link #ROAD} is 0. */
+    public static final int MIN = -3;
     public static final int MAXPLUSONE = 4;
 
     /**

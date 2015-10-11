@@ -850,6 +850,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.SETSPECIALITEM:
                 super.handleSETSPECIALITEM(games, (SOCSetSpecialItem) mes);
+                handlePutBrainQ((SOCSetSpecialItem) mes);
                 break;
 
             /**

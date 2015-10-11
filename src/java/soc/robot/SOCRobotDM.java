@@ -22,6 +22,7 @@
 package soc.robot;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,6 +46,7 @@ import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
+import soc.game.SOCSpecialItem;
 import soc.util.CutoffExceededException;
 import soc.util.NodeLenVis;
 import soc.util.Pair;
@@ -2217,8 +2219,103 @@ public class SOCRobotDM
     // Once building it, calc score/BSE to add a level when possible if another player's wonder level is close,
     // until we have 2 more levels than any other player.
 
-    return false;  // stub for now
+    SOCSpecialItem bestWond = ourPlayerData.getSpecialItem(SOCGameOption.K_SC_WOND, 0);
+    int bestETA;
+    float bestWondScoreOrETA;
+    int gi = -1;  // wonder's "game index" in Special Item interface
 
+    final int pLevel = (bestWond != null) ? bestWond.getLevel() : 0;
+    // TODO check level vs other players' level; if 2+ ahead of all others, no need to build more.
+    // No need to check against max levels: if we've already reached max level, game has ended
+
+    if (bestWond != null)
+    {
+        gi = bestWond.getGameIndex();
+
+        // Calc score or ETA to continue building pWond
+
+        bestETA = ourBSE.calculateRollsFast
+            (ourPlayerData.getResources(), bestWond.getCost(), 100, ourPlayerData.getPortFlags());
+        if (isScoreNotETA)
+        {
+            bestWondScoreOrETA = (100.0f / game.maxPlayers);
+            bestWondScoreOrETA += getETABonus(bestETA, leadersCurrentWGETA, bestWondScoreOrETA);
+        } else {
+            bestWondScoreOrETA = bestETA;
+        }
+
+    } else {
+        // No wonder has been chosen yet; look at all available ones.
+
+        // these will be given their actual values when bestWond is first assigned
+        int wETA = 0;
+        float wScoreOrETA = 0f;
+
+        final int numWonders = 1 + game.maxPlayers;
+        for (int i = 0; i < numWonders; ++i)
+        {
+            SOCSpecialItem wond = game.getSpecialItem(SOCGameOption.K_SC_WOND, i+1);
+
+            if (wond.getPlayer() != null)
+                continue;  // already claimed
+            if (! wond.checkRequirements(ourPlayerData, false))
+                continue;  // TODO potentially could plan how to reach requirements (build a settlement or city, etc)
+
+            int eta = ourBSE.calculateRollsFast
+                (ourPlayerData.getResources(), wond.getCost(), 100, ourPlayerData.getPortFlags());
+            float scoreOrETA;
+            if (isScoreNotETA)
+            {
+                scoreOrETA = (100.0f / game.maxPlayers);
+                scoreOrETA += getETABonus(eta, leadersCurrentWGETA, scoreOrETA);
+            } else {
+                scoreOrETA = eta;
+            }
+
+            boolean isBetter;
+            if (bestWond == null)
+                isBetter = true;
+            else if (isScoreNotETA)
+                isBetter = (scoreOrETA > wScoreOrETA);
+            else   // is ETA
+                isBetter = (scoreOrETA < wScoreOrETA);
+
+            if (isBetter)
+            {
+                bestWond = wond;
+                wETA = eta;
+                wScoreOrETA = scoreOrETA;
+                gi = i + 1;
+            }
+        }
+
+        if (bestWond == null)
+            return false;  // couldn't meet any unclaimed wonder's requirements
+
+        bestETA = wETA;
+        bestWondScoreOrETA = wScoreOrETA;
+    }
+
+    // Compare bestWond's score or ETA to our current plans
+
+    System.err.println("L2296 bot " + ourPlayerData.getName() + (isScoreNotETA ? ": best score " : ": best ETA ")
+        + bestScoreOrETA + "; card " + cardScoreOrETA + ", wondScoreOrETA " + bestWondScoreOrETA);
+
+    // If it scores highly: Push the scenario building plan, push it, return true
+    if (isScoreNotETA)
+    {
+        if (bestScoreOrETA > bestWondScoreOrETA)
+            return false;
+    } else {
+        if (bestScoreOrETA < bestWondScoreOrETA)
+            return false;
+    }
+
+    System.err.println("L2297 -> add to buildingPlan: gi=" + gi);
+    buildingPlan.add(new SOCPossiblePickSpecialItem
+        (ourPlayerData, SOCGameOption.K_SC_WOND, gi, 0, bestETA, bestWond.getCost()));
+
+    return true;
   }
 
 
