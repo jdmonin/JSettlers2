@@ -879,6 +879,25 @@ public class SOCSpecialItem
             this.atPort = atPort;
             this.atCoordList = atCoordList;
         }
+
+        /** String representation for debugging; same format as {@link #parse(String)}. */
+        public String toString()
+        {
+            StringBuilder sb = new StringBuilder();
+            if (count != 1)
+                sb.append(count);
+            sb.append(reqType);
+            if (atPort || (atCoordList != null))
+            {
+                sb.append('@');
+                if (atPort)
+                    sb.append('P');
+                else if (atCoordList != null)
+                    sb.append(atCoordList);
+            }
+
+            return sb.toString();
+        }
     }
 
 }
