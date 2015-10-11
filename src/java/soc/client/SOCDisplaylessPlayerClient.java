@@ -2270,7 +2270,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 }
 
                 if (gi != -1)
+                {
+                    item.setGameIndex(gi);
                     ga.setSpecialItem(typeKey, gi, item);
+                }
 
                 if ((pi != -1) && (pl != null))
                     pl.setSpecialItem(typeKey, pi, item);

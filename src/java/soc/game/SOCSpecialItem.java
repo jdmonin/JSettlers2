@@ -140,6 +140,11 @@ public class SOCSpecialItem
     private static final String[] SV_SC_WOND = { null, "w1", "w2", "w3", "w4", "w5", "w1", "w2" };
 
     /**
+     * Item's optional game item index, or -1, as used with {@link SOCGame#getSpecialItem(String, int, int, int)}.
+     */
+    protected int gameItemIndex;
+
+    /**
      * The player who owns this item, if any. Will be null for certain items
      * which belong to the game and not to players.
      */
@@ -169,6 +174,7 @@ public class SOCSpecialItem
     /**
      * Create a scenario/expansion's special item if known. This is a factory method for game setup convenience.
      * The known item's {@link #req requirements} and cost will be filled from static data.
+     * Sets {@link #getGameIndex()} to {@code idx}.
      *<P>
      * Currently known {@code typeKey}s:
      *<UL>
@@ -207,7 +213,10 @@ public class SOCSpecialItem
         final String req = ((idx < 0) || (idx >= typeReqs.length)) ? null : typeReqs[idx];
         final String sv = ((idx < 0) || (idx >= typeSV.length)) ? null : typeSV[idx];
 
-        return new SOCSpecialItem(null, -1, 0, sv, costRS, req);
+        final SOCSpecialItem si = new SOCSpecialItem(null, -1, 0, sv, costRS, req);
+        si.setGameIndex(idx);
+
+        return si;
     }
 
     /**
@@ -379,8 +388,25 @@ public class SOCSpecialItem
     }
 
     /**
+     * Get this item's optional game item index, or -1 if none,
+     * as used with {@link SOCGame#getSpecialItem(String, int, int, int)}.
+     * @see #getPlayer()
+     */
+    public int getGameIndex()
+    {
+        return gameItemIndex;
+    }
+
+    /** Set this item's {@link #getGameIndex(). */
+    public void setGameIndex(final int gi)
+    {
+        gameItemIndex = gi;
+    }
+
+    /**
      * Get the player who owns this item, if any.
      * @return the owner of the item, or {@code null}
+     * @see #getGameIndex()
      */
     public SOCPlayer getPlayer()
     {

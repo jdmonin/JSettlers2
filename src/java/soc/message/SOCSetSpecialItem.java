@@ -75,6 +75,9 @@ public class SOCSetSpecialItem extends SOCMessage
      * If sent from server to client(s) because of something in game or responding to a client request,
      * this item will be set.
      *<P>
+     * If {@link #gameItemIndex} != -1, sets the special item's {@link SOCSpecialItem#getGameIndex()},
+     * otherwise will not clear or change that field.
+     *<P>
      * If setting for both the game and the owning player ({@link #gameItemIndex} != -1 and
      * {@link #playerItemIndex} != -1), the client will check the game for an existing object before checking the player.
      * That is: If the game and player previously had different objects (not null) at the specified special item indices,
