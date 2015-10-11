@@ -48,8 +48,9 @@ import soc.game.SOCSpecialItem;  // for javadocs only
  * So, {@link SOCGame#updateAtBoardLayout()} will have been called at the client and created Special Item objects
  * before any {@code SOCSetSpecialItem} is received.
  *<P>
- * For traffic details see {@link #OP_SET}, {@link #OP_CLEAR}, {@link #OP_PICK} and {@link #OP_DECLINE} javadocs.
- * For game details see the {@link SOCSpecialItem} class javadoc.
+ * For message traffic/protocol details see {@link #OP_SET}, {@link #OP_CLEAR}, {@link #OP_PICK} and
+ * {@link #OP_DECLINE} javadocs; client requests typically use {@link #OP_PICK}.  For game details see
+ * the {@link SOCSpecialItem} class javadoc.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -65,6 +66,8 @@ public class SOCSetSpecialItem extends SOCMessage
      * with the current tokenizer.
      */
     public static final String EMPTYSTR = "\t";
+
+    // If you add an OP_ constant, also update OPS_STRS[].
 
     /**
      * If sent from client to server, a request to set an item in the game and/or owning player's Special Item list.
@@ -99,7 +102,9 @@ public class SOCSetSpecialItem extends SOCMessage
      * of a Special Item list must be done with {@link #OP_SET} or {@link #OP_CLEAR}, never implied by sending
      * only {@link #OP_PICK}.
      *<P>
-     * The sequence of messages sent from the server for a player's PICK are:
+     * Alternately, the server will respond to the requesting player with {@link #OP_DECLINE}.
+     *<P>
+     * The sequence of messages sent from the server for a player's successful PICK are:
      *<OL>
      * <LI> {@link SOCPlayerElement} message(s) to pay the cost, if any
      * <LI> {@link #OP_SET} or {@link #OP_CLEAR} message(s) resulting from the pick
@@ -322,12 +327,21 @@ public class SOCSetSpecialItem extends SOCMessage
             + sep2 + playerNumber + sep2 + coord + sep2 + level + sep2 + svStr;
     }
 
+    /** OP_* constant strings for {@link #toString()} */
+    private final static String[] OPS_STRS = { null, "SET", "CLEAR", "PICK", "DECLINE" };
+
     /**
      * @return a human readable form of the message
      */
     public String toString()
     {
-        return "SOCSetSpecialItem:game=" + game + "|op=" + op + "|typeKey=" + typeKey
+        final String opStr;
+        if ((op > 0) && (op < OPS_STRS.length))
+            opStr = OPS_STRS[op];
+        else
+            opStr = Integer.toString(op);
+
+        return "SOCSetSpecialItem:game=" + game + "|op=" + opStr + "|typeKey=" + typeKey
                 + "|gi=" + gameItemIndex + "|pi=" + playerItemIndex + "|pn=" + playerNumber
                 + "|co=" + ((coord >= 0) ? Integer.toHexString(coord) : Integer.toString(coord))
                 + "|lv=" + level + "|sv=" + sv;
