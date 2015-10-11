@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2009,2012-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2009,2012-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -339,11 +339,14 @@ public class SOCResourceSet implements Serializable, Cloneable
      * Are set A's resources each greater than or equal to set B's?
      * @return true if each resource type in set A is >= each resource type in set B
      *
-     * @param a   set A
-     * @param b   set B
+     * @param a   set A, cannot be {@code null}
+     * @param b   set B, can be {@code null} for an empty resource set
      */
     static public boolean gte(SOCResourceSet a, SOCResourceSet b)
     {
+        if (b == null)
+            return true;
+
         return (   (a.getAmount(SOCResourceConstants.CLAY)    >= b.getAmount(SOCResourceConstants.CLAY))
                 && (a.getAmount(SOCResourceConstants.ORE)     >= b.getAmount(SOCResourceConstants.ORE))
                 && (a.getAmount(SOCResourceConstants.SHEEP)   >= b.getAmount(SOCResourceConstants.SHEEP))
@@ -356,8 +359,8 @@ public class SOCResourceSet implements Serializable, Cloneable
      * Are set A's resources each less than or equal to set B's?
      * @return true if each resource type in set A is &lt;= each resource type in set B
      *
-     * @param a   set A
-     * @param b   set B
+     * @param a   set A, cannot be {@code null}
+     * @param b   set B, cannot be {@code null}
      */
     static public boolean lte(SOCResourceSet a, SOCResourceSet b)
     {
@@ -453,7 +456,7 @@ public class SOCResourceSet implements Serializable, Cloneable
     /**
      * @return true if sub is in this set
      *
-     * @param sub  the sub set
+     * @param sub  the sub set, can be {@code null} for an empty resource subset
      * @see #contains(int)
      */
     public boolean contains(SOCResourceSet sub)
