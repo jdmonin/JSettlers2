@@ -768,9 +768,10 @@ public class SOCRobotDM
           }
       }
 
-      if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+      if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI) || game.isGameOptionSet(SOCGameOption.K_SC_WOND))
       {
-          if (scenarioGameStrategyPlan(bestETA, -1f, false, (choice == LA_CHOICE), ourBSE, 0, forSpecialBuildingPhase))
+          if (scenarioGameStrategyPlan
+                  (bestETA, -1f, false, (choice == LA_CHOICE), ourBSE, 0, forSpecialBuildingPhase))
               return;  // <--- Early return: Scenario-specific buildingPlan was pushed ---
       }
 
@@ -1852,7 +1853,7 @@ public class SOCRobotDM
       }
     }
 
-    if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+    if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI) || game.isGameOptionSet(SOCGameOption.K_SC_WOND))
     {
         if (scenarioGameStrategyPlan(pickScore, devCardScore, true, (pick == SOCPlayingPiece.MAXPLUSONE),
               new SOCBuildingSpeedEstimate(ourPlayerData.getNumbers()), leadersCurrentWGETA, forSpecialBuildingPhase))
@@ -1888,8 +1889,9 @@ public class SOCRobotDM
   }
 
   /**
-   * For some game scenarios (currently {@link SOCGameOption#K_SC_PIRI _SC_PIRI}), evaluate and plan any
-   * special move.  If the scenario-specific move would score higher than the currently picked building plan
+   * For some game scenarios (currently {@link SOCGameOption#K_SC_PIRI _SC_PIRI} and
+   * {@link SOCGameOption#K_SC_WOND _SC_WOND}), evaluate and plan any special move.
+   * If the scenario-specific move would score higher than the currently picked building plan
    * from {@link #smartGameStrategy(int[])} or {@link #dumbFastGameStrategy(int[])}, push those scenario-specific
    * moves onto {@link #buildingPlan}.
    *<P>
@@ -1918,8 +1920,29 @@ public class SOCRobotDM
        final boolean forSpecialBuildingPhase)
       throws IllegalArgumentException
   {
-    // NOTE: for now this method assumes it's called only in the SC_PIRI scenario
+      if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+          return scenarioGameStrategyPlan_SC_PIRI
+              (bestScoreOrETA, cardScoreOrETA, isScoreNotETA, bestPlanIsDevCard, ourBSE,
+               leadersCurrentWGETA, forSpecialBuildingPhase);
+      else if (game.isGameOptionSet(SOCGameOption.K_SC_WOND))
+          return scenarioGameStrategyPlan_SC_WOND
+              (bestScoreOrETA, cardScoreOrETA, isScoreNotETA, bestPlanIsDevCard, ourBSE,
+               leadersCurrentWGETA, forSpecialBuildingPhase);
+      else
+          return false;
+  }
 
+  /**
+   * {@link #scenarioGameStrategyPlan(float, float, boolean, boolean, SOCBuildingSpeedEstimate, int, boolean) scenarioGameStrategyPlan(..)}
+   * for {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.  See that method for parameter meanings and other info.
+   * @since 2.0.00
+   */
+  private final boolean scenarioGameStrategyPlan_SC_PIRI
+      (final float bestScoreOrETA, float cardScoreOrETA, final boolean isScoreNotETA,
+       final boolean bestPlanIsDevCard, final SOCBuildingSpeedEstimate ourBSE, final int leadersCurrentWGETA,
+       final boolean forSpecialBuildingPhase)
+      throws IllegalArgumentException
+  {
     final int ourVP = ourPlayerData.getTotalVP();
     if (ourVP < 4)
     {
@@ -2164,6 +2187,38 @@ public class SOCRobotDM
         + ": Planned possible ship at 0x" + Integer.toHexString(newEdge) + " towards fortress");
 
     return true;
+  }
+
+  /**
+   * {@link #scenarioGameStrategyPlan(float, float, boolean, boolean, SOCBuildingSpeedEstimate, int, boolean) scenarioGameStrategyPlan(..)}
+   * for {@link SOCGameOption#K_SC_WOND _SC_WOND}.  See that method for parameter meanings and other info.
+   * @since 2.0.00
+   */
+  private final boolean scenarioGameStrategyPlan_SC_WOND
+      (final float bestScoreOrETA, float cardScoreOrETA, final boolean isScoreNotETA,
+       final boolean bestPlanIsDevCard, final SOCBuildingSpeedEstimate ourBSE, final int leadersCurrentWGETA,
+       final boolean forSpecialBuildingPhase)
+      throws IllegalArgumentException
+  {
+    final int ourVP = ourPlayerData.getTotalVP();
+    if (ourVP < 4)
+    {
+      return false;  // <--- Early return: We don't have 4 VP, don't use resources to build wonders yet ---
+    }
+
+    // evaluate game status (current VP, etc); calc scenario-specific options and scores
+    // are we already building a wonder?
+    // if not, should we pick one now?
+    // To win, some work on a wonder is required, but we don't have to finish it,
+    // only be farther along than any other player.
+
+    // Look for what we could build based on wonder requirements;
+    // calc scores/BSEs for them (if any); pick one.
+    // Once building it, calc score/BSE to add a level when possible if another player's wonder level is close,
+    // until we have 2 more levels than any other player.
+
+    return false;  // stub for now
+
   }
 
 
