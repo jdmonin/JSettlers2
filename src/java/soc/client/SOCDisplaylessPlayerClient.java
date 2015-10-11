@@ -2405,6 +2405,23 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
+     * Send a request to pick a {@link SOCSpecialItem Special Item}, using a
+     * {@link SOCSetSpecialItem}{@code (PICK, typeKey, gi, pi, owner=-1, coord=-1, level=0)} message.
+     * @param ga  Game
+     * @param typeKey  Special item type.  Typically a {@link SOCGameOption} keyname; see the {@link SOCSpecialItem}
+     *     class javadoc for details.
+     * @param gi  Game Item Index, as in {@link SOCGame#getSpecialItem(String, int)} or
+     *     {@link SOCSpecialItem#playerPickItem(String, SOCGame, SOCPlayer, int, int)}, or -1
+     * @param pi  Player Item Index, as in {@link SOCSpecialItem#playerPickItem(String, SOCGame, SOCPlayer, int, int)},
+     *     or -1
+     * @since 2.0.00
+     */
+    public void pickSpecialItem(SOCGame ga, final String typeKey, final int gi, final int pi)
+    {
+        put(new SOCSetSpecialItem(ga.getName(), SOCSetSpecialItem.OP_PICK, typeKey, gi, pi, -1).toCmd());
+    }
+
+    /**
      * send a text message to the people in the game
      *
      * @param ga   the game
