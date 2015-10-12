@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -115,6 +115,10 @@ public class SOCDBHelper
     /** Property <tt>jsettlers.db.script.setup</tt> to run a SQL setup script
      * at server startup, then exit.  Used to create tables when setting up a server.
      * To activate this feature, set this to the SQL script's full path or relative path.
+     *<P>
+     * To implement this, the SOCServer constructor connects to the db and runs the setup script,
+     * then signals success by throwing an {@link java.io.EOFException EOFException} which is
+     * caught by {@code main(..)}.  Errors throw {@link SQLException} instead.
      * @since 1.1.15
      */
     public static final String PROP_JSETTLERS_DB_SCRIPT_SETUP = "jsettlers.db.script.setup";
