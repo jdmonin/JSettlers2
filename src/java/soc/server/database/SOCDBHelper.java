@@ -195,6 +195,7 @@ public class SOCDBHelper
     private static String USER_PASSWORD_QUERY = "SELECT password FROM users WHERE ( users.nickname = ? );";
     private static String HOST_QUERY = "SELECT nickname FROM users WHERE ( users.host = ? );";
     private static String LASTLOGIN_UPDATE = "UPDATE users SET lastlogin = ?  WHERE nickname = ? ;";
+    private static final String PASSWORD_UPDATE = "UPDATE users SET password = ?  WHERE nickname = ? ;";
     private static String SAVE_GAME_COMMAND = "INSERT INTO games VALUES (?,?,?,?,?,?,?,?,?,?);";
     private static String ROBOT_PARAMS_QUERY = "SELECT * FROM robotparams WHERE robotname = ?;";
     private static final String USER_COUNT_QUERY = "SELECT count(*) FROM users;";
@@ -204,6 +205,8 @@ public class SOCDBHelper
     private static PreparedStatement userPasswordQuery = null;
     private static PreparedStatement hostQuery = null;
     private static PreparedStatement lastloginUpdate = null;
+    /** User password update: {@link #PASSWORD_UPDATE} */
+    private static PreparedStatement passwordUpdate = null;
     private static PreparedStatement saveGameCommand = null;
 
     /** Query all robot parameters for a bot name; {@link #ROBOT_PARAMS_QUERY}.
@@ -433,6 +436,7 @@ public class SOCDBHelper
         userPasswordQuery = connection.prepareStatement(USER_PASSWORD_QUERY);
         hostQuery = connection.prepareStatement(HOST_QUERY);
         lastloginUpdate = connection.prepareStatement(LASTLOGIN_UPDATE);
+        passwordUpdate = connection.prepareStatement(PASSWORD_UPDATE);
         saveGameCommand = connection.prepareStatement(SAVE_GAME_COMMAND);
         robotParamsQuery = connection.prepareStatement(ROBOT_PARAMS_QUERY);
         userCountQuery = connection.prepareStatement(USER_COUNT_QUERY);
@@ -735,6 +739,44 @@ public class SOCDBHelper
         }
 
         return false;
+    }
+
+    /**
+     * Update a user's password.
+     * @param userName  Username to update; does not validate this user exists
+     * @param newPassword  New password (length can be 1 to 20)
+     * @return  True if the update command succeeded, false if can't connect to db.
+     *     <BR><B>Note:</B> If there is no user with {@code userName}, will nonetheless return true.
+     * @throws IllegalArgumentException  If user or password are null, or password is too short or too long
+     * @throws SQLException if an error occurs
+     * @since 2.0.00
+     */
+    public static boolean updateUserPassword(final String userName, final String newPassword)
+        throws IllegalArgumentException, SQLException
+    {
+        if (userName == null)
+            throw new IllegalArgumentException("userName");
+        if ((newPassword == null) || (newPassword.length() == 0) || (newPassword.length() > 20))
+            throw new IllegalArgumentException("newPassword");
+
+        if (! checkConnection())
+            return false;
+
+        try
+        {
+            passwordUpdate.setString(1, newPassword);
+            passwordUpdate.setString(2, userName);
+            passwordUpdate.executeUpdate();
+
+            return true;
+        }
+        catch (SQLException sqlE)
+        {
+            errorCondition = true;
+            sqlE.printStackTrace();
+
+            throw sqlE;
+        }
     }
 
     /**
