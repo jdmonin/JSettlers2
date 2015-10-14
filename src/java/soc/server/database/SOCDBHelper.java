@@ -222,6 +222,8 @@ public class SOCDBHelper
     /**
      * This makes a connection to the database
      * and initializes the prepared statements.
+     * (If <tt>props</tt> includes {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP}, that script
+     * is run before the prepared statements.)
      * Sets {@link #isInitialized()}.
      *<P>
      * The default URL is "jdbc:mysql://localhost/socdata".
@@ -406,7 +408,8 @@ public class SOCDBHelper
      *
      * @param user  DB username
      * @param pswd  DB user password
-     * @param setupScriptPath  Full path or relative path to SQL script to run at connect, or null
+     * @param setupScriptPath  Full path or relative path to SQL script to run at connect, or null;
+     *     typically from {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP}
      * @throws IOException  if <tt>setupScriptPath</tt> wasn't found, or if any other IO error occurs reading the script
      * @throws SQLException if any connect error, missing table, or SQL error occurs
      * @return  true on success; will never return false, instead will throw a sqlexception
