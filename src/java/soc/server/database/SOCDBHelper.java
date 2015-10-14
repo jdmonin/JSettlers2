@@ -199,9 +199,12 @@ public class SOCDBHelper
     private static String SAVE_GAME_COMMAND = "INSERT INTO games VALUES (?,?,?,?,?,?,?,?,?,?);";
     private static String ROBOT_PARAMS_QUERY = "SELECT * FROM robotparams WHERE robotname = ?;";
     private static final String USER_COUNT_QUERY = "SELECT count(*) FROM users;";
+    private static final String USER_EXISTS_QUERY = "SELECT count(nickname) FROM users WHERE nickname = ?;";
 
     private static PreparedStatement createAccountCommand = null;
     private static PreparedStatement recordLoginCommand = null;
+    /** Query whether a user nickname exists; {@link #USER_EXISTS_QUERY} */
+    private static PreparedStatement userExistsQuery = null;
     private static PreparedStatement userPasswordQuery = null;
     private static PreparedStatement hostQuery = null;
     private static PreparedStatement lastloginUpdate = null;
@@ -436,6 +439,7 @@ public class SOCDBHelper
         // prepare PreparedStatements for queries
         createAccountCommand = connection.prepareStatement(CREATE_ACCOUNT_COMMAND);
         recordLoginCommand = connection.prepareStatement(RECORD_LOGIN_COMMAND);
+        userExistsQuery = connection.prepareStatement(USER_EXISTS_QUERY);
         userPasswordQuery = connection.prepareStatement(USER_PASSWORD_QUERY);
         hostQuery = connection.prepareStatement(HOST_QUERY);
         lastloginUpdate = connection.prepareStatement(LASTLOGIN_UPDATE);
@@ -529,7 +533,37 @@ public class SOCDBHelper
             cmd.close();
         }
     }
-    
+
+    /**
+     * Does this user (nickname) exist in the database?
+     * @param userName  User nickname to check
+     * @return  True if found in users table, false otherwise or if no database is currently connected
+     * @throws IllegalArgumentException if {@code userName} is {@code null}
+     * @throws SQLException if any unexpected database problem
+     * @since 2.0.00
+     */
+    public static boolean doesUserExist(final String userName)
+        throws IllegalArgumentException, SQLException
+    {
+        if (userName == null)
+            throw new IllegalArgumentException();
+
+        if (! checkConnection())
+            return false;
+
+        userExistsQuery.setString(1, userName);
+        boolean found;
+
+        ResultSet rs = userExistsQuery.executeQuery();
+        if (rs.next())
+            found = (rs.getInt(1) > 0);
+        else
+            found = false;
+
+        rs.close();
+        return found;
+    }
+
     /**
      * Retrieve this user's password from the database.
      *
@@ -745,8 +779,9 @@ public class SOCDBHelper
     }
 
     /**
-     * Update a user's password.
-     * @param userName  Username to update; does not validate this user exists
+     * Update a user's password if the user is in the database.
+     * @param userName  Username to update.  Does not validate this user exists: Call {@link #doesUserExist(String)}
+     *     first to do so.
      * @param newPassword  New password (length can be 1 to 20)
      * @return  True if the update command succeeded, false if can't connect to db.
      *     <BR><B>Note:</B> If there is no user with {@code userName}, will nonetheless return true.
