@@ -492,7 +492,25 @@ public class SOCServer extends Server
     private Properties props;
 
     /**
-     * Active optional server features, if any.
+     * True if {@link #props} contains a property which is used to run the server in Utility Mode
+     * instead of Server Mode.  In Utility Mode the server reads its properties, initializes its
+     * database connection if any, and performs one task such as a password reset or table/index creation.
+     * It won't listen at a TCP port or start other threads.
+     *<P>
+     * For a list of Utility Mode properties, see {@link #hasUtilityModeProperty()}.
+     * @see #utilityModeMessage
+     * @since 2.0.00
+     */
+    private boolean hasUtilityModeProp;
+
+    /**
+     * If {@link #hasUtilityModeProp}, an optional status message to print before exiting, or {@code null}.
+     * @since 2.0.00
+     */
+    private String utilityModeMessage;
+
+    /**
+     * Active optional server features, if any; see {@link SOCServerFeatures} constants for currently defined features.
      * Features are activated through the command line or {@link #props}.
      * @since 1.1.19
      */
@@ -815,8 +833,8 @@ public class SOCServer extends Server
     }
 
     /**
-     * Create a Settlers of Catan server listening on TCP port p.
-     * You must start its thread yourself.
+     * Create a Settlers of Catan server listening on TCP port {@code p}.
+     * Most server threads are started here; you must start its main thread yourself.
      * Optionally connect to a database for user info and game stats.
      *<P>
      * The database properties are {@link SOCDBHelper#PROP_JSETTLERS_DB_USER}
@@ -834,7 +852,14 @@ public class SOCServer extends Server
      * Will also print game options to stderr if
      * any option defaults require a minimum client version, or if
      * {@link #hasSetGameOptions} is set.
-     * 
+     *
+     *<H3>Utility Mode:</H3>
+     * Some parameters such as {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP}
+     * will initialize the server environment, connect to the database, perform
+     * a single task, and exit.  This is called <B>Utility Mode</B>.  In Utility Mode
+     * the caller should not start threads or continue normal startup (Server Mode).
+     * See {@link #hasUtilityModeProperty()} for more details.
+     *
      * @param p    the TCP port that the server listens on
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
      *       and any other desired properties.
@@ -878,8 +903,8 @@ public class SOCServer extends Server
     }
 
     /**
-     * Create a Settlers of Catan server listening on local stringport s.
-     * You must start its thread yourself.
+     * Create a Settlers of Catan server listening on local stringport {@code s}.
+     * Most server threads are started here; you must start its main thread yourself.
      * Optionally connect to a database for user info and game stats.
      *<P>
      * No bots will be started here ({@link #PROP_JSETTLERS_STARTROBOTS} == 0),
@@ -912,7 +937,8 @@ public class SOCServer extends Server
      * Common init for all constructors.
      * Prints some progress messages to {@link System#err}.
      * Sets game option default values via {@link #init_propsSetGameopts(Properties)}.
-     * Starts all server threads except the main thread.
+     * Starts all server threads except the main thread, unless constructed in Utility Mode
+     * ({@link #hasUtilityModeProp}).
      * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, those aren't started until {@link #serverUp()}.
      *<P>
      * If there are problems with the network setup ({@link #error} != null),
@@ -927,7 +953,8 @@ public class SOCServer extends Server
      * this method will throw {@link SQLException}.
      *<P>
      * If a db setup script runs successfully,
-     * the server does not complete its startup; this method will throw {@link EOFException}.
+     * the server does not complete its startup; this method will set {@link #hasUtilityModeProp}
+     * and throw {@link EOFException}.
      *
      * @param databaseUserName Used for DB connect - not retained
      * @param databasePassword Used for DB connect - not retained
@@ -946,7 +973,8 @@ public class SOCServer extends Server
      *       conflict with those in {@code props}: Consider calling {@link #checkScenarioOpts(Map, boolean, String)}
      *       to check for that and warn the user.
      * @throws SocketException  If a network setup problem occurs
-     * @throws EOFException   If db setup script ran successfully and server should exit now
+     * @throws EOFException   If db setup script ran successfully and server should exit now;
+     *       Utility Mode ({@link #hasUtilityModeProp}).
      * @throws SQLException   If db setup script fails, or need db but can't connect
      * @throws IllegalArgumentException  If {@code props} contains game options ({@code jsettlers.gameopt.*})
      *       with bad syntax. See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for expected syntax.
@@ -1025,7 +1053,11 @@ public class SOCServer extends Server
             if (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
             {
                 // the sql script was ran by initialize
-                throw new EOFException("DB setup script successful");
+
+                final String msg = "DB setup script successful";
+                hasUtilityModeProp = true;
+                utilityModeMessage = msg;
+                throw new EOFException(msg);
             }
 
             // open reg for user accounts?  if not, see if we have any yet
@@ -1095,6 +1127,11 @@ public class SOCServer extends Server
         }
 
         // No errors; continue normal startup.
+
+        if (hasUtilityModeProp)
+        {
+            return;  // <--- don't continue startup if Utility Mode ---
+        }
 
         final boolean accountsRequired = getConfigBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_REQUIRED, false);
 
@@ -1294,11 +1331,21 @@ public class SOCServer extends Server
      * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, starts those {@link SOCRobotClient}s now.
      * If {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL} is specified, waits briefly and then
      * calls {@link #startRobotOnlyGames(boolean)}.
+     *<P>
+     * Once this method completes, server begins its main loop of listening for incoming
+     * client connections, and starting a Thread for each one to handle that client's messages.
+     *
+     * @throws IllegalStateException If server was constructed in Utility Mode and shouldn't continue
+     *    normal startup; see {@link #hasUtilityModeProperty()} for details.
      * @since 1.1.09
      */
     @Override
     public void serverUp()
+        throws IllegalStateException
     {
+        if (hasUtilityModeProp)
+            throw new IllegalStateException();
+
         /**
          * If we have any STARTROBOTS, start them up now.
          * Each bot will have its own thread and {@link SOCRobotClient}.
@@ -2121,6 +2168,37 @@ public class SOCServer extends Server
     public Map<String,SOCGameOption> getGameOptions(String gm)
     {
         return gameList.getGameOptions(gm);
+    }
+
+    /**
+     * True if the server was constructed in with a property or command line argument which is used
+     * to run the server in Utility Mode instead of Server Mode.  In Utility Mode the server reads
+     * its properties, initializes its database connection if any, and performs one task such as a
+     * password reset or table/index creation. It won't listen at a TCP port or start other threads.
+     *<P>
+     * Utility Mode may also set a status message, see {@link #getUtilityModeMessage()}.
+     *<P>
+     * The current Utility Mode properties/arguments are:
+     *<UL>
+     * <LI> {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP} property
+     *</UL>
+     *
+     * @return  True if server was constructed with a Utility Mode property or command line argument
+     * @since 2.0.00
+     */
+    public final boolean hasUtilityModeProperty()
+    {
+        return hasUtilityModeProp;
+    }
+
+    /**
+     * If {@link #hasUtilityModeProperty()}, get the optional status message to print before exiting.
+     * @return  Optional status message, or {@code null}
+     * @since 2.0.00
+     */
+    public final String getUtilityModeMessage()
+    {
+         return utilityModeMessage;
     }
 
     /**
@@ -8781,8 +8859,18 @@ public class SOCServer extends Server
             try
             {
                 SOCServer server = new SOCServer(port, argp);
-                server.setPriority(5);
-                server.start();  // <---- Start the Main SOCServer Thread ----
+                if (! server.hasUtilityModeProperty())
+                {
+                    server.setPriority(5);
+                    server.start();  // <---- Start the Main SOCServer Thread: serverUp() method ----
+                } else {
+                    final String msg = server.getUtilityModeMessage();
+                    System.err.println(
+                        (msg != null)
+                            ? "\n" + msg + ". Exiting now.\n"
+                            : "\nExiting now.\n"
+                        );
+                }
 
                 // Most threads are started in the SOCServer constructor, via initSocServer.
                 // initSocServer also handles command line and properties-file contents,
@@ -8797,7 +8885,7 @@ public class SOCServer extends Server
             }
             catch (EOFException e)
             {
-                // the sql setup script was ran successfully by initialize;
+                // The sql setup script was ran successfully by initialize;
                 // exit server, user will re-run without the setup script param.
                 System.err.println("\nDB setup script was successful. Exiting now.\n");
                 System.exit(2);
