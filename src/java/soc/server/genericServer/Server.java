@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - parameterize types, removeConnection bugfix
  *
  * This program is free software; you can redistribute it and/or
@@ -331,7 +331,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * Run method for Server:
      * Start a single "treater" thread for processing inbound messages,
-     * wait for new connections, and set them up in their own threads.
+     * call the {@link #serverUp()} callback, then wait for new connections
+     * and set them up in their own threads.
      */
     @Override
     public void run()
@@ -436,7 +437,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /** 
      * Placeholder (callback) for doing things when server comes up, after the server socket
-     * is bound and listening, in the main thread.
+     * is bound and listening, in the main thread before handling any incoming connections.
+     *<P>
+     * Once this method completes, server begins its main loop of listening for incoming
+     * client connections, and starting a Thread for each one to handle that client's messages.
+     *
      * @since 1.1.09
      */
     protected void serverUp() {}
