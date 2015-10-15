@@ -355,7 +355,6 @@ Your database system's JDBC drivers can be downloaded at these locations:
 	MySQL:   http://www.mysql.com/products/connector/
 	PostgreSQL:  http://jdbc.postgresql.org/download.html
 	SQLite:  https://bitbucket.org/xerial/sqlite-jdbc
-	          or http://www.sqlite.org/cvstrac/wiki?p=SqliteWrappers
 	  If sqlite crashes jsettlers on launch, or gives java.lang.UnsatisfiedLinkError
 	  at launch but doesn't crash, add -Dsqlite.purejava=true before -jar on the
 	  java command line and retry.
@@ -364,6 +363,7 @@ In some cases, adding to the classpath won't work because of JVM restrictions
 about JAR files.  If you find that's the case, place the JDBC jar in the same
 location as JSettlersServer.jar, and specify on the jsettlers command line:
 	-Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar
+(sqlite jar filename may vary, update the parameter to match it).
 
 
 Database Creation:
@@ -384,7 +384,9 @@ $ psql --file jsettlers-create-postgres.sql
 $ psql --file jsettlers-tables.sql socdata
 
 For sqlite, copy jsettlers-tables.sql to the same directory as
-JSettlersServer.jar and run this command (jar filename may vary):
+JSettlersServer.jar and sqlite-jdbc-3.7.2.jar and run this command
+(sqlite jar filename may vary, update the jsettlers.db.jar parameter
+to match it):
 $ java -jar JSettlersServer.jar -Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar  -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=jsettlers-tables.sql
 After a few seconds you should see this message:
 	DB setup script was successful. Exiting now.
