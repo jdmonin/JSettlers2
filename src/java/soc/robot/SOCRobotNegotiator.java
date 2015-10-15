@@ -2267,7 +2267,8 @@ public class SOCRobotNegotiator
     }
 
     /**
-     * @return the offer that we'll make to the bank/ports
+     * @return the offer that we'll make to the bank/ports,
+     *     or {@code null} if {@code ourResources} already contains all needed {@code targetResources}
      *
      * @param targetResources  what resources we want
      * @param ourResources     the resources we have
@@ -2315,6 +2316,11 @@ public class SOCRobotNegotiator
                 notNeededRsrc[notNeededRsrcCount] = rsrcType;
                 notNeededRsrcCount++;
             }
+        }
+
+        if (neededRsrcCount == 0)
+        {
+            return bankTrade;  // <--- Early return bankTrade (null): nothing needed ---
         }
 
         for (int j = neededRsrcCount - 1; j >= 0; j--)
