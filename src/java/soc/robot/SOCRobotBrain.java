@@ -197,6 +197,13 @@ public class SOCRobotBrain extends Thread
     private Vector<SOCMessage> turnEventsCurrent, turnEventsPrev;
 
     /**
+     * Number of exceptions caught this turn, if any.
+     * Resets at each player's turn during {@code TURN} message.
+     * @since 2.0.00
+     */
+    private int turnExceptionCount;
+
+    /**
      * A counter used to measure passage of time.
      * Incremented each second, when the server sends {@link SOCMessage#TIMINGPING}.
      * When we decide to take an action, resets to 0.
@@ -1017,14 +1024,14 @@ public class SOCRobotBrain extends Thread
         {
             pinger.start();
 
-            try
-            {
-                //
-                // Along with actual game events, the pinger sends a TIMINGPING message
-                // once per second, to aid the robot's timekeeping counter.
-                //
+            //
+            // Along with actual game events, the pinger sends a TIMINGPING message
+            // once per second, to aid the robot's timekeeping counter.
+            //
 
-                while (alive)
+            while (alive)
+            {
+                try
                 {
                     final SOCMessage mes = gameEventQ.get();  // Sleeps until message received
 
@@ -1164,6 +1171,8 @@ public class SOCRobotBrain extends Thread
                             oldPrev.clear();
                             turnEventsCurrent = oldPrev;
                         }
+
+                        turnExceptionCount = 0;
                     }
 
                     if (game.getCurrentPlayerNumber() == ourPlayerNumber)
@@ -1907,15 +1916,20 @@ public class SOCRobotBrain extends Thread
                      */
                     yield();
                 }
-            }
-            catch (Throwable e)
-            {
-                // Ignore errors due to game reset in another thread
-                if (alive && ((game == null) || (game.getGameState() != SOCGame.RESET_OLD)))
+                catch (Exception e)
                 {
-                    D.ebugPrintln("*** Robot caught an exception - " + e);
-                    System.out.println("*** Robot caught an exception - " + e);
-                    e.printStackTrace();
+                    // Ignore errors due to game reset in another thread
+                    if (alive && ((game == null) || (game.getGameState() != SOCGame.RESET_OLD)))
+                    {
+                        ++turnExceptionCount;  // TODO end our turn if too many
+
+                        String eMsg = (turnExceptionCount == 1)
+                            ? "*** Robot caught an exception - " + e
+                            : "*** Robot caught an exception (" + turnExceptionCount + " this turn) - " + e;
+                        D.ebugPrintln(eMsg);
+                        System.out.println(eMsg);
+                        e.printStackTrace();
+                    }
                 }
             }
         }
