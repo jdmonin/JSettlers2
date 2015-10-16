@@ -43,14 +43,17 @@ import soc.util.SOCStringManager;
 import soc.util.Triple;
 import soc.util.Version;
 
+import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.sql.SQLException;
 import java.text.MessageFormat;  // used in javadocs
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -854,11 +857,14 @@ public class SOCServer extends Server
      * {@link #hasSetGameOptions} is set.
      *
      *<H3>Utility Mode:</H3>
-     * Some parameters such as {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP}
+     * Some properties such as {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP}
      * will initialize the server environment, connect to the database, perform
      * a single task, and exit.  This is called <B>Utility Mode</B>.  In Utility Mode
      * the caller should not start threads or continue normal startup (Server Mode).
      * See {@link #hasUtilityModeProperty()} for more details.
+     *<P>
+     * For the password reset property {@link SOCDBHelper#PROP_IMPL_JSETTLERS_PW_RESET}, the
+     * caller will need to prompt for and change the password; this constructor will not do that.
      *
      * @param p    the TCP port that the server listens on
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
@@ -951,10 +957,14 @@ public class SOCServer extends Server
      * {@link SOCDBHelper#PROP_JSETTLERS_DB_URL}, {@link SOCDBHelper#PROP_JSETTLERS_DB_DRIVER}
      * or {@link SOCDBHelper#PROP_JSETTLERS_DB_JAR} is specified in {@code props}),
      * this method will throw {@link SQLException}.
+     *
+     *<H5>Utility Mode</H5>
+     * If a db setup script runs successfully, or {@code props} contains the password reset parameter
+     * {@link SOCDBHelper#PROP_IMPL_JSETTLERS_PW_RESET}, the server does not complete its startup;
+     * this method will set {@link #hasUtilityModeProp} and (only for setup script) throw {@link EOFException}.
      *<P>
-     * If a db setup script runs successfully,
-     * the server does not complete its startup; this method will set {@link #hasUtilityModeProp}
-     * and throw {@link EOFException}.
+     * For the password reset parameter, the caller will need to prompt for and change the password;
+     * this method will not do that.
      *
      * @param databaseUserName Used for DB connect - not retained
      * @param databasePassword Used for DB connect - not retained
@@ -1060,11 +1070,19 @@ public class SOCServer extends Server
                 throw new EOFException(msg);
             }
 
+            if (props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET) != null)
+            {
+                hasUtilityModeProp = true;
+
+                // Caller will need to prompt for and change the password
+            }
+
             // open reg for user accounts?  if not, see if we have any yet
             if (getConfigBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_OPEN, false))
             {
                 features.add(SOCServerFeatures.FEAT_OPEN_REG);
-                System.err.println("User database Open Registration is active, anyone can create accounts.");
+                if (! hasUtilityModeProp)
+                    System.err.println("User database Open Registration is active, anyone can create accounts.");
             } else {
                 if (SOCDBHelper.countUsers() == 0)
                     acctsNotOpenRegButNoUsers = true;
@@ -1096,6 +1114,12 @@ public class SOCServer extends Server
                 // If other db props were asked for, the user is expecting a DB.
                 // So, fail instead of silently continuing without it.
                 System.err.println("* Exiting because current startup properties specify a database.");
+                throw x;  // x is SQLException
+            }
+
+            if (props.containsKey(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET))
+            {
+                System.err.println("* Exiting because --pw-reset requires a database.");
                 throw x;  // x is SQLException
             }
 
@@ -2181,6 +2205,7 @@ public class SOCServer extends Server
      * The current Utility Mode properties/arguments are:
      *<UL>
      * <LI> {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP} property
+     * <LI> {@code --pw-reset=username} argument
      *</UL>
      *
      * @return  True if server was constructed with a Utility Mode property or command line argument
@@ -8364,9 +8389,38 @@ public class SOCServer extends Server
                         return null;
                     }
                 }
+            }
+            else if (arg.startsWith("--pw-reset"))
+            {
+                String name = null;
+
+                if (arg.length() == 10)
+                {
+                    // next arg should be username
+                    ++aidx;
+                    if (aidx < args.length)
+                        name = args[aidx];
+                } else {
+                    // this arg should continue: =username
+                    if (arg.charAt(10) != '=')
+                    {
+                        System.err.println("Unknown argument: " + arg);
+                        return null;
+                    }
+                    name = arg.substring(11);
+                }
+
+                if ((name == null) || (name.length() == 0))
+                {
+                    System.err.println("Missing username after --pw-reset");
+                    return null;
+                }
+                argp.setProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET, name);
+
             } else {
                 System.err.println("Unknown argument: " + arg);
             }
+
             ++aidx;
         }
         // End of named-parameter loop
@@ -8709,6 +8763,100 @@ public class SOCServer extends Server
     }
 
     /**
+     * If command line contains {@code --pw-reset=username},
+     * prompt for and change that user's password.
+     *<P>
+     * If successful, sets {@link #getUtilityModeMessage()} to "The password was changed"
+     * or similar; if unsuccessful (no db, user not found, etc), prints an error and
+     * sets {@link #getUtilityModeMessage()} to {@code null}.
+     *
+     * @param uname  Username to change password
+     * @since 2.0.00
+     */
+    private void init_resetUserPassword(final String uname)
+    {
+        utilityModeMessage = null;
+
+        if (! SOCDBHelper.isInitialized())
+        {
+            System.err.println("--pw-reset requires database connection properties.");
+            return;
+        }
+
+        System.out.println("Resetting password for " + uname + ".");
+
+        try
+        {
+            if (! SOCDBHelper.doesUserExist(uname))
+            {
+                System.err.println("pw-reset user " + uname + " not found in database.");
+                return;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error while querying user " + uname + ": " + e.getMessage());
+            return;
+        }
+
+        StringBuilder pw1 = null;
+        boolean hasNewPW = false;
+        for (int tries = 0; tries < 3; ++tries)
+        {
+            if (tries > 0)
+                System.out.println("Passwords do not match; try again.");
+
+            pw1 = readPassword("Enter the new password:");
+            if (pw1 == null)
+                break;
+
+            StringBuilder pw2 = readPassword("Confirm new password:  ");
+
+            if (pw2 == null)
+            {
+                break;
+            } else {
+                // compare; unfortunately there is no StringBuffer.equals(sb) method
+
+                final int L1 = pw1.length(), L2 = pw2.length();
+                if (L1 == L2)
+                {
+                    final char[] pc1 = new char[L1], pc2 = new char[L2];
+                    pw1.getChars(0, L1, pc1, 0);
+                    pw2.getChars(0, L2, pc2, 0);
+
+                    hasNewPW = (Arrays.equals(pc1, pc2));
+
+                    Arrays.fill(pc1, (char) 0);
+                    Arrays.fill(pc2, (char) 0);
+                }
+
+                if (hasNewPW)
+                {
+                    clearBuffer(pw2);
+                    break;
+                }
+            }
+        }
+
+        if (! hasNewPW)
+        {
+            if (pw1 != null)
+                clearBuffer(pw1);
+            System.err.println("Password reset cancelled.");
+            return;
+        }
+
+        try
+        {
+            SOCDBHelper.updateUserPassword(uname, pw1.toString());
+            clearBuffer(pw1);
+            utilityModeMessage = "The password was changed";
+        } catch (SQLException e) {
+            System.err.println("Error while resetting password: " + e.getMessage());
+        }
+
+    }
+
+    /**
      * Track whether we've already called {@link #printUsage(boolean)}.
      * @since 1.1.07
      */
@@ -8818,6 +8966,88 @@ public class SOCServer extends Server
     }
 
     /**
+     * Clear the contents of a StringBuffer by setting to ' '
+     * each character in its current {@link StringBuilder#length()}.
+     * @param sb  StringBuilder to clear
+     * @since 2.0.00
+     */
+    private static void clearBuffer(StringBuilder sb)
+    {
+        final int L = sb.length();
+        for (int i = 0; i < L; ++i)
+            sb.setCharAt(i, (char) 0);
+    }
+
+    /**
+     * Buffered {@link System#in} for {@link #readPassword(String)},
+     * is {@code null} until first call to that method.
+     * @since 2.0.00
+     */
+    private static BufferedReader sysInBuffered = null;
+
+    /**
+     * Read a password from the console; currently used for password reset.
+     * Blocks the calling thread while waiting for input.
+     *<P>
+     * This rudimentary method exists for compatability: java 1.5 doesn't have
+     * {@code System.console.readPassword()}, and the Eclipse console also
+     * doesn't offer {@code System.console}.
+     *<P>
+     * <B>The input is not masked</B> because there's no cross-platform way to do so in 1.5.
+     *
+     * @param prompt  Optional password prompt; default is "Password:"
+     * @return  The password read, or an empty string "" if an error occurred.
+     *     This is returned as a mutable StringBuilder
+     *     so the caller can clear its contents when done, using
+     *     {@link #clearBuffer(StringBuilder)}.
+     *     If ^C or an error occurs, returns {@code null}.
+     * @since 2.0.00
+     */
+    private static StringBuilder readPassword(String prompt)
+    {
+        // java 1.5 doesn't have System.console.readPassword
+        // (TODO) consider reflection for 1.6+ JREs
+
+        // System.in can read only an entire line (no portable raw mode in 1.5),
+        // so we can't mask after each character.
+
+        if (prompt == null)
+            prompt = "Password:";
+
+        System.out.print(prompt);
+        System.out.print(' ');
+        System.out.flush();
+
+        if (sysInBuffered == null)
+            sysInBuffered = new BufferedReader(new InputStreamReader(System.in));
+
+        try
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.append(sysInBuffered.readLine());
+
+            // Remove trailing newline char(s)
+            while (true)
+            {
+                int L = sb.length();
+                if (L == 0)
+                    break;
+
+                final char ch = sb.charAt(L - 1);
+                if ((ch != '\n') && (ch != '\r'))
+                    break;
+
+                sb.setLength(L - 1);
+            }
+
+            return sb;
+        }
+        catch (IOException e) {
+            return null;
+        }
+    }
+
+    /**
      * Starting the server from the command line
      *<P>
      * Checks for the optional server startup properties file {@code "jsserver.properties"},
@@ -8864,6 +9094,10 @@ public class SOCServer extends Server
                     server.setPriority(5);
                     server.start();  // <---- Start the Main SOCServer Thread: serverUp() method ----
                 } else {
+                    String pval = argp.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET);
+                    if (pval != null)
+                        server.init_resetUserPassword(pval);
+
                     final String msg = server.getUtilityModeMessage();
                     System.err.println(
                         (msg != null)

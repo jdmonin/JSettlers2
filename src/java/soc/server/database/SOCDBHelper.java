@@ -131,6 +131,18 @@ public class SOCDBHelper
     public static final String PROP_JSETTLERS_DB_SAVE_GAMES = "jsettlers.db.save.games";
 
     /**
+     * Internal property name used to hold the <tt>--pw-reset</tt> command line argument's username.
+     * When present at server startup, the server will prompt and reset the password if the user exists,
+     * then exit.
+     *<P>
+     * This is a Utility Mode parameter; not for use in property files, because the program always exits
+     * after trying to change the password.
+     *
+     * @since 2.0.00
+     */
+    public static final String PROP_IMPL_JSETTLERS_PW_RESET = "_jsettlers.user.pw_reset";
+
+    /**
      * The db driver used, or null if none.
      * If {@link #driverinstance} != null, use that to connect instead of driverclass;
      * we still need to remember driverclass to detect various db-specific behaviors.

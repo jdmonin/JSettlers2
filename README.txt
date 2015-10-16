@@ -435,6 +435,11 @@ list them when you start your server:
 The server doesn't require or check at startup that the named accounts all
 already exist, this is just a comma-separated list of names.
 
+In case an admin account password is lost, there's a rudimentary password-reset feature:
+Run JSettlersServer with the usual DB parameters and --pw-reset username, and you will be
+prompted for username's new password. This command can be run while the server is up.
+It will reset the password and exit, won't start a JSettlersServer.
+
 
 Development and Compiling
 -------------------------
