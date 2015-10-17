@@ -675,8 +675,13 @@ public class SOCDBHelper
      *
      * @throws SQLException DOCUMENT ME!
      */
-    public static boolean createAccount(String userName, String host, String password, String email, long time) throws SQLException
+    public static boolean createAccount
+        (String userName, String host, String password, String email, long time)
+        throws SQLException
     {
+        // When the password encoding or max length changes in jsettlers-tables.sql,
+        // be sure to update this method and updateUserPassword.
+
         // ensure that the JDBC connection is still valid
         if (checkConnection())
         {
@@ -808,6 +813,9 @@ public class SOCDBHelper
             throw new IllegalArgumentException("userName");
         if ((newPassword == null) || (newPassword.length() == 0) || (newPassword.length() > 20))
             throw new IllegalArgumentException("newPassword");
+
+        // When the password encoding or max length changes in jsettlers-tables.sql,
+        // be sure to update this method and createAccount.
 
         if (! checkConnection())
             return false;
