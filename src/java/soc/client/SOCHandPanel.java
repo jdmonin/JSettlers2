@@ -642,12 +642,10 @@ public class SOCHandPanel extends Panel
         final Font DIALOG_PLAIN_10 = new Font("Dialog", Font.PLAIN, 10);
 
         larmyLab = new JLabel("", SwingConstants.CENTER);
-        larmyLab.setForeground(new Color(142, 45, 10));
         larmyLab.setFont(DIALOG_PLAIN_10);  // was bold 12pt SansSerif before v2.0.00 (i18n: needs room for more chars)
         add(larmyLab);
 
         lroadLab = new JLabel("", SwingConstants.CENTER);
-        lroadLab.setForeground(new Color(142, 45, 10));
         lroadLab.setFont(DIALOG_PLAIN_10);  // was bold 12pt SansSerif before v2.0.00
         add(lroadLab);
 
@@ -728,8 +726,7 @@ public class SOCHandPanel extends Panel
         else if (game.isGameOptionSet(SOCGameOption.K_SC_WOND))
         {
             wonderLab = new JLabel("");  // Blank at wonder level 0; other levels' text set by updateValue(WonderLevel)
-            wonderLab.setForeground(new Color(142, 45, 10));
-            wonderLab.setFont(DIALOG_PLAIN_10);  // same color and font as larmyLab, lroadLab
+            wonderLab.setFont(DIALOG_PLAIN_10);  // same font as larmyLab, lroadLab
             add(wonderLab);
         } else {
             // clothSq, clothLab, wonderLab already null
