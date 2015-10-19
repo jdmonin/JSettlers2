@@ -3753,6 +3753,22 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // drawHex will set scaledMissedImage if missed.
         if (! isLargeBoard)
         {
+            // Draw water hexes to all edges of the panel;
+            // these are outside the board coordinate system.
+
+            boolean isRowOffset = isRotated;
+            for (int hy = -deltaY; hy < panelMinBH; hy += deltaY, isRowOffset = ! isRowOffset)
+            {
+                // TODO When scaled, any other offset around edges? See convert/unscale methods
+
+                int hx = 0;
+                if (isRowOffset)
+                    hx -= halfdeltaX;
+                for (; hx < panelMinBW; hx += deltaX)
+                    if (0 == findHex(hx, hy))
+                        drawHex(g, hx, hy, SOCBoard.WATER_HEX, -1, -1);
+            }
+
             // Normal board draws all 37 hexes.
             // The 6-player board skips the rightmost row (hexes 7D-DD-D7).
 
