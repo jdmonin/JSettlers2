@@ -1947,7 +1947,7 @@ public class SOCHandPanel extends Panel
         }
 
         if (wonderLab != null)
-            wonderLab.setHorizontalAlignment((playerIsClient) ? SwingConstants.RIGHT : SwingConstants.LEFT);
+            wonderLab.setHorizontalAlignment(SwingConstants.RIGHT);
 
         inPlay = true;
 
@@ -2544,8 +2544,13 @@ public class SOCHandPanel extends Panel
             if (svpSq != null)
             {
                 final boolean vis = (! counterIsShowing) && (player.getSpecialVP() > 0);
+
                 svpLab.setVisible(vis);
                 svpSq.setVisible(vis);
+
+                // SC_WOND: wonderLab is next to svpSq
+                if (wonderLab != null)
+                    wonderLab.setVisible(vis);
             }
 
             offerCounterHidingFace = counterIsShowing;
@@ -3349,6 +3354,14 @@ public class SOCHandPanel extends Panel
                 y += (lineH + 1);
                 svpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
                 svpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+
+                if (wonderLab != null)
+                {
+                    // SC_WOND: Show Wonder Level next to svpSq.
+                    // Since SC_WOND requires game.hasSeaBoard, svpSq != null for SC_WOND.
+                    final int x = svpSq.getX() + ColorSquare.WIDTH + space;
+                    wonderLab.setBounds(x, y, dim.width - x - space, lineH);
+                }
             }
 
             //if (true) {
@@ -3459,12 +3472,6 @@ public class SOCHandPanel extends Panel
                 {
                     clothLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY - (lineH + space), knightsW, lineH);
                     clothSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY - (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                }
-                else if (wonderLab != null)
-                {
-                    // Wonder Level shows above trade area, left edge is above left edge of Bank/Trade buttons
-                    final int x = tbX + tbW + space;
-                    wonderLab.setBounds(x, tradeY - (lineH + space), dim.width - x - space, lineH);
                 }
                 knightsLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY, knightsW, lineH);
                 knightsSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
@@ -3602,12 +3609,6 @@ public class SOCHandPanel extends Panel
                 {
                     clothLab.setBounds(inset, inset + balloonH, dcardsW, lineH);
                     clothSq.setBounds(inset + dcardsW + space, inset + balloonH, ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                }
-                else if (wonderLab != null)
-                {
-                    // In left column and also extends to right, since this row is above Lock/Unlock button
-                    wonderLab.setBounds(inset, inset + balloonH,
-                        dim.width - (2*inset) - stlmtsW - ColorSquare.WIDTH - (2*space), lineH);
                 }
 
                 // Lower-right: Column of piece counts:
