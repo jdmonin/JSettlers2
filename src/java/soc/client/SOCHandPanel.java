@@ -3066,7 +3066,7 @@ public class SOCHandPanel extends Panel
                     }
                     wonderLab.setText(strings.get("hpan.wonderlevel", pLevel));  // "Wonder Level: #"
                     wonderLab.setToolTipText(strings.get("hpan.wonderlevel.tip", pLevel, ofWonder));
-                        // "Player has built # levels of the Monument."
+                        // "Built # levels of the Monument"
                 }
             }
             break;
