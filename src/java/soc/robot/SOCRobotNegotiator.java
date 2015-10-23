@@ -265,34 +265,9 @@ public class SOCRobotNegotiator
 
         SOCTradeOffer offer = null;
 
-        SOCResourceSet targetResources = null;
-
-        switch (targetPiece.getType())
-        {
-        case SOCPossiblePiece.CARD:
-            targetResources = SOCGame.CARD_SET;
-            break;
-
-        case SOCPossiblePiece.ROAD:
-            targetResources = SOCGame.ROAD_SET;
-            break;
-
-        case SOCPossiblePiece.SETTLEMENT:
-            targetResources = SOCGame.SETTLEMENT_SET;
-            break;
-
-        case SOCPossiblePiece.CITY:
-            targetResources = SOCGame.CITY_SET;
-            break;
-
-        case SOCPossiblePiece.SHIP:
-            targetResources = SOCGame.SHIP_SET;
-            break;
-
-        default:
-            System.err.println("*** " + brain.getName() + ": makeOffer: Bad target piece type " + targetPiece.getType());
+        SOCResourceSet targetResources = targetPiece.getResourcesToBuild();
+        if (targetResources == null)
             return null;
-        }
 
         SOCResourceSet ourResources = ourPlayerData.getResources();
 
@@ -1107,34 +1082,9 @@ public class SOCRobotNegotiator
                 ///
                 /// see if this is good for the receiver
                 ///
-                SOCResourceSet targetResources = null;
-
-                switch (receiverTargetPiece.getType())
-                {
-                case SOCPossiblePiece.CARD:
-                    targetResources = SOCGame.CARD_SET;
-                    break;
-
-                case SOCPossiblePiece.ROAD:
-                    targetResources = SOCGame.ROAD_SET;
-                    break;
-
-                case SOCPossiblePiece.SETTLEMENT:
-                    targetResources = SOCGame.SETTLEMENT_SET;
-                    break;
-
-                case SOCPossiblePiece.CITY:
-                    targetResources = SOCGame.CITY_SET;
-                    break;
-
-                case SOCPossiblePiece.SHIP:
-                    targetResources = SOCGame.SHIP_SET;
-                    break;
-
-                default:
-                    System.err.println("*** " + brain.getName() + ": counterOffer2: Bad target piece type " + receiverTargetPiece.getType());
+                SOCResourceSet targetResources = receiverTargetPiece.getResourcesToBuild();
+                if (targetResources == null)
                     return REJECT_OFFER;
-                }
 
                 SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(receiverPlayerData.getNumbers());
 
@@ -1592,34 +1542,9 @@ public class SOCRobotNegotiator
             targetPieces[ourPlayerNumber] = targetPiece;
         }
 
-        SOCResourceSet targetResources = null;
-
-        switch (targetPiece.getType())
-        {
-        case SOCPossiblePiece.CARD:
-            targetResources = SOCGame.CARD_SET;
-            break;
-
-        case SOCPossiblePiece.ROAD:
-            targetResources = SOCGame.ROAD_SET;
-            break;
-
-        case SOCPossiblePiece.SETTLEMENT:
-            targetResources = SOCGame.SETTLEMENT_SET;
-            break;
-
-        case SOCPossiblePiece.CITY:
-            targetResources = SOCGame.CITY_SET;
-            break;
-
-        case SOCPossiblePiece.SHIP:
-            targetResources = SOCGame.SHIP_SET;
-            break;
-
-        default:
-            System.err.println("*** " + brain.getName() + ": makeCounterOffer: Bad target piece type " + targetPiece.getType());
+        SOCResourceSet targetResources = targetPiece.getResourcesToBuild();
+        if (targetResources == null)
             return null;
-        }
 
         SOCResourceSet ourResources = ourPlayerData.getResources();
 

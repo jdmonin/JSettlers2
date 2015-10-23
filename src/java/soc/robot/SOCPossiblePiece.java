@@ -21,7 +21,10 @@
  **/
 package soc.robot;
 
+import soc.game.SOCGame;
 import soc.game.SOCPlayer;
+import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceSet;
 import soc.message.SOCSetSpecialItem;  // strictly for javadocs
 
 import java.util.Vector;
@@ -43,23 +46,23 @@ import java.util.Vector;
 public abstract class SOCPossiblePiece
 {
     /**
-     * Type constant for a possible road. Same value as {@link soc.game.SOCPlayingPiece#ROAD}.
+     * Type constant for a possible road. Same value as {@link SOCPlayingPiece#ROAD}.
      */
     public static final int ROAD = 0;
 
     /**
-     * Type constant for a possible settlement. Same value as {@link soc.game.SOCPlayingPiece#SETTLEMENT}.
+     * Type constant for a possible settlement. Same value as {@link SOCPlayingPiece#SETTLEMENT}.
      */
     public static final int SETTLEMENT = 1;
 
     /**
-     * Type constant for a possible city. Same value as {@link soc.game.SOCPlayingPiece#CITY}.
+     * Type constant for a possible city. Same value as {@link SOCPlayingPiece#CITY}.
      */
     public static final int CITY = 2;
 
     /**
      * Ship, for large sea board.
-     * Same value as {@link soc.game.SOCPlayingPiece#SHIP}.
+     * Same value as {@link SOCPlayingPiece#SHIP}.
      * @since 2.0.00
      */
     public static final int SHIP = 3;
@@ -83,7 +86,7 @@ public abstract class SOCPossiblePiece
     /**
      * The type of this playing piece; a constant
      *    such as {@link SOCPossiblePiece#ROAD}, {@link SOCPossiblePiece#CITY}, etc.
-     *    The constant types are the same as in {@link soc.game.SOCPlayingPiece#getResourcesToBuild(int)}.
+     *    The constant types are the same as in {@link SOCPlayingPiece#getResourcesToBuild(int)}.
      */
     protected int pieceType;
 
@@ -136,7 +139,8 @@ public abstract class SOCPossiblePiece
     /**
      * @return  the type of piece; a constant
      *    such as {@link SOCPossiblePiece#ROAD}, {@link SOCPossiblePiece#CITY}, etc.
-     *    The constant types are the same as in {@link soc.game.SOCPlayingPiece#getResourcesToBuild(int)}.
+     *    The type constants are the same as in {@link SOCPlayingPiece#getResourcesToBuild(int)}.
+     * @see #getResourcesToBuild()
      */
     public int getType()
     {
@@ -329,6 +333,47 @@ public abstract class SOCPossiblePiece
     public void setExpandedFlag()
     {
         hasBeenExpanded = true;
+    }
+
+    /**
+     * Based on piece type ({@link #getType()}), the resources
+     * a player needs to build or buy this possible piece.
+     *<P>
+     * Unlike {@link SOCPlayingPiece#getResourcesToBuild(int)}, this method handles
+     * non-piece types which the bot may plan to build, such as {@link #PICK_SPECIAL}.
+     *
+     * @return  Set of resources, or {@code null} if no cost or if piece type unknown
+     * @since 2.0.00
+     */
+    public SOCResourceSet getResourcesToBuild()
+    {
+        switch (pieceType)
+        {
+        case ROAD:
+            return SOCGame.ROAD_SET;
+
+        case SETTLEMENT:
+            return SOCGame.SETTLEMENT_SET;
+
+        case CITY:
+            return SOCGame.CITY_SET;
+
+        case SHIP:
+            return SOCGame.SHIP_SET;
+
+        case SOCPlayingPiece.MAXPLUSONE:
+            // fall through
+        case CARD:
+            return SOCGame.CARD_SET;
+
+        case PICK_SPECIAL:
+            return ((SOCPossiblePickSpecialItem) this).cost;
+
+        default:
+            System.err.println
+                ("SOCPossiblePiece.getResourcesToBuild: Unknown piece type " + pieceType);
+            return null;
+        }
     }
 
     /**
