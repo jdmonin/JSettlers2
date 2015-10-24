@@ -602,6 +602,7 @@ public class SOCGameOption
         // and VP (vp to win), unless already changed by user.
         // This is for NGOF responsiveness during new-game option setup at the client;
         // game creation at the server doesn't rely on these updates.
+        // For game creation with scenario options, see adjustOptionsToKnown(doServerPreadjust=true).
 
         sc.addChangeListener(new ChangeListener()
         {
@@ -2125,16 +2126,6 @@ public class SOCGameOption
             opt = newOpts.get("PL");
             if ((opt != null) && (opt.getIntValue() > 4))
                 setBoolOption(newOpts, "PLB");
-
-            // If _SC_CLVI is set, VP should be >= 14, and no longest trade route bonus
-            opt = newOpts.get(K_SC_CLVI);
-            if ((opt != null) && opt.getBoolValue())
-            {
-                setBoolOption(newOpts, K_SC_0RVP);
-                opt = newOpts.get("VP");
-                if ((opt == null) || (opt.getIntValue() < 14))
-                    setIntOption(newOpts, "VP", 14, true);
-            }
 
         }  // if(doServerPreadjust)
 
