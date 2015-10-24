@@ -1554,12 +1554,8 @@ public class SOCRobotBrain extends Thread
                                     // If we have the resources right now, ask to Special Build
 
                                     final SOCPossiblePiece targetPiece = buildingPlan.peek();
-                                    final SOCResourceSet targetResources;
-                                    if (targetPiece instanceof SOCPossiblePickSpecialItem)
-                                        targetResources = ((SOCPossiblePickSpecialItem) targetPiece).cost;
-                                            // may be null
-                                    else
-                                        targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
+                                    final SOCResourceSet targetResources = targetPiece.getResourcesToBuild();
+                                        // may be null
 
                                     if ((ourPlayerData.getResources().contains(targetResources)))
                                     {
@@ -2557,12 +2553,7 @@ public class SOCRobotBrain extends Thread
         /// figure out what resources we need
         ///
         SOCPossiblePiece targetPiece = buildingPlan.peek();
-        SOCResourceSet targetResources;
-        if (targetPiece instanceof SOCPossiblePickSpecialItem)
-            targetResources = ((SOCPossiblePickSpecialItem) targetPiece).cost;
-                // may be null
-        else
-            targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
+        SOCResourceSet targetResources = targetPiece.getResourcesToBuild();  // may be null
 
         //D.ebugPrintln("^^^ targetPiece = "+targetPiece);
         //D.ebugPrintln("^^^ ourResources = "+ourPlayerData.getResources());
@@ -3477,12 +3468,7 @@ public class SOCRobotBrain extends Thread
             && ! buildingPlan.isEmpty())
         {
             final SOCPossiblePiece targetPiece = buildingPlan.peek();
-            final SOCResourceSet targetResources;
-            if (targetPiece instanceof SOCPossiblePickSpecialItem)
-                targetResources = ((SOCPossiblePickSpecialItem) targetPiece).cost;
-                    // may be null
-            else
-                targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
+            final SOCResourceSet targetResources = targetPiece.getResourcesToBuild();  // may be null
 
             if (! ourPlayerData.getResources().contains(targetResources))
             {
@@ -4210,12 +4196,7 @@ public class SOCRobotBrain extends Thread
         if (! buildingPlan.isEmpty())
         {
             final SOCPossiblePiece targetPiece = buildingPlan.peek();
-            if (targetPiece instanceof SOCPossiblePickSpecialItem)
-                targetResources = ((SOCPossiblePickSpecialItem) targetPiece).cost;
-                    // may be null
-            else
-                targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
-
+            targetResources = targetPiece.getResourcesToBuild();  // may be null
             chooseFreeResourcesIfNeeded(targetResources, numChoose, true);
         } else {
             // Pick based on board dice-roll rarities.
@@ -4634,7 +4615,7 @@ public class SOCRobotBrain extends Thread
      * longest to acquire, then add to {@link #resourceChoices}.
      * Looks at our player's current resources.
      * @param targetResources  Resources needed to build our next planned piece,
-     *             from {@link SOCPlayingPiece#getResourcesToBuild(int)}
+     *             from {@link SOCPossiblePiece#getResourcesToBuild()}
      *             for {@link #buildingPlan}.peek()
      * @param numChoose  Number of resources to choose
      * @param clearResChoices  If true, clear {@link #resourceChoices} before choosing what to add to it;
@@ -4704,7 +4685,7 @@ public class SOCRobotBrain extends Thread
      * and has set {@link #resourceChoices}.
      *
      * @param targetResources  Resources needed to build our next planned piece,
-     *             from {@link SOCPlayingPiece#getResourcesToBuild(int)}
+     *             from {@link SOCPossiblePiece#getResourcesToBuild()}
      *             for {@link #buildingPlan}.
      *             If {@code null}, returns false (no more resources required).
      * @param numChoose  Number of resources to choose
@@ -4781,11 +4762,7 @@ public class SOCRobotBrain extends Thread
                     int i = (stackTopIs0) ? buildingItem : (bpSize - buildingItem) - 1;
 
                     SOCPossiblePiece targetPiece = buildingPlan.elementAt(i);
-                    if (targetPiece instanceof SOCPossiblePickSpecialItem)
-                        targetResources = ((SOCPossiblePickSpecialItem) targetPiece).cost;
-                            // may be null
-                    else
-                        targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
+                    targetResources = targetPiece.getResourcesToBuild();  // may be null
 
                     // Will continue at top of loop to add
                     // targetResources to resourceChoices.

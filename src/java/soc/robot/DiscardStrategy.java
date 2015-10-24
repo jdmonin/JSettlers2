@@ -3,7 +3,7 @@
  * This file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2008 Eli McGowan <http://sourceforge.net/users/emcgowan>
- * Portions of this file copyright (C) 2009,2012-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012-2013,2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +30,6 @@ import java.util.Stack;
 
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
-import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.util.SOCRobotParameters;
@@ -80,12 +79,8 @@ public class DiscardStrategy {
 
             //log.debug("targetPiece="+targetPiece);
 
-            final SOCResourceSet targetResources;
-            if (targetPiece instanceof SOCPossiblePickSpecialItem)
-                targetResources = ((SOCPossiblePickSpecialItem) targetPiece).cost;
-                    // may be null
-            else
-                targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
+            final SOCResourceSet targetResources = targetPiece.getResourcesToBuild();
+                // may be null
 
             /**
              * figure out what resources are NOT the ones we need
