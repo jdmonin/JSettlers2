@@ -6852,6 +6852,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
 
                 // Is anything there?
+                // Check for settlements, cities, ports, fortresses:
                 SOCPlayingPiece p = board.settlementAtNode(id);
                 if (p == null)
                     p = game.getFortress(id);  // pirate fortress (scenario option _SC_PIRI) or null
@@ -7205,7 +7206,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     // Already looking at a port at this coordinate.
                     positionToMouse(x,y);
                 } else {
-                    setHoverText(strings.get(portDescAtNode(nodePortCoord), nodePortType), nodePortCoord);
+                    String portText = strings.get(portDescAtNode(nodePortCoord), nodePortType);
+
+                    if (isLargeBoard && game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+                    {
+                        // Scenario _SC_FTRI: If this port can be reached and moved
+                        // ("gift from the forgotten tribe"), mention that in portText.
+
+                        final SOCBoardLarge bl = (SOCBoardLarge) board;
+                        int portEdge = bl.getPortEdgeFromNode(nodePortCoord);
+                        if ((portEdge != -9) && bl.canRemovePort(portEdge))
+                            portText = strings.get("board.edge.ship_receive_this", portText);
+                                // "Place a ship here to receive this " + portText
+                    }
+
+                    setHoverText(portText, nodePortCoord);
                     hoverMode = PLACE_INIT_SETTLEMENT;  // const used for hovering-at-port
                     hoverID = nodePortCoord;
                     hoverIsPort = true;
