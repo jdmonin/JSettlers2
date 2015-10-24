@@ -5222,12 +5222,16 @@ public class SOCPlayerClient
 
         final int coord = mes.getParam1();
         final int pv = mes.getParam2();
+        SOCPlayingPiece updatePiece = null;  // if not null, call pcl.pieceValueUpdated
 
         if (ga.isGameOptionSet(SOCGameOption.K_SC_CLVI))
         {
             SOCVillage vi = ((SOCBoardLarge) (ga.getBoard())).getVillageAtNode(coord);
             if (vi != null)
+            {
                 vi.setCloth(pv);
+                updatePiece = vi;
+            }
         }
         else if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
         {
@@ -5235,11 +5239,15 @@ public class SOCPlayerClient
             if (fort != null)
             {
                 fort.setStrength(pv);
-
-                PlayerClientListener pcl = clientListeners.get(gaName);
-                if (pcl != null)
-                    pcl.pieceValueUpdated(fort);
+                updatePiece = fort;
             }
+        }
+
+        if (updatePiece != null)
+        {
+            PlayerClientListener pcl = clientListeners.get(gaName);
+            if (pcl != null)
+                pcl.pieceValueUpdated(updatePiece);
         }
     }
 

@@ -1930,7 +1930,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
         else if (piece instanceof SOCVillage)
         {
-            // no update needed; village cloth count is handled in tooltip hover
+            // If village cloth count becomes 0, redraw it in gray.
+            // Otherwise no update needed, village cloth count is handled in tooltip hover.
+            if (((SOCVillage) piece).getCloth() == 0)
+                flushBoardLayoutAndRepaint();
         }
         else
         {
@@ -3103,16 +3106,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Draw a cloth trade village (used in some scenarios in the large sea board).
-     * Same logic for determining (x,y) from nodeNum as
-     * {@link #drawSettlementOrCity(Graphics, int, int, boolean, boolean, boolean)}.
+     * Villages are drawn yellow unless {@link SOCVillage#getCloth() v.getCloth()}
+     * is depleted to 0, those are light gray to show how close the game is to
+     * an end-game condition.
+     *<P>
+     * Same logic for determining (x,y) from {@link SOCPlayingPiece#getCoordinates() v.getCoordinates()}
+     * node as {@link #drawSettlementOrCity(Graphics, int, int, boolean, boolean, boolean)}.
      * @param v  Village
      * @since 2.0.00
      */
     private void drawVillage(Graphics g, final SOCVillage v)
     {
+        final Color vc = (v.getCloth() > 0) ? Color.YELLOW : Color.LIGHT_GRAY;
         final int[] nodexy = nodeToXY(v.getCoordinates());
 
-        drawMarker(g, nodexy[0], nodexy[1], Color.YELLOW, v.diceNum);
+        drawMarker(g, nodexy[0], nodexy[1], vc, v.diceNum);
    }
 
     /**
