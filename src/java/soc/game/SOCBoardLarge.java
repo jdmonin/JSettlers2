@@ -163,6 +163,7 @@ import soc.util.IntPair;
  *      {@link #isNodeOnLand(int)} <br>
  *      {@link #isNodeCoastline(int)} <br>
  *      {@link #settlementAtNode(int)} <br>
+ *      {@link #getPortEdgeFromNode(int)} <br>
  *      {@link #getPortTypeFromNodeCoord(int)} <br>
  *      {@link #getNodeLandArea(int)} <br>
  *      {@link #isNodeInLandAreas(int, int[])} <br>
@@ -3587,6 +3588,34 @@ public class SOCBoardLarge extends SOCBoard
         int[] facing = new int[portsCount];
         System.arraycopy(portsLayout, 2 * portsCount, facing, 0, portsCount);
         return facing;
+    }
+
+    /**
+     * Find the port edge, if any, that touches this node.
+     * @param node  Node coordinate.  If coordinate is not valid, it won't have a port.
+     * @return  Port edge adjacent to this node, or -9 if none
+     * @since 2.0.00
+     */
+    public int getPortEdgeFromNode(final int node)
+    {
+        final int[] ed = getAdjacentEdgesToNode_arr(node);  // unused will be -9
+
+        // Note: Assumes ports will never share a node and be on adjacent edges.
+
+        final int n = portsCount;
+        for (int i = 0; i < n; ++i)
+        {
+            final int portEdge = portsLayout[n + i];
+            if (portEdge < 0)
+                continue;  // Guards against unused (-1) and any possible
+                           // matching -9 from getAdjacentEdgesToNode_arr
+
+            for (int j = 0; j < 3; ++j)
+                if (portEdge == ed[j])
+                    return portEdge;  // <--- Found a port on this edge ---
+        }
+
+        return -9;  // edge not found in port layout
     }
 
     /**
