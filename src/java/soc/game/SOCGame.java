@@ -2664,7 +2664,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * At server: For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, remove a "gift" port
+     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, remove a "gift" port
      * at this edge for placement elsewhere. Assumes {@link #canRemovePort(SOCPlayer, int)} has already
      * been called to validate player, edge, and game state.
      *<P>
@@ -2673,7 +2673,9 @@ public class SOCGame implements Serializable, Cloneable
      * it immediately; and then fire {@link SOCScenarioPlayerEvent#REMOVED_TRADE_PORT}.
      *<P>
      * <b>At the server:</b> Not called directly; called only from other game/player methods.
-     * Ports are currently removed only by player ship placements.
+     * Ports are currently removed only by player ship placements, so
+     * {@link SOCPlayer#putPiece(SOCPlayingPiece, boolean)} would eventually call this
+     * method if {@code canRemovePort(..)}.
      *<P>
      * In the PlayerEvent handler or after this method returns, check
      * {@link #getGameState()} == {@link #PLACING_INV_ITEM} to see whether the port must immediately
