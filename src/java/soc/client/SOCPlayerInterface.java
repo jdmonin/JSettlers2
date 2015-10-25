@@ -41,6 +41,7 @@ import soc.game.SOCScenarioGameEvent;
 import soc.game.SOCScenarioPlayerEvent;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
+import soc.game.SOCSpecialItem;
 import soc.game.SOCVillage;
 import soc.message.SOCSimpleAction;  // for action type constants
 import soc.message.SOCSimpleRequest;  // for request type constants
@@ -3422,8 +3423,18 @@ public class SOCPlayerInterface extends Frame
 
             if (isPick)
             {
+                String iname = null;
+                final SOCSpecialItem itm = ga.getSpecialItem(typeKey, gi);
+                if (itm != null)
+                    iname = itm.getStringValue();
+                if (iname != null)
+                    iname = strings.get("game.specitem.sc_wond." + iname); // "w3" -> "Monument", etc
+                else
+                    iname = "# " + gi;
+
                 if (level == 1)
-                    this.pi.printKeyed("game.specitem.sc_wond.started", pl.getName()); // "{0} started building a Wonder!"
+                    this.pi.printKeyed("game.specitem.sc_wond.started", pl.getName(), iname);
+                        // "{0} started building a Wonder! ({1})"
                 else
                     this.pi.printKeyed("game.specitem.sc_wond.built", pl.getName(), level);
                         // "{0} has built level # of their Wonder."
