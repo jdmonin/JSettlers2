@@ -269,8 +269,11 @@ public class SOCHandPanel extends Panel
      */
     private ColorSquare svpSq;
 
+    /** Largest Army label, usually invisible; placed to left of {@link #lroadLab} */
     protected JLabel larmyLab;
+    /** Longest Road label, usually invisible; placed to right of {@link #larmyLab} */
     protected JLabel lroadLab;
+
     protected ColorSquare claySq;
     protected ColorSquare oreSq;
     protected ColorSquare sheepSq;
@@ -645,7 +648,7 @@ public class SOCHandPanel extends Panel
         larmyLab.setFont(DIALOG_PLAIN_10);  // was bold 12pt SansSerif before v2.0.00 (i18n: needs room for more chars)
         add(larmyLab);
 
-        lroadLab = new JLabel("", SwingConstants.CENTER);
+        lroadLab = new JLabel("", SwingConstants.RIGHT);
         lroadLab.setFont(DIALOG_PLAIN_10);  // was bold 12pt SansSerif before v2.0.00
         add(lroadLab);
 
