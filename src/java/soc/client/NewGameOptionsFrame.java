@@ -77,7 +77,7 @@ import soc.util.Version;
  * This class also contains the "Scenario Info" popup window, called from
  * this dialog's Scenario Info button, and from {@link SOCPlayerInterface}
  * when first joining a game with a scenario.
- * See {@link #showScenarioInfoDialog(String, Map, int, SOCPlayerClient.GameAwtDisplay, Frame)}.
+ * See {@link #showScenarioInfoDialog(SOCScenario, Map, int, SOCPlayerClient.GameAwtDisplay, Frame)}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
@@ -93,7 +93,7 @@ public class NewGameOptionsFrame extends Frame
      */
     public static final int INTFIELD_POPUP_MAXRANGE = 21;
 
-    private final GameAwtDisplay gameDisplay;
+    private final SOCPlayerClient.GameAwtDisplay gameDisplay;
 
     /** should this be sent to the remote tcp server, or local practice server? */
     private final boolean forPractice;
@@ -409,7 +409,7 @@ public class NewGameOptionsFrame extends Frame
         }
 
         if (opts.containsKey("SC"))
-            allSc = SOCScenario.getAllKnownScenarios();  // TODO server negotiation
+            allSc = SOCScenario.getAllKnownScenarios();
 
         gbc.anchor = GridBagConstraints.WEST;
 
@@ -503,12 +503,13 @@ public class NewGameOptionsFrame extends Frame
                 return;
 
             int i = 0, sel = 0;
+
             Choice ch = new Choice();
-            ch.add(strings.get("base.none.parens"));  // "(none)" is item 0 in dropdown
+            ch.addItem(strings.get("base.none.parens"));  // "(none)" is item 0 in dropdown
             for (final SOCScenario sc : allSc.values())
             {
                 ++i;
-                ch.add(sc.key + ": " + sc.getDesc());
+                ch.addItem(sc.key + ": " + sc.getDesc());
                     // scenarioKeyFromDisplayText() must be able to extract the key
                     // TODO some other parallel list, so we don't need to display the key string
                 if (sc.key.equals(op.getStringValue()))
@@ -914,7 +915,7 @@ public class NewGameOptionsFrame extends Frame
     /**
      * The "Scenario Info" button was clicked.
      * Reads the current scenario, if any, from {@link #scenChoice}.
-     * Calls {@link #showScenarioInfoDialog(String, Map, int, SOCPlayerClient.GameAwtDisplay, Frame)}.
+     * Calls {@link #showScenarioInfoDialog(SOCScenario, Map, int, SOCPlayerClient.GameAwtDisplay, Frame)}.
      * @since 2.0.00
      */
     private void clickScenarioInfo()
@@ -924,7 +925,7 @@ public class NewGameOptionsFrame extends Frame
 
         final String scKey = scenarioKeyFromDisplayText(scenChoice.getSelectedItem());
         if (scKey.length() == 0)
-            return;
+            return;  // "(none)"
 
         // find game's vp_winner, if not for new game
         int vpWinner = SOCGame.VP_WINNER_STANDARD;
@@ -935,7 +936,11 @@ public class NewGameOptionsFrame extends Frame
                 vpWinner = vp.getIntValue();
         }
 
-        showScenarioInfoDialog(scKey, null, vpWinner, gameDisplay, this);
+        SOCScenario sc = SOCScenario.getScenario(scKey);
+        if (sc == null)
+            return;
+
+        showScenarioInfoDialog(sc, null, vpWinner, gameDisplay, this);
     }
 
     /** Dismiss the frame, and clear client's {@link GameAwtDisplay#newGameOptsFrame}
@@ -1457,23 +1462,43 @@ public class NewGameOptionsFrame extends Frame
     public void mouseReleased(MouseEvent e) {}
 
     /**
-     * Show a popup window with this scenario's description, special rules, and number of victory points to win.
+     * Show a popup window with this game's scenario's description, special rules, and number of victory points to win.
      * Calls {@link EventQueue#invokeLater(Runnable)}.
-     * @param gameSc  A scenario keyname for {@link SOCScenario#getScenario(String)}, or null to do nothing
-     * @param gameOpts  All game options if current game, or null to extract from {@code gameSc}'s {@link SOCScenario#scOpts}
-     * @param vpWinner  Number of victory points to win, or {@link SOCGame#VP_WINNER_STANDARD}.
-     * @param cli     required for {@link AskDialog} constructor
-     * @param parent  required for {@link AskDialog} constructor
+     * @param ga  Game to display scenario info for; if game option {@code "SC"} missing or blank, does nothing.
+     * @param cli     Player client interface, for {@link NotifyDialog} call
+     * @param parent  Current game's player interface, or another Frame for our parent window,
+     *                or null to look for {@code cli}'s Frame as parent
      * @since 2.0.00
      */
     public static void showScenarioInfoDialog
-        (final String gameSc, Map<String, SOCGameOption> gameOpts, final int vpWinner,
-         final GameAwtDisplay cli, final Frame parent)
+        (final SOCGame ga, final GameAwtDisplay cli, final Frame parent)
     {
-        if (gameSc == null)
+        final String scKey = ga.getGameOptionStringValue("SC");
+        if (scKey == null)
             return;
 
-        SOCScenario sc = SOCScenario.getScenario(gameSc);
+        SOCScenario sc = SOCScenario.getScenario(scKey);
+        if (sc == null)
+            return;
+
+        showScenarioInfoDialog(sc, ga.getGameOptions(), ga.vp_winner, cli, parent);
+    }
+
+    /**
+     * Show a popup window with this scenario's description, special rules, and number of victory points to win.
+     * Calls {@link EventQueue#invokeLater(Runnable)}.
+     * @param sc  A {@link SOCScenario}, or {@code null} to do nothing
+     * @param gameOpts  All game options if current game, or null to extract from {@code sc}'s {@link SOCScenario#scOpts}
+     * @param vpWinner  Number of victory points to win, or {@link SOCGame#VP_WINNER_STANDARD}.
+     * @param cli     Player client interface, required for {@link AskDialog} constructor
+     * @param parent  Current game's player interface, or another Frame for our parent window,
+     *                or null to look for {@code cli}'s Frame as parent
+     * @since 2.0.00
+     */
+    public static void showScenarioInfoDialog
+        (final SOCScenario sc, Map<String, SOCGameOption> gameOpts, final int vpWinner,
+         final GameAwtDisplay cli, final Frame parent)
+    {
         if (sc == null)
             return;
 

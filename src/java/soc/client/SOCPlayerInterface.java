@@ -1898,8 +1898,7 @@ public class SOCPlayerInterface extends Frame
      */
     public void showScenarioInfoDialog()
     {
-        NewGameOptionsFrame.showScenarioInfoDialog
-            (game.getGameOptionStringValue("SC"), game.getGameOptions(), game.vp_winner, getGameDisplay(), this);
+        NewGameOptionsFrame.showScenarioInfoDialog(game, getGameDisplay(), this);
     }
 
     /**
