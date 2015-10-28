@@ -801,12 +801,15 @@ public class SOCScenario
     }
 
     /**
-     * Get this scenario's key name.
-     * @return {@link SOCVersionedItem#key key}
+     * Get this scenario's description, for use in user-facing displays
+     * such as a {@code JComboBox}.  For a short unique identifier
+     * use {@link #key} instead.
+     * @return {@link SOCVersionedItem#desc desc}
      */
+    @Override
     public String toString()
     {
-        return key;
+        return desc;
     }
 
     /**
