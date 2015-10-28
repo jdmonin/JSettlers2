@@ -801,9 +801,8 @@ public class SOCScenario
     }
 
     /**
-     * Get this scenario's description, for use in user-facing displays
-     * such as a {@code JComboBox}.  For a short unique identifier
-     * use {@link #key} instead.
+     * Get this scenario's description, for use in user-facing displays and GUI elements.
+     * For a short unique identifier use {@link #key} instead.
      * @return {@link SOCVersionedItem#desc desc}
      */
     @Override
