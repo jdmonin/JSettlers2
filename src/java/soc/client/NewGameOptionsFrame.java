@@ -46,6 +46,10 @@ import java.awt.event.TextEvent;
 import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -510,7 +514,27 @@ public class NewGameOptionsFrame extends Frame
 
             JComboBox jcb = new JComboBox();
             jcb.addItem(strings.get("base.none.parens"));  // "(none)" is item 0 in dropdown
-            for (final SOCScenario sc : allSc.values())
+
+            Collection<SOCScenario> scens = allSc.values();
+            if (! readOnly)
+            {
+                // Sort by description.
+                // Don't sort if readOnly and thus dropdown not enabled, probably not browsable.
+
+                ArrayList<SOCScenario> sl = new ArrayList<SOCScenario>(scens);
+                Collections.sort(sl, new Comparator<SOCScenario>() {
+                    // This method isn't part of SOCScenario because that class already has
+                    // equals and compareTo methods comparing keys, not descriptions
+
+                    public int compare(SOCScenario a, SOCScenario b)
+                    {
+                        return a.getDesc().compareTo(b.getDesc());
+                    }
+                });
+                scens = sl;
+            }
+
+            for (final SOCScenario sc : scens)
             {
                 ++i;
                 jcb.addItem(sc);  // sc.toString() == sc.desc
