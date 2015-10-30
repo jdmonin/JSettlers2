@@ -3435,8 +3435,8 @@ public class SOCPlayerInterface extends Frame
                     this.pi.printKeyed("game.specitem.sc_wond.started", pl.getName(), iname);
                         // "{0} started building a Wonder! ({1})"
                 else
-                    this.pi.printKeyed("game.specitem.sc_wond.built", pl.getName(), level);
-                        // "{0} has built level # of their Wonder."
+                    this.pi.printKeyed("game.specitem.sc_wond.built", pl.getName(), level, iname);
+                        // "{0} has built level # of their Wonder ({2})."
 
                 // TODO any visual effect?
             } else {
