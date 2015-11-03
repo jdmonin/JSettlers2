@@ -75,9 +75,10 @@ import java.util.Timer;
  * It can be used in an applet or an application.
  * It loads gifs from a directory named "images" in the same
  * directory as this class.
+ *<P>
  * The board background color is set in {@link SOCPlayerInterface}.
- * If {@link SOCGame#hasSeaBoard} is true for this board, all areas
- * outside the board boundaries will be filled with sea hex tiles.
+ * Since all areas outside the board boundaries are filled with
+ * sea hex tiles, this color is only a fallback.
  *<P>
  * When the mouse is over the game board, a tooltip shows information
  * such as a hex's resource, a piece's owner, a port's ratio, or the
@@ -98,6 +99,11 @@ import java.util.Timer;
  * This panel's minimum width and height in pixels is {@link #getMinimumSize()}.
  * To set its size, call {@link #setSize(int, int)} or {@link #setBounds(int, int, int, int)};
  * these methods will set a flag to rescale board graphics if needed.
+ * If the game has 6 players but not {@link SOCGame#hasSeaBoard}, the board is also
+ * rotated 90 degrees clockwise.  Pixel coordinates can be transformed between
+ * actual (scaled/rotated) and unscaled/un-rotated "internal" coordinates with
+ * {@link #scaleFromActualX(int)}, {@link #scaleFromActualY(int)},
+ * {@link #scaleToActualX(int)}, {@link #scaleToActualY(int)}.
  */
 @SuppressWarnings("serial")
 public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
