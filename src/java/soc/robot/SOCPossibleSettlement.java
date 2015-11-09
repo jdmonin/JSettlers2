@@ -56,12 +56,10 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
      */
     public SOCPossibleSettlement(SOCPlayer pl, int co, Vector<SOCPossibleRoad> nr)
     {
+        super(SOCPossiblePiece.SETTLEMENT, pl, co);
+
         if (nr == null)
             nr = new Vector<SOCPossibleRoad>();
-
-        pieceType = SOCPossiblePiece.SETTLEMENT;
-        player = pl;
-        coord = co;
         necessaryRoads = nr;
         eta = 0;
         threats = new Vector<SOCPossiblePiece>();
@@ -86,9 +84,8 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
     public SOCPossibleSettlement(SOCPossibleSettlement ps)
     {
         //D.ebugPrintln(">>>> Copying possible settlement: "+ps);
-        pieceType = SOCPossiblePiece.SETTLEMENT;
-        player = ps.getPlayer();
-        coord = ps.getCoordinates();
+        super(SOCPossiblePiece.SETTLEMENT, ps.getPlayer(), ps.getCoordinates());
+
         necessaryRoads = new Vector<SOCPossibleRoad>(ps.getNecessaryRoads().size());
         eta = ps.getETA();
         threats = new Vector<SOCPossiblePiece>();
@@ -279,4 +276,5 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
 
         return sum;
     }
+
 }

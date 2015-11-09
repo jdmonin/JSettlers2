@@ -60,9 +60,8 @@ public class SOCPossiblePickSpecialItem extends SOCPossiblePiece
     public SOCPossiblePickSpecialItem
         (final SOCPlayer pl, final String type, final int gi, final int pi, final int eta, final SOCResourceSet cost)
     {
-        pieceType = SOCPossiblePiece.PICK_SPECIAL;
-        player = pl;
-        coord = 0;
+        super(SOCPossiblePiece.PICK_SPECIAL, pl, 0);  // no coordinate
+
         this.typeKey = type;
         this.gi = gi;
         this.pi = pi;

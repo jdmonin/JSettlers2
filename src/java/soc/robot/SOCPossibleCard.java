@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.robot;
 
@@ -41,9 +42,8 @@ public class SOCPossibleCard extends SOCPossiblePiece
      */
     public SOCPossibleCard(SOCPlayer pl, int et)
     {
-        pieceType = SOCPossiblePiece.CARD;
-        player = pl;
-        coord = 0;
+        super(SOCPossiblePiece.CARD, pl, 0);  // no coordinate
+
         eta = et;
         threats = new Vector<SOCPossiblePiece>();
         biggestThreats = new Vector<SOCPossiblePiece>();
@@ -59,13 +59,13 @@ public class SOCPossibleCard extends SOCPossiblePiece
     public SOCPossibleCard(SOCPossibleCard pc)
     {
         //D.ebugPrintln(">>>> Copying possible card: "+pc);
-        pieceType = SOCPossiblePiece.CARD;
-        player = pc.getPlayer();
-        coord = 0;
+        super(SOCPossiblePiece.CARD, pc.getPlayer(), 0);
+
         eta = pc.getETA();
         threats = new Vector<SOCPossiblePiece>();
         biggestThreats = new Vector<SOCPossiblePiece>();
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
     }
+
 }

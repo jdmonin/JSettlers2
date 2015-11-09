@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2011-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2011-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -50,12 +50,10 @@ public class SOCPossibleRoad extends SOCPossiblePiece
      */
     public SOCPossibleRoad(SOCPlayer pl, int co, Vector<SOCPossibleRoad> nr)
     {
+        super(SOCPossiblePiece.ROAD, pl, co);
+
         if (nr == null)
             nr = new Vector<SOCPossibleRoad>();
-
-        pieceType = SOCPossiblePiece.ROAD;
-        player = pl;
-        coord = co;
         necessaryRoads = nr;
         eta = 0;
         threats = new Vector<SOCPossiblePiece>();
@@ -78,9 +76,8 @@ public class SOCPossibleRoad extends SOCPossiblePiece
     public SOCPossibleRoad(SOCPossibleRoad pr)
     {
         //D.ebugPrintln(">>>> Copying possible road: "+pr);
-        pieceType = SOCPossiblePiece.ROAD;
-        player = pr.getPlayer();
-        coord = pr.getCoordinates();
+        super(SOCPossiblePiece.ROAD, pr.getPlayer(), pr.getCoordinates());
+
         necessaryRoads = new Vector<SOCPossibleRoad>(pr.getNecessaryRoads().size());
         eta = pr.getETA();
         threats = new Vector<SOCPossiblePiece>();

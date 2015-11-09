@@ -69,12 +69,14 @@ public abstract class SOCPossiblePiece
 
     /**
      * Type constant for a possible card.
+     * {@link #getCoordinates()} field is not used.
      * CARD is -2, was 4 before v2.0.00.
      */
     public static final int CARD = -2;
 
     /**
      * Type constant for {@link SOCSetSpecialItem#OP_PICK} requests, subclass {@link SOCPossiblePickSpecialItem}.
+     * {@link #getCoordinates()} field is not used.
      * @since 2.0.00
      */
     public static final int PICK_SPECIAL = -3;
@@ -96,7 +98,9 @@ public abstract class SOCPossiblePiece
     protected SOCPlayer player;
 
     /**
-     * Where this piece is on the board
+     * Where this piece is on the board.
+     * Some piece types such as {@link #CARD} do not use this field, it will be 0 if unused.
+     * In some board layouts 0 is a valid coordinate; check the piece type to determine if unused.
      */
     protected int coord;
 
@@ -137,6 +141,22 @@ public abstract class SOCPossiblePiece
     protected boolean hasBeenExpanded;
 
     /**
+     * Construct a SOCPossiblePiece.
+     * @param pt  Piece type: {@link #ROAD}, {@link #CARD}, etc.
+     *     The type constants are the same as in {@link SOCPlayingPiece#getResourcesToBuild(int)}.
+     * @param pl  The owner of this piece
+     * @param coord  The coordinates for this piece, if any.
+     *     Some piece types such as {@link #CARD} do not use this field, they call with {@code coord} == 0.
+     * @since 2.0.00
+     */
+    protected SOCPossiblePiece(final int pt, final SOCPlayer pl, final int coord)
+    {
+        pieceType = pt;
+        player = pl;
+        this.coord = coord;
+    }
+
+    /**
      * @return  the type of piece; a constant
      *    such as {@link SOCPossiblePiece#ROAD}, {@link SOCPossiblePiece#CITY}, etc.
      *    The type constants are the same as in {@link SOCPlayingPiece#getResourcesToBuild(int)}.
@@ -148,7 +168,7 @@ public abstract class SOCPossiblePiece
     }
 
     /**
-     * @return the owner of the piece
+     * @return the owner of this piece
      */
     public SOCPlayer getPlayer()
     {
@@ -156,7 +176,11 @@ public abstract class SOCPossiblePiece
     }
 
     /**
-     * @return the coordinates for this piece
+     * Get this piece's coordinates on the board, if any.
+     * Some piece types such as {@link #CARD} do not use this field.
+     * @return the coordinates for this piece, or 0 if unused.
+     *      In some board layouts 0 is a valid coordinate;
+     *      check the piece type to determine if unused.
      */
     public int getCoordinates()
     {
@@ -393,4 +417,5 @@ public abstract class SOCPossiblePiece
         return "SOCPossiblePiece:" + clName + "|type=" + pieceType + "|player=" + player
             + "|coord=" + Integer.toHexString(coord);
     }
+
 }
