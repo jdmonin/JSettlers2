@@ -1227,7 +1227,8 @@ public class SOCRobotBrain extends Thread
 
                             if (D.ebugOn)
                             {
-                                client.sendText(game, ">>> RESOURCE COUNT ERROR FOR PLAYER " + pl.getPlayerNumber() + ": " + ((SOCResourceCount) mes).getCount() + " != " + rsrcs.getTotal());
+                                client.sendText(game, ">>> RESOURCE COUNT ERROR FOR PLAYER " + pl.getPlayerNumber()
+                                    + ": " + ((SOCResourceCount) mes).getCount() + " != " + rsrcs.getTotal());
                             }
 
                             //
@@ -1510,9 +1511,9 @@ public class SOCRobotBrain extends Thread
                      */
                     if (((game.getGameState() == SOCGame.PLAY1) || (game.getGameState() == SOCGame.SPECIAL_BUILDING))
                         && ! (waitingForGameState || waitingForTradeMsg || waitingForTradeResponse || waitingForDevCard
-                              || expectPLACING_ROAD || expectPLACING_SETTLEMENT || expectPLACING_CITY || expectPLACING_SHIP
-                              || expectPLACING_ROBBER || expectPLACING_FREE_ROAD1 || expectPLACING_FREE_ROAD2
-                              || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY
+                              || expectPLACING_ROAD || expectPLACING_SETTLEMENT || expectPLACING_CITY
+                              || expectPLACING_SHIP || expectPLACING_FREE_ROAD1 || expectPLACING_FREE_ROAD2
+                              || expectPLACING_ROBBER || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY
                               || waitingOnSC_PIRI_FortressRequest || (waitingForPickSpecialItem != null)))
                     {
                         expectPLAY1 = false;
@@ -1538,14 +1539,15 @@ public class SOCRobotBrain extends Thread
                                 planBuilding();
 
                                     /*
-                                     * planBuilding takes these actions:
+                                     * planBuilding takes these actions, sets buildingPlan and other fields
+                                     * (see its javadoc):
                                      *
                                     decisionMaker.planStuff(robotParameters.getStrategyType());
 
                                     if (! buildingPlan.empty())
                                     {
                                         lastTarget = (SOCPossiblePiece) buildingPlan.peek();
-                                        negotiator.setTargetPiece(ourPlayerNumber, (SOCPossiblePiece) buildingPlan.peek());
+                                        negotiator.setTargetPiece(ourPlayerNumber, buildingPlan.peek());
                                     }
                                      */
 
@@ -1607,19 +1609,22 @@ public class SOCRobotBrain extends Thread
                                  * and if we haven't given up building
                                  * attempts this turn.
                                  */
-                                if ( (! expectPLACING_ROBBER) && buildingPlan.empty() && (ourPlayerData.getResources().getTotal() > 1) && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
+                                if ( (! expectPLACING_ROBBER) && buildingPlan.empty()
+                                     && (ourPlayerData.getResources().getTotal() > 1)
+                                     && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
                                 {
                                     planBuilding();
 
                                         /*
-                                         * planBuilding takes these actions:
+                                         * planBuilding takes these actions, sets buildingPlan and other fields
+                                         * (see its javadoc):
                                          *
                                         decisionMaker.planStuff(robotParameters.getStrategyType());
 
                                         if (! buildingPlan.empty())
                                         {
                                             lastTarget = (SOCPossiblePiece) buildingPlan.peek();
-                                            negotiator.setTargetPiece(ourPlayerNumber, (SOCPossiblePiece) buildingPlan.peek());
+                                            negotiator.setTargetPiece(ourPlayerNumber, buildingPlan.peek());
                                         }
                                          */
                                 }
@@ -1641,8 +1646,11 @@ public class SOCRobotBrain extends Thread
                                 /**
                                  * see if we're done with our turn
                                  */
-                                if (! (expectPLACING_SETTLEMENT || expectPLACING_FREE_ROAD1 || expectPLACING_FREE_ROAD2 || expectPLACING_ROAD || expectPLACING_CITY || expectPLACING_SHIP
-                                       || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY || expectPLACING_ROBBER || waitingForTradeMsg || waitingForTradeResponse || waitingForDevCard
+                                if (! (expectPLACING_SETTLEMENT || expectPLACING_FREE_ROAD1 || expectPLACING_FREE_ROAD2
+                                       || expectPLACING_ROAD || expectPLACING_CITY || expectPLACING_SHIP
+                                       || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY
+                                       || expectPLACING_ROBBER || waitingForTradeMsg || waitingForTradeResponse
+                                       || waitingForDevCard
                                        || (waitingForPickSpecialItem != null)))
                                 {
                                     // Any last things for turn from game's scenario?
@@ -2448,7 +2456,8 @@ public class SOCRobotBrain extends Thread
      *<LI> {@link #planBuilding()} already called
      *<LI> ! {@link #buildingPlan}.empty()
      *<LI> gameState {@link SOCGame#PLAY1} or {@link SOCGame#SPECIAL_BUILDING}
-     *<LI> <tt>waitingFor...</tt> flags all false ({@link #waitingForGameState}, etc) except possibly {@link #waitingForSpecialBuild}
+     *<LI> <tt>waitingFor...</tt> flags all false ({@link #waitingForGameState}, etc)
+     *     except possibly {@link #waitingForSpecialBuild}
      *<LI> <tt>expect...</tt> flags all false ({@link #expectPLACING_ROAD}, etc)
      *<LI> ! {@link #waitingForOurTurn}
      *<LI> ! ({@link #expectPLAY} && (counter < 4000))
@@ -2821,7 +2830,8 @@ public class SOCRobotBrain extends Thread
         {
             if (getSet.contains(rsrcType))
             {
-                D.ebugPrintln("%%% player " + offer.getFrom() + " wants to buy " + rsrcType + " and therefore does not want to sell it");
+                D.ebugPrintln("%%% player " + offer.getFrom() + " wants to buy " + rsrcType
+                    + " and therefore does not want to sell it");
                 negotiator.markAsNotSelling(offer.getFrom(), rsrcType);
             }
         }
@@ -3101,7 +3111,8 @@ public class SOCRobotBrain extends Thread
          * Update expect-vars during initial placement of our pieces.
          */
 
-        if (expectPUTPIECE_FROM_START1A && (pieceType == SOCPlayingPiece.SETTLEMENT) && (coord == ourPlayerData.getLastSettlementCoord()))
+        if (expectPUTPIECE_FROM_START1A && (pieceType == SOCPlayingPiece.SETTLEMENT)
+            && (coord == ourPlayerData.getLastSettlementCoord()))
         {
             expectPUTPIECE_FROM_START1A = false;
             expectSTART1B = true;
@@ -3115,7 +3126,8 @@ public class SOCRobotBrain extends Thread
             expectSTART2A = true;
         }
 
-        if (expectPUTPIECE_FROM_START2A && (pieceType == SOCPlayingPiece.SETTLEMENT) && (coord == ourPlayerData.getLastSettlementCoord()))
+        if (expectPUTPIECE_FROM_START2A && (pieceType == SOCPlayingPiece.SETTLEMENT)
+            && (coord == ourPlayerData.getLastSettlementCoord()))
         {
             expectPUTPIECE_FROM_START2A = false;
             expectSTART2B = true;
@@ -3239,7 +3251,8 @@ public class SOCRobotBrain extends Thread
             whatWeWantToBuild = new SOCShip(ourPlayerData, targetPiece.getCoordinates(), null);
             if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
             {
-                System.err.println("L2733: " + ourPlayerData.getName() + ": !!! BUILD REQUEST FOR A SHIP AT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
+                System.err.println("L2733: " + ourPlayerData.getName() + ": !!! BUILD REQUEST FOR A SHIP AT "
+                    + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
                 D.ebugPrintln("!!! BUILD REQUEST FOR A SHIP AT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
                 client.buildRequest(game, SOCPlayingPiece.SHIP);
             } else {
@@ -3266,7 +3279,8 @@ public class SOCRobotBrain extends Thread
     /**
      * Plan the next building plan and target.
      * Should be called from {@link #run()} under these conditions: <BR>
-     * (!expectPLACING_ROBBER && (buildingPlan.empty()) && (ourPlayerData.getResources().getTotal() > 1) && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
+     * ( !expectPLACING_ROBBER && buildingPlan.empty() && (ourPlayerData.getResources().getTotal() > 1)
+     * && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
      *<P>
      * Sets these fields and makes these calls:
      *<UL>
@@ -4124,7 +4138,8 @@ public class SOCRobotBrain extends Thread
             // This could mean that the server (incorrectly) asked us to
             // place another second settlement, after we've cleared the
             // potentialSettlements contents.
-            System.err.println("robot assert failed: initSettlement -1, " + ourPlayerData.getName() + " leaving game " + game.getName());
+            System.err.println("robot assert failed: initSettlement -1, "
+                + ourPlayerData.getName() + " leaving game " + game.getName());
             failedBuildingAttempts = 2 + (2 * MAX_DENIED_BUILDING_PER_TURN);
             waitingForGameState = false;
             return;
