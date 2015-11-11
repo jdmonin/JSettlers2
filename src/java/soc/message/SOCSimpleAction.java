@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +20,8 @@
 package soc.message;
 
 import java.util.StringTokenizer;
+
+import soc.game.SOCGameOption;  // solely for javadocs
 
 /**
  * This generic message from the server to clients handles a simple action or event for a client player in a game.
@@ -57,7 +59,9 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
 
     /**
      * The current player has bought a development card.
+     * For i18n in v2.x, this message is sent instead of a text message announcing the buy; bots can ignore it.
      * {@code value1} is the number of cards remaining to be bought, {@code value2} is unused.
+     * Follows a {@link SOCDevCardAction} which has the card's info, bots must process that message.
      * @since 1.1.19
      */
     public static final int DEVCARD_BOUGHT = 1;
@@ -79,6 +83,8 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * When the player wants to place the removed port, they will send {@link SOCSimpleRequest#TRADE_PORT_PLACE}
      * with their chosen location.  If the placement is allowed, the server will broadcast a similar
      * {@link SOCSimpleRequest#TRADE_PORT_PLACE} to the game; see that javadoc for details.
+     *<P>
+     * Used with scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
      * @since 2.0.00
      */
     public static final int TRADE_PORT_REMOVED = 1001;

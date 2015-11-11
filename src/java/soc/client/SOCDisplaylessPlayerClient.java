@@ -719,7 +719,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * Added 2013-09-04 for v1.1.19.
              */
             case SOCMessage.SIMPLEACTION:
-                handleSIMPLEACTION((SOCSimpleAction) mes);
+                handleSIMPLEACTION(games, (SOCSimpleAction) mes);
                 break;
 
             /**
@@ -2074,15 +2074,19 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * Handle "simple action" announcements from the server.
-     * Currently a stub in SOCDisplaylessPlayerClient.
+     * Update any game state from "simple action" announcements from the server.
+     * Currently ignores them except for:
+     *<UL>
+     * <LI> {@link SOCSimpleAction#TRADE_PORT_REMOVED TRADE_PORT_REMOVED}:
+     *     Calls {@link SOCGame#removePort(SOCPlayer, int)}
+     *</UL>
+     *
+     * @param games  Games the client is playing, for method reuse by SOCPlayerClient
+     * @param mes  the message
      * @since 1.1.19
      */
-    protected void handleSIMPLEACTION(final SOCSimpleAction mes)
+    public static void handleSIMPLEACTION(final Map<String, SOCGame> games, final SOCSimpleAction mes)
     {
-        /*
-          code if not a stub:
-
         final String gaName = mes.getGame();
         SOCGame ga = games.get(gaName);
         if (ga == null)
@@ -2091,11 +2095,26 @@ public class SOCDisplaylessPlayerClient implements Runnable
         final int atype = mes.getActionType();
         switch (atype)
         {
+        case SOCSimpleAction.TRADE_PORT_REMOVED:
+            if (ga.hasSeaBoard)
+                ga.removePort(null, mes.getValue1());
+            break;
+
+        // Known types with no game state update:
+        // Catch these before default case, so 'unknown type' won't be printed
+
+        case SOCSimpleAction.DEVCARD_BOUGHT:
+            // fall through
+        case SOCSimpleAction.TRADE_SUCCESSFUL:
+            break;
+
         default:
             // ignore unknown types
+            // Since the bots and server are almost always the same version, this
+            // shouldn't often occur: print for debugging.
+            System.err.println
+                ("handleSIMPLEACTION: Unknown type ignored: " + atype + " in game " + gaName);
         }
-
-        */
     }
 
     /**

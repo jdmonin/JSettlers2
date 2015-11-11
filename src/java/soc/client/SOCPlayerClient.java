@@ -5097,12 +5097,7 @@ public class SOCPlayerClient
         switch (atype)
         {
         case SOCSimpleAction.TRADE_PORT_REMOVED:
-            {
-                SOCGame ga = games.get(gaName);
-                if ((ga == null) || ! ga.hasSeaBoard)
-                    return;
-                ga.removePort(null, mes.getValue1());
-            }
+            SOCDisplaylessPlayerClient.handleSIMPLEACTION(games, mes);  // calls ga.removePort(..)
             // fall through so pcl updates displayed board
 
         case SOCSimpleAction.DEVCARD_BOUGHT:

@@ -768,6 +768,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * Added 2013-09-04 for v1.1.19.
              */
             case SOCMessage.SIMPLEACTION:
+                super.handleSIMPLEACTION(games, (SOCSimpleAction) mes);
                 handlePutBrainQ((SOCSimpleAction) mes);
                 break;
 
