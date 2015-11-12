@@ -259,11 +259,10 @@ Current partially-done work
 
 Current TODO list
 -----------------
-	Work on these items has not yet begun.
+	Work on these possible roadmap items has not yet begun.
 	This list is ranked from easier, to more difficult.
 	You can also search the source for TODO for ideas.
 
-	- User documentation is out of date; unsure if any user ever reads it anyway
 	- Visual reminder to player when they've made a trade offer
 	- Show # VP when choosing where to sit, if game is in progress
 	- Keyboard shortcuts for "roll", "done" buttons
@@ -277,6 +276,9 @@ Current TODO list
 	- Sound effects
 	- Possible: Auto-add robots when needed as server runs, with server active-game count
 		only do it if jsettlers.startrobots property is set
+	- Docker (dockerfile in git) or other containerization, including sqlite jdbc and a jsserver.properties using sqlite
+		related bootstrapping issue: admin doc reminder to create admin acct right away, name that admin in jsserver.properties
+	- User documentation is out of date; unsure if any user ever reads it anyway
 	- refactor: ga.getPlayer(ga.getCurrentPlayer()) or getClient().getClientManager()
 	- Refactor SOCRobotClient: Move simple handle-methods which don't
 		put the message into brainQ, but only update game fields/
@@ -293,7 +295,10 @@ Current TODO list
 		What happens if owner loses connection?
 	- Customize bot names (txt file or startup property) in srv.setupLocalRobots
 	- "Hot seat" mode (multiple human players sharing a screen on 1 client)
+	- Monitoring: Command line utility or html-based dashboard: Uptime, health of bots,
+		currently active/total games from *STATS* cmd, client versions, any errors, etc
 	- Per-game thread/message queue at server (use SOCMessageForGame.getGame)
+	- HTML5 client
 	- Cities & Knights support
 		- UI mock-ups
 		- state change / network message plans
