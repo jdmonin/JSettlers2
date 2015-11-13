@@ -5079,6 +5079,7 @@ public class SOCPlayerClient
         if (pcl == null)
             return;  // Not one of our games
 
+        SOCDisplaylessPlayerClient.handleSIMPLEREQUEST(games, mes);  // update any game state
         pcl.simpleRequest(mes.getPlayerNumber(), mes.getRequestType(), mes.getValue1(), mes.getValue2());
     }
 

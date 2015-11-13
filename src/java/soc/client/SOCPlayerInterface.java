@@ -3339,12 +3339,10 @@ public class SOCPlayerInterface extends Frame
                         pi.printKeyed("hpan.item.play.cannot");  // * "Cannot play this item right now."
                 } else {
                     // placement
-                    SOCPlayer pl = pi.game.getPlayer(pn);
-                    pi.game.placePort(pl, value1, value2);
                     boardUpdated();
                     if (pi.clientHand != null)
                         pi.clientHand.updateResourceTradeCosts(false);
-                    pi.printKeyed("game.invitem.port.placed", pl.getName());  // * "{0} has placed a trade port."
+                    pi.printKeyed("game.invitem.port.placed", pi.game.getPlayer(pn).getName());  // * "{0} has placed a trade port."
                 }
                 break;
 

@@ -760,6 +760,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * bot ignored these until 2015-10-10 for v2.0.00 SC_PIRI.
              */
             case SOCMessage.SIMPLEREQUEST:
+                super.handleSIMPLEREQUEST(games, (SOCSimpleRequest) mes);
                 handlePutBrainQ((SOCSimpleRequest) mes);
                 break;
 

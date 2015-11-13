@@ -2074,7 +2074,54 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * Update any game state from "simple action" announcements from the server.
+     * Update any game data from "simple request" announcements from the server.
+     * Currently ignores them except for:
+     *<UL>
+     * <LI> {@link SOCSimpleRequest#TRADE_PORT_PLACE TRADE_PORT_PLACE}:
+     *     Calls {@link SOCGame#placePort(SOCPlayer, int, int)} if {@code pn} &gt;= 0
+     *</UL>
+     *
+     * @param games  Games the client is playing, for method reuse by SOCPlayerClient
+     * @param mes  the message
+     * @since 2.0.00
+     */
+    public static void handleSIMPLEREQUEST(final Map<String, SOCGame> games, final SOCSimpleRequest mes)
+    {
+        final String gaName = mes.getGame();
+        SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;  // Not one of our games
+
+        final int pn = mes.getPlayerNumber(),
+            rtype = mes.getRequestType(),
+            value1 = mes.getValue1(),
+            value2 = mes.getValue2();
+
+        switch (rtype)
+        {
+            // Types which may update some game data:
+
+            case SOCSimpleRequest.TRADE_PORT_PLACE:
+                if (pn >= 0)  // if pn -1, request was rejected
+                    ga.placePort(ga.getPlayer(pn), value1, value2);
+
+            // Known types with no game data update:
+            // Catch these before default case, so 'unknown type' won't be printed
+
+            case SOCSimpleRequest.SC_PIRI_FORT_ATTACK:
+                break;
+
+            default:
+                // Ignore unknown types.
+                // Since the bots and server are almost always the same version, this
+                // shouldn't often occur: print for debugging.
+                System.err.println
+                    ("handleSIMPLEREQUEST: Unknown type ignored: " + rtype + " in game " + gaName);
+        }
+    }
+
+    /**
+     * Update any game data from "simple action" announcements from the server.
      * Currently ignores them except for:
      *<UL>
      * <LI> {@link SOCSimpleAction#TRADE_PORT_REMOVED TRADE_PORT_REMOVED}:
@@ -2095,12 +2142,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
         final int atype = mes.getActionType();
         switch (atype)
         {
+        // Types which may update some game data:
+
         case SOCSimpleAction.TRADE_PORT_REMOVED:
             if (ga.hasSeaBoard)
                 ga.removePort(null, mes.getValue1());
             break;
 
-        // Known types with no game state update:
+        // Known types with no game data update:
         // Catch these before default case, so 'unknown type' won't be printed
 
         case SOCSimpleAction.DEVCARD_BOUGHT:
