@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -83,6 +83,13 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
      * @since 2.0.00
      */
     public static final int TRADE_PORT_PLACE = 1001;
+
+    // Reminder: If you add a request type, check client and server code to determine if the new type
+    // should be added to methods such as:
+    // - SOCGameHandler.handleSIMPLEREQUEST
+    // - SOCPlayerClient.handleSIMPLEREQUEST
+    // - SOCDisplaylessPlayerClient.handleSIMPLEREQUEST
+    // - SOCRobotBrain.run case SOCMessage.SIMPLEREQUEST
 
     /**
      * Create a SOCSimpleRequest message.

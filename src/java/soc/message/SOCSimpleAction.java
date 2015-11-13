@@ -89,6 +89,13 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      */
     public static final int TRADE_PORT_REMOVED = 1001;
 
+    // Reminder: If you add an action type, check client and server code to determine if the new type
+    // should be added to methods such as:
+    // - SOCGameHandler.handleSIMPLEACTION
+    // - SOCPlayerClient.handleSIMPLEACTION
+    // - SOCDisplaylessPlayerClient.handleSIMPLEACTION
+    // - SOCRobotBrain.run case SOCMessage.SIMPLEACTION
+
     /**
      * Create a SOCSimpleAction message.
      *
