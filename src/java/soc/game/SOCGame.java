@@ -2665,17 +2665,19 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, remove a "gift" port
-     * at this edge for placement elsewhere. Assumes {@link #canRemovePort(SOCPlayer, int)} has already
+     * at this edge to be placed elsewhere. Assumes {@link #canRemovePort(SOCPlayer, int)} has already
      * been called to validate player, edge, and game state.
      *<P>
-     * This method will remove the port from the board.  At server it will also add it to the
-     * player's inventory or set the game's placingItem field; set the game state if placing
+     * This method will remove the port from the board.  At server it will also either add it to the
+     * player's inventory or set the game's placingItem field; change the game state if placing
      * it immediately; and then fire {@link SOCScenarioPlayerEvent#REMOVED_TRADE_PORT}.
      *<P>
      * <b>At the server:</b> Not called directly; called only from other game/player methods.
-     * Ports are currently removed only by player ship placements, so
+     * Ports are currently removed only by a player's adjacent ship placement, so
      * {@link SOCPlayer#putPiece(SOCPlayingPiece, boolean)} would eventually call this
-     * method if {@code canRemovePort(..)}.
+     * method if {@code canRemovePort(..)}.  The server calls
+     * {@link SOCPlayer#getPortMovePotentialLocations(boolean) pl.getPortMovePotentialLocations(false)}
+     * to determine if immediate placement is possible and thus required.
      *<P>
      * In the PlayerEvent handler or after this method returns, check
      * {@link #getGameState()} == {@link #PLACING_INV_ITEM} to see whether the port must immediately
@@ -2684,7 +2686,10 @@ public class SOCGame implements Serializable, Cloneable
      * <b>At the client:</b> Call this method to update the board data and player port flags.
      * The server will send other messages about game state and player inventory.  If those set
      * {@link #getGameState()} to {@link #PLACING_INV_ITEM}, the current player must choose a location for
-     * port placement: Call {@link SOCPlayer#getPortMovePotentialLocations(boolean)} to present options to the user.
+     * port placement: Call
+     * {@link SOCPlayer#getPortMovePotentialLocations(boolean) SOCPlayer.getPortMovePotentialLocations(true)}
+     * to present options to the user.  The user will choose an edge and send a request to the server. The server
+     * will validate and if valid call {@link #placePort(int)} and send updated status to the game's clients.
      *
      * @param pl  Player who is removing the port: Must be current player. Ignored at client, {@code null} is okay there.
      * @param edge  Port's edge coordinate

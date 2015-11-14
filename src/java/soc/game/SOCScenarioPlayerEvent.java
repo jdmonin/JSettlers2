@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2013,2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -123,17 +123,17 @@ public enum SOCScenarioPlayerEvent
 
     /**
      * Player's ships have reached a "gift" port, and removed that trade port from the board.  It must be
-     * placed elsewhere now or later. Currently only in scenario game option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
+     * placed elsewhere now or later. Occurs only in scenario game option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
      *<P>
      * An {@link soc.util.IntPair IntPair} with the port's edge coordinate and type (in range
      * {@link SOCBoard#MISC_PORT MISC_PORT} to {@link SOCBoard#WOOD_PORT WOOD_PORT}) will be passed as {@code obj} to
      * {@link SOCScenarioEventListener#playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object)}.
-     * If the game state is {@link SOCGame#PLACING_INV_ITEM}, the player must now pick a coastal edge with an adjacent
+     * If the game state became {@link SOCGame#PLACING_INV_ITEM}, the player must now pick a coastal edge with an adjacent
      * settlement to place the port.  Otherwise the port's been added to their inventory as a {@link SOCInventoryItem}
-     * to be placed later when possible.
+     * to be placed later when possible.  Placement is done (now or later) by calling {@link SOCGame#placePort(int)}.
      *<P>
-     * This event is fired at server only, not at client.  The server will send messages to the game's clients
-     * about the event's result.
+     * This event is fired at <b>server only,</b> not at client, in {@link SOCGame#removePort(SOCPlayer, int)}.
+     * The server will send messages to the game's clients about the event's result.
      */
     REMOVED_TRADE_PORT(0);
 
