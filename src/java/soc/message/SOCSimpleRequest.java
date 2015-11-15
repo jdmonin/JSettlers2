@@ -22,6 +22,7 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGame;  // for javadocs only
+import soc.game.SOCGameOption;  // for javadocs only
 
 /**
  * This generic message handles a simple request from a client player in a game.
@@ -55,7 +56,7 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
     private static final long serialVersionUID = 1118L;
 
     /**
-     * The current player wants to attack their pirate fortress (scenario _SC_PIRI).
+     * The current player wants to attack their pirate fortress (scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}).
      * Value1 and value2 are unused.  If client can attack, server responds with
      * {@link SOCPirateFortressAttackResult} and related messages (see that class' javadoc).
      * Otherwise, server responds with the standard SOCSimpleRequest denial:
@@ -69,12 +70,13 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
 
     /**
      * The current player wants to place a trade port they've been given.
-     * This typically happens at some point after {@link SOCSimpleAction#TRADE_PORT_REMOVED}.
+     * This typically happens at some point after {@link SOCSimpleAction#TRADE_PORT_REMOVED}
+     * in scenario {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
      *<P>
      * In state {@link SOCGame#PLACING_INV_ITEM}, player sends this with an edge coordinate where
-     * they want to place the port. {@code value1} is the edge coordinate, value2 is unused.
+     * they want to place the port. {@code value1} = the edge coordinate, value2 is unused.
      *<P>
-     * If they can place there now, server will broadcast the new game state ({@link SOCGame#PLAY1} or
+     * If they can place there now, server will do so and broadcast the resulting game state ({@link SOCGame#PLAY1} or
      * {@link SOCGame#SPECIAL_BUILDING}), then broadcast a SOCSimpleRequest to the game with
      * {@code value1} = the placed port type, {@code value2} = edge.  All clients should call
      * {@link SOCGame#placePort(soc.game.SOCPlayer, int, int)}.
