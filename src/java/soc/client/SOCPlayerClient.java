@@ -3341,14 +3341,6 @@ public class SOCPlayerClient
                 break;
 
             /**
-             * Present the server's response to a Pirate Fortress Attack request.
-             * Added 2013-02-19 for v2.0.00.
-             */
-            case SOCMessage.PIRATEFORTRESSATTACKRESULT:
-                handlePIRATEFORTRESSATTACKRESULT((SOCPirateFortressAttackResult) mes);
-                break;
-
-            /**
              * Set or clear a special edge on the board.
              * Added 2013-11-07 for v2.0.00.
              */
@@ -5097,9 +5089,14 @@ public class SOCPlayerClient
         final int atype = mes.getActionType();
         switch (atype)
         {
+        case SOCSimpleAction.SC_PIRI_FORT_ATTACK_RESULT:
+            // present the server's response to a Pirate Fortress Attack request
+            pcl.scen_SC_PIRI_pirateFortressAttackResult(false, mes.getValue1(), mes.getValue2());
+            break;
+
         case SOCSimpleAction.TRADE_PORT_REMOVED:
             SOCDisplaylessPlayerClient.handleSIMPLEACTION(games, mes);  // calls ga.removePort(..)
-            // fall through so pcl updates displayed board
+            // fall through so pcl.simpleAction updates displayed board
 
         case SOCSimpleAction.DEVCARD_BOUGHT:
             pcl.simpleAction(mes.getPlayerNumber(), atype, mes.getValue1(), mes.getValue2());
@@ -5267,19 +5264,6 @@ public class SOCPlayerClient
         if (pcl == null)
             return;
         pcl.playerSVPAwarded(pl, mes.svp, mes.desc);
-    }
-
-    /**
-     * Present the server's response to a Pirate Fortress Attack request.
-     * @see SOCPirateFortressAttackResult
-     * @since 2.0.00
-     */
-    private void handlePIRATEFORTRESSATTACKRESULT(final SOCPirateFortressAttackResult mes)
-    {
-        PlayerClientListener pcl = clientListeners.get(mes.getGame());
-        if (pcl == null)
-            return;  // Not one of our games
-        pcl.scen_SC_PIRI_pirateFortressAttackResult(false, mes.getParam1(), mes.getParam2());
     }
 
     /**

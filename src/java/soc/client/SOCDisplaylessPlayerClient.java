@@ -2155,6 +2155,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
         case SOCSimpleAction.DEVCARD_BOUGHT:
             // fall through
         case SOCSimpleAction.TRADE_SUCCESSFUL:
+            // fall through
+        case SOCSimpleAction.SC_PIRI_FORT_ATTACK_RESULT:
+            // attack result game data is sent in preceding messages, can ignore this one
             break;
 
         default:

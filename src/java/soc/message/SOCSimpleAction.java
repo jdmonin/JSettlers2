@@ -75,6 +75,38 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
     public static final int TRADE_SUCCESSFUL = 2;
 
     /**
+     * This message from server announces the results of the current player's pirate fortress attack attempt:
+     * Pirates' random defense strength, number of player's ships lost (win/tie/loss).
+     * Sent in response to client's {@link SOCSimpleRequest#SC_PIRI_FORT_ATTACK}
+     * in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     *<P>
+     * This message is sent out <B>after</B> related messages with game data (see below), so that those
+     * can be shown visually before any popup announcing the result.
+     *<P>
+     * Param 1: The pirates' defense strength (random 1 - 6) <br>
+     * Param 2: The number of ships lost by the player: 0 if player wins, 1 if tie, 2 if pirates win
+     *<P>
+     * These game data update messages are sent from server before {@code SC_PIRI_FORT_ATTACK_RESULT}, in this order:
+     *<UL>
+     *      Messages sent if player does not win: <br>&nbsp;
+     * <LI> {@link SOCRemovePiece} for each removed ship
+     * <LI> {@link SOCPlayerElement}({@link SOCPlayerElement#SCENARIO_WARSHIP_COUNT SCENARIO_WARSHIP_COUNT})
+     *        if any of the player's warships were removed
+     *      <P>&nbsp;<P>
+     *      Messages sent if player wins: <br>&nbsp;
+     * <LI> {@link SOCMoveRobber} only if all players' fortresses are recaptured,
+     *        which removes the pirate fleet from the board (new pirate coordinate = 0)
+     * <LI> {@link SOCPieceValue} for the fortress' reduced strength;
+     *        if its new strength is 0, it is recaptured by the player
+     * <LI> {@link SOCPutPiece}({@code SETTLEMENT}) if the player wins for the last time
+     *        and recaptures the fortress
+     *</UL>
+     *
+     * @since 2.0.00
+     */
+    public static final int SC_PIRI_FORT_ATTACK_RESULT = 1001;
+
+    /**
      * The current player has removed a trade port from the board.
      * {@code value1} is the former port's edge coordinate, {@code value2} is the port type.
      * Sent to entire game.  If the player must place the port immediately, server will soon send
@@ -87,7 +119,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * Used with scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
      * @since 2.0.00
      */
-    public static final int TRADE_PORT_REMOVED = 1001;
+    public static final int TRADE_PORT_REMOVED = 1002;
 
     // Reminder: If you add an action type, check client and server code to determine if the new type
     // should be added to methods such as:
@@ -152,7 +184,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
     }
 
     /**
-     * @return the optional {@code value1} detail field
+     * @return the action's optional {@code value1} detail field
      */
     public final int getValue1()
     {
@@ -160,7 +192,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
     }
 
     /**
-     * @return the optional {@code value2} detail field
+     * @return the action's optional {@code value2} detail field
      */
     public final int getValue2()
     {

@@ -1370,20 +1370,29 @@ public class SOCRobotBrain extends Thread
                         }
                         break;
 
-                    case SOCMessage.PIRATEFORTRESSATTACKRESULT:
-                        if (ourTurn && waitingOnSC_PIRI_FortressRequest)
-                        {
-                            // Our player has won or lost an attack on a pirate fortress.
-                            // When we receive this message, other messages have already
-                            // been sent to update related game state. End our turn now.
-                            // Reset method sets waitingForGameState, which will bypass
-                            // any further actions in the run() loop body.
+                    case SOCMessage.SIMPLEACTION:
+                        // Most action types are handled later in the loop body;
+                        // search for SOCMessage.SIMPLEACTION
 
-                            waitingOnSC_PIRI_FortressRequest = false;
-                            resetFieldsAtEndTurn();
-                            // client.endTurn not needed; making the attack implies sending endTurn
+                        switch(((SOCSimpleAction) mes).getActionType())
+                        {
+                        case SOCSimpleAction.SC_PIRI_FORT_ATTACK_RESULT:
+                            if (ourTurn && waitingOnSC_PIRI_FortressRequest)
+                            {
+                                // Our player has won or lost an attack on a pirate fortress.
+                                // When we receive this message, other messages have already
+                                // been sent to update related game state. End our turn now.
+                                // Reset method sets waitingForGameState, which will bypass
+                                // any further actions in the run() loop body.
+
+                                waitingOnSC_PIRI_FortressRequest = false;
+                                resetFieldsAtEndTurn();
+                                // client.endTurn not needed; making the attack implies sending endTurn
+                            }
+                            // else, from another player; we can ignore it
+
+                            break;
                         }
-                        // else, from another player; we can ignore it
                         break;
 
                     }  // switch(mesType)

@@ -58,7 +58,7 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
     /**
      * The current player wants to attack their pirate fortress (scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}).
      * Value1 and value2 are unused.  If client can attack, server responds with
-     * {@link SOCPirateFortressAttackResult} and related messages (see that class' javadoc).
+     * {@link SOCSimpleAction#SC_PIRI_FORT_ATTACK_RESULT} and related messages (see that type's javadoc).
      * Otherwise, server responds with the standard SOCSimpleRequest denial:
      * (pn = -1, typecode {@code SC_PIRI_FORT_ATTACK}, 0, 0).
      *<P>

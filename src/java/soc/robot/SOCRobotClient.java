@@ -855,14 +855,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 handlePutBrainQ((SOCSetSpecialItem) mes);
                 break;
 
-            /**
-             * Result of a player's pirate fortress attack (SC_PIRI scenario).
-             * Message type added 2013-02-18 for v2.0.00,
-             * bot ignored these until 2015-10-10.
-             */
-            case SOCMessage.PIRATEFORTRESSATTACKRESULT:
-                handlePutBrainQ((SOCPirateFortressAttackResult) mes);
-                break;
             }
         }
         catch (Throwable e)

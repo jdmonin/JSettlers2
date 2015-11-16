@@ -334,9 +334,6 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
     public static final int SERVERPING = 9999;  // available in all versions
 
-    /** {@link SOCPirateFortressAttackResult} - Results of an attack on the player's Pirate Fortress.
-     *  @since 2.0.00  */
-    public static final int PIRATEFORTRESSATTACKRESULT = 10001;  // pirate islands scenario, 20130218, v2.0.00
 
     /**
      * Token separators. At most one SEP per message; multiple SEP2 are allowed after SEP.
@@ -936,9 +933,6 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case SVPTEXTMSG:        // SVP text messages, 20121221, v2.0.00
                 return SOCSVPTextMessage.parseDataStr(data);
-
-            case PIRATEFORTRESSATTACKRESULT:  // pirate islands scenario, 20130218, v2.0.00
-                return SOCPirateFortressAttackResult.parseDataStr(data);
 
             case BOARDSPECIALEDGE:  // board special edges, 20131107, v2.0.00
                 return SOCBoardSpecialEdge.parseDataStr(data);

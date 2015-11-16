@@ -113,7 +113,6 @@ import soc.message.SOCMoveRobber;
 import soc.message.SOCPickResources;
 import soc.message.SOCPickResourcesRequest;
 import soc.message.SOCPieceValue;
-import soc.message.SOCPirateFortressAttackResult;
 import soc.message.SOCPlayDevCardRequest;
 import soc.message.SOCPlayerElement;
 import soc.message.SOCPlayerStats;
@@ -5213,7 +5212,8 @@ public class SOCGameHandler extends GameHandler
                             (gaName, cpn, SOCPlayingPiece.SETTLEMENT, fort.getCoordinates()));
                 }
 
-                srv.messageToGame(gaName, new SOCPirateFortressAttackResult(gaName, res[0], res.length - 1));
+                srv.messageToGame(gaName, new SOCSimpleAction
+                    (gaName, cpn, SOCSimpleAction.SC_PIRI_FORT_ATTACK_RESULT, res[0], res.length - 1));
 
                 // check for end of player's turn
                 if (! checkTurn(c, ga))
