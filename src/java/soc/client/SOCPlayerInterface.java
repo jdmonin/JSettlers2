@@ -3501,9 +3501,10 @@ public class SOCPlayerInterface extends Frame
                 resDesc2 = null;
             }
 
-            if (pi.clientIsCurrentPlayer() || (fort == null))
+            if ((resultShipsLost == 0) || pi.clientIsCurrentPlayer())
             {
-                // popup if player is our client, or if recaptured
+                // popup if player is our client, or if won or recaptured
+
                 StringBuffer sb = new StringBuffer(strings.get("game.sc_piri.attfort.results"));  // "Pirate Fortress attack results:"
                 sb.append('\n');
                 sb.append(strings.get("game.sc_piri.attfort.def.strength", defStrength));  // "Defense strength: {0}"
