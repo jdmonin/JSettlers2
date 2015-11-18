@@ -3470,7 +3470,7 @@ public class SOCPlayerInterface extends Frame
             final SOCFortress fort = cpl.getFortress();
             final String cplName = cpl.getName();
             pi.printKeyed("game.sc_piri.attfort.attacked", cplName, defStrength);
-                // * "{0} has attacked a pirate fortress (defense strength {1})."
+                // * "{0} has attacked a Pirate Fortress (defense strength {1})."
 
             String resDesc;  // used for game text print and popup window
             switch (resultShipsLost)
@@ -3490,11 +3490,11 @@ public class SOCPlayerInterface extends Frame
                 {
                     // defeated and recaptured
                     resDesc2 = strings.get("game.sc_piri.attfort.wins.recaptured", cplName);
-                        // "{0} has recaptured the fortress as a settlement."
+                        // "{0} has recaptured a Fortress as a settlement."
                 } else {
                     // still needs to attack
                     resDesc2 = strings.get("game.sc_piri.attfort.n.more.attacks", fort.getStrength());
-                        // "The pirate fortress will be defeated after {0} more attack(s)."
+                        // "That Fortress will be defeated after {0} more attack(s)."
                 }
                 pi.print("* " + resDesc2);
             } else {
