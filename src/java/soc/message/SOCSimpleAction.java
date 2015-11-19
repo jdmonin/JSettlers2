@@ -29,6 +29,11 @@ import soc.game.SOCGameOption;  // solely for javadocs
  * It has a player number, an action type code, and two optional detail-value fields.
  * This message comes after, not before, any messages that update the game and player data for the action.
  *<P>
+ * To get the optional detail value fields from a {@code SOCSimpleAction}, be sure to use {@link #getValue1()}
+ * and {@link #getValue2()}, not {@link #getParam1()} and {@link #getParam2()} which would instead return the
+ * player number and action type code.  {@link #getPlayerNumber()} and {@link #getActionType()} are
+ * convenience methods with more intuitive names to retrieve the player number and typecode.
+ *<P>
  * This message type is useful for functions that don't have a complicated set of
  * details attached, such as telling all players that someone has bought a development card,
  * or telling a bot that it's made a successful bank/port trade, or some event or condition just happened.
@@ -146,7 +151,8 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * @param ga  the name of the game
      * @param pn  the player acting or acted on
      * @param acttype  the action type; below 1000 is general, 1000+ is specific to one kind of game
-     * @param value1  Optional detail value, or 0
+     * @param value1  Optional detail value, or 0.  Use {@link #getValue1()}, not {@link #getParam1()}, to get
+     *     this value from a {@code SOCSimpleAction} message.
      */
     public SOCSimpleAction(final String ga, final int pn, final int acttype, final int value1)
     {
@@ -159,8 +165,10 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * @param ga  the name of the game
      * @param pn  the player acting or acted on
      * @param acttype  the action type; below 1000 is general, 1000+ is specific to one kind of game
-     * @param value1  First optional detail value, or 0
-     * @param value2  Second optional detail value, or 0
+     * @param value1  First optional detail value, or 0.  Use {@link #getValue1()}, not {@link #getParam1()}, to get
+     *     this value from a {@code SOCSimpleAction} message.
+     * @param value2  Second optional detail value, or 0.  Use {@link #getValue2()}, not {@link #getParam2()}, to get
+     *     this value from a {@code SOCSimpleAction} message.
      */
     public SOCSimpleAction(final String ga, final int pn, final int acttype, final int value1, final int value2)
     {
