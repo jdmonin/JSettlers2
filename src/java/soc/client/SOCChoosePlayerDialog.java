@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2010,2012-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2010,2012-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,6 +21,7 @@
 package soc.client;
 
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;  // only for javadocs
 import soc.game.SOCPlayer;
 import soc.message.SOCChoosePlayer;
 
@@ -28,6 +29,9 @@ import java.awt.Button;
 import java.awt.Color;
 import java.awt.Dialog;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Label;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -50,6 +54,14 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
     /** i18n text strings; will use same locale as SOCPlayerClient's string manager.
      *  @since 2.0.00 */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+
+    /**
+     * Maximum number of {@link #players[]} buttons to show on a single horizontal line.
+     * If asking about more than this many players (including {@code allowChooseNone}),
+     * the layout will have each on its own line.
+     * @since 2.0.00
+     */
+    private static final int MAX_ON_SAME_LINE = 3;
 
     /**
      * Player names on each button. This array's elements align with {@link #players}. Length is {@link #number}.
@@ -77,8 +89,8 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
     protected final int wantW, wantH;
 
     /**
-     * Place window in center when displayed (in doLayout),
-     * don't change position afterwards
+     * Flag to place window in center once when displayed (in {@link #doLayout()}),
+     * and not change position again afterwards.
      */
     boolean didSetLocation;
 
@@ -108,7 +120,27 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
         setForeground(Color.black);
         setFont(new Font("SansSerif", Font.PLAIN, 12));
         didSetLocation = false;
-        setLayout(null);
+
+        // custom doLayout() when 3 or fewer players[] to choose from,
+        // otherwise GridBagLayout; see doLayout() javadoc for diagram.
+        GridBagLayout gbl;
+        GridBagConstraints gbc;
+        if (number <= MAX_ON_SAME_LINE)
+        {
+            gbl = null;
+            gbc = null;
+        } else {
+            gbl = new GridBagLayout();
+            gbc = new GridBagConstraints();
+            // gbc.ipadx = 3;
+            gbc.ipady = 3;
+            gbc.insets = new Insets(0, 3, 0, 3);  // horiz. padding
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.gridwidth = GridBagConstraints.REMAINDER;
+        }
+
+        setLayout(gbl);  // null if 3 or fewer players[]
+
         // wantH formula based on doLayout
         //    label: 20  button: 20  label: 16  spacing: 10
         wantW = 320;
@@ -116,6 +148,8 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
         setSize(wantW + 10, wantH + 20);  // Can calc & add room for insets at doLayout
 
         msg = new Label(strings.get("dialog.robchoose.please.choose"), Label.CENTER);  // "Please choose a player to steal from:"
+        if (gbl != null)
+            gbl.setConstraints(msg, gbc);
         add(msg);
 
         buttons = new Button[number];
@@ -128,6 +162,11 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
             SOCPlayer pl = ga.getPlayer(players[i]);            
 
             buttons[i] = new Button(pl.getName());
+            if (gbl != null)
+            {
+                gbc.gridwidth = 1;
+                gbl.setConstraints(buttons[i], gbc);
+            }
             add(buttons[i]);
             buttons[i].addActionListener(this);
 
@@ -138,6 +177,11 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
             SOCHandPanel ph = pi.getPlayerHandPanel(players[i]);
             player_res_lbl[i].setBackground(ph.getBackground());
             player_res_lbl[i].setForeground(ph.getForeground());
+            if (gbl != null)
+            {
+                gbc.gridwidth = GridBagConstraints.REMAINDER;
+                gbl.setConstraints(player_res_lbl[i], gbc);
+            }
             add(player_res_lbl[i]);
             String restooltip = strings.get("dialog.robchoose.player.has.n.rsrcs", rescount);
                 // "This player has 1 resource.", "This player has {0} resources."
@@ -149,12 +193,23 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
         {
             Button bNone = new Button(strings.get("base.none"));  // "None"
             buttons[num] = bNone;
+            if (gbl != null)
+            {
+                gbc.gridwidth = 1;
+                gbl.setConstraints(bNone, gbc);
+            }
             add(bNone);
             bNone.addActionListener(this);
+
             new AWTToolTip(strings.get("dialog.robchoose.choose.steal.no.player"), bNone);
                 // "Choose this to steal from no player"
             players[num] = SOCChoosePlayer.CHOICE_NO_PLAYER;
             player_res_lbl[num] = new Label(strings.get("dialog.robchoose.decline"), Label.CENTER);  // "(decline)"
+            if (gbl != null)
+            {
+                gbc.gridwidth = GridBagConstraints.REMAINDER;
+                gbl.setConstraints(player_res_lbl[num], gbc);
+            }
             add(player_res_lbl[num]);
         }
     }
@@ -177,9 +232,35 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
 
     /**
      * Do our dialog's custom layout.
+     *<P>
+     * With 3 or fewer {@code players[]} buttons, all buttons are on the same row:
+     * <table border=1>
+     * <tr><td colspan=3 align=center>Please choose a player to steal from:</td></tr>
+     * <tr><td>players[0]</td><td>players[1]</td><td>players[2]</td></tr>
+     * <tr><td>player_res_lbl[0]</td><td>player_res_lbl[1]</td><td>player_res_lbl[2]</td></tr>
+     * </table>
+     *<P>
+     * With 4 or more buttons, sharing a row would be too wide, so there is 1 player per row:
+     * (This occurs with the {@link SOCGameOption#K_SC_PIRI SC_PIRI} scenario)
+     * <table border=1>
+     * <tr><td colspan=2 align=center>Please choose a player to steal from:</td></tr>
+     * <tr><td>players[0]</td><td>player_res_lbl[0]</td></tr>
+     * <tr><td>players[1]</td><td>player_res_lbl[1]</td></tr>
+     * <tr><td>...</td><td>...</td></tr>
+     * </table>
      */
     public void doLayout()
     {
+        // Are we using GBL/GBC?  Check buttons[] length instead of getLayout()
+        // because AWTToolTip will temporarily setLayout(null) while visible
+        // and then call doLayout().
+
+        if (buttons.length > MAX_ON_SAME_LINE)
+        {
+            super.doLayout();
+            return;  // <--- Early return: Don't do custom layout ---
+        }
+
         int x = getInsets().left;
         int y = getInsets().top;
         int padW = getInsets().left + getInsets().right;
@@ -257,11 +338,15 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
 
     /**
      * Run method, for convenience with {@link java.awt.EventQueue#invokeLater(Runnable)}.
-     * This method just calls {@link #setVisible(boolean) setVisible(true)}.
+     * This method just calls {@link #setVisible(boolean) setVisible(true)},
+     * after calling {@link #pack()} if applicable.
      * @since 2.0.00
      */
     public void run()
     {
+        if (getLayout() != null)
+            pack();
+
         setVisible(true);
     }
 
