@@ -89,8 +89,15 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
     protected final int wantW, wantH;
 
     /**
+     * If true, {@link #doLayout()} should manually lay out component locations.
+     * See that method's javadoc for criteria.
+     * @since 2.0.00
+     */
+    private final boolean hasCustomLayout;
+
+    /**
      * Flag to place window in center once when displayed (in {@link #doLayout()}),
-     * and not change position again afterwards.
+     * and not change position again afterwards. Set in {@link #setLocationCentered(int)}.
      */
     boolean didSetLocation;
 
@@ -119,13 +126,15 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
         setBackground(new Color(255, 230, 162));
         setForeground(Color.black);
         setFont(new Font("SansSerif", Font.PLAIN, 12));
+
+        hasCustomLayout = (number <= MAX_ON_SAME_LINE);
         didSetLocation = false;
 
         // custom doLayout() when 3 or fewer players[] to choose from,
         // otherwise GridBagLayout; see doLayout() javadoc for diagram.
         GridBagLayout gbl;
         GridBagConstraints gbc;
-        if (number <= MAX_ON_SAME_LINE)
+        if (hasCustomLayout)
         {
             gbl = null;
             gbc = null;
@@ -241,23 +250,26 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
      * </table>
      *<P>
      * With 4 or more buttons, sharing a row would be too wide, so there is 1 player per row:
-     * (This occurs with the {@link SOCGameOption#K_SC_PIRI SC_PIRI} scenario)
      * <table border=1>
      * <tr><td colspan=2 align=center>Please choose a player to steal from:</td></tr>
      * <tr><td>players[0]</td><td>player_res_lbl[0]</td></tr>
      * <tr><td>players[1]</td><td>player_res_lbl[1]</td></tr>
      * <tr><td>...</td><td>...</td></tr>
      * </table>
+     * This occurs with the {@link SOCGameOption#K_SC_PIRI SC_PIRI} scenario, which allows
+     * robbing any player with resources or declining to rob.
      */
     public void doLayout()
     {
-        // Are we using GBL/GBC?  Check buttons[] length instead of getLayout()
-        // because AWTToolTip will temporarily setLayout(null) while visible
+        // Reminder: While visible, AWTToolTip will temporarily setLayout(null)
         // and then call doLayout().
 
-        if (buttons.length > MAX_ON_SAME_LINE)
+        if (! hasCustomLayout)
         {
             super.doLayout();
+            if (! didSetLocation)
+                setLocationCentered(0);
+
             return;  // <--- Early return: Don't do custom layout ---
         }
 
@@ -285,15 +297,7 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
 
         /* put the dialog in the top-center of the game window */
         if (! didSetLocation)
-        {
-            int piX = pi.getInsets().left;
-            int piY = pi.getInsets().top;
-            final int piWidth = pi.getSize().width - piX - pi.getInsets().right;
-            piX += pi.getLocation().x;
-            piY += pi.getLocation().y;
-            setLocation(piX + ((piWidth - width) / 2), piY + 50);
-            didSetLocation = true;
-        }
+            setLocationCentered(width);
 
         try
         {
@@ -306,6 +310,27 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
             }
         }
         catch (NullPointerException e) {}
+    }
+
+    /**
+     * Put the dialog in the top-center of the game window ({@link #pi})
+     * and set {@link #didSetLocation}.
+     * @param width  Dialog width if known, or 0
+     * @since 2.0.00
+     */
+    private void setLocationCentered(int width)
+    {
+        if (width == 0)
+            width = getWidth();
+
+        int piX = pi.getInsets().left;
+        int piY = pi.getInsets().top;
+        final int piWidth = pi.getSize().width - piX - pi.getInsets().right;
+        piX += pi.getLocation().x;
+        piY += pi.getLocation().y;
+
+        setLocation(piX + ((piWidth - width) / 2), piY + 50);
+        didSetLocation = true;
     }
 
     /**
@@ -344,7 +369,7 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
      */
     public void run()
     {
-        if (getLayout() != null)
+        if (! hasCustomLayout)
             pack();
 
         setVisible(true);
