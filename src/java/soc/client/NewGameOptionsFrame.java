@@ -171,8 +171,9 @@ public class NewGameOptionsFrame extends Frame
      */
     private Button scenInfo;
 
-    /** create is null if readOnly */
+    /** Create Game button; null if {@link #readOnly} */
     private Button create;
+    /** Cancel button; text is "OK" if {@link #readOnly} */
     private Button cancel;
     private TextField gameName;
     /** msgText is null if readOnly */
@@ -980,19 +981,32 @@ public class NewGameOptionsFrame extends Frame
             return;  // should not happen, scenDropdown is created before scenInfo
 
         final Object scObj = scenDropdown.getSelectedItem();
-        if (! (scObj instanceof SOCScenario))
+        if ((scObj == null) || ! (scObj instanceof SOCScenario))
             return;  // "(none)" item is a String, not a scenario
 
-        // find game's vp_winner, if not for new game
+        final SOCScenario scen = (SOCScenario) scObj;
+
+        // find game's vp_winner
         int vpWinner = SOCGame.VP_WINNER_STANDARD;
-        if ((opts != null) && ! forNewGame)
+        boolean vpKnown = false;
+        if (opts != null)
         {
             SOCGameOption vp = opts.get("VP");
             if (vp.getBoolValue())
+            {
                 vpWinner = vp.getIntValue();
+                vpKnown = true;
+            }
+        }
+        if (forNewGame && (! vpKnown) && scen.scOpts.contains("VP="))
+        {
+            final Map<String, SOCGameOption> scenOpts = SOCGameOption.parseOptionsToMap(scen.scOpts);
+            final SOCGameOption scOptVP = (scenOpts != null) ? scenOpts.get("VP") : null;
+            if (scOptVP != null)
+                vpWinner = scOptVP.getIntValue();
         }
 
-        showScenarioInfoDialog((SOCScenario) scObj, null, vpWinner, gameDisplay, this);
+        showScenarioInfoDialog(scen, null, vpWinner, gameDisplay, this);
     }
 
     /** Dismiss the frame, and clear client's {@link GameAwtDisplay#newGameOptsFrame}
