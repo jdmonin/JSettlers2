@@ -787,8 +787,7 @@ public class SOCGameOption
      * Value will be false/0. desc will be an empty string.
      * @param key   Alphanumeric 2-character code for this option;
      *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
-     * @throws IllegalArgumentException if key length is > 3 or not alphanumeric,
-     *        or if minVers or lastModVers is under 1000 but not -1
+     * @throws IllegalArgumentException if {@code key} length is &gt; 3 or not alphanumeric
      */
     public SOCGameOption(final String key)
         throws IllegalArgumentException
@@ -1552,6 +1551,7 @@ public class SOCGameOption
      * @throws ClassCastException if {@code omap} contains anything other
      *         than {@code SOCGameOption}s
      * @see #parseOptionNameValue(String, boolean)
+     * @see #parseOptionNameValue(String, String, boolean)
      * @see #packValue(StringBuilder)
      */
     public static String packOptionsToString
@@ -1695,6 +1695,7 @@ public class SOCGameOption
      *         will be in the map as type {@link #OTYPE_UNKNOWN}.
      *         The returned known SGOs are clones from the set of all known options.
      * @see #parseOptionNameValue(String, boolean)
+     * @see #parseOptionNameValue(String, String, boolean)
      */
     public static Map<String,SOCGameOption> parseOptionsToMap(final String ostr)
     {
@@ -1726,17 +1727,21 @@ public class SOCGameOption
      * @param nvpair Name-value pair string, as created by
      *               {@link #packOptionsToString(Map, boolean)}.
      *               <BR>
-     *               'T', 't', 'Y', 'y' are always allowed for bool value, regardless of forceNameUpcase.
+     *               'T', 't', 'Y', 'y' are always allowed for bool true values, regardless of {@code forceNameUpcase}.
      *               'F', 'f', 'N', 'n' are the valid bool false values.
      * @param forceNameUpcase Call {@link String#toUpperCase()} on keyname within nvpair?
      *               For friendlier parsing of manually entered (command-line) nvpair strings.
      * @return Parsed option, or null if parse error;
      *         if known, the returned object is a clone of the SGO from the set of all known options.
      *         if nvpair's option keyname is not a known option, returned optType will be {@link #OTYPE_UNKNOWN}.
+     * @throws IllegalArgumentException if {@code optkey} is unknown and not a valid alphanumeric keyname
+     *         by the rules listed at {@link #SOCGameOption(String)}
+     * @see #parseOptionNameValue(String, String, boolean)
      * @see #parseOptionsToMap(String)
      * @see #packValue(StringBuilder)
      */
     public static SOCGameOption parseOptionNameValue(final String nvpair, final boolean forceNameUpcase)
+        throws IllegalArgumentException
     {
         int i = nvpair.indexOf('=');  // don't just tokenize for this (efficiency, and param value may contain a "=")
         if (i < 1)
@@ -1744,8 +1749,39 @@ public class SOCGameOption
 
         String optkey = nvpair.substring(0, i);
         String optval = nvpair.substring(i+1);
+        return parseOptionNameValue(optkey, optval, forceNameUpcase);
+    }
+
+    /**
+     * Utility - parse an option name-value pair produced by {@link #packValue(StringBuilder)} or
+     * {@link #packOptionsToString(Map, boolean)}. Expected format of {@code optval} depends on its type.
+     * See {@code packOptionsToString(..)} for the format.
+     *
+     * @param optkey  Game option's alphanumeric keyname, known or unknown.
+     *               Optkey must be a valid key by the rules listed at {@link #SOCGameOption(String)}.
+     * @param optval  Game option's value, as created by {@link #packOptionsToString(Map, boolean)}.
+     *               <BR>
+     *               'T', 't', 'Y', 'y' are always allowed for bool true values, regardless of {@code forceNameUpcase}.
+     *               'F', 'f', 'N', 'n' are the valid bool false values.
+     * @param forceNameUpcase  Call {@link String#toUpperCase()} on {@code optkey}?
+     *               For friendlier parsing of manually entered (command-line) name=value pairs.
+     * @return Parsed option, or null if parse error;
+     *         if known, the returned object is a clone of the SGO from the set of all known options.
+     *         if {@code optkey} is not a known option, returned optType will be {@link #OTYPE_UNKNOWN}.
+     * @throws IllegalArgumentException if {@code optkey} is unknown and not a valid alphanumeric keyname
+     *         by the rules listed at {@link #SOCGameOption(String)}
+     * @see #parseOptionNameValue(String, boolean)
+     * @see #parseOptionsToMap(String)
+     * @see #packValue(StringBuilder)
+     * @since 2.0.00
+     */
+    public static SOCGameOption parseOptionNameValue
+        (String optkey, final String optval, final boolean forceNameUpcase)
+        throws IllegalArgumentException
+    {
         if (forceNameUpcase)
             optkey = optkey.toUpperCase();
+
         SOCGameOption knownOpt = allOptions.get(optkey);
         SOCGameOption copyOpt;
         if (knownOpt == null)
