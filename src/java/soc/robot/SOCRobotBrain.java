@@ -523,7 +523,7 @@ public class SOCRobotBrain extends Thread
      * and waiting for server response to a {@link SOCSimpleRequest}
      * to attack a pirate fortress.
      */
-    protected boolean waitingOnSC_PIRI_FortressRequest;
+    protected boolean waitingForSC_PIRI_FortressRequest;
 
     // If any new expect or waitingFor fields are added,
     // please update debugPrintBrainStatus().
@@ -921,7 +921,7 @@ public class SOCRobotBrain extends Thread
         final String[] s = {
             "ourTurn", "doneTrading",
             "waitingForGameState", "waitingForOurTurn", "waitingForTradeMsg", "waitingForDevCard",
-            "waitingForTradeResponse", "waitingOnSC_PIRI_FortressRequest",
+            "waitingForTradeResponse", "waitingForSC_PIRI_FortressRequest",
             "moveRobberOnSeven", "expectSTART1A", "expectSTART1B", "expectSTART2A", "expectSTART2B", "expectSTART3A", "expectSTART3B",
             "expectPLAY", "expectPLAY1", "expectPLACING_ROAD", "expectPLACING_SETTLEMENT", "expectPLACING_CITY", "expectPLACING_SHIP",
             "expectPLACING_ROBBER", "expectPLACING_FREE_ROAD1", "expectPLACING_FREE_ROAD2",
@@ -932,7 +932,7 @@ public class SOCRobotBrain extends Thread
         final boolean[] b = {
             ourTurn, doneTrading,
             waitingForGameState, waitingForOurTurn, waitingForTradeMsg, waitingForDevCard,
-            waitingForTradeResponse, waitingOnSC_PIRI_FortressRequest,
+            waitingForTradeResponse, waitingForSC_PIRI_FortressRequest,
             moveRobberOnSeven, expectSTART1A, expectSTART1B, expectSTART2A, expectSTART2B, expectSTART3A, expectSTART3B,
             expectPLAY, expectPLAY1, expectPLACING_ROAD, expectPLACING_SETTLEMENT, expectPLACING_CITY, expectPLACING_SHIP,
             expectPLACING_ROBBER, expectPLACING_FREE_ROAD1, expectPLACING_FREE_ROAD2,
@@ -1135,7 +1135,7 @@ public class SOCRobotBrain extends Thread
                         negotiator.resetOffersMade();
 
                         waitingForPickSpecialItem = null;
-                        waitingOnSC_PIRI_FortressRequest = false;
+                        waitingForSC_PIRI_FortressRequest = false;
 
                         //
                         // check or reset any special-building-phase decisions
@@ -1351,7 +1351,7 @@ public class SOCRobotBrain extends Thread
                         // These messages can almost always be ignored,
                         // unless we've just sent a request to attack a pirate fortress.
 
-                        if (ourTurn && waitingOnSC_PIRI_FortressRequest)
+                        if (ourTurn && waitingForSC_PIRI_FortressRequest)
                         {
                             final SOCSimpleRequest rqMes = (SOCSimpleRequest) mes;
 
@@ -1362,7 +1362,7 @@ public class SOCRobotBrain extends Thread
                                 // Reset method sets waitingForGameState, which will bypass
                                 // any further actions in the run() loop body.
 
-                                waitingOnSC_PIRI_FortressRequest = false;
+                                waitingForSC_PIRI_FortressRequest = false;
                                 resetFieldsAtEndTurn();
                                 client.endTurn(game);
                             }
@@ -1377,7 +1377,7 @@ public class SOCRobotBrain extends Thread
                         switch(((SOCSimpleAction) mes).getActionType())
                         {
                         case SOCSimpleAction.SC_PIRI_FORT_ATTACK_RESULT:
-                            if (ourTurn && waitingOnSC_PIRI_FortressRequest)
+                            if (ourTurn && waitingForSC_PIRI_FortressRequest)
                             {
                                 // Our player has won or lost an attack on a pirate fortress.
                                 // When we receive this message, other messages have already
@@ -1385,7 +1385,7 @@ public class SOCRobotBrain extends Thread
                                 // Reset method sets waitingForGameState, which will bypass
                                 // any further actions in the run() loop body.
 
-                                waitingOnSC_PIRI_FortressRequest = false;
+                                waitingForSC_PIRI_FortressRequest = false;
                                 resetFieldsAtEndTurn();
                                 // client.endTurn not needed; making the attack implies sending endTurn
                             }
@@ -1523,7 +1523,7 @@ public class SOCRobotBrain extends Thread
                               || expectPLACING_ROAD || expectPLACING_SETTLEMENT || expectPLACING_CITY
                               || expectPLACING_SHIP || expectPLACING_FREE_ROAD1 || expectPLACING_FREE_ROAD2
                               || expectPLACING_ROBBER || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY
-                              || waitingOnSC_PIRI_FortressRequest || (waitingForPickSpecialItem != null)))
+                              || waitingForSC_PIRI_FortressRequest || (waitingForPickSpecialItem != null)))
                     {
                         expectPLAY1 = false;
 
@@ -2021,7 +2021,7 @@ public class SOCRobotBrain extends Thread
         if ((ourPlayerData.getNumWarships() < 5) || (null == game.canAttackPirateFortress()))
             return false;
 
-        waitingOnSC_PIRI_FortressRequest = true;
+        waitingForSC_PIRI_FortressRequest = true;
         client.simpleRequest(game, ourPlayerNumber, SOCSimpleRequest.SC_PIRI_FORT_ATTACK, 0, 0);
 
         return true;
@@ -2478,7 +2478,7 @@ public class SOCRobotBrain extends Thread
      *<LI> {@link #waitingForTradeMsg} or {@link #waitingForTradeResponse} or {@link #doneTrading}
      *<LI> {@link #waitingForDevCard}, or {@link #waitingForGameState} and {@link #expectPLACING_SETTLEMENT} (etc).
      *<LI> {@link #waitingForPickSpecialItem}
-     *<LI> Scenario actions such as {@link #waitingOnSC_PIRI_FortressRequest}
+     *<LI> Scenario actions such as {@link #waitingForSC_PIRI_FortressRequest}
      *</UL>
      *<P>
      * In a future iteration of the run() loop with the expected {@code PLACING_} state, the
