@@ -3282,6 +3282,11 @@ public class SOCRobotBrain extends Thread
                 client.pickSpecialItem(game, psi.typeKey, psi.gi, psi.pi);
             }
             break;
+
+        default:
+            // shouldn't occur: print for debugging
+            System.err.println
+                (ourPlayerData.getName() + ": buildRequestPlannedPiece: Unknown piece type " + targetPiece.getType());
         }
     }
 
