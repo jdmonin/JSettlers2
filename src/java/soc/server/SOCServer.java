@@ -878,7 +878,7 @@ public class SOCServer extends Server
      *       {@code props} may contain game option default values (property names starting
      *       with {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}).
      *       Calls {@link #parseCmdline_GameOption(SOCGameOption, String, HashMap)}
-     *       for each one found to set its default (current) value.  If a default scenario is
+     *       for each one found, to set its default (current) value.  If a default scenario is
      *       specified (game option {@code "SC"}), the scenario may include game options which
      *       conflict with those in {@code props}: Consider calling {@link #checkScenarioOpts(Map, boolean, String)}
      *       to check for that and warn the user.
@@ -980,7 +980,7 @@ public class SOCServer extends Server
      *       {@code props} may contain game option default values (property names starting
      *       with {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}).
      *       Calls {@link #parseCmdline_GameOption(SOCGameOption, String, HashMap)}
-     *       for each one found to set its default (current) value. If a default scenario is
+     *       for each one found, to set its default (current) value. If a default scenario is
      *       specified (game option {@code "SC"}), the scenario may include game options which
      *       conflict with those in {@code props}: Consider calling {@link #checkScenarioOpts(Map, boolean, String)}
      *       to check for that and warn the user.
@@ -8516,10 +8516,10 @@ public class SOCServer extends Server
     }
 
     /**
-     * Set game option defaults from any jsettlers.gameopt.* server properties found ({@code jsettlers.gameopt.*}).
+     * Set game option defaults from any {@code jsettlers.gameopt.*} server properties found.
      * Option keynames are case-insensitive past that prefix.
      * See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for expected syntax.
-     * Calls {@link #parseCmdline_GameOption(SOCGameOption, String, HashMap)} for each one found
+     * Calls {@link #parseCmdline_GameOption(SOCGameOption, String, HashMap)} for each one found,
      * to set its current value in {@link SOCGameOptions}'s static set of known opts.
      *<P>
      * Note that an unknown {@link SOCSscenario} name (value of game option {@code "SC"})
@@ -8540,7 +8540,7 @@ public class SOCServer extends Server
         throws IllegalArgumentException
     {
         // javadoc note: This method is private; public parseCmdline_DashedArgs calls it, so for visibility
-        // this method's javadoc section about game option properties is also there.  If you update text here,
+        // this method's javadoc section about game option properties is also there.  If you update javadocs here,
         // also update the same text in parseCmdline_DashedArgs's javadoc.
 
         final int pfxL = PROP_JSETTLERS_GAMEOPT_PREFIX.length();
@@ -8598,10 +8598,12 @@ public class SOCServer extends Server
      *
      * @param opts  Option name key and value strings, typically from command line or
      *    properties file parsing.  See {@code optsIsFromProps} for format of {@code opts} keys and values.
-     * @param optsAreProps  If true, {@code opts} keys and values are from the properties file:
+     * @param optsAreProps  If <B>true</B>, {@code opts} keys and values are from the properties file:
      *    key = {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} + optname, value = option value.
-     *    If false, keys and values are from command line parsing:
-     *    key = optname, value = optkey + "=" + optname.
+     *    Option names are not case-sensitive but {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} is.
+     *    <br>
+     *    If <B>false</B>, keys and values are from command line parsing:
+     *    key = uppercase optname, value = optkey + "=" + option value.
      * @param scName  Scenario name to check against, or {@code null} to use value of {@code opts.get("SC"}); never ""
      * @returns A list of game option names and value strings from {@code opts} which would be overwritten by
      *     those from opts' {@code "SC"} scenario, or {@code null} if no potential conflicts.
@@ -8632,7 +8634,7 @@ public class SOCServer extends Server
      * @since 2.0.00
      */
     public static List<Triple> checkScenarioOpts
-        (final Map<?, ?> opts, final boolean optsAreProps, String scName)
+        (Map<?, ?> opts, final boolean optsAreProps, String scName)
     {
         List<Triple> scenConflictWarns = null;
 
@@ -8665,14 +8667,31 @@ public class SOCServer extends Server
         if ((scOptsStr == null) || (scOptsStr.length() == 0))
             return null;  // <--- Early return: no gameopts in scenario ---
 
+        if (optsAreProps)
+        {
+            // Normalize to allow case-insensitive searching of key names:
+            // jsettlers.gameopt.NT -> jsettlers.gameopt.nt
+
+            Map<String, Object> normOpts = new HashMap<String, Object>();
+            for (Object k : opts.keySet())
+            {
+                if (! ((k instanceof String) && ((String) k).startsWith(PROP_JSETTLERS_GAMEOPT_PREFIX)))
+                    continue;
+
+                normOpts.put(((String) k).toLowerCase(Locale.US), opts.get(k));
+            }
+
+            opts = normOpts;
+        }
+
         final Map<String, SOCGameOption> scOpts = SOCGameOption.parseOptionsToMap(scOptsStr);
 
         StringBuilder sb = new StringBuilder();
         for (SOCGameOption scOpt : scOpts.values())
         {
-            // TODO robustness: Case-insensitive searching
-
-            final String optKey = (optsAreProps) ? (PROP_JSETTLERS_GAMEOPT_PREFIX + scOpt.key) : scOpt.key;
+            final String optKey = (optsAreProps)
+                ? (PROP_JSETTLERS_GAMEOPT_PREFIX + scOpt.key).toLowerCase(Locale.US)
+                : scOpt.key;
             if (! opts.containsKey(optKey))
                 continue;
 
@@ -8681,7 +8700,7 @@ public class SOCServer extends Server
                 mapOptVal = mapOptVal.substring(mapOptVal.indexOf('=') + 1).trim();
                    // indexOf should be okay, because this is called after parsing cmdline options;
                    // if somehow it's -1 then we get entire string from substring(0).
-            mapOptVal = mapOptVal.toLowerCase(Locale.US);
+            mapOptVal = mapOptVal.toLowerCase(Locale.US);  // for intbool t/f chars
 
             sb.setLength(0);  // reset from previous iteration
             scOpt.packValue(sb);
@@ -8703,7 +8722,7 @@ public class SOCServer extends Server
                     try {
                         mapVP = Integer.parseInt(mapOptVal.substring(1));
                     } catch (NumberFormatException e ) {
-                        mapVP = 0;  // unlikely, called after cmdline parsing
+                        mapVP = 0;  // unlikely, would already have been caught by cmdline parsing
                     }
 
                     if (mapVP <= scOpt.getIntValue())
@@ -8728,15 +8747,15 @@ public class SOCServer extends Server
      * to {@link System#err}.  An unknown scenario name is printed as an error not a warning.
      * An empty scenario name "" from {@code opts.get("SC")} or {@code scName} is treated as an unknown scenario.
      * @param opts  Options to check, see {@link #checkScenarioOpts(Map, boolean, String)}
-     * @param optsAreProps  Are {@code} opts from properties or command line?
+     * @param optsAreProps  Are {@code opts} from properties or command line?
      *     See {@link #checkScenarioOpts(Map, boolean, String)}.
      * @param srcDesc  Description of {@code opts} for warning message text:
      *     "Command line" or properties filename "jsserver.properties"
      * @param scName  Scenario name to check against, or {@code null} to use value of {@code opts.get("SC"}); never ""
      * @param scNameSrcDesc  If {@code scName} isn't from {@code opts}, lowercase description of its source
-     *     for warnings (like {@code srcDesc}), or {@code null}.
+     *     for warnings (like {@code srcDesc}), otherwise {@code null}.
      *     If {@code scNameSrcDesc != null}, will not print a warning if {@code scName} is unknown, to avoid
-     *     repeating the warning already printed when that SC was checked within its source.
+     *     repeating the warning already printed when that SC was checked while parsing its source.
      * @return True if the provided scenario name is known or there is no {@code "SC"} option, false if unknown.
      * @since 2.0.00
      */
