@@ -374,6 +374,11 @@ The project was originally started as Robert S Thomas' PhD dissertation about AI
 some instrumentation for the bots but it's not entirely documented.  For a technical overview of
 how the bots plan their actions, start at the SOCRobotBrain class javadoc.
 
+There are a few bot debugging commands, such as print-vars and stats. To send them, type
+botname:command into the chat textbox while playing or observing a game with bots:
+	robot 7:stats
+See SOCRobotClient.handleGAMETEXTMSG_debug for more details.
+
 If you're looking to make minor changes, it's probably best to fork the soc.robot package and go
 from the classes and javadocs there.  For a larger change, some parts of soc.robot might still be
 useful to talk with the server and track the game's other players.  Robert S Thomas' dissertation
