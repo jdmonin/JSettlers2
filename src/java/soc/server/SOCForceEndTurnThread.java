@@ -29,8 +29,9 @@ import soc.robot.SOCRobotClient;
 import soc.server.genericServer.StringConnection;
 
 /**
- * Force-end this robot's turn.
- * Done in a separate thread in case of deadlocks.
+ * Force this robot's turn to end, by calling
+ * {@link SOCGameHandler#endGameTurnOrForce(SOCGame, int, String, StringConnection, boolean)}.
+ * Done in a separate thread in case of deadlocks; see {@link #run()} for more details.
  * Created from {@link SOCGameHandler#endTurnIfInactive(SOCGame, long)}
  * when that's called from {@link SOCGameTimeoutChecker#run()}.
  *<P>
