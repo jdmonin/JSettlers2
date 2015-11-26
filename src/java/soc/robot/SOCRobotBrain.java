@@ -67,6 +67,7 @@ import soc.message.SOCSetTurn;
 import soc.message.SOCSimpleAction;
 import soc.message.SOCSimpleRequest;
 import soc.message.SOCSitDown;  // for javadoc
+import soc.message.SOCTimingPing;  // for javadoc
 import soc.message.SOCTurn;
 
 import soc.util.CappedQueue;
@@ -109,6 +110,14 @@ import java.util.Vector;
  * If we've sent the server an action and we're waiting for the result, {@link #waitingForGameState} is true
  * along with one other "expect" flag, such as {@link #expectPLACING_ROBBER}.
  * All these fields can be output for inspection by calling {@link #debugPrintBrainStatus()}.
+ *<P>
+ * See {@link #run()} for more details of how the bot waits for and reacts to incoming messages.
+ * Some robot actions wait for other players or other timeouts; the brain counts {@link SOCTimingPing} messages
+ * (1 per second) for timing.  For robustness testing, the {@code SOCRobotClient.debugRandomPause} flag can
+ * be used to inject random delays in incoming messages.
+ *<P>
+ * To keep the game moving, the server may force an inactive bot to end its turn;
+ * see {@link soc.server.SOCForceEndTurnThread}.
  *
  * @author Robert S Thomas
  */
@@ -205,7 +214,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * A counter used to measure passage of time.
-     * Incremented each second, when the server sends {@link SOCMessage#TIMINGPING}.
+     * Incremented each second, when the server sends {@link SOCTimingPing}.
      * When we decide to take an action, resets to 0.
      * If counter gets too high, we assume a bug and leave the game (<tt>{@link #alive} = false</tt>).
      */
@@ -1002,7 +1011,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Here is the run method.  Just keep receiving game events
      * through {@link #gameEventQ} and deal with each one.
-     * Remember that we're sent a {@link soc.message.SOCTimingPing} event once per second,
+     * Remember that we're sent a {@link SOCTimingPing} event once per second,
      * incrementing {@link #counter}.  That allows the bot to wait a certain
      * time for other players before it decides whether to do something.
      *<P>

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011,2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011,2013,2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003-2004  Robert S. Thomas
  *
  * This program is free software; you can redistribute it and/or
@@ -22,8 +22,10 @@ package soc.message;
 /**
  * This message contains a timing ping sent by the server to
  * each robot, once each second. Used by SOCRobotBrain for timing.
+ *<P>
+ * Before v1.1.13, the timing ping was {@link SOCGameTextMsg}({@code "*PING*"}).
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @see SOCGameServerText
  * @since 1.1.13
  */
