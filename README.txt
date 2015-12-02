@@ -139,6 +139,12 @@ To change a Game Option from its default, for example to activate the house rule
 name and value, or equivalently -Djsettlers.gameopt. + the name and value:
    -o RD=t
    -Djsettlers.gameopt.RD=t
+You could also set a default game scenario this way; for example if your server
+was running a tournament of Fog Islands games:
+   -o SC=SC_FOG
+If the scenario's game options conflict with any other game options given (VP,
+etc), a warning will be printed during startup.  In general, servers shouldn't
+set a default scenario; users can choose a scenario on their own if they want.
 
 To have all completed games' results stored in the database, use this option:
   -Djsettlers.db.save.games=Y
