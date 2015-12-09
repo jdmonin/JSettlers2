@@ -22,7 +22,6 @@
  **/
 package soc.client;
 
-import java.applet.Applet;
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.CardLayout;
@@ -103,7 +102,7 @@ import soc.util.SOCStringManager;
 import soc.util.Version;
 
 /**
- * Applet/Standalone client for connecting to the SOCServer.
+ * Standalone client for connecting to the SOCServer. (For applet see {@link SOCApplet}.)
  * Prompts for name and password, displays list of games and channels available.
  * The actual game is played in a separate {@link SOCPlayerInterface} window.
  *<P>
@@ -6260,6 +6259,7 @@ public class SOCPlayerClient
      *
      * @author Paul Bilnoski &lt;paul@bilnoski.net&gt;
      * @since 2.0.00
+     * @see SOCPlayerClient#getNet()
      */
     public static class ClientNetwork
     {
@@ -6979,131 +6979,5 @@ public class SOCPlayerClient
 
     }  // GameOptionDefaultsTimeoutTask
 
-
-    /**
-     * Applet methods to display the main screen (list of games), separated out from main GUI class.
-     * @author paulbilnoski
-     * @since 2.0.00
-     */
-    public static class SOCApplet extends Applet
-    {
-        SOCPlayerClient client;
-        GameAwtDisplay gameDisplay;
-
-        /**
-         * Retrieve a parameter and translate to a hex value.
-         *
-         * @param name a parameter name. null is ignored
-         * @return the parameter parsed as a hex value or -1 on error
-         */
-        public int getHexParameter(String name)
-        {
-            String value = null;
-            int iValue = -1;
-            try
-            {
-                value = getParameter(name);
-                if (value != null)
-                {
-                    iValue = Integer.parseInt(value, 16);
-                }
-            }
-            catch (Exception e)
-            {
-                System.err.println("Invalid " + name + ": " + value);
-            }
-            return iValue;
-        }
-
-        /**
-         * Called when the applet should start it's work.
-         */
-        @Override
-        public void start()
-        {
-            if (!gameDisplay.hasConnectOrPractice)
-                gameDisplay.nick.requestFocus();
-        }
-        
-        /**
-         * Initialize the applet.
-         * Calls {@link SOCPlayerClient.ClientNetwork#connect(String, int) connect}
-         * ({@link #getCodeBase()}.{@link java.net.URL#getHost() getHost()},
-         * {@link #getParameter(String) getParameter("PORT")}).
-         * Default port is {@link SOCPlayerClient.ClientNetwork#SOC_PORT_DEFAULT SOC_PORT_DEFAULT}.
-         */
-        @Override
-        public synchronized void init()
-        {
-            client = new SOCPlayerClient();
-            gameDisplay = new GameAwtDisplay(false, client);
-            client.setGameDisplay(gameDisplay);
-
-            Version.printVersionText(System.out, "Java Settlers Client ");  // I18N: Not localizing console output yet
-
-            String param = null;
-            int intValue;
-                
-            intValue = getHexParameter("background");
-            if (intValue != -1)
-                    setBackground(new Color(intValue));
-
-            intValue = getHexParameter("foreground");
-            if (intValue != -1)
-                setForeground(new Color(intValue));
-
-            gameDisplay.initVisualElements(); // after the background is set
-            add(gameDisplay);
-
-            param = getParameter("suggestion");
-            if (param != null)
-                gameDisplay.channel.setText(param); // after visuals initialized
-
-            param = getParameter("nickname");  // for use with dynamically-generated html
-            if (param != null)
-                gameDisplay.nick.setText(param);
-
-            System.out.println("Getting host...");  // I18N: Not localizing console output yet
-            String host = getCodeBase().getHost();
-            if (host == null || host.equals(""))
-                //host = null;  // localhost
-                host = "127.0.0.1"; // localhost - don't use "localhost" because Java 6 applets do not work
-
-            int port = ClientNetwork.SOC_PORT_DEFAULT;
-            try {
-                param = getParameter("PORT");
-                if (param != null)
-                    port = Integer.parseInt(param);
-            }
-            catch (Exception e) {
-                System.err.println("Invalid port: " + param);
-            }
-
-            client.net.connect(host, port);
-        }
-        
-        /**
-         * applet info, of the form similar to that seen at server startup:
-         * SOCPlayerClient (Java Settlers Client) 1.1.07, build JM20091027, 2001-2004 Robb Thomas, portions 2007-2009 Jeremy D Monin.
-         * Version and copyright info is from the {@link Version} utility class.
-         */
-        @Override
-        public String getAppletInfo()
-        {
-            return /*I*/"SOCPlayerClient (Java Settlers Client) " + Version.version() +
-            ", build " + Version.buildnum() + ", " + Version.copyright()/*18N*/;
-        }
-
-        /**
-         * When the applet is destroyed, calls {@link SOCPlayerClient#dispose()}.
-         */
-        @Override
-        public void destroy()
-        {
-            client.dispose();
-            client = null;
-        }
-
-    }  // class SOCApplet
 
 }  // public class SOCPlayerClient
