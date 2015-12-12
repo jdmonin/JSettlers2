@@ -50,7 +50,7 @@ import soc.message.SOCMessage;
  * You will see calls to {@link SOCGame#isGameOptionDefined(String)},
  * {@link SOCGame#getGameOptionIntValue(Map, String, int, boolean)}, etc.
  * Also search {@link SOCScenario} for the option as part of a string,
- * such as <tt>"PLL=t,VP=12"</tt>.
+ * such as <tt>"SBL=t,VP=12"</tt>.
  *<P>
  * Most option name keys are 2 or 3 characters; before 2.0.00, the maximum length was 3.
  * The maximum key length is now 8, but older clients will reject keys longer than 3.
@@ -308,7 +308,7 @@ public class SOCGameOption
      *<UL>
      *<LI> PL  Maximum # players (2-6)
      *<LI> PLB Use 6-player board*
-     *<LI> PLL Use large board* (experimental; name may change)
+     *<LI> SBL Use sea board layout (has a large, varying max size)
      *<LI> RD  Robber can't return to the desert
      *<LI> N7  Roll no 7s during first # rounds
      *<LI> N7C Roll no 7s until a city is built
@@ -466,9 +466,8 @@ public class SOCGameOption
         final SOCGameOption plb = new SOCGameOption
                 ("PLB", 1108, 1113, false, FLAG_DROP_IF_UNUSED, "Use 6-player board");
         opt.put("PLB", plb);
-        // TODO PLL for SOCBoardLarge: Decide final name
-        opt.put("PLL", new SOCGameOption
-                ("PLL", 2000, 2000, false, FLAG_DROP_IF_UNUSED, "Experimental: Use large board"));
+        opt.put("SBL", new SOCGameOption
+                ("SBL", 2000, 2000, false, FLAG_DROP_IF_UNUSED, "Use sea board"));  // see also SOCBoardLarge
         opt.put("_BHW", new SOCGameOption
                 ("_BHW", 2000, 2000, 0, 0, 0xFFFF, FLAG_DROP_IF_UNUSED | FLAG_INTERNAL_GAME_PROPERTY,
                  "Large board's height and width (0xRRCC) if not default"));
@@ -598,7 +597,7 @@ public class SOCGameOption
             }
         });
 
-        // If SC (scenario) is chosen, also set PLL (large board)
+        // If SC (scenario) is chosen, also set SBL (sea board)
         // and VP (vp to win), unless already changed by user.
         // This is for NGOF responsiveness during new-game option setup at the client;
         // game creation at the server doesn't rely on these updates.
@@ -639,14 +638,14 @@ public class SOCGameOption
                     }
                 }
 
-                // check/update PLL
-                SOCGameOption pll = currentOpts.get("PLL");
-                if ((pll != null) && ! pll.userChanged)
+                // check/update SBL
+                SOCGameOption sbl = currentOpts.get("SBL");
+                if ((sbl != null) && ! sbl.userChanged)
                 {
-                    if (isScenPicked != pll.getBoolValue())
+                    if (isScenPicked != sbl.getBoolValue())
                     {
-                        pll.setBoolValue(isScenPicked);
-                        pll.refreshDisplay();
+                        sbl.setBoolValue(isScenPicked);
+                        sbl.refreshDisplay();
                     }
                 }
             }
@@ -2077,8 +2076,8 @@ public class SOCGameOption
      * Scenario option values always overwrite those in <tt>newOpts</tt>, except for <tt>"VP"</tt>
      * where <tt>newOpts</tt> value (if any) is kept.
      *<P>
-     * Client-side gameopt code also assumes all scenarios use the large board,
-     * and sets game option <tt>"PLL"</tt> when a scenario is chosen by the user.
+     * Client-side gameopt code also assumes all scenarios use the sea board,
+     * and sets game option <tt>"SBL"</tt> when a scenario is chosen by the user.
      *
      * @param newOpts Set of SOCGameOptions to check against knownOpts;
      *            an option's current value will be changed if it's outside of
@@ -2150,7 +2149,7 @@ public class SOCGameOption
                 }
 
                 // Client-side gameopt code also assumes all scenarios use
-                // the large board, and sets game option "PLL" when a scenario
+                // the sea board, and sets game option "SBL" when a scenario
                 // is chosen by the user.
             }
 

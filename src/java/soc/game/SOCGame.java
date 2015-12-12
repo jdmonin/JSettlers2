@@ -1216,7 +1216,7 @@ public class SOCGame implements Serializable, Cloneable
         name = n;
         if (op != null)
         {
-            hasSeaBoard = isGameOptionSet(op, "PLL");
+            hasSeaBoard = isGameOptionSet(op, "SBL");
             final boolean wants6board = isGameOptionSet(op, "PLB");
             final int maxpl = getGameOptionIntValue(op, "PL", 4, false);
             if (wants6board || (maxpl > 4))
@@ -1238,7 +1238,7 @@ public class SOCGame implements Serializable, Cloneable
             boardFactory = new SOCBoard.DefaultBoardFactory();
         board = boardFactory.createBoard(op, hasSeaBoard, maxPlayers);
             // At server, createBoard might add "_BHW" to op if SOCBoardLarge with non-default size.
-            // op won't be null because SOCBoardLarge requires game opt "PLL".
+            // If so, op won't be null because SOCBoardLarge requires game opt "SBL".
 
         opts = op;
 

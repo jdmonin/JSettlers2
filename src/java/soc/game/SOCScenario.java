@@ -164,26 +164,26 @@ public class SOCScenario
             (K_SC_NSHO, 2000, 2000,
              "New Shores",
              null,
-             "_SC_SEAC=t,PLL=t,VP=t13"));
+             "_SC_SEAC=t,SBL=t,VP=t13"));
 
         allSc.put(K_SC_4ISL, new SOCScenario
             (K_SC_4ISL, 2000, 2000,
              "The Four Islands",
              null,
-             "_SC_SEAC=t,PLL=t,VP=t12"));
+             "_SC_SEAC=t,SBL=t,VP=t12"));
 
         allSc.put(K_SC_FOG, new SOCScenario
             (K_SC_FOG, 2000, 2000,
              "Fog Islands",
              "Some hexes are initially hidden by fog. When you build a ship or road to a foggy hex, that hex is revealed. "
              + "Unless it's water, you are given its resource as a reward.",
-             "_SC_FOG=t,PLL=t,VP=t12"));
+             "_SC_FOG=t,SBL=t,VP=t12"));
 
         allSc.put(K_SC_TTD, new SOCScenario
             (K_SC_TTD, 2000, 2000,
              "Through The Desert",
              null,
-             "_SC_SEAC=t,PLL=t,VP=t12"));
+             "_SC_SEAC=t,SBL=t,VP=t12"));
 
         allSc.put(K_SC_CLVI, new SOCScenario
             (K_SC_CLVI, 2000, 2000,
@@ -193,7 +193,7 @@ public class SOCScenario
              + "whenever its number is rolled, until the village runs out. You can't move the pirate until you've "
              + "reached a village. If more than half the villages run out of cloth, the game ends and the player "
              + "with the most VP wins. (If tied, player with most cloth wins.)",
-             "_SC_CLVI=t,PLL=t,VP=t14,_SC_3IP=t,_SC_0RVP=t"));
+             "_SC_CLVI=t,SBL=t,VP=t14,_SC_3IP=t,_SC_0RVP=t"));
 
         allSc.put(K_SC_PIRI, new SOCScenario
             (K_SC_PIRI, 2000, 2000,
@@ -203,7 +203,7 @@ public class SOCScenario
              + "with your color, which the pirates have captured from you, and defeat it 3 times using warships.  "
              + "So, ship routes can't branch in different directions, only extend from their ends.  "
              + "No robber or largest army.",
-             "_SC_PIRI=t,PLL=t,VP=t10,_SC_0RVP=t"));  // win condition: 10 VP _and_ defeat a pirate fortress
+             "_SC_PIRI=t,SBL=t,VP=t10,_SC_0RVP=t"));  // win condition: 10 VP _and_ defeat a pirate fortress
 
         allSc.put(K_SC_FTRI, new SOCScenario
                 (K_SC_FTRI, 2000, 2000,
@@ -213,7 +213,7 @@ public class SOCScenario
                  + "Ports at these far areas can be claimed by players and must be moved adjacent to one "
                  + "of their coastal settlements/cities if possible, or set aside for the "
                  + "player to place later when they can.",
-                 "_SC_FTRI=t,PLL=t,VP=t13"));
+                 "_SC_FTRI=t,SBL=t,VP=t13"));
 
         allSc.put(K_SC_WOND, new SOCScenario
                 (K_SC_WOND, 2000, 2000,
@@ -223,7 +223,7 @@ public class SOCScenario
                  + "such as a port at a location or the number of cities built. To win, you "
                  + "must complete your Wonder's 4 levels, or reach 10 VP and complete "
                  + "more levels than any other player.",
-                 "_SC_WOND=t,PLL=t,VP=t10,_SC_SANY=t"));  // win condition: Complete Wonder, or 10 VP _and_ built the most levels
+                 "_SC_WOND=t,SBL=t,VP=t10,_SC_SANY=t"));  // win condition: Complete Wonder, or 10 VP _and_ built the most levels
 
         return allSc;
 

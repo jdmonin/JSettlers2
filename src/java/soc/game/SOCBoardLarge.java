@@ -34,10 +34,10 @@ import java.util.Vector;
 import soc.util.IntPair;
 
 /**
- * A representation of a larger (up to 127 x 127 hexes) JSettlers board,
+ * Sea board layout: A representation of a larger (up to 127 x 127 hexes) JSettlers board,
  * with an arbitrary mix of land and water tiles.
  * Implements {@link SOCBoard#BOARD_ENCODING_LARGE}.
- * Activated with {@link SOCGameOption} <tt>"PLL"</tt>.
+ * Activated with {@link SOCGameOption} {@code "SBL"}.
  * For the board layout geometry, see the "Coordinate System" section here.
  *<P>
  * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering

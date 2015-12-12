@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -407,13 +407,13 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int BOARD_ENCODING_6PLAYER = 2;
 
     /**
-     * Large format (v3) for {@link #getBoardEncodingFormat()}:
+     * Sea board format (v3) for {@link #getBoardEncodingFormat()}:
      * Allows up to 127 x 127 board with an arbitrary mix of land and water tiles.
      * Land, water, and port locations/facings are no longer hardcoded.
      * Use {@link #getPortsCount()} to get the number of ports.
      * For other port information, use the same methods as in {@link #BOARD_ENCODING_6PLAYER}.
      *<P>
-     * Activated with {@link SOCGameOption} <tt>"PLL"</tt>.
+     * Activated with {@link SOCGameOption} {@code "SBL"}.
      * @see SOCBoardLarge
      * @since 2.0.00
      */
@@ -461,7 +461,7 @@ public class SOCBoard implements Serializable, Cloneable
      *       or altogether 0x0000 to 0xFFFF hex.
      *       Arbitrary mix of land and water tiles.
      *       Added in 2.0.00, implemented in {@link SOCBoardLarge}.
-     *       Activated with {@link SOCGameOption} <tt>"PLL"</tt>.
+     *       Activated with {@link SOCGameOption} <tt>"SBL"</tt>.
      *</UL>
      * Although this field is protected (not private), please treat it as read-only.
      * @since 1.1.06

@@ -53,10 +53,10 @@ import soc.util.IntTriple;
  * See SOCBoardLarge for more details.
  * For the board layout geometry, see that class javadoc's "Coordinate System" section.
  *<P>
- * A representation of a larger (up to 127 x 127 hexes) JSettlers board,
+ * Sea board layout: A representation of a larger (up to 127 x 127 hexes) JSettlers board,
  * with an arbitrary mix of land and water tiles.
  * Implements {@link SOCBoard#BOARD_ENCODING_LARGE}.
- * Activated with {@link SOCGameOption} <tt>"PLL"</tt>.
+ * Activated with {@link SOCGameOption} {@code "SBL"}.
  *<P>
  * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering
  * and keep the board logic simple.  Game rules should be enforced at the game, not the board.
@@ -4679,7 +4679,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
                 if (gameOpts != null)
                 {
-                    // gameOpts should never be null if largeBoard; largeBoard requires opt "PLL".
+                    // gameOpts should never be null if largeBoard: largeBoard requires opt "SBL".
                     int bhw = 0;
                     SOCGameOption bhwOpt = gameOpts.get("_BHW");
                     if (bhwOpt != null)
