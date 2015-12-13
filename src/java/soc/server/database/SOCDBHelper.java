@@ -213,15 +213,17 @@ public class SOCDBHelper
     private static final String USER_COUNT_QUERY = "SELECT count(*) FROM users;";
     private static final String USER_EXISTS_QUERY = "SELECT count(nickname) FROM users WHERE nickname = ?;";
 
+    /** Create a new account in {@code users}: {@link #CREATE_ACCOUNT_COMMAND} */
     private static PreparedStatement createAccountCommand = null;
     private static PreparedStatement recordLoginCommand = null;
-    /** Query whether a user nickname exists; {@link #USER_EXISTS_QUERY} */
+    /** Query whether a user nickname exists in {@code users}: {@link #USER_EXISTS_QUERY} */
     private static PreparedStatement userExistsQuery = null;
     private static PreparedStatement userPasswordQuery = null;
     private static PreparedStatement hostQuery = null;
     private static PreparedStatement lastloginUpdate = null;
-    /** User password update: {@link #PASSWORD_UPDATE} */
+    /** User password update in {@code users}: {@link #PASSWORD_UPDATE} */
     private static PreparedStatement passwordUpdate = null;
+    /** Completed-game info insert into {@code games}: {@link #SAVE_GAME_COMMAND} */
     private static PreparedStatement saveGameCommand = null;
 
     /** Query all robot parameters for a bot name; {@link #ROBOT_PARAMS_QUERY}.
@@ -229,7 +231,7 @@ public class SOCDBHelper
      */
     private static PreparedStatement robotParamsQuery = null;
 
-    /** Query how many users, if any, exist in the users table; {@link #USER_COUNT_QUERY}.
+    /** Query how many users, if any, exist in the {@code users} table: {@link #USER_COUNT_QUERY}.
      *  @since 1.1.19
      */
     private static PreparedStatement userCountQuery = null;
@@ -581,7 +583,7 @@ public class SOCDBHelper
      *
      * @param sUserName Username who needs password
      *
-     * @return null if user account doesn't exist, or if no database is currently connected
+     * @return null if user account doesn't exist, or if database is not currently connected
      *
      * @throws SQLException if any unexpected database problem
      */
@@ -663,17 +665,17 @@ public class SOCDBHelper
     }
 
     /**
-     * DOCUMENT ME!
+     * Create a new account with a unique {@code userName}.
      *
-     * @param userName DOCUMENT ME!
-     * @param host DOCUMENT ME!
-     * @param password DOCUMENT ME!
-     * @param email DOCUMENT ME!
-     * @param time DOCUMENT ME!
+     * @param userName  New user name (nickname)
+     * @param host  Client hostname or IP requesting new account
+     * @param password  User's password
+     * @param email  User's optional email address
+     * @param time  Created-at time, same format as {@link System#currentTimeMillis()}
      *
-     * @return true if the account was created
+     * @return true if the DB connection is open and the account was created, false if the connection is closed
      *
-     * @throws SQLException DOCUMENT ME!
+     * @throws SQLException if any unexpected database problem
      */
     public static boolean createAccount
         (String userName, String host, String password, String email, long time)
@@ -714,15 +716,15 @@ public class SOCDBHelper
     }
 
     /**
-     * DOCUMENT ME!
+     * Record this user's login host and time.
      *
-     * @param userName DOCUMENT ME!
-     * @param host DOCUMENT ME!
-     * @param time DOCUMENT ME!
+     * @param userName  User name (nickname)
+     * @param host  Login is from this client hostname or IP
+     * @param time  Login time, same format as {@link System#currentTimeMillis()}
      *
-     * @return true if the login was recorded
+     * @return true if the DB connection is open and the login was recorded, false if connection is closed
      *
-     * @throws SQLException DOCUMENT ME!
+     * @throws SQLException if any unexpected database problem
      */
     public static boolean recordLogin(String userName, String host, long time) throws SQLException
     {
@@ -763,7 +765,7 @@ public class SOCDBHelper
      *
      * @return true if the save succeeded
      *
-     * @throws SQLException DOCUMENT ME!
+     * @throws SQLException if any unexpected database problem
      */
     public static boolean updateLastlogin(String userName, long time) throws SQLException
     {
