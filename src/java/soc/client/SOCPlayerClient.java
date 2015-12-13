@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -2041,7 +2041,8 @@ public class SOCPlayerClient extends Applet
                 break;
 
             /**
-             * list of channels on the server
+             * list of channels on the server: Server connection is complete.
+             * Show main panel if not already showing; see handleCHANNELS javadoc.
              */
             case SOCMessage.CHANNELS:
                 handleCHANNELS((SOCChannels) mes, isPractice);
@@ -2739,7 +2740,8 @@ public class SOCPlayerClient extends Applet
     /**
      * handle the "list of channels" message; this message indicates that
      * we're newly connected to the server, and is sent even if the server
-     * isn't using {@link SOCServerFeatures#FEAT_CHANNELS}.
+     * isn't using {@link SOCServerFeatures#FEAT_CHANNELS}: Server connection is complete.
+     * Unless <tt>isPractice</tt>, show {@link #MAIN_PANEL}.
      * @param mes  the message
      * @param isPractice is the server actually local (practice game)?
      */
