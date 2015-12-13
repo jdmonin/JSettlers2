@@ -8284,18 +8284,6 @@ public class SOCServer extends Server
             isDBCountedEmpty = true;
         }
 
-        // Check if we're using a user admin whitelist; this check is also in handleAUTHREQUEST.
-        if ((databaseUserAdmins != null) && ! databaseUserAdmins.contains(requester))
-        {
-            // Requester not on user-admin whitelist.
-            // If databaseUserAdmins != null, then requester != null because FEAT_OPEN_REG can't also be active.
-
-            c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVers,
-                     "Your account is not authorized to create accounts."));
-            return;
-        }
-
         //
         // check to see if the requested nickname is permissable
         //
