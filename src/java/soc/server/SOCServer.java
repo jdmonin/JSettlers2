@@ -41,6 +41,8 @@ import soc.util.SOCServerFeatures;
 import soc.util.Version;
 
 import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.SocketException;
 import java.sql.SQLException;
@@ -131,6 +133,12 @@ public class SOCServer extends Server
      * @since 1.1.15
      */
     public static final int SOC_MAXCONN_DEFAULT = Math.max(30, 20 + SOC_STARTROBOTS_DEFAULT);
+
+    /**
+     * Filename <tt>"jsserver.properties"</tt> for the optional server startup properties file.
+     * @since 1.1.20
+     */
+    public static final String SOC_SERVER_PROPS_FILENAME = "jsserver.properties";
 
     // If a new property is added, please add a PROP_JSETTLERS_ constant
     // and also add it to PROPS_LIST.
@@ -10167,6 +10175,13 @@ public class SOCServer extends Server
     /**
      * Quick-and-dirty parsing of command-line arguments with dashes.
      *<P>
+     * Checks first for the optional server startup properties file <tt>"jsserver.properties"</tt>
+     * ({@link #SOC_SERVER_PROPS_FILENAME}).
+     * If the file exists but there is an error reading it, calls {@link System#exit(int) System.exit(1)}
+     * to exit because currently only <tt>main(..)</tt> calls this method.
+     * For details on the java properties file syntax (<tt>#</tt> starts a comment line, etc),
+     * see {@link Properties#load(java.io.InputStream)}.
+     *<P>
      * If any game options are set ("-o", "--option"), then
      * {@link #hasSetGameOptions} is set to true, and
      * {@link SOCGameOption#setKnownOptionCurrentValue(SOCGameOption)}
@@ -10193,6 +10208,44 @@ public class SOCServer extends Server
         Properties argp = new Properties();
         HashSet gameOptsAlreadySet = new HashSet();  // optKey strings; used and updated by parseCmdline_GameOption
 
+        /**
+         * Read jsserver.properties first
+         */
+        try
+        {
+            final File pf = new File(SOC_SERVER_PROPS_FILENAME);
+            if (pf.exists())
+            {
+                if (pf.isFile() && pf.canRead())
+                {
+                    System.err.println("Reading startup properties from " + SOC_SERVER_PROPS_FILENAME);
+                    FileInputStream fis = new FileInputStream(pf);
+                    argp.load(fis);
+                    fis.close();
+                } else {
+                    System.err.println
+                    ("*** Properties file " + SOC_SERVER_PROPS_FILENAME
+                      + " exists but isn't a readable plain file: Exiting.");
+                    System.exit(1);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            // SecurityException from .exists, .isFile, .canRead
+            // IOException from FileInputStream construc [FileNotFoundException], props.load
+            // IllegalArgumentException from props.load (malformed Unicode escape)
+            System.err.println
+                ("*** Error reading properties file " + SOC_SERVER_PROPS_FILENAME
+                 + ", exiting: " + e.toString());
+            if (e.getMessage() != null)
+                System.err.println("    : " + e.getMessage());
+            System.exit(1);
+        }
+
+        /**
+         * Now parse args[]
+         */
         int aidx = 0;
         while ((aidx < args.length) && (args[aidx].startsWith("-")))
         {
@@ -10446,6 +10499,9 @@ public class SOCServer extends Server
 
     /**
      * Starting the server from the command line
+     *<P>
+     * Checks for the optional server startup properties file <tt>jsserver.properties</tt>,
+     * and parses the command line for switches.
      *<P>
      * If there are problems with the network setup,
      * or with running a {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP db setup script},
