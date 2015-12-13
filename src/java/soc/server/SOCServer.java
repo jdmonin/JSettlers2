@@ -264,6 +264,17 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_CLI_MAXCREATECHANNELS = "jsettlers.client.maxcreatechannels";
 
     /**
+     * Property prefix <tt>jsettlers.gameopt.</tt> to specify game option defaults in a server properties file.
+     * Option names are case-insensitive past this prefix. Syntax for default value is the same as on the
+     * command line, for example:
+     *<pre> jsettlers.gameopt.RD=y
+     * jsettlers.gameopt.n7=t7</pre>
+     *<P>
+     * @since 1.1.20
+     */
+    public static final String PROP_JSETTLERS_GAMEOPT_PREFIX = "jsettlers.gameopt.";
+
+    /**
      * List and descriptions of all available JSettlers {@link Properties properties},
      * such as {@link #PROP_JSETTLERS_PORT} and {@link SOCDBHelper#PROP_JSETTLERS_DB_URL}.
      *<P>
@@ -283,6 +294,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_ALLOW_DEBUG,   "Allow remote debug commands? (if Y)",
         PROP_JSETTLERS_CLI_MAXCREATECHANNELS,   "Maximum simultaneous channels that a client can create",
         PROP_JSETTLERS_CLI_MAXCREATEGAMES,      "Maximum simultaneous games that a client can create",
+        PROP_JSETTLERS_GAMEOPT_PREFIX + "*",    "Game option defaults, case-insensitive: jsettlers.gameopt.RD=y",
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
         SOCDBHelper.PROP_JSETTLERS_DB_USER,     "DB username",
@@ -10161,9 +10173,11 @@ public class SOCServer extends Server
      * Quick-and-dirty command line parsing of game options.
      * Calls {@link SOCGameOption#setKnownOptionCurrentValue(SOCGameOption)}.
      * @param optNameValue Game option name+value, of <tt>optname=optvalue</tt> form expected by
-     *                     {@link SOCGameOption#parseOptionNameValue(String, boolean)}
+     *                     {@link SOCGameOption#parseOptionNameValue(String, boolean)}.
+     *                     Option keyname is case-insensitive.
      * @param optsAlreadySet  For tracking, game option names we've already encountered on the command line.
      *                        This method will add <tt>optNameValue</tt>'s name to this set.
+     *                        Can be <tt>null</tt> if not needed.
      * @return true if OK; false if bad name, bad value, or already set from command line;
      *         also prints an error message to <tt>System.err</tt> when returning false.
      * @since 1.1.07
@@ -10181,7 +10195,7 @@ public class SOCServer extends Server
             System.err.println("Unknown game option: " + op.optKey);
             return false;
         }
-        if (optsAlreadySet.contains(op.optKey))
+        if ((optsAlreadySet != null) && optsAlreadySet.contains(op.optKey))
         {
             System.err.println("Game option cannot appear twice on command line: " + op.optKey);
             return false;
@@ -10190,7 +10204,8 @@ public class SOCServer extends Server
         try
         {
             SOCGameOption.setKnownOptionCurrentValue(op);
-            optsAlreadySet.add(op.optKey);
+            if (optsAlreadySet != null)
+                optsAlreadySet.add(op.optKey);
             return true;
         } catch (Throwable t)
         {
@@ -10237,7 +10252,7 @@ public class SOCServer extends Server
     {
         Properties argp = new Properties();
 
-        // check against options twice on command line: Can't just check argp keys because
+        // Check against options which are on command line twice: Can't just check argp keys because
         // argp is loaded from jsserver.properties, then command-line properties can override
         // anything set from there
         HashSet cmdlineOptsSet = new HashSet();
@@ -10257,6 +10272,12 @@ public class SOCServer extends Server
                     FileInputStream fis = new FileInputStream(pf);
                     argp.load(fis);
                     fis.close();
+                    if (! init_propsCheckGameopts(argp, null))
+                    {
+                        System.err.println
+                            ("*** Error in properties file " + SOC_SERVER_PROPS_FILENAME + ": Exiting.");
+                        System.exit(1);
+                    }
                 } else {
                     System.err.println
                     ("*** Properties file " + SOC_SERVER_PROPS_FILENAME
@@ -10281,6 +10302,7 @@ public class SOCServer extends Server
         /**
          * Now parse args[]
          */
+        final int pfxL = PROP_JSETTLERS_GAMEOPT_PREFIX.length();
         int aidx = 0;
         while ((aidx < args.length) && (args[aidx].startsWith("-")))
         {
@@ -10367,6 +10389,27 @@ public class SOCServer extends Server
                 argp.setProperty(name, value);
                 cmdlineOptsSet.add(name);
 
+                // Is it a game option default value?
+                if (name.startsWith(PROP_JSETTLERS_GAMEOPT_PREFIX))
+                {
+                    final String optKey = name.substring(pfxL);
+                    boolean ok = true;
+                    if (optKey.length() == 0)
+                    {
+                        System.err.println("Empty game option name in property key: " + name);
+                        ok = false;
+                    } else {
+                        hasSetGameOptions = true;
+                        ok = parseCmdline_GameOption(optKey + "=" + value, gameOptsAlreadySet);
+                        if (! ok)
+                            printGameOptions();
+                    }
+
+                    if (! ok)
+                    {
+                        return null;
+                    }
+                }
             } else {
                 System.err.println("Unknown argument: " + arg);
             }
@@ -10432,6 +10475,45 @@ public class SOCServer extends Server
 
         // Done parsing.
         return argp;
+    }
+
+    /**
+     * Checks a set of server Properties for game option defaults (<tt>jsettlers.gameopt.*</tt>).
+     * Option keynames are case-insensitive past that prefix.
+     * Calls {@link #parseCmdline_GameOption(String, HashSet)} for each one found.
+     * This method and <tt>parseCmdline_GameOption</tt> print problems to <tt>System.err</tt> if found.
+     * @param pr  Properties which may contain {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}* entries
+     * @param optsAlreadySet  For tracking, game option names we've already encountered on the command line,
+     *      or <tt>null</tt> if not needed.  Passed to <tt>parseCmdline_GameOption(..)</tt>.
+     * @return True if no problems found, false if unknown or empty gameopt keynames or malformed values;
+     *     see {@link #parseCmdline_GameOption(String, HashSet)}.
+     * @since 1.1.20
+     */
+    private static final boolean init_propsCheckGameopts(Properties pr, HashSet optsAlreadySet)
+    {
+        final int pfxL = PROP_JSETTLERS_GAMEOPT_PREFIX.length();
+        boolean allOK = true;
+
+        Iterator i = pr.keySet().iterator();
+        while (i.hasNext())
+        {
+            Object k = i.next();
+            if (! ((k instanceof String) && ((String) k).startsWith(PROP_JSETTLERS_GAMEOPT_PREFIX)))
+                continue;
+
+            final String optKey = ((String) k).substring(pfxL);
+            if (optKey.length() == 0)
+            {
+                System.err.println("Empty game option name in property key: " + k);
+                allOK = false;
+                continue;
+            }
+
+            if (! parseCmdline_GameOption(optKey + "=" + pr.getProperty((String) k), optsAlreadySet))
+                allOK = false;
+        }
+
+        return allOK;
     }
 
     /**
