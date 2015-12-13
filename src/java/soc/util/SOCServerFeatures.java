@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,6 +44,9 @@ public class SOCServerFeatures
      * User accounts defined in a persistent database.
      * If this feature is active, nicknames and passwords are authenticated.
      * Otherwise there are no passwords defined.
+     *<P>
+     * The server can optionally be configured to require accounts,
+     * see {@link soc.server.SOCServer#PROP_JSETTLERS_ACCOUNTS_REQUIRED}.
      * @see #FEAT_OPEN_REG
      */
     public static final String FEAT_ACCTS = "accts";
