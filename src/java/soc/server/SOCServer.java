@@ -8241,6 +8241,7 @@ public class SOCServer extends Server
         }
 
         final String requester = (String) c.getData();
+        boolean isDBCountedEmpty = false;  // with null requester, did we query and find the users table is empty?
 
         // If client is not authenticated; does this server have open registration,
         // or is an account required to create user accounts?
@@ -8268,6 +8269,8 @@ public class SOCServer extends Server
                          "You must log in with a username and password before you can create accounts."));
                 return;
             }
+
+            isDBCountedEmpty = true;
         }
 
         // Check if we're using a user admin whitelist; this check is also in handleAUTHREQUEST.
@@ -8283,11 +8286,9 @@ public class SOCServer extends Server
         }
 
         //
-        // check to see if the requested nickname is permissable,
-        // and if there is an account with that requested nickname.
+        // check to see if the requested nickname is permissable
         //
         final String userName = mes.getNickname();
-        String userPassword = null;
 
         if (! SOCMessage.isSingleLineAndSafe(userName))
         {
@@ -8297,6 +8298,33 @@ public class SOCServer extends Server
             return;
         }
 
+        //
+        // Check if we're using a user admin whitelist; this check is also in handleAUTHREQUEST.
+        //
+        // If databaseUserAdmins != null, then requester != null because FEAT_OPEN_REG can't also be active.
+        // If requester is null because db is empty, check new userName instead of requester name:
+        // The first account created must be on the whitelist in order to create further accounts.
+        // If the db is empty when account client connects, server sends it FEAT_OPEN_REG so it won't require
+        // user/password auth to create that first account; then requester == null, covered by isDBCountedEmpty.
+        //
+        if (databaseUserAdmins != null)
+        {
+            final String chkName = (isDBCountedEmpty) ? userName : requester;
+            if ((chkName == null) || ! databaseUserAdmins.contains(chkName))
+            {
+                // Requester not on user-admin whitelist.
+
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVers,
+                         "Your account is not authorized to create accounts."));
+                return;
+            }
+        }
+
+        //
+        // check if there's already an account with requested nickname
+        //
+        String userPassword = null;
         try
         {
             userPassword = SOCDBHelper.getUserPassword(userName);
