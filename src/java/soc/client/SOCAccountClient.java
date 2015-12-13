@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2009-2011,2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2011,2013-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -75,6 +75,11 @@ public class SOCAccountClient extends Applet
 {
     private static final long serialVersionUID = 1119L;  // Last structural change v1.1.19
 
+    /**
+     * CardLayout string for the main panel while connected to a server:
+     * Has fields to enter {@link #nick}, {@link #pass}, etc,
+     * {@link #status} display and {@link #submit} button.
+     */
     private static final String MAIN_PANEL = "main";
     private static final String MESSAGE_PANEL = "message";
     /** CardLayout string for {@link #connPanel}. */
@@ -737,7 +742,8 @@ public class SOCAccountClient extends Applet
                 break;
 
             /**
-             * list of channels on the server (among first messages from server)
+             * list of channels on the server: Among first messages from server, after VERSION.
+             * Show {@link #MAIN_PANEL} if not already showing; see handleCHANNELS javadoc.
              */
             case SOCMessage.CHANNELS:
                 handleCHANNELS((SOCChannels) mes);
@@ -799,7 +805,8 @@ public class SOCAccountClient extends Applet
     }
 
     /**
-     * handle the "list of channels" message
+     * Handle the "list of channels" message:
+     * Server connection is complete, show {@link #MAIN_PANEL} unless {@link #connPanel} is already showing.
      * @param mes  the message
      */
     protected void handleCHANNELS(SOCChannels mes)
