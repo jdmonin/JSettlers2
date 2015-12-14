@@ -2834,8 +2834,9 @@ public class SOCPlayerClient
                 break;
 
             /**
-             * list of channels on the server
+             * List of channels on the server: Server connection is complete.
              * (sent at connect after VERSION, even if no channels)
+             * Show main panel if not already showing; see handleCHANNELS javadoc.
              */
             case SOCMessage.CHANNELS:
                 handleCHANNELS((SOCChannels) mes, isPractice);
@@ -3632,7 +3633,8 @@ public class SOCPlayerClient
     /**
      * handle the "list of channels" message; this message indicates that
      * we're newly connected to the server, and is sent even if the server
-     * isn't using {@link SOCServerFeatures#FEAT_CHANNELS}.
+     * isn't using {@link SOCServerFeatures#FEAT_CHANNELS}: Server connection is complete.
+     * Unless {@code isPractice}, show {@link #MAIN_PANEL}.
      * @param mes  the message
      * @param isPractice is the server actually {@link ClientNetwork#practiceServer} (practice game)?
      */
