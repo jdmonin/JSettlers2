@@ -229,10 +229,12 @@ public class SOCServer extends Server
      * If this property is Y, a jdbc database is required and all users must have an account and password
      * in the database. If a client tries to join or create a game or channel without providing a password,
      * they will be sent {@link SOCStatusMessage#SV_PW_REQUIRED}.
+     * This property implies {@link SOCServerFeatures#FEAT_ACCTS}.
      *<P>
      * The default is N.
      *<P>
      * If {@link #PROP_JSETTLERS_ACCOUNTS_OPEN} is used, anyone can create their own account (Open Registration).
+     * Otherwise see {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS} for the list of user admin accounts.
      * @since 1.1.19
      */
     public static final String PROP_JSETTLERS_ACCOUNTS_REQUIRED = "jsettlers.accounts.required";
@@ -1247,6 +1249,15 @@ public class SOCServer extends Server
             }
 
             System.err.println("User account administrators limited to: " + userAdmins);
+            if (acctsNotOpenRegButNoUsers)
+                System.err.println("** User database is currently empty: Run SOCAccountClient to create the user admin account(s) named above.");
+        }
+        else if (acctsNotOpenRegButNoUsers)
+        {
+            if (accountsRequired)
+                System.err.println("** User database is currently empty. You must run SOCAccountClient to create users.");
+            else
+                System.err.println("User database is currently empty. You can run SOCAccountClient to create users.");
         }
 
         /**
