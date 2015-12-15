@@ -146,7 +146,7 @@ public class SOCServer extends Server
 
     /**
      * Filename {@code "jsserver.properties"} for the optional server startup properties file.
-     * @since 2.0.00
+     * @since 1.1.20
      */
     public static final String SOC_SERVER_PROPS_FILENAME = "jsserver.properties";
 
@@ -293,7 +293,7 @@ public class SOCServer extends Server
      * jsettlers.gameopt.n7=t7</pre>
      *<P>
      * See {@link #parseCmdline_DashedArgs(String[])} for how game option properties are checked at startup.
-     * @since 2.0.00
+     * @since 1.1.20
      */
     public static final String PROP_JSETTLERS_GAMEOPT_PREFIX = "jsettlers.gameopt.";
 
@@ -7496,6 +7496,7 @@ public class SOCServer extends Server
         // The first account created must be on the whitelist in order to create further accounts.
         // If the db is empty when account client connects, server sends it FEAT_OPEN_REG so it won't require
         // user/password auth to create that first account; then requester == null, covered by isDBCountedEmpty.
+        //
         if (databaseUserAdmins != null)
         {
             final String chkName = (isDBCountedEmpty) ? userName : requester;
@@ -8226,7 +8227,7 @@ public class SOCServer extends Server
 
         Properties argp = new Properties();
 
-        // check against options on command line twice: Can't just check argp keys because
+        // Check against options which are on command line twice: Can't just check argp keys because
         // argp is loaded from jsserver.properties, then command-line properties can override
         // anything set from there
         HashSet<String> cmdlineOptsSet = new HashSet<String>();
@@ -8545,7 +8546,7 @@ public class SOCServer extends Server
      *     <LI> Unknown option name
      *     <LI> Problem with name or value reported from {@link #parseCmdline_GameOption(SOCGameOption, String, HashMap)}
      *     </UL>
-     * @since 2.0.00
+     * @since 1.1.20
      */
     private static final void init_propsSetGameopts(Properties pr)
         throws IllegalArgumentException
