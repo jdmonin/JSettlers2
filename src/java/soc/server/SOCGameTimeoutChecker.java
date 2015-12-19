@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,10 +20,10 @@ package soc.server;
 
 
 /**
- * Wakes up every few seconds to check for turns that have expired,
- * and every 5 minutes to check for games that have expired,
- * by calling {@link SOCServer#checkForExpiredGames(long)}
- * and {@link SOCServer#checkForExpiredTurns(long)}.
+ * Wakes up every few seconds to check for turns that have expired
+ * by calling {@link SOCServer#checkForExpiredTurns(long)},
+ * and every 5 minutes to check for games that have expired
+ * with {@link SOCServer#checkForExpiredGames(long)}.
  *
  * @author Robert S Thomas
  */
@@ -48,6 +48,7 @@ public class SOCGameTimeoutChecker extends Thread
     /**
      * Wakes up every few seconds to check for turns that have expired,
      * and every 5 minutes to check for games that have expired.
+     * See {@link SOCGameTimeoutChecker class javadoc}.
      */
     public void run()
     {

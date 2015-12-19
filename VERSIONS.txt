@@ -16,6 +16,8 @@ new features, until 2.0.00 is ready.
 - Server startup options: New optional jsserver.properties file, read before command line
 - Game option defaults can be properties in that file or command line: jsettlers.gameopt.RD=y
 - Game option boolean default values more strictly parsed
+- Robots: Force robots to discard random resources after several seconds of inactivity
+     during other players' turns when a 7 is rolled.
 - User accounts: Warn if database is empty when config requires accounts or names the account admins
 
     > 1.1.19 (build OV20141127)

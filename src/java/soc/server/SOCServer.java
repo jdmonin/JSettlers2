@@ -1963,6 +1963,9 @@ public class SOCServer extends Server
      *<P>
      * Can be called for a player still in the game, or for a player
      * who has left ({@link SOCGame#removePlayer(String)} has been called).
+     * Can be called for a player who isn't current player; in that case
+     * it takes action if the game was waiting for the player (picking random
+     * resources for discard) but won't end the current turn.
      *<P>
      * <b>Locks:</b> Must not have ga.takeMonitor() when calling this method.
      * May or may not have <tt>gameList.takeMonitorForGame(ga)</tt>;
@@ -1970,7 +1973,7 @@ public class SOCServer extends Server
      *<P>
      * Not public, but package visibility, for use by {@link SOCGameTimeoutChecker}. 
      *
-     * @param ga   The game to end turn
+     * @param ga   The game to end turn if called for current player, or to otherwise stop waiting for a player
      * @param plNumber  player.getNumber; may or may not be current player
      * @param plName    player.getName
      * @param plConn    player's client connection
@@ -2111,6 +2114,7 @@ public class SOCServer extends Server
                 ga.releaseMonitor();
                 gameList.takeMonitorForGame(gm);
             }
+
         }  // current player?
 
         if (! hasMonitorFromGameList)
@@ -2229,16 +2233,21 @@ public class SOCServer extends Server
      * @param cpn Game's current player number
      * @param c   Connection of discarding player
      * @param plName Discarding player's name, for GameTextMsg
-     * @param pn  Player number who must discard
+     * @param pn  Player number who must discard resources
+     * @throws IllegalStateException if <tt>pn</tt> is current player, or if incorrect game state or incorrect
+     *     player status; see {@link SOCGame#playerDiscardRandom(int)} for details
      */
     private void forceGamePlayerDiscard(SOCGame cg, final int cpn, StringConnection c, String plName, final int pn)
+        throws IllegalStateException
     {
-        SOCResourceSet discard = cg.playerDiscardRandom(pn);
+        final SOCResourceSet rset = cg.playerDiscardRandom(pn);
+
+        // Report resources lost; see also forceEndGameTurn for same reporting code.
         final String gaName = cg.getName();
         if ((c != null) && c.isConnected())
-            reportRsrcGainLoss(gaName, discard, true, cpn, -1, null, c);
-        int totalRes = discard.getTotal();
-        messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
+            reportRsrcGainLoss(gaName, rset, true, pn, -1, null, c);
+        int totalRes = rset.getTotal();
+        messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
         messageToGame(gaName, plName + " discarded " + totalRes + " resources.");
     }
 
@@ -6703,7 +6712,8 @@ public class SOCServer extends Server
             return false;  // <--- Early return: All players have left ---
 
         /**
-         * report any resources lost, gained
+         * Report any resources lost or gained.
+         * See also forceGamePlayerDiscard for same reporting code.
          */
         SOCResourceSet resGainLoss = res.getResourcesGainedLost();
         if (resGainLoss != null)
@@ -9374,8 +9384,8 @@ public class SOCServer extends Server
      *                If not -1, PLAYERELEMENT messages will also be sent about this player.
      * @param message Append resource numbers/types to this stringbuffer,
      *                format like "3 clay,3 wood"; can be null.
-     * @param playerConn     Null or mainPlayer's connection; send messages here instead of
-     *                sending to all players in game.  Because trades are public, there is no
+     * @param playerConn     Null to announce to the entire game, or mainPlayer's connection to send messages
+     *                there instead of sending to all players in game.  Because trades are public, there is no
      *                such parameter for tradingPlayer.
      *
      * @see #reportTrade(SOCGame, int, int)
@@ -9949,7 +9959,7 @@ public class SOCServer extends Server
      * check for games that have expired and destroy them.
      * If games are about to expire, send a warning.
      * As of version 1.1.09, practice games ({@link SOCGame#isPractice} flag set) don't expire.
-     * Callback method from {@link SOCGameTimeoutChecker#run()}.
+     * Is callback method every few minutes from {@link SOCGameTimeoutChecker#run()}.
      *
      * @param currentTimeMillis  The time when called, from {@link System#currentTimeMillis()}
      * @see #GAME_EXPIRE_WARN_MINUTES
@@ -10043,10 +10053,14 @@ public class SOCServer extends Server
     }
 
     /**
-     * Check for robot turns that have expired, and end them.
-     * They may end from inactivity or from an illegal placement.
-     * Checks the {@link SOCGame#lastActionTime} field.
-     * Callback method from {@link SOCGameTimeoutChecker#run()}.
+     * Check all games for robot turns that have expired, and end that turn,
+     * or stop waiting for non-current-player robot actions (discard picks, etc).
+     * Robot turns may end from inactivity or from an illegal placement.
+     * Checks each game's {@link SOCGame#lastActionTime} field, and starts
+     * a {@link ForceEndTurnThread} if the last action is older than
+     * {@link #ROBOT_FORCE_ENDTURN_SECONDS}.
+     *<P>
+     * Is callback method every few seconds from {@link SOCGameTimeoutChecker#run()}.
      *
      * @param currentTimeMillis  The time when called, from {@link System#currentTimeMillis()}
      * @see #ROBOT_FORCE_ENDTURN_SECONDS
@@ -10067,13 +10081,16 @@ public class SOCServer extends Server
             for (Enumeration k = gameList.getGamesData(); k.hasMoreElements();)
             {
                 SOCGame ga = (SOCGame) k.nextElement();
+                final int gameState = ga.getGameState();
 
                 // lastActionTime is a recent time, or might be 0 to force end
                 long lastActionTime = ga.lastActionTime;
                 if (lastActionTime > inactiveTime)
                     continue;
-                if (SOCGame.OVER <= ga.getGameState())
+
+                if (gameState >= SOCGame.OVER)
                 {
+                    // nothing to do.
                     // bump out that time, so we don't see
                     // it again every few seconds
                     ga.lastActionTime
@@ -10084,28 +10101,34 @@ public class SOCServer extends Server
                 if (cpn == -1)
                     continue;  // not started yet
                 SOCPlayer pl = ga.getPlayer(cpn);
-                if (! pl.isRobot())
-                    continue;  // not the robot's turn
 
-                final int gameState = ga.getGameState();
                 if (gameState == SOCGame.WAITING_FOR_DISCARDS)
                 {
-                    // Check if we're just waiting on humans, not on the robot
-                    boolean waitHumans = false;
+                    // Check if we're waiting on humans only, not on any robot
+
+                    SOCPlayer plEnd = null;  // bot the game is waiting to hear from
                     for (int i = 0; i < ga.maxPlayers; ++i)
                     {
                         final SOCPlayer pli = ga.getPlayer(i);
-                        if (pli.isRobot())
+                        if (! pli.getNeedToDiscard())
                             continue;
-                        if (pli.getNeedToDiscard())
+
+                        if (pli.isRobot())
                         {
-                            waitHumans = true;
-                            break;
+                            if (plEnd == null)
+                                plEnd = pli;
+                        } else {
+                            return;  // <--- Waiting on humans, don't end bot's turn ---
                         }
                     }
 
-                    if (waitHumans)
-                        continue;  // <-- Waiting on humans, don't end bot's turn --
+                    if (plEnd == null)
+                        return;  // <--- Not waiting on any bot ---
+
+                    pl = plEnd;
+                } else {
+                    if (! pl.isRobot())
+                        return;  // <--- not a robot's turn, and not WAITING_FOR_DISCARDS ---
                 }
 
                 if (pl.getCurrentOffer() != null)
@@ -10866,17 +10889,29 @@ public class SOCServer extends Server
             pl = p;
         }
 
-        /** If our targeted robot player is still the current player, force-end their turn. */
+        /**
+         * If our targeted robot player is still the current player, force-end their turn.
+         * If not current player but game is waiting for them to discard resources,
+         * choose randomly so the game can continue.
+         * Calls {@link SOCServer#endGameTurnOrForce(SOCGame, int, String, StringConnection, boolean)}.
+         */
         public void run()
         {
             final String rname = pl.getName();
             final int plNum = pl.getPlayerNumber();
-            if (ga.getCurrentPlayerNumber() != plNum)
+            final int gs = ga.getGameState();
+
+            // Ignore if not current player, unless game is
+            // waiting for the bot to discard resources.
+            if ((ga.getCurrentPlayerNumber() != plNum)
+                && (gs != SOCGame.WAITING_FOR_DISCARDS))
+            {
                 return;
+            }
 
             StringConnection rconn = getConnection(rname);
-            System.err.println("For robot " + rname + ": force end turn in game " + ga.getName() + " cpn=" + plNum + " state " + ga.getGameState());
-            if (ga.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
+            System.err.println("For robot " + rname + ": force end turn in game " + ga.getName() + " cpn=" + plNum + " state " + gs);
+            if (gs == SOCGame.WAITING_FOR_DISCARDS)
                 System.err.println("  srv card count = " + pl.getResources().getTotal());
             if (rconn == null)
             {

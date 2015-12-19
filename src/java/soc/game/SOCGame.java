@@ -2919,8 +2919,10 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Force this non-current player to discard randomly.  Used at server when a
-     * player must discard and they lose connection while the game is waiting for them.
+     * Force this non-current player to discard resources randomly.
+     * Used at server when a player must discard resources and
+     * player loses connection while the game is waiting for them,
+     * or a bot is unresponsive.
      *<P>
      * On return, gameState will be:
      *<UL>
