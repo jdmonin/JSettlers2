@@ -1,7 +1,7 @@
 package soc.util;
 
 // Version.java - mchenryc@acm.org Chadwick A. McHenry
-// Portions copyright (C) 2008,2010,2011,2013-2014 Jeremy D Monin <jeremy@nand.net>
+// Portions copyright (C) 2008,2010,2011,2013-2015 Jeremy D Monin <jeremy@nand.net>
 
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -89,9 +89,10 @@ public class Version {
       else
       {
           StringBuffer sb = new StringBuffer(Integer.toString(versionNumber));
-          sb.insert(2, '.');
-          sb.insert(1, '.');
-          return sb.toString();  // 1.1.09
+          final int L = sb.length();
+          sb.insert(L-2, '.');
+          sb.insert(L-3, '.');
+          return sb.toString();  // 1.1.09 or 12.3.08
       }
   }
 
