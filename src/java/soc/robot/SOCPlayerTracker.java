@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012,2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -63,7 +63,7 @@ import java.util.Vector;
  *  keeping track of which pieces support the building of others."
  *</blockquote>
  *<p>
- *  For a legible overview of the data in a SOCPlayerTracker, use {@link #playerTrackersDebug(HashMap)}.
+ *  To output a legible overview of the data in a SOCPlayerTracker, use {@link #playerTrackersDebug(HashMap)}.
  *
  * @author Robert S Thomas
  */
@@ -3638,5 +3638,19 @@ public class SOCPlayerTracker
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * SOCPlayerTracker key fields (brain player name, tracked player name) to aid debugging.
+     * Since PTs are copied a lot and we need a way to tell the copies apart, also includes
+     * hex <tt>super.</tt>{@link Object#hashCode() hashCode()}.
+     * @return This SOCPlayerTracker's fields, in the format:
+     *     <tt>SOCPlayerTracker@<em>hashCode</em>[<em>brainPlayerName</em>, pl=<em>trackedPlayerName</em>]</tt>
+     * @since 1.1.20
+     */
+    public String toString()
+    {
+        return "SOCPlayerTracker@" + Integer.toHexString(super.hashCode())
+            + "[" + brain.getOurPlayerData().getName() + ", pl=" + player.getName() + "]";
     }
 }
