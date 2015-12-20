@@ -4906,7 +4906,7 @@ public class SOCServer extends Server
             // add 30 minutes to the expiration time.  If this
             // changes to another timespan, please update the
             // warning text sent in checkForExpiredGames().
-            // Use ">>>" in messageToGame to mark as urgent.
+            // Use ">>>" in message text to mark as urgent.
             if (ga.isPractice)
             {
                 messageToGameUrgent(gaName, ">>> Practice games never expire.");
@@ -4921,7 +4921,7 @@ public class SOCServer extends Server
         ///
         if (cmdTxtUC.startsWith("*CHECKTIME*"))
         {
-            processDebugCommand_checktime(c, gaName, ga);
+            processDebugCommand_gameStats(c, gaName, ga, true);
         }
         else if (cmdTxtUC.startsWith("*VERSION*"))
         {
@@ -4979,7 +4979,7 @@ public class SOCServer extends Server
                 messageToPlayer(c, gaName, "> This game's client versions: "
                     + Version.version(ga.clientVersionLowest) + " - " + Version.version(ga.clientVersionHighest));
 
-            processDebugCommand_checktime(c, gaName, ga);
+            processDebugCommand_gameStats(c, gaName, ga, false);
         }
         else if (cmdTxtUC.startsWith("*WHO*"))
         {
@@ -5048,14 +5048,22 @@ public class SOCServer extends Server
     /**
      * Print time-remaining and other game stats.
      * Includes more detail beyond the end-game stats sent in {@link #sendGameStateOVER(SOCGame)}.
+     *<P>
+     * Before v1.1.20, this method was <tt>processDebugCommand_checktime(..)</tt>.
+     *
      * @param c  Client requesting the stats
+     * @param gaName  {@code gameData.getName()}
      * @param gameData  Game to print stats
+     * @param isCheckTime  True if called from *CHECKTIME* server command, false for *STATS*.
+     *     If true, mark text as urgent when sending remaining time before game expires.
      * @since 1.1.07
      */
-    private void processDebugCommand_checktime(StringConnection c, final String gaName, SOCGame gameData)
+    private void processDebugCommand_gameStats
+        (StringConnection c, final String gaName, SOCGame gameData, final boolean isCheckTime)
     {
         if (gameData == null)
             return;
+
         messageToPlayer(c, gaName, "-- Game statistics: --");
         messageToPlayer(c, gaName, "Rounds played: " + gameData.getRoundCount());
 
@@ -5080,7 +5088,11 @@ public class SOCServer extends Server
 
         if (! gameData.isPractice)   // practice games don't expire
         {
-            String expireMsg = ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.";
+            // If isCheckTime, use ">>>" in message text to mark as urgent:
+            // ">>> This game will expire in 15 minutes."
+
+            final String urg = (isCheckTime) ? ">>> " : "";
+            String expireMsg = urg + "This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.";
             messageToPlayer(c, gaName, expireMsg);
         }
     }
