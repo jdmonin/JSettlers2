@@ -5502,7 +5502,7 @@ public class SOCServer extends Server
      * Print time-remaining and other game stats.
      * Includes more detail beyond the end-game stats sent in {@link SOCGameHandler#sendGameStateOVER(SOCGame)}.
      *<P>
-     * Before v2.0.00, this method was {@code processDebugCommand_checktime(..)}.
+     * Before v1.1.20, this method was {@code processDebugCommand_checktime(..)}.
      *
      * @param c  Client requesting the stats
      * @param gaName  {@code gameData.getName()}
