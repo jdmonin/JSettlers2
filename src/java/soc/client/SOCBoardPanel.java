@@ -701,7 +701,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *</UL>
      *<P>
      * Changed via {@link #setDebugShowPotentialsFlag(int, boolean, boolean)} with
-     * SOCPlayerInterface debug command {@code =*= show: n} or {@code =*= hide: n}.
+     * SOCPlayerInterface debug command {@code =*= show: n} or {@code =*= hide: n},
+     * where {@code n} is an index shown above or {@code all}.
      *<P>
      * Has package-level visibility, for use by {@link SOCPlayerInterface#updateAtPutPiece(int, int, int, boolean, int)}.
      * @since 2.0.00
@@ -2287,8 +2288,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Set or clear a debug flag to show player 0's potential/legal coordinate sets.
+     * Currently implemented only for the sea board layout ({@link SOCBoardLarge}).
      * @param pieceType  Piece type; 0=road, 1=settle, 2=city, 3=ship;
      *         Use 8 for land hexes, 9 for nodes on board.  Or, -1 for all.
+     *         See {@link #debugShowPotentials} javadoc for all values.
      * @param setPotential  If true, show/hide the potential set, not the legal set
      * @param setOn  If true, set the flag; if false, clear it
      * @since 2.0.00
@@ -4036,11 +4039,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * If any bit in {@link #debugShowPotentials}[] is set, besides 8,
-     * draw it on the board.
+     * draw it on the board. Shows potential/legal placement locations for player 0.
      * (<tt>debugShowPotentials[8]</tt> is drawn in the per-hex loop
      *  of {@link #drawBoardEmpty(Graphics)}).
      *<P>
-     * <b>Note:</b> For {@link #isLargeBoard} only for now (TODO).
+     * <b>Note:</b> Currently implemented only for {@link #isLargeBoard} only for now (TODO).
      * @since 2.0.00
      * @throws IllegalStateException if ! isLargeBoard; temporary restriction
      */

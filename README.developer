@@ -1,4 +1,4 @@
-README.developer - Notes and current status of 2014 JSettlers development
+README.developer - Notes and current status of 2015 JSettlers development
 	(version 2.0.xx, beta server running at nand.net)
 	http://nand.net/jsettlers/devel/
 	http://sourceforge.net/projects/jsettlers2/
@@ -118,6 +118,18 @@ scroll up to see the entire game's debug output.  Go to Eclipse Preferences ->
 Run/Debug -> Console, and either un-check "Limit console output", or set it to
 a size larger than the default 80000 characters.  Robots and network messages
 can create a lot of output, so can javadoc generation.
+
+These debug commands are used at the client to help show the board's status:
+	=*= showcoords or =*= hidecoords
+		show or hide coordinates of the playing piece, hex, etc
+		currently at the mouse pointer's location
+	=*= show: all or =*= hide: all
+		show or hide potential and legal piece placements which are
+		currently valid for player 0 (sits in the upper-left corner);
+		available only for the sea board layout, not the classic 4- or
+		6-player boards.  To show only some piece types' legals and
+		potentials, instead of 'all' use an index number from
+		SOCBoardPanel.debugShowPotentials javadoc.
 
 If you want the robots to play a few games without any humans, set this
 property on the command line when starting the server:
