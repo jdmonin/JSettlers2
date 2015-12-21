@@ -8193,7 +8193,7 @@ public class SOCServer extends Server
      * {@link SOCGameOption#setKnownOptionCurrentValue(SOCGameOption)}
      * is called to set them globally.
      *<P>
-     * If {@code jsserver.properties} contains game option properties ({@code jsettlers.gameopt.*}),
+     * If {@code jsserver.properties} file contains game option properties ({@code jsettlers.gameopt.*}),
      * they will be checked for possible problems:
      *<UL>
      * <LI> Empty game option name after {@code jsettlers.gameopt.} prefix
@@ -8258,7 +8258,9 @@ public class SOCServer extends Server
                         // specified "SC" (if any) against both argp and command line's gameopts.
                         if (! init_checkScenarioOpts(argp, true, SOC_SERVER_PROPS_FILENAME, null, null))
                             throw new IllegalArgumentException();
-                    } catch (IllegalArgumentException e) {
+                    }
+                    catch (IllegalArgumentException e)
+                    {
                         final String msg = e.getMessage();
                         if (msg != null)
                             System.err.println(msg);
