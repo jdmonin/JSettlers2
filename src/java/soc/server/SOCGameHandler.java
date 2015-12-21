@@ -5613,7 +5613,7 @@ public class SOCGameHandler extends GameHandler
 
         if (isDiscardOrPickRsrc)
         {
-            // Check if we're just waiting on humans, not on any robot
+            // Check if we're waiting on any humans too, not on robots only
 
             SOCPlayer plEnd = null;  // bot the game is waiting to hear from
             for (int i = 0; i < ga.maxPlayers; ++i)
@@ -5684,7 +5684,9 @@ public class SOCGameHandler extends GameHandler
      *          false if we find that all players have left and
      *          the gamestate has been changed here to {@link SOCGame#OVER OVER}.
      */
-    boolean endGameTurnOrForce(SOCGame ga, final int plNumber, final String plName, StringConnection plConn, final boolean hasMonitorFromGameList)
+    boolean endGameTurnOrForce
+        (SOCGame ga, final int plNumber, final String plName, StringConnection plConn,
+         final boolean hasMonitorFromGameList)
     {
         boolean gameStillActive = true;
 
@@ -5848,7 +5850,7 @@ public class SOCGameHandler extends GameHandler
      * @param cg  Game object
      * @param cpn Game's current player number
      * @param c   Connection of discarding/gaining player
-     * @param plName Discarding/gaining player's name, for GameTextMsg
+     * @param plName Discarding/gaining player {@code pn}'s name, for GameTextMsg
      * @param pn  Player number who must discard/gain resources
      * @throws IllegalStateException if {@code pn} is current player, or if incorrect game state or incorrect
      *     player status; see {@link SOCGame#playerDiscardOrGainRandom(int, boolean)} for details
@@ -5870,7 +5872,7 @@ public class SOCGameHandler extends GameHandler
                 reportRsrcGainLoss(gaName, rset, true, pn, -1, null, c);
 
             final int totalRes = rset.getTotal();
-            srv.messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
+            srv.messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
             srv.messageToGameKeyed(cg, true, "action.discarded", plName, totalRes);  // "{0} discarded {1} resources."
         } else {
             // Send SOCPlayerElement messages, "gains" text

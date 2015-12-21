@@ -81,7 +81,7 @@ class SOCForceEndTurnThread extends Thread
         }
 
         StringConnection rconn = srv.getConnection(rname);
-        System.err.println("For robot " + rname + ": force end turn in game " + ga.getName() + " cpn=" + plNum + " state " + ga.getGameState());
+        System.err.println("For robot " + rname + ": force end turn in game " + ga.getName() + " cpn=" + plNum + " state " + gs);
         if (gs == SOCGame.WAITING_FOR_DISCARDS)
             System.err.println("  srv card count = " + pl.getResources().getTotal());
         else if (gs == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)

@@ -8063,7 +8063,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * Check all games for robot turns that have expired, and end them,
+     * Check all games for robot turns that have expired, and end that turn,
      * or stop waiting for non-current-player robot actions (discard picks, etc).
      * Robot turns may end from inactivity or from an illegal placement.
      * Checks each game's {@link SOCGame#lastActionTime} field, and calls
@@ -8097,6 +8097,7 @@ public class SOCServer extends Server
 
                 if (ga.getGameState() >= SOCGame.OVER)
                 {
+                    // nothing to do.
                     // bump out that time, so we don't see
                     // it again every few seconds
                     ga.lastActionTime
