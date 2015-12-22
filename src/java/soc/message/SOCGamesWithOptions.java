@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2011 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011,2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -55,7 +55,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      * There is no server-side constructor, because the server
      * instead calls {@link #toCmd(Vector, int)}.
      *
-     * @param gla Game list array
+     * @param gla Game list array; can be empty, but not null
      */
     protected SOCGamesWithOptions(String[] gla)
     {
@@ -77,6 +77,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
     public SOCGameList getGameList()
     {
         SOCGameList gamelist = new SOCGameList();
+
         for (int ii = 0; ii < pa.length; )
         {
             final String gaName = pa[ii];
@@ -84,6 +85,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
             gamelist.addGame(gaName, pa[ii], false);
             ++ii;
         }
+
         return gamelist;
     }
 
@@ -98,12 +100,14 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      * Parse the command String array into a SOCGamesWithOptions message.
      *
      * @param gla  the game-list array; must contain an even number of strings
-     *             (pairs of game names+options)
+     *             (pairs of game names+options); can be null or empty
      * @return    a SOCGamesWithOptions message, or null if parsing errors
      */
     public static SOCGamesWithOptions parseDataStr(String[] gla)
     {
-        if ((gla == null) || ((gla.length % 2) != 0))
+        if (gla == null)
+            gla = new String[0];
+        else if ((gla.length % 2) != 0)
             return null;  // must have an even# of strings
 
         return new SOCGamesWithOptions(gla);
@@ -139,4 +143,5 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
         }
         return sb.toString();
     }
+
 }
