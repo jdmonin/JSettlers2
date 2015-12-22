@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2008-2009 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2009,2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,13 +41,21 @@ package soc.message;
  *<br>
  * If no parameters were seen, <tt>s</tt> will be null.
  *<P>
- * The section you add to {@link SOCMessage#toMsg(String)} will look like:
- *<code>
+ * The section you add to {@link SOCMessage#toMsg(String)} will depend on whether
+ * a message with exactly 1 parameter is valid; if so, <tt>multiData</tt> will be null.
+ *
+ *<H5>If your message never needs to handle exactly 1 parameter:</H5>
+ *<pre>
+ *     case GAMESWITHOPTIONS:
+ *         return SOCGamesWithOptions.parseDataStr(multiData); </pre>
+ *
+ *<H5>If your message might be valid with 1 parameter:</H5>
+ *<pre>
  *     case POTENTIALSETTLEMENTS:
  *         if (multiData == null)
  *             multiData = toSingleElemArray(data);
  *         return SOCPotentialSettlements.parseDataStr(multiData);
- *</code>
+ *</pre>
  *<P>
  * Note that if, on the sending end of the network connection, you passed a
  * non-null gamename to the {@link SOCMessageTemplateMs} or {@link SOCMessageTemplateMi}
@@ -58,7 +66,7 @@ package soc.message;
  *
  * @see SOCMessageTemplateMi
  * @see SOCMessageTemplateMs
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
 public abstract class SOCMessageMulti extends SOCMessage
 {

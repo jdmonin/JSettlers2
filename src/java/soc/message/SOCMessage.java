@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011,2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2011,2013-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -446,12 +446,20 @@ public abstract class SOCMessage implements Serializable, Cloneable
              * {@link SOCMessageTemplateMs} or {@link SOCMessageTemplateMi} constructor,
              * then multiData[0] here will be gamename,
              * and multiData[1] == param[0] as passed to that constructor.
-             *<code>
+             *<P>
+             *<H5>If your message never needs to handle exactly 1 parameter:</H5>
+             *<pre>
+             *     case GAMESWITHOPTIONS:
+             *         return SOCGamesWithOptions.parseDataStr(multiData);
+             *</pre>
+             *
+             *<H5>If your message might be valid with exactly 1 parameter:</H5>
+             *<pre>
              *     case POTENTIALSETTLEMENTS:
              *         if (multiData == null)
              *             multiData = toSingleElemArray(data);
              *         return SOCPotentialSettlements.parseDataStr(multiData);
-             *</code>
+             *</pre>
              */
             String[] multiData = null; 
 
