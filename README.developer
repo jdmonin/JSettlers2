@@ -1,4 +1,4 @@
-README.developer - Notes and current status of 2014 JSettlers development
+README.developer - Notes and current status of 2015 JSettlers development
 	(version 1.1.xx, running at nand.net)
 	http://nand.net/jsettlers/devel/
 	http://sourceforge.net/projects/jsettlers2/
@@ -62,7 +62,9 @@ If you want to inspect the game object state at the server or robot:
 	Set a breakpoint at SOCServer.processDebugCommand, or at "case SOCMessage.GAMETEXTMSG"
 	  send a text msg from a client (the chat textfield), and inspect the game obj at that point
 	To inspect game state at robot, breakpoint robotcli.treat and send a text msg like *BOTLIST* or robot2:current-plans
-	On Linux/Unix JVMs, you can print a stack trace / thread dump to the shell by sending SIGQUIT.
+	On Linux/Unix JVMs, you can print a stack trace / thread dump at the server by sending SIGQUIT
+	  (kill -QUIT pidnumber). In deadlocks the thread dump won't show what has an object locked,
+	  but may show what's waiting on the object.
 
 To use the "Free Placement" debug mode, type this debug command on your turn:
 	*FREEPLACE* 1
