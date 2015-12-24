@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2011,2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2011,2013-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -813,24 +813,7 @@ public class NewGameOptionsFrame extends Frame
                         ctrl.requestFocusInWindow();
                     }
                 } else {
-                    try   // OTYPE_INT, OTYPE_INTBOOL
-                    {
-                        int iv = Integer.parseInt(txt);
-                        op.setIntValue(iv);
-                        if (iv != op.getIntValue())
-                        {
-                            allOK = false;
-                            msgText.setText
-                                ("Out of range: Should be " + op.minIntValue
-                                 + " to " + op.maxIntValue);
-                            ctrl.requestFocusInWindow();
-                        }
-                    } catch (NumberFormatException ex)
-                    {
-                        allOK = false;
-                        msgText.setText("Please use only digits here.");
-                        ctrl.requestFocusInWindow();
-                    }
+                    // OTYPE_INT, OTYPE_INTBOOL; defer setting until after all checkboxes have been read
                 }
             }
             else if (ctrl instanceof Choice)
@@ -841,6 +824,53 @@ public class NewGameOptionsFrame extends Frame
                     op.setIntValue(chIdx + op.minIntValue);
                 else
                     allOK = false;
+            }
+
+        }  // for(opts)
+
+        // OTYPE_INT, OTYPE_INTBOOL: now that all checkboxes have been read,
+        //   set int values and see if in range; ignore where bool is not set (checkbox not checked).
+        //   Use 0 if blank (still checks if in range).
+        for (Enumeration e = controlsOpts.keys(); e.hasMoreElements(); )
+        {
+            Component ctrl = (Component) e.nextElement();
+            if (! (ctrl instanceof TextField))
+                continue;
+
+            SOCGameOption op = (SOCGameOption) controlsOpts.get(ctrl);
+            if (op.optType == SOCGameOption.OTYPE_INTBOOL)
+            {
+                if (! op.getBoolValue())
+                    continue;
+            }
+            else if (op.optType != SOCGameOption.OTYPE_INT)
+            {
+                continue;
+            }
+
+            String txt = ((TextField) ctrl).getText().trim();
+            try
+            {
+                int iv;
+                if (txt.length() > 0)
+                    iv = Integer.parseInt(txt);
+                else
+                    iv = 0;
+
+                op.setIntValue(iv);
+                if (iv != op.getIntValue())
+                {
+                    allOK = false;
+                    msgText.setText
+                        ("Out of range: Should be " + op.minIntValue
+                         + " to " + op.maxIntValue);
+                    ctrl.requestFocusInWindow();
+                }
+            } catch (NumberFormatException ex)
+            {
+                allOK = false;
+                msgText.setText("Please use only digits here.");
+                ctrl.requestFocusInWindow();
             }
 
         }  // for(opts)
