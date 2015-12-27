@@ -762,12 +762,12 @@ public class TradeOfferPanel extends Panel
         }
 
         /**
-         * Show or hide the Accept button based on client player resources
+         * Show or hide the Accept button, based on client player resources
          * and whether this offer is offered to client player.
          *<P>
          * This should be called when in {@link TradeOfferPanel#OFFER_MODE},
          * not in {@link TradeOfferPanel#MESSAGE_MODE}.
-         * @since 2.0.00
+         * @since 1.1.20
          */
         public void updateOfferButtons()
         {
@@ -879,7 +879,7 @@ public class TradeOfferPanel extends Panel
      * client player's current resources.  Call this after client player receives,
      * loses, or trades resources.
      *
-     * @since 2.0.00
+     * @since 1.1.20
      */
     public void updateOfferButtons()
     {

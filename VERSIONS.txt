@@ -19,7 +19,6 @@ new features, until 2.0.00 is ready.
 - Game options dialog: Set maxplayers to 6 when Use Large Board is set, unless user changed max pl manually
 - New Game options: Popup if old versions can't play: Default to Create, not Change Options
 - Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard's dialog)
-- Show/hide current trade offers' Accept buttons when client player resources gained/lost/traded
 - To ensure everyone has 2 initial settlements, don't allow new clients to sit after 1st settlements are all placed
 - For visibility use black text for Longest Road, Largest Army in player hand panels
 - More efficient game-setup messages over network
@@ -43,6 +42,7 @@ new features, until 2.0.00 is ready.
 
 
     > 1.1.20 (build OV201512xx)
+- Show/hide current trade offers' Accept buttons when client player resources gained/lost/traded
 - New Game options dialog: For int/intbool options use 0 if blank, intbool don't set int value if checkbox is unchecked
 - Server startup options: New optional jsserver.properties file, read before command line
 - Game option defaults can be properties in that file or command line: jsettlers.gameopt.RD=y

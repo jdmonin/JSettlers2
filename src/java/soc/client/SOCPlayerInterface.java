@@ -1767,7 +1767,7 @@ public class SOCPlayerInterface extends Frame
      *<P>
      * If any trade offers are currently showing, show or hide the offer Accept button
      * depending on the updated set of available resources.
-     * @since 2.0.00
+     * @since 1.1.20
      */
     public void updateAtClientPlayerResources()
     {
