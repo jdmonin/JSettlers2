@@ -25,7 +25,6 @@ new features, until 2.0.00 is ready.
 - More efficient game-setup messages over network
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
 - Client sends server its locale, to support i18n localization
-- New Game options dialog: For int/intbool options use 0 if blank, intbool don't set int value if checkbox is unchecked
 - Applet class is now soc.client.SOCApplet
 - Game option key names can now be longer (8 characters)
 - Some game options are meant to be set by the server during game creation, not requested by the client.
@@ -44,6 +43,7 @@ new features, until 2.0.00 is ready.
 
 
     > 1.1.20 (build OV201512xx)
+- New Game options dialog: For int/intbool options use 0 if blank, intbool don't set int value if checkbox is unchecked
 - Server startup options: New optional jsserver.properties file, read before command line
 - Game option defaults can be properties in that file or command line: jsettlers.gameopt.RD=y
 - Game option boolean default values more strictly parsed

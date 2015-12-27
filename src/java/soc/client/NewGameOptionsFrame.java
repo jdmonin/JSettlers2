@@ -1132,6 +1132,7 @@ public class NewGameOptionsFrame extends Frame
                 msgText.setText(strings.get("game.options.onlydigits"));  // "please use only digits here"
                 ctrl.requestFocusInWindow();
             }
+
         }  // for(opts)
 
         if (allOK && checkOptionsMinVers && ! forPractice)
