@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1950,11 +1950,22 @@ public class SOCHandPanel extends Panel implements ActionListener
      * the trade offer will be refreshed after the reset is cancelled.
      *<P>
      * Does not display if playerIsClient.
+     *
+     * @param resourcesOnly  If true, instead of updating the entire offer,
+     *    only show or hide "Accept" button based on the client player's resources.
+     *    Calls {@link TradeOfferPanel#updateOfferButtons()}.
+     *    If no offer is currently visible, does nothing.
      */
-    public void updateCurrentOffer()
+    public void updateCurrentOffer(final boolean resourcesOnly)
     {
         if (inPlay)
         {
+            if (resourcesOnly)
+            {
+                offer.updateOfferButtons();
+                return;
+            }
+
             SOCTradeOffer currentOffer = player.getCurrentOffer();
 
             if (currentOffer != null)
@@ -2195,7 +2206,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             if ((! offerIsMessageWasTrade) || (! inPlay))
                 clearTradeMsg();
             else
-                updateCurrentOffer();
+                updateCurrentOffer(false);
         }
     }
 

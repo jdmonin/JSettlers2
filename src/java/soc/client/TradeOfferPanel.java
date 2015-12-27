@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2011,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2011,2012,2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -308,6 +308,7 @@ public class TradeOfferPanel extends Panel
         Button sendBut;
         Button clearBut;
         Button cancelBut;
+        /** True if the current offer's "offered to" includes the client player. */
         boolean offered;
         SOCResourceSet give;
         SOCResourceSet get;
@@ -727,8 +728,36 @@ public class TradeOfferPanel extends Panel
             }            
         }
 
+        /**
+         * Show or hide the Accept button, based on client player resources
+         * and whether this offer is offered to client player.
+         *<P>
+         * This should be called when in {@link TradeOfferPanel#OFFER_MODE},
+         * not in {@link TradeOfferPanel#MESSAGE_MODE}.
+         * @since 1.1.20
+         */
+        public void updateOfferButtons()
+        {
+            final boolean haveResources;
+            if (! offered)
+            {
+                haveResources = false;
+            } else {
+                final int cpn = hp.getPlayerInterface().getClientPlayerNumber();
+                if (cpn == -1)
+                    return;
+                SOCPlayer player = hp.getGame().getPlayer(cpn);
+                haveResources = player.getResources().contains(get);
+            }
+
+            acceptBut.setVisible(haveResources);
+        }
+
         /** 
          * show or hide our counter-offer panel, below the trade-offer panel.
+         * Also shows or hides {@link #acceptBut} based on client player resources,
+         * {@link #offered}, and ! <tt>visible</tt>; see also {@link #updateOfferButtons()}.
+         *<P>
          * This should be called when in {@link TradeOfferPanel#OFFER_MODE},
          * not in {@link TradeOfferPanel#MESSAGE_MODE}.
          */
@@ -795,6 +824,10 @@ public class TradeOfferPanel extends Panel
      * Update to view the of an offer from another player.
      * If counter-offer was previously shown, show it again.
      * This lets us restore the offer view after message mode.
+     *<P>
+     * To update buttons after <tt>setOffer</tt> if the client player's
+     * resources change, call {@link #updateOfferButtons()}.
+     *<P>
      * To clear values to zero, and hide the counter-offer box,
      * call {@link #clearOffer()}.
      *
@@ -805,6 +838,21 @@ public class TradeOfferPanel extends Panel
         offerPanel.update(currentOffer);
         cardLayout.show(this, mode = OFFER_MODE);
         validate();
+    }
+
+    /**
+     * If an offer is currently showing, show or hide Accept button based on the
+     * client player's current resources.  Call this after client player receives,
+     * loses, or trades resources.
+     *
+     * @since 1.1.20
+     */
+    public void updateOfferButtons()
+    {
+        if (! (isVisible() && mode.equals(OFFER_MODE)))
+            return;
+
+        offerPanel.updateOfferButtons();
     }
 
     /**

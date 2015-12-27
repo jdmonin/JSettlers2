@@ -3402,6 +3402,10 @@ public class SOCPlayerClient extends Applet
                 if (hpan.isClientPlayer())
                 {
                     hpan.updateValue(hpanUpdateRsrcType);
+
+                    // Because client player's available resources have changed,
+                    // update any trade offers currently showing (show or hide Accept button)
+                    pi.updateAtClientPlayerResources();
                 }
                 else
                 {
@@ -3668,7 +3672,7 @@ public class SOCPlayerClient extends Applet
             SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
             SOCTradeOffer offer = mes.getOffer();
             ga.getPlayer(offer.getFrom()).setCurrentOffer(offer);
-            pi.getPlayerHandPanel(offer.getFrom()).updateCurrentOffer();
+            pi.getPlayerHandPanel(offer.getFrom()).updateCurrentOffer(false);
         }
     }
 
@@ -3687,12 +3691,12 @@ public class SOCPlayerClient extends Applet
             if (pn != -1)
             {
                 ga.getPlayer(pn).setCurrentOffer(null);
-                pi.getPlayerHandPanel(pn).updateCurrentOffer();
+                pi.getPlayerHandPanel(pn).updateCurrentOffer(false);
             } else {
                 for (int i = 0; i < ga.maxPlayers; ++i)
                 {
                     ga.getPlayer(i).setCurrentOffer(null);
-                    pi.getPlayerHandPanel(i).updateCurrentOffer();
+                    pi.getPlayerHandPanel(i).updateCurrentOffer(false);
                 }
             }
         }
