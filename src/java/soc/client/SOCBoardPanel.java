@@ -7009,7 +7009,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     if (! hoverTextSet)
                     {
-                        // Check for ports. Show only if nothing else is nearby.
+                        // Check for ports. Will show only if nothing else is nearby.
 
                         nodePortType = board.getPortTypeFromNodeCoord(id);
                         if (nodePortType != -1)
@@ -7017,6 +7017,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             // Make note of port info, will show it only if nothing more important is
                             // found nearby. This prevents the port from "covering up" pieces on adjacent
                             // edges that the user may want to click on.
+
                             nodePortCoord = id;
                         }
                     }
