@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -4577,6 +4577,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 (player != null) && (debugPP || playerInterface.clientIsCurrentPlayer());
             boolean hoverTextSet = false;  // True once text is determined
 
+            /** If we're hovering at a node port, store its coordinate here */
+            int nodePortCoord = -1;
+
+            /** Node port description, to show in hoverText if nothing more important is nearby */
+            String nodePortDesc = null;
+
             if (! modeAllowsHoverPieces)
             {
                 hoverRoadID = 0;
@@ -4612,7 +4618,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             sb.append(" city: ");
                         else
                             sb.append(": ");  // port, not port city
-                        hoverIsPort = true;
                     }
                     else
                     {
@@ -4668,11 +4673,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         String portDesc = portDescAtNode(id);
                         if (portDesc != null)
                         {
-                            setHoverText(portDesc);
-                            hoverTextSet = true;
-                            hoverMode = PLACE_INIT_SETTLEMENT;  // const used for hovering-at-port
-                            hoverID = id;
-                            hoverIsPort = true;
+                            // Make note of port info, will show it only if nothing more important is
+                            // found nearby. This prevents the port from "covering up" pieces on adjacent
+                            // edges that the user may want to click on.
+                            nodePortCoord = id;
+                            nodePortDesc = portDesc;
                         }
                     }
                 }  // end if-node-has-settlement
@@ -4725,9 +4730,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
             }
             
-            // By now we've set hoverRoadID, hoverCityID, hoverSettlementID, hoverIsPort.
+            // By now we've set hoverRoadID, hoverCityID, hoverSettlementID.
             if (hoverTextSet)
             {
+                return;  // <--- Early return: Text and hover-pieces set ---
+            }
+
+            // If nothing more important was found nearby, show port info
+            if (nodePortCoord != -1)
+            {
+                setHoverText(nodePortDesc);
+                hoverMode = PLACE_INIT_SETTLEMENT;  // const used for hovering-at-port
+                hoverID = nodePortCoord;
+                hoverIsPort = true;
                 return;  // <--- Early return: Text and hover-pieces set ---
             }
 
