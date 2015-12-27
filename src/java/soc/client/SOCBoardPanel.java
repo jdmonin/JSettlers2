@@ -3144,8 +3144,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Update {@link #hoverTip} based on {@link #mode}.
-     * Might or might not repaint board:
+     * Update {@link #hoverTip} based on {@link #mode} when it changes;
+     * called from {@link #updateMode()}. Might or might not repaint board:
      * Calls {@link BoardToolTip#setOffsetX(int)} or {@link BoardToolTip#setHoverText(String)}.
      */
     protected void updateHoverTipToMode()
@@ -3155,9 +3155,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         else if (mode == PLACE_ROBBER)
             hoverTip.setOffsetX(HOVER_OFFSET_X_FOR_ROBBER);
         else if ((mode == PLACE_INIT_SETTLEMENT) || (mode == PLACE_INIT_ROAD))
-            hoverTip.setOffsetX(HOVER_OFFSET_X_FOR_INIT_PLACE);
-        else
         {
+            hoverTip.setHoverText_modeChangedOrMouseMoved = true;
+            hoverTip.setHoverText(null);
+            hoverTip.setOffsetX(HOVER_OFFSET_X_FOR_INIT_PLACE);
+        } else {
             hoverTip.setHoverText_modeChangedOrMouseMoved = true;
             hoverTip.setHoverText(null);
         }
