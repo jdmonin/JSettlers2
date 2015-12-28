@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -192,15 +192,21 @@ public class SOCDBHelper
     private static String USER_PASSWORD_QUERY = "SELECT password FROM users WHERE ( users.nickname = ? );";
     private static String HOST_QUERY = "SELECT nickname FROM users WHERE ( users.host = ? );";
     private static String LASTLOGIN_UPDATE = "UPDATE users SET lastlogin = ?  WHERE nickname = ? ;";
+    private static final String PASSWORD_UPDATE = "UPDATE users SET password = ?  WHERE nickname = ? ;";
     private static String SAVE_GAME_COMMAND = "INSERT INTO games VALUES (?,?,?,?,?,?,?,?,?,?);";
     private static String ROBOT_PARAMS_QUERY = "SELECT * FROM robotparams WHERE robotname = ?;";
     private static final String USER_COUNT_QUERY = "SELECT count(*) FROM users;";
+    private static final String USER_EXISTS_QUERY = "SELECT count(nickname) FROM users WHERE nickname = ?;";
 
     private static PreparedStatement createAccountCommand = null;
     private static PreparedStatement recordLoginCommand = null;
+    /** Query whether a user nickname exists; {@link #USER_EXISTS_QUERY} */
+    private static PreparedStatement userExistsQuery = null;
     private static PreparedStatement userPasswordQuery = null;
     private static PreparedStatement hostQuery = null;
     private static PreparedStatement lastloginUpdate = null;
+    /** User password update: {@link #PASSWORD_UPDATE} */
+    private static PreparedStatement passwordUpdate = null;
     private static PreparedStatement saveGameCommand = null;
 
     /**
@@ -431,9 +437,11 @@ public class SOCDBHelper
         // prepare PreparedStatements for queries
         createAccountCommand = connection.prepareStatement(CREATE_ACCOUNT_COMMAND);
         recordLoginCommand = connection.prepareStatement(RECORD_LOGIN_COMMAND);
+        userExistsQuery = connection.prepareStatement(USER_EXISTS_QUERY);
         userPasswordQuery = connection.prepareStatement(USER_PASSWORD_QUERY);
         hostQuery = connection.prepareStatement(HOST_QUERY);
         lastloginUpdate = connection.prepareStatement(LASTLOGIN_UPDATE);
+        passwordUpdate = connection.prepareStatement(PASSWORD_UPDATE);
         saveGameCommand = connection.prepareStatement(SAVE_GAME_COMMAND);
         robotParamsQuery = connection.prepareStatement(ROBOT_PARAMS_QUERY);
         userCountQuery = connection.prepareStatement(USER_COUNT_QUERY);
@@ -524,7 +532,37 @@ public class SOCDBHelper
             cmd.close();
         }
     }
-    
+
+    /**
+     * Does this user (nickname) exist in the database?
+     * @param userName  User nickname to check
+     * @return  True if found in users table, false otherwise or if no database is currently connected
+     * @throws IllegalArgumentException if <code>userName</code> is <code>null</code>
+     * @throws SQLException if any unexpected database problem
+     * @since 1.1.20
+     */
+    public static boolean doesUserExist(final String userName)
+        throws IllegalArgumentException, SQLException
+    {
+        if (userName == null)
+            throw new IllegalArgumentException();
+
+        if (! checkConnection())
+            return false;
+
+        userExistsQuery.setString(1, userName);
+        boolean found;
+
+        ResultSet rs = userExistsQuery.executeQuery();
+        if (rs.next())
+            found = (rs.getInt(1) > 0);
+        else
+            found = false;
+
+        rs.close();
+        return found;
+    }
+
     /**
      * Retrieve this user's password from the database.
      *
@@ -737,6 +775,48 @@ public class SOCDBHelper
         }
 
         return false;
+    }
+
+    /**
+     * Update a user's password if the user is in the database.
+     * @param userName  Username to update.  Does not validate this user exists: Call {@link #doesUserExist(String)}
+     *     first to do so.
+     * @param newPassword  New password (length can be 1 to 20)
+     * @return  True if the update command succeeded, false if can't connect to db.
+     *     <BR><B>Note:</B> If there is no user with <code>userName</code>, will nonetheless return true.
+     * @throws IllegalArgumentException  If user or password are null, or password is too short or too long
+     * @throws SQLException if an error occurs
+     * @since 1.1.20
+     */
+    public static boolean updateUserPassword(final String userName, final String newPassword)
+        throws IllegalArgumentException, SQLException
+    {
+        if (userName == null)
+            throw new IllegalArgumentException("userName");
+        if ((newPassword == null) || (newPassword.length() == 0) || (newPassword.length() > 20))
+            throw new IllegalArgumentException("newPassword");
+
+        // When the password encoding or max length changes in jsettlers-tables.sql,
+        // be sure to update this method and createAccount.
+
+        if (! checkConnection())
+            return false;
+
+        try
+        {
+            passwordUpdate.setString(1, newPassword);
+            passwordUpdate.setString(2, userName);
+            passwordUpdate.executeUpdate();
+
+            return true;
+        }
+        catch (SQLException sqlE)
+        {
+            errorCondition = true;
+            sqlE.printStackTrace();
+
+            throw sqlE;
+        }
     }
 
     /**
