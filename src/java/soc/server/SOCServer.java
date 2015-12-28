@@ -6075,6 +6075,7 @@ public class SOCServer extends Server
                 {
                     if (ga.getGameState() == SOCGame.NEW)
                     {
+                        boolean allowStart = true;
                         boolean seatsFull = true;
                         boolean anyLocked = false;
                         int numEmpty = 0;
@@ -6116,14 +6117,22 @@ public class SOCServer extends Server
                             }
                         }
 
+                        if (numPlayers == 0)
+                        {
+                            // No one has sat, human client who requested STARTGAME is an observer.
+
+                            allowStart = false;
+                            messageToGame(gn, "To start the game, at least one player must sit down.");
+                        }
+
                         if (seatsFull && (numPlayers < 2))
                         {
-                            seatsFull = false;
+                            allowStart = false;
                             numEmpty = 3;
                             String m = "The only player cannot lock all seats. To start the game, other players or robots must join.";
                             messageToGame(gn, m);
                         }
-                        else if (!seatsFull)
+                        else if (allowStart && ! seatsFull)
                         {
                             if (robots.isEmpty()) 
                             {                                
@@ -6172,7 +6181,7 @@ public class SOCServer extends Server
 
                                         // recover, so that human players can still start a game
                                         ga.setGameState(SOCGame.NEW);
-                                        seatsFull = false;
+                                        allowStart = false;
 
                                         messageToGame(gn, "Sorry, robots cannot join this game: " + e.getMessage());
                                         messageToGame(gn, "To start the game without robots, lock all empty seats.");
@@ -6185,7 +6194,7 @@ public class SOCServer extends Server
                          * If this doesn't need robots, then start the game.
                          * Otherwise wait for them to sit before starting the game.
                          */
-                        if (seatsFull)
+                        if (seatsFull && allowStart)
                         {
                             startGame(ga);
                         }
