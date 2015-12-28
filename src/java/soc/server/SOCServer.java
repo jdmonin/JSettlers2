@@ -6275,7 +6275,7 @@ public class SOCServer extends Server
                 }
                 else if (allowStart && ! seatsFull)
                 {
-                    // Look for some bots, set seatsFull if we find them
+                    // Look for some bots
 
                     if (robots.isEmpty())
                     {

@@ -554,7 +554,7 @@ public class SOCDBHelper
      * @return  True if found in users table, false otherwise or if no database is currently connected
      * @throws IllegalArgumentException if {@code userName} is {@code null}
      * @throws SQLException if any unexpected database problem
-     * @since 2.0.00
+     * @since 1.1.20
      */
     public static boolean doesUserExist(final String userName)
         throws IllegalArgumentException, SQLException
@@ -806,7 +806,7 @@ public class SOCDBHelper
      *     <BR><B>Note:</B> If there is no user with {@code userName}, will nonetheless return true.
      * @throws IllegalArgumentException  If user or password are null, or password is too short or too long
      * @throws SQLException if an error occurs
-     * @since 2.0.00
+     * @since 1.1.20
      */
     public static boolean updateUserPassword(final String userName, final String newPassword)
         throws IllegalArgumentException, SQLException

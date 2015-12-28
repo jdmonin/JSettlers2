@@ -901,7 +901,7 @@ public class SOCRobotBrain extends Thread
      * Also prints the game state, and the messages received by this brain
      * during the previous and current turns.
      *<P>
-     * Before v2.0.00, this printed to {@link System#err} instead of returning the status as Strings.
+     * Before v1.1.20, this printed to {@link System#err} instead of returning the status as Strings.
      * @since 1.1.13
      */
     public List<String> debugPrintBrainStatus()

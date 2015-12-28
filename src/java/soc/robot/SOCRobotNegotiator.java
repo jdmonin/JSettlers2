@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2011-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2013,2015 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -2449,7 +2449,8 @@ public class SOCRobotNegotiator
     }
 
     /**
-     * @return the offer that we'll make to the bank/ports
+     * @return the offer that we'll make to the bank/ports based on the resources we have,
+     *     or {@code null} if {@code ourPlayerData.getResources()} already contains all needed {@code targetResources}
      *
      * @param targetResources  what resources we want
      */
@@ -2457,4 +2458,5 @@ public class SOCRobotNegotiator
     {
         return getOfferToBank(targetResources, ourPlayerData.getResources());
     }
+
 }
