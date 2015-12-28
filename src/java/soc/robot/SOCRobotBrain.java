@@ -1962,9 +1962,14 @@ public class SOCRobotBrain extends Thread
      *</UL>
      *
      * @since 1.1.08
+     * @throw IllegalStateException  if {@link #buildingPlan}{@link Stack#empty() .empty()}
      */
     private void buildOrGetResourceByTradeOrCard()
+        throws IllegalStateException
     {
+        if (buildingPlan.empty())
+            throw new IllegalStateException("buildingPlan empty when called");
+
         /**
          * If we're in SPECIAL_BUILDING (not PLAY1),
          * can't trade or play development cards.
@@ -1986,7 +1991,7 @@ public class SOCRobotBrain extends Thread
             SOCPossiblePiece topPiece = (SOCPossiblePiece) buildingPlan.pop();
 
             //D.ebugPrintln("$ POPPED "+topPiece);
-            if ((topPiece != null) && (topPiece.getType() == SOCPossiblePiece.ROAD) && (!buildingPlan.empty()))
+            if ((topPiece != null) && (topPiece.getType() == SOCPossiblePiece.ROAD) && (! buildingPlan.empty()))
             {
                 SOCPossiblePiece secondPiece = (SOCPossiblePiece) buildingPlan.peek();
 
@@ -2725,7 +2730,7 @@ public class SOCRobotBrain extends Thread
         if (!buildingPlan.empty())
         {
             lastTarget = (SOCPossiblePiece) buildingPlan.peek();
-            negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), (SOCPossiblePiece) buildingPlan.peek());
+            negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), lastTarget);
         }
     }
 
