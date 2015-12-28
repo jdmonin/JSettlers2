@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,6 +44,8 @@ import java.net.Socket;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 
@@ -1240,10 +1242,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":print-vars") || dcmd.startsWith(":pv"))
         {
-            // TODO sendText, not print at server
-            debugPrintBrainStatus(mes.getGame());
-            put(SOCGameTextMsg.toCmd(mes.getGame(), nickname,
-                "Internal state printed at server console."));
+            // "prints" the results as series of SOCGameTextMsg to game
+            debugPrintBrainStatus(mes.getGame(), true);
         }
 
         else if (dcmd.startsWith(":stats"))
@@ -1974,17 +1974,30 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * Print brain variables and status for this game to {@link System#err},
+     * Print brain variables and status for this game, to {@link System#err}
+     * or as {@link SOCGameTextMsg} sent to the game's members,
      * by calling {@link SOCRobotBrain#debugPrintBrainStatus()}.
      * @param gameName  Game name; if no brain for that game, do nothing.
+     * @param sendTextToGame  Send to game as {@link SOCGameTextMsg} if true,
+     *     otherwise print to {@link System#err}.
      * @since 1.1.13
      */
-    public void debugPrintBrainStatus(String gameName)
+    public void debugPrintBrainStatus(String gameName, final boolean sendTextToGame)
     {
         SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(gameName);
         if (brain == null)
             return;
-        brain.debugPrintBrainStatus();
+
+        List rbSta = brain.debugPrintBrainStatus();
+        Iterator li = rbSta.iterator();
+        while (li.hasNext())
+        {
+            final String st = (String) li.next();
+            if (sendTextToGame)
+                put(SOCGameTextMsg.toCmd(gameName, nickname, st));
+            else
+                System.err.println(st);
+        }
     }
 
     /**

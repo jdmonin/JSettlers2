@@ -10946,7 +10946,7 @@ public class SOCServer extends Server
             {
                 SOCRobotClient rcli = (SOCRobotClient) SOCPlayerLocalRobotRunner.robotClients.get(rname);
                 if (rcli != null)
-                    rcli.debugPrintBrainStatus(ga.getName());
+                    rcli.debugPrintBrainStatus(ga.getName(), false);
                 else
                     System.err.println("L9397: internal error: can't find robotClient for " + rname);
             } else {
