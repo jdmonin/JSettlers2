@@ -201,8 +201,11 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected Label pname;
     protected Label vpLab;
     protected ColorSquare vpSq;
+    /** Largest Army label, usually invisible; placed to left of {@link #lroadLab} */
     protected Label larmyLab;
+    /** Longest Road label, usually invisible; placed to right of {@link #larmyLab} */
     protected Label lroadLab;
+
     protected ColorSquare claySq;
     protected ColorSquare oreSq;
     protected ColorSquare sheepSq;
@@ -515,7 +518,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         larmyLab.setFont(new Font("SansSerif", Font.BOLD, 12));
         add(larmyLab);
 
-        lroadLab = new Label("", Label.CENTER);
+        lroadLab = new Label("", Label.RIGHT);
         lroadLab.setFont(new Font("SansSerif", Font.BOLD, 12));
         add(lroadLab);
 
