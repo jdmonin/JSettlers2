@@ -512,12 +512,10 @@ public class SOCHandPanel extends Panel implements ActionListener
         add(vpSq);
 
         larmyLab = new Label("", Label.CENTER);
-        larmyLab.setForeground(new Color(142, 45, 10));
         larmyLab.setFont(new Font("SansSerif", Font.BOLD, 12));
         add(larmyLab);
 
         lroadLab = new Label("", Label.CENTER);
-        lroadLab.setForeground(new Color(142, 45, 10));
         lroadLab.setFont(new Font("SansSerif", Font.BOLD, 12));
         add(lroadLab);
 
