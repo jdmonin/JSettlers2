@@ -70,6 +70,12 @@ import java.util.Timer;
  *<P>
  * During game play, you can show a short 1-line message text in the
  * top-center part of the panel by calling {@link #setSuperimposedTopText(String)}.
+ *<P>
+ * If the game has 6 players, the board is also rotated 90 degrees clockwise.
+ * Pixel coordinates can be transformed between
+ * actual (scaled/rotated) and unscaled/un-rotated "internal" coordinates with
+ * {@link #scaleFromActualX(int)}, {@link #scaleFromActualY(int)},
+ * {@link #scaleToActualX(int)}, {@link #scaleToActualY(int)}.
  */
 public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
 {
