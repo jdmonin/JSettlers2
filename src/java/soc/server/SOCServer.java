@@ -2065,7 +2065,9 @@ public class SOCServer extends Server
      *          false if we find that all players have left and
      *          the gamestate has been changed here to {@link SOCGame#OVER OVER}.
      */
-    boolean endGameTurnOrForce(SOCGame ga, final int plNumber, final String plName, StringConnection plConn, final boolean hasMonitorFromGameList)
+    boolean endGameTurnOrForce
+        (SOCGame ga, final int plNumber, final String plName, StringConnection plConn,
+         final boolean hasMonitorFromGameList)
     {
         boolean gameStillActive = true;
 
@@ -2312,7 +2314,7 @@ public class SOCServer extends Server
      * @param cg  Game object
      * @param cpn Game's current player number
      * @param c   Connection of discarding player
-     * @param plName Discarding player's name, for GameTextMsg
+     * @param plName Discarding player <tt>pn</tt>'s name, for GameTextMsg
      * @param pn  Player number who must discard resources
      * @throws IllegalStateException if <tt>pn</tt> is current player, or if incorrect game state or incorrect
      *     player status; see {@link SOCGame#playerDiscardRandom(int)} for details
@@ -10237,7 +10239,7 @@ public class SOCServer extends Server
 
                 if (gameState == SOCGame.WAITING_FOR_DISCARDS)
                 {
-                    // Check if we're waiting on humans only, not on any robot
+                    // Check if we're waiting on any humans too, not on robots only
 
                     SOCPlayer plEnd = null;  // bot the game is waiting to hear from
                     for (int i = 0; i < ga.maxPlayers; ++i)
