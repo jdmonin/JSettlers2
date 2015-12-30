@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2015 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,6 +25,11 @@ import java.util.StringTokenizer;
  * This generic message handles a simple request from a client player in a game.
  * This is a way to add game actions without adding new SOCMessage subclasses.
  * It has a player number, a request type code, and two optional detail-value fields.
+ *<P>
+ * To get the optional detail value fields from a <tt>SOCSimpleRequest</tt>, be sure to use {@link #getValue1()}
+ * and {@link #getValue2()}, not {@link #getParam1()} and {@link #getParam2()} which would instead return the
+ * player number and request type code.  {@link #getPlayerNumber()} and {@link #getRequestType()} are
+ * convenience methods with more intuitive names to retrieve the player number and typecode.
  *<P>
  * This message type would be useful for new functions that don't have a complicated
  * set of details attached.  If {@link SOCRollDiceRequest} or the Ask-Special-Build message types
@@ -83,7 +88,8 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
      * @param ga  the name of the game
      * @param pn  the requester's player number
      * @param reqtype  the request type; below 1000 is general, 1000+ is specific to one kind of game
-     * @param value1  Optional detail value, or 0
+     * @param value1  Optional detail value, or 0.  Use {@link #getValue1()}, not {@link #getParam1()}, to get
+     *     this value from a <tt>SOCSimpleRequest</tt> message.
      */
     public SOCSimpleRequest(final String ga, final int pn, final int reqtype, final int value1)
     {
@@ -96,8 +102,10 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
      * @param ga  the name of the game
      * @param pn  the requester's player number
      * @param reqtype  the request type; below 1000 is general, 1000+ is specific to one kind of game
-     * @param value1  First optional detail value, or 0
-     * @param value2  Second optional detail value, or 0
+     * @param value1  First optional detail value, or 0.  Use {@link #getValue1()}, not {@link #getParam1()}, to get
+     *     this value from a <tt>SOCSimpleRequest</tt> message.
+     * @param value2  Second optional detail value, or 0. Use {@link #getValue2()}, not {@link #getParam2()}, to get
+     *     this value from a <tt>SOCSimpleRequest</tt> message.
      */
     public SOCSimpleRequest(final String ga, final int pn, final int reqtype, final int value1, final int value2)
     {
@@ -121,7 +129,7 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
     }
 
     /**
-     * @return the optional <tt>value1</tt> detail field
+     * @return the request's optional <tt>value1</tt> detail field
      */
     public int getValue1()
     {
@@ -129,7 +137,7 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
     }
 
     /**
-     * @return the optional <tt>value2</tt> detail field
+     * @return the request's optional <tt>value2</tt> detail field
      */
     public int getValue2()
     {
