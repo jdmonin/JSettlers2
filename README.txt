@@ -113,15 +113,20 @@ you will see a warning with the appropriate explanation:
 
   Warning: failed to initialize database: ....
 
-The database is not required: Without it, the server will function normally except
-that user accounts cannot be maintained.  If you do use the database, you can give
-users a nickname and password to use when they log in and play.
-People without accounts can still connect, by leaving the password field blank,
-as long as they aren't using a nickname which has a password in the database.
+The database is not required: Without it, the server will function normally
+except that user accounts cannot be maintained.
+
+If you do use the database, you can give users a nickname and password to use
+when they log in and play.  People without accounts can still connect, by
+leaving the password field blank, as long as they aren't using a nickname
+which has a password in the database.  Optionally game results can also be
+stored in the database, see next section; results are not stored by default.
 
 Any command-line switches and options go before the port number if specified
 on the command line.  If the command includes -jar, switches and options go
 after the jar filename.
+
+Parameters and game option defaults:
 
 To change a Game Option from its default, for example to activate the house rule
 "Robber can't return to the desert", use the "-o" switch with the game option's

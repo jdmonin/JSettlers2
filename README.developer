@@ -100,10 +100,10 @@ Setup instructions for JSettlers as an Eclipse project
 
 - choose File -> New -> Project... -> Java Project from Existing Ant Buildfile.
 - Browse to jsettlers-1.1.xx-src/build.xml, select the "javac" task in target "compile".
-- You'll need to build once before you run it, to create version.info from resources/version.info.in.
 - Project -> Properties: Resource: Text file encoding: UTF-8
+- You'll need to build once before you run it, to create version.info from resources/version.info.in.
 
-See below for how to set up the coding style in Eclipse.
+Continue reading to see how to set up the builds and the coding style in Eclipse.
 
 In my Eclipse project, I've created these debug/run configurations for testing:
 
@@ -234,7 +234,10 @@ Please keep these things in mind:
 
 Coding Style
 ------------
+Scroll down a bit if you just want to see how to set up the style in Eclipse.
+
 This is the project's coding style, based on the original authors' style.
+This section has more detail than you need to know, but it's here if you're interested.
 Although we may not agree with every detail of it, for consistency's sake,
 please keep the conventions of the code that's already there.
 
@@ -259,6 +262,10 @@ all their declarations the same way for easier comparison.
 Some methods return in the middle of their body, depending on conditions.
 That kind of early return should be marked with a prominent comment such as:
 	return;   // <--- Early return: Temporary piece ---
+
+Use parentheses around all boolean expressions, to make them easier to see as such:
+	flagvalue = (state == xyz);
+	somevar = (testflag) ? a : b;
 
 Some methods end with this style of code:
 	if (x)
@@ -300,6 +307,7 @@ Here's how to set up the coding style in Eclipse:
 		based on Eclipse built-in standard
 
 		Profile name: 'jsettlers' (apply)
+		[X] Open the edit dialog now
 
 		(Indentation)
 		Tab policy: Spaces only
