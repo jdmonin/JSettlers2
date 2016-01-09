@@ -138,7 +138,7 @@ public class SOCDBHelper
      * This is a Utility Mode parameter; not for use in property files, because the program always exits
      * after trying to change the password.
      *
-     * @since 2.0.00
+     * @since 1.1.20
      */
     public static final String PROP_IMPL_JSETTLERS_PW_RESET = "_jsettlers.user.pw_reset";
 
@@ -239,8 +239,8 @@ public class SOCDBHelper
     /**
      * This makes a connection to the database
      * and initializes the prepared statements.
-     * (If <tt>props</tt> includes {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP}, that script
-     * is run before the prepared statements.)
+     * (If <tt>props</tt> includes {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP},
+     * runs that script before the prepared statements.)
      * Sets {@link #isInitialized()}.
      *<P>
      * The default URL is "jdbc:mysql://localhost/socdata".

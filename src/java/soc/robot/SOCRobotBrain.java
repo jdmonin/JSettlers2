@@ -207,8 +207,8 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Number of exceptions caught this turn, if any.
-     * Resets at each player's turn during {@code TURN} message.
-     * @since 2.0.00
+     * Resets at each player's turn during {@link SOCMessage#TURN TURN} message.
+     * @since 1.1.20
      */
     private int turnExceptionCount;
 
@@ -1940,7 +1940,7 @@ public class SOCRobotBrain extends Thread
                 }
                 catch (Exception e)
                 {
-                    // Ignore errors due to game reset in another thread
+                    // Print exception; ignore errors due to game reset in another thread
                     if (alive && ((game == null) || (game.getGameState() != SOCGame.RESET_OLD)))
                     {
                         ++turnExceptionCount;  // TODO end our turn if too many

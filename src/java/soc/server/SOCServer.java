@@ -504,13 +504,13 @@ public class SOCServer extends Server
      *<P>
      * For a list of Utility Mode properties, see {@link #hasUtilityModeProperty()}.
      * @see #utilityModeMessage
-     * @since 2.0.00
+     * @since 1.1.20
      */
     private boolean hasUtilityModeProp;
 
     /**
      * If {@link #hasUtilityModeProp}, an optional status message to print before exiting, or {@code null}.
-     * @since 2.0.00
+     * @since 1.1.20
      */
     private String utilityModeMessage;
 
@@ -809,8 +809,8 @@ public class SOCServer extends Server
     private Set<String> databaseUserAdmins;
 
     /**
-     * Create a Settlers of Catan server listening on TCP port p.
-     * You must start its thread yourself.
+     * Create a Settlers of Catan server listening on TCP port {@code p}.
+     * Most server threads are started here; you must start its main thread yourself.
      * Optionally connect to a database for user info and game stats.
      *<P>
      * No bots will be started here ({@link #PROP_JSETTLERS_STARTROBOTS} == 0),
@@ -988,7 +988,7 @@ public class SOCServer extends Server
      *       to check for that and warn the user.
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now;
-     *       Utility Mode ({@link #hasUtilityModeProp}).
+     *       thrown in Utility Mode ({@link #hasUtilityModeProp}).
      * @throws SQLException   If db setup script fails, or need db but can't connect
      * @throws IllegalArgumentException  If {@code props} contains game options ({@code jsettlers.gameopt.*})
      *       with bad syntax. See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for expected syntax.
@@ -2222,7 +2222,7 @@ public class SOCServer extends Server
      *</UL>
      *
      * @return  True if server was constructed with a Utility Mode property or command line argument
-     * @since 2.0.00
+     * @since 1.1.20
      */
     public final boolean hasUtilityModeProperty()
     {
@@ -2232,7 +2232,7 @@ public class SOCServer extends Server
     /**
      * If {@link #hasUtilityModeProperty()}, get the optional status message to print before exiting.
      * @return  Optional status message, or {@code null}
-     * @since 2.0.00
+     * @since 1.1.20
      */
     public final String getUtilityModeMessage()
     {
@@ -8816,7 +8816,7 @@ public class SOCServer extends Server
      * sets {@link #getUtilityModeMessage()} to {@code null}.
      *
      * @param uname  Username to change password
-     * @since 2.0.00
+     * @since 1.1.20
      */
     private void init_resetUserPassword(final String uname)
     {
@@ -9014,7 +9014,7 @@ public class SOCServer extends Server
      * Clear the contents of a StringBuffer by setting to ' '
      * each character in its current {@link StringBuilder#length()}.
      * @param sb  StringBuilder to clear
-     * @since 2.0.00
+     * @since 1.1.20
      */
     private static void clearBuffer(StringBuilder sb)
     {
@@ -9026,7 +9026,7 @@ public class SOCServer extends Server
     /**
      * Buffered {@link System#in} for {@link #readPassword(String)},
      * is {@code null} until first call to that method.
-     * @since 2.0.00
+     * @since 1.1.20
      */
     private static BufferedReader sysInBuffered = null;
 
@@ -9046,7 +9046,7 @@ public class SOCServer extends Server
      *     so the caller can clear its contents when done, using
      *     {@link #clearBuffer(StringBuilder)}.
      *     If ^C or an error occurs, returns {@code null}.
-     * @since 2.0.00
+     * @since 1.1.20
      */
     private static StringBuilder readPassword(String prompt)
     {
