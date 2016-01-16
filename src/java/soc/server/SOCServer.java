@@ -8501,10 +8501,15 @@ public class SOCServer extends Server
         //
         // check if there's already an account with requested nickname
         //
-        String userPassword = null;
         try
         {
-            userPassword = SOCDBHelper.getUserPassword(userName);
+            if (SOCDBHelper.doesUserExist(userName))
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
+                         "The nickname '" + userName + "' is already in use."));
+                return;
+            }
         }
         catch (SQLException sqle)
         {
@@ -8512,15 +8517,6 @@ public class SOCServer extends Server
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_PROBLEM_WITH_DB, cliVers,
                      "Problem connecting to database, please try again later."));
-            return;
-        }
-
-        if (userPassword != null)
-        {
-            c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                     "The nickname '" + userName + "' is already in use."));
-
             return;
         }
 
