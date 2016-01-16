@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011-2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1308,6 +1308,8 @@ public class SOCGameOption implements Cloneable, Comparable
      * See {@link #packOptionsToString(Hashtable, boolean)} for the string's format.
      *
      * @param sb Pack into (append to) this buffer
+     * @see #getPackedValue()
+     * @see #toString()
      */
     public void packValue(StringBuffer sb)
     {
@@ -2039,6 +2041,8 @@ public class SOCGameOption implements Cloneable, Comparable
      * Form a string with the key and current value, useful for debugging purposes.
      * @return string such as "PL=4" or "BC=t3", with the same format
      *    as {@link #packKnownOptionsToString(boolean)}.
+     * @see #packValue(StringBuffer)
+     * @see #getPackedValue()
      */
     public String toString()
     {
@@ -2046,6 +2050,21 @@ public class SOCGameOption implements Cloneable, Comparable
         sb.append('=');
         packValue(sb);
         return sb.toString();
+    }
+
+    /**
+     * Form a StringBuffer containing the current value. This is a convenience method.
+     * @return stringbuffer such as "4" or "t3", with the same value format
+     *    as {@link #packKnownOptionsToString(boolean)}.
+     * @since 1.1.20
+     * @see #packValue(StringBuffer)
+     * @see #toString()
+     */
+    public final StringBuffer getPackedValue()
+    {
+        StringBuffer sb = new StringBuffer();
+        packValue(sb);
+        return sb;
     }
 
     /**
