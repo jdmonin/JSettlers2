@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -10356,6 +10356,7 @@ public class SOCServer extends Server
      * @param optsAlreadySet  For tracking, game option names we've already encountered on the command line.
      *                        This method will add (<tt>optName</tt>, <tt>optNameValue</tt>) to this map.
      *                        Can be <tt>null</tt> if not needed.
+     * @return the parsed SOCGameOption
      * @throws IllegalArgumentException if bad name, bad value, or already set from command line.
      *         {@link Throwable#getMessage()} will have problem details:
      *         <UL>
@@ -10366,7 +10367,7 @@ public class SOCServer extends Server
      *         </UL>
      * @since 1.1.07
      */
-    public static void parseCmdline_GameOption
+    public static SOCGameOption parseCmdline_GameOption
         (final String optNameValue, HashMap optsAlreadySet)
         throws IllegalArgumentException
     {
@@ -10388,6 +10389,8 @@ public class SOCServer extends Server
         } catch (Exception t) {
             throw new IllegalArgumentException("Bad value, cannot set game option: " + op.optKey);
         }
+
+        return op;
     }
 
     /**
@@ -10530,7 +10533,30 @@ public class SOCServer extends Server
                 {
                     try
                     {
-                        parseCmdline_GameOption(argValue, gameOptsAlreadySet);
+                        // parse this opt, update known option's current value
+                        SOCGameOption opt = parseCmdline_GameOption(argValue, gameOptsAlreadySet);
+
+                        // Add or update in argp, in case this gameopt property also appears in the properties file;
+                        // otherwise the SOCServer constructor will reset the known opt current value
+                        // back to the properties file's contents, instead of keeping the command-line opt value.
+                        // Because the opt name is case-insensitive within the argp key, we iterate all opts.
+                        // TODO optimize: Right after parsing argp, canonicalize any game opt key names to uppercase.
+                        Iterator i = argp.keySet().iterator();
+                        while (i.hasNext())
+                        {
+                            Object k = i.next();
+                            if (! ((k instanceof String) && ((String) k).startsWith(PROP_JSETTLERS_GAMEOPT_PREFIX)))
+                                continue;
+
+                            final String optKey = ((String) k).substring(pfxL);
+                            if (! optKey.equalsIgnoreCase(opt.optKey))
+                                continue;
+
+                            argp.put(k, opt.getPackedValue().toString());
+                            break;
+                        }
+                        // if not found, don't need to add it to argp: option's current value is already set.
+
                     } catch (IllegalArgumentException e) {
                         argValue = null;
                         System.err.println(e.getMessage());
