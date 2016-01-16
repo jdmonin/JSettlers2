@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -555,6 +555,7 @@ public class SOCDBHelper
      * @throws IllegalArgumentException if <code>userName</code> is <code>null</code>
      * @throws SQLException if any unexpected database problem
      * @since 1.1.20
+     * @see #getUserPassword(String)
      */
     public static boolean doesUserExist(final String userName)
         throws IllegalArgumentException, SQLException
@@ -579,13 +580,14 @@ public class SOCDBHelper
     }
 
     /**
-     * Retrieve this user's password from the database.
+     * Verify that this user exists, and retrieve their password from the database.
      *
      * @param sUserName Username who needs password
      *
      * @return null if user account doesn't exist, or if no database is currently connected
      *
-     * @throws SQLException if any unexpected database problem
+     * @throws SQLException if any unexpected database problem occurs
+     * @see #doesUserExist(String)
      */
     public static String getUserPassword(String sUserName) throws SQLException
     {
@@ -665,17 +667,21 @@ public class SOCDBHelper
     }
 
     /**
-     * DOCUMENT ME!
+     * Attempt to create this user in the <code>users</code> table.
+     * <B>Before calling, validate the user doesn't already exist</B>
+     * by calling {@link #doesUserExist(String) doesUserExist(userName)}
+     * or {@link #getUserPassword(String) getUserPassword(userName)}.
+     * This method doesn't verify that the user is a unique new user before creating the record.
      *
-     * @param userName DOCUMENT ME!
-     * @param host DOCUMENT ME!
-     * @param password DOCUMENT ME!
-     * @param email DOCUMENT ME!
-     * @param time DOCUMENT ME!
+     * @param userName  Username (nickname) to create
+     * @param host  Hostname of client requesting the new user
+     * @param password  New user's initial password
+     * @param email  Optional email address to contact this user
+     * @param time  User creation timestamp, in same format as {@link java.sql.Date#Date(long)}
      *
-     * @return true if the account was created
+     * @return true if the account was created, false if no database is currently connected
      *
-     * @throws SQLException DOCUMENT ME!
+     * @throws SQLException if any unexpected database problem occurs
      */
     public static boolean createAccount(String userName, String host, String password, String email, long time) throws SQLException
     {
