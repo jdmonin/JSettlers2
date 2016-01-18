@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2009-2011,2013-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2011,2013-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -84,6 +84,23 @@ public class SOCAccountClient extends Applet
     private static final String MESSAGE_PANEL = "message";
     /** CardLayout string for {@link #connPanel}. */
     private static final String CONN_PANEL = "conn";
+
+    // Most of these dialog fields are set up in initVisualElements().
+
+    /**
+     * Account info dialog prompt/label.
+     * @since 1.1.20
+     */
+    private Label promptLabel;
+
+    /**
+     * Nickname field label.
+     * @since 1.1.20
+     */
+    private Label nickLabel;
+
+    /** Nickname field tooltip reference, for use if its text must be updated. */
+    private AWTToolTip nickTTip;
 
     protected TextField nick;
     protected TextField pass;
@@ -187,6 +204,8 @@ public class SOCAccountClient extends Applet
 
     /**
      * init the visual elements at startup: {@link #MESSAGE_PANEL}, {@link #MAIN_PANEL}.
+     * Labels' text assumes self-registration (Open Registration); if this is not the case
+     * call {@link #updateLabelsIfNotOpenReg()} afterwards.
      * @see #initInterface_conn()
      */
     protected void initVisualElements()
@@ -218,22 +237,22 @@ public class SOCAccountClient extends Applet
 
         Label l;
 
-        l = new Label("To create an account, please enter your information.");
-        l.setAlignment(Label.CENTER);
+        promptLabel = new Label("To create an account, please enter your information.");
+        promptLabel.setAlignment(Label.CENTER);
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(promptLabel, c);
+        mainPane.add(promptLabel);
+
+        l = new Label();  // spacer
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
-        l = new Label();
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        l = new Label("Your Nickname:");
+        nickLabel = new Label("Your Nickname:");
         c.gridwidth = 1;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-        new AWTToolTip("This will be your username.", l);
+        gbl.setConstraints(nickLabel, c);
+        mainPane.add(nickLabel);
+        nickTTip = new AWTToolTip("This will be your username.", l);
 
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(nick, c);
@@ -431,6 +450,22 @@ public class SOCAccountClient extends Applet
         validate();
 
         conn_user.requestFocus();
+    }
+
+    /**
+     * Update account-info label texts if needed.
+     * If server supports self-registration (Open Registration), does nothing.
+     * Assumes {@link #initVisualElements()} has already been called.
+     * @since 1.1.20
+     */
+    private void updateLabelsIfNotOpenReg()
+    {
+        if (sFeatures.isActive(SOCServerFeatures.FEAT_OPEN_REG))
+            return;
+
+        promptLabel.setText("To create an account, please enter its information.");
+        nickLabel.setText("Nickname");
+        nickTTip.setTip("This will be the new account's username.");
     }
 
     /**
@@ -801,6 +836,7 @@ public class SOCAccountClient extends Applet
         if (! sFeatures.isActive(SOCServerFeatures.FEAT_OPEN_REG))
         {
             initInterface_conn();  // adds connPanel, sets it active, calls validate()
+            updateLabelsIfNotOpenReg();  // update account-info label texts for use after authentication
         }
     }
 
