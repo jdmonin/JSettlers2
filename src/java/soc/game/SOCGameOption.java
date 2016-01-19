@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011-2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1647,6 +1647,7 @@ public class SOCGameOption
      * See {@link #packOptionsToString(Map, boolean)} for the string's format.
      *
      * @param sb Pack into (append to) this buffer
+     * @eee #getPackedValue()
      * @see #toString()
      */
     public void packValue(StringBuilder sb)
@@ -2474,6 +2475,7 @@ public class SOCGameOption
      * @return string such as "PL=4" or "BC=t3", with the same format
      *    as {@link #packKnownOptionsToString(boolean, boolean)}.
      * @see #packValue(StringBuilder)
+     * @see #getPackedValue()
      * @see #optionTypeName(int)
      */
     public String toString()
@@ -2482,6 +2484,21 @@ public class SOCGameOption
         sb.append('=');
         packValue(sb);
         return sb.toString();
+    }
+
+    /**
+     * Form a StringBuilder containing the current value. This is a convenience method.
+     * @return stringbuffer such as "4" or "t3", with the same value format
+     *    as {@link #packKnownOptionsToString(boolean)}.
+     * @since 1.1.20
+     * @see #packValue(StringBuilder)
+     * @see #toString()
+     */
+    public final StringBuilder getPackedValue()
+    {
+        StringBuilder sb = new StringBuilder();
+        packValue(sb);
+        return sb;
     }
 
     /**
