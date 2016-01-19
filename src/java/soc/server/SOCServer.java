@@ -7442,15 +7442,16 @@ public class SOCServer extends Server
             return;
         }
 
-        final String requester = (String) c.getData();
+        final String requester = (String) c.getData();  // null if client isn't authenticated
         boolean isDBCountedEmpty = false;  // with null requester, did we query and find the users table is empty?
 
-        // If client is not authenticated; does this server have open registration,
+        // If client is not authenticated, does this server have open registration
         // or is an account required to create user accounts?
         if ((requester == null) && ! features.isActive(SOCServerFeatures.FEAT_OPEN_REG))
         {
             // If account is required, are there any accounts in the db at all?
             // if none, this first account creation won't require auth.
+
             int count;
             try
             {
