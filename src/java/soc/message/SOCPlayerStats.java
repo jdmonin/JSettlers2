@@ -34,7 +34,7 @@ import soc.game.SOCResourceConstants;
  * For format details see {@link #SOCPlayerStats(String, int[])}.
  *<P>
  * In 2.0.00 and newer, this type optionally includes an additional
- * item for the number of gold hex resource picks, or 0 if omitted.
+ * item for the number of gold hex resource picks/gains.
  * Older clients would ignore the extra item, but wouldn't be compatible
  * anyway with any game scenario that features gold hexes.
  *<P>
@@ -108,10 +108,11 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
      * pa[3] = sheep
      * pa[4] = wheat
      * pa[5] = wood count
-     * pa[6] = gold pick count, or 0 if omitted (v2.0.00+)</pre>
+     * pa[6] = gold gains count (v2.0.00+); value is 0 if omitted</pre>
      *  <P>
      * In 2.0.00 and newer, type 1 optionally includes an additional
-     * item for the number of gold hex resource picks, or 0 if omitted.
+     * item for the number of gold hex resource picks/gains; this is omitted
+     * when value is 0 and there are no further items.
      * Older clients would ignore the extra item, but wouldn't be compatible
      * anyway with any game scenario that features gold hexes.
      */
