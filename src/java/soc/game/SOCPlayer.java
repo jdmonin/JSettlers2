@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -212,7 +212,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * server-only total count of how many of each known resource the player has received this game
      * from dice rolls.
-     * The used indexes are {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD}.
+     * The used indexes are {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD},
+     * and also (in v2.0.00+) {@link SOCResourceConstants#GOLD_LOCAL}.
+     * See {@link #getResourceRollStats()} for details.
      * @since 1.1.09
      */
     private int[] resourceStats;
@@ -278,6 +280,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * If nonzero, waiting for player to pick this many gold-hex resources,
      * after a dice roll or placing their final initial settlement.
+     *<P>
+     * When setting this field, also increment {@link #resourceStats}
+     * [{@link SOCResourceConstants#GOLD_LOCAL GOLD_LOCAL}].
      *<P>
      * Game state {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}
      * or {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
@@ -705,7 +710,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         longestRoadLength = 0;
         lrPaths = new Vector<SOCLRPathData>();
         resources = new SOCResourceSet();
-        resourceStats = new int[SOCResourceConstants.UNKNOWN];
+        resourceStats = new int[1 + SOCResourceConstants.GOLD_LOCAL];
         rolledResources = new SOCResourceSet();
         inventory = new SOCInventory();
         numKnights = 0;
@@ -984,7 +989,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public void setNeedToPickGoldHexResources(final int numRes)
     {
+        final int d = numRes - needToPickGoldHexResources;
+
         needToPickGoldHexResources = numRes;
+        if (d > 0)
+            resourceStats[SOCResourceConstants.GOLD_LOCAL] += d;
     }
 
     /**
@@ -1922,7 +1931,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * On server, get the current totals of resources received by dice rolls by this player.
-     * Includes resources picked from a rolled {@link SOCBoardLarge#GOLD_HEX}.
+     * Each resource type's total includes resources picked from a rolled {@link SOCBoardLarge#GOLD_HEX}.
      * For the {@link SOCScenario#K_SC_FOG Fog Scenario}, includes resources picked when building
      * a road or ship revealed gold from a {@link SOCBoardLarge#FOG_HEX}.
      *<P>
@@ -1933,6 +1942,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @return array of resource counts from dice rolls;
      *   the used indexes are {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD}.
      *   Index 0 is unused.
+     *   In v2.0.00 and newer, index {@link SOCResourceConstants#GOLD_LOCAL} tracks how many
+     *   resource picks the player has received from gold hexes.
      * @since 1.1.09
      */
     public int[] getResourceRollStats()
@@ -1946,6 +1957,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * If {@link SOCGame#hasSeaBoard}, treat {@link SOCResourceConstants#GOLD_LOCAL}
      * as the gold-hex resources they must pick, and set
      * {@link #getNeedToPickGoldHexResources()} to that amount.
+     * This method updates {@link #getResourceRollStats()}[{@link SOCResourceConstants#GOLD_LOCAL GOLD_LOCAL}].
      * Once the resources from gold from a dice roll are picked, the
      * game should update this player's {@link #getResourceRollStats()}.
      *<P>
@@ -1963,6 +1975,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             if (gold > 0)
             {
                 needToPickGoldHexResources = gold;
+                resourceStats[SOCResourceConstants.GOLD_LOCAL] += gold;
                 rolled.setAmount(0, SOCResourceConstants.GOLD_LOCAL);
             }
         }
