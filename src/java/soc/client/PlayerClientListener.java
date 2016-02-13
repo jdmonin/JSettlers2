@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2013-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2013-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -406,6 +406,7 @@ public interface PlayerClientListener
         Sheep,
         Wheat,
         Wood,
+        /** amount of resources of unknown type (not same as total resource count) */
         Unknown,
         /** Update Total Resource count only. */
         Resources,
@@ -417,6 +418,12 @@ public interface PlayerClientListener
         City,
         Ship,
         Knight,
+
+        /**
+         * Total number of resources picked/gained from gold hex reveals
+         * in sea board scenarios; used in stats. Update not sent if gain is 0.
+         */
+        GoldGains,
 
         /** Number of Warships built, in {@link SOCGameOption#K_SC_PIRI _SC_PIRI} scenario */
         Warship,
