@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2012,2014-2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2012,2014-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,15 +20,23 @@ package soc.message;
 import java.util.List;
 
 import soc.game.SOCPlayer;
+import soc.game.SOCResourceConstants;
 
 /**
  * Statistics of one type for one player.
  * Sent at end of game, or by player's request ("*STATS*" command).
  * Design allows multiple types of stats.
+ * The first item in this message is the type number.
  *<P>
- * Type 1: Resource roll stats: Introduced in 1.1.09;
+ * <B>Type 1:</B> Resource roll stats: Introduced in 1.1.09;
  * check client version against {@link #VERSION_FOR_RES_ROLL}
  * before sending this message.
+ * For format details see {@link #SOCPlayerStats(String, int[])}.
+ *<P>
+ * In 2.0.00 and newer, this type optionally includes an additional
+ * item for the number of gold hex resource picks, or 0 if omitted.
+ * Older clients would ignore the extra item, but wouldn't be compatible
+ * anyway with any game scenario that features gold hexes.
  *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't care about their player stats.
@@ -44,7 +52,7 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
     public static final int STYPE_MIN = 1;
 
     /** Stats type 1: Resource roll stats.
-     *  Includes resources picked from a rolled <tt>GOLD_HEX</tt>.
+     *  Each resource's count includes resources picked from a rolled <tt>GOLD_HEX</tt>.
      *  For the Fog Scenario, includes resources picked when building
      *  a road or ship revealed gold from a fog hex.
      *<P>
@@ -73,16 +81,17 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
     public SOCPlayerStats(SOCPlayer pl, int stype)
         throws IllegalArgumentException, NullPointerException
     {
-        super(PLAYERSTATS, pl.getGame().getName(),
-            new int[6]);
+        super(PLAYERSTATS, pl.getGame().getName(), new int[len(pl, stype)]);  // len is almost always 6
         if ((stype < STYPE_MIN) || (stype > STYPE_MAX))
             throw new IllegalArgumentException("stype out of range: " + stype);
 
         pa[0] = stype;
         // Right now, only STYPE_RES_ROLL is defined
         final int[] rstats = pl.getResourceRollStats();  // rstats[0] is unused
-        for (int i = 1; i <= 5; ++i)
+        for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; ++i)
             pa[i] = rstats[i];
+        if (pa.length > SOCResourceConstants.GOLD_LOCAL)
+            pa[SOCResourceConstants.GOLD_LOCAL] = rstats[SOCResourceConstants.GOLD_LOCAL];
     }
 
     /**
@@ -98,12 +107,46 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
      * pa[2] = ore
      * pa[3] = sheep
      * pa[4] = wheat
-     * pa[5] = wood count</pre>
+     * pa[5] = wood count
+     * pa[6] = gold pick count, or 0 if omitted (v2.0.00+)</pre>
+     *  <P>
+     * In 2.0.00 and newer, type 1 optionally includes an additional
+     * item for the number of gold hex resource picks, or 0 if omitted.
+     * Older clients would ignore the extra item, but wouldn't be compatible
+     * anyway with any game scenario that features gold hexes.
      */
     protected SOCPlayerStats(final String gameName, int[] pa)
         throws IllegalArgumentException
     {
 	super(PLAYERSTATS, gameName, pa);
+    }
+
+    /**
+     * Given a stat type and specific player, find the array length needed
+     * to send that player's stats of that type.
+     * @param pl  Player for these stats
+     * @param stype  Stats type, such as {@link #STYPE_RES_ROLL}; see class javadoc or constructors
+     * @return  Stat array length, including {@code stype} at index 0; always 6 before v2.0.00
+     * @throws IllegalArgumentException if {@code stype} &lt; {@link #STYPE_MIN}
+     *           or > {@link #STYPE_MAX}
+     * @throws NullPointerException if {@code pl} null
+     */
+    private static final int len(final SOCPlayer pl, final int stype)
+        throws IllegalArgumentException, NullPointerException
+    {
+        switch (stype)
+        {
+        case STYPE_RES_ROLL:
+            {
+                final boolean hasGold =
+                    (pl.getResourceRollStats()[SOCResourceConstants.GOLD_LOCAL] != 0);
+
+                return 1 + 5 + ((hasGold) ? 1 : 0);
+            }
+
+        default:  // (stype < STYPE_MIN) || (stype > STYPE_MAX)
+            throw new IllegalArgumentException("stype out of range: " + stype);
+        }
     }
 
     /**
