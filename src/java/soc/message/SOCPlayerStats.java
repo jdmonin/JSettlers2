@@ -27,11 +27,12 @@ import soc.game.SOCResourceConstants;
  * Sent at end of game, or by player's request ("*STATS*" command).
  * Design allows multiple types of stats.
  * The first item in this message is the type number.
+ * Content of further items depends on the stats type.
  *<P>
- * <B>Type 1:</B> Resource roll stats: Introduced in 1.1.09;
+ * <B>Type 1:</B> Resource roll stats:
+ * For item details see {@link #STYPE_RES_ROLL}. Introduced in 1.1.09;
  * check client version against {@link #VERSION_FOR_RES_ROLL}
- * before sending this message.
- * For format details see {@link #SOCPlayerStats(String, int[])}.
+ * before sending this type.
  *<P>
  * In 2.0.00 and newer, this type optionally includes an additional
  * item for the number of gold hex resource picks/gains.
@@ -55,16 +56,30 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
      *  Each resource's count includes resources picked from a rolled <tt>GOLD_HEX</tt>.
      *  For the Fog Scenario, includes resources picked when building
      *  a road or ship revealed gold from a fog hex.
+     *
+     *<H5>Items for this type:</H5><pre>
+     * pa[1] = clay count
+     * pa[2] = ore
+     * pa[3] = sheep
+     * pa[4] = wheat
+     * pa[5] = wood count
+     * pa[6] = gold gains count (v2.0.00+); value is 0 if omitted</pre>
      *<P>
-     *  Check client version against {@link #VERSION_FOR_RES_ROLL}
-     *  before sending this message.
+     * In 2.0.00 and newer, this type optionally includes an additional
+     * item for the number of gold hex resource picks/gains; this is omitted
+     * when value is 0 and there are no further items.
+     * Older clients would ignore the extra item, but wouldn't be compatible
+     * anyway with any game scenario that features gold hexes.
+     *<P>
+     * Check client version against {@link #VERSION_FOR_RES_ROLL}
+     * before sending this type.
      */
     public static final int STYPE_RES_ROLL = 1;
 
     /** Highest-numbered stat stype in this version (1) */
     public static final int STYPE_MAX = 1;
 
-    /** Minimum client version for stats type 1 (resource roll stats). */
+    /** Minimum client version 1.1.09 for stats type 1 ({@link #STYPE_RES_ROLL}: resource roll stats). */
     public static final int VERSION_FOR_RES_ROLL = 1109;
 
     /**
@@ -74,47 +89,45 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
      * @param stype  Stats type.  Newer servers and clients may support
      *           more types.  For each type (such as {@link #STYPE_RES_ROLL}),
      *           check the corresponding VERSION_FOR_ field before sending.
-     * @throws IllegalArgumentException if <tt>stype</tt> < {@link #STYPE_MIN}
+     * @throws IllegalArgumentException if <tt>stype</tt> &lt; {@link #STYPE_MIN}
      *           or > {@link #STYPE_MAX}
      * @throws NullPointerException if <tt>pl</tt> null
      */
-    public SOCPlayerStats(SOCPlayer pl, int stype)
+    public SOCPlayerStats(SOCPlayer pl, final int stype)
         throws IllegalArgumentException, NullPointerException
     {
         super(PLAYERSTATS, pl.getGame().getName(), new int[len(pl, stype)]);  // len is almost always 6
-        if ((stype < STYPE_MIN) || (stype > STYPE_MAX))
-            throw new IllegalArgumentException("stype out of range: " + stype);
 
         pa[0] = stype;
-        // Right now, only STYPE_RES_ROLL is defined
-        final int[] rstats = pl.getResourceRollStats();  // rstats[0] is unused
-        for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; ++i)
-            pa[i] = rstats[i];
-        if (pa.length > SOCResourceConstants.GOLD_LOCAL)
-            pa[SOCResourceConstants.GOLD_LOCAL] = rstats[SOCResourceConstants.GOLD_LOCAL];
+
+        switch (stype)
+        {
+        case STYPE_RES_ROLL:
+            final int[] rstats = pl.getResourceRollStats();  // rstats[0] is unused
+            for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; ++i)
+                pa[i] = rstats[i];
+            if (pa.length > SOCResourceConstants.GOLD_LOCAL)
+                pa[SOCResourceConstants.GOLD_LOCAL] = rstats[SOCResourceConstants.GOLD_LOCAL];
+            break;
+
+        default:  // (stype < STYPE_MIN) || (stype > STYPE_MAX)
+            throw new IllegalArgumentException("stype out of range: " + stype);
+        }
     }
 
     /**
      * Constructor for client to parse message from server.
-     * Note that neither type, nor pa length, are validated,
-     * so that future stat types can be passed along.
+     * Note that neither type nor pa length are validated,
+     * so that future stats types can be passed along.
      *
      * @param gameName Game name
-     * @param pa Parameters of the option: <pre>
-     * pa[0] = type (only type 1 is defined for now):
+     * @param pa Parameters of the option:
+     *     <UL>
+     *     <LI> {@code pa[0]} = stats type (only type 1 is defined for now):
      *         Use {@link #STYPE_RES_ROLL} for this parameter.
-     * pa[1] = clay count
-     * pa[2] = ore
-     * pa[3] = sheep
-     * pa[4] = wheat
-     * pa[5] = wood count
-     * pa[6] = gold gains count (v2.0.00+); value is 0 if omitted</pre>
-     *  <P>
-     * In 2.0.00 and newer, type 1 optionally includes an additional
-     * item for the number of gold hex resource picks/gains; this is omitted
-     * when value is 0 and there are no further items.
-     * Older clients would ignore the extra item, but wouldn't be compatible
-     * anyway with any game scenario that features gold hexes.
+     *     <LI> {@code pa[1 - n]} = items for that stats type:
+     *         see stats-type constant javadocs.
+     *     </UL>
      */
     protected SOCPlayerStats(final String gameName, int[] pa)
         throws IllegalArgumentException
