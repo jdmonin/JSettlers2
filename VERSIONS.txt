@@ -12,7 +12,7 @@ new features, until 2.0.00 is ready.
 
 
 
-    > 2.0.00 (build JM20131xxx)
+    > 2.0.00 (build JM20160xxx)
 - Large board (sea board) support
 - Game Scenario and special-rules support
 - "House rules" dev card types (New game option "DH")
