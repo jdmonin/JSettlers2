@@ -872,18 +872,23 @@ public class SOCAccountClient extends Applet
     }
 
     /**
-     * handle the "status message" message
+     * handle the "status message" message.
+     * If this is in response to authrequest when connecting, show {@link #MAIN_PANEL}.
+     * If we've just created a user ({@link SOCStatusMessage#SV_ACCT_CREATED_OK}),
+     * clear the password fields: must re-enter if creating another.
      * @param mes  the message
      */
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes)
     {
+        final int sv = mes.getStatusValue();
+
         if ((connPanel != null) && connPanel.isVisible())
         {
             // Initial connect/authentication panel is showing.
             // This is either the initial STATUSMESSAGE from server, such as
             // when debug is on, or a response to the authrequest we've sent.
 
-            if ((mes.getStatusValue() != SOCStatusMessage.SV_OK) || ! conn_sentAuth)
+            if ((sv != SOCStatusMessage.SV_OK) || ! conn_sentAuth)
             {
                 conn_status.setText(mes.getStatus());
                 return;
@@ -896,6 +901,12 @@ public class SOCAccountClient extends Applet
         }
 
         status.setText(mes.getStatus());
+        if (sv == SOCStatusMessage.SV_ACCT_CREATED_OK)
+        {
+            // Clear password fields: must re-enter if creating another
+            pass.setText("");
+            pass2.setText("");
+        }
         submitLock = false;
     }
 
