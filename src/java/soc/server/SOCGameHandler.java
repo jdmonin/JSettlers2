@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2015 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2013-2016 Jeremy D Monin <jeremy@nand.net>.
  * Contents were formerly part of SOCServer.java;
  * portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -167,13 +167,20 @@ public class SOCGameHandler extends GameHandler
      * Used by {@link #SOC_DEBUG_COMMANDS_HELP}, etc.
      */
     private static final String DEBUG_COMMANDS_HELP_RSRCS
-        = "rsrcs: #cl #or #sh #wh #wo playername";
+        = "rsrcs: #cl #or #sh #wh #wo player";
 
     /**
      * Used by {@link #SOC_DEBUG_COMMANDS_HELP}, etc.
      */
     private static final String DEBUG_COMMANDS_HELP_DEV
-        = "dev: #typ playername";
+        = "dev: #typ player";
+
+    /**
+     * Debug help: player name or number. Used by {@link #SOC_DEBUG_COMMANDS_HELP}, etc.
+     * @since 2.0.00
+     */
+    private static final String DEBUG_COMMANDS_HELP_PLAYER
+        = "'Player' is a player name or #number (upper-left is #0, increasing clockwise)";
 
     /**
      * Debug help: 1-line summary of dev card types, from {@link SOCDevCardConstants}.
@@ -198,7 +205,8 @@ public class SOCGameHandler extends GameHandler
         DEBUG_COMMANDS_HELP_RSRCS,
         "Example  rsrcs: 0 3 0 2 0 Myname",
         DEBUG_COMMANDS_HELP_DEV,
-        "Example  dev: 2 Myname",
+        "Example  dev: 2 Myname   or  dev: 2 #3",
+        DEBUG_COMMANDS_HELP_PLAYER,
         "Development card types are:",  // see SOCDevCardConstants
         "1 road-building",
         "2 year of plenty",
@@ -5500,20 +5508,25 @@ public class SOCGameHandler extends GameHandler
             }
         }
 
-        final SOCPlayer pl = game.getPlayer(name);
-        if ((pl == null) && ! parseError)
+        SOCPlayer pl = null;
+        if (! parseError)
         {
-            srv.messageToPlayer(c, game.getName(), "### rsrcs: Player name not found: " + name);
-            parseError = true;
+            pl = debug_getPlayer(c, game, name);
+            if (pl == null)
+                parseError = true;
         }
+
         if (parseError)
         {
             srv.messageToPlayer(c, game.getName(), "### Usage: " + DEBUG_COMMANDS_HELP_RSRCS);
+            srv.messageToPlayer(c, game.getName(), DEBUG_COMMANDS_HELP_PLAYER);
+
             return;  // <--- early return ---
         }
+
         SOCResourceSet rset = pl.getResources();
         int pnum = pl.getPlayerNumber();
-        String outMes = "### " + name + " gets";
+        String outMes = "### " + pl.getName() + " gets";
 
         for (resourceType = SOCResourceConstants.CLAY;
                 resourceType <= SOCResourceConstants.WOOD; resourceType++)
@@ -5565,21 +5578,20 @@ public class SOCGameHandler extends GameHandler
             }
         }
 
-        final SOCPlayer pl = game.getPlayer(name);
-        if ((pl == null) && ! parseError)
+        SOCPlayer pl = null;
+        if (! parseError)
         {
-            if (name.length() > 0)
-            {
-                srv.messageToPlayer(c, game.getName(), "### dev: Player name not found: " + name);
-                return;  // <--- early return ---
-            } else {
+            pl = debug_getPlayer(c, game, name);
+            if (pl == null)
                 parseError = true;
-            }
         }
+
         if (parseError)
         {
             srv.messageToPlayer(c, game.getName(), "### Usage: " + DEBUG_COMMANDS_HELP_DEV);
             srv.messageToPlayer(c, game.getName(), DEBUG_COMMANDS_HELP_DEV_TYPES);
+            srv.messageToPlayer(c, game.getName(), DEBUG_COMMANDS_HELP_PLAYER);
+
             return;  // <--- early return ---
         }
 
@@ -5597,8 +5609,64 @@ public class SOCGameHandler extends GameHandler
                 (game, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
                  new SOCDevCardAction(game.getName(), pnum, SOCDevCardAction.DRAW, SOCDevCardConstants.KNIGHT), true);
         }
-        srv.messageToGameKeyedSpecial(game, true, "debug.dev.gets", name, Integer.valueOf(cardType));
+        srv.messageToGameKeyedSpecial(game, true, "debug.dev.gets", pl.getName(), Integer.valueOf(cardType));
             // ""### joe gets a Road Building card."
+    }
+
+    /**
+     * Given a player {@code name} or player number, find that player in the game.
+     * If not found by name, or player number doesn't match expected format, sends a message to the
+     * requesting user.
+     *
+     * @param c  Connection of requesting debug user
+     * @param ga  Game to find player
+     * @param name  Player name, or player position number in format "{@code #3}"
+     *     numbered 0 to {@link SOCGame#maxPlayers ga.maxPlayers}-1 inclusive
+     * @return  {@link SOCPlayer} with this name or number, or {@code null} if an error was sent to the user
+     * @since 2.0.00
+     */
+    private SOCPlayer debug_getPlayer(final StringConnection c, final SOCGame ga, final String name)
+    {
+        if (name.length() == 0)
+        {
+            return null;  // <--- early return ---
+        }
+
+        SOCPlayer pl = null;
+
+        if (name.startsWith("#") && (name.length() > 1) && Character.isDigit(name.charAt(1)))
+        {
+            String err = null;
+            final int max = ga.maxPlayers - 1;
+            try
+            {
+                final int i = Integer.parseInt(name.substring(1).trim());
+                if (i > max)
+                    err = "Max player number is " + Integer.toString(max);
+                else if (ga.isSeatVacant(i))
+                    err = "Player number " + Integer.toString(i) + " is vacant";
+                else
+                    pl = ga.getPlayer(i);
+            }
+            catch (NumberFormatException e) {
+                err = "Player number format is # followed by the number (0 to "
+                    + Integer.toString(max) + " inclusive)";
+            }
+
+            if (err != null)
+            {
+                srv.messageToPlayer(c, ga.getName(), "### " + err);
+
+                return null;  // <--- early return ---
+            }
+        }
+
+        if (pl == null)
+            pl = ga.getPlayer(name);
+        if (pl == null)
+            srv.messageToPlayer(c, ga.getName(), "### Player name not found: " + name);
+
+        return pl;
     }
 
     // javadoc inherited from GameHandler
