@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2010,2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2010,2014,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -116,7 +116,13 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
      */
     public String toString(String classname, String otherParams)
     {
-        String s = classname + ":nickname=" + nickname + "|password=***|host=" + host + "|game=" + game;
+        final String pwmask;
+        if ((password == null) || (password.length() == 0) || password.equals("\t"))
+            pwmask = "|password empty";
+        else
+            pwmask = "|password=***";
+
+        String s = classname + ":nickname=" + nickname + pwmask + "|host=" + host + "|game=" + game;
         if (otherParams != null)
             s = s + "|" + otherParams;
         return s;
