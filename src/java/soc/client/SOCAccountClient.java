@@ -30,6 +30,7 @@ import soc.message.SOCRejectConnection;
 import soc.message.SOCStatusMessage;
 import soc.message.SOCVersion;
 
+import soc.util.I18n;
 import soc.util.SOCServerFeatures;
 import soc.util.Version;
 
@@ -181,8 +182,19 @@ public class SOCAccountClient extends Applet
      */
     protected String emailAddress = null;
 
-    /** i18n text strings */
-    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+    /**
+     * Locale for i18n message lookups used for {@link #strings}.
+     * Override if needed in the constructor by reading the
+     * {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE} system property.
+     * @since 2.0.00
+     */
+    final Locale cliLocale;
+
+    /**
+     * i18n text strings. Set in constructor based on {@link #cliLocale}.
+     * @since 2.0.00
+     */
+    private final soc.util.SOCStringManager strings;
 
     /**
      * Create a SOCAccountClient connecting to localhost port 8880
@@ -203,6 +215,24 @@ public class SOCAccountClient extends Applet
     {
         host = h;
         port = p;
+
+        String jsLocale = System.getProperty(I18n.PROP_JSETTLERS_LOCALE);
+        Locale lo = null;
+        if (jsLocale != null)
+        {
+            try
+            {
+                lo = I18n.parseLocale(jsLocale.trim());
+            } catch (IllegalArgumentException e) {
+                System.err.println("Could not parse locale " + jsLocale);
+            }
+        }
+        if (lo != null)
+            cliLocale = lo;
+        else
+            cliLocale = Locale.getDefault();
+
+        strings = soc.util.SOCStringManager.getClientManager(cliLocale);
     }
 
     /**
