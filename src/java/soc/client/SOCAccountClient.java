@@ -255,7 +255,7 @@ public class SOCAccountClient extends Applet
         email = new TextField(50);
         status = new TextField(50);
         status.setEditable(false);
-        submit = new Button(strings.get("account.okcreate"));
+        submit = new Button(strings.get("account.okcreate"));  // "Create Account"
         submitLock = false;
 
         submit.addActionListener(this);
@@ -270,7 +270,8 @@ public class SOCAccountClient extends Applet
 
         Label l;
 
-        promptLabel = new Label(/*I*/"To create an account, please enter your information."/*18N*/);
+        promptLabel = new Label(strings.get("account.create.prompt.enter_your_info"));
+                // "To create an account, please enter your information."
         promptLabel.setAlignment(Label.CENTER);
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(promptLabel, c);
@@ -281,11 +282,11 @@ public class SOCAccountClient extends Applet
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
-        nickLabel = new Label(/*I*/"Your Nickname:"/*18N*/);
+        nickLabel = new Label(strings.get("account.create.nickname.your"));  // "Your Nickname:"
         c.gridwidth = 1;
         gbl.setConstraints(nickLabel, c);
         mainPane.add(nickLabel);
-        nickTTip = new AWTToolTip(/*I*/"This will be your username."/*18N*/, l);
+        nickTTip = new AWTToolTip(strings.get("account.create.nickname.your.tip"), l);  // "This will be your username."
 
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(nick, c);
@@ -296,7 +297,7 @@ public class SOCAccountClient extends Applet
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
-        l = new Label(/*I*/"Password:"/*18N*/);
+        l = new Label(strings.get("account.create.password"));  // "Password:"
         c.gridwidth = 1;
         gbl.setConstraints(l, c);
         mainPane.add(l);
@@ -310,7 +311,7 @@ public class SOCAccountClient extends Applet
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
-        l = new Label(/*I*/"Password (again):"/*18N*/);
+        l = new Label(strings.get("account.create.password.again"));  // "Password (again):"
         c.gridwidth = 1;
         gbl.setConstraints(l, c);
         mainPane.add(l);
@@ -324,7 +325,7 @@ public class SOCAccountClient extends Applet
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
-        l = new Label(/*I*/"Email (optional):"/*18N*/);
+        l = new Label(strings.get("account.create.email"));  // "Email (optional):"
         c.gridwidth = 1;
         gbl.setConstraints(l, c);
         mainPane.add(l);
@@ -497,9 +498,10 @@ public class SOCAccountClient extends Applet
         if (sFeatures.isActive(SOCServerFeatures.FEAT_OPEN_REG))
             return;
 
-        promptLabel.setText(/*I*/"To create an account, please enter its information."/*18N*/);
-        nickLabel.setText(/*I*/"Nickname"/*18N*/);
-        nickTTip.setTip(/*I*/"This will be the new account's username."/*18N*/);
+        promptLabel.setText(strings.get("account.create.prompt.enter_its_info"));
+            // "To create an account, please enter its information."
+        nickLabel.setText(strings.get("account.create.nickname.its"));  // "Nickname:"
+        nickTTip.setTip(strings.get("account.create.nickname.its.tip"));  // "This will be the new account's username."
     }
 
     /**
@@ -578,7 +580,7 @@ public class SOCAccountClient extends Applet
                                             hostString);
         }
         System.out.println("Connecting to " + hostString);
-        messageLabel.setText(/*I*/"Connecting to server..."/*18N*/);
+        messageLabel.setText(strings.get("account.connect.connecting"));  // "Connecting to server..."
 
         try
         {
@@ -594,7 +596,7 @@ public class SOCAccountClient extends Applet
         catch (Exception e)
         {
             ex = e;
-            String msg = /*I*/"Could not connect to the server: " + ex/*18N*/;
+            String msg = strings.get("account.connect.could_not", ex);  // "Could not connect to the server: " + ex
             System.err.println(msg);
             messageLabel.setText(msg);
         }
@@ -642,7 +644,7 @@ public class SOCAccountClient extends Applet
 
         disconnect();
 
-        messageLabel.setText(strings.get("account.connection_canceled"));  // "Connection canceled."
+        messageLabel.setText(strings.get("account.connect.canceled"));  // "Connection canceled."
         cardLayout.show(this, MESSAGE_PANEL);
         validate();
     }
@@ -710,15 +712,15 @@ public class SOCAccountClient extends Applet
                 status.setText(strings.get("account.must_enter_pw"));  // "You must enter a password."
                 pass.requestFocus();
             }
-            else if (!password.equals(password2))
+            else if (! password.equals(password2))
             {
                 pass.requestFocus();
-                status.setText(/*I*/"Your passwords don't match."/*18N*/);
+                status.setText(strings.get("account.create.msg.passwords_dont_match"));  // "The passwords don't match."
             }
-            else if (!submitLock)
+            else if (! submitLock)
             {
                 submitLock = true;
-                status.setText(/*I*/"Creating account ..."/*18N*/);
+                status.setText(strings.get("account.create.msg.creating"));  // "Creating account..."
                 put(SOCCreateAccount.toCmd(nickname, password, host, emailAddress));
             }
         }
@@ -975,7 +977,12 @@ public class SOCAccountClient extends Applet
     /** destroy the applet */
     public void destroy()
     {
-        String err = "Sorry, the applet has been destroyed. " + ((ex == null) ? "Load the page again." : ex.toString());
+        // account.msg.applet_destroyed
+        final String detail =
+            (ex == null)
+            ? strings.get("account.msg.refresh")  // "Refresh the page to connect again."
+            : ex.toString();
+        String err = strings.get("account.msg.applet_destroyed", detail); // "Sorry, the applet has been destroyed. {0}"
 
         disconnect();
         
