@@ -1,6 +1,6 @@
 /*
  * nand.net i18n utilities for Java: Property file editor for translators (side-by-side source and destination languages).
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -46,6 +46,7 @@ import net.nand.util.i18n.PropsFileParser.KeyPairLine;
  *<P>
  * The parsed merged list is {@link #getContents()}, any keys only in the destination are in {@link #getDestOnly()}.
  * The source or destination "half" can be generated with {@link #extractContentsHalf(boolean)}.
+ * Changes to that "half" can then be saved with {@link PropsFileWriter}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */

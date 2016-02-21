@@ -1,6 +1,6 @@
 /*
  * nand.net i18n utilities for Java: Property file editor for translators (side-by-side source and destination languages).
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,6 +31,14 @@ import java.util.List;
 /**
  * Represents a parsed properties file.
  *<P>
+ * Usage:
+ *<UL>
+ * <LI> Call {@link #parseOneFile(File)} to read and parse the file.
+ * <LI> Read or edit contents as needed.
+ * <LI> To save changes, use {@link PropsFileWriter}.
+ *</UL>
+ * See {@link ParsedPropsFilePair} to work with two related property files with similar sets of keys.
+ *<P>
  * Remember that {@code .properties} bundle files are encoded not in {@code UTF-8} but in {@code ISO-8859-1}:
  *<UL>
  * <LI> <A href="http://docs.oracle.com/javase/1.5.0/docs/api/java/util/Properties.html#encoding"
@@ -40,6 +48,7 @@ import java.util.List;
  *</UL>
  * Characters outside that encoding must use <code>&#92;uXXXX</code> code escapes.
  *
+ * @see PropsFileWriter
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
 public class PropsFileParser

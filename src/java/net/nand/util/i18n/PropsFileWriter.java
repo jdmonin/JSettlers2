@@ -1,6 +1,6 @@
 /*
  * nand.net i18n utilities for Java: Property file writer.
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,6 +40,7 @@ import java.util.List;
  * <LI> writer.close();
  *</UL>
  *
+ * @see PropsFileParser
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
 public class PropsFileWriter
@@ -248,7 +249,7 @@ public class PropsFileWriter
     /**
      * Write these key-value pairs through the open writer.
      * @param pairs Key-value pairs to write, same format as {@link PropsFileParser#parseOneFile(File)}
-     * @param fileComment  Single-line comment to place above output keys, or {@code null}; will prepend "# "
+     * @param fileComment  Optional single-line comment to place above output keys, or {@code null}; will prepend "# "
      */
     public void write(List<PropsFileParser.KeyPairLine> pairs, final String fileComment)
     {
