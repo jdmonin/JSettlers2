@@ -34,8 +34,11 @@ Thank you for trying our i18n editor.
 
 Using this Editor
 -----------------
+Use the menu buttons to open a file as a translation "destination", and it will find that file's
+parent as "source" by looking for a file with the same base name but fewer "_" suffixes.
+Or, you can choose any two files as "source" and "destination".
 
-The editor shows any two such "source" and "destination" files side by side by key for comparison and
+The editor shows the "source" and "destination" files side by side by key for comparison and
 translation.  "Source" is the file with a less specific locale, "destination" is more specific.
 
 Start net.nand.util.i18n.gui.PTEMain, then browse to the files you want to edit, or choose one
@@ -43,7 +46,8 @@ Start net.nand.util.i18n.gui.PTEMain, then browse to the files you want to edit,
 This editor has unicode support and color hilighting, and will save files in the required
 ISO-8859-1 encoding (with unicode escapes) automatically.
 
-Keys can be added by right-clicking. Ctrl-F finds text in the source and destination files.
+Keys can be added by right-clicking a blank line.
+Ctrl-F finds text in the source and destination files.
 Click the main window's Help button for more info.
 
 When starting the editor this message is harmless, because preferences are stored per-user:
