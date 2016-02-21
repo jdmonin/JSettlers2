@@ -36,6 +36,7 @@ import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -226,7 +227,6 @@ public class PTEMain extends JFrame
 
         btns.add(new JLabel(strings.get("main.heading")));  // "Welcome to the Translator's Editor. Please choose:"
         bNewDest = addBtn(btns, this, strings.get("main.button.new_dest"), KeyEvent.VK_N);      // "New Destination..."
-        bNewDest.setEnabled(false);  // TODO add this functionality
         bOpenDest = addBtn(btns, this, strings.get("main.button.open_dest"), KeyEvent.VK_O);  // "Open Destination..."
         bOpenDestSrc = addBtn(btns, this, strings.get("main.button.open_dest_src"), KeyEvent.VK_D);  // "Open Destination + Source..."
         bAbout = addBtn(btns, this, strings.get("main.button.about"), KeyEvent.VK_A);  // "About"
@@ -339,6 +339,20 @@ public class PTEMain extends JFrame
         return b;
     }
 
+    /**
+     * Add this component to a container which uses GridBagLayout.
+     * @param ct  Container, with {@code gbl} as its layout manager
+     * @param gbl  GridBagLayout used in {@code ct}
+     * @param gbc  Constraints for {@code gbl} to be used with {@code ct}
+     * @param cmp  Component to add to {@code ct} with constraints {@code gbc}
+     */
+    private static final void addToGrid
+        (final Container ct, final GridBagLayout gbl, final GridBagConstraints gbc, final Component cmp)
+    {
+        gbl.setConstraints(cmp, gbc);
+        ct.add(cmp);
+    }
+
     /** Handle button clicks. */
     public void actionPerformed(ActionEvent e)
     {
@@ -372,7 +386,37 @@ public class PTEMain extends JFrame
      */
     private final void clickedNewDest()
     {
-        System.err.println("not implemented yet");
+        final File src = chooseFile(false, strings.get("dialog.open_dest_src.choose_src_file"));  // "Select source file"
+        if (src == null)
+            return;
+
+        // ensure can read from src; will use its header comment in dest.
+        final List<KeyPairLine> srcContents;
+        try
+        {
+            srcContents = PropsFileParser.parseOneFile(src);
+        }
+        catch (Exception e) {
+            JOptionPane.showMessageDialog
+                (this, strings.get("msg.cannot_open_src.text", src.getName(), e.toString()),
+                    // "Cannot open source file {0}:\n{1}"
+                 strings.get("msg.cannot_open_src.title"),
+                    // "Cannot open source"
+                 JOptionPane.ERROR_MESSAGE);
+
+            return;
+        }
+
+        // Dialog will get the new dest's filename, ensure it doesn't yet exist, ensure it can be written to.
+        final NewDestSrcDialog dia = new NewDestSrcDialog(src);
+        dia.setVisible(true);  // modal, waits for selection
+        if (dia.dest == null)
+            return;
+
+        // TODO append srcContents header to dest
+
+        // Now open props editor
+        openPropsEditor(src, dia.dest, false);  // TODO pass srcContents instead of re-parse
     }
 
     /**
@@ -526,6 +570,137 @@ public class PTEMain extends JFrame
     public void windowOpened(WindowEvent e) {}
 
     /**
+     * Modal dialog to name a new destination locale file to create and edit, given a source.
+     * To use the dialog, call {@link #setVisible(boolean) setVisible(true)} and when that returns,
+     * check if {@link #dest} != {@code null}.
+     *<P>
+     * Before returning, the dialog will:
+     *<UL>
+     * <LI> Ensure destination doesn't already exist, or ask to overwrite if it is very small
+     * <LI> Ensure can create dest and write a blank line to it
+     *</UL>
+     * If these things can't be done, the dialog won't be dismissed yet.
+     *
+     * @see OpenDestSrcDialog
+     */
+    private class NewDestSrcDialog
+        extends JDialog implements ActionListener
+    {
+        /** Source file already chosen by user before this dialog; see {@link #dest} */
+        public final File src;
+
+        /** Destination file chosen here by user, if any, or {@code null} if they cancelled; see {@link #src} */
+        public File dest;
+
+        private final JButton bCreate, bCancel;
+        private final JTextField tfLang, tfRegion, tfDestFilename;
+
+        private WindowAdapter wa;
+
+        /**
+         * Create and pack a new dialog, not initially visible; see class javadoc.
+         * @param src  Source file, not null
+         * @throws IllegalArgumentException if {@code dest} is {@code null}
+         */
+        public NewDestSrcDialog(final File src)
+        {
+            super(PTEMain.this, strings.get("dialog.new_dest_src.title"), true);  // "New destination file"
+
+            if (src == null)
+                throw new IllegalArgumentException("null src");
+
+            this.src = src;
+
+            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            wa = new WindowAdapter()
+            {
+                public void windowClosing(WindowEvent e)
+                {
+                    dest = null;
+                }
+            };
+            addWindowListener(wa);
+
+            GridBagLayout gbl = new GridBagLayout();
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.anchor = GridBagConstraints.LINE_START;
+            gbc.gridwidth = GridBagConstraints.REMAINDER;  // Most components here are 1 per row
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            final JPanel p = new JPanel(gbl);
+            p.setLayout(gbl);
+            p.setBorder(BorderFactory.createEmptyBorder(9, 9, 0, 9));  // button panel has a bottom margin, so 0 here
+
+            addToGrid(p, gbl, gbc,
+                new JLabel(strings.get("dialog.new_dest_src.prompt"))); // "Name the new destination file."
+
+            addToGrid(p, gbl, gbc,
+                new JLabel(strings.get("dialog.new_dest_src.source", src.getName())));  // "Source: {0}"
+
+            // TODO get any 2-char-uppercase _lang from src filename, if ends w/ .properties
+            // TODO when tfLang, tfRegion are changed, recalculate dest filename if possible and if not manually edited
+
+            gbc.gridwidth = 1;
+            addToGrid(p, gbl, gbc,
+                new JLabel(strings.get("dialog.new_dest_src.dest_lang")));  // "Destination language:"
+            gbc.gridwidth = GridBagConstraints.REMAINDER;
+            tfLang = new JTextField(2);
+            addToGrid(p, gbl, gbc, tfLang);
+
+            gbc.gridwidth = 1;
+            addToGrid(p, gbl, gbc,
+                new JLabel(strings.get("dialog.new_dest_src.dest_region")));  // "Destination region:"
+            gbc.gridwidth = GridBagConstraints.REMAINDER;
+            tfRegion = new JTextField(3);
+            addToGrid(p, gbl, gbc, tfRegion);
+
+            addToGrid(p, gbl, gbc,
+                new JLabel(strings.get("dialog.new_dest_src.dest_filename"))); //  "Destination filename:"
+            tfDestFilename = new JTextField();
+            addToGrid(p, gbl, gbc, tfDestFilename);
+
+            JPanel btns = new JPanel(new FlowLayout(FlowLayout.TRAILING, 3, 15));  // 15 for space above buttons
+            bCreate = addBtn(btns, this, strings.get("base.create"), KeyEvent.VK_N);
+            bCancel = addBtn(btns, this, strings.get("base.cancel"), KeyEvent.VK_ESCAPE);
+
+            p.add(btns);
+            setContentPane(p);
+            getRootPane().setDefaultButton(bCreate);
+            getRootPane().registerKeyboardAction
+                (new ActionListener()
+                {
+                    public void actionPerformed(ActionEvent arg0)
+                    {
+                        wa.windowClosing(null);  // set dest to null
+                        dispose();
+                    }
+                }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+            pack();
+        }
+
+        /**
+         * Handle button clicks:
+         * Create button validates {@link #dest} and may dispose the dialog.  Cancel also disposes here.
+         */
+        public void actionPerformed(final ActionEvent ae)
+        {
+            final Object s = ae.getSource();
+
+            if (s == bCancel)
+            {
+                wa.windowClosing(null);  // set dest to null
+                dispose();
+            }
+            if (s != bCreate)
+                return;
+
+            // about to validate. Watch for dest lang + region both blank.
+            // See class javadoc for actions performed.
+            // STATE here
+        }
+    }
+
+    /**
      * Modal dialog to choose a pair of destination and source locale files to edit.
      * To use the dialog, call {@link #setVisible(boolean) setVisible(true)} and when that returns,
      * check if {@link #src} != {@code null}.
@@ -537,6 +712,8 @@ public class PTEMain extends JFrame
      *<P>
      * The dialog shows the full path to the destination file.  To reduce clutter, the source file choices show
      * only their filenames since they're in the same directory as the destination.  "Other" shows the full path.
+     *
+     * @see NewDestSrcDialog
      */
     private class OpenDestSrcDialog
         extends JDialog implements ActionListener
@@ -569,7 +746,7 @@ public class PTEMain extends JFrame
         private WindowAdapter wa;
 
         /**
-         * Create a new dialog, not initially visible; see class javadoc.
+         * Create and pack a new dialog, not initially visible; see class javadoc.
          * @param dest  Destination file, not null
          * @param src1  First source file choice, as found by
          *     {@link PropertiesTranslatorEditor#makeParentFilename(String)}, or null if none
@@ -682,14 +859,6 @@ public class PTEMain extends JFrame
 
             pack();
 
-        }
-
-        /** Add this component to a container which uses GridBagLayout. */
-        private final void addToGrid
-            (final Container ct, final GridBagLayout gbl, final GridBagConstraints gbc, final Component cmp)
-        {
-            gbl.setConstraints(cmp, gbc);
-            ct.add(cmp);
         }
 
         /**
