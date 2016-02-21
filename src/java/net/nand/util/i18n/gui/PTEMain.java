@@ -1,6 +1,6 @@
 /*
  * nand.net i18n utilities for Java: Property file editor for translators (side-by-side source and destination languages).
- * This file Copyright (C) 2013,2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -56,6 +56,8 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
+import net.nand.util.i18n.PropsFileParser;
+import net.nand.util.i18n.PropsFileParser.KeyPairLine;
 import net.nand.util.i18n.mgr.StringManager;
 
 /**
@@ -91,7 +93,7 @@ public class PTEMain extends JFrame
     private long askUnsavedAnsweredAt;
 
     private final JPanel btns;
-    private JButton bNew, bOpenDest, bOpenDestSrc, bAbout, bExit;
+    private JButton bNewDest, bOpenDest, bOpenDestSrc, bAbout, bExit;
 
     /** {@link Preferences} key in {@link #userPrefs} for directory of the most recently edited properties file. */
     private final static String LAST_EDITED_DIR = "lastEditedDir";
@@ -223,8 +225,8 @@ public class PTEMain extends JFrame
         btns.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
 
         btns.add(new JLabel(strings.get("main.heading")));  // "Welcome to the Translator's Editor. Please choose:"
-        bNew = addBtn(btns, this, strings.get("main.button.new"), KeyEvent.VK_N);      // "New..."
-        bNew.setEnabled(false);  // TODO add this functionality
+        bNewDest = addBtn(btns, this, strings.get("main.button.new_dest"), KeyEvent.VK_N);      // "New Destination..."
+        bNewDest.setEnabled(false);  // TODO add this functionality
         bOpenDest = addBtn(btns, this, strings.get("main.button.open_dest"), KeyEvent.VK_O);  // "Open Destination..."
         bOpenDestSrc = addBtn(btns, this, strings.get("main.button.open_dest_src"), KeyEvent.VK_D);  // "Open Destination + Source..."
         bAbout = addBtn(btns, this, strings.get("main.button.about"), KeyEvent.VK_A);  // "About"
@@ -341,11 +343,9 @@ public class PTEMain extends JFrame
     public void actionPerformed(ActionEvent e)
     {
         final Object src = e.getSource();
-        if (src == bNew)
+        if (src == bNewDest)
         {
-            // TODO implement; need to enforce naming standards, or have dialog to ask src/dest lang+region
-            System.err.println("Not implemented yet");
-            // openPropsEditor(null, chooseFile(true, null), true);
+            clickedNewDest();
         }
         else if (src == bOpenDest)
         {
@@ -363,6 +363,16 @@ public class PTEMain extends JFrame
         {
             windowClosing(null);
         }
+    }
+
+    /**
+     * Handle a click on the "New Destination..." button.
+     * Browse to the source file, then create and show the dialog to name the new destination file
+     * with a language + region.
+     */
+    private final void clickedNewDest()
+    {
+        System.err.println("not implemented yet");
     }
 
     /**
