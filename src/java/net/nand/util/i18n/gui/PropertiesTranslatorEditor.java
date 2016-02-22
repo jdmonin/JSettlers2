@@ -1,6 +1,6 @@
 /*
  * nand.net i18n utilities for Java: Property file editor for translators (side-by-side source and destination languages).
- * This file Copyright (C) 2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,6 +40,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -624,9 +626,10 @@ public class PropertiesTranslatorEditor
      * @return  Parent file for this destination, or null if none exists on disk
      * @throws IllegalArgumentException  Unless destFilename ends with _xx.properties
      *     (xx = any code 2 or more chars long)
+     * @throws NullPointerException if {@code destFilename} is null
      */
     public static File makeParentFilename(final String destFilename)
-        throws IllegalArgumentException
+        throws IllegalArgumentException, NullPointerException
     {
         final int dfL = destFilename.length();
         final int iUndersc = destFilename.lastIndexOf('_', dfL - 12);
@@ -658,6 +661,67 @@ public class PropertiesTranslatorEditor
         else
             return null;
     }
+
+    /**
+     * Given a properties file name, try to determine its base name and language if any.
+     * The base name is the part preceding the optional _language and _COUNTRY/_REGION suffixes.
+     *<P>
+     * Assumes the base name won't contain 2 or 3 lowercase letters between underscores,
+     * which looks like a language suffix.  This is more strict than the spec for java identifiers
+     * (thus classes/props file base names) which allows underscores.
+     *<P>
+     * Process:
+     *<UL>
+     * <LI> If filename doesn't end in {@code .properties}, return {@code null}
+     * <LI> If filename has no underscores, return the entire portion before {@code .properties} as the base name
+     * <LI> Look for the first occurrence of 2 or 3 lowercase letters between underscores, for the language
+     * <LI> If no language found, but any underscores are found, is ambiguous: return {@code null}
+     *</UL>
+     * @param propsFilename  Properties filename to examine; see above for assumptions and process
+     * @return A 2-element array containing the base name and 2- or 3-letter language;
+     *     if no language is found, that array element will be {@code null}.
+     *     If the base name can't be determined, returns {@code null} instead of an array.
+     * @throws NullPointerException if {@code propsFilename} is null
+     */
+    public static String[] findBaseAndLangInFilename(String propsFilename)
+        throws NullPointerException
+    {
+        int L = propsFilename.length();
+        if ((L <= 11) || ! propsFilename.substring(L-11).toLowerCase().equals(".properties"))
+            return null;
+
+        propsFilename = propsFilename.substring(0, L-11);  // remove .properties
+        int i = propsFilename.indexOf('_');
+        if (i == -1)
+        {
+            final String[] ret = { propsFilename, null };
+            return ret;
+        }
+
+        // _ and 2 or 3 lowercase letters per https://docs.oracle.com/javase/tutorial/i18n/locale/create.html,
+        //  followed by end of string or another _
+        if (_regex_findBaseAndLang == null)
+            _regex_findBaseAndLang = Pattern.compile("_[a-z]{2,3}_|_[a-z]{2,3}$");
+
+        Matcher m = _regex_findBaseAndLang.matcher(propsFilename);
+        if (m.find())
+        {
+            // has language
+            i = m.start();
+            String lang = propsFilename.substring(i+1, m.end());
+            if (lang.endsWith("_"))
+                lang = lang.substring(0, lang.length() - 1);
+
+            final String[] ret = { propsFilename.substring(0, i), lang };
+            return ret;
+        } else {
+            // has underscores but no language code
+            return null;
+        }
+    }
+
+    /** Initialized and used in {@link #findBaseAndLangInFilename(String)} */
+    private static Pattern _regex_findBaseAndLang;
 
     /**
      * Initialize {@link #strings} with the properties bundle at {@code net/nand/util/i18n/gui/strings/pte.properties}
