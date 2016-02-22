@@ -723,6 +723,41 @@ public class PropertiesTranslatorEditor
     /** Initialized and used in {@link #findBaseAndLangInFilename(String)} */
     private static Pattern _regex_findBaseAndLang;
 
+    /** A few quick unit tests */
+    private static void runUnitTests()
+    {
+        // findBaseAndLangInFilename
+
+        String[][] in_out =
+        {
+            // input, expected out[0] or null if rets null, out[1] or null
+            { "shortname", null, null },
+            { "fname.properties", "fname", null },
+            { "fname_es.properties", "fname", "es" },
+            { "fname_es_MX.properties", "fname", "es" },
+            { "fname_longpart.properties", null, null },
+            { "fname_longpart_es.properties", "fname_longpart", "es" },
+            { "fname_th_TH_TH.properties", "fname", "th" },
+            { "fname_wel.properties", "fname", "wel" },
+            { "fname_wel_GB.properties", "fname", "wel" },
+        };
+        for (final String[] io : in_out)
+        {
+            final String[] ret = findBaseAndLangInFilename(io[0]);
+            final boolean ok =
+                ((ret == null) && (io[1] == null))
+                || ((ret != null) && (io[1] != null) && io[1].equals(ret[0])
+                    && (((ret[1] == null) == (io[2] == null))
+                        || ((ret[1] != null) && ret[1].equals(io[2]))));
+            System.out.print
+                ( ((ok) ? "OK: " : "no: ") + io[0] + " -> ");
+            if (ret == null)
+                System.out.println("null");
+            else
+                System.out.println("{" + ret[0] + ", " + ret[1] + "}");
+        }
+    }
+
     /**
      * Initialize {@link #strings} with the properties bundle at {@code net/nand/util/i18n/gui/strings/pte.properties}
      * in the default locale.
@@ -736,9 +771,15 @@ public class PropertiesTranslatorEditor
     }
 
     /**
+     * 'Local' main program; the package's actual main is {@link PTEMain}.
+     * This main will bring up the {@link PTEMain} main menu, or an
+     * editor for .properties filename(s) on the command line,
+     * or run a few unit tests.
+     *
      * @param args  Path/Filename of destination .properties, or source and destination.
      *           If destination only, filename must end with "_xx.properties" and the
      *           source will be the same filename without the "_xx" part.
+     *           Or, can contain {@code --test} to run a few unit tests.
      * @throws IOException if a properties file does not exist or cannot be read
      * @throws IllegalStateException if any call-sequence errors occur
      */
@@ -746,6 +787,12 @@ public class PropertiesTranslatorEditor
     {
         // TODO cmdline parsing, help, etc
         //  although most of that is available in PTEMain
+
+        if ((args.length == 1) && args[0].equals("--test"))
+        {
+            runUnitTests();
+            return;
+        }
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
