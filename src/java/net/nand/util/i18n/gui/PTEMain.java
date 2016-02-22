@@ -56,6 +56,8 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import net.nand.util.i18n.PropsFileParser;
 import net.nand.util.i18n.PropsFileParser.KeyPairLine;
@@ -576,6 +578,7 @@ public class PTEMain extends JFrame
      *<P>
      * Before returning, the dialog will:
      *<UL>
+     * <LI> Check that destination filename != source filename
      * <LI> Ensure destination doesn't already exist, or ask to overwrite if it is very small
      * <LI> Ensure can create dest and write a blank line to it
      *</UL>
@@ -584,13 +587,22 @@ public class PTEMain extends JFrame
      * @see OpenDestSrcDialog
      */
     private class NewDestSrcDialog
-        extends JDialog implements ActionListener
+        extends JDialog implements ActionListener, DocumentListener
     {
         /** Source file already chosen by user before this dialog; see {@link #dest} */
         public final File src;
 
         /** Destination file chosen here by user, if any, or {@code null} if they cancelled; see {@link #src} */
         public File dest;
+
+        /** Base name from {@link #src}, or {@code null} if couldn't be determined */
+        private final String baseName;
+
+        /**
+         * Calculated name from {@link #baseName} + {@link #tfLang} + {@link #tfRegion}, or {@code null}.
+         * Set in {@link #recalcDestName()}.
+         */
+        private String calcName;
 
         private final JButton bCreate, bCancel;
         private final JTextField tfLang, tfRegion, tfDestFilename;
@@ -636,8 +648,17 @@ public class PTEMain extends JFrame
             addToGrid(p, gbl, gbc,
                 new JLabel(strings.get("dialog.new_dest_src.source", src.getName())));  // "Source: {0}"
 
-            // TODO get any 2-char-uppercase _lang from src filename, if ends w/ .properties
-            // TODO when tfLang, tfRegion are changed, recalculate dest filename if possible and if not manually edited
+            // Get base name and any _lang from src filename, if ends w/ .properties:
+            final String[] srcBase = PropertiesTranslatorEditor.findBaseAndLangInFilename(src.getName());
+            if ((srcBase == null) || (srcBase[0] == null))
+            {
+                baseName = null;
+            } else {
+                baseName = srcBase[0];
+                calcName = baseName;
+            }
+
+            // When tfLang, tfRegion are changed, will recalculate dest filename if possible and if not manually edited.
 
             gbc.gridwidth = 1;
             addToGrid(p, gbl, gbc,
@@ -645,21 +666,30 @@ public class PTEMain extends JFrame
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             tfLang = new JTextField(2);
             addToGrid(p, gbl, gbc, tfLang);
+            if ((srcBase != null) && (srcBase[1] != null))
+                tfLang.setText(srcBase[1]);
+            tfLang.getDocument().addDocumentListener(this);
 
             gbc.gridwidth = 1;
             addToGrid(p, gbl, gbc,
-                new JLabel(strings.get("dialog.new_dest_src.dest_region")));  // "Destination region:"
+                new JLabel(strings.get("dialog.new_dest_src.dest_region")));  // "Destination country/region:"
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             tfRegion = new JTextField(3);
             addToGrid(p, gbl, gbc, tfRegion);
+            tfRegion.getDocument().addDocumentListener(this);
 
             addToGrid(p, gbl, gbc,
                 new JLabel(strings.get("dialog.new_dest_src.dest_filename"))); //  "Destination filename:"
             tfDestFilename = new JTextField();
             addToGrid(p, gbl, gbc, tfDestFilename);
+            if (baseName != null)
+                tfDestFilename.setText(baseName);
+
+            // TODO enable bCreate when tfDestFilename manually edited
 
             JPanel btns = new JPanel(new FlowLayout(FlowLayout.TRAILING, 3, 15));  // 15 for space above buttons
             bCreate = addBtn(btns, this, strings.get("base.create"), KeyEvent.VK_N);
+            bCreate.setEnabled(false);  // must enter or change text fields before Create
             bCancel = addBtn(btns, this, strings.get("base.cancel"), KeyEvent.VK_ESCAPE);
 
             p.add(btns);
@@ -698,6 +728,58 @@ public class PTEMain extends JFrame
             // See class javadoc for actions performed.
             // STATE here
         }
+
+        /**
+         * When the language and/or country/region field have changed, recalculate the destination filename
+         * if possible from {@link #baseName}, unless the user has manually changed it already.
+         * Updates {@link #calcName} and {@link #tfDestFilename}, enables/disables {@link #bCreate}.
+         */
+        private void recalcDestName()
+        {
+            if ((calcName == null) || (baseName == null))
+                return;
+
+            if (! calcName.equals(tfDestFilename.getText().trim()))
+                return;
+
+            final String lang = tfLang.getText().trim(),
+                         rgn  = tfRegion.getText().trim();
+
+            final boolean hasLang;
+            StringBuilder sb = new StringBuilder(baseName);
+            if (lang.length() >= 2)
+            {
+                hasLang = true;
+                sb.append('_');
+                sb.append(lang.toLowerCase());
+                if (rgn.length() >= 2)
+                {
+                    sb.append('_');
+                    sb.append(rgn.toUpperCase());
+                }
+                sb.append(".properties");
+            } else {
+                hasLang = false;
+            }
+
+            calcName = sb.toString();
+
+            tfDestFilename.setText(calcName);
+            if (hasLang != bCreate.isEnabled())
+                bCreate.setEnabled(hasLang);
+        }
+
+        // implement DocumentListener:
+
+        /** Call {@link #recalcDestName()} when {@link #tfLang} or {@link #tfRegion} text changes */
+        public void insertUpdate(DocumentEvent e) { recalcDestName(); }
+
+        /** Call {@link #recalcDestName()} when {@link #tfLang} or {@link #tfRegion} text changes */
+        public void changedUpdate(DocumentEvent e) { recalcDestName(); }
+
+        /** Call {@link #recalcDestName()} when {@link #tfLang} or {@link #tfRegion} text changes */
+        public void removeUpdate(DocumentEvent e) { recalcDestName(); }
+
     }
 
     /**
