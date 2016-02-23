@@ -69,6 +69,9 @@ import net.nand.util.i18n.mgr.StringManager;
  * Can browse to both dest + src files, or auto-pick src based on dest filename.
  *<P>
  * Work in progress.  See {@link PropertiesTranslatorEditor} for current limitations.
+ *<P>
+ * Filename comparisons (source/destination, etc) are case-insensitive to avoid
+ * problems on Windows in case of a typo.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
@@ -1024,7 +1027,7 @@ public class PTEMain extends JFrame
                 final String other = tfSrcOther.getText().trim();
                 if (other.length() == 0)
                     srcOther = null;
-                else if ((srcOther == null) || ! other.equals(srcOther.getPath()))
+                else if ((srcOther == null) || ! other.equalsIgnoreCase(srcOther.getPath()))
                     srcOther = new File(other);
 
                 src = srcOther;
@@ -1074,7 +1077,7 @@ public class PTEMain extends JFrame
                 // "Choose a source locale file."
             if (f != null)
             {
-                if (f.getAbsolutePath().equals(dest.getAbsolutePath()))
+                if (f.getAbsolutePath().equalsIgnoreCase(dest.getAbsolutePath()))
                 {
                     JOptionPane.showMessageDialog
                         (this, strings.get("dialog.open_dest_src.src_is_dest.text"),
