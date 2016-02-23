@@ -601,10 +601,14 @@ public class PTEMain extends JFrame
         /**
          * Calculated name from {@link #baseName} + {@link #tfLang} + {@link #tfRegion}, or {@code null}.
          * Set in {@link #recalcDestName()}.
+         * If user manually changes the destination name, {@link #calcName} becomes {@code null}.
+         * After that, clearing the destination name field can cause {@link #calcName} to be set again.
          */
         private String calcName;
 
         private final JButton bCreate, bCancel;
+
+        /** Dest language, region, filename. When text contents change, {@link #doDocEvent(DocumentEvent)} is called. */
         private final JTextField tfLang, tfRegion, tfDestFilename;
 
         private WindowAdapter wa;
@@ -685,7 +689,14 @@ public class PTEMain extends JFrame
             if (baseName != null)
                 tfDestFilename.setText(baseName);
 
-            // TODO enable bCreate when tfDestFilename manually edited
+            // tfDestFilename document listener behavior is slightly different than the others.
+            // DocumentEvent has no getSource to determine the component, so set a property for that.
+            {
+                final javax.swing.text.Document doc = tfDestFilename.getDocument();
+                doc.putProperty("comp", tfDestFilename);
+                doc.addDocumentListener(this);
+            }
+
 
             JPanel btns = new JPanel(new FlowLayout(FlowLayout.TRAILING, 3, 15));  // 15 for space above buttons
             bCreate = addBtn(btns, this, strings.get("base.create"), KeyEvent.VK_N);
@@ -736,10 +747,11 @@ public class PTEMain extends JFrame
          */
         private void recalcDestName()
         {
-            if ((calcName == null) || (baseName == null))
+            if (baseName == null)
                 return;
 
-            if (! calcName.equals(tfDestFilename.getText().trim()))
+            final String dtext = tfDestFilename.getText().trim();
+            if ((dtext.length() > 0) && ((calcName == null) || ! dtext.equalsIgnoreCase(calcName)))
                 return;
 
             final String lang = tfLang.getText().trim(),
@@ -769,16 +781,38 @@ public class PTEMain extends JFrame
                 bCreate.setEnabled(hasLang);
         }
 
+        /**
+         * Handle text changes in {@link #tfLang}, {@link #tfRegion}, {@link #tfDestFilename}.
+         * For {@code tfDestFilename}, enable {@link #bCreate} if the name isn't the source filename
+         * and clear {@link #calcName} if the user has manually changed it from the calculated name.
+         * For other fields, call {@link #recalcDestName()}.
+         */
+        private void doDocEvent(DocumentEvent e)
+        {
+            if (e.getDocument().getProperty("comp") != tfDestFilename)
+            {
+                recalcDestName();
+            } else {
+                final String dname = tfDestFilename.getText().trim();
+                final boolean ok = (dname.length() > 0) && ! dname.equalsIgnoreCase(src.getName());
+                if (bCreate.isEnabled() != ok)
+                    bCreate.setEnabled(ok);
+
+                if ((! ok) && (dname.length() > 0))
+                    calcName = null;
+            }
+        }
+
         // implement DocumentListener:
 
-        /** Call {@link #recalcDestName()} when {@link #tfLang} or {@link #tfRegion} text changes */
-        public void insertUpdate(DocumentEvent e) { recalcDestName(); }
+        /** Call {@link #doDocEvent(DocumentEvent)} when text field contents change */
+        public void insertUpdate(DocumentEvent e) { doDocEvent(e); }
 
-        /** Call {@link #recalcDestName()} when {@link #tfLang} or {@link #tfRegion} text changes */
-        public void changedUpdate(DocumentEvent e) { recalcDestName(); }
+        /** Call {@link #doDocEvent(DocumentEvent)} when text field contents change */
+        public void changedUpdate(DocumentEvent e) { doDocEvent(e); }
 
-        /** Call {@link #recalcDestName()} when {@link #tfLang} or {@link #tfRegion} text changes */
-        public void removeUpdate(DocumentEvent e) { recalcDestName(); }
+        /** Call {@link #doDocEvent(DocumentEvent)} when text field contents change */
+        public void removeUpdate(DocumentEvent e) { doDocEvent(e); }
 
     }
 
