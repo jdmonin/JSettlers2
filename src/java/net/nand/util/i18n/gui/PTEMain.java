@@ -738,7 +738,14 @@ public class PTEMain extends JFrame
             if (s != bCreate)
                 return;
 
-            // about to validate. Watch for dest lang + region both blank.
+            // Validation time.
+
+            // Things already validated elsewhere: If these failed validation,
+            // the Create button would be disabled and the event wouldn't have been fired.
+            // - dest lang not blank [recalcDestName()]
+            // - generated dest filename != source filename [recalcDestName()]
+            // - manually entered dest filename not blank and != source filename [doDocEvent(e)]
+
             // See class javadoc for actions performed.
             // STATE here
         }
@@ -747,24 +754,25 @@ public class PTEMain extends JFrame
          * When the language and/or country/region field have changed, recalculate the destination filename
          * if possible from {@link #baseName}, unless the user has manually changed it already.
          * Updates {@link #calcName} and {@link #tfDestFilename}, enables/disables {@link #bCreate}.
+         *<P>
+         * To enable {@code bCreate}, the language field must have 2 or more letters, and the
+         * generated destination filename must be different than the source filename.
          */
         private void recalcDestName()
         {
             if (baseName == null)
                 return;
 
-            final String dtext = tfDestFilename.getText().trim();
-            if ((dtext.length() > 0) && ((calcName == null) || ! dtext.equalsIgnoreCase(calcName)))
+            final String dname = tfDestFilename.getText().trim();
+            if ((dname.length() > 0) && ((calcName == null) || ! dname.equalsIgnoreCase(calcName)))
                 return;
 
             final String lang = tfLang.getText().trim(),
                          rgn  = tfRegion.getText().trim();
 
-            final boolean hasLang;
             StringBuilder sb = new StringBuilder(baseName);
             if (lang.length() >= 2)
             {
-                hasLang = true;
                 sb.append('_');
                 sb.append(lang.toLowerCase());
                 if (rgn.length() >= 2)
@@ -773,15 +781,14 @@ public class PTEMain extends JFrame
                     sb.append(rgn.toUpperCase());
                 }
                 sb.append(".properties");
-            } else {
-                hasLang = false;
             }
 
             calcName = sb.toString();
+            final boolean canCreate = (lang.length() >= 2) && ! calcName.equalsIgnoreCase(src.getName());
 
             tfDestFilename.setText(calcName);
-            if (hasLang != bCreate.isEnabled())
-                bCreate.setEnabled(hasLang);
+            if (canCreate != bCreate.isEnabled())
+                bCreate.setEnabled(canCreate);
         }
 
         /**
