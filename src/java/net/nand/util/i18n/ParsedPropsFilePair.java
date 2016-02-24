@@ -68,6 +68,9 @@ public class ParsedPropsFilePair
 
     public final File srcFile, destFile;
 
+    /** If true, {@link #setDestIsNew(List)} has been called. */
+    private boolean isDestNew;
+
     /** Logical entries, one per key, to be expanded into {@link #cont}:
      *  Source and dest file-pair key-by-key contents, from parsing; does not contain {@link #destOnlyPairs}.
      *  Built during {@link #parseSrc()}, updated during {@link #parseDest()}.
@@ -76,7 +79,8 @@ public class ParsedPropsFilePair
 
     /** Expanded entries (contents), one per line in file, from {@link #parsed}:
      *  Source and dest file-pair line-by-line grid contents, from parsing and editing;
-     *  also contains {@link #destOnlyPairs}.  Built during {@link #parseDest()}.
+     *  also contains {@link #destOnlyPairs}.  Built during {@link #parseDest()} or {@link #setDestIsNew(List)}
+     *  by {@link #buildContFromSrcDest(Map)}.
      */
     private List<FileEntry> cont;
 
@@ -237,7 +241,8 @@ public class ParsedPropsFilePair
     }
 
     /**
-     * Parse the source-language file at {@code #srcFile}.
+     * Parse the source-language file at {@link #srcFile}.
+     * After calling this method, call {@link #parseDest()} or {@link #setDestIsNew(List)}.
      * @throws IllegalStateException  if we've already read or created entries in this object; {@link #size()} != 0
      * @throws IOException  if file not found, cannot be read, etc
      */
@@ -280,14 +285,49 @@ public class ParsedPropsFilePair
     }
 
     /**
+     * Call this method to indicate that {@link #destFile} is new and does not yet exist.
+     * Optionally provide header comments to place in the destination.
+     *<P>
+     * Call {@link #parseSrc()} before calling this method.
+     * If you call this method, do not call {@link #parseDest()}.
+     *
+     * @param comments  any comment lines to use as the initial contents;
+     *     same format as {@link PropsFileParser.KeyPairLine#comment}. Otherwise {@code null}.
+     * @throws IllegalStateException  if {@code parseSrc()} wasn't called yet, or src was empty; {@link #size()} == 0
+     */
+    public void setDestIsNew(List<String> comments)
+        throws IllegalStateException
+    {
+        if (parsed.isEmpty())
+            throw new IllegalStateException("call parseSrc first");
+
+        isDestNew = true;
+
+        if (contHeadingComment == null)
+        {
+            FileKeyEntry fe = new FileKeyEntry(comments);
+            fe.destComment = fe.srcComment;  // constructor sets srcComment, we need destComment instead
+            fe.srcComment = null;
+            contEndingComment = fe;
+        } else {
+            contHeadingComment.destComment = comments;
+        }
+        parsed.get(0).destComment = comments;
+
+        buildContFromSrcDest(null);
+    }
+
+    /**
      * Parse the destination-language file at {@link #destFile};
      * call {@link #parseSrc()} before calling this method, so this method
      * can merge the structures together into {@link #cont}.
+     * Do not call this method if you have called {@link #setDestIsNew(List)}.
      *<P>
      * Merging is done using {@link #parsed}, {@link #contHeadingComment}, and {@link #contEndingComment}.
      * Any destination keys not found in source (in {@code #parsed}) are placed into {@link #destOnlyPairs}.
      *
-     * @throws IllegalStateException  if {@code parseSrc()} wasn't called yet, or src was empty; {@link #size()} == 0
+     * @throws IllegalStateException  if {@code parseSrc()} wasn't called yet, or src was empty; {@link #size()} == 0;
+     *     or if {@link #setDestIsNew(List)} has been called
      * @throws IOException  if file not found, cannot be read, etc
      */
     public void parseDest()
@@ -295,6 +335,8 @@ public class ParsedPropsFilePair
     {
         if (parsed.isEmpty())
             throw new IllegalStateException("call parseSrc first");
+        if (isDestNew)
+            throw new IllegalStateException("do not call both parseDest and setDestIsNew");
 
         final List<PropsFileParser.KeyPairLine> destLines = PropsFileParser.parseOneFile(destFile);
         if (destLines.isEmpty())
@@ -347,35 +389,7 @@ public class ParsedPropsFilePair
 
         // Loop through srcLines to build the final content list
         // in the same order as the source file.
-
-        if (contHeadingComment != null)
-            expandCommentLinesIntoCont(contHeadingComment);
-
-        for (final FileKeyEntry srcLine : parsed)
-        {
-            if (srcLine.key == null)
-                continue;  // ignore comments at start or end of file
-
-            PropsFileParser.KeyPairLine dest = destKeys.get(srcLine.key);
-            if (dest != null)
-            {
-                srcLine.destValue = dest.value;
-                if (dest.comment != null)
-                    srcLine.destComment = dest.comment;
-                srcLine.destSpacedEquals = dest.spacedEquals;
-
-                if ((srcLine.srcComment != null) || (srcLine.destComment != null))
-                    expandCommentLinesIntoCont(srcLine);
-                cont.add(srcLine);
-
-                dest.key = null;  // mark as matched to src, not left over for destOnlyPairs
-            } else {
-                // this key is in source only
-                if (srcLine.srcComment != null)
-                    expandCommentLinesIntoCont(srcLine);
-                cont.add(srcLine);
-            }
-        }
+        buildContFromSrcDest(destKeys);
 
         // Build and add destOnlyPairs here, from destLines where key still is != null
         for (final PropsFileParser.KeyPairLine line : destLines)
@@ -399,6 +413,45 @@ public class ParsedPropsFilePair
         // Finally, the file-ending comment, if any
         if (contEndingComment != null)
             expandCommentLinesIntoCont(contEndingComment);
+    }
+
+    /**
+     * Build {@link #cont} by combining the parsed source ({@link #parsed}) and destination ({@code destKeys}).
+     * Called from {@link #parseDest()} or {@link #setDestIsNew(List)}.
+     *
+     * @param destKeys  Map from destination keys in destLines to {@link #cont} entries, or {@code null}.
+     *     Does not contain {@link #contHeadingComment} or {@link #contEndingComment} because their key would be null.
+     */
+    private void buildContFromSrcDest(final Map<String, PropsFileParser.KeyPairLine> destKeys)
+    {
+        if (contHeadingComment != null)
+            expandCommentLinesIntoCont(contHeadingComment);
+
+        for (final FileKeyEntry srcLine : parsed)
+        {
+            if (srcLine.key == null)
+                continue;  // ignore comments at start or end of file
+
+            PropsFileParser.KeyPairLine dest = (destKeys != null) ? destKeys.get(srcLine.key) : null;
+            if (dest != null)
+            {
+                srcLine.destValue = dest.value;
+                if (dest.comment != null)
+                    srcLine.destComment = dest.comment;
+                srcLine.destSpacedEquals = dest.spacedEquals;
+
+                if ((srcLine.srcComment != null) || (srcLine.destComment != null))
+                    expandCommentLinesIntoCont(srcLine);
+                cont.add(srcLine);
+
+                dest.key = null;  // mark as matched to src, not left over for destOnlyPairs
+            } else {
+                // this key is in source only
+                if (srcLine.srcComment != null)
+                    expandCommentLinesIntoCont(srcLine);
+                cont.add(srcLine);
+            }
+        }
     }
 
     /** Expand this key-value entry's preceding comment(s) to new lines appended at the end of {@link #cont}. */
