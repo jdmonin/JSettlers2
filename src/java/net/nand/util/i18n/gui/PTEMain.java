@@ -258,15 +258,16 @@ public class PTEMain extends JFrame
      *                        {@link PropertiesTranslatorEditor#PropertiesTranslatorEditor(File) PropertiesTranslatorEditor(File)}
      *                        constructor.  If {@code null} and not found, displays an error message.
      * @param chooseFileDest  Destination properties file; can't be {@code null} or returns immediately
-     * @param isNew           True if {@code chooseFileDest} should be created; not implemented yet.  Assumes
-     *                        dest name follows properties naming standards for language and region.
+     * @param isNew           True if {@code chooseFileDest} should be created on save.  Assumes
+     *                        dest filename follows properties naming standards for language and country/region.
+     * @param newDestComments  If {@code isNew}, any comment lines to use as the initial contents;
+     *                        same format as {@link PropsFileParser.KeyPairLine#comment}. Otherwise {@code null}.
      */
-    public void openPropsEditor(File chooseFileSrc, File chooseFileDest, final boolean isNew)
+    public void openPropsEditor
+        (File chooseFileSrc, File chooseFileDest, final boolean isNew, List<String> newDestComments)
     {
         if (chooseFileDest == null)
             return;
-
-        // TODO handle isNew: create file?
 
         if (chooseFileSrc == null)
         {
@@ -275,6 +276,8 @@ public class PTEMain extends JFrame
         } else {
             PropertiesTranslatorEditor pte = new PropertiesTranslatorEditor(chooseFileSrc, chooseFileDest);
             ptes.add(pte);
+            if (isNew)
+                pte.setDestIsNew(newDestComments);
             pte.init();
         }
     }
@@ -369,7 +372,7 @@ public class PTEMain extends JFrame
         }
         else if (src == bOpenDest)
         {
-            openPropsEditor(null, chooseFile(false, null), false);
+            openPropsEditor(null, chooseFile(false, null), false, null);
         }
         else if (src == bOpenDestSrc)
         {
@@ -413,16 +416,17 @@ public class PTEMain extends JFrame
             return;
         }
 
-        // Dialog will get the new dest's filename, ensure it doesn't yet exist, ensure it can be written to.
+        // NewDestSrcDialog will get the new dest's filename, and validate
+        // to ensure it doesn't yet exist but can be written to.
         final NewDestSrcDialog dia = new NewDestSrcDialog(src);
         dia.setVisible(true);  // modal, waits for selection
         if (dia.dest == null)
             return;
 
-        // TODO append srcContents header to dest
-
-        // Now open props editor
-        openPropsEditor(src, dia.dest, false);  // TODO pass srcContents instead of re-parse
+        // Now open props editor.
+        // Place srcContents header comment, if any, into dest.
+        List<String> headerComments = (srcContents.isEmpty()) ? null : srcContents.get(0).comment;
+        openPropsEditor(src, dia.dest, true, headerComments);
     }
 
     /**
@@ -464,7 +468,7 @@ public class PTEMain extends JFrame
         if ((dia.dest == null) || (dia.src == null))
             return;
 
-        openPropsEditor(dia.src, dia.dest, false);
+        openPropsEditor(dia.src, dia.dest, false, null);
     }
 
     /**

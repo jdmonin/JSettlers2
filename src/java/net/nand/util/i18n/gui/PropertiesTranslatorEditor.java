@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -84,7 +85,6 @@ import net.nand.util.i18n.mgr.StringManager;
  *<UL>
  * <LI> Can only change string values, not key names
  * <LI> Can't delete or move lines in the files
- * <LI> Can only edit existing files, not create new ones
  * <LI> Search the source for {@code TODO} for other minor items
  *</UL>
  * There are other properties editors out there, I wanted to see what writing one would be like.
@@ -105,6 +105,16 @@ public class PropertiesTranslatorEditor
      * {@code null} if we start with no parameters, and wait for a file-open dialog from {@link PTEMain}.
      */
     private ParsedPropsFilePair pair;
+
+    /** If true, {@link #setDestIsNew(List)} has been called */
+    private boolean isDestNew;
+
+    /**
+     * If {@link #isDestNew}, optional set of header comments, or null.
+     * Same format as {@link PropsFileParser.KeyPairLine#comment}.
+     * Set to null during {@link #init()} to free up the reference for gc.
+     */
+    private List<String> newDestComments;
 
     /** main window, set up in {@link #init()} */
     private JFrame jfra;
@@ -189,8 +199,22 @@ public class PropertiesTranslatorEditor
     }
 
     /**
+     * Indicate that the destination is new (not yet existing):
+     * {@link #init()} will then ignore FileNotFoundException for destination.
+     * Optionally provide header comments to place in the destination.
+     * @param comments  any comment lines to use as the initial contents;
+     *     same format as {@link PropsFileParser.KeyPairLine#comment}. Otherwise {@code null}.
+     */
+    public void setDestIsNew(List<String> comments)
+    {
+        isDestNew = true;
+        newDestComments = comments;
+    }
+
+    /**
      * Continue GUI startup, once constructor has set {@link #pair} or left it null.
      * Will start the GUI and then parse {@code pair}'s files from its srcFile and destFile fields.
+     * If the destination is new (not yet existing), call {@link #setDestIsNew(List)} before this method.
      */
     @SuppressWarnings("serial")
     public void init()
@@ -216,7 +240,13 @@ public class PropertiesTranslatorEditor
             try
             {
                 pair.parseSrc();
-                pair.parseDest();
+                if (isDestNew)
+                {
+                    pair.setDestIsNew(newDestComments);
+                    newDestComments = null;
+                } else {
+                    pair.parseDest();
+                }
 
                 /*
                 // tmp debug prints:

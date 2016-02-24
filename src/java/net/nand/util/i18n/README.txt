@@ -43,6 +43,11 @@ translation.  "Source" is the file with a less specific locale, "destination" is
 
 Start net.nand.util.i18n.gui.PTEMain, then browse to the files you want to edit, or choose one
 "destination" file to edit, with its "source" file automatically picked based on the filename.
+
+To create a new destination translation, click the "New Destination" menu button and browse to
+the source (typically without any "_" suffix).  Enter the language code for the new translation
+and click Create. The editor will open, and you can begin entering keys' translations.
+
 This editor has unicode support and color hilighting, and will save files in the required
 ISO-8859-1 encoding (with unicode escapes) automatically.
 
@@ -66,5 +71,8 @@ Please make sure your patch follows the project coding style (see /README.develo
 Version history
 ---------------
 
+1.0.0 (2016-02-xx)
+- Current beta version.  Can also create new translation files.
+
 0.9.0 (2014-03-31)
-- Current beta version.  Can edit files but not create them.
+- Can edit files but not create them.
