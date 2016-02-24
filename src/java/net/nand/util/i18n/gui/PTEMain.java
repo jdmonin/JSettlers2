@@ -35,6 +35,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
@@ -747,10 +748,13 @@ public class PTEMain extends JFrame
             // - generated dest filename != source filename [recalcDestName()]
             // - manually entered dest filename not blank and != source filename [doDocEvent(e)]
 
-            // - Ensure destination doesn't already exist, or ask to overwrite if it is very small
             final String dname = tfDestFilename.getText().trim();
             dest = new File(src.getParentFile(), dname);
-            if (dest.exists())
+
+            // - Ensure destination doesn't already exist, or ask to overwrite if it is very small
+
+            final boolean destExists = dest.exists();
+            if (destExists)
             {
                 // If dest exists, be sure it's a normal file and
                 // not a directory or other special type.
@@ -785,7 +789,31 @@ public class PTEMain extends JFrame
             }
 
             // - Ensure can create dest and write a blank line to it
-            // STATE here
+            try
+            {
+                File dest2 = new File(src.getParentFile(), dname);
+                FileOutputStream fos = new FileOutputStream(dest2);
+                fos.write('\n');
+                fos.flush();
+                fos.close();
+                if (! destExists)
+                    dest2.delete();
+            } catch (Exception e) {
+                // IOException, SecurityException, etc
+                JOptionPane.showMessageDialog
+                    (this,
+                     strings.get("dialog.new_dest_src.dest_w_error.text", dname, e.toString()),
+                         // "Error creating or writing to destination {0}:\n{1}"
+                     strings.get("dialog.new_dest_src.dest_w_error.title"),  // "Destination write error"
+                     JOptionPane.ERROR_MESSAGE);
+
+                return;
+            }
+
+            // Validation complete, ready to continue past this dialog.
+            // assert: dest != null; caller can use dest
+
+            dispose();
         }
 
         /**
