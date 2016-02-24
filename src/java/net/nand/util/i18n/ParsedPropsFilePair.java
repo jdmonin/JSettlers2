@@ -315,6 +315,8 @@ public class ParsedPropsFilePair
         parsed.get(0).destComment = comments;
 
         buildContFromSrcDest(null);
+        if (contEndingComment != null)
+            expandCommentLinesIntoCont(contEndingComment);
     }
 
     /**
@@ -389,6 +391,8 @@ public class ParsedPropsFilePair
 
         // Loop through srcLines to build the final content list
         // in the same order as the source file.
+        // Keys found in both src and dest will have their
+        // destKeys entry's key field changed to null.
         buildContFromSrcDest(destKeys);
 
         // Build and add destOnlyPairs here, from destLines where key still is != null
@@ -418,9 +422,21 @@ public class ParsedPropsFilePair
     /**
      * Build {@link #cont} by combining the parsed source ({@link #parsed}) and destination ({@code destKeys}).
      * Called from {@link #parseDest()} or {@link #setDestIsNew(List)}.
+     * Expands {@link #contHeadingComment} before iterating through keys.
+     *<P>
+     * Because {@link #parseDest()} adds entries to {@link #cont} after calling this method
+     * (for {@link #destOnlyPairs}), this method doesn't expand {@link #contEndingComment};
+     * the caller must do so by calling {@link #expandCommentLinesIntoCont(FileKeyEntry) expandCommentLinesIntoCont}
+     * ({@link #contEndingComment}).
      *
      * @param destKeys  Map from destination keys in destLines to {@link #cont} entries, or {@code null}.
      *     Does not contain {@link #contHeadingComment} or {@link #contEndingComment} because their key would be null.
+     *     <P>
+     *     <B>Note:</B> {@code destKeys} contents are modified by this method:<BR>
+     *     As entries in this map are matched to source entries with the same key, each matched entry's
+     *     {@link PropsFileParser.KeyPairLine#key KeyPairLine.key} field will be set to {@code null}.
+     *     If no source line has the same key as a given {@code destKeys} entry, at the end of the method
+     *     that entry's key field will still be {@code != null}.
      */
     private void buildContFromSrcDest(final Map<String, PropsFileParser.KeyPairLine> destKeys)
     {
@@ -444,7 +460,7 @@ public class ParsedPropsFilePair
                     expandCommentLinesIntoCont(srcLine);
                 cont.add(srcLine);
 
-                dest.key = null;  // mark as matched to src, not left over for destOnlyPairs
+                dest.key = null;  // mark as matched to src, not left over for destOnlyPairs in parseDest()
             } else {
                 // this key is in source only
                 if (srcLine.srcComment != null)
