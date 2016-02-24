@@ -725,6 +725,7 @@ public class PTEMain extends JFrame
         /**
          * Handle button clicks:
          * Create button validates {@link #dest} and may dispose the dialog.  Cancel also disposes here.
+         * See {@link NewDestSrcDialog} class javadoc for validation actions performed.
          */
         public void actionPerformed(final ActionEvent ae)
         {
@@ -746,7 +747,44 @@ public class PTEMain extends JFrame
             // - generated dest filename != source filename [recalcDestName()]
             // - manually entered dest filename not blank and != source filename [doDocEvent(e)]
 
-            // See class javadoc for actions performed.
+            // - Ensure destination doesn't already exist, or ask to overwrite if it is very small
+            final String dname = tfDestFilename.getText().trim();
+            dest = new File(src.getParentFile(), dname);
+            if (dest.exists())
+            {
+                // If dest exists, be sure it's a normal file and
+                // not a directory or other special type.
+                // If dest exists and isn't empty or nearly empty,
+                // to be cautious don't even ask to overwrite.
+                // 4 bytes is more-or-less empty: \r\n, some whitespace
+
+                if ((! dest.isFile()) || (dest.length() > 4))
+                {
+                    JOptionPane.showMessageDialog
+                        (this,
+                         strings.get("dialog.new_dest_src.dest_exists_please_rename", dname),
+                             // "Destination {0} already exists,\nplease rename existing file or choose a new destination name"
+                         strings.get("dialog.new_dest_src.dest_exists"),  // "Destination file exists"
+                         JOptionPane.ERROR_MESSAGE);
+
+                    return;
+                }
+
+                final String[] opts = { strings.get("base.overwrite"), strings.get("base.cancel") };
+                final int btn = JOptionPane.showOptionDialog
+                    (this,
+                     strings.get("dialog.new_dest_src.dest_exists_ask_overwrite", dname),
+                         // "Destination {0} already exists. Overwrite?"
+                     strings.get("dialog.new_dest_src.dest_exists"),  // "Destination file exists"
+                     JOptionPane.YES_NO_OPTION,
+                     JOptionPane.WARNING_MESSAGE,
+                     null, opts, opts[1]);
+
+                if (btn != JOptionPane.YES_OPTION)
+                    return;
+            }
+
+            // - Ensure can create dest and write a blank line to it
             // STATE here
         }
 
