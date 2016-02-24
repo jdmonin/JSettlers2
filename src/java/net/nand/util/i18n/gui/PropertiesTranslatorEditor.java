@@ -66,6 +66,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.text.JTextComponent;
 
 import net.nand.util.i18n.ParsedPropsFilePair;
@@ -294,6 +295,19 @@ public class PropertiesTranslatorEditor
                         return mod.getPTEColumnToolTip(columnModel.getColumn(viewIdx).getModelIndex());
                     }
                 };
+            }
+
+            /** Show tooltip with cell's full text if truncated by narrow column width */
+            public Component prepareRenderer(final TableCellRenderer tcr, final int vr, final int vc)
+            {
+                Component co = super.prepareRenderer(tcr, vr, vc);
+                if (co instanceof JComponent)
+                    if (co.getPreferredSize().width > getCellRect(vr, vc, false).width)
+                        ((JComponent) co).setToolTipText((String) getValueAt(vr, vc));
+                    else
+                        ((JComponent) co).setToolTipText(null);
+
+                return co;
             }
 
             /** Enable save button when cell editing begins */
