@@ -19,10 +19,9 @@ If you're upgrading from an earlier version of JSettlers, check
 VERSIONS.txt for new features, bug fixes, and config changes.
 
 JSettlers is an open-source project licensed under the GPL. The
-project is hosted at http://sourceforge.net/projects/jsettlers2
-and at http://nand.net/jsettlers/devel/ .  Questions, bugs, and
-patches can be posted at the sourceforge page; patches can also
-be sent to https://github.com/jdmonin/JSettlers2 .
+project is hosted at https://github.com/jdmonin/JSettlers2/ and
+at http://nand.net/jsettlers/devel/ .  Questions, bugs, patches,
+and pull requests can be posted at the github page.
 
                           -- The JSettlers Development Team
 
