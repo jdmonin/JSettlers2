@@ -590,9 +590,11 @@ public class SOCAccountClient extends Applet
             out = new DataOutputStream(s.getOutputStream());
             connected = true;
             (reader = new Thread(this)).start();
+
             // send VERSION right away (1.1.07 and later)
+            // Version msg includes locale in 2.0.00 and later clients; older 1.1.xx servers will ignore that token.
             put(SOCVersion.toCmd
-                (Version.versionNumber(), Version.version(), Version.buildnum(), Locale.getDefault().toString()));
+                (Version.versionNumber(), Version.version(), Version.buildnum(), cliLocale.toString()));
         }
         catch (Exception e)
         {
