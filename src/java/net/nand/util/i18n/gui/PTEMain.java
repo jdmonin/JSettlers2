@@ -418,6 +418,7 @@ public class PTEMain extends JFrame
 
         // NewDestSrcDialog will get the new dest's filename, and validate
         // to ensure it doesn't yet exist but can be written to.
+
         final NewDestSrcDialog dia = new NewDestSrcDialog(src);
         dia.setVisible(true);  // modal, waits for selection
         if (dia.dest == null)
@@ -609,8 +610,6 @@ public class PTEMain extends JFrame
         /**
          * Calculated name from {@link #baseName} + {@link #tfLang} + {@link #tfRegion}, or {@code null}.
          * Set in {@link #recalcDestName()}.
-         * If user manually changes the destination name, {@link #calcName} becomes {@code null}.
-         * After that, clearing the destination name field can cause {@link #calcName} to be set again.
          */
         private String calcName;
 
@@ -854,7 +853,8 @@ public class PTEMain extends JFrame
             }
 
             calcName = sb.toString();
-            final boolean canCreate = (lang.length() >= 2) && ! calcName.equalsIgnoreCase(src.getName());
+            final boolean canCreate = (lang.length() >= 2) && (rgn.length() != 1)
+                && ! calcName.equalsIgnoreCase(src.getName());
 
             tfDestFilename.setText(calcName);
             if (canCreate != bCreate.isEnabled())
@@ -866,6 +866,9 @@ public class PTEMain extends JFrame
          * For {@code tfDestFilename}, enable {@link #bCreate} if the name isn't the source filename
          * and clear {@link #calcName} if the user has manually changed it from the calculated name.
          * For other fields, call {@link #recalcDestName()}.
+         *<P>
+         * Note: DocumentEvents fire not only when the user types, but also when the program itself
+         * changes the contents of a JTextField.
          */
         private void doDocEvent(DocumentEvent e)
         {
@@ -877,9 +880,6 @@ public class PTEMain extends JFrame
                 final boolean ok = (dname.length() > 0) && ! dname.equalsIgnoreCase(src.getName());
                 if (bCreate.isEnabled() != ok)
                     bCreate.setEnabled(ok);
-
-                if ((! ok) && (dname.length() > 0))
-                    calcName = null;
             }
         }
 
