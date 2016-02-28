@@ -428,8 +428,12 @@ public class PropertiesTranslatorEditor
         {
             final InputMap im = opan.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
             final ActionMap am = opan.getActionMap();
+            // Ctrl on windows, Cmd on OSX
+            final int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
             im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK), "find");  // TODO i18n VK_F ?
+            if (mask != InputEvent.CTRL_DOWN_MASK)
+                im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F, mask), "find");  // Cmd-F on OSX
             am.put("find", new AbstractAction()
             {
                 public void actionPerformed(ActionEvent arg0) { doSearchHotkey(); }
