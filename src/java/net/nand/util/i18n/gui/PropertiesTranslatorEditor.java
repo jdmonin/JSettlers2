@@ -369,8 +369,9 @@ public class PropertiesTranslatorEditor
                 else
                     jtabClickedRow = -1;
 
-                jtabClickedCol = jtab.convertColumnIndexToModel(jtab.columnAtPoint(pt));
+                final int c = jtab.convertColumnIndexToModel(jtab.columnAtPoint(pt));
                     // columnAtPoint returns -1 if not in a column; convertColumnIndexToModel returns -1 for -1
+                jtabClickedCol = c;
             }
         });
 
@@ -428,7 +429,7 @@ public class PropertiesTranslatorEditor
         {
             final InputMap im = opan.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
             final ActionMap am = opan.getActionMap();
-            // Ctrl on windows, Cmd on OSX
+            // Shortcuts will use Ctrl on windows, also Cmd on OSX
             final int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
             im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK), "find");  // TODO i18n VK_F ?
@@ -457,6 +458,9 @@ public class PropertiesTranslatorEditor
             insertRow(ae, false);
         else if ((menuCopyToClip != null) && (item == menuCopyToClip))
         {
+            if ((jtabClickedRow < 0) || (jtabClickedCol < 0))
+                return;
+
             final String cellText = mod.getValueAt(jtabClickedRow, jtabClickedCol).toString();
             Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
             try
