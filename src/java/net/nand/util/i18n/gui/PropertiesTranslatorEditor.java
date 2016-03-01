@@ -391,6 +391,8 @@ public class PropertiesTranslatorEditor
             tPopup.add(menuAddAbove);
             tPopup.add(menuAddBelow);
             jtab.setComponentPopupMenu(tPopup);
+                // Note: setComponentPopupMenu adds its own mouselistener, and consumes the event
+                // (on OSX at least) before it reaches our own mouselistener.
         }
 
         cellListener = new CellEditorMouseListener();
