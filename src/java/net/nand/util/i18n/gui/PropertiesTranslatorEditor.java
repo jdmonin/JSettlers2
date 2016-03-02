@@ -34,6 +34,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -92,7 +93,7 @@ import net.nand.util.i18n.mgr.StringManager;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
 public class PropertiesTranslatorEditor
-    implements ActionListener
+    implements ActionListener, MouseListener
 {
 
     /** i18n text strings; if null, call {@link #initStringManager()} to initialize. */
@@ -128,6 +129,9 @@ public class PropertiesTranslatorEditor
 
     /** Save button for properties file from current editor contents; disabled until changes are made */
     private JButton bSaveSrc, bSaveDest;
+
+    /** Context popup menu within table. Null before {@link #init()}. */
+    private JPopupMenu mTablePopup;
 
     /** Menu items to add a line above or below this line */
     private JMenuItem menuAddAbove, menuAddBelow;
@@ -358,42 +362,26 @@ public class PropertiesTranslatorEditor
             canSetClipboard = false;
         }
 
-        // Listen for click locations, so right-click menu knows where it was clicked
-        jtab.addMouseListener(new MouseAdapter() {
-            public void mousePressed(MouseEvent e) {
-                final Point pt = e.getPoint();
-
-                final int r = jtab.rowAtPoint(pt);
-                if ((r >= 0) && (r < mod.getRowCount()))
-                    jtabClickedRow = r;
-                else
-                    jtabClickedRow = -1;
-
-                final int c = jtab.convertColumnIndexToModel(jtab.columnAtPoint(pt));
-                    // columnAtPoint returns -1 if not in a column; convertColumnIndexToModel returns -1 for -1
-                jtabClickedCol = c;
-            }
-        });
+        // Listen for click locations, to update the current selected cell at mouse press, and so
+        // the right-click context menu knows where it was clicked; see doMouseEvent(..).
+        // Alternately could call jtab.setComponentPopupMenu, but this adds its own mouselistener which
+        // consumes the event (on OSX at least) before it reaches our listener.
+        jtab.addMouseListener(this);
 
         // Table right-click menu
+        mTablePopup = new JPopupMenu();
+        if (canSetClipboard)
         {
-            final JPopupMenu tPopup = new JPopupMenu();
-            if (canSetClipboard)
-            {
-                menuCopyToClip = new JMenuItem(strings.get("menu.popup.copy_to_clipboard"));
-                menuCopyToClip.addActionListener(this);
-                tPopup.add(menuCopyToClip);
-            }
-            menuAddAbove = new JMenuItem(strings.get("menu.popup.add_above"));
-            menuAddBelow = new JMenuItem(strings.get("menu.popup.add_below"));
-            menuAddAbove.addActionListener(this);
-            menuAddBelow.addActionListener(this);
-            tPopup.add(menuAddAbove);
-            tPopup.add(menuAddBelow);
-            jtab.setComponentPopupMenu(tPopup);
-                // Note: setComponentPopupMenu adds its own mouselistener, and consumes the event
-                // (on OSX at least) before it reaches our own mouselistener.
+            menuCopyToClip = new JMenuItem(strings.get("menu.popup.copy_to_clipboard"));
+            menuCopyToClip.addActionListener(this);
+            mTablePopup.add(menuCopyToClip);
         }
+        menuAddAbove = new JMenuItem(strings.get("menu.popup.add_above"));
+        menuAddBelow = new JMenuItem(strings.get("menu.popup.add_below"));
+        menuAddAbove.addActionListener(this);
+        menuAddBelow.addActionListener(this);
+        mTablePopup.add(menuAddAbove);
+        mTablePopup.add(menuAddBelow);
 
         cellListener = new CellEditorMouseListener();
 
@@ -773,6 +761,50 @@ public class PropertiesTranslatorEditor
             return null;
         }
     }
+
+    /**
+     * Handle mouse clicks in table cells, including context-menu popup trigger;
+     * will set currently selected cell at mousePressed before showing popup.
+     * @param isPress  True for mousePressed, to change selected cell
+     */
+    public void doMouseEvent(final MouseEvent e, final boolean isPress)
+    {
+        final Point pt = e.getPoint();
+
+        if (isPress)
+        {
+            final int r = jtab.rowAtPoint(pt);
+            if ((r >= 0) && (r < mod.getRowCount()))
+                jtabClickedRow = r;
+            else
+                jtabClickedRow = -1;
+
+            final int c = jtab.convertColumnIndexToModel(jtab.columnAtPoint(pt));
+                // columnAtPoint returns -1 if not in a column; convertColumnIndexToModel returns -1 for -1
+            jtabClickedCol = c;
+
+            if ((r != -1) && (c != -1))
+            {
+                if (r != jtab.getSelectedRow())
+                    jtab.setRowSelectionInterval(r, r);
+                if (c != jtab.getSelectedColumn())
+                    jtab.setColumnSelectionInterval(c, c);
+            }
+        }
+
+        if (e.isPopupTrigger())
+        {
+            e.consume();
+            mTablePopup.show(e.getComponent(), pt.x, pt.y);
+        }
+    }
+
+    // implement MouseListener
+    public void mousePressed(MouseEvent e)  { doMouseEvent(e, true); }
+    public void mouseReleased(MouseEvent e) { doMouseEvent(e, false); }
+    public void mouseClicked(MouseEvent e)  { doMouseEvent(e, false); }
+    public void mouseEntered(MouseEvent e) {}
+    public void mouseExited(MouseEvent e) {}
 
     /** Initialized and used in {@link #findBaseAndLangInFilename(String)} */
     private static Pattern _regex_findBaseAndLang;
