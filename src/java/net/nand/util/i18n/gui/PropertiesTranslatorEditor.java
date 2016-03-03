@@ -124,6 +124,9 @@ public class PropertiesTranslatorEditor
     /** main window's pane with {@link #jtab}, created in {@link #init()}, populated in {@link #showPairInPane()} */
     private JScrollPane jpane;
 
+    /** Find button, shows search pane at bottom of window */
+    private JButton bFind;
+
     /** Help button, brings up a brief text message dialog */
     private JButton bHelp;
 
@@ -390,6 +393,9 @@ public class PropertiesTranslatorEditor
             GridLayout bgl = new GridLayout(1, 0);
             JPanel pba = new JPanel(bgl);
 
+            bFind = new JButton(strings.get("editor.button.find"));
+            bFind.setToolTipText(strings.get("editor.button.find.tip"));  // "Show the search panel"
+            bFind.addActionListener(this);
             bHelp = new JButton(strings.get("editor.button.help"));
             bHelp.setToolTipText(strings.get("editor.button.help.tip"));  // "Brief explanation of how to use the editor"
             bHelp.addActionListener(this);
@@ -402,10 +408,13 @@ public class PropertiesTranslatorEditor
             bSaveDest.setEnabled(false);
             bSaveDest.addActionListener(this);
 
+            // Buttons with spacers between them:
+            pba.add(bFind);
+            pba.add(new JPanel());
             pba.add(bHelp);
-            pba.add(new JPanel());  // left-center spacer
+            pba.add(new JPanel());
             pba.add(bSaveSrc);
-            pba.add(new JPanel());  // spacer between buttons
+            pba.add(new JPanel());
             pba.add(bSaveDest);
             opan.add(pba, BorderLayout.NORTH);
         }
@@ -446,6 +455,8 @@ public class PropertiesTranslatorEditor
             insertRow(ae, true);
         else if (item == menuAddBelow)
             insertRow(ae, false);
+        else if (item == bFind)
+            doSearchHotkey();
         else if ((menuCopyToClip != null) && (item == menuCopyToClip))
         {
             if ((jtabClickedRow < 0) || (jtabClickedCol < 0))
