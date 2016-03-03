@@ -124,7 +124,7 @@ public class PropertiesTranslatorEditor
     /** main window's pane with {@link #jtab}, created in {@link #init()}, populated in {@link #showPairInPane()} */
     private JScrollPane jpane;
 
-    /** Find button, shows search pane at bottom of window */
+    /** Find button, shows search panel at bottom of window */
     private JButton bFind;
 
     /** Help button, brings up a brief text message dialog */
@@ -1106,6 +1106,7 @@ public class PropertiesTranslatorEditor
                 jtab.scrollRectToVisible(jtab.getCellRect(r, c, true));
             } else {
                 labMsg.setText(strings.get("editor.find.no_matches"));
+                Toolkit.getDefaultToolkit().beep();
             }
         }
 
