@@ -47,6 +47,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.InputMap;
 import javax.swing.JButton;
@@ -124,7 +125,7 @@ public class PropertiesTranslatorEditor
     /** main window's pane with {@link #jtab}, created in {@link #init()}, populated in {@link #showPairInPane()} */
     private JScrollPane jpane;
 
-    /** Find button, shows search panel at bottom of window */
+    /** Find button, shows search panel {@link #sPan} at bottom of window */
     private JButton bFind;
 
     /** Help button, brings up a brief text message dialog */
@@ -1023,28 +1024,28 @@ public class PropertiesTranslatorEditor
         {
             super(new BorderLayout());
 
-            // Everything left-aligned, except Close button
-            JPanel pan = new JPanel();
+            // Find button
+            JLabel L = new JLabel(strings.get("editor.find"));  // "Find:"
+            L.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 6));
+                // skip top/bottom border: layout will stretch label to tfSearch height
+            add(L, BorderLayout.LINE_START);
 
-            pan.add(new JLabel(strings.get("editor.find") + " "));  // "Find: "
-
+            // Search field: stretches horizontally
             tfSearch.addActionListener(this);
-            pan.add(tfSearch);
+            add(tfSearch, BorderLayout.CENTER);
+
+            // Everything else right-aligned: Prev/Next Buttons, short message text, Close button
+            JPanel pan = new JPanel();
 
             bPrev.addActionListener(this);
             pan.add(bPrev);
             bNext.addActionListener(this);
             pan.add(bNext);
-
             pan.add(labMsg);
-
-            add(pan, BorderLayout.LINE_START);
-
-            // Close button; gets its own panel for same size as other buttons
-            JPanel xpan = new JPanel();
             bXClose.addActionListener(this);
-            xpan.add(bXClose);
-            add(xpan, BorderLayout.LINE_END);
+            pan.add(bXClose);
+
+            add(pan, BorderLayout.LINE_END);
 
             // Keyboard shortcuts: hide on ESC
 
