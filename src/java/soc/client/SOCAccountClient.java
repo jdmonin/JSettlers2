@@ -581,7 +581,7 @@ public class SOCAccountClient extends Applet
                                             hostString);
         }
         System.out.println("Connecting to " + hostString);
-        messageLabel.setText(strings.get("account.connect.connecting"));  // "Connecting to server..."
+        messageLabel.setText(strings.get("pcli.message.connecting.serv"));  // "Connecting to server..."
 
         try
         {
@@ -599,7 +599,7 @@ public class SOCAccountClient extends Applet
         catch (Exception e)
         {
             ex = e;
-            String msg = strings.get("account.connect.could_not", ex);  // "Could not connect to the server: " + ex
+            String msg = strings.get("pcli.error.couldnotconnect", ex);  // "Could not connect to the server: " + ex
             System.err.println(msg);
             messageLabel.setText(msg);
         }
