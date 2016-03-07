@@ -184,8 +184,10 @@ public class SOCAccountClient extends Applet
 
     /**
      * Locale for i18n message lookups used for {@link #strings}.
+     * Also sent to server when connecting.
      * Override if needed in the constructor by reading the
-     * {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE} system property.
+     * {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE}
+     * system property {@code "jsettlers.locale"}.
      * @since 2.0.00
      */
     final Locale cliLocale;
@@ -207,6 +209,10 @@ public class SOCAccountClient extends Applet
     /**
      * Constructor for connecting to the specified host, on the specified port.
      * Must call 'init' to start up and do layout.
+     *<P>
+     * The {@code SOCAccountClient} GUI's own localized strings use the
+     * current user's default locale, unless overridden by setting the
+     * {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE} system property {@code "jsettlers.locale"}.
      *
      * @param h  host
      * @param p  port

@@ -153,8 +153,9 @@ public class SOCPlayerClient
         System.getProperty("os.name").toLowerCase().startsWith("mac os x");
 
     /**
-     * Locale for i18n message lookups used for {@link #strings}.  Override if needed
-     * in the constructor by reading the {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE} system property.
+     * Locale for i18n message lookups used for {@link #strings}.  Also sent to server while connecting.
+     * Override if needed in the constructor by reading the
+     * {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE} system property {@code "jsettlers.locale"}.
      * @since 2.0.00
      */
     final Locale cliLocale;
@@ -486,6 +487,8 @@ public class SOCPlayerClient
     /**
      * Create a SOCPlayerClient connecting to localhost port {@link ClientNetwork#SOC_PORT_DEFAULT}.
      * Initializes helper objects (except {@link GameDisplay}), locale, {@link SOCStringManager}.
+     * The locale will be the current user's default locale, unless overridden by setting the
+     * {@link I18n#PROP_JSETTLERS_LOCALE PROP_JSETTLERS_LOCALE} system property {@code "jsettlers.locale"}.
      *<P>
      * Must call {@link SOCApplet#init()}, or {@link #setGameDisplay(GameDisplay)} and then
      * {@link GameDisplay#initVisualElements()}, to start up and do layout.
