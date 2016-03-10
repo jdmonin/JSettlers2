@@ -5359,13 +5359,15 @@ public class SOCServer extends Server
         final String plName = (String) c.getData();
 
         //currentGameEventRecord.setSnapshot(ga);
+
+        final String cmdText = gameTextMsgMes.getText();
+        final String cmdTxtUC = cmdText.toUpperCase();
+
         ///
         /// command to add time to a game
         /// If the command text changes from '*ADDTIME*' to something else,
         /// please update the warning text sent in checkForExpiredGames().
         ///
-        final String cmdText = gameTextMsgMes.getText();
-        final String cmdTxtUC = cmdText.toUpperCase();
         if (cmdTxtUC.startsWith("*ADDTIME*") || cmdTxtUC.startsWith("ADDTIME"))
         {
             // add 30 minutes to the expiration time.  If this
@@ -5374,10 +5376,11 @@ public class SOCServer extends Server
             // Use ">>>" in message text to mark as urgent.
             if (ga.isPractice)
             {
-                messageToGameUrgent(gaName, ">>> Practice games never expire.");
+                messageToPlayerKeyed(c, gaName, "reply.addtime.practice.never");  // ">>> Practice games never expire."
             } else {
                 ga.setExpiration(ga.getExpiration() + (30 * 60 * 1000));
-                messageToPlayerKeyed(c, gaName, "stats.game.willexpire.urgent",
+                messageToGameKeyed(ga, true, "reply.addtime.extended");  // ">>> Game time has been extended."
+                messageToGameKeyed(ga, true, "stats.game.willexpire.urgent",
                     Integer.valueOf((int) ((ga.getExpiration() - System.currentTimeMillis()) / 60000)));
                     // ">>> This game will expire in 15 minutes."
             }
