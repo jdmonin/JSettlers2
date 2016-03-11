@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -64,7 +64,13 @@ import java.util.Vector;
  * For the board <b>coordinate system and terms</b> (hex, node, edge), see the
  * {@link SOCBoard} class javadoc.
  *<P>
- * The game begins with the server calling {@link #startGame()}, then sending messages to clients
+ * Games are created at the server in {@link soc.server.SOCGameListAtServer} and given an
+ * expiration time 90 minutes away
+ * ({@link soc.server.SOCGameListAtServer#GAME_EXPIRE_MINUTES SOCGameListAtServer.GAME_EXPIRE_MINUTES}).
+ * Players then choose their seats, optionally locking empty seats against joining robots,
+ * and any player can click the Start Game button.
+ *<P>
+ * Game play begins with the server calling {@link #startGame()}, then sending messages to clients
  * with the starting game state and player data and a board layout.
  * After initial placement, normal play begins with the first player's turn, in state {@link #PLAY};
  * {@link #updateAtGameFirstTurn()} is called for any work needed.
@@ -1043,13 +1049,17 @@ public class SOCGame implements Serializable, Cloneable
     boolean allOriginalPlayers;
 
     /**
-     * when this game was created
+     * Time when this game was created, or null if not {@link #active} when created.
+     * @see #lastActionTime
+     * @see #expiration
      */
     Date startTime;
 
     /**
-     * expiration time for this game in milliseconds.
+     * Expiration time for this game in milliseconds
+     * (system clock time, not a duration from {@link #startTime});
      * Same format as {@link System#currentTimeMillis()}.
+     * @see #startTime
      */
     long expiration;
 
@@ -1067,6 +1077,8 @@ public class SOCGame implements Serializable, Cloneable
      * in order to remove it from the {@link soc.server.SOCGameTimeoutChecker}
      * run loop.
      *
+     * @see #getStartTime()
+     * @see #getExpiration()
      * @since 1.1.11
      */
     public long lastActionTime;
@@ -1362,7 +1374,8 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @return the start time for this game, or null if inactive
+     * @return the start time for this game, or null if not active when created
+     * @see #getExpiration()
      */
     public Date getStartTime()
     {
@@ -1370,8 +1383,11 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @return the expiration time in milliseconds,
-     *            same epoch as {@link java.util.Date#getTime()}
+     * Get the expiration time at which this game will be destroyed.
+     * @return the expiration time in milliseconds
+     *         (system clock time, not a duration from {@link #startTime});
+     *         same epoch as {@link java.util.Date#getTime()}
+     * @see #getStartTime()
      */
     public long getExpiration()
     {
@@ -1397,9 +1413,10 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * set the expiration time
+     * Set the expiration time at which this game will be destroyed.
      *
-     * @param ex  the expiration time in milliseconds,
+     * @param ex  the absolute expiration time in milliseconds
+     *            (system clock time, not a duration from {@link #startTime});
      *            same epoch as {@link java.util.Date#getTime()}
      */
     public void setExpiration(final long ex)
