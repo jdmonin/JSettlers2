@@ -368,16 +368,36 @@ public class SOCServer extends Server
     public static final int CLI_VERSION_TIMER_FIRE_MS = 1200;
 
     /**
-     * If game will expire in this or fewer minutes, warn the players. Default 10.
+     * If game will expire in this or fewer minutes, warn the players. Default is 10.
      * Must be at least twice the sleep-time in {@link SOCGameTimeoutChecker#run()}.
      * The game expiry time is set at game creation in
      * {@link SOCGameListAtServer#createGame(String, String, String, Map, GameHandler)}.
+     *<P>
+     * If you update this field, also update {@link #GAME_TIME_EXPIRE_CHECK_MINUTES}.
+     *<P>
+     * Before v2.0.00 this field was named {@code GAME_EXPIRE_WARN_MINUTES}.
      *
      * @see #checkForExpiredGames(long)
      * @see SOCGameTimeoutChecker#run()
-     * @see SOCGameListAtServer#GAME_EXPIRE_MINUTES
+     * @see SOCGameListAtServer#GAME_TIME_EXPIRE_MINUTES
+     * @see #GAME_TIME_EXPIRE_ADDTIME_MINUTES
      */
-    public static int GAME_EXPIRE_WARN_MINUTES = 10;
+    public static int GAME_TIME_EXPIRE_WARN_MINUTES = 10;
+
+    /**
+     * Sleep time (minutes) between checks for expired games in {@link SOCGameTimeoutChecker#run()}.
+     * Default is 5 minutes. Must be at most half of {@link #GAME_TIME_EXPIRE_WARN_MINUTES}
+     * so the user has time to react after seeing the warning.
+     * @since 2.0.00
+     */
+    public static int GAME_TIME_EXPIRE_CHECK_MINUTES = GAME_TIME_EXPIRE_WARN_MINUTES / 2;
+
+    /**
+     * Amount of time to add (30 minutes) when the {@code *ADDTIME*} command is used by a player.
+     * @see #GAME_TIME_EXPIRE_WARN_MINUTES
+     * @since 2.0.00
+     */
+    public static final int GAME_TIME_EXPIRE_ADDTIME_MINUTES = 30;
 
     /**
      * Force robot to end their turn after this many seconds
@@ -1675,7 +1695,7 @@ public class SOCServer extends Server
                 }
             }
 
-            // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES.
+            // Create new game, expiring in SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES.
             SOCGame newGame = createGameAndBroadcast(c, gaName, gaOpts, gVers, false, false);
             if (newGame != null)
                 result = true;
@@ -1689,7 +1709,7 @@ public class SOCServer extends Server
      * Called from {@link #connectToGame(StringConnection, String, Map)}.
      *<P>
      * The new game is created with {@link SOCGameListAtServer#createGame(String, String, String, Map, GameHandler)}
-     * and will expire in {@link SOCGameListAtServer#GAME_EXPIRE_MINUTES} unless extended during play.
+     * and will expire in {@link SOCGameListAtServer#GAME_TIME_EXPIRE_MINUTES} unless extended during play.
      *<P>
      * The broadcast will send {@link SOCNewGameWithOptions} if {@code gaOpts != null}, {@link SOCNewGame} otherwise.
      * If some connected clients are older than {@code gVers}, the message sent to those older clients will
@@ -1729,7 +1749,7 @@ public class SOCServer extends Server
 
         try
         {
-            // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES.
+            // Create new game, expiring in SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES.
 
             newGame = gameList.createGame
                 (gaName, (c != null) ? (String) c.getData() : null, (scd != null) ? scd.localeStr : null,
@@ -5378,10 +5398,10 @@ public class SOCServer extends Server
             {
                 messageToPlayerKeyed(c, gaName, "reply.addtime.practice.never");  // ">>> Practice games never expire."
             } else {
-                ga.setExpiration(ga.getExpiration() + (30 * 60 * 1000));
+                ga.setExpiration(ga.getExpiration() + (GAME_TIME_EXPIRE_ADDTIME_MINUTES * 60 * 1000));
                 messageToGameKeyed(ga, true, "reply.addtime.extended");  // ">>> Game time has been extended."
                 messageToGameKeyed(ga, true, "stats.game.willexpire.urgent",
-                    Integer.valueOf((int) ((ga.getExpiration() - System.currentTimeMillis()) / 60000)));
+                    Integer.valueOf((int) ((ga.getExpiration() - System.currentTimeMillis()) / (60 * 1000))));
                     // ">>> This game will expire in 15 minutes."
             }
         }
@@ -8006,7 +8026,7 @@ public class SOCServer extends Server
      * Is callback method every few minutes from {@link SOCGameTimeoutChecker#run()}.
      *
      * @param currentTimeMillis  The time when called, from {@link System#currentTimeMillis()}
-     * @see #GAME_EXPIRE_WARN_MINUTES
+     * @see #GAME_TIME_EXPIRE_WARN_MINUTES
      * @see #checkForExpiredTurns(long)
      */
     public void checkForExpiredGames(final long currentTimeMillis)
@@ -8016,7 +8036,7 @@ public class SOCServer extends Server
         gameList.takeMonitor();
         
         // Add 2 minutes because of coarse 5-minute granularity in SOCGameTimeoutChecker.run()
-        long warn_ms = (2 + GAME_EXPIRE_WARN_MINUTES) * 60L * 1000L;
+        long warn_ms = (2 + GAME_TIME_EXPIRE_WARN_MINUTES) * 60L * 1000L;
 
         try
         {
@@ -8106,7 +8126,7 @@ public class SOCServer extends Server
                     // bump out that time, so we don't see
                     // it again every few seconds
                     ga.lastActionTime
-                        += (1000L * 60L * SOCGameListAtServer.GAME_EXPIRE_MINUTES);
+                        += (SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES * 60L * 1000L);
                     continue;
                 }
 

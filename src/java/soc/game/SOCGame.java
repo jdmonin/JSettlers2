@@ -66,7 +66,7 @@ import java.util.Vector;
  *<P>
  * Games are created at the server in {@link soc.server.SOCGameListAtServer} and given an
  * expiration time 90 minutes away
- * ({@link soc.server.SOCGameListAtServer#GAME_EXPIRE_MINUTES SOCGameListAtServer.GAME_EXPIRE_MINUTES}).
+ * ({@link soc.server.SOCGameListAtServer#GAME_TIME_EXPIRE_MINUTES SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES}).
  * Players then choose their seats, optionally locking empty seats against joining robots,
  * and any player can click the Start Game button.
  *<P>
@@ -1073,7 +1073,7 @@ public class SOCGame implements Serializable, Cloneable
      * otherwise the value should be a recent time.
      *<P>
      * At the end of a game, the server may increase this value by
-     * 90 minutes ({@link soc.server.SOCGameListAtServer#GAME_EXPIRE_MINUTES})
+     * 90 minutes ({@link soc.server.SOCGameListAtServer#GAME_TIME_EXPIRE_MINUTES})
      * in order to remove it from the {@link soc.server.SOCGameTimeoutChecker}
      * run loop.
      *

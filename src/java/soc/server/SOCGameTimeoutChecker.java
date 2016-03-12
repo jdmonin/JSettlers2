@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010,2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2015-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -63,12 +63,13 @@ public class SOCGameTimeoutChecker extends Thread
             long now = System.currentTimeMillis();
             if (gameExpireCheckTime == 0L)
                 gameExpireCheckTime = now;
+
             if (now >= gameExpireCheckTime)
             {
                 server.checkForExpiredGames(now);
 
-                // check every 5 minutes; must be at most half of SOCServer.GAME_EXPIRE_WARN_MINUTES
-                gameExpireCheckTime = now + 300000;
+                // check every 5 minutes
+                gameExpireCheckTime = now + (SOCServer.GAME_TIME_EXPIRE_CHECK_MINUTES * 60 * 1000);
                 yield();
             }
 

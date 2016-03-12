@@ -21,7 +21,6 @@
  **/
 package soc.server;
 
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Vector;
@@ -53,12 +52,14 @@ public class SOCGameListAtServer extends SOCGameList
     /**
      * Number of minutes after which a game (created on the list) is expired.
      * Default is 90.
+     *<P>
+     * Before v2.0.00 this field was named {@code GAME_EXPIRE_MINUTES}.
      *
      * @see #createGame(String, String, String, Map, GameHandler)
      * @see SOCGame#setExpiration(long)
      * @see SOCServer#checkForExpiredGames(long)
      */
-    public static int GAME_EXPIRE_MINUTES = 90;
+    public static int GAME_TIME_EXPIRE_MINUTES = 90;
 
     /** synchronized map of game names to Vector of game members ({@link StringConnection}s) */
     protected Hashtable<String, Vector<StringConnection>> gameMembers;
@@ -276,7 +277,7 @@ public class SOCGameListAtServer extends SOCGameList
     }
 
     /**
-     * create a new game, and add to the list; game will expire in {@link #GAME_EXPIRE_MINUTES} minutes.
+     * create a new game, and add to the list; game will expire in {@link #GAME_TIME_EXPIRE_MINUTES} minutes.
      * If a game already exists (per {@link #isGame(String)}), do nothing.
      *
      * @param gaName  the name of the game
@@ -313,7 +314,7 @@ public class SOCGameListAtServer extends SOCGameList
             game.setOwner(gaOwner, gaLocaleStr);
 
         // set the expiration to 90 min. from now
-        game.setExpiration(game.getStartTime().getTime() + (60 * 1000 * GAME_EXPIRE_MINUTES));
+        game.setExpiration(game.getStartTime().getTime() + (60 * 1000 * GAME_TIME_EXPIRE_MINUTES));
 
         gameInfo.put(gaName, new GameInfoAtServer(game.getGameOptions(), handler));  // also creates MutexFlag
         gameData.put(gaName, game);
@@ -363,7 +364,7 @@ public class SOCGameListAtServer extends SOCGameList
             SOCGame rgame = reset.newGame;
 
             // As in createGame, set expiration timer to 90 min. from now
-            rgame.setExpiration(new Date().getTime() + (60 * 1000 * GAME_EXPIRE_MINUTES));
+            rgame.setExpiration(System.currentTimeMillis() + (60 * 1000 * GAME_TIME_EXPIRE_MINUTES));
 
             // Adjust game-list
             gameData.remove(gaName);
