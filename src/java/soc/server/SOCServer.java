@@ -398,6 +398,8 @@ public class SOCServer extends Server
      * @since 2.0.00
      */
     public static final int GAME_TIME_EXPIRE_ADDTIME_MINUTES = 30;
+        // 30 minutes is hardcoded into some texts sent to players;
+        // if you change it here, you will need to also search for those.
 
     /**
      * Force robot to end their turn after this many seconds
@@ -5390,19 +5392,36 @@ public class SOCServer extends Server
         ///
         if (cmdTxtUC.startsWith("*ADDTIME*") || cmdTxtUC.startsWith("ADDTIME"))
         {
+            // Unless this is a practice game, if reasonable
             // add 30 minutes to the expiration time.  If this
             // changes to another timespan, please update the
             // warning text sent in checkForExpiredGames().
             // Use ">>>" in message text to mark as urgent.
+
             if (ga.isPractice)
             {
                 messageToPlayerKeyed(c, gaName, "reply.addtime.practice.never");  // ">>> Practice games never expire."
             } else {
-                ga.setExpiration(ga.getExpiration() + (GAME_TIME_EXPIRE_ADDTIME_MINUTES * 60 * 1000));
-                messageToGameKeyed(ga, true, "reply.addtime.extended");  // ">>> Game time has been extended."
-                messageToGameKeyed(ga, true, "stats.game.willexpire.urgent",
-                    Integer.valueOf((int) ((ga.getExpiration() - System.currentTimeMillis()) / (60 * 1000))));
-                    // ">>> This game will expire in 15 minutes."
+                // check game time currently remaining: if already more than
+                // the original GAME_TIME_EXPIRE_MINUTES, don't add more now.
+                final long now = System.currentTimeMillis();
+                long exp = ga.getExpiration();
+                int minRemain = (int) ((exp - now) / (60 * 1000));
+
+                if (minRemain > SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES)
+                {
+                    messageToPlayerKeyed(c, gaName, "reply.addtime.not_expire_soon", Integer.valueOf(minRemain));
+                        // "Ask again later: This game does not expire soon, it has {0} minutes remaining."
+                } else {
+                    exp += (GAME_TIME_EXPIRE_ADDTIME_MINUTES * 60 * 1000);
+                    minRemain += GAME_TIME_EXPIRE_ADDTIME_MINUTES;
+
+                    ga.setExpiration(exp);
+                    messageToGameKeyed(ga, true, "reply.addtime.extended");  // ">>> Game time has been extended."
+                    messageToGameKeyed(ga, true, "stats.game.willexpire.urgent",
+                        Integer.valueOf(minRemain));
+                        // ">>> This game will expire in 45 minutes."
+                }
             }
         }
 
