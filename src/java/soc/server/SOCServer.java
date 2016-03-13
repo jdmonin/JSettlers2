@@ -5428,7 +5428,7 @@ public class SOCServer extends Server
         ///
         /// Check the time remaining for this game
         ///
-        if (cmdTxtUC.startsWith("*CHECKTIME*"))
+        else if (cmdTxtUC.startsWith("*CHECKTIME*"))
         {
             processDebugCommand_gameStats(c, gaName, ga, true);
         }
