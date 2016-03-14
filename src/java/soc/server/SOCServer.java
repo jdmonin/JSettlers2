@@ -8054,7 +8054,7 @@ public class SOCServer extends Server
 
         gameList.takeMonitor();
         
-        // Add 2 minutes because of coarse 5-minute granularity in SOCGameTimeoutChecker.run()
+        // Add 2 extra minutes because of coarse 5-minute granularity in SOCGameTimeoutChecker.run()
         long warn_ms = (2 + GAME_TIME_EXPIRE_WARN_MINUTES) * 60L * 1000L;
 
         try
@@ -8072,19 +8072,20 @@ public class SOCServer extends Server
                 {
                     final String gameName = gameData.getName();
                     expired.addElement(gameName);
-                    messageToGameUrgent(gameName, ">>> The time limit on this game has expired and will now be destroyed.");
+                    messageToGameKeyed(gameData, true, "game.time.expire.destroyed");
+                        // ">>> The time limit on this game has expired, it will now be destroyed."
                 }
                 else if ((gameExpir - warn_ms) <= currentTimeMillis)
                 {
                     //
                     //  Give people a few minutes' warning (they may have a few warnings)
                     //
-                    long minutes = ((gameExpir - currentTimeMillis) / 60000);
-                    if (minutes < 1L)
+                    int minutes = (int) ((gameExpir - currentTimeMillis) / 60000);
+                    if (minutes < 1)
                         minutes = 1;  // in case of rounding down
 
-                    messageToGameUrgent(gameData.getName(), ">>> Less than "
-                            + minutes + " minutes remaining.  Type *ADDTIME* to extend this game another 30 minutes.");
+                    messageToGameKeyed(gameData, true, "game.time.expire.soon.addtime", Integer.valueOf(minutes));
+                        // ">>> Less than {0} minutes remaining. Type *ADDTIME* to extend this game another 30 minutes."
                 }
             }
         }
