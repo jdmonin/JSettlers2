@@ -8429,6 +8429,7 @@ public class SOCServer extends Server
         }
 
         final String requester = (String) c.getData();  // null if client isn't authenticated
+        final Date currentTime = new Date();
         boolean isDBCountedEmpty = false;  // with null requester, did we query and find the users table is empty?
 
         // If client is not authenticated, does this server have open registration
@@ -8508,6 +8509,12 @@ public class SOCServer extends Server
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                          "The nickname '" + userName + "' is already in use."));
+
+                System.out.println
+                    ("Audit: Requested jsettlers account creation, already exists: '" + userName
+                     + ((requester != null) ? "' by '" + requester : "")
+                     + "' from " + c.host() + " at " + currentTime);
+
                 return;
             }
         }
@@ -8523,8 +8530,6 @@ public class SOCServer extends Server
         //
         // create the account
         //
-        Date currentTime = new Date();
-
         boolean success = false;
 
         try
