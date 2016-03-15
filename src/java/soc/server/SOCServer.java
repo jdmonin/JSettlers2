@@ -354,8 +354,18 @@ public class SOCServer extends Server
      * @see #checkForExpiredGames(long)
      * @see SOCGameTimeoutChecker#run()
      * @see SOCGameListAtServer#GAME_EXPIRE_MINUTES
+     * @see #GAME_TIME_EXPIRE_ADDTIME_MINUTES
      */
     public static int GAME_EXPIRE_WARN_MINUTES = 10;
+
+    /**
+     * Amount of time to add (30 minutes) when the {@code *ADDTIME*} command is used by a player.
+     * @see #GAME_EXPIRE_WARN_MINUTES
+     * @since 1.1.20
+     */
+    public static final int GAME_TIME_EXPIRE_ADDTIME_MINUTES = 30;
+        // 30 minutes is hardcoded into some texts sent to players;
+        // if you change it here, you will need to also search for those.
 
     /**
      * Force robot to end their turn after this many seconds
@@ -5017,16 +5027,34 @@ public class SOCServer extends Server
         final String cmdTxtUC = cmdText.toUpperCase();
         if (cmdTxtUC.startsWith("*ADDTIME*") || cmdTxtUC.startsWith("ADDTIME"))
         {
+            // Unless this is a practice game, if reasonable
             // add 30 minutes to the expiration time.  If this
             // changes to another timespan, please update the
             // warning text sent in checkForExpiredGames().
             // Use ">>>" in message text to mark as urgent.
+
             if (ga.isPractice)
             {
-                messageToGameUrgent(gaName, ">>> Practice games never expire.");
+                messageToPlayer(c, gaName, ">>> Practice games never expire.");
             } else {
-                ga.setExpiration(ga.getExpiration() + (30 * 60 * 1000));
-                messageToGameUrgent(gaName, ">>> This game will expire in " + ((ga.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.");
+                // check game time currently remaining: if already more than
+                // the original GAME_TIME_EXPIRE_MINUTES, don't add more now.
+                final long now = System.currentTimeMillis();
+                long exp = ga.getExpiration();
+                int minRemain = (int) ((exp - now) / (60 * 1000));
+
+                if (minRemain > SOCGameListAtServer.GAME_EXPIRE_MINUTES)
+                {
+                    messageToPlayer(c, gaName,
+                        "Ask again later: This game does not expire soon, it has " + minRemain + " minutes remaining.");
+                } else {
+                    exp += (GAME_TIME_EXPIRE_ADDTIME_MINUTES * 60 * 1000);
+                    minRemain += GAME_TIME_EXPIRE_ADDTIME_MINUTES;
+
+                    ga.setExpiration(exp);
+                    messageToGameUrgent(gaName, ">>> Game time has been extended.");
+                    messageToGameUrgent(gaName, ">>> This game will expire in " + minRemain + " minutes.");
+                }
             }
         }
 
