@@ -395,7 +395,7 @@ public class SOCServer extends Server
     /**
      * Amount of time to add (30 minutes) when the {@code *ADDTIME*} command is used by a player.
      * @see #GAME_TIME_EXPIRE_WARN_MINUTES
-     * @since 2.0.00
+     * @since 1.1.20
      */
     public static final int GAME_TIME_EXPIRE_ADDTIME_MINUTES = 30;
         // 30 minutes is hardcoded into some texts sent to players;
