@@ -4179,7 +4179,8 @@ public class SOCServer extends Server
                     break;
 
                 /**
-                 * client's optional authentication request before creating a game (v1.1.19+)
+                 * client's optional authentication request before creating a game
+                 * or when connecting using {@code SOCAccountClient} (v1.1.19+).
                  */
                 case SOCMessage.AUTHREQUEST:
                     handleAUTHREQUEST(c, (SOCAuthRequest) mes);
@@ -5592,6 +5593,7 @@ public class SOCServer extends Server
 
     /**
      * Handle the optional {@link SOCAuthRequest "authentication request"} message.
+     * Sent by clients since v1.1.19 before creating a game or when connecting using {@code SOCAccountClient}.
      *<P>
      * If {@link StringConnection#getData() c.getData()} != {@code null}, the client already authenticated and
      * this method replies with {@link SOCStatusMessage#SV_OK} without checking the password in this message.
