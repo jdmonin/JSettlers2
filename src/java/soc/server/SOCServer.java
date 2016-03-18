@@ -5642,6 +5642,11 @@ public class SOCServer extends Server
                             (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVersion,
                              c.getLocalized("account.create.not_auth")));
                                 // "Your account is not authorized to create accounts."
+
+                    System.out.println
+                        ("Audit: Requested jsettlers account creation, this requester not on account admin whitelist: "
+                         + mes.nickname + " from " + c.host() + " at " + new Date());
+
                     return;
                 }
             }
@@ -7553,6 +7558,11 @@ public class SOCServer extends Server
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVers,
                          c.getLocalized("account.create.not_auth")));  // "Your account is not authorized to create accounts."
+
+                System.out.println
+                    ("Audit: Requested jsettlers account creation, this requester not on account admin whitelist: "
+                     + requester + " from " + c.host() + " at " + currentTime);
+
                 return;
             }
         }
