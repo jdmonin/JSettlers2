@@ -5643,9 +5643,10 @@ public class SOCServer extends Server
                              c.getLocalized("account.create.not_auth")));
                                 // "Your account is not authorized to create accounts."
 
-                    System.out.println
-                        ("Audit: Requested jsettlers account creation, this requester not on account admin whitelist: "
-                         + mes.nickname + " from " + c.host() + " at " + new Date());
+                    printAuditMessage
+                        (mes.nickname,
+                         "Requested jsettlers account creation, this requester not on account admin whitelist",
+                         null, null, c.host());
 
                     return;
                 }
@@ -7559,9 +7560,10 @@ public class SOCServer extends Server
                         (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVers,
                          c.getLocalized("account.create.not_auth")));  // "Your account is not authorized to create accounts."
 
-                System.out.println
-                    ("Audit: Requested jsettlers account creation, this requester not on account admin whitelist: "
-                     + requester + " from " + c.host() + " at " + currentTime);
+                printAuditMessage
+                    (requester,
+                     "Requested jsettlers account creation, this requester not on account admin whitelist",
+                     null, currentTime, c.host());
 
                 return;
             }
@@ -7578,10 +7580,9 @@ public class SOCServer extends Server
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                          "The nickname '" + userName + "' is already in use."));
 
-                System.out.println
-                    ("Audit: Requested jsettlers account creation, already exists: '" + userName
-                     + ((requester != null) ? "' by '" + requester : "")
-                     + "' from " + c.host() + " at " + currentTime);
+                printAuditMessage
+                    (requester, "Requested jsettlers account creation, already exists",
+                     userName, currentTime, c.host());
 
                 return;
             }
@@ -7615,10 +7616,7 @@ public class SOCServer extends Server
                     (SOCStatusMessage.SV_ACCT_CREATED_OK, cliVers,
                      "Account created for '" + userName + "'."));
 
-            System.out.println
-                ("Audit: Created jsettlers account '" + userName
-                 + ((requester != null) ? "' by '" + requester : "")
-                 + "' from " + c.host() + " at " + currentTime);
+            printAuditMessage(requester, "Created jsettlers account", userName, currentTime, c.host());
 
             if (acctsNotOpenRegButNoUsers)
                 acctsNotOpenRegButNoUsers = false;
@@ -8980,6 +8978,40 @@ public class SOCServer extends Server
             System.err.println("Error while resetting password: " + e.getMessage());
         }
 
+    }
+
+    /**
+     * Print a security-action audit message in a standard format.
+     *<H5>Example with object:</H5>
+     *   Audit: Requested jsettlers account creation, already exists: '{@code obj}'
+     *      by '{@code req}' from {@code reqHost} at {@code at}
+     *<H5>Example without object:</H5>
+     *   Audit: Requested jsettlers account creation, this requester not on account admin whitelist:
+     *      '{@code req}' from {@code reqHost} at {@code at}
+     *
+     * @param req  Requesting user, or {@code null} if unknown
+     * @param msg  Message text
+     * @param obj  Object affected by the action, or {@code null} if none
+     * @param at   Timestamp, or {@code null} to use current time
+     * @param reqHost  Requester client's hostname, from {@link StringConnection#host()}
+     * @since 1.1.20
+     */
+    private void printAuditMessage
+        (final String req, final String msg, final String obj, Date at, final String reqHost)
+    {
+        if (at == null)
+            at = new Date();
+
+        if (obj != null)
+            System.out.println
+                ("Audit: " + msg + ": '" + obj
+                 + ((req != null) ? "' by '" + req : "")
+                 + "' from " + reqHost + " at " + at);
+        else
+            System.out.println
+                ("Audit: " + msg + ": "
+                 + ((req != null) ? "'" + req + "'" : "")
+                 + " from " + reqHost + " at " + at);
     }
 
     /**
