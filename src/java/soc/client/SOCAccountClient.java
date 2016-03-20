@@ -77,6 +77,18 @@ public class SOCAccountClient extends Applet
     implements Runnable, ActionListener, KeyListener
 {
     /**
+     * Minimum server version (v1.1.19) to which this account-management client will connect.
+     * The required minimum version simplifies logic and assumptions about available
+     * {@link SOCServerFeatures}. Older clients can be downloaded or built from git release tags
+     * to work with older servers.
+     *<P>
+     * Same format as {@link soc.util.Version#versionNumber()}.
+     * Same value as {@link SOCServerFeatures#VERSION_FOR_SERVERFEATURES}.
+     * @since 1.1.20
+     */
+    public static final int SRV_VERSION_MIN = SOCServerFeatures.VERSION_FOR_SERVERFEATURES;  // v1.1.19 (1119)
+
+    /**
      * CardLayout string for the main panel while connected to a server:
      * Has fields to enter {@link #nick}, {@link #pass}, etc,
      * {@link #status} display and {@link #submit} button.
@@ -857,6 +869,7 @@ public class SOCAccountClient extends Applet
 
     /**
      * Handle the "version" message: Server's version and feature report.
+     * Will disconnect if server is older than {@link #SRV_VERSION_MIN}.
      *
      * @param mes  the message
      * @since 1.1.19
@@ -864,6 +877,19 @@ public class SOCAccountClient extends Applet
     private void handleVERSION(SOCVersion mes)
     {
         sVersion = mes.getVersionNumber();
+        if (sVersion < SRV_VERSION_MIN)
+        {
+            disconnect();
+
+            messageLabel.setText
+                (strings.get
+                    ("account.server_version_minimum", Version.version(sVersion), Version.version(SRV_VERSION_MIN)));
+                // "This server has old version {0}; this client works only with {1} and newer servers."
+            cardLayout.show(this, MESSAGE_PANEL);
+            validate();
+            return;
+        }
+
         sFeatures =
             (sVersion >= SOCServerFeatures.VERSION_FOR_SERVERFEATURES)
             ? new SOCServerFeatures(mes.localeOrFeats)
