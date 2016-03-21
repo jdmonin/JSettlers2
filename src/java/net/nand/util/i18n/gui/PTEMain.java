@@ -36,8 +36,10 @@ import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;  // only for parsing pteversion.properties
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -192,14 +194,41 @@ public class PTEMain extends JFrame
      */
     static void showAbout(final JFrame parent)
     {
+        StringBuilder sb = new StringBuilder(strings.get("dialog.about.text"));
+            /*
+             "PropertiesTranslatorEditor is a side-by-side editor for translators, showing\n" +
+             "each key's value in the source and destination languages next to each other.\n" +
+             "For more info, while editing click the Help button at the top of the editor."
+             */
+
+        InputStream isp = null;
+        try
+        {
+            isp = PTEMain.class.getResourceAsStream("pteversion.properties");
+            Properties vprop = new Properties();
+            vprop.load(isp);
+            String vers = (String) vprop.get("pte.version");  // "1.0.0"
+                // Could alternately use PTEMain.class.getPackage().getImplementationVersion()
+                // to read Implementation-Version from the jar manifest,
+                // but if we're running in eclipse there is no jar file.
+
+            if (vers != null)
+            {
+                sb.append("\n\n");
+                sb.append(strings.get("dialog.about.version", vers));  // "Version: {0}" -> "Version: 1.0.0"
+            }
+        }
+        catch (Exception e) { System.err.println(e); }
+        finally
+        {
+            if (isp != null)
+                try { isp.close(); }
+                catch (Exception e) {}
+        }
+
         JOptionPane.showMessageDialog
             (parent,
-             strings.get("dialog.about.text"),
-             /*
-             "PropertiesTranslatorEditor is a side-by-side editor for translators, showing\n" +
-               "each key's value in the source and destination languages next to each other.\n" +
-               "For more info, while editing click the Help button at the top of the editor.",
-              */
+             sb,
              strings.get("dialog.about.title"),  // "About Properties Translator's Editor"
              JOptionPane.PLAIN_MESSAGE);
     }

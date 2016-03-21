@@ -47,6 +47,8 @@
   <property name="versionnumMaxNoWarn" value="2000" />
   <property name="copyright" value="2001-2004 Robb Thomas, portions (C) 2007-2016 Jeremy D Monin and contributors" />
   <property name="url"       value="http://nand.net/jsettlers/devel/" />
+  <!-- version string for the PTE i18n editor; written to net/nand/util/i18n/gui/pteversion.properties during build-i18neditor -->
+  <property name="i18neditor.version" value="1.0.0" />
 
   <!-- **** See build.properties for client/server startup arguments **** -->
   <property name="client.class"   value="soc.client.SOCPlayerClient" />
@@ -161,9 +163,13 @@
   </target>
 
   <target name="resources-i18neditor"
-          description="Copy resources for i18n editor to classes directory" >
+          description="Copy resources for i18n editor to classes directory; update pteversion.properties" >
+      <echo append="false" file="${java.src}/net/nand/util/i18n/gui/pteversion.properties"># PTE version file - updated by resources-i18neditor ant task
+pte.version = ${i18neditor.version}
+</echo>
       <copy toDir="${classes}">
         <fileset dir="${java.src}" includes="net/nand/util/i18n/gui/strings/*.properties" />
+        <fileset dir="${java.src}" includes="net/nand/util/i18n/gui/pteversion.properties" />
       </copy>
   </target>
 
@@ -250,6 +256,7 @@
         <patternset refid="i18neditor.files" />
         <manifest>
           <attribute name="Main-Class" value="${i18neditor.class}" />
+          <attribute name="Implementation-Version" value="${i18neditor.version}" />
         </manifest>
       </jar>
   </target>
