@@ -73,7 +73,19 @@ import java.net.Socket;
 public class SOCAccountClient extends Applet
     implements Runnable, ActionListener, KeyListener
 {
-    private static final long serialVersionUID = 1119L;  // Last structural change v1.1.19
+    private static final long serialVersionUID = 1120L;  // Last structural change v1.1.20
+
+    /**
+     * Minimum server version (v1.1.19) to which this account-management client will connect.
+     * The required minimum version simplifies logic and assumptions about available
+     * {@link SOCServerFeatures}. Older clients can be downloaded or built from git release tags
+     * to work with older servers.
+     *<P>
+     * Same format as {@link soc.util.Version#versionNumber()}.
+     * Same value as {@link SOCServerFeatures#VERSION_FOR_SERVERFEATURES}.
+     * @since 1.1.20
+     */
+    public static final int SRV_VERSION_MIN = SOCServerFeatures.VERSION_FOR_SERVERFEATURES;  // v1.1.19 (1119)
 
     /**
      * CardLayout string for the main panel while connected to a server:
@@ -811,6 +823,7 @@ public class SOCAccountClient extends Applet
 
     /**
      * Handle the "version" message: Server's version and feature report.
+     * Will disconnect if server is older than {@link #SRV_VERSION_MIN}.
      *
      * @param mes  the message
      * @since 1.1.19
@@ -818,6 +831,19 @@ public class SOCAccountClient extends Applet
     private void handleVERSION(SOCVersion mes)
     {
         sVersion = mes.getVersionNumber();
+        if (sVersion < SRV_VERSION_MIN)
+        {
+            disconnect();
+
+            messageLabel.setText
+                ("This server has old version " + Version.version(sVersion)
+                 + "; this client works only with " + Version.version(SRV_VERSION_MIN)
+                 + " and newer servers.");
+            cardLayout.show(this, MESSAGE_PANEL);
+            validate();
+            return;
+        }
+
         sFeatures =
             (sVersion >= SOCServerFeatures.VERSION_FOR_SERVERFEATURES)
             ? new SOCServerFeatures(mes.feats)
