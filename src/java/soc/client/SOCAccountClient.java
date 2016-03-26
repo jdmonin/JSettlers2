@@ -94,7 +94,13 @@ public class SOCAccountClient extends Applet
      * {@link #status} display and {@link #submit} button.
      */
     private static final String MAIN_PANEL = "main";
+
+    /**
+     * CardLayout string for the message panel when not connected to a server;
+     * message text is shown in {@link #messageLabel}.
+     */
     private static final String MESSAGE_PANEL = "message";
+
     /** CardLayout string for {@link #connPanel}. */
     private static final String CONN_PANEL = "conn";
 
