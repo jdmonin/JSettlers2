@@ -1147,14 +1147,16 @@ public class PropertiesTranslatorEditor
         }
 
         public Component getTableCellRendererComponent
-            (final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int col)
+            (final JTable table, final Object value, final boolean isSelected, final boolean hasFocus,
+             final int row, final int col)
         {
             Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
 
             switch (model.getCellStatus(row, col))
             {
             case SEARCH_MATCH:
-                c.setForeground(Color.BLACK);
+                c.setForeground
+                    (((row == model.sr) && (col == model.sc)) ? Color.BLUE : Color.BLACK);
                 c.setBackground(Color.YELLOW);
                 break;
 
@@ -1212,6 +1214,7 @@ public class PropertiesTranslatorEditor
          * If no match was found, {@code sr} may be 0 or may be outside the valid range of rows.
          * {@code sc} is always valid.
          * @see #searchWrapped
+         * @see CellStatus#SEARCH_MATCH
          */
         public int sr, sc;
 
@@ -1672,7 +1675,10 @@ public class PropertiesTranslatorEditor
         DEFAULT,
         /** Key column in a comment row (not a blank row) */
         COMMENT_KEY_COL,
-        /** Matches current search */
+        /**
+         * Matches current search. See also current match cell at location
+         * ({@link PTSwingTableModel#sr}, {@link PTSwingTableModel#sc}).
+         */
         SEARCH_MATCH,
         /** Key exists in source, but value is empty in source: Needs a value */
         SRC_EMPTY_ERROR,
