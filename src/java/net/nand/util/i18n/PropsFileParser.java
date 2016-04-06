@@ -26,7 +26,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a parsed properties file.
@@ -73,6 +75,30 @@ public class PropsFileParser
      *           this error is not expected to occur.
      */
     public static List<KeyPairLine> parseOneFile(final File pFile)
+        throws IOException, SecurityException, UnsupportedEncodingException
+    {
+        return parseOneFile(pFile, null);
+    }
+
+    /**
+     * Parse one properties file.  May include a header comment (separated by blank line(s) from the first key line),
+     * may include an ending comment after the last key line.
+     * @param pFile  File to parse
+     * @param dupeKeys  Output param for noting any duplicate key names and their values, or {@code null}.
+     *     Key = each key seen more than once while parsing, value = values for that key.
+     *    <P>
+     *     For structure details see {@link #findDuplicateKeys(List, Map)},
+     *     including special case of 'duplicates' with same value.
+     * @return  the file entries as a List.
+     *       If the file starts with a header comment, the first list entry will have a comment and null key and value.
+     *       If the file ends in a comment, the last list entry will have a comment and null key and value.
+     * @throws IOException  If file not found, cannot be read, etc.
+     * @throws SecurityException  if read access is denied
+     * @throws UnsupportedEncodingException  if the {@code "ISO-8859-1"} file encoding is somehow not supported;
+     *           this is the encoding used by Java properties files, so it should be available;
+     *           this error is not expected to occur.
+     */
+    public static List<KeyPairLine> parseOneFile(final File pFile, final Map<String, String> dupeKeys)
         throws IOException, SecurityException, UnsupportedEncodingException
     {
         List<KeyPairLine> ret = new ArrayList<KeyPairLine>();
@@ -189,7 +215,56 @@ public class PropsFileParser
         if ((comment != null) && ! comment.isEmpty())
             ret.add(new KeyPairLine(comment));
 
+        if (dupeKeys != null)
+            findDuplicateKeys(ret, dupeKeys);
+
         return ret;
+    }
+
+    /**
+     * Search a list of key-pair lines for any duplicates, filling the {@code dupeKeys} map.
+     * @param kpLines  Key-pair lines to search for duplicates, as returned by {@link #parseOneFile(File)}.
+     * @param dupeKeys  Output param for noting any duplicate key names and their values.
+     *     This should be empty when called.
+     *    <BR>
+     *     Key = each key seen more than once while parsing, value = values for that key.
+     *    <BR>
+     *     Because this is only for display/warning purposes, to simplify structure
+     *     the duplicate values are kept as a string separated by ",".
+     *    <P>
+     *     <B>Special case:</B> If a key appears more than once with exactly the
+     *     same value, it won't be considered a dupe and won't be placed in this map.
+     */
+    public static void findDuplicateKeys(final List<KeyPairLine> kpLines, final Map<String, String> dupeKeys)
+    {
+        /** Each key's first-seen value, to place both values into dupeKeys */
+        final Map<String, String> kSeen = new HashMap<String, String>();
+
+        for (KeyPairLine kp : kpLines)
+        {
+            final String key = kp.key;
+            if (key == null)
+                continue;
+
+            final String val = kp.value;
+            final String val0 = kSeen.get(key);
+            if (val0 == null)
+            {
+                kSeen.put(key, val);
+            }
+            else if (! val.equals(val0))
+            {
+                // found duplicate key with different value
+
+                String dvals = dupeKeys.get(key);
+                if (dvals == null)
+                    dvals = val0 + ", " + val;
+                else
+                    dvals = dvals + ", " + val;
+
+                dupeKeys.put(key, dvals);
+            }
+        }
     }
 
     /**

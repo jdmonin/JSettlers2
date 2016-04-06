@@ -74,13 +74,29 @@ public class ParsedPropsFilePair
     /** Logical entries, one per key, to be expanded into {@link #cont}:
      *  Source and dest file-pair key-by-key contents, from parsing; does not contain {@link #destOnlyPairs}.
      *  Built during {@link #parseSrc()}, updated during {@link #parseDest()}.
+     *  @see #srcParsedDupeKeys
+     *  @see #destParsedDupeKeys
      */
     private List<FileKeyEntry> parsed;
+
+    /**
+     * Any duplicate keys found during parsing, or {@code null} if none.
+     * Key = each key seen more than once while parsing, value = values for that key.
+     * Built during {@link #parseSrc()} or {@link #parseDest()}.
+     *<P>
+     * For structure details see {@link PropsFileParser#findDuplicateKeys(List, Map)},
+     * including special case of 'duplicates' with same value.
+     * @see #parsed
+     * @see #cont
+     */
+    private Map<String, String> srcParsedDupeKeys, destParsedDupeKeys;
 
     /** Expanded entries (contents), one per line in file, from {@link #parsed}:
      *  Source and dest file-pair line-by-line grid contents, from parsing and editing;
      *  also contains {@link #destOnlyPairs}.  Built during {@link #parseDest()} or {@link #setDestIsNew(List)}
      *  by {@link #buildContFromSrcDest(Map)}.
+     *  @see #srcParsedDupeKeys
+     *  @see #destParsedDupeKeys
      */
     private List<FileEntry> cont;
 
@@ -125,6 +141,8 @@ public class ParsedPropsFilePair
      * The size of this list is {@link #size()}.
      * For access to individual rows, use {@link #getRow(int)}.
      * @see #extractContentsHalf(boolean)
+     * @see #getSrcDupeKeys()
+     * @see #getDestDupeKeys()
      */
     public Iterator<FileEntry> getContents() { return cont.iterator(); }
 
@@ -234,10 +252,36 @@ public class ParsedPropsFilePair
      * Get the list of key-value pairs found only in the destination, or {@code null} if none.
      * The size of this list is {@link #getDestOnlySize()}.
      * @see #getContents()
+     * @see #getDestDupeKeys()
      */
     public Iterator<PropsFileParser.KeyPairLine> getDestOnly()
     {
         return (destOnlyPairs != null) ? destOnlyPairs.iterator() : null;
+    }
+
+    /**
+     * Get any keys seen during source parsing more than once with different values.
+     * Same map format as {@link PropsFileParser#findDuplicateKeys(List, Map)}.
+     * @return  Duplicate keys in source file, or {@code null} if none
+     * @see #getDestDupeKeys()
+     * @see #getContents()
+     * @see #getDestOnly()
+     */
+    public Map<String, String> getSrcDupeKeys()
+    {
+        return srcParsedDupeKeys;
+    }
+
+    /**
+     * Get any keys seen during destination parsing more than once with different values.
+     * Same map format as {@link PropsFileParser#findDuplicateKeys(List, Map)}.
+     * @return  Duplicate keys in destination file, or {@code null} if none
+     * @see #getSrcDupeKeys()
+     * @see #getContents()
+     */
+    public Map<String, String> getDestDupeKeys()
+    {
+        return destParsedDupeKeys;
     }
 
     /**
@@ -252,9 +296,12 @@ public class ParsedPropsFilePair
         if (! parsed.isEmpty())
             throw new IllegalStateException("cannot call parseSrc unless object is empty");
 
-        final List<PropsFileParser.KeyPairLine> srcLines = PropsFileParser.parseOneFile(srcFile);
+        Map<String, String> dupeKeys = new HashMap<String, String>();
+        final List<PropsFileParser.KeyPairLine> srcLines = PropsFileParser.parseOneFile(srcFile, dupeKeys);
         if (srcLines.isEmpty())
             return;
+        if (! dupeKeys.isEmpty())
+            srcParsedDupeKeys = dupeKeys;
 
         final PropsFileParser.KeyPairLine firstLine = srcLines.get(0);
         if ((firstLine.key == null) && (firstLine.comment != null))
@@ -340,9 +387,12 @@ public class ParsedPropsFilePair
         if (isDestNew)
             throw new IllegalStateException("do not call both parseDest and setDestIsNew");
 
-        final List<PropsFileParser.KeyPairLine> destLines = PropsFileParser.parseOneFile(destFile);
+        Map<String, String> dupeKeys = new HashMap<String, String>();
+        final List<PropsFileParser.KeyPairLine> destLines = PropsFileParser.parseOneFile(destFile, dupeKeys);
         if (destLines.isEmpty())
             return;
+        if (! dupeKeys.isEmpty())
+            destParsedDupeKeys = dupeKeys;
 
         final PropsFileParser.KeyPairLine firstLine = destLines.get(0);
         if ((firstLine.key == null) && (firstLine.comment != null))

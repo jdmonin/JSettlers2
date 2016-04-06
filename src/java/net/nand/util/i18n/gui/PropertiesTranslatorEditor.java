@@ -42,6 +42,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -277,6 +278,26 @@ public class PropertiesTranslatorEditor
                     Iterator<PropsFileParser.KeyPairLine> ikpe = pair.getDestOnly();
                     while (ikpe.hasNext())
                         System.err.println(ikpe.next());
+                }
+
+                // TODO if dupes found, show as warning dialog at some point
+                Map<String, String> dk = pair.getSrcDupeKeys();
+                if (dk != null)
+                {
+                    System.err.println();
+                    System.err.println("Duplicate keys in source:");
+                    System.err.println();
+                    for (Map.Entry<String, String> kv : dk.entrySet())
+                        System.err.println(kv.getKey() + ": " + kv.getValue());
+                }
+                dk = pair.getDestDupeKeys();
+                if (dk != null)
+                {
+                    System.err.println();
+                    System.err.println("Duplicate keys in destination:");
+                    System.err.println();
+                    for (Map.Entry<String, String> kv : dk.entrySet())
+                        System.err.println(kv.getKey() + ": " + kv.getValue());
                 }
 
             } catch (IOException ioe) {
