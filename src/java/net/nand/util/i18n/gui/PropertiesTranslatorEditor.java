@@ -272,9 +272,9 @@ public class PropertiesTranslatorEditor
                 // more temporary debug print:
                 if (0 != pair.getDestOnlySize())
                 {
-                    System.out.println();
-                    System.out.println("In destination only:");
-                    System.out.println();
+                    System.err.println();
+                    System.err.println("In destination only:");
+                    System.err.println();
                     Iterator<PropsFileParser.KeyPairLine> ikpe = pair.getDestOnly();
                     while (ikpe.hasNext())
                         System.err.println(ikpe.next());
