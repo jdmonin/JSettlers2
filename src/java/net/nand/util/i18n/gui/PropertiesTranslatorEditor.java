@@ -244,6 +244,8 @@ public class PropertiesTranslatorEditor
                 }
             });
 
+        boolean hasDupeKeys = false;  // Any duplicate keys in src or dest?
+
         // TODO add menu or buttons: open, save, check consistencies, help
         if (pair != null)
         {
@@ -280,25 +282,13 @@ public class PropertiesTranslatorEditor
                         System.err.println(ikpe.next());
                 }
 
-                // TODO if dupes found, show as warning dialog at some point
+                // if dupes found, will show as warning dialog at end of init()
                 Map<String, String> dk = pair.getSrcDupeKeys();
                 if (dk != null)
-                {
-                    System.err.println();
-                    System.err.println("Duplicate keys in source:");
-                    System.err.println();
-                    for (Map.Entry<String, String> kv : dk.entrySet())
-                        System.err.println(kv.getKey() + ": " + kv.getValue());
-                }
+                    hasDupeKeys = true;
                 dk = pair.getDestDupeKeys();
                 if (dk != null)
-                {
-                    System.err.println();
-                    System.err.println("Duplicate keys in destination:");
-                    System.err.println();
-                    for (Map.Entry<String, String> kv : dk.entrySet())
-                        System.err.println(kv.getKey() + ": " + kv.getValue());
-                }
+                    hasDupeKeys = true;
 
             } catch (IOException ioe) {
                 // TODO popup somewhere in GUI
@@ -466,6 +456,37 @@ public class PropertiesTranslatorEditor
         jfra.pack();
         jfra.setSize(700, 500);
         jfra.setVisible(true);
+
+        if (hasDupeKeys)
+        {
+            // show dupes warning
+            StringBuilder sb = new StringBuilder();
+
+            Map<String, String> dk = pair.getSrcDupeKeys();
+            if (dk != null)
+            {
+                sb.append(strings.get("dialog.dupe_keys_found.in_src"));  // "Duplicate keys in source:"
+                sb.append("\n");
+                for (Map.Entry<String, String> kv : dk.entrySet())
+                    sb.append(kv.getKey() + ": " + kv.getValue() + "\n");
+            }
+
+            dk = pair.getDestDupeKeys();
+            if (dk != null)
+            {
+                if (sb.length() > 0)
+                    sb.append("\n\n");
+                sb.append(strings.get("dialog.dupe_keys_found.in_dest"));  // "Duplicate keys in destination:"
+                sb.append("\n");
+                for (Map.Entry<String, String> kv : dk.entrySet())
+                    sb.append(kv.getKey() + ": " + kv.getValue() + "\n");
+            }
+
+            JOptionPane.showMessageDialog
+                (jfra, sb,
+                 strings.get("dialog.dupe_keys_found.title"),  // "Warning: Duplicate keys found"
+                 JOptionPane.WARNING_MESSAGE);
+        }
     }
 
     /** Handle button clicks. */
