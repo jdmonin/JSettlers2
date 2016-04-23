@@ -52,12 +52,14 @@ import java.awt.Image;
 import java.awt.MediaTracker;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
+import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -2114,7 +2116,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 if (hex[i] != null)
                 {
-                    scaledHexes[i] = hex[i].getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                    scaledHexes[i] = getScaledImageUp(hex[i], w, h);
                     scaledHexFail[i] = false;
                 } else {
                     scaledHexes[i] = null;
@@ -2126,7 +2128,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             h = scaleToActualY(por[1].getHeight(null));
             for (int i = scaledPorts.length - 1; i>=0; --i)
             {
-                scaledPorts[i] = por[i].getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                scaledPorts[i] = getScaledImageUp(por[i], w, h);
                 scaledPortFail[i] = false;
             }
         }
@@ -2300,6 +2302,33 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             for (int i = yorig.length - 1; i >= 0; --i)
                 xr[i] = (int) ((xr[i] * (long) scaledPanelX) / panelMinBW);
         return xr;
+    }
+
+    /**
+     * Scale up an image with decent quality.
+     * Convenience method to call instead of obsolete {@link Image#getScaledInstance(int, int, int)}.
+     * Calls <code>
+     * {@link Graphics2D#drawImage(Image, int, int, int, int, java.awt.image.ImageObserver) Graphics2D.drawimage}
+     * (src, 0, 0, w, h, {@link RenderingHints#VALUE_INTERPOLATION_BICUBIC})</code>.
+     *<P>
+     * For more info see the Java2D team blog 2007 post "The Perils of Image.getScaledInstance()" by ChrisAdamson.
+     *
+     * @param src  Source image to scale up; assumes is transparent, not opaque.
+     * @param w  Scale up to this width
+     * @param h  Scale up to this height
+     * @return  the scaled image
+     * @since 1.1.20
+     */
+    public static final BufferedImage getScaledImageUp(final Image src, final int w, final int h)
+    {
+        BufferedImage bufi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g = bufi.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.drawImage(src, 0, 0, w, h, null);
+        g.dispose();
+
+        return bufi;
     }
 
     /**
@@ -2552,7 +2581,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         scaledHexFail[htypeIdx] = true;
                         int w = scaleToActualX(hexis[0].getWidth(null));
                         int h = scaleToActualY(hexis[0].getHeight(null));
-                        scaledHexes[htypeIdx] = hexis[htypeIdx].getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                        scaledHexes[htypeIdx] = getScaledImageUp(hexis[htypeIdx], w, h);
                     }
                 }
             }
@@ -2600,7 +2629,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         scaledPortFail[ptypeIdx] = true;
                         int w = scaleToActualX(portis[1].getWidth(null));
                         int h = scaleToActualY(portis[1].getHeight(null));
-                        scaledPorts[ptypeIdx] = portis[ptypeIdx].getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                        scaledPorts[ptypeIdx] = getScaledImageUp(portis[ptypeIdx], w, h);
                     }
                 }
             }
