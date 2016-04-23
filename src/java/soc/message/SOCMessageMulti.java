@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2008-2009,2014-2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2009,2014-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -42,9 +42,10 @@ package soc.message;
  * If no parameters were seen, <tt>s</tt> will be null.
  *<P>
  * The section you add to {@link SOCMessage#toMsg(String)} will depend on whether
- * a message with 1 parameter is valid; if so, {@code multiData} will be null.
+ * a message with exactly 1 parameter is valid: If so, {@code multiData} will be null;
+ * pass {@code data} to your parseDataStr too.
  *
- *<H5>If your message never expects 1 parameter:</H5>
+ *<H5>If your message never needs to handle exactly 1 parameter:</H5>
  *<pre>
  *     case GAMESWITHOPTIONS:
  *         return SOCGamesWithOptions.parseDataStr(multiData); </pre>

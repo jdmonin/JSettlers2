@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -573,24 +573,24 @@ public abstract class SOCMessage implements Serializable, Cloneable
             /**
              * to handle {@link SOCMessageMulti} subclasses -
              * multiple parameters with sub-fields.
-             * If only 1 param is seen, this will be null; pass {@code data} to your parseDataStr too.
+             * If only 1 param is seen, {@code multiData} will be null; pass {@code data} to your parseDataStr too.
              *<P>
              * Note that if you passed a non-null gamename to the
              * {@link SOCMessageTemplateMs} or {@link SOCMessageTemplateMi} constructor,
              * then multiData[0] here will be gamename,
              * and multiData[1] == param[0] as passed to that constructor.
              *<P>
-             *<H5>If your message never expects 1 parameter:</H5>
-             *<code>
+             *<H5>If your message never needs to handle exactly 1 parameter:</H5>
+             *<pre>
              *     case GAMESWITHOPTIONS:
              *         return SOCGamesWithOptions.parseDataStr(multiData);
-             *</code>
+             *</pre>
              *
              *<H5>If your message might be valid with 1 parameter:</H5>
-             *<code>
+             *<pre>
              *     case GAMESWITHOPTIONS:
              *         return SOCGamesWithOptions.parseDataStr(data, multiData);
-             *</code>
+             *</pre>
              */
             ArrayList<String> multiData = null;
 
