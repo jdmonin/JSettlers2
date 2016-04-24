@@ -267,13 +267,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int HEXY_OFF_SLOPE_HEIGHT = 16;
 
     /**
-     * Y-coordinates and diameter for rendering the hex port graphics' clear middle circle
-     * in {@link #renderPortImages()}: {upper left x, upper left y, diameter}.
-     * The border drawn around the clear circle is derived from this.
+     * Diameter for rendering the hex port graphics' clear middle circle in {@link #renderPortImages()}.
+     * The border drawn around the clear circle is also based on this.
      * @see #portArrowsX
      * @since 1.1.20
      */
-    private static final int[] HEX_PORT_CIRCLE_GEOM = {8, 13, 38};
+    private static final int HEX_PORT_CIRCLE_DIA = 38;
 
     /**
      * coordinates for drawing the playing pieces
@@ -367,7 +366,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Shape numbers are 0-5, for the 6 facing directions numbered the same way as
      * {@link SOCBoard#getAdjacentNodeToHex(int)}: clockwise from top (northern point of hex),
      * 0 is north, 1 is northeast, etc, 5 is northwest.
-     * @see #HEX_PORT_CIRCLE_GEOM
+     * @see #HEX_PORT_CIRCLE_DIA
      * @since 1.1.20
      */
     private static final int[][] portArrowsX =
@@ -2206,17 +2205,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         final int w = water.getWidth(null), h = water.getHeight(null);
 
         // clear circle geometry
-        int xc = HEX_PORT_CIRCLE_GEOM[0], yc = HEX_PORT_CIRCLE_GEOM[1], diac = HEX_PORT_CIRCLE_GEOM[2];
+        int diac = HEX_PORT_CIRCLE_DIA;
+        int xc, yc, arrow_offx;
+
         // white border width
         int diab = diac + 2;
 
         if (isRotated)
         {
-            // (cw):  P'=(panelMinBH-y, x)
-            int ry = xc;
-            xc = panelMinBH - yc;
-            yc = ry;
+            xc = HEXHEIGHT;  yc = HEXWIDTH;
+            arrow_offx = scaleToActualX(HEXHEIGHT - HEXWIDTH);  // re-center on wider hex
+        } else{
+            xc = HEXWIDTH;  yc = HEXHEIGHT;
+            arrow_offx = 0;
         }
+        // center on hex, minus radius
+        xc = (xc - diac) / 2;
+        yc = (yc - diac) / 2;
+
         if (isScaled)
         {
             diab = scaleToActualY(diab);
@@ -2244,14 +2250,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
             // arrows
+            g.setColor(Color.WHITE);
+            g.translate(arrow_offx, 0);
             g.fillPolygon(scaledPortArrowsX[i], scaledPortArrowsY[i], 3);
             int i2 = i + 1;
             if (i2 == 6)
-                i2 = 0;
+                i2 = 0;  // wrapped around
             g.fillPolygon(scaledPortArrowsX[i2], scaledPortArrowsY[i2], 3);
+            g.translate(-arrow_offx, 0);
 
             // white circular border
-            g.setColor(Color.WHITE);
             g.fillOval(xb, yb, diab, diab);
 
             // clear circle to show port type
