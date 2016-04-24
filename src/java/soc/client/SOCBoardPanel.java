@@ -372,12 +372,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private static final int[][] portArrowsX =
     {
-        { 27, 30, 24 },
-        { 51, 50, 47 },
-        { 51, 47, 50 },
-        { 27, 24, 30 },
-        { 3, 4, 7 },
-        { 3, 7, 4 },
+        { 27, 31, 23 },
+        { 51, 49, 45 },
+        { 51, 45, 49 },
+        { 27, 23, 31 },
+        { 3, 5, 9 },
+        { 3, 9, 5 },
     };
     /**
      * For port hexes, the triangular arrowheads towards port settlement nodes:
@@ -386,12 +386,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private static final int[][] portArrowsY =
     {
-        { 4, 7, 7 },
-        { 19, 22, 18 },
-        { 44, 45, 41 },
-        { 59, 56, 56 },
-        { 44, 41, 45 },
-        { 19, 18, 22 },
+        { 4, 8, 8 },
+        { 18, 24, 16 },
+        { 45, 47, 39 },
+        { 59, 55, 55 },
+        { 45, 39, 47 },
+        { 18, 16, 24 },
     };
 
     /**
