@@ -6533,7 +6533,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             tracker.addImage(newHexes[i], 0);
         }
 
-        newPorts[6] = tk.getImage(clazz.getResource(imageDir + "/waterHex.gif"));  // TODO obsoletes port0.gif - port5.gif
+        newPorts[6] = tk.getImage(clazz.getResource(imageDir + "/waterHex.gif"));
         tracker.addImage(newPorts[6], 0);
     }
 
