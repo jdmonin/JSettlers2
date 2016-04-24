@@ -267,6 +267,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int HEXY_OFF_SLOPE_HEIGHT = 16;
 
     /**
+     * Y-coordinates and diameter for rendering the hex port graphics' clear middle circle
+     * in {@link #renderPortImages()}: {upper left x, upper left y, diameter}.
+     * The border drawn around the clear circle is derived from this.
+     * @see #portArrowsX
+     * @since 1.1.20
+     */
+    private static final int[] HEX_PORT_CIRCLE_GEOM = {8, 13, 38};
+
+    /**
      * coordinates for drawing the playing pieces
      */
     /***  road looks like "|" along left edge of hex ***/
@@ -349,6 +358,41 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     };
 
     // The pirate ship uses shipX, shipY like any other ship.
+
+    /**
+     * For port hexes, the triangular arrowheads towards port settlement nodes:
+     * Array of shapes' X coordinates. For Y see {@link #portArrowsY}.
+     *<P>
+     * First index is the shape number, second index is coordinates within the shape, clockwise from tip.
+     * Shape numbers are 0-5, for the 6 facing directions numbered the same way as
+     * {@link SOCBoard#getAdjacentNodeToHex(int)}: clockwise from top (northern point of hex),
+     * 0 is north, 1 is northeast, etc, 5 is northwest.
+     * @see #HEX_PORT_CIRCLE_GEOM
+     * @since 1.1.20
+     */
+    private static final int[][] portArrowsX =
+    {
+        { 27, 30, 24 },
+        { 51, 50, 47 },
+        { 51, 47, 50 },
+        { 27, 24, 30 },
+        { 3, 4, 7 },
+        { 3, 7, 4 },
+    };
+    /**
+     * For port hexes, the triangular arrowheads towards port settlement nodes:
+     * Array of shapes' Y coordinates. For X and details see {@link #portArrowsX}.
+     * @since 1.1.20
+     */
+    private static final int[][] portArrowsY =
+    {
+        { 4, 7, 7 },
+        { 19, 22, 18 },
+        { 44, 45, 41 },
+        { 59, 56, 56 },
+        { 44, 41, 45 },
+        { 19, 18, 22 },
+    };
 
     /**
      * Arrow, left-pointing.
@@ -804,7 +848,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Port images - shared unscaled original-resolution from {@link #IMAGEDIR}'s GIF files.
      * Image references are copied to {@link #scaledPorts} from here.
-     * Contains the 6 per-facing port overlays.
+     * Contains the 6 per-facing port overlays from {@link #renderPortImages()}.
      * {@code miscPort.gif} is in {@link #hexes} along with the land hex images used for 2:1 ports.
      * For indexes, see {@link #loadHexesPortsImages(Image[], Image[], String, MediaTracker, Toolkit, Class, boolean)}.
      * @see #hexes
@@ -889,6 +933,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private int[] scaledRobberX, scaledRobberY;
 
     // The pirate ship uses scaledShipX, scaledShipY like any other ship.
+
+    /**
+     * For port hexes, the triangular arrowheads towards port settlement nodes.
+     * @see #portArrowsX
+     * @see #rescaleCoordinateArrays()
+     * @since 1.1.20
+     */
+    private int[][] scaledPortArrowsX, scaledPortArrowsY;
 
     /**
      * arrow, left-pointing and right-pointing.
@@ -2106,8 +2158,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             int i;
             for (i = scaledHexes.length - 1; i>=0; --i)
                 scaledHexes[i] = hex[i];
-            for (i = ports.length - 1; i>=0; --i)
-                scaledPorts[i] = por[i];
+            scaledPorts[6] = por[6];
         }
         else
         {
@@ -2126,19 +2177,90 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
             }
 
-            w = scaleToActualX(por[1].getWidth(null));
-            h = scaleToActualY(por[1].getHeight(null));
+            w = scaleToActualX(por[6].getWidth(null));
+            h = scaleToActualY(por[6].getHeight(null));
+            scaledPorts[6] = getScaledImageUp(por[6], w, h);
             for (int i = scaledPorts.length - 1; i>=0; --i)
-            {
-                scaledPorts[i] = getScaledImageUp(por[i], w, h);
                 scaledPortFail[i] = false;
-            }
         }
+
+        // Once the port arrowhead arrays and images are scaled, we can draw the 6 port images.
+        renderPortImages();
 
         if ((superText1 != null) && (superTextBox_w > 0))
         {
             superTextBox_x = (newW - superTextBox_w) / 2;
             superTextBox_y = (newH - superTextBox_h) / 2;
+        }
+    }
+
+    /**
+     * Based on the waterHex image, render the 6 port images, each with arrows in its 2 settlement directions.
+     *<P>
+     * Before calling this method, call {@link #rescaleCoordinateArrays()}.
+     * @since 1.1.20
+     */
+    private void renderPortImages()
+    {
+        final Image water = scaledPorts[6];
+        final int w = water.getWidth(null), h = water.getHeight(null);
+
+        // clear circle geometry
+        int xc = HEX_PORT_CIRCLE_GEOM[0], yc = HEX_PORT_CIRCLE_GEOM[1], diac = HEX_PORT_CIRCLE_GEOM[2];
+        // white border width
+        int diab = diac + 2;
+
+        if (isRotated)
+        {
+            // (cw):  P'=(panelMinBH-y, x)
+            int ry = xc;
+            xc = panelMinBH - yc;
+            yc = ry;
+        }
+        if (isScaled)
+        {
+            diab = scaleToActualY(diab);
+            xc = scaleToActualX(xc); yc = scaleToActualY(yc); diac = scaleToActualY(diac);
+            if (diab % 2 != 0)
+            {
+                ++diab;
+                ++diac;
+            }
+            if (diac % 2 != 0)
+                --diac;  // don't reduce border width
+        }
+        int xb = xc - (diab - diac) / 2;
+        int yb = yc - (diab - diac) / 2;
+
+        final AlphaComposite CLEAR = AlphaComposite.getInstance(AlphaComposite.CLEAR),
+            SRC_OVER = AlphaComposite.getInstance(AlphaComposite.SRC_OVER);
+
+        for (int i = 0; i < 6; ++i)
+        {
+            BufferedImage bufi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = bufi.createGraphics();
+            g.drawImage(water, 0, 0, w, h, null);
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+            // arrows
+            g.fillPolygon(scaledPortArrowsX[i], scaledPortArrowsY[i], 3);
+            int i2 = i + 1;
+            if (i2 == 6)
+                i2 = 0;
+            g.fillPolygon(scaledPortArrowsX[i2], scaledPortArrowsY[i2], 3);
+
+            // white circular border
+            g.setColor(Color.WHITE);
+            g.fillOval(xb, yb, diab, diab);
+
+            // clear circle to show port type
+            g.setComposite(CLEAR);
+            g.fillOval(xc, yc, diac, diac);
+            g.setComposite(SRC_OVER);
+
+            g.dispose();
+            scaledPorts[i] = bufi;
         }
     }
 
@@ -2158,6 +2280,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledUpRoadX   = upRoadX;       scaledUpRoadY   = upRoadY;
                 scaledDownRoadX = downRoadX;     scaledDownRoadY = downRoadY;
                 scaledHexCornersX = hexCornersX; scaledHexCornersY = hexCornersY;
+                scaledPortArrowsX = portArrowsX; scaledPortArrowsY = portArrowsY;
             } else {
                 // (cw):  P'=(width-y, x)
                 scaledVertRoadX = rotateScaleCopyYToActualX(vertRoadY, HEXWIDTH, false);
@@ -2168,6 +2291,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledDownRoadY = downRoadX;
                 scaledHexCornersX = rotateScaleCopyYToActualX(hexCornersY, HEXWIDTH, false);
                 scaledHexCornersY = hexCornersX;
+                scaledPortArrowsX = new int[portArrowsX.length][];
+                for (int i = 0; i < portArrowsX.length; i++)
+                    scaledPortArrowsX[i] = rotateScaleCopyYToActualX(portArrowsY[i], HEXWIDTH, false);
+                scaledPortArrowsY = portArrowsX;
             }
             scaledSettlementX = settlementX; scaledSettlementY = settlementY;
             scaledCityX     = cityX;         scaledCityY     = cityY;
@@ -2192,6 +2319,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
         else
         {
+            scaledPortArrowsX = new int[portArrowsX.length][];
+            scaledPortArrowsY = new int[portArrowsY.length][];
+
             if (! isRotated)
             {
                 scaledVertRoadX = scaleCopyToActualX(vertRoadX);
@@ -2202,6 +2332,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledDownRoadY = scaleCopyToActualY(downRoadY);
                 scaledHexCornersX = scaleCopyToActualX(hexCornersX);
                 scaledHexCornersY = scaleCopyToActualY(hexCornersY);
+                for (int i = 0; i < portArrowsX.length; ++i)
+                {
+                    scaledPortArrowsX[i] = scaleCopyToActualX(portArrowsX[i]);
+                    scaledPortArrowsY[i] = scaleCopyToActualX(portArrowsY[i]);
+                }
             } else {
                 // (cw):  P'=(width-y, x)
                 scaledVertRoadX = rotateScaleCopyYToActualX(vertRoadY, HEXWIDTH, true);
@@ -2212,6 +2347,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledDownRoadY = scaleCopyToActualY(downRoadX);
                 scaledHexCornersX = rotateScaleCopyYToActualX(hexCornersY, HEXWIDTH, true);
                 scaledHexCornersY = scaleCopyToActualY(hexCornersX);
+                for (int i = 0; i < portArrowsX.length; ++i)
+                {
+                    scaledPortArrowsX[i] = rotateScaleCopyYToActualX(portArrowsY[i], HEXWIDTH, true);
+                    scaledPortArrowsY[i] = scaleCopyToActualY(portArrowsX[i]);
+                }
             }
             scaledSettlementX = scaleCopyToActualX(settlementX);
             scaledSettlementY = scaleCopyToActualY(settlementY);
@@ -6298,7 +6438,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             MediaTracker tracker = new MediaTracker(c);
 
             hexes = new Image[10];  // water, desert, 5 resources, gold, fog, 3:1 port
-            ports = new Image[6];
+            ports = new Image[7];  // water in index [6]; renderPortImages will fill 0-5
             dice = new Image[14];
 
             loadHexesPortsImages(hexes, ports, IMAGEDIR, tracker, tk, clazz, false);
@@ -6326,7 +6466,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             MediaTracker tracker = new MediaTracker(c);
 
             rotatHexes = new Image[8];  // only 8, not 10: large board (gold,fog) is not rotated
-            rotatPorts = new Image[6];
+            rotatPorts = new Image[7];
             loadHexesPortsImages(rotatHexes, rotatPorts, IMAGEDIR + "/rotat", tracker, tk, clazz, true);
 
             try
@@ -6385,11 +6525,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             tracker.addImage(newHexes[i], 0);
         }
 
-        for (int i = 0; i < 6; i++)
-        {
-            newPorts[i] = tk.getImage(clazz.getResource(imageDir + "/port" + i + ".gif"));
-            tracker.addImage(newPorts[i], 0);
-        }
+        newPorts[6] = tk.getImage(clazz.getResource(imageDir + "/waterHex.gif"));  // TODO obsoletes port0.gif - port5.gif
+        tracker.addImage(newPorts[6], 0);
     }
 
     ///
