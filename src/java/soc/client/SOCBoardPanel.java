@@ -116,9 +116,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Hex and port graphics are in this directory.
      * The rotated versions for the 6-player non-sea board are in <tt><i>IMAGEDIR</i>/rotat</tt>.
-     * The images are loaded into the {@link #hexes}, {@link #ports},
-     * {@link #rotatHexes}, {@link #rotatPorts}, {@link #scaledHexes},
-     * and {@link #scaledPorts} arrays.
+     * The images are loaded into the {@link #hexes}, {@link #rotatHexes},
+     * {@link #scaledHexes}, and {@link #scaledPorts} arrays.
      */
     private static String IMAGEDIR = "/soc/client/images";
 
@@ -836,35 +835,22 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Hex images - shared unscaled original-resolution from {@link #IMAGEDIR}'s GIF files.
      * Image references are copied to {@link #scaledHexes} from here.
      * Also contains {@code miscPort.gif} for drawing 3:1 ports' base image.
-     * For indexes, see {@link #loadHexesPortsImages(Image[], Image[], String, MediaTracker, Toolkit, Class, boolean)}.
+     * For indexes, see {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class, boolean)}.
      *
-     * @see #ports
      * @see #scaledHexes
      * @see #rotatHexes
+     * @see #scaledPorts
      */
     private static Image[] hexes;
 
     /**
-     * Port images - shared unscaled original-resolution from {@link #IMAGEDIR}'s GIF files.
-     * Image references are copied to {@link #scaledPorts} from here.
-     * Contains the 6 per-facing port overlays from {@link #renderPortImages()}.
-     * {@code miscPort.gif} is in {@link #hexes} along with the land hex images used for 2:1 ports.
-     * For indexes, see {@link #loadHexesPortsImages(Image[], Image[], String, MediaTracker, Toolkit, Class, boolean)}.
-     * @see #hexes
-     * @see #scaledPorts
-     * @see #rotatPorts
-     */
-    private static Image[] ports;
-
-    /**
-     * Hex and port images - rotated board; from <tt><i>{@link #IMAGEDIR}</i>/rotat</tt>'s GIF files.
+     * Hex images - rotated board; from <tt><i>{@link #IMAGEDIR}</i>/rotat</tt>'s GIF files.
      * Image references are copied to
      * {@link #scaledHexes}/{@link #scaledPorts} from here.
      * @see #hexes
-     * @see #ports
      * @since 1.1.08
      */
-    private static Image[] rotatHexes, rotatPorts;
+    private static Image[] rotatHexes;
 
     /**
      * Hex images - private scaled copy, if {@link #isScaled}. Otherwise points to static copies,
@@ -874,8 +860,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private Image[] scaledHexes;
 
     /**
-     * Port images - private scaled copy, if {@link #isScaled}. Otherwise points to static copies,
-     * either {@link #ports} or {@link #rotatPorts}
+     * Port images - private copy, rotated and/or scaled if necessary.
+     * Contains the 6 per-facing port overlays built in {@link #renderPortImages()}.
+     * {@code miscPort.gif} is in {@link #hexes} along with the land hex images used for 2:1 ports.
      * @see #scaledPortFail
      */
     private Image[] scaledPorts;
@@ -1393,24 +1380,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         loadImages(this, isRotated);
 
         // point to static images, unless we're later resized
-        Image[] h, p;
+        Image[] h;
         if (isRotated)
         {
             h = rotatHexes;
-            p = rotatPorts;
         } else {
             h = hexes;
-            p = ports;
         }
 
         scaledHexes = new Image[h.length];
-        scaledPorts = new Image[ports.length];
+        scaledPorts = new Image[6];
         for (i = h.length - 1; i>=0; --i)
             scaledHexes[i] = h[i];
-        for (i = ports.length - 1; i>=0; --i)
-            scaledPorts[i] = p[i];
         scaledHexFail = new boolean[h.length];
-        scaledPortFail = new boolean[ports.length];
+        scaledPortFail = new boolean[scaledPorts.length];
 
         // point to static coordinate arrays, unless we're later resized.
         // If this is the first instance, calculate arrowXR.
@@ -2143,21 +2126,18 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Scale images, or point to static arrays.
          */
-        Image[] hex, por;
+        Image[] hex;
         if (isRotated)
         {
             hex = rotatHexes;
-            por = rotatPorts;
         } else {
             hex = hexes;
-            por = ports;
         }
         if (! isScaled)
         {
             int i;
             for (i = scaledHexes.length - 1; i>=0; --i)
                 scaledHexes[i] = hex[i];
-            scaledPorts[6] = por[6];
         }
         else
         {
@@ -2176,9 +2156,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
             }
 
-            w = scaleToActualX(por[6].getWidth(null));
-            h = scaleToActualY(por[6].getHeight(null));
-            scaledPorts[6] = getScaledImageUp(por[6], w, h);
             for (int i = scaledPorts.length - 1; i>=0; --i)
                 scaledPortFail[i] = false;
         }
@@ -2195,13 +2172,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Based on the waterHex image, render the 6 port images, each with arrows in its 2 settlement directions.
+     * Fills {@link #scaledPorts}, starting from {@code waterHex.gif} previously loaded into {@link #scaledHexes}[0].
      *<P>
      * Before calling this method, call {@link #rescaleCoordinateArrays()}.
      * @since 1.1.20
      */
     private void renderPortImages()
     {
-        final Image water = scaledPorts[6];
+        final Image water = scaledHexes[0];
         final int w = water.getWidth(null), h = water.getHeight(null);
 
         // clear circle geometry
@@ -2686,11 +2664,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         boolean missedDraw = false;
 
         // Draw the hex image. For ports, the overlay (circle with arrows) will be drawn on top of this hex.
+        final int htypeIdx;
         {
             final Image[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original, or to rotated?
 
             // For the 3:1 port, use a different hex type image index (hexType 0 is open water)
-            final int htypeIdx = ((portFacing == -1) || (hexType != SOCBoard.MISC_PORT))
+            htypeIdx = ((portFacing == -1) || (hexType != SOCBoard.MISC_PORT))
                 ? hexType : (hexis.length - 1);
 
             if (isScaled && (scaledHexes[htypeIdx] == hexis[htypeIdx]))
@@ -2750,14 +2729,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          */
         if (portFacing != -1)
         {
-            final Image[] portis = (isRotated ? rotatPorts : ports);  // Fall back to original, or to rotated?
+            // fallback will be non-scaled hexes[htypeIdx]
+
             final int ptypeIdx = portFacing - 1;  // index 0-5 = facing 1-6
 
-            if (isScaled && (scaledPorts[ptypeIdx] == portis[ptypeIdx]))
+            if (isScaled && (scaledPorts[ptypeIdx] == hexes[htypeIdx]))
             {
                 recenterPrevMiss = true;
-                int w = portis[ptypeIdx].getWidth(null);
-                int h = portis[ptypeIdx].getHeight(null);
+                int w = scaledHexes[0].getWidth(null);
+                int h = scaledHexes[0].getHeight(null);
                 xm = (scaleToActualX(w) - w) / 2;
                 ym = (scaleToActualY(h) - h) / 2;
                 x += xm;
@@ -2766,20 +2746,25 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (! g.drawImage(scaledPorts[ptypeIdx], x, y, this))
             {
-                g.drawImage(portis[ptypeIdx], x, y, null);  // show smaller unscaled port graphic, instead of a blank space
+                g.drawImage(hexes[htypeIdx], x, y, null);  // show smaller unscaled hex graphic, instead of a blank space
                 missedDraw = true;
                 if (isScaled && (RESCALE_MAX_RETRY_MS < (drawnEmptyAt - scaledAt)))
                 {
                     if (scaledPortFail[ptypeIdx])
                     {
-                        scaledPorts[ptypeIdx] = portis[ptypeIdx];  // fallback
+                        scaledPorts[ptypeIdx] = hexes[htypeIdx];  // fallback
                     }
                     else
                     {
                         scaledPortFail[ptypeIdx] = true;
+                        // TODO try to re-render this particular port type
+                        /*
                         int w = scaleToActualX(portis[1].getWidth(null));
                         int h = scaleToActualY(portis[1].getHeight(null));
                         scaledPorts[ptypeIdx] = getScaledImageUp(portis[ptypeIdx], w, h);
+                         */
+                        // Instead of rendering, for now immediately fall back:
+                        scaledPorts[ptypeIdx] = hexes[htypeIdx];  // fallback
                     }
                 }
             }
@@ -3981,6 +3966,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         g.setColor(getBackground());
         g.fillRect(0, 0, scaledPanelX, scaledPanelY);
+
+        if (scaledPorts[0] == null)
+        {
+            // Check if port graphics are ready.  This isn't used in practice,
+            // because doLayout calls position/sizing methods which call rescaleBoard.
+            renderPortImages();
+        }
 
         // Draw hexes:
         // drawHex will set scaledMissedImage if missed.
@@ -6424,7 +6416,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Load the images for the board.
-     * {@link #hexes}, {@link #dice}, and {@link #ports}.
+     * {@link #hexes} and {@link #dice}.
      * Loads all hex types, up through {@link SOCBoardLarge#FOG_HEX},
      * because {@link #hexes} is static for all boards and all game options.
      * @param c  Our component, to load image resources
@@ -6446,10 +6438,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             MediaTracker tracker = new MediaTracker(c);
 
             hexes = new Image[10];  // water, desert, 5 resources, gold, fog, 3:1 port
-            ports = new Image[7];  // water in index [6]; renderPortImages will fill 0-5
             dice = new Image[14];
 
-            loadHexesPortsImages(hexes, ports, IMAGEDIR, tracker, tk, clazz, false);
+            loadHexesAndImages(hexes, IMAGEDIR, tracker, tk, clazz, false);
 
             for (int i = 2; i < 13; i++)
             {
@@ -6474,8 +6465,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             MediaTracker tracker = new MediaTracker(c);
 
             rotatHexes = new Image[8];  // only 8, not 10: large board (gold,fog) is not rotated
-            rotatPorts = new Image[7];
-            loadHexesPortsImages(rotatHexes, rotatPorts, IMAGEDIR + "/rotat", tracker, tk, clazz, true);
+            loadHexesAndImages(rotatHexes, IMAGEDIR + "/rotat", tracker, tk, clazz, true);
 
             try
             {
@@ -6491,9 +6481,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Load hex and port images from either normal, or rotated, resource location.
+     * Load hex and other related images from either normal, or rotated, resource location.
+     *<P>
+     * Before v1.1.20, this method was called {@code loadHexesPortsImages(..)}.
+     *
      * @param newHexes Array to store hex images and 3:1 port image into; {@link #hexes} or {@link #rotatHexes}
-     * @param newPorts Array to store port images into; {@link #ports} or {@link #rotatPorts}
      * @param imageDir Location for {@link Class#getResource(String)}
      * @param tracker Track image loading progress here
      * @param tk   Toolkit to load image from resource
@@ -6505,8 +6497,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *             but about whether this image directory's contents are rotated.
      * @since 1.1.08
      */
-    private static final void loadHexesPortsImages
-        (Image[] newHexes, Image[] newPorts, String imageDir,
+    private static final void loadHexesAndImages
+        (Image[] newHexes, String imageDir,
          MediaTracker tracker, Toolkit tk, Class<?> clazz,
          final boolean wantsRotated)
     {
@@ -6532,9 +6524,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             tracker.addImage(newHexes[i], 0);
         }
-
-        newPorts[6] = tk.getImage(clazz.getResource(imageDir + "/waterHex.gif"));
-        tracker.addImage(newPorts[6], 0);
     }
 
     ///
