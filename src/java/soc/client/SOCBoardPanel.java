@@ -2216,14 +2216,31 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         int xb = xc - (diab - diac) / 2;
         int yb = yc - (diab - diac) / 2;
 
-        final AlphaComposite CLEAR = AlphaComposite.getInstance(AlphaComposite.CLEAR),
-            SRC_OVER = AlphaComposite.getInstance(AlphaComposite.SRC_OVER);
+        // First, clear the middle circle and draw the white border around it.
+        // Then, use the resulting image as a starting point for the 6 port images with different arrowheads.
+
+        BufferedImage portBase = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        {
+            Graphics2D g = portBase.createGraphics();
+            g.drawImage(water, 0, 0, w, h, null);
+
+            // white circular border
+            g.setColor(Color.WHITE);
+            g.fillOval(xb, yb, diab, diab);
+
+            // clear circle to show port type
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR));
+            g.fillOval(xc, yc, diac, diac);
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
+
+            g.dispose();
+        }
 
         for (int i = 0; i < 6; ++i)
         {
             BufferedImage bufi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g = bufi.createGraphics();
-            g.drawImage(water, 0, 0, w, h, null);
+            g.drawImage(portBase, 0, 0, w, h, null);
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
@@ -2236,14 +2253,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 i2 = 0;  // wrapped around
             g.fillPolygon(scaledPortArrowsX[i2], scaledPortArrowsY[i2], 3);
             g.translate(-arrow_offx, 0);
-
-            // white circular border
-            g.fillOval(xb, yb, diab, diab);
-
-            // clear circle to show port type
-            g.setComposite(CLEAR);
-            g.fillOval(xc, yc, diac, diac);
-            g.setComposite(SRC_OVER);
 
             g.dispose();
             scaledPorts[i] = bufi;
