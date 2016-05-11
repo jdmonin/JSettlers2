@@ -10557,6 +10557,8 @@ public class SOCServer extends Server
             else if (arg.startsWith("-o") || arg.equalsIgnoreCase("--option"))
             {
                 hasSetGameOptions = true;
+
+                boolean printedMsg = false;
                 String argValue;
                 if (arg.startsWith("-o") && (arg.length() > 2))
                 {
@@ -10599,11 +10601,14 @@ public class SOCServer extends Server
                     } catch (IllegalArgumentException e) {
                         argValue = null;
                         System.err.println(e.getMessage());
+                        printedMsg = true;
                     }
                 }
                 if (argValue == null)
                 {
-                    System.err.println("Missing required option name/value after " + arg);
+                    if (! printedMsg)
+                        System.err.println("Missing required option name/value after " + arg);
+                    System.err.println();
                     printGameOptions();
                     return null;
                 }
@@ -10670,6 +10675,7 @@ public class SOCServer extends Server
                         } catch (IllegalArgumentException e) {
                             ok = false;
                             System.err.println(e.getMessage());
+                            System.err.println();
                             printGameOptions();
                         }
                     }
