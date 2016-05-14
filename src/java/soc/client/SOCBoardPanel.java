@@ -257,7 +257,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * For repaint when retrying a failed rescale-image,
-     * the delay (millis) before which {@link DelayedRepaint} will call repaint().
+     * the 3-second delay (in millis) before which {@link DelayedRepaint} will call repaint().
      *<P>
      * This constant was introduced in v1.1.20, previously the value was hardcoded.
      * @see #scaledMissedImage
@@ -268,7 +268,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * For repaint when retrying a failed rescale-image,
-     * the maximum time (millis) after which no more retries will be done.
+     * the 7-second maximum time (in millis) after which no more retries will be done.
      *<P>
      * This constant was introduced in v1.1.20, previously the value was hardcoded.
      * @see #scaledMissedImage
@@ -1503,7 +1503,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             emptyBoardBuffer = null;
         }
         if (isScaled)
+        {
             scaledAt = System.currentTimeMillis();  // reset the image-scaling timeout 
+            scaledMissedImage = false;
+        }
         repaint();
     }
 
@@ -2590,7 +2593,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             drawBoardEmpty(ebb.getGraphics());
 
             ebb.flush();
-            if (scaledMissedImage && (RESCALE_MAX_RETRY_MS < (drawnEmptyAt - scaledAt)))
+            if (scaledMissedImage && (scaledAt != 0) && (RESCALE_MAX_RETRY_MS < (drawnEmptyAt - scaledAt)))
                 scaledMissedImage = false;  // eventually give up scaling it
         }
 
@@ -4330,8 +4333,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             catch (InterruptedException e) {}
             finally
             {
-                bp.repaint();
                 alreadyActive = false;
+                bp.repaint();
             }
         }
     }  // static class DelayedRepaint
