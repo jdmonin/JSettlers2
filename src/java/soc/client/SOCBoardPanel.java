@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -256,6 +256,28 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final Color ARROW_COLOR_PLACING = new Color(255, 255, 60);
 
     /**
+     * For repaint when retrying a failed rescale-image,
+     * the delay (millis) before which {@link DelayedRepaint} will call repaint().
+     *<P>
+     * This constant was introduced in v1.1.20, previously the value was hardcoded.
+     * @see #scaledMissedImage
+     * @see #RESCALE_MAX_RETRY_MS
+     * @since 1.1.20
+     */
+    private static final int RESCALE_RETRY_DELAY_MS = 3000;
+
+    /**
+     * For repaint when retrying a failed rescale-image,
+     * the maximum time (millis) after which no more retries will be done.
+     *<P>
+     * This constant was introduced in v1.1.20, previously the value was hardcoded.
+     * @see #scaledMissedImage
+     * @see #RESCALE_RETRY_DELAY_MS
+     * @since 1.1.20
+     */
+    private static final int RESCALE_MAX_RETRY_MS = 7000;
+
+    /**
      * BoardPanel's {@link #mode}s. NONE is normal gameplay, or not the client's turn.
      * For correlation to game state, see {@link #updateMode()}.
      * If a mode is added, please also update {@link #clearModeAndHilight(int)}.
@@ -413,14 +435,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<P>
      * When the board is also {@link #isRotated rotated}, go in this order:
      * Rotate clockwise, then scale up; Scale down, then rotate counterclockwise.
+     *<P>
+     * When this flag is set true, also sets {@link #scaledAt}.
      *
      * @see #isScaledOrRotated
+     * @see #scaledAt
+     * @see #rescaleBoard(int, int)
      */
     protected boolean isScaled;
 
     /**
-     * Time of last resize, as returned by {@link System#currentTimeMillis()}.
+     * Time of last request to resize and repaint, as returned by {@link System#currentTimeMillis()}.
      * Used with {@link #scaledMissedImage}.
+     * @see #drawnEmptyAt
      */
     protected long scaledAt;
 
@@ -431,12 +458,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * up and create a new one.  (This can happen due to AWT bugs.)
      * Set in {@link #drawHex(Graphics, int)}, checked in {@link #drawBoard(Graphics)}.
      * @see #scaledHexFail
+     * @see #scaledAt
+     * @see #drawnEmptyAt
      */
     protected boolean scaledMissedImage;
 
     /**
      * Time of start of board repaint, as returned by {@link System#currentTimeMillis()}.
      * Used in {@link #drawBoardEmpty(Graphics)} with {@link #scaledMissedImage}.
+     * @see #scaledAt
      * @since 1.1.08
      */
     private long drawnEmptyAt;
@@ -1855,7 +1885,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             g.translate(-x, -y);
 
             missedDraw = true;
-            if (isScaled && (7000 < (drawnEmptyAt - scaledAt)))
+            if (isScaled && (RESCALE_MAX_RETRY_MS < (drawnEmptyAt - scaledAt)))
             {
                 // rescale the image or give up
                 if (scaledHexFail[tmp])
@@ -1904,7 +1934,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 g.drawImage(portis[tmp], x, y, null);  // show smaller unscaled port graphic, instead of a blank space
                 missedDraw = true;
-                if (isScaled && (7000 < (drawnEmptyAt - scaledAt)))
+                if (isScaled && (RESCALE_MAX_RETRY_MS < (drawnEmptyAt - scaledAt)))
                 {
                     if (scaledPortFail[tmp])
                     {
@@ -2560,7 +2590,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             drawBoardEmpty(ebb.getGraphics());
 
             ebb.flush();
-            if (scaledMissedImage && (7000 < (drawnEmptyAt - scaledAt)))
+            if (scaledMissedImage && (RESCALE_MAX_RETRY_MS < (drawnEmptyAt - scaledAt)))
                 scaledMissedImage = false;  // eventually give up scaling it
         }
 
@@ -4263,7 +4293,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *
      * @see SOCBoardPanel#scaledMissedImage
      * @see SOCBoardPanel#drawHex(Graphics, int)
-     * @author Jeremy D Monin <jeremy@nand.net>
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 1.1.00
      */
     protected static class DelayedRepaint extends Thread
     {
@@ -4291,9 +4322,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 setName("delayedRepaint");
             }
             catch (Throwable th) {}
+
             try
             {
-                Thread.sleep(3000);
+                Thread.sleep(RESCALE_RETRY_DELAY_MS);
             }
             catch (InterruptedException e) {}
             finally
