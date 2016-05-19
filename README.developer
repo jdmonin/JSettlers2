@@ -52,11 +52,17 @@ or javadocs in soc.game.SOCBoard, and src/docs/hexcoord.gif and hexcoord-6player
 Tips for Debugging
 ------------------
 You can use debug commands in any practice game, by typing into the game chat
-textfield.  Type *help* for a list of commands.
-(If you need to use debug commands over a network connection, start that server
- with -Djsettlers.allow.debug=Y and connect with username debug.  For security,
- please use sqlite or another database, and make a "debug" account with a password.
- See README.txt section "Database Setup".)
+textfield.  Type *help* for a list of commands.  Debug commands can give resources
+or dev cards to players, freely place pieces on the board, remove a bot from the
+game, etc.  There are also a few robot debugging commands, not listed in *help*;
+see the "Robots (AI)" section.
+
+To help with security and prevent cheats, by default debug commands are disabled
+except for practice games.  If you need to use debug commands on a multi-player
+server, start that server with -Djsettlers.allow.debug=Y and connect with username debug.
+For security, please use sqlite or another database and make a "debug" account with
+a password (see README.txt section "Database Setup").  Except for practice games,
+no other username can use debug commands.
 
 If you want to inspect the game object state at the server or robot:
 	Set a breakpoint at SOCServer.processDebugCommand, or at "case SOCMessage.GAMETEXTMSG"
