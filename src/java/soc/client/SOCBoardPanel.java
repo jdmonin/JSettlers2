@@ -1588,6 +1588,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             int w = scaleToActualX(hex[0].getWidth(null));
             int h = scaleToActualY(hex[0].getHeight(null));
+
             for (int i = scaledHexes.length - 1; i>=0; --i)
             {
                 scaledHexes[i] = getScaledImageUp(hex[i], w, h);
@@ -1614,7 +1615,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Scale coordinate arrays for drawing pieces
      * (from internal coordinates to actual on-screen pixels),
      * or (if not isScaled) point to static arrays.
-     * Called from constructor and rescaleBoard.
+     * Called from constructor and {@link #rescaleBoard(int, int)}.
      */
     private void rescaleCoordinateArrays()
     {
@@ -2957,6 +2958,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *
      * @param xa Int array to be scaled; each member is an x-coordinate.
      *
+     * @see #scaleToActualX(int)
      * @see #scaleCopyToActualX(int[])
      */
     public void scaleToActualX(int[] xa)
@@ -2973,6 +2975,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *
      * @param ya Int array to be scaled; each member is an y-coordinate.
      *
+     * @see #scaleToActualY(int)
      * @see #scaleCopyToActualY(int[])
      */
     public void scaleToActualY(int[] ya)
@@ -2988,8 +2991,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * If not isScaled, return input.
      *
      * @param x x-coordinate to be scaled
+     * @see #scaleToActualY(int)
+     * @see #scaleFromActualX(int)
      */
-    public int scaleToActualX(int x)
+    public final int scaleToActualX(int x)
     {
         if (! isScaled)
             return x;
@@ -3002,8 +3007,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * If not isScaled, return input.
      *
      * @param y y-coordinate to be scaled
+     * @see #scaleToActualX(int)
+     * @see #scaleFromActualY(int)
      */
-    public int scaleToActualY(int y)
+    public final int scaleToActualY(int y)
     {
         if (! isScaled)
             return y;
@@ -3017,7 +3024,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *
      * @param x x-coordinate to be scaled
      */
-    public int scaleFromActualX(int x)
+    public final int scaleFromActualX(int x)
     {
         if (! isScaled)
             return x;
@@ -3030,7 +3037,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *
      * @param y y-coordinate to be scaled
      */
-    public int scaleFromActualY(int y)
+    public final int scaleFromActualY(int y)
     {
         if (! isScaled)
             return y;
