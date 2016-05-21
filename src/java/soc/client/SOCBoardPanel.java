@@ -28,6 +28,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 
+import java.awt.AlphaComposite;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Component;
@@ -85,9 +86,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Hex and port graphics are in this directory.
      * The rotated versions for the 6-player board are in <tt><i>IMAGEDIR</i>/rotat</tt>.
-     * The images are loaded into the {@link #hexes}, {@link #ports},
-     * {@link #rotatHexes}, {@link #rotatPorts}, {@link #scaledHexes},
-     * and {@link #scaledPorts} arrays.
+     * The images are loaded into the {@link #hexes}, {@link #rotatHexes},
+     * {@link #scaledHexes}, and {@link #scaledPorts} arrays.
      */
     private static String IMAGEDIR = "/soc/client/images";
 
@@ -186,6 +186,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int HEXY_OFF_6PL_FIND = 7;
 
     /**
+     * Diameter for rendering the hex port graphics' clear middle circle in {@link #renderPortImages()}.
+     * The border drawn around the clear circle is also based on this.
+     * @since 1.1.20
+     * @see #portArrowsX
+     */
+    private static final int HEX_PORT_CIRCLE_DIA = 38;
+
+    /**
      * coordinates for drawing the playing pieces
      */
     /***  road looks like "|" along left edge of hex ***/
@@ -225,7 +233,43 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     };
 
     /**
-     * Arrow, left-pointing.
+     * For port hexes, the triangular arrowheads towards port settlement nodes:
+     * Array of shapes' X coordinates. For Y see {@link #portArrowsY}.
+     *<P>
+     * First index is the shape number, second index is coordinates within the shape, clockwise from tip.
+     * Shape numbers are 0-5, for the 6 facing directions numbered the same way as
+     * {@link SOCBoard#getAdjacentNodeToHex(int)}: clockwise from top (northern point of hex),
+     * 0 is north, 1 is northeast, etc, 5 is northwest.
+     * @see #HEX_PORT_CIRCLE_DIA
+     * @since 1.1.20
+     */
+    private static final int[][] portArrowsX =
+    {
+        { 27, 31, 23 },
+        { 51, 49, 45 },
+        { 51, 45, 49 },
+        { 27, 23, 31 },
+        { 3, 5, 9 },
+        { 3, 9, 5 },
+    };
+
+    /**
+     * For port hexes, the triangular arrowheads towards port settlement nodes:
+     * Array of shapes' Y coordinates. For X and details see {@link #portArrowsX}.
+     * @since 1.1.20
+     */
+    private static final int[][] portArrowsY =
+    {
+        { 4, 8, 8 },
+        { 18, 24, 16 },
+        { 45, 47, 39 },
+        { 59, 55, 55 },
+        { 45, 39, 47 },
+        { 18, 16, 24 },
+    };
+
+    /**
+     * Current-player arrow, left-pointing.
      * First point is top of arrow-tip's bevel, last point is bottom of tip.
      * arrowXL[4] is rightmost X coordinate.
      * (These points are important for adjustment when scaling in {@link #rescaleCoordinateArrays()})
@@ -237,12 +281,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         0,  17, 18, 18, 36, 36, 18, 18, 17,  0
     };
     /**
-     * Arrow, right-pointing.
+     * Current-player arrow, right-pointing.
      * Calculated when needed by flipping {@link #arrowXL} in {@link #rescaleCoordinateArrays()}.
      */
     private static int[] arrowXR = null;
     /**
-     * Arrow, y-coordinates: same whether pointing left or right.
+     * Current-player arrow, y-coordinates: same whether pointing left or right.
      * First point is top of arrow-tip's bevel, last point is bottom of tip.
      */
     private static final int[] arrowY =
@@ -250,15 +294,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         17,  0,  0,  6,  6, 30, 30, 36, 36, 19
     };
 
-    /** Arrow fits in a 37 x 37 square.
+    /** Current-player arrow fits in a 37 x 37 square.
      *  @see #arrowXL */
     private static final int ARROW_SZ = 37;
 
-    /** Arrow color: cyan: r=106,g=183,b=183 */
+    /** Current-player arrow color: cyan: r=106,g=183,b=183 */
     private static final Color ARROW_COLOR = new Color(106, 183, 183);
 
     /**
-     * Arrow color when game is over,
+     * Player arrow color when game is over,
      * and during {@link SOCGame#SPECIAL_BUILDING} phase of the 6-player game.
      *<P>
      * The game-over color was added in 1.1.09.  Previously, {@link #ARROW_COLOR} was used.
@@ -520,36 +564,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Hex images - shared unscaled original-resolution from {@link #IMAGEDIR}'s GIF files.
      * Image references are copied to {@link #scaledHexes} from here.
-     * For indexes, see {@link #loadHexesPortsImages(Image[], Image[], String, MediaTracker, Toolkit, Class)}.
+     * For indexes, see {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class)}.
      *<P>
      * {@link #hexes} also contains <tt>miscPort.gif</tt> for drawing 3:1 ports' base image.
-     * {@link #ports} stores the 6 per-facing port overlays.
+     * {@link #scaledPorts} stores the 6 per-facing port overlays from {@link #renderPortImages()}.
      * @see #scaledHexes
      * @see #rotatHexes
+     * @see #scaledPorts
      */
     private static Image[] hexes;
 
     /**
-     * Port images - shared unscaled original-resolution from {@link #IMAGEDIR}'s GIF files.
-     * Image references are copied to {@link #scaledPorts} from here.
-     * Contains the 6 per-facing port overlays <tt>miscPort0.gif - miscPort5.gif</tt>.
-     * <tt>miscPort.gif</tt> is in {@link #hexes} along with the land hex images used for 2:1 ports.
-     * For indexes, see {@link #loadHexesPortsImages(Image[], Image[], String, MediaTracker, Toolkit, Class)}.
-     * @see #hexes
-     * @see #scaledPorts
-     * @see #rotatPorts
-     */
-    private static Image[] ports;
-
-    /**
-     * Hex and port images - rotated board; from <tt><i>{@link #IMAGEDIR}</i>/rotat</tt>'s GIF files.
+     * Hex images - rotated board; from <tt><i>{@link #IMAGEDIR}</i>/rotat</tt>'s GIF files.
      * Image references are copied to
      * {@link #scaledHexes}/{@link #scaledPorts} from here.
      * @see #hexes
-     * @see #ports
      * @since 1.1.08
      */
-    private static Image[] rotatHexes, rotatPorts;
+    private static Image[] rotatHexes;
 
     /**
      * Hex images - private scaled copy, if {@link #isScaled}. Otherwise points to static copies,
@@ -559,8 +591,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private Image[] scaledHexes;
 
     /**
-     * Port images - private scaled copy, if {@link #isScaled}. Otherwise points to static copies,
-     * either {@link #ports} or {@link #rotatPorts}
+     * Port images - private copy, rotated and/or scaled if necessary.
+     * Contains the 6 per-facing port overlays built in {@link #renderPortImages()}.
+     * <tt>miscPort.gif</tt> is in {@link #hexes} along with the land hex images used for 2:1 ports.
      * @see #scaledPortFail
      */
     private Image[] scaledPorts;
@@ -605,8 +638,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /***  robber  ***/
     private int[] scaledRobberX, scaledRobberY;
 
+    /**
+     * For port hexes, the triangular arrowheads towards port settlement nodes.
+     * @see #portArrowsX
+     * @see #rescaleCoordinateArrays()
+     * @since 1.1.20
+     */
+    private int[][] scaledPortArrowsX, scaledPortArrowsY;
+
     /** 
-     * arrow, left-pointing and right-pointing.
+     * current-player arrow, left-pointing and right-pointing.
      * @see #rescaleCoordinateArrays()
      */
     private int[] scaledArrowXL, scaledArrowXR, scaledArrowY; 
@@ -1071,22 +1112,18 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         // point to static images, unless we're later resized
         scaledHexes = new Image[hexes.length];
-        scaledPorts = new Image[ports.length];
-        Image[] h, p;
+        scaledPorts = new Image[6];
+        Image[] h;
         if (isRotated)
         {
             h = rotatHexes;
-            p = rotatPorts;
         } else {
             h = hexes;
-            p = ports;
         }
         for (i = hexes.length - 1; i>=0; --i)
             scaledHexes[i] = h[i];
-        for (i = ports.length - 1; i>=0; --i)
-            scaledPorts[i] = p[i];
         scaledHexFail = new boolean[hexes.length];
-        scaledPortFail = new boolean[ports.length];
+        scaledPortFail = new boolean[scaledPorts.length];
 
         // point to static coordinate arrays, unless we're later resized.
         // If this is the first instance, calculate arrowXR.
@@ -1602,22 +1639,18 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Scale images, or point to static arrays.
          */
-        Image[] hex, por;
+        Image[] hex;
         if (isRotated)
         {
             hex = rotatHexes;
-            por = rotatPorts;
         } else {
             hex = hexes;
-            por = ports;
         }
         if (! isScaled)
         {
             int i;
             for (i = scaledHexes.length - 1; i>=0; --i)
                 scaledHexes[i] = hex[i];
-            for (i = ports.length - 1; i>=0; --i)
-                scaledPorts[i] = por[i];
         }
         else
         {
@@ -1630,19 +1663,107 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledHexFail[i] = false;
             }
 
-            w = scaleToActualX(por[1].getWidth(null));
-            h = scaleToActualY(por[1].getHeight(null));
-            for (int i = scaledPorts.length - 1; i>=1; --i)
-            {
-                scaledPorts[i] = getScaledImageUp(por[i], w, h);
+            for (int i = scaledPorts.length - 1; i>=0; --i)
                 scaledPortFail[i] = false;
-            }
         }
+
+        // Once the port arrowhead arrays and images are scaled, we can draw the 6 port images.
+        renderPortImages();
 
         if ((superText1 != null) && (superTextBox_w > 0))
         {
             superTextBox_x = (newW - superTextBox_w) / 2;
             superTextBox_y = (newH - superTextBox_h) / 2;
+        }
+    }
+
+    /**
+     * Based on the waterHex image, render the 6 port images, each with arrows in its 2 settlement directions.
+     * Fills {@link #scaledPorts}, starting from <tt>waterHex.gif</tt> previously loaded into {@link #scaledHexes}[6].
+     *<P>
+     * Before calling this method, call {@link #rescaleCoordinateArrays()}.
+     * @since 1.1.20
+     */
+    private void renderPortImages()
+    {
+        final Image water = scaledHexes[6];
+        final int w = water.getWidth(null), h = water.getHeight(null);
+
+        // clear circle geometry
+        int diac = HEX_PORT_CIRCLE_DIA;
+        int xc, yc, arrow_offx;
+
+        // white border width
+        int diab = diac + 2;
+
+        if (isRotated)
+        {
+            xc = HEXHEIGHT;  yc = HEXWIDTH;
+            arrow_offx = scaleToActualX(HEXHEIGHT - HEXWIDTH);  // re-center on wider hex
+        } else {
+            xc = HEXWIDTH;  yc = HEXHEIGHT;
+            arrow_offx = 0;
+        }
+        // center on hex, minus radius
+        xc = (xc - diac) / 2;
+        yc = (yc - diac) / 2;
+
+        if (isScaled)
+        {
+            diab = scaleToActualY(diab);
+            xc = scaleToActualX(xc); yc = scaleToActualY(yc); diac = scaleToActualY(diac);
+            if (diab % 2 != 0)
+            {
+                ++diab;
+                ++diac;
+            }
+            if (diac % 2 != 0)
+                --diac;  // don't reduce border width
+        }
+        int xb = xc - (diab - diac) / 2;
+        int yb = yc - (diab - diac) / 2;
+
+        // First, clear the middle circle and draw the white border around it.
+        // Then, use the resulting image as a starting point for the 6 port images with different arrowheads.
+
+        BufferedImage portBase = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        {
+            Graphics2D g = portBase.createGraphics();
+            g.drawImage(water, 0, 0, w, h, null);
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            // white circular border
+            g.setColor(Color.WHITE);
+            g.fillOval(xb, yb, diab, diab);
+
+            // clear circle to show port type
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR));
+            g.fillOval(xc, yc, diac, diac);
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
+
+            g.dispose();
+        }
+
+        for (int i = 0; i < 6; ++i)
+        {
+            BufferedImage bufi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = bufi.createGraphics();
+            g.drawImage(portBase, 0, 0, w, h, null);
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+            // arrows
+            g.setColor(Color.WHITE);
+            g.translate(arrow_offx, 0);
+            g.fillPolygon(scaledPortArrowsX[i], scaledPortArrowsY[i], 3);
+            int i2 = i + 1;
+            if (i2 == 6)
+                i2 = 0;  // wrapped around
+            g.fillPolygon(scaledPortArrowsX[i2], scaledPortArrowsY[i2], 3);
+            g.translate(-arrow_offx, 0);
+
+            g.dispose();
+            scaledPorts[i] = bufi;
         }
     }
 
@@ -1662,6 +1783,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledUpRoadX   = upRoadX;       scaledUpRoadY   = upRoadY;
                 scaledDownRoadX = downRoadX;     scaledDownRoadY = downRoadY;
                 scaledHexCornersX = hexCornersX; scaledHexCornersY = hexCornersY;
+                scaledPortArrowsX = portArrowsX; scaledPortArrowsY = portArrowsY;
             } else {
                 // (cw):  P'=(width-y, x)
                 scaledVertRoadX = rotateScaleCopyYToActualX(vertRoadY, HEXWIDTH, false);
@@ -1672,6 +1794,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledDownRoadY = downRoadX;
                 scaledHexCornersX = rotateScaleCopyYToActualX(hexCornersY, HEXWIDTH, false);
                 scaledHexCornersY = hexCornersX;
+                scaledPortArrowsX = new int[portArrowsX.length][];
+                for (int i = 0; i < portArrowsX.length; i++)
+                    scaledPortArrowsX[i] = rotateScaleCopyYToActualX(portArrowsY[i], HEXWIDTH, false);
+                scaledPortArrowsY = portArrowsX;
             }
             scaledSettlementX = settlementX; scaledSettlementY = settlementY;
             scaledCityX     = cityX;         scaledCityY     = cityY;
@@ -1692,6 +1818,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
         else
         {
+            scaledPortArrowsX = new int[portArrowsX.length][];
+            scaledPortArrowsY = new int[portArrowsY.length][];
+
             if (! isRotated)
             {
                 scaledVertRoadX = scaleCopyToActualX(vertRoadX);
@@ -1702,6 +1831,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledDownRoadY = scaleCopyToActualY(downRoadY);
                 scaledHexCornersX = scaleCopyToActualX(hexCornersX);
                 scaledHexCornersY = scaleCopyToActualY(hexCornersY);
+                for (int i = 0; i < portArrowsX.length; ++i)
+                {
+                    scaledPortArrowsX[i] = scaleCopyToActualX(portArrowsX[i]);
+                    scaledPortArrowsY[i] = scaleCopyToActualX(portArrowsY[i]);
+                }
             } else {
                 // (cw):  P'=(width-y, x)
                 scaledVertRoadX = rotateScaleCopyYToActualX(vertRoadY, HEXWIDTH, true);
@@ -1712,6 +1846,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledDownRoadY = scaleCopyToActualY(downRoadX);
                 scaledHexCornersX = rotateScaleCopyYToActualX(hexCornersY, HEXWIDTH, true);
                 scaledHexCornersY = scaleCopyToActualY(hexCornersX);
+                for (int i = 0; i < portArrowsX.length; ++i)
+                {
+                    scaledPortArrowsX[i] = rotateScaleCopyYToActualX(portArrowsY[i], HEXWIDTH, true);
+                    scaledPortArrowsY[i] = scaleCopyToActualY(portArrowsX[i]);
+                }
             }
             scaledSettlementX = scaleCopyToActualX(settlementX);
             scaledSettlementY = scaleCopyToActualY(settlementY);
@@ -1920,9 +2059,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * to the static original-resolution image will be used.
          */
         boolean missedDraw = false;
+
+        // Draw the hex image. For ports, the overlay (circle with arrows) will be drawn on top of this hex.
+        final int htypeIdx;
+
         final Image[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original, or to rotated?
 
-        final int htypeIdx;
         if ((hexType < 7) || (hexType > 12))
             htypeIdx = hexType & 15;  // get only the last 4 bits: hex type or port resource type
         else
@@ -1981,7 +2123,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Draw the port graphic
          */
-        final int ptypeIdx;
+        int ptypeIdx;
         if ((hexType >= 7) && (hexType <= 12))
             ptypeIdx = hexType - 6;   // facing of 3:1 port
         else
@@ -1989,13 +2131,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         if (ptypeIdx > 0)
         {
-            Image[] portis = (isRotated ? rotatPorts : ports);  // Fall back to original or rotated?
+            // fallback will be non-scaled hexes[htypeIdx]
 
-            if (isScaled && (scaledPorts[ptypeIdx] == portis[ptypeIdx]))
+            --ptypeIdx;  // index 0-5 == facing 1-6
+
+            if (isScaled && (scaledPorts[ptypeIdx] == hexes[htypeIdx]))
             {
                 recenterPrevMiss = true;
-                int w = portis[ptypeIdx].getWidth(null);
-                int h = portis[ptypeIdx].getHeight(null);
+                int w = hexes[0].getWidth(null);
+                int h = hexes[0].getHeight(null);
                 xm = (scaleToActualX(w) - w) / 2;
                 ym = (scaleToActualY(h) - h) / 2;
                 x += xm;
@@ -2003,20 +2147,26 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
             if (! g.drawImage(scaledPorts[ptypeIdx], x, y, this))
             {
-                g.drawImage(portis[ptypeIdx], x, y, null);  // show smaller unscaled port graphic, instead of a blank space
+                g.drawImage(hexes[htypeIdx], x, y, null);  // show smaller unscaled hex graphic, instead of a blank space
                 missedDraw = true;
                 if (isScaled && (RESCALE_MAX_RETRY_MS < (drawnEmptyAt - scaledAt)))
                 {
                     if (scaledPortFail[ptypeIdx])
                     {
-                        scaledPorts[ptypeIdx] = portis[ptypeIdx];  // fallback
+                        scaledPorts[ptypeIdx] = hexes[htypeIdx];  // fallback
                     }
                     else
                     {
                         scaledPortFail[ptypeIdx] = true;
+
+                        // TODO try to re-render this particular port type
+                        /*
                         int w = scaleToActualX(portis[1].getWidth(null));
                         int h = scaleToActualY(portis[1].getHeight(null));
-                        scaledPorts[ptypeIdx] = getScaledImageUp(portis[ptypeIdx], w, h);
+                         */
+
+                        // Instead of rendering, for now immediately fall back:
+                        scaledPorts[ptypeIdx] = hexes[htypeIdx];  // fallback
                     }
                 }
             }
@@ -4244,10 +4394,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             MediaTracker tracker = new MediaTracker(c);
         
             hexes = new Image[8];  // desert, 5 resources, water, 3:1 port
-            ports = new Image[7];
             dice = new Image[14];
 
-            loadHexesPortsImages(hexes, ports, IMAGEDIR, tracker, tk, clazz);
+            loadHexesAndImages(hexes, IMAGEDIR, tracker, tk, clazz);
 
             for (int i = 2; i < 13; i++)
             {
@@ -4272,8 +4421,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             MediaTracker tracker = new MediaTracker(c);
 
             rotatHexes = new Image[8];  // desert, 5 resources, water, 3:1 port
-            rotatPorts = new Image[7];
-            loadHexesPortsImages(rotatHexes, rotatPorts, IMAGEDIR + "/rotat", tracker, tk, clazz);
+            loadHexesAndImages(rotatHexes, IMAGEDIR + "/rotat", tracker, tk, clazz);
 
             try
             {
@@ -4289,17 +4437,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Load hex and port images from either normal, or rotated, resource location.
+     * Load hex and other related images from either normal, or rotated, resource location.
+     *<P>
+     * Before v1.1.20, this method was called <tt>loadHexesPortsImages(..)</tt>.
+     *
      * @param newHexes Array to store hex images and 3:1 port image into; {@link #hexes} or {@link #rotatHexes}
-     * @param newPorts Array to store port images into; {@link #ports} or {@link #rotatPorts}
-     * @param imageDir Location for {@link Class#getResource(String)}
+     * @param imageDir Location for {@link Class#getResource(String)}: normal or rotated {@link #IMAGEDIR}
      * @param tracker Track image loading progress here
      * @param tk   Toolkit to load image from resource
      * @param clazz  Class for getResource
      * @since 1.1.08
      */
-    private static final void loadHexesPortsImages
-        (Image[] newHexes, Image[] newPorts, String imageDir,
+    private static final void loadHexesAndImages
+        (Image[] newHexes, String imageDir,
          MediaTracker tracker, Toolkit tk, Class clazz)
     {
         newHexes[0] = tk.getImage(clazz.getResource(imageDir + "/desertHex.gif"));
@@ -4313,12 +4463,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         for (int i = 0; i < 8; i++)
         {
             tracker.addImage(newHexes[i], 0);
-        }
-
-        for (int i = 0; i < 6; i++)
-        {
-            newPorts[i + 1] = tk.getImage(clazz.getResource(imageDir + "/port" + i + ".gif"));
-            tracker.addImage(newPorts[i + 1], 0);
         }
     }
 
