@@ -2445,8 +2445,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Scale up an image with decent quality.
      * Convenience method to call instead of obsolete {@link Image#getScaledInstance(int, int, int)}.
      * Calls <code>
-     * {@link Graphics2D#drawImage(Image, int, int, int, int, java.awt.image.ImageObserver) Graphics2D.drawimage}
-     * (src, 0, 0, w, h, {@link RenderingHints#VALUE_INTERPOLATION_BICUBIC})</code>.
+     * {@link Graphics2D#drawImage(Image, int, int, int, int, java.awt.image.ImageObserver) Graphics2D.drawImage}
+     * (src, 0, 0, w, h, null)</code> using {@link RenderingHints#VALUE_INTERPOLATION_BICUBIC}.
      *<P>
      * For more info see the Java2D team blog 2007 post "The Perils of Image.getScaledInstance()" by ChrisAdamson.
      *
