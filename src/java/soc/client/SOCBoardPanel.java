@@ -2231,23 +2231,26 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     dia = scaleToActualX(dia);
                 ++dia;
     
-                // Set background color:
+                // Get color from rarity, fill dice circle, outline with darker shade
                 {
                     int colorIdx;
                     if (hnl < 7)
                         colorIdx = hnl - 2;
                     else
                         colorIdx = 12 - hnl;
-                    g.setColor(DICE_NUMBER_CIRCLE_COLORS[colorIdx]);
+                    Color cc = DICE_NUMBER_CIRCLE_COLORS[colorIdx];
+
+                    g.setColor(cc);
+                    g.fillOval(x, y, dia, dia);
+                    g.setColor(cc.darker().darker());
+                    g.drawOval(x, y, dia, dia);
                 }
-                g.fillOval(x, y, dia, dia);
-                g.setColor(Color.BLACK);
-                g.drawOval(x, y, dia, dia);
     
                 final String numstr = Integer.toString(hnl);
                 x += (dia - diceNumberCircleFM.stringWidth(numstr)) / 2;
                 y += (dia + diceNumberCircleFM.getAscent() - diceNumberCircleFM.getDescent()) / 2;
                 g.setFont(diceNumberCircleFont);
+                g.setColor(Color.BLACK);
                 g.drawString(numstr, x, y);
 
             }  // if (diceNumber fonts OK)
