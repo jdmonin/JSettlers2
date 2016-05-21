@@ -4126,15 +4126,24 @@ public class SOCServer extends Server
 
     /**
      * Used by {@link #DEBUG_COMMANDS_HELP}, etc.
+     * @see #DEBUG_COMMANDS_HELP_PLAYER
      */
     private static final String DEBUG_COMMANDS_HELP_RSRCS
-        = "rsrcs: #cl #or #sh #wh #wo playername";
+        = "rsrcs: #cl #or #sh #wh #wo player";
 
     /**
      * Used by {@link #DEBUG_COMMANDS_HELP}, etc.
+     * @see #DEBUG_COMMANDS_HELP_PLAYER
      */
     private static final String DEBUG_COMMANDS_HELP_DEV
-        = "dev: #typ playername";
+        = "dev: #typ player";
+
+    /**
+     * Debug help: player name or number. Used by {@link #SOC_DEBUG_COMMANDS_HELP}, etc.
+     * @since 1.1.20
+     */
+    private static final String DEBUG_COMMANDS_HELP_PLAYER
+        = "'Player' is a player name or #number (upper-left is #0, increasing clockwise)";
 
     /**
      * Used by {@link #DEBUG_COMMANDS_HELP}, etc. Used with {@link SOCGame#debugFreePlacement}.
@@ -4165,9 +4174,10 @@ public class SOCServer extends Server
         "*STOP*  kill the server",
         "--- Debug Resources ---",
         DEBUG_COMMANDS_HELP_RSRCS,
-        "Example  rsrcs: 0 3 0 2 0 Myname",
+        "Example  rsrcs: 0 3 0 2 0 Myname  or  rsrcs: 0 3 0 2 0 #3",
         DEBUG_COMMANDS_HELP_DEV,
-        "Example  dev: 2 Myname",
+        "Example  dev: 2 Myname  or  dev: 2 #3",
+        DEBUG_COMMANDS_HELP_PLAYER,
         "Development card types are:",  // see SOCDevCardConstants
         "0 robber",
         "1 road-building",
@@ -10071,20 +10081,25 @@ public class SOCServer extends Server
             }
         }
 
-        final SOCPlayer pl = game.getPlayer(name);
-        if ((pl == null) && ! parseError)
+        SOCPlayer pl = null;
+        if (! parseError)
         {
-            messageToPlayer(c, game.getName(), "### rsrcs: Player name not found: " + name);
-            parseError = true;
+            pl = debug_getPlayer(c, game, name);
+            if (pl == null)
+                parseError = true;
         }
+
         if (parseError)
         {
             messageToPlayer(c, game.getName(), "### Usage: " + DEBUG_COMMANDS_HELP_RSRCS);
+            messageToPlayer(c, game.getName(), DEBUG_COMMANDS_HELP_PLAYER);
+
             return;  // <--- early return ---
         }
+
         SOCResourceSet rset = pl.getResources();
         int pnum = pl.getPlayerNumber();
-        String outMes = "### " + name + " gets";
+        String outMes = "### " + pl.getName() + " gets";
 
         for (resourceType = SOCResourceConstants.CLAY;
                 resourceType <= SOCResourceConstants.WOOD; resourceType++)
@@ -10359,21 +10374,20 @@ public class SOCServer extends Server
             }
         }
 
-        final SOCPlayer pl = game.getPlayer(name);
-        if ((pl == null) && ! parseError)
+        SOCPlayer pl = null;
+        if (! parseError)
         {
-            if (name.length() > 0)
-            {
-                messageToPlayer(c, game.getName(), "### dev: Player name not found: " + name);
-                return;  // <--- early return ---
-            } else {
+            pl = debug_getPlayer(c, game, name);
+            if (pl == null)
                 parseError = true;
-            }
         }
+
         if (parseError)
         {
             messageToPlayer(c, game.getName(), "### Usage: " + DEBUG_COMMANDS_HELP_DEV);
+            messageToPlayer(c, game.getName(), DEBUG_COMMANDS_HELP_PLAYER);
             messageToPlayer(c, game.getName(), DEBUG_COMMANDS_HELP_DEV_TYPES);
+
             return;  // <--- early return ---
         }
 
@@ -10381,9 +10395,65 @@ public class SOCServer extends Server
         dcSet.add(1, SOCDevCardSet.NEW, cardType);
 
         int pnum = pl.getPlayerNumber();
-        String outMes = "### " + name + " gets a " + cardType + " card.";
+        String outMes = "### " + pl.getName() + " gets a " + cardType + " card.";
         messageToGame(game.getName(), new SOCDevCard(game.getName(), pnum, SOCDevCard.DRAW, cardType));
         messageToGame(game.getName(), outMes);
+    }
+
+    /**
+     * Given a player <tt>name</tt> or player number, find that player in the game.
+     * If not found by name, or player number doesn't match expected format, sends a message to the
+     * requesting user.
+     *
+     * @param c  Connection of requesting debug user
+     * @param ga  Game to find player
+     * @param name  Player name, or player position number in format "<tt>#3</tt>"
+     *     numbered 0 to {@link SOCGame#maxPlayers ga.maxPlayers}-1 inclusive
+     * @return  {@link SOCPlayer} with this name or number, or <tt>null</tt> if an error was sent to the user
+     * @since 1.1.20
+     */
+    private SOCPlayer debug_getPlayer(final StringConnection c, final SOCGame ga, final String name)
+    {
+        if (name.length() == 0)
+        {
+            return null;  // <--- early return ---
+        }
+
+        SOCPlayer pl = null;
+
+        if (name.startsWith("#") && (name.length() > 1) && Character.isDigit(name.charAt(1)))
+        {
+            String err = null;
+            final int max = ga.maxPlayers - 1;
+            try
+            {
+                final int i = Integer.parseInt(name.substring(1).trim());
+                if (i > max)
+                    err = "Max player number is " + Integer.toString(max);
+                else if (ga.isSeatVacant(i))
+                    err = "Player number " + Integer.toString(i) + " is vacant";
+                else
+                    pl = ga.getPlayer(i);
+            }
+            catch (NumberFormatException e) {
+                err = "Player number format is # followed by the number (0 to "
+                    + Integer.toString(max) + " inclusive)";
+            }
+
+            if (err != null)
+            {
+                messageToPlayer(c, ga.getName(), "### " + err);
+
+                return null;  // <--- early return ---
+            }
+        }
+
+        if (pl == null)
+            pl = ga.getPlayer(name);
+        if (pl == null)
+            messageToPlayer(c, ga.getName(), "### Player name not found: " + name);
+
+        return pl;
     }
 
     /**
