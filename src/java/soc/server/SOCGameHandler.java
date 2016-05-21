@@ -165,19 +165,21 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * Used by {@link #SOC_DEBUG_COMMANDS_HELP}, etc.
+     * @see #DEBUG_COMMANDS_HELP_PLAYER
      */
     private static final String DEBUG_COMMANDS_HELP_RSRCS
         = "rsrcs: #cl #or #sh #wh #wo player";
 
     /**
      * Used by {@link #SOC_DEBUG_COMMANDS_HELP}, etc.
+     * @see #DEBUG_COMMANDS_HELP_PLAYER
      */
     private static final String DEBUG_COMMANDS_HELP_DEV
         = "dev: #typ player";
 
     /**
      * Debug help: player name or number. Used by {@link #SOC_DEBUG_COMMANDS_HELP}, etc.
-     * @since 2.0.00
+     * @since 1.1.20
      */
     private static final String DEBUG_COMMANDS_HELP_PLAYER
         = "'Player' is a player name or #number (upper-left is #0, increasing clockwise)";
@@ -203,7 +205,7 @@ public class SOCGameHandler extends GameHandler
         DEBUG_CMD_FREEPLACEMENT + " 1 or 0  Start or end 'Free Placement' mode",
         "--- Debug Resources ---",
         DEBUG_COMMANDS_HELP_RSRCS,
-        "Example  rsrcs: 0 3 0 2 0 Myname",
+        "Example  rsrcs: 0 3 0 2 0 Myname  or  rsrcs: 0 3 0 2 0 #3",
         DEBUG_COMMANDS_HELP_DEV,
         "Example  dev: 2 Myname   or  dev: 2 #3",
         DEBUG_COMMANDS_HELP_PLAYER,
@@ -5589,8 +5591,8 @@ public class SOCGameHandler extends GameHandler
         if (parseError)
         {
             srv.messageToPlayer(c, game.getName(), "### Usage: " + DEBUG_COMMANDS_HELP_DEV);
-            srv.messageToPlayer(c, game.getName(), DEBUG_COMMANDS_HELP_DEV_TYPES);
             srv.messageToPlayer(c, game.getName(), DEBUG_COMMANDS_HELP_PLAYER);
+            srv.messageToPlayer(c, game.getName(), DEBUG_COMMANDS_HELP_DEV_TYPES);
 
             return;  // <--- early return ---
         }
@@ -5623,7 +5625,7 @@ public class SOCGameHandler extends GameHandler
      * @param name  Player name, or player position number in format "{@code #3}"
      *     numbered 0 to {@link SOCGame#maxPlayers ga.maxPlayers}-1 inclusive
      * @return  {@link SOCPlayer} with this name or number, or {@code null} if an error was sent to the user
-     * @since 2.0.00
+     * @since 1.1.20
      */
     private SOCPlayer debug_getPlayer(final StringConnection c, final SOCGame ga, final String name)
     {

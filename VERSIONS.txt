@@ -23,7 +23,6 @@ new features, until 2.0.00 is ready.
 - More efficient game-setup messages over network
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
 - Client sends server its locale, to support i18n localization
-- Debug commands dev: and rsrcs: also accept player number instead of name, for long or complex names
 - Applet class is now soc.client.SOCApplet
 - Game option key names can now be longer (8 characters)
 - Some game options are meant to be set by the server during game creation, not requested by the client.
@@ -52,6 +51,7 @@ new features, until 2.0.00 is ready.
 - Robots: Force robots to discard random resources after several seconds of inactivity
      during other players' turns when a 7 is rolled.
 - Show/hide current trade offers' Accept buttons when client player resources gained/lost/traded
+- Debug commands dev: and rsrcs: also accept player number instead of name, for long or complex names
 - New Game options dialog: For int/intbool options use 0 if blank, intbool don't set int value if checkbox is unchecked
 - Optional user accounts: Warn if database is empty when config requires accounts or names the account admins
 - User account admin: New server parameter --pw-reset username can be used if an account password is lost
