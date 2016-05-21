@@ -16,6 +16,7 @@ new features, until 2.0.00 is ready.
 - Game window board panel resize:
      Much better performance and reliability by using good-quality synchronous Graphics2D.drawImage
      Use smooth vectors, not scaled-up images, for ports
+- Board hex graphics updated for smoother look and scaling
 - For visibility use black text for Longest Road, Largest Army in player hand panels
 - *ADDTIME* command: Don't add time if more than 90 minutes still remaining
 - Server startup options: New optional jsserver.properties file, read before command line
