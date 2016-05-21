@@ -2235,6 +2235,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             Graphics2D g = portBase.createGraphics();
             g.drawImage(water, 0, 0, w, h, null);
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             // white circular border
             g.setColor(Color.WHITE);
@@ -2758,8 +2759,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (isScaled && (scaledPorts[ptypeIdx] == hexes[htypeIdx]))
             {
                 recenterPrevMiss = true;
-                int w = scaledHexes[0].getWidth(null);
-                int h = scaledHexes[0].getHeight(null);
+                int w = hexes[0].getWidth(null);  // assumes all fallback hex images are same w, h
+                int h = hexes[0].getHeight(null);
                 xm = (scaleToActualX(w) - w) / 2;
                 ym = (scaleToActualY(h) - h) / 2;
                 x += xm;
