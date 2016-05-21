@@ -377,6 +377,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         { 3, 5, 9 },
         { 3, 9, 5 },
     };
+
     /**
      * For port hexes, the triangular arrowheads towards port settlement nodes:
      * Array of shapes' Y coordinates. For X and details see {@link #portArrowsX}.
@@ -393,40 +394,50 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     };
 
     /**
-     * Arrow, left-pointing.
+     * Current-player arrow, left-pointing.
      * First point is top of arrow-tip's bevel, last point is bottom of tip.
      * arrowXL[4] is rightmost X coordinate.
      * (These points are important for adjustment when scaling in {@link #rescaleCoordinateArrays()})
      * @see #arrowY
      * @see #ARROW_SZ
+     * @since 1.1.00
      */
     private static final int[] arrowXL =
     {
         0,  17, 18, 18, 36, 36, 18, 18, 17,  0
     };
     /**
-     * Arrow, right-pointing.
+     * Current-player arrow, right-pointing.
      * Calculated when needed by flipping {@link #arrowXL} in {@link #rescaleCoordinateArrays()}.
+     * @since 1.1.00
      */
     private static int[] arrowXR = null;
     /**
-     * Arrow, y-coordinates: same whether pointing left or right.
+     * Current-player arrow, y-coordinates: same whether pointing left or right.
      * First point is top of arrow-tip's bevel, last point is bottom of tip.
+     * @since 1.1.00
      */
     private static final int[] arrowY =
     {
         17,  0,  0,  6,  6, 30, 30, 36, 36, 19
     };
 
-    /** Arrow fits in a 37 x 37 square.
-     *  @see #arrowXL */
+    /**
+     * Current-player arrow fits in a 37 x 37 square.
+     * @see #arrowXL
+     * @since 1.1.00
+     */
     private static final int ARROW_SZ = 37;
 
-    /** Arrow color: cyan: r=106,g=183,b=183 */
+    /**
+     * Current-player arrow color: cyan: r=106,g=183,b=183
+     * @see #ARROW_COLOR_PLACING
+     * @since 1.1.00
+     */
     private static final Color ARROW_COLOR = new Color(106, 183, 183);
 
     /**
-     * Arrow color when game is over,
+     * Player arrow color when game is over,
      * and during {@link SOCGame#SPECIAL_BUILDING} phase of the 6-player game.
      *<P>
      * The game-over color was added in 1.1.09.  Previously, {@link #ARROW_COLOR} was used.
@@ -836,17 +847,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Image references are copied to {@link #scaledHexes} from here.
      * Also contains {@code miscPort.gif} for drawing 3:1 ports' base image.
      * For indexes, see {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class, boolean)}.
+     *<P>
+     * {@link #scaledPorts} stores the 6 per-facing port overlays from {@link #renderPortImages()}.
      *
      * @see #scaledHexes
      * @see #rotatHexes
-     * @see #scaledPorts
      */
     private static Image[] hexes;
 
     /**
      * Hex images - rotated board; from <tt><i>{@link #IMAGEDIR}</i>/rotat</tt>'s GIF files.
-     * Image references are copied to
-     * {@link #scaledHexes}/{@link #scaledPorts} from here.
+     * Images from here are copied and/or scaled to {@link #scaledHexes}/{@link #scaledPorts}.
      * @see #hexes
      * @since 1.1.08
      */
@@ -929,8 +940,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private int[][] scaledPortArrowsX, scaledPortArrowsY;
 
     /**
-     * arrow, left-pointing and right-pointing.
+     * Current-player arrow, left-pointing and right-pointing.
      * @see #rescaleCoordinateArrays()
+     * @since 1.1.00
      */
     private int[] scaledArrowXL, scaledArrowXR, scaledArrowY;
 
@@ -2193,7 +2205,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             xc = HEXHEIGHT;  yc = HEXWIDTH;
             arrow_offx = scaleToActualX(HEXHEIGHT - HEXWIDTH);  // re-center on wider hex
-        } else{
+        } else {
             xc = HEXWIDTH;  yc = HEXHEIGHT;
             arrow_offx = 0;
         }
@@ -2678,7 +2690,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             final Image[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original, or to rotated?
 
-            // For the 3:1 port, use a different hex type image index (hexType 0 is open water)
+            // For the 3:1 port, don't use hexType for image index (hexType 0 is open water)
             htypeIdx = ((portFacing == -1) || (hexType != SOCBoard.MISC_PORT))
                 ? hexType : (hexis.length - 1);
 
@@ -2741,7 +2753,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             // fallback will be non-scaled hexes[htypeIdx]
 
-            final int ptypeIdx = portFacing - 1;  // index 0-5 = facing 1-6
+            final int ptypeIdx = portFacing - 1;  // index 0-5 == facing 1-6
 
             if (isScaled && (scaledPorts[ptypeIdx] == hexes[htypeIdx]))
             {
@@ -6496,7 +6508,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Before v1.1.20, this method was called {@code loadHexesPortsImages(..)}.
      *
      * @param newHexes Array to store hex images and 3:1 port image into; {@link #hexes} or {@link #rotatHexes}
-     * @param imageDir Location for {@link Class#getResource(String)}
+     * @param imageDir Location for {@link Class#getResource(String)}: normal or rotated {@link #IMAGEDIR}
      * @param tracker Track image loading progress here
      * @param tk   Toolkit to load image from resource
      * @param clazz  Class for getResource
