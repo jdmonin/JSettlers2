@@ -2571,12 +2571,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Draw a board tile by its hex number (v1 or v2 board encoding).
+     * Hex type and port info (if any) are looked up from {@link SOCBoard#getHexLayout()} and {@code hexNum}.
      *<P>
      * Not used if {@link #isLargeBoard}.
      * When {@link #isLargeBoard}, call {@link #drawHex(Graphics, int, int, int, int, int)} instead.
      *
      * @param g       graphics
-     * @param hexNum  hex number (0-36)
+     * @param hexNum  hex location number (0-36)
      */
     private final void drawHex(Graphics g, int hexNum)
     {
@@ -2623,8 +2624,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *                touching land, which contains 2 nodes where player can build a
      *                port settlement/city.  Valid range is
      *                {@link SOCBoard#FACING_NE} to {@link SOCBoard#FACING_NW}.
-     * @param hexNum  hex number (0-36), or -1 if this isn't a valid hex number
-     *                   or if the dice number shouldn't be drawn.
+     * @param hexNum  hex location number (0-36) to look up its dice number,
+     *                   or -1 if this isn't a valid hex number or if the dice number shouldn't be drawn.
      *                   When {@link #isLargeBoard}, pass in the hex coordinate as hexNum.
      * @since 1.1.08
      */
@@ -6428,10 +6429,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * {@link #hexes} and {@link #dice}.
      * Loads all hex types, up through {@link SOCBoardLarge#FOG_HEX},
      * because {@link #hexes} is static for all boards and all game options.
-     * @param c  Our component, to load image resources
+     * @param c  Our component, to load image resource files with getToolkit and getResource
      * @param wantsRotated  True for the 6-player non-sea board
      *          (v2 encoding {@link SOCBoard#BOARD_ENCODING_6PLAYER}), false otherwise.
-     *          The large board (v3 encoding)'s gold-hex image has no rotated version,
+     *          The large board (v3 encoding)'s fog-hex and gold-hex images have no rotated version,
      *          because that board layout is never rotated.
      */
     private static synchronized void loadImages(Component c, final boolean wantsRotated)
