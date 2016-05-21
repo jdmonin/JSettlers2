@@ -1886,8 +1886,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private final void drawHex(Graphics g, int x, int y, int hexType, int hexNum)
     {
-        int tmp;
-
         if (isScaledOrRotated)
         {
             if (isRotated)
@@ -1924,16 +1922,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         boolean missedDraw = false;
         final Image[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original, or to rotated?
 
+        final int htypeIdx;
         if ((hexType < 7) || (hexType > 12))
-            tmp = hexType & 15;  // get only the last 4 bits: hex type or port resource type
+            htypeIdx = hexType & 15;  // get only the last 4 bits: hex type or port resource type
         else
-            tmp = 7;             // 3:1 port
+            htypeIdx = 7;             // 3:1 port
 
-        if (isScaled && (scaledHexes[tmp] == hexis[tmp]))
+        if (isScaled && (scaledHexes[htypeIdx] == hexis[htypeIdx]))
         {
             recenterPrevMiss = true;
-            int w = hexis[tmp].getWidth(null);
-            int h = hexis[tmp].getHeight(null);
+            int w = hexis[htypeIdx].getWidth(null);
+            int h = hexis[htypeIdx].getHeight(null);
             xm = (scaleToActualX(w) - w) / 2;
             ym = (scaleToActualY(h) - h) / 2;
             x += xm;
@@ -1943,7 +1942,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Draw the hex graphic
          */
-        if (! g.drawImage(scaledHexes[tmp], x, y, this))
+        if (! g.drawImage(scaledHexes[htypeIdx], x, y, this))
         {
             // for now, draw the placeholder; try to rescale and redraw soon if we can
 
@@ -1958,16 +1957,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (isScaled && (RESCALE_MAX_RETRY_MS < (drawnEmptyAt - scaledAt)))
             {
                 // rescale the image or give up
-                if (scaledHexFail[tmp])
+                if (scaledHexFail[htypeIdx])
                 {
-                    scaledHexes[tmp] = hexis[tmp];  // fallback
+                    scaledHexes[htypeIdx] = hexis[htypeIdx];  // fallback
                 }
                 else
                 {
-                    scaledHexFail[tmp] = true;
+                    scaledHexFail[htypeIdx] = true;
                     int w = scaleToActualX(hexis[0].getWidth(null));
                     int h = scaleToActualY(hexis[0].getHeight(null));
-                    scaledHexes[tmp] = getScaledImageUp(hexis[tmp], w, h);
+                    scaledHexes[htypeIdx] = getScaledImageUp(hexis[htypeIdx], w, h);
                 }
             }
         }
@@ -1982,40 +1981,42 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Draw the port graphic
          */
+        final int ptypeIdx;
         if ((hexType >= 7) && (hexType <= 12))
-            tmp = hexType - 6;   // facing of 3:1 port
+            ptypeIdx = hexType - 6;   // facing of 3:1 port
         else
-            tmp = hexType >> 4;  // facing of the port, or 0 if not a port
+            ptypeIdx = hexType >> 4;  // facing of the port, or 0 if not a port
 
-        if (tmp > 0)
+        if (ptypeIdx > 0)
         {
             Image[] portis = (isRotated ? rotatPorts : ports);  // Fall back to original or rotated?
-            if (isScaled && (scaledPorts[tmp] == portis[tmp]))
+
+            if (isScaled && (scaledPorts[ptypeIdx] == portis[ptypeIdx]))
             {
                 recenterPrevMiss = true;
-                int w = portis[tmp].getWidth(null);
-                int h = portis[tmp].getHeight(null);
+                int w = portis[ptypeIdx].getWidth(null);
+                int h = portis[ptypeIdx].getHeight(null);
                 xm = (scaleToActualX(w) - w) / 2;
                 ym = (scaleToActualY(h) - h) / 2;
                 x += xm;
                 y += ym;
             }
-            if (! g.drawImage(scaledPorts[tmp], x, y, this))
+            if (! g.drawImage(scaledPorts[ptypeIdx], x, y, this))
             {
-                g.drawImage(portis[tmp], x, y, null);  // show smaller unscaled port graphic, instead of a blank space
+                g.drawImage(portis[ptypeIdx], x, y, null);  // show smaller unscaled port graphic, instead of a blank space
                 missedDraw = true;
                 if (isScaled && (RESCALE_MAX_RETRY_MS < (drawnEmptyAt - scaledAt)))
                 {
-                    if (scaledPortFail[tmp])
+                    if (scaledPortFail[ptypeIdx])
                     {
-                        scaledPorts[tmp] = portis[tmp];  // fallback
+                        scaledPorts[ptypeIdx] = portis[ptypeIdx];  // fallback
                     }
                     else
                     {
-                        scaledPortFail[tmp] = true;
+                        scaledPortFail[ptypeIdx] = true;
                         int w = scaleToActualX(portis[1].getWidth(null));
                         int h = scaleToActualY(portis[1].getHeight(null));
-                        scaledPorts[tmp] = getScaledImageUp(portis[tmp], w, h);
+                        scaledPorts[ptypeIdx] = getScaledImageUp(portis[ptypeIdx], w, h);
                     }
                 }
             }
