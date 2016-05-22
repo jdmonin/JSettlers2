@@ -264,7 +264,7 @@ public class SOCAccountClient extends Applet
         c.gridwidth = 1;
         gbl.setConstraints(nickLabel, c);
         mainPane.add(nickLabel);
-        nickTTip = new AWTToolTip("This will be your username.", l);
+        nickTTip = new AWTToolTip("This will be your username.", nick);
 
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(nick, c);
