@@ -80,7 +80,8 @@ import java.util.Timer;
  *<P>
  * The board background color is set in {@link SOCPlayerInterface}.
  * Since all areas outside the board boundaries are filled with
- * sea hex tiles, this color is only a fallback.
+ * water hex tiles, this color is only a fallback; it's briefly visible
+ * at window creation while the hexes are loading and rendering.
  *<P>
  * When the mouse is over the game board, a tooltip shows information
  * such as a hex's resource, a piece's owner, a port's ratio, or the

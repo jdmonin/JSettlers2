@@ -644,7 +644,7 @@ public class SOCPlayerInterface extends Frame
          * initialize the game board display and add it to the interface
          */
         boardPanel = new SOCBoardPanel(this);
-        boardPanel.setBackground(new Color(63, 86, 139));  // sea blue; if ! hasSeaBoard, tiles won't fill entire area
+        boardPanel.setBackground(new Color(63, 86, 139));  // sea blue; briefly visible at start before water tiles are drawn
         boardPanel.setForeground(Color.black);
         Dimension bpMinSz = boardPanel.getMinimumSize();
         boardPanel.setSize(bpMinSz.width, bpMinSz.height);

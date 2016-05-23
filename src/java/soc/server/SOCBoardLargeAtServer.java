@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -2793,7 +2793,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int NSHO_BOARDSIZE[] = { 0x0E0E, 0x0E10, 0x0E14 };
 
     /**
-     * New Shores: Starting pirate sea hex coordinate for 3, 4, 6 players.
+     * New Shores: Starting pirate water hex coordinate for 3, 4, 6 players.
      * The 6-player layout starts with the pirate off the board.
      */
     private static final int NSHO_PIRATE_HEX[] = { 0x070D, 0x070F, 0 };
@@ -3597,7 +3597,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int PIR_ISL_BOARDSIZE[] = { 0x1012, 0x1016 };
 
     /**
-     * Pirate Islands: Starting pirate sea hex coordinate for 4, 6 players.
+     * Pirate Islands: Starting pirate water hex coordinate for 4, 6 players.
      */
     private static final int PIR_ISL_PIRATE_HEX[] = { 0x0D0A, 0x0D0A };
 
@@ -3824,7 +3824,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int TTDESERT_BOARDSIZE[] = { 0x1010, 0x1012, 0x1016 };
 
     /**
-     * Through The Desert: Starting pirate sea hex coordinate for 3, 4, 6 players.
+     * Through The Desert: Starting pirate water hex coordinate for 3, 4, 6 players.
      */
     private static final int TTDESERT_PIRATE_HEX[] = { 0x070D, 0x070F, 0x0D10 };
 
@@ -4109,7 +4109,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int FOR_TRI_BOARDSIZE[] = { 0x0E11, 0x0E15 };
 
     /**
-     * Forgotten Tribe: Starting pirate sea hex coordinate for 4, 6 players.
+     * Forgotten Tribe: Starting pirate water hex coordinate for 4, 6 players.
      */
     private static final int FOR_TRI_PIRATE_HEX[] = { 0x0108, 0x010E };
 
@@ -4289,7 +4289,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int CLVI_BOARDSIZE[] = { 0x0E10, 0x0E14 };
 
     /**
-     * Cloth Villages: Starting pirate sea hex coordinate for 4, 6 players.
+     * Cloth Villages: Starting pirate water hex coordinate for 4, 6 players.
      */
     private static final int CLVI_PIRATE_HEX[] = { 0x070F, 0x0713 };
 
