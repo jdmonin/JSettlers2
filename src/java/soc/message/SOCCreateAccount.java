@@ -170,23 +170,10 @@ public class SOCCreateAccount extends SOCMessage
         if ((hn == null) || (hn.length() == 0))
             throw new IllegalArgumentException("hn");
 
-        String tempem;
+        if ((em == null) || (em.length() == 0))
+            em = NULLEMAIL;
 
-        if (em == null)
-        {
-            tempem = NULLEMAIL;
-        }
-        else
-        {
-            tempem = new String(em);
-
-            if (tempem.equals(""))
-            {
-                tempem = NULLEMAIL;
-            }
-        }
-
-        return CREATEACCOUNT + sep + nn + sep2 + pw + sep2 + hn + sep2 + tempem;
+        return CREATEACCOUNT + sep + nn + sep2 + pw + sep2 + hn + sep2 + em;
     }
 
     /**
