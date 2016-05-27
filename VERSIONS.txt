@@ -52,6 +52,7 @@ new features, until 2.0.00 is ready.
 - Robots: Force robots to discard random resources after several seconds of inactivity
      during other players' turns when a 7 is rolled.
 - Show/hide current trade offers' Accept buttons when client player resources gained/lost/traded
+- Server console traces "joined the game"/"left the game" include current time
 - Debug commands dev: and rsrcs: also accept player number instead of name, for long or complex names
 - New Game options dialog: For int/intbool options use 0 if blank, intbool don't set int value if checkbox is unchecked
 - Optional user accounts: Warn if database is empty when config requires accounts or names the account admins

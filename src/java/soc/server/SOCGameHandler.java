@@ -22,6 +22,7 @@
  **/
 package soc.server;
 
+import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1430,7 +1431,10 @@ public class SOCGameHandler extends GameHandler
         // before v2.0.00, current player number (SETTURN) was sent here,
         // between membersCommand and GAMESTATE.
         c.put(SOCGameState.toCmd(gameName, gameData.getGameState()));
-        D.ebugPrintln("*** " + c.getData() + " joined the game " + gameName + " from " + c.host());
+        if (D.ebugOn)
+            D.ebugPrintln("*** " + c.getData() + " joined the game " + gameName + " at "
+                    + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date())
+                    + " from " + c.host());
 
         //messageToGame(gameName, new SOCGameTextMsg(gameName, SERVERNAME, n+" joined the game"));
         /**
@@ -1676,7 +1680,9 @@ public class SOCGameHandler extends GameHandler
         srv.messageToGameWithMon(gm, leaveMessage);
         srv.recordGameEvent(gm, leaveMessage.toCmd());
 
-        D.ebugPrintln("*** " + plName + " left the game " + gm);
+        if (D.ebugOn)
+            D.ebugPrintln("*** " + plName + " left the game " + gm + " at "
+                + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
         srv.messageToGameKeyed(ga, false, "member.left.game", plName);  // "{0} left the game"
 
         /**
