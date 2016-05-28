@@ -217,7 +217,7 @@ public class SOCCreateAccount extends SOCMessage
      */
     public String toString()
     {
-        String s = "SOCCreateAccount:nickname=" + nickname + "|password=" + password + "|host=" + host + "|email=" + email;
+        String s = "SOCCreateAccount:nickname=" + nickname + "|password=***|host=" + host + "|email=" + email;
 
         return s;
     }
