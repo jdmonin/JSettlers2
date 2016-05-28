@@ -5409,6 +5409,8 @@ public class SOCServer extends Server
             if (ga.isPractice)
             {
                 messageToPlayerKeyed(c, gaName, "reply.addtime.practice.never");  // ">>> Practice games never expire."
+            } else if (ga.getGameState() >= SOCGame.OVER) {
+                messageToPlayerKeyed(c, gaName, "reply.addtime.game_over");  // "This game is over, cannot extend its time."
             } else {
                 // check game time currently remaining: if already more than
                 // the original GAME_TIME_EXPIRE_MINUTES, don't add more now.
