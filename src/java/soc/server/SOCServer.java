@@ -494,7 +494,7 @@ public class SOCServer extends Server
      * True if {@link #props} contains a property which is used to run the server in Utility Mode
      * instead of Server Mode.  In Utility Mode the server reads its properties, initializes its
      * database connection if any, and performs one task such as a password reset or table/index creation.
-     * It won't listen at a TCP port or start other threads.
+     * It won't listen on a TCP port or start other threads.
      *<P>
      * For a list of Utility Mode properties, see {@link #hasUtilityModeProperty()}.
      * @see #utilityModeMessage
@@ -2448,10 +2448,10 @@ public class SOCServer extends Server
     }
 
     /**
-     * True if the server was constructed in with a property or command line argument which is used
+     * True if the server was constructed with a property or command line argument which is used
      * to run the server in Utility Mode instead of Server Mode.  In Utility Mode the server reads
      * its properties, initializes its database connection if any, and performs one task such as a
-     * password reset or table/index creation. It won't listen at a TCP port or start other threads.
+     * password reset or table/index creation. It won't listen on a TCP port or start other threads.
      *<P>
      * Utility Mode may also set a status message, see {@link #getUtilityModeMessage()}.
      *<P>
