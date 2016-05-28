@@ -10,7 +10,7 @@
 -- For multi-line SQLs, indent so that SOCDBHelper.runSetupScript can combine them.
 
 CREATE TABLE users (
-	nickname VARCHAR(20) not null, host VARCHAR(50), password VARCHAR(20), email VARCHAR(50), lastlogin DATE,
+	nickname VARCHAR(20) not null, host VARCHAR(50) not null, password VARCHAR(20) not null, email VARCHAR(50), lastlogin DATE,
 	PRIMARY KEY (nickname)
 	);
 
@@ -40,7 +40,7 @@ CREATE TABLE robotparams (
 
 -- This file is part of the JSettlers project.
 -- 
---  This file Copyright (C) 2012,2014 Jeremy D Monin (jeremy@nand.net)
+--  This file Copyright (C) 2012,2014,2016 Jeremy D Monin (jeremy@nand.net)
 --  Portions of this file Copyright (C) 2004-2005 Chadwick A McHenry (mchenryc@acm.org)
 -- 
 --  This program is free software: you can redistribute it and/or modify
