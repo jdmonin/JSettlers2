@@ -1366,7 +1366,9 @@ public class SOCServer extends Server
                 if (!channelList.isMember(c, ch))
                 {
                     c.put(SOCMembers.toCmd(ch, channelList.getMembers(ch)));
-                    D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch);
+                    if (D.ebugOn)
+                        D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch + " at "
+                            + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
                     channelList.addMember(c, ch);
                 }
             }
@@ -1398,7 +1400,9 @@ public class SOCServer extends Server
 
                 SOCLeave leaveMessage = new SOCLeave((String) c.getData(), c.host(), ch);
                 messageToChannelWithMon(ch, leaveMessage);
-                D.ebugPrintln("*** " + (String) c.getData() + " left the channel " + ch);
+                if (D.ebugOn)
+                    D.ebugPrintln("*** " + c.getData() + " left the channel " + ch + " at "
+                        + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
             }
 
             if (channelList.isChannelEmpty(ch))
@@ -4834,7 +4838,9 @@ public class SOCServer extends Server
                 channelList.releaseMonitor();
                 broadcast(SOCNewChannel.toCmd(ch));
                 c.put(SOCMembers.toCmd(ch, channelList.getMembers(ch)));
-                D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch);
+                if (D.ebugOn)
+                    D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch + " at "
+                        + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
                 channelList.takeMonitorForChannel(ch);
 
                 try
