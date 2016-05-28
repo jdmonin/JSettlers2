@@ -2819,9 +2819,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledMissedImage = false;  // eventually give up scaling it
         }
 
-        // draw from local variable, to avoid occasional NPE
+        // draw ebb from local variable, not emptyBoardBuffer field, to avoid occasional NPE
         g.setPaintMode();
         g.drawImage(ebb, 0, 0, this);
+
+        // ask for antialiasing if available
+        if (g instanceof Graphics2D)
+            ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         int gameState = game.getGameState();
 
