@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.sql.SQLException;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1798,7 +1799,9 @@ public class SOCServer extends Server
         messageToGameWithMon(gm, leaveMessage);
         recordGameEvent(gm, leaveMessage.toCmd());
 
-        D.ebugPrintln("*** " + plName + " left the game " + gm);
+        if (D.ebugOn)
+            D.ebugPrintln("*** " + plName + " left the game " + gm + " at "
+                + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
         messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, plName + " left the game"));
 
         /**
@@ -8801,7 +8804,9 @@ public class SOCServer extends Server
         c.put(membersCommand);
         c.put(SOCSetTurn.toCmd(gameName, gameData.getCurrentPlayerNumber()));
         c.put(SOCGameState.toCmd(gameName, gameData.getGameState()));
-        D.ebugPrintln("*** " + c.getData() + " joined the game " + gameName
+        if (D.ebugOn)
+            D.ebugPrintln("*** " + c.getData() + " joined the game " + gameName + " at "
+                + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date())
                 + " from " + c.host());
 
         //messageToGame(gameName, new SOCGameTextMsg(gameName, SERVERNAME, n+" joined the game"));
