@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.sql.SQLException;
+import java.text.DateFormat;
 import java.text.MessageFormat;  // used in javadocs
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1549,7 +1550,9 @@ public class SOCServer extends Server
 
             SOCLeave leaveMessage = new SOCLeave((String) c.getData(), c.host(), ch);
             messageToChannelWithMon(ch, leaveMessage);
-            D.ebugPrintln("*** " + (String) c.getData() + " left the channel " + ch);
+            if (D.ebugOn)
+                D.ebugPrintln("*** " + (String) c.getData() + " left the channel " + ch + " at "
+                    + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
         }
 
         if (channelList.isChannelEmpty(ch))
@@ -5159,7 +5162,9 @@ public class SOCServer extends Server
             channelList.releaseMonitor();
             broadcast(SOCNewChannel.toCmd(ch));
             c.put(SOCMembers.toCmd(ch, channelList.getMembers(ch)));
-            D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch);
+            if (D.ebugOn)
+                D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch + " at "
+                    + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
             channelList.takeMonitorForChannel(ch);
 
             try
