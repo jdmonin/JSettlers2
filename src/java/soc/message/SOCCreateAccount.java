@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,17 +50,17 @@ public class SOCCreateAccount extends SOCMessage
     private String nickname;
 
     /**
-     * Password
+     * Password, required; see {@link #getPassword()} for details and history.
      */
     private String password;
 
     /**
-     * Host name
+     * Host name, required; see {@link #getHost()} for details and history.
      */
     private String host;
 
     /**
-     * Email address
+     * Email address, optional; see {@link #getEmail()}.
      */
     private String email;
 
@@ -72,7 +72,7 @@ public class SOCCreateAccount extends SOCMessage
      *     in server v1.1.19 and higher.
      * @param pw  password; must not be null or ""
      * @param hn  host name; must not be null or ""
-     * @param em  email
+     * @param em  email; can be "", should not be null
      * @throws IllegalArgumentException if <tt>pw</tt> or <tt>hn</tt> are null or empty ("")
      */
     public SOCCreateAccount(String nn, String pw, String hn, String em)
@@ -102,6 +102,14 @@ public class SOCCreateAccount extends SOCMessage
     }
 
     /**
+     * Password for the requested new account. This won't be null or 0-length:
+     * Enforced in constructor, {@link #toCmd(String, String, String, String)},
+     * and {@link #parseDataStr(String)}.
+     *<P>
+     * Before v1.1.19, those methods didn't check their parameters for a non-blank password;
+     * {@link #parseDataStr(String)} has always rejected a message without a password because
+     * two adjacent field-separator tokens (if no password) would be treated as one, and
+     * not enough fields would be found in the message.
      * @return the password
      */
     public String getPassword()
@@ -110,6 +118,14 @@ public class SOCCreateAccount extends SOCMessage
     }
 
     /**
+     * Host name for the requested new account. This won't be null or 0-length:
+     * Enforced in constructor, {@link #toCmd(String, String, String, String)},
+     * and {@link #parseDataStr(String)}.
+     *<P>
+     * Before v1.1.19, those methods didn't check their parameters for a non-blank host;
+     * {@link #parseDataStr(String)} has always rejected a message without a host because
+     * two adjacent field-separator tokens (if no host) would be treated as one, and
+     * not enough fields would be found in the message.
      * @return the host name
      */
     public String getHost()
@@ -118,7 +134,8 @@ public class SOCCreateAccount extends SOCMessage
     }
 
     /**
-     * @return the email address
+     * Optional email address for the requested new account.
+     * @return the email address, or "" if none
      */
     public String getEmail()
     {
@@ -141,7 +158,7 @@ public class SOCCreateAccount extends SOCMessage
      * @param nn  the nickname
      * @param pw  the password; must not be null or ""
      * @param hn  the host name; must not be null or ""
-     * @param em  the email
+     * @param em  the email; optional, can use null or ""
      * @return    the command string
      * @throws IllegalArgumentException if <tt>pw</tt> or <tt>hn</tt> are null or empty ("")
      */
@@ -173,7 +190,8 @@ public class SOCCreateAccount extends SOCMessage
     }
 
     /**
-     * Parse the command String into a CreateAccount message
+     * Parse the command String into a CreateAccount message.
+     * A blank email field becomes "" (not null).
      *
      * @param s   the String to parse
      * @return    a CreateAccount message, or null of the data is garbled
