@@ -1433,8 +1433,7 @@ public class SOCGameHandler extends GameHandler
         c.put(SOCGameState.toCmd(gameName, gameData.getGameState()));
         if (D.ebugOn)
             D.ebugPrintln("*** " + c.getData() + " joined the game " + gameName + " at "
-                    + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date())
-                    + " from " + c.host());
+                + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
 
         //messageToGame(gameName, new SOCGameTextMsg(gameName, SERVERNAME, n+" joined the game"));
         /**
