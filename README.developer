@@ -320,6 +320,10 @@ Current TODO list
 		- UI mock-ups
 		- state change / network message plans
 		- robot support
+	- Support for multiple game types
+		- At server: Other game types would extend GameHandler (like SOCGameHandler)
+		- When client connects: Game list, scenario list, and game options would need to deal with multiple game types
+		- SOCJoinGame message: Add optional gametype field at end (blank for current type SOC; older clients wouldn't send the field)
 
 
 Developing with a database (JDBC)
