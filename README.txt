@@ -49,7 +49,7 @@ its users using the applet.
 Currently, this README is the only technical documentation for running
 the client or server, setup and other issues. Over time, more docs
 will be written. If you are interested in helping write documentation
-please contact the development team from the SourceForge site.
+please contact the development team from our github page.
 
 
 Requirements
@@ -449,11 +449,10 @@ It will reset the password and exit, won't start a JSettlersServer.
 Development and Compiling
 -------------------------
 
-Source code for JSettlers is available via tarballs and github.
-See the project website at http://nand.net/jsettlers/devel/
-or http://sourceforge.net/projects/jsettlers2/
-for details. Patches against the latest version may be submitted there
-or at https://github.com/jdmonin/JSettlers2 .
+JSettlers is an open-source project licensed under the GPL. The project
+source code is hosted at https://github.com/jdmonin/JSettlers2/ and
+the project website is http://nand.net/jsettlers/devel/ .  Questions,
+bugs, patches, and pull requests can be posted at the github page.
 
 For more information on compiling or developing JSettlers, see README.developer.
 That readme also has information about translating jsettlers to other languages,
