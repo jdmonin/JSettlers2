@@ -2187,8 +2187,9 @@ public class SOCGameHandler extends GameHandler
      *  If game is OVER, send messages reporting winner, final score,
      *  and each player's victory-point cards.
      *  Also give stats on game length, and on each player's connect time.
-     *  If player has finished more than 1 game since connecting, send win-loss count.
+     *  If player has finished more than 1 game since connecting, send their win-loss count.
      *<P>
+     *  Increments server stats' numberOfGamesFinished.
      *  If db is active, calls {@link SOCServer#storeGameScores(SOCGame)} to save game stats.
      *<P>
      *  If {@link SOCGame#isBotsOnly}, calls {@link SOCServer#destroyGameAndBroadcast(String, String)} to make room
@@ -2350,6 +2351,7 @@ public class SOCGameHandler extends GameHandler
 
         }  // send game timing stats, win-loss stats
 
+        srv.gameOverIncrGamesFinishedCount();
         srv.storeGameScores(ga);
 
         if (ga.isBotsOnly)

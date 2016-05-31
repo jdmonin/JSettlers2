@@ -739,14 +739,27 @@ public class SOCServer extends Server
     protected long startTime;
 
     /**
-     * the total number of games that have been started
+     * The total number of games that have been started:
+     * {@link GameHandler#startGame(SOCGame)} has been called
+     * and game play has begun. Game state became {@link SOCGame#READY}
+     * or higher from an earlier/lower state.
      */
     protected int numberOfGamesStarted;
 
     /**
-     * the total number of games finished
+     * The total number of games finished: Game state became {@link SOCGame#OVER} or higher
+     * from an earlier/lower state. Incremented in {@link #gameOverIncrGamesFinishedCount()}.
+     *<P>
+     * Before v1.1.20 this was the number of games destroyed, and {@code *STATS*}
+     * wouldn't reflect a newly finished game until all players had left that game.
      */
     protected int numberOfGamesFinished;
+
+    /**
+     * Synchronization for {@link #numberOfGamesFinished} writes.
+     * @since 2.0.00
+     */
+    private Object countFieldSync = new Object();
 
     /**
      * total number of users
@@ -2110,10 +2123,6 @@ public class SOCServer extends Server
         if (cg == null)
             return;
 
-        if (cg.getGameState() == SOCGame.OVER)
-        {
-            numberOfGamesFinished++;
-        }
         final boolean wasBotsOnly = cg.isBotsOnly;
 
         ///
@@ -7942,6 +7951,23 @@ public class SOCServer extends Server
 
         // All set.
     }  // resetBoardAndNotify_finish
+
+    /**
+     * Increment the "number of games finished" server-statistics field.
+     * Call when a game's state becomes {@link SOCGame#OVER} (or higher)
+     * from a lower/earlier state.
+     *<P>
+     * Thread-safe; synchronizes on an internal object.
+     * Package-level access for calls from {@link GameHandler}s.
+     * @since 2.0.00
+     */
+    void gameOverIncrGamesFinishedCount()
+    {
+        synchronized (countFieldSync)
+        {
+            ++numberOfGamesFinished;
+        }
+    }
 
     /**
      * create a new game event record
