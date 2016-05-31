@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -159,6 +159,8 @@ public abstract class GameHandler
      * Send all game members the piece counts, other public information for the game and each player,
      * set up and send the board layout, game state, and finally send the {@link soc.message.SOCStartGame STARTGAME}
      * and {@link soc.message.SOCTurn TURN} messages.
+     *<P>
+     * Set game state to {@link SOCGame#READY} or higher, from an earlier/lower state.
      *
      * @param ga  the game
      */
