@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -307,10 +307,10 @@ public class SOCHandPanel extends Panel
     protected ColorSquare roadSq;
     /** shipSq = the number of ships remaining, or null if not {@link SOCGame#hasSeaBoard}. @since 2.0.00 */
     protected ColorSquare shipSq;
-    protected Label settlementLab;
-    protected Label cityLab;
-    protected Label roadLab;
-    protected Label shipLab;
+    protected JLabel settlementLab;
+    protected JLabel cityLab;
+    protected JLabel roadLab;
+    protected JLabel shipLab;
     /** Resource card count */
     protected ColorSquare resourceSq;
     protected Label resourceLab;
@@ -319,7 +319,12 @@ public class SOCHandPanel extends Panel
     protected Label developmentLab;
     /** Soldier/Knight count */
     protected ColorSquare knightsSq;
-    protected Label knightsLab;
+    /**
+     * Label for {@link #knightsSq}. This and related labels (settlements, cities, ...) are transparent-background
+     * JLabels to avoid z-order overlap problems between the labels' padding and the count squares next to them
+     * (seen during v2.0.00 development).
+     */
+    protected JLabel knightsLab;
     /** Player's development card/inventory item names, from {@link #inventoryItems}; updated frequently by {@link #updateDevCards(boolean)} */
     protected List inventory;
     /** Player's development cards/inventory items, in same order as {@link #inventory}; updated frequently by {@link #updateDevCards(boolean)} */
@@ -352,7 +357,7 @@ public class SOCHandPanel extends Panel
      * @since 2.0.00
      */
     protected ColorSquare clothSq;
-    protected Label clothLab;
+    protected JLabel clothLab;
 
     /**
      * Wonder Level label, for scenario {@link SOCGameOption#K_SC_WOND _SC_WOND}; null otherwise.
@@ -686,7 +691,8 @@ public class SOCHandPanel extends Panel
         roadSq.setTooltipText(pieces_available_to_place);
         roadSq.setTooltipLowWarningLevel(strings.get("hpan.roads.almostout"), 2);  // "Almost out of roads to place"
         roadSq.setTooltipZeroText(strings.get("hpan.roads.out"));  // "No more roads available"
-        roadLab = new Label(strings.get("hpan.roads"));  // "Roads:"
+        roadLab = new JLabel(strings.get("hpan.roads"));  // "Roads:"
+        roadLab.setFont(DIALOG_PLAIN_10);
         add(roadLab);
 
         settlementSq = new ColorSquare(ColorSquare.GREY, 0);
@@ -694,7 +700,8 @@ public class SOCHandPanel extends Panel
         settlementSq.setTooltipText(pieces_available_to_place);
         settlementSq.setTooltipLowWarningLevel(strings.get("hpan.stlmts.almostout"), 1);
         settlementSq.setTooltipZeroText(strings.get("hpan.stlmts.out"));
-        settlementLab = new Label(strings.get("hpan.stlmts"));  // "Stlmts:"
+        settlementLab = new JLabel(strings.get("hpan.stlmts"));  // "Stlmts:"
+        settlementLab.setFont(DIALOG_PLAIN_10);
         add(settlementLab);
 
         citySq = new ColorSquare(ColorSquare.GREY, 0);
@@ -702,7 +709,8 @@ public class SOCHandPanel extends Panel
         citySq.setTooltipText(pieces_available_to_place);
         citySq.setTooltipLowWarningLevel(strings.get("hpan.cities.almostout"), 1);
         citySq.setTooltipZeroText(strings.get("hpan.cities.out"));
-        cityLab = new Label(strings.get("hpan.cities"));  // "Cities:"
+        cityLab = new JLabel(strings.get("hpan.cities"));  // "Cities:"
+        cityLab.setFont(DIALOG_PLAIN_10);
         add(cityLab);
 
         if (game.hasSeaBoard)
@@ -712,7 +720,8 @@ public class SOCHandPanel extends Panel
             shipSq.setTooltipText(pieces_available_to_place);
             shipSq.setTooltipLowWarningLevel(strings.get("hpan.ships.almostout"), 2);
             shipSq.setTooltipZeroText(strings.get("hpan.ships.out"));
-            shipLab = new Label(strings.get("hpan.ships"));  // "Ships:"
+            shipLab = new JLabel(strings.get("hpan.ships"));  // "Ships:"
+            shipLab.setFont(DIALOG_PLAIN_10);
             add(shipLab);
         } else {
             // shipSq, shipLab already null
@@ -720,7 +729,8 @@ public class SOCHandPanel extends Panel
 
         if (game.isGameOptionSet(SOCGameOption.K_SC_CLVI))
         {
-            clothLab = new Label(strings.get("hpan.cloth"));  // No trailing space (room for wider colorsquares at left)
+            clothLab = new JLabel(strings.get("hpan.cloth"));  // No trailing space (room for wider colorsquares at left)
+            clothLab.setFont(DIALOG_PLAIN_10);
             add(clothLab);
             clothSq = new ColorSquare(ColorSquare.GREY, 0);
             add(clothSq);
@@ -735,7 +745,8 @@ public class SOCHandPanel extends Panel
             // clothSq, clothLab, wonderLab already null
         }
 
-        knightsLab = new Label(strings.get("hpan.soldiers"));  // No trailing space (room for wider colorsquares at left)
+        knightsLab = new JLabel(strings.get("hpan.soldiers"));  // No trailing space (room for wider colorsquares at left)
+        knightsLab.setFont(DIALOG_PLAIN_10);
         add(knightsLab);
         knightsSq = new ColorSquare(ColorSquare.GREY, 0);
         add(knightsSq);
