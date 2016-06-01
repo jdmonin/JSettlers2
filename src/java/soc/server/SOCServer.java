@@ -693,12 +693,19 @@ public class SOCServer extends Server
     protected long startTime;
 
     /**
-     * the total number of games that have been started
+     * The total number of games that have been started:
+     * {@link GameHandler#startGame(SOCGame)} has been called
+     * and game play has begun. Game state became {@link SOCGame#READY}
+     * or higher from an earlier/lower state.
      */
     protected int numberOfGamesStarted;
 
     /**
-     * the total number of games finished
+     * The total number of games finished: Game state became {@link SOCGame#OVER} or higher
+     * from an earlier/lower state. Incremented in {@link #gameOverIncrGamesFinishedCount()}.
+     *<P>
+     * Before v1.1.20 this was the number of games destroyed, and <tt>*STATS*</tt>
+     * wouldn't reflect a newly finished game until all players had left that game.
      */
     protected int numberOfGamesFinished;
 
@@ -2367,11 +2374,6 @@ public class SOCServer extends Server
 
         if (cg != null)
         {
-            if (cg.getGameState() == SOCGame.OVER)
-            {
-                numberOfGamesFinished++;
-            }
-
             ///
             /// write out game data
             ///
@@ -9231,8 +9233,9 @@ public class SOCServer extends Server
      *  If game is OVER, send messages reporting winner, final score,
      *  and each player's victory-point cards.
      *  Also give stats on game length, and on each player's connect time.
-     *  If player has finished more than 1 game since connecting, send win-loss count.
+     *  If player has finished more than 1 game since connecting, send their win-loss count.
      *<P>
+     *  Increments server stats' numberOfGamesFinished.
      *  If db is active, calls {@link #storeGameScores(SOCGame)}
      *  if {@link SOCDBHelper#PROP_JSETTLERS_DB_SAVE_GAMES} setting is active.
      *
@@ -9473,6 +9476,8 @@ public class SOCServer extends Server
             }  // for each player
 
         }  // send game timing stats, win-loss stats
+
+        ++numberOfGamesFinished;
 
         //
         // Save game stats in the database,
