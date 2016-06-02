@@ -5631,21 +5631,30 @@ public class SOCGame implements Serializable, Cloneable
      * Move the pirate, optionally with a pirate fleet strength.
      * The fleet strength is used by {@link #rollDice()} in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
      *<P>
-     * See {@link #movePirate(int, int)} for method javadocs in "normal" operation(not <tt>_SC_PIRI</tt>).
+     * See {@link #movePirate(int, int)} for method javadocs in "normal" operation (not {@code _SC_PIRI}).
      *<P>
      * In <b>game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},</b> the pirate is moved not by the player,
-     * but by the game at every dice roll.  See {@link SOCBoardLarge#movePirateHexAlongPath(int)}.
-     * {@link SOCMoveRobberResult#victims} will be the player(s) with a settlement/city adjacent to the new pirate hex.
-     * If there is 1 victim, {@link SOCMoveRobberResult#sc_piri_loot} will be set to the robbed resource(s), if any.
-     * if player's warships are stronger than the pirate fleet, <tt>sc_piri_loot</tt> will contain
-     * {@link SOCResourceConstants#GOLD_LOCAL}.
-     * Does not set {@link SOCPlayer#setNeedToPickGoldHexResources(int)}.
+     * but by the game at every dice roll.  See {@link SOCBoardLarge#movePirateHexAlongPath(int)}
+     * and {@link #stealFromPlayerPirateFleet(int, int)} for details.
+     *<UL>
+     * <LI> {@link SOCMoveRobberResult#victims} will be the player(s) having a settlement/city adjacent to
+     *      the new pirate hex
+     * <LI> If there is 1 victim, {@link SOCMoveRobberResult#sc_piri_loot} will be set to the robbed resource(s), if any
+     * <LI> If player's warship strength equals the pirate fleet's, nothing is stolen or gained
+     * <LI> If player's warships are stronger than the pirate fleet:
+     *    <UL>
+     *     <LI> {@code sc_piri_loot} will contain {@link SOCResourceConstants#GOLD_LOCAL}
+     *     <LI> Does not set {@link SOCPlayer#setNeedToPickGoldHexResources(int)}
+     *     <LI> Does not set game state
+     *     <LI> Caller {@link #rollDice()} will set the game state and that player flag
+     *    </UL>
+     *</UL>
      *
      * @param pn  the number of the player that is moving the pirate ship
      * @param ph  the pirate's new hex coordinate; should be a water hex
      * @param pirFleetStrength  Pirate fleet strength, or -1 if not scenario _SC_PIRI
      * @return  see {@link #movePirate(int, int)}
-     * @throws IllegalArgumentException if <tt>ph</tt> &lt; 0
+     * @throws IllegalArgumentException if {@code ph} &lt; 0
      * @since 2.0.00
      */
     private SOCMoveRobberResult movePirate(final int pn, final int ph, final int pirFleetStrength)
@@ -5675,10 +5684,10 @@ public class SOCGame implements Serializable, Cloneable
             SOCPlayer victim = victims.firstElement();
             if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
             {
-                // steal multiple items, set sc_piri_loot, don't change gameState
+                // Call is from rollDice():
+                // If player has warships, might tie or be stronger, otherwise steal multiple items
+                // Set sc_piri_loot; don't change gameState
                 stealFromPlayerPirateFleet(victim.getPlayerNumber(), pirFleetStrength);
-                // TODO if player has warships, might tie or be stronger
-                // -- check robberResult.sc_piri_loot for GOLD_LOCAL, set new gameState to choose free resource
             }
             else if (! canChooseRobClothOrResource(victim.getPlayerNumber()))
             {
@@ -6282,20 +6291,23 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * In game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, the pirate fleet is moved every
      * dice roll, and may steal from the single player with an adjacent settlement or city.
-     * Perform the robbery.  Number of resources stolen are 1 + victim's number of cities.
+     * If pirate fleet is stronger than player's fleet ({@link SOCPlayer#getNumWarships()}),
+     * perform the robbery.  Number of resources stolen are 1 + victim's number of cities.
      * The stolen resources are discarded, no player gets them.
      * Does not change gameState.
      *<P>
      * Results will be reported back through {@link #robberResult}:
-     * Will set {@link SOCMoveRobberResult#sc_piri_loot} to the resource(s) stolen.
-     * If player had no resources, <tt>sc_piri_loot.getTotal()</tt> will be 0.
-     * If player is stronger than the pirate fleet, they get to pick a free resource:
-     * <tt>sc_piri_loot</tt> will contain 1 {@link SOCResourceConstants#GOLD_LOCAL}.
-     * Does not set {@link SOCPlayer#setNeedToPickGoldHexResources(int)}.
-     *<P>
-     * Does not validate <tt>pn</tt>; assumes proper game state and scenario.
+     *<UL>
+     * <LI> Will set {@link SOCMoveRobberResult#sc_piri_loot} to the resource(s) stolen, if any
+     * <LI> If player had no resources, {@code sc_piri_loot.getTotal()} will be 0
+     * <LI> If player's strength is tied with {@code pirFleetStrength}, nothing is gained or lost
+     * <LI> If player is stronger than the pirate fleet, they get to pick a free resource:
+     *      {@code sc_piri_loot} will contain 1 {@link SOCResourceConstants#GOLD_LOCAL}
+     *      Caller must set {@link SOCPlayer#setNeedToPickGoldHexResources(int)}, not set here.
+     *</UL>
+     * Assumes proper game state and scenario, does not validate those or {@code pn}.
      *
-     * @param pn  the number of the player being robbed
+     * @param pn  The player number being robbed; not validated
      * @param pirFleetStrength  Pirate fleet strength, from {@link #rollDice()} dice roll
      * @see #stealFromPlayer(int, boolean)
      * @since 2.0.00
