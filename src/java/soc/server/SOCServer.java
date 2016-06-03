@@ -5506,30 +5506,7 @@ public class SOCServer extends Server
         }
         else if (cmdTxtUC.startsWith("*WHO*"))
         {
-            Vector<StringConnection> gameMembers = null;
-            gameList.takeMonitorForGame(gaName);
-
-            try
-            {
-                gameMembers = gameList.getMembers(gaName);
-            }
-            catch (Exception e)
-            {
-                D.ebugPrintStackTrace(e, "Exception in *WHO* (gameMembers)");
-            }
-
-            gameList.releaseMonitorForGame(gaName);
-
-            if (gameMembers != null)
-            {
-                Enumeration<StringConnection> membersEnum = gameMembers.elements();
-
-                while (membersEnum.hasMoreElements())
-                {
-                    StringConnection conn = membersEnum.nextElement();
-                    messageToGame(gaName, "> " + conn.getData());
-                }
-            }
+            processDebugCommand_who(c, ga, cmdText, cmdTxtUC);
         }
 
         //
@@ -5606,6 +5583,51 @@ public class SOCServer extends Server
             messageToPlayerKeyed(c, gaName,
                 ((isCheckTime) ? "stats.game.willexpire.urgent" : "stats.game.willexpire"),
                 Integer.valueOf((int) ((gameData.getExpiration() - System.currentTimeMillis()) / 60000)));
+        }
+    }
+
+    /**
+     * Process unprivileged command {@code *WHO*} to show members of current game.
+     *<P>
+     * <B>Locks:</B> Takes/releases {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
+     * to call {@link SOCGameListAtServer#getMembers(String)}.
+     *
+     * @param c  Client sending the *WHO* command
+     * @param ga  Game in which the command was sent
+     * @param cmdText   Text of *WHO* command
+     * @param cmdTextUC  {@code cmdText} as uppercase, for efficiency (it's already been uppercased in caller)
+     * @since 1.1.20
+     */
+    private void processDebugCommand_who
+        (final StringConnection c, final SOCGame ga, final String cmdText, final String cmdTextUC)
+    {
+        // TODO privileged {@code *WHO* gameName|all} -- show all connected clients, or some other game's members
+
+        final String gaName = ga.getName();
+
+        Vector<StringConnection> gameMembers = null;
+
+        gameList.takeMonitorForGame(gaName);
+        try
+        {
+            gameMembers = gameList.getMembers(gaName);
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in *WHO* (gameMembers)");
+        }
+        gameList.releaseMonitorForGame(gaName);
+
+        if (gameMembers == null)
+        {
+            return;  // unlikely since empty games are destroyed
+        }
+
+        Enumeration<StringConnection> membersEnum = gameMembers.elements();
+        while (membersEnum.hasMoreElements())
+        {
+            StringConnection conn = membersEnum.nextElement();
+            messageToGame(gaName, "> " + conn.getData());
         }
     }
 
