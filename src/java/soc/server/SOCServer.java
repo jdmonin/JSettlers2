@@ -5611,6 +5611,7 @@ public class SOCServer extends Server
         try
         {
             gameMembers = gameList.getMembers(gaName);
+            messageToGameKeyed(ga, false, "reply.game_members.this");  // "This game's members:"
         }
         catch (Exception e)
         {
