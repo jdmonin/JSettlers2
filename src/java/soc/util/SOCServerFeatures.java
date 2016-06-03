@@ -148,7 +148,7 @@ public class SOCServerFeatures
         if (featureList == null)
             return false;
 
-        return featureList.contains(SEP_CHAR + featureName + SEP_CHAR);
+        return (featureList.indexOf(SEP_CHAR + featureName + SEP_CHAR) != -1);
     }
 
     /**
