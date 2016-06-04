@@ -5527,7 +5527,7 @@ public class SOCServer extends Server
         }
         else if (cmdTxtUC.startsWith("*WHO*"))
         {
-            processDebugCommand_who(c, ga, cmdText, cmdTxtUC);
+            processDebugCommand_who(c, ga, cmdText);
         }
 
         //
@@ -5616,40 +5616,85 @@ public class SOCServer extends Server
      * @param c  Client sending the *WHO* command
      * @param ga  Game in which the command was sent
      * @param cmdText   Text of *WHO* command
-     * @param cmdTextUC  {@code cmdText} as uppercase, for efficiency (it's already been uppercased in caller)
      * @since 1.1.20
      */
     private void processDebugCommand_who
-        (final StringConnection c, final SOCGame ga, final String cmdText, final String cmdTextUC)
+        (final StringConnection c, final SOCGame ga, final String cmdText)
     {
         // TODO privileged {@code *WHO* gameName|all} -- show all connected clients, or some other game's members
 
-        final String gaName = ga.getName();
+        final String gaName = ga.getName();  // name of game where c is connected and sent *WHO* command
+        String gaNameWho = gaName;  // name of game to find members; if sendToCli, not equal to gaName
+        boolean sendToCli = false;  // if true, send member list only to c instead of whole game
+
+        int i = cmdText.indexOf(' ');
+        if (i != -1)
+        {
+            // look for a game name or ALL
+            String gname = cmdText.substring(i+1).trim();
+
+            if (gname.length() > 0)
+            {
+                // Check if using user admins; if not, if using debug user
+                // Then: look for game name or if ALL, set gaNameWho=null
+
+                final String uname = (String) c.getData();
+                boolean isAdmin = isUserDBUserAdmin(uname, true);
+                if (! isAdmin)
+                    isAdmin = (allowDebugUser && uname.equals("debug"));
+                if (! isAdmin)
+                {
+                    messageToPlayerKeyed(c, gaName, "reply.must_be_admin.view");
+                        // "Must be an administrator to view that."
+                    return;
+                }
+
+                sendToCli = true;
+
+                // TODO check for "ALL"
+                if (gameList.isGame(gname))
+                {
+                    gaNameWho = gname;
+                } else {
+                    messageToPlayerKeyed(c, gaName, "reply.game.not.found");  // "Game not found."
+                    return;
+                }
+            }
+        }
 
         Vector<StringConnection> gameMembers = null;
 
-        gameList.takeMonitorForGame(gaName);
+        gameList.takeMonitorForGame(gaNameWho);
         try
         {
-            gameMembers = gameList.getMembers(gaName);
-            messageToGameKeyed(ga, false, "reply.game_members.this");  // "This game's members:"
+            gameMembers = gameList.getMembers(gaNameWho);
+            if (! sendToCli)
+                messageToGameKeyed(ga, false, "reply.game_members.this");  // "This game's members:"
         }
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception in *WHO* (gameMembers)");
         }
-        gameList.releaseMonitorForGame(gaName);
+        gameList.releaseMonitorForGame(gaNameWho);
 
         if (gameMembers == null)
         {
             return;  // unlikely since empty games are destroyed
         }
 
+        if (sendToCli)
+            messageToPlayerKeyed(c, gaName, "reply.game_members.of", gaNameWho);  // "Members of game {0}:"
+
         Enumeration<StringConnection> membersEnum = gameMembers.elements();
         while (membersEnum.hasMoreElements())
         {
             StringConnection conn = membersEnum.nextElement();
-            messageToGame(gaName, "> " + conn.getData());
+            String mNameStr = "> " + conn.getData();
+
+            if (sendToCli)
+                messageToPlayer(c, gaName, mNameStr);
+            else
+                messageToGame(gaName, mNameStr);
         }
     }
 
