@@ -1931,6 +1931,14 @@ public class SOCServer extends Server
     /**
      * the connection c leaves the game gm.  Clean up; if needed, force the current player's turn to end.
      *<P>
+     * If the game becomes empty after removing {@code c}, this method can destroy it if all these
+     * conditions are true (determined by {@link GameHandler#leaveGame(SOCGame, StringConnection)}):
+     * <UL>
+     *  <LI> {@code c} was the last non-robot player
+     *  <LI> No one was watching/observing
+     *  <LI> {@link SOCGame#isBotsOnly} flag is false
+     * </UL>
+     *<P>
      * <B>Locks:</b> Has {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gm)}
      * when calling this method; should not have {@link SOCGame#takeMonitor()}.
      * May or may not have {@link SOCGameList#takeMonitor()}, see {@code gameListLock} parameter.
@@ -1941,11 +1949,13 @@ public class SOCServer extends Server
      *           any communication about leaving the game, in case they are
      *           still connected and in other games.
      * @param gm the game
+     * @param destroyIfEmpty  if true, this method will destroy the game if it's now empty.
+     *           If false, the caller must call {@link #destroyGame(String)}
+     *           before calling {@link SOCGameList#releaseMonitor()}.
      * @param gameListLock  true if we have the {@link SOCGameList#takeMonitor()} lock
-     * @return true if the game was destroyed (because c was the last non-robot player,
-     *              and no one was watching, and not {@link SOCGame#isBotsOnly})
+     * @return true if the game was destroyed, or if it would have been destroyed but {@code destroyIfEmpty} is false.
      */
-    public boolean leaveGame(StringConnection c, String gm, final boolean gameListLock)
+    public boolean leaveGame(StringConnection c, String gm, final boolean destroyIfEmpty, final boolean gameListLock)
     {
         System.err.println("L712: leaveGame(" + c + ", " + gm + ")");  // JM TEMP
         if (c == null)
@@ -1972,7 +1982,7 @@ public class SOCServer extends Server
                 // should not happen. If no handler, game data is inconsistent
         }
 
-        if (gameDestroyed)
+        if (gameDestroyed && destroyIfEmpty)
         {
             /**
              * if the game has no players, or if they're all
@@ -1997,8 +2007,6 @@ public class SOCServer extends Server
 
                 gameList.releaseMonitor();
             }
-
-            gameDestroyed = true;
         }
 
         //D.ebugPrintln("*** gameDestroyed = "+gameDestroyed+" for "+gm);
@@ -2103,15 +2111,16 @@ public class SOCServer extends Server
     }
 
     /**
-     * destroy the game
-     *
-     * WARNING: MUST HAVE THE gameList.takeMonitor() before
-     * calling this method
+     * Destroy a game and clean up related data, such as the owner's count of
+     * {@link SOCClientData#getCurrentCreatedGames()}.
      *<P>
      * Note that if this game had the {@link SOCGame#isBotsOnly} flag, and {@link #numRobotOnlyGamesRemaining} &gt; 0,
      *  will call {@link #startRobotOnlyGames(boolean)}.
+     *<P>
+     * <B>Locks:</B> Must have {@link #gameList}{@link SOCGameList#takeMonitor() .takeMonitor()}
+     * before calling this method.
      *
-     * @param gm  the name of the game
+     * @param gm  Name of the game to destroy
      * @see #destroyGameAndBroadcast(String, String)
      */
     public void destroyGame(String gm)
@@ -2398,18 +2407,17 @@ public class SOCServer extends Server
     }
 
     /**
-     * the connection c leaves all games it was in
+     * Connection {@code c} is leaving the server; remove from all games it was in.
+     * In games where {@code c} was the last human player, calls {@link #destroyGame(String)}.
      *
      * @param c  the connection
-     * @return   the games it was in
      */
-    public Vector<String> leaveAllGames(StringConnection c)
+    public void leaveAllGames(StringConnection c)
     {
         if (c == null)
-            return null;
+            return;
 
-        Vector<String> ret = new Vector<String>();
-        Vector<String> destroyed = new Vector<String>();
+        List<String> toDestroy = new ArrayList<String>();  // games where c was the last human player
 
         gameList.takeMonitor();
 
@@ -2426,7 +2434,7 @@ public class SOCServer extends Server
 
                     try
                     {
-                        thisGameDestroyed = leaveGame(c, ga, true);
+                        thisGameDestroyed = leaveGame(c, ga, false, true);
                     }
                     catch (Exception e)
                     {
@@ -2436,11 +2444,7 @@ public class SOCServer extends Server
                     gameList.releaseMonitorForGame(ga);
 
                     if (thisGameDestroyed)
-                    {
-                        destroyed.addElement(ga);
-                    }
-
-                    ret.addElement(ga);
+                        toDestroy.add(ga);
                 }
             }
         }
@@ -2449,19 +2453,20 @@ public class SOCServer extends Server
             D.ebugPrintStackTrace(e, "Exception in leaveAllGames");
         }
 
+        /** After iteration, destroy newly empty games */
+        for (String ga : toDestroy)
+            destroyGame(ga);
+
         gameList.releaseMonitor();
 
         /**
          * let everyone know about the destroyed games
          */
-        for (Enumeration<String> de = destroyed.elements(); de.hasMoreElements();)
+        for (String ga : toDestroy)
         {
-            String ga = de.nextElement();
             D.ebugPrintln("** Broadcasting SOCDeleteGame " + ga);
             broadcast(SOCDeleteGame.toCmd(ga));
         }
-
-        return ret;
     }
 
     /**
@@ -6111,7 +6116,7 @@ public class SOCServer extends Server
 
         try
         {
-            gameDestroyed = leaveGame(c, gaName, false);
+            gameDestroyed = leaveGame(c, gaName, true, false);
         }
         catch (Exception e)
         {
