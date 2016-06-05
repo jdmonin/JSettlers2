@@ -5686,7 +5686,64 @@ public class SOCServer extends Server
 
                 sendToCli = true;
 
-                // TODO check for "ALL"
+                if (gname.equals("*") || gname.toUpperCase(Locale.US).equals("ALL"))
+                {
+                    // Instead of listing the game's members, list all connected clients.
+                    // Do as little as possible inside synchronization block.
+
+                    final ArrayList<StringBuilder> sbs = new ArrayList<StringBuilder>();
+                    StringBuilder sb = new StringBuilder(c.getLocalized("reply.who.conn_to_srv"));  // Currently connected to server:"
+                    sbs.add(sb);
+                    sb = new StringBuilder("- ");
+                    sbs.add(sb);
+
+                    int nUnnamed;
+                    synchronized (unnamedConns)
+                    {
+                        nUnnamed = unnamedConns.size();
+
+                        Enumeration<StringConnection> ec = getConnections();  // the named ones
+                        while (ec.hasMoreElements())
+                        {
+                            String cname = (String) (ec.nextElement().getData());
+
+                            int L = sb.length();
+                            if (L + cname.length() > 50)
+                            {
+                                sb.append(',');  // TODO I18N list
+                                sb = new StringBuilder("- ");
+                                sbs.add(sb);
+                                L = 2;
+                            }
+
+                            if (L > 2)
+                                sb.append(", ");  // TODO I18N list with "line wrap"
+                            sb.append(cname);
+                        }
+                    }
+
+                    if (nUnnamed != 0)
+                    {
+                        String unnamed = c.getLocalized("reply.who.and_unnamed", Integer.valueOf(nUnnamed));
+                            // "and {0} unnamed connections"
+                        if (sb.length() + unnamed.length() + 2 > 50)
+                        {
+                            sb.append(',');  // TODO I18N list
+                            sb = new StringBuilder("- ");
+                            sb.append(unnamed);
+                            sbs.add(sb);
+                        } else {
+                            sb.append(", ");  // TODO I18N list
+                            sb.append(unnamed);
+                        }
+                    }
+
+                    for (StringBuilder sbb : sbs)
+                        messageToPlayer(c, gaName, sbb.toString());
+
+                    return;  // <--- Early return; Not listing a game's members ---
+                }
+
                 if (gameList.isGame(gname))
                 {
                     gaNameWho = gname;
