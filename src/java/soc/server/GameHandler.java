@@ -202,7 +202,8 @@ public abstract class GameHandler
      *           {@link StringConnection#disconnect()} has already been called.
      *           Don't exclude {@code c} from any communication about leaving the game,
      *           in case they are still connected and in other games.
-     * @return true if the game should be ended (does not have other non-robot players or observers) and deleted
+     * @return true if the game should be ended and deleted (does not have other observers or non-robot players,
+     *           and game's {@code isBotsOnly} flag is false)
      */
     public abstract boolean leaveGame(SOCGame ga, StringConnection c);
 
