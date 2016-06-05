@@ -705,6 +705,9 @@ public class SOCServer extends Server
 
     /**
      * list of chat channels
+     *<P>
+     * Within SOCServer, instead of calling {@link SOCChannelList#deleteChannel(String)},
+     * call {@link #destroyChannel(String)} to also clean up related server data.
      */
     protected SOCChannelList channelList = new SOCChannelList();
 
@@ -1540,24 +1543,29 @@ public class SOCServer extends Server
     }
 
     /**
-     * the connection c leaves the channel ch
-     *
-     * WARNING: MUST HAVE THE channelList.takeMonitorForChannel(ch) before
-     * calling this method
+     * Connection {@code c} leaves the channel {@code ch}.
+     * If the channel becomes empty after removing {@code c}, this method can destroy it.
+     *<P>
+     * <B>Locks:</b> Must have {@link SOCChannelList#takeMonitorForChannel(String) channelList.takeMonitorForChannel(ch)}
+     * when calling this method.
+     * May or may not have {@link SOCChannelList#takeMonitor()}, see {@code channelListLock} parameter.
      *
      * @param c  the connection
      * @param ch the channel
-     * @param channelListLock  true if we have the channelList monitor
+     * @param destroyIfEmpty  if true, this method will destroy the channel if it's now empty.
+     *           If false, the caller must call {@link #destroyChannel(String)}
+     *           before calling {@link SOCChannelList#releaseMonitor()}.
+     * @param channelListLock  true if we have the {@link SOCChannelList#takeMonitor()} lock
+     *           when called; false if it must be acquired and released within this method
      * @return true if we destroyed the channel
      */
-    public boolean leaveChannel(StringConnection c, String ch, boolean channelListLock)
+    public boolean leaveChannel
+        (final StringConnection c, final String ch, final boolean destroyIfEmpty, final boolean channelListLock)
     {
         if (c == null)
             return false;
 
         D.ebugPrintln("leaveChannel: " + c.getData() + " " + ch + " " + channelListLock);
-
-        boolean result = false;
 
         if (channelList.isMember(c, ch))
         {
@@ -1570,13 +1578,12 @@ public class SOCServer extends Server
                     + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
         }
 
-        if (channelList.isChannelEmpty(ch))
+        final boolean isEmpty = channelList.isChannelEmpty(ch);
+        if (isEmpty && destroyIfEmpty)
         {
-            final String chOwner = channelList.getOwner(ch);
-
             if (channelListLock)
             {
-                channelList.deleteChannel(ch);
+                destroyChannel(ch);
             }
             else
             {
@@ -1584,7 +1591,7 @@ public class SOCServer extends Server
 
                 try
                 {
-                    channelList.deleteChannel(ch);
+                    destroyChannel(ch);
                 }
                 catch (Exception e)
                 {
@@ -1593,16 +1600,31 @@ public class SOCServer extends Server
 
                 channelList.releaseMonitor();
             }
-
-            // Reduce the owner's channels-active count
-            StringConnection oConn = conns.get(chOwner);
-            if (oConn != null)
-                ((SOCClientData) oConn.getAppData()).deletedChannel();
-
-            result = true;
         }
 
-        return result;
+        return isEmpty;
+    }
+
+    /**
+     * Destroy a channel and then clean up related data, such as the owner's count of
+     * {@link SOCClientData#getcurrentCreatedChannels()}.
+     * Calls {@link SOCChannelList#deleteChannel(String)}.
+     *<P>
+     * <B>Locks:</B> Must have {@link #channelList}{@link SOCChannelList#takeMonitor() .takeMonitor()}
+     * before calling this method.
+     *
+     * @param ch  Name of the channel to destroy
+     * @see #leaveChannel(StringConnection, String, boolean, boolean)
+     * @since 1.1.20
+     */
+    protected final void destroyChannel(final String ch)
+    {
+        channelList.deleteChannel(ch);
+
+        // Reduce the owner's channels-active count
+        StringConnection oConn = conns.get(channelList.getOwner(ch));
+        if (oConn != null)
+            ((SOCClientData) oConn.getAppData()).deletedChannel();
     }
 
     /**
@@ -1952,7 +1974,8 @@ public class SOCServer extends Server
      * @param destroyIfEmpty  if true, this method will destroy the game if it's now empty.
      *           If false, the caller must call {@link #destroyGame(String)}
      *           before calling {@link SOCGameList#releaseMonitor()}.
-     * @param gameListLock  true if we have the {@link SOCGameList#takeMonitor()} lock
+     * @param gameListLock  true if we have the {@link SOCGameList#takeMonitor()} lock when called;
+     *           false if it must be acquired and released within this method
      * @return true if the game was destroyed, or if it would have been destroyed but {@code destroyIfEmpty} is false.
      */
     public boolean leaveGame(StringConnection c, String gm, final boolean destroyIfEmpty, final boolean gameListLock)
@@ -2121,6 +2144,7 @@ public class SOCServer extends Server
      * before calling this method.
      *
      * @param gm  Name of the game to destroy
+     * @see #leaveGame(StringConnection, String, boolean, boolean)
      * @see #destroyGameAndBroadcast(String, String)
      */
     public void destroyGame(String gm)
@@ -2343,18 +2367,17 @@ public class SOCServer extends Server
     }
 
     /**
-     * the connection c leaves all channels it was in
+     * Connection {@code c} is leaving the server; remove from all channels it was in.
+     * In channels where {@code c} was the last connection, calls {@link #destroyChannel(String)}.
      *
      * @param c  the connection
-     * @return   the channels it was in
      */
-    public Vector<?> leaveAllChannels(StringConnection c)
+    public void leaveAllChannels(StringConnection c)
     {
         if (c == null)
-            return null;
+            return;
 
-        Vector<?> ret = new Vector<Object>();
-        Vector<String> destroyed = new Vector<String>();
+        List<String> toDestroy = new ArrayList<String>();  // channels where c was the last member
 
         channelList.takeMonitor();
 
@@ -2371,7 +2394,7 @@ public class SOCServer extends Server
 
                     try
                     {
-                        thisChannelDestroyed = leaveChannel(c, ch, true);
+                        thisChannelDestroyed = leaveChannel(c, ch, false, true);
                     }
                     catch (Exception e)
                     {
@@ -2381,9 +2404,7 @@ public class SOCServer extends Server
                     channelList.releaseMonitorForChannel(ch);
 
                     if (thisChannelDestroyed)
-                    {
-                        destroyed.addElement(ch);
-                    }
+                        toDestroy.add(ch);
                 }
             }
         }
@@ -2392,18 +2413,19 @@ public class SOCServer extends Server
             D.ebugPrintStackTrace(e, "Exception in leaveAllChannels");
         }
 
+        /** After iteration, destroy newly empty channels */
+        for (String ch : toDestroy)
+            destroyChannel(ch);
+
         channelList.releaseMonitor();
 
         /**
          * let everyone know about the destroyed channels
          */
-        for (Enumeration<String> de = destroyed.elements(); de.hasMoreElements();)
+        for (String ga : toDestroy)
         {
-            String ga = de.nextElement();
             broadcast(SOCDeleteChannel.toCmd(ga));
         }
-
-        return ret;
     }
 
     /**
@@ -4246,7 +4268,7 @@ public class SOCServer extends Server
 
                             try
                             {
-                                channelList.deleteChannel(textMsgMes.getChannel());
+                                destroyChannel(textMsgMes.getChannel());
                             }
                             catch (Exception e)
                             {
@@ -5240,7 +5262,7 @@ public class SOCServer extends Server
 
         try
         {
-            destroyedChannel = leaveChannel(c, mes.getChannel(), false);
+            destroyedChannel = leaveChannel(c, mes.getChannel(), true, false);
         }
         catch (Exception e)
         {
