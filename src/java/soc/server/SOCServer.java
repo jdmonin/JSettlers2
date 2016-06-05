@@ -1636,7 +1636,8 @@ public class SOCServer extends Server
      * At that point, server will look for robots to fill empty seats.
      *
      * @param c    the Connection to be added to the game; its name, version, and locale should already be set.
-     * @param gaName  the name of the game
+     * @param gaName  the name of the game.  Not validated or trimmed, see
+     *             {@link #createOrJoinGameIfUserOK(StringConnection, String, String, String, Map)} for that.
      * @param gaOpts  if creating a game with options, its {@link SOCGameOption}s; otherwise null.
      *                Should already be validated, by calling
      *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
@@ -1763,7 +1764,8 @@ public class SOCServer extends Server
      * @param c    the Connection creating and owning this game; its name, version, and locale should already be set.
      *             This client connection will be added as a member of the game, and its {@link SOCClientData#createdGame()}
      *             will be called.  Can be null, especially if {@code isBotsOnly}.
-     * @param gaName  the name of the game, no game should exist yet with this name
+     * @param gaName  the name of the game, no game should exist yet with this name. Not validated or trimmed, see
+     *             {@link #createOrJoinGameIfUserOK(StringConnection, String, String, String, Map)} for that.
      * @param gaOpts  if creating a game with options, its {@link SOCGameOption}s; otherwise null.
      *                Should already be validated, by calling
      *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
@@ -4731,7 +4733,7 @@ public class SOCServer extends Server
      * does nothing.  Won't check username or password, just returns {@link #AUTH_OR_REJECT__OK}.
      *
      * @param c  Client's connection
-     * @param msgUser  Client username (nickname) to validate and authenticate
+     * @param msgUser  Client username (nickname) to validate and authenticate; will be {@link String#trim() trim()med}.
      * @param msgPass  Password to supply to {@link #authenticateUser(StringConnection, String, String)},
      *     or ""; please trim string before calling
      * @param cliVers  Client version, from {@link StringConnection#getVersion()}
@@ -4752,7 +4754,7 @@ public class SOCServer extends Server
      * @since 1.1.19
      */
     private int authOrRejectClientUser
-        (StringConnection c, final String msgUser, String msgPass, final int cliVers,
+        (StringConnection c, String msgUser, String msgPass, final int cliVers,
          final boolean doNameConnection, final boolean allowTakeover)
     {
         if (c.getData() != null)
@@ -4761,6 +4763,8 @@ public class SOCServer extends Server
         }
 
         boolean isTakingOver = false;  // will set true if a human player is replacing another player in the game
+
+        msgUser = msgUser.trim();
 
         /**
          * If connection doesn't already have a nickname, check that the nickname is ok
@@ -5108,6 +5112,9 @@ public class SOCServer extends Server
      * Handle the "join a channel" message.
      * If client hasn't yet sent its version, assume is
      * version 1.0.00 ({@link #CLI_VERSION_ASSUMED_GUESS}), disconnect if too low.
+     *<P>
+     * Requested channel name must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * Channel name {@code "*"} is also rejected to avoid conflicts with admin commands.
      *
      * @param c  the connection that sent the message
      * @param mes  the message
@@ -5152,7 +5159,8 @@ public class SOCServer extends Server
            }
          */
         final String ch = mes.getChannel().trim();
-        if (! SOCMessage.isSingleLineAndSafe(ch))
+        if ( (! SOCMessage.isSingleLineAndSafe(ch))
+             || "*".equals(ch))
         {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
@@ -5824,7 +5832,7 @@ public class SOCServer extends Server
         }
 
         createOrJoinGameIfUserOK
-            (c, mes.getNickname().trim(), mes.getPassword(), mes.getGame().trim(), null);
+            (c, mes.getNickname(), mes.getPassword(), mes.getGame(), null);
     }
 
     /**
@@ -5866,9 +5874,12 @@ public class SOCServer extends Server
      * @param c connection requesting the game, must not be null
      * @param msgUser username of client in message. Must pass {@link SOCMessage#isSingleLineAndSafe(String)}
      *                  and be at most {@link #PLAYER_NAME_MAX_LENGTH} characters.
-     * @param msgPass password of client in message
+     *                  Calls {@link String#trim() msgUser.trim()} before checking length.
+     * @param msgPass password of client in message; will be {@link String#trim() trim()med}.
      * @param gameName  name of game to create/join. Must pass {@link SOCMessage#isSingleLineAndSafe(String)}
      *                  and be at most {@link #GAME_NAME_MAX_LENGTH} characters.
+     *                  Calls {@link String#trim() gameName.trim()} before checking length.
+     *                  Game name {@code "*"} is also rejected to avoid conflicts with admin commands.
      * @param gameOpts  if game has options, contains {@link SOCGameOption} to create new game; if not null, will not join an existing game.
      *                  Will validate and adjust by calling
      *                  {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
@@ -5877,12 +5888,16 @@ public class SOCServer extends Server
      * @since 1.1.07
      */
     private void createOrJoinGameIfUserOK
-        (StringConnection c, final String msgUser, String msgPass,
-         final String gameName, Map<String, SOCGameOption> gameOpts)
+        (StringConnection c, String msgUser, String msgPass,
+         String gameName, Map<String, SOCGameOption> gameOpts)
     {
         System.err.println("L4885 createOrJoinGameIfUserOK at " + System.currentTimeMillis());
+        if (msgUser != null)
+            msgUser = msgUser.trim();
         if (msgPass != null)
             msgPass = msgPass.trim();
+        if (gameName != null)
+            gameName = gameName.trim();
         final int cliVers = c.getVersion();
 
         /**
@@ -5897,7 +5912,8 @@ public class SOCServer extends Server
         /**
          * Check that the game name is ok
          */
-        if (! SOCMessage.isSingleLineAndSafe(gameName))
+        if ( (! SOCMessage.isSingleLineAndSafe(gameName))
+             || "*".equals(gameName))
         {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
@@ -7665,7 +7681,7 @@ public class SOCServer extends Server
         //
         // check to see if the requested nickname is permissable
         //
-        final String userName = mes.getNickname();
+        final String userName = mes.getNickname().trim();
 
         if (! SOCMessage.isSingleLineAndSafe(userName))
         {
