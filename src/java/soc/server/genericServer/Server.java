@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - parameterize types, removeConnection bugfix
  *
  * This program is free software; you can redistribute it and/or
@@ -81,7 +81,7 @@ import java.util.Vector;
  *  @author Original author: <A HREF="http://www.nada.kth.se/~cristi">Cristian Bogdan</A> <br>
  *  Lots of mods by Robert S. Thomas and Jay Budzik <br>
  *  Local (StringConnection) network system by Jeremy D Monin &lt;jeremy@nand.net&gt; <br>
- *  Version-tracking system and other minor mods by Jeremy D Monin &lt;jeremy@nand.net&gt;
+ *  Version-tracking system, javadocs, and other minor mods by Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
 @SuppressWarnings("serial")  // not expecting to persist an instance between versions
 public abstract class Server extends Thread implements Serializable, Cloneable
@@ -120,11 +120,14 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     protected int numberCurrentConnections = 0;
 
-    /** the named connections */
+    /** The named connections: {@link Connection#getData()} != {@code null}.
+     * @see #unnamedConns
+     */
     protected Hashtable<Object, StringConnection> conns = new Hashtable<Object, StringConnection>();
 
     /** the newly connected, unnamed client connections;
      *  Adding/removing/naming/versioning of connections synchronizes on this Vector.
+     *  @see #conns
      */
     protected Vector<StringConnection> unnamedConns = new Vector<StringConnection>();
 
