@@ -5692,7 +5692,8 @@ public class SOCServer extends Server
                     // Do as little as possible inside synchronization block.
 
                     final ArrayList<StringBuilder> sbs = new ArrayList<StringBuilder>();
-                    StringBuilder sb = new StringBuilder(c.getLocalized("reply.who.conn_to_srv"));  // Currently connected to server:"
+                    StringBuilder sb = new StringBuilder(c.getLocalized("reply.who.conn_to_srv"));
+                        // "Currently connected to server:"
                     sbs.add(sb);
                     sb = new StringBuilder("- ");
                     sbs.add(sb);
