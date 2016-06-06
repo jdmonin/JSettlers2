@@ -5148,30 +5148,7 @@ public class SOCServer extends Server
         }
         else if (cmdTxtUC.startsWith("*WHO*"))
         {
-            Vector gameMembers = null;
-            gameList.takeMonitorForGame(gaName);
-
-            try
-            {
-                gameMembers = gameList.getMembers(gaName);
-            }
-            catch (Exception e)
-            {
-                D.ebugPrintStackTrace(e, "Exception in *WHO* (gameMembers)");
-            }
-
-            gameList.releaseMonitorForGame(gaName);
-
-            if (gameMembers != null)
-            {
-                Enumeration membersEnum = gameMembers.elements();
-
-                while (membersEnum.hasMoreElements())
-                {
-                    StringConnection conn = (StringConnection) membersEnum.nextElement();
-                    messageToGame(gaName, "> " + conn.getData());
-                }
-            }
+            processDebugCommand_who(c, ga, cmdText);
         }
 
         //
@@ -5354,6 +5331,54 @@ public class SOCServer extends Server
                     sendTurn(ga, toldRoll);
                 }
             }
+        }
+    }
+
+    /**
+     * Process unprivileged command <tt>*WHO*</tt> to show members of current game.
+     *<P>
+     * <B>Locks:</B> Takes/releases {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
+     * to call {@link SOCGameListAtServer#getMembers(String)}.
+     *
+     * @param c  Client sending the *WHO* command
+     * @param ga  Game in which the command was sent
+     * @param cmdText   Text of *WHO* command
+     * @since 1.1.20
+     */
+    private void processDebugCommand_who
+        (final StringConnection c, final SOCGame ga, final String cmdText)
+    {
+        // TODO privileged {@code *WHO* gameName|all} -- show all connected clients, or some other game's members
+
+        final String gaName = ga.getName();
+
+        Vector gameMembers = null;
+
+        gameList.takeMonitorForGame(gaName);
+
+        try
+        {
+            gameMembers = gameList.getMembers(gaName);
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in *WHO* (gameMembers)");
+        }
+
+        gameList.releaseMonitorForGame(gaName);
+
+        if (gameMembers == null)
+        {
+            return;  // unlikely since empty games are destroyed
+        }
+
+        messageToGame(gaName, "This game's members:");
+
+        Enumeration membersEnum = gameMembers.elements();
+        while (membersEnum.hasMoreElements())
+        {
+            StringConnection conn = (StringConnection) membersEnum.nextElement();
+            messageToGame(gaName, "> " + conn.getData());
         }
     }
 
