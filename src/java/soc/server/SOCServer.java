@@ -4593,6 +4593,27 @@ public class SOCServer extends Server
     }
 
     /**
+     * Is this username on the {@link #databaseUserAdmins} whitelist, if that whitelist is being used?
+     * @param uname  Username to check; if null, returns false.
+     * @param requireList  If true, the whitelist cannot be null.
+     *     If false, this function returns true for any user when we aren't using the whitelist and its field is null.
+     * @return  True only if the user is on the whitelist, or there is no list and <tt>requireList</tt> is false
+     * @since 1.1.20
+     */
+    private boolean isUserDBUserAdmin(final String uname, final boolean requireList)
+    {
+        if (uname == null)
+            return false;
+
+        // Check if we're using a user admin whitelist, and if uname's on it; this check is also in handleCREATEACCOUNT.
+
+        if (databaseUserAdmins == null)
+            return ! requireList;
+        else
+            return databaseUserAdmins.contains(uname);
+    }
+
+    /**
      * Handle the client's echo of a {@link SOCMessage#SERVERPING}.
      * @since 1.1.08
      */
@@ -5390,6 +5411,7 @@ public class SOCServer extends Server
      *
      * @param c  the connection that sent the message
      * @param mes  the message
+     * @see #isUserDBUserAdmin(String, boolean)
      * @since 1.1.19
      */
     private void handleAUTHREQUEST(StringConnection c, final SOCAuthRequest mes)
@@ -5424,8 +5446,8 @@ public class SOCServer extends Server
 
             if (mes.role.equals(SOCAuthRequest.ROLE_USER_ADMIN))
             {
-                // Check if we're using a user admin whitelist; this check is also in handleCREATEACCOUNT.
-                if ((databaseUserAdmins != null) && ! databaseUserAdmins.contains(mes.nickname))
+                // Check if we're using a user admin whitelist
+                if (isUserDBUserAdmin(mes.nickname, false))
                 {
                     c.put(SOCStatusMessage.toCmd
                             (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVersion,
@@ -8559,7 +8581,7 @@ public class SOCServer extends Server
         }
 
         //
-        // Check if we're using a user admin whitelist; this check is also in handleAUTHREQUEST.
+        // Check if we're using a user admin whitelist; this check is also in isUserDBUserAdmin.
         //
         // If databaseUserAdmins != null, then requester != null because FEAT_OPEN_REG can't also be active.
         // If requester is null because db is empty, check new userName instead of requester name:
