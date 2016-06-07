@@ -58,6 +58,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
@@ -658,6 +659,9 @@ public class SOCServer extends Server
 
     /**
      * list of chat channels
+     *<P>
+     * Instead of calling {@link SOCChannelList#deleteChannel(String)},
+     * call {@link #destroyChannel(String)} to also clean up related server data.
      */
     protected SOCChannelList channelList = new SOCChannelList();
 
@@ -1383,21 +1387,26 @@ public class SOCServer extends Server
     }
 
     /**
-     * the connection c leaves the channel ch
-     *
-     * WARNING: MUST HAVE THE channelList.takeMonitorForChannel(ch) before
-     * calling this method
+     * Connection <tt>c</tt> leaves the channel <tt>ch</tt>.
+     * If the channel becomes empty after removing <tt>c</tt>, this method can destroy it.
+     *<P>
+     * <B>Locks:</B> Must have {@link SOCChannelList#takeMonitorForChannel(String) channelList.takeMonitorForChannel(ch)}
+     * when calling this method.
+     * May or may not have {@link SOCChannelList#takeMonitor()}, see <tt>channelListLock</tt> parameter.
      *
      * @param c  the connection
      * @param ch the channel
-     * @param channelListLock  true if we have the channelList monitor
-     * @return true if we destroyed the channel
+     * @param destroyIfEmpty  if true, this method will destroy the channel if it's now empty.
+     *           If false, the caller must call {@link #destroyChannel(String)}
+     *           before calling {@link SOCChannelList#releaseMonitor()}.
+     * @param channelListLock  true if we have the {@link SOCChannelList#takeMonitor()} lock
+     *           when called; false if it must be acquired and released within this method
+     * @return true if we destroyed the channel, or if it would have been destroyed but <tt>destroyIfEmpty</tt> is false.
      */
-    public boolean leaveChannel(StringConnection c, String ch, boolean channelListLock)
+    public boolean leaveChannel
+        (final StringConnection c, final String ch, final boolean destroyIfEmpty, boolean channelListLock)
     {
         D.ebugPrintln("leaveChannel: " + c.getData() + " " + ch + " " + channelListLock);
-
-        boolean result = false;
 
         if (c != null)
         {
@@ -1412,13 +1421,12 @@ public class SOCServer extends Server
                         + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
             }
 
-            if (channelList.isChannelEmpty(ch))
+            final boolean isEmpty = channelList.isChannelEmpty(ch);
+            if (isEmpty && destroyIfEmpty)
             {
-                final String chOwner = channelList.getOwner(ch);
-
                 if (channelListLock)
                 {
-                    channelList.deleteChannel(ch);
+                    destroyChannel(ch);
                 }
                 else
                 {
@@ -1426,7 +1434,7 @@ public class SOCServer extends Server
 
                     try
                     {
-                        channelList.deleteChannel(ch);
+                        destroyChannel(ch);
                     }
                     catch (Exception e)
                     {
@@ -1435,17 +1443,34 @@ public class SOCServer extends Server
 
                     channelList.releaseMonitor();
                 }
-
-                // Reduce the owner's channels-active count
-                StringConnection oConn = (StringConnection) conns.get(chOwner);
-                if (oConn != null)
-                    ((SOCClientData) oConn.getAppData()).deletedChannel();
-
-                result = true;
             }
-        }
 
-        return result;
+            return isEmpty;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Destroy a channel and then clean up related data, such as the owner's count of
+     * {@link SOCClientData#getcurrentCreatedChannels()}.
+     * Calls {@link SOCChannelList#deleteChannel(String)}.
+     *<P>
+     * <B>Locks:</B> Must have {@link #channelList}{@link SOCChannelList#takeMonitor() .takeMonitor()}
+     * before calling this method.
+     *
+     * @param ch  Name of the channel to destroy
+     * @see #leaveChannel(StringConnection, String, boolean, boolean)
+     * @since 1.1.20
+     */
+    protected final void destroyChannel(final String ch)
+    {
+        channelList.deleteChannel(ch);
+
+        // Reduce the owner's channels-active count
+        StringConnection oConn = (StringConnection) conns.get(channelList.getOwner(ch));
+        if (oConn != null)
+            ((SOCClientData) oConn.getAppData()).deletedChannel();
     }
 
     /**
@@ -1724,7 +1749,14 @@ public class SOCServer extends Server
     /**
      * the connection c leaves the game gm.  Clean up; if needed, call {@link #forceEndGameTurn(SOCGame, String)}.
      *<P>
-     * <B>Locks:</b> Has {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gm)}
+     * If the game becomes empty after removing <tt>c</tt>, this method can destroy it if both of these
+     * conditions are true:
+     * <UL>
+     *  <LI> <tt>c</tt> was the last non-robot player
+     *  <LI> No one was watching/observing
+     * </UL>
+     *<P>
+     * <B>Locks:</B> Has {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gm)}
      * when calling this method; should not have {@link SOCGame#takeMonitor()}.
      * May or may not have {@link SOCGameList#takeMonitor()}, see <tt>gameListLock</tt> parameter.
      *
@@ -1734,11 +1766,15 @@ public class SOCServer extends Server
      *           any communication about leaving the game, in case they are
      *           still connected and in other games.
      * @param gm the game
-     * @param gameListLock  true if caller holds the {@link SOCGameList#takeMonitor()} lock
-     * @return true if the game was destroyed (because c was the last non-robot player,
-     *              and no one was watching)
+     * @param destroyIfEmpty  if true, this method will destroy the game if it's now empty.
+     *           If false, the caller must call {@link #destroyGame(String)}
+     *           before calling {@link SOCGameList#releaseMonitor()}.
+     * @param gameListLock  true if caller holds the {@link SOCGameList#takeMonitor()} lock when called;
+     *           false if it must be acquired and released within this method
+     * @return true if the game was destroyed, or if it would have been destroyed but <tt>destroyIfEmpty</tt> is false.
      */
-    public boolean leaveGame(StringConnection c, final String gm, final boolean gameListLock)
+    public boolean leaveGame
+        (final StringConnection c, final String gm, final boolean destroyIfEmpty, final boolean gameListLock)
     {
         System.err.println("L712: leaveGame(" + c + ", " + gm + ")");  // JM TEMP
         if (c == null)
@@ -2033,7 +2069,8 @@ public class SOCServer extends Server
          */
         final boolean emptyGame = gameList.isGameEmpty(gm);
 
-        if (emptyGame || (!gameHasHumanPlayer && !gameHasObserver))
+        gameDestroyed = (emptyGame || ! (gameHasHumanPlayer || gameHasObserver));
+        if (gameDestroyed && destroyIfEmpty)
         {
             if (gameListLock)
             {
@@ -2054,8 +2091,6 @@ public class SOCServer extends Server
 
                 gameList.releaseMonitor();
             }
-
-            gameDestroyed = true;
         }
 
         //D.ebugPrintln("*** gameDestroyed = "+gameDestroyed+" for "+gm);
@@ -2358,12 +2393,14 @@ public class SOCServer extends Server
     }
 
     /**
-     * destroy the game
+     * Destroy a game and clean up related data, such as the owner's count of
+     * {@link SOCClientData#getCurrentCreatedGames()}.
+     *<P>
+     * <B>Locks:</B> Must have {@link #gameList}{@link SOCGameList#takeMonitor() .takeMonitor()}
+     * before calling this method.
      *
-     * WARNING: MUST HAVE THE gameList.takeMonitor() before
-     * calling this method
-     *
-     * @param gm  the name of the game
+     * @param gm  Name of the game to destroy
+     * @see #leaveGame(StringConnection, String, boolean, boolean)
      */
     public void destroyGame(String gm)
     {
@@ -2489,17 +2526,17 @@ public class SOCServer extends Server
     }
 
     /**
-     * the connection c leaves all channels it was in
+     * Connection <tt>c</tt> is leaving the server; remove from all channels it was in.
+     * In channels where <tt>c</tt> was the last connection, calls {@link #destroyChannel(String)}.
      *
      * @param c  the connection
      * @return   the channels it was in
      */
-    public Vector leaveAllChannels(StringConnection c)
+    public void leaveAllChannels(StringConnection c)
     {
         if (c != null)
         {
-            Vector ret = new Vector();
-            Vector destroyed = new Vector();
+            List toDestroy = new ArrayList();  // channels where c was the last member
 
             channelList.takeMonitor();
 
@@ -2517,7 +2554,7 @@ public class SOCServer extends Server
 
                         try
                         {
-                            thisChannelDestroyed = leaveChannel(c, ch, true);
+                            thisChannelDestroyed = leaveChannel(c, ch, false, true);
                         }
                         catch (Exception e)
                         {
@@ -2527,9 +2564,7 @@ public class SOCServer extends Server
                         channelList.releaseMonitorForChannel(ch);
 
                         if (thisChannelDestroyed)
-                        {
-                            destroyed.addElement(ch);
-                        }
+                            toDestroy.add(ch);
                     }
                 }
             }
@@ -2538,37 +2573,33 @@ public class SOCServer extends Server
                 D.ebugPrintStackTrace(e, "Exception in leaveAllChannels");
             }
 
+            /** After iterating through all channels, destroy newly empty ones */
+            for (Iterator de = toDestroy.iterator(); de.hasNext(); )
+                destroyChannel((String) de.next());
+
             channelList.releaseMonitor();
 
             /**
              * let everyone know about the destroyed channels
              */
-            for (Enumeration de = destroyed.elements(); de.hasMoreElements();)
+            for (Iterator de = toDestroy.iterator(); de.hasNext(); )
             {
-                String ga = (String) de.nextElement();
-                broadcast(SOCDeleteChannel.toCmd(ga));
+                broadcast(SOCDeleteChannel.toCmd((String) de.next()));
             }
-
-            return ret;
-        }
-        else
-        {
-            return null;
         }
     }
 
     /**
-     * the connection c leaves all games it was in
+     * Connection <tt>c</tt> is leaving the server; remove from all games it was in.
+     * In games where <tt>c</tt> was the last human player, calls {@link #destroyGame(String)}.
      *
      * @param c  the connection
-     * @return   the games it was in
      */
-    public Vector leaveAllGames(StringConnection c)
+    public void leaveAllGames(StringConnection c)
     {
         if (c != null)
         {
-            Vector ret = new Vector();
-            Vector destroyed = new Vector();
+            List toDestroy = new ArrayList();  // games where c was the last human player
 
             gameList.takeMonitor();
 
@@ -2586,7 +2617,7 @@ public class SOCServer extends Server
 
                         try
                         {
-                            thisGameDestroyed = leaveGame(c, ga, true);
+                            thisGameDestroyed = leaveGame(c, ga, false, true);
                         }
                         catch (Exception e)
                         {
@@ -2596,11 +2627,7 @@ public class SOCServer extends Server
                         gameList.releaseMonitorForGame(ga);
 
                         if (thisGameDestroyed)
-                        {
-                            destroyed.addElement(ga);
-                        }
-
-                        ret.addElement(ga);
+                            toDestroy.add(ga);
                     }
                 }
             }
@@ -2609,23 +2636,21 @@ public class SOCServer extends Server
                 D.ebugPrintStackTrace(e, "Exception in leaveAllGames");
             }
 
+            /** After iterating through all games, destroy newly empty ones */
+            for (Iterator de = toDestroy.iterator(); de.hasNext(); )
+                destroyGame((String) de.next());
+
             gameList.releaseMonitor();
 
             /**
              * let everyone know about the destroyed games
              */
-            for (Enumeration de = destroyed.elements(); de.hasMoreElements();)
+            for (Iterator de = toDestroy.iterator(); de.hasNext(); )
             {
-                String ga = (String) de.nextElement();
+                final String ga = (String) de.next();
                 D.ebugPrintln("** Broadcasting SOCDeleteGame " + ga);
                 broadcast(SOCDeleteGame.toCmd(ga));
             }
-
-            return ret;
-        }
-        else
-        {
-            return null;
         }
     }
 
@@ -3770,7 +3795,7 @@ public class SOCServer extends Server
 
                             try
                             {
-                                channelList.deleteChannel(textMsgMes.getChannel());
+                                destroyChannel(textMsgMes.getChannel());
                             }
                             catch (Exception e)
                             {
@@ -4902,7 +4927,7 @@ public class SOCServer extends Server
 
             try
             {
-                destroyedChannel = leaveChannel(c, mes.getChannel(), false);
+                destroyedChannel = leaveChannel(c, mes.getChannel(), true, false);
             }
             catch (Exception e)
             {
@@ -5811,7 +5836,7 @@ public class SOCServer extends Server
 
         try
         {
-            gameDestroyed = leaveGame(c, gaName, false);
+            gameDestroyed = leaveGame(c, gaName, true, false);
         }
         catch (Exception e)
         {
