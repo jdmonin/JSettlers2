@@ -59,6 +59,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
@@ -5387,7 +5388,8 @@ public class SOCServer extends Server
     }
 
     /**
-     * Process unprivileged command <tt>*WHO*</tt> to show members of current game.
+     * Process unprivileged command <tt>*WHO*</tt> to show members of current game,
+     * or  privileged <tt>*WHO* gameName|all</tt> to show all connected clients or some other game's members.
      *<P>
      * <B>Locks:</B> Takes/releases {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
      * to call {@link SOCGameListAtServer#getMembers(String)}.
@@ -5400,8 +5402,6 @@ public class SOCServer extends Server
     private void processDebugCommand_who
         (final StringConnection c, final SOCGame ga, final String cmdText)
     {
-        // TODO privileged {@code *WHO* gameName|all} -- show all connected clients, or some other game's members
-
         final String gaName = ga.getName();  // name of game where c is connected and sent *WHO* command
         String gaNameWho = gaName;  // name of game to find members; if sendToCli, not equal to gaName
         boolean sendToCli = false;  // if true, send member list only to c instead of whole game
@@ -5429,7 +5429,65 @@ public class SOCServer extends Server
 
                 sendToCli = true;
 
-                // TODO check for "ALL"
+                if (gname.equals("*") || gname.toUpperCase(Locale.US).equals("ALL"))
+                {
+                    // Instead of listing the game's members, list all connected clients.
+                    // Do as little as possible inside synchronization block.
+
+                    final ArrayList sbs = new ArrayList();  // list of StringBuilders
+                    StringBuilder sb = new StringBuilder("Currently connected to server:");
+                    sbs.add(sb);
+                    sb = new StringBuilder("- ");
+                    sbs.add(sb);
+
+                    int nUnnamed;
+                    synchronized (unnamedConns)
+                    {
+                        nUnnamed = unnamedConns.size();
+
+                        Enumeration ec = getConnections();  // the named StringConnections
+                        while (ec.hasMoreElements())
+                        {
+                            String cname = (String) ( ((StringConnection) ec.nextElement()).getData() );
+
+                            int L = sb.length();
+                            if (L + cname.length() > 50)
+                            {
+                                sb.append(',');
+                                sb = new StringBuilder("- ");
+                                sbs.add(sb);
+                                L = 2;
+                            }
+
+                            if (L > 2)
+                                sb.append(", ");
+                            sb.append(cname);
+                        }
+                    }
+
+                    if (nUnnamed != 0)
+                    {
+                        final String unnamed = (nUnnamed != 1)
+                            ? (" and " + nUnnamed + " unnamed connections")
+                            : "and 1 unnamed connection";
+                        if (sb.length() + unnamed.length() + 2 > 50)
+                        {
+                            sb.append(',');
+                            sb = new StringBuilder("- ");
+                            sb.append(unnamed);
+                            sbs.add(sb);
+                        } else {
+                            sb.append(", ");
+                            sb.append(unnamed);
+                        }
+                    }
+
+                    for (Iterator sbi = sbs.iterator(); sbi.hasNext(); )
+                        messageToPlayer(c, gaName, sbi.next().toString());
+
+                    return;  // <--- Early return; Not listing a game's members ---
+                }
+
                 if (gameList.isGame(gname))
                 {
                     gaNameWho = gname;
