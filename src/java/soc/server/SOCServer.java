@@ -362,7 +362,7 @@ public class SOCServer extends Server
     public static int GAME_EXPIRE_WARN_MINUTES = 10;
 
     /**
-     * Amount of time to add (30 minutes) when the {@code *ADDTIME*} command is used by a player.
+     * Amount of time to add (30 minutes) when the <tt>*ADDTIME*</tt> command is used by a player.
      * @see #GAME_EXPIRE_WARN_MINUTES
      * @since 1.1.20
      */
@@ -5409,13 +5409,13 @@ public class SOCServer extends Server
         int i = cmdText.indexOf(' ');
         if (i != -1)
         {
-            // look for a game name or ALL
+            // look for a game name or */all
             String gname = cmdText.substring(i+1).trim();
 
             if (gname.length() > 0)
             {
                 // Check if using user admins; if not, if using debug user
-                // Then: look for game name or if ALL, set gaNameWho=null
+                // Then: look for game name or */all
 
                 final String uname = (String) c.getData();
                 boolean isAdmin = isUserDBUserAdmin(uname, true);
