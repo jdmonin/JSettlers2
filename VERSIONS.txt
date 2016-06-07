@@ -27,6 +27,7 @@ new features, until 2.0.00 is ready.
      during other players' turns when a 7 is rolled.
 - Show/hide current trade offers' Accept buttons when client player resources gained/lost/traded
 - Server stats: Increase "games finished" when game is over, not later when it's destroyed
+- *WHO* command: User admins or debug user can list any game's members
 - Server console traces "joined the game"/"left the game" include current time
 - Debug commands dev: and rsrcs: also accept player number instead of name, for long or complex names
 - New Game options dialog: For int/intbool options use 0 if blank, intbool don't set int value if checkbox is unchecked

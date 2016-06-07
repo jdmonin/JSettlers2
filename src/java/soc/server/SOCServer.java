@@ -5371,35 +5371,79 @@ public class SOCServer extends Server
     {
         // TODO privileged {@code *WHO* gameName|all} -- show all connected clients, or some other game's members
 
-        final String gaName = ga.getName();
+        final String gaName = ga.getName();  // name of game where c is connected and sent *WHO* command
+        String gaNameWho = gaName;  // name of game to find members; if sendToCli, not equal to gaName
+        boolean sendToCli = false;  // if true, send member list only to c instead of whole game
+
+        int i = cmdText.indexOf(' ');
+        if (i != -1)
+        {
+            // look for a game name or ALL
+            String gname = cmdText.substring(i+1).trim();
+
+            if (gname.length() > 0)
+            {
+                // Check if using user admins; if not, if using debug user
+                // Then: look for game name or if ALL, set gaNameWho=null
+
+                final String uname = (String) c.getData();
+                boolean isAdmin = isUserDBUserAdmin(uname, true);
+                if (! isAdmin)
+                    isAdmin = (allowDebugUser && uname.equals("debug"));
+                if (! isAdmin)
+                {
+                    messageToPlayer(c, gaName, "Must be an administrator to view that.");
+                    return;
+                }
+
+                sendToCli = true;
+
+                // TODO check for "ALL"
+                if (gameList.isGame(gname))
+                {
+                    gaNameWho = gname;
+                } else {
+                    messageToPlayer(c, gaName, "Game not found.");
+                    return;
+                }
+            }
+        }
 
         Vector gameMembers = null;
 
-        gameList.takeMonitorForGame(gaName);
+        gameList.takeMonitorForGame(gaNameWho);
 
         try
         {
-            gameMembers = gameList.getMembers(gaName);
+            gameMembers = gameList.getMembers(gaNameWho);
         }
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception in *WHO* (gameMembers)");
         }
 
-        gameList.releaseMonitorForGame(gaName);
+        gameList.releaseMonitorForGame(gaNameWho);
 
         if (gameMembers == null)
         {
             return;  // unlikely since empty games are destroyed
         }
 
-        messageToGame(gaName, "This game's members:");
+        if (sendToCli)
+            messageToPlayer(c, gaName, "Members of game " + gaNameWho + ":");
+        else
+            messageToGame(gaName, "This game's members:");
 
         Enumeration membersEnum = gameMembers.elements();
         while (membersEnum.hasMoreElements())
         {
             StringConnection conn = (StringConnection) membersEnum.nextElement();
-            messageToGame(gaName, "> " + conn.getData());
+            String mNameStr = "> " + conn.getData();
+
+            if (sendToCli)
+                messageToPlayer(c, gaName, mNameStr);
+            else
+                messageToGame(gaName, mNameStr);
         }
     }
 
