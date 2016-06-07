@@ -4735,7 +4735,7 @@ public class SOCServer extends Server
      * @param c  Client's connection
      * @param msgUser  Client username (nickname) to validate and authenticate; will be {@link String#trim() trim()med}.
      * @param msgPass  Password to supply to {@link #authenticateUser(StringConnection, String, String)},
-     *     or ""; please trim string before calling
+     *     or ""; will be {@link String#trim() trim()med}.
      * @param cliVers  Client version, from {@link StringConnection#getVersion()}
      * @param doNameConnection  True if successful auth of an unnamed connection should have this method call
      *     {@link StringConnection#setData(Object) c.setData(msgUser)} and
@@ -4765,6 +4765,7 @@ public class SOCServer extends Server
         boolean isTakingOver = false;  // will set true if a human player is replacing another player in the game
 
         msgUser = msgUser.trim();
+        msgPass = msgPass.trim();
 
         /**
          * If connection doesn't already have a nickname, check that the nickname is ok
@@ -4863,7 +4864,7 @@ public class SOCServer extends Server
      * if they're not in the db, and no password, then ok.
      *
      * @param c         the user's connection
-     * @param userName  the user's nickname
+     * @param userName  the user's nickname; trim before calling
      * @param password  the user's password; trim before calling
      * @return true if the user has been authenticated
      */
@@ -5127,10 +5128,8 @@ public class SOCServer extends Server
         D.ebugPrintln("handleJOIN: " + mes);
 
         int cliVers = c.getVersion();
-        final String msgUser = mes.getNickname().trim();
+        final String msgUser = mes.getNickname().trim();  // trim here because we'll send it in messages to clients
         String msgPass = mes.getPassword();
-        if (msgPass != null)
-            msgPass = msgPass.trim();
 
         /**
          * Check the reported version; if none, assume 1000 (1.0.00)
@@ -5829,7 +5828,8 @@ public class SOCServer extends Server
 
             // Check user authentication.  Don't call setData or nameConnection yet, in case
             // of role-specific things to check and reject during this initial connection.
-            final int authResult = authOrRejectClientUser(c, mes.nickname, mes.password, cliVersion, false, false);
+            final String mesUser = mes.nickname.trim();  // trim here because we'll send it in messages to clients
+            final int authResult = authOrRejectClientUser(c, mesUser, mes.password, cliVersion, false, false);
 
             if (authResult == AUTH_OR_REJECT__FAILED)
                 return;  // <---- Early return; authOrRejectClientUser sent the status message ----
@@ -5837,7 +5837,7 @@ public class SOCServer extends Server
             if (mes.role.equals(SOCAuthRequest.ROLE_USER_ADMIN))
             {
                 // Check if we're using a user admin whitelist
-                if (isUserDBUserAdmin(mes.nickname, false))
+                if (isUserDBUserAdmin(mesUser, false))
                 {
                     c.put(SOCStatusMessage.toCmd
                             (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVersion,
@@ -5845,7 +5845,7 @@ public class SOCServer extends Server
                                 // "Your account is not authorized to create accounts."
 
                     printAuditMessage
-                        (mes.nickname,
+                        (mesUser,
                          "Requested jsettlers account creation, this requester not on account admin whitelist",
                          null, null, c.host());
 
@@ -5854,7 +5854,7 @@ public class SOCServer extends Server
             }
 
             // no role-specific problems: complete the authentication
-            c.setData(mes.nickname);
+            c.setData(mesUser);
             nameConnection(c, false);
         }
 
