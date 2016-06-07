@@ -706,7 +706,7 @@ public class SOCServer extends Server
     /**
      * list of chat channels
      *<P>
-     * Within SOCServer, instead of calling {@link SOCChannelList#deleteChannel(String)},
+     * Instead of calling {@link SOCChannelList#deleteChannel(String)},
      * call {@link #destroyChannel(String)} to also clean up related server data.
      */
     protected SOCChannelList channelList = new SOCChannelList();
@@ -1546,7 +1546,7 @@ public class SOCServer extends Server
      * Connection {@code c} leaves the channel {@code ch}.
      * If the channel becomes empty after removing {@code c}, this method can destroy it.
      *<P>
-     * <B>Locks:</b> Must have {@link SOCChannelList#takeMonitorForChannel(String) channelList.takeMonitorForChannel(ch)}
+     * <B>Locks:</B> Must have {@link SOCChannelList#takeMonitorForChannel(String) channelList.takeMonitorForChannel(ch)}
      * when calling this method.
      * May or may not have {@link SOCChannelList#takeMonitor()}, see {@code channelListLock} parameter.
      *
@@ -1557,7 +1557,7 @@ public class SOCServer extends Server
      *           before calling {@link SOCChannelList#releaseMonitor()}.
      * @param channelListLock  true if we have the {@link SOCChannelList#takeMonitor()} lock
      *           when called; false if it must be acquired and released within this method
-     * @return true if we destroyed the channel
+     * @return true if we destroyed the channel, or if it would have been destroyed but {@code destroyIfEmpty} is false.
      */
     public boolean leaveChannel
         (final StringConnection c, final String ch, final boolean destroyIfEmpty, final boolean channelListLock)
@@ -1963,7 +1963,7 @@ public class SOCServer extends Server
      *  <LI> {@link SOCGame#isBotsOnly} flag is false
      * </UL>
      *<P>
-     * <B>Locks:</b> Has {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gm)}
+     * <B>Locks:</B> Has {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gm)}
      * when calling this method; should not have {@link SOCGame#takeMonitor()}.
      * May or may not have {@link SOCGameList#takeMonitor()}, see {@code gameListLock} parameter.
      *
@@ -2415,7 +2415,7 @@ public class SOCServer extends Server
             D.ebugPrintStackTrace(e, "Exception in leaveAllChannels");
         }
 
-        /** After iteration, destroy newly empty channels */
+        /** After iterating through all channels, destroy newly empty ones */
         for (String ch : toDestroy)
             destroyChannel(ch);
 
@@ -2477,7 +2477,7 @@ public class SOCServer extends Server
             D.ebugPrintStackTrace(e, "Exception in leaveAllGames");
         }
 
-        /** After iteration, destroy newly empty games */
+        /** After iterating through all games, destroy newly empty ones */
         for (String ga : toDestroy)
             destroyGame(ga);
 
