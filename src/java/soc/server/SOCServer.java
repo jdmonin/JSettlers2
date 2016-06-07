@@ -5642,7 +5642,8 @@ public class SOCServer extends Server
     }
 
     /**
-     * Process unprivileged command {@code *WHO*} to show members of current game.
+     * Process unprivileged command {@code *WHO*} to show members of current game,
+     * or privileged {@code *WHO* gameName|all|*} to show all connected clients or some other game's members.
      *<P>
      * <B>Locks:</B> Takes/releases {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
      * to call {@link SOCGameListAtServer#getMembers(String)}.
@@ -5655,8 +5656,6 @@ public class SOCServer extends Server
     private void processDebugCommand_who
         (final StringConnection c, final SOCGame ga, final String cmdText)
     {
-        // TODO privileged {@code *WHO* gameName|all} -- show all connected clients, or some other game's members
-
         final String gaName = ga.getName();  // name of game where c is connected and sent *WHO* command
         String gaNameWho = gaName;  // name of game to find members; if sendToCli, not equal to gaName
         boolean sendToCli = false;  // if true, send member list only to c instead of whole game
@@ -5664,13 +5663,12 @@ public class SOCServer extends Server
         int i = cmdText.indexOf(' ');
         if (i != -1)
         {
-            // look for a game name or ALL
+            // look for a game name or */all
             String gname = cmdText.substring(i+1).trim();
 
             if (gname.length() > 0)
             {
                 // Check if using user admins; if not, if using debug user
-                // Then: look for game name or if ALL, set gaNameWho=null
 
                 final String uname = (String) c.getData();
                 boolean isAdmin = isUserDBUserAdmin(uname, true);
@@ -5724,7 +5722,7 @@ public class SOCServer extends Server
 
                     if (nUnnamed != 0)
                     {
-                        String unnamed = c.getLocalized("reply.who.and_unnamed", Integer.valueOf(nUnnamed));
+                        final String unnamed = c.getLocalized("reply.who.and_unnamed", Integer.valueOf(nUnnamed));
                             // "and {0} unnamed connections"
                         if (sb.length() + unnamed.length() + 2 > 50)
                         {
