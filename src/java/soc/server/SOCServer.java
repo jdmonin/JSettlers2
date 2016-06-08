@@ -5835,7 +5835,7 @@ public class SOCServer extends Server
             if (mes.role.equals(SOCAuthRequest.ROLE_USER_ADMIN))
             {
                 // Check if we're using a user admin whitelist
-                if (isUserDBUserAdmin(mesUser, false))
+                if (! isUserDBUserAdmin(mesUser, false))
                 {
                     c.put(SOCStatusMessage.toCmd
                             (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVersion,
