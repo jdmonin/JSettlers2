@@ -2522,6 +2522,9 @@ public class SOCPlayerClient
                     {
                         client.serverGames.deleteGame(gameName);  // may not be in there
                     }
+
+                    gi.setEnabled(false);
+
                     return true;
                 }
 
