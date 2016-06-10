@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012-2014,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -119,6 +119,7 @@ public class SOCStatusMessage extends SOCMessage
 
     /**
      * For account creation, new account was created successfully = 7
+     * @see #SV_ACCT_CREATED_OK_FIRST_ONE
      * @since 1.1.06
      */
     public static final int SV_ACCT_CREATED_OK = 7;
@@ -213,11 +214,27 @@ public class SOCStatusMessage extends SOCMessage
     public static final int SV_ACCT_NOT_CREATED_DENIED = 17;
 
     /**
+     * For account creation, new account was created successfully and was the first account = 18.
+     * Normally (when not the first account) the status code returned is {@link #SV_ACCT_CREATED_OK}.
+     * This separate code is provided to let the client know they
+     * must authenticate before creating any other accounts.
+     *<P>
+     * This status is not sent if the server is in Open Registration mode ({@link SOCServerFeatures#FEAT_OPEN_REG}),
+     * because in that mode there's nothing special about the first account and no need to authenticate
+     * before creating others.
+     *<P>
+     * Clients older than v2.0.00 won't recognize this status value;
+     * they should be sent {@link #SV_ACCT_CREATED_OK} instead.
+     * @since 2.0.00
+     */
+    public static final int SV_ACCT_CREATED_OK_FIRST_ONE = 18;
+
+    /**
      * Client has connected successfully ({@link #SV_OK}) and the server's Debug Mode is on.
      * Versions older than 2.0.00 get {@link #SV_OK} instead; see {@link #toCmd(int, int, String)}.
      * @since 2.0.00
      */
-    public static final int SV_OK_DEBUG_MODE_ON = 18;
+    public static final int SV_OK_DEBUG_MODE_ON = 19;
 
     // IF YOU ADD A STATUS VALUE:
     // Be sure to update statusValidAtVersion().
@@ -364,6 +381,9 @@ public class SOCStatusMessage extends SOCMessage
      *<P>
      *            If {@link #SV_OK_DEBUG_MODE_ON} isn't recognized in {@code cliVers},
      *            will send {@link #SV_OK} instead.
+     *<P>
+     *            If {@link #SV_ACCT_CREATED_OK_FIRST_ONE} isn't recognized in {@code cliVers},
+     *            will send {@link #SV_ACCT_CREATED_OK} instead.
      *
      * @param sv  the status value; if 0 or less, is not output.
      *            Should be a constant such as {@link #SV_OK}.
@@ -380,11 +400,14 @@ public class SOCStatusMessage extends SOCMessage
         {
             if (sv == SV_OK_DEBUG_MODE_ON)
                 sv = SV_OK;
+            else if (sv == SV_ACCT_CREATED_OK_FIRST_ONE)
+                sv = SV_ACCT_CREATED_OK;
             else if (cliVers >= 1106)
                 sv = SV_NOT_OK_GENERIC;
             else
                 sv = SV_OK;
         }
+
         return toCmd(sv, st);
     }
 
@@ -416,7 +439,7 @@ public class SOCStatusMessage extends SOCMessage
             else if (cliVersion < 1119)
                 return (statusValue < SV_PW_REQUIRED);
             else if (cliVersion < 2000)
-                return (statusValue < SV_OK_DEBUG_MODE_ON);
+                return (statusValue < SV_ACCT_CREATED_OK_FIRST_ONE);
             else
                 // newer; check vs highest constant that we know
                 return (statusValue <= SV_OK_DEBUG_MODE_ON);
