@@ -34,15 +34,20 @@ import soc.util.SOCServerFeatures;  // for javadocs only
  * Sent in response to any message type used by clients to request authentication
  * and create or connect to a game or channel: {@link SOCJoinGame}, {@link SOCJoin},
  * {@link SOCImARobot}, {@link SOCAuthRequest}, {@link SOCNewGameWithOptionsRequest}.
- *<P>
- * <b>Added in Version 1.1.06:</b><br>
- * Status value parameter (nonnegative integer).
+ *
+ * <H3>Status values:</H3>
+ * The Status Value parameter (nonnegative integer) was added in version 1.1.06.
  * For backwards compatibility, the status value (integer {@link #getStatusValue()} ) is not sent
- * as a parameter, if it is 0.  (In JSettlers older than 1.1.06, it
+ * as a parameter if it is 0.  (In JSettlers older than 1.1.06, status value
  * is always 0.)  Earlier versions simply printed the entire message as text,
  * without trying to parse anything.
- *<P>
- * <b>"Debug Is On" notification:</b><br>
+ *
+ * <H5>Status value back-compatibility:</H5>
+ * The server-called method {@link #toCmd(int, int, String)} checks client version compatibility
+ * to avoid sending newly defined status codes/values to clients too old to understand them;
+ * older "fallback" status values are sent instead. See individual status values' javadocs.
+ *
+ * <H3>"Debug Is On" notification:</H3>
  * In version 1.1.17 and newer, a server with debug commands enabled will send
  * a STATUSMESSAGE right after sending its {@link SOCVersion VERSION}, which will include text
  * such as "debug is on" or "debugging on".  It won't send a nonzero status value, because
@@ -406,9 +411,11 @@ public class SOCStatusMessage extends SOCMessage
                 sv = SV_NOT_OK_GENERIC;
             else
                 sv = SV_OK;
-        }
 
-        return toCmd(sv, st);
+            return toCmd(sv, cliVers, st);  // ensure fallback value is valid at client's version
+        } else {
+            return toCmd(sv, st);
+        }
     }
 
     /**
