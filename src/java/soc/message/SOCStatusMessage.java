@@ -420,6 +420,10 @@ public class SOCStatusMessage extends SOCMessage
 
     /**
      * Is this status value defined in this version?  If not, {@link #SV_NOT_OK_GENERIC} should be sent instead.
+     * A different fallback value can be sent instead if the client is new enough to understand it; for
+     * example instead of {@link #SV_ACCT_CREATED_OK_FIRST_ONE}, send {@link #SV_ACCT_CREATED_OK}.
+     *<P>
+     * Server calls {@link #toCmd(int, int, String)} to check client version and send a compatible status value.
      *
      * @param statusValue  status value (from constants defined here, such as {@link #SV_OK})
      * @param cliVersion Client's version, same format as {@link soc.util.Version#versionNumber()};
