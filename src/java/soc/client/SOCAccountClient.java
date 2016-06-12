@@ -153,6 +153,8 @@ public class SOCAccountClient extends Applet
 
     /**
      * If true, a username/password {@link SOCAuthRequest} has been sent to the server from {@link #connPanel}.
+     * Used by {@link #handleSTATUSMESSAGE(SOCStatusMessage)} to show error results using {@code connPanel}
+     * instead of the main panel.
      * @since 1.1.19
      */
     private boolean conn_sentAuth;
@@ -986,8 +988,13 @@ public class SOCAccountClient extends Applet
             pass.setText("");
             pass2.setText("");
 
-            // TODO re-auth to server if SV_ACCT_CREATED_OK_FIRST_ONE
+            if (sv == SOCStatusMessage.SV_ACCT_CREATED_OK_FIRST_ONE)
+                // auth to server with new account
+                put(SOCAuthRequest.toCmd
+                    (SOCAuthRequest.ROLE_USER_ADMIN, nickname, password,
+                     SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, host));
         }
+
         submitLock = false;
     }
 
