@@ -25,7 +25,9 @@ new features, until 2.0.00 is ready.
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
 - Client sends server its locale, to support i18n localization
 - Applet class is now soc.client.SOCApplet
-- User account admin client: Auto-authenticate when creating first admin account in new db
+- User account admin client:
+     Auto-authenticate when creating first admin account in new db
+     Require minimum client version 1.1.19, to authenticate before creating users
 - Game option key names can now be longer (8 characters)
 - Some game options are meant to be set by the server during game creation, not requested by the client.
   Their option keynames all start with '_' and are hidden in the New Game options window.

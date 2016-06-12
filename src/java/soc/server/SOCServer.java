@@ -7708,6 +7708,23 @@ public class SOCServer extends Server
         // or is an account required to create user accounts?
         if ((requester == null) && ! features.isActive(SOCServerFeatures.FEAT_OPEN_REG))
         {
+            // SOCAccountClients older than v1.1.19 (VERSION_FOR_SERVERFEATURES) can't authenticate.
+            // Check client version now; an older client could create the first account without auth,
+            // then not be able to create further ones which would be confusing.
+            // This can't be detected at client connect time, because v1.1.19 is when
+            // SOCAuthRequest(ROLE_USER_ADMIN) message was added.
+
+            if (cliVers < SOCServerFeatures.VERSION_FOR_SERVERFEATURES)
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION,  // cli knows this status value: defined in 1.1.06
+                         cliVers, c.getLocalized
+                             ("account.create.client_version_minimum",
+                              Version.version(SOCServerFeatures.VERSION_FOR_SERVERFEATURES))));
+                              // "To create accounts, use client version {1} or newer."
+                return;
+            }
+
             // If account is required, are there any accounts in the db at all?
             // if none, this first account creation won't require auth.
 
