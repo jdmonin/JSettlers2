@@ -64,9 +64,7 @@ public class SOCStatusMessage extends SOCMessage
 
     /**
      * Status value constants. SV_OK = 0 : Welcome, OK to connect.
-     * SV_NOT_OK_GENERIC = 1 : Generic "not OK" status value.
-     * Other specific status value constants are given here.
-     * If any are added, do not change or remove the numeric values of earlier ones.
+     * @see #SV_NOT_OK_GENERIC
      * @since 1.1.06
      */
     public static final int SV_OK = 0;
@@ -76,9 +74,13 @@ public class SOCStatusMessage extends SOCMessage
      * This is given to the client if a more specific value does not apply,
      * or if the client's version is older than the version where the more specific
      * value was introduced.
+     * @see #SV_OK
      * @since 1.1.06
      */
     public static final int SV_NOT_OK_GENERIC = 1;
+
+    // Other specific status value constants are given here.
+    // When adding new ones, see "IF YOU ADD A STATUS VALUE" comment below.
 
     /**
      * Name not found in server's accounts = 2.
@@ -245,6 +247,7 @@ public class SOCStatusMessage extends SOCMessage
     public static final int SV_OK_DEBUG_MODE_ON = 19;
 
     // IF YOU ADD A STATUS VALUE:
+    // Do not change or remove the numeric values of earlier ones.
     // Be sure to update statusValidAtVersion().
 
     /**
@@ -313,7 +316,9 @@ public class SOCStatusMessage extends SOCMessage
     }
 
     /**
-     * Create a StatusMessage message, with a nonzero value.
+     * Create a StatusMessage message, with a nonzero status value.
+     * Does not check that {@code sv} is compatible with the client it's sent to;
+     * for that use {@link #toCmd(int, int, String)} instead.
      *
      * @param sv  status value (from constants defined here, such as {@link #SV_OK})
      * @param st  the status message text.
@@ -355,12 +360,14 @@ public class SOCStatusMessage extends SOCMessage
     }
 
     /**
-     * STATUSMESSAGE sep [svalue sep2] status
+     * STATUSMESSAGE sep [svalue sep2] status -- does not include backwards compatibility.
+     * This method is best for sending status values {@link #SV_OK} or {@link #SV_NOT_OK_GENERIC}.
+     * for other newer status values, call {@link #toCmd(int, int, String)} instead.
      *
      * @param sv  the status value; if 0 or less, is not output.
      *            Should be a constant such as {@link #SV_OK}.
      *            Remember that not all client versions recognize every status;
-     *            see {@link #statusValidAtVersion(int, int)}.
+     *            see {@link #toCmd(int, int, String)}.
      * @param st  the status message text.
      *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
      *            in your string, and they will be passed on for the receiver to parse.
@@ -383,15 +390,18 @@ public class SOCStatusMessage extends SOCMessage
 
     /**
      * STATUSMESSAGE sep [svalue sep2] status -- includes backwards compatibility.
-     *            Calls {@link #statusValidAtVersion(int, int)}.
-     *            if sv isn't recognized in that version, will send
-     *            {@link #SV_NOT_OK_GENERIC} instead.
-     *<P>
-     *            If {@link #SV_OK_DEBUG_MODE_ON} isn't recognized in {@code cliVers},
-     *            will send {@link #SV_OK} instead.
-     *<P>
-     *            If {@link #SV_ACCT_CREATED_OK_FIRST_ONE} isn't recognized in {@code cliVers},
-     *            will send {@link #SV_ACCT_CREATED_OK} instead.
+     * Calls {@link #statusValidAtVersion(int, int)}. if {@code sv} isn't recognized in
+     * that client version, will send {@link #SV_NOT_OK_GENERIC} or another "fallback"
+     * value defined in the client. See individual status values' javadocs for details.
+     *<UL>
+     * <LI> {@link #SV_OK_DEBUG_MODE_ON} falls back to {@link #SV_OK}
+     * <LI> {@link #SV_ACCT_CREATED_OK_FIRST_ONE} falls back to {@link #SV_ACCT_CREATED_OK}
+     * <LI> All others fall back to {@link #SV_NOT_OK_GENERIC}
+     * <LI> In case the fallback value is also not recognized at the client,
+     *      {@code toCmd(..)} will fall back again to something more generic
+     * <LI> Clients before v1.1.06 will be sent the status text {@code st} only,
+     *      without the {@code sv} parameter which was added in 1.1.06
+     *</UL>
      *
      * @param sv  the status value; if 0 or less, is not output.
      *            Should be a constant such as {@link #SV_OK}.
