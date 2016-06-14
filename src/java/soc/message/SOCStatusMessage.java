@@ -50,7 +50,7 @@ import soc.util.SOCServerFeatures;  // for javadocs only
  * <H3>"Debug Is On" notification:</H3>
  * In version 1.1.17 and newer, a server with debug commands enabled will send
  * a STATUSMESSAGE right after sending its {@link SOCVersion VERSION}, which will include text
- * such as "debug is on" or "debugging on".  It won't send a status value, because
+ * such as "debug is on" or "debugging on".  It won't send a nonzero status value, because
  * older client versions might treat it as generic failure and disconnect.
  *
  * @author Robert S. Thomas
@@ -381,9 +381,17 @@ public class SOCStatusMessage extends SOCMessage
 
     /**
      * STATUSMESSAGE sep [svalue sep2] status -- includes backwards compatibility.
-     *            Calls {@link #statusValidAtVersion(int, int)}.
-     *            if sv isn't recognized in that version, will send
-     *            {@link #SV_NOT_OK_GENERIC} instead.
+     * Calls {@link #statusValidAtVersion(int, int)}. if <tt>sv</tt> isn't recognized in
+     * that client version, will send {@link #SV_NOT_OK_GENERIC} or another "fallback"
+     * value defined in the client. See individual status values' javadocs for details.
+     *<UL>
+     * <LI> {@link #SV_ACCT_CREATED_OK_FIRST_ONE} falls back to {@link #SV_ACCT_CREATED_OK}
+     * <LI> All others fall back to {@link #SV_NOT_OK_GENERIC}
+     * <LI> In case the fallback value is also not recognized at the client,
+     *      <tt>toCmd(..)</tt> will fall back again to something more generic
+     * <LI> Clients before v1.1.06 will be sent the status text <tt>st</tt> only,
+     *      without the <tt>sv</tt> parameter which was added in 1.1.06
+     *</UL>
      *
      * @param sv  the status value; if 0 or less, is not output.
      *            Should be a constant such as {@link #SV_OK}.
