@@ -158,7 +158,6 @@ public class SOCGameListAtServer extends SOCGameList
             // Check version range
             SOCGame ga = getGameData(gaName);
             final int cliVers = conn.getVersion();
-            System.err.println("L139: game " + gaName + " add " + conn +" v=" + cliVers);  // JM TEMP
             if (firstMember)
             {
                 ga.clientVersionLowest = cliVers;
@@ -204,7 +203,6 @@ public class SOCGameListAtServer extends SOCGameList
      */
     public synchronized void removeMember(StringConnection conn, String gaName)
     {
-        System.err.println("L139: game " + gaName + " remove " + conn);  // JM TEMP
         Vector<StringConnection> members = getMembers(gaName);
 
         if ((members != null))

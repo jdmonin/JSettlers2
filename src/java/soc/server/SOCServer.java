@@ -1982,7 +1982,6 @@ public class SOCServer extends Server
      */
     public boolean leaveGame(StringConnection c, String gm, final boolean destroyIfEmpty, final boolean gameListLock)
     {
-        System.err.println("L712: leaveGame(" + c + ", " + gm + ")");  // JM TEMP
         if (c == null)
         {
             return false;  // <---- Early return: no connection ----
@@ -3729,7 +3728,6 @@ public class SOCServer extends Server
     private void nameConnection(StringConnection c, boolean isReplacing)
         throws IllegalArgumentException
     {
-        System.err.println("L1819: nameConn(" + c + ", " + isReplacing + ")");  // JM TEMP
         StringConnection oldConn = null;
         if (isReplacing)
         {
@@ -4783,7 +4781,11 @@ public class SOCServer extends Server
          * whether a new replacement connection can "take over" the existing one.
          */
         final int nameTimeout = checkNickname(msgUser, c, (msgPass != null) && (msgPass.trim().length() > 0));
-        System.err.println("L4910 past checkNickname at " + System.currentTimeMillis());
+        System.err.println
+            ("L4910 past checkNickname at " + System.currentTimeMillis()
+             + (((nameTimeout == 0) || (nameTimeout == -1))
+                ? (" for " + msgUser)
+                : ""));
 
         if (nameTimeout == -1)
         {
