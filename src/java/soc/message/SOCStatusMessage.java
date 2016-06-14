@@ -115,8 +115,10 @@ public class SOCStatusMessage extends SOCMessage
     /**
      * This game version is too new for your client's version to join = 5
      *<P>
-     * Also sent to {@code SOCAccountClient} if too old to create accounts at the server's version
+     * Server v1.1.20 and newer also send this value to {@code SOCAccountClient}
+     * if client is too old to create accounts at the server's version
      * because of a required logon auth or other message added since that client's version.
+     *
      * @since 1.1.06
      */
     public static final int SV_CANT_JOIN_GAME_VERSION = 5;
@@ -372,7 +374,6 @@ public class SOCStatusMessage extends SOCMessage
      *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
      *            in your string, and they will be passed on for the receiver to parse.
      * @return the command string
-     * @see #toCmd(int, int, String)
      */
     public static String toCmd(int sv, String st)
     {
