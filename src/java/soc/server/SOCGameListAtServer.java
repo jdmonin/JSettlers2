@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2012,2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2012,2014,2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -136,7 +136,6 @@ public class SOCGameListAtServer extends SOCGameList
 
         if ((members != null) && (!members.contains(conn)))
         {
-            System.err.println("L139: game " + gaName + " add " + conn);  // JM TEMP
             final boolean firstMember = members.isEmpty();
             members.addElement(conn);
 
@@ -177,7 +176,6 @@ public class SOCGameListAtServer extends SOCGameList
      */
     public synchronized void removeMember(StringConnection conn, String gaName)
     {
-        System.err.println("L139: game " + gaName + " remove " + conn);  // JM TEMP
         Vector members = getMembers(gaName);
 
         if ((members != null))
