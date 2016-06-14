@@ -55,9 +55,7 @@ public class SOCStatusMessage extends SOCMessage
 
     /**
      * Status value constants. SV_OK = 0 : Welcome, OK to connect.
-     * SV_NOT_OK_GENERIC = 1 : Generic "not OK" status value.
-     * Other specific status value constants are given here.
-     * If any are added, do not change or remove the numeric values of earlier ones.
+     * @see #SV_NOT_OK_GENERIC
      * @since 1.1.06
      */
     public static final int SV_OK = 0;
@@ -67,9 +65,13 @@ public class SOCStatusMessage extends SOCMessage
      * This is given to the client if a more specific value does not apply,
      * or if the client's version is older than the version where the more specific
      * value was introduced.
+     * @see #SV_OK
      * @since 1.1.06
      */
     public static final int SV_NOT_OK_GENERIC = 1;
+
+    // Other specific status value constants are given here.
+    // When adding new ones, see "IF YOU ADD A STATUS VALUE" comment below.
 
     /**
      * Name not found in server's accounts = 2.
@@ -214,6 +216,7 @@ public class SOCStatusMessage extends SOCMessage
     public static final int SV_ACCT_NOT_CREATED_DENIED = 17;
 
     // IF YOU ADD A STATUS VALUE:
+    // Do not change or remove the numeric values of earlier ones.
     // Be sure to update statusValidAtVersion().
 
     /**
@@ -282,7 +285,9 @@ public class SOCStatusMessage extends SOCMessage
     }
 
     /**
-     * Create a StatusMessage message, with a nonzero value.
+     * Create a StatusMessage message, with a nonzero status value.
+     * Does not check that <tt>sv</tt> is compatible with the client it's sent to;
+     * for that use {@link #toCmd(int, int, String)} instead.
      *
      * @param sv  status value (from constants defined here, such as {@link #SV_OK})
      * @param st  the status message text.
@@ -324,15 +329,18 @@ public class SOCStatusMessage extends SOCMessage
     }
 
     /**
-     * STATUSMESSAGE sep [svalue sep2] status
+     * STATUSMESSAGE sep [svalue sep2] status -- does not include backwards compatibility.
+     * This method is best for sending status values {@link #SV_OK} or {@link #SV_NOT_OK_GENERIC}.
+     * for other newer status values, call {@link #toCmd(int, int, String)} instead.
      *
      * @param sv  the status value; if 0 or less, is not output.
      *            Should be a constant such as {@link #SV_OK}.
+     *            Remember that not all client versions recognize every status;
+     *            see {@link #toCmd(int, int, String)}.
      * @param st  the status message text.
      *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
      *            in your string, and they will be passed on for the receiver to parse.
      * @return the command string
-     * @see #toCmd(int, int, String)
      */
     public static String toCmd(int sv, String st)
     {
