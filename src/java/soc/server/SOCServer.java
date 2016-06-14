@@ -8744,8 +8744,13 @@ public class SOCServer extends Server
 
                 printAuditMessage
                     (requester,
-                     "Requested jsettlers account creation, this requester not on account admin whitelist",
+                     (isDBCountedEmpty)
+                     ? "Requested jsettlers account creation, database is empty - first, create a user named in account admin whitelist"
+                     : "Requested jsettlers account creation, this requester not on account admin whitelist",
                      null, currentTime, c.host());
+
+                if (isDBCountedEmpty)
+                    System.err.println("User requested new account but database is currently empty: Run SOCAccountClient to create admin account(s) named in the whitelist.");
 
                 return;
             }
@@ -11215,7 +11220,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * Print a security-action audit message in a standard format.
+     * Print a security-action audit message to {@link System#out} in a standard format.
      *<H5>Example with object:</H5>
      *   Audit: Requested jsettlers account creation, already exists: '<tt>obj</tt>'
      *      by '<tt>req</tt>' from <tt>reqHost</tt> at <tt>at</tt>
