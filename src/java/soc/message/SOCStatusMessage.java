@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -103,6 +103,11 @@ public class SOCStatusMessage extends SOCMessage
 
     /**
      * This game version is too new for your client's version to join = 5
+     *<P>
+     * Server v1.1.20 and newer also send this value to <tt>SOCAccountClient</tt>
+     * if client is too old to create accounts at the server's version
+     * because of a required logon auth or other message added since that client's version.
+     *
      * @since 1.1.06
      */
     public static final int SV_CANT_JOIN_GAME_VERSION = 5;
