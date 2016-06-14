@@ -8679,6 +8679,7 @@ public class SOCServer extends Server
         final String requester = (String) c.getData();  // null if client isn't authenticated
         final Date currentTime = new Date();
         boolean isDBCountedEmpty = false;  // with null requester, did we query and find the users table is empty?
+            // Not set if FEAT_OPEN_REG is active.
 
         // If client is not authenticated, does this server have open registration
         // or is an account required to create user accounts?
@@ -8817,9 +8818,11 @@ public class SOCServer extends Server
 
         if (success)
         {
+            final int stat = (isDBCountedEmpty)
+                ? SOCStatusMessage.SV_ACCT_CREATED_OK_FIRST_ONE
+                : SOCStatusMessage.SV_ACCT_CREATED_OK;
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_ACCT_CREATED_OK, cliVers,
-                     "Account created for '" + userName + "'."));
+                    (stat, cliVers, "Account created for '" + userName + "'."));
 
             printAuditMessage(requester, "Created jsettlers account", userName, currentTime, c.host());
 

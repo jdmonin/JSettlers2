@@ -927,7 +927,8 @@ public class SOCAccountClient extends Applet
         }
 
         status.setText(mes.getStatus());
-        if (sv == SOCStatusMessage.SV_ACCT_CREATED_OK)
+        if ((sv == SOCStatusMessage.SV_ACCT_CREATED_OK)
+            || (sv == SOCStatusMessage.SV_ACCT_CREATED_OK_FIRST_ONE))
         {
             // Clear password fields: must re-enter if creating another
             pass.setText("");

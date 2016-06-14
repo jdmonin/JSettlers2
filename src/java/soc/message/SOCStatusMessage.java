@@ -122,6 +122,7 @@ public class SOCStatusMessage extends SOCMessage
 
     /**
      * For account creation, new account was created successfully = 7
+     * @see #SV_ACCT_CREATED_OK_FIRST_ONE
      * @since 1.1.06
      */
     public static final int SV_ACCT_CREATED_OK = 7;
@@ -214,6 +215,22 @@ public class SOCStatusMessage extends SOCMessage
      * @see #SV_ACCT_NOT_CREATED_ERR
      */
     public static final int SV_ACCT_NOT_CREATED_DENIED = 17;
+
+    /**
+     * For account creation, new account was created successfully and was the first account = 18.
+     * Normally (when not the first account) the status code returned is {@link #SV_ACCT_CREATED_OK}.
+     * This separate code is provided to let the client know they
+     * must authenticate before creating any other accounts.
+     *<P>
+     * This status is not sent if the server is in Open Registration mode ({@link SOCServerFeatures#FEAT_OPEN_REG}),
+     * because in that mode there's nothing special about the first account and no need to authenticate
+     * before creating others.
+     *<P>
+     * Clients older than v1.1.20 won't recognize this status value;
+     * they should be sent {@link #SV_ACCT_CREATED_OK} instead.
+     * @since 1.1.20
+     */
+    public static final int SV_ACCT_CREATED_OK_FIRST_ONE = 18;
 
     // IF YOU ADD A STATUS VALUE:
     // Do not change or remove the numeric values of earlier ones.
@@ -375,11 +392,14 @@ public class SOCStatusMessage extends SOCMessage
     {
         if (! statusValidAtVersion(sv, cliVers))
         {
-            if (cliVers >= 1106)
+            if (sv == SV_ACCT_CREATED_OK_FIRST_ONE)
+                sv = SV_ACCT_CREATED_OK;
+            else if (cliVers >= 1106)
                 sv = SV_NOT_OK_GENERIC;
             else
                 sv = SV_OK;
         }
+
         return toCmd(sv, st);
     }
 
@@ -404,6 +424,10 @@ public class SOCStatusMessage extends SOCMessage
             return (statusValue <= SV_NEWGAME_NAME_TOO_LONG);
         case 1110:
             return (statusValue <= SV_NEWCHANNEL_TOO_MANY_CREATED);
+        case 1119:
+            return (statusValue <= SV_ACCT_NOT_CREATED_DENIED);
+        case 1120:
+            return (statusValue <= SV_ACCT_CREATED_OK_FIRST_ONE);
         default:
             {
             if (cliVersion < 1106)
@@ -412,7 +436,7 @@ public class SOCStatusMessage extends SOCMessage
                 return (statusValue < SV_PW_REQUIRED);
             else
                 // newer; check vs highest constant that we know
-                return (statusValue <= SV_ACCT_NOT_CREATED_DENIED);
+                return (statusValue <= SV_ACCT_CREATED_OK_FIRST_ONE);
             }
         }
     }
