@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,11 +43,14 @@ public class SOCServerFeatures
     /**
      * User accounts defined in a persistent database.
      * If this feature is active, nicknames and passwords are authenticated.
-     * Otherwise there are no passwords defined.
+     * Otherwise there are no passwords defined ({@link #FEAT_OPEN_REG}).
+     *<P>
+     * When this feature is active but the db is empty (new install),
+     * the server will tell clients that {@link #FEAT_OPEN_REG} is active;
+     * see that feature's javadoc for detais.
      *<P>
      * The server can optionally be configured to require accounts,
      * see {@link soc.server.SOCServer#PROP_JSETTLERS_ACCOUNTS_REQUIRED}.
-     * @see #FEAT_OPEN_REG
      */
     public static final String FEAT_ACCTS = "accts";
 
@@ -61,13 +64,13 @@ public class SOCServerFeatures
     /**
      * Open registration.
      * If this feature is active, anyone can create their own user accounts.
-     * Otherwise only existing users can create new accounts.
-     *<P>
+     * Otherwise only existing users can create new accounts ({@link #FEAT_ACCTS}).
+     *
+     *<H5>Special case during {@code FEAT_ACCTS} server install:</H5>
      * When a newly installed server requires authentication to create new accounts,
      * but no accounts exist in the database yet, the server tells clients that
      * {@code FEAT_OPEN_REG} is active so that {@code SOCAccountClient} won't
      * ask for a username and password.
-     * @see #FEAT_ACCTS
      */
     public static final String FEAT_OPEN_REG = "oreg";
 
