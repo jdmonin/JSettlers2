@@ -33,7 +33,7 @@ import java.util.StringTokenizer;
  * (See {@link soc.util.SOCServerFeatures#FEAT_OPEN_REG}.)  If the user needs to log in but hasn't
  * before sending {@code SOCCreateAccount}, the server replies with {@link SOCStatusMessage#SV_PW_WRONG}.
  *<P>
- * In version 2.0.00 and higher, after creating the very first account the reply status is
+ * In version 1.1.20 and higher, after creating the very first account the reply status is
  * {@link SOCStatusMessage#SV_ACCT_CREATED_OK_FIRST_ONE} unless {@code FEAT_OPEN_REG} is active.
  *
  * @author Robert S Thomas

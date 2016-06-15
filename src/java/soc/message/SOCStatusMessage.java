@@ -235,9 +235,9 @@ public class SOCStatusMessage extends SOCMessage
      * because in that mode there's nothing special about the first account and no need to authenticate
      * before creating others.
      *<P>
-     * Clients older than v2.0.00 won't recognize this status value;
+     * Clients older than v1.1.20 won't recognize this status value;
      * they should be sent {@link #SV_ACCT_CREATED_OK} instead.
-     * @since 2.0.00
+     * @since 1.1.20
      */
     public static final int SV_ACCT_CREATED_OK_FIRST_ONE = 18;
 
@@ -457,6 +457,10 @@ public class SOCStatusMessage extends SOCMessage
             return (statusValue <= SV_NEWGAME_NAME_TOO_LONG);
         case 1110:
             return (statusValue <= SV_NEWCHANNEL_TOO_MANY_CREATED);
+        case 1119:
+            return (statusValue <= SV_ACCT_NOT_CREATED_DENIED);
+        case 1120:
+            return (statusValue <= SV_ACCT_CREATED_OK_FIRST_ONE);
         default:
             {
             if (cliVersion < 1106)
@@ -464,7 +468,7 @@ public class SOCStatusMessage extends SOCMessage
             else if (cliVersion < 1119)
                 return (statusValue < SV_PW_REQUIRED);
             else if (cliVersion < 2000)
-                return (statusValue < SV_ACCT_CREATED_OK_FIRST_ONE);
+                return (statusValue < SV_OK_DEBUG_MODE_ON);
             else
                 // newer; check vs highest constant that we know
                 return (statusValue <= SV_OK_DEBUG_MODE_ON);
