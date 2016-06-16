@@ -4439,18 +4439,33 @@ public class SOCServer extends Server
     }  // processCommand
 
     /**
+     * List and description of general commands that any game member can run.
      * Used by {@link #processDebugCommand(StringConnection, String, String, String)}}
-     * when *HELP* is requested.
-     * @since 1.1.07
-     * @see GameHandler#getDebugCommandsHelp()
+     * when {@code *HELP*} is requested.
+     * @see #DEBUG_COMMANDS_HELP
+     * @since 1.1.20
      */
-    public static final String[] DEBUG_COMMANDS_HELP =
+    public static final String[] GENERAL_COMMANDS_HELP =
         {
         "--- General Commands ---",
         "*ADDTIME*  add 30 minutes before game expiration",
         "*CHECKTIME*  print time remaining before expiration",
+        "*HELP*   info on available commands",
+        "*STATS*   server stats and current-game stats",
         "*VERSION*  show version and build information",
         "*WHO*   show players and observers of this game",
+        };
+
+    /**
+     * List and description of debug/admin commands. Along with {@link #GENERAL_COMMANDS_HELP},
+     * used by {@link #processDebugCommand(StringConnection, String, String, String)}}
+     * when {@code *HELP*} is requested by a debug/admin user.
+     * @since 1.1.07
+     * @see #GENERAL_COMMANDS_HELP
+     * @see GameHandler#getDebugCommandsHelp()
+     */
+    public static final String[] DEBUG_COMMANDS_HELP =
+        {
         "--- Debug Commands ---",
         "*BCAST*  broadcast msg to all games/channels",
         "*GC*    trigger the java garbage-collect",
@@ -4458,8 +4473,9 @@ public class SOCServer extends Server
         "*KILLGAME*  end the current game",
         "*RESETBOT* botname  End a bot's connection",
         "*STARTBOTGAME* [maxBots]  Start this game (no humans have sat) with bots only",
-        "*STATS*   server stats and current-game stats",
-        "*STOP*  kill the server"
+        "*STOP*  kill the server",
+        "*WHO* gameName   show players and observers of gameName",
+        "*WHO* *  show all connected clients",
         };
 
     /**
@@ -4470,7 +4486,11 @@ public class SOCServer extends Server
      * to check for those.
      *<P>
      * Check {@link #allowDebugUser} before calling this method.
-     * See {@link #DEBUG_COMMANDS_HELP} and {@link GameHandler#getDebugCommandsHelp()} for list of commands.
+     * For list of commands see {@link #GENERAL_COMMANDS_HELP}, {@link #DEBUG_COMMANDS_HELP},
+     * and {@link GameHandler#getDebugCommandsHelp()}.
+     * "Unprivileged" general commands are handled by
+     * {@link #handleGAMETEXTMSG(StringConnection, SOCGameTextMsg)}.
+     *
      * @param debugCli  Client sending the potential debug command
      * @param ga  Game in which the message is sent
      * @param dcmd   Text message which may be a debug command
@@ -4483,6 +4503,9 @@ public class SOCServer extends Server
 
         if (dcmdU.startsWith("*HELP"))
         {
+            for (int i = 0; i < GENERAL_COMMANDS_HELP.length; ++i)
+                messageToPlayer(debugCli, ga, GENERAL_COMMANDS_HELP[i]);
+
             for (int i = 0; i < DEBUG_COMMANDS_HELP.length; ++i)
                 messageToPlayer(debugCli, ga, DEBUG_COMMANDS_HELP[i]);
 
