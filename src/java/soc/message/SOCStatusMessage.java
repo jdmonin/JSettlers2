@@ -396,6 +396,7 @@ public class SOCStatusMessage extends SOCMessage
      * value defined in the client. See individual status values' javadocs for details.
      *<UL>
      * <LI> {@link #SV_OK_DEBUG_MODE_ON} falls back to {@link #SV_OK}
+     * <LI> {@link #SV_PW_REQUIRED} falls back to {@link #SV_PW_WRONG}
      * <LI> {@link #SV_ACCT_CREATED_OK_FIRST_ONE} falls back to {@link #SV_ACCT_CREATED_OK}
      * <LI> All others fall back to {@link #SV_NOT_OK_GENERIC}
      * <LI> In case the fallback value is also not recognized at the client,
@@ -419,6 +420,8 @@ public class SOCStatusMessage extends SOCMessage
         {
             if (sv == SV_OK_DEBUG_MODE_ON)
                 sv = SV_OK;
+            else if (sv == SV_PW_REQUIRED)
+                sv = SV_PW_WRONG;
             else if (sv == SV_ACCT_CREATED_OK_FIRST_ONE)
                 sv = SV_ACCT_CREATED_OK;
             else if (cliVers >= 1106)

@@ -4826,10 +4826,8 @@ public class SOCServer extends Server
             if (msgPass.length() == 0)
             {
                 c.put(SOCStatusMessage.toCmd
-                        (((cliVers >= SOCAuthRequest.VERSION_FOR_AUTHREQUEST)
-                          ? SOCStatusMessage.SV_PW_REQUIRED
-                          : SOCStatusMessage.SV_PW_WRONG),
-                         cliVers, "This server requires user accounts and passwords."));
+                        (SOCStatusMessage.SV_PW_REQUIRED, cliVers,
+                         "This server requires user accounts and passwords."));
                 return AUTH_OR_REJECT__FAILED;
             }
 
@@ -7710,13 +7708,16 @@ public class SOCServer extends Server
         // or is an account required to create user accounts?
         if ((requester == null) && ! features.isActive(SOCServerFeatures.FEAT_OPEN_REG))
         {
-            // SOCAccountClients older than v1.1.19 (VERSION_FOR_SERVERFEATURES) can't authenticate.
+            // SOCAccountClients older than v1.1.19 (VERSION_FOR_AUTHREQUEST, VERSION_FOR_SERVERFEATURES)
+            // can't authenticate; all their user creation requests are anonymous (FEAT_OPEN_REG).
+            // They can't be declined when SOCAccountClient connects, because v1.1.19 is when
+            // SOCAuthRequest(ROLE_USER_ADMIN) message was added; we don't know why an older client
+            // has connected until they try to create or join a game or channel or create a user.
+            // It's fine for them to connect for games or channels, but user creation requires authentication.
             // Check client version now; an older client could create the first account without auth,
             // then not be able to create further ones which would be confusing.
-            // This can't be detected at client connect time, because v1.1.19 is when
-            // SOCAuthRequest(ROLE_USER_ADMIN) message was added.
 
-            if (cliVers < SOCServerFeatures.VERSION_FOR_SERVERFEATURES)
+            if (cliVers < SOCAuthRequest.VERSION_FOR_AUTHREQUEST)
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION,  // cli knows this status value: defined in 1.1.06
