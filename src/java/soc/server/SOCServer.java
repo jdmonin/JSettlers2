@@ -4499,29 +4499,9 @@ public class SOCServer extends Server
      */
     public boolean processDebugCommand(StringConnection debugCli, String ga, final String dcmd, final String dcmdU)
     {
-        // See handleGAMETEXTMSG for "unprivileged" debug commands like *STATS* and *ADDTIME*.
+        // See handleGAMETEXTMSG for "unprivileged" debug commands like *HELP*, *STATS*, and *ADDTIME*.
 
-        if (dcmdU.startsWith("*HELP"))
-        {
-            for (int i = 0; i < GENERAL_COMMANDS_HELP.length; ++i)
-                messageToPlayer(debugCli, ga, GENERAL_COMMANDS_HELP[i]);
-
-            for (int i = 0; i < DEBUG_COMMANDS_HELP.length; ++i)
-                messageToPlayer(debugCli, ga, DEBUG_COMMANDS_HELP[i]);
-
-            GameHandler hand = gameList.getGameTypeHandler(ga);
-            if (hand != null)
-            {
-                final String[] GAMETYPE_DEBUG_HELP = hand.getDebugCommandsHelp();
-                if (GAMETYPE_DEBUG_HELP != null)
-                    for (int i = 0; i < GAMETYPE_DEBUG_HELP.length; ++i)
-                        messageToPlayer(debugCli, ga, GAMETYPE_DEBUG_HELP[i]);
-            }
-
-            return true;
-        }
-
-        boolean isCmd = true;
+        boolean isCmd = true;  // eventual return value; will set false if unrecognized
 
         if (dcmdU.startsWith("*KILLGAME*"))
         {
@@ -5588,27 +5568,47 @@ public class SOCServer extends Server
         }
 
         //
-        // useful for debugging
+        // check for admin/debugging commands
         //
         // 1.1.07: all practice games are debug mode, for ease of debugging;
         //         not much use for a chat window in a practice game anyway.
         //
-        else if ((allowDebugUser && plName.equals("debug")) || (c instanceof LocalStringConnection))
-        {
-            if (! processDebugCommand(c, ga.getName(), cmdText, cmdTxtUC))
-            {
-                //
-                // Send the message to the members of the game
-                //
-                messageToGame(gaName, new SOCGameTextMsg(gaName, plName, cmdText));
-            }
-        }
         else
         {
-            //
-            // Send the message to the members of the game
-            //
-            messageToGame(gaName, new SOCGameTextMsg(gaName, plName, cmdText));
+            final boolean userIsDebug =
+                ((allowDebugUser && plName.equals("debug"))
+                || (c instanceof LocalStringConnection));
+
+            if (cmdTxtUC.startsWith("*HELP"))
+            {
+                for (int i = 0; i < GENERAL_COMMANDS_HELP.length; ++i)
+                    messageToPlayer(c, gaName, GENERAL_COMMANDS_HELP[i]);
+
+                if (userIsDebug)
+                {
+                    for (int i = 0; i < DEBUG_COMMANDS_HELP.length; ++i)
+                        messageToPlayer(c, gaName, DEBUG_COMMANDS_HELP[i]);
+
+                    GameHandler hand = gameList.getGameTypeHandler(gaName);
+                    if (hand != null)
+                    {
+                        final String[] GAMETYPE_DEBUG_HELP = hand.getDebugCommandsHelp();
+                        if (GAMETYPE_DEBUG_HELP != null)
+                            for (int i = 0; i < GAMETYPE_DEBUG_HELP.length; ++i)
+                                messageToPlayer(c, gaName, GAMETYPE_DEBUG_HELP[i]);
+                    }
+                }
+            }
+            else
+            {
+                boolean isCmd = userIsDebug && processDebugCommand(c, ga.getName(), cmdText, cmdTxtUC);
+
+                if (! isCmd)
+                    //
+                    // Send the message to the members of the game
+                    //
+                    messageToGame(gaName, new SOCGameTextMsg(gaName, plName, cmdText));
+            }
         }
 
         //saveCurrentGameEventRecord(gameTextMsgMes.getGame());
