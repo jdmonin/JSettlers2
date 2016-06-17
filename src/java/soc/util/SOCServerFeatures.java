@@ -47,7 +47,7 @@ public class SOCServerFeatures
      *<P>
      * When this feature is active but the db is empty (new install),
      * the server will tell clients that {@link #FEAT_OPEN_REG} is active;
-     * see that feature's javadoc for detais.
+     * see that feature's javadoc for details.
      *<P>
      * The server can optionally be configured to require accounts,
      * see {@link soc.server.SOCServer#PROP_JSETTLERS_ACCOUNTS_REQUIRED}.
