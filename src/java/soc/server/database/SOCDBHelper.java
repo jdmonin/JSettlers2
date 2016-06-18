@@ -79,11 +79,14 @@ public class SOCDBHelper
     // and also add it to SOCServer.PROPS_LIST.
 
     /** Property <tt>jsettlers.db.user</tt> to specify the server's SQL database username.
+     * Default is <tt>"socuser"</tt>.
      * @since 1.1.09
      */
     public static final String PROP_JSETTLERS_DB_USER = "jsettlers.db.user";
 
     /** Property <tt>jsettlers.db.pass</tt> to specify the server's SQL database password.
+     * Default is <tt>"socpass"</tt>.
+     * v1.1.20 and higher allow a blank password ("").
      * @since 1.1.09
      */
     public static final String PROP_JSETTLERS_DB_PASS = "jsettlers.db.pass";
