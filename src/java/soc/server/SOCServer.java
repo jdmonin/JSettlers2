@@ -8840,10 +8840,7 @@ public class SOCServer extends Server
                 argp.setProperty(PROP_JSETTLERS_PORT, Integer.toString(SOC_PORT_DEFAULT));
             if (! argp.containsKey(PROP_JSETTLERS_CONNECTIONS))
                 argp.setProperty(PROP_JSETTLERS_CONNECTIONS, Integer.toString(SOC_MAXCONN_DEFAULT));
-            if (! argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_USER))
-                argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "socuser");
-            if (! argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_PASS))
-                argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "socpass");
+            // PROP_JSETTLERS_DB_USER, _PASS are set below
         } else {
             // Require at least 2 parameters
             if ((args.length - aidx) < 2)
@@ -8879,14 +8876,17 @@ public class SOCServer extends Server
                 } else {
                     argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "");
                 }
-            } else {
-                if (! argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_USER))
-                    argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "socuser");
-                if (! argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_PASS))
-                    argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "socpass");
             }
         }
 
+        // If no positional parameters db_user db_pass, take defaults.
+        // Check each one before setting it, in case was specified in properties file
+        if (! argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_USER))
+            argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "socuser");
+        if (! argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_PASS))
+            argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "socpass");
+
+        // Make sure no more flagged parameters
         if (aidx < args.length)
         {
             if (! printedUsageAlready)
@@ -8895,7 +8895,7 @@ public class SOCServer extends Server
                 {
                     System.err.println("SOCServer: Options must appear before, not after, the port number.");
                 } else {
-                    System.err.println("SOCServer: Options must appear before the port number, not after dbpass.");
+                    System.err.println("SOCServer: Options must appear before the port number, not after dbuser/dbpass.");
                 }
                 printUsage(false);
             }
