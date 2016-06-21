@@ -4442,6 +4442,7 @@ public class SOCServer extends Server
      * List and description of general commands that any game member can run.
      * Used by {@link #processDebugCommand(StringConnection, String, String, String)}}
      * when {@code *HELP*} is requested.
+     * @see #ADMIN_USER_COMMANDS_HELP
      * @see #DEBUG_COMMANDS_HELP
      * @since 1.1.20
      */
@@ -4457,11 +4458,40 @@ public class SOCServer extends Server
         };
 
     /**
-     * List and description of debug/admin commands. Along with {@link #GENERAL_COMMANDS_HELP},
+     * Heading to show above any admin commands the user is authorized to run.  Declared separately
+     * from {@link #ADMIN_USER_COMMANDS_HELP} for use when other admin types are added.
+     *<br>
+     *  {@code --- Admin Commands ---}
+     *
+     * @since 1.1.20
+     */
+    private static final String ADMIN_COMMANDS_HEADING = "--- Admin Commands ---";
+
+    /**
+     * List and description of user-admin commands. Along with {@link #GENERAL_COMMANDS_HELP}
+     * and {@link #DEBUG_COMMANDS_HELP}, used by
+     * {@link #processDebugCommand(StringConnection, String, String, String)}}
+     * when {@code *HELP*} is requested by a debug/admin user who passes
+     * {@link #isUserDBUserAdmin(String, boolean) isUserDBUserAdmin(username, true)}.
+     * Preceded by {@link #ADMIN_COMMANDS_HEADING}.
+     * @since 1.1.20
+     * @see #GENERAL_COMMANDS_HELP
+     * @see #DEBUG_COMMANDS_HELP
+     */
+    public static final String[] ADMIN_USER_COMMANDS_HELP =
+        {
+        "*WHO* gameName   show players and observers of gameName",
+        "*WHO* *  show all connected clients",
+        };
+
+    /**
+     * List and description of debug/admin commands. Along with {@link #GENERAL_COMMANDS_HELP}
+     * and {@link #ADMIN_USER_COMMANDS_HELP},
      * used by {@link #processDebugCommand(StringConnection, String, String, String)}}
      * when {@code *HELP*} is requested by a debug/admin user.
      * @since 1.1.07
      * @see #GENERAL_COMMANDS_HELP
+     * @see #ADMIN_USER_COMMANDS_HELP
      * @see GameHandler#getDebugCommandsHelp()
      */
     public static final String[] DEBUG_COMMANDS_HELP =
@@ -4474,8 +4504,6 @@ public class SOCServer extends Server
         "*RESETBOT* botname  End a bot's connection",
         "*STARTBOTGAME* [maxBots]  Start this game (no humans have sat) with bots only",
         "*STOP*  kill the server",
-        "*WHO* gameName   show players and observers of gameName",
-        "*WHO* *  show all connected clients",
         };
 
     /**
@@ -4487,7 +4515,7 @@ public class SOCServer extends Server
      *<P>
      * Check {@link #allowDebugUser} before calling this method.
      * For list of commands see {@link #GENERAL_COMMANDS_HELP}, {@link #DEBUG_COMMANDS_HELP},
-     * and {@link GameHandler#getDebugCommandsHelp()}.
+     * {@link #ADMIN_USER_COMMANDS_HELP}, and {@link GameHandler#getDebugCommandsHelp()}.
      * "Unprivileged" general commands are handled by
      * {@link #handleGAMETEXTMSG(StringConnection, SOCGameTextMsg)}.
      *
@@ -5583,6 +5611,14 @@ public class SOCServer extends Server
             {
                 for (int i = 0; i < GENERAL_COMMANDS_HELP.length; ++i)
                     messageToPlayer(c, gaName, GENERAL_COMMANDS_HELP[i]);
+
+                if ((userIsDebug && ! (c instanceof LocalStringConnection))  // no user admins in practice games
+                    || isUserDBUserAdmin(plName, true))
+                {
+                    messageToPlayer(c, gaName, ADMIN_COMMANDS_HEADING);
+                    for (int i = 0; i < ADMIN_USER_COMMANDS_HELP.length; ++i)
+                        messageToPlayer(c, gaName, ADMIN_USER_COMMANDS_HELP[i]);
+                }
 
                 if (userIsDebug)
                 {
