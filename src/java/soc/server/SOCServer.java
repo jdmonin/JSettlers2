@@ -863,7 +863,7 @@ public class SOCServer extends Server
      * @param mc   the maximum number of connections allowed;
      *            remember that robots count against this limit.
      * @param databaseUserName  the user name for accessing the database
-     * @param databasePassword  the password for the user
+     * @param databasePassword  the password for the db user, or ""
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now
      * @throws SQLException   If db setup script fails
@@ -8596,7 +8596,7 @@ public class SOCServer extends Server
         // is copied for visibility from private init_propsSetGameopts.  If you update the
         // text here, also update the same text in init_propsSetGameopts's javadoc.
 
-        Properties argp = new Properties();
+        Properties argp = new Properties();  // returned props, from "jsserver.properties" file and args[]
 
         // Check against options which are on command line twice: Can't just check argp keys because
         // argp is loaded from jsserver.properties, then command-line properties can override
@@ -8918,9 +8918,16 @@ public class SOCServer extends Server
         // If no positional parameters db_user db_pass, take defaults.
         // Check each one before setting it, in case was specified in properties file
         if (! argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_USER))
+        {
             argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "socuser");
-        if (! argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_PASS))
-            argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "socpass");
+            if (! argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_PASS))
+                argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "socpass");
+        }
+        else if (! argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_PASS))
+        {
+            // specified _USER but not _PASS: store "" for empty password instead of default
+            argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "");
+        }
 
         // Make sure no more flagged parameters
         if (aidx < args.length)
