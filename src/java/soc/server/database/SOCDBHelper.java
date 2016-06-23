@@ -251,9 +251,11 @@ public class SOCDBHelper
      * These can be changed by supplying <code>props</code>.
      *
      * @param user  the user name for accessing the database
-     * @param pswd  the password for the user
-     * @param props  null, or properties containing {@link #PROP_JSETTLERS_DB_USER},
+     * @param pswd  the password for the user, or ""
+     * @param props  null, or properties containing {@link #PROP_JSETTLERS_DB_DRIVER},
      *       {@link #PROP_JSETTLERS_DB_URL}, and any other desired properties.
+     *       Ignores {@link #PROP_JSETTLERS_DB_USER} and {@link #PROP_JSETTLERS_DB_PASS} if present,
+     *       uses the {@code user} and {@code pswd} parameters instead.
      * @throws SQLException if an SQL command fails, or the db couldn't be
      *         initialized;
      *         or if the {@link #PROP_JSETTLERS_DB_DRIVER} property is not mysql, not sqlite, not postgres,
@@ -427,7 +429,7 @@ public class SOCDBHelper
      * That way, it can create tables used by the statements.
      *
      * @param user  DB username
-     * @param pswd  DB user password
+     * @param pswd  DB user password, or ""
      * @param setupScriptPath  Full path or relative path to SQL script to run at connect, or null;
      *     typically from {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP}
      * @throws IOException  if <tt>setupScriptPath</tt> wasn't found, or if any other IO error occurs reading the script
