@@ -78,6 +78,8 @@ import java.util.Timer;
  * It loads gifs from a directory named "images" in the same
  * directory as this class.
  *<P>
+ * The main drawing methods are {@link #drawBoardEmpty(Graphics)} for hexes and ports,
+ * and {@link #drawBoard(Graphics)} for player pieces like settlements and the robber.
  * The board background color is set in {@link SOCPlayerInterface}.
  * Since all areas outside the board boundaries are filled with
  * water hex tiles, this color is only a fallback; it's briefly visible
@@ -2184,8 +2186,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Based on the waterHex image, render the 6 port images, each with arrows in its 2 settlement directions.
-     * Fills {@link #scaledPorts}, starting from {@code waterHex.gif} previously loaded into {@link #scaledHexes}[0].
+     * Based on the waterHex image, render the 6 port images (1 per "facing" rotation), each with arrows in its
+     * 2 settlement directions. Fills {@link #scaledPorts}, starting from {@code waterHex.gif} previously loaded
+     * into {@link #scaledHexes}[0].
      *<P>
      * Before calling this method, call {@link #rescaleCoordinateArrays()}.
      * @since 1.1.20
@@ -2692,7 +2695,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             final Image[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original, or to rotated?
 
-            // For the 3:1 port, don't use hexType for image index (hexType 0 is open water)
+            // For the 3:1 port, don't use hexType for image index (hexType 0 is open water);
+            // miscPort.gif is at end of hex images array. hexType index works for 2:1 port types.
             htypeIdx = ((portFacing == -1) || (hexType != SOCBoard.MISC_PORT))
                 ? hexType : (hexis.length - 1);
 
@@ -2749,7 +2753,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
 
         /**
-         * Draw the port graphic
+         * Draw the rotated port overlay image
          */
         if (portFacing != -1)
         {
@@ -3997,8 +4001,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         if (scaledPorts[0] == null)
         {
-            // Check if port graphics are ready.  This isn't used in practice,
-            // because doLayout calls position/sizing methods which call rescaleBoard.
+            // Check if port graphics are ready.  This probably isn't needed, because
+            // doLayout already called position/sizing methods which call rescaleBoard.
             renderPortImages();
         }
 
@@ -6443,8 +6447,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Load the images for the board.
-     * {@link #hexes} and {@link #dice}.
+     * Load the images for the board: {@link #hexes}, {@link #rotatHexes}, and {@link #dice}.
      * Loads all hex types, up through {@link SOCBoardLarge#FOG_HEX},
      * because {@link #hexes} is static for all boards and all game options.
      * @param c  Our component, to load image resource files with getToolkit and getResource
@@ -6523,6 +6526,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *             because their board layout is never rotated.
      *             This parameter isn't about whether the current board is rotated,
      *             but about whether this image directory's contents are rotated.
+     * @see #renderPortImages()
      * @since 1.1.08
      */
     private static final void loadHexesAndImages
@@ -6531,6 +6535,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          final boolean wantsRotated)
     {
         final int numHexImage;
+
         newHexes[0] = tk.getImage(clazz.getResource(imageDir + "/waterHex.gif"));
         newHexes[1] = tk.getImage(clazz.getResource(imageDir + "/clayHex.gif"));
         newHexes[2] = tk.getImage(clazz.getResource(imageDir + "/oreHex.gif"));
