@@ -2180,9 +2180,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         rescaleCoordinateArrays();
 
         /**
-         * Scale images, or point to static arrays.
+         * Scale and render images, or point to static arrays.
          */
-        Image[] hex;
+        final Image[] hex;  // hex type images
         final Color[] BC;  // border colors
         if (isRotated)
         {
@@ -2195,14 +2195,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (! isScaled)
         {
             final Image hexBorder = hex[hex.length - 2];
-            int i;
-            for (i = scaledHexes.length - 1; i>=0; --i)
-            {
+
+            for (int i = scaledHexes.length - 1; i>=0; --i)
                 if (i < BC.length)
                     scaledHexes[i] = renderBorderedHex(hex[i], hexBorder, BC[i]);
                 else
                     scaledHexes[i] = hex[i];
-            }
         }
         else
         {
@@ -2250,10 +2248,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private Image renderBorderedHex(final Image hex, final Image hexBorder, final Color borderColor)
     {
-        final int w = hex.getWidth(null), h =hex.getHeight(null);
+        final int w = hex.getWidth(null), h = hex.getHeight(null);
 
         final BufferedImage bHex = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = bHex.createGraphics();
+        final Graphics2D g = bHex.createGraphics();
 
         g.drawImage(hexBorder, 0, 0, w, h, null);  // draw the border pixel mask; all other pixels will be transparent
 
