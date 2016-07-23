@@ -79,7 +79,7 @@ import java.util.Timer;
  * directory as this class.
  *<P>
  * The main drawing methods are {@link #drawBoardEmpty(Graphics)} for hexes and ports,
- * and {@link #drawBoard(Graphics)} for player pieces like settlements and the robber.
+ * and {@link #drawBoard(Graphics)} for placed pieces like settlements and the robber.
  * The board background color is set in {@link SOCPlayerInterface}.
  * Since all areas outside the board boundaries are filled with
  * water hex tiles, this color is only a fallback; it's briefly visible
@@ -109,6 +109,16 @@ import java.util.Timer;
  * actual (scaled/rotated) and unscaled/un-rotated "internal" coordinates with
  * {@link #scaleFromActualX(int)}, {@link #scaleFromActualY(int)},
  * {@link #scaleToActualX(int)}, {@link #scaleToActualY(int)}.
+ *
+ *<H3>Sequence for loading, rendering, and drawing images:</H3>
+ *<UL>
+ *  <LI> Constructor calls {@link #loadImages(Component, boolean)} and {@link #rescaleCoordinateArrays()}
+ *  <LI> Layout manager calls {@code setSize(..)} which calls {@link #rescaleBoard(int, int)}
+ *  <LI> {@link #rescaleBoard(int, int)} scales hex images and calls {@link #renderPortImages()}
+ *  <LI> {@link #paint(Graphics)} calls {@link #drawBoard(Graphics)}
+ *  <LI> First call to {@code drawBoard(..)} calls {@link #drawBoardEmpty(Graphics)} which renders into a buffer image
+ *  <LI> {@code drawBoard(..)} draws the placed pieces over the buffered board image from {@code drawBoardEmpty(..)}
+ *</UL>
  */
 @SuppressWarnings("serial")
 public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
