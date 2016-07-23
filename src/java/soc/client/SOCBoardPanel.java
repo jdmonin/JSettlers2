@@ -459,6 +459,35 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final Color ARROW_COLOR_PLACING = new Color(255, 255, 60);
 
     /**
+     * Border colors for hex rendering.
+     * Same indexes as {@link #hexes}.
+     * Used in {@link #rescaleBoard(int, int)} with mask {@code hexBorder.gif}.
+     * @see #ROTAT_HEX_BORDER_COLORS
+     * @since 1.1.20
+     */
+    private static final Color[] HEX_BORDER_COLORS =
+    {
+        new Color(38,60,113),  // water
+        new Color(78,16,0), new Color(58,59,57), new Color(20,113,0),  // clay, ore, sheep
+        new Color(142,109,0), new Color(9,54,13), new Color(203,180,73),  // wheat, wood, desert
+        new Color(200,195,141), new Color(188,188,188)  // fog, gold
+    };
+
+    /**
+     * Border colors for hex rendering when {@link #isRotated}.
+     * Same indexes as {@link #rotatHexes}.
+     * Used in {@link #rescaleBoard(int, int)} with mask {@code hexBorder.gif}.
+     * @see #HEX_BORDER_COLORS
+     * @since 1.1.20
+     */
+    private static final Color[] ROTAT_HEX_BORDER_COLORS =
+    {
+        HEX_BORDER_COLORS[0],  // water
+        new Color(120,36,0), HEX_BORDER_COLORS[2], HEX_BORDER_COLORS[3],  // clay, ore, sheep
+        HEX_BORDER_COLORS[4], new Color(9,54,11), HEX_BORDER_COLORS[6]  // wheat, wood, desert
+    };
+
+    /**
      * For repaint when retrying a failed rescale-image,
      * the 3-second delay (in millis) before which {@link DelayedRepaint} will call repaint().
      *<P>
@@ -858,7 +887,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Hex images - shared unscaled original-resolution from {@link #IMAGEDIR}'s GIF files.
      * Image references are copied to {@link #scaledHexes} from here.
-     * Also contains {@code miscPort.gif} for drawing 3:1 ports' base image.
+     * Also contains {@code hexBorder.gif}, and {@code miscPort.gif} for drawing 3:1 ports' base image.
      * For indexes, see {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class, boolean)}.
      *<P>
      * {@link #scaledPorts} stores the 6 per-facing port overlays from {@link #renderPortImages()}.
@@ -6478,7 +6507,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             MediaTracker tracker = new MediaTracker(c);
 
-            hexes = new Image[10];  // water, desert, 5 resources, gold, fog, 3:1 port
+            hexes = new Image[11];  // water, desert, 5 resources, gold, fog, hex border mask, 3:1 port
             dice = new Image[14];
 
             loadHexesAndImages(hexes, IMAGEDIR, tracker, tk, clazz, false);
@@ -6505,7 +6534,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             MediaTracker tracker = new MediaTracker(c);
 
-            rotatHexes = new Image[8];  // only 8, not 10: large board (gold,fog) is not rotated
+            rotatHexes = new Image[9];  // only 9, not 11: large board (gold,fog) is not rotated
             loadHexesAndImages(rotatHexes, IMAGEDIR + "/rotat", tracker, tk, clazz, true);
 
             try
@@ -6555,12 +6584,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         newHexes[6] = tk.getImage(clazz.getResource(imageDir + "/desertHex.gif"));
         if (wantsRotated)
         {
-            numHexImage = 8;
+            numHexImage = 9;
         } else {
-            numHexImage = 10;
+            numHexImage = 11;
             newHexes[7] = tk.getImage(clazz.getResource(imageDir + "/goldHex.gif"));
             newHexes[8] = tk.getImage(clazz.getResource(imageDir + "/fogHex.gif"));
         }
+        newHexes[numHexImage - 2] = tk.getImage(clazz.getResource(imageDir + "/hexBorder.gif"));
         newHexes[numHexImage - 1] = tk.getImage(clazz.getResource(imageDir + "/miscPort.gif"));
 
         for (int i = 0; i < numHexImage; i++)
