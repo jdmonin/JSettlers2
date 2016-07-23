@@ -114,7 +114,8 @@ import java.util.Timer;
  *<UL>
  *  <LI> Constructor calls {@link #loadImages(Component, boolean)} and {@link #rescaleCoordinateArrays()}
  *  <LI> Layout manager calls {@code setSize(..)} which calls {@link #rescaleBoard(int, int)}
- *  <LI> {@link #rescaleBoard(int, int)} scales hex images and calls {@link #renderPortImages()}
+ *  <LI> {@link #rescaleBoard(int, int)} scales hex images, calls
+ *       {@link #renderBorderedHex(Image, Image, Color)} and {@link #renderPortImages()}
  *  <LI> {@link #paint(Graphics)} calls {@link #drawBoard(Graphics)}
  *  <LI> First call to {@code drawBoard(..)} calls {@link #drawBoardEmpty(Graphics)} which renders into a buffer image
  *  <LI> {@code drawBoard(..)} draws the placed pieces over the buffered board image from {@code drawBoardEmpty(..)}
@@ -2121,6 +2122,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Set the board fields to a new size, rescale graphics if needed.
      * Does not call repaint.  Does not call setSize.
      * Will update {@link #isScaledOrRotated}, {@link #scaledPanelX}, and other fields.
+     * Calls {@link #renderBorderedHex(Image, Image, Color)} and {@link #renderPortImages()}.
      *
      * @param newW New width in pixels, no less than {@link #PANELX} (or if rotated, {@link #PANELY}})
      * @param newH New height in pixels, no less than {@link #PANELY} (or if rotated, {@link #PANELX})
@@ -2181,28 +2183,41 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * Scale images, or point to static arrays.
          */
         Image[] hex;
+        final Color[] BC;  // border colors
         if (isRotated)
         {
             hex = rotatHexes;
+            BC = ROTAT_HEX_BORDER_COLORS;
         } else {
             hex = hexes;
+            BC = HEX_BORDER_COLORS;
         }
         if (! isScaled)
         {
+            final Image hexBorder = hex[hex.length - 2];
             int i;
             for (i = scaledHexes.length - 1; i>=0; --i)
-                scaledHexes[i] = hex[i];
+            {
+                if (i < BC.length)
+                    scaledHexes[i] = renderBorderedHex(hex[i], hexBorder, BC[i]);
+                else
+                    scaledHexes[i] = hex[i];
+            }
         }
         else
         {
             int w = scaleToActualX(hex[0].getWidth(null));
             int h = scaleToActualY(hex[0].getHeight(null));
+            final Image hexBorder = hex[hex.length - 2];
 
             for (int i = scaledHexes.length - 1; i>=0; --i)
             {
                 if (hex[i] != null)
                 {
-                    scaledHexes[i] = getScaledImageUp(hex[i], w, h);
+                    Image hi = getScaledImageUp(hex[i], w, h);
+                    if (i < BC.length)
+                        hi = renderBorderedHex(hi, hexBorder, BC[i]);
+                    scaledHexes[i] = hi;
                     scaledHexFail[i] = false;
                 } else {
                     scaledHexes[i] = null;
@@ -2222,6 +2237,35 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             superTextBox_x = (newW - superTextBox_w) / 2;
             superTextBox_y = (newH - superTextBox_h) / 2;
         }
+    }
+
+    /**
+     * Render a border around the edge of this hex, returning a new image.
+     * @param hex  Un-bordered hex image
+     * @param hexBorder  Hex border pixel mask, from {@code hexBorder.gif}
+     * @param borderColor  Color to paint the rendered border,
+     *     from {@link #HEX_BORDER_COLORS} or {@link #ROTAT_HEX_BORDER_COLORS}
+     * @return a new Image for the bordered hex
+     * @since 1.1.20
+     */
+    private Image renderBorderedHex(final Image hex, final Image hexBorder, final Color borderColor)
+    {
+        final int w = hex.getWidth(null), h =hex.getHeight(null);
+
+        final BufferedImage bHex = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = bHex.createGraphics();
+
+        g.drawImage(hexBorder, 0, 0, w, h, null);  // draw the border pixel mask; all other pixels will be transparent
+
+        g.setComposite(AlphaComposite.SrcIn);  // source (fillRect) color, dest (bHex) transparency
+        g.setColor(borderColor);
+        g.fillRect(0, 0, w, h);  // fill only the non-transparent mask pixels, because of SRC_IN
+
+        g.setComposite(AlphaComposite.DstOver);  // avoid overwriting overlap (border)
+        g.drawImage(hex, 0, 0, w, h, null);  // change only the transparent (non-border) pixels, because of DST_OVER
+
+        g.dispose();
+        return bHex;
     }
 
     /**
