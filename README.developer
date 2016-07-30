@@ -20,6 +20,7 @@ CONTENTS
 - Developing with a database (JDBC)
 - Internationalization (I18N)
 - Robots (AI)
+- Network Communication and interop with other versions or languages
 - Coding Style
 - github usage
 
@@ -315,6 +316,10 @@ Current TODO list
 	- Monitoring: Command line utility or html-based dashboard: Uptime, health of bots,
 		currently active/total games from *STATS* cmd, client versions, any errors, etc
 	- Per-game thread/message queue at server (use SOCMessageForGame.getGame)
+	- Machine-readable specs for each network message type's parameters (type, required/optional, etc)
+		which could potentially generate a client library in other languages
+		or validate the java message classes
+	- Sample client code for the network protocol in python, js, or another language
 	- HTML5 client
 	- Cities & Knights support
 		- UI mock-ups
@@ -425,6 +430,24 @@ jsettlers client to observe a bot game as it plays.
 If jsettlers.bots.botgames.total != 0 (including < 0), at any time the client can create a new game,
 join but not sit down at a seat, and start that game as bots-only using the debug command
 *STARTBOTGAME* [maxBots] to test the bots with any given combination of game options and scenarios.
+
+
+Network Communication and interop with other versions or languages
+------------------------------------------------------------------
+Players' clients talk to the JSettlers server using a simple string-based message format.
+See "Overall Structure" for an overview on network message handling.
+Communication format and more details are described in soc.message.SOCMessage.
+
+Keeping the network protocol simple helps with interoperability between different
+versions and implementations. At the TCP level, JSettlers messages are unicode Strings
+sent using DataOutputStream.writeUTF(String) and DataInputStream.readUTF().
+
+AI bots, server monitors, or other client programs can also be written in non-Java languages.
+Such clients could communicate with JSettlers by implementing writeUTF and readUTF
+(searching online finds sample code for popular languages), looking for the message types
+they need to work with (listed in SOCMessage), and decoding/encoding those message types.
+See "Overall Structure" above and class javadocs of SOCMessage, SOCDisplaylessPlayerClient,
+SOCRobotClient, soc.server.genericServer.Server, and SOCServer.
 
 
 Coding Style

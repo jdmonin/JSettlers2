@@ -30,21 +30,27 @@ import java.util.StringTokenizer;
 /**
  * Messages used for game data, events, and chatting on a channel.
  *<P>
- * No objects, only strings and integers, are to be sent over the network
+ * No Objects, only strings and integers, are to be sent over the network
  * between servers and clients!  Your game's code must guarantee that no string
  * sent contains a separator character ({@link #sep_char} or {@link #sep2_char}).
  * To help with this, use {@link #isSingleLineAndSafe(String)}.
+ * Keeping the network protocol simple helps with interoperability
+ * between different versions and implementations.
  *<P>
  * Text announcements ({@link SOCGameServerText} or {@link SOCGameTextMsg})
  * are often sent after data messages.
  *<P>
  * The message data is sent over the network as type ID + data strings
  * built by each SOCMessage subclass's toCmd() method.
+ * This is sent over TCP using {@link java.io.DataOutputStream#writeUTF(String)}.
+ * Server-launched local AI bots use {@link soc.server.genericServer.LocalStringConnection}
+ * instead of TCP, and skip the UTF encoding/decoding overhead.
  *<P>
  * On the remote end, it's reconstructed to a new instance of the
  * appropriate SOCMessage subclass, by the subclass' required method
  * static SOCMessageSubclass parseDataStr(String).
  * parseDataStr is called from {@link #toMsg(String)} in this class.
+ * Remote TCP clients receive data using {@link java.io.DataInputStream#readUTF()}.
  *<P>
  * The client receives messages in {@link soc.client.SOCPlayerClient.MessageTreater#treat(SOCMessage, boolean)}.
  * The server receives messages in {@link soc.server.SOCServer#processCommand(String, StringConnection)}.
