@@ -471,7 +471,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         new Color(38,60,113),  // water
         new Color(78,16,0), new Color(58,59,57), new Color(20,113,0),  // clay, ore, sheep
         new Color(142,109,0), new Color(9,54,13), new Color(203,180,73),  // wheat, wood, desert
-        new Color(200,195,141), new Color(188,188,188)  // fog, gold
+        null, new Color(188,188,188)  // gold (no border), fog
     };
 
     /**
@@ -2253,12 +2253,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @param hexBorder  Hex border pixel mask from {@code hexBorder.gif},
      *     or {@code null} to draw vector border
      * @param borderColor  Color to paint the rendered border,
-     *     from {@link #HEX_BORDER_COLORS} or {@link #ROTAT_HEX_BORDER_COLORS}
-     * @return a new Image for the bordered hex
+     *     from {@link #HEX_BORDER_COLORS} or {@link #ROTAT_HEX_BORDER_COLORS},
+     *     or {@code null} to not render a border
+     * @return a new Image for the bordered hex, or the original {@code hex} if {@code borderColor} was null
      * @since 1.1.20
      */
     private Image renderBorderedHex(final Image hex, final Image hexBorder, final Color borderColor)
     {
+        if (borderColor == null)
+            return hex;
+
         final int w = hex.getWidth(null), h = hex.getHeight(null);
 
         final BufferedImage bHex = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
