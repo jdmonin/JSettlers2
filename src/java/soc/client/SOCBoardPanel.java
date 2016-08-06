@@ -2287,7 +2287,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g.setStroke(new BasicStroke(scaleToActualX(13) / 10f));  // border line width 1.3px
             g.setColor(borderColor);
-            g.translate(1, 0);  // overlap pixel border properly, especially on right-hand side of 6pl hex
+            if (isRotated)
+                g.translate(scaleToActualX(1), 0);  // overlap pixel border properly, especially on right-hand side
             g.drawPolyline(scaledHexCornersX, scaledHexCornersY, 7);
         }
 
