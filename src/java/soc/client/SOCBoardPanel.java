@@ -489,6 +489,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     };
 
     /**
+     * To access {@code hexBorder.gif} hex border mask within variable-length {@link #scaledHexes}[],
+     * subtract this "index" from the length:
+     *<P>
+     * <code>
+     *  img = scaledHexes[scaledHexes.length - HEX_BORDER_IDX_FROM_LEN];
+     * </code>
+     * @since 1.1.20
+     */
+    private static final int HEX_BORDER_IDX_FROM_LEN = 2;
+
+    /**
      * For repaint when retrying a failed rescale-image,
      * the 3-second delay (in millis) before which {@link DelayedRepaint} will call repaint().
      *<P>
@@ -889,7 +900,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Hex images - shared unscaled original-resolution from {@link #IMAGEDIR}'s GIF files.
      * Image references are copied to {@link #scaledHexes} from here.
      * Also contains {@code hexBorder.gif}, and {@code miscPort.gif} for drawing 3:1 ports' base image.
-     * For indexes, see {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class, boolean)}.
+     * For indexes, see {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class, boolean)}
+     * and {@link #HEX_BORDER_IDX_FROM_LEN}.
      *<P>
      * {@link #scaledPorts} stores the 6 per-facing port overlays from {@link #renderPortImages()}.
      *
@@ -901,6 +913,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Hex images - rotated board; from <tt><i>{@link #IMAGEDIR}</i>/rotat</tt>'s GIF files.
      * Images from here are copied and/or scaled to {@link #scaledHexes}/{@link #scaledPorts}.
+     * For indexes, see {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class, boolean)}
+     * and {@link #HEX_BORDER_IDX_FROM_LEN}.
      * @see #hexes
      * @since 1.1.08
      */
@@ -2206,9 +2220,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             hex = hexes;
             BC = HEX_BORDER_COLORS;
         }
+        final int i_hexBorder = hex.length - HEX_BORDER_IDX_FROM_LEN;
+
         if (! isScaled)
         {
-            final Image hexBorder = hex[hex.length - 2];
+            final Image hexBorder = hex[i_hexBorder];
 
             for (int i = scaledHexes.length - 1; i>=0; --i)
                 if (i < BC.length)
@@ -2225,9 +2241,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 if (hex[i] != null)
                 {
-                    Image hi = getScaledImageUp(hex[i], w, h);
-                    if (i < BC.length)
-                        hi = renderBorderedHex(hi, null, BC[i]);
+                    Image hi;
+                    if (i != i_hexBorder)
+                    {
+                        hi = getScaledImageUp(hex[i], w, h);
+                        if (i < BC.length)
+                            hi = renderBorderedHex(hi, null, BC[i]);
+                    } else {
+                        // don't scale or render this image, it's unused when board is scaled
+                        hi = hex[i];
+                    }
+
                     scaledHexes[i] = hi;
                     scaledHexFail[i] = false;
                 } else {
@@ -6670,6 +6694,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             newHexes[7] = tk.getImage(clazz.getResource(imageDir + "/goldHex.gif"));
             newHexes[8] = tk.getImage(clazz.getResource(imageDir + "/fogHex.gif"));
         }
+        // reminder: if array length changes, update HEX_BORDER_IDX_FROM_LEN
         newHexes[numHexImage - 2] = tk.getImage(clazz.getResource(imageDir + "/hexBorder.gif"));
         newHexes[numHexImage - 1] = tk.getImage(clazz.getResource(imageDir + "/miscPort.gif"));
 
