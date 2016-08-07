@@ -29,6 +29,7 @@ import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 
 import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Component;
@@ -695,10 +696,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private int[] scaledArrowXL, scaledArrowXR, scaledArrowY; 
 
-    /** hex corners, clockwise from top-center, as located in waterHex.gif and other hex graphics:
-     * (27,0) (54,16) (54,47) (27,63) (0,47) (0,16).
+    /** hex corners, clockwise from top-center, as located in waterHex.gif, hexBorder.gif, and other hex graphics:
+     * (27,0) (54,16) (54,46) (27,62) (0,46) (0,16).
      *  If rotated 90deg clockwise, clockwise from center-right, would be:
-     * (63,27) (47,54) (16,54) (0,27) (16,0) (47,0).
+     * (63,27) (47,54) (16,54) (0,27) (16,0) (47,0);
+     *  swap x and y from these arrays and add {@link #hexCornersY_RotatedOffset}[]
      * @see #hexCornersY
      * @since 1.1.07
      */
@@ -709,11 +711,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /** hex corners, clockwise from top-center.
      * @see #hexCornersX
+     * @see #hexCornersY_RotatedOffset
      * @since 1.1.07
      */
     private static final int[] hexCornersY =
     {
-    	0, 16, 47, 63, 47, 16
+    	0, 16, 46, 62, 46, 16
+    };
+
+    /**
+     * Offset to add to {@link #hexCornersY}[] coordinates when used as (y,x) on rotated board.
+     * @since 1.1.20
+     */
+    private static final int[] hexCornersY_RotatedOffset =
+    {
+        0, 0, 1, 1, 1, 0
     };
 
     /** 
@@ -1706,13 +1718,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             int w = scaleToActualX(hex[0].getWidth(null));
             int h = scaleToActualY(hex[0].getHeight(null));
-            final Image hexBorder = hex[hex.length - 2];
 
             for (int i = scaledHexes.length - 1; i>=0; --i)
             {
                 Image hi = getScaledImageUp(hex[i], w, h);
                 if (i < BC.length)
-                    hi = renderBorderedHex(hi, hexBorder, BC[i]);
+                    hi = renderBorderedHex(hi, null, BC[i]);
                 scaledHexes[i] = hi;
                 scaledHexFail[i] = false;
             }
@@ -1734,7 +1745,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Render a border around the edge of this hex, returning a new image.
      * @param hex  Un-bordered hex image
-     * @param hexBorder  Hex border pixel mask, from <tt>hexBorder.gif</tt>
+     * @param hexBorder  Hex border pixel mask from <tt>hexBorder.gif</tt>,
+     *     or <tt>null</tt> to draw vector border
      * @param borderColor  Color to paint the rendered border,
      *     from {@link #HEX_BORDER_COLORS} or {@link #ROTAT_HEX_BORDER_COLORS}
      * @return a new Image for the bordered hex
@@ -1747,14 +1759,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         final BufferedImage bHex = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         final Graphics2D g = bHex.createGraphics();
 
-        g.drawImage(hexBorder, 0, 0, w, h, null);  // draw the border pixel mask; all other pixels will be transparent
+        if (hexBorder != null)
+        {
+            g.drawImage(hexBorder, 0, 0, w, h, null);  // draw the border pixel mask; all other pixels will be transparent
 
-        g.setComposite(AlphaComposite.SrcIn);  // source (fillRect) color, dest (bHex) transparency
-        g.setColor(borderColor);
-        g.fillRect(0, 0, w, h);  // fill only the non-transparent mask pixels, because of SRC_IN
+            g.setComposite(AlphaComposite.SrcIn);  // source (fillRect) color, dest (bHex) transparency
+            g.setColor(borderColor);
+            g.fillRect(0, 0, w, h);  // fill only the non-transparent mask pixels, because of SRC_IN
 
-        g.setComposite(AlphaComposite.DstOver);  // avoid overwriting overlap (border)
-        g.drawImage(hex, 0, 0, w, h, null);  // change only the transparent (non-border) pixels, because of DST_OVER
+            g.setComposite(AlphaComposite.DstOver);  // avoid overwriting overlap (border)
+            g.drawImage(hex, 0, 0, w, h, null);  // change only the transparent (non-border) pixels, because of DST_OVER
+        } else {
+            g.drawImage(hex, 0, 0, w, h, null);
+            g.setStroke(new BasicStroke(scaleToActualX(13) / 10f));  // border line width 1.3px
+            g.setColor(borderColor);
+            if (isRotated)
+                g.translate(scaleToActualX(1), 0);  // overlap pixel border properly, especially on right-hand side
+            g.drawPolyline(scaledHexCornersX, scaledHexCornersY, 6);
+        }
 
         g.dispose();
         return bHex;
@@ -1876,7 +1898,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledUpRoadY   = upRoadX;
                 scaledDownRoadX = rotateScaleCopyYToActualX(downRoadY, HEXWIDTH, false);
                 scaledDownRoadY = downRoadX;
-                scaledHexCornersX = rotateScaleCopyYToActualX(hexCornersY, HEXWIDTH, false);
+                // hexCornersY: hex is slightly shorter than non-rotated, some coords need slight adjustment
+                int[] hy = new int[hexCornersY.length];
+                for (int i = 0; i < hy.length; ++i)
+                    hy[i] = hexCornersY[i] + hexCornersY_RotatedOffset[i];
+                scaledHexCornersX = hy;  // special case: coordinates already "rotated", don't subtract from HEXWIDTH
                 scaledHexCornersY = hexCornersX;
                 scaledPortArrowsX = new int[portArrowsX.length][];
                 for (int i = 0; i < portArrowsX.length; i++)
@@ -1928,7 +1954,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledUpRoadY   = scaleCopyToActualY(upRoadX);
                 scaledDownRoadX = rotateScaleCopyYToActualX(downRoadY, HEXWIDTH, true);
                 scaledDownRoadY = scaleCopyToActualY(downRoadX);
-                scaledHexCornersX = rotateScaleCopyYToActualX(hexCornersY, HEXWIDTH, true);
+                // hexCornersY: hex is slightly shorter than non-rotated, some coords need slight adjustment
+                int[] hy = new int[hexCornersY.length];
+                for (int i = 0; i < hy.length; ++i)
+                    hy[i] = hexCornersY[i] + hexCornersY_RotatedOffset[i];
+                scaledHexCornersX = scaleCopyToActualX(hy);  // special case: don't subtract from HEXWIDTH
                 scaledHexCornersY = scaleCopyToActualY(hexCornersX);
                 for (int i = 0; i < portArrowsX.length; ++i)
                 {
