@@ -89,7 +89,8 @@ import java.util.Timer;
  *<UL>
  *  <LI> Constructor calls {@link #loadImages(Component, boolean)} and {@link #rescaleCoordinateArrays()}
  *  <LI> Layout manager calls <tt>setSize(..)</tt> which calls {@link #rescaleBoard(int, int)}
- *  <LI> {@link #rescaleBoard(int, int)} scales hex images and calls {@link #renderPortImages()}
+ *  <LI> {@link #rescaleBoard(int, int)} scales hex images, calls
+ *       {@link #renderBorderedHex(Image, Image, Color)} and {@link #renderPortImages()}
  *  <LI> {@link #paint(Graphics)} calls {@link #drawBoard(Graphics)}
  *  <LI> First call to <tt>drawBoard(..)</tt> calls {@link #drawBoardEmpty(Graphics)} which renders into a buffer image
  *  <LI> <tt>drawBoard(..)</tt> draws the placed pieces over the buffered board image from <tt>drawBoardEmpty(..)</tt>
@@ -323,6 +324,34 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @since 1.1.08
      */
     private static final Color ARROW_COLOR_PLACING = new Color(255, 255, 60);
+
+    /**
+     * Border colors for hex rendering.
+     * Same indexes as {@link #hexes}.
+     * Used in {@link #rescaleBoard(int, int)} with mask <tt>hexBorder.gif</tt>.
+     * @see #ROTAT_HEX_BORDER_COLORS
+     * @since 1.1.20
+     */
+    private static final Color[] HEX_BORDER_COLORS =
+    {
+        new Color(203,180,73),  // desert
+        new Color(78,16,0), new Color(58,59,57), new Color(20,113,0),  // clay, ore, sheep
+        new Color(142,109,0), new Color(9,54,13), new Color(38,60,113)  // wheat, wood, water
+    };
+
+    /**
+     * Border colors for hex rendering when {@link #isRotated}.
+     * Same indexes as {@link #rotatHexes}.
+     * Used in {@link #rescaleBoard(int, int)} with mask <tt>hexBorder.gif</tt>.
+     * @see #HEX_BORDER_COLORS
+     * @since 1.1.20
+     */
+    private static final Color[] ROTAT_HEX_BORDER_COLORS =
+    {
+        HEX_BORDER_COLORS[0],  // desert
+        new Color(120,36,0), HEX_BORDER_COLORS[2], HEX_BORDER_COLORS[3],  // clay, ore, sheep
+        HEX_BORDER_COLORS[4], new Color(9,54,11), HEX_BORDER_COLORS[6]  // wheat, wood, water
+    };
 
     /**
      * For repaint when retrying a failed rescale-image,
@@ -580,7 +609,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Image references are copied to {@link #scaledHexes} from here.
      * For indexes, see {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class)}.
      *<P>
-     * {@link #hexes} also contains <tt>miscPort.gif</tt> for drawing 3:1 ports' base image.
+     * {@link #hexes} also contains <tt>hexBorder.gif</tt>, and <tt>miscPort.gif</tt> for drawing 3:1 ports' base image.
      * {@link #scaledPorts} stores the 6 per-facing port overlays from {@link #renderPortImages()}.
      * @see #scaledHexes
      * @see #rotatHexes
@@ -1603,6 +1632,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Set the board fields to a new size, rescale graphics if needed.
      * Does not call repaint.  Does not call setSize.
      * Will update {@link #isScaledOrRotated}, {@link #scaledPanelX}, and other fields.
+     * Calls {@link #renderBorderedHex(Image, Image, Color)} and {@link #renderPortImages()}.
      *
      * @param newW New width in pixels, no less than {@link #PANELX} (or if rotated, {@link #PANELY}})
      * @param newH New height in pixels, no less than {@link #PANELY} (or if rotated, {@link #PANELX})
@@ -1651,29 +1681,39 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         rescaleCoordinateArrays();
 
         /**
-         * Scale images, or point to static arrays.
+         * Scale and render images, or point to static arrays.
          */
-        Image[] hex;
+        final Image[] hex;
+        final Color[] BC;  // border colors
         if (isRotated)
         {
             hex = rotatHexes;
+            BC = ROTAT_HEX_BORDER_COLORS;
         } else {
             hex = hexes;
+            BC = HEX_BORDER_COLORS;
         }
         if (! isScaled)
         {
-            int i;
-            for (i = scaledHexes.length - 1; i>=0; --i)
-                scaledHexes[i] = hex[i];
+            final Image hexBorder = hex[hex.length - 2];
+            for (int i = scaledHexes.length - 1; i>=0; --i)
+                if (i < BC.length)
+                    scaledHexes[i] = renderBorderedHex(hex[i], hexBorder, BC[i]);
+                else
+                    scaledHexes[i] = hex[i];
         }
         else
         {
             int w = scaleToActualX(hex[0].getWidth(null));
             int h = scaleToActualY(hex[0].getHeight(null));
+            final Image hexBorder = hex[hex.length - 2];
 
             for (int i = scaledHexes.length - 1; i>=0; --i)
             {
-                scaledHexes[i] = getScaledImageUp(hex[i], w, h);
+                Image hi = getScaledImageUp(hex[i], w, h);
+                if (i < BC.length)
+                    hi = renderBorderedHex(hi, hexBorder, BC[i]);
+                scaledHexes[i] = hi;
                 scaledHexFail[i] = false;
             }
 
@@ -1689,6 +1729,35 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             superTextBox_x = (newW - superTextBox_w) / 2;
             superTextBox_y = (newH - superTextBox_h) / 2;
         }
+    }
+
+    /**
+     * Render a border around the edge of this hex, returning a new image.
+     * @param hex  Un-bordered hex image
+     * @param hexBorder  Hex border pixel mask, from <tt>hexBorder.gif</tt>
+     * @param borderColor  Color to paint the rendered border,
+     *     from {@link #HEX_BORDER_COLORS} or {@link #ROTAT_HEX_BORDER_COLORS}
+     * @return a new Image for the bordered hex
+     * @since 1.1.20
+     */
+    private Image renderBorderedHex(final Image hex, final Image hexBorder, final Color borderColor)
+    {
+        final int w = hex.getWidth(null), h = hex.getHeight(null);
+
+        final BufferedImage bHex = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        final Graphics2D g = bHex.createGraphics();
+
+        g.drawImage(hexBorder, 0, 0, w, h, null);  // draw the border pixel mask; all other pixels will be transparent
+
+        g.setComposite(AlphaComposite.SrcIn);  // source (fillRect) color, dest (bHex) transparency
+        g.setColor(borderColor);
+        g.fillRect(0, 0, w, h);  // fill only the non-transparent mask pixels, because of SRC_IN
+
+        g.setComposite(AlphaComposite.DstOver);  // avoid overwriting overlap (border)
+        g.drawImage(hex, 0, 0, w, h, null);  // change only the transparent (non-border) pixels, because of DST_OVER
+
+        g.dispose();
+        return bHex;
     }
 
     /**
@@ -2083,7 +2152,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if ((hexType < 7) || (hexType > 12))
             htypeIdx = hexType & 15;  // get only the last 4 bits: hex type or 2:1 port resource type
         else
-            htypeIdx = 7;             // 3:1 port: miscPort.gif is at end of hex images array
+            htypeIdx = hexis.length - 1;  // 3:1 port: miscPort.gif is at end of hex images array
 
         if (isScaled && (scaledHexes[htypeIdx] == hexis[htypeIdx]))
         {
@@ -4415,7 +4484,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             MediaTracker tracker = new MediaTracker(c);
         
-            hexes = new Image[8];  // desert, 5 resources, water, 3:1 port
+            hexes = new Image[9];  // desert, 5 resources, water, hex border mask, 3:1 port
             dice = new Image[14];
 
             loadHexesAndImages(hexes, IMAGEDIR, tracker, tk, clazz);
@@ -4442,7 +4511,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             MediaTracker tracker = new MediaTracker(c);
 
-            rotatHexes = new Image[8];  // desert, 5 resources, water, 3:1 port
+            rotatHexes = new Image[9];  // desert, 5 resources, water, hex border mask, 3:1 port
             loadHexesAndImages(rotatHexes, IMAGEDIR + "/rotat", tracker, tk, clazz);
 
             try
@@ -4482,8 +4551,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         newHexes[4] = tk.getImage(clazz.getResource(imageDir + "/wheatHex.gif"));
         newHexes[5] = tk.getImage(clazz.getResource(imageDir + "/woodHex.gif"));
         newHexes[6] = tk.getImage(clazz.getResource(imageDir + "/waterHex.gif"));
-        newHexes[7] = tk.getImage(clazz.getResource(imageDir + "/miscPort.gif"));
-        for (int i = 0; i < 8; i++)
+        newHexes[7] = tk.getImage(clazz.getResource(imageDir + "/hexBorder.gif"));
+        newHexes[8] = tk.getImage(clazz.getResource(imageDir + "/miscPort.gif"));
+        for (int i = 0; i < 9; i++)
         {
             tracker.addImage(newHexes[i], 0);
         }
