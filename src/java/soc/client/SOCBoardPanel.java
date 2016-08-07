@@ -701,12 +701,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *  If rotated 90deg clockwise, clockwise from center-right, would be:
      * (63,27) (47,54) (16,54) (0,27) (16,0) (47,0);
      *  swap x and y from these arrays and add {@link #hexCornersY_RotatedOffset}[]
+     *<P>
+     * Last element repeats first one so that {@link Graphics#drawPolyline(int[], int[], int)}
+     * will close the shape by drawing all 6 sides.
      * @see #hexCornersY
      * @since 1.1.07
      */
     private static final int[] hexCornersX =
     {
-    	27, 54, 54, 27, 0, 0
+    	27, 54, 54, 27, 0, 0, 27
     };
 
     /** hex corners, clockwise from top-center.
@@ -716,7 +719,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private static final int[] hexCornersY =
     {
-    	0, 16, 46, 62, 46, 16
+    	0, 16, 46, 62, 46, 16, 0
     };
 
     /**
@@ -725,7 +728,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private static final int[] hexCornersY_RotatedOffset =
     {
-        0, 0, 1, 1, 1, 0
+        0, 0, 1, 1, 1, 0, 0
     };
 
     /** 
@@ -1775,7 +1778,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             g.setColor(borderColor);
             if (isRotated)
                 g.translate(scaleToActualX(1), 0);  // overlap pixel border properly, especially on right-hand side
-            g.drawPolyline(scaledHexCornersX, scaledHexCornersY, 6);
+            g.drawPolyline(scaledHexCornersX, scaledHexCornersY, 7);
         }
 
         g.dispose();
@@ -2206,7 +2209,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             g.setColor(hexColor(hexType));
             g.fillPolygon(scaledHexCornersX, scaledHexCornersY, 6);
             g.setColor(Color.BLACK);
-            g.drawPolyline(scaledHexCornersX, scaledHexCornersY, 6);
+            g.drawPolyline(scaledHexCornersX, scaledHexCornersY, 7);
             g.translate(-x, -y);
 
             missedDraw = true;
