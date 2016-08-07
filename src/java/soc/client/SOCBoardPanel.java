@@ -58,6 +58,9 @@ import java.util.Timer;
  * It can be used in an applet or an application.
  * It loads gifs from a directory named "images" in the same
  * directory as this class.
+ *<P>
+ * The main drawing methods are {@link #drawBoardEmpty(Graphics)} for hexes and ports,
+ * and {@link #drawBoard(Graphics)} for placed pieces like settlements and the robber.
  * The board background color is set in {@link SOCPlayerInterface}.
  *<P>
  * When the mouse is over the game board, a tooltip shows information
@@ -81,6 +84,16 @@ import java.util.Timer;
  * actual (scaled/rotated) and unscaled/un-rotated "internal" coordinates with
  * {@link #scaleFromActualX(int)}, {@link #scaleFromActualY(int)},
  * {@link #scaleToActualX(int)}, {@link #scaleToActualY(int)}.
+ *
+ *<H3>Sequence for loading, rendering, and drawing images:</H3>
+ *<UL>
+ *  <LI> Constructor calls {@link #loadImages(Component, boolean)} and {@link #rescaleCoordinateArrays()}
+ *  <LI> Layout manager calls <tt>setSize(..)</tt> which calls {@link #rescaleBoard(int, int)}
+ *  <LI> {@link #rescaleBoard(int, int)} scales hex images and calls {@link #renderPortImages()}
+ *  <LI> {@link #paint(Graphics)} calls {@link #drawBoard(Graphics)}
+ *  <LI> First call to <tt>drawBoard(..)</tt> calls {@link #drawBoardEmpty(Graphics)} which renders into a buffer image
+ *  <LI> <tt>drawBoard(..)</tt> draws the placed pieces over the buffered board image from <tt>drawBoardEmpty(..)</tt>
+ *</UL>
  */
 public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
 {
@@ -1679,8 +1692,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Based on the waterHex image, render the 6 port images, each with arrows in its 2 settlement directions.
-     * Fills {@link #scaledPorts}, starting from <tt>waterHex.gif</tt> previously loaded into {@link #scaledHexes}[6].
+     * Based on the waterHex image, render the 6 port images (1 per "facing" rotation), each with arrows in its
+     * 2 settlement directions. Fills {@link #scaledPorts}, starting from <tt>waterHex.gif</tt> previously loaded
+     * into {@link #scaledHexes}[6].
      *<P>
      * Before calling this method, call {@link #rescaleCoordinateArrays()}.
      * @since 1.1.20
@@ -2067,9 +2081,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         final Image[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original, or to rotated?
 
         if ((hexType < 7) || (hexType > 12))
-            htypeIdx = hexType & 15;  // get only the last 4 bits: hex type or port resource type
+            htypeIdx = hexType & 15;  // get only the last 4 bits: hex type or 2:1 port resource type
         else
-            htypeIdx = 7;             // 3:1 port
+            htypeIdx = 7;             // 3:1 port: miscPort.gif is at end of hex images array
 
         if (isScaled && (scaledHexes[htypeIdx] == hexis[htypeIdx]))
         {
@@ -2122,7 +2136,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
 
         /**
-         * Draw the port graphic
+         * Draw the port overlay image
          */
         int ptypeIdx;
         if ((hexType >= 7) && (hexType <= 12))
@@ -4384,7 +4398,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Load the images for the board.
+     * Load the images for the board: {@link #hexes}, {@link #rotatHexes}, and {@link #dice}.
      * @param c  Any AWT component (such as a SOCBoardPanel), to load image files with getToolkit and getResource
      * @param wantsRotated  True for the 6-player board
      *          (v2 encoding {@link SOCBoard#BOARD_ENCODING_6PLAYER}), false otherwise.
@@ -4454,6 +4468,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @param tracker Track image loading progress here
      * @param tk   Toolkit to load image from resource
      * @param clazz  Class for getResource
+     * @see #renderPortImages()
      * @since 1.1.08
      */
     private static final void loadHexesAndImages
