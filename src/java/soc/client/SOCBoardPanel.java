@@ -2500,7 +2500,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 int[] hy = new int[hexCornersY.length];
                 for (int i = 0; i < hy.length; ++i)
                     hy[i] = hexCornersY[i] + hexCornersY_RotatedOffset[i];
-                scaledHexCornersX = scaleCopyToActualX(hy); // special case: don't subtract from HEXWIDTH
+                scaledHexCornersX = scaleCopyToActualX(hy);  // special case: don't subtract from HEXWIDTH
                 scaledHexCornersY = scaleCopyToActualY(hexCornersX);
                 for (int i = 0; i < portArrowsX.length; ++i)
                 {
@@ -2896,7 +2896,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
 
         /**
-         * Draw the rotated port overlay image
+         * Draw the port overlay image
          */
         if (portFacing != -1)
         {
