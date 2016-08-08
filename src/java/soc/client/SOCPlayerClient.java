@@ -68,7 +68,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
-import soc.debug.D;  // JM
+import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
@@ -2806,7 +2806,8 @@ public class SOCPlayerClient
         if (mes == null)
             return;  // Parsing error
 
-        D.ebugPrintln(mes.toString());
+        if (D.ebugIsEnabled())
+            D.ebugPrintln(mes.toString());
 
         try
         {
