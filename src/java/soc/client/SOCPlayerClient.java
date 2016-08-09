@@ -20,7 +20,7 @@
  **/
 package soc.client;
 
-import soc.debug.D;  // JM
+import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
 import soc.game.SOCCity;
@@ -1977,7 +1977,8 @@ public class SOCPlayerClient extends Applet
         if (mes == null)
             return;  // Parsing error
 
-        D.ebugPrintln(mes.toString());
+        if (D.ebugIsEnabled())
+            D.ebugPrintln(mes.toString());
 
         try
         {
