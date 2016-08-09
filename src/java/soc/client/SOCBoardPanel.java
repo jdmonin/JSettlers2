@@ -1006,8 +1006,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /** hex corners, clockwise from top-center, as located in waterHex.gif, hexBorder.gif, and other hex graphics:
      * (27,0) (54,16) (54,46) (27,62) (0,46) (0,16).
      *  If rotated 90deg clockwise, clockwise from center-right, would be:
-     * (63,27) (47,54) (16,54) (0,27) (16,0) (47,0);
-     *  swap x and y from these arrays and add {@link #hexCornersY_RotatedOffset}[].
+     * (62,27) (46,54) (16,54) (0,27) (16,0) (46,0);
+     *  swap x and y from these arrays.
      *<P>
      * Last element repeats first one so that {@link Graphics#drawPolyline(int[], int[], int)}
      * will close the shape by drawing all 6 sides.
@@ -1028,15 +1028,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int[] hexCornersY =
     {
         0, 16, 46, 62, 46, 16, 0
-    };
-
-    /**
-     * Offset to add to {@link #hexCornersY}[] coordinates when used as (y,x) on rotated board.
-     * @since 1.1.20
-     */
-    private static final int[] hexCornersY_RotatedOffset =
-    {
-        0, 0, 1, 1, 1, 0, 0
     };
 
     /**
@@ -2436,11 +2427,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledUpRoadY   = upRoadX;
                 scaledDownRoadX = rotateScaleCopyYToActualX(downRoadY, HEXWIDTH, false);
                 scaledDownRoadY = downRoadX;
-                // hexCornersY: hex is slightly shorter than non-rotated, some coords need slight adjustment
-                int[] hy = new int[hexCornersY.length];
-                for (int i = 0; i < hy.length; ++i)
-                    hy[i] = hexCornersY[i] + hexCornersY_RotatedOffset[i];
-                scaledHexCornersX = hy;  // special case: coordinates already "rotated", don't subtract from HEXWIDTH
+                scaledHexCornersX = hexCornersY;  // special case: coordinates already "rotated", don't subtract from HEXWIDTH
                 scaledHexCornersY = hexCornersX;
                 scaledPortArrowsX = new int[portArrowsX.length][];
                 for (int i = 0; i < portArrowsX.length; i++)
@@ -2496,11 +2483,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledUpRoadY   = scaleCopyToActualY(upRoadX);
                 scaledDownRoadX = rotateScaleCopyYToActualX(downRoadY, HEXWIDTH, true);
                 scaledDownRoadY = scaleCopyToActualY(downRoadX);
-                // hexCornersY: hex is slightly shorter than non-rotated, some coords need slight adjustment
-                int[] hy = new int[hexCornersY.length];
-                for (int i = 0; i < hy.length; ++i)
-                    hy[i] = hexCornersY[i] + hexCornersY_RotatedOffset[i];
-                scaledHexCornersX = scaleCopyToActualX(hy);  // special case: don't subtract from HEXWIDTH
+                scaledHexCornersX = scaleCopyToActualX(hexCornersY);  // special case: don't subtract from HEXWIDTH
                 scaledHexCornersY = scaleCopyToActualY(hexCornersX);
                 for (int i = 0; i < portArrowsX.length; ++i)
                 {
