@@ -728,7 +728,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /** hex corners, clockwise from top-center.
      * @see #hexCornersX
-     * @see #hexCornersY_RotatedOffset
      * @since 1.1.07
      */
     private static final int[] hexCornersY =
@@ -3107,13 +3106,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // Normal board draws all 37 hexes.
         // The 6-player board skips the rightmost row (hexes 7D-DD-D7).
         // drawHex will set scaledMissedImage if missed.
-        for (int i = 0; i < hexX.length; i++)
-        {
-            if ((inactiveHexNums == null) || ! inactiveHexNums[i])
-                drawHex(g, i);
-        }
+
         if (is6player)
             drawPortsRing(g);
+
+        for (int i = 0; i < hexX.length; i++)
+            if ((inactiveHexNums == null) || ! inactiveHexNums[i])
+                drawHex(g, i);
 
         if (scaledMissedImage)
         {
