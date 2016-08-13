@@ -4261,18 +4261,7 @@ public class SOCServer extends Server
     {
         final String dcmdU = dcmd.toUpperCase();
 
-        if (dcmdU.startsWith("*HELP"))
-        {
-            for (int i = 0; i < GENERAL_COMMANDS_HELP.length; ++i)
-                messageToPlayer(debugCli, ga, GENERAL_COMMANDS_HELP[i]);
-
-            for (int i = 0; i < DEBUG_COMMANDS_HELP.length; ++i)
-                messageToPlayer(debugCli, ga, DEBUG_COMMANDS_HELP[i]);
-
-            return true;
-        }
-
-        boolean isCmd = true;
+        boolean isCmd = true;  // eventual return value; will set false if unrecognized
 
         if (dcmdU.startsWith("*KILLGAME*"))
         {
@@ -5229,36 +5218,55 @@ public class SOCServer extends Server
         }
 
         //
-        // useful for debugging
+        // check for admin/debugging commands
         //
         // 1.1.07: all practice games are debug mode, for ease of debugging;
         //         not much use for a chat window in a practice game anyway.
         //
-        else if ((allowDebugUser && c.getData().equals("debug")) || (c instanceof LocalStringConnection))
+        else
         {
-            if (cmdTxtUC.startsWith("RSRCS:"))
+            final boolean userIsDebug =
+                (allowDebugUser && c.getData().equals("debug"))
+                || (c instanceof LocalStringConnection);
+
+            if (cmdTxtUC.startsWith("*HELP"))
             {
-                giveResources(c, cmdText, ga);
+                for (int i = 0; i < GENERAL_COMMANDS_HELP.length; ++i)
+                    messageToPlayer(c, gaName, GENERAL_COMMANDS_HELP[i]);
+
+                if (userIsDebug)
+                    for (int i = 0; i < DEBUG_COMMANDS_HELP.length; ++i)
+                        messageToPlayer(c, gaName, DEBUG_COMMANDS_HELP[i]);
+
+                return;
             }
-            else if (cmdTxtUC.startsWith("DEV:"))
+
+            if (userIsDebug)
             {
-                giveDevCard(c, cmdText, ga);
+                if (cmdTxtUC.startsWith("RSRCS:"))
+                {
+                    giveResources(c, cmdText, ga);
+                }
+                else if (cmdTxtUC.startsWith("DEV:"))
+                {
+                    giveDevCard(c, cmdText, ga);
+                }
+                else if (! ((cmdText.charAt(0) == '*')
+                            && processDebugCommand(c, ga.getName(), cmdText)))
+                {
+                    //
+                    // Send the message to the members of the game
+                    //
+                    messageToGame(gaName, new SOCGameTextMsg(gaName, (String) c.getData(), cmdText));
+                }
             }
-            else if (! ((cmdText.charAt(0) == '*')
-                        && processDebugCommand(c, ga.getName(), cmdText)))
+            else
             {
                 //
                 // Send the message to the members of the game
                 //
                 messageToGame(gaName, new SOCGameTextMsg(gaName, (String) c.getData(), cmdText));
             }
-        }
-        else
-        {
-            //
-            // Send the message to the members of the game
-            //
-            messageToGame(gaName, new SOCGameTextMsg(gaName, (String) c.getData(), cmdText));
         }
 
         //saveCurrentGameEventRecord(gameTextMsgMes.getGame());
