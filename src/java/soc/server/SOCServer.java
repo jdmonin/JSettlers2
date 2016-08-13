@@ -4185,18 +4185,33 @@ public class SOCServer extends Server
     private static final String DEBUG_CMD_FREEPLACEMENT = "*FREEPLACE*";
 
     /**
+     * List and description of general commands that any game member can run.
      * Used by {@link #processDebugCommand(StringConnection, String, String)}}
-     * when *HELP* is requested.
-     * @since 1.1.07
-     * @see #DEBUG_COMMANDS_HELP_DEV_TYPES
+     * when <tt>*HELP*</tt> is requested.
+     * @see #DEBUG_COMMANDS_HELP
+     * @since 1.1.20
      */
-    public static final String[] DEBUG_COMMANDS_HELP =
+    public static final String[] GENERAL_COMMANDS_HELP =
         {
         "--- General Commands ---",
         "*ADDTIME*  add 30 minutes before game expiration",
         "*CHECKTIME*  print time remaining before expiration",
+        "*HELP*   info on available commands",
+        "*STATS*   server stats and current-game stats",
         "*VERSION*  show version and build information",
         "*WHO*   show players and observers of this game",
+        };
+
+    /**
+     * List and description of debug/admin commands. Along with {@link #GENERAL_COMMANDS_HELP},
+     * used by {@link #processDebugCommand(StringConnection, String, String)}
+     * when <tt>*HELP*</tt> is requested by a debug/admin user.
+     * @since 1.1.07
+     * @see #GENERAL_COMMANDS_HELP
+     * @see #DEBUG_COMMANDS_HELP_DEV_TYPES
+     */
+    public static final String[] DEBUG_COMMANDS_HELP =
+        {
         "--- Debug Commands ---",
         "*BCAST*  broadcast msg to all games/channels",
         "*GC*    trigger the java garbage-collect",
@@ -4204,8 +4219,9 @@ public class SOCServer extends Server
         "*KILLGAME*  end the current game",
         DEBUG_CMD_FREEPLACEMENT + " 1 or 0  Start or end 'Free Placement' mode",
         "*RESETBOT* botname  End a bot's connection",
-        "*STATS*   server stats and current-game stats",
         "*STOP*  kill the server",
+        "*WHO* gameName   show players and observers of gameName",
+        "*WHO* *  show all connected clients",
         "--- Debug Resources ---",
         DEBUG_COMMANDS_HELP_RSRCS,
         "Example  rsrcs: 0 3 0 2 0 Myname  or  rsrcs: 0 3 0 2 0 #3",
@@ -4235,16 +4251,24 @@ public class SOCServer extends Server
     /**
      * Process a debug command, sent by the "debug" client/player.
      * Check {@link #allowDebugUser} before calling this method.
-     * See {@link #DEBUG_COMMANDS_HELP} for list of commands.
+     * For list of commands see {@link #GENERAL_COMMANDS_HELP}
+     * and {@link #DEBUG_COMMANDS_HELP}.
+     * "Unprivileged" general commands are handled by
+     * {@link #handleGAMETEXTMSG(StringConnection, SOCGameTextMsg)}.
      * @return true if <tt>dcmd</tt> is a recognized debug command, false otherwise
      */
     public boolean processDebugCommand(StringConnection debugCli, String ga, String dcmd)
     {
         final String dcmdU = dcmd.toUpperCase();
+
         if (dcmdU.startsWith("*HELP"))
         {
+            for (int i = 0; i < GENERAL_COMMANDS_HELP.length; ++i)
+                messageToPlayer(debugCli, ga, GENERAL_COMMANDS_HELP[i]);
+
             for (int i = 0; i < DEBUG_COMMANDS_HELP.length; ++i)
                 messageToPlayer(debugCli, ga, DEBUG_COMMANDS_HELP[i]);
+
             return true;
         }
 
