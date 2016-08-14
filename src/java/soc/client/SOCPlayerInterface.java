@@ -907,7 +907,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         final int gstate = game.getGameState();
         final boolean clientSatAlready = (clientHand != null);
         boolean noTextOverlay =  ((! show) ||
-            ((gstate >= SOCGame.START1A) && clientSatAlready));
+            ((gstate >= SOCGame.READY) && clientSatAlready));
+
         if (noTextOverlay)
         {
             boardPanel.setSuperimposedText(null, null);
