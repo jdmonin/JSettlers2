@@ -36,6 +36,7 @@ Contents
   Hosting a JSettlers Server
   Upgrading from an earlier version
   Database Setup
+  Security and Admin Users
   Development and Compiling
 
 
@@ -418,6 +419,10 @@ When you first set up the database, there won't be any user accounts, so the
 server will allow anyone to create the first account.  Please be sure to
 create that first user account soon after you set up the database.
 
+
+Security and Admin Users
+------------------------
+
 If you want to require that all players have accounts and passwords, include
 this option when you start your server:
 	-Djsettlers.accounts.required=y
@@ -425,8 +430,19 @@ this option when you start your server:
 To permit only certain users to create new accounts, instead of all users,
 list them when you start your server:
 	-Djsettlers.accounts.admins=bob,joe,lily
+This creates a whitelist of Account Admin Users. Account admins can create
+accounts and run user-related commands, such as listing all users in a game with
+	*WHO* gamename
+or listing all users connected to the server with
+	*WHO* *
+For a list of all available commands, type
+	*HELP*
+into the chat window of any game while connected as an admin user.
+
+Note:
 The server doesn't require or check at startup that the named accounts all
-already exist, this is just a comma-separated list of names.
+already exist, the whitelist is only a comma-separated list of names. This
+simplifies initial setup.
 
 In case an admin account password is lost, there's a rudimentary password-reset feature:
 Run JSettlersServer with the usual DB parameters and --pw-reset username, and you will be
