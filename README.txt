@@ -280,6 +280,10 @@ It's a simple process to upgrade to the latest version of JSettlers:
   change and you'll need to add a server config option to keep the
   same behavior, so read carefully.
 
+  If you're upgrading from JSettlers 1.1.18 or earlier, for security reasons
+  newer versions by default disallow user account self-registration. If you
+  still want to use that option, search this README for "open registration".
+
 - Save a backup copy of your current JSettlers.jar and JSettlersServer.jar,
   in case you want to run the old version for any reason.
 
@@ -306,13 +310,8 @@ or PostgreSQL database. This will eliminate the "Problem connecting to database"
 errors from the server, and also gives you the option to save all game scores
 for reports or community-building.
 
-Note: If you're upgrading to JSettlers 1.1.19, for security reasons the default
-has changed to disallow user account self-registration. If you still want to
-use that option, search below for "open registration".
-
 For these instructions we'll assume you already installed the PostgreSQL or
-MySQL software. SQLite is an easy database choice because it's just a JAR
-file, not a separate large install, if you're looking to avoid that.
+MySQL software, or will download a SQLite JAR to avoid database server setup.
 
 You will need a JDBC driver JAR file in your classpath or the same directory as
 the JSettlers JAR, see below for details. Besides PostgreSQL, MySQL, or SQLite
