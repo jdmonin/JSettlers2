@@ -304,7 +304,7 @@ public class SOCServer extends Server
      *<P>
      * Each property name is followed in the array by a brief description:
      * [0] is a property, [1] is its description, [2] is the next property, etc.
-     * (This was added in 1.1.13 for {@link #printUsage(boolean)}}.
+     * (This was added in 1.1.13 for {@link #printUsage(boolean)}).
      * @since 1.1.09
      */
     public static final String[] PROPS_LIST =
@@ -2039,7 +2039,7 @@ public class SOCServer extends Server
 
     /**
      * shuffle the indexes to distribute load among {@link #robots}
-     * @return a shuffled array of robot indexes, from 0 to ({#link {@link #robots}}.size() - 1
+     * @return a shuffled array of robot indexes, from 0 to ({@link #robots}.size() - 1
      * @since 1.1.06
      */
     int[] robotShuffleForJoin()
@@ -4440,7 +4440,7 @@ public class SOCServer extends Server
 
     /**
      * List and description of general commands that any game member can run.
-     * Used by {@link #processDebugCommand(StringConnection, String, String, String)}}
+     * Used by {@link #processDebugCommand(StringConnection, String, String, String)}
      * when {@code *HELP*} is requested.
      * @see #ADMIN_USER_COMMANDS_HELP
      * @see #DEBUG_COMMANDS_HELP
@@ -4470,7 +4470,7 @@ public class SOCServer extends Server
     /**
      * List and description of user-admin commands. Along with {@link #GENERAL_COMMANDS_HELP}
      * and {@link #DEBUG_COMMANDS_HELP}, used by
-     * {@link #processDebugCommand(StringConnection, String, String, String)}}
+     * {@link #processDebugCommand(StringConnection, String, String, String)}
      * when {@code *HELP*} is requested by a debug/admin user who passes
      * {@link #isUserDBUserAdmin(String, boolean) isUserDBUserAdmin(username, true)}.
      * Preceded by {@link #ADMIN_COMMANDS_HEADING}.
@@ -4487,7 +4487,7 @@ public class SOCServer extends Server
     /**
      * List and description of debug/admin commands. Along with {@link #GENERAL_COMMANDS_HELP}
      * and {@link #ADMIN_USER_COMMANDS_HELP},
-     * used by {@link #processDebugCommand(StringConnection, String, String, String)}}
+     * used by {@link #processDebugCommand(StringConnection, String, String, String)}
      * when {@code *HELP*} is requested by a debug/admin user.
      * @since 1.1.07
      * @see #GENERAL_COMMANDS_HELP
@@ -8575,7 +8575,7 @@ public class SOCServer extends Server
      * See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for game option property syntax.
      *<P>
      * If <tt>args[]</tt> is empty, it will use defaults for
-     * {@link #PROP_JSETTLERS_PORT} and {@link #PROP_JSETTLERS_CONNECTIONS}}.
+     * {@link #PROP_JSETTLERS_PORT} and {@link #PROP_JSETTLERS_CONNECTIONS}.
      *<P>
      * Does not use a {@link #PROP_JSETTLERS_STARTROBOTS} default, that's
      * handled in {@link #initSocServer(String, String, Properties)}.
