@@ -2756,6 +2756,7 @@ public class SOCPlayerClient
             }
 
             cardLayout.show(this, MESSAGE_PANEL);
+
             // Connect to it
             client.net.connect("localhost", tport);  // I18N: no need to localize this hostname
 
@@ -2764,6 +2765,14 @@ public class SOCPlayerClient
             {
                 connectOrPracticePane.startedLocalServer();
             }
+
+            // Ensure we can type a nickname, or click "New Game" if one is already entered.
+            // This lets player create a game after starting a practice game (which sets nickname)
+            // and then starting a server.
+            if (nick.getText().trim().length() > 0)
+                ng.setEnabled(true);
+            else
+                nick.setEditable(true);
 
             // Reset the cursor
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
