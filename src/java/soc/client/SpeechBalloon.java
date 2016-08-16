@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2012,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,7 +32,7 @@ import java.awt.Graphics;
  * __|\________________
  * |                  | </PRE>
  * Because of this point, the main rectangle of the balloon doesn't take up
- * the entire height (as set by {@link #setSize(int, int)}} or
+ * the entire height (as set by {@link #setSize(int, int)} or
  * {@link #setBounds(int, int, int, int)}), but begins at height / 8.
  * Even when the point is hidden by {@link #setBalloonPoint(boolean) setBalloonPoint(false)},
  * this is still the case.

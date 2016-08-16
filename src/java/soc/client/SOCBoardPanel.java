@@ -2020,7 +2020,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *
      * @param x New location's x-coordinate
      * @param y new location's y-coordinate
-     * @param w New width in pixels, no less than {@link #PANELX} (or if rotated, {@link #PANELY}})
+     * @param w New width in pixels, no less than {@link #PANELX} (or if rotated, {@link #PANELY})
      * @param h New height in pixels, no less than {@link #PANELY} (or if rotated, {@link #PANELX})
      * @throws IllegalArgumentException if w or h is too small but not 0.
      *   During initial layout, the layoutmanager may make calls to setBounds(0,0,0,0);
@@ -2142,7 +2142,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Will update {@link #isScaledOrRotated}, {@link #scaledPanelX}, and other fields.
      * Calls {@link #renderBorderedHex(Image, Image, Color)} and {@link #renderPortImages()}.
      *
-     * @param newW New width in pixels, no less than {@link #PANELX} (or if rotated, {@link #PANELY}})
+     * @param newW New width in pixels, no less than {@link #PANELX} (or if rotated, {@link #PANELY})
      * @param newH New height in pixels, no less than {@link #PANELY} (or if rotated, {@link #PANELX})
      * @throws IllegalArgumentException if newW or newH is too small but not 0.
      *   During initial layout, the layoutmanager may cause calls to rescaleBoard(0,0);
@@ -5298,7 +5298,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Based on the board's current {@link #mode}, update the hovering 'hilight' piece ({@link #hilight}}.
+     * Based on the board's current {@link #mode}, update the hovering 'hilight' piece ({@link #hilight}).
      * Trigger a {@link #repaint()} if the mouse moved or the hilight changes.
      */
     public void mouseMoved(MouseEvent e)

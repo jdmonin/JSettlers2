@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +22,6 @@
 package soc.robot;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1330,7 +1329,7 @@ public class SOCRobotDM
    * and update {@link #buildingPlan}.
    *<P>
    * For example, if {@link #favoriteSettlement} is chosen,
-   * it's chosen from {@link #goodSettlements} or {{@link #threatenedSettlements}.
+   * it's chosen from {@link #goodSettlements} or {@link #threatenedSettlements}.
    *<P>
    * Some scenarios require special moves or certain actions to win the game.  If we're playing in
    * such a scenario, after calculating {@link #favoriteSettlement}, {@link #favoriteCity}, etc, calls

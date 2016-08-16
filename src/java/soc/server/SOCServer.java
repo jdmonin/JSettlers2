@@ -2039,7 +2039,7 @@ public class SOCServer extends Server
 
     /**
      * shuffle the indexes to distribute load among {@link #robots}
-     * @return a shuffled array of robot indexes, from 0 to ({@link #robots}.size() - 1
+     * @return a shuffled array of robot indexes, from 0 to ({@link #robots}.size() - 1)
      * @since 1.1.06
      */
     int[] robotShuffleForJoin()

@@ -1607,7 +1607,7 @@ public class SOCGame implements Serializable, Cloneable
      * For player consistency, seat locks can't be changed while {@link #getResetVoteActive()}
      * in server version 1.1.19 and higher.
      *<P>
-     * Before v2.0.00, this was {@code lockSeat(pn}} and {@code unlockSeat(pn)}.
+     * Before v2.0.00, this was {@code lockSeat(pn)} and {@code unlockSeat(pn)}.
      *
      * @param pn the number of the seat
      * @param sl  the new lock state for this seat
