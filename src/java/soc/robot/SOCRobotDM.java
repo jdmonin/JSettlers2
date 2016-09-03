@@ -847,7 +847,8 @@ public class SOCRobotDM
   {
     D.ebugPrintln("-- scoreSettlementsForDumb --");
 
-    Queue<Pair<SOCPossibleRoad, ?>> queue = new Queue<Pair<SOCPossibleRoad, ?>>();
+    Queue<Pair<SOCPossibleRoad, List<SOCPossibleRoad>>> queue
+        = new Queue<Pair<SOCPossibleRoad, List<SOCPossibleRoad>>>();
     Iterator<SOCPossibleSettlement> posSetsIter = ourPlayerTracker.getPossibleSettlements().values().iterator();
     while (posSetsIter.hasNext())
     {
@@ -865,7 +866,8 @@ public class SOCRobotDM
       if (! necRoadVec.isEmpty())
       {
           queue.clear();  // will use for BFS if needed:
-              // Pair members are <SOCNecessaryRoad, same-structured Pair "list" of SOCNecessaryRoad needed to build that road>.
+              // Pair members are <SOCPossibleRoad, null or list of SOCPossibleRoad needed to build that road>.
+              // Lists have most-distant necessary road at beginning (item 0), and most-immediate at end of list (n-1).
 
           Iterator<SOCPossibleRoad> necRoadsIter = necRoadVec.iterator();
           while (necRoadsIter.hasNext())
@@ -873,7 +875,7 @@ public class SOCRobotDM
               SOCPossibleRoad necRoad = necRoadsIter.next();
               if (D.ebugOn)
                   D.ebugPrintln("-- queuing necessary road at " + game.getBoard().edgeCoordToString(necRoad.getCoordinates()));
-              queue.put(new Pair<SOCPossibleRoad, Object>(necRoad, null));
+              queue.put(new Pair<SOCPossibleRoad, List<SOCPossibleRoad>>(necRoad, null));
           }
 
           //
@@ -882,8 +884,9 @@ public class SOCRobotDM
           boolean pathTooLong = false;
           while (! queue.empty())
           {
-              Pair<SOCPossibleRoad, ?> dataPair = queue.get();
+              Pair<SOCPossibleRoad, List<SOCPossibleRoad>> dataPair = queue.get();
               SOCPossibleRoad curRoad = dataPair.getA();
+              final List<SOCPossibleRoad> possRoadsToCur = dataPair.getB();
               if (D.ebugOn)
                   D.ebugPrintln("-- current road at " + game.getBoard().edgeCoordToString(curRoad.getCoordinates()));
 
@@ -897,26 +900,30 @@ public class SOCRobotDM
                   Stack<SOCPossibleRoad> path = new Stack<SOCPossibleRoad>();
                   path.push(curRoad);
 
-                  Pair<SOCPossibleRoad, ?> curPair = (Pair) dataPair.getB();
                   if (D.ebugOn)
-                      D.ebugPrintln("curPair = " + curPair);
-                  while (curPair != null)
-                  {
-                      path.push(curPair.getA());
-                      curPair = (Pair) curPair.getB();
-                  }
+                      D.ebugPrintln("possRoadsToCur = " + possRoadsToCur);
+                  if (possRoadsToCur != null)
+                      // push to path, iterating from nearest to curRoad until most distant
+                      for (int i = possRoadsToCur.size() - 1; i >= 0; --i)
+                          path.push(possRoadsToCur.get(i));
 
                   posSet.setRoadPath(path);
                   queue.clear();
                   D.ebugPrintln("Done setting path.");
               } else {
+                  final List<SOCPossibleRoad> possRoadsAndCur =
+                      (possRoadsToCur != null)
+                      ? new ArrayList<SOCPossibleRoad>(possRoadsToCur)
+                      : new ArrayList<SOCPossibleRoad>();
+                  possRoadsAndCur.add(curRoad);
+
                   necRoadsIter = necRoads.iterator();
                   while (necRoadsIter.hasNext())
                   {
                       SOCPossibleRoad necRoad2 = necRoadsIter.next();
                       if (D.ebugOn)
                           D.ebugPrintln("-- queuing necessary road at " + game.getBoard().edgeCoordToString(necRoad2.getCoordinates()));
-                      queue.put(new Pair<SOCPossibleRoad, Pair<SOCPossibleRoad, ?>>(necRoad2, dataPair));
+                      queue.put(new Pair<SOCPossibleRoad, List<SOCPossibleRoad>>(necRoad2, possRoadsAndCur));
                   }
 
                   if (queue.size() > 100)
