@@ -335,7 +335,7 @@ public class SOCDBHelper
                         System.err.println("Could not find " + prop_jarname + " for JDBC driver class " + driverclass);
                         throw new FileNotFoundException(prop_jarname);
                     }
-                    final URL[] urls = { jf.toURL() };
+                    final URL[] urls = { jf.toURI().toURL() };
                     URLClassLoader child = new URLClassLoader(urls, ClassLoader.getSystemClassLoader());
                     final Class<?> dclass = Class.forName(driverclass, true, child);
                     driverinstance = (Driver) dclass.newInstance();
