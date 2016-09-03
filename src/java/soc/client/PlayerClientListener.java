@@ -421,7 +421,8 @@ public interface PlayerClientListener
 
         /**
          * Total number of resources picked/gained from gold hex reveals
-         * in sea board scenarios; used in stats. Update not sent if gain is 0.
+         * in sea board scenarios; announced in game window's activity pane and used in stats.
+         * Update not sent if gain is 0.
          */
         GoldGains,
 

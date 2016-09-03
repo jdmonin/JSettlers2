@@ -3090,6 +3090,7 @@ public class SOCHandPanel extends Panel
             }
             break;
 
+        case GoldGains:
         case Warship:
         case Unknown:
             // do nothing (avoid compiler enum warning).
