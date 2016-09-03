@@ -844,13 +844,13 @@ public class SOCRobotDM
   protected void scoreSettlementsForDumb(final int settlementETA, SOCBuildingSpeedEstimate ourBSE)
   {
     D.ebugPrintln("-- scoreSettlementsForDumb --");
-    Queue<Pair<SOCPossibleRoad,?>> queue = new Queue<Pair<SOCPossibleRoad,?>>();
+    Queue<Pair<SOCPossibleRoad, ?>> queue = new Queue<Pair<SOCPossibleRoad, ?>>();
     Iterator<SOCPossibleSettlement> posSetsIter = ourPlayerTracker.getPossibleSettlements().values().iterator();
     while (posSetsIter.hasNext())
     {
       SOCPossibleSettlement posSet = posSetsIter.next();
-      D.ebugPrintln("Estimate speedup of stlmt at "+game.getBoard().nodeCoordToString(posSet.getCoordinates()));
-      D.ebugPrintln("***    speedup total = "+posSet.getSpeedupTotal());
+      D.ebugPrintln("Estimate speedup of stlmt at " + game.getBoard().nodeCoordToString(posSet.getCoordinates()));
+      D.ebugPrintln("***    speedup total = " + posSet.getSpeedupTotal());
 
       ///
       /// find the shortest path to this settlement
@@ -862,8 +862,8 @@ public class SOCRobotDM
           Iterator<SOCPossibleRoad> necRoadsIter = necRoadVec.iterator();
           while (necRoadsIter.hasNext()) {
               SOCPossibleRoad necRoad = necRoadsIter.next();
-              D.ebugPrintln("-- queuing necessary road at "+game.getBoard().edgeCoordToString(necRoad.getCoordinates()));
-              queue.put(new Pair<SOCPossibleRoad,Object>(necRoad, null));
+              D.ebugPrintln("-- queuing necessary road at " + game.getBoard().edgeCoordToString(necRoad.getCoordinates()));
+              queue.put(new Pair<SOCPossibleRoad, Object>(necRoad, null));
           }
           //
           // Do a BFS of the necessary road paths looking for the shortest one.
@@ -871,9 +871,9 @@ public class SOCRobotDM
           boolean pathTooLong = false;
           while (! queue.empty())
           {
-              Pair<SOCPossibleRoad,?> dataPair = queue.get();
+              Pair<SOCPossibleRoad, ?> dataPair = queue.get();
               SOCPossibleRoad curRoad = dataPair.getA();
-              D.ebugPrintln("-- current road at "+game.getBoard().edgeCoordToString(curRoad.getCoordinates()));
+              D.ebugPrintln("-- current road at " + game.getBoard().edgeCoordToString(curRoad.getCoordinates()));
               Vector<SOCPossibleRoad> necRoads = curRoad.getNecessaryRoads();
               if (necRoads.isEmpty())
               {
@@ -883,12 +883,14 @@ public class SOCRobotDM
                   D.ebugPrintln("Found a path!");
                   Stack<SOCPossibleRoad> path = new Stack<SOCPossibleRoad>();
                   path.push(curRoad);
-                  Pair<SOCPossibleRoad,?> curPair = (Pair)dataPair.getB();
-                  D.ebugPrintln("curPair = "+curPair);
+
+                  Pair<SOCPossibleRoad, ?> curPair = (Pair) dataPair.getB();
+                  D.ebugPrintln("curPair = " + curPair);
                   while (curPair != null) {
                       path.push(curPair.getA());
-                      curPair = (Pair)curPair.getB();
+                      curPair = (Pair) curPair.getB();
                   }
+
                   posSet.setRoadPath(path);
                   queue.clear();
                   D.ebugPrintln("Done setting path.");
@@ -896,8 +898,8 @@ public class SOCRobotDM
                   necRoadsIter = necRoads.iterator();
                   while (necRoadsIter.hasNext()) {
                       SOCPossibleRoad necRoad2 = necRoadsIter.next();
-                      D.ebugPrintln("-- queuing necessary road at "+game.getBoard().edgeCoordToString(necRoad2.getCoordinates()));
-                      queue.put(new Pair<SOCPossibleRoad,Pair<SOCPossibleRoad,?>>(necRoad2, dataPair));
+                      D.ebugPrintln("-- queuing necessary road at " + game.getBoard().edgeCoordToString(necRoad2.getCoordinates()));
+                      queue.put(new Pair<SOCPossibleRoad, Pair<SOCPossibleRoad, ?>>(necRoad2, dataPair));
                   }
 
                   if (queue.size() > 100)
@@ -2223,8 +2225,8 @@ public class SOCRobotDM
     float bestWondScoreOrETA;
     int gi = -1;  // wonder's "game index" in Special Item interface
 
-    final int pLevel = (bestWond != null) ? bestWond.getLevel() : 0;
     // TODO check level vs other players' level; if 2+ ahead of all others, no need to build more.
+    //    final int pLevel = (bestWond != null) ? bestWond.getLevel() : 0;
     // No need to check against max levels: if we've already reached max level, game has ended
 
     if (bestWond != null)
