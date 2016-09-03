@@ -22,10 +22,12 @@
 package soc.robot;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
 
@@ -1369,9 +1371,10 @@ public class SOCRobotDM
     //
     // save the lr paths list to restore later
     //
-    Vector<SOCLRPathData>[] savedLRPaths = new Vector[game.maxPlayers];
+    List<SOCLRPathData>[] savedLRPaths = new List[game.maxPlayers];
     for (int pn = 0; pn < game.maxPlayers; pn++) {
-      savedLRPaths[pn] = new Vector<SOCLRPathData>(game.getPlayer(pn).getLRPaths());
+      savedLRPaths[pn] = new ArrayList<SOCLRPathData>();
+      savedLRPaths[pn].addAll(game.getPlayer(pn).getLRPaths());
     }
 
     int ourCurrentWGETA = ourPlayerTracker.getWinGameETA();
