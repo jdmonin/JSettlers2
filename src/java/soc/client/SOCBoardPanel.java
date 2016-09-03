@@ -7868,14 +7868,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
        */
       private boolean isShipMovable;
 
-      /**
-       * True if the ship is a warship, at menu-show time
-       * (scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}).
-       * {@link #hoverShipID} must be != 0.
-       * @since 2.0.00
-       */
-      private boolean isShipWarship;
-
       /** Will this be for initial placement (send putpiece right away),
        *  or for placement during game (send build, receive gamestate, send putpiece)?
        */
@@ -7983,11 +7975,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               {
                   cancelBuildItem.setLabel(strings.get("board.cancel.ship.move"));  // "Cancel ship move"
                   cancelBuildItem.setEnabled(true);
-                  final SOCRoad rs = player.getRoadOrShip(hilightAt);
-                  isShipWarship = (rs != null) && (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
               } else {
                   cancelBuildItem.setLabel(strings.get("board.cancel.ship"));  // "Cancel ship"
-                  isShipWarship = false;
               }
               hoverShipID = hilightAt;
               break;
@@ -8017,7 +8006,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           wantsCancel = false;
           isInitialPlacement = false;
           isShipMovable = false;
-          isShipWarship = false;
           cancelBuildItem.setEnabled(false);
           cancelBuildItem.setLabel(strings.get("board.cancel.build"));  // "Cancel build"
           if (portTradeSubmenu != null)
@@ -8160,15 +8148,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             hSh = -hSh;
                             buildShipItem.setLabel(strings.get("board.build.move.ship"));
                             buildShipItem.setEnabled(true);  // trust the caller's game checks
-                            final SOCRoad rs = player.getRoadOrShip(hSh);
-                            isShipWarship = (rs != null) && (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
                         } else {
                             buildShipItem.setLabel(strings.get("board.build.ship"));
                             buildShipItem.setEnabled
                             ( game.canPlaceShip(player, hSh) &&
                               (debugPP ? (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
                                        : game.couldBuildShip(cpn)) );
-                            isShipWarship = false;
                         }
                       }
                   }
