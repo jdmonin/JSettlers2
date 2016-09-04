@@ -1183,20 +1183,20 @@ public class SOCRobotDM
     //
     int longest = 0;
     int numRoads = 500;
-    Pair<NodeLenVis<Integer>, ?> bestPathNode = null;
+    Pair<NodeLenVis<Integer>, List<Integer>> bestPathNode = null;
 
     final SOCBoard board = pl.getGame().getBoard();
-    Stack<Pair<NodeLenVis<Integer>, ?>> pending = new Stack<Pair<NodeLenVis<Integer>, ?>>();
+    Stack<Pair<NodeLenVis<Integer>, List<Integer>>> pending = new Stack<Pair<NodeLenVis<Integer>, List<Integer>>>();
         // Holds as-yet unvisited nodes:
-        // Pair members are <NodeLenVis, null or same-structured Pair "linked list" starting with parent node (from
-        // DFS graph's traversal order) and continuing to each parent node's own parent>.
-        // That linked list is used at the end to build the returned Stack which is the road path needed.
-    pending.push(new Pair<NodeLenVis<Integer>, Object>
+        // Pair members are <NodeLenVis, null or node-coordinate list of all parents (from DFS traversal order)>.
+        // Lists have most-distant node at beginning (item 0), and most-immediate at end of list (n-1).
+        // That list is used at the end to build the returned Stack which is the road path needed.
+    pending.push(new Pair<NodeLenVis<Integer>, List<Integer>>
         (new NodeLenVis<Integer>(startNode, pathLength, new Vector<Integer>()), null));
 
     while (! pending.empty())
     {
-      final Pair<NodeLenVis<Integer>, ?> dataPair = pending.pop();
+      final Pair<NodeLenVis<Integer>, List<Integer>> dataPair = pending.pop();
       final NodeLenVis<Integer> curNode = dataPair.getA();
       //D.ebugPrintln("curNode = "+curNode);
 
@@ -1288,11 +1288,16 @@ public class SOCRobotDM
                     Vector<Integer> newVis = new Vector<Integer>(visited);
                     newVis.addElement(edge);
 
-                    // curNode/dataPair will be parent to new pending element
+                    List<Integer> nodeParentList = dataPair.getB();
+                    if (nodeParentList == null)
+                        nodeParentList = new ArrayList<Integer>();
+                    else
+                        nodeParentList = new ArrayList<Integer>(nodeParentList);  // clone before we add to it
+                    nodeParentList.add(coord);  // curNode's coord will be parent to new pending element
 
                     j = board.getAdjacentNodeToNode(coord, dir);  // edge's other node
-                    pending.push(new Pair<NodeLenVis<Integer>, Pair<NodeLenVis<Integer>, ?>>
-                        (new NodeLenVis<Integer>(j, len + 1, newVis), dataPair));
+                    pending.push(new Pair<NodeLenVis<Integer>, List<Integer>>
+                        (new NodeLenVis<Integer>(j, len + 1, newVis), nodeParentList));
 
                     pathEnd = false;
                 }
@@ -1333,32 +1338,26 @@ public class SOCRobotDM
       //D.ebugPrintln("Converting nodes to road coords.");
       //
       // Return the path in a stack, with the last road (the one from bestPathNode) on top.
-      //
-
-      //
-      // first, convert pairs of node coords to edge coords for roads
-      //
-      Stack<SOCPossibleRoad> temp = new Stack<SOCPossibleRoad>();
-      int coordC, coordP;
-      Pair<NodeLenVis<Integer>, ?> cur, parent;
-      cur = bestPathNode;
-      parent = (Pair) bestPathNode.getB();
-      while (parent != null)
-      {
-          coordC = ((NodeLenVis<?>) cur.getA()).node;
-          coordP = ((NodeLenVis<?>) parent.getA()).node;
-          temp.push(new SOCPossibleRoad(pl, board.getEdgeBetweenAdjacentNodes(coordC, coordP), null));
-
-          cur = parent;
-          parent = (Pair) parent.getB();
-      }
-
-      //
-      // reverse the order of the roads so that the last one is on top
+      // Convert pairs of node coords to edge coords for roads.
+      // List is ordered from farthest parent at 0 to bestPathNode's parent at (n-1),
+      // so iterate same way to build the stack.
       //
       Stack<SOCPossibleRoad> path = new Stack<SOCPossibleRoad>();
-      while (! temp.empty())
-          path.push(temp.pop());
+      int coordC, coordP;
+      List<Integer> nodeList = bestPathNode.getB();
+      if ((nodeList == null) || nodeList.isEmpty())
+          return null;  // <--- early return, no node list: should not happen ---
+      nodeList.add(new Integer(bestPathNode.getA().node));  // append bestPathNode
+
+      final int L = nodeList.size();
+      coordP = nodeList.get(0);  // root ancestor
+      for (int i = 1; i < L; ++i)
+      {
+          coordC = nodeList.get(i);
+          path.push(new SOCPossibleRoad(pl, board.getEdgeBetweenAdjacentNodes(coordC, coordP), null));
+
+          coordP = coordC;
+      }
 
       return path;
     }
