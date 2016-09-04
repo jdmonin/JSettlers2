@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -2517,7 +2517,9 @@ public class SOCPlayerTracker
      *<P>
      * Do not call if {@link SOCGameOption#K_SC_0RVP} is set.
      *
-     * @param startNode     the path endpoint
+     * @param startNode     the path endpoint, such as from
+     *            {@link SOCPlayer#getLRPaths()}.(i){@link SOCLRPathData#getBeginning() .getBeginning()}
+     *            or {@link SOCLRPathData#getEnd() .getEnd()}
      * @param pathLength    the length of that path
      * @param lrLength      length of longest road in the game
      * @param searchDepth   how many roads out to search

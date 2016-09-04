@@ -1145,9 +1145,9 @@ public class SOCRobotDM
   }
 
   /**
-   * Does a depth first search from the end point of the longest
-   * path in a graph of nodes and returns how many roads would
-   * need to be built to take longest road.
+   * Does a depth first search of legal possible road edges from the end point of the longest
+   * path connecting a graph of nodes, and returns which roads or how many roads
+   * would need to be built to take longest road.
    *<P>
    * Do not call if {@link SOCGameOption#K_SC_0RVP} is set, because
    * this method needs {@link SOCPlayer#getLRPaths()} which will be empty.
@@ -1157,12 +1157,15 @@ public class SOCRobotDM
    * @param pl            Calculate this player's longest road;
    *             typically SOCRobotDM.ourPlayerData or SOCPlayerTracker.player
    * @param wantsStack    If true, return the Stack; otherwise, return numRoads.
-   * @param startNode     the path endpoint
+   * @param startNode     the path endpoint, such as from
+   *             {@link SOCPlayer#getLRPaths()}.(i){@link SOCLRPathData#getBeginning() .getBeginning()}
+   *             or {@link SOCLRPathData#getEnd() .getEnd()}
    * @param pathLength    the length of that path
    * @param lrLength      length of longest road in the game
    * @param searchDepth   how many roads out to search
    *
-   * @return if <tt>wantsStack</tt>: a {@link Stack} containing the path of roads with the last one on top, or null if it can't be done.
+   * @return if <tt>wantsStack</tt>: a {@link Stack} containing the path of roads with the last one
+   *         (farthest from <tt>startNode</tt>) on top, or <tt>null</tt> if it can't be done.
    *         If ! <tt>wantsStack</tt>: Integer: the number of roads needed, or 500 if it can't be done
    */
   static Object recalcLongestRoadETAAux
@@ -1174,24 +1177,32 @@ public class SOCRobotDM
     //
     // We're doing a depth first search of all possible road paths.
     // For similar code, see SOCPlayer.calcLongestRoad2
+    // Both methods rely on a stack holding NodeLenVis (pop to curNode in loop);
+    // they differ in actual element type within the stack because they are
+    // gathering slightly different results (length or a stack of edges).
     //
     int longest = 0;
     int numRoads = 500;
     Pair<NodeLenVis<Integer>, ?> bestPathNode = null;
+
     final SOCBoard board = pl.getGame().getBoard();
-    Stack<Pair<NodeLenVis<Integer>, ?>> pending = new Stack<Pair<NodeLenVis<Integer>, ?>>();  // as-yet unvisited
+    Stack<Pair<NodeLenVis<Integer>, ?>> pending = new Stack<Pair<NodeLenVis<Integer>, ?>>();
+        // Holds as-yet unvisited nodes:
+        // Pair members are <NodeLenVis, null or same-structured Pair "linked list" starting with parent node (from
+        // DFS graph's traversal order) and continuing to each parent node's own parent>.
+        // That linked list is used at the end to build the returned Stack which is the road path needed.
     pending.push(new Pair<NodeLenVis<Integer>, Object>
         (new NodeLenVis<Integer>(startNode, pathLength, new Vector<Integer>()), null));
 
     while (! pending.empty())
     {
-      Pair<NodeLenVis<Integer>, ?> dataPair = pending.pop();
-      NodeLenVis<Integer> curNode = dataPair.getA();
+      final Pair<NodeLenVis<Integer>, ?> dataPair = pending.pop();
+      final NodeLenVis<Integer> curNode = dataPair.getA();
       //D.ebugPrintln("curNode = "+curNode);
 
       final int coord = curNode.node;
       int len = curNode.len;
-      Vector<Integer> visited = curNode.vis;
+      final Vector<Integer> visited = curNode.vis;
       boolean pathEnd = false;
 
       //
@@ -1212,7 +1223,7 @@ public class SOCRobotDM
       if (! pathEnd)
       {
           //
-          // check if we've connected to another road graph
+          // check if we've connected to another road graph of this player
           //
           Iterator<SOCLRPathData> lrPathsIter = pl.getLRPaths().iterator();
           while (lrPathsIter.hasNext())
@@ -1220,8 +1231,7 @@ public class SOCRobotDM
               SOCLRPathData pathData = lrPathsIter.next();
               if ((startNode != pathData.getBeginning())
                       && (startNode != pathData.getEnd())
-                      && ((coord == pathData.getBeginning())
-                              || (coord == pathData.getEnd())))
+                      && ((coord == pathData.getBeginning()) || (coord == pathData.getEnd())))
               {
                   pathEnd = true;
                   len += pathData.getLength();
@@ -1278,9 +1288,12 @@ public class SOCRobotDM
                     Vector<Integer> newVis = new Vector<Integer>(visited);
                     newVis.addElement(edge);
 
+                    // curNode/dataPair will be parent to new pending element
+
                     j = board.getAdjacentNodeToNode(coord, dir);  // edge's other node
                     pending.push(new Pair<NodeLenVis<Integer>, Pair<NodeLenVis<Integer>, ?>>
-                        (new NodeLenVis<Integer>(j, len+1, newVis), dataPair));
+                        (new NodeLenVis<Integer>(j, len + 1, newVis), dataPair));
+
                     pathEnd = false;
                 }
             }
@@ -1311,6 +1324,7 @@ public class SOCRobotDM
             rv = numRoads;
         else
             rv = 500;
+
         return new Integer(rv);  // <-- Early return: ! wantsStack ---
     }
 
@@ -1318,26 +1332,27 @@ public class SOCRobotDM
     {
       //D.ebugPrintln("Converting nodes to road coords.");
       //
-      // return the path in a stack with the last road on top
+      // Return the path in a stack, with the last road (the one from bestPathNode) on top.
       //
+
       //
-      // first, convert pairs of node coords to road coords (edge coords):
+      // first, convert pairs of node coords to edge coords for roads
       //
       Stack<SOCPossibleRoad> temp = new Stack<SOCPossibleRoad>();
-      SOCPossibleRoad posRoad;
-      int coordA, coordB;
+      int coordC, coordP;
       Pair<NodeLenVis<Integer>, ?> cur, parent;
       cur = bestPathNode;
-      parent = (Pair)bestPathNode.getB();
+      parent = (Pair) bestPathNode.getB();
       while (parent != null)
       {
-          coordA = ((NodeLenVis<?>)cur.getA()).node;
-          coordB = ((NodeLenVis<?>)parent.getA()).node;
-          posRoad = new SOCPossibleRoad(pl, board.getEdgeBetweenAdjacentNodes(coordA, coordB), null);
-          temp.push(posRoad);
+          coordC = ((NodeLenVis<?>) cur.getA()).node;
+          coordP = ((NodeLenVis<?>) parent.getA()).node;
+          temp.push(new SOCPossibleRoad(pl, board.getEdgeBetweenAdjacentNodes(coordC, coordP), null));
+
           cur = parent;
           parent = (Pair) parent.getB();
       }
+
       //
       // reverse the order of the roads so that the last one is on top
       //
