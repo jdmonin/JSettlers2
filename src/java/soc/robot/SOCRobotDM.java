@@ -1409,6 +1409,7 @@ public class SOCRobotDM
     //
     // save the lr paths list to restore later
     //
+    @SuppressWarnings("unchecked")
     List<SOCLRPathData>[] savedLRPaths = new List[game.maxPlayers];
     for (int pn = 0; pn < game.maxPlayers; pn++) {
       savedLRPaths[pn] = new ArrayList<SOCLRPathData>();
