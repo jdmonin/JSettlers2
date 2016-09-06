@@ -373,10 +373,12 @@ location as JSettlersServer.jar, and specify on the jsettlers command line:
 
 Database Creation:
 
-To create the jsettlers database in mysql, execute the SQL db scripts
+To create the jsettlers database, execute the SQL db scripts
 jsettlers-create.sql and jsettlers-tables.sql located in src/bin/sql/
-(included in jsettlers-2.x.xx-full.tar.gz):
+(included in jsettlers-2.x.xx-full.tar.gz): Change to that directory
+and follow the instructions here for your database type.
 
+For mysql:
 $ mysql -u root -p -e "SOURCE jsettlers-create-mysql.sql"
 This will connect as root, prompt for the root password, create a 'socuser' user with the password
 'socpass', and create the 'socdata' database.
@@ -384,21 +386,21 @@ This will connect as root, prompt for the root password, create a 'socuser' user
 To build the empty tables, run:
 $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables.sql"
 
-For Postgres, create the db and tables with:
+For Postgres:
+Create the db and tables with:
 $ psql --file jsettlers-create-postgres.sql
 $ psql --file jsettlers-tables.sql socdata
 
-For sqlite, copy jsettlers-tables.sql to the same directory as
+For sqlite:
+Copy jsettlers-tables.sql to the same directory as
 JSettlersServer.jar and sqlite-jdbc-3.7.2.jar and run this command
 (sqlite jar filename may vary, update the jsettlers.db.jar parameter
 to match it):
 $ java -jar JSettlersServer.jar -Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar  -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=jsettlers-tables.sql
 After a few seconds you should see this message:
 	DB setup script was successful. Exiting now.
-The directory should also now contain a jsettlers.sqlite file.
-
-This will create jsettlers.sqlite containing the empty tables.
-This script will fail if the tables already exist.
+This will create a jsettlers.sqlite file containing the empty tables.
+This script will fail if the file and tables already exist.
 
 
 Optional: Storing Game Scores in the DB:
