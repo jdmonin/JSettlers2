@@ -7799,7 +7799,8 @@ public class SOCServer extends Server
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_PROBLEM_WITH_DB, cliVers,
-                         /*I*/"Problem connecting to database, please try again later."/*18N*/ ));
+                         c.getLocalized("account.create.error_db_conn")));
+                             // "Problem connecting to database, please try again later."
                 return;
             }
 
@@ -7871,7 +7872,8 @@ public class SOCServer extends Server
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                         "The nickname '" + userName + "' is already in use."));
+                         c.getLocalized("account.create.already_exists", userName)));
+                             // "The nickname "{0}" is already in use."
 
                 printAuditMessage
                     (requester, "Requested jsettlers account creation, already exists",
@@ -7885,7 +7887,8 @@ public class SOCServer extends Server
             // Indicates a db problem: don't continue
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_PROBLEM_WITH_DB, cliVers,
-                     "Problem connecting to database, please try again later."));
+                     c.getLocalized("account.create.error_db_conn")));
+                         // "Problem connecting to database, please try again later."
             return;
         }
 
@@ -7909,7 +7912,8 @@ public class SOCServer extends Server
                 ? SOCStatusMessage.SV_ACCT_CREATED_OK_FIRST_ONE
                 : SOCStatusMessage.SV_ACCT_CREATED_OK;
             c.put(SOCStatusMessage.toCmd
-                    (stat, cliVers, "Account created for '" + userName + "'."));
+                    (stat, cliVers,
+                     c.getLocalized("account.create.created", userName)));  // "Account created for "{0}"."
 
             printAuditMessage(requester, "Created jsettlers account", userName, currentTime, c.host());
 
@@ -7920,7 +7924,7 @@ public class SOCServer extends Server
         {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_ACCT_NOT_CREATED_ERR, cliVers,
-                     "Account not created due to error."));
+                     c.getLocalized("account.create.error")));  // "Account not created due to error."
         }
     }
 
