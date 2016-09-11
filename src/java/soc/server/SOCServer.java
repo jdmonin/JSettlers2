@@ -11108,8 +11108,10 @@ public class SOCServer extends Server
             if (! argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_PASS))
                 argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "socpass");
         } else {
-            // Require all 4 parameters
-            if ((args.length - aidx) < 4)
+            // Require at least 2 parameters, or allow 4 but not 3
+            // (optional db user also requires db password)
+            final int L = args.length - aidx;
+            if ((L < 2) || (L == 3))
             {
                 if (! printedUsageAlready)
                 {
@@ -11120,19 +11122,30 @@ public class SOCServer extends Server
                 printUsage(false);
                 return null;
             }
+
             argp.setProperty(PROP_JSETTLERS_PORT, args[aidx]);  ++aidx;
             argp.setProperty(PROP_JSETTLERS_CONNECTIONS, args[aidx]);  ++aidx;
 
-            // Check DB user and password against any -D parameters in properties
-            if (cmdlineOptsSet.contains(SOCDBHelper.PROP_JSETTLERS_DB_USER)
-                || cmdlineOptsSet.contains(SOCDBHelper.PROP_JSETTLERS_DB_PASS))
+            // Optional DB user and password
+            if ((args.length - aidx) > 0)
             {
-                System.err.println("SOCServer: DB user and password cannot appear twice on command line.");
-                printUsage(false);
-                return null;
+                // Check DB user and password against any -D parameters in properties
+                if (cmdlineOptsSet.contains(SOCDBHelper.PROP_JSETTLERS_DB_USER)
+                    || cmdlineOptsSet.contains(SOCDBHelper.PROP_JSETTLERS_DB_PASS))
+                {
+                    System.err.println("SOCServer: DB user and password cannot appear twice on command line.");
+                    printUsage(false);
+                    return null;
+                }
+
+                argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, args[aidx]);  ++aidx;
+                argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, args[aidx]);  ++aidx;
+            } else {
+                if (! argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_USER))
+                    argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "socuser");
+                if (! argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_PASS))
+                    argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "socpass");
             }
-            argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, args[aidx]);  ++aidx;
-            argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, args[aidx]);  ++aidx;
         }
 
         if (aidx < args.length)
@@ -11368,7 +11381,7 @@ public class SOCServer extends Server
         {
             Version.printVersionText(System.err, "Java Settlers Server ");
         }
-        System.err.println("usage: java soc.server.SOCServer [option...] port_number max_connections dbUser dbPass");
+        System.err.println("usage: java soc.server.SOCServer [option...] port_number max_connections [dbUser dbPass]");
         if (longFormat)
         {
             System.err.println("usage: recognized options:");
