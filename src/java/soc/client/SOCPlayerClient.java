@@ -5332,10 +5332,11 @@ public class SOCPlayerClient extends Applet
             }
         }
         
-        // Connect to it
         host = "localhost";
         port = tport;
         cardLayout.show(this, MESSAGE_PANEL);
+
+        // Connect to it
         connect();
 
         // Ensure we can't "connect" to another, too
@@ -5343,6 +5344,14 @@ public class SOCPlayerClient extends Applet
         {
             connectOrPracticePane.startedLocalServer();
         }
+
+        // Ensure we can type a nickname, or click "New Game" if one is already entered.
+        // This lets player create a game after starting a practice game (which sets nickname)
+        // and then starting a server.
+        if (nick.getText().trim().length() > 0)
+            ng.setEnabled(true);
+        else
+            nick.setEditable(true);
 
         // Reset the cursor
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
