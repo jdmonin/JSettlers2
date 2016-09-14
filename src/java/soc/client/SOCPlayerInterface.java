@@ -1647,6 +1647,9 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * remove a player from the game.
+     * Updates panes and displays, does not print any message
+     * about the player leaving the game.
+     *<P>
      * To prevent inconsistencies, call this <em>before</em> calling
      * {@link SOCGame#removePlayer(String)}.
      *
@@ -2933,11 +2936,11 @@ public class SOCPlayerInterface extends Frame
                 //
                 pi.removePlayer(player.getPlayerNumber());
             }
-            else if (pi.game.getGameState() >= SOCGame.START1A)
+
+            if (pi.game.getGameState() >= SOCGame.START1A)
             {
-                //  Spectator, game in progress.
-                //  Server prints it in the game text area,
-                //  and we also print in the chat area (less clutter there).
+                //  Server sends "left" message to print in the game text area.
+                //  If game is in progress, also print in the chat area (less clutter there).
                 pi.chatPrint("* " + strings.get("interface.member.left.game", nickname));  // "Joe left the game."
             }
         }
