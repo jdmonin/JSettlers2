@@ -2956,11 +2956,11 @@ public class SOCPlayerClient extends Applet
                 pi.removePlayer(player.getPlayerNumber());
                 ga.removePlayer(name);
             }
-            else if (ga.getGameState() >= SOCGame.START1A)
+
+            if (ga.getGameState() >= SOCGame.START1A)
             {
-                //  Spectator, game in progress.
-                //  Server prints it in the game text area,
-                //  and we also print in the chat area (less clutter there).
+                //  Server sends "left" message to print in the game text area.
+                //  If game is in progress, also print in the chat area (less clutter there).
                 pi.chatPrint("* " + name + " left the game");
             }
         }

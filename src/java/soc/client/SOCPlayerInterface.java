@@ -1481,6 +1481,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
     /**
      * remove a player from the game.
+     * Updates panes and displays, does not print any message
+     * about the player leaving the game.
+     *<P>
      * To prevent inconsistencies, call this <em>before</em> calling
      * {@link SOCGame#removePlayer(String)}.
      *
