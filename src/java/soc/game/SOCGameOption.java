@@ -493,6 +493,15 @@ public class SOCGameOption implements Cloneable, Comparable
     private transient ChangeListener optCL;
 
     /**
+     * Has the user selected a value?
+     * False if unchanged, or if changed only by
+     * a {@link ChangeListener} or other automatic means.
+     * Client use only; not sent over the network.
+     * @since 1.1.20
+     */
+    public transient boolean userChanged;
+
+    /**
      * Create a new game option of unknown type ({@link #OTYPE_UNKNOWN}).
      * Minimum version will be {@link Integer#MAX_VALUE}.
      * Value will be false/0. optDesc will be an empty string.
