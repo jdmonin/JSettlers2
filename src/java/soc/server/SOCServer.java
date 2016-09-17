@@ -568,7 +568,8 @@ public class SOCServer extends Server
         = new SOCRobotParameters(120, 35, 0.13f, 1.0f, 1.0f, 3.0f, 1.0f, 1, 1);
         // Formerly a literal in handleIMAROBOT.
         // Strategy type 1 == SOCRobotDM.FAST_STRATEGY.
-        // If you change values here, see SOCPlayerClient.startPracticeGame
+        // If you change values here, see handleIMAROBOT(..)
+        // and SOCPlayerClient.startPracticeGame(..)
         // for assumptions which may also need to be changed.
 
     /**
@@ -2301,6 +2302,10 @@ public class SOCServer extends Server
      * randomize whether its humans will play against smart or fast ones.
      * (Some will be SOCRobotDM.FAST_STRATEGY, some SMART_STRATEGY).
      *<P>
+     * The bots will start up and connect in separate threads, then be given their
+     * <tt>FAST</tt> or <tt>SMART</tt> strategy params in {@link #handleIMAROBOT(StringConnection, SOCImARobot)}
+     * based on their name prefixes ("droid " or "robot " respectively).
+     *<P>
      * Before 1.1.09, this method was part of SOCPlayerClient.
      *
      * @param numFast number of fast robots, with {@link soc.robot.SOCRobotDM#FAST_STRATEGY FAST_STRATEGY}
@@ -2316,8 +2321,6 @@ public class SOCServer extends Server
     {
         try
         {
-            // ASSUMPTION: Server ROBOT_PARAMS_DEFAULT uses SOCRobotDM.FAST_STRATEGY.
-
             // Make some faster ones first.
             for (int i = 0; i < numFast; ++i)
             {
@@ -2326,19 +2329,9 @@ public class SOCServer extends Server
                     // includes yield() and sleep(75 ms) this thread.
             }
 
-            try
-            {
-                Thread.sleep(150);
-                    // Wait for these robots' accept and UPDATEROBOTPARAMS,
-                    // before we change the default params.
-            }
-            catch (InterruptedException ie) {}
-
             // Make a few smarter ones now:
-
-            // Switch params to SMARTER for future new robots.
-            SOCRobotParameters prevSetting = SOCServer.ROBOT_PARAMS_DEFAULT;
-            SOCServer.ROBOT_PARAMS_DEFAULT = SOCServer.ROBOT_PARAMS_SMARTER;   // SOCRobotDM.SMART_STRATEGY
+            // handleIMAROBOT will give them SOCServer.ROBOT_PARAMS_SMARTER
+            // based on their name prefixes being "robot " not "droid ".
 
             for (int i = 0; i < numSmart; ++i)
             {
@@ -2346,8 +2339,6 @@ public class SOCServer extends Server
                 SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port, robotCookie);
                     // includes yield() and sleep(75 ms) this thread.
             }
-
-            SOCServer.ROBOT_PARAMS_DEFAULT = prevSetting;
         }
         catch (ClassNotFoundException e)
         {
@@ -4997,6 +4988,13 @@ public class SOCServer extends Server
      * Their version is checked here, must equal server's version.
      * For stability and control, the cookie in this message must
      * match this server's {@link #robotCookie}.
+     *<P>
+     * Bot tuning parameters are sent here to the bot.
+     * Its {@link SOCClientData#isRobot} flag is set.
+     *<P>
+     * Before connecting here, bots are named and started in {@link #setupLocalRobots(int, int)}.
+     * Default bot params are {@link #ROBOT_PARAMS_SMARTER} if the robot name starts with "robot "
+     * or {@link #ROBOT_PARAMS_DEFAULT} otherwise (starts with "droid ").
      *
      * @param c  the connection that sent the message
      * @param mes  the message
@@ -5005,6 +5003,8 @@ public class SOCServer extends Server
     {
         if (c != null)
         {
+            final String botName = mes.getNickname();
+
             /**
              * Check the cookie given by this bot.
              */
@@ -5013,7 +5013,7 @@ public class SOCServer extends Server
                 final String rejectMsg = "Cookie contents do not match the running server.";
                 c.put(new SOCRejectConnection(rejectMsg).toCmd());
                 c.disconnectSoft();
-                System.out.println("Rejected robot " + mes.getNickname() + ": Wrong cookie");
+                System.out.println("Rejected robot " + botName + ": Wrong cookie");
                 return;  // <--- Early return: Robot client didn't send our cookie value ---
             }
 
@@ -5033,26 +5033,27 @@ public class SOCServer extends Server
                         + Version.version(srvVers) + " is required.";
                     c.put(new SOCRejectConnection(rejectMsg).toCmd());
                     c.disconnectSoft();
-                    System.out.println("Rejected robot " + mes.getNickname() + ": Version " + cliVers + " does not match server version");
+                    System.out.println("Rejected robot " + botName + ": Version "
+                        + cliVers + " does not match server version");
                     return;  // <--- Early return: Robot client too old ---
                 } else {
-                    System.out.println("Robot arrived: " + mes.getNickname() + ": built-in type");
+                    System.out.println("Robot arrived: " + botName + ": built-in type");
                 }
             } else {
-                System.out.println("Robot arrived: " + mes.getNickname() + ": type " + rbc);
+                System.out.println("Robot arrived: " + botName + ": type " + rbc);
             }
 
             /**
              * Check that the nickname is ok
              */
-            if ((c.getData() == null) && (0 != checkNickname(mes.getNickname(), c, false)))
+            if ((c.getData() == null) && (0 != checkNickname(botName, c, false)))
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                          MSG_NICKNAME_ALREADY_IN_USE));
                 SOCRejectConnection rcCommand = new SOCRejectConnection(MSG_NICKNAME_ALREADY_IN_USE);
                 c.put(rcCommand.toCmd());
-                System.err.println("Robot login attempt, name already in use: " + mes.getNickname());
+                System.err.println("Robot login attempt, name already in use: " + botName);
                 // c.disconnect();
                 c.disconnectSoft();
 
@@ -5064,11 +5065,11 @@ public class SOCServer extends Server
             // The robot's nickname is used as the key for the disconnect announcement.
             {
                 ConnExcepDelayedPrintTask depart
-                    = (ConnExcepDelayedPrintTask) cliConnDisconPrintsPending.get(mes.getNickname());
+                    = (ConnExcepDelayedPrintTask) cliConnDisconPrintsPending.get(botName);
                 if (depart != null)
                 {
                     depart.cancel();
-                    cliConnDisconPrintsPending.remove(mes.getNickname());
+                    cliConnDisconPrintsPending.remove(botName);
                     ConnExcepDelayedPrintTask arrive
                         = (ConnExcepDelayedPrintTask) cliConnDisconPrintsPending.get(c);
                     if (arrive != null)
@@ -5085,9 +5086,9 @@ public class SOCServer extends Server
             //
             try
             {
-                params = SOCDBHelper.retrieveRobotParams(mes.getNickname());
-                if (params != null)
-                    D.ebugPrintln("*** Robot Parameters for " + mes.getNickname() + " = " + params);
+                params = SOCDBHelper.retrieveRobotParams(botName);
+                if ((params != null) && D.ebugIsEnabled())
+                    D.ebugPrintln("*** Robot Parameters for " + botName + " = " + params);
             }
             catch (SQLException sqle)
             {
@@ -5095,16 +5096,17 @@ public class SOCServer extends Server
             }
 
             if (params == null)
-            {
-                params = new SOCRobotParameters(ROBOT_PARAMS_DEFAULT);
-            }
+                if (botName.startsWith("robot "))
+                    params = ROBOT_PARAMS_SMARTER;  // uses SOCRobotDM.SMART_STRATEGY
+                else  // startsWith("droid ")
+                    params = ROBOT_PARAMS_DEFAULT;  // uses SOCRobotDM.FAST_STRATEGY
 
             c.put(SOCUpdateRobotParams.toCmd(params));
 
             //
             // add this connection to the robot list
             //
-            c.setData(mes.getNickname());
+            c.setData(botName);
             c.setHideTimeoutMessage(true);
             robots.addElement(c);
             SOCClientData scd = (SOCClientData) c.getAppData();
