@@ -17,7 +17,6 @@ new features, until 2.0.00 is ready.
 - Large board (sea board) support
 - Game Scenario and special-rules support
 - "House rules" dev card types (New game option "DH")
-- Game options dialog: Set maxplayers to 6 when Use Large Board is set, unless user changed max pl manually
 - New Game options: Popup if old versions can't play: Default to Create, not Change Options
 - Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard's dialog)
 - To ensure everyone has 2 initial settlements, don't allow new clients to sit after 1st settlements are all placed
@@ -64,7 +63,9 @@ new features, until 2.0.00 is ready.
      "joined the game"/"left the game" include current time
      Remove redundant joined/left debug prints
 - Debug commands dev: and rsrcs: also accept player number instead of name, for long or complex names
-- New Game options dialog: For int/intbool options use 0 if blank, intbool don't set int value if checkbox is unchecked
+- New Game options dialog:
+     When "Use 6-player board" option becomes set, increase max players to 6 unless already changed by user
+     For int/intbool options use 0 if blank, intbool don't set int value if checkbox is unchecked
 - Optional user accounts: Warn if database is empty when config requires accounts or names the account admins
 - User account admin:
      New server parameter --pw-reset username can be used if an account password is lost

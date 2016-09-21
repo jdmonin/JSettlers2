@@ -776,7 +776,7 @@ public class SOCGameOption
      *<P>
      * Client use only; not sent over the network.
      * Set in <tt>NewGameOptionsFrame</tt>.
-     * @since 2.0.00
+     * @since 1.1.20
      */
     public transient boolean userChanged;
 
