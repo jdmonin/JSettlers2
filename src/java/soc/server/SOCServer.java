@@ -5313,7 +5313,7 @@ public class SOCServer extends Server
      * For stability and control, the cookie in this message must
      * match this server's {@link #robotCookie}.
      *<P>
-     * Bot tuning parameters are sent to the bot.  Its {@link SOCClientData#isRobot} flag is set.  Its
+     * Bot tuning parameters are sent here to the bot.  Its {@link SOCClientData#isRobot} flag is set.  Its
      * {@link SOCClientData#locale} is cleared, but not its
      * {@link StringConnection#setI18NStringManager(SOCStringManager, String)}.
      *<P>
@@ -5418,7 +5418,7 @@ public class SOCServer extends Server
         try
         {
             params = SOCDBHelper.retrieveRobotParams(botName);
-            if (params != null)
+            if ((params != null) && D.ebugIsEnabled())
                 D.ebugPrintln("*** Robot Parameters for " + botName + " = " + params);
         }
         catch (SQLException sqle)
@@ -8910,6 +8910,7 @@ public class SOCServer extends Server
                     printUsage(false);
                     return null;
                 }
+
                 argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, args[aidx]);  ++aidx;
                 if ((args.length - aidx) > 0)
                 {

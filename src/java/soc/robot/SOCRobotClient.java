@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -935,7 +935,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     protected void handleUPDATEROBOTPARAMS(SOCUpdateRobotParams mes)
     {
         currentRobotParameters = new SOCRobotParameters(mes.getRobotParameters());
-        D.ebugPrintln("*** current robot parameters = " + currentRobotParameters);
+        if (D.ebugIsEnabled())
+            D.ebugPrintln("*** current robot parameters = " + currentRobotParameters);
     }
 
     /**
