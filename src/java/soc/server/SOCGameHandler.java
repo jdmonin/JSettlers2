@@ -5912,8 +5912,8 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * Force this player (not current player) to discard, or gain random resources from a gold hex,
-     * and report resources to all players. Does not send gameState, which may have changed; see
-     * {@link SOCGame#discardOrGainPickRandom(SOCResourceSet, int, boolean, SOCResourceSet, Random)}
+     * and report resources to all players. Does not send gameState, which may have changed when
+     * this method called {@link SOCGame#playerDiscardOrGainRandom(int, boolean)}.
      *<P>
      * Discards if {@link SOCGame#getGameState() cg.getGameState()} == {@link SOCGame#WAITING_FOR_DISCARDS},
      * otherwise picks enough random resources for {@link SOCPlayer#getNeedToPickGoldHexResources()}.

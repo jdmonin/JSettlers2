@@ -4275,6 +4275,9 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * In an active game, force current turn to be able to be ended.
+     * This method updates {@link #getGameState()} and takes other actions,
+     * but does not end the turn.
+     *<P>
      * May be used if player loses connection, or robot does not respond.
      * Takes whatever action needed to force current player to end their turn,
      * and if possible, sets state to {@link #PLAY1}, but does not call {@link #endTurn()}.
@@ -4628,13 +4631,18 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Randomly discard from this player's hand by calling {@link #discard(int, SOCResourceSet)},
-     * or gain random resources by calling {@link #pickGoldHexResources(int, SOCResourceSet)}.
+     * Randomly discard from this player's hand or pick random gains,
+     * and update {@link #gameState} so play can continue.
+     * Does not end turn or change {@link #currentPlayerNumber}.
+     * When called, assumes {@link #isForcingEndTurn()} flag is already set.
+     *<P>
+     * If {@code isDiscard}, pick random resources from the player's hand
+     * and call {@link #discard(int, SOCResourceSet)},
+     * Otherwise gain random resources by calling {@link #pickGoldHexResources(int, SOCResourceSet)}.
      * Then look at other players' hand size. If no one else must discard or pick,
      * ready to end turn, set state {@link #PLAY1}.
-     * Otherwise, must wait for them; if so,
-     * set game state ({@link #WAITING_FOR_DISCARDS} or {@link #WAITING_FOR_PICK_GOLD_RESOURCE}).
-     * When called, assumes {@link #isForcingEndTurn()} flag is already set.
+     * Otherwise must wait for them; set game state to wait
+     * ({@link #WAITING_FOR_DISCARDS} or {@link #WAITING_FOR_PICK_GOLD_RESOURCE}).
      *<P>
      * Not called for {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE},
      * which has different result types and doesn't need to check other players.
@@ -4673,7 +4681,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Choose discards at random; does not actually discard anything.
+     * Choose discards or picks at random; does not actually discard or gain anything or change game state.
      * For discards, randomly choose from contents of <tt>fromHand</tt>.
      * For gains, randomly choose resource types least plentiful in <tt>fromHand</tt>.
      *
