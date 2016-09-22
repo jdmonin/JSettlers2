@@ -2354,7 +2354,8 @@ public class SOCServer extends Server
 
     /**
      * Force this player (not current player) to discard, and report resources to all players.
-     * Does not send gameState, which may have changed; see {@link SOCGame#discardPickRandom(SOCResourceSet, int, SOCResourceSet, Random)}.
+     * Does not send gameState, which may have changed when this method called
+     * {@link SOCGame#playerDiscardRandom(int)}.
      *<P>
      * Assumes, as {@link #endGameTurn(SOCGame, SOCPlayer)} does:
      * <UL>

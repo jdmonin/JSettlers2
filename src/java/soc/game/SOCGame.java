@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013,2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013,2015-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -2607,6 +2607,9 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * In an active game, force current turn to be able to be ended.
+     * This method updates {@link #getGameState()} and takes other actions,
+     * but does not end the turn.
+     *<P>
      * May be used if player loses connection, or robot does not respond.
      * Takes whatever action needed to force current player to end their turn,
      * and if possible, sets state to {@link #PLAY1}, but does not call {@link #endTurn()}.
@@ -2624,7 +2627,7 @@ public class SOCGame implements Serializable, Cloneable
      * Does not clear any player's {@link SOCPlayer#hasAskedSpecialBuild()} flag;
      * do that at the server, and report it out to other players.
      *<P>
-     * After calling forceEndTurn, usually the gameState will be {@link #PLAY1},  
+     * After calling forceEndTurn, usually the gameState will be {@link #PLAY1},
      * and the caller should call {@link #endTurn()}.  The {@link #isForcingEndTurn()}
      * flag is also set.  The return value in this case is
      * {@link SOCForceEndTurnResult#FORCE_ENDTURN_NONE FORCE_ENDTURN_NONE}.
@@ -2846,12 +2849,16 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Randomly discard from this player's hand, by calling {@link #discard(int, SOCResourceSet)}.
+     * Randomly discard from this player's hand and update {@link #gameState} so play can continue.
+     * Does not end turn or change {@link #currentPlayerNumber}.
+     * When called, assumes {@link #isForcingEndTurn()} flag is already set.
+     *<P>
+     * First: Pick random resources from the player's hand.
+     * Discard by calling {@link #discard(int, SOCResourceSet)}.
      * Then look at other players' hand size. If no one else must discard,
      * ready to end turn, set state {@link #PLAY1}.
      * Otherwise, must wait for them; if so,
      * set game state to {@link #WAITING_FOR_DISCARDS}.
-     * When called, assumes {@link #isForcingEndTurn()} flag is already set.
      *
      * @param pn Player number to force to randomly discard
      * @return The force result, including any discarded resources.
@@ -2863,7 +2870,7 @@ public class SOCGame implements Serializable, Cloneable
         // select random cards, and discard
         SOCResourceSet discards = new SOCResourceSet();
         {
-            SOCResourceSet hand = players[pn].getResources(); 
+            SOCResourceSet hand = players[pn].getResources();
             discardPickRandom(hand, hand.getTotal() / 2, discards, rand);
             discard(pn, discards);  // Checks for other discarders, sets gameState
         }
@@ -2880,7 +2887,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Choose discards at random; does not actually discard anything.
+     * Choose discards at random; does not actually discard anything or change game state.
      *
      * @param fromHand     Discard from this set
      * @param numDiscards  This many must be discarded
