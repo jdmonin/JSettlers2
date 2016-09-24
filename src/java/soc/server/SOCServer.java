@@ -10927,7 +10927,8 @@ public class SOCServer extends Server
                 Version.printVersionText(System.err, "Java Settlers Server ");
                 hasStartupPrintAndExit = true;
             }
-            else if (arg.equalsIgnoreCase("-h") || arg.equals("?") || arg.equalsIgnoreCase("--help"))
+            else if (arg.equalsIgnoreCase("-h") || arg.equals("?") || arg.equals("-?")
+                     || arg.equalsIgnoreCase("--help"))
             {
                 printUsage(true);
                 hasStartupPrintAndExit = true;
