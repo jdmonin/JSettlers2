@@ -11757,17 +11757,20 @@ public class SOCServer extends Server
             final String rname = pl.getName();
             final int plNum = pl.getPlayerNumber();
             final int gs = ga.getGameState();
+            final boolean notCurrentPlayer = (ga.getCurrentPlayerNumber() != plNum);
 
             // Ignore if not current player, unless game is
             // waiting for the bot to discard resources.
-            if ((ga.getCurrentPlayerNumber() != plNum)
-                && (gs != SOCGame.WAITING_FOR_DISCARDS))
+            if (notCurrentPlayer && (gs != SOCGame.WAITING_FOR_DISCARDS))
             {
                 return;
             }
 
             StringConnection rconn = getConnection(rname);
-            System.err.println("For robot " + rname + ": force end turn in game " + ga.getName() + " cpn=" + plNum + " state " + gs);
+            System.err.println
+                ("For robot " + rname +
+                    ((notCurrentPlayer) ? ": force discard" : ": force end turn")
+                    + " in game " + ga.getName() + " pn=" + plNum + " state " + gs);
             if (gs == SOCGame.WAITING_FOR_DISCARDS)
                 System.err.println("  srv card count = " + pl.getResources().getTotal());
             if (rconn == null)
