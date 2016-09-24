@@ -4733,7 +4733,7 @@ public class SOCGame implements Serializable, Cloneable
             }
 
             // Next, add resources with that amount, and then increase
-            // lowestNum until we've found at least numDiscards resources.
+            // lowestNum until we've found at least numToPick resources.
             int toAdd = numToPick;
             Vector<Integer> alreadyPicked = new Vector<Integer>();
             do
