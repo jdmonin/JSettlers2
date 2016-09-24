@@ -27,8 +27,9 @@ new features, until 2.0.00 is ready.
 - Game option boolean default values more strictly parsed
 - Robots: Force robots to discard random resources after several seconds of inactivity
      during other players' turns when a 7 is rolled.
-- Show/hide current trade offers' Accept buttons when client player resources gained/lost/traded
-- Game window: Print message in chat area when player leaves, to balance message when a player joins
+- Game window:
+     Trade offers from other players: Show/hide Accept button when resources gained/lost/traded
+     Print message in chat area when player leaves, to balance message when a player joins
 - Server stats (*STATS* command): Increase "games finished" when game is over, not later when it's destroyed
 - *HELP* command recognized from all players, not only debug user
 - *WHO* command: User admins or debug user can list any game's members, or * or ALL to list all connected users
