@@ -8285,8 +8285,12 @@ public class SOCServer extends Server
                 if (player != null)
                 {
                     final String gaName = mes.getGame();
-                    player.setFaceId(mes.getFaceId());
-                    messageToGame(gaName, new SOCChangeFace(gaName, player.getPlayerNumber(), mes.getFaceId()));
+                    final int id = mes.getFaceId();
+                    if ((id <= 0) && ! player.isRobot())
+                        return;  // only bots should use bot icons
+
+                    player.setFaceId(id);
+                    messageToGame(gaName, new SOCChangeFace(gaName, player.getPlayerNumber(), id));
                 }
             }
         }
