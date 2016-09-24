@@ -2383,6 +2383,8 @@ public class SOCServer extends Server
         int totalRes = rset.getTotal();
         messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
         messageToGame(gaName, plName + " discarded " + totalRes + " resources.");
+
+        System.err.println("Forced discard: " + totalRes + " from " + plName + " in game " + cg.getName());
     }
 
     /**
