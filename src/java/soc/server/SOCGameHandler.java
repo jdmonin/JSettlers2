@@ -5943,17 +5943,21 @@ public class SOCGameHandler extends GameHandler
         // Report resources lost or gained; see also forceEndGameTurn for same reporting code.
 
         final String gaName = cg.getName();
+        final int totalRes = rset.getTotal();
         if (isDiscard)
         {
             if ((c != null) && c.isConnected())
                 reportRsrcGainLoss(gaName, rset, true, pn, -1, null, c);
 
-            final int totalRes = rset.getTotal();
             srv.messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
             srv.messageToGameKeyed(cg, true, "action.discarded", plName, totalRes);  // "{0} discarded {1} resources."
+
+            System.err.println("Forced discard: " + totalRes + " from " + plName + " in game " + gaName);
         } else {
             // Send SOCPlayerElement messages, "gains" text
             reportRsrcGainGold(cg, cg.getPlayer(pn), pn, rset, false);
+
+            System.err.println("Forced gold picks: " + totalRes + " to " + plName + " in game " + gaName);
         }
     }
 
