@@ -5513,7 +5513,7 @@ public class SOCPlayerClient extends Applet
      */
     public static void usage()
     {
-        System.err.println("usage: java soc.client.SOCPlayerClient <host> <port>");
+        System.err.println("usage: java soc.client.SOCPlayerClient [<host> <port>]");
     }
 
     /**
@@ -5523,6 +5523,8 @@ public class SOCPlayerClient extends Applet
     {
         SOCPlayerClient client;
         boolean withConnectOrPractice;
+
+        Version.printVersionText(System.out, "Java Settlers Client ");
 
         if (args.length == 0)
         {
@@ -5549,8 +5551,6 @@ public class SOCPlayerClient extends Applet
                 System.exit(1);
             }
         }
-
-        Version.printVersionText(System.out, "Java Settlers Client ");
 
         Frame frame = new Frame("JSettlers client " + Version.version());
         frame.setBackground(new Color(Integer.parseInt("61AF71",16)));
