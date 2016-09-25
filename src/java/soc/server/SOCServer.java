@@ -8588,7 +8588,7 @@ public class SOCServer extends Server
      * Sets {@link #hasStartupPrintAndExit} if appropriate.
      *
      * @param args args as passed to main
-     * @return Properties collection of args, or null for argument error.
+     * @return Properties collection of args, or null for argument error or unknown argument(s).
      *     Will contain at least {@link #PROP_JSETTLERS_PORT},
      *     {@link #PROP_JSETTLERS_CONNECTIONS},
      *     {@link SOCDBHelper#PROP_JSETTLERS_DB_USER},
@@ -8602,6 +8602,7 @@ public class SOCServer extends Server
         // text here, also update the same text in init_propsSetGameopts's javadoc.
 
         Properties argp = new Properties();  // returned props, from "jsserver.properties" file and args[]
+        boolean hasUnknowns = false;  // warn about each during parsing, instead of returning after first one
 
         // Check against options which are on command line twice: Can't just check argp keys because
         // argp is loaded from jsserver.properties, then command-line properties can override
@@ -8679,7 +8680,8 @@ public class SOCServer extends Server
                 Version.printVersionText(System.err, "Java Settlers Server ");
                 hasStartupPrintAndExit = true;
             }
-            else if (arg.equalsIgnoreCase("-h") || arg.equals("?") || arg.equalsIgnoreCase("--help"))
+            else if (arg.equalsIgnoreCase("-h") || arg.equals("?") || arg.equals("-?")
+                     || arg.equalsIgnoreCase("--help"))
             {
                 printUsage(true);
                 hasStartupPrintAndExit = true;
@@ -8846,6 +8848,7 @@ public class SOCServer extends Server
 
             } else {
                 System.err.println("Unknown argument: " + arg);
+                hasUnknowns = true;
             }
 
             ++aidx;
@@ -8893,6 +8896,7 @@ public class SOCServer extends Server
                     System.err.println("SOCServer: Some required command-line parameters are missing.");
                 }
                 printUsage(false);
+
                 return null;
             }
 
@@ -8950,6 +8954,9 @@ public class SOCServer extends Server
             }
             return null;
         }
+
+        if (hasUnknowns)
+            return null;
 
         // Done parsing.
         return argp;
