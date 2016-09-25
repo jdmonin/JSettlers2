@@ -68,6 +68,7 @@ new features, until 2.0.00 is ready.
 - New Game options dialog:
      When "Use 6-player board" option becomes set, increase max players to 6 unless already changed by user
      For int/intbool options use 0 if blank, intbool don't set int value if checkbox is unchecked
+- Client startup: Always print version on console, even to print usage and exit
 - Optional user accounts: Warn if database is empty when config requires accounts or names the account admins
 - User account admin:
      New server parameter --pw-reset username can be used if an account password is lost

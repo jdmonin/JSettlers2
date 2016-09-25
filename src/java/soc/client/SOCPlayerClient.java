@@ -6240,7 +6240,7 @@ public class SOCPlayerClient
      */
     public static void usage()
     {
-        System.err.println("usage: java soc.client.SOCPlayerClient <host> <port>");
+        System.err.println("usage: java soc.client.SOCPlayerClient [<host> <port>]");
     }
 
     /**
@@ -6253,6 +6253,8 @@ public class SOCPlayerClient
 
         String host = null;  // from args, if not empty
         int port = -1;
+
+        Version.printVersionText(System.out, "Java Settlers Client ");
 
         if (args.length != 0)
         {
@@ -6275,8 +6277,6 @@ public class SOCPlayerClient
         client = new SOCPlayerClient();
         gameDisplay = new GameAwtDisplay((args.length == 0), client);
         client.setGameDisplay(gameDisplay);
-
-        Version.printVersionText(System.out, "Java Settlers Client ");
 
         Frame frame = new Frame(client.strings.get("pcli.main.title", Version.version()));  // "JSettlers client {0}"
         frame.setBackground(new Color(Integer.parseInt("61AF71",16)));
