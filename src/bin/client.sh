@@ -1,14 +1,22 @@
-#!/bin/bash
+#!/bin/sh
 
-xtitle "Client to Java Settler's of Catan!"
+# Usage:
+# ./client.sh   to connect to localhost, default port
+# ./client.sh some.host.net   connect to some.host.net, default port
+# ./client.sh some.host.net 8888  connect to some.host.net, port 8888
 
-PORT=8881
+# xtitle "Java Settlers of Catan client"
+
+HOST=localhost
+PORT=8880
+
+if [ ! -z $1 ]; then
+	HOST=$1
+	if [ ! -z $2 ]; then
+		PORT=$2
+	fi
+fi
 
 echo "Starting Java Settlers of Catan Client..."
 
-OLD_DIR=`pwd`
-cd target/classes
-
-java soc.client.SOCPlayerClient localhost $PORT
-
-cd "$OLD_DIR"
+java -jar JSettlers.jar $HOST $PORT
