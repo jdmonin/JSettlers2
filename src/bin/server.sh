@@ -1,36 +1,19 @@
-# source this in your shell
+#!/bin/sh
 
-xtitle "Java Settler's of Catan!"
+# sample server startup script: Default port, 8 bots
 
-PORT=8881
+PORT=8880
 
 echo "Starting the Java Settlers of Catan Server..."
 
-java -cp target/classes soc.server.SOCServer $PORT 10 socAdmin socAdmin &
+# Params can be given on command line or jsserver.properties in current directory.
+# Max connections 30, including the 8 bots;
+# startrobots=8 gives a mix of smart Robots and fast Droids
+
+java -jar JSettlersServer.jar $PORT 30 -Djsettlers.startrobots=8  &
 export SERVER_PID=$!
 
 echo
 echo SERVER_PID=$SERVER_PID
 echo
 
-sleep 3
-
-echo Starting Robots...
-
-# AI Computers
-#java -cp target/classes soc.robot.SOCRobotClient localhost $PORT Hal password &
-#java -cp target/classes soc.robot.SOCRobotClient localhost $PORT Joshua password &
-
-# Robots
-#java -cp target/classes soc.robot.SOCRobotClient localhost $PORT Chrighton password &
-#java -cp target/classes soc.robot.SOCRobotClient localhost $PORT Gort password &
-#java -cp target/classes soc.robot.SOCRobotClient localhost $PORT Robbie password &
-#java -cp target/classes soc.robot.SOCRobotClient localhost $PORT Twiki password &
-#java -cp target/classes soc.robot.SOCRobotClient localhost $PORT Tobor password &
-
-# Androids
-java -cp target/classes soc.robot.SOCRobotClient localhost $PORT Bishop password &
-java -cp target/classes soc.robot.SOCRobotClient localhost $PORT Deckard password &
-java -cp target/classes soc.robot.SOCRobotClient localhost $PORT Proteus password &
-java -cp target/classes soc.robot.SOCRobotClient localhost $PORT T-800 password &
-#java -cp target/classes soc.robot.SOCRobotClient localhost $PORT Sonny password &
