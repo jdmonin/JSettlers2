@@ -2384,7 +2384,7 @@ public class SOCServer extends Server
         messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
         messageToGame(gaName, plName + " discarded " + totalRes + " resources.");
 
-        System.err.println("Forced discard: " + totalRes + " from " + plName + " in game " + cg.getName());
+        System.err.println("Forced discard: " + totalRes + " from " + plName + " in game " + gaName);
     }
 
     /**
@@ -10850,7 +10850,7 @@ public class SOCServer extends Server
      * Sets {@link #hasStartupPrintAndExit} if appropriate.
      *
      * @param args args as passed to main
-     * @return Properties collection of args, or null for argument error.
+     * @return Properties collection of args, or null for argument error or unknown argument(s).
      *     Will contain at least {@link #PROP_JSETTLERS_PORT},
      *     {@link #PROP_JSETTLERS_CONNECTIONS},
      *     {@link SOCDBHelper#PROP_JSETTLERS_DB_USER},
@@ -11780,8 +11780,8 @@ public class SOCServer extends Server
             StringConnection rconn = getConnection(rname);
             System.err.println
                 ("For robot " + rname +
-                    ((notCurrentPlayer) ? ": force discard" : ": force end turn")
-                    + " in game " + ga.getName() + " pn=" + plNum + " state " + gs);
+                 ((notCurrentPlayer) ? ": force discard" : ": force end turn")
+                 + " in game " + ga.getName() + " pn=" + plNum + " state " + gs);
             if (gs == SOCGame.WAITING_FOR_DISCARDS)
                 System.err.println("  srv card count = " + pl.getResources().getTotal());
             if (rconn == null)
