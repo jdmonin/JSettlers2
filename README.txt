@@ -402,8 +402,7 @@ Optional: Creating JSettlers Player Accounts in the DB:
 
 To create player accounts, run the simple account creation client with the
 following command:
-
-  java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880
+	java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880
 
 Users with accounts must type their password to log into the server to play.
 People without accounts can still connect by leaving the password field blank,
