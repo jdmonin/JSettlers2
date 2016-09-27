@@ -4,10 +4,11 @@
 # Covers command-line params and jsserver.properties files
 # See bottom of file for copyright and license information (GPLv3+).
 
-# File/directory assumptions at runtime:
-# - This script lives in test/bin/
-# - Properties files can be created and deleted in test/tmp/
+# File/directory assumptions at runtime (mostly tested in env_ok()):
+# - This script lives in test/bin/  [not tested]
+# - Properties files can be created and deleted in test/tmp/  [tests dir existence only]
 # - Server JAR has been built already, to ../../target/JSettlersServer.jar
+# - java command is on the PATH
 # Since this is a testing script, most error conditions will throw an exception
 # instead of being caught (for example, os.chdir failure).
 
@@ -38,7 +39,7 @@ def env_ok():
         print_err(rel_path_jsserver_props + " exists but is not a normal file: Remove it")
     if not os.path.isfile(REL_PATH_JS_SERVER_JAR):
         all_ok = False
-        print_err("Must build server JAR first; missing " + REL_PATH_JS_SERVER_JAR)
+        print_err("Must build server JAR first: missing " + REL_PATH_JS_SERVER_JAR)
 
     # test java binary execution: java -version
     # (no need to parse version# in this test script)
@@ -55,7 +56,7 @@ def env_ok():
     except OSError as e:
         all_ok = False
         print_err("Failed to run: java -version")
-        print_err(str(e))
+        print_err(str(e))  # "OSError: [Errno 2] No such file or directory"
 
     return all_ok
 
