@@ -1,0 +1,5 @@
+# Ignore all files in this directory tmp/test/
+# They are created and removed during testing
+*
+*/
+!.gitignore
