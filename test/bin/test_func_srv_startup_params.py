@@ -12,10 +12,13 @@
 # Since this is a testing script, most error conditions will throw an exception
 # instead of being caught (for example, os.chdir failure).
 
+# Basic functions used per test: _run_and_get_outputs, print_result
+
 
 from __future__ import print_function  # Python 2.6+ required
 
 import os, re, subprocess, sys
+from threading import Thread
 
 REL_PATH_JS_SERVER_JAR = "../../target/JSettlersServer.jar"
 REL_PATH_TEMPDIR = "../tmp"
@@ -72,7 +75,10 @@ def _run_and_get_outputs(cmd, args=[], timeout=0):
     Args:
         cmd (str): Binary or script to run
         args (list of str): Command-line arguments, if any
-        timeout (int): Maximum time for the program to run, or 0 for no limit
+        timeout (int): Maximum time in seconds for the program to run, or 0 for no limit.
+            Note: Because java normally behaves well but also takes a bit of time to halt,
+            this timeout sends SIGTERM to allow cleanup, not SIGKILL for a hard kill.
+            It's thus possible that a process won't actually stop.
 
     Returns:
         list of [int,str,str]: Exit code, stdout, stderr.
@@ -83,16 +89,80 @@ def _run_and_get_outputs(cmd, args=[], timeout=0):
     Raises:
         OSError: If cmd cannot be found or executed.
     """
+    class _Res_Obj(object):
+        def __init__(self):
+            self.stdout = ""
+            self.stderr = ""
+            self.exit_code = None
+            self.proc = None
+
+    def _thread_subproc(args, results_obj):
+        """Subprocess thread to capture output with timeout before py2.7;
+        refactored from http://www.ostricher.com/2015/01/python-subprocess-with-timeout/
+        """
+        proc = subprocess.Popen(
+            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            bufsize=-1, universal_newlines=True)
+        results_obj.proc = proc
+        results_obj.stdout, results_obj.stderr = proc.communicate()
+            # communicate() waits for end-of-file and proc termination
+            # unless the calling thread kills us
+        results_obj.exit_code = proc.returncode
+
+    # prep args[]
     if args and len(args):
         args.insert(0, cmd)
     else:
         args = [cmd, ]
 
-    proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        bufsize=-1, universal_newlines=True)
-    stdout, stderr = proc.communicate()  # waits for end-of-file and proc termination
-        # TODO timeout
-    return(proc.returncode, stdout, stderr)
+    res_obj = _Res_Obj()
+    if timeout:
+        proc_thread = Thread(target=_thread_subproc, args=(args, res_obj))
+        proc_thread.start()
+        proc_thread.join(timeout)
+        if proc_thread.is_alive():
+            # Process still running - kill it (timeout)
+            try:
+                res_obj.proc.terminate()  # SIGTERM, not SIGKILL (-9)
+                    # TODO consider .kill() if still running several seconds after .terminate()
+            except OSError:
+                # The process finished between the `is_alive()` and `kill()`
+                pass
+            # OK, the process was definitely killed
+    else:
+        # no timeout required: run it in our own thread
+        _thread_subproc(args, res_obj)
+
+    return(res_obj.exit_code, res_obj.stdout, res_obj.stderr)
+
+def print_result(desc, res):
+    """Helper method: Print test description, prefixed by 'ok' or 'FAIL' depending on bool res."""
+    if (res):
+        pfx = "ok: "
+    else:
+        pfx = "FAIL: "
+
+    print(pfx + str(desc))
+
+def test_run_and_get_outputs():
+    """Basic tests for _run_and_get_outputs; expects unix-style env (runs sleep, false, etc)"""
+    # basic test is covered in env_ok(): "java -version"
+
+    (ec, __, __) = _run_and_get_outputs("sleep", ["1"])  # no timeout
+    print_result("Test 1: sleep 1: ec == " + str(ec), (ec == 0))
+
+    (ec, __, __) = _run_and_get_outputs("sleep", ["5"], timeout=3)
+    print_result("Test 2: sleep 5 with timeout 3: ec == " + str(ec), (ec is None))
+
+    (ec, __, __) = _run_and_get_outputs("false")
+    print_result("Test 3: false: ec == " + str(ec), (ec != 0))
+
+    got_err = False
+    try:
+        (ec, __, __) = _run_and_get_outputs("/prog_does_not_Exist")
+    except OSError:
+        got_err = True
+    print_result("Test 4: Program does not exist", got_err)
 
 def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expected_output_incl=None):
     """Run a single test of JSettlersServer command-line/properties-file arguments.
@@ -130,6 +200,8 @@ def main():
         print_err("*** Exiting due to missing required conditions. ***")
         sys.exit(1)  # <--- Early exit ---
     setup()
+    if (os.name == 'posix'):
+        test_run_and_get_outputs()  # only if on unix: runs sleep, false commands
     all_tests()
     cleanup()
 
