@@ -8,11 +8,13 @@
 # - This script lives in test/bin/
 # - Properties files can be created and deleted in test/tmp/
 # - Server JAR has been built already, to ../../target/JSettlersServer.jar
+# Since this is a testing script, most error conditions will throw an exception
+# instead of being caught (for example, os.chdir failure).
 
 
 from __future__ import print_function  # Python 2.6+ required
 
-import os, sys
+import os, re, subprocess, sys
 
 REL_PATH_JS_SERVER_JAR = "../../target/JSettlersServer.jar"
 REL_PATH_TEMPDIR = "../tmp"
@@ -38,7 +40,22 @@ def env_ok():
         all_ok = False
         print_err("Must build server JAR first; missing " + REL_PATH_JS_SERVER_JAR)
 
-    # TODO test java binary execution, possibly even version
+    # test java binary execution: java -version
+    # (no need to parse version# in this test script)
+    try:
+        (ec, stdout, stderr) = _run_and_get_outputs("java", ["-version"])
+        if ec != 0 or not re.search("java version", str(stdout)+" "+str(stderr), re.I):
+            all_ok = False
+            if ec != 0:
+                print_err("Failed to run: java -version")
+            else:
+                print_err("java -version returned 0, but output didn't include the string: java version")
+                print_err("  Output was: " + repr(stdout))
+                print_err("  Stderr was: " + repr(stderr))
+    except OSError as e:
+        all_ok = False
+        print_err("Failed to run: java -version")
+        print_err(str(e))
 
     return all_ok
 
@@ -47,6 +64,34 @@ def setup():
     os.chdir(REL_PATH_TEMPDIR)
     if os.path.exists(FNAME_JSSERVER_PROPS):
         os.remove(FNAME_JSSERVER_PROPS)
+
+def _run_and_get_outputs(cmd, args=[], timeout=0):
+    """Run a command, capture its stdout and stderr, and return exit code and those.
+
+    Args:
+        cmd (str): Binary or script to run
+        args (list of str): Command-line arguments, if any
+        timeout (int): Maximum time for the program to run, or 0 for no limit
+
+    Returns:
+        list of [int,str,str]: Exit code, stdout, stderr.
+        stdout and stderr contents will have universal newlines.
+        If the timeout is reached, returns None for exit code.
+        If a signal terminated the process, exit code is negative signal number.
+
+    Raises:
+        OSError: If cmd cannot be found or executed.
+    """
+    if args and len(args):
+        args.insert(0, cmd)
+    else:
+        args = [cmd, ]
+
+    proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        bufsize=-1, universal_newlines=True)
+    stdout, stderr = proc.communicate()  # waits for end-of-file and proc termination
+        # TODO timeout
+    return(proc.returncode, stdout, stderr)
 
 def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expected_output_incl=None):
     """Run a single test of JSettlersServer command-line/properties-file arguments.
@@ -80,6 +125,7 @@ def cleanup():
 def main():
     """Main function: Check environment, set up, run tests, clean up."""
     if not env_ok():
+        print_err("")
         print_err("*** Exiting due to missing required conditions. ***")
         sys.exit(1)  # <--- Early exit ---
     setup()
