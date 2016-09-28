@@ -12,6 +12,8 @@
 # Since this is a testing script, most error conditions will throw an exception
 # instead of being caught (for example, os.chdir failure).
 
+# See bottom of file for main() function.
+# Overall test function: all_tests, which calls arg_test for individual tests.
 # Basic functions used per test: _run_and_get_outputs, print_result
 
 
@@ -20,9 +22,11 @@ from __future__ import print_function  # Python 2.6+ required
 import os, re, subprocess, sys
 from threading import Thread
 
-REL_PATH_JS_SERVER_JAR = "../../target/JSettlersServer.jar"
+FNAME_JSSERVER_JAR = "JSettlersServer.jar"
+REL_PATH_JS_SERVER_JAR = "../../target/" + FNAME_JSSERVER_JAR
 REL_PATH_TEMPDIR = "../tmp"
 FNAME_JSSERVER_PROPS = "jsserver.properties"
+MAX_TIMEOUT_SEC = 20
 
 def print_err(*args, **kwargs):
     """Print the arguments to stderr instead of stdout."""
@@ -166,6 +170,7 @@ def test_run_and_get_outputs():
 
 def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expected_output_incl=None):
     """Run a single test of JSettlersServer command-line/properties-file arguments.
+    Assumes already running in test/tmp/ and can rewrite or delete jsserver.properties if needed.
 
     Args:
         should_startup (bool): True if server should start up and run with these params,
@@ -173,20 +178,55 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
         cmdline_params (str): Parameters for command line; defaults to empty string
         propsfile_contents (str): Contents to write to jsserver.properties,
             or None to run the test without a jsserver.properties file
-        expected_output_incl (str): String to look for in server output,
+        expected_output_incl (str): String to search for in server output, case-sensitive,
             or None to not look in output for any particular string
 
     Returns:
     	bool: True if test results matched should_startup (and expected_output_incl if given),
             False otherwise.
     """
-    pass
-    # TODO write or delete props file, launch JSettlersServer, check results, return
+    args = ["-jar", REL_PATH_JS_SERVER_JAR]
+    if len(cmdline_params):
+        args.extend(cmdline_params.split())
+
+    if propsfile_contents is not None:
+        prn_pfile = "; with jsserver.properties"
+        pass  # TODO write
+    else:
+        prn_pfile = "; no jsserver.properties"
+        pass  # TODO delete
+
+    print("Test: java " + " ".join(args) + prn_pfile)
+    exit_code, stdout, stderr = _run_and_get_outputs("java", args, timeout=MAX_TIMEOUT_SEC)
+
+    ret = True
+    if exit_code is None:
+        did_startup = True
+        prn_startup = "(started up)"
+    else:
+        did_startup = False
+        prn_startup = "(exited: " + str(exit_code) + ")"
+
+    if should_startup != did_startup:
+        ret = False
+    if expected_output_incl is not None:
+        if expected_output_incl not in (stdout + " " + stderr):
+            ret = False
+            prn_startup += " -- missing expected output"
+
+    if ret:
+        print(prn_startup + " -> ok")
+    else:
+        print(prn_startup + " -> FAIL")
+        print("STDOUT: " + stdout)
+        print("STDERR: " + stderr)
+
+    return ret
 
 def all_tests():
     """Call each defined test."""
-    pass
-    # TODO calls to arg_test
+    arg_test(False, "-o NT=t -o nt=f", None, "option cannot appear twice on command line: NT")
+    # TODO other calls to arg_test
 
 def cleanup():
     """Clean up after all tests: Delete tmp/jsserver.properties"""
