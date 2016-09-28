@@ -296,7 +296,22 @@ def all_tests():
     arg_test(False, "-Djsettlers.gameopt.NT=t -Djsettlers.gameopt.nt=f", None, "option cannot appear twice on command line: NT")
     arg_test(False, "-o NT=t -Djsettlers.gameopt.nt=f", None, "option cannot appear twice on command line: NT")
 
+    # missing value
+    arg_test(False, "-o", None, "Missing required option name/value after -o")
+
+    # props file with no gameopts
+    #TODO
+
+    # props file with gameouts with no problems
+    #TODO
+
     # Run each of these tests for commandline and for properties file:
+
+    # if multiple problems, make sure init_propsCheckGameopts reports them
+    arg_test(False, "-oXYZ=t -oZZZ=t", None,
+        "Unknown game option: XYZ\nUnknown game option: ZZZ")
+    arg_test(False, "", ["jsettlers.gameopt.XYZ=t", "jsettlers.gameopt.ZZZ=t"],
+        "Unknown game option: XYZ\nUnknown game option: ZZZ")
 
     # empty game option name after prefix
     arg_test(False, "-Djsettlers.gameopt.=n", None,
@@ -306,6 +321,13 @@ def all_tests():
 
     # unknown opt name
     gameopt_tests_cmdline_propsfile(False, "un_known=y", "Unknown game option: UN_KNOWN")
+
+    # "unknown or malformed" opt (or bad value)
+    arg_test(False, "-o RD=g", None, "Unknown or malformed game option: RD")
+    arg_test(False, "-o RD=yy", None, "Unknown or malformed game option: RD")
+    gameopt_tests_cmdline_propsfile(False, "n7=z", "Unknown or malformed game option: n7")
+    gameopt_tests_cmdline_propsfile(False, "vp=z15", "Unknown or malformed game option: vp")
+    gameopt_tests_cmdline_propsfile(False, "OPTNAME_TOO_LONG=t", "Key length > 8: OPTNAME_TOO_LONG")
 
     # missing value for property
     arg_test(False, "-Djsettlers.xyz", None, "Missing value for property jsettlers.xyz")
