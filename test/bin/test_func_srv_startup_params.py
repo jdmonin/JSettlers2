@@ -235,7 +235,7 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
 
     if should_startup != did_startup:
         ret = False
-    if expected_output_incl is not None:
+    if (expected_output_incl is not None) and not did_startup:
         if expected_output_incl not in (stdout + " " + stderr):
             ret = False
             prn_startup += " -- missing expected output"
@@ -244,6 +244,8 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
         print(prn_startup + " -> ok")
     else:
         print(prn_startup + " -> FAIL")
+        if (expected_output_incl is not None) and not did_startup:
+            print("EXPECTED: " + expected_output_incl)
         print("STDOUT: " + stdout)
         print("STDERR: " + stderr)
         if propsfile_contents is not None:
