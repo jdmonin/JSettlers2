@@ -14,7 +14,8 @@
 # instead of being caught (for example, os.chdir failure).
 
 # See bottom of file for main() function.
-# Overall test function: all_tests, which calls arg_test for individual tests.
+# Overall test function: all_tests, which calls arg_test or
+# gameopt_tests_cmdline_propsfile to run individual tests.
 # Basic functions used per test: _run_and_get_outputs, print_result
 
 
@@ -180,7 +181,7 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
 
     Args:
         should_startup (bool): True if server should start up and run with these params,
-            False if these params should cause startup to fail and to return nonzero
+            False if these params should cause startup to fail or to return nonzero
         cmdline_params (str): Parameters for command line; defaults to empty string
         propsfile_contents (list of str): Contents to write to jsserver.properties,
             or None to run the test without a jsserver.properties file.
@@ -255,36 +256,66 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
         print("")
     return ret
 
+def gameopt_tests_cmdline_propsfile(should_startup, opt, expected_output_incl=None):
+    """Run two tests with this game option: Once on command line, once with properties file.
+    Calls arg_test with -o <opt> and again with props file contents jsettlers.<opt> .
+
+    Args:
+        should_startup (bool): True if server should start up and run with these params,
+            False if these params should cause startup to fail or to return nonzero
+        opt (str): Game option and value, in the form "oname=val".
+            Will be appended to gameopt-setting prefix in the two tests:
+            "-o oname=val"; ["jsettlers.gameopt.oname=val"]
+        expected_output_incl (str): String to search for in server output, case-sensitive,
+            or None to not look in output for any particular string
+            Note: All or some output may be lost (buffering) when timeout kills the process.
+            So if should_startup==True, it's unreliable to also use expected_output_incl.
+
+    Returns:
+    	bool: True if test results matched should_startup (and expected_output_incl if given),
+            False otherwise.
+
+    Raises:
+        ValueError: If called with should_startup==True and expected_output_incl not None.
+    """
+    # use "all" to ensure all tests run (avoid boolean short-circuit)
+    return all([
+        arg_test(should_startup, "-o " + opt, None, expected_output_incl),
+        arg_test(should_startup, "", ["jsettlers.gameopt." + opt], expected_output_incl)
+        ])
+
 def all_tests():
     """Call each defined test."""
+
     # no problems, no game opts on cmdline, no props file
     arg_test(True, "", None)
 
     # twice on cmdline; different uppercase/lowercase
+    arg_test(False, "-o NT=t -o NT=y", None, "option cannot appear twice on command line: NT")
     arg_test(False, "-o NT=t -o nt=f", None, "option cannot appear twice on command line: NT")
     arg_test(False, "-Djsettlers.gameopt.NT=t -Djsettlers.gameopt.nt=f", None, "option cannot appear twice on command line: NT")
     arg_test(False, "-o NT=t -Djsettlers.gameopt.nt=f", None, "option cannot appear twice on command line: NT")
 
-    # Tests for commandline and in props file:
+    # Run each of these tests for commandline and for properties file:
 
     # empty game option name after prefix
-    arg_test(False, "-Djsettlers.gameopt.=n", None, "Empty game option name in property key: jsettlers.gameopt.")
-    arg_test(False, "", ["jsettlers.gameopt.=n"], "Empty game option name in property key: jsettlers.gameopt.")
+    arg_test(False, "-Djsettlers.gameopt.=n", None,
+        "Empty game option name in property key: jsettlers.gameopt.")
+    arg_test(False, "", ["jsettlers.gameopt.=n"],
+        "Empty game option name in property key: jsettlers.gameopt.")
 
     # unknown opt name
-    arg_test(False, "-Djsettlers.gameopt.un_known=y", None, "Unknown game option: UN_KNOWN")
-    arg_test(False, "", ["jsettlers.gameopt.un_known=y"], "Unknown game option: UN_KNOWN")
+    gameopt_tests_cmdline_propsfile(False, "un_known=y", "Unknown game option: UN_KNOWN")
 
-    # missing value
+    # missing value for property
     arg_test(False, "-Djsettlers.xyz", None, "Missing value for property jsettlers.xyz")
     arg_test(False, "", ["jsettlers.xyz="], "Missing value for property jsettlers.xyz")
 
     # unknown scenario name
-    arg_test(False, "-o SC=ZZZ", None, "Command line default scenario ZZZ is unknown")
+    gameopt_tests_cmdline_propsfile(False, "SC=ZZZ", "default scenario ZZZ is unknown")
     arg_test(False, "-Djsettlers.gameopt.sc=ZZZ", None, "Command line default scenario ZZZ is unknown")
-    arg_test(False, "", ["jsettlers.gameopt.sc=ZZZ"], "Command line default scenario ZZZ is unknown")
 
-    # TODO other calls to arg_test
+    # TODO other calls to gameopt_tests_cmdline_propsfile or arg_test
 
 def cleanup():
     """Clean up after all tests: Delete tmp/jsserver.properties"""
