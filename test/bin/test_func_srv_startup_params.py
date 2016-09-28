@@ -88,6 +88,7 @@ def _run_and_get_outputs(cmd, args=[], timeout=0):
             Note: Because java normally behaves well but also takes a bit of time to halt,
             this timeout sends SIGTERM to allow cleanup, not SIGKILL for a hard kill.
             It's thus possible that a process won't actually stop.
+            Note: All or some output may be lost (buffering) when timeout kills the process.
 
     Returns:
         list of [int,str,str]: Exit code, stdout, stderr.
@@ -188,11 +189,22 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
             vs utf-8 or other encodings.
         expected_output_incl (str): String to search for in server output, case-sensitive,
             or None to not look in output for any particular string
+            Note: All or some output may be lost (buffering) when timeout kills the process.
+            So if should_startup==True, it's unreliable to also use expected_output_incl.
 
     Returns:
     	bool: True if test results matched should_startup (and expected_output_incl if given),
             False otherwise.
+
+    Raises:
+        ValueError: If called with should_startup==True and expected_output_incl not None.
+            Because of buffering vs subprocess timeouts, there's no guarantee that output is
+            entirely captured when the timeout kills the subprocess; searching for expected
+            output may fail although the program generated that output.
     """
+    if should_startup and (expected_output_incl is not None):
+        raise ValueError("Can't use should_startup with expected_output_incl")
+
     args = ["-jar", REL_PATH_JS_SERVER_JAR]
     if len(cmdline_params):
         args.extend(cmdline_params.split())
