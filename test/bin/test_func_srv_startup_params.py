@@ -257,8 +257,33 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
 
 def all_tests():
     """Call each defined test."""
+    # no problems, no game opts on cmdline, no props file
+    arg_test(True, "", None)
+
+    # twice on cmdline; different uppercase/lowercase
     arg_test(False, "-o NT=t -o nt=f", None, "option cannot appear twice on command line: NT")
+    arg_test(False, "-Djsettlers.gameopt.NT=t -Djsettlers.gameopt.nt=f", None, "option cannot appear twice on command line: NT")
+    arg_test(False, "-o NT=t -Djsettlers.gameopt.nt=f", None, "option cannot appear twice on command line: NT")
+
+    # Tests for commandline and in props file:
+
+    # empty game option name after prefix
+    arg_test(False, "-Djsettlers.gameopt.=n", None, "Empty game option name in property key: jsettlers.gameopt.")
+    arg_test(False, "", ["jsettlers.gameopt.=n"], "Empty game option name in property key: jsettlers.gameopt.")
+
+    # unknown opt name
+    arg_test(False, "-Djsettlers.gameopt.un_known=y", None, "Unknown game option: UN_KNOWN")
     arg_test(False, "", ["jsettlers.gameopt.un_known=y"], "Unknown game option: UN_KNOWN")
+
+    # missing value
+    arg_test(False, "-Djsettlers.xyz", None, "Missing value for property jsettlers.xyz")
+    arg_test(False, "", ["jsettlers.xyz="], "Missing value for property jsettlers.xyz")
+
+    # unknown scenario name
+    arg_test(False, "-o SC=ZZZ", None, "Command line default scenario ZZZ is unknown")
+    arg_test(False, "-Djsettlers.gameopt.sc=ZZZ", None, "Command line default scenario ZZZ is unknown")
+    arg_test(False, "", ["jsettlers.gameopt.sc=ZZZ"], "Command line default scenario ZZZ is unknown")
+
     # TODO other calls to arg_test
 
 def cleanup():
