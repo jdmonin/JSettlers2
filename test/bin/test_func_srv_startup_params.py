@@ -5,6 +5,7 @@
 # See bottom of file for copyright and license information (GPLv3+).
 
 # File/directory assumptions at runtime (mostly tested in env_ok()):
+# - Python interpreter is python2, not python3  [env_ok() prints warning if 3]
 # - This script lives in test/bin/  [not tested]
 # - Properties files can be created and deleted in test/tmp/  [tests dir existence only]
 # - Server JAR has been built already, to ../../target/JSettlersServer.jar
@@ -17,7 +18,7 @@
 # Basic functions used per test: _run_and_get_outputs, print_result
 
 
-from __future__ import print_function  # Python 2.6+ required
+from __future__ import print_function  # Python 2.6 or higher is required
 
 import os, re, subprocess, sys
 from threading import Thread
@@ -35,6 +36,10 @@ def print_err(*args, **kwargs):
 def env_ok():
     """Check environment. Return true if okay, false if problems."""
     all_ok = True
+
+    # python version
+    if sys.version_info[0] > 2:
+        print_err("Warning: python3 not supported; may give errors writing jsserver.properties (unicode vs string bytes)")
 
     # paths and files
     if not os.path.isdir(REL_PATH_TEMPDIR):
@@ -176,8 +181,11 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
         should_startup (bool): True if server should start up and run with these params,
             False if these params should cause startup to fail and to return nonzero
         cmdline_params (str): Parameters for command line; defaults to empty string
-        propsfile_contents (str): Contents to write to jsserver.properties,
-            or None to run the test without a jsserver.properties file
+        propsfile_contents (list of str): Contents to write to jsserver.properties,
+            or None to run the test without a jsserver.properties file.
+            Each list item is written as a line to the file.
+            Use ascii characters only, to avoid problems with java's expected iso-8859-1
+            vs utf-8 or other encodings.
         expected_output_incl (str): String to search for in server output, case-sensitive,
             or None to not look in output for any particular string
 
@@ -191,10 +199,16 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
 
     if propsfile_contents is not None:
         prn_pfile = "; with jsserver.properties"
-        pass  # TODO write
+        with open(FNAME_JSSERVER_PROPS, "w") as pf:
+            for line in propsfile_contents:
+                pf.write(line)
+                pf.write("\n")
     else:
         prn_pfile = "; no jsserver.properties"
-        pass  # TODO delete
+        try:
+            os.remove(FNAME_JSSERVER_PROPS)
+        except OSError:
+            pass  # didn't exist
 
     print("Test: java " + " ".join(args) + prn_pfile)
     exit_code, stdout, stderr = _run_and_get_outputs("java", args, timeout=MAX_TIMEOUT_SEC)
@@ -220,12 +234,17 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
         print(prn_startup + " -> FAIL")
         print("STDOUT: " + stdout)
         print("STDERR: " + stderr)
-
+        if propsfile_contents is not None:
+            print("jsserver.properties contents:")
+            for line in propsfile_contents:
+                print(line)
+        print("")
     return ret
 
 def all_tests():
     """Call each defined test."""
     arg_test(False, "-o NT=t -o nt=f", None, "option cannot appear twice on command line: NT")
+    arg_test(False, "", ["jsettlers.gameopt.un_known=y"], "Unknown game option: UN_KNOWN")
     # TODO other calls to arg_test
 
 def cleanup():
