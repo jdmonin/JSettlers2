@@ -214,6 +214,10 @@ Java applications:
   robot2      soc.robot.SOCRobotClient
      arguments: localhost 8880 robot2 r2 cook
 
+For automated functional testing, the project also includes the script
+test/bin/test_func_srv_startup_params.py; run and update this script if
+you are developing anything related to game options or jsettlers properties.
+
 
 If you want to configure a sqlite database for testing
 ------------------------------------------------------
