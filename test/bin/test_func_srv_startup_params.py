@@ -345,8 +345,8 @@ def all_tests():
     # "unknown or malformed" opt (or bad value)
     arg_test(False, "-o RD=g", None, "Unknown or malformed game option: RD")
     arg_test(False, "-o RD=yy", None, "Unknown or malformed game option: RD")
-    gameopt_tests_cmdline_propsfile(False, "n7=z", "Unknown or malformed game option: n7")
-    gameopt_tests_cmdline_propsfile(False, "vp=z15", "Unknown or malformed game option: vp")
+    gameopt_tests_cmdline_propsfile(False, "n7=z", "Unknown or malformed game option: N7")
+    gameopt_tests_cmdline_propsfile(False, "vp=z15", "Unknown or malformed game option: VP")
     gameopt_tests_cmdline_propsfile(False, "OPTNAME_TOO_LONG=t", "Key length > 8: OPTNAME_TOO_LONG")
 
     # missing value for property
@@ -354,6 +354,7 @@ def all_tests():
 
     # unknown scenario name
     gameopt_tests_cmdline_propsfile(False, "SC=ZZZ", "default scenario ZZZ is unknown")
+    gameopt_tests_cmdline_propsfile(False, "sc=ZZZ", "default scenario ZZZ is unknown")  # non-uppercase opt name
     arg_test(False, "-Djsettlers.gameopt.sc=ZZZ", None, "Command line default scenario ZZZ is unknown")
 
     return (0 == tests_failed_count)
