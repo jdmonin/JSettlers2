@@ -21,7 +21,7 @@
 
 from __future__ import print_function  # Python 2.6 or higher is required
 
-import os, re, subprocess, sys
+import os, re, subprocess, sys, time
 from threading import Thread
 
 FNAME_JSSERVER_JAR = "JSettlersServer.jar"
@@ -145,11 +145,17 @@ def _run_and_get_outputs(cmd, args=[], timeout=0):
                 # The process finished between the `is_alive()` and `kill()`
                 pass
             # OK, the process was definitely killed
+            rc = None   # time.sleep may overwrite proc.returncode/res_obj.exit_code
+            time.sleep(1)  # wait a bit for OS cleanup after kill,
+                # such as freeing the TCP port so the next test can bind to it.
+        else:
+            rc = res_obj.exit_code
     else:
         # no timeout required: run it in our own thread
         _thread_subproc(args, res_obj)
+        rc = res_obj.exit_code
 
-    return(res_obj.exit_code, res_obj.stdout, res_obj.stderr)
+    return(rc, res_obj.stdout, res_obj.stderr)
 
 def print_result(desc, res):
     """Helper method: Print test description, prefixed by 'ok' or 'FAIL' depending on bool res."""
