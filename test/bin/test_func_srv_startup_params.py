@@ -30,6 +30,11 @@ REL_PATH_TEMPDIR = "../tmp"
 FNAME_JSSERVER_PROPS = "jsserver.properties"
 MAX_TIMEOUT_SEC = 20
 
+tests_failed_count = 0
+"""int: global counter for test failures; increment in arg_test or
+    other unit-test functions.
+    """
+
 def print_err(*args, **kwargs):
     """Print the arguments to stderr instead of stdout."""
     print(*args, file=sys.stderr, **kwargs)
@@ -203,6 +208,8 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
             entirely captured when the timeout kills the subprocess; searching for expected
             output may fail although the program generated that output.
     """
+    global tests_failed_count
+
     if should_startup and (expected_output_incl is not None):
         raise ValueError("Can't use should_startup with expected_output_incl")
 
@@ -244,6 +251,7 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
     if ret:
         print(prn_startup + " -> ok")
     else:
+        tests_failed_count += 1
         print(prn_startup + " -> FAIL")
         if (expected_output_incl is not None) and not did_startup:
             print("EXPECTED: " + expected_output_incl)
@@ -285,7 +293,13 @@ def gameopt_tests_cmdline_propsfile(should_startup, opt, expected_output_incl=No
         ])
 
 def all_tests():
-    """Call each defined test."""
+    """Call each defined test.
+
+    Returns:
+        bool: True if all passed, False otherwise (see tests_failed_count).
+    """
+
+    global tests_failed_count
 
     # no problems, no game opts on cmdline, no props file
     arg_test(True, "", None)
@@ -336,6 +350,8 @@ def all_tests():
     gameopt_tests_cmdline_propsfile(False, "SC=ZZZ", "default scenario ZZZ is unknown")
     arg_test(False, "-Djsettlers.gameopt.sc=ZZZ", None, "Command line default scenario ZZZ is unknown")
 
+    return (0 == tests_failed_count)
+
 
 def cleanup():
     """Clean up after all tests: Delete tmp/jsserver.properties"""
@@ -343,7 +359,15 @@ def cleanup():
         os.remove(FNAME_JSSERVER_PROPS)
 
 def main():
-    """Main function: Check environment, set up, run tests, clean up."""
+    """Main function: Check environment, set up, run tests, clean up.
+
+    Returns:
+        If any tests failed, calls sys.exit(tests_failed_count).
+        Otherwise, exit code is 0 (default).
+    """
+
+    global tests_failed_count
+
     if not env_ok():
         print_err("")
         print_err("*** Exiting due to missing required conditions. ***")
@@ -353,6 +377,14 @@ def main():
         test_run_and_get_outputs()  # only if on unix: runs sleep, false commands
     all_tests()
     cleanup()
+
+    print("")
+    if (tests_failed_count > 0):
+        print("Total failure count: " + str(tests_failed_count))
+        sys.exit(tests_failed_count)
+    else:
+        print("All tests passed.")
+
 
 main()
 
