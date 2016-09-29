@@ -8804,7 +8804,8 @@ public class SOCServer extends Server
                         try
                         {
                             parseCmdline_GameOption
-                                (SOCGameOption.parseOptionNameValue(optKey, value, true), optKey, gameOptsAlreadySet);
+                                (SOCGameOption.parseOptionNameValue(optKey, value, true),
+                                 optKey + "=" + value, gameOptsAlreadySet);
                         } catch (IllegalArgumentException e) {
                             ok = false;
                             System.err.println(e.getMessage());
