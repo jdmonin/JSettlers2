@@ -300,10 +300,10 @@ def all_tests():
     arg_test(False, "-o", None, "Missing required option name/value after -o")
 
     # props file with no gameopts
-    #TODO
+    arg_test(True, "", ["jsettlers.allow.debug=y"])
 
     # props file with gameouts with no problems
-    #TODO
+    arg_test(True, "", ["jsettlers.gameopt.NT=y", "jsettlers.gameopt.vp=t12"])
 
     # Run each of these tests for commandline and for properties file:
 
@@ -331,13 +331,11 @@ def all_tests():
 
     # missing value for property
     arg_test(False, "-Djsettlers.xyz", None, "Missing value for property jsettlers.xyz")
-    arg_test(False, "", ["jsettlers.xyz="], "Missing value for property jsettlers.xyz")
 
     # unknown scenario name
     gameopt_tests_cmdline_propsfile(False, "SC=ZZZ", "default scenario ZZZ is unknown")
     arg_test(False, "-Djsettlers.gameopt.sc=ZZZ", None, "Command line default scenario ZZZ is unknown")
 
-    # TODO other calls to gameopt_tests_cmdline_propsfile or arg_test
 
 def cleanup():
     """Clean up after all tests: Delete tmp/jsserver.properties"""
