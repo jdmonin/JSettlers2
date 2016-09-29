@@ -913,8 +913,8 @@ public class SOCServer extends Server
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
      *       and any other desired properties. If {@code props} contains game option default values
      *       (see below) with non-uppercase gameopt names, cannot be read-only: Startup will
-     *       replace keys such as {@code "jsettlers.gameopt.sc"} with their canonical
-     *       uppercase equivalent: {@code "jsettlers.gameopt.SC"}
+     *       replace keys such as {@code "jsettlers.gameopt.vp"} with their canonical
+     *       uppercase equivalent: {@code "jsettlers.gameopt.VP"}
      *       <P>
      *       If {@code props} is null, the properties will be created empty
      *       and no bots will be started ({@link #PROP_JSETTLERS_STARTROBOTS} == 0).
@@ -1020,8 +1020,8 @@ public class SOCServer extends Server
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
      *       and any other desired properties. If {@code props} contains game option default values
      *       (see below) with non-uppercase gameopt names, cannot be read-only: Startup will
-     *       replace keys such as {@code "jsettlers.gameopt.sc"} with their canonical
-     *       uppercase equivalent: {@code "jsettlers.gameopt.SC"}
+     *       replace keys such as {@code "jsettlers.gameopt.vp"} with their canonical
+     *       uppercase equivalent: {@code "jsettlers.gameopt.VP"}
      *       <P>
      *       If {@code props} is null, the properties will be created empty
      *       and no bots will be started ({@link #PROP_JSETTLERS_STARTROBOTS} == 0).
@@ -8509,6 +8509,7 @@ public class SOCServer extends Server
     /**
      * Quick-and-dirty command line parsing of a game option.
      * Calls {@link SOCGameOption#setKnownOptionCurrentValue(SOCGameOption)}.
+     * If problems, throws an error message with text to print to console.
      *<P>
      * Note that an unknown {@link SOCScenario} name (value of game option {@code "SC"})
      * isn't treated as an error here; {@code SC}'s value will be set to the unknown scenario.
@@ -8523,7 +8524,8 @@ public class SOCServer extends Server
      *   {@code null} is allowed and will throw
      *   {@code IllegalArgumentException("Unknown or malformed game option: " + optRaw)}.
      * @param optRaw  To include in exception text or a value into {@code optsAlreadySet},
-     *         the option name or name=value from command line. Should not be null.
+     *         the option name=value from command line. Should not be null.
+     *         For cleaner messages, option name should be uppercased.
      * @param optsAlreadySet  For tracking, game option names we've already encountered on the command line.
      *                        This method will add ({@code optName}, {@code optNameValue}) to this map.
      *                        Can be {@code null} if not needed.
@@ -8718,9 +8720,21 @@ public class SOCServer extends Server
                 {
                     try
                     {
+                        // canonicalize opt's keyname to all-uppercase
+                        {
+                            final int i = argValue.indexOf('=');
+                            if (i > 0)
+                            {
+                                String oKey = argValue.substring(0, i),
+                                       okUC = oKey.toUpperCase(Locale.US);
+                                if (! oKey.equals(okUC))
+                                    argValue = okUC + argValue.substring(i);
+                            }
+                        }
                         // parse this opt, update known option's current value
                         SOCGameOption opt = parseCmdline_GameOption
-                            (SOCGameOption.parseOptionNameValue(argValue, true), argValue, gameOptsAlreadySet);
+                            (SOCGameOption.parseOptionNameValue(argValue, false),  // null if parse fails
+                             argValue, gameOptsAlreadySet);
 
                         // Add or update in argp, in case this gameopt property also appears in the properties file;
                         // otherwise the SOCServer constructor will reset the known opt current value
@@ -8793,7 +8807,7 @@ public class SOCServer extends Server
                 // Is it a game option default value?
                 if (name.startsWith(PROP_JSETTLERS_GAMEOPT_PREFIX))
                 {
-                    final String optKey = name.substring(pfxL);
+                    final String optKey = name.substring(pfxL).toUpperCase(Locale.US);
                     boolean ok = true;
                     if (optKey.length() == 0)
                     {
@@ -8804,8 +8818,10 @@ public class SOCServer extends Server
                         try
                         {
                             parseCmdline_GameOption
-                                (SOCGameOption.parseOptionNameValue(optKey, value, true),
+                                (SOCGameOption.parseOptionNameValue(optKey, value, false),
                                  optKey + "=" + value, gameOptsAlreadySet);
+                            // Reminder: This call adds optKey to gameOptsAlreadySet
+                            // or throws exception if already there (opt twice on command line, etc)
                         } catch (IllegalArgumentException e) {
                             ok = false;
                             System.err.println(e.getMessage());
@@ -8976,8 +8992,8 @@ public class SOCServer extends Server
      *
      * @param pr  Properties which may contain {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}* entries
      *     If {@code pr} contains entries with non-uppercase gameopt names, cannot be read-only:
-     *     Will replace keys such as {@code "jsettlers.gameopt.sc"} with their canonical
-     *     uppercase equivalent: {@code "jsettlers.gameopt.SC"}
+     *     Will replace keys such as {@code "jsettlers.gameopt.vp"} with their canonical
+     *     uppercase equivalent: {@code "jsettlers.gameopt.VP"}
      * @throws IllegalArgumentException if any game option property has a bad name or value.
      *     {@link Throwable#getMessage()} will collect all option problems to 1 string, separated by {@code "\n"}:
      *     <UL>
@@ -9028,7 +9044,7 @@ public class SOCServer extends Server
             if (! ((k instanceof String) && ((String) k).startsWith(PROP_JSETTLERS_GAMEOPT_PREFIX)))
                 continue;
 
-            final String optKey = ((String) k).substring(pfxL);  // "jsettlers.gameopt.n7" -> "n7"
+            final String optKey = ((String) k).substring(pfxL);  // "jsettlers.gameopt.N7" -> "N7"
             if (optKey.length() == 0)
             {
                 if (problems == null)
@@ -9043,8 +9059,10 @@ public class SOCServer extends Server
             try
             {
                 // parse this gameopt and set its current value in SOCGameOptions static set of known opts
+                final String optVal = pr.getProperty((String) k);
                 parseCmdline_GameOption
-                    (SOCGameOption.parseOptionNameValue(optKey, pr.getProperty((String) k), false), optKey, null);
+                    (SOCGameOption.parseOptionNameValue(optKey, optVal, false),
+                     optKey + '=' + optVal, null);
                 hasSetGameOptions = true;
             } catch (IllegalArgumentException e) {
                 if (problems == null)
