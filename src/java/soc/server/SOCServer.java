@@ -10779,6 +10779,7 @@ public class SOCServer extends Server
     /**
      * Quick-and-dirty command line parsing of a game option.
      * Calls {@link SOCGameOption#setKnownOptionCurrentValue(SOCGameOption)}.
+     * If problems, throws an error message with text to print to console.
      * @param optNameValue Game option name+value, of <tt>optname=optvalue</tt> form expected by
      *                     {@link SOCGameOption#parseOptionNameValue(String, boolean)}.
      *                     Option keyname is case-insensitive.
@@ -10966,6 +10967,16 @@ public class SOCServer extends Server
                 {
                     try
                     {
+                        // canonicalize opt's keyname to all-uppercase
+                        final int i = argValue.indexOf('=');
+                        if (i > 0)
+                        {
+                            String oKey = argValue.substring(0, i),
+                                   okUC = oKey.toUpperCase(Locale.US);
+                            if (! oKey.equals(okUC))
+                                argValue = okUC + argValue.substring(i);
+                        }
+
                         // parse this opt, update known option's current value
                         SOCGameOption opt = parseCmdline_GameOption(argValue, gameOptsAlreadySet);
 
