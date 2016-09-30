@@ -55,6 +55,7 @@ new features, until 2.0.00 is ready.
 - User account DB schema: For new installs, require user passwords (existing DBs don't need to make this change).
      Passwords were already required in earlier versions; this only formalizes it in the database.
 - Deactivate client debug prints of network message contents
+- First version to include an automated functional test script
 
     > 1.1.19 (build OV20141127)
 - New game option "N7C" for house rule: Roll no 7s until a city is built

@@ -162,6 +162,10 @@ All files created by building are in the "target" directory, including
 JARs, Java .class files, and JavaDoc files. Distribution tarballs, zip
 files, and installation files are placed in "dist".
 
+For automated functional testing, the project also includes the script
+test/bin/test_func_srv_startup_params.py; run and update this script if
+you are developing anything related to game options or jsettlers properties.
+
 
 If you want to configure a sqlite database for testing
 ------------------------------------------------------
