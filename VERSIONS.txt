@@ -55,6 +55,8 @@ new features, until 2.0.00 is ready.
 - Robots: Force robots to discard random resources after several seconds of inactivity
      during other players' turns when a 7 is rolled.
 - Game window:
+     Guidance for new users: After initial placement, if user tries left-clicking the board to build,
+        popup a hint message to use right-click (or control-click on OSX) instead.
      Trade offers from other players: Show/hide Accept button when resources gained/lost/traded
      Print message in chat area when player leaves, to balance message when a player joins
 - Server stats (*STATS* command): Increase "games finished" when game is over, not later when it's destroyed

@@ -56,6 +56,7 @@ import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -1300,6 +1301,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * For tooltip's mode, see {@link SOCBoardPanel.BoardToolTip#hoverMode}.
      */
     private int mode;
+
+    /**
+     * Number of times that hint message has been shown which
+     * prompts the player to right-click (not left- or double-click)
+     * to build (by displaying the build menu).
+     * Show at most twice to avoid annoying new users.
+     * @see #mouseClicked(MouseEvent)
+     * @since 1.1.20
+     */
+    private int hintShownCount_RightClickToBuild;
 
     /**
      * This holds the coord of the last stlmt
@@ -5787,36 +5798,60 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
 
             boolean tempChangedMode = false;
-            if ((mode == NONE) && game.isDebugFreePlacement() && hoverTip.isVisible())
+            if ((mode == NONE) && hoverTip.isVisible())
             {
                 // Normally, NONE mode ignores single clicks.
                 // But in the Free Placement debug mode, these
                 // can be used to place pieces.
+                // Also: After initial placement, to help guide new users,
+                // display a hint message popup that left-click is not used
+                // to build pieces (see below).
 
-                if (hoverTip.hoverSettlementID != 0)
+                if (game.isDebugFreePlacement())
                 {
-                    hilight = hoverTip.hoverSettlementID;
-                    hilightIsShip = false;
-                    mode = PLACE_SETTLEMENT;
-                    tempChangedMode = true;
-                } else if (hoverTip.hoverCityID != 0)
+                    if (hoverTip.hoverSettlementID != 0)
+                    {
+                        hilight = hoverTip.hoverSettlementID;
+                        hilightIsShip = false;
+                        mode = PLACE_SETTLEMENT;
+                        tempChangedMode = true;
+                    } else if (hoverTip.hoverCityID != 0)
+                    {
+                        hilight = hoverTip.hoverCityID;
+                        hilightIsShip = false;
+                        mode = PLACE_CITY;
+                        tempChangedMode = true;
+                    } else if (hoverTip.hoverRoadID != 0)
+                    {
+                        hilight = hoverTip.hoverRoadID;
+                        hilightIsShip = false;
+                        mode = PLACE_ROAD;
+                        tempChangedMode = true;
+                    } else if (hoverTip.hoverShipID != 0)
+                    {
+                        hilight = hoverTip.hoverShipID;
+                        hilightIsShip = true;
+                        mode = PLACE_SHIP;
+                        tempChangedMode = true;
+                    }
+                } else if (((evt.getModifiers() & InputEvent.BUTTON1_MASK) == InputEvent.BUTTON1_MASK)
+                    && (player != null) && (game.getCurrentPlayerNumber() == playerNumber)
+                    && (player.getPublicVP() == 2) && (hintShownCount_RightClickToBuild < 2))
                 {
-                    hilight = hoverTip.hoverCityID;
-                    hilightIsShip = false;
-                    mode = PLACE_CITY;
-                    tempChangedMode = true;
-                } else if (hoverTip.hoverRoadID != 0)
-                {
-                    hilight = hoverTip.hoverRoadID;
-                    hilightIsShip = false;
-                    mode = PLACE_ROAD;
-                    tempChangedMode = true;
-                } else if (hoverTip.hoverShipID != 0)
-                {
-                    hilight = hoverTip.hoverShipID;
-                    hilightIsShip = true;
-                    mode = PLACE_SHIP;
-                    tempChangedMode = true;
+                    // To help during the start of the game, display a hint message
+                    // reminding new users to right-click to build (OSX: control-click).
+                    // Show it at most twice to avoid annoying the user.
+
+                    ++hintShownCount_RightClickToBuild;
+                    final String prompt =
+                        (SOCPlayerClient.isJavaOnOSX)
+                        ? "board.popup.hint_build_click.osx"
+                            // "To build pieces, hold Control while clicking the build location."
+                        : "board.popup.hint_build_click";  // "To build pieces, right-click the build location."
+                    NotifyDialog.createAndShow
+                        (playerInterface.getGameDisplay(), playerInterface,
+                         "\n" + strings.get(prompt), null, true);
+                        // start prompt with \n to prevent it being a lengthy popup-dialog title
                 }
             }
 
