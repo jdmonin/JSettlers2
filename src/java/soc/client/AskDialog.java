@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007-2010,2014 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007-2010,2014,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -111,7 +111,8 @@ public abstract class AskDialog extends Dialog
      * @param gamePI   Current game's player interface;
      *                 Cannot be null, use the other constructor if not asking
      *                 about a specific game.
-     * @param titlebar Title bar text
+     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used.
+     *            If begins with \n, title is "JSettlers" instead.
      * @param prompt   Prompting text shown above buttons, or null
      * @param choice1  First choice button text
      * @param choice2  Second choice button text
@@ -159,7 +160,8 @@ public abstract class AskDialog extends Dialog
      *
      * @param cli      Player client interface
      * @param parentFr SOCPlayerClient or other parent frame
-     * @param titlebar Title bar text
+     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used.
+     *            If begins with \n, title is "JSettlers" instead.
      * @param prompt   Prompting text shown above buttons, or null
      * @param choice1  First choice button text
      * @param choice2  Second choice button text
@@ -188,7 +190,8 @@ public abstract class AskDialog extends Dialog
      *
      * @param cli      Player client interface
      * @param gamePI   Current game's player interface
-     * @param titlebar Title bar text
+     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used.
+     *            If begins with \n, title is "JSettlers" instead.
      * @param prompt   Prompting text shown above buttons, or null
      * @param choice1  First choice button text
      * @param choice2  Second choice button text
@@ -219,7 +222,8 @@ public abstract class AskDialog extends Dialog
      *
      * @param cli      Player client interface
      * @param parentFr SOCPlayerClient or other parent frame
-     * @param titlebar Title bar text
+     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used.
+     *            If begins with \n, title is "JSettlers" instead.
      * @param prompt   Prompting text shown above buttons, or null.
      *              Can be multi-line, use "\n" within your string to separate them.
      * @param choice1  First choice button text
@@ -623,16 +627,22 @@ public abstract class AskDialog extends Dialog
     }
 
     /**
-     * Extract the first line (up to \n) if f is multi-line.
-     * @param f  A string, possibly containing \n. Should not start with \n.
-     * @return  f's first line, or all of f if no \n
+     * Extract the first line (up to \n) if <tt>f</tt> is multi-line.
+     * Used for setting the dialog title.
+     * @param f  A string, possibly containing \n.
+     *     See return javadoc for behavior if <tt>f</tt> starts with \n.
+     * @return  f's first line, or all of <tt>f</tt> if no \n;
+     *     if <tt>f</tt> starts with \n, returns "JSettlers" to avoid an empty title.
      * @since 1.1.07
      */
     public static String firstLine(String f)
     {
-        int i = f.indexOf("\n");
+        final int i = f.indexOf("\n");
+
         if (i == -1)
             return f;
+        else if (i == 0)  // avoid blank title: added in v1.1.20
+            return "JSettlers";
         else
             return f.substring(0, i);
     }
