@@ -813,7 +813,10 @@ public class SOCServer extends Server
      *
      * @param p    the TCP port that the server listens on
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
-     *       and any other desired properties.
+     *       and any other desired properties. If <tt>props<tt> contains game option default values
+     *       (see below) with non-uppercase gameopt names, cannot be read-only: Startup will
+     *       replace keys such as <tt>"jsettlers.gameopt.vp"</tt> with their canonical
+     *       uppercase equivalent: <tt>"jsettlers.gameopt.VP"</tt>
      *       <P>
      *       If <tt>props</tt> is null, the properties will be created empty
      *       and no bots will be started ({@link #PROP_JSETTLERS_STARTROBOTS} == 0).
@@ -841,6 +844,7 @@ public class SOCServer extends Server
         throws SocketException, EOFException, SQLException, IllegalArgumentException
     {
         super(p);
+
         maxConnections = init_getIntProperty(props, PROP_JSETTLERS_CONNECTIONS, 15);
         allowDebugUser = init_getBoolProperty(props, PROP_JSETTLERS_ALLOW_DEBUG, false);
         CLIENT_MAX_CREATE_GAMES = init_getIntProperty(props, PROP_JSETTLERS_CLI_MAXCREATEGAMES, CLIENT_MAX_CREATE_GAMES);
@@ -876,6 +880,7 @@ public class SOCServer extends Server
         throws SocketException, EOFException, SQLException
     {
         super(s);
+
         maxConnections = mc;
         initSocServer(databaseUserName, databasePassword, null);
     }
@@ -910,7 +915,10 @@ public class SOCServer extends Server
      * @param databaseUserName Used for DB connect - not retained
      * @param databasePassword Used for DB connect - not retained
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
-     *       and any other desired properties. 
+     *       and any other desired properties. If <tt>props<tt> contains game option default values
+     *       (see below) with non-uppercase gameopt names, cannot be read-only: Startup will
+     *       replace keys such as <tt>"jsettlers.gameopt.vp"</tt> with their canonical
+     *       uppercase equivalent: <tt>"jsettlers.gameopt.VP"</tt>
      *       <P>
      *       If <code>props</code> is null, the properties will be created empty
      *       and no bots will be started ({@link #PROP_JSETTLERS_STARTROBOTS} == 0).
@@ -10964,24 +10972,10 @@ public class SOCServer extends Server
                         // Add or update in argp, in case this gameopt property also appears in the properties file;
                         // otherwise the SOCServer constructor will reset the known opt current value
                         // back to the properties file's contents, instead of keeping the command-line opt value.
-                        // Because the opt name is case-insensitive within the argp key, we iterate all opts.
-                        // TODO optimize: Right after parsing argp, canonicalize any game opt key names to uppercase.
-                        Iterator i = argp.keySet().iterator();
-                        while (i.hasNext())
-                        {
-                            Object k = i.next();
-                            if (! ((k instanceof String) && ((String) k).startsWith(PROP_JSETTLERS_GAMEOPT_PREFIX)))
-                                continue;
-
-                            final String optKey = ((String) k).substring(pfxL);
-                            if (! optKey.equalsIgnoreCase(opt.optKey))
-                                continue;
-
-                            argp.put(k, opt.getPackedValue().toString());
-                            break;
-                        }
                         // if not found, don't need to add it to argp: option's current value is already set.
-
+                        final String propKey = PROP_JSETTLERS_GAMEOPT_PREFIX + opt.optKey;
+                        if (argp.containsKey(propKey))
+                            argp.put(propKey, opt.getPackedValue().toString());
                     } catch (IllegalArgumentException e) {
                         argValue = null;
                         System.err.println(e.getMessage());
@@ -11196,7 +11190,10 @@ public class SOCServer extends Server
      * See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for expected syntax.
      * Calls {@link #parseCmdline_GameOption(String, HashMap)} for each one found.
      *
-     * @param pr  Properties which may contain {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}* entries
+     * @param pr  Properties which may contain {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}* entries.
+     *       If <tt>props<tt> contains entries with non-uppercase gameopt names, cannot be read-only:
+     *       Will replace keys such as <tt>"jsettlers.gameopt.vp"</tt> with their canonical
+     *       uppercase equivalent: <tt>"jsettlers.gameopt.VP"</tt>
      * @throws IllegalArgumentException if any game option property has a bad name or value.
      *     {@link Throwable#getMessage()} will collect all option problems to 1 string, separated by <tt>"\n"</tt>:
      *     <UL>
@@ -11216,10 +11213,39 @@ public class SOCServer extends Server
         final int pfxL = PROP_JSETTLERS_GAMEOPT_PREFIX.length();
         StringBuilder problems = null;
 
-        Iterator i = pr.keySet().iterator();
-        while (i.hasNext())
+        // First, canonicalize any game opt key names to uppercase
         {
-            Object k = i.next();
+            ArrayList makeUpper = new ArrayList();
+            Iterator it = pr.keySet().iterator();
+            while (it.hasNext())
+            {
+                Object k = it.next();
+                if (! ((k instanceof String) && ((String) k).startsWith(PROP_JSETTLERS_GAMEOPT_PREFIX)))
+                    continue;
+
+                final String optKey = ((String) k).substring(pfxL),
+                             optUC = optKey.toUpperCase(Locale.US);
+                if (! optKey.equals(optUC))
+                {
+                    makeUpper.add(k);
+                    makeUpper.add(PROP_JSETTLERS_GAMEOPT_PREFIX + optUC);
+                }
+            }
+
+            for (int i = 0; i < makeUpper.size(); i += 2)
+            {
+                final Object propKey = makeUpper.get(i),
+                             propUC = makeUpper.get(i + 1);
+                pr.put(propUC, pr.get(propKey));
+                pr.remove(propKey);
+            }
+        }
+
+        // Now parse, set current values, and look for problems
+        Iterator it = pr.keySet().iterator();
+        while (it.hasNext())
+        {
+            Object k = it.next();
             if (! ((k instanceof String) && ((String) k).startsWith(PROP_JSETTLERS_GAMEOPT_PREFIX)))
                 continue;
 
