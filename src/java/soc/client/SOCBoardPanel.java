@@ -4083,7 +4083,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 ++hintShownCount_RightClickToBuild;
                 final String prompt =
                     (SOCPlayerClient.isJavaOnOSX)
-                    ? "To build pieces, hold Control while clicking the build location"
+                    ? "To build pieces, hold Control while clicking the build location."
                     : "To build pieces, right-click the build location.";
                 NotifyDialog.createAndShow
                     (playerInterface.getClient(), playerInterface,
