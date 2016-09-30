@@ -328,8 +328,6 @@ def all_tests():
     # Run each of these tests for commandline and for properties file:
 
     # if multiple problems, make sure init_propsCheckGameopts reports them
-    arg_test(False, "-oXYZ=t -oZZZ=t", None,
-        "Unknown game option: XYZ\nUnknown game option: ZZZ")
     arg_test(False, "", ["jsettlers.gameopt.XYZ=t", "jsettlers.gameopt.ZZZ=t"],
         "Unknown game option: XYZ\nUnknown game option: ZZZ")
 
@@ -340,22 +338,17 @@ def all_tests():
         "Empty game option name in property key: jsettlers.gameopt.")
 
     # unknown opt name
-    gameopt_tests_cmdline_propsfile(False, "un_known=y", "Unknown game option: UN_KNOWN")
+    gameopt_tests_cmdline_propsfile(False, "zzz=y", "Unknown game option: ZZZ")
 
     # "unknown or malformed" opt (or bad value)
     arg_test(False, "-o RD=g", None, "Unknown or malformed game option: RD")
     arg_test(False, "-o RD=yy", None, "Unknown or malformed game option: RD")
     gameopt_tests_cmdline_propsfile(False, "n7=z", "Unknown or malformed game option: N7")
     gameopt_tests_cmdline_propsfile(False, "vp=z15", "Unknown or malformed game option: VP")
-    gameopt_tests_cmdline_propsfile(False, "OPTNAME_TOO_LONG=t", "Key length > 8: OPTNAME_TOO_LONG")
+    gameopt_tests_cmdline_propsfile(False, "OPTNAME_TOO_LONG=t", "Key length: OPTNAME_TOO_LONG")
 
     # missing value for property
     arg_test(False, "-Djsettlers.xyz", None, "Missing value for property jsettlers.xyz")
-
-    # unknown scenario name
-    gameopt_tests_cmdline_propsfile(False, "SC=ZZZ", "default scenario ZZZ is unknown")
-    gameopt_tests_cmdline_propsfile(False, "sc=ZZZ", "default scenario ZZZ is unknown")  # non-uppercase opt name
-    arg_test(False, "-Djsettlers.gameopt.sc=ZZZ", None, "Command line default scenario ZZZ is unknown")
 
     return (0 == tests_failed_count)
 
