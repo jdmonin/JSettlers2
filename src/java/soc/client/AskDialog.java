@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007-2010,2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007-2010,2013-2014,2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -146,7 +146,8 @@ public abstract class AskDialog extends Dialog
      * @param gamePI   Current game's player interface;
      *                 Cannot be null, use the other constructor if not asking
      *                 about a specific game.
-     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used
+     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used.
+     *                 If begins with \n, title is "JSettlers" instead.
      * @param prompt   Prompting text shown above buttons, or null
      * @param choice1  First choice button text
      * @param choice2  Second choice button text
@@ -194,7 +195,8 @@ public abstract class AskDialog extends Dialog
      *
      * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen 
      * @param parentFr SOCPlayerClient or other parent frame
-     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used
+     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used.
+     *            If begins with \n, title is "JSettlers" instead.
      * @param prompt   Prompting text shown above buttons, or null
      * @param choice1  First choice button text
      * @param choice2  Second choice button text
@@ -223,7 +225,8 @@ public abstract class AskDialog extends Dialog
      *
      * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen 
      * @param gamePI   Current game's player interface
-     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used
+     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used.
+     *            If begins with \n, title is "JSettlers" instead.
      * @param prompt   Prompting text shown above buttons, or null
      * @param choice1  First choice button text
      * @param choice2  Second choice button text
@@ -254,7 +257,8 @@ public abstract class AskDialog extends Dialog
      *
      * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen 
      * @param parentFr SOCPlayerClient or other parent frame
-     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used
+     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used.
+     *              If begins with \n, title is "JSettlers" instead.
      * @param prompt   Prompting text shown above buttons, or null.
      *              Can be multi-line, use "\n" within your string to separate them.
      * @param choice1  First choice button text
@@ -698,15 +702,21 @@ public abstract class AskDialog extends Dialog
 
     /**
      * Extract the first line (up to \n) if {@code f} is multi-line.
-     * @param f  A string, possibly containing \n. Should not start with \n.
-     * @return  {@code f}'s first line, or all of {@code f} if no \n
+     * Used for setting the dialog title.
+     * @param f  A string, possibly containing \n.
+     *     See return javadoc for behavior if {@code f} starts with \n.
+     * @return  {@code f}'s first line, or all of {@code f} if no \n;
+     *     if {@code f} starts with \n, returns "JSettlers" to avoid an empty title.
      * @since 1.1.07
      */
     public static String firstLine(String f)
     {
-        int i = f.indexOf("\n");
+        final int i = f.indexOf("\n");
+
         if (i == -1)
             return f;
+        else if (i == 0)  // avoid blank title: added in v1.1.20
+            return "JSettlers";
         else
             return f.substring(0, i);
     }
