@@ -178,6 +178,7 @@ There are several build targets, here are the most useful ones:
  build      Create project jar files. (default)
  clean      Cleans the project of all generated files
  compile    Compile class files into "target/classes"
+ test       Run functional tests against the built jar files
  dist       Build distribution tarballs and zips.
  javadoc    Creates JavaDoc files in "target/docs/api"
  src        Create a tarball of the source tree
@@ -277,6 +278,7 @@ Current partially-done work
 	- Refactor SOCMessage classes to use templates
 	- Some SOCMessage classes (SOCGames, SOCJoinGameRequest) accept objects like SOCGame and parse/create them;
 	    over-the-network communication will always be strings only.
+	- Search the source for /*18N*/ and externalize those strings; see "I18N" section below
 
 
 Current TODO list
@@ -288,19 +290,14 @@ Current TODO list
 	- Visual reminder to player when they've made a trade offer
 	- Show # VP when choosing where to sit, if game is in progress
 	- Keyboard shortcuts for "roll", "done" buttons
-	- Search the source for /*18N*/ and externalize those strings; see "I18N" section below
-	- Occasionally an image does not re-scale when board is stretched.
-		Instead of giving up (SOCBoardPanel.scaledHexFail, etc),
-		try re-scaling again, but increase width or height by 1 pixel.
+	- Occasionally the board does not re-scale at game reset
 	- Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
 	- Control the speed of robots in practice games
 		Adjust SOCRobotBrain.pause, ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS, etc
 	- Sound effects
+	- Add more functional and unit tests, in test/bin/ and test/src/ directories and build.xml
 	- Possible: Auto-add robots when needed as server runs, with server active-game count
-		only do it if jsettlers.startrobots property is set
-	- Docker (dockerfile in git) or other containerization, including sqlite jdbc and a jsserver.properties using sqlite
-		related bootstrapping issue: admin doc reminder to create admin acct right away, name that admin in jsserver.properties
-	- User documentation is out of date; unsure if any user ever reads it anyway
+		Only do it if jsettlers.startrobots property is set
 	- refactor: ga.getPlayer(ga.getCurrentPlayer()) or getClient().getClientManager()
 	- Refactor SOCRobotClient: Move simple handle-methods which don't
 		put the message into brainQ, but only update game fields/
@@ -308,9 +305,16 @@ Current TODO list
 	- Refactor: SOCGameOption static methods to check and change values within a set
 	- refactor: name of dev-cards consolidate
 	- refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
-		current SOCResourceConstants.CLAY vs SOCPlayerElement.CLAY
+		Currently in 2 places: SOCResourceConstants.CLAY vs SOCPlayerElement.CLAY
 	- Refactor: combine the cli/displayless/robot endturn-like methods
 		ex. search for ga.setCurrentDice(0), or newToOld, or ga.resetVoteClear
+	- Machine-readable specs for each network message type's parameters (type, required/optional, etc)
+		which could potentially generate a client library in other languages
+		or validate the java message classes
+	- Sample client code for the network protocol in python, js, or another language
+	- Docker (dockerfile in git) or other containerization, including sqlite jdbc and a jsserver.properties using sqlite
+		Related bootstrapping issue: admin doc reminder to create admin acct right away, name that admin in jsserver.properties
+	- User documentation is out of date; unsure if any user ever reads it anyway
 	- At board reset, game observers not currently handled properly
 	- Property for read-only database use without errors
 	- Game "owner" with extra powers (kick out player, etc)
@@ -320,10 +324,6 @@ Current TODO list
 	- Monitoring: Command line utility or html-based dashboard: Uptime, health of bots,
 		currently active/total games from *STATS* cmd, client versions, any errors, etc
 	- Per-game thread/message queue at server (use SOCMessageForGame.getGame)
-	- Machine-readable specs for each network message type's parameters (type, required/optional, etc)
-		which could potentially generate a client library in other languages
-		or validate the java message classes
-	- Sample client code for the network protocol in python, js, or another language
 	- HTML5 client
 	- Cities & Knights support
 		- UI mock-ups
