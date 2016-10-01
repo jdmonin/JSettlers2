@@ -95,6 +95,8 @@ Start the server with the following command
   java -jar JSettlersServer.jar
 
 This will start the server on the default port of 8880 with 7 robots.
+It will try to connect to an optional mysql database named "socdata";
+startup will continue if the db connect doesn't work.
 
 You can change those values and specify game option defaults; see details below.
 
@@ -119,10 +121,10 @@ command line, or in a jsserver.properties file in the current directory when
 you start the server.
 
 Command line example:
-  java -jar JSettlersServer.jar -Djsettlers.startrobots=9 8880 30 socuser socpass
+  java -jar JSettlersServer.jar -Djsettlers.startrobots=9 8880 30
 
 In this example the parameters are: start 9 bots; TCP port number 8880;
-max clients 30; db user; db password.
+max clients 30.
 
 The started robots count against your max simultaneous connections (30 in this
 example).  If the robots leave less than 6 player connections available, or if
