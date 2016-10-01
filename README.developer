@@ -154,6 +154,7 @@ There are several build targets, here are the most useful ones:
  build      Create project jar files. (default)
  clean      Cleans the project of all generated files
  compile    Compile class files into "target/classes"
+ test       Run functional tests against the built jar files
  dist       Build distribution tarballs and zips.
  javadoc    Creates JavaDoc files in "target/docs/api"
  src        Create a tarball of the source tree
