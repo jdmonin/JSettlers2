@@ -36,7 +36,7 @@ new features, until 2.0.00 is ready.
 - Server stats (*STATS* command): Increase "games finished" when game is over, not later when it's destroyed
 - *HELP* command recognized from all players, not only debug user
 - *WHO* command: User admins or debug user can list any game's members, or * or ALL to list all connected users
-- SOCServer: Prohibit game/channel name "*". Trim username and game name in createOrJoinGameIfUserOK, not message handlers.
+- Game or channel name "*" no longer permitted, to avoid conflicts with admin command enhancements
 - Server console traces:
      "joined the game"/"left the game" include current time
      Remove redundant joined/left debug prints

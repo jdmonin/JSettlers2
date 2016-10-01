@@ -96,17 +96,7 @@ Start the server with the following command
 
 This will start the server on the default port of 8880 with 7 robots.
 
-You can also specify parameters at startup:
-
-  java -jar JSettlersServer.jar -Djsettlers.startrobots=9 8880 30 socuser socpass
-
-Those parameters are: start 9 bots; TCP port number 8880; max clients 30; db user; db password.
-
-The started robots count against your max simultaneous connections (30 in this example).
-If the robots leave less than 6 player connections available, or if they take
-more than half the max connections, a warning message is printed at startup.
-
-To start a server with no robots (human players only), use -Djsettlers.startrobots=0 .
+You can change those values and specify game option defaults; see details below.
 
 If MySQL or another database is not installed and running (See "Database Setup"),
 you will see a warning with the appropriate explanation:
@@ -122,11 +112,27 @@ leaving the password field blank, as long as they aren't using a nickname
 which has a password in the database.  Optionally game results can also be
 stored in the database, see next section; results are not stored by default.
 
+Parameters and game option defaults:
+
+JSettlers options, parameters, and game option defaults can be specified on the
+command line, or in a jsserver.properties file in the current directory when
+you start the server.
+
+Command line example:
+  java -jar JSettlersServer.jar -Djsettlers.startrobots=9 8880 30 socuser socpass
+
+In this example the parameters are: start 9 bots; TCP port number 8880;
+max clients 30; db user; db password.
+
+The started robots count against your max simultaneous connections (30 in this
+example).  If the robots leave less than 6 player connections available, or if
+they take more than half the max connections, a warning message is printed at
+startup. To start a server with no robots (human players only), use
+-Djsettlers.startrobots=0 .
+
 Any command-line switches and options go before the port number if specified
 on the command line.  If the command includes -jar, switches and options go
 after the jar filename.
-
-Parameters and game option defaults:
 
 To change a Game Option from its default, for example to activate the house rule
 "Robber can't return to the desert", use the "-o" switch with the game option's
@@ -245,7 +251,7 @@ need to set up an http server such as Apache.  We assume you have
 installed it already, and will refer to "${docroot}" as a directory
 to place files to be served by your web server.
 
-Copy index.html from src/web to ${docroot}.  If you're going to use an
+Copy index.html from src/web/ to ${docroot}.  If you're going to use an
 accounts database and anyone can register their own account (this is not
 the default setting), also copy accounts.html.
 
