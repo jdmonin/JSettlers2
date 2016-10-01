@@ -265,6 +265,23 @@ pte.version = ${i18neditor.version}
   <!-- Testing targets -->
   <!-- ************************************** -->
 
+  <target name="test" depends="build"
+          description="Run tests against the built JARs; fail the build if any errors">
+      <echo message="Running tests, wait for output:" />
+      <!--
+        These take more than a minute to run; the python script produces output after
+        each test, but ant buffers it all; no output appears until the script completes.
+
+        When we later have multiple test scripts, don't immediately fail: Instead set
+        properties (failonerror="false" resultproperty="test.1.exitcode", etc)
+        and check the properties after all tests have ran.
+       -->
+      <exec dir="${basedir}/test/bin" executable="python" failonerror="true">
+        <arg line="test_func_srv_startup_params.py" />
+      </exec>
+      <echo message="Tests completed successfully." />
+  </target>
+
   <target name="unused_old_example_test" depends="unused_old_example_compile-tests">
       <mkdir dir="${test.reports}" />
       <junit dir="./" 
