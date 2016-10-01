@@ -265,7 +265,7 @@ pte.version = ${i18neditor.version}
   <!-- Testing targets -->
   <!-- ************************************** -->
 
-  <target name="test" depends="compile-tests">
+  <target name="unused_old_example_test" depends="unused_old_example_compile-tests">
       <mkdir dir="${test.reports}" />
       <junit dir="./" 
              failureproperty="test.failure" 
@@ -296,7 +296,7 @@ pte.version = ${i18neditor.version}
       <fail if="test.failure" message="There were test failures." />
   </target>
 
-  <target name="compile-tests" depends="compile">
+  <target name="unused_old_example_compile-tests" depends="compile">
       <mkdir dir="${test.classes}" />
       <javac srcdir="${test.src}"
              destdir="${test.classes}"
