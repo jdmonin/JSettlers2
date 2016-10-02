@@ -6,7 +6,7 @@
  This file is part of Java Settlers - An online multiplayer version of the game Settlers of Catan
 
  Copyright (C) 2004-2005 Chadwick A McHenry (mchenryc@acm.org)
- Portions of this file Copyright (C) 2007-2016 Jeremy D Monin (jdmonin@nand.net)
+ Portions of this file Copyright (C) 2007-2016 Jeremy D Monin (jeremy@nand.net)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -229,7 +229,24 @@
   <!-- Testing targets -->
   <!-- ************************************** -->
 
-  <target name="test" depends="compile-tests">
+  <target name="test" depends="build"
+          description="Run tests against the built JARs; fail the build if any errors">
+      <echo message="Running tests, wait for output:" />
+      <!--
+        These take more than a minute to run; the python script produces output after
+        each test, but ant buffers it all; no output appears until the script completes.
+
+        When we later have multiple test scripts, don't immediately fail: Instead set
+        properties (failonerror="false" resultproperty="test.1.exitcode", etc)
+        and check the properties after all tests have ran.
+       -->
+      <exec dir="${basedir}/test/bin" executable="python" failonerror="true">
+        <arg line="test_func_srv_startup_params.py" />
+      </exec>
+      <echo message="Tests completed successfully." />
+  </target>
+
+  <target name="unused_old_example_test" depends="unused_old_example_compile-tests">
       <mkdir dir="${test.reports}" />
       <junit dir="./" 
              failureproperty="test.failure" 
@@ -260,7 +277,7 @@
       <fail if="test.failure" message="There were test failures." />
   </target>
 
-  <target name="compile-tests" depends="compile">
+  <target name="unused_old_example_compile-tests" depends="compile">
       <mkdir dir="${test.classes}" />
       <javac srcdir="${test.src}"
              destdir="${test.classes}"
