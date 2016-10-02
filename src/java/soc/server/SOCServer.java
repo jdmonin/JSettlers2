@@ -497,9 +497,12 @@ public class SOCServer extends Server
      * True if {@link #props} contains a property which is used to run the server in Utility Mode
      * instead of Server Mode.  In Utility Mode the server reads its properties, initializes its
      * database connection if any, and performs one task such as a password reset or table/index creation.
-     * It won't listen on a TCP port or start other threads.
+     * It won't start other threads and won't fail startup if TCP port binding fails.
      *<P>
      * For a list of Utility Mode properties, see {@link #hasUtilityModeProperty()}.
+     *<P>
+     * This flag is set early in {@link #initSocServer(String, String, Properties)};
+     * if you add a property which sets Utility Mode, update that code.
      * @see #utilityModeMessage
      * @since 1.1.20
      */
@@ -915,7 +918,7 @@ public class SOCServer extends Server
      * @param databaseUserName Used for DB connect - not retained
      * @param databasePassword Used for DB connect - not retained
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
-     *       and any other desired properties. If <tt>props<tt> contains game option default values
+     *       and any other desired properties. If <tt>props</tt> contains game option default values
      *       (see below) with non-uppercase gameopt names, cannot be read-only: Startup will
      *       replace keys such as <tt>"jsettlers.gameopt.vp"</tt> with their canonical
      *       uppercase equivalent: <tt>"jsettlers.gameopt.VP"</tt>
@@ -941,12 +944,16 @@ public class SOCServer extends Server
         throws SocketException, EOFException, SQLException, IllegalArgumentException
     {
         Version.printVersionText(System.err, "Java Settlers Server ");
-        
+
+        // Set this flag as early as possible
+        hasUtilityModeProp = (props != null)
+            && ((null != props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP))
+                || (null != props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET)));
+
         /* Check for problems during super setup (such as port already in use).
          * Ignore net errors if we're running a DB setup script and then exiting.
          */
-        if ((error != null)
-            && ((props == null) || (null == props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP))))
+        if ((error != null) && ! hasUtilityModeProp)
         {
             final String errMsg = "* Exiting due to network setup problem: " + error.toString();
             throw new SocketException(errMsg);
@@ -1010,17 +1017,12 @@ public class SOCServer extends Server
                 // the sql script was ran by initialize
 
                 final String msg = "DB setup script successful";
-                hasUtilityModeProp = true;
                 utilityModeMessage = msg;
                 throw new EOFException(msg);
             }
 
-            if (props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET) != null)
-            {
-                hasUtilityModeProp = true;
-
-                // Caller will need to prompt for and change the password
-            }
+            // reminder: if props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET),
+            // caller will need to prompt for and change the password
 
             // open reg for user accounts?  if not, see if we have any yet
             if (init_getBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_OPEN, false))
@@ -1033,11 +1035,10 @@ public class SOCServer extends Server
                     acctsNotOpenRegButNoUsers = true;
             }
         }
-        catch (SQLException x) // just a warning
+        catch (SQLException sqle) // just a warning
         {
-            System.err.println("No user database available: " +
-                               x.getMessage());
-            Throwable cause = x.getCause();
+            System.err.println("No user database available: " + sqle.getMessage());
+            Throwable cause = sqle.getCause();
             while ((cause != null) && ! (cause instanceof ClassNotFoundException))
             {
                 System.err.println("\t" + cause);
@@ -1048,7 +1049,7 @@ public class SOCServer extends Server
             {
                 // the sql script was ran by initialize, but failed to complete;
                 // don't continue server startup with just a warning
-                throw x;  // x is SQLException
+                throw sqle;
             }
 
             if (props.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_URL)
@@ -1058,13 +1059,13 @@ public class SOCServer extends Server
                 // If other db props were asked for, the user is expecting a DB.
                 // So, fail instead of silently continuing without it.
                 System.err.println("* Exiting because current startup properties specify a database.");
-                throw x;  // x is SQLException
+                throw sqle;
             }
 
             if (props.containsKey(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET))
             {
                 System.err.println("* Exiting because --pw-reset requires a database.");
-                throw x;  // x is SQLException
+                throw sqle;
             }
 
             System.err.println("Users will not be authenticated.");
