@@ -276,7 +276,16 @@ public abstract class AskDialog extends Dialog
         choiceDefault = defaultChoice;
         setLayout (new BorderLayout());
 
-        int promptMultiLine = prompt.indexOf("\n");
+        int promptMultiLine = prompt.indexOf('\n');
+        if (promptMultiLine == 0)
+        {
+            // In some calls from subclasses, \n as first character has
+            // side effect of not using prompt as window title
+            // (this constructor is called with titlebar == prompt).
+            // Remove leading \n and check if there are any further newlines:
+            prompt = prompt.substring(1);
+            promptMultiLine = prompt.indexOf('\n');
+        }
         int promptMaxWid;
         int promptLines = 1;
         if (promptMultiLine == -1)
