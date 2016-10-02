@@ -375,25 +375,24 @@ jsettlers-create.sql and jsettlers-tables.sql located in src/bin/sql/
 and follow the instructions here for your database type.
 
 For mysql:
-$ mysql -u root -p -e "SOURCE jsettlers-create-mysql.sql"
-This will connect as root, prompt for the root password, create a 'socuser' user with the password
-'socpass', and create the 'socdata' database.
+  $ mysql -u root -p -e "SOURCE jsettlers-create-mysql.sql"
+This will connect as root, prompt for the root password, create a 'socuser'
+user with the password 'socpass', and create the 'socdata' database.
 
 To build the empty tables, run:
-$ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables.sql"
+  $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables.sql"
 
 For Postgres:
 Create the db and tables with:
-$ psql --file jsettlers-create-postgres.sql
-$ psql --file jsettlers-tables.sql socdata
+  $ psql --file jsettlers-create-postgres.sql
+  $ psql --file jsettlers-tables.sql socdata
 
 For sqlite:
-Copy jsettlers-tables.sql to the same directory as
-JSettlersServer.jar and sqlite-jdbc-3.7.2.jar and run this command
-(sqlite jar filename may vary, update the jsettlers.db.jar parameter
-to match it):
-$ java -jar JSettlersServer.jar -Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar  -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=jsettlers-tables.sql
-After a few seconds you should see this message:
+Copy jsettlers-tables.sql to the same directory as JSettlersServer.jar
+and sqlite-jdbc-3.7.2.jar and run this command (sqlite jar filename may
+vary, update the jsettlers.db.jar parameter to match it):
+  $ java -jar JSettlersServer.jar -Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar  -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=jsettlers-tables.sql
+You should see this message:
 	DB setup script was successful. Exiting now.
 This will create a jsettlers.sqlite file containing the empty tables.
 This script will fail if the file and tables already exist.
@@ -401,8 +400,8 @@ This script will fail if the file and tables already exist.
 
 Optional: Storing Game Scores in the DB:
 
-To automatically save all completed game results in database, use this option when
-starting the JSettlers server:
+To automatically save all completed game results in database, use this option
+when starting the JSettlers server:
 	-Djsettlers.db.save.games=Y
 
 
