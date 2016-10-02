@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012,2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012,2014,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,7 +18,7 @@
  *
  * The maintainer of this program can be reached at jsettlers@nand.net
  **/
-package soc.client;
+package soc.baseclient;
 
 import soc.disableDebug.D;
 
@@ -119,9 +119,15 @@ import java.util.Hashtable;
  * argument in the html source. If you run this as a stand-alone, you have to
  * specify the port.
  *<P>
- * The {@link soc.robot.SOCRobotClient} is based on this client.
+ * The {@link soc.robot.SOCRobotClient SOCRobotClient} is based on this client.
  * Because of this, some methods (such as {@link #handleVERSION(boolean, SOCVersion)})
  * assume the client and server are the same version.
+ *<P>
+ * Some static methods here are used by {@link soc.client.SOCPlayerClient}
+ * and {@link soc.robot.SOCRobotClient}, to prevent code duplication.
+ *<P>
+ * Before v1.1.20, this class was in the <tt>soc.client</tt> package. In 1.1.20,
+ * for server jar packaging it was moved into a new <tt>soc.baseclient</tt> package.
  *
  * @author Robert S Thomas
  */
@@ -271,7 +277,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
             ex = e;
             if (! ((e instanceof java.io.EOFException)
-                  && (this instanceof SOCRobotClient)))
+                   && (this instanceof SOCRobotClient)))
             {
                 System.err.println("could not read from the net: " + ex);
                 /**

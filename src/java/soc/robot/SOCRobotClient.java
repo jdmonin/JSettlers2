@@ -20,7 +20,7 @@
  **/
 package soc.robot;
 
-import soc.client.SOCDisplaylessPlayerClient;
+import soc.baseclient.SOCDisplaylessPlayerClient;
 
 import soc.disableDebug.D;
 
@@ -512,14 +512,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * receive a board layout
              */
             case SOCMessage.BOARDLAYOUT:
-                handleBOARDLAYOUT((SOCBoardLayout) mes);  // in soc.client.SOCDisplaylessPlayerClient
+                handleBOARDLAYOUT((SOCBoardLayout) mes);  // in SOCDisplaylessPlayerClient
                 break;
 
             /**
              * receive a board layout (new format, as of 20091104 (v 1.1.08))
              */
             case SOCMessage.BOARDLAYOUT2:
-                handleBOARDLAYOUT2((SOCBoardLayout2) mes);  // in soc.client.SOCDisplaylessPlayerClient
+                handleBOARDLAYOUT2((SOCBoardLayout2) mes);  // in SOCDisplaylessPlayerClient
                 break;
 
             /**

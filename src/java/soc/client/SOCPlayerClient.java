@@ -20,6 +20,7 @@
  **/
 package soc.client;
 
+import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.disableDebug.D;
 
 import soc.game.SOCBoard;

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011,2013-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2011,2013-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -70,7 +70,7 @@ import java.util.StringTokenizer;
  *      Note the JSettlers version with a comment.
  *      <P>
  *      <em>Note:</em> Most things added to SOCPlayerClient.treat should also be added to
- *      {@link soc.client.SOCDisplaylessPlayerClient#treat(SOCMessage)},
+ *      {@link soc.baseclient.SOCDisplaylessPlayerClient#treat(SOCMessage)},
  *      to {@link soc.robot.SOCRobotClient#treat(SOCMessage)},
  *      and possibly to {@link soc.robot.SOCRobotBrain#run()}. 
  *</UL>
