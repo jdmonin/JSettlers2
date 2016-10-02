@@ -68,6 +68,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
+import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.disableDebug.D;
 
 import soc.game.SOCBoard;

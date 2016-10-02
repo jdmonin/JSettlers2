@@ -80,7 +80,7 @@ import java.util.StringTokenizer;
  *      or GameHandler.processCommand.  Note the JSettlers version with a comment.
  *      <P>
  *      <em>Note:</em> Most things added to SOCPlayerClient.treat should also be added to
- *      {@link soc.client.SOCDisplaylessPlayerClient#treat(SOCMessage)},
+ *      {@link soc.baseclient.SOCDisplaylessPlayerClient#treat(SOCMessage)},
  *      to {@link soc.robot.SOCRobotClient#treat(SOCMessage)},
  *      and possibly to {@link soc.robot.SOCRobotBrain#run()}.
  *      <P>

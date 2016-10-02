@@ -21,6 +21,8 @@
  */
 package soc.client;
 
+import soc.baseclient.SOCDisplaylessPlayerClient;  // for javadocs only
+
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;

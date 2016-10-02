@@ -21,7 +21,7 @@
  **/
 package soc.robot;
 
-import soc.client.SOCDisplaylessPlayerClient;
+import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.disableDebug.D;
 
 import soc.game.SOCBoard;

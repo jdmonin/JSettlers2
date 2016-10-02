@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
  *
  * The maintainer of this program can be reached at jsettlers@nand.net
  **/
-package soc.client;
+package soc.baseclient;
 
 import soc.disableDebug.D;
 
@@ -44,6 +44,7 @@ import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 
 import soc.message.*;
+
 import soc.robot.SOCRobotClient;
 import soc.server.genericServer.LocalStringConnection;
 import soc.util.SOCServerFeatures;
@@ -69,13 +70,19 @@ import java.util.Vector;
  * argument in the html source. If you run this as a stand-alone, you have to
  * specify the port.
  *<P>
- * The {@link soc.robot.SOCRobotClient} is based on this client.
+ * The {@link soc.robot.SOCRobotClient SOCRobotClient} is based on this client.
  * Because of this, some methods (such as {@link #handleVERSION(boolean, SOCVersion)})
  * assume the client and server are the same version.
  *<P>
- * Since client and server are the same version, this client ignores game option sync
+ * Some static methods here are used by {@link soc.client.SOCPlayerClient}
+ * and {@link soc.robot.SOCRobotClient}, to prevent code duplication.
+ *<P>
+ * Since robot client and server are the same version, this client ignores game option sync
  * and scenario synchronization messages ({@link SOCGameOptionInfo}, {@link SOCScenarioInfo}).
  * Being GUI-less, it ignores i18n localization messages ({@link SOCLocalizedStrings}).
+ *<P>
+ * Before v1.1.20, this class was in the {@code soc.client} package. In 1.1.20,
+ * for server jar packaging it was moved into a new {@code soc.baseclient} package.
  *
  * @author Robert S Thomas
  */
@@ -228,7 +235,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
             ex = e;
             if (! ((e instanceof java.io.EOFException)
-                  && (this instanceof SOCRobotClient)))
+                   && (this instanceof SOCRobotClient)))
             {
                 System.err.println("could not read from the net: " + ex);
                 /**
@@ -1024,7 +1031,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * Game players gain resources.
      * @since 2.0.00
      */
-    protected static void handleDICERESULTRESOURCES(final SOCDiceResultResources mes, SOCGame ga)
+    public static final void handleDICERESULTRESOURCES(final SOCDiceResultResources mes, SOCGame ga)
     {
         final int n = mes.playerNum.size();
         for (int p = 0; p < n; ++p)  // current index reading from playerNum and playerRsrc
@@ -2295,7 +2302,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param mes  the message
      * @since 2.0.00
      */
-    protected static void handleSETSPECIALITEM(final Map<String, SOCGame> games, SOCSetSpecialItem mes)
+    public static final void handleSETSPECIALITEM(final Map<String, SOCGame> games, SOCSetSpecialItem mes)
     {
         final SOCGame ga = games.get(mes.getGame());
         if (ga == null)
