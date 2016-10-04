@@ -723,12 +723,14 @@ public class SOCServer extends Server
     /**
      * table of requests for robots to join games
      */
-    protected Hashtable<String, Vector<StringConnection>> robotJoinRequests = new Hashtable<String, Vector<StringConnection>>();
+    protected Hashtable<String, Vector<StringConnection>> robotJoinRequests
+        = new Hashtable<String, Vector<StringConnection>>();
 
     /**
-     * table of requestst for robots to leave games
+     * table of requests for robots to leave games
      */
-    protected Hashtable<String, Vector<SOCReplaceRequest>> robotDismissRequests = new Hashtable<String, Vector<SOCReplaceRequest>>();
+    protected Hashtable<String, Vector<SOCReplaceRequest>> robotDismissRequests
+        = new Hashtable<String, Vector<SOCReplaceRequest>>();
 
     ///**
     // * table of game data files
@@ -8992,7 +8994,7 @@ public class SOCServer extends Server
      * is not an error here; {@link #init_checkScenarioOpts(Map, boolean, String, String, String)}
      * will check for that and its caller will halt startup if found.
      *
-     * @param pr  Properties which may contain {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}* entries
+     * @param pr  Properties which may contain {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}* entries.
      *     If {@code pr} contains entries with non-uppercase gameopt names, cannot be read-only:
      *     Will replace keys such as {@code "jsettlers.gameopt.vp"} with their canonical
      *     uppercase equivalent: {@code "jsettlers.gameopt.VP"}
@@ -9041,6 +9043,7 @@ public class SOCServer extends Server
             }
         }
 
+        // Now parse, set current values, and look for problems
         for (Object k : pr.keySet())
         {
             if (! ((k instanceof String) && ((String) k).startsWith(PROP_JSETTLERS_GAMEOPT_PREFIX)))
