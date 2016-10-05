@@ -389,9 +389,10 @@ To build the empty tables, run:
   $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables.sql"
 
 For Postgres:
-Create the db and tables with:
+Create the db, tables, and security with:
   $ psql --file jsettlers-create-postgres.sql
-  $ psql --file jsettlers-tables.sql socdata
+  $ psql -d socdata --file jsettlers-tables.sql
+  $ psql -d socdata --file jsettlers-sec-postgres.sql
 
 For sqlite:
 Copy jsettlers-tables.sql to the same directory as JSettlersServer.jar
