@@ -17,7 +17,8 @@ CREATE ROLE socuser LOGIN PASSWORD 'socpass'
    VALID UNTIL 'infinity';
 
 -- our tables will be in the 'socdata' schema, but they aren't created yet.
--- so, to grant access, postgres 8 will require another script after creates.
+-- so to grant access, postgres 8 requires running another script
+-- (jsettlers-sec-postgres.sql) after jsettlers-tables.sql creates them.
 -- ALTER DEFAULT PRIVILEGES is available in postgres 9+, but CentOS 6 comes with 8.
 
 -- Tested with postgres 8.4 on centos 6
