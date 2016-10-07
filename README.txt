@@ -369,24 +369,24 @@ location as JSettlersServer.jar, and specify on the jsettlers command line:
 
 Database Creation:
 
-To create the jsettlers database, execute the SQL db scripts
-jsettlers-create.sql and jsettlers-tables.sql located in src/bin/sql/
+To create the jsettlers database and its db user ('socuser') and security,
+execute the SQL db scripts located in src/bin/sql/
 (included in jsettlers-1.1.xx-full.tar.gz): Change to that directory
 and follow the instructions here for your database type.
 
 For mysql:
+Run these commands, which will ask for the mysql root password:
   $ mysql -u root -p -e "SOURCE jsettlers-create-mysql.sql"
-This will connect as root, prompt for the root password, create a 'socuser'
-user with the password 'socpass', and create the 'socdata' database.
-
-To build the empty tables, run:
   $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables.sql"
+If the scripts run without any errors, they will produce no output.
 
 For Postgres:
-Create the db, tables, and security with:
+Run these commands as the postgres system user:
   $ psql --file jsettlers-create-postgres.sql
   $ psql -d socdata --file jsettlers-tables.sql
   $ psql -d socdata --file jsettlers-sec-postgres.sql
+If the scripts run without any errors, they will produce very terse output
+such as "CREATE DATABASE" or "CREATE TABLE".
 
 For sqlite:
 Copy jsettlers-tables.sql to the same directory as JSettlersServer.jar
