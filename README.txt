@@ -96,7 +96,7 @@ Start the server with the following command
 
 This will start the server on the default port of 8880 with 7 robots.
 It will try to connect to an optional mysql database named "socdata";
-startup will continue if the db connect doesn't work.
+startup will continue even if the db connect doesn't work.
 
 You can change those values and specify game option defaults; see details below.
 
