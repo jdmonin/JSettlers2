@@ -2501,7 +2501,8 @@ public class SOCServer extends Server
      * True if the server was constructed with a property or command line argument which is used
      * to run the server in Utility Mode instead of Server Mode.  In Utility Mode the server reads
      * its properties, initializes its database connection if any, and performs one task such as a
-     * password reset or table/index creation. It won't listen on a TCP port or start other threads.
+     * password reset or table/index creation. It won't start other threads and won't fail startup
+     * if TCP port binding fails.
      *<P>
      * Utility Mode may also set a status message, see {@link #getUtilityModeMessage()}.
      *<P>
