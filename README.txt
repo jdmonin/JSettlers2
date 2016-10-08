@@ -374,6 +374,11 @@ execute the SQL db scripts located in src/bin/sql/
 (included in jsettlers-1.1.xx-full.tar.gz): Change to that directory
 and follow the instructions here for your database type.
 
+If you downloaded the JAR and not the full tar.gz, you can get the SQL scripts
+from https://github.com/jdmonin/JSettlers2/tree/old-1.1.xx/src/bin/sql .
+To get each script needed for your DB type: Click the SQL file to view it;
+click Raw; save to the folder containing your JSettlers JAR.
+
 For mysql:
 Run these commands, which will ask for the mysql root password:
   $ mysql -u root -p -e "SOURCE jsettlers-create-mysql.sql"
