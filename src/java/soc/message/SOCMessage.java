@@ -57,7 +57,10 @@ import java.util.StringTokenizer;
  *      use a message number above 10000.  The intention is that other kinds of games
  *      can be played eventually within this server framework.
  * <LI> Add it to the switch in {@link #toMsg(String)}.  Again, note the version with a comment.
- *      Do not add if (TODO what instead??) extends SOCMessageTemplateMs or SOCMessageTemplateMi
+ *      In the switch you will call <tt>yourMessageType.parseDataStr(data)</tt>.
+ *      If your message class extends {@link SOCMessageTemplateMs} or {@link SOCMessageTemplateMi},
+ *      instead call <tt>yourMessageType.parseDataStr(multiData)</tt>:
+ *      for details see {@link SOCMessageMulti} class javadoc.
  * <LI> If the message contains a game name, your new class must implement {@link SOCMessageForGame}.
  * <LI> Extend the SOCMessage class, including the required parseDataStr method.
  *      ({@link SOCDiceResult} and {@link SOCSetTurn} are good example subclasses.)
