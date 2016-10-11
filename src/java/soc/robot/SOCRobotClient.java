@@ -310,10 +310,11 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
     /**
      * Treat the incoming messages.
-     * Messages of unknown type are ignored (mes will be null from {@link SOCMessage#toMsg(String)}).
+     * Messages of unknown type are ignored
+     * (<tt>mes</tt> will be null from {@link SOCMessage#toMsg(String)}).
      *<P>
      *<B>Note:</B> Currently, does not call {@link SOCDisplaylessPlayerClient#treat(SOCMessage)}.
-     * New messages should be added in both places if both displayless and robot should handle them.
+     * New message types should be added to both methods if both displayless and robot should handle them.
      *
      * @param mes    the message
      */

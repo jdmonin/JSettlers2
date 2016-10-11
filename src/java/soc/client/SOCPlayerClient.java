@@ -1968,7 +1968,8 @@ public class SOCPlayerClient extends Applet
 
     /**
      * Treat the incoming messages.
-     * Messages of unknown type are ignored (mes will be null from {@link SOCMessage#toMsg(String)}).
+     * Messages of unknown type are ignored
+     * (<tt>mes</tt> will be null from {@link SOCMessage#toMsg(String)}).
      *
      * @param mes    the message
      * @param isPractice Server is local (practice game, not network)
