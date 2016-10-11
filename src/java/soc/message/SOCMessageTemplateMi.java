@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2008-2010 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2010,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@ package soc.message;
  * type and because it's static.
  *<P>
  * Sample implementation:
- *<code>
+ *<pre><code>
  *   // format of s: POTENTIALSETTLEMENTS sep game sep2 settlecoord {sep2 settlecoord}*...
  *   // Must have at least game + 1 settlement param.
  *   public static SOCPotentialSettlements parseDataStr(String[] s)
@@ -54,12 +54,12 @@ package soc.message;
  *
  *       return new SOCPotentialSettlements(ga, sett);
  *   }
- *</code>
+ *</code></pre>
  *<P>
  * For notes on the section you must add to {@link SOCMessage#toMsg(String)},
  * see {@link SOCMessageMulti}.
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
 public abstract class SOCMessageTemplateMi extends SOCMessageMulti
     implements SOCMessageForGame
