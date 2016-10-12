@@ -66,8 +66,9 @@ import java.util.StringTokenizer;
  *      can be played eventually within this server framework.
  * <LI> Add it to the switch in {@link #toMsg(String)}.  Again, note the version with a comment.
  *      In the switch you will call <tt>yourMessageType.parseDataStr(data)</tt>.
- *      If your message class extends SOCMessageTemplateMs or SOCMessageTemplateMi,
- *      instead call <tt>yourMessageType.parseDataStr(multiData)</tt>.
+ *      If your message class extends {@link SOCMessageTemplateMs} or {@link SOCMessageTemplateMi},
+ *      instead call <tt>yourMessageType.parseDataStr(multiData)</tt>:
+ *      for details see {@link SOCMessageMulti} class javadoc.
  * <LI> If the message contains a game name, your new class must implement {@link SOCMessageForGame}.
  * <LI> Extend the SOCMessage class or a template class, including the required parseDataStr method.
  *      ({@link SOCRevealFogHex} and {@link SOCSetTurn} are good example subclasses.)
