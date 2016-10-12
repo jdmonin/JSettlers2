@@ -2806,7 +2806,8 @@ public class SOCPlayerClient
 
     /**
      * Treat the incoming messages.
-     * Messages of unknown type are ignored (mes will be null from {@link SOCMessage#toMsg(String)}).
+     * Messages of unknown type are ignored
+     * ({@code mes} will be null from {@link SOCMessage#toMsg(String)}).
      *
      * @param mes    the message
      * @param isPractice  Server is {@link ClientNetwork#practiceServer}, not tcp network

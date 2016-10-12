@@ -64,7 +64,7 @@ import java.util.StringTokenizer;
  *      If the message is specific to the JSettlers game and its interface,
  *      use a message number above 10000.  The intention is that other kinds of games
  *      can be played eventually within this server framework.
- * <LI> Add it to the switch in {@link #toMsg(String)}.  Again, note the version.
+ * <LI> Add it to the switch in {@link #toMsg(String)}.  Again, note the version with a comment.
  *      In the switch you will call <tt>yourMessageType.parseDataStr(data)</tt>.
  *      If your message class extends SOCMessageTemplateMs or SOCMessageTemplateMi,
  *      instead call <tt>yourMessageType.parseDataStr(multiData)</tt>.
@@ -88,8 +88,8 @@ import java.util.StringTokenizer;
  *      it in your game type's <tt>soc.server.GameHandler.sitDown_sendPrivateInfo()</tt>.
  *</UL>
  *<P>
- * Backwards compatibility: Unknown message types are ignored by client and by server.
- * Technically they are returned as null from {@link #toMsg(String)} if the local copy
+ * Backwards compatibility: Unknown message types are ignored by client and by server:
+ * They are returned as {@code null} from {@link #toMsg(String)} if the local copy
  * (the old version's code) of SOCMessage doesn't know that message type.
  *<P>
  * Format:
@@ -116,7 +116,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     public static final int AUTHREQUEST = 999;
 
+    /**
+     * Null message type; {@link #toMsg(String)} returns {@code null} for this type.  There is
+     * no constructor for this message type: For a trivial message see {@link SOCServerPing} instead.
+     */
     public static final int NULLMESSAGE = 1000;
+
     public static final int NEWCHANNEL = 1001;
     public static final int MEMBERS = 1002;
     public static final int CHANNELS = 1003;

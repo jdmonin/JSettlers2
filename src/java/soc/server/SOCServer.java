@@ -4118,8 +4118,9 @@ public class SOCServer extends Server
      * Look for VERSION message; if none is received, set up a timer to wait
      * for version and (if never received) send out the game list soon.
      *
-     * @param str Contents of first message from the client
-     * @param con Connection (client) sending this message
+     * @param str Contents of first message from the client.
+     *         Will be parsed with {@link SOCMessage#toMsg(String)}.
+     * @param con Connection (client) sending this message.
      * @return true if processed here (VERSION), false if this message should be
      *         queued up and processed by the normal {@link #processCommand(String, StringConnection)}.
      */
@@ -4166,8 +4167,9 @@ public class SOCServer extends Server
      *       messages making players do things they didn't want
      *       to do.
      *
-     * @param s    Contents of message from the client
-     * @param c    Connection (client) sending this message
+     * @param s    Contents of message from the client.
+     *       Will be parsed with {@link SOCMessage#toMsg(String)}.
+     * @param c    Connection (client) sending this message.
      */
     @Override
     public void processCommand(String s, StringConnection c)
