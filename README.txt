@@ -187,8 +187,15 @@ Now, double-click JSettlers.jar to launch the client.  If you'd
 prefer to start the player client from another command line window,
 use the following command:
   java -jar JSettlers.jar
+Optionally you can also provide the server's name and port, to skip
+the Connect To Server dialog:
+  java -jar JSettlers.jar localhost 8880
 
-In the player client window, enter any name in the Nickname field and
+When the client launches, click Connect To Server. Leave the Server
+name field blank to connect to your own computer (localhost) and use
+the JSettlers server you started up in the previous section.
+
+Once you've connected, enter any name in the Nickname field and
 create a new game.
 
 Type *STATS* into the chat part of the game window.  You should see
