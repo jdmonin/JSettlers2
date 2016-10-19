@@ -139,11 +139,11 @@ after the jar filename.
 To change a Game Option from its default, for example to activate the house rule
 "Robber can't return to the desert", use the "-o" switch with the game option's
 name and value, or equivalently -Djsettlers.gameopt. + the name and value:
-   -o RD=t
-   -Djsettlers.gameopt.RD=t
+  -o RD=t
+  -Djsettlers.gameopt.RD=t
 You could also set a default game scenario this way; for example if your server
 was running a tournament of Fog Islands games:
-   -o SC=SC_FOG
+  -o SC=SC_FOG
 If the scenario's game options conflict with any other game options given (VP,
 etc), a warning will be printed during startup.  In general, servers shouldn't
 set a default scenario; users can choose a scenario on their own if they want.
@@ -185,8 +185,8 @@ CLIENT CONNECT:
 
 Now, double-click JSettlers.jar to launch the client.
 
-Or, if you want to see the message traffic and debug output, from another command line window
-start the player client with the following command:
+Or, if you want to see the message traffic and debug output, from another
+command line window start the player client with the following command:
 
   java -jar JSettlers.jar localhost 8880
 
@@ -210,9 +210,9 @@ Now click on the "Sit Here" button and press "Start Game".  The robot
 players should automatically join the game and start playing.
 
 To play again with the same game options and players, click "Quit", then "Reset Board".
-If other people are in the game, they will be asked to vote on the reset; any player can reject it.
-If bots are in your game, and you want to reset with fewer or no bots, click the bot's Lock button
-before clicking Quit/Reset and it won't rejoin the reset game.
+If other people are in the game, they will be asked to vote on the reset; any player can
+reject it. If bots are in your game, and you want to reset with fewer or no bots, click
+the bot's Lock button before clicking Quit/Reset and it won't rejoin the reset game.
 
 If you want other people to access your server, tell them your server
 IP address and port number (in this case 8880).  They can run the
@@ -354,7 +354,8 @@ or specify the driver on the SOCServer command line:
 To use SQLite, use a sqlite url like the one shown above, or specify a
 sqlite driver such as:
 	-Djsettlers.db.driver=org.sqlite.JDBC
-If a database URL is given but SOCServer can't connect to the database, it won't continue startup.
+If a database URL is given but SOCServer can't connect to the database,
+it won't continue startup.
 
 Depending on your computer's setup, you may need to point JSettlers at the
 appropriate JDBC drivers, by placing them in your java classpath.

@@ -28,8 +28,11 @@ CONTENTS
 Overall Structure
 -----------------
 The main server class is soc.server.SOCServer.
-The client communication is soc.client.SOCPlayerClient, and in-game interface is in soc.client.SOCPlayerInterface.
-Game state is held at the server in soc.game.SOCGame and its fields.  Partial game state is known at clients.
+The client communication and game-list window is in soc.client.SOCPlayerClient,
+and in-game interface is in soc.client.SOCPlayerInterface.
+Game state is held at the server in soc.game.SOCGame and its fields; only
+partial game state is known at clients.
+
 Communication is described in soc.message.SOCMessage.
 Robots talk with the server like normal human clients.
 Most robot messages are per-game; instead of being handled in SOCRobotClient,
@@ -40,9 +43,9 @@ All scenario-related game option keynames start with "_SC_", and provide special
 
 Coding is done in Java 1.5, but should compile cleanly in newer JDKs.
 (Before v2.0, we restricted ourselves to 1.4 for backwards compatibility.)
-The build system is Ant, which is natively understood by Eclipse.  Use any IDE you want, including vi.
-Use spaces, not tabs.  Please try to keep the other conventions of the code already there.
-(See "Coding Style" below for more details.)
+The build system is Ant, which is natively understood by Eclipse.
+Use any IDE you want, including vi.  Use spaces, not tabs.  Please try to keep the other
+conventions of the code already there (see "Coding Style" below for more details.).
 
 When adding new methods or fields, describe them in javadoc, including the @since marker
 and the one-sentence summary (even though some old methods don't have that summary).
@@ -203,8 +206,8 @@ Java applications:
      arguments: -o N7=t7 -o RD=y -Djsettlers.startrobots=7
                 -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
   socserver-sqlite  soc.server.SOCServer
-     arguments: -o N7=t7 -o RD=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.startrobots=7
-                -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
+     arguments: -o N7=t7 -o RD=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
+                -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
 
   The server will start 7 bots with the above configuration.  If you need to stop and start your
   own bots, then add
