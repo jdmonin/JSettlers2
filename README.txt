@@ -183,12 +183,10 @@ near the start of the console output:
 
 CLIENT CONNECT:
 
-Now, double-click JSettlers.jar to launch the client.
-
-Or, if you want to see the message traffic and debug output, from another
-command line window start the player client with the following command:
-
-  java -jar JSettlers.jar localhost 8880
+Now, double-click JSettlers.jar to launch the client.  If you'd
+prefer to start the player client from another command line window,
+use the following command:
+  java -jar JSettlers.jar
 
 In the player client window, enter any name in the Nickname field and
 create a new game.
