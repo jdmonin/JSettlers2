@@ -28,7 +28,7 @@ Overall Structure
 The main server class is soc.server.SOCServer.
 The client communication and game-list window is in soc.client.SOCPlayerClient,
 and in-game interface is in soc.client.SOCPlayerInterface.
-Game state is held at the server in soc.game.SOCGame and its fields, only
+Game state is held at the server in soc.game.SOCGame and its fields; only
 partial game state is known at clients.
 
 Communication is described in soc.message.SOCMessage.
