@@ -21,6 +21,7 @@
  **/
 package soc.server;
 
+import java.util.ConcurrentModificationException;
 import java.util.Vector;
 
 import soc.disableDebug.D;
@@ -52,7 +53,7 @@ public class SOCServerRobotPinger extends Thread
      * Alive flag; loop while true.
      * @see #stopPinger()
      */
-    private boolean alive;
+    private volatile boolean alive;
 
     /**
      * Our server.
@@ -86,21 +87,29 @@ public class SOCServerRobotPinger extends Thread
     {
         while (alive)
         {
+            boolean retry = false;
+
             if (! robotConnections.isEmpty())
             {
-                for (StringConnection robotConnection : robotConnections)
+                try
                 {
-                    if (D.ebugIsEnabled())
-                        D.ebugPrintln("(*)(*)(*)(*) PINGING " + robotConnection.getData());
-                    robotConnection.put(ping.toCmd());
+                    for (StringConnection robotConnection : robotConnections)
+                    {
+                        if (D.ebugIsEnabled())
+                            D.ebugPrintln("(*)(*)(*)(*) PINGING " + robotConnection.getData());
+                        robotConnection.put(ping.toCmd());
+                    }
+                } catch (ConcurrentModificationException e) {
+                    retry = true;
                 }
             }
 
             yield();
 
+            final int msec = (retry) ? 250 : (sleepTime - 60000);
             try
             {
-                sleep(sleepTime - 60000);
+                sleep(msec);
             }
             catch (InterruptedException exc) {}
         }
