@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -29,16 +29,29 @@ import soc.server.genericServer.StringConnection;
 
 
 /**
- * Pings the robots so that they know that they're connected
- * to the server
+ * Pings the robots so that they know that they're connected to an active server.
+ * Sends a {@link SOCServerPing} to each bot every 30 seconds or so.
  *
  * @author Robert S Thomas
  */
 public class SOCServerRobotPinger extends Thread
 {
+    /** A list of robot {@link StringConnection}s to ping, shared with and modified by the server. */
     private Vector<StringConnection> robotConnections;
-    private int sleepTime = 150000;
-    private SOCServerPing ping;
+
+    /**
+     * Sleep time (milliseconds) between pings: 150 seconds.
+     * {@link #run()} method sleeps for 60 seconds less than this.
+     */
+    private final int sleepTime = 150000;
+
+    /** Ping message (with {@link #sleepTime} param) to send to each bot */
+    private final SOCServerPing ping;
+
+    /**
+     * Alive flag; loop while true.
+     * @see #stopPinger()
+     */
     private boolean alive;
 
     /**
@@ -63,18 +76,22 @@ public class SOCServerRobotPinger extends Thread
     }
 
     /**
-     * DOCUMENT ME!
+     * Robot ping loop thread:
+     * Send a {@link SOCServerPing} to each bot connected to the server,
+     * then sleep for {@link #sleepTime} minus 60 seconds.
+     * Exits loop when {@link #stopPinger()} is called.
      */
     @Override
     public void run()
     {
         while (alive)
         {
-            if (!robotConnections.isEmpty())
+            if (! robotConnections.isEmpty())
             {
                 for (StringConnection robotConnection : robotConnections)
                 {
-                    D.ebugPrintln("(*)(*)(*)(*) PINGING " + robotConnection.getData());
+                    if (D.ebugIsEnabled())
+                        D.ebugPrintln("(*)(*)(*)(*) PINGING " + robotConnection.getData());
                     robotConnection.put(ping.toCmd());
                 }
             }
@@ -92,7 +109,6 @@ public class SOCServerRobotPinger extends Thread
         //  cleanup
         //
         robotConnections = null;
-        ping = null;
     }
 
     /**
