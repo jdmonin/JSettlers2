@@ -61,8 +61,10 @@ new features, until 2.0.00 is ready.
      Unknown options no longer ignored: Prints each one and a short help message, will not continue startup
 - Game option defaults can be properties in that file or command line: jsettlers.gameopt.RD=y
 - Game option boolean default values more strictly parsed
-- Robots: When a 7 is rolled during other players' turns and bot must discard:
-     If bot is inactive after several seconds, force random resource discard
+- Robots:
+     When a 7 is rolled during other players' turns and bot must discard:
+        If bot is inactive after several seconds, force random resource discard
+     To keep idle practice games alive, don't leave an inactive game during other players' turns
 - Server stats (*STATS* command): Increase "games finished" when game ends, not later when it's destroyed
 - *WHO* command: User admins or debug user can list any game's members, or * or ALL to list all connected users
 - Game or channel name "*" no longer permitted, to avoid conflicts with admin command enhancements
