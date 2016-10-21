@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2010,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.server;
 
@@ -36,10 +36,18 @@ import soc.server.genericServer.StringConnection;
  */
 public class SOCServerRobotPinger extends Thread
 {
+    /** A list of robot {@link StringConnection}s to ping, shared with and modified by the server. */
     private Vector robotConnections;
-    private int sleepTime = 150000;
-    private SOCServerPing ping;
-    private boolean alive;
+
+    /**
+     * Sleep time (milliseconds) between pings: 150 seconds.
+     * {@link #run()} method sleeps for 60 seconds less than this.
+     */
+    private final int sleepTime = 150000;
+
+    private final SOCServerPing ping;
+    private volatile boolean alive;
+
     /**
      * Our server.
      * @since 1.1.11
@@ -65,17 +73,20 @@ public class SOCServerRobotPinger extends Thread
      */
     public void run()
     {
+        final String pingCmdStr = ping.toCmd();
+
         while (alive)
         {
-            if (!robotConnections.isEmpty())
+            if (! robotConnections.isEmpty())
             {
                 Enumeration robotConnectionsEnum = robotConnections.elements();
 
                 while (robotConnectionsEnum.hasMoreElements())
                 {
                     StringConnection robotConnection = (StringConnection) robotConnectionsEnum.nextElement();
-                    D.ebugPrintln("(*)(*)(*)(*) PINGING " + robotConnection.getData());
-                    robotConnection.put(ping.toCmd());
+                    if (D.ebugIsEnabled())
+                        D.ebugPrintln("(*)(*)(*)(*) PINGING " + robotConnection.getData());
+                    robotConnection.put(pingCmdStr);
                 }
             }
 
@@ -92,7 +103,6 @@ public class SOCServerRobotPinger extends Thread
         //  cleanup
         //
         robotConnections = null;
-        ping = null;
     }
 
     /**
