@@ -107,7 +107,9 @@ public class SOCRobotBrain extends Thread
     protected boolean alive;
 
     /**
-     * Flag for whether or not it is our turn
+     * Flag for whether or not it is our turn.
+     * Updated near top of per-message loop in <tt>run()</tt>
+     * based on {@link SOCGame#getCurrentPlayerNumber()}.
      */
     protected boolean ourTurn;
 
@@ -1616,9 +1618,12 @@ public class SOCRobotBrain extends Thread
 
                     }  // switch (mesType) - for some types, at bottom of loop body
 
-                    if (counter > 15000)
+                    if (ourTurn && (counter > 15000))
                     {
                         // We've been waiting too long, must be a bug: Leave the game.
+                        // This is a fallback, server has SOCForceEndTurnThread which
+                        // should have already taken action.
+                        // Before v1.1.20, would leave game even during other (human) players' turns.
                         client.leaveGame(game, "counter 15000", true, false);
                         alive = false;
                     }
