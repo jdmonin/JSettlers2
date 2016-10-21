@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1604,7 +1604,7 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.ROBOTDISMISS:
                         if ((!expectDISCARD) && (!expectPLACING_ROBBER))
                         {
-                            client.leaveGame(game, "dismiss msg", false);
+                            client.leaveGame(game, "dismiss msg", false, false);
                             alive = false;
                         }
                         break;
@@ -1619,7 +1619,7 @@ public class SOCRobotBrain extends Thread
                     if (counter > 15000)
                     {
                         // We've been waiting too long, must be a bug: Leave the game.
-                        client.leaveGame(game, "counter 15000", false);
+                        client.leaveGame(game, "counter 15000", true, false);
                         alive = false;
                     }
 
@@ -1628,7 +1628,7 @@ public class SOCRobotBrain extends Thread
                     {
                         // Apparently can't decide where we can initially place:
                         // Leave the game.
-                        client.leaveGame(game, "failedBuildingAttempts at start", false);
+                        client.leaveGame(game, "failedBuildingAttempts at start", true, false);
                         alive = false;
                     }
 
