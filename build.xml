@@ -24,6 +24,8 @@
  -->
 
   <!-- Reminder for javac tasks: To prevent ant 1.8+ warning message, use includeantruntime="false" -->
+  <!-- Reminder for tar tasks: ant 1.7+ assumed; uses ant's internal tar implementation
+       and not the system tar, which means on OSX it won't include junk ._* files -->
 
   <!-- Give user a chance to override without editing this file
        (and without typing -D each time compiling) -->
@@ -97,7 +99,7 @@
   <property name="dist.src.tgz"  value="${dist}/${dist.src.name}.tar.gz" />
   <property name="dist.src.zip"  value="${dist}/${dist.src.name}.zip" />
 
-  <!-- files for the distributions -->
+  <!-- files for the distributions (dist-src, etc) -->
   <fileset id="readme.files" dir=".">
     <include name="*.txt" />  <!-- README.txt, COPYING*.txt, VERSIONS.txt -->
     <include name="README.developer" />
@@ -232,7 +234,7 @@ pte.version = ${i18neditor.version}
              deprecation="${deprecation}" />
   </target>
  
-  <!-- Create two jars: client and server (which depends on client) -->
+  <!-- Create two jars: client and server (which depends on client because bots are clients) -->
   <target name="build" depends="compile"
           description="Create project jar files.">
       <jar destfile="${target}/${client.jar}" basedir="${classes}">
@@ -331,7 +333,7 @@ pte.version = ${i18neditor.version}
   <!-- These create top-level dist/ dir if not already present -->
   <!-- ************************************** -->
 
-  <!-- Prevent build warning if IzPack not available -->
+  <!-- (UNUSED) Prevent build warning if IzPack not available -->
   <macrodef name="taskdef-unchecked" description="create a taskdef, without warning when classname isn't available">
 	<attribute name="taskname" />
 	<attribute name="classname" />
@@ -342,8 +344,8 @@ pte.version = ${i18neditor.version}
 		classpathref="{@cp-ref}" />
 	</sequential>
   </macrodef>
-		
-  <!-- Create installer (requires IzPack) -->
+
+  <!-- (UNUSED) Create installer (requires IzPack) -->
   <target name="installer" depends="check-izpack,build,docs"
   	      if="izpack.present"
           description="Create installer (Need IzPack: http://izpack.org/)">
