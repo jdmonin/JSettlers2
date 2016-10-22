@@ -66,6 +66,8 @@
   <property name="test.src"       value="src/test" />
   <property name="web.src"        value="src/web" />
 
+  <property name="test"           value="test" />
+
   <property name="target"         location="target" />
   <property name="classes"        location="${target}/classes" />
   <property name="bin.target"     location="${target}/bin" />
@@ -97,9 +99,8 @@
 
   <!-- files for the distributions -->
   <fileset id="readme.files" dir=".">
-    <include name="COPYING.txt" />
-    <include name="README.txt" />
-    <include name="VERSIONS.txt" />
+    <include name="*.txt" />  <!-- README.txt, COPYING*.txt, VERSIONS.txt -->
+    <include name="README.developer" />
   </fileset>
 
   <!-- jar file packages -->
@@ -276,7 +277,7 @@ pte.version = ${i18neditor.version}
         properties (failonerror="false" resultproperty="test.1.exitcode", etc)
         and check the properties after all tests have ran.
        -->
-      <exec dir="${basedir}/test/bin" executable="python" failonerror="true">
+      <exec dir="${test}/bin" executable="python" failonerror="true">
         <arg line="test_func_srv_startup_params.py" />
       </exec>
       <echo message="Tests completed successfully." />
