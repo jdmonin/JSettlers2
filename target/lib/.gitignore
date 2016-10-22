@@ -1,0 +1,2 @@
+# .gitignore is here to ensure the directory is created
+# to prevent eclipse ant import error at project creation.
