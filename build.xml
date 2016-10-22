@@ -92,14 +92,14 @@
 
   <property name="dist.name"     value="${name}-${version}" />
   <property name="dist.src.name" value="${dist.name}-src" />
-  <property name="dist.full.name" value="${dist.name}-full" />
-  <property name="dist.src.tmp"  value="${dist}/${dist.src.name}" /><!-- tmp dir -->
-  <property name="dist.full.tmp" value="${dist}/${dist.full.name}" /><!-- tmp dir -->
+  <property name="dist.full.name" value="${dist.name}" /><!-- jsettlers-2.x.xx, not jsettlers-2.x.xx-full -->
+  <property name="dist.src.tmp"  value="${dist}/${dist.src.name}" /><!-- jsettlers-2.x.xx-src tmp dir -->
+  <property name="dist.full.tmp" value="${dist}/${dist.full.name}" /><!-- jsettlers-2.x.xx tmp dir -->
 
   <property name="installer.jar" value="${dist}/${dist.name}-installer.jar" />
   <property name="dist.tgz"      value="${dist}/${dist.name}.tar.gz" />
   <property name="dist.zip"      value="${dist}/${dist.name}.zip" />
-  <property name="dist.full.tgz" value="${dist}/${dist.full.name}.tar.gz" />
+  <property name="dist.full.tgz" value="${dist}/${dist.full.name}-full.tar.gz" /><!-- jsettlers-2.x.xx-full.tar.gz -->
   <property name="dist.src.tgz"  value="${dist}/${dist.src.name}.tar.gz" />
   <property name="dist.src.zip"  value="${dist}/${dist.src.name}.zip" />
 
