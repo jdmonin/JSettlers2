@@ -401,16 +401,22 @@ pte.version = ${i18neditor.version}
 
       <copy todir="${dist.src.tmp}" preservelastmodified="true">
         <fileset refid="readme.files" />
-        <fileset dir=".">
-          <include name="README.developer" />
+        <fileset dir="." defaultexcludes="no" >
           <include name="build.xml" />
           <include name="build.properties" />
           <include name="${src}/" />
-          <include name="${lib}/*.jar" />
+          <include name="${test}/src/" /> <!-- may not exist -->
+          <include name="${test}/bin/" />
+          <include name="${test}/tmp/.gitignore" />
+          <include name="target/lib/.gitignore" /><!-- target/lib/ prevents eclipse ant import error; v1.1.16+ -->
+          <include name=".classpath" />
+          <include name=".gitignore" />
+          <!-- debug reminder: copy supports verbose="true" -->
         </fileset>
       </copy>
 
       <tar destfile="${dist.src.tgz}" compression="gzip"
+           longfile="gnu" defaultexcludes="no"
            basedir="${dist}" includes="${dist.src.name}/" />
 
       <!-- clean up -->
