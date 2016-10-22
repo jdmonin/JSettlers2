@@ -327,6 +327,7 @@ pte.version = ${i18neditor.version}
    
   <!-- ************************************** -->
   <!-- Distribution targets -->
+  <!-- These create top-level dist/ dir if not already present -->
   <!-- ************************************** -->
 
   <!-- Prevent build warning if IzPack not available -->
@@ -387,12 +388,12 @@ pte.version = ${i18neditor.version}
   </target>
 
   <!-- Create a source tarball suitable for building the project -->
-  <target name="src" depends="init"
-          description="Create a tarball of the source tree">
-      <echo>
+  <target name="dist-src" depends="init"
+          description="Create a tarball of the source tree, with all contents placed within jsettlers-[version]-src/" >
+      <!--
         This copies everything in your "src" directory, so be sure
         to run on a clean repository only!
-      </echo>
+       -->
 
       <property name="dist.src.tmp" value="${dist}/${dist.src.name}" />
       <delete dir="${dist.src.tmp}" quiet="true" />
