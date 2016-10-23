@@ -156,15 +156,14 @@ There are several build targets, here are the most useful ones:
 
  build      Create project jar files. (default)
  clean      Cleans the project of all generated files
- compile    Compile class files into "target/classes"
- test       Run functional tests against the built jar files
- dist       Build distribution tarballs and zips.
+ dist-src   Create a tarball of the source tree (jsettlers-1.1.xx-src.tar.gz)
+ dist-full  Build dist-src and a tarball of the source + built JARs (jsettlers-1.1.xx-full.tar.gz)
  javadoc    Creates JavaDoc files in "target/docs/api"
- src        Create a tarball of the source tree
 
 All files created by building are in the "target" directory, including
 JARs, Java .class files, and JavaDoc files. Distribution tarballs, zip
-files, and installation files are placed in "dist".
+files, and installation files are placed in "dist". If you run dist-src or
+dist-full, run the dist-tar-clean target afterwards to remove temp files.
 
 For automated functional testing, the project also includes the script
 test/bin/test_func_srv_startup_params.py; run and update this script if
