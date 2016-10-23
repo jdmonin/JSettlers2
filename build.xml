@@ -23,6 +23,8 @@
  -->
 
   <!-- Reminder for javac tasks: To prevent ant 1.8+ warning message, use includeantruntime="false" -->
+  <!-- Reminder for tar tasks: ant 1.7+ assumed; uses ant's internal tar implementation
+       and not the system tar, which means on OSX it won't include junk ._* files -->
 
   <!-- Give user a chance to override without editing this file
        (and without typing -D each time compiling) -->
@@ -60,6 +62,8 @@
   <property name="test.src"       value="src/test" />
   <property name="web.src"        value="src/web" />
 
+  <property name="test"           value="test" />
+
   <property name="target"         location="target" />
   <property name="classes"        location="${target}/classes" />
   <property name="bin.target"     location="${target}/bin" />
@@ -88,11 +92,10 @@
   <property name="dist.src.tgz"  value="${dist}/${dist.src.name}.tar.gz" />
   <property name="dist.src.zip"  value="${dist}/${dist.src.name}.zip" />
 
-  <!-- files for the distributions -->
+  <!-- files for the distributions (dist-src, etc) -->
   <fileset id="readme.files" dir=".">
-    <include name="COPYING.txt" />
-    <include name="README.txt" />
-    <include name="VERSIONS.txt" />
+    <include name="*.txt" />  <!-- README.txt, COPYING*.txt, VERSIONS.txt -->
+    <include name="README.developer" />
   </fileset>
 
   <!-- jar file packages -->
@@ -207,7 +210,7 @@
              deprecation="${deprecation}" />
   </target>
  
-  <!-- Create two jars: client and server (which depends on client) -->
+  <!-- Create two jars: client and server (which depends on client because bots are clients) -->
   <target name="build" depends="compile"
           description="Create project jar files.">
       <jar destfile="${target}/${client.jar}" basedir="${classes}">
@@ -240,7 +243,7 @@
         properties (failonerror="false" resultproperty="test.1.exitcode", etc)
         and check the properties after all tests have ran.
        -->
-      <exec dir="${basedir}/test/bin" executable="python" failonerror="true">
+      <exec dir="${test}/bin" executable="python" failonerror="true">
         <arg line="test_func_srv_startup_params.py" />
       </exec>
       <echo message="Tests completed successfully." />
@@ -291,9 +294,10 @@
    
   <!-- ************************************** -->
   <!-- Distribution targets -->
+  <!-- These create top-level dist/ dir if not already present -->
   <!-- ************************************** -->
 
-  <!-- Prevent build warning if IzPack not available -->
+  <!-- (UNUSED) Prevent build warning if IzPack not available -->
   <macrodef name="taskdef-unchecked" description="create a taskdef, without warning when classname isn't available">
 	<attribute name="taskname" />
 	<attribute name="classname" />
@@ -304,8 +308,8 @@
 		classpathref="{@cp-ref}" />
 	</sequential>
   </macrodef>
-		
-  <!-- Create installer (requires IzPack) -->
+
+  <!-- (UNUSED) Create installer (requires IzPack) -->
   <target name="installer" depends="check-izpack,build,docs"
   	      if="izpack.present"
           description="Create installer (Need IzPack: http://izpack.org/)">
@@ -351,28 +355,34 @@
   </target>
 
   <!-- Create a source tarball suitable for building the project -->
-  <target name="src" depends="init"
-          description="Create a tarball of the source tree">
-      <echo>
+  <target name="dist-src" depends="init"
+          description="Create a tarball of the source tree, with all contents placed within jsettlers-[version]-src/" >
+      <!--
         This copies everything in your "src" directory, so be sure
         to run on a clean repository only!
-      </echo>
+       -->
 
       <property name="dist.src.tmp" value="${dist}/${dist.src.name}" />
       <delete dir="${dist.src.tmp}" quiet="true" />
 
       <copy todir="${dist.src.tmp}" preservelastmodified="true">
         <fileset refid="readme.files" />
-        <fileset dir=".">
-          <include name="README.developer" />
+        <fileset dir="." defaultexcludes="no" >
           <include name="build.xml" />
           <include name="build.properties" />
           <include name="${src}/" />
-          <include name="${lib}/*.jar" />
+          <include name="${test}/src/" /> <!-- might not exist -->
+          <include name="${test}/bin/" />
+          <include name="${test}/tmp/.gitignore" />
+          <include name="target/lib/.gitignore" /><!-- target/lib/ prevents eclipse ant import error; v1.1.16+ -->
+          <include name=".classpath" />
+          <include name=".gitignore" />
+          <!-- debug reminder: copy supports verbose="true" -->
         </fileset>
       </copy>
 
       <tar destfile="${dist.src.tgz}" compression="gzip"
+           longfile="gnu" defaultexcludes="no"
            basedir="${dist}" includes="${dist.src.name}/" />
 
       <!-- clean up -->
