@@ -358,11 +358,14 @@
       <delete dir="${dist.tmp}" quiet="true" />
   </target>
 
-  <!-- For dist-src or dist-full, ensure no git-untracked files in repo -->
+  <!-- For dist-src or dist-full, ensure no git-untracked files or uncommited changes in repo -->
   <target name="-dist-check-src-untracked">
+      <!-- Adapted from mark-longair's 2011-02-28 answer at
+          http://stackoverflow.com/questions/5139290/how-to-check-if-theres-nothing-to-be-committed-in-the-current-branch -->
+      <!-- any untracked? -->
       <exec executable="git"
           dir="${basedir}"
-          outputproperty="dist-check-src.out"
+          outputproperty="dist-check-src-ut.out"
           >
           <arg value="ls-files" />
           <arg value="--other"  />
@@ -370,12 +373,39 @@
           <arg value="--directory" />
           <arg value="--no-empty-directory" /><!-- ignore dist/, target/classes/ (/.gitignore has "dist/*") -->
       </exec>
-      <fail message="Untracked files in repo: commit, move, or .gitignore:${line.separator}${dist-check-src.out}">
+      <fail message="Untracked files in repo: commit, move, or .gitignore:${line.separator}${dist-check-src-ut.out}">
           <condition>
-              <not><equals arg1="${dist-check-src.out}" arg2="" trim="yes" /></not>
+              <not><equals arg1="${dist-check-src-ut.out}" arg2="" trim="yes" /></not>
           </condition>
       </fail>
-      <!-- From 2011-02-28 http://stackoverflow.com/questions/5139290/how-to-check-if-theres-nothing-to-be-committed-in-the-current-branch -->
+      <!-- any unstaged or uncommitted? -->
+      <exec executable="git"
+          dir="${basedir}"
+          outputproperty="dist-chk-src-us.out" resultproperty="dist-chk-src-us.result"
+          >
+          <arg value="diff" />
+          <arg value="--name-only" />
+          <arg value="--exit-code" />
+      </exec>
+      <fail message="Unstaged modified files in repo: commit or revert:${line.separator}${dist-chk-src-us.out}">
+          <condition>
+              <not><equals arg1="${dist-chk-src-us.result}" arg2="0" /></not>
+          </condition>
+      </fail>
+      <exec executable="git"
+          dir="${basedir}"
+          outputproperty="dist-chk-src-uc.out" resultproperty="dist-chk-src-uc.result"
+          >
+          <arg value="diff" />
+          <arg value="--cached" />
+          <arg value="--name-only" />
+          <arg value="--exit-code" />
+      </exec>
+      <fail message="Staged uncommitted files in repo: commit or unstage:${line.separator}${dist-chk-src-uc.out}">
+          <condition>
+              <not><equals arg1="${dist-chk-src-uc.result}" arg2="0" /></not>
+          </condition>
+      </fail>
   </target>
 
   <!-- Copy files to set up for dist-src and/or dist-full -->
