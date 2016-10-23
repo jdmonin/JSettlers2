@@ -1,3 +1,6 @@
+dist/*
 target/*.jar
+target/*.sqlite
+target/java.policy.applet
 target/classes/*
 target/lib/*
