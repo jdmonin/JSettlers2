@@ -4481,6 +4481,8 @@ public class SOCServer extends Server
      *
      * @param c  Client's connection
      * @param msgUser  Client username (nickname) to validate and authenticate; will be {@link String#trim() trim()med}.
+     *     Ignored if connection is already authenticated
+     *     ({@link StringConnection#getData() c.getData()} != <tt>null</tt>).
      * @param msgPass  Password to supply to {@link #authenticateUser(StringConnection, String, String)},
      *     or ""; will be {@link String#trim() trim()med}.
      * @param cliVers  Client version, from {@link StringConnection#getVersion()}
