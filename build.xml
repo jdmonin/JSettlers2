@@ -81,18 +81,22 @@
   <!-- packaging -->
   <property name="client.jar" value="${Name}.jar" />
   <property name="server.jar" value="${Name}Server.jar" />
-  <property name="test.jar"   value="${Name}Test.jar" />
+  <property name="test.jar"   value="${Name}Test.jar" /><!-- unused -->
 
   <property name="dist.name"     value="${name}-${version}" />
   <property name="dist.src.name" value="${dist.name}-src" />
+  <property name="dist.full.name" value="${dist.name}" /><!-- jsettlers-2.x.xx, not jsettlers-2.x.xx-full -->
+  <property name="dist.src.tmp"  value="${dist}/${dist.src.name}" /><!-- jsettlers-2.x.xx-src tmp dir -->
+  <property name="dist.full.tmp" value="${dist}/${dist.full.name}" /><!-- jsettlers-2.x.xx tmp dir -->
 
   <property name="installer.jar" value="${dist}/${dist.name}-installer.jar" />
   <property name="dist.tgz"      value="${dist}/${dist.name}.tar.gz" />
   <property name="dist.zip"      value="${dist}/${dist.name}.zip" />
+  <property name="dist.full.tgz" value="${dist}/${dist.full.name}-full.tar.gz" /><!-- jsettlers-2.x.xx-full.tar.gz -->
   <property name="dist.src.tgz"  value="${dist}/${dist.src.name}.tar.gz" />
   <property name="dist.src.zip"  value="${dist}/${dist.src.name}.zip" />
 
-  <!-- files for the distributions (dist-src, etc) -->
+  <!-- files for the distributions (dist-src, dist-full, etc) -->
   <fileset id="readme.files" dir=".">
     <include name="*.txt" />  <!-- README.txt, COPYING*.txt, VERSIONS.txt -->
     <include name="README.developer" />
@@ -354,15 +358,13 @@
       <delete dir="${dist.tmp}" quiet="true" />
   </target>
 
-  <!-- Create a source tarball suitable for building the project -->
-  <target name="dist-src" depends="init"
-          description="Create a tarball of the source tree, with all contents placed within jsettlers-[version]-src/" >
+  <!-- Copy files to set up for dist-src and/or dist-full -->
+  <target name="-dist-copy-src">
       <!--
         This copies everything in your "src" directory, so be sure
         to run on a clean repository only!
        -->
 
-      <property name="dist.src.tmp" value="${dist}/${dist.src.name}" />
       <delete dir="${dist.src.tmp}" quiet="true" />
 
       <copy todir="${dist.src.tmp}" preservelastmodified="true">
@@ -380,17 +382,48 @@
           <!-- debug reminder: copy supports verbose="true" -->
         </fileset>
       </copy>
+  </target>
+
+  <!-- Create a source tarball suitable for building the project -->
+  <target name="dist-src" depends="init,-dist-copy-src"
+          description="Create a tarball of the source tree, with all contents placed within jsettlers-[version]-src/; follow with dist-full and/or dist-tar-clean" >
 
       <tar destfile="${dist.src.tgz}" compression="gzip"
            longfile="gnu" defaultexcludes="no"
            basedir="${dist}" includes="${dist.src.name}/" />
 
-      <!-- clean up -->
+      <!-- reminder: clean up by calling dist-tar-clean, maybe after dist-full -->
+  </target>
+
+  <!-- Create a full tarball: source + target/JSettlers*.jar suitable for running the project -->
+  <target name="dist-full" depends="dist-src,build"
+          description="After dist-src: Create a tarball of the source + JSettlers*.jar, with all contents placed within jsettlers-[version]-full/; follow with dist-tar-clean" >
+
+      <delete dir="${dist.full.tmp}" quiet="true" />
+      <move file="${dist.src.tmp}" tofile="${dist.full.tmp}" />
+      <copy todir="${dist.full.tmp}" preservelastmodified="true">
+        <!-- copy JSettlers*.jar to jsettlers-2.x.xx-full/, not jsettlers-2.x.xx-full/target/ -->
+        <fileset dir="${target}" >
+          <include name="${server.jar}" />
+          <include name="${client.jar}" />
+          <!-- debug reminder: copy supports verbose="true" -->
+        </fileset>
+      </copy>
+      <tar destfile="${dist.full.tgz}" compression="gzip"
+           longfile="gnu" defaultexcludes="no"
+           basedir="${dist}" includes="${dist.full.name}/" />
+
+      <!-- reminder: clean up by calling dist-tar-clean -->
+  </target>
+
+  <!-- Cleanup after dist-src and/or dist-full -->
+  <target name="dist-tar-clean" description="Clean up temp files after dist-src and/or dist-full">
       <delete dir="${dist.src.tmp}" quiet="true" />
+      <delete dir="${dist.full.tmp}" quiet="true" />
   </target>
 
   <!-- clean the distribution directory -->
-  <target name="dist-clean" depends="init">
+  <target name="dist-clean-all" depends="init">
       <delete quiet="true" includeEmptyDirs="true">
         <fileset dir="${dist}/" defaultExcludes="no" />
       </delete>
