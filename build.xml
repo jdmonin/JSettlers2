@@ -358,8 +358,28 @@
       <delete dir="${dist.tmp}" quiet="true" />
   </target>
 
+  <!-- For dist-src or dist-full, ensure no git-untracked files in repo -->
+  <target name="-dist-check-src-untracked">
+      <exec executable="git"
+          dir="${basedir}"
+          outputproperty="dist-check-src.out"
+          >
+          <arg value="ls-files" />
+          <arg value="--other"  />
+          <arg value="--exclude-standard" />
+          <arg value="--directory" />
+          <arg value="--no-empty-directory" /><!-- ignore dist/, target/classes/ (/.gitignore has "dist/*") -->
+      </exec>
+      <fail message="Untracked files in repo: commit, move, or .gitignore:${line.separator}${dist-check-src.out}">
+          <condition>
+              <not><equals arg1="${dist-check-src.out}" arg2="" trim="yes" /></not>
+          </condition>
+      </fail>
+      <!-- From 2011-02-28 http://stackoverflow.com/questions/5139290/how-to-check-if-theres-nothing-to-be-committed-in-the-current-branch -->
+  </target>
+
   <!-- Copy files to set up for dist-src and/or dist-full -->
-  <target name="-dist-copy-src">
+  <target name="-dist-copy-src" depends="-dist-check-src-untracked">
       <!--
         This copies everything in your "src" directory, so be sure
         to run on a clean repository only!
