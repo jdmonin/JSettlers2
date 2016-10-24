@@ -33,6 +33,7 @@ new features, until 2.0.00 is ready.
      New optional jsserver.properties file, read before command line
      Command line: db user and password now optional when specifying port and max connections
      Unknown options no longer ignored: Prints each one and a short help message, will not continue startup
+     Default max connections increased from 30 to 40
 - Game option defaults can be properties in that file or command line: jsettlers.gameopt.RD=y
 - Game option boolean default values more strictly parsed
 - Robots:
