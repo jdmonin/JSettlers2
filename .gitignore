@@ -1,3 +1,7 @@
+# Used by various git commands and also by the "-dist-check-src-untracked"
+# ant target, which runs:
+#     git ls-files --other --exclude-standard --directory --no-empty-directory
+#
 /dist
 /target/*.jar
 /target/*.sqlite
