@@ -409,7 +409,7 @@ pte.version = ${i18neditor.version}
           <include name="build.xml" />
           <include name="build.properties" />
           <include name="${src}/" />
-          <include name="${test}/src/" /> <!-- may not exist -->
+          <include name="${test}/src/" /> <!-- might not exist -->
           <include name="${test}/bin/" />
           <include name="${test}/tmp/.gitignore" />
           <include name="target/lib/.gitignore" /><!-- target/lib/ prevents eclipse ant import error; v1.1.16+ -->
@@ -453,7 +453,7 @@ pte.version = ${i18neditor.version}
   </target>
 
   <!-- Cleanup after dist-src and/or dist-full -->
-  <target name="dist-tar-clean">
+  <target name="dist-tar-clean" description="Clean up temp files after dist-src and/or dist-full">
       <delete dir="${dist.src.tmp}" quiet="true" />
       <delete dir="${dist.full.tmp}" quiet="true" />
   </target>
