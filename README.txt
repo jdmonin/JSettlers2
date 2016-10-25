@@ -121,12 +121,12 @@ command line, or in a jsserver.properties file in the current directory when
 you start the server.
 
 Command line example:
-  java -jar JSettlersServer.jar -Djsettlers.startrobots=9 8880 30
+  java -jar JSettlersServer.jar -Djsettlers.startrobots=9 8880 50
 
 In this example the parameters are: start 9 bots; TCP port number 8880;
-max clients 30.
+max clients 50.
 
-The started robots count against your max simultaneous connections (30 in this
+The started robots count against your max simultaneous connections (50 in this
 example).  If the robots leave less than 6 player connections available, or if
 they take more than half the max connections, a warning message is printed at
 startup. To start a server with no robots (human players only), use
@@ -166,12 +166,12 @@ given on the command line overrides the same option in the properties file.
 Comment lines start with # .
 
 This example command line
-  java -jar JSettlersServer.jar -Djsettlers.startrobots=9 -o RD=t 8880 30 socuser socpass
+  java -jar JSettlersServer.jar -Djsettlers.startrobots=9 -o RD=t 8880 50 socuser socpass
 is the same as jsserver.properties with these contents:
 jsettlers.startrobots=9
 jsettlers.gameopt.RD=t
 jsettlers.port=8880
-jsettlers.connections=30
+jsettlers.connections=50
 # db user and pass are optional
 jsettlers.db.user=socuser
 jsettlers.db.pass=socpass

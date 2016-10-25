@@ -139,11 +139,11 @@ public class SOCServer extends Server
     public static final int SOC_STARTROBOTS_DEFAULT = 7;
 
     /**
-     * Default maximum number of connected clients (30; {@link #maxConnections} field).
+     * Default maximum number of connected clients (40; {@link #maxConnections} field).
      * Always at least 20 more than {@link #SOC_STARTROBOTS_DEFAULT}.
      * @since 1.1.15
      */
-    public static final int SOC_MAXCONN_DEFAULT = Math.max(30, 20 + SOC_STARTROBOTS_DEFAULT);
+    public static final int SOC_MAXCONN_DEFAULT = Math.max(40, 20 + SOC_STARTROBOTS_DEFAULT);
 
     /**
      * Filename {@code "jsserver.properties"} for the optional server startup properties file.
