@@ -1,0 +1,173 @@
+# Sample jsserver.properties file with descriptions:
+# See bottom of file for copyright and license information (GPLv3).
+#
+# All JSettlers Server properties and their defaults are given here.
+# Boolean flag properties' values are shown here as =Y or =N; you can
+# use =T or =F instead, and flag values aren't case-sensitive.
+# You can also get a brief description of all properties by running
+#	java -jar JSettlersServer.jar --help
+#
+# To use a properties file with the server, name it jsserver.properties
+# and place it in the directory where the JSettlers Server will run.
+# Remove the leading comment character ("#") from the line of any property that
+# you want to change from its default value. The file is read at startup,
+# but not re-read afterwards if it's updated. Any server option given on
+# the command line overrides the same option's value in the properties file.
+# To determine if the server is reading the properties file, look for this text
+# near the start of the console output:
+#   Reading startup properties from jsserver.properties
+
+# -- Beginning of list of recognized available properties --
+
+# TCP port number for server to listen for client connections.
+# jsettlers.port=8880
+
+# Maximum connection count, including robots: The number of client players
+# who can connect is (jsettlers.connections - jsettlers.startrobots).
+# This default value's goal is to prevent overloading the server's capacity;
+# large busy servers will want to set it higher and monitor cpu and memory use.
+# jsettlers.connections=40
+
+# Number of robots to create at startup. About 30% will be "smart" robots, the
+# other 70% will be "fast" robots. Each robot can play in many games at once.
+# jsettlers.startrobots=7
+
+# Per-client limits:
+
+# Maximum simultaneous games that a client can create.
+# Once a game is completed and deleted (all players leave), they can create
+# another. Set this to -1 for no limit; 0 will disallow any game creation.
+# This limit is ignored for practice games, which run on the client and have
+# no impact on server resources or other clients.
+# jsettlers.client.maxcreategames=5
+
+# Maximum simultaneous chat channels that a client can create.
+# Once a channel is deleted (all members leave), they can create another.
+# Set this to -1 for no limit; 0 will disallow any chat channel creation.
+# jsettlers.client.maxcreatechannels=2
+
+# Game option defaults:
+# To change a Game Option default for new games, for example to activate the
+# house rule "Robber can't return to the desert", set a property named
+# jsettlers.gameopt. + the name and value:
+#   jsettlers.gameopt.RD=y
+# The game option values use the same syntax as the command line; see
+# README.txt section "Parameters and game option defaults".
+# You can also get a list of all default game option values by running
+#	java -jar JSettlersServer.jar --help
+# Note the format of those default values: Some options are shown as "(INTBOOL)"
+# and need both a true/false flag and a numeric value. For example, to change
+# the default winning victory points to 12:
+#   jsettlers.gameopt.vp=t12
+
+# Optional User Database:
+# JSettlers can optionally use a database for game scores and/or user accounts
+# ("nicknames" and passwords). Here are the properties for server features
+# which require a database, then those for the database connection details.
+# For more info see README.txt section "Database Setup".
+
+# - DB: Server features:
+
+# Flag to save all games in DB: Game name, start time, players, final scores.
+# jsettlers.db.save.games=N
+
+# Flag to require all players to have a user account and password. By default,
+# this is not set and any client can make up their own name to use in games
+# while connected, so long as that name isn't already taken by a user account
+# in the database.
+# jsettlers.accounts.required=N
+
+# Flag to permit open self-registration of new user accounts. By default, this
+# is not set and clients can't anonymously create accounts: Must log in first.
+# jsettlers.accounts.open=N
+
+# If not blank, permit only these usernames to create accounts (comma-separated
+# list of usernames). By default any user account can log in to create others.
+# Also, only Account Admin Users can run user-related commands; see README.txt
+# section "Security and Admin Users".
+# Reminder if using non-ascii characters in admin usernames: Remember that java
+# properties files are encoded in ISO-8859-1 not UTF-8 because of backwards
+# compatability; you may want to create a separate admin-only account with a
+# simpler ascii-only name.
+# jsettlers.accounts.admins=...  # blank by default
+
+# - DB connection:
+
+# Username for logging into the database server
+# jsettlers.db.user=socuser
+
+# Password for logging into the database server
+# jsettlers.db.pass=socpass
+
+# DB connection URL for JDBC. The format is specific to the DB type
+# you've chosen for your database server and specifies the type,
+# server hostname, and db name.
+# Default, for MySQL named socdata hosted on localhost:
+#   jsettlers.db.url=jdbc:mysql://localhost/socdata
+# For Postgresql hosted on localhost:
+#   jsettlers.db.url=jdbc:postgresql://localhost/socdata
+# For a SQLite file in the current directory:
+#   jsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
+
+# DB driver JAR filename. The driver JAR default is blank, since the filename
+# varies by database type and version. The driver JAR should usually be placed
+# in the same directory as the JSettlersServer JAR, because of Java's
+# restrictions about JARs loading other JARs. You will probably need to
+# download the driver JAR for your DB type; see README.txt for URLs.
+# jsettlers.db.jar=...    # (Blank by default)
+
+# JDBC DB driver class name. Common DB types will automatically set this
+# based on the database type prefix in jsettlers.db.url:
+#   mysql ->    com.mysql.jdbc.Driver
+#   postgres -> org.postgresql.Driver
+#   sqlite ->   org.sqlite.JDBC
+# If you're using another DB type, or that driver class has changed since this
+# jsettlers version was released, you must specify the JDBC driver class name.
+# jsettlers.db.driver=com.mysql.jdbc.Driver
+
+# Debug Options for developers:
+
+# Flag to allow remote debug commands over TCP connections, from a user named
+# "debug". If you set this, for security you should use sqlite or another
+# database type and create the debug user there with a password.
+# Practice games always allow debug commands, since those aren't multiplayer.
+# When this flag is set, the server version banner shown at connect includes
+# the text "debugging is on". For debug command info, login as debug and type
+# *help*; see also README.developer.
+# jsettlers.allow.debug=N
+
+# Specify the robot connect cookie string. By default a new random string is
+# generated each time the server runs. Bots can't connect without giving the
+# cookie string to the server; without that cookie they are treated as human
+# players and won't be invited to join games. This debug property is useful
+# when developing or using a robot which isn't run within the server JVM.
+# If specified, this string must not contain any '|' ',' or newline characters.
+# jsettlers.bots.cookie=???   ## no default, randomly generated if not specified
+
+# Flag to print the value of jsettlers.bots.cookie to stderr during server
+# startup. If set, the cookie output will appear in this format:
+#   Robot cookie: 03883269284ee140cb907ea203846333
+# jsettlers.bots.showcookie=N
+
+# -- End of list of recognized available properties --
+
+# This sample file is documentation about the available properties.
+# Any jsserver.properties file you create belongs to you.
+# Attribution and copyright info for this sample file:
+#
+# This file is part of the JSettlers project.
+#
+# This file Copyright (C) 2016 Jeremy D Monin (jeremy@nand.net)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/ .

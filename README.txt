@@ -163,7 +163,8 @@ jsserver.properties:
 Instead of a long command line, any option can be added to jsserver.properties
 which is read at startup if it exists in the current directory.  Any option
 given on the command line overrides the same option in the properties file.
-Comment lines start with # .
+Comment lines start with # .  See src/bin/jsserver.properties.sample for full
+descriptions of all available properties.
 
 This example command line
   java -jar JSettlersServer.jar -Djsettlers.startrobots=9 -o RD=t 8880 50 socuser socpass

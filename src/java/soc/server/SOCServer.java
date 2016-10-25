@@ -151,16 +151,18 @@ public class SOCServer extends Server
      */
     public static final String SOC_SERVER_PROPS_FILENAME = "jsserver.properties";
 
-    // If a new property is added, please add a PROP_JSETTLERS_ constant
-    // and also add it to PROPS_LIST.
+    // If a new property is added, please add a PROP_JSETTLERS_ constant,
+    // add it to PROPS_LIST, and update /src/bin/jsserver.properties.sample.
 
-    /** Property <tt>jsettlers.port</tt> to specify the port the server listens on.
+    /** Property <tt>jsettlers.port</tt> to specify the port the server binds to and listens on.
+     * Default is {@link #SOC_PORT_DEFAULT}.
      * @since 1.1.09
      */
     public static final String PROP_JSETTLERS_PORT = "jsettlers.port";
 
     /** Property <tt>jsettlers.connections</tt> to specify the maximum number of connections allowed.
      * Remember that robots count against this limit.
+     * Default is {@link #SOC_MAXCONN_DEFAULT}.
      * @since 1.1.09
      */
     public static final String PROP_JSETTLERS_CONNECTIONS = "jsettlers.connections";
@@ -305,11 +307,13 @@ public class SOCServer extends Server
      * Each property name is followed in the array by a brief description:
      * [0] is a property, [1] is its description, [2] is the next property, etc.
      * (This was added in 1.1.13 for {@link #printUsage(boolean)}).
+     *<P>
+     * When you add or update any property, please also update {@code /src/bin/jsserver.properties.sample}.
      * @since 1.1.09
      */
     public static final String[] PROPS_LIST =
     {
-        PROP_JSETTLERS_PORT,     "TCP port number for server to bind to",
+        PROP_JSETTLERS_PORT,     "TCP port number for server to listen for client connections",
         PROP_JSETTLERS_CONNECTIONS,   "Maximum connection count, including robots (default " + SOC_MAXCONN_DEFAULT + ")",
         PROP_JSETTLERS_STARTROBOTS,   "Number of robots to create at startup (default " + SOC_STARTROBOTS_DEFAULT + ")",
         PROP_JSETTLERS_ACCOUNTS_OPEN, "Permit open self-registration of new user accounts? (if Y and using a DB)",
