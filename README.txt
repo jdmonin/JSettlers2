@@ -427,6 +427,10 @@ Users with accounts must type their password to log into the server to play.
 People without accounts can still connect by leaving the password field blank,
 as long as they aren't using a nickname which has a password in the database.
 
+For security we recommend that you set the jsettlers.accounts.admins property,
+otherwise any user account can create others. See below for more details on
+listing admin usernames in that property.
+
 In versions before 1.1.19, anyone could create their own user accounts
 (open registration). In 1.1.19 this default was changed to improve security:
 An existing user must log in before creating any new account.  If you still
