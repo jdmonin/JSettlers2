@@ -136,6 +136,14 @@
 # *help*; see also README.developer.
 # jsettlers.allow.debug=N
 
+# Run this many robot-only games, a few at a time, until this many have been
+# played; allow bot-only games. If this property's value != 0, a robots-only
+# game can be started with the *STARTBOTGAME* debug command. This can be used
+# to test the bots with any given combination of game options and scenarios.
+# To permit starting such games without also starting any at server startup,
+# use a value less than 0.
+# jsettlers.bots.botgames.total=0
+
 # Specify the robot connect cookie string. By default a new random string is
 # generated each time the server runs. Bots can't connect without giving the
 # cookie string to the server; without that cookie they are treated as human
