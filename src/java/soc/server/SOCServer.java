@@ -191,7 +191,7 @@ public class SOCServer extends Server
      * a few at a time, until this many have been played. (The default is 0.)
      *<P>
      * If this property's value != 0, a robots-only game can be started with the
-     * *STARTBOTGAME* debug command. This can be used to test the bots with any given
+     * {@code *STARTBOTGAME*} debug command. This can be used to test the bots with any given
      * combination of game options and scenarios.  To permit starting such games without
      * also starting any at server startup, use a value less than 0.
      *
@@ -323,7 +323,8 @@ public class SOCServer extends Server
         PROP_JSETTLERS_CLI_MAXCREATECHANNELS,   "Maximum simultaneous channels that a client can create",
         PROP_JSETTLERS_CLI_MAXCREATEGAMES,      "Maximum simultaneous games that a client can create",
         PROP_JSETTLERS_GAMEOPT_PREFIX + "*",    "Game option defaults, case-insensitive: jsettlers.gameopt.RD=y",
-        I18n.PROP_JSETTLERS_LOCALE,             "Locale override from the default, such as es or en_US",
+        // I18n.PROP_JSETTLERS_LOCALE,             "Locale override from the default, such as es or en_US, for console output",
+            // -- not used yet at server
         PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL,     "Run this many robot-only games, a few at a time (default 0); allow bot-only games",
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
