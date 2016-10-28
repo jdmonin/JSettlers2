@@ -52,7 +52,7 @@
   <!-- version string for the PTE i18n editor; written to net/nand/util/i18n/gui/pteversion.properties during build-i18neditor -->
   <property name="i18neditor.version" value="1.0.0" />
 
-  <!-- **** See build.properties for client/server startup arguments **** -->
+  <!-- For startup arguments, see README or run client/server with -h -->
   <property name="client.class"   value="soc.client.SOCPlayerClient" />
   <property name="server.class"   value="soc.server.SOCServer" />
   <property name="main.class"     value="${client.class}" />
