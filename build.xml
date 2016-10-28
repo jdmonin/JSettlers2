@@ -47,7 +47,7 @@
   <property name="copyright" value="2001-2004 Robb Thomas, portions (C) 2007-2016 Jeremy D Monin and contributors" />
   <property name="url"       value="http://nand.net/jsettlers/devel/" />
 
-  <!-- **** See build.properties for client/server startup arguments **** -->
+  <!-- For startup arguments, see README or run client/server with -h -->
   <property name="client.class"   value="soc.client.SOCPlayerClient" />
   <property name="server.class"   value="soc.server.SOCServer" />
   <property name="main.class"     value="${client.class}" />
