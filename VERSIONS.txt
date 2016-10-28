@@ -13,7 +13,7 @@ new features, until 2.0.00 is ready.
 
 
 
-    > 1.1.20 (build OV20160xxx)
+    > 1.1.20 (build OV20161024)
 - Board hex graphics updated for smoother look and scaling
 - Game window board panel resize:
      Much better performance and reliability by using good-quality synchronous Graphics2D.drawImage
