@@ -5412,7 +5412,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     if ((mode == PLACE_FREE_ROAD_OR_SHIP) && canPlaceShip
                         && (edgeNum > 0) && (player.getNumPieces(SOCPlayingPiece.ROAD) == 0))
                     {
-                        edgeNum = -edgeNum;  // force ship (not road) if we have no roads remaining to freely place
+                        // If this edge is coastal, force ship (not road) if we
+                        // have no roads remaining to freely place
+                        edgeNum = -edgeNum;
                     }
 
                     boolean isShip;
