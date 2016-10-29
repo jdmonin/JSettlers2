@@ -1295,6 +1295,9 @@ public class SOCPlayerClient
             pass.setText(cpass);
             nick.setText(cuser);
             nick.requestFocusInWindow();
+            if ((cuser != null) && (cuser.trim().length() > 0))
+                ng.setEnabled(true);
+
             cardLayout.show(this, MESSAGE_PANEL);
         }
 
