@@ -206,7 +206,7 @@ class SOCSpecialItemDialog
                 (ga.getGameState() >= SOCGame.PLAY1)
                 && (playerOwnsWonder)
                     ? (playerOwnsThis && itm.checkCost(cliPlayer))
-                    : itm.checkRequirements(cliPlayer, true);
+                    : ((owner == null) && itm.checkRequirements(cliPlayer, true));
             if (playerOwnsThis || ! playerOwnsWonder)
             {
                 final JButton b = new JButton(buildStr);
