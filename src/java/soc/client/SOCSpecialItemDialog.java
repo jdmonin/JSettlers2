@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -185,6 +185,7 @@ class SOCSpecialItemDialog
 
         final boolean playerOwnsWonder =
             (cliPlayer != null) && (cliPlayer.getSpecialItem(SOCGameOption.K_SC_WOND, 0) != null);
+        final String buildStr = strings.get("base.build");
 
         for (int i = 0; i < numWonders; ++i)
         {
@@ -200,25 +201,32 @@ class SOCSpecialItemDialog
 
             // Build button
             final SOCPlayer owner = itm.getPlayer();
+            final boolean playerOwnsThis = playerOwnsWonder && (owner == cliPlayer);
             final boolean playerCanBuildThis =
                 (ga.getGameState() >= SOCGame.PLAY1)
-                && ((owner != null)
-                    ? ((owner == cliPlayer) && itm.checkCost(cliPlayer))
-                    : ((! playerOwnsWonder) && itm.checkRequirements(cliPlayer, true)));
-            final JButton b = new JButton(strings.get("base.build"));
-            if (playerCanBuildThis)
-                b.addActionListener(this);
-            else
-                b.setEnabled(false);
+                && (playerOwnsWonder)
+                    ? (playerOwnsThis && itm.checkCost(cliPlayer))
+                    : itm.checkRequirements(cliPlayer, true);
+            if (playerOwnsThis || ! playerOwnsWonder)
+            {
+                final JButton b = new JButton(buildStr);
+                if (playerCanBuildThis)
+                    b.addActionListener(this);
+                else
+                    b.setEnabled(false);
 
-            gbc.insets = insPadL;
-            gbl.setConstraints(b, gbc);
-            cpane.add(b);
-            buttons[i] = b;
+                gbc.insets = insPadL;
+                gbl.setConstraints(b, gbc);
+                cpane.add(b);
+                buttons[i] = b;
+            } else {
+                // already building a different wonder: leave blank
+            }
 
             gbc.insets = insPadLR;
 
             // Wonder Name
+            gbc.gridx = 1;  // skip possibly-empty button column
             {
                 String wname;
                 try
@@ -233,6 +241,7 @@ class SOCSpecialItemDialog
                 gbl.setConstraints(L, gbc);
                 cpane.add(L);
             }
+            gbc.gridx = GridBagConstraints.RELATIVE;
 
             // Cost
             gbc.insets = insNone;
