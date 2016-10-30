@@ -270,6 +270,17 @@ class SOCSpecialItemDialog
 
             // Second row:
 
+            gbc.insets = insPadBottom;  // wide bottom border, as gap between wonders
+
+            // Placeholder label, to fill the column 1 table cell below wonder name;
+            // otherwise, GBL will push this and the next wonder's rows together and
+            // its wonder name (col 1) will be left of this one's builder name (col 2)
+            L = new JLabel();
+            gbc.gridx = 1;
+            gbc.gridwidth = 1;
+            gbl.setConstraints(L, gbc);
+            cpane.add(L);
+
             // Builder name; current level (if build in progress)
             final StringBuffer sb = new StringBuffer();  // builder if any, current level
 
@@ -287,13 +298,10 @@ class SOCSpecialItemDialog
             }
 
             L = new JLabel(sb.toString());
-            gbc.gridx = 2;
+            gbc.gridx = GridBagConstraints.RELATIVE;
             gbc.gridwidth = GridBagConstraints.REMAINDER;
-            gbc.insets = insPadBottom;  // wide bottom border, as gap between wonders
             gbl.setConstraints(L, gbc);
             cpane.add(L);
-
-            gbc.gridx = GridBagConstraints.RELATIVE;
         }
 
         // Cancel button at bottom
