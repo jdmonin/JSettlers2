@@ -485,6 +485,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         }
         else if (hasScenarioFog)  // _SC_FOG
         {
+            final int idx;  // for pirate: 3, 4, or 6-player board
+
             landAreasLegalNodes = new HashSet[( (maxPl == 6) ? 4 : 3 )];
 
             if (maxPl < 4)
@@ -501,6 +503,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
                 PORTS_TYPES_MAINLAND = FOG_ISL_PORT_TYPE_3PL;
                 PORT_LOC_FACING_MAINLAND = FOG_ISL_PORT_EDGE_FACING_3PL;
+                idx = 0;
             }
             else if (maxPl == 4)
             {
@@ -516,6 +519,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
                 PORTS_TYPES_MAINLAND = FOG_ISL_PORT_TYPE_4PL;
                 PORT_LOC_FACING_MAINLAND = FOG_ISL_PORT_EDGE_FACING_4PL;
+                idx = 1;
             }
             else  // maxPl == 6
             {
@@ -536,9 +540,12 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
                 PORTS_TYPES_MAINLAND = FOG_ISL_PORT_TYPE_6PL;
                 PORT_LOC_FACING_MAINLAND = FOG_ISL_PORT_EDGE_FACING_6PL;
+                idx = 2;
             }
             PORTS_TYPES_ISLANDS = null;  // no ports inside fog island's random layout
             PORT_LOC_FACING_ISLANDS = null;
+
+            pirateHex = FOG_ISL_PIRATE_HEX[idx];
 
             // Fog hex hiding is done below after some other steps; search for hasScenarioFog
 
@@ -2956,6 +2963,15 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     //   Has 3-player, 4-player, 6-player versions;
     //   FOG_ISL_LANDHEX_TYPE_FOG[] is shared between 3p and 4p.
     //
+
+    /**
+     * Fog Island: Pirate ship's starting hex coordinate for 3,4,6 players.
+     * The 4-player board has the pirate start at a port hex, which looks cluttered.
+     */
+    private static final int FOG_ISL_PIRATE_HEX[] =
+    {
+        0x070F, 0x070F, 0x0910
+    };
 
     //
     // 3-player
