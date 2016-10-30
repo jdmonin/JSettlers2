@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -499,12 +499,13 @@ public class SOCSpecialItem
     /**
      * Does this player have resources for this special item's {@link #getCost()}, if any?
      * @param pl  Player to check
-     * @return  True if cost is {@code null} or {@link SOCPlayer#getResources() pl.getResources()} contains the cost
+     * @return  True if cost is {@code null} or {@link SOCPlayer#getResources() pl.getResources()} contains the cost.
+     *     Always false if {@code pl} is {@code null}.
      * @see #checkRequirements(SOCPlayer, boolean)
      */
     public final boolean checkCost(final SOCPlayer pl)
     {
-        return (cost == null) || pl.getResources().contains(cost);
+        return (pl != null) && ((cost == null) || pl.getResources().contains(cost));
     }
 
     /**
@@ -513,6 +514,7 @@ public class SOCSpecialItem
      * @param checkCost  If true, also check the cost against player's current resources
      * @return  True if player meets the requirements, false otherwise; true if {@link #req} is null or empty.
      *     If {@code checkCost} and {@link #getCost()} != null, false unless player's resources contain {@code cost}.
+     *     Always false if player is {@code null}.
      * @throws IllegalArgumentException if {@link #req} has an unknown requirement type,
      *     or refers to an Added Layout Part {@code "N1"} through {@code "N9"} that isn't defined in the board layout
      * @throws UnsupportedOperationException if requirement type S (Settlement) includes {@code atPort} location;
@@ -534,7 +536,8 @@ public class SOCSpecialItem
      *
      * @param pl  Player to check
      * @param reqsList  Requirements list; to parse from a string, use {@link SOCSpecialItem.Requirement#parse(String)}
-     * @return  True if player meets the requirements, false otherwise; true if {@code reqsList} is null or empty
+     * @return  True if player meets the requirements, false otherwise; true if {@code reqsList} is null or empty.
+     *     Always false if player is null.
      * @throws IllegalArgumentException if {@code reqsList} has an unknown requirement type,
      *     or refers to an Added Layout Part {@code "N1"} through {@code "N9"} that isn't defined in the board layout
      * @throws UnsupportedOperationException if requirement type S (Settlement) includes {@code atPort} location;
@@ -544,8 +547,10 @@ public class SOCSpecialItem
     public static boolean checkRequirements(final SOCPlayer pl, final List<SOCSpecialItem.Requirement> reqsList)
         throws IllegalArgumentException, UnsupportedOperationException
     {
+        if (pl == null)
+            return false;  // no player, can't meet any requirements
         if (reqsList == null)
-            return true;  // no requirements, nothing to fail
+            return true;   // no requirements, nothing to fail
 
         for (final Requirement req : reqsList)
         {
