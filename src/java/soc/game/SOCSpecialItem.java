@@ -255,7 +255,8 @@ public class SOCSpecialItem
         (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi)
         throws IllegalStateException
     {
-        if ((pl.getPlayerNumber() != ga.getCurrentPlayerNumber()) || (ga.getGameState() != SOCGame.PLAY1))
+        if ((pl.getPlayerNumber() != ga.getCurrentPlayerNumber())
+            || ((ga.getGameState() != SOCGame.PLAY1) && (ga.getGameState() != SOCGame.SPECIAL_BUILDING)))
             throw new IllegalStateException();
 
         if (! SOCGameOption.K_SC_WOND.equals(typeKey))
