@@ -42,7 +42,25 @@ import soc.game.SOCSpecialItem;
  * The game data ({@link SOCGame}, {@link SOCPlayer} methods) will be updated before
  * these methods are called, so you can call game-object methods for more details on the new event.
  *<P>
- * The classic presentation implementing this interface is {@link SOCPlayerInterface.ClientBridge}.
+ * Some game events may cause a non-blocking popup message or dialog to be shown while gameplay continues.
+ *<BR>
+ * Some examples in the classic UI:
+ * <UL>
+ *  <LI> The Build a Wonder/Wonder Info dialog in the {@code _SC_WOND} scenario
+ *  <LI> {@link #scen_SC_PIRI_pirateFortressAttackResult(boolean, int, int)}
+ * </UL>
+ * When this is the case, it might make sense for the UI to not take automatic actions on
+ * the client player's behalf, such as rolling dice at the start of the turn: In a 6-player game
+ * the player may want to click Special Building first because the dice roll might make them discard,
+ * but the non-blocking dialog was obscuring the Special Building button.
+ *<P>
+ * To prevent such surprises for the client player, call {@link #isNonBlockingDialogVisible()}
+ * before taking that kind of automatic action. If the UI might do something when that dialog is
+ * no longer visible, such as start a countdown to automatically roll dice, register a listener
+ * by calling {@link #setNonBlockingDialogDismissListener(NonBlockingDialogDismissListener)}.
+ *<P>
+ * The classic UI implementing this interface is {@link SOCPlayerInterface.ClientBridge}.
+ *
  * @author paulbilnoski
  * @since 2.0.00
  */
@@ -261,6 +279,24 @@ public interface PlayerClientListener
     void seatLockUpdated();
 
     /**
+     * Is a dialog or popup message currently visible while gameplay continues?
+     * See interface javadoc for details and implications.
+     *<P>
+     * To do things when the dialog is no longer visible, you can register a listener with
+     * {@link #setNonBlockingDialogDismissListener(NonBlockingDialogDismissListener)}.
+     *
+     * @return  True if such a dialog is visible
+     */
+    boolean isNonBlockingDialogVisible();
+
+    /**
+     * Set or clear the {@link NonBlockingDialogDismissListener listener}
+     * for cleared {@link #isNonBlockingDialogVisible()} flag.
+     * @param li  Listener, or {@code null} to clear
+     */
+    void setNonBlockingDialogDismissListener(NonBlockingDialogDismissListener li);
+
+    /**
      * Game play is starting (leaving state {@link SOCGame#NEW}).
      * Next move is for players to make their starting placements.
      *<P>
@@ -442,6 +478,16 @@ public interface PlayerClientListener
         DevCards,
         LongestRoad,
         LargestArmy
+    }
+
+    /** Listener to be called when {@link PlayerClientListener#isNonBlockingDialogVisible()} becomes false. */
+    public interface NonBlockingDialogDismissListener
+    {
+        /**
+         * Called on UI thread when a non-blocking dialog is dismissed.
+         * {@link PlayerClientListener#isNonBlockingDialogVisible()} is now false.
+         */
+        public void dismissed();
     }
 
 }
