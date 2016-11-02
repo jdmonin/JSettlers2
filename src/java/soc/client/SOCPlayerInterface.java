@@ -1804,12 +1804,13 @@ public class SOCPlayerInterface extends Frame
      * A player is being asked to roll (or play a card) at the start of their turn.
      * Update displays if needed.
      *<P>
-     * If the client is the current player, calls {@link SOCHandPanel#autoRollOrPromptPlayer()}.
+     * If the client is the current player, calls {@link SOCHandPanel#autoRollOrPromptPlayer()}
+     * unless {@link ClientBridge#isNonBlockingDialogVisible()}.
      * @since 1.1.11
      */
     public void updateAtRollPrompt()
     {
-        if (clientIsCurrentPlayer())
+        if (clientIsCurrentPlayer() && ! clientListener.isNonBlockingDialogVisible())
             getClientHand().autoRollOrPromptPlayer();
     }
 
