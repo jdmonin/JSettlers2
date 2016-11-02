@@ -278,6 +278,7 @@ public interface PlayerClientListener
     void devCardDeckUpdated();
     void seatLockUpdated();
 
+    // This javadoc also appears in SOCPlayerInterface; please also update there if it changes.
     /**
      * Is a dialog or popup message currently visible while gameplay continues?
      * See interface javadoc for details and implications.
@@ -289,9 +290,10 @@ public interface PlayerClientListener
      */
     boolean isNonBlockingDialogVisible();
 
+    // This javadoc also appears in SOCPlayerInterface; please also update there if it changes.
     /**
      * Set or clear the {@link NonBlockingDialogDismissListener listener}
-     * for cleared {@link #isNonBlockingDialogVisible()} flag.
+     * for when {@link #isNonBlockingDialogVisible()}'s dialog is no longer visible.
      * @param li  Listener, or {@code null} to clear
      */
     void setNonBlockingDialogDismissListener(NonBlockingDialogDismissListener li);

@@ -49,6 +49,7 @@ import soc.util.SOCStringManager;
 
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -434,6 +435,24 @@ public class SOCPlayerInterface extends Frame
     private SOCGameStatistics gameStats;
     
     private final ClientBridge clientListener;
+
+    /**
+     * Listener for
+     * {@link ClientBridge#setNonBlockingDialogDismissListener(soc.client.PlayerClientListener.NonBlockingDialogDismissListener)},
+     * or null. Such dialogs are tracked with {@link #nbdForEvent}.
+     * @since 2.0.00
+     */
+    private PlayerClientListener.NonBlockingDialogDismissListener nbddListener;  // TODO doesn't fire yet
+
+    /**
+     * Non-blocking dialog created for scenario or game event, for {@link #isNonBlockingDialogVisible()}.
+     *<P>
+     * Currently assumes only one field is needed to track such dialogs,
+     * because no current scenario has more than one type of event which would
+     * need concurrent tracking.
+     * @since 2.0.00
+     */
+    Dialog nbdForEvent;
 
     /**
      * Create and show a new player interface.
@@ -1669,6 +1688,35 @@ public class SOCPlayerInterface extends Frame
             invalidate();
             doLayout();
         }
+    }
+
+    // This javadoc also appears in PlayerClientListener; please also update there if it changes.
+    /**
+     * Is a dialog or popup message currently visible while gameplay continues?
+     * See {@link PlayerClientListener} interface javadoc for details and implications.
+     *<P>
+     * To do things when the dialog is no longer visible, you can register a listener with
+     * {@link #setNonBlockingDialogDismissListener(PlayerClientListener.NonBlockingDialogDismissListener)}.
+     * @since 2.0.00
+     */
+    public boolean isNonBlockingDialogVisible()
+    {
+        return (nbdForEvent != null) && nbdForEvent.isVisible();
+    }
+
+    // This javadoc also appears in PlayerClientListener; please also update there if it changes.
+    /**
+     * Set or clear the {@link PlayerClientListener.NonBlockingDialogDismissListener listener}
+     * for when {@link #isNonBlockingDialogVisible()}'s dialog is no longer visible.
+     * @param li  Listener, or {@code null} to clear
+     *<P>
+     * Implements part {@link PlayerClientListener}.
+     * @since 2.0.00
+     */
+    public void setNonBlockingDialogDismissListener
+        (PlayerClientListener.NonBlockingDialogDismissListener li)
+    {
+        nbddListener = li;
     }
 
     /**
@@ -3278,6 +3326,16 @@ public class SOCPlayerInterface extends Frame
             }
         }
 
+        public final boolean isNonBlockingDialogVisible()
+        {
+            return pi.isNonBlockingDialogVisible();
+        }
+
+        public final void setNonBlockingDialogDismissListener(NonBlockingDialogDismissListener li)
+        {
+            pi.setNonBlockingDialogDismissListener(li);
+        }
+
         public void gameStarted()
         {
             pi.startGame();
@@ -3524,7 +3582,7 @@ public class SOCPlayerInterface extends Frame
                 }
 
                 final String s = sb.toString();
-                NotifyDialog.createAndShow(pi.getGameDisplay(), pi, s, null, true);
+                pi.nbdForEvent = NotifyDialog.createAndShow(pi.getGameDisplay(), pi, s, null, true);
             }
         }
 
