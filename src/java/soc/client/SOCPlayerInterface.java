@@ -2959,7 +2959,8 @@ public class SOCPlayerInterface extends Frame
                 else
                     sb.append(" ");
 
-                sb.append(SOCPlayerInterface.strings.getSpecial(ga, "game.roll.gets.resources", pl.getName(), rsrc.get(p)));
+                sb.append
+                    (SOCPlayerInterface.strings.getSpecial(ga, "game.roll.gets.resources", pl.getName(), rsrc.get(p)));
                     // "{0} gets {1,rsrcs}."
             }
 
@@ -3051,11 +3052,8 @@ public class SOCPlayerInterface extends Frame
 
         public void playerPieceMoved(SOCPlayer player, int sourceCoordinate, int targetCoordinate, int pieceType)
         {
-            pi.updateAtPutPiece(player.getPlayerNumber(),
-                                sourceCoordinate,
-                                pieceType,
-                                true,
-                                targetCoordinate);
+            pi.updateAtPutPiece
+                (player.getPlayerNumber(), sourceCoordinate, pieceType, true, targetCoordinate);
             if (pieceType == SOCPlayingPiece.SHIP)
                 pi.printKeyed("game.pieces.moved.ship", player.getName());  // "Joe moved a ship."
         }
@@ -3085,24 +3083,12 @@ public class SOCPlayerInterface extends Frame
 
             switch (utype)
             {
+            // easy cases fall through:
             case Road:
-                hpan.updateValue(utype);
-                break;
-
             case Settlement:
-                hpan.updateValue(utype);
-                break;
-
             case City:
-                hpan.updateValue(utype);
-                break;
-
             case Ship:
-                hpan.updateValue(utype);
-                break;
-
-            case Knight:
-                // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
+            case Knight:  // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
                 hpan.updateValue(utype);
                 break;
 
@@ -3183,9 +3169,7 @@ public class SOCPlayerInterface extends Frame
             }
 
             if (hpan.isClientPlayer() && (pi.getGame().getGameState() != SOCGame.NEW))
-            {
                 pi.getBuildingPanel().updateButtonStatus();
-            }
         }
 
         public void requestedSpecialBuild(SOCPlayer player)
@@ -3242,6 +3226,7 @@ public class SOCPlayerInterface extends Frame
                 PlayerClientListener.UpdateType.Wheat,
                 PlayerClientListener.UpdateType.Wood
             };
+
             int i = 0;
             for (PlayerClientListener.UpdateType t : types)
             {
@@ -3274,8 +3259,7 @@ public class SOCPlayerInterface extends Frame
          */
         public void membersListed(Collection<String> names)
         {
-            Vector<String> v = new Vector<String>(names);
-            pi.began(v);
+            pi.began(new Vector<String>(names));
         }
 
         public void boardLayoutUpdated()
@@ -3351,9 +3335,7 @@ public class SOCPlayerInterface extends Frame
         {
             int[] scoresArray = new int[scores.size()];
             for (Map.Entry<SOCPlayer, Integer> e : scores.entrySet())
-            {
                 scoresArray[e.getKey().getPlayerNumber()] = e.getValue().intValue();
-            }
 
             pi.updateAtOver(scoresArray);
         }
@@ -3379,10 +3361,8 @@ public class SOCPlayerInterface extends Frame
             }
             else
             {
-                if (!pi.getClient().onIgnoreList(nickname))
-                {
+                if (! pi.getClient().onIgnoreList(nickname))
                     pi.chatPrint(nickname + ": " + message);
-                }
             }
         }
 
@@ -3467,11 +3447,9 @@ public class SOCPlayerInterface extends Frame
         public void invItemPlayRejected(final int type, final int reasonCode)
         {
             if ((reasonCode == 4) && pi.getGame().isGameOptionSet(SOCGameOption.K_SC_FTRI))
-            {
                 pi.printKeyed("game.invitem.sc_ftri.need.coastal");  // * "Requires a coastal settlement not adjacent to an existing port."
-            } else {
+            else
                 pi.printKeyed("hpan.item.play.cannot");  // * "Cannot play this item right now."
-            }
         }
 
         public void playerPickSpecialItem
@@ -3488,8 +3466,10 @@ public class SOCPlayerInterface extends Frame
             {
                 String iname = null;
                 final SOCSpecialItem itm = ga.getSpecialItem(typeKey, gi);
+
                 if (itm != null)
                     iname = itm.getStringValue();
+
                 if (iname != null)
                     iname = strings.get("game.specitem.sc_wond." + iname); // "w3" -> "Monument", etc
                 else
@@ -3629,16 +3609,10 @@ public class SOCPlayerInterface extends Frame
         public void requestedTradeClear(SOCPlayer offerer)
         {
             if (offerer != null)
-            {
                 pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(false);
-            }
             else
-            {
                 for (int i = 0; i < pi.game.maxPlayers; ++i)
-                {
                     pi.getPlayerHandPanel(i).updateCurrentOffer(false);
-                }
-            }
         }
 
         public void requestedTradeRejection(SOCPlayer rejecter)
