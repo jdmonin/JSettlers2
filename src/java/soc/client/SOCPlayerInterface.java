@@ -452,7 +452,7 @@ public class SOCPlayerInterface extends Frame
      * need concurrent tracking.
      * @since 2.0.00
      */
-    Dialog nbdForEvent;
+    volatile Dialog nbdForEvent;
 
     /**
      * Create and show a new player interface.
