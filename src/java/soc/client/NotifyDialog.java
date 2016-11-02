@@ -54,9 +54,11 @@ class NotifyDialog extends AskDialog
      *                 If multiple lines, first line is title; if begins with \n, title is "JSettlers".
      * @param btnText  Button text, or null for "OK"
      * @param hasDefault  Button is default (responds to Enter)
+     * @return the created NotifyDialog
      * @throws IllegalArgumentException If cli, promptText, or btnText is null
      */
-    public static void createAndShow(GameAwtDisplay cli, Frame gamePI, String promptText, String btnText, boolean hasDefault)
+    public static NotifyDialog createAndShow
+        (GameAwtDisplay cli, Frame gamePI, String promptText, String btnText, boolean hasDefault)
         throws IllegalArgumentException
     {
         if (btnText == null)
@@ -64,6 +66,8 @@ class NotifyDialog extends AskDialog
         NotifyDialog nd = new NotifyDialog
 	    (cli, gamePI, promptText, btnText, hasDefault);
         EventQueue.invokeLater(nd);  // calls setVisible(true)
+
+        return nd;
     }
 
     /**
