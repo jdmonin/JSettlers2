@@ -3135,7 +3135,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @param edgeNum  Edge number of this road or ship; accepts -1 for edgeNum 0x00.
      *           For the pirate ship in the middle of a hex, <tt>edgeNum</tt>
      *           can be a hex coordinate, and <tt>pn</tt> must be -2 or -3.
-     * @param pn   Player number, or -1 for a white outline or fill color (depending on <tt>isHilight</tt>)
+     * @param pn   Player number, or -1 for a white outline or fill color (depending on <tt>isHilight</tt>),
      *             or -2 for the black pirate ship, -3 for the previous-pirate outline.
      * @param isHilight  Is this the hilight for showing a potential placement?
      * @param isRoadNotShip  True to draw a road; false to draw a ship if {@link #isLargeBoard}
@@ -3278,6 +3278,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         g.translate(hx, hy);
 
+        // Fill
         if (pn != -3)
         {
             if (pn == -1)
@@ -3297,6 +3298,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             g.fillPolygon(roadX, roadY, roadX.length);
         }
 
+        // Outline
         if (! ((pn == -1) && isHilight))
         {
             if (pn == -2)
@@ -3780,8 +3782,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (edge < 0)
                 continue;  // SOCBoardLarge port isn't currently placed on the board: skip it
 
-            // For each port, get its facing land hex
-            // and base (x,y) off that.
+            // For each port, get its facing land hex and base (x,y) off that. Port hex
+            // is drawn on the sea side, not land side, of the edge but some ports at
+            // the borders of the board might have a sea side outside the coordinate system.
+            // So instead we calculate ports' landHexCoord (which will always be inside the
+            // system) and move 1 hex away from the facing direction.
             final int landFacing = portsFacing[i];
             final int landHexCoord = board.getAdjacentHexToEdge(edge, landFacing);
             px = halfdeltaX * ((landHexCoord & 0xFF) - 1);
