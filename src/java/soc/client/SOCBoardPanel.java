@@ -705,6 +705,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * When <tt>isLargeBoard</tt>, {@link #isRotated()} is false even if the game has 5 or 6 players.
      *
      * @see #is6player
+     * @see #portHexCoords
      * @since 2.0.00
      */
     protected final boolean isLargeBoard;
@@ -878,6 +879,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @since 1.1.08
      */
     private boolean[] inactiveHexNums;
+
+    /**
+     * On the Large Board, the sea hex coordinates which have a port graphic
+     * drawn on them. Used for giving the black pirate ship a high-contrast border
+     * when placed at such a hex, otherwise it disappears into some port types'
+     * dark or busy graphics. Necessary because SOCBoardLarge has ports' edge
+     * coordinates but not these calculated hex coordinates.
+     *<P>
+     * Null unless {@link #isLargeBoard}.
+     * @see #drawPorts_LargeBoard(Graphics)
+     * @since 2.0.00
+     */
+    private Set<Integer> portHexCoords;
 
     /**
      * hex coordinates for drawing pieces on the board.
@@ -3137,6 +3151,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *           can be a hex coordinate, and <tt>pn</tt> must be -2 or -3.
      * @param pn   Player number, or -1 for a white outline or fill color (depending on <tt>isHilight</tt>),
      *             or -2 for the black pirate ship, -3 for the previous-pirate outline.
+     *             If the pirate ship (style -2) is being drawn on a hex which also shows a port,
+     *             that black ship will be drawn with a white outline for visibility against the
+     *             sometimes-dark sometimes-busy port graphics.
      * @param isHilight  Is this the hilight for showing a potential placement?
      * @param isRoadNotShip  True to draw a road; false to draw a ship if {@link #isLargeBoard}
      * @param isWarship   True to draw a war ship (not normal ship) if {@link #isLargeBoard}, for scenario _SC_PIRI
@@ -3302,7 +3319,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (! ((pn == -1) && isHilight))
         {
             if (pn == -2)
-                g.setColor(Color.darkGray);
+                if ((portHexCoords != null) && portHexCoords.contains(Integer.valueOf(edgeNum)))
+                    g.setColor(Color.white);  // pirate is on a port
+                else
+                    g.setColor(Color.darkGray);
             else if (pn == -3)
                 g.setColor(Color.lightGray);
             else if (isHilight)
@@ -3774,6 +3794,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (portsLayout == null)
             return;  // <--- Too early: board not created & sent from server ---
 
+        if (portHexCoords == null)
+            portHexCoords = new HashSet<Integer>();
+        else
+            portHexCoords.clear();  // in case ports have changed (SC_FTRI does that)
+
         final int[] portsFacing = board.getPortsFacing();
         final int[] portsEdges = board.getPortsEdges();
         for (int i = board.getPortsCount()-1; i>=0; --i)
@@ -3796,6 +3821,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             py -= DELTAY_FACING[landFacing];
 
             drawHex(g, px, py, portsLayout[i], landFacing, -1);
+
+            // portHexCoords wants sea hex, not land hex
+            int seaFacing = 3 + landFacing;
+            if (seaFacing > 6)
+                seaFacing -= 6;
+            final int seaHex = board.getAdjacentHexToEdge(edge, seaFacing);
+            if (seaHex > 0)
+                portHexCoords.add(Integer.valueOf(seaHex));
         }
     }
 
