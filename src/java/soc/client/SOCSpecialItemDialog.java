@@ -36,6 +36,8 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.List;
 import java.util.MissingResourceException;
 
@@ -89,7 +91,16 @@ class SOCSpecialItemDialog
 
     private final SOCPlayerInterface pi;
     private final SOCGame ga;
+
+    /**
+     * Optional listener.
+     * @see #nbddListenerCalled
+     * @since 2.0.00
+     */
     private PlayerClientListener.NonBlockingDialogDismissListener nbddListener;
+
+    /** Set true before {@code dispose()} to prevent 2 calls to {@link #nbddListener}. */
+    private volatile boolean nbddListenerCalled = false;
 
     /** Place dialog in center once when displayed (in doLayout), don't change position afterwards */
     private boolean didSetLocation;
@@ -317,13 +328,34 @@ class SOCSpecialItemDialog
         cpane.add(bPan);
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        addWindowListener(new WindowAdapter()
+        {
+            /** React to Closed, not Closing, to ensure dialog was already dispose()d. */
+            public void windowClosed(WindowEvent e)
+            {
+                if ((nbddListener != null) && ! nbddListenerCalled)
+                {
+                    nbddListenerCalled = true;
+                    EventQueue.invokeLater(new Runnable()
+                    {
+                        public void run() { nbddListener.dismissed(this, true); }
+                    });
+               }
+            }
+        });
         getRootPane().setDefaultButton(bClose);
         getRootPane().registerKeyboardAction
             (new ActionListener()
             {
                 public void actionPerformed(ActionEvent arg0)
                 {
+                    nbddListenerCalled = true;
                     dispose();
+                    if (nbddListener != null)
+                        EventQueue.invokeLater(new Runnable()
+                        {
+                            public void run() { nbddListener.dismissed(this, true); }
+                        });
                 }
             },
             KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
@@ -465,6 +497,7 @@ class SOCSpecialItemDialog
 
             if (src == bClose)
             {
+                nbddListenerCalled = true;
                 dispose();
                 if (nbddListener != null)
                     EventQueue.invokeLater(new Runnable()
@@ -512,6 +545,7 @@ class SOCSpecialItemDialog
                 if (! askedSBP)
                     gm.pickSpecialItem(ga, typeKey, 1 + i, 0);
 
+                nbddListenerCalled = true;
                 dispose();
                 if (nbddListener != null)
                     EventQueue.invokeLater(new Runnable()
