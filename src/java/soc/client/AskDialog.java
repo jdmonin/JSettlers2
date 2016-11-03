@@ -23,6 +23,7 @@ import java.awt.Button;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dialog;
+import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -61,6 +62,10 @@ import soc.client.SOCPlayerClient.GameAwtDisplay;
  * {@link #windowCloseChosen()}, and (for a three-choice
  * question) override {@link #button3Chosen()}.
  *<P>
+ * If {@link #setNonBlockingDialogDismissListener(soc.client.PlayerClientListener.NonBlockingDialogDismissListener) setNonBlockingDialogDismissListener(..)}
+ * was called, AskDialog will fire that listener callback after {@link #button1Chosen()}, {@link #windowCloseChosen()},
+ * or similar methods.
+ *<P>
  * For convenience with {@link java.awt.EventQueue#invokeLater(Runnable)},
  * contains a {@link #run()} method which calls {@link #setVisible(boolean) setVisible(true)}.
  *
@@ -84,6 +89,12 @@ public abstract class AskDialog extends Dialog
      * question is related to the entire client, and not to a specific game
      */
     protected SOCPlayerInterface pi;
+
+    /**
+     * Optional listener. Fired from multiple places via {@link #callbackDiaDismissListener(boolean)}.
+     * @since 2.0.00
+     */
+    private PlayerClientListener.NonBlockingDialogDismissListener nbddListener;
 
     /** Prompt message Label, or Panel for multi-line prompt ({@link #isMsgMultiLine}), or null */
     protected JComponent msg;
@@ -545,6 +556,8 @@ public abstract class AskDialog extends Dialog
                 dispose();
                 button3Chosen();  // <--- Callback for button 3 ---
             }
+
+            callbackDiaDismissListener(false);
         } catch (Throwable thr) {
             if (pi != null)
             {
@@ -590,12 +603,13 @@ public abstract class AskDialog extends Dialog
     public abstract void windowCloseChosen();
 
     /**
-     * Dialog close requested by user. Dispose and call windowCloseChosen.
+     * Dialog close requested by user. Dispose and call {@link #windowCloseChosen()}.
      */
     public void windowClosing(WindowEvent e)
     {
         dispose();
         windowCloseChosen();  // <--- Callback for close/ESC ---
+        callbackDiaDismissListener(true);
     }
 
     /** Window is appearing - check the size and the default button keyboard focus */
@@ -644,6 +658,8 @@ public abstract class AskDialog extends Dialog
                     button3Chosen();  // <--- Callback for button 3 ---
                     break;
                 }  // switch
+
+                callbackDiaDismissListener(false);
             }
             break;
 
@@ -652,6 +668,7 @@ public abstract class AskDialog extends Dialog
             dispose();
             e.consume();
             windowCloseChosen();  // <--- Callback for close/ESC ---
+            callbackDiaDismissListener(true);
             break;
         }
     }
@@ -728,6 +745,34 @@ public abstract class AskDialog extends Dialog
             return "JSettlers";
         else
             return f.substring(0, i);
+    }
+
+    /**
+     * Call our optional {@link PlayerClientListener.NonBlockingDialogDismissListener listener},
+     * if any. Call this after the button/cancel callback. Uses {@link EventQueue#invokeLater(Runnable)}
+     * to ensure the callback is on the proper thread.
+     * @param wasCanceled  Detail param to pass to
+     *     {@link PlayerClientListener.NonBlockingDialogDismissListener#dismissed(Object, boolean)}
+     * @since 2.0.00
+     */
+    protected final void callbackDiaDismissListener(final boolean wasCanceled)
+    {
+        if (nbddListener != null)
+            EventQueue.invokeLater(new Runnable()
+            {
+                public void run() { nbddListener.dismissed(this, wasCanceled); }
+            });
+    }
+
+    /**
+     * Set or clear the optional {@link PlayerClientListener.NonBlockingDialogDismissListener listener}
+     * for when this dialog is no longer visible.
+     * @param li  Listener, or {@code null} to clear
+     */
+    public void setNonBlockingDialogDismissListener
+        (PlayerClientListener.NonBlockingDialogDismissListener li)
+    {
+        nbddListener = li;
     }
 
     /**

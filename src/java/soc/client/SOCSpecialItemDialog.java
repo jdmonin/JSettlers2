@@ -27,6 +27,7 @@ import soc.game.SOCScenario;  // for javadocs only
 import soc.game.SOCSpecialItem;
 
 import java.awt.Container;
+import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -88,6 +89,7 @@ class SOCSpecialItemDialog
 
     private final SOCPlayerInterface pi;
     private final SOCGame ga;
+    private PlayerClientListener.NonBlockingDialogDismissListener nbddListener;
 
     /** Place dialog in center once when displayed (in doLayout), don't change position afterwards */
     private boolean didSetLocation;
@@ -97,7 +99,7 @@ class SOCSpecialItemDialog
      * After creation, call {@code pack()} and {@link #setVisible(boolean) setVisible(true)} to show the modal dialog;
      * this dialog's code will request any action chosen by the player.
      *<P>
-     * Right now, {@link SOCGameOption#K_SC_WOND _SC_WOND} is the only known {@code typeKey}.
+     * Currently {@link SOCGameOption#K_SC_WOND _SC_WOND} is the only known {@code typeKey}.
      *
      * @param pi  PlayerInterface that owns this dialog
      * @param typeKey  Special item type key; see the {@link SOCSpecialItem} class javadoc for details
@@ -464,6 +466,12 @@ class SOCSpecialItemDialog
             if (src == bClose)
             {
                 dispose();
+                if (nbddListener != null)
+                    EventQueue.invokeLater(new Runnable()
+                    {
+                        public void run() { nbddListener.dismissed(this, true); }
+                    });
+
                 return;
             }
 
@@ -505,11 +513,27 @@ class SOCSpecialItemDialog
                     gm.pickSpecialItem(ga, typeKey, 1 + i, 0);
 
                 dispose();
+                if (nbddListener != null)
+                    EventQueue.invokeLater(new Runnable()
+                    {
+                        public void run() { nbddListener.dismissed(this, false); }
+                    });
             }
 
         } catch (Exception ex) {
             pi.chatPrintStackTrace(ex);
         }
+    }
+
+    /**
+     * Set or clear the optional {@link PlayerClientListener.NonBlockingDialogDismissListener listener}
+     * for when this dialog is no longer visible.
+     * @param li  Listener, or {@code null} to clear
+     */
+    public void setNonBlockingDialogDismissListener
+        (PlayerClientListener.NonBlockingDialogDismissListener li)
+    {
+        nbddListener = li;
     }
 
 }
