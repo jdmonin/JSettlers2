@@ -477,7 +477,33 @@ class SOCSpecialItemDialog
             if (i < buttons.length)
             {
                 // assumes typeKey == _SC_WOND -> always sends PICK
-                pi.getClient().getGameManager().pickSpecialItem(pi.getGame(), typeKey, 1 + i, 0);
+                // or (6-player) asks for Special Building Phase on
+                // other players' turns. Eventually other typeKeys
+                // may allow other actions besides PICK, or actions
+                // during other players' turns.
+
+                final SOCGame ga = pi.getGame();
+                final SOCPlayerClient.GameManager gm = pi.getClient().getGameManager();
+                boolean askedSBP = false;
+                if (! pi.clientIsCurrentPlayer())
+                {
+                    final int cpn = pi.getClientPlayerNumber();
+                    if ((cpn != -1) && ga.canAskSpecialBuild(cpn, false))
+                    {
+                        // Can't build on other players' turns, but can request SBP.
+                        // Consistent with what happens when clicking Buy for a road,
+                        // city, etc on another player's turn in 6-player game.
+                        gm.buildRequest(ga, -1);
+                        askedSBP = true;
+                    }
+                    // else: Fall through, send PICK request, server will
+                    // send feedback it can't be built right now: That way
+                    // this dialog's feedback is consistently delivered.
+                }
+
+                if (! askedSBP)
+                    gm.pickSpecialItem(ga, typeKey, 1 + i, 0);
+
                 dispose();
             }
 
