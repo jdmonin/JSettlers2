@@ -707,9 +707,10 @@ public class SOCBuildingPanel extends Panel
         else if (e.getSource() == wondersBut)
         {
             final SOCSpecialItemDialog dia = new SOCSpecialItemDialog(pi, SOCGameOption.K_SC_WOND);
+            dia.setNonBlockingDialogDismissListener(pi);
             pi.nbdForEvent = dia;
             dia.pack();
-            dia.setVisible(true);  // is modal
+            dia.setVisible(true);  // is modal but other players' gameplay can continue (separate threads)
 
             return;
         }

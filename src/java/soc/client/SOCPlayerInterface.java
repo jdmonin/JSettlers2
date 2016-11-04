@@ -104,7 +104,8 @@ import java.io.StringWriter;
  */
 @SuppressWarnings("serial")
 public class SOCPlayerInterface extends Frame
-    implements ActionListener, MouseListener, SOCScenarioEventListener
+    implements ActionListener, MouseListener, SOCScenarioEventListener,
+    PlayerClientListener.NonBlockingDialogDismissListener
 {
     /** i18n text strings */
     private static final SOCStringManager strings = SOCStringManager.getClientManager();
@@ -2299,6 +2300,20 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * {@inheritDoc}
+     *<P>
+     * For {@link PlayerClientListener.NonBlockingDialogDismissListener} interface;
+     * if {@code srcDialog} matches currently tracked dialog for {@link #isNonBlockingDialogVisible()},
+     * clear that tracking field.
+     * @since 2.0.00
+     */
+    public void dialogDismissed(final Object srcDialog, final boolean wasCanceled)
+    {
+        if (nbdForEvent == srcDialog)
+            nbdForEvent = null;
+    }
+
+    /**
      * Gamestate just became {@link SOCGame#WAITING_FOR_DISCARDS}
      * or {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}.
      * Set up a timer to wait 1 second before showing "Discarding..."
@@ -3563,7 +3578,10 @@ public class SOCPlayerInterface extends Frame
                 }
 
                 final String s = sb.toString();
-                pi.nbdForEvent = NotifyDialog.createAndShow(pi.getGameDisplay(), pi, s, null, true);
+                NotifyDialog nd = new NotifyDialog(pi.getGameDisplay(), pi, s, null, true);
+                nd.setNonBlockingDialogDismissListener(pi);
+                pi.nbdForEvent = nd;
+                EventQueue.invokeLater(nd);  // calls setVisible(true)
             }
         }
 
