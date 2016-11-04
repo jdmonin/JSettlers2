@@ -78,7 +78,7 @@ class NotifyDialog extends AskDialog
      *                 or null to look for cli's Frame as parent
      * @param promptText  Prompt text appearing above button; also used for the dialog title.
      *                 If multiple lines, first line is title; if begins with \n, title is "JSettlers".
-     * @param btnText  Button text
+     * @param btnText  Button text, or null for "OK"
      * @param hasDefault  Button is default (responds to Enter)
      * @throws IllegalArgumentException If cli or btnText is null
      */
@@ -89,7 +89,8 @@ class NotifyDialog extends AskDialog
        	          ? gamePI
        	          : getParentFrame(cli)),
         	promptText, promptText,
-            btnText, hasDefault);
+            (btnText != null) ? btnText : strings.get("base.ok"),
+            hasDefault);
     }
 
     /**
