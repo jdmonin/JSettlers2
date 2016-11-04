@@ -760,7 +760,7 @@ public abstract class AskDialog extends Dialog
         if (nbddListener != null)
             EventQueue.invokeLater(new Runnable()
             {
-                public void run() { nbddListener.dialogDismissed(this, wasCanceled); }
+                public void run() { nbddListener.dialogDismissed(AskDialog.this, wasCanceled); }
             });
     }
 

@@ -338,7 +338,7 @@ class SOCSpecialItemDialog
                     nbddListenerCalled = true;
                     EventQueue.invokeLater(new Runnable()
                     {
-                        public void run() { nbddListener.dialogDismissed(this, true); }
+                        public void run() { nbddListener.dialogDismissed(SOCSpecialItemDialog.this, true); }
                     });
                }
             }
@@ -354,7 +354,7 @@ class SOCSpecialItemDialog
                     if (nbddListener != null)
                         EventQueue.invokeLater(new Runnable()
                         {
-                            public void run() { nbddListener.dialogDismissed(this, true); }
+                            public void run() { nbddListener.dialogDismissed(SOCSpecialItemDialog.this, true); }
                         });
                 }
             },
@@ -502,7 +502,7 @@ class SOCSpecialItemDialog
                 if (nbddListener != null)
                     EventQueue.invokeLater(new Runnable()
                     {
-                        public void run() { nbddListener.dialogDismissed(this, true); }
+                        public void run() { nbddListener.dialogDismissed(SOCSpecialItemDialog.this, true); }
                     });
 
                 return;
@@ -550,7 +550,7 @@ class SOCSpecialItemDialog
                 if (nbddListener != null)
                     EventQueue.invokeLater(new Runnable()
                     {
-                        public void run() { nbddListener.dialogDismissed(this, false); }
+                        public void run() { nbddListener.dialogDismissed(SOCSpecialItemDialog.this, false); }
                     });
             }
 
