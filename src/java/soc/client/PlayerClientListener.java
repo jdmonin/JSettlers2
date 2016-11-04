@@ -492,7 +492,7 @@ public interface PlayerClientListener
          * @param wasCanceled  True if the dialog was closed or canceled, instead of selecting an action.
          *     Message popup dialogs have the "OK" button as their action and use {@code false} for this parameter.
          */
-        public void dismissed(Object srcDialog, boolean wasCanceled);
+        public void dialogDismissed(Object srcDialog, boolean wasCanceled);
     }
 
 }

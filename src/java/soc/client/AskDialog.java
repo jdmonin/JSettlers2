@@ -752,7 +752,7 @@ public abstract class AskDialog extends Dialog
      * if any. Call this after the button/cancel callback. Uses {@link EventQueue#invokeLater(Runnable)}
      * to ensure the callback is on the proper thread.
      * @param wasCanceled  Detail param to pass to
-     *     {@link PlayerClientListener.NonBlockingDialogDismissListener#dismissed(Object, boolean)}
+     *     {@link PlayerClientListener.NonBlockingDialogDismissListener#dialogDismissed(Object, boolean)}
      * @since 2.0.00
      */
     protected final void callbackDiaDismissListener(final boolean wasCanceled)
@@ -760,7 +760,7 @@ public abstract class AskDialog extends Dialog
         if (nbddListener != null)
             EventQueue.invokeLater(new Runnable()
             {
-                public void run() { nbddListener.dismissed(this, wasCanceled); }
+                public void run() { nbddListener.dialogDismissed(this, wasCanceled); }
             });
     }
 
