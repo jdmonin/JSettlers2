@@ -67,9 +67,7 @@
   <property name="java.src"       value="src/java" />
   <property name="test.src"       value="src/test" />
   <property name="web.src"        value="src/web" />
-
   <property name="test"           value="test" />
-
   <property name="target"         location="target" />
   <property name="classes"        location="${target}/classes" />
   <property name="bin.target"     location="${target}/bin" />
