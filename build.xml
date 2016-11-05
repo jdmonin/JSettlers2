@@ -23,7 +23,6 @@
  along with this program.  If not, see http://www.gnu.org/licenses/ .
  -->
 
-  <!-- Reminder for javac tasks: To prevent ant 1.8+ warning message, use includeantruntime="false" -->
   <!-- Reminder for tar tasks: ant 1.7+ assumed; uses ant's internal tar implementation
        and not the system tar, which means on OSX it won't include junk ._* files -->
 
@@ -36,6 +35,11 @@
   <property name="debug"       value="true" />
   <property name="optimize"    value="true" />
   <property name="deprecation" value="false" />
+
+  <!-- for javac tasks: To prevent ant 1.8+ warning message, use includeantruntime="false" -->
+  <presetdef name="javac">
+    <javac includeantruntime="false" />
+  </presetdef>
 
   <property name="name"      value="jsettlers" />
   <property name="Name"      value="JSettlers" />
@@ -234,7 +238,6 @@ pte.version = ${i18neditor.version}
              classpathref="classpath"
              debug="${debug}" 
              optimize="${optimize}"
-             includeantruntime="false"
              deprecation="${deprecation}" />
   </target>
  
@@ -327,7 +330,6 @@ pte.version = ${i18neditor.version}
              classpathref="classpath"
              debug="${debug}"
              optimize="${optimize}"
-             includeantruntime="false"
              deprecation="${deprecation}" />
   </target>
 
