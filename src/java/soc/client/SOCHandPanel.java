@@ -632,14 +632,16 @@ public class SOCHandPanel extends Panel
 
         if (game.hasSeaBoard)
         {
+            final String svp_tt = strings.get("hpan.svp.tt");  // "Special Victory Points, click for details"
+
             svpLab = new Label(strings.get("hpan.svp") + " ");  // "SVP: "
             svpLab.setVisible(false);
             add(svpLab);
-            new AWTToolTip(strings.get("hpan.svp.tt.forplayer"), svpLab);  // "Special Victory Points for this player"
+            new AWTToolTip(svp_tt, svpLab);
             svpLab.addMouseListener(this);
             svpSq = new ColorSquare(ColorSquare.GREY, 0);
             svpSq.setVisible(false);
-            svpSq.setTooltipText(strings.get("hpan.svp.tt.clickdetails"));  // "Special Victory Points, click for details"
+            svpSq.setTooltipText(svp_tt);
             add(svpSq);
             svpSq.addMouseListener(this);
         } else {
