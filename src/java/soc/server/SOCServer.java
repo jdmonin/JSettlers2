@@ -4989,6 +4989,8 @@ public class SOCServer extends Server
 
     /**
      * Handle the client's echo of a {@link SOCMessage#SERVERPING}.
+     * Resets its {@link SOCClientData#disconnectLastPingMillis} to 0
+     * to indicate client is actively responsive to server.
      * @since 1.1.08
      */
     private void handleSERVERPING(StringConnection c, SOCServerPing mes)
@@ -8438,6 +8440,13 @@ public class SOCServer extends Server
 
                     messageToGameKeyed(gameData, true, "game.time.expire.soon.addtime", Integer.valueOf(minutes));
                         // ">>> Less than {0} minutes remaining. Type *ADDTIME* to extend this game another 30 minutes."
+                }
+                else if ((currentTimeMillis - gameData.lastActionTime) > (60 * 1000 * GAME_TIME_EXPIRE_CHECK_MINUTES))
+                {
+                    // If game is idle since previous check, send keepalive ping to its clients
+                    // so the network doesn't disconnect while all players are taking a break
+
+                    messageToGame(gameData.getName(), new SOCServerPing(60 * GAME_TIME_EXPIRE_CHECK_MINUTES));
                 }
             }
         }
