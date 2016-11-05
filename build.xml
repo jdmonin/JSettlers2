@@ -36,9 +36,15 @@
   <property name="optimize"    value="true" />
   <property name="deprecation" value="false" />
 
-  <!-- for javac tasks: To prevent ant 1.8+ warning message, use includeantruntime="false" -->
+  <!-- Defaults for javac tasks:
+      * To prevent ant 1.8+ warning message, use includeantruntime="false"
+      * To override system's default encoding, specify UTF-8 for *.java
+      -->
   <presetdef name="javac">
-    <javac includeantruntime="false" />
+    <javac encoding="UTF-8" includeantruntime="false" />
+  </presetdef>
+  <presetdef name="javadoc">
+    <javadoc encoding="UTF-8" />
   </presetdef>
 
   <property name="name"      value="jsettlers" />
