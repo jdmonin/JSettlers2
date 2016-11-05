@@ -67,9 +67,7 @@
   <property name="java.src"       value="src/java" />
   <property name="test.src"       value="src/test" />
   <property name="web.src"        value="src/web" />
-
   <property name="test"           value="test" />
-
   <property name="target"         location="target" />
   <property name="classes"        location="${target}/classes" />
   <property name="bin.target"     location="${target}/bin" />
@@ -193,7 +191,7 @@ pte.version = ${i18neditor.version}
 
   <!-- Not used: For later installer.... see http://izpack.org/ -->
   <target name="check-izpack" depends="init">
-      <available property="izpack.present" 
+      <available property="izpack.present"
                  classname="com.izforge.izpack.ant.IzPackTask"
                  classpathref="installer.cp" />
       <fail unless="izpack.present">
@@ -219,7 +217,7 @@ pte.version = ${i18neditor.version}
         <srcfilelist dir="${basedir}" files="build.xml" />
         <targetfilelist dir="${classes}" files="${version.info}" />
       </dependset>
-      <copy file="${java.src}/${version.info}.in" 
+      <copy file="${java.src}/${version.info}.in"
             tofile="${classes}/${version.info}">
         <filterset>
           <filter token="VERSION" value="${version}" />
@@ -228,16 +226,17 @@ pte.version = ${i18neditor.version}
           <filter token="COPYRIGHT" value="${copyright}" />
         </filterset>
       </copy>
-      
+
       <javac srcdir="${java.src}"
              destdir="${classes}"
              classpathref="classpath"
-             debug="${debug}" 
+             debug="${debug}"
              optimize="${optimize}"
              includeantruntime="false"
-             deprecation="${deprecation}" />
+             deprecation="${deprecation}"
+      		 encoding="iso-8859-1"/>
   </target>
- 
+
   <!-- Create two jars: client and server (which depends on client because bots are clients) -->
   <target name="build" depends="compile"
           description="Create project jar files.">
@@ -291,10 +290,10 @@ pte.version = ${i18neditor.version}
 
   <target name="unused_old_example_test" depends="unused_old_example_compile-tests">
       <mkdir dir="${test.reports}" />
-      <junit dir="./" 
-             failureproperty="test.failure" 
-             printSummary="yes" 
-             fork="true" 
+      <junit dir="./"
+             failureproperty="test.failure"
+             printSummary="yes"
+             fork="true"
              haltonerror="no">
         <sysproperty key="basedir" value="." />
         <formatter type="xml" />
@@ -331,7 +330,7 @@ pte.version = ${i18neditor.version}
              deprecation="${deprecation}" />
   </target>
 
-   
+
   <!-- ************************************** -->
   <!-- Distribution targets -->
   <!-- These create top-level dist/ dir if not already present -->
@@ -543,7 +542,7 @@ pte.version = ${i18neditor.version}
                doctitle="${Name}, v ${version}, API Specification"
                windowtitle="${Name} v${version} API"
                access="package"
-               source="1.4" 
+               source="1.4"
                additionalparam="-breakiterator">
         <packageset dir="${java.src}" />
         <header><![CDATA[<b><a target="_blank" href="${url}">${Name} v${version} API</a></b><br><font size="-2">Built ${date}</font>]]></header>
@@ -556,7 +555,7 @@ pte.version = ${i18neditor.version}
   <!-- ************************************** -->
 
   <!-- Delete all artifacts of the project, i.e. ${target} & ${dist} -->
-  <target name="clean" depends="init" 
+  <target name="clean" depends="init"
           description="Cleans the project of all generated files">
       <delete quiet="true" includeEmptyDirs="true">
         <fileset dir="${target}/" defaultExcludes="no" />
