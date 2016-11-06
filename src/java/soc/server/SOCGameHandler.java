@@ -723,7 +723,7 @@ public class SOCGameHandler extends GameHandler
 
                 // Fake placement off-board so we can call ga.removePort,
                 // which will handle game states and notification, at a
-                // vertical edge just off the edge of the board: 0x103, 0x105, ...
+                // vertical edge just past the side of the board: 0x113, 0x115, ...
                 final int edge = (ga.getBoard().getBoardWidth() + 2) | 0x101;
                 ga.placePort(null, edge, ptype);
                 ga.removePort(pl, edge);
@@ -6267,12 +6267,13 @@ public class SOCGameHandler extends GameHandler
                 sendPlayerEventsBitmask = false;
                 sendSVP = false;
                 IntPair edge_portType = (IntPair) obj;
-                final int edge = edge_portType.getA();
+                final int edge = edge_portType.getA(),
+                          portType = edge_portType.getB();
                 if ((edge & 0xFF) <= ga.getBoard().getBoardWidth())
                     // announce removal from board, unless (for debugging)
                     // this port wasn't really on the board at clients
                     srv.messageToGame(gaName, new SOCSimpleAction
-                        (gaName, pn, SOCSimpleAction.TRADE_PORT_REMOVED, edge, edge_portType.getB()));
+                        (gaName, pn, SOCSimpleAction.TRADE_PORT_REMOVED, edge, portType));
                 if (ga.getGameState() == SOCGame.PLACING_INV_ITEM)
                 {
                     // Removal happens during ship piece placement, which is followed at server with sendGameState.
@@ -6280,12 +6281,12 @@ public class SOCGameHandler extends GameHandler
                     // We just need to send the client PLACING_EXTRA, for the port type and not-cancelable flag.
                     StringConnection c = srv.getConnection(plName);
                     srv.messageToPlayer(c, new SOCInventoryItemAction
-                        (gaName, pn, SOCInventoryItemAction.PLACING_EXTRA, -edge_portType.getB(), false, false, false));
+                        (gaName, pn, SOCInventoryItemAction.PLACING_EXTRA, -portType, false, false, false));
                 } else {
                     // port was added to player's inventory;
                     // if this message changes, also update SOCGameHandler.processDebugCommand_scenario
                     srv.messageToGame(gaName, new SOCInventoryItemAction
-                        (gaName, pn, SOCInventoryItemAction.ADD_PLAYABLE, -edge_portType.getB(), false, false, true));
+                        (gaName, pn, SOCInventoryItemAction.ADD_PLAYABLE, -portType, false, false, true));
                 }
             }
             break;
