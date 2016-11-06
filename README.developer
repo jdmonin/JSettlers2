@@ -83,6 +83,10 @@ For security, please use sqlite or another database and make a "debug" account w
 a password (see README.txt section "Database Setup").  Except for practice games,
 no other username can use debug commands.
 
+To print the contents of messages sent between the server and client, start the
+client with vm argument -Djsettlers.debug.traffic=Y
+(this goes before -jar if using the command line).
+
 If you want to inspect the game object state at the server or robot:
 	Set a breakpoint at SOCServer.processDebugCommand, or at "case SOCMessage.GAMETEXTMSG"
 	  send a text msg from a client (the chat textfield), and inspect the game obj at that point

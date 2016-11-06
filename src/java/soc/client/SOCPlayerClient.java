@@ -248,6 +248,15 @@ public class SOCPlayerClient
     protected boolean isNGOFWaitingForAuthStatus;
 
     /**
+     * True if contents of incoming and outgoing network message traffic should be debug-printed.
+     * Set if optional system property {@code jsettlers.debug.traffic} is set.
+     *<P>
+     * Versions earlier than 1.1.20 always printed this debug output.
+     * @since 2.0.00
+     */
+    private boolean debugTraffic;
+
+    /**
      * face ID chosen most recently (for use in new games)
      */
     protected int lastFaceChange;
@@ -502,6 +511,9 @@ public class SOCPlayerClient
     {
         gotPassword = false;
         lastFaceChange = 1;  // Default human face
+
+        if (null != System.getProperty("jsettlers.debug.traffic"))
+            debugTraffic = true;  // set flag if debug prop has any value at all
 
         String jsLocale = System.getProperty(I18n.PROP_JSETTLERS_LOCALE);
         Locale lo = null;
@@ -2820,8 +2832,8 @@ public class SOCPlayerClient
         if (mes == null)
             return;  // Parsing error
 
-        if (D.ebugIsEnabled())
-            D.ebugPrintln(mes.toString());
+        if (debugTraffic || D.ebugIsEnabled())
+            soc.debug.D.ebugPrintln(mes.toString());
 
         try
         {
@@ -6699,8 +6711,8 @@ public class SOCPlayerClient
                 return false;
             }
 
-            if (D.ebugIsEnabled())
-                D.ebugPrintln("OUT - " + SOCMessage.toMsg(s));
+            if (client.debugTraffic || D.ebugIsEnabled())
+                soc.debug.D.ebugPrintln("OUT - " + SOCMessage.toMsg(s));
 
             try
             {
@@ -6740,8 +6752,8 @@ public class SOCPlayerClient
                 return false;
             }
 
-            if (D.ebugIsEnabled())
-                D.ebugPrintln("OUT L- " + SOCMessage.toMsg(s));
+            if (client.debugTraffic || D.ebugIsEnabled())
+                soc.debug.D.ebugPrintln("OUT L- " + SOCMessage.toMsg(s));
 
             prCli.put(s);
 
