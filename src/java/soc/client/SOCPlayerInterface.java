@@ -2012,7 +2012,8 @@ public class SOCPlayerInterface extends Frame
                 getBoardPanel().popupFireBuildingRequest();
         }
 
-        if ((gs == SOCGame.PLACING_INV_ITEM) && game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+        if ((gs == SOCGame.PLACING_INV_ITEM) && clientIsCurrentPlayer()
+            && game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
         {
             printKeyed("game.invitem.sc_ftri.prompt");
                 // "You have received this trade port as a gift."
