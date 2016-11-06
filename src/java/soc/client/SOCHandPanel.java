@@ -3231,6 +3231,7 @@ public class SOCHandPanel extends Panel
      * is changed to the next player.  So, it appears that
      * this player can roll again, but they cannot.
      * To guard against this, use {@link #isClientAndCurrentlyCanRoll()} instead.
+     * @see SOCPlayerInterface#clientIsCurrentPlayer()
      */
     public boolean isClientAndCurrentPlayer()
     {

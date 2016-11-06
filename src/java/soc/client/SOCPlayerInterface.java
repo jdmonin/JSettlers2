@@ -321,6 +321,7 @@ public class SOCPlayerInterface extends Frame
      * Set by {@link SOCHandPanel}'s removePlayer() and addPlayer() methods
      * by calling {@link #setClientHand(SOCHandPanel)}.
      * @see #clientHandPlayerNum
+     * @see #clientIsCurrentPlayer()
      */
     protected SOCHandPanel clientHand;
 
@@ -328,6 +329,7 @@ public class SOCPlayerInterface extends Frame
      * Player ID of {@link #clientHand}, or -1.
      * Set by {@link SOCHandPanel}'s removePlayer() and addPlayer() methods
      * by calling {@link #setClientHand(SOCHandPanel)}.
+     * @see #clientIsCurrentPlayer()
      */
     private int clientHandPlayerNum;
 
@@ -1118,7 +1120,7 @@ public class SOCPlayerInterface extends Frame
      * @see #getClientPlayerNumber()
      * @see #isClientPlayer(SOCPlayer)
      */
-    public boolean clientIsCurrentPlayer()
+    public final boolean clientIsCurrentPlayer()
     {
         if (clientHand == null)
             return false;
@@ -1133,7 +1135,7 @@ public class SOCPlayerInterface extends Frame
      * @see #clientIsCurrentPlayer()
      * @see #getClientHand()
      */
-    public int getClientPlayerNumber()
+    public final int getClientPlayerNumber()
     {
         return clientHandPlayerNum;
     }
