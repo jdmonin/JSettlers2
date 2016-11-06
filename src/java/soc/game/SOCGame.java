@@ -2827,7 +2827,7 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalStateException("state " + gameState + ", placingItem " + placingItem);
 
         final int ptype = -placingItem.itype;
-        placePort(players[currentPlayerNumber], ptype, edge);  // clears placingItem
+        placePort(players[currentPlayerNumber], edge, ptype);  // clears placingItem
         gameState = oldGameState;
 
         return ptype;
@@ -2840,9 +2840,10 @@ public class SOCGame implements Serializable, Cloneable
      * Any port placement in state {@link #PLACING_INV_ITEM} calls {@link #setPlacingItem(SOCInventoryItem) setPlacingItem(null)}.
      *
      * @param pl  Player who is placing
-     * @param ptype  The type of port (in range {@link SOCBoard#MISC_PORT MISC_PORT} to {@link SOCBoard#WOOD_PORT WOOD_PORT})
      * @param edge  An available coastal edge adjacent to {@code pl}'s settlement or city,
      *          which should be checked with {@link #canPlacePort(SOCPlayer, int)}
+     * @param ptype  The type of port (in range {@link SOCBoard#MISC_PORT MISC_PORT}
+     *          to {@link SOCBoard#WOOD_PORT WOOD_PORT})
      * @throws IllegalArgumentException if {@code ptype} is out of range, or
      *           if {@code edge} is not coastal (is between 2 land hexes or 2 water hexes)
      * @throws NullPointerException if {@code pl} is null
@@ -2851,7 +2852,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #placePort(int)
      * @see #removePort(SOCPlayer, int)
      */
-    public void placePort(final SOCPlayer pl, final int ptype, final int edge)
+    public void placePort(final SOCPlayer pl, final int edge, final int ptype)
         throws IllegalArgumentException, NullPointerException, UnsupportedOperationException
     {
         if ((ptype < SOCBoard.MISC_PORT) || (ptype > SOCBoard.WOOD_PORT))
@@ -2862,7 +2863,7 @@ public class SOCGame implements Serializable, Cloneable
         if (gameState == PLACING_INV_ITEM)
             placingItem = null;
 
-        ((SOCBoardLarge) board).placePort(ptype, edge);  // validates coastal edge to calculate facing
+        ((SOCBoardLarge) board).placePort(edge, ptype);  // validates coastal edge to calculate facing
         pl.setPortFlag(ptype, true);  // might already be set, that's fine
     }
 

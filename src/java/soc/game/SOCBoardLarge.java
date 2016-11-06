@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1232,11 +1232,12 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Called from {@link SOCGame#placePort(SOCPlayer, int, int)} which validates {@code ptype}.
      *
-     * @param ptype  The type of port (in range {@link SOCBoard#MISC_PORT MISC_PORT} to {@link SOCBoard#WOOD_PORT WOOD_PORT})
      * @param edge  An available coastal edge
+     * @param ptype  The type of port (in range {@link SOCBoard#MISC_PORT MISC_PORT}
+     *          to {@link SOCBoard#WOOD_PORT WOOD_PORT})
      * @throws IllegalArgumentException  if {@code edge} is between 2 land hexes or 2 water hexes
      */
-    void placePort(final int ptype, final int edge)
+    void placePort(final int edge, final int ptype)
         throws IllegalArgumentException
     {
         // Adding a new port has similar tasks to setPortsLayout:

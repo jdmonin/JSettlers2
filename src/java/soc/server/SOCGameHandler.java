@@ -5254,7 +5254,7 @@ public class SOCGameHandler extends GameHandler
 
                         sendGameState(ga);  // PLAY1 or SPECIAL_BUILDING
                         srv.messageToGame(gaName, new SOCSimpleRequest
-                            (gaName, cpn, SOCSimpleRequest.TRADE_PORT_PLACE, ptype, edge));
+                            (gaName, cpn, SOCSimpleRequest.TRADE_PORT_PLACE, edge, ptype));
                     } else {
                         replyDecline = true;  // client will print a text message, no need to send one
                     }
