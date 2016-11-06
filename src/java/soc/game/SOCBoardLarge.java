@@ -1234,17 +1234,28 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param edge  An available coastal edge
      * @param ptype  The type of port (in range {@link SOCBoard#MISC_PORT MISC_PORT}
-     *          to {@link SOCBoard#WOOD_PORT WOOD_PORT})
+     *          to {@link SOCBoard#WOOD_PORT WOOD_PORT}). Not validated here.
      * @throws IllegalArgumentException  if {@code edge} is between 2 land hexes or 2 water hexes
      */
-    void placePort(final int edge, final int ptype)
+    final void placePort(final int edge, final int ptype)
         throws IllegalArgumentException
+    {
+        placePort(edge, getPortFacingFromEdge(edge), ptype);
+    }
+
+    /**
+     * Solely for debugging, a version of {@link #placePort(int, int)} which takes a
+     * {@code facing} direction instead of calculating that, and bypasses any checks that
+     * {@code edge} is a valid coastal edge within the board's coordinate boundaries.
+     * @param edge  An available edge. Not validated here.
+     * @param facing  Port's facing direction (towards land) from {@link #getPortFacingFromEdge(int)}
+     * @param ptype  The type of port (in range {@link SOCBoard#MISC_PORT MISC_PORT}
+     *          to {@link SOCBoard#WOOD_PORT WOOD_PORT}). Not validated here.
+     */
+    final void placePort(final int edge, final int facing, final int ptype)
     {
         // Adding a new port has similar tasks to setPortsLayout:
         // If you update this method, consider updating that one too.
-
-        // - Calculate facing
-        final int facing = getPortFacingFromEdge(edge);
 
         // - Update portsLayout
         int i;  // will fill this index in portsLayout
@@ -3632,12 +3643,36 @@ public class SOCBoardLarge extends SOCBoard
     public int getPortFacingFromEdge(final int edge)
         throws IllegalArgumentException
     {
+        return getPortFacingFromEdge(edge, false);
+    }
+
+    /**
+     * Solely for debugging, a version of {@link #getPortFacingFromEdge(int)} which can optionally
+     * return 1 of the 2 valid facings for a given edge coordinate without checking the edge's adjacent
+     * hexes for land and sea.
+     * @param edge  Edge coordinate, not validated here
+     * @param skipCoastalCheck  If true, skip checks for adjacent coastal hexes and return a facing
+     *     based only on {@code edge}'s angle
+     * @return  Edge's facing direction. See {@link #getPortFacingFromEdge(int)} for return value
+     *     when {@code skipCoastalCheck} is false. When true, return value is 1 of the 2 valid facings
+     *     from the edge's angle based on its coordinates:
+     *     <UL>
+     *       <LI> {@code "|"} edges: {@link #FACING_E}
+     *       <LI> {@code "/"} edges: {@link #FACING_NW}
+     *       <LI> {@code "\"} edges or invalid: {@link #FACING_NE}
+     *     </UL>
+     * @throws IllegalArgumentException  if {@code edge} is between 2 land hexes or 2 water hexes
+     *     and {@code skipCoastalCheck} is false
+     */
+    final int getPortFacingFromEdge(final int edge, final boolean skipCoastalCheck)
+        throws IllegalArgumentException
+    {
         // similar to code in SOCBoardLargeAtServer.makeNewBoard_checkPortLocationsConsistent
 
         final int r = (edge >> 8), c = (edge & 0xFF);
         final int facing;
 
-        int f1, f2;  // facings which make sense for this type of edge
+        final int f1, f2;  // facings which make sense for this type of edge
 
         // "|" if r is odd
         if ((r % 2) == 1)
@@ -3654,6 +3689,11 @@ public class SOCBoardLarge extends SOCBoard
         {
             // "\" if (r/2,c) is odd,odd or even,even
             f1 = FACING_NE;  f2 = FACING_SW;
+        }
+
+        if (skipCoastalCheck)
+        {
+            return f1;  // <--- Early return: called for debugging purposes ---
         }
 
         // if f1 faces land, f2 should face water
