@@ -1703,7 +1703,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param optKey Name of a {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_BOOL OTYPE_BOOL},
      *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL}
      *               or {@link SOCGameOption#OTYPE_ENUMBOOL OTYPE_ENUMBOOL}
-     * @return True if option is set, false if not set or not defined in this game's options
+     * @return True if option's boolean value is set, false if not set or not defined in this game's options
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
      * @see #getGameOptionIntValue(String)
@@ -1722,7 +1722,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param optKey Name of a {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_BOOL OTYPE_BOOL},
      *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL}
      *               or {@link SOCGameOption#OTYPE_ENUMBOOL OTYPE_ENUMBOOL}
-     * @return True if option is set, false if not set or not defined in this set of options
+     * @return True if option's boolean value is set, false if not set or not defined in this set of options
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
@@ -2728,6 +2728,8 @@ public class SOCGame implements Serializable, Cloneable
         if ((pl == null) || ! isAtServer)
             pl = players[currentPlayerNumber];
 
+        // note: if this logic changes, also update SOCGameHandler.processDebugCommand_scenario
+
         final boolean placeNow = (pl.getPortMovePotentialLocations(false) != null);
         final SOCInventoryItem port = SOCInventoryItem.createForScenario(this, -ptype, true, false, false, ! placeNow);
 
@@ -2837,23 +2839,30 @@ public class SOCGame implements Serializable, Cloneable
      * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, place a "gift" port at this edge.
      * Assumes {@link #canPlacePort(SOCPlayer, int)} has already been called to validate.
      *<P>
-     * Any port placement in state {@link #PLACING_INV_ITEM} calls {@link #setPlacingItem(SOCInventoryItem) setPlacingItem(null)}.
+     * Any port placement in state {@link #PLACING_INV_ITEM} calls
+     * {@link #setPlacingItem(SOCInventoryItem) setPlacingItem(null)}.
+     *<P>
+     * Solely for debugging, a port can be placed at coordinates "off the side of the board"
+     * with the intention of removing it soon to give to a player with the proper internal
+     * state changes. To do so, call with {@code pl} {@code null}.
      *
-     * @param pl  Player who is placing
+     * @param pl  Player who is placing. Will call
+     *          {@link SOCPlayer#setPortFlag(int, boolean) pl.setPortFlag}({@code ptype, true}).
+     *          Can be {@code null} if port is being placed for debugging.
      * @param edge  An available coastal edge adjacent to {@code pl}'s settlement or city,
-     *          which should be checked with {@link #canPlacePort(SOCPlayer, int)}
+     *          which should have been checked with {@link #canPlacePort(SOCPlayer, int)} already
      * @param ptype  The type of port (in range {@link SOCBoard#MISC_PORT MISC_PORT}
      *          to {@link SOCBoard#WOOD_PORT WOOD_PORT})
      * @throws IllegalArgumentException if {@code ptype} is out of range, or
      *           if {@code edge} is not coastal (is between 2 land hexes or 2 water hexes)
-     * @throws NullPointerException if {@code pl} is null
+     *           when {@code pl != null}
      * @throws UnsupportedOperationException if ! {@link #hasSeaBoard}
      * @since 2.0.00
      * @see #placePort(int)
      * @see #removePort(SOCPlayer, int)
      */
     public void placePort(final SOCPlayer pl, final int edge, final int ptype)
-        throws IllegalArgumentException, NullPointerException, UnsupportedOperationException
+        throws IllegalArgumentException, UnsupportedOperationException
     {
         if ((ptype < SOCBoard.MISC_PORT) || (ptype > SOCBoard.WOOD_PORT))
             throw new IllegalArgumentException("ptype: " + ptype);
@@ -2863,8 +2872,15 @@ public class SOCGame implements Serializable, Cloneable
         if (gameState == PLACING_INV_ITEM)
             placingItem = null;
 
-        ((SOCBoardLarge) board).placePort(edge, ptype);  // validates coastal edge to calculate facing
-        pl.setPortFlag(ptype, true);  // might already be set, that's fine
+        if (pl != null)
+        {
+            ((SOCBoardLarge) board).placePort(edge, ptype);  // validates coastal edge to calculate facing
+            pl.setPortFlag(ptype, true);  // might already be set, that's fine
+        } else {
+            // assume off-board temp placement for debug: blindly calc facing from edge
+            ((SOCBoardLarge) board).placePort
+                (edge, ((SOCBoardLarge) board).getPortFacingFromEdge(edge, true), ptype);
+        }
     }
 
     /**

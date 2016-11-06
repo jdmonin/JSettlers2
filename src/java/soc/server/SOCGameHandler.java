@@ -199,6 +199,13 @@ public class SOCGameHandler extends GameHandler
     private static final String DEBUG_CMD_FREEPLACEMENT = "*FREEPLACE*";
 
     /**
+     * Debug command prefix for scenario-related debugging. Used with
+     * {@link #processDebugCommand_scenario(StringConnection, String, String)}.
+     * @since 2.0.00
+     */
+    private static final String DEBUG_CMD_PFX_SCENARIO = "*SCEN* ";
+
+    /**
      * Debug help text to place at the end of {@link SOCServer#DEBUG_COMMANDS_HELP} via {@link #getDebugCommandsHelp()}.
      */
     private static final String[] SOC_DEBUG_COMMANDS_HELP =
@@ -219,7 +226,9 @@ public class SOCGameHandler extends GameHandler
         "6 university",
         "7 temple",
         "8 chapel",
-        "9 robber"
+        "9 robber",
+        "--- Scenario Debugging ---",  // see processDebugCommand_scenario(..)
+        "For SC_FTRI: *scen* giveport #typenum #placeflag player",
         };
 
     public SOCGameHandler(final SOCServer server)
@@ -510,6 +519,10 @@ public class SOCGameHandler extends GameHandler
         {
             processDebugCommand_freePlace(debugCli, gaName, dcmd.substring(DEBUG_CMD_FREEPLACEMENT.length()).trim());
             return true;
+        } else if (dcmdU.startsWith(DEBUG_CMD_PFX_SCENARIO))
+        {
+            processDebugCommand_scenario(debugCli, gaName, dcmd.substring(DEBUG_CMD_PFX_SCENARIO.length()).trim());
+            return true;
         } else {
             return false;
         }
@@ -614,6 +627,118 @@ public class SOCGameHandler extends GameHandler
                     sendTurn(ga, toldRoll);
                 }
             }
+        }
+    }
+
+    /**
+     * Process any {@code *SCEN*} scenario debug commands.
+     *
+     *<H5>Currently recognized commands, by scenario:</H5>
+     *<UL>
+     *  <LI> <B>{@link SOCGameOption#K_SC_FTRI SC_FTRI}:</B>
+     *    <UL>
+     *      <LI> giveport #typenum #placeflag player
+     *    </UL>
+     *<UL>
+     * If you add a debug command, also update {@link #SOC_DEBUG_COMMANDS_HELP}.
+     *
+     * @param c   Connection (client) sending this message
+     * @param gaName  Game to which this applies
+     * @param args  Debug command string from the user.
+     *     Caller trims after removing prefix {@link #DEBUG_CMD_PFX_SCENARIO}.
+     * @since 2.0.00
+     */
+    private final void processDebugCommand_scenario
+        (final StringConnection c, final String gaName, final String argStr)
+    {
+        if (argStr.length() == 0)
+            return;
+
+        final SOCGame ga = srv.gameList.getGameData(gaName);
+        if (ga == null)
+            return;
+        if (ga.getGameOptionStringValue("SC") == null)
+        {
+            srv.messageToPlayer(c, gaName, "This game has no scenario");
+            return;
+        }
+        if (! ga.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+        {
+            srv.messageToPlayer(c, gaName, "This scenario has no debug commands");
+            return;
+        }
+
+        final String[] args = argStr.split("\\s+");
+        if (args.length == 0)
+            return;  // unlikely: argStr was already trimmed and then checked length != 0
+
+        // _SC_FTRI debug commands:
+        if (args[0].equals("giveport"))
+        {
+            // giveport #typenum #placeflag player
+
+            boolean parseOK = false;
+            int ptype = 0;
+            boolean placeNow = false;
+            SOCPlayer pl = null;
+
+            if (args.length == 4)
+            {
+                try
+                {
+                    ptype = Integer.parseInt(args[1]);
+                    int i = Integer.parseInt(args[2]);
+                    placeNow = (i == 1);
+                    if (placeNow || (i == 0))  // must be 0 or 1
+                    {
+                        parseOK = (ptype >= SOCBoard.MISC_PORT) && (ptype <= SOCBoard.WOOD_PORT);
+                        if (parseOK)
+                        {
+                            pl = debug_getPlayer(c, ga, args[3]);
+                            if (pl == null)
+                                return;  // debug_getPlayer has sent not-found message
+                        }
+                    }
+                }
+                catch (NumberFormatException e) {}
+            }
+            if (! parseOK)
+            {
+                srv.messageToPlayer(c, gaName, "### Usage: giveport #typenum #placeflag player");
+                srv.messageToPlayer(c, gaName, "### typenum: 0 for 3:1 port, or 1 to 5 (clay, ore, sheep, wheat, wood)");
+                srv.messageToPlayer(c, gaName, "### placeflag: 1 to force placement now, 0 to add to inventory");
+                return;
+            }
+
+            // Note: some logic from SOCGame.removePort(..); update there if this changes.
+            // Message-send logic is from playerEvent(..).
+            if (placeNow)
+            {
+                if ((ga.getCurrentPlayerNumber() != pl.getPlayerNumber())
+                    || (pl.getPortMovePotentialLocations(false) == null))
+                {
+                    srv.messageToPlayer(c, gaName, "Player must be current and have a potential location for the port");
+                    return;
+                }
+
+                // Fake placement off-board so we can call ga.removePort,
+                // which will handle game states and notification, at a
+                // vertical edge just off the edge of the board: 0x103, 0x105, ...
+                final int edge = (ga.getBoard().getBoardWidth() + 2) | 0x101;
+                ga.placePort(null, edge, ptype);
+                ga.removePort(pl, edge);
+                // removePort calls scenarioEventListener.playerEvent(REMOVED_TRADE_PORT),
+                // which sends some messages but not GAMESTATE
+                sendGameState(ga);
+            } else {
+                pl.getInventory().addItem
+                    (SOCInventoryItem.createForScenario(ga, -ptype, true, false, false, ! placeNow));
+                srv.messageToGame(gaName, new SOCInventoryItemAction
+                    (gaName, pl.getPlayerNumber(), SOCInventoryItemAction.ADD_PLAYABLE, -ptype, false, false, true));
+            }
+
+        } else {
+            srv.messageToPlayer(c, gaName, "Unknown debug command: " + args[0]);
         }
     }
 
@@ -6142,8 +6267,12 @@ public class SOCGameHandler extends GameHandler
                 sendPlayerEventsBitmask = false;
                 sendSVP = false;
                 IntPair edge_portType = (IntPair) obj;
-                srv.messageToGame(gaName, new SOCSimpleAction
-                    (gaName, pn, SOCSimpleAction.TRADE_PORT_REMOVED, edge_portType.getA(), edge_portType.getB()));
+                final int edge = edge_portType.getA();
+                if ((edge & 0xFF) <= ga.getBoard().getBoardWidth())
+                    // announce removal from board, unless (for debugging)
+                    // this port wasn't really on the board at clients
+                    srv.messageToGame(gaName, new SOCSimpleAction
+                        (gaName, pn, SOCSimpleAction.TRADE_PORT_REMOVED, edge, edge_portType.getB()));
                 if (ga.getGameState() == SOCGame.PLACING_INV_ITEM)
                 {
                     // Removal happens during ship piece placement, which is followed at server with sendGameState.
@@ -6153,7 +6282,8 @@ public class SOCGameHandler extends GameHandler
                     srv.messageToPlayer(c, new SOCInventoryItemAction
                         (gaName, pn, SOCInventoryItemAction.PLACING_EXTRA, -edge_portType.getB(), false, false, false));
                 } else {
-                    // port was added to player's inventory
+                    // port was added to player's inventory;
+                    // if this message changes, also update SOCGameHandler.processDebugCommand_scenario
                     srv.messageToGame(gaName, new SOCInventoryItemAction
                         (gaName, pn, SOCInventoryItemAction.ADD_PLAYABLE, -edge_portType.getB(), false, false, true));
                 }
