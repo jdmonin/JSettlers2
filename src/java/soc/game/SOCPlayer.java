@@ -4613,7 +4613,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * set a port flag
+     * Set or clear a port-type flag used for bank trades.
      *
      * @param portType  the type of port; in range {@link SOCBoard#MISC_PORT} to {@link SOCBoard#WOOD_PORT}
      * @param value     true or false
@@ -4624,6 +4624,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * For bank trades, is this player currently at any port of a given type?
      * @return the port flag for a type of port
      *
      * @param portType  the type of port; in range {@link SOCBoard#MISC_PORT} to {@link SOCBoard#WOOD_PORT}
