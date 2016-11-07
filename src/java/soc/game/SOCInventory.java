@@ -126,6 +126,7 @@ public class SOCInventory
      * @throws IllegalArgumentException if {@code cState} isn't one of the 3 item states
      * @since 2.0.00
      * @see #hasPlayable(int)
+     * @see #getByStateAndType(int, int)
      */
     public List<SOCInventoryItem> getByState(final int cState)
         throws IllegalArgumentException
@@ -137,6 +138,35 @@ public class SOCInventory
         case KEPT:     return kept;
         default:       throw new IllegalArgumentException("Unknown state: " + cState);
         }
+    }
+
+    /**
+     * Get the cards and items, if any, having this state and type.
+     * Unlike {@link #getByState(int)}, <B>returns {@code null}</B> if none found.
+     * @param state  State: {@link #NEW}, {@link #PLAYABLE} or {@link #KEPT}
+     * @param itype  Type of development card from {@link SOCDevCardConstants},
+     *     or item type from {@link SOCInventoryItem#itype}
+     * @return A newly built list of cards and items, or {@code null} if none (not an empty list)
+     * @throws IllegalArgumentException if {@code state} isn't one of the 3 item states
+     * @since 2.0.00
+     * @see #getByState(int)
+     */
+    public List<SOCInventoryItem> getByStateAndType(final int state, final int itype)
+        throws IllegalArgumentException
+    {
+        List<SOCInventoryItem> ret = null;
+
+        for (SOCInventoryItem itm : getByState(state))
+        {
+            if (itm.itype != itype)
+                continue;
+
+            if (ret == null)
+                ret = new ArrayList<SOCInventoryItem>();
+            ret.add(itm);
+        }
+
+        return ret;
     }
 
     /**
