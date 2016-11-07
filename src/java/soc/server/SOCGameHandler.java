@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -668,12 +669,17 @@ public class SOCGameHandler extends GameHandler
             return;
         }
 
-        final String[] args = argStr.split("\\s+");
-        if (args.length == 0)
+        // Tokenize the command arguments:
+        // Don't use string.split("\\s+") because the last argument might be a player name with a space,
+        // and "un-splitting isn't easy
+        StringTokenizer st = new StringTokenizer(argStr);
+        if (! st.hasMoreTokens())
             return;  // unlikely: argStr was already trimmed and then checked length != 0
 
+        final String subCmd = st.nextToken();
+
         // _SC_FTRI debug commands:
-        if (args[0].equals("giveport"))
+        if (subCmd.equalsIgnoreCase("giveport"))
         {
             // giveport #typenum #placeflag player
 
@@ -682,26 +688,27 @@ public class SOCGameHandler extends GameHandler
             boolean placeNow = false;
             SOCPlayer pl = null;
 
-            if (args.length == 4)
+            try
             {
-                try
+                ptype = Integer.parseInt(st.nextToken());
+                int i = Integer.parseInt(st.nextToken());
+                placeNow = (i == 1);
+                if (placeNow || (i == 0))  // must be 0 or 1
                 {
-                    ptype = Integer.parseInt(args[1]);
-                    int i = Integer.parseInt(args[2]);
-                    placeNow = (i == 1);
-                    if (placeNow || (i == 0))  // must be 0 or 1
+                    parseOK = (ptype >= SOCBoard.MISC_PORT) && (ptype <= SOCBoard.WOOD_PORT);
+                    if (parseOK)
                     {
-                        parseOK = (ptype >= SOCBoard.MISC_PORT) && (ptype <= SOCBoard.WOOD_PORT);
-                        if (parseOK)
-                        {
-                            pl = debug_getPlayer(c, ga, args[3]);
-                            if (pl == null)
-                                return;  // debug_getPlayer has sent not-found message
-                        }
+                        // get all of the rest for player name, by choosing an unlikely delimiter character
+                        String plName = st.nextToken(Character.toString( (char) 1 )).trim();
+                        pl = debug_getPlayer(c, ga, plName);
+                        if (pl == null)
+                            return;  // debug_getPlayer has sent not-found message
                     }
                 }
-                catch (NumberFormatException e) {}
             }
+            catch (NumberFormatException e) {}
+            catch (NoSuchElementException e) { parseOK = false; }  // not enough tokens; can occur at name when parseOK.
+
             if (! parseOK)
             {
                 srv.messageToPlayer(c, gaName, "### Usage: giveport #typenum #placeflag player");
@@ -738,7 +745,7 @@ public class SOCGameHandler extends GameHandler
             }
 
         } else {
-            srv.messageToPlayer(c, gaName, "Unknown debug command: " + args[0]);
+            srv.messageToPlayer(c, gaName, "Unknown debug command: " + subCmd);
         }
     }
 
