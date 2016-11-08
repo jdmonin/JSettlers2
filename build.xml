@@ -540,7 +540,7 @@ pte.version = ${i18neditor.version}
 
   <!-- generate javadoc -->
   <target name="javadoc" depends="init-libs"
-          description="Creates javadoc in 'docs/api'">
+          description="Creates javadoc in 'target/docs/api'">
       <mkdir dir="${api.target}" />
       <javadoc sourcepath="${java.src}"
                destdir="${api.target}"
@@ -548,13 +548,16 @@ pte.version = ${i18neditor.version}
                author="true"
                version="true"
                overview="${java.src}/main-overview.html"
-               doctitle="${Name}, v ${version}, API Specification"
-               windowtitle="${Name} v${version} API"
+               doctitle="${Name} ${version} API"
+               windowtitle="${Name} ${version} API - javadocs"
                access="package"
-               source="1.4" 
-               additionalparam="-breakiterator">
+               source="1.5"
+               splitindex="false"
+               use="true"
+               breakiterator="yes"
+               >
         <packageset dir="${java.src}" />
-        <header><![CDATA[<b><a target="_blank" href="${url}">${Name} v${version} API</a></b><br><font size="-2">Built ${date}</font>]]></header>
+        <header><![CDATA[<b><a target="_blank" href="${url}">${Name} ${version} API</a></b><br><font size="-2">Built ${date}</font>]]></header>
       </javadoc>
   </target>
 
