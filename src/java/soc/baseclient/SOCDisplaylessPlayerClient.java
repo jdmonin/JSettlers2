@@ -1871,7 +1871,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga == null)
             return false;
 
-        if (mes.playerNumber == -1)
+        if ((mes.playerNumber == -1) || (mes.action == SOCInventoryItemAction.CANNOT_PLAY))
             return true;
 
         SOCPlayer pl = ga.getPlayer(mes.playerNumber);
@@ -1892,9 +1892,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
                  mes.isKept, mes.isVP, mes.canCancelPlay));
             break;
 
-        case SOCInventoryItemAction.CANNOT_PLAY:
-            return true;
-
         case SOCInventoryItemAction.PLAYED:
             if (mes.isKept)
                 inv.keepPlayedItem(mes.itemType);
@@ -1912,6 +1909,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
             ga.setPlacingItem(item);
             break;
+
+        // case SOCInventoryItemAction.CANNOT_PLAY: already covered above: returns true
         }
 
         return false;

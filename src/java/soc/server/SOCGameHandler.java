@@ -5435,7 +5435,7 @@ public class SOCGameHandler extends GameHandler
         if (replyCannot != 0)
         {
             srv.messageToPlayer(c, new SOCInventoryItemAction
-                (gaName, pn, SOCInventoryItemAction.CANNOT_PLAY, mes.itemType, replyCannot));
+                (gaName, -1, SOCInventoryItemAction.CANNOT_PLAY, mes.itemType, replyCannot));
             return;
         }
 
@@ -5448,7 +5448,7 @@ public class SOCGameHandler extends GameHandler
             // Wasn't able to play.  Assume canPlay was recently called and returned OK; the most
             // volatile of its conditions is player's inventory, so assume that's what changed.
             srv.messageToPlayer(c, new SOCInventoryItemAction
-                (gaName, pn, SOCInventoryItemAction.CANNOT_PLAY, mes.itemType, 1));  // 1 == item not in inventory
+                (gaName, -1, SOCInventoryItemAction.CANNOT_PLAY, mes.itemType, 1));  // 1 == item not in inventory
             return;
         }
 
