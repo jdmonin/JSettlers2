@@ -844,8 +844,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * Added 2013-11-26 for v2.0.00.
              */
             case SOCMessage.INVENTORYITEMACTION:
-                super.handleINVENTORYITEMACTION(games, (SOCInventoryItemAction) mes);
-                handlePutBrainQ((SOCInventoryItemAction) mes);
+                {
+                    final boolean isReject = super.handleINVENTORYITEMACTION
+                        (games, (SOCInventoryItemAction) mes);
+                    if (isReject)
+                        handlePutBrainQ((SOCInventoryItemAction) mes);
+                }
                 break;
 
             /**

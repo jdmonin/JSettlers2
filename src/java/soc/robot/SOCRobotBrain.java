@@ -31,6 +31,7 @@ import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCInventory;
+import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
@@ -52,6 +53,7 @@ import soc.message.SOCDiceResult;
 import soc.message.SOCDiscardRequest;
 import soc.message.SOCFirstPlayer;
 import soc.message.SOCGameState;
+import soc.message.SOCInventoryItemAction;
 import soc.message.SOCMakeOffer;
 import soc.message.SOCMessage;
 import soc.message.SOCMovePiece;
@@ -410,6 +412,12 @@ public class SOCRobotBrain extends Thread
     protected boolean expectPLACING_FREE_ROAD2;
 
     /**
+     * true if we're expecting the {@link SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM} state.
+     * @since 2.0.00
+     */
+    protected boolean expectPLACING_INV_ITEM;
+
+    /**
      * true if were expecting a PUTPIECE message after
      * a START1A game state
      */
@@ -490,6 +498,7 @@ public class SOCRobotBrain extends Thread
      * respond with a GAMESTATE message; see {@link #expectPLACING_ROBBER} javadoc.
      *
      * @see #rejectedPlayDevCardType
+     * @see #rejectedPlayInvItem
      */
     protected boolean waitingForGameState;
 
@@ -557,6 +566,14 @@ public class SOCRobotBrain extends Thread
      * @since 1.1.17
      */
     private int rejectedPlayDevCardType;
+
+    /**
+     * If not {@code null}, the server rejected our play of this {@link SOCInventoryItem}
+     * this turn, probably because of a bug in our robot. Should not attempt to
+     * play an item of the same {@link SOCInventoryItem#itype itype} again this turn.
+     * @since 2.0.00
+     */
+    private SOCInventoryItem rejectedPlayInvItem;  // TODO refine later: must build something else first, then OK to play
 
     /**
      * the game state before the current one
@@ -926,6 +943,8 @@ public class SOCRobotBrain extends Thread
             rbSta.add("  bot card count = " + ourPlayerData.getResources().getTotal());
         if (rejectedPlayDevCardType != -1)
             rbSta.add("  rejectedPlayDevCardType = " + rejectedPlayDevCardType);
+        if (rejectedPlayInvItem != null)
+            rbSta.add("  rejectedPlayInvItem = " + rejectedPlayInvItem);
 
         // Reminder: Add new state fields to both s[] and b[]
 
@@ -935,7 +954,7 @@ public class SOCRobotBrain extends Thread
             "waitingForTradeResponse", "waitingForSC_PIRI_FortressRequest",
             "moveRobberOnSeven", "expectSTART1A", "expectSTART1B", "expectSTART2A", "expectSTART2B", "expectSTART3A", "expectSTART3B",
             "expectPLAY", "expectPLAY1", "expectPLACING_ROAD", "expectPLACING_SETTLEMENT", "expectPLACING_CITY", "expectPLACING_SHIP",
-            "expectPLACING_ROBBER", "expectPLACING_FREE_ROAD1", "expectPLACING_FREE_ROAD2",
+            "expectPLACING_ROBBER", "expectPLACING_FREE_ROAD1", "expectPLACING_FREE_ROAD2", "expectPLACING_INV_ITEM",
             "expectPUTPIECE_FROM_START1A", "expectPUTPIECE_FROM_START1B", "expectPUTPIECE_FROM_START2A", "expectPUTPIECE_FROM_START2B",
             "expectPUTPIECE_FROM_START3A", "expectPUTPIECE_FROM_START3B",
             "expectDICERESULT", "expectDISCARD", "expectMOVEROBBER", "expectWAITING_FOR_DISCOVERY", "expectWAITING_FOR_MONOPOLY"
@@ -946,7 +965,7 @@ public class SOCRobotBrain extends Thread
             waitingForTradeResponse, waitingForSC_PIRI_FortressRequest,
             moveRobberOnSeven, expectSTART1A, expectSTART1B, expectSTART2A, expectSTART2B, expectSTART3A, expectSTART3B,
             expectPLAY, expectPLAY1, expectPLACING_ROAD, expectPLACING_SETTLEMENT, expectPLACING_CITY, expectPLACING_SHIP,
-            expectPLACING_ROBBER, expectPLACING_FREE_ROAD1, expectPLACING_FREE_ROAD2,
+            expectPLACING_ROBBER, expectPLACING_FREE_ROAD1, expectPLACING_FREE_ROAD2, expectPLACING_INV_ITEM,
             expectPUTPIECE_FROM_START1A, expectPUTPIECE_FROM_START1B, expectPUTPIECE_FROM_START2A, expectPUTPIECE_FROM_START2B,
             expectPUTPIECE_FROM_START3A, expectPUTPIECE_FROM_START3B,
             expectDICERESULT, expectDISCARD, expectMOVEROBBER, expectWAITING_FOR_DISCOVERY, expectWAITING_FOR_MONOPOLY
@@ -1122,6 +1141,7 @@ public class SOCRobotBrain extends Thread
                         expectPLACING_ROBBER = false;
                         expectPLACING_FREE_ROAD1 = false;
                         expectPLACING_FREE_ROAD2 = false;
+                        expectPLACING_INV_ITEM = false;
                         expectDICERESULT = false;
                         expectDISCARD = false;
                         expectMOVEROBBER = false;
@@ -1205,6 +1225,7 @@ public class SOCRobotBrain extends Thread
                         whatWeFailedToBuild = null;
                         failedBuildingAttempts = 0;
                         rejectedPlayDevCardType = -1;
+                        rejectedPlayInvItem = null;
                     }
 
                     /**
@@ -1406,6 +1427,19 @@ public class SOCRobotBrain extends Thread
                         }
                         break;
 
+                    case SOCMessage.INVENTORYITEMACTION:
+                        if (((SOCInventoryItemAction) mes).action == SOCInventoryItemAction.CANNOT_PLAY)
+                        {
+                            final List<SOCInventoryItem> itms = ourPlayerData.getInventory().getByStateAndType
+                                (SOCInventory.PLAYABLE, ((SOCInventoryItemAction) mes).itemType);
+                            if (itms != null)
+                                rejectedPlayInvItem = itms.get(0);  // any item of same type# is similar enough here
+
+                            waitingForGameState = false;
+                            expectPLACING_INV_ITEM = false;  // in case was rejected placement (SC_FTRI gift port, etc)
+                        }
+                        break;
+
                     }  // switch(mesType)
 
                     debugInfo();
@@ -1503,6 +1537,12 @@ public class SOCRobotBrain extends Thread
                                 pause(1500);
                             }
                         }
+                    }
+
+                    if (ourTurn && (! waitingForOurTurn)
+                        && (game.getGameState() == SOCGame.PLACING_INV_ITEM) && (! waitingForGameState))
+                    {
+                        planAndPlaceInvItem();  // choose and send a placement location
                     }
 
                     if (waitingForTradeMsg && (mesType == SOCMessage.SIMPLEACTION)
@@ -1967,16 +2007,20 @@ public class SOCRobotBrain extends Thread
 
         //D.ebugPrintln("STOPPING AND DEALLOCATING");
         gameEventQ = null;
+
         client.addCleanKill();
         client = null;
+
         game = null;
         ourPlayerData = null;
         dummyCancelPlayerData = null;
         whatWeWantToBuild = null;
         whatWeFailedToBuild = null;
+        rejectedPlayInvItem = null;
         resourceChoices = null;
         ourPlayerTracker = null;
         playerTrackers = null;
+
         pinger.stopPinger();
         pinger = null;
     }
@@ -2679,6 +2723,108 @@ public class SOCRobotBrain extends Thread
                 }
             }
         }
+    }
+
+    /**
+     * On our turn, server is expecting us to choose a placement location for a {@link SOCInventoryItem}.
+     * Try to plan a location and send placement request command(s).
+     *<P>
+     * Call only when these conditions are all true:
+     *<UL>
+     * <LI> {@link #ourTurn} &amp;&amp; ! {@link #waitingForOurTurn}
+     * <LI> game state {@link SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM}
+     * <LI> ! {@link #waitingForGameState}
+     *</UL>
+     * If the piece can be planned and placed, will set {@link #waitingForGameState}
+     * and either {@link #expectPLAY1} or another expect flag, and send placement commands.
+     * If nothing could be planned and placed, does not set {@link #waitingForGameState}.
+     *
+     * @throws IllegalStateException if called with {@link #waitingForGameState} true
+     * @since 2.0.00
+     */
+    private void planAndPlaceInvItem()
+        throws IllegalStateException
+    {
+        if (waitingForGameState)
+            throw new IllegalStateException();
+
+        SOCInventoryItem itm = game.getPlacingItem();
+        if (itm == null)
+            return;  // in case of bugs; shouldn't happen in a consistent game
+
+        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+        {
+            planAndPlaceInvItemPlacement_SC_FTRI(itm);
+        } else {
+            System.err.println
+                ("L2720: Game " + game.getName() + " bot " + client.getNickname()
+                 + ": No PLACING_INV_ITEM handler for scenario " + game.getGameOptionStringValue("SC"));
+
+            // End turn? Probably cleaner to let server force-end it. So do nothing here.
+            // TODO revisit that: Per PLACING_INV_ITEM javadoc:
+            // "For some kinds of item, placement can be canceled by calling ga.cancelPlaceInventoryItem"
+        }
+    }
+
+    /**
+     * For scenario {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, try to plan a location and
+     * send placement request command(s) for a "gift" trade port.
+     *<P>
+     * Called from {@link #planAndPlaceInvItem()}, see that method for required conditions to call
+     * and described brain-state results after calling.  Assumes caller has checked those conditions
+     * and that {@link #waitingForGameState} is false when called.
+     *
+     * @param itm The gift port which must be placed; not {@code null}.
+     *     TODO: also allow {@code null}, to search player's inventory for gift port {@link SOCInventoryItem}s.
+     * @since 2.0.00
+     */
+    private void planAndPlaceInvItemPlacement_SC_FTRI(final SOCInventoryItem itm)
+    {
+        if (itm == null)
+            return;  // TODO: get from inventory items (ignore rejectedPlayInvItem)
+        if ((rejectedPlayInvItem != null) && (itm.itype == rejectedPlayInvItem.itype))
+            return;  // rbrain must plan something else instead
+
+        List<Integer> edges = ourPlayerData.getPortMovePotentialLocations(true);
+        if (edges.isEmpty())
+        {
+            // TODO any action to keep it moving?
+            rejectedPlayInvItem = itm;  // don't re-plan same thing for next move this turn
+
+            return;  // <--- Early return: No choices despite gamestate ---
+        }
+
+        // This is a first draft for overall functionality, not for the smartest placement strategy.
+        // TODO smarter planning; consider port type from itm if not null; if null iterate inv items
+        // but reject if chooses rejectedPlayInvItem again
+
+        final int ptype = itm.itype;  // reminder: will be negative or 0
+        final int edge = edges.get(0).intValue();
+
+        waitingForGameState = true;
+        counter = 0;
+
+        if (game.getGameState() == SOCGame.PLACING_INV_ITEM)
+        {
+            // Expected response from server: GAMESTATE(PLAY1) and
+            // then SIMPLEREQUEST confirming placement location,
+            // or SIMPLEREQUEST rejecting it; TODO don't plan further building
+            // until that's seen (new flag field?) because will need to recalc
+            // building speed estimates (BSEs) with the new port.
+
+            expectPLAY1 = true;
+            client.simpleRequest(game, ourPlayerNumber, SOCSimpleRequest.TRADE_PORT_PLACE, edge, 0);
+        } else {
+            // Expected response from server: GAMESTATE(PLACING_INV_ITEM).
+            // If client's request is rejected because nowhere to place right now,
+            // will respond with SOCInventoryItemAction(CANNOT_PLAY)
+            // and rbrain will clear expectPLACING_INV_ITEM.
+
+            expectPLACING_INV_ITEM = true;
+            client.playInventoryItem(game, ourPlayerNumber, ptype);
+        }
+
+        pause(1000);
     }
 
     /**

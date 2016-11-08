@@ -2501,6 +2501,22 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
+     * Send a request to play a {@link soc.game.SOCInventoryItem SOCInventoryItem}
+     * (not a standard {@link soc.game.SOCDevCard SOCDevCard}) using a
+     * {@link SOCInventoryItemAction}{@code (ourPN, PLAY, itype, rc=0)} message.
+     * @param ga     the game
+     * @param ourPN  our player's player number
+     * @param itype  the special inventory item type picked by player,
+     *     from {@link soc.game.SOCInventoryItem#itype SOCInventoryItem.itype}
+     * @since 2.0.00
+     */
+    public void playInventoryItem(SOCGame ga, final int ourPN, final int itype)
+    {
+        put(SOCInventoryItemAction.toCmd
+            (ga.getName(), ourPN, SOCInventoryItemAction.PLAY, itype, 0));
+    }
+
+    /**
      * send a text message to the people in the game
      *
      * @param ga   the game
