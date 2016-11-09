@@ -2838,6 +2838,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, place a "gift" port at this edge.
      * Assumes {@link #canPlacePort(SOCPlayer, int)} has already been called to validate.
+     * Through that validation, assumes {@code edge} is a coastal edge and {@code pl} has
+     * an adjacent settlement or city.
      *<P>
      * Any port placement in state {@link #PLACING_INV_ITEM} calls
      * {@link #setPlacingItem(SOCInventoryItem) setPlacingItem(null)}.
@@ -2847,7 +2849,8 @@ public class SOCGame implements Serializable, Cloneable
      * state changes. To do so, call with {@code pl} {@code null}.
      *
      * @param pl  Player who is placing. Will call
-     *          {@link SOCPlayer#setPortFlag(int, boolean) pl.setPortFlag}({@code ptype, true}).
+     *          {@link SOCPlayer#setPortFlag(int, boolean) pl.setPortFlag}({@code ptype, true})
+     *          because {@code pl}'s adjacent coastal settlement or city will become a port.
      *          Can be {@code null} if port is being placed for debugging.
      * @param edge  An available coastal edge adjacent to {@code pl}'s settlement or city,
      *          which should have been checked with {@link #canPlacePort(SOCPlayer, int)} already
