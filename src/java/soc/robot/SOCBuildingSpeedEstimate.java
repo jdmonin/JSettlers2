@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2012-2013,2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2012-2013,2015-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -41,6 +41,8 @@ import java.util.Vector;
  * This class calculates approximately how
  * long it would take a player to build something.
  * Uses {@link SOCPlayerNumbers} to get resources of currently reached hexes.
+ * The {@code getEstimates...} methods use {@link SOCPlayer#getPortFlags()}.
+ * Used by {@link SOCRobotDM#planStuff(int)} and other tactical planning methods.
  */
 public class SOCBuildingSpeedEstimate
 {
@@ -153,7 +155,7 @@ public class SOCBuildingSpeedEstimate
     /**
      * @return the estimates from nothing
      *
-     * @param ports  the port flags for the player
+     * @param ports  the player's trade port flags, from {@link SOCPlayer#getPortFlags()}
      */
     public int[] getEstimatesFromNothingAccurate(boolean[] ports)
     {
@@ -187,7 +189,7 @@ public class SOCBuildingSpeedEstimate
     /**
      * @return the estimates from nothing
      *
-     * @param ports  the port flags for the player
+     * @param ports  the player's trade port flags, from {@link SOCPlayer#getPortFlags()}
      */
     public int[] getEstimatesFromNothingFast(boolean[] ports)
     {
@@ -221,7 +223,7 @@ public class SOCBuildingSpeedEstimate
     /**
      * @return the estimates from nothing
      *
-     * @param ports  the port flags for the player
+     * @param ports  the player's trade port flags, from {@link SOCPlayer#getPortFlags()}
      */
     public int[] getEstimatesFromNothingFast(boolean[] ports, int limit)
     {
@@ -256,7 +258,7 @@ public class SOCBuildingSpeedEstimate
      * @return the estimates from now
      *
      * @param resources  the player's current resources
-     * @param ports      the player's port flags
+     * @param ports      the player's trade port flags, from {@link SOCPlayer#getPortFlags()}
      */
     public int[] getEstimatesFromNowAccurate(SOCResourceSet resources, boolean[] ports)
     {
@@ -286,7 +288,7 @@ public class SOCBuildingSpeedEstimate
      * @return the estimates from now
      *
      * @param resources  the player's current resources
-     * @param ports      the player's port flags
+     * @param ports      the player's trade port flags, from {@link SOCPlayer#getPortFlags()}
      */
     public int[] getEstimatesFromNowFast(SOCResourceSet resources, boolean[] ports)
     {
