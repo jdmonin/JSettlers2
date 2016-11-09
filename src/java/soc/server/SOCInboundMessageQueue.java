@@ -72,7 +72,7 @@ public class SOCInboundMessageQueue
      * the Thread responsible to process the data in the {@link #inQueue}
      */
     private Treater treater;
-    
+
     /**
      * the server that has initialized this queue
      */
@@ -149,26 +149,29 @@ public class SOCInboundMessageQueue
             {
 
                 MessageData messageData = inQueue.poll();
-          
+
                 try
                 {
                     if (messageData != null)
                     {
                         server.processCommand(messageData.getStringMessage(), messageData.getClientConnection());
                     }else{
-                        Thread.currentThread().wait(500);
+                            Thread.sleep(10);                            
                     }
+                      
                 }
                 catch (Exception e)
                 {
-                    System.out.println("Exception in treater (processCommand) - " + e);
+                    System.out.println("Exception in treater (processCommand) - " + e.getMessage());
+                    e.printStackTrace();
                 }
+
 
             }
         }
     }
 
-    
+
     /**
      * internal class used to store a message in text format and the client, owner of the message
      */
@@ -192,8 +195,8 @@ public class SOCInboundMessageQueue
         {
             return clientConnection;
         }
-        
+
     } 
-    
-    
+
+
 }

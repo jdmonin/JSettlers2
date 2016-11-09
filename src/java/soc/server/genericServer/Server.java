@@ -35,6 +35,7 @@ import java.util.TreeMap;
 import java.util.Vector;
 
 import soc.debug.D; // JM
+import soc.server.SOCInboundMessageQueue;
 import soc.server.SOCServer;
 
 
@@ -127,8 +128,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     protected Vector<StringConnection> unnamedConns = new Vector<StringConnection>();
 
     
-    //TODO Alessandro change this class whit SOCInboundMessageQueue
-    public Vector<Command> inQueue = new Vector<Command>();
+    /**
+     * the queue of the messages received from the client
+     */
+    public SOCInboundMessageQueue inQueue;
 
     /**
      * Versions of currently connected clients, according to
@@ -211,9 +214,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         this.port = port;
         this.strSocketName = null;
 
+        this.inQueue = new SOCInboundMessageQueue(this);
+        
         try
         {
-            ss = new NetStringServerSocket(port, this);
+            ss = new NetStringServerSocket(port, this,inQueue);
         }
         catch (IOException e)
         {
@@ -236,6 +241,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
         this.port = -1;
         this.strSocketName = stringSocketName;
+        
+        this.inQueue = new SOCInboundMessageQueue(this);
 
         ss = new LocalStringServerSocket(stringSocketName);
         setName("server-localstring-" + stringSocketName);  // Thread name for debugging
@@ -322,11 +329,12 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         return numberCurrentConnections;
     }
 
-    //TODO Alessandro remove this useless method
+
     public synchronized boolean isUp()
     {
         return up;
     }
+
 
     /**
      * Run method for Server:
@@ -337,21 +345,21 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     @Override
     public void run()
     {
-        //TODO Alessandro remove the threater is no more need
-        Treater treater = new Treater();  // inner class - constructor is given "this" server
 
         if (error != null)
         {
             return;
         }
 
-        //TODO Alessandro activate queue
         up = true;
-
-        treater.start();  // Set "up" before starting treater (race condition)
-
+        
+        inQueue.startMessageProcessing();
+        
         serverUp();  // Any processing for child class to do after serversocket is bound, before the main loop begins
 
+        StringConnection connection;
+        LocalStringConnection localConnection;
+        
         while (isUp())
         {
             try
@@ -361,15 +369,18 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     // we could limit the number of accepted connections here
                     // Currently it's limited in SOCServer.newConnection1 by checking connectionCount()
                     // which is more modular.
-                    StringConnection con = ss.accept();
+                    connection = ss.accept();
                     if (port != -1)
                     {
-                        new Thread((NetStringConnection) con).start();
+                        new Thread((NetStringConnection) connection).start();
                     }
                     else
                     {
-                        ((LocalStringConnection) con).setServer(this);
-                        new Thread((LocalStringConnection) con).start();
+                        localConnection = (LocalStringConnection) connection;
+                        localConnection.setServer(this);
+                        localConnection.setInboundMessageQueue(inQueue);
+                        
+                        new Thread(localConnection).start();
                     }
 
                     //addConnection(new StringConnection());
@@ -388,7 +399,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             {
                 ss.close();
                 if (strSocketName == null)
-                    ss = new NetStringServerSocket(port, this);
+                    ss = new NetStringServerSocket(port, this,inQueue);
                 else
                     ss = new LocalStringServerSocket(strSocketName);
             }
@@ -396,23 +407,12 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             {
                 System.err.println("Could not listen to port " + port + ": " + e);
                 up = false;
-              //TODO Alessandro stop queue
+                inQueue.stopMessageProcessing();
                 error = e;
             }
         }
     }
 
-    //TODO Alessandro remove this method
-    /** treat a request from the given connection, by adding to {@link #inQueue} */
-    public void treat(String s, StringConnection c)
-    {
-        // D.ebugPrintln("IN got: " + s);
-        synchronized (inQueue)
-        {
-            inQueue.addElement(new Command(s, c));
-            inQueue.notify();
-        }
-    }
 
     /**
      * Remove a queued incoming message from a client, and treat it.
@@ -518,7 +518,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     public synchronized void stopServer()
     {
         up = false;
-        //TODO Alessandro stop here the inboundqueue processor
+        
+        inQueue.stopMessageProcessing();
+        
         serverDown();
 
         for (Enumeration<StringConnection> e = conns.elements(); e.hasMoreElements();)
@@ -1059,86 +1061,6 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * Nested classes begin here
      * --------------------------------------------------------
      */
-
-    /**
-     * Holds one message from client, for {@link Server#inQueue}.
-     */
-    //TODO Alessandro remove this class
-    static class Command
-    {
-        public String str;
-        public StringConnection con;
-
-        public Command(String s, StringConnection c)
-        {
-            str = s;
-            con = c;
-        }
-    }  // Command
-
-    /**
-     * Single-threaded reader of {@link Server#inQueue}
-     */
-    //TODO Alessandro remove this class
-    class Treater extends Thread
-    {
-        public Treater()  // Server parameter is also passed in, since this is an inner class
-        {
-            setName("treater");  // Thread name for debug
-        }
-
-        @Override
-        public void run()
-        {
-            while (isUp())
-            {
-                //D.ebugPrintln("treater server is up");
-                Command c = null;
-
-                synchronized (inQueue)
-                {
-                    if (inQueue.size() > 0)
-                    {
-                        //D.ebugPrintln("treater getting command");
-                        c = inQueue.remove(0);
-                    }
-                }
-
-                try
-                {
-                    if (c != null)
-                    {
-                        processCommand(c.str, c.con);
-                    }
-                }
-                catch (Exception e)
-                {
-                    System.out.println("Exception in treater (processCommand) - " + e);
-                }
-
-                yield();
-
-                synchronized (inQueue)
-                {
-                    if (inQueue.size() == 0)
-                    {
-                        try
-                        {
-                            //D.ebugPrintln("treater waiting");
-                            inQueue.wait(1000);
-                        }
-                        catch (Exception ex)
-                        {
-                            ;   // catch InterruptedException from inQueue.notify() in treat(...)
-                        }
-                    }
-                }
-            }
-
-            // D.ebugPrintln("treater returning; server not up");
-        }
-
-    }  // Treater
 
 
     /**

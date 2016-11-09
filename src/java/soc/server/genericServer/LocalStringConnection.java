@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.Vector;
 
 import soc.disableDebug.D;
+import soc.server.SOCInboundMessageQueue;
 import soc.util.SOCStringManager;
 
 /**
@@ -378,7 +379,7 @@ public class LocalStringConnection
     {
         ourServer = srv;
     }
-
+    
     /**
      * Hostname of the remote side of the connection -
      * Always returns localhost; this method required for
@@ -437,13 +438,15 @@ public class LocalStringConnection
             if (! in_reachedEOF)
             {
                 String firstMsg = readNext();
-                if (! ourServer.processFirstCommand(firstMsg, this))
-                    ourServer.treat(firstMsg, this);
+                if (! ourServer.processFirstCommand(firstMsg, this)){
+                    inboundMessageQueue.pushMessageInTheQueue(firstMsg, this);
+                }
+                    
             }
 
             while (! in_reachedEOF)
             {
-                ourServer.treat(readNext(), this);
+                inboundMessageQueue.pushMessageInTheQueue(readNext(), this);
             }
         }
         catch (IOException e)

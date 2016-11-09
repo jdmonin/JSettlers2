@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.MissingResourceException;
 
 import soc.game.SOCGame;  // strictly for passthrough in getLocalizedSpecial; not used otherwise
+import soc.server.SOCInboundMessageQueue;
 import soc.util.SOCStringManager;
 
 /**
@@ -86,6 +87,12 @@ public abstract class StringConnection
 
     /** Is set if server-side. Notifies at EOF (calls removeConnection). */
     protected Server ourServer;
+    
+    /**
+     * queue where to push message received from this connection 
+     */
+    protected SOCInboundMessageQueue inboundMessageQueue;
+
 
     /** Any error encountered, or {@code null} */
     protected Exception error;
@@ -404,5 +411,16 @@ public abstract class StringConnection
     {
         hideTimeoutMessage = wantsHide;
     }
+    
+    /**
+     * when the StringConnection is used in the server side... the messaged received by the connection must be 
+     * inserted in the queue
+     * 
+     * @param inboundMessageQueue in the server side where this connection must put messaged
+     */
+    public void setInboundMessageQueue(SOCInboundMessageQueue inboundMessageQueue)
+    {
+        this.inboundMessageQueue = inboundMessageQueue;
+    }  
 
 }

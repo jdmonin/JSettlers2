@@ -25,6 +25,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
+import soc.server.SOCInboundMessageQueue;
+
 /**
  * Uses ServerSocket to implement StringServerSocket over a network.<br>
  * before the version 2.0.00 this class was an inner class in the {@link Server} class
@@ -37,17 +39,19 @@ public class NetStringServerSocket implements StringServerSocket
     
     private ServerSocket implServSocket;
     private Server server;
+    private SOCInboundMessageQueue inboundMessageQueue;
 
-    public NetStringServerSocket (int port, Server serv) throws IOException
+    public NetStringServerSocket (int port, Server server,SOCInboundMessageQueue inboundMessageQueue) throws IOException
     {
-        implServSocket = new ServerSocket(port);
-        server = serv;
+        this.implServSocket = new ServerSocket(port);
+        this.server = server;
+        this.inboundMessageQueue = inboundMessageQueue;
     }
 
     public StringConnection accept() throws SocketException, IOException
     {
         Socket s = implServSocket.accept();
-        return new NetStringConnection(s, server);  // Good old net, not generic StringConnection
+        return new NetStringConnection(s, server,inboundMessageQueue);
     }
 
     public void close() throws IOException

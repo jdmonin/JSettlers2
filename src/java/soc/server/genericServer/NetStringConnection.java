@@ -22,14 +22,13 @@
 package soc.server.genericServer;
 
 import soc.disableDebug.D;
+import soc.server.SOCInboundMessageQueue;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
-
 import java.net.Socket;
-
 import java.util.Date;
 import java.util.Vector;
 
@@ -69,11 +68,12 @@ public final class NetStringConnection
     private Vector<String> outQueue = new Vector<String>();
 
     /** initialize the connection data */
-    NetStringConnection(Socket so, Server sve)
+    NetStringConnection(Socket so, Server sve,SOCInboundMessageQueue inboundMessageQueue)
     {
         hst = so.getInetAddress().getHostName();
         ourServer = sve;
         s = so;
+        this.inboundMessageQueue = inboundMessageQueue;
     }
 
     /**
@@ -162,14 +162,16 @@ public final class NetStringConnection
             if (inputConnected)
             {
                 String firstMsg = in.readUTF();
-                if (! ourServer.processFirstCommand(firstMsg, this))
-                    ourServer.treat(firstMsg, this);
+                if (! ourServer.processFirstCommand(firstMsg, this)){
+                    inboundMessageQueue.pushMessageInTheQueue(firstMsg, this);                    
+                }
+
             }
 
             while (inputConnected)
             {
                 // readUTF max message size is 65535 chars, modified utf-8 format
-                ourServer.treat(in.readUTF(), this);
+                inboundMessageQueue.pushMessageInTheQueue(in.readUTF(), this);
             }
         }
         catch (IOException e)
