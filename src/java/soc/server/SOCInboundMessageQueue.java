@@ -43,7 +43,8 @@ import soc.server.genericServer.StringConnection;
  * 
  * <P>
  * Actually this class is used  by the {@link StringConnection} instances and derived instances classes to store the new message received.<br> 
- * To method used to put messages in this queue is {@link #pushMessageInTheQueue(String, StringConnection)} 
+ * To method used to put messages in this queue is {@link #pushMessageInTheQueue(String, StringConnection)} <br>
+ * the implementation of the  {@link SOCInboundMessageQueue} use an internal thread-safe implementation queue, so it doesn't need to be synchronized
  * 
  * <P>
  * The {@link SOCInboundMessageQueue} must be stopped when the {@link Server} owner of this queue is stopped calling {@link #stopMessageProcessing()}.<br>
