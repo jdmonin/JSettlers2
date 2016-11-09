@@ -415,6 +415,16 @@ botname:command into the chat textbox while playing or observing a game with bot
 	robot 7:stats
 See SOCRobotClient.handleGAMETEXTMSG_debug for more details.
 
+You can also build pieces for the bots using "Free Placement" debug mode (see above)
+to help set up debugging or testing situations.
+
+When testing with the robots, you may need to send them resources or commands on their turn.
+The easiest way to do that is to type the debug command but don't hit enter, then wait for the
+bot to offer a trade. The trade offer will give a few seconds to send the command. On the
+other hand if you want the bots to move quickly, use the No Trading house rule and play on
+the 6-player board, where the bots have shorter delays since there might be more players
+(but you can also use this board with 2-4 players).
+
 If you're looking to make minor changes, it's probably best to fork the soc.robot package and go
 from the classes and javadocs there.  For a larger change, some parts of soc.robot might still be
 useful to talk with the server and track the game's other players.  Robert S Thomas' dissertation
