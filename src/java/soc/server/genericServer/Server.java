@@ -21,17 +21,9 @@
  **/
 package soc.server.genericServer;
 
-import soc.debug.D; // JM
-import soc.server.SOCServer;
-
 import java.io.IOException;
 import java.io.Serializable;
-
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
-
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -41,6 +33,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
 import java.util.Vector;
+
+import soc.debug.D; // JM
+import soc.server.SOCServer;
 
 
 /** a general purpose server.
@@ -131,7 +126,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     protected Vector<StringConnection> unnamedConns = new Vector<StringConnection>();
 
-    /** command messages from clients for {@link #treat(String, StringConnection)} */
+    
+    //TODO Alessandro change this class whit SOCInboundMessageQueue
     public Vector<Command> inQueue = new Vector<Command>();
 
     /**
@@ -326,6 +322,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         return numberCurrentConnections;
     }
 
+    //TODO Alessandro remove this useless method
     public synchronized boolean isUp()
     {
         return up;
@@ -340,6 +337,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     @Override
     public void run()
     {
+        //TODO Alessandro remove the threater is no more need
         Treater treater = new Treater();  // inner class - constructor is given "this" server
 
         if (error != null)
@@ -347,6 +345,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             return;
         }
 
+        //TODO Alessandro activate queue
         up = true;
 
         treater.start();  // Set "up" before starting treater (race condition)
@@ -397,11 +396,13 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             {
                 System.err.println("Could not listen to port " + port + ": " + e);
                 up = false;
+              //TODO Alessandro stop queue
                 error = e;
             }
         }
     }
 
+    //TODO Alessandro remove this method
     /** treat a request from the given connection, by adding to {@link #inQueue} */
     public void treat(String s, StringConnection c)
     {
@@ -513,9 +514,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * disconnecting from a database), override serverDown() or stopServer().
      * Check {@link #isUp()} before calling.
      */
+
     public synchronized void stopServer()
     {
         up = false;
+        //TODO Alessandro stop here the inboundqueue processor
         serverDown();
 
         for (Enumeration<StringConnection> e = conns.elements(); e.hasMoreElements();)
@@ -1060,6 +1063,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * Holds one message from client, for {@link Server#inQueue}.
      */
+    //TODO Alessandro remove this class
     static class Command
     {
         public String str;
@@ -1075,6 +1079,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * Single-threaded reader of {@link Server#inQueue}
      */
+    //TODO Alessandro remove this class
     class Treater extends Thread
     {
         public Treater()  // Server parameter is also passed in, since this is an inner class
@@ -1135,32 +1140,6 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     }  // Treater
 
-    /**
-     * Uses ServerSocket to implement StringServerSocket over a network.
-     */
-    protected class NetStringServerSocket implements StringServerSocket
-    {
-        private ServerSocket implServSocket;
-        private Server server;
-
-        public NetStringServerSocket (int port, Server serv) throws IOException
-        {
-            implServSocket = new ServerSocket(port);
-            server = serv;
-        }
-
-        public StringConnection accept() throws SocketException, IOException
-        {
-            Socket s = implServSocket.accept();
-            return new NetStringConnection(s, server);  // Good old net, not generic StringConnection
-        }
-
-        public void close() throws IOException
-        {
-            implServSocket.close();
-        }
-
-    }  // NetStringServerSocket
 
     /**
      * Hold info about 1 version of connected clients; for use in {@link #cliVersionsConnected}.
