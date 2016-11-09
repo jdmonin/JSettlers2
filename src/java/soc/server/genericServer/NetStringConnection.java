@@ -50,7 +50,7 @@ import java.util.Vector;
  * Refactored in v1.2.0 to extend {@link StringConnection} instead of Thread.
  */
 @SuppressWarnings("serial")
-public final class Connection
+public final class NetStringConnection
     extends StringConnection implements Runnable, Serializable, Cloneable
 {
     static int putters = 0;
@@ -69,7 +69,7 @@ public final class Connection
     private Vector<String> outQueue = new Vector<String>();
 
     /** initialize the connection data */
-    Connection(Socket so, Server sve)
+    NetStringConnection(Socket so, Server sve)
     {
         hst = so.getInetAddress().getHostName();
         ourServer = sve;
@@ -357,7 +357,7 @@ public final class Connection
         return sb.toString();
     }
 
-    /** Connection inner class thread to send {@link Connection#outQueue} messages to the net. */
+    /** Connection inner class thread to send {@link NetStringConnection#outQueue} messages to the net. */
     class Putter extends Thread
     {
         //public boolean putting = true;

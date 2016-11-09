@@ -120,7 +120,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     protected int numberCurrentConnections = 0;
 
-    /** The named connections: {@link Connection#getData()} != {@code null}.
+    /** The named connections: {@link NetStringConnection#getData()} != {@code null}.
      * @see #unnamedConns
      */
     protected Hashtable<Object, StringConnection> conns = new Hashtable<Object, StringConnection>();
@@ -365,7 +365,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     StringConnection con = ss.accept();
                     if (port != -1)
                     {
-                        new Thread((Connection) con).start();
+                        new Thread((NetStringConnection) con).start();
                     }
                     else
                     {
@@ -1152,7 +1152,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         public StringConnection accept() throws SocketException, IOException
         {
             Socket s = implServSocket.accept();
-            return new Connection(s, server);  // Good old net, not generic StringConnection
+            return new NetStringConnection(s, server);  // Good old net, not generic StringConnection
         }
 
         public void close() throws IOException
