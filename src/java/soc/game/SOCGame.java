@@ -763,7 +763,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * For use at server for i18n; does this game have any members (players or observers)
      * with a locale different than {@link #getOwnerLocale()}?
-     * Initially false, set true in {@code SOCGameListAtServer.addMember} if needed. 
+     * Initially false, set true in {@code SOCGameListAtServer.addMember} if needed.
      * @since 2.0.00
      */
     public boolean hasMultiLocales;
@@ -2090,9 +2090,9 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, if true and 
+     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, if true and
      * {@link #canPickGoldHexResources(int, SOCResourceSet)} in state {@link #WAITING_FOR_PICK_GOLD_RESOURCE},
-     * this player's "gold hex" free resources include victory over a pirate fleet attack at a dice roll. 
+     * this player's "gold hex" free resources include victory over a pirate fleet attack at a dice roll.
      * @param pn  Player number
      * @since 2.0.00
      */
@@ -5083,7 +5083,7 @@ public class SOCGame implements Serializable, Cloneable
                 robberyWithPirateNotRobber = false;
                 gameState = PLACING_ROBBER;
             }
-        }        
+        }
     }
 
     /**
@@ -5381,7 +5381,7 @@ public class SOCGame implements Serializable, Cloneable
         if ((gameState == PLAY) && (currentDice == 7))
         {
             rollDice_update7gameState();  // from win vs pirate fleet at dice roll (SC_PIRI)
-                // -- may set gameState to WAITING_FOR_DISCARDS, etc; see javadoc. 
+                // -- may set gameState to WAITING_FOR_DISCARDS, etc; see javadoc.
         } else {
             for (int i = 0; i < maxPlayers; i++)
             {
@@ -5868,7 +5868,7 @@ public class SOCGame implements Serializable, Cloneable
             return null;
 
         final SOCPlayer currPlayer = players[currentPlayerNumber];
-        SOCFortress fort = currPlayer.getFortress(); 
+        SOCFortress fort = currPlayer.getFortress();
         if (fort == null)   // will be null unless _SC_PIRI; will be null if already recaptured by player
             return null;
 

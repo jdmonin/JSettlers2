@@ -25,7 +25,7 @@ package soc.game;
  * A ship playing piece, on the large sea board ({@link SOCBoardLarge}).
  * To simplify some game code, ships are a subclass of roads.
  *<P>
- * Ships are open until their route has a settlement or city on both ends. 
+ * Ships are open until their route has a settlement or city on both ends.
  * Ships can be moved any turn after the turn they're placed, until {@link #isClosed()} is true.
  *<P>
  * In scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
@@ -46,7 +46,7 @@ public class SOCShip extends SOCRoad
 
     /**
      * Make a new ship.
-     * The ship is considered part of an open trade route, until {@link #setClosed()} is called. 
+     * The ship is considered part of an open trade route, until {@link #setClosed()} is called.
      *
      * @param pl  player who owns the ship
      * @param edge  edge coordinate
@@ -70,7 +70,7 @@ public class SOCShip extends SOCRoad
     }
 
     /**
-     * Call when this ship's trade route has been closed. 
+     * Call when this ship's trade route has been closed.
      */
     public void setClosed()
     {

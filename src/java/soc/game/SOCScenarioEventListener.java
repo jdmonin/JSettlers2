@@ -39,7 +39,7 @@ public interface SOCScenarioEventListener
      *
      * @param ga  Game
      * @param evt  Event code
-     * @param detail  Game piece, coordinate, or other data about the event, or null, depending on <tt>evt</tt>  
+     * @param detail  Game piece, coordinate, or other data about the event, or null, depending on <tt>evt</tt>
      */
     public void gameEvent(final SOCGame ga, final SOCScenarioGameEvent evt, final Object detail);
 

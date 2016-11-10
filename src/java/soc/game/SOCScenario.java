@@ -597,7 +597,7 @@ public class SOCScenario
      * adjusting for old clients if necessary.
      * This can be unpacked with {@link #parseScenariosToMap(String)}.
      * See {@link #packScenariosToString(Map)} javadoc for details.
-     * 
+     *
      * @param scMap Map of SOCScenarios, or null
      * @param cliVers  Client version; assumed >= 2000 ({@link #VERSION_FOR_SCENARIOS}).
      *            If any game's scenarios can't be sent to an older client, skip them.

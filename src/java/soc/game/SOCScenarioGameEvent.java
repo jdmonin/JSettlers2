@@ -97,6 +97,6 @@ public enum SOCScenarioGameEvent
 
     private SOCScenarioGameEvent(final int fv)
     {
-        flagValue = fv; 
+        flagValue = fv;
     }
 }
