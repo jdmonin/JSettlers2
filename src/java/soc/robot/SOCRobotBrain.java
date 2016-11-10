@@ -1661,7 +1661,7 @@ public class SOCRobotBrain extends Thread
                                  */
                                 if ((game.getGameState() == SOCGame.PLAY1) && ! ourPlayerData.hasPlayedDevCard())
                                 {
-                                    considerPlayKnightCard();  // might set expectPLACING_ROBBER and waitingForGameState
+                                    playKnightCardIfShould();  // might set expectPLACING_ROBBER and waitingForGameState
                                 }
 
                                 /**
@@ -2144,12 +2144,13 @@ public class SOCRobotBrain extends Thread
      * @see #rollOrPlayKnightOrExpectDice()
      * @since 2.0.00
      */
-    private void considerPlayKnightCard()
+    private void playKnightCardIfShould()
     {
         final boolean canGrowArmy;
 
         if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
         {
+            // Convert ship to warship:
             // Play whenever we have one and someone else has resources
 
             boolean anyOpponentHasRsrcs = false;
@@ -2439,6 +2440,7 @@ public class SOCRobotBrain extends Thread
      * In scenario {@code _SC_PIRI}, the server response messages are different, but we
      * still use those two flag fields; see {@link #expectPLACING_ROBBER} javadoc.
      *
+     * @see #playKnightCardIfShould()
      * @since 2.0.00
      */
     private void playKnightCard()
@@ -2463,7 +2465,7 @@ public class SOCRobotBrain extends Thread
      * no robber: Playing before the roll won't un-block any of our resource hexes, and it might put us
      * over 7 resources.
      *
-     * @see #considerPlayKnightCard()
+     * @see #playKnightCardIfShould()
      * @since 1.1.08
      */
     private void rollOrPlayKnightOrExpectDice()
