@@ -30,7 +30,6 @@ import java.net.SocketException;
  * Uses ServerSocket to implement StringServerSocket over a network.<br>
  * before the version 2.0.00 this class was an inner class in the {@link Server} class
  *
- * @author Alessandro D'Ottavio
  * @since 2.0.00
  */
 public class NetStringServerSocket implements StringServerSocket
