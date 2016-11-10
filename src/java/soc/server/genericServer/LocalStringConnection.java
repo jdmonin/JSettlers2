@@ -2,6 +2,7 @@
  * Local (StringConnection) network system.  Version 1.2.0.
  * Copyright (C) 2007-2010,2012-2013 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,7 +28,6 @@ import java.util.Date;
 import java.util.Vector;
 
 import soc.disableDebug.D;
-import soc.server.SOCInboundMessageQueue;
 import soc.util.SOCStringManager;
 
 /**
@@ -131,7 +131,7 @@ public class LocalStringConnection
      * blocking if necessary to wait.
      *
      * Synchronized on in-buffer.
-     * 
+     *
      * @return Next string in the in-buffer
      * @throws EOFException Our input buffer has reached EOF
      * @throws IllegalStateException Server has not yet accepted our connection
@@ -160,7 +160,7 @@ public class LocalStringConnection
                     error = new EOFException();
                     throw (EOFException) error;
                 }
-                
+
                 try
                 {
                     in.wait();
@@ -257,7 +257,7 @@ public class LocalStringConnection
 
     /**
      * Connect to specified stringport. Calling thread waits until accepted.
-     * 
+     *
      * @param serverSocketName  stringport name to connect to
      * @throws ConnectException If stringport name is not found, or is EOF,
      *                          or if its connect/accept queue is full.
@@ -278,7 +278,7 @@ public class LocalStringConnection
 
     /**
      * Remember, the peer's in is our out, and vice versa.
-     * 
+     *
      * @return Returns our peer, or null if not yet connected.
      */
     public LocalStringConnection getPeer()
@@ -288,7 +288,7 @@ public class LocalStringConnection
 
     /**
      * Is currently accepted by a server
-     * 
+     *
      * @return Are we currently connected, accepted, and ready to send/receive data?
      */
     public boolean isAccepted()
@@ -301,7 +301,7 @@ public class LocalStringConnection
      * Peer must be non-null to set accepted.
      * If our EOF is set, will not set accepted, but will not throw exception.
      * (This happens if the server socket closes while we're in its accept queue.)
-     * 
+     *
      * @throws IllegalStateException If we can't be, or already are, accepted
      */
     public void setAccepted() throws IllegalStateException
@@ -317,7 +317,7 @@ public class LocalStringConnection
     /**
      * Signal the end of outbound data.
      * Not the same as closing, because we don't terminate the inbound side.
-     * 
+     *
      * Synchronizes on out-buffer.
      */
     public void setEOF()
@@ -371,7 +371,7 @@ public class LocalStringConnection
      * If a server is set, its removeConnection method is called if our input reaches EOF,
      * and it's notified if our version changes.
      * Call this before calling run().
-     * 
+     *
      * @param srv The new server, or null
      * @see #setVersionTracking(boolean)
      */
@@ -379,7 +379,7 @@ public class LocalStringConnection
     {
         ourServer = srv;
     }
-    
+
     /**
      * Hostname of the remote side of the connection -
      * Always returns localhost; this method required for
@@ -441,7 +441,7 @@ public class LocalStringConnection
                 if (! ourServer.processFirstCommand(firstMsg, this)){
                     inboundMessageQueue.pushMessageInTheQueue(firstMsg, this);
                 }
-                    
+
             }
 
             while (! in_reachedEOF)

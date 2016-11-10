@@ -3,6 +3,7 @@
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2010,2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +23,6 @@
 package soc.server.genericServer;
 
 import soc.disableDebug.D;
-import soc.server.SOCInboundMessageQueue;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -68,7 +68,7 @@ public final class NetStringConnection
     private Vector<String> outQueue = new Vector<String>();
 
     /** initialize the connection data */
-    NetStringConnection(Socket so, Server sve,SOCInboundMessageQueue inboundMessageQueue)
+    NetStringConnection(Socket so, Server sve,InboundMessageQueue inboundMessageQueue)
     {
         hst = so.getInetAddress().getHostName();
         ourServer = sve;
@@ -150,7 +150,7 @@ public final class NetStringConnection
             return false;
         }
     }
- 
+
     /** continuously read from the net */
     public void run()
     {
@@ -163,7 +163,7 @@ public final class NetStringConnection
             {
                 String firstMsg = in.readUTF();
                 if (! ourServer.processFirstCommand(firstMsg, this)){
-                    inboundMessageQueue.pushMessageInTheQueue(firstMsg, this);                    
+                    inboundMessageQueue.pushMessageInTheQueue(firstMsg, this);
                 }
 
             }
@@ -366,7 +366,7 @@ public final class NetStringConnection
         public Putter()
         {
             D.ebugPrintln("NEW PUTTER CREATED FOR " + data);
-            
+
             /* thread name for debug */
             String cn = host();
             if (cn != null)

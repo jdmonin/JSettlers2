@@ -2,6 +2,7 @@
  * Local (StringConnection) network system.  Version 1.0.5.
  * Copyright (C) 2007-2009 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,23 +26,21 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
-import soc.server.SOCInboundMessageQueue;
-
 /**
  * Uses ServerSocket to implement StringServerSocket over a network.<br>
  * before the version 2.0.00 this class was an inner class in the {@link Server} class
- * 
+ *
  * @author Alessandro D'Ottavio
  * @since 2.0.00
  */
 public class NetStringServerSocket implements StringServerSocket
 {
-    
+
     private ServerSocket implServSocket;
     private Server server;
-    private SOCInboundMessageQueue inboundMessageQueue;
+    private InboundMessageQueue inboundMessageQueue;
 
-    public NetStringServerSocket (int port, Server server,SOCInboundMessageQueue inboundMessageQueue) throws IOException
+    public NetStringServerSocket (int port, Server server,InboundMessageQueue inboundMessageQueue) throws IOException
     {
         this.implServSocket = new ServerSocket(port);
         this.server = server;
