@@ -2069,7 +2069,7 @@ public class SOCRobotBrain extends Thread
      * we don't try to attack before end of turn.
      *<P>
      * {@link SOCGameOption#K_SC_FTRI _SC_FTRI} can play a gift port from our inventory to place for
-     * better bank trades, but should do so only if no other (better) dev cards can be played this turn.
+     * better bank trades.
      *<P>
      * <B>NOTE:</B> For now this method assumes it's called only in the {@code SC_FTRI} or {@code SC_PIRI} scenario.
      * Caller must check the game for any relevant scenario SOCGameOptions before calling.
@@ -2085,30 +2085,28 @@ public class SOCRobotBrain extends Thread
         if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
         {
             // SC_FTRI
-            if (! ourPlayerData.hasPlayedDevCard())
+
+            // check inventory for gift ports
+            SOCInventoryItem itm = null;
+            for (SOCInventoryItem i : ourPlayerData.getInventory().getByState(SOCInventory.PLAYABLE))
             {
-                // check inventory for gift ports
-                SOCInventoryItem itm = null;
-                for (SOCInventoryItem i : ourPlayerData.getInventory().getByState(SOCInventory.PLAYABLE))
-                {
-                    if (i.itype > 0)
-                        continue;  // not a port; most likely a SOCDevCard
-                    if ((rejectedPlayInvItem != null) && (i.itype == rejectedPlayInvItem.itype))
-                        continue;
+                if (i.itype > 0)
+                    continue;  // not a port; most likely a SOCDevCard
+                if ((rejectedPlayInvItem != null) && (i.itype == rejectedPlayInvItem.itype))
+                    continue;
 
-                    itm = i;
-                    break;  // unlikely to have more than one in inventory
-                }
+                itm = i;
+                break;  // unlikely to have more than one in inventory
+            }
 
-                if (itm != null)
-                {
-                    // Do we have somewhere to place one?
-                    if (ourPlayerData.getPortMovePotentialLocations(false) == null)
-                        return false;
+            if (itm != null)
+            {
+                // Do we have somewhere to place one?
+                if (ourPlayerData.getPortMovePotentialLocations(false) == null)
+                    return false;
 
-                    // Set fields, make the request
-                    return planAndPlaceInvItemPlacement_SC_FTRI(itm);
-                }
+                // Set fields, make the request
+                return planAndPlaceInvItemPlacement_SC_FTRI(itm);
             }
         } else {
             // SC_PIRI
