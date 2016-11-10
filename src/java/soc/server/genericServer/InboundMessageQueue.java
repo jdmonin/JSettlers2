@@ -121,17 +121,19 @@ public class InboundMessageQueue
 
     /**
      * Retrieves and removes the head of this queue, or returns null if this queue is empty.
+     * this method block if the queue in empty and wait until the next call of {@link #pushMessageInTheQueue(String, StringConnection)}
      * 
      * @return the head of this queue, or null if this queue is empty. 
+     * @throws InterruptedException 
      */
-    protected  MessageData pollMessageFromTheQueue(){
+    protected  MessageData pollMessageFromTheQueue() throws InterruptedException{
         synchronized (inQueue)
         {
-            if (inQueue.size() > 0){
-                return inQueue.remove(0);    
+            if (inQueue.size() == 0){
+                inQueue.wait();    
             }
+            return inQueue.remove(0);
         }
-        return null;
 
     }
 
@@ -170,40 +172,19 @@ public class InboundMessageQueue
             while (processMessage)
             {
 
-                messageData = pollMessageFromTheQueue();
-
                 try
                 {
-                    if (messageData != null)
-                    {
-                        server.processCommand(messageData.getStringMessage(), messageData.getClientConnection());
-                    }else{
-                        synchronized (inQueue){
-                            if (inQueue.size() == 0)
-                            {
-                                try
-                                {
-                                    //D.ebugPrintln("treater waiting");
-                                    inQueue.wait(1000);
-                                }
-                                catch (Exception ex)
-                                {
-                                    ;   // catch InterruptedException from inQueue.notify() in treat(...)
-                                }
-                            }
-                        }
-
-                    }
-
+                    messageData = pollMessageFromTheQueue();
+                    server.processCommand(messageData.getStringMessage(), messageData.getClientConnection());
                 }
-                catch (Exception e)
+                catch (InterruptedException e)
                 {
                     System.out.println("Exception in treater (processCommand) - " + e.getMessage());
-                    e.printStackTrace();
                 }
-
-
+             
             }
+            
+            System.out.println("Treater thread - shutdown");
         }
     }
 
