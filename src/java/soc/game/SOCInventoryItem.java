@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,12 @@ import soc.util.SOCStringManager;
 /**
  * An inventory item, such as a {@link SOCDevCard} or a scenario-specific item, held
  * in a player's hand to be played later or kept until scoring at the end of the game.
+ * Except {@code SOCDevCard}s, these items aren't subject to the rule of playing at most
+ * 1 Development Card per turn: The player can play a Dev Card on the same turn as an item.
  *<P>
  * To see if a player can currently play an inventory item, use {@link SOCGame#canPlayInventoryItem(int, int)}.
+ * Inventory items' lifecycle and play rules differ by scenario. In {@link SOCGameOption#K_SC_FTRI SC_FTRI}
+ * for example, the items are "gift" trade ports which can be played immediately.
  *<P>
  * Inventory items must be {@link Cloneable} for use in set copy constructors,
  * see {@link #clone()} for details.
