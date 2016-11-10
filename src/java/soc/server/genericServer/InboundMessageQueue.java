@@ -19,7 +19,7 @@
  **/
 package soc.server.genericServer;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Vector;
 
 import soc.message.SOCMessage;
 
@@ -65,7 +65,7 @@ public class InboundMessageQueue
     /**
      * this queue is used to store the {@link MessageData}
      */
-    private ConcurrentLinkedQueue<MessageData> inQueue;
+    private Vector<MessageData> inQueue;
 
     /**
      * the Thread responsible to process the data in the {@link #inQueue}
@@ -84,7 +84,7 @@ public class InboundMessageQueue
      * @param server that will use this SOCInboundMessageQueue to store messages and that the SOCInboundMessageQueue will use to treat the messages
      */
     public InboundMessageQueue(Server server){
-        inQueue = new ConcurrentLinkedQueue<MessageData>();
+        inQueue = new Vector<MessageData>();
         this.server = server;
     }
 
@@ -104,16 +104,36 @@ public class InboundMessageQueue
     }
 
     /**
-     * put a new message in the inbound queue
-     *
+     * appends an elements in the end of the inbound queue.
+     * this notify the {@link Treater} in case it is in wait state becouse the queue was empty
      *
      * @param receivedMessage from the connection
      * @param clientConnection that send the message
      */
-    public void pushMessageInTheQueue(String receivedMessage,StringConnection clientConnection){
-        inQueue.add(new MessageData(receivedMessage, clientConnection));
+    public void  pushMessageInTheQueue(String receivedMessage,StringConnection clientConnection){
+        synchronized (inQueue)
+        {
+            inQueue.addElement(new MessageData(receivedMessage, clientConnection));
+            inQueue.notify();
+        }
+
     }
 
+    /**
+     * Retrieves and removes the head of this queue, or returns null if this queue is empty.
+     * 
+     * @return the head of this queue, or null if this queue is empty. 
+     */
+    protected  MessageData pollMessageFromTheQueue(){
+        synchronized (inQueue)
+        {
+            if (inQueue.size() > 0){
+                return inQueue.remove(0);    
+            }
+        }
+        return null;
+
+    }
 
 
     /**
@@ -144,10 +164,13 @@ public class InboundMessageQueue
 
         public void run()
         {
+            
+            MessageData messageData = null;
+            
             while (processMessage)
             {
 
-                MessageData messageData = inQueue.poll();
+                messageData = pollMessageFromTheQueue();
 
                 try
                 {
@@ -155,7 +178,21 @@ public class InboundMessageQueue
                     {
                         server.processCommand(messageData.getStringMessage(), messageData.getClientConnection());
                     }else{
-                            Thread.sleep(10);
+                        synchronized (inQueue){
+                            if (inQueue.size() == 0)
+                            {
+                                try
+                                {
+                                    //D.ebugPrintln("treater waiting");
+                                    inQueue.wait(1000);
+                                }
+                                catch (Exception ex)
+                                {
+                                    ;   // catch InterruptedException from inQueue.notify() in treat(...)
+                                }
+                            }
+                        }
+
                     }
 
                 }
