@@ -46,13 +46,13 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
     /**
      * {@code playerNum(i)} is the player number gaining the resources in {@link #playerRsrc playerRsrc(i)}.
      * Used at client only, null at server.
-     */ 
+     */
     public List<Integer> playerNum;
 
     /**
      * {@code playerRsrc(i)} is the resource set gained by player {@link #playerNum playerNum(i)}.
      * Used at client only, null at server.
-     */ 
+     */
     public List<SOCResourceSet> playerRsrc;
 
     /**

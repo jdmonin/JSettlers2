@@ -60,7 +60,7 @@ public abstract class I18n
     }
 
     /**
-     * Build a string with the contents of this list, such as "x, y, and z". 
+     * Build a string with the contents of this list, such as "x, y, and z".
      *<P>
      * This method and its formatting strings ({@code i18n.listitems.*}) may need
      * refinement as more languages are supported.

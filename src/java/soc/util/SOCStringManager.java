@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The maintainer of this program can be reached at lartkma@gmail.com 
+ * The maintainer of this program can be reached at lartkma@gmail.com
  **/
 package soc.util;
 
@@ -72,7 +72,7 @@ public class SOCStringManager extends StringManager
     /**
      * Manager at server for strings sent to the client.
      *<P>
-     * Key = locale.toString, value = {@link SOCStringManager} for server strings to clients in that locale. 
+     * Key = locale.toString, value = {@link SOCStringManager} for server strings to clients in that locale.
      * Uses Hashtable to gain synchronization.
      */
     private static Hashtable<String, SOCStringManager> serverManagerForClientLocale
@@ -84,7 +84,7 @@ public class SOCStringManager extends StringManager
     private static SOCStringManager serverManagerForClientLocale_fallback;
 
     /**
-     * Create a string manager for the bundles at {@code bundlePath} with the default locale. 
+     * Create a string manager for the bundles at {@code bundlePath} with the default locale.
      * Remember that bundle files are encoded not in {@code UTF-8} but in {@code ISO-8859-1}, see class javadoc.
      * @param bundlePath  Bundle path, will be retrieved with {@link ResourceBundle#getBundle(String)}
      */
@@ -126,7 +126,7 @@ public class SOCStringManager extends StringManager
     };
 
     /**
-     * Get a resource count, such as "5 sheep"; used by {@link #getSpecial(SOCGame, String, Object...)}. 
+     * Get a resource count, such as "5 sheep"; used by {@link #getSpecial(SOCGame, String, Object...)}.
      * @param rtype  Type of resource, in the range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
      * @param rcountObj  Resource count; uses the Integer object passed into {@code getSpecial}.
      *          As a special case, -1 will localize with the indefinite article, such as "a sheep" or "an ore".
@@ -224,7 +224,7 @@ public class SOCStringManager extends StringManager
             if (arg instanceof Integer)
             {
                 // [pnum] is rcount, [pnum+1] is rtype;
-                // replace the argument obj with its localized String 
+                // replace the argument obj with its localized String
                 argsLocal[pnum] = getSOCResourceCount
                     (((Integer) arguments[pnum + 1]).intValue(), (Integer) arg);
             }
@@ -374,7 +374,7 @@ public class SOCStringManager extends StringManager
 
     /**
      * Create or retrieve the server's string manager to send text to a clients with a certain locale.
-     * @param loc  Locale to use, or {@code null} for the {@link Locale#getDefault()} 
+     * @param loc  Locale to use, or {@code null} for the {@link Locale#getDefault()}
      * @return  The server manager for that client locale
      */
     public static SOCStringManager getServerManagerForClient(Locale loc) {
