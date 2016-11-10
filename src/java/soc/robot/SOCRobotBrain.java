@@ -1711,13 +1711,16 @@ public class SOCRobotBrain extends Thread
                                        || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY
                                        || expectPLACING_ROBBER || waitingForTradeMsg || waitingForTradeResponse
                                        || waitingForDevCard
+                                       || waitingForGameState
                                        || (waitingForPickSpecialItem != null)))
                                 {
                                     // Any last things for turn from game's scenario?
                                     boolean scenActionTaken = false;
-                                    if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                                    if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI)
+                                        || game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
                                     {
                                         // possibly attack pirate fortress
+                                        // or place a gift port for better bank trades
                                         scenActionTaken = considerScenarioTurnFinalActions();
                                     }
 
@@ -2065,24 +2068,62 @@ public class SOCRobotBrain extends Thread
      * and have 5 or more warships, and if so will attack the fortress.  Doing so ends the turn, so
      * we don't try to attack before end of turn.
      *<P>
-     * <B>NOTE:</B> For now this method assumes it's called only in the {@code SC_PIRI} scenario.
+     * {@link SOCGameOption#K_SC_FTRI _SC_FTRI} can play a gift port from our inventory to place for
+     * better bank trades, but should do so only if no other (better) dev cards can be played this turn.
+     *<P>
+     * <B>NOTE:</B> For now this method assumes it's called only in the {@code SC_FTRI} or {@code SC_PIRI} scenario.
      * Caller must check the game for any relevant scenario SOCGameOptions before calling.
+     * Also assumes not {@link #waitingForGameState} or any other pending action.
      *
      * @return true if an action was taken <B>and</B> turn shouldn't be ended yet, false otherwise
      * @since 2.0.00
      */
     private boolean considerScenarioTurnFinalActions()
     {
-        // NOTE: for now this method assumes it's called only in the SC_PIRI scenario
+        // NOTE: for now this method assumes it's called only in the SC_FTRI or SC_PIRI scenario
 
-        // require 5+ warships; game.canAttackPirateFortress checks that we've reached the fortress with adjacent ship
-        if ((ourPlayerData.getNumWarships() < 5) || (null == game.canAttackPirateFortress()))
-            return false;
+        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+        {
+            // SC_FTRI
+            if (! ourPlayerData.hasPlayedDevCard())
+            {
+                // check inventory for gift ports
+                SOCInventoryItem itm = null;
+                for (SOCInventoryItem i : ourPlayerData.getInventory().getByState(SOCInventory.PLAYABLE))
+                {
+                    if (i.itype > 0)
+                        continue;  // not a port; most likely a SOCDevCard
+                    if ((rejectedPlayInvItem != null) && (i.itype == rejectedPlayInvItem.itype))
+                        continue;
 
-        waitingForSC_PIRI_FortressRequest = true;
-        client.simpleRequest(game, ourPlayerNumber, SOCSimpleRequest.SC_PIRI_FORT_ATTACK, 0, 0);
+                    itm = i;
+                    break;  // unlikely to have more than one in inventory
+                }
 
-        return true;
+                if (itm != null)
+                {
+                    // Do we have somewhere to place one?
+                    if (ourPlayerData.getPortMovePotentialLocations(false) == null)
+                        return false;
+
+                    // Set fields, make the request
+                    return planAndPlaceInvItemPlacement_SC_FTRI(itm);
+                }
+            }
+        } else {
+            // SC_PIRI
+
+            // require 5+ warships; game.canAttackPirateFortress checks that we've reached the fortress with adjacent ship
+            if ((ourPlayerData.getNumWarships() < 5) || (null == game.canAttackPirateFortress()))
+                return false;
+
+            waitingForSC_PIRI_FortressRequest = true;
+            client.simpleRequest(game, ourPlayerNumber, SOCSimpleRequest.SC_PIRI_FORT_ATTACK, 0, 0);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -2770,22 +2811,31 @@ public class SOCRobotBrain extends Thread
 
     /**
      * For scenario {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, try to plan a location and
-     * send placement request command(s) for a "gift" trade port.
+     * send placement request command(s) for a "gift" trade port on the player's turn.
+     *<P>
+     * Calls {@link SOCPlayer#getPortMovePotentialLocations(boolean)}; this method is safe to call
+     * when the player has nowhere to place.
      *<P>
      * Called from {@link #planAndPlaceInvItem()}, see that method for required conditions to call
      * and described brain-state results after calling.  Assumes caller has checked those conditions
-     * and that {@link #waitingForGameState} is false when called.
+     * and:
+     *<UL>
+     * <LI> {@link #ourTurn}
+     * <LI> game state {@link SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM} or {@link SOCGame#PLAY1 PLAY1}
+     * <LI> ! {@link #waitingForGameState}
+     *</UL>
      *
      * @param itm The gift port which must be placed; not {@code null}.
-     *     TODO: also allow {@code null}, to search player's inventory for gift port {@link SOCInventoryItem}s.
+     *     Can be as prompted by server, or from player's {@link SOCInventoryItem}s.
+     * @return true if {@code itm} was planned and/or placed
      * @since 2.0.00
      */
-    private void planAndPlaceInvItemPlacement_SC_FTRI(final SOCInventoryItem itm)
+    private boolean planAndPlaceInvItemPlacement_SC_FTRI(final SOCInventoryItem itm)
     {
         if (itm == null)
-            return;  // TODO: get from inventory items (ignore rejectedPlayInvItem)
+            return false;
         if ((rejectedPlayInvItem != null) && (itm.itype == rejectedPlayInvItem.itype))
-            return;  // rbrain must plan something else instead
+            return false;  // rbrain must plan something else instead
 
         List<Integer> edges = ourPlayerData.getPortMovePotentialLocations(true);
         if (edges.isEmpty())
@@ -2793,21 +2843,21 @@ public class SOCRobotBrain extends Thread
             // TODO any action to keep it moving?
             rejectedPlayInvItem = itm;  // don't re-plan same thing for next move this turn
 
-            return;  // <--- Early return: No choices despite gamestate ---
+            return false;  // <--- Early return: No choices despite gamestate ---
         }
 
-        // This is a first draft for overall functionality, not for the smartest placement strategy.
-        // TODO smarter planning; consider port type from itm if not null; if null iterate inv items
-        // but reject if chooses rejectedPlayInvItem again
-
         final int ptype = itm.itype;  // reminder: will be negative or 0
-        final int edge = edges.get(0).intValue();
-
         waitingForGameState = true;
         counter = 0;
 
         if (game.getGameState() == SOCGame.PLACING_INV_ITEM)
         {
+            // This is a first draft for overall functionality, not for the smartest placement strategy.
+            // TODO smarter planning; consider settlement & dice number locations / hex types against
+            // the port type from itm if not null; if null iterate inv items
+            // but reject if chooses rejectedPlayInvItem again
+            final int edge = edges.get(0).intValue();
+
             // Expected response from server: GAMESTATE(PLAY1) and
             // then SIMPLEREQUEST confirming placement location,
             // or SIMPLEREQUEST rejecting it; TODO don't plan further building
@@ -2817,6 +2867,8 @@ public class SOCRobotBrain extends Thread
             expectPLAY1 = true;
             client.simpleRequest(game, ourPlayerNumber, SOCSimpleRequest.TRADE_PORT_PLACE, edge, 0);
         } else {
+            // State PLAY1; assume inv is from inventory
+
             // Expected response from server: GAMESTATE(PLACING_INV_ITEM).
             // If client's request is rejected because nowhere to place right now,
             // will respond with SOCInventoryItemAction(CANNOT_PLAY)
@@ -2827,6 +2879,7 @@ public class SOCRobotBrain extends Thread
         }
 
         pause(1000);
+        return true;
     }
 
     /**
