@@ -1923,58 +1923,58 @@ public class SOCGameHandler extends GameHandler
                     StringConnection robotConn = null;
 
                     final int[] robotIndexes = srv.robotShuffleForJoin();  // Shuffle to distribute load
-    
+
                     Vector<StringConnection> requests = srv.robotJoinRequests.get(gm);
-    
+
                     for (int idx = 0; idx < srv.robots.size(); idx++)
                     {
                         robotConn = srv.robots.get(robotIndexes[idx]);
                         nameMatch = false;
-    
+
                         for (int i = 0; i < ga.maxPlayers; i++)
                         {
                             SOCPlayer pl = ga.getPlayer(i);
-    
+
                             if (pl != null)
                             {
                                 String pname = pl.getName();
-    
+
                                 // D.ebugPrintln("CHECKING " + (String) robotConn.getData() + " == " + pname);
-    
+
                                 if ((pname != null) && (pname.equals(robotConn.getData())))
                                 {
                                     nameMatch = true;
-    
+
                                     break;
                                 }
                             }
                         }
-    
+
                         if ((!nameMatch) && (requests != null))
                         {
                             Enumeration<StringConnection> requestsEnum = requests.elements();
-    
+
                             while (requestsEnum.hasMoreElements())
                             {
                                 StringConnection tempCon = requestsEnum.nextElement();
-    
+
                                 // D.ebugPrintln("CHECKING " + robotConn + " == " + tempCon);
-    
+
                                 if (tempCon == robotConn)
                                 {
                                     nameMatch = true;
                                 }
-    
+
                                 break;
                             }
                         }
-    
+
                         if (!nameMatch)
                         {
                             break;
                         }
                     }
-    
+
                     if (!nameMatch)
                     {
                         /**
@@ -2156,7 +2156,7 @@ public class SOCGameHandler extends GameHandler
             promptedRoll = true;
             if (sendRollPrompt)
                 srv.messageToGame(gname, new SOCRollDicePrompt (gname, player.getPlayerNumber()));
-                
+
             break;
 
         case SOCGame.WAITING_FOR_DISCARDS:
