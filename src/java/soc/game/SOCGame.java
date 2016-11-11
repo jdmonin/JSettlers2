@@ -1322,7 +1322,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             try
             {
-                wait(1000);
+                wait(1000);  // timeout to help avoid deadlock
             }
             catch (InterruptedException e)
             {
