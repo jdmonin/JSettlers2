@@ -90,6 +90,7 @@ public abstract class StringConnection
 
     /**
      * queue where to push message received from this connection
+     * @since 2.0.00
      */
     protected InboundMessageQueue inboundMessageQueue;
 

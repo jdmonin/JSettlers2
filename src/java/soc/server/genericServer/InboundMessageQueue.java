@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2010,2015-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -16,6 +16,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.server.genericServer;
 
@@ -77,21 +79,22 @@ public class InboundMessageQueue
      */
     private Server server;
 
-
     /**
      * Constructor of the SOCInboundMessageQueue.
      *
      * @param server that will use this SOCInboundMessageQueue to store messages and that the SOCInboundMessageQueue will use to treat the messages
      */
-    public InboundMessageQueue(Server server){
+    public InboundMessageQueue(Server server)
+    {
         inQueue = new Vector<MessageData>();
         this.server = server;
     }
 
     /**
-     * Start the {@link Treater} internal thread that is responsible to solicit the server that new messages are arrived
+     * Start the {@link Treater} internal thread that calls the server when new messages arrive.
      */
-    public void startMessageProcessing(){
+    public void startMessageProcessing()
+    {
         treater = new Treater();
         treater.start();
     }
@@ -99,12 +102,13 @@ public class InboundMessageQueue
     /**
      * Stop the {@link Treater} internal thread
      */
-    public void stopMessageProcessing(){
+    public void stopMessageProcessing()
+    {
         treater.stopTreater();
     }
 
     /**
-     * appends an elements in the end of the inbound queue.
+     * appends an element to the end of the inbound queue.
      * this notify the {@link Treater} in case it is in wait state becouse the queue was empty
      *
      * @param receivedMessage from the connection
@@ -121,27 +125,30 @@ public class InboundMessageQueue
 
     /**
      * Retrieves and removes the head of this queue, or returns null if this queue is empty.
-     * 
-     * @return the head of this queue, or null if this queue is empty. 
+     * Returns as soon as possible; if queue empty, this method doesn't wait until another thread
+     * notifies a message has been added.
+     *
+     * @return the head of this queue, or null if this queue is empty.
      */
     protected final MessageData poll()
     {
         synchronized (inQueue)
         {
-            if (inQueue.size() > 0){
-                return inQueue.remove(0);    
-            }
+            if (inQueue.size() > 0)
+                return inQueue.remove(0);
         }
-        return null;
 
+        return null;
     }
 
 
     /**
-     * Internal class user to process the message stored in the {@link #inQueue}
-     * <P>
-     * the thread can be stopped calling {@link #stopTreater()}
-     *
+     * Internal class user, a single-threaded reader to process each message stored in the {@link #inQueue}
+     * and pass them to the server dispatch.
+     *<P>
+     * This thread can be stopped calling {@link #stopTreater()}.
+     *<P>
+     * Before v2.0.00 this class was {@code Server.Treater}.
      *
      * @author Alessandro
      */
@@ -149,7 +156,9 @@ public class InboundMessageQueue
     {
 
         /**
-         * this variable is used to control the processing of the message
+         * Is the Treater started and running? Controls the processing of messages:
+         * While true, keep looping. When this flag becomes false, Treater's
+         * {@link #run()} will exit and end the thread.
          */
         private volatile boolean processMessage;
 
@@ -159,7 +168,8 @@ public class InboundMessageQueue
             processMessage = true;
         }
 
-        public void stopTreater(){
+        public void stopTreater()
+        {
             processMessage = false;
         }
 
@@ -172,9 +182,7 @@ public class InboundMessageQueue
                 try
                 {
                     if (messageData != null)
-                    {
                         server.processCommand(messageData.getStringMessage(), messageData.getClientConnection());
-                    }
                 }
                 catch (Exception e)
                 {

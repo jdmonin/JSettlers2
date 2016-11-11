@@ -28,31 +28,34 @@ import java.net.SocketException;
 
 /**
  * Uses ServerSocket to implement StringServerSocket over a network.<br>
- * before the version 2.0.00 this class was an inner class in the {@link Server} class
+ *<P>
+ * Before version 2.0.00 this class was an inner class in {@link Server}.
  *
  * @since 2.0.00
  */
 public class NetStringServerSocket implements StringServerSocket
 {
-
     private ServerSocket implServSocket;
     private Server server;
     private InboundMessageQueue inboundMessageQueue;
 
-    public NetStringServerSocket (int port, Server server,InboundMessageQueue inboundMessageQueue) throws IOException
+    public NetStringServerSocket (int port, Server server, InboundMessageQueue inboundMessageQueue)
+        throws IOException
     {
         this.implServSocket = new ServerSocket(port);
         this.server = server;
         this.inboundMessageQueue = inboundMessageQueue;
     }
 
-    public StringConnection accept() throws SocketException, IOException
+    public StringConnection accept()
+        throws SocketException, IOException
     {
         Socket s = implServSocket.accept();
-        return new NetStringConnection(s, server,inboundMessageQueue);
+        return new NetStringConnection(s, server, inboundMessageQueue);
     }
 
-    public void close() throws IOException
+    public void close()
+        throws IOException
     {
         implServSocket.close();
     }

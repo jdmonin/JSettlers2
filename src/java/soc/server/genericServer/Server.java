@@ -116,7 +116,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     protected int numberCurrentConnections = 0;
 
-    /** The named connections: {@link NetStringConnection#getData()} != {@code null}.
+    /** The named connections: {@link StringConnection#getData()} != {@code null}.
      * @see #unnamedConns
      */
     protected Hashtable<Object, StringConnection> conns = new Hashtable<Object, StringConnection>();
@@ -129,7 +129,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
 
     /**
-     * the queue of the messages received from the client
+     * the queue of messages received from the client
+     *<P>
+     * Before v2.0.00, this was a {@link Vector}.
      */
     public InboundMessageQueue inQueue;
 
@@ -213,12 +215,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     {
         this.port = port;
         this.strSocketName = null;
-
         this.inQueue = new InboundMessageQueue(this);
 
         try
         {
-            ss = new NetStringServerSocket(port, this,inQueue);
+            ss = new NetStringServerSocket(port, this, inQueue);
         }
         catch (IOException e)
         {
@@ -241,7 +242,6 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
         this.port = -1;
         this.strSocketName = stringSocketName;
-
         this.inQueue = new InboundMessageQueue(this);
 
         ss = new LocalStringServerSocket(stringSocketName);
@@ -329,12 +329,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         return numberCurrentConnections;
     }
 
-
     public synchronized boolean isUp()
     {
         return up;
     }
-
 
     /**
      * Run method for Server:
@@ -351,14 +349,12 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             return;
         }
 
+        // Set "up" _before_ starting treater (avoid race condition)
         up = true;
 
         inQueue.startMessageProcessing();
 
         serverUp();  // Any processing for child class to do after serversocket is bound, before the main loop begins
-
-        StringConnection connection;
-        LocalStringConnection localConnection;
 
         while (isUp())
         {
@@ -369,14 +365,14 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     // we could limit the number of accepted connections here
                     // Currently it's limited in SOCServer.newConnection1 by checking connectionCount()
                     // which is more modular.
-                    connection = ss.accept();
+                    StringConnection connection = ss.accept();
                     if (port != -1)
                     {
                         new Thread((NetStringConnection) connection).start();
                     }
                     else
                     {
-                        localConnection = (LocalStringConnection) connection;
+                        LocalStringConnection localConnection = (LocalStringConnection) connection;
                         localConnection.setServer(this);
                         localConnection.setInboundMessageQueue(inQueue);
 
@@ -395,12 +391,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 //stopServer();
             }
 
-
             try
             {
                 ss.close();
                 if (strSocketName == null)
-                    ss = new NetStringServerSocket(port, this,inQueue);
+                    ss = new NetStringServerSocket(port, this, inQueue);
                 else
                     ss = new LocalStringServerSocket(strSocketName);
             }
@@ -515,7 +510,6 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * disconnecting from a database), override serverDown() or stopServer().
      * Check {@link #isUp()} before calling.
      */
-
     public synchronized void stopServer()
     {
         up = false;

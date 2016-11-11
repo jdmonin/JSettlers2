@@ -439,14 +439,14 @@ public class LocalStringConnection
             {
                 String firstMsg = readNext();
                 if (! ourServer.processFirstCommand(firstMsg, this)){
-                    inboundMessageQueue.pushMessageInTheQueue(firstMsg, this);
+                    inboundMessageQueue.push(firstMsg, this);
                 }
 
             }
 
             while (! in_reachedEOF)
             {
-                inboundMessageQueue.pushMessageInTheQueue(readNext(), this);
+                inboundMessageQueue.push(readNext(), this);
             }
         }
         catch (IOException e)

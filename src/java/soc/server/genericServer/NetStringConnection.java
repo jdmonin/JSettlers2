@@ -68,7 +68,7 @@ public final class NetStringConnection
     private Vector<String> outQueue = new Vector<String>();
 
     /** initialize the connection data */
-    NetStringConnection(Socket so, Server sve,InboundMessageQueue inboundMessageQueue)
+    NetStringConnection(Socket so, Server sve, InboundMessageQueue inboundMessageQueue)
     {
         hst = so.getInetAddress().getHostName();
         ourServer = sve;
