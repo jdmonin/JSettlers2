@@ -42,7 +42,7 @@ import soc.message.SOCMessage;
  *
  * <P>
  * Actually this class is used  by the {@link StringConnection} instances and derived instances classes to store the new message received.<br>
- * The method used to put messages in this queue is {@link #pushMessageInTheQueue(String, StringConnection)} <br>
+ * The method used to put messages in this queue is {@link #push(String, StringConnection)} <br>
  * the implementation of the  {@link InboundMessageQueue} use an internal thread-safe implementation queue, so it doesn't need to be synchronized
  *
  * <P>
@@ -110,13 +110,13 @@ public class InboundMessageQueue
      * @param receivedMessage from the connection
      * @param clientConnection that send the message
      */
-    public void  pushMessageInTheQueue(String receivedMessage,StringConnection clientConnection){
+    public void push(String receivedMessage, StringConnection clientConnection)
+    {
         synchronized (inQueue)
         {
             inQueue.addElement(new MessageData(receivedMessage, clientConnection));
             inQueue.notify();
         }
-
     }
 
     /**
@@ -124,7 +124,8 @@ public class InboundMessageQueue
      * 
      * @return the head of this queue, or null if this queue is empty. 
      */
-    protected  MessageData pollMessageFromTheQueue(){
+    protected final MessageData poll()
+    {
         synchronized (inQueue)
         {
             if (inQueue.size() > 0){
@@ -150,7 +151,7 @@ public class InboundMessageQueue
         /**
          * this variable is used to control the processing of the message
          */
-        private boolean processMessage;
+        private volatile boolean processMessage;
 
         public Treater()  // Server parameter is also passed in, since this is an inner class
         {
@@ -166,7 +167,7 @@ public class InboundMessageQueue
         {
             while (processMessage)
             {
-                MessageData messageData = pollMessageFromTheQueue();
+                MessageData messageData = poll();
 
                 try
                 {

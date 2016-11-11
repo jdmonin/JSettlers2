@@ -162,16 +162,14 @@ public final class NetStringConnection
             if (inputConnected)
             {
                 String firstMsg = in.readUTF();
-                if (! ourServer.processFirstCommand(firstMsg, this)){
-                    inboundMessageQueue.pushMessageInTheQueue(firstMsg, this);
-                }
-
+                if (! ourServer.processFirstCommand(firstMsg, this))
+                    inboundMessageQueue.push(firstMsg, this);
             }
 
             while (inputConnected)
             {
                 // readUTF max message size is 65535 chars, modified utf-8 format
-                inboundMessageQueue.pushMessageInTheQueue(in.readUTF(), this);
+                inboundMessageQueue.push(in.readUTF(), this);
             }
         }
         catch (IOException e)
