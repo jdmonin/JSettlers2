@@ -177,7 +177,7 @@ public class InboundMessageQueue
                     messageData = pollMessageFromTheQueue();
                     server.processCommand(messageData.getStringMessage(), messageData.getClientConnection());
                 }
-                catch (InterruptedException e)
+                catch (Exception e)
                 {
                     System.out.println("Exception in treater (processCommand) - " + e.getMessage());
                 }
