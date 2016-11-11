@@ -164,37 +164,16 @@ public class InboundMessageQueue
 
         public void run()
         {
-            
-            MessageData messageData = null;
-            
             while (processMessage)
             {
-
-                messageData = pollMessageFromTheQueue();
+                MessageData messageData = pollMessageFromTheQueue();
 
                 try
                 {
                     if (messageData != null)
                     {
                         server.processCommand(messageData.getStringMessage(), messageData.getClientConnection());
-                    }else{
-                        synchronized (inQueue){
-                            if (inQueue.size() == 0)
-                            {
-                                try
-                                {
-                                    //D.ebugPrintln("treater waiting");
-                                    inQueue.wait(1000);
-                                }
-                                catch (Exception ex)
-                                {
-                                    ;   // catch InterruptedException from inQueue.notify() in treat(...)
-                                }
-                            }
-                        }
-
                     }
-
                 }
                 catch (Exception e)
                 {
@@ -202,7 +181,23 @@ public class InboundMessageQueue
                     e.printStackTrace();
                 }
 
+                yield();
 
+                synchronized (inQueue)
+                {
+                    if (inQueue.size() == 0)
+                    {
+                        try
+                        {
+                            //D.ebugPrintln("treater waiting");
+                            inQueue.wait(1000);
+                        }
+                        catch (Exception ex)
+                        {
+                            ;   // catch InterruptedException from inQueue.notify() in treat(...)
+                        }
+                    }
+                }
             }
         }
     }
