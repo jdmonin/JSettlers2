@@ -184,7 +184,7 @@ public class InboundMessageQueue
                     if (messageData != null)
                         server.processCommand(messageData.getStringMessage(), messageData.getClientConnection());
                 }
-                catch (Exception e)
+                catch (Exception e)  // for anything thrown by bugs in server or game code called from processCommand
                 {
                     System.out.println("Exception in treater (processCommand) - " + e.getMessage());
                     e.printStackTrace();
