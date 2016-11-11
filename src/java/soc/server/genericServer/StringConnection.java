@@ -1,6 +1,7 @@
 /**
  * Local (StringConnection) network system.  Version 1.2.0.
  * This file Copyright (C) 2007-2009,2013,2015 Jeremy D Monin <jeremy@nand.net>.
+ * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,7 +30,7 @@ import soc.util.SOCStringManager;
 /**
  * StringConnection allows clients and servers to communicate,
  * with no difference between local and actual networked traffic.
- * 
+ *
  *<PRE>
  *  1.0.0 - 2007-11-18 - initial release
  *  1.0.1 - 2008-06-28 - add getConnectTime
@@ -87,6 +88,12 @@ public abstract class StringConnection
     /** Is set if server-side. Notifies at EOF (calls removeConnection). */
     protected Server ourServer;
 
+    /**
+     * queue where to push message received from this connection
+     */
+    protected InboundMessageQueue inboundMessageQueue;
+
+
     /** Any error encountered, or {@code null} */
     protected Exception error;
 
@@ -116,18 +123,18 @@ public abstract class StringConnection
 
     /** Start ability to read from the net; called only by the server.
      * (In a network-based subclass, another thread may be started by this method.)
-     * 
+     *
      * @return true if able to connect, false if an error occurred.
-     */    
-    public abstract boolean connect(); 
+     */
+    public abstract boolean connect();
 
     /** Close the socket, set EOF; called after conn is removed from server structures */
     public abstract void disconnect();
 
     /**
-     * Accept no further input, allow output to drain, don't immediately close the socket. 
+     * Accept no further input, allow output to drain, don't immediately close the socket.
      * Once called, {@link #isConnected()} will return false, even if output is still being
-     * sent to the other side. 
+     * sent to the other side.
      */
     public abstract void disconnectSoft();
 
@@ -236,7 +243,7 @@ public abstract class StringConnection
      * Used for convenience at servers whose clients may have different locales.
      * @param key  Key to use for string retrieval
      * @param arguments  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
-     *                   by calling {@link MessageFormat#format(String, Object...)}. 
+     *                   by calling {@link MessageFormat#format(String, Object...)}.
      * @return the localized formatted string from the manager's bundle or one of its parents
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @since 1.2.0
@@ -403,6 +410,17 @@ public abstract class StringConnection
     public void setHideTimeoutMessage(final boolean wantsHide)
     {
         hideTimeoutMessage = wantsHide;
+    }
+
+    /**
+     * when the StringConnection is used in the server side... the messaged received by the connection must be
+     * inserted in the queue
+     *
+     * @param inboundMessageQueue in the server side where this connection must put messaged
+     */
+    public void setInboundMessageQueue(InboundMessageQueue inboundMessageQueue)
+    {
+        this.inboundMessageQueue = inboundMessageQueue;
     }
 
 }

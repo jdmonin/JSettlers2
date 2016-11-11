@@ -3,6 +3,7 @@
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - parameterize types, removeConnection bugfix
+ * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,17 +22,9 @@
  **/
 package soc.server.genericServer;
 
-import soc.debug.D; // JM
-import soc.server.SOCServer;
-
 import java.io.IOException;
 import java.io.Serializable;
-
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
-
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -41,6 +34,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
 import java.util.Vector;
+
+import soc.debug.D; // JM
+import soc.server.SOCServer;
 
 
 /** a general purpose server.
@@ -120,7 +116,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     protected int numberCurrentConnections = 0;
 
-    /** The named connections: {@link Connection#getData()} != {@code null}.
+    /** The named connections: {@link NetStringConnection#getData()} != {@code null}.
      * @see #unnamedConns
      */
     protected Hashtable<Object, StringConnection> conns = new Hashtable<Object, StringConnection>();
@@ -131,8 +127,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     protected Vector<StringConnection> unnamedConns = new Vector<StringConnection>();
 
-    /** command messages from clients for {@link #treat(String, StringConnection)} */
-    public Vector<Command> inQueue = new Vector<Command>();
+
+    /**
+     * the queue of the messages received from the client
+     */
+    public InboundMessageQueue inQueue;
 
     /**
      * Versions of currently connected clients, according to
@@ -145,7 +144,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @since 1.1.06
      */
     private TreeMap<Integer, ConnVersionCounter> cliVersionsConnected = new TreeMap<Integer, ConnVersionCounter>();
- 
+
     /**
      * Minimum and maximum client version currently connected.
      * Meaningless if {@linkplain #numberOfConnections} is 0.
@@ -215,9 +214,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         this.port = port;
         this.strSocketName = null;
 
+        this.inQueue = new InboundMessageQueue(this);
+
         try
         {
-            ss = new NetStringServerSocket(port, this);
+            ss = new NetStringServerSocket(port, this,inQueue);
         }
         catch (IOException e)
         {
@@ -240,6 +241,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
         this.port = -1;
         this.strSocketName = stringSocketName;
+
+        this.inQueue = new InboundMessageQueue(this);
 
         ss = new LocalStringServerSocket(stringSocketName);
         setName("server-localstring-" + stringSocketName);  // Thread name for debugging
@@ -326,10 +329,12 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         return numberCurrentConnections;
     }
 
+
     public synchronized boolean isUp()
     {
         return up;
     }
+
 
     /**
      * Run method for Server:
@@ -340,7 +345,6 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     @Override
     public void run()
     {
-        Treater treater = new Treater();  // inner class - constructor is given "this" server
 
         if (error != null)
         {
@@ -349,9 +353,12 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
         up = true;
 
-        treater.start();  // Set "up" before starting treater (race condition)
+        inQueue.startMessageProcessing();
 
         serverUp();  // Any processing for child class to do after serversocket is bound, before the main loop begins
+
+        StringConnection connection;
+        LocalStringConnection localConnection;
 
         while (isUp())
         {
@@ -362,15 +369,18 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     // we could limit the number of accepted connections here
                     // Currently it's limited in SOCServer.newConnection1 by checking connectionCount()
                     // which is more modular.
-                    StringConnection con = ss.accept();
+                    connection = ss.accept();
                     if (port != -1)
                     {
-                        new Thread((Connection) con).start();
+                        new Thread((NetStringConnection) connection).start();
                     }
                     else
                     {
-                        ((LocalStringConnection) con).setServer(this);
-                        new Thread((LocalStringConnection) con).start();
+                        localConnection = (LocalStringConnection) connection;
+                        localConnection.setServer(this);
+                        localConnection.setInboundMessageQueue(inQueue);
+
+                        new Thread(localConnection).start();
                     }
 
                     //addConnection(new StringConnection());
@@ -385,11 +395,12 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 //stopServer();
             }
 
+
             try
             {
                 ss.close();
                 if (strSocketName == null)
-                    ss = new NetStringServerSocket(port, this);
+                    ss = new NetStringServerSocket(port, this,inQueue);
                 else
                     ss = new LocalStringServerSocket(strSocketName);
             }
@@ -397,21 +408,12 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             {
                 System.err.println("Could not listen to port " + port + ": " + e);
                 up = false;
+                inQueue.stopMessageProcessing();
                 error = e;
             }
         }
     }
 
-    /** treat a request from the given connection, by adding to {@link #inQueue} */
-    public void treat(String s, StringConnection c)
-    {
-        // D.ebugPrintln("IN got: " + s);
-        synchronized (inQueue)
-        {
-            inQueue.addElement(new Command(s, c));
-            inQueue.notify();
-        }
-    }
 
     /**
      * Remove a queued incoming message from a client, and treat it.
@@ -438,7 +440,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         return false;
     }
 
-    /** 
+    /**
      * Placeholder (callback) for doing things when server comes up, after the server socket
      * is bound and listening, in the main thread before handling any incoming connections.
      *<P>
@@ -513,9 +515,13 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * disconnecting from a database), override serverDown() or stopServer().
      * Check {@link #isUp()} before calling.
      */
+
     public synchronized void stopServer()
     {
         up = false;
+
+        inQueue.stopMessageProcessing();
+
         serverDown();
 
         for (Enumeration<StringConnection> e = conns.elements(); e.hasMoreElements();)
@@ -639,7 +645,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 return;  // <--- early return: c.connect failed ---
             }
         }
-        
+
         // Now that they're accepted, finish their init/welcome
         if (connAccepted)
         {
@@ -684,7 +690,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         {
             if (unnamedConns.removeElement(c))
             {
-                conns.put(cKey, c);            
+                conns.put(cKey, c);
             }
             else
             {
@@ -755,7 +761,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             clientVersionRebuildMap(null);
             return;  // <---- Early return: Had to rebuild ----
         }
-        
+
         cv.cliCount--;
         if (cv.cliCount > 0)
         {
@@ -891,7 +897,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     }
 
     /**
-     * Perform a quick or full consistency-check of {@link #cliVersionsConnected}. 
+     * Perform a quick or full consistency-check of {@link #cliVersionsConnected}.
      * <b>Quick check:</b>
      *   Check the number of connected clients, versus the number in {@link #cliVersionsConnected}.
      * <br>
@@ -914,7 +920,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     {
         if (fullCheck)
         {
-            if (tree2 == null) 
+            if (tree2 == null)
                 tree2 = clientVersionBuildMap();
 
             if (tree2.size() != cliVersionsConnected.size())
@@ -926,7 +932,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         // iterate through one, and check the other as we go.
         //
         // QUICK CHECK:
-        // Iterate through tree and count the # of clients. 
+        // Iterate through tree and count the # of clients.
 
         try
         {
@@ -970,7 +976,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * and update related fields such as minimum/maximum connected version.
      *<P>
      * <b>Locks:</b> Caller should synchronize on {@link #unnamedConns}.
-     * 
+     *
      * @param newTree Newly built version treemap as generated by
      *                {@link #clientVersionBuildMap()}, or null to
      *                generate here.
@@ -979,12 +985,12 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     private void clientVersionRebuildMap(TreeMap<Integer, ConnVersionCounter> newTree)
     {
-        if (newTree == null) 
+        if (newTree == null)
             newTree = clientVersionBuildMap();
 
         cliVersionsConnected = newTree;
         cliVersionsConnectedQuickCheckCount = 0;
-        
+
         final int treeSize = cliVersionsConnected.size();
         if (treeSize == 0)
             return;  // <---- Early return: Min/max version fields not needed ----
@@ -1057,110 +1063,6 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * --------------------------------------------------------
      */
 
-    /**
-     * Holds one message from client, for {@link Server#inQueue}.
-     */
-    static class Command
-    {
-        public String str;
-        public StringConnection con;
-
-        public Command(String s, StringConnection c)
-        {
-            str = s;
-            con = c;
-        }
-    }  // Command
-
-    /**
-     * Single-threaded reader of {@link Server#inQueue}
-     */
-    class Treater extends Thread
-    {
-        public Treater()  // Server parameter is also passed in, since this is an inner class
-        {
-            setName("treater");  // Thread name for debug
-        }
-
-        @Override
-        public void run()
-        {
-            while (isUp())
-            {
-                //D.ebugPrintln("treater server is up");
-                Command c = null;
-
-                synchronized (inQueue)
-                {
-                    if (inQueue.size() > 0)
-                    {
-                        //D.ebugPrintln("treater getting command");
-                        c = inQueue.remove(0);
-                    }
-                }
-
-                try
-                {
-                    if (c != null)
-                    {
-                        processCommand(c.str, c.con);
-                    }
-                }
-                catch (Exception e)
-                {
-                    System.out.println("Exception in treater (processCommand) - " + e);
-                }
-
-                yield();
-
-                synchronized (inQueue)
-                {
-                    if (inQueue.size() == 0)
-                    {
-                        try
-                        {
-                            //D.ebugPrintln("treater waiting");
-                            inQueue.wait(1000);
-                        }
-                        catch (Exception ex)
-                        {
-                            ;   // catch InterruptedException from inQueue.notify() in treat(...)
-                        }
-                    }
-                }
-            }
-
-            // D.ebugPrintln("treater returning; server not up");
-        }
-
-    }  // Treater
-
-    /**
-     * Uses ServerSocket to implement StringServerSocket over a network.
-     */
-    protected class NetStringServerSocket implements StringServerSocket
-    {
-        private ServerSocket implServSocket;
-        private Server server;
-
-        public NetStringServerSocket (int port, Server serv) throws IOException
-        {
-            implServSocket = new ServerSocket(port);
-            server = serv;
-        }
-
-        public StringConnection accept() throws SocketException, IOException
-        {
-            Socket s = implServSocket.accept();
-            return new Connection(s, server);  // Good old net, not generic StringConnection
-        }
-
-        public void close() throws IOException
-        {
-            implServSocket.close();
-        }
-
-    }  // NetStringServerSocket
 
     /**
      * Hold info about 1 version of connected clients; for use in {@link #cliVersionsConnected}.
@@ -1332,7 +1234,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 cliConnDisconPrintsPending.remove(connData);
             }
         }
-        
+
     }  // ConnExcepPrintDelayedTask
 
 }  // Server
