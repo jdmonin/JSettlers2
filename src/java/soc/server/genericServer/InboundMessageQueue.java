@@ -199,7 +199,7 @@ public class InboundMessageQueue
                         try
                         {
                             //D.ebugPrintln("treater waiting");
-                            inQueue.wait(1000);
+                            inQueue.wait(1000);  // timeout to help avoid deadlock
                         }
                         catch (Exception ex)
                         {
