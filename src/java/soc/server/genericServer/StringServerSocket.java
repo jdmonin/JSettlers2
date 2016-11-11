@@ -25,7 +25,7 @@ import java.net.SocketException;
 /**
  * StringServerSocket allows server applications to communicate with clients,
  * with no difference between local and actual networked traffic.
- * 
+ *
  *<PRE>
  *  1.0.0 - 2007-11-18 - initial release
  *  1.0.3 - 2008-08-08 - add change history; no other changes in this file since 1.0.0
@@ -42,7 +42,7 @@ public interface StringServerSocket
 
     /**
      * For server to call.  Blocks waiting for next inbound connection.
-     * 
+     *
      * @return The server-side peer to the inbound client connection
      * @throws IOException  if network has a problem accepting
      * @throws SocketException if our setEOF() has been called, thus

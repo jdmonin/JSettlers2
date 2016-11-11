@@ -29,7 +29,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 /**
- * 
+ *
  * Clients who want to connect, call connectTo and are queued. (Thread.wait is used internally)
  * Server-side calls accept to retrieve them.
  *
@@ -40,7 +40,7 @@ import java.util.Vector;
  *  1.0.5 - 2009-05-31 - no change in this file
  *  1.0.5.1- 2009-10-26- no change in this file
  *</PRE>
- * 
+ *
  * @author Jeremy D. Monin <jeremy@nand.net>
  * @version 1.0.5.1
  */
@@ -53,7 +53,7 @@ public class LocalStringServerSocket implements StringServerSocket
      * Changing it here affects future calls to connectTo() in all
      * instances.
      */
-    public static int ACCEPT_QUEUELENGTH = 100; 
+    public static int ACCEPT_QUEUELENGTH = 100;
 
     /** Server-peer sides of connected clients; Added by accept method */
     protected Vector<LocalStringConnection> allConnected;
@@ -122,7 +122,7 @@ public class LocalStringServerSocket implements StringServerSocket
         if (! allSockets.containsKey(name))
             throw new ConnectException("LocalStringServerSocket name not found: " + name);
 
-        LocalStringServerSocket ss = allSockets.get(name);       
+        LocalStringServerSocket ss = allSockets.get(name);
         if (ss.isOutEOF())
             throw new ConnectException("LocalStringServerSocket name is EOF: " + name);
 
@@ -174,7 +174,7 @@ public class LocalStringServerSocket implements StringServerSocket
      * if calling this from methods initiated by the client, check if accepted.
      * If not accepted yet, call Thread.wait on the returned new peer object.
      * Once the server has accepted them, it will call Thread.notify on that object.
-     * 
+     *
      * @param client Client to queue to accept
      * @return peer Server-side peer of this client
      *
@@ -217,7 +217,7 @@ public class LocalStringServerSocket implements StringServerSocket
     /**
      * For server to call.  Blocks waiting for next inbound connection.
      * (Synchronizes on accept queue.)
-     * 
+     *
      * @return The server-side peer to the inbound client connection
      * @throws SocketException if our setEOF() has been called, thus
      *    new clients won't receive any data from us
@@ -240,16 +240,16 @@ public class LocalStringServerSocket implements StringServerSocket
                 {
                     try
                     {
-                        acceptQueue.wait();  // Notified by queueAcceptClient 
+                        acceptQueue.wait();  // Notified by queueAcceptClient
                     }
                     catch (InterruptedException e) {}
                 }
             }
             cliPeer = acceptQueue.elementAt(0);
-            acceptQueue.removeElementAt(0);            
+            acceptQueue.removeElementAt(0);
         }
 
-        LocalStringConnection servPeer = cliPeer.getPeer();        
+        LocalStringConnection servPeer = cliPeer.getPeer();
         cliPeer.setAccepted();
 
         if (out_setEOF)
@@ -286,9 +286,9 @@ public class LocalStringServerSocket implements StringServerSocket
 
     /**
      * Send to all connected clients.
-     * 
+     *
      * @param msg String to send
-     *  
+     *
      * @see #allClients()
      */
     public void broadcast(String msg)
@@ -303,7 +303,7 @@ public class LocalStringServerSocket implements StringServerSocket
         }
     }
 
-    /** 
+    /**
      * If our server won't receive any more data from the client, disconnect them.
      * Considered EOF if the client's server-side peer connection inbound EOF is set.
      * Removes from allConnected and set outbound EOF flag on that connection.
@@ -323,7 +323,7 @@ public class LocalStringServerSocket implements StringServerSocket
                     servPeer.setEOF();
                 }
             }
-        }        
+        }
     }
 
     /**
@@ -339,7 +339,7 @@ public class LocalStringServerSocket implements StringServerSocket
      * Accept no new inbound connections.
      * Send EOF marker in all current outbound connections.
      * Continue to allow data from open inbound connections.
-     * 
+     *
      * @see #close()
      */
     public void setEOF()
@@ -352,9 +352,9 @@ public class LocalStringServerSocket implements StringServerSocket
      * For use by setEOF() and close().
      * Accept no new inbound connections.
      * Send EOF marker in all current outbound connections.
-     * 
+     *
      * @param forceDisconnect Call disconnect on clients, or just send them an EOF marker?
-     * 
+     *
      * @see #close()
      * @see LocalStringConnection#disconnect()
      * @see LocalStringConnection#setEOF()

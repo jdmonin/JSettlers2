@@ -461,7 +461,7 @@ public class SOCServer extends Server
     /**
      * For local practice games (pipes, not TCP), the name of the pipe.
      * Used to distinguish practice vs "real" games.
-     * 
+     *
      * @see soc.server.genericServer.LocalStringConnection
      */
     public static String PRACTICE_STRINGPORT = "SOCPRACTICE";
@@ -4046,7 +4046,7 @@ public class SOCServer extends Server
                 // it's OK to take over this nickname.  A call made soon
                 // to nameConnection(c,true) will transfer data from old conn, to new conn.
                 return -1;
-            } else {            
+            } else {
                 // Already sent ping, timeout not yet expired.
                 return timeoutNeeded - secondsSincePing;
             }
@@ -4746,7 +4746,7 @@ public class SOCServer extends Server
             SOCDBHelper.cleanup(true);
         }
         catch (SQLException x) { }
-        
+
         super.stopServer();
 
         System.out.println("Server shutdown completed.");
@@ -6855,7 +6855,7 @@ public class SOCServer extends Server
             System.err.print("\t");
             SOCPlayingPiece sc = pe.nextElement();
             Enumeration<Integer> hexes = board.getAdjacentHexesToNode(sc.getCoordinates()).elements();
-    
+
             while (hexes.hasMoreElements())
             {
                 final int hexCoord = hexes.nextElement().intValue();
@@ -6982,7 +6982,7 @@ public class SOCServer extends Server
         {
             return;  // Not playing in that game (Security)
         }
-        
+
         /**
          * Is voting already active from another player?
          * Or, has this player already asked for voting this turn?
@@ -6993,7 +6993,7 @@ public class SOCServer extends Server
             // that would end the already-active round of voting.
             return;
         }
-        
+
         /**
          * Is there more than one human player?
          * Grab connection information for humans and robots.
@@ -7146,7 +7146,7 @@ public class SOCServer extends Server
         {
             return;
         }
-        
+
         if (ga.getResetVoteResult())
         {
             // Vote succeeded - Go ahead and reset.
@@ -8314,7 +8314,7 @@ public class SOCServer extends Server
        private void writeGameRecord(String na, SOCGameRecord gr) {
        FileOutputStream os = null;
        ObjectOutput output = null;
-    
+
        try {
        Date theTime = new Date();
        os = new FileOutputStream("dataFiles/"+na+"."+theTime.getTime());
@@ -8356,7 +8356,7 @@ public class SOCServer extends Server
         if (! ((ga.getGameState() == SOCGame.OVER)
                && (ga.allOriginalPlayers() || ga.hasHumanPlayers())))
             return;
-        
+
         try
         {
             // TODO 6-player: save their scores too, if
@@ -8407,7 +8407,7 @@ public class SOCServer extends Server
         Vector<String> expired = new Vector<String>();
 
         gameList.takeMonitor();
-        
+
         // Add 2 extra minutes because of coarse 5-minute granularity in SOCGameTimeoutChecker.run()
         long warn_ms = (2 + GAME_TIME_EXPIRE_WARN_MINUTES) * 60L * 1000L;
 

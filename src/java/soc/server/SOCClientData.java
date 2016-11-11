@@ -409,7 +409,7 @@ public class SOCClientData
 
     /**
      * TimerTask at client connect, to guess the client version
-     * if it isn't sent soon enough. (assume it's too old to tell us) 
+     * if it isn't sent soon enough. (assume it's too old to tell us)
      *<P>
      * When timer fires, assume client's version will not be sent.
      * Set it to {@link SOCServer#CLI_VERSION_ASSUMED_GUESS}.

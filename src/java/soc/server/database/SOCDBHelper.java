@@ -1124,7 +1124,7 @@ public class SOCDBHelper
                     int tf = resultSet.getInt(14);
                     robotParams = new SOCRobotParameters(mgl, me, ebf, af, laf, dcm, tm, st, tf);
                 }
-                
+
                 resultSet.close();
             }
             catch (SQLException sqlE)
