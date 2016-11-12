@@ -1043,7 +1043,12 @@ public class SOCPlayerInterface extends Frame
     {
         try
         {
+            if (! setOn)
+                // reset the current player indicator: must call before turning off in game
+                setDebugFreePlacementPlayer(clientHandPlayerNum);
+
             game.setDebugFreePlacement(setOn);
+
             if (! setOn)
                 boardPanel.setPlayer(null);
             boardPanel.updateMode();  // will set or clear top text, which triggers a repaint
