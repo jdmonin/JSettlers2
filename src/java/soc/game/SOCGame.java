@@ -770,8 +770,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Are we in the 'free placement' debug mode?
-     * See SOCGameHandler.processDebugCommand_freePlace,
-     * SOCPlayerInterface.setDebugPaintPieceMode.
+     * See {@link #isDebugFreePlacement()} for more details.
      * @since 1.1.12
      */
     private boolean debugFreePlacement;
@@ -8236,8 +8235,12 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Are we in the 'free placement' debug mode?
-     * See SOCGameHandler.processDebugCommand_freePlace,
-     * SOCPlayerInterface.setDebugPaintPieceMode.
+     * If so, can assume a debug client player is in this game
+     * and is the current player. For purpose and more info
+     * see SOCGameHandler.processDebugCommand_freePlace,
+     * SOCPlayerInterface.setDebugFreePlacementMode.
+     * For more details on required conditions to activate this mode
+     * see {@link #setDebugFreePlacement(boolean)}.
      * @see #putPiece(SOCPlayingPiece)
      * @since 1.1.12
      */

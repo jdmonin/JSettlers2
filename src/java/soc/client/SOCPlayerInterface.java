@@ -331,7 +331,7 @@ public class SOCPlayerInterface extends Frame
      * by calling {@link #setClientHand(SOCHandPanel)}.
      * @see #clientIsCurrentPlayer()
      */
-    private int clientHandPlayerNum;
+    private int clientHandPlayerNum;  // the field for this in some other packages is called ourPN or ourPlayerNumber
 
     /**
      * the player colors. Indexes from 0 to {@link SOCGame#maxPlayers} - 1.
@@ -1033,7 +1033,7 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * Switch the game's {@link SOCGame#debugFreePlacement Debug Paint Piece Mode}
+     * Switch the game's {@link SOCGame#debugFreePlacement Debug Free Placement Mode}
      * on or off, as directed by the server.
      * @param setOn  Should the mode be turned on?
      * @see #setDebugFreePlacementPlayer(int)
@@ -1057,7 +1057,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Set the board's 'client player' for the Debug Paint Piece Mode.
      * Returns to the true client player when
-     * {@link #setDebugFreePlacementMode(boolean) setDebugPaintPieceMode(false)}
+     * {@link #setDebugFreePlacementMode(boolean) setDebugFreePlacementMode(false)}
      * is called.
      * @param pn Player number
      * @since 1.1.12
