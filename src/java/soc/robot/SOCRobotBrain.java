@@ -573,7 +573,12 @@ public class SOCRobotBrain extends Thread
      * play an item of the same {@link SOCInventoryItem#itype itype} again this turn.
      * @since 2.0.00
      */
-    private SOCInventoryItem rejectedPlayInvItem;  // TODO refine later: must build something else first, then OK to play
+    private SOCInventoryItem rejectedPlayInvItem;
+        // TODO refine later: must build/play something else first, have that clear this field. After building/playing
+        // something else, the previously rejected inv item type might be okay to play again this turn.
+        // Don't need to also add a count of play inv item rejections this turn (to avoid loop forever
+        // asking & being rejected between building other things) because would run out of other things.
+        // To find places which build/play something else, look for counter = 0.
 
     /**
      * the game state before the current one
