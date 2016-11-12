@@ -67,21 +67,7 @@ public abstract class GameHandler
         srv = server;
     }
 
-    /**
-     * Process one command from a client player of this game.
-     *<P>
-     * Some game messages (such as player sits down, or board reset voting) are handled the same for all game types.
-     * These are handled at {@link SOCServer}; they should be ignored here and not appear in your switch statement.
-     *<P>
-     * Called from {@link SOCServer} message treater loop.  Caller will catch any thrown Exceptions.
-     *
-     * @param ga  Game in which client {@code c} is sending {@code msg}.
-     *            Never null; from {@link SOCMessageForGame#getGame()}.
-     * @param mes  Message from client {@code c}. Never null.
-     * @param c    Client sending {@code msg}. Never null.
-     * @return  true if processed, false if ignored or unknown message type
-     */
-    public abstract boolean processCommand(SOCGame ga, SOCMessageForGame mes, StringConnection c);
+
 
     /**
      * Look for a potential debug command in a text message sent by the "debug" client/player.
