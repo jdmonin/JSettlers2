@@ -48,6 +48,17 @@ import soc.message.SOCSimpleRequest;
 import soc.server.genericServer.StringConnection;
 
 /**
+ * The target of this class is to dispatch the messages received from the {@link soc.server.genericServer.InboundMessageQueue} related to the specific games.
+ * <P>
+ * the message for the games are recognized because they implement the interface {@link SOCMessageForGame}
+ * <P>
+ * when the {@link SOCGameMessageHandler} is solicited to process the message, it identify the exact type of message and call the correct method
+ * of the {@link SOCGameHandler} that instead is responsible to execute the business
+ * 
+ * <UL>
+ * <LI> See the method {@link #dispatch(SOCGameHandler, SOCGame, SOCMessageForGame, StringConnection)} to get more details of this class logic
+ * <LI> See {@link SOCGameHandler} for details of the busines logic for each message.
+ * </UL>
  * 
  * @author Alessandro D'Ottavio
  * @since 2.0.00
@@ -55,10 +66,28 @@ import soc.server.genericServer.StringConnection;
 public class SOCGameMessageHandler
 {
 
-    public boolean dispatch(SOCGameHandler hand, SOCGame ga,SOCMessageForGame mes, StringConnection c)
+    
+    /**
+     * dispatch any event that is coming from a client player for a specific game  game.
+     *<P>
+     * Some game messages (such as player sits down, or board reset voting) are handled the same for all game types.
+     * These are handled at {@link SOCServer}; they should be ignored here and not appear in your switch statement.
+     *<P>
+     * this method is called from {@link SOCServer#processCommand(String, StringConnection)} when it is recognized as an event for game.  
+     * <P>
+     * Caller of this method will catch any thrown Exceptions.
+     *
+     * 
+     * @param handler for a specific game
+     * @param game in which client {@code c} is sending {@code msg}. Never null; from {@link SOCMessageForGame#getGame()}.
+     * @param message from client {@code c}. Never null.
+     * @param connnnection of the Client sending {@code msg}. Never null.
+     * @return true if processed, false if ignored or unknown message type
+     */
+    public boolean dispatch(SOCGameHandler handler, SOCGame game,SOCMessageForGame message, StringConnection connection)
     {
 
-        switch (mes.getType())
+        switch (message.getType())
         {
 
         /**
@@ -68,7 +97,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handlePUTPIECE(ga, c, (SOCPutPiece) mes);
+            handler.handlePUTPIECE(game, connection, (SOCPutPiece) message);
 
             //ga = (SOCGame)gamesData.get(((SOCPutPiece)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -82,7 +111,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handleMOVEROBBER(ga, c, (SOCMoveRobber) mes);
+            handler.handleMOVEROBBER(game, connection, (SOCMoveRobber) message);
 
             //ga = (SOCGame)gamesData.get(((SOCMoveRobber)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -93,7 +122,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handleROLLDICE(ga, c, (SOCRollDice) mes);
+            handler.handleROLLDICE(game, connection, (SOCRollDice) message);
 
             //ga = (SOCGame)gamesData.get(((SOCRollDice)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -104,7 +133,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handleDISCARD(ga, c, (SOCDiscard) mes);
+            handler.handleDISCARD(game, connection, (SOCDiscard) message);
 
             //ga = (SOCGame)gamesData.get(((SOCDiscard)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -115,7 +144,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handleENDTURN(ga, c, (SOCEndTurn) mes);
+            handler.handleENDTURN(game, connection, (SOCEndTurn) message);
 
             //ga = (SOCGame)gamesData.get(((SOCEndTurn)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -126,7 +155,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handleCHOOSEPLAYER(ga, c, (SOCChoosePlayer) mes);
+            handler.handleCHOOSEPLAYER(game, connection, (SOCChoosePlayer) message);
 
             //ga = (SOCGame)gamesData.get(((SOCChoosePlayer)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -137,7 +166,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handleMAKEOFFER(ga, c, (SOCMakeOffer) mes);
+            handler.handleMAKEOFFER(game, connection, (SOCMakeOffer) message);
 
             //ga = (SOCGame)gamesData.get(((SOCMakeOffer)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -148,7 +177,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handleCLEAROFFER(ga, c, (SOCClearOffer) mes);
+            handler.handleCLEAROFFER(game, connection, (SOCClearOffer) message);
 
             //ga = (SOCGame)gamesData.get(((SOCClearOffer)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -159,7 +188,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handleREJECTOFFER(ga, c, (SOCRejectOffer) mes);
+            handler.handleREJECTOFFER(game, connection, (SOCRejectOffer) message);
 
             //ga = (SOCGame)gamesData.get(((SOCRejectOffer)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -170,7 +199,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handleACCEPTOFFER(ga, c, (SOCAcceptOffer) mes);
+            handler.handleACCEPTOFFER(game, connection, (SOCAcceptOffer) message);
 
             //ga = (SOCGame)gamesData.get(((SOCAcceptOffer)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -181,7 +210,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handleBANKTRADE(ga, c, (SOCBankTrade) mes);
+            handler.handleBANKTRADE(game, connection, (SOCBankTrade) message);
 
             //ga = (SOCGame)gamesData.get(((SOCBankTrade)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -192,7 +221,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handleBUILDREQUEST(ga, c, (SOCBuildRequest) mes);
+            handler.handleBUILDREQUEST(game, connection, (SOCBuildRequest) message);
 
             //ga = (SOCGame)gamesData.get(((SOCBuildRequest)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -203,7 +232,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handleCANCELBUILDREQUEST(ga, c, (SOCCancelBuildRequest) mes);
+            handler.handleCANCELBUILDREQUEST(game, connection, (SOCCancelBuildRequest) message);
 
             //ga = (SOCGame)gamesData.get(((SOCCancelBuildRequest)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -214,7 +243,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handleBUYCARDREQUEST(ga, c, (SOCBuyCardRequest) mes);
+            handler.handleBUYCARDREQUEST(game, connection, (SOCBuyCardRequest) message);
 
             //ga = (SOCGame)gamesData.get(((SOCBuyCardRequest)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -225,7 +254,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handlePLAYDEVCARDREQUEST(ga, c, (SOCPlayDevCardRequest) mes);
+            handler.handlePLAYDEVCARDREQUEST(game, connection, (SOCPlayDevCardRequest) message);
 
             //ga = (SOCGame)gamesData.get(((SOCPlayDevCardRequest)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -236,7 +265,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handleDISCOVERYPICK(ga, c, (SOCDiscoveryPick) mes);
+            handler.handleDISCOVERYPICK(game, connection, (SOCDiscoveryPick) message);
 
             //ga = (SOCGame)gamesData.get(((SOCDiscoveryPick)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -247,7 +276,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            hand.handleMONOPOLYPICK(ga, c, (SOCMonopolyPick) mes);
+            handler.handleMONOPOLYPICK(game, connection, (SOCMonopolyPick) message);
 
             //ga = (SOCGame)gamesData.get(((SOCMonopolyPick)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -258,7 +287,7 @@ public class SOCGameMessageHandler
          * debug piece Free Placement (as of 20110104 (v 1.1.12))
          */
         case SOCMessage.DEBUGFREEPLACE:
-            hand.handleDEBUGFREEPLACE(ga, c, (SOCDebugFreePlace) mes);
+            handler.handleDEBUGFREEPLACE(game, connection, (SOCDebugFreePlace) message);
             break;
 
         /**
@@ -266,7 +295,7 @@ public class SOCGameMessageHandler
          * Added 2013-02-17 for v1.1.18.
          */
         case SOCMessage.SIMPLEREQUEST:
-            hand.handleSIMPLEREQUEST(ga, c, (SOCSimpleRequest) mes);
+            handler.handleSIMPLEREQUEST(game, connection, (SOCSimpleRequest) message);
             break;
 
         /**
@@ -274,7 +303,7 @@ public class SOCGameMessageHandler
          * Added 2013-11-28 for v2.0.00.
          */
         case SOCMessage.INVENTORYITEMACTION:
-            hand.handleINVENTORYITEMACTION(ga, c, (SOCInventoryItemAction) mes);
+            handler.handleINVENTORYITEMACTION(game, connection, (SOCInventoryItemAction) message);
             break;
 
         /**
@@ -282,7 +311,7 @@ public class SOCGameMessageHandler
          * Added 2011-12-04 for v2.0.00.
          */
         case SOCMessage.MOVEPIECEREQUEST:
-            hand.handleMOVEPIECEREQUEST(ga, c, (SOCMovePieceRequest) mes);
+            handler.handleMOVEPIECEREQUEST(game, connection, (SOCMovePieceRequest) message);
             break;
 
         /**
@@ -290,7 +319,7 @@ public class SOCGameMessageHandler
          * Added 2012-01-12 for v2.0.00.
          */
         case SOCMessage.PICKRESOURCES:
-            hand.handlePICKRESOURCES(ga, c, (SOCPickResources) mes);
+            handler.handlePICKRESOURCES(game, connection, (SOCPickResources) message);
             break;
 
         /**
@@ -298,7 +327,7 @@ public class SOCGameMessageHandler
          * Added 2014-05-17 for v2.0.00.
          */
         case SOCMessage.SETSPECIALITEM:
-            hand.handleSETSPECIALITEM(ga, c, (SOCSetSpecialItem) mes);
+            handler.handleSETSPECIALITEM(game, connection, (SOCSetSpecialItem) message);
             break;
 
         /**
