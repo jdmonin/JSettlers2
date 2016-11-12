@@ -949,6 +949,9 @@ public class SOCGameHandler extends GameHandler
          * report any dev-card or item returned to player's hand
          */
         final SOCInventoryItem itemCard = res.getReturnedInvItem();
+        SOCInventoryItemAction retItemActionMsg = null;
+            // details of item returning to player's hand, maybe send to other players too
+
         if (itemCard != null)
         {
             StringConnection c = srv.getConnection(plName);
@@ -961,14 +964,17 @@ public class SOCGameHandler extends GameHandler
                         card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
                     srv.messageToPlayer(c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, card));
                 } else {
-                    srv.messageToPlayer(c, new SOCInventoryItemAction
+                    retItemActionMsg = new SOCInventoryItemAction
                         (gaName, cpn,
                          (itemCard.isPlayable() ? SOCInventoryItemAction.ADD_PLAYABLE : SOCInventoryItemAction.ADD_OTHER),
-                         itemCard.itype, itemCard.isKept(), itemCard.isVPItem(), itemCard.canCancelPlay));
+                         itemCard.itype, itemCard.isKept(), itemCard.isVPItem(), itemCard.canCancelPlay);
+                    srv.messageToPlayer(c, retItemActionMsg);
                 }
             }
 
+            boolean announceAsInvItemAction = false;  // Announce item to game with same retItemActionMsg sent to player?
             boolean announceAsUnknown = true;  // Announce this item to game as an unknown dev card type?
+                // Ignored if announceAsInvItemAction true.
 
             if (! (itemCard instanceof SOCDevCard))
             {
@@ -977,12 +983,27 @@ public class SOCGameHandler extends GameHandler
                 // If it's private and doesn't need a special message, set handled = true and let it announce as unknown
                 boolean handled = false;
 
+                if (ga.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+                {
+                    // endFromGameState is PLACING_INV_ITEM.
+                    // "Gift port" item details are public, send return message to whole game:
+                    handled = true;
+                    announceAsInvItemAction = true;
+                    announceAsUnknown = false;
+                }
+
                 // Fallback:
-                if (announceAsUnknown && ! handled)
-                    System.err.println("forceEndGameTurn: Unhandled inventory item type " + itemCard.itype + " class " + itemCard.getClass());
+                if (! handled)
+                    System.err.println
+                        ("forceEndGameTurn: Unhandled inventory item type " + itemCard.itype
+                         + " class " + itemCard.getClass());
             }
 
-            if (announceAsUnknown)
+            if (announceAsInvItemAction)
+            {
+                srv.messageToGameExcept(gaName, c, retItemActionMsg, true);
+            }
+            else if (announceAsUnknown)
             {
                 if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
                 {
