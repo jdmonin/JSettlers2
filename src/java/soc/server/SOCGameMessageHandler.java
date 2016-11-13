@@ -1,6 +1,9 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2016 Alessandro D'Ottavio
+ * This file Copyright (C) 2016 Alessandro D'Ottavio
+ * Some contents were formerly part of SOCGameHandler.java;
+ * portions of this file Copyright (C) Jeremy D Monin <jeremy@nand.net> and others
+ * (details to be added soon from project source history).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -48,45 +51,52 @@ import soc.message.SOCSimpleRequest;
 import soc.server.genericServer.StringConnection;
 
 /**
- * The target of this class is to dispatch the messages received from the {@link soc.server.genericServer.InboundMessageQueue} related to the specific games.
- * <P>
+ * Game message handler for the {@link SOCGameHandler} game type.
+ * The purpose of this class is to dispatch the messages received from the
+ * {@link soc.server.genericServer.InboundMessageQueue} related to specific games.
+ *<P>
  * the message for the games are recognized because they implement the interface {@link SOCMessageForGame}
- * <P>
- * when the {@link SOCGameMessageHandler} is solicited to process the message, it identify the exact type of message and call the correct method
+ *<P>
+ * when the {@link SOCGameMessageHandler} is solicited to process the message, it identify the exact type of message
+ * and call the correct method
  * of the {@link SOCGameHandler} that instead is responsible to execute the business
- * 
+ *
  * <UL>
- * <LI> See the method {@link #dispatch(SOCGameHandler, SOCGame, SOCMessageForGame, StringConnection)} to get more details of this class logic
+ * <LI> See the method {@link #dispatch(SOCGameHandler, SOCGame, SOCMessageForGame, StringConnection)} to get more
+ *      details of this class logic
  * <LI> See {@link SOCGameHandler} for details of the busines logic for each message.
  * </UL>
- * 
+ *<P>
+ * Before v2.0.00, this class was {@link SOCServer#processCommand(String, StringConnection)} and related methods.
+ *
  * @author Alessandro D'Ottavio
  * @since 2.0.00
  */
 public class SOCGameMessageHandler
 {
 
-    
     /**
-     * dispatch any event that is coming from a client player for a specific game  game.
+     * Dispatch any event that is coming from a client player for a specific game.
      *<P>
      * Some game messages (such as player sits down, or board reset voting) are handled the same for all game types.
      * These are handled at {@link SOCServer}; they should be ignored here and not appear in your switch statement.
      *<P>
-     * this method is called from {@link SOCServer#processCommand(String, StringConnection)} when it is recognized as an event for game.  
+     * this method is called from {@link SOCServer#processCommand(String, StringConnection)} when it is recognized as
+     * an event for game.
      * <P>
      * Caller of this method will catch any thrown Exceptions.
      *
-     * 
-     * @param handler for a specific game
-     * @param game in which client {@code c} is sending {@code msg}. Never null; from {@link SOCMessageForGame#getGame()}.
-     * @param message from client {@code c}. Never null.
-     * @param connnnection of the Client sending {@code msg}. Never null.
+     * @param handler  Handler for our game type
+     * @param game  Game in which client {@code connection} is sending {@code message}.
+     *     Never null; from {@link SOCMessageForGame#getGame()}.
+     * @param message  Message from client {@code connection}. Never null.
+     * @param connection  Connection to the Client sending {@code message}. Never null.
      * @return true if processed, false if ignored or unknown message type
      */
-    public boolean dispatch(SOCGameHandler handler, SOCGame game,SOCMessageForGame message, StringConnection connection)
+    public boolean dispatch
+        (SOCGameHandler handler, SOCGame game, SOCMessageForGame message, StringConnection connection)
+        throws Exception
     {
-
         switch (message.getType())
         {
 
