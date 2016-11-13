@@ -4213,6 +4213,27 @@ public class SOCServer extends Server
                     }
                 }
 
+                processServerCommand(mes, c);
+
+            }  // if (mes != null)
+        }
+        catch (Throwable e)
+        {
+            D.ebugPrintStackTrace(e, "ERROR -> processCommand");
+        }
+
+    }  // processCommand
+
+            /**
+             * Process an inbound message which isn't handled by {@link SOCGameMessageHandler}.
+             * @param mes  Message from {@code c}
+             * @param c    Connection (client) sending this message.
+             * @throws Exception  Caller must catch any exceptions thrown because of
+             *    conditions or bugs in any server methods called from here.
+             */
+            final void processServerCommand(final SOCMessage mes, final StringConnection c)
+                throws Exception
+            {
                 switch (mes.getType())
                 {
 
@@ -4441,14 +4462,7 @@ public class SOCServer extends Server
                     break;
 
                 }  // switch (mes.getType)
-            }  // if (mes != null)
-        }
-        catch (Throwable e)
-        {
-            D.ebugPrintStackTrace(e, "ERROR -> processCommand");
-        }
-
-    }  // processCommand
+            }
 
     /**
      * List and description of general commands that any game member can run.
