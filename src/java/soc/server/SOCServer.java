@@ -4164,7 +4164,7 @@ public class SOCServer extends Server
      * The first message from a client is treated by
      * {@link #processFirstCommand(String, StringConnection)} instead.
      *<P>
-     * Note: When there is a choice, always use local information
+     *<B>Note:</B> When there is a choice, always use local information
      *       over information from the message.  For example, use
      *       the nickname from the connection to get the player
      *       information rather than the player information from
@@ -4181,41 +4181,40 @@ public class SOCServer extends Server
     {
         try
         {
-            SOCMessage mes = SOCMessage.toMsg(s);
+            final SOCMessage mes = SOCMessage.toMsg(s);
 
             // D.ebugPrintln(c.getData()+" - "+mes);
 
-            if (mes != null)
+            if (mes == null)
+                return;
+
+            if (mes instanceof SOCMessageForGame)
             {
-                if (mes instanceof SOCMessageForGame)
+                // Try to process message through its game type's handler
+                // before falling through to server-wide handler
+
+                final String gaName = ((SOCMessageForGame) mes).getGame();
+                if (gaName == null)
+                    return;  // <--- Early return: malformed ---
+
+                if (! gaName.equals(SOCMessage.GAME_NONE))
                 {
-                    // Try to process message through its game type's handler
-                    // before falling through to server-wide handler
+                    SOCGame ga = gameList.getGameData(gaName);
+                    if ((ga == null) || (c == null))
+                        return;  // <--- Early return: ignore unknown games ---
 
-                    final String gaName = ((SOCMessageForGame) mes).getGame();
-                    if (gaName == null)
-                        return;  // <--- Early return: malformed ---
-
-                    if (! gaName.equals(SOCMessage.GAME_NONE))
+                    final GameMessageHandler hand = gameList.getGameTypeMessageHandler(gaName);
+                    if (hand != null)  // all consistent games will have a handler
                     {
-                        SOCGame ga = gameList.getGameData(gaName);
-                        if ((ga == null) || (c == null))
-                            return;  // <--- Early return: ignore unknown games ---
+                        if (hand.dispatch(ga, (SOCMessageForGame) mes, c))
+                            return;  // <--- Handled by GameMessageHandler ---
 
-                        final GameMessageHandler hand = gameList.getGameTypeMessageHandler(gaName);
-                        if (hand != null)  // all consistent games will have a handler
-                        {
-                            if (hand.dispatch(ga, (SOCMessageForGame) mes, c))
-                                return;
-
-                            // else: Message type unknown or ignored by handler. Server handles it below.
-                        }
+                        // else: Message type unknown or ignored by handler. Server handles it below.
                     }
                 }
+            }
 
-                processServerCommand(mes, c);
-
-            }  // if (mes != null)
+            processServerCommand(mes, c);
         }
         catch (Throwable e)
         {
@@ -4224,245 +4223,248 @@ public class SOCServer extends Server
 
     }  // processCommand
 
-            /**
-             * Process an inbound message which isn't handled by {@link SOCGameMessageHandler}.
-             * @param mes  Message from {@code c}
-             * @param c    Connection (client) sending this message.
-             * @throws Exception  Caller must catch any exceptions thrown because of
-             *    conditions or bugs in any server methods called from here.
-             */
-            final void processServerCommand(final SOCMessage mes, final StringConnection c)
-                throws Exception
+    /**
+     * Process any inbound message which isn't handled by {@link SOCGameMessageHandler}.
+     *<P>
+     *<B>Note:</B> When there is a choice, always use local information
+     *       over information from the message.  For example, use
+     *       the nickname from the connection to get the player
+     *       information rather than the player information from
+     *       the message.  This makes it harder to send false
+     *       messages making players do things they didn't want
+     *       to do.
+     * @param mes  Message from {@code c}; not {@code null}
+     * @param c    Connection (client) sending this message.
+     * @throws NullPointerException  if {@code mes} is {@code null}
+     * @throws Exception  Caller must catch any exceptions thrown because of
+     *    conditions or bugs in any server methods called from here.
+     */
+    final void processServerCommand(final SOCMessage mes, final StringConnection c)
+        throws NullPointerException, Exception
+    {
+        switch (mes.getType())
+        {
+
+        /**
+         * client's echo of a server ping
+         */
+        case SOCMessage.SERVERPING:
+            handleSERVERPING(c, (SOCServerPing) mes);
+            break;
+
+        /**
+         * client's "version" message
+         */
+        case SOCMessage.VERSION:
+            handleVERSION(c, (SOCVersion) mes);
+            break;
+
+        /**
+         * client's optional authentication request before creating a game
+         * or when connecting using {@code SOCAccountClient} (v1.1.19+).
+         */
+        case SOCMessage.AUTHREQUEST:
+            handleAUTHREQUEST(c, (SOCAuthRequest) mes);
+            break;
+
+        /**
+         * "join a channel" message
+         */
+        case SOCMessage.JOIN:
+            handleJOIN(c, (SOCJoin) mes);
+            break;
+
+        /**
+         * "leave a channel" message
+         */
+        case SOCMessage.LEAVE:
+            handleLEAVE(c, (SOCLeave) mes);
+            break;
+
+        /**
+         * "leave all channels" message
+         */
+        case SOCMessage.LEAVEALL:
+            removeConnection(c);
+            removeConnectionCleanup(c);
+            break;
+
+        /**
+         * text message
+         */
+        case SOCMessage.TEXTMSG:
+
+            final SOCTextMsg textMsgMes = (SOCTextMsg) mes;
+
+            if (allowDebugUser && c.getData().equals("debug"))
             {
-                switch (mes.getType())
+                if (textMsgMes.getText().startsWith("*KILLCHANNEL*"))
                 {
+                    messageToChannel(textMsgMes.getChannel(), new SOCTextMsg
+                        (textMsgMes.getChannel(), SERVERNAME,
+                         "********** " + (String) c.getData() + " KILLED THE CHANNEL **********"));
+                    channelList.takeMonitor();
 
-                /**
-                 * client's echo of a server ping
-                 */
-                case SOCMessage.SERVERPING:
-                    handleSERVERPING(c, (SOCServerPing) mes);
-                    break;
-
-                /**
-                 * client's "version" message
-                 */
-                case SOCMessage.VERSION:
-                    handleVERSION(c, (SOCVersion) mes);
-
-                    break;
-
-                /**
-                 * client's optional authentication request before creating a game
-                 * or when connecting using {@code SOCAccountClient} (v1.1.19+).
-                 */
-                case SOCMessage.AUTHREQUEST:
-                    handleAUTHREQUEST(c, (SOCAuthRequest) mes);
-                    break;
-
-                /**
-                 * "join a channel" message
-                 */
-                case SOCMessage.JOIN:
-                    handleJOIN(c, (SOCJoin) mes);
-
-                    break;
-
-                /**
-                 * "leave a channel" message
-                 */
-                case SOCMessage.LEAVE:
-                    handleLEAVE(c, (SOCLeave) mes);
-
-                    break;
-
-                /**
-                 * "leave all channels" message
-                 */
-                case SOCMessage.LEAVEALL:
-                    removeConnection(c);
-                    removeConnectionCleanup(c);
-
-                    break;
-
-                /**
-                 * text message
-                 */
-                case SOCMessage.TEXTMSG:
-
-                    SOCTextMsg textMsgMes = (SOCTextMsg) mes;
-
-                    if (allowDebugUser && c.getData().equals("debug"))
+                    try
                     {
-                        if (textMsgMes.getText().startsWith("*KILLCHANNEL*"))
-                        {
-                            messageToChannel(textMsgMes.getChannel(), new SOCTextMsg(textMsgMes.getChannel(), SERVERNAME, "********** " + (String) c.getData() + " KILLED THE CHANNEL **********"));
-                            channelList.takeMonitor();
-
-                            try
-                            {
-                                destroyChannel(textMsgMes.getChannel());
-                            }
-                            catch (Exception e)
-                            {
-                                D.ebugPrintStackTrace(e, "Exception in KILLCHANNEL");
-                            }
-
-                            channelList.releaseMonitor();
-                            broadcast(SOCDeleteChannel.toCmd(textMsgMes.getChannel()));
-                        }
-                        else
-                        {
-                            /**
-                             * Send the message to the members of the channel
-                             */
-                            messageToChannel(textMsgMes.getChannel(), mes);
-                        }
+                        destroyChannel(textMsgMes.getChannel());
                     }
-                    else
+                    catch (Exception e)
                     {
-                        /**
-                         * Send the message to the members of the channel
-                         */
-                        messageToChannel(textMsgMes.getChannel(), mes);
+                        D.ebugPrintStackTrace(e, "Exception in KILLCHANNEL");
                     }
 
-                    break;
-
-                /**
-                 * a robot has connected to this server
-                 */
-                case SOCMessage.IMAROBOT:
-                    handleIMAROBOT(c, (SOCImARobot) mes);
-                    break;
-
-                /**
-                 * text message from a game (includes debug commands)
-                 */
-                case SOCMessage.GAMETEXTMSG:
-                    handleGAMETEXTMSG(c, (SOCGameTextMsg) mes);
-                    break;
-
-                /**
-                 * "join a game" message
-                 */
-                case SOCMessage.JOINGAME:
-
-                    //createNewGameEventRecord();
-                    //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-                    handleJOINGAME(c, (SOCJoinGame) mes);
-
-                    //ga = (SOCGame)gamesData.get(((SOCJoinGame)mes).getGame());
-                    //if (ga != null) {
-                    //currentGameEventRecord.setSnapshot(ga);
-                    //saveCurrentGameEventRecord(((SOCJoinGame)mes).getGame());
-                    //}
-                    break;
-
-                /**
-                 * "leave a game" message
-                 */
-                case SOCMessage.LEAVEGAME:
-
-                    //createNewGameEventRecord();
-                    //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-                    handleLEAVEGAME(c, (SOCLeaveGame) mes);
-
-                    //ga = (SOCGame)gamesData.get(((SOCLeaveGame)mes).getGame());
-                    //if (ga != null) {
-                    //currentGameEventRecord.setSnapshot(ga);
-                    //saveCurrentGameEventRecord(((SOCLeaveGame)mes).getGame());
-                    //}
-                    break;
-
-                /**
-                 * someone wants to sit down
-                 */
-                case SOCMessage.SITDOWN:
-
-                    //createNewGameEventRecord();
-                    //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-                    handleSITDOWN(c, (SOCSitDown) mes);
-
-                    //ga = (SOCGame)gamesData.get(((SOCSitDown)mes).getGame());
-                    //currentGameEventRecord.setSnapshot(ga);
-                    //saveCurrentGameEventRecord(((SOCSitDown)mes).getGame());
-                    break;
-
-                /**
-                 * someone is starting a game
-                 */
-                case SOCMessage.STARTGAME:
-
-                    //createNewGameEventRecord();
-                    //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-                    handleSTARTGAME(c, (SOCStartGame) mes, 0);
-
-                    //ga = (SOCGame)gamesData.get(((SOCStartGame)mes).getGame());
-                    //currentGameEventRecord.setSnapshot(ga);
-                    //saveCurrentGameEventRecord(((SOCStartGame)mes).getGame());
-                    break;
-
-                case SOCMessage.CHANGEFACE:
-                    handleCHANGEFACE(c, (SOCChangeFace) mes);
-
-                    break;
-
-                case SOCMessage.SETSEATLOCK:
-                    handleSETSEATLOCK(c, (SOCSetSeatLock) mes);
-
-                    break;
-
-                case SOCMessage.RESETBOARDREQUEST:
-                    handleRESETBOARDREQUEST(c, (SOCResetBoardRequest) mes);
-
-                    break;
-
-                case SOCMessage.RESETBOARDVOTE:
-                    handleRESETBOARDVOTE(c, (SOCResetBoardVote) mes);
-
-                    break;
-
-                case SOCMessage.CREATEACCOUNT:
-                    handleCREATEACCOUNT(c, (SOCCreateAccount) mes);
-                    break;
-
-                /**
-                 * Handle client request for localized i18n strings for game items.
-                 * Added 2015-01-14 for v2.0.00.
-                 */
-                case SOCMessage.LOCALIZEDSTRINGS:
-                    handleLOCALIZEDSTRINGS(c, (SOCLocalizedStrings) mes);
-                    break;
-
-                /**
-                 * Game option messages. For the best writeup of these messages' interaction with
-                 * the client, see {@link soc.client.SOCPlayerClient.GameOptionServerSet}'s javadoc.
-                 * Added 2009-06-01 for v1.1.07.
-                 */
-
-                case SOCMessage.GAMEOPTIONGETDEFAULTS:
-                    handleGAMEOPTIONGETDEFAULTS(c, (SOCGameOptionGetDefaults) mes);
-                    break;
-
-                case SOCMessage.GAMEOPTIONGETINFOS:
-                    handleGAMEOPTIONGETINFOS(c, (SOCGameOptionGetInfos) mes);
-                    break;
-
-                case SOCMessage.NEWGAMEWITHOPTIONSREQUEST:
-                    handleNEWGAMEWITHOPTIONSREQUEST(c, (SOCNewGameWithOptionsRequest) mes);
-                    break;
-
-                /**
-                 * Client request for updated scenario info.
-                 * Added 2015-09-21 for v2.0.00.
-                 */
-                case SOCMessage.SCENARIOINFO:
-                    handleSCENARIOINFO(c, (SOCScenarioInfo) mes);
-                    break;
-
-                }  // switch (mes.getType)
+                    channelList.releaseMonitor();
+                    broadcast(SOCDeleteChannel.toCmd(textMsgMes.getChannel()));
+                }
+                else
+                {
+                    /**
+                     * Send the message to the members of the channel
+                     */
+                    messageToChannel(textMsgMes.getChannel(), mes);
+                }
             }
+            else
+            {
+                /**
+                 * Send the message to the members of the channel
+                 */
+                messageToChannel(textMsgMes.getChannel(), mes);
+            }
+
+            break;
+
+        /**
+         * a robot has connected to this server
+         */
+        case SOCMessage.IMAROBOT:
+            handleIMAROBOT(c, (SOCImARobot) mes);
+            break;
+
+        /**
+         * text message from a game (includes debug commands)
+         */
+        case SOCMessage.GAMETEXTMSG:
+            handleGAMETEXTMSG(c, (SOCGameTextMsg) mes);
+            break;
+
+        /**
+         * "join a game" message
+         */
+        case SOCMessage.JOINGAME:
+
+            //createNewGameEventRecord();
+            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
+            handleJOINGAME(c, (SOCJoinGame) mes);
+
+            //ga = (SOCGame)gamesData.get(((SOCJoinGame)mes).getGame());
+            //if (ga != null) {
+            //currentGameEventRecord.setSnapshot(ga);
+            //saveCurrentGameEventRecord(((SOCJoinGame)mes).getGame());
+            //}
+            break;
+
+        /**
+         * "leave a game" message
+         */
+        case SOCMessage.LEAVEGAME:
+
+            //createNewGameEventRecord();
+            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
+            handleLEAVEGAME(c, (SOCLeaveGame) mes);
+
+            //ga = (SOCGame)gamesData.get(((SOCLeaveGame)mes).getGame());
+            //if (ga != null) {
+            //currentGameEventRecord.setSnapshot(ga);
+            //saveCurrentGameEventRecord(((SOCLeaveGame)mes).getGame());
+            //}
+            break;
+
+        /**
+         * someone wants to sit down
+         */
+        case SOCMessage.SITDOWN:
+
+            //createNewGameEventRecord();
+            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
+            handleSITDOWN(c, (SOCSitDown) mes);
+
+            //ga = (SOCGame)gamesData.get(((SOCSitDown)mes).getGame());
+            //currentGameEventRecord.setSnapshot(ga);
+            //saveCurrentGameEventRecord(((SOCSitDown)mes).getGame());
+            break;
+
+        /**
+         * someone is starting a game
+         */
+        case SOCMessage.STARTGAME:
+
+            //createNewGameEventRecord();
+            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
+            handleSTARTGAME(c, (SOCStartGame) mes, 0);
+
+            //ga = (SOCGame)gamesData.get(((SOCStartGame)mes).getGame());
+            //currentGameEventRecord.setSnapshot(ga);
+            //saveCurrentGameEventRecord(((SOCStartGame)mes).getGame());
+            break;
+
+        case SOCMessage.CHANGEFACE:
+            handleCHANGEFACE(c, (SOCChangeFace) mes);
+            break;
+
+        case SOCMessage.SETSEATLOCK:
+            handleSETSEATLOCK(c, (SOCSetSeatLock) mes);
+            break;
+
+        case SOCMessage.RESETBOARDREQUEST:
+            handleRESETBOARDREQUEST(c, (SOCResetBoardRequest) mes);
+            break;
+
+        case SOCMessage.RESETBOARDVOTE:
+            handleRESETBOARDVOTE(c, (SOCResetBoardVote) mes);
+            break;
+
+        case SOCMessage.CREATEACCOUNT:
+            handleCREATEACCOUNT(c, (SOCCreateAccount) mes);
+            break;
+
+        /**
+         * Handle client request for localized i18n strings for game items.
+         * Added 2015-01-14 for v2.0.00.
+         */
+        case SOCMessage.LOCALIZEDSTRINGS:
+            handleLOCALIZEDSTRINGS(c, (SOCLocalizedStrings) mes);
+            break;
+
+        /**
+         * Game option messages. For the best writeup of these messages' interaction with
+         * the client, see {@link soc.client.SOCPlayerClient.GameOptionServerSet}'s javadoc.
+         * Added 2009-06-01 for v1.1.07.
+         */
+
+        case SOCMessage.GAMEOPTIONGETDEFAULTS:
+            handleGAMEOPTIONGETDEFAULTS(c, (SOCGameOptionGetDefaults) mes);
+            break;
+
+        case SOCMessage.GAMEOPTIONGETINFOS:
+            handleGAMEOPTIONGETINFOS(c, (SOCGameOptionGetInfos) mes);
+            break;
+
+        case SOCMessage.NEWGAMEWITHOPTIONSREQUEST:
+            handleNEWGAMEWITHOPTIONSREQUEST(c, (SOCNewGameWithOptionsRequest) mes);
+            break;
+
+        /**
+         * Client request for updated scenario info.
+         * Added 2015-09-21 for v2.0.00.
+         */
+        case SOCMessage.SCENARIOINFO:
+            handleSCENARIOINFO(c, (SOCScenarioInfo) mes);
+            break;
+
+        }  // switch (mes.getType)
+    }
 
     /**
      * List and description of general commands that any game member can run.
