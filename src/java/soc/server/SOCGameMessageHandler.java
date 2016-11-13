@@ -74,6 +74,12 @@ import soc.server.genericServer.StringConnection;
  */
 public class SOCGameMessageHandler
 {
+    private final SOCGameHandler handler;
+
+    public SOCGameMessageHandler(SOCGameHandler sgh)
+    {
+        handler = sgh;
+    }
 
     /**
      * Dispatch any event that is coming from a client player for a specific game.
@@ -86,7 +92,6 @@ public class SOCGameMessageHandler
      * <P>
      * Caller of this method will catch any thrown Exceptions.
      *
-     * @param handler  Handler for our game type
      * @param game  Game in which client {@code connection} is sending {@code message}.
      *     Never null; from {@link SOCMessageForGame#getGame()}.
      * @param message  Message from client {@code connection}. Never null.
@@ -94,7 +99,7 @@ public class SOCGameMessageHandler
      * @return true if processed, false if ignored or unknown message type
      */
     public boolean dispatch
-        (SOCGameHandler handler, SOCGame game, SOCMessageForGame message, StringConnection connection)
+        (SOCGame game, SOCMessageForGame message, StringConnection connection)
         throws Exception
     {
         switch (message.getType())

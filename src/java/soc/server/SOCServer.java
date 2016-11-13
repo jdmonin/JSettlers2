@@ -557,13 +557,12 @@ public class SOCServer extends Server
      * @since 2.0.00
      */
     private final SOCGameHandler handler = new SOCGameHandler(this);
-    
-    
+
     /**
-     * Game message handler for game, currently shared by all game instances.
+     * Game message handler for {@link SOCGameHandler}, currently shared by all game instances.
      * @since 2.0.00
      */
-    private final SOCGameMessageHandler gameMessageHandler = new SOCGameMessageHandler(); 
+    private final SOCGameMessageHandler gameMessageHandler = new SOCGameMessageHandler(handler);
 
     /**
      * Server internal flag to indicate that user accounts are active, and authentication
@@ -4212,8 +4211,7 @@ public class SOCServer extends Server
                         final GameHandler hand = gameList.getGameTypeHandler(gaName);
                         if (hand != null)  // all consistent games will have a handler
                         {
-                            
-                            if (gameMessageHandler.dispatch((SOCGameHandler)hand, ga, (SOCMessageForGame) mes, c))
+                            if (gameMessageHandler.dispatch(ga, (SOCMessageForGame) mes, c))
                                 return;
 
                             // else: Message type unknown or ignored by handler. Server handles it below.
