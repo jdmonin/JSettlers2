@@ -59,7 +59,8 @@ import soc.server.SOCServer;
  *  including too many connections versus {@link #getNamedConnectionCount()}.
  *<P>
  *  To handle inbound messages from the clients, the server-wide "treater" thread
- *  will call {@link #processCommand(String, StringConnection)} for each message.
+ *  of {@link InboundMessageQueue} will call {@link InboundMessageDispatcher#dispatch(String, StringConnection)}
+ *  for each message.
  *<P>
  *  The first processed message over the connection will be from the server to the client,
  *  in {@link #newConnection1(StringConnection)} or {@link #newConnection2(StringConnection)}.
@@ -82,7 +83,15 @@ import soc.server.SOCServer;
 @SuppressWarnings("serial")  // not expecting to persist an instance between versions
 public abstract class Server extends Thread implements Serializable, Cloneable
 {
+
     StringServerSocket ss;
+
+    /**
+     * Dispatcher for all inbound messages from clients.
+     * @since 2.0.00
+     */
+    protected final InboundMessageDispatcher inboundMsgDispatcher;
+
     boolean up = false;
     protected Exception error = null;
 
@@ -211,11 +220,16 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     public static int CLI_CONN_PRINT_TIMER_FIRE_MS = 1000;
 
     /** start listening to the given port */
-    public Server(int port)
+    public Server(final int port, final InboundMessageDispatcher imd)
+        throws IllegalArgumentException
     {
+        if (imd == null)
+            throw new IllegalArgumentException("imd null");
+
         this.port = port;
         this.strSocketName = null;
-        this.inQueue = new InboundMessageQueue(this);
+        this.inboundMsgDispatcher = imd;
+        this.inQueue = new InboundMessageQueue(this, imd);
 
         try
         {
@@ -235,14 +249,18 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     }
 
     /** start listening to the given local string port (practice game) */
-    public Server(String stringSocketName)
+    public Server(final String stringSocketName, final InboundMessageDispatcher imd)
+        throws IllegalArgumentException
     {
         if (stringSocketName == null)
             throw new IllegalArgumentException("stringSocketName null");
+        if (imd == null)
+            throw new IllegalArgumentException("imd null");
 
         this.port = -1;
         this.strSocketName = stringSocketName;
-        this.inQueue = new InboundMessageQueue(this);
+        this.inboundMsgDispatcher = imd;
+        this.inQueue = new InboundMessageQueue(this, imd);
 
         ss = new LocalStringServerSocket(stringSocketName);
         setName("server-localstring-" + stringSocketName);  // Thread name for debugging
@@ -1053,10 +1071,30 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     }
 
     /**
-     * Nested classes begin here
+     * Nested classes/interfaces begin here
      * --------------------------------------------------------
      */
 
+    /**
+     * Server dispatcher for all incoming messages from clients.
+     *<P>
+     * This interface was created in v2.0.00 refactoring from the {@code Server.processCommand(..)} method.
+     *
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 2.0.00
+     */
+    public interface InboundMessageDispatcher
+    {
+        /**
+         * Remove a queued incoming message from a client, and treat it.
+         * Called from the single 'treater' thread of {@link InboundMessageQueue}.
+         * <em>Do not block or sleep</em> because this is single-threaded.
+         *
+         * @param str Contents of message from the client
+         * @param con Connection (client) sending this message
+         */
+        abstract public void dispatch(String str, StringConnection con);
+    }
 
     /**
      * Hold info about 1 version of connected clients; for use in {@link #cliVersionsConnected}.

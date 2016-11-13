@@ -882,7 +882,7 @@ public class SOCServer extends Server
     public SOCServer(int p, int mc, String databaseUserName, String databasePassword)
         throws SocketException, EOFException, SQLException
     {
-        super(p);
+        super(p, new SOCMessageDispatcher());
 
         maxConnections = mc;
         initSocServer(databaseUserName, databasePassword, null);
@@ -955,7 +955,7 @@ public class SOCServer extends Server
     public SOCServer(final int p, Properties props)
         throws SocketException, EOFException, SQLException, IllegalArgumentException
     {
-        super(p);
+        super(p, new SOCMessageDispatcher());
 
         maxConnections = getConfigIntProperty(props, PROP_JSETTLERS_CONNECTIONS, SOC_MAXCONN_DEFAULT);
         allowDebugUser = getConfigBoolProperty(props, PROP_JSETTLERS_ALLOW_DEBUG, false);
@@ -992,7 +992,7 @@ public class SOCServer extends Server
     public SOCServer(String s, int mc, String databaseUserName, String databasePassword)
         throws SocketException, EOFException, SQLException
     {
-        super(s);
+        super(s, new SOCMessageDispatcher());
 
         maxConnections = mc;
         initSocServer(databaseUserName, databasePassword, null);

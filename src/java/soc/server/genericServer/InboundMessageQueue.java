@@ -24,6 +24,7 @@ package soc.server.genericServer;
 import java.util.Vector;
 
 import soc.message.SOCMessage;
+import soc.server.genericServer.Server.InboundMessageDispatcher;
 
 /**
  *
@@ -80,14 +81,20 @@ public class InboundMessageQueue
     private Server server;
 
     /**
+     * Message dispatcher for the server
+     */
+    private final InboundMessageDispatcher dispatcher;
+
+    /**
      * Constructor of the SOCInboundMessageQueue.
      *
      * @param server that will use this SOCInboundMessageQueue to store messages and that the SOCInboundMessageQueue will use to treat the messages
      */
-    public InboundMessageQueue(Server server)
+    public InboundMessageQueue(Server server, InboundMessageDispatcher imd)
     {
         inQueue = new Vector<MessageData>();
         this.server = server;
+        dispatcher = imd;
     }
 
     /**
@@ -140,7 +147,6 @@ public class InboundMessageQueue
 
         return null;
     }
-
 
     /**
      * Internal class user, a single-threaded reader to process each message stored in the {@link #inQueue}
