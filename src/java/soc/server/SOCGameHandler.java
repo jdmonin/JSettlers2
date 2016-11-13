@@ -237,261 +237,16 @@ public class SOCGameHandler extends GameHandler
         super(server);
     }
 
-    // javadoc inherited from GameHandler
+    /**
+     * this method inherit from the interface {@link GameHandler} but it must no more be used <br>
+     * use instead the {@link SOCGameMessageHandler#dispatch(SOCGame, SOCMessageForGame, StringConnection)} 
+     * <br>
+     * until a full refactoring of all the handler logic is not defined this method cannot be deleted
+     * 
+     */
     public boolean processCommand(SOCGame ga, SOCMessageForGame mes, StringConnection c)
     {
-        switch (mes.getType())
-        {
-
-        /**
-         * someone put a piece on the board
-         */
-        case SOCMessage.PUTPIECE:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handlePUTPIECE(ga, c, (SOCPutPiece) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCPutPiece)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCPutPiece)mes).getGame());
-            break;
-
-        /**
-         * a player is moving the robber or pirate
-         */
-        case SOCMessage.MOVEROBBER:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleMOVEROBBER(ga, c, (SOCMoveRobber) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCMoveRobber)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCMoveRobber)mes).getGame());
-            break;
-
-        case SOCMessage.ROLLDICE:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleROLLDICE(ga, c, (SOCRollDice) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCRollDice)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCRollDice)mes).getGame());
-            break;
-
-        case SOCMessage.DISCARD:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleDISCARD(ga, c, (SOCDiscard) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCDiscard)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCDiscard)mes).getGame());
-            break;
-
-        case SOCMessage.ENDTURN:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleENDTURN(ga, c, (SOCEndTurn) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCEndTurn)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCEndTurn)mes).getGame());
-            break;
-
-        case SOCMessage.CHOOSEPLAYER:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleCHOOSEPLAYER(ga, c, (SOCChoosePlayer) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCChoosePlayer)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCChoosePlayer)mes).getGame());
-            break;
-
-        case SOCMessage.MAKEOFFER:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleMAKEOFFER(ga, c, (SOCMakeOffer) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCMakeOffer)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCMakeOffer)mes).getGame());
-            break;
-
-        case SOCMessage.CLEAROFFER:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleCLEAROFFER(ga, c, (SOCClearOffer) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCClearOffer)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCClearOffer)mes).getGame());
-            break;
-
-        case SOCMessage.REJECTOFFER:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleREJECTOFFER(ga, c, (SOCRejectOffer) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCRejectOffer)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCRejectOffer)mes).getGame());
-            break;
-
-        case SOCMessage.ACCEPTOFFER:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleACCEPTOFFER(ga, c, (SOCAcceptOffer) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCAcceptOffer)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCAcceptOffer)mes).getGame());
-            break;
-
-        case SOCMessage.BANKTRADE:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleBANKTRADE(ga, c, (SOCBankTrade) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCBankTrade)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCBankTrade)mes).getGame());
-            break;
-
-        case SOCMessage.BUILDREQUEST:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleBUILDREQUEST(ga, c, (SOCBuildRequest) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCBuildRequest)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCBuildRequest)mes).getGame());
-            break;
-
-        case SOCMessage.CANCELBUILDREQUEST:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleCANCELBUILDREQUEST(ga, c, (SOCCancelBuildRequest) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCCancelBuildRequest)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCCancelBuildRequest)mes).getGame());
-            break;
-
-        case SOCMessage.BUYCARDREQUEST:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleBUYCARDREQUEST(ga, c, (SOCBuyCardRequest) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCBuyCardRequest)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCBuyCardRequest)mes).getGame());
-            break;
-
-        case SOCMessage.PLAYDEVCARDREQUEST:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handlePLAYDEVCARDREQUEST(ga, c, (SOCPlayDevCardRequest) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCPlayDevCardRequest)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCPlayDevCardRequest)mes).getGame());
-            break;
-
-        case SOCMessage.DISCOVERYPICK:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleDISCOVERYPICK(ga, c, (SOCDiscoveryPick) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCDiscoveryPick)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCDiscoveryPick)mes).getGame());
-            break;
-
-        case SOCMessage.MONOPOLYPICK:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleMONOPOLYPICK(ga, c, (SOCMonopolyPick) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCMonopolyPick)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCMonopolyPick)mes).getGame());
-            break;
-
-        /**
-         * debug piece Free Placement (as of 20110104 (v 1.1.12))
-         */
-        case SOCMessage.DEBUGFREEPLACE:
-            handleDEBUGFREEPLACE(ga, c, (SOCDebugFreePlace) mes);
-            break;
-
-        /**
-         * Generic simple request from a player.
-         * Added 2013-02-17 for v1.1.18.
-         */
-        case SOCMessage.SIMPLEREQUEST:
-            handleSIMPLEREQUEST(ga, c, (SOCSimpleRequest) mes);
-            break;
-
-        /**
-         * Special inventory item action (play request) from a player.
-         * Added 2013-11-28 for v2.0.00.
-         */
-        case SOCMessage.INVENTORYITEMACTION:
-            handleINVENTORYITEMACTION(ga, c, (SOCInventoryItemAction) mes);
-            break;
-
-        /**
-         * Asking to move a previous piece (a ship) somewhere else on the board.
-         * Added 2011-12-04 for v2.0.00.
-         */
-        case SOCMessage.MOVEPIECEREQUEST:
-            handleMOVEPIECEREQUEST(ga, c, (SOCMovePieceRequest) mes);
-            break;
-
-        /**
-         * Picking resources to gain from a Gold Hex.
-         * Added 2012-01-12 for v2.0.00.
-         */
-        case SOCMessage.PICKRESOURCES:
-            handlePICKRESOURCES(ga, c, (SOCPickResources) mes);
-            break;
-
-        /**
-         * Special Item requests.
-         * Added 2014-05-17 for v2.0.00.
-         */
-        case SOCMessage.SETSPECIALITEM:
-            handleSETSPECIALITEM(ga, c, (SOCSetSpecialItem) mes);
-            break;
-
-        /**
-         * Ignore all other message types, unknown message types.
-         */
-        default:
-            return false;
-
-        }  // switch (mes.getType)
-
-        return true;  // Message was handled
+        throw new UnsupportedOperationException("this operation is no more supported... use SOCGameMessageHandler to dispatch messages ");
     }
 
     // javadoc inherited from GameHandler
@@ -3006,7 +2761,7 @@ public class SOCGameHandler extends GameHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handlePUTPIECE(SOCGame ga, StringConnection c, SOCPutPiece mes)
+    public void handlePUTPIECE(SOCGame ga, StringConnection c, SOCPutPiece mes)
     {
         ga.takeMonitor();
 
@@ -3323,7 +3078,7 @@ public class SOCGameHandler extends GameHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleMOVEROBBER(SOCGame ga, StringConnection c, SOCMoveRobber mes)
+    public void handleMOVEROBBER(SOCGame ga, StringConnection c, SOCMoveRobber mes)
     {
         ga.takeMonitor();
 
@@ -3434,7 +3189,7 @@ public class SOCGameHandler extends GameHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleROLLDICE(SOCGame ga, StringConnection c, final SOCRollDice mes)
+    public void handleROLLDICE(SOCGame ga, StringConnection c, final SOCRollDice mes)
     {
         final String gn = ga.getName();
 
@@ -3785,7 +3540,7 @@ public class SOCGameHandler extends GameHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleDISCARD(SOCGame ga, StringConnection c, final SOCDiscard mes)
+    public void handleDISCARD(SOCGame ga, StringConnection c, final SOCDiscard mes)
     {
         final String gn = ga.getName();
         final SOCPlayer player = ga.getPlayer((String) c.getData());
@@ -3859,7 +3614,7 @@ public class SOCGameHandler extends GameHandler
      * @param mes  the message
      * @since 2.0.00
      */
-    private final void handlePICKRESOURCES(SOCGame ga, StringConnection c, final SOCPickResources mes)
+    public final void handlePICKRESOURCES(SOCGame ga, StringConnection c, final SOCPickResources mes)
     {
         final String gn = ga.getName();
         final SOCPlayer player = ga.getPlayer((String) c.getData());
@@ -3987,7 +3742,7 @@ public class SOCGameHandler extends GameHandler
      * @param mes  the message
      * @since 2.0.00
      */
-    private final void handleSETSPECIALITEM(SOCGame ga, StringConnection c, final SOCSetSpecialItem mes)
+    public final void handleSETSPECIALITEM(SOCGame ga, StringConnection c, final SOCSetSpecialItem mes)
     {
         final String gaName = ga.getName();
         final SOCPlayer pl = ga.getPlayer((String) c.getData());
@@ -4190,7 +3945,7 @@ public class SOCGameHandler extends GameHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleENDTURN(SOCGame ga, StringConnection c, final SOCEndTurn mes)
+    public void handleENDTURN(SOCGame ga, StringConnection c, final SOCEndTurn mes)
     {
         final String gname = ga.getName();
 
@@ -4249,7 +4004,7 @@ public class SOCGameHandler extends GameHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleCHOOSEPLAYER(SOCGame ga, StringConnection c, final SOCChoosePlayer mes)
+    public void handleCHOOSEPLAYER(SOCGame ga, StringConnection c, final SOCChoosePlayer mes)
     {
         ga.takeMonitor();
 
@@ -4339,7 +4094,7 @@ public class SOCGameHandler extends GameHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleMAKEOFFER(SOCGame ga, StringConnection c, final SOCMakeOffer mes)
+    public void handleMAKEOFFER(SOCGame ga, StringConnection c, final SOCMakeOffer mes)
     {
         final String gaName = ga.getName();
         if (ga.isGameOptionSet("NT"))
@@ -4410,7 +4165,7 @@ public class SOCGameHandler extends GameHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleCLEAROFFER(SOCGame ga, StringConnection c, final SOCClearOffer mes)
+    public void handleCLEAROFFER(SOCGame ga, StringConnection c, final SOCClearOffer mes)
     {
         ga.takeMonitor();
 
@@ -4448,7 +4203,7 @@ public class SOCGameHandler extends GameHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleREJECTOFFER(SOCGame ga, StringConnection c, final SOCRejectOffer mes)
+    public void handleREJECTOFFER(SOCGame ga, StringConnection c, final SOCRejectOffer mes)
     {
         SOCPlayer player = ga.getPlayer((String) c.getData());
         if (player == null)
@@ -4467,7 +4222,7 @@ public class SOCGameHandler extends GameHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleACCEPTOFFER(SOCGame ga, StringConnection c, final SOCAcceptOffer mes)
+    public void handleACCEPTOFFER(SOCGame ga, StringConnection c, final SOCAcceptOffer mes)
     {
         ga.takeMonitor();
 
@@ -4530,7 +4285,7 @@ public class SOCGameHandler extends GameHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleBANKTRADE(SOCGame ga, StringConnection c, final SOCBankTrade mes)
+    public void handleBANKTRADE(SOCGame ga, StringConnection c, final SOCBankTrade mes)
     {
         final String gaName = ga.getName();
         final SOCResourceSet give = mes.getGiveSet(),
@@ -4583,7 +4338,7 @@ public class SOCGameHandler extends GameHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleBUILDREQUEST(SOCGame ga, StringConnection c, final SOCBuildRequest mes)
+    public void handleBUILDREQUEST(SOCGame ga, StringConnection c, final SOCBuildRequest mes)
     {
         final String gaName = ga.getName();
         ga.takeMonitor();
@@ -4735,7 +4490,7 @@ public class SOCGameHandler extends GameHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleCANCELBUILDREQUEST(SOCGame ga, StringConnection c, final SOCCancelBuildRequest mes)
+    public void handleCANCELBUILDREQUEST(SOCGame ga, StringConnection c, final SOCCancelBuildRequest mes)
     {
         ga.takeMonitor();
 
@@ -4883,7 +4638,7 @@ public class SOCGameHandler extends GameHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleBUYCARDREQUEST(SOCGame ga, StringConnection c, final SOCBuyCardRequest mes)
+    public void handleBUYCARDREQUEST(SOCGame ga, StringConnection c, final SOCBuyCardRequest mes)
     {
         ga.takeMonitor();
 
@@ -5011,7 +4766,7 @@ public class SOCGameHandler extends GameHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handlePLAYDEVCARDREQUEST(SOCGame ga, StringConnection c, final SOCPlayDevCardRequest mes)
+    public void handlePLAYDEVCARDREQUEST(SOCGame ga, StringConnection c, final SOCPlayDevCardRequest mes)
     {
         ga.takeMonitor();
 
@@ -5195,7 +4950,7 @@ public class SOCGameHandler extends GameHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleDISCOVERYPICK(SOCGame ga, StringConnection c, final SOCDiscoveryPick mes)
+    public void handleDISCOVERYPICK(SOCGame ga, StringConnection c, final SOCDiscoveryPick mes)
     {
         ga.takeMonitor();
 
@@ -5240,7 +4995,7 @@ public class SOCGameHandler extends GameHandler
      * @param c     the connection that sent the message
      * @param mes   the message
      */
-    private void handleMONOPOLYPICK(SOCGame ga, StringConnection c, final SOCMonopolyPick mes)
+    public void handleMONOPOLYPICK(SOCGame ga, StringConnection c, final SOCMonopolyPick mes)
     {
         ga.takeMonitor();
 
@@ -5326,7 +5081,7 @@ public class SOCGameHandler extends GameHandler
      * @param mes  the message
      * @since 1.1.18
      */
-    private void handleSIMPLEREQUEST(SOCGame ga, StringConnection c, final SOCSimpleRequest mes)
+    public void handleSIMPLEREQUEST(SOCGame ga, StringConnection c, final SOCSimpleRequest mes)
     {
         final String gaName = ga.getName();
         SOCPlayer clientPl = ga.getPlayer((String) c.getData());
@@ -5440,7 +5195,7 @@ public class SOCGameHandler extends GameHandler
      * @param mes  the message
      * @since 2.0.00
      */
-    private void handleINVENTORYITEMACTION(SOCGame ga, StringConnection c, final SOCInventoryItemAction mes)
+    public void handleINVENTORYITEMACTION(SOCGame ga, StringConnection c, final SOCInventoryItemAction mes)
     {
         if (mes.action != SOCInventoryItemAction.PLAY)
             return;
@@ -5487,7 +5242,7 @@ public class SOCGameHandler extends GameHandler
      * Handle the client's debug Free Placement putpiece request.
      * @since 1.1.12
      */
-    private final void handleDEBUGFREEPLACE(SOCGame ga, StringConnection c, final SOCDebugFreePlace mes)
+    public final void handleDEBUGFREEPLACE(SOCGame ga, StringConnection c, final SOCDebugFreePlace mes)
     {
         if (! ga.isDebugFreePlacement())
             return;
@@ -5579,7 +5334,7 @@ public class SOCGameHandler extends GameHandler
      * Handle the client's "move piece request" message.
      * @since 2.0.00
      */
-    private final void handleMOVEPIECEREQUEST(SOCGame ga, StringConnection c, final SOCMovePieceRequest mes)
+    public final void handleMOVEPIECEREQUEST(SOCGame ga, StringConnection c, final SOCMovePieceRequest mes)
     {
         final String gaName = ga.getName();
 
