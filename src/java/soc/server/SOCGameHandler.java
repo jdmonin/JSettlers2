@@ -1338,7 +1338,8 @@ public class SOCGameHandler extends GameHandler
         }
 
         srv.gameList.releaseMonitorForGame(gameName);
-        c.put(membersCommand);
+        if (membersCommand != null)
+            c.put(membersCommand);
         // before v2.0.00, current player number (SETTURN) was sent here,
         // between membersCommand and GAMESTATE.
         c.put(SOCGameState.toCmd(gameName, gameData.getGameState()));

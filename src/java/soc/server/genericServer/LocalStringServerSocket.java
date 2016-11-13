@@ -1,6 +1,6 @@
 /**
  * Local (StringConnection) network system.  Version 1.0.5.
- * Copyright (C) 2007-2009 Jeremy D Monin <jeremy@nand.net>.
+ * Copyright (C) 2007-2009,2016 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -290,9 +290,14 @@ public class LocalStringServerSocket implements StringServerSocket
      * @param msg String to send
      *
      * @see #allClients()
+     * @throws IllegalArgumentException if {@code m} is {@code null}
      */
     public void broadcast(String msg)
+        throws IllegalArgumentException
     {
+        if (msg == null)
+            throw new IllegalArgumentException("null");
+
         synchronized (allConnected)
         {
             for (int i = allConnected.size() - 1; i >= 0; --i)

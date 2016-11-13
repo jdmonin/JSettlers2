@@ -1,6 +1,6 @@
 /**
  * Local (StringConnection) network system.  Version 1.2.0.
- * Copyright (C) 2007-2010,2012-2013 Jeremy D Monin <jeremy@nand.net>.
+ * Copyright (C) 2007-2010,2012-2013,2016 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -66,6 +66,7 @@ public class LocalStringConnection
     /** Unique end-of-file marker object.  Always compare against this with == not string.equals. */
     protected static String EOF_MARKER = "__EOF_MARKER__" + '\004';
 
+    /** Message contents between the peers on this connection; never contains {@code null} elements. */
     protected Vector<String> in, out;
     protected boolean in_reachedEOF;
     protected boolean out_setEOF;
@@ -132,7 +133,7 @@ public class LocalStringConnection
      *
      * Synchronized on in-buffer.
      *
-     * @return Next string in the in-buffer
+     * @return Next string in the in-buffer; never {@code null}.
      * @throws EOFException Our input buffer has reached EOF
      * @throws IllegalStateException Server has not yet accepted our connection
      */
@@ -191,10 +192,15 @@ public class LocalStringConnection
      *
      * @param dat Data to send
      *
+     * @throws IllegalArgumentException if {@code dat} is {@code null}
      * @throws IllegalStateException if not yet accepted by server
      */
-    public void put(String dat) throws IllegalStateException
+    public void put(String dat)
+        throws IllegalArgumentException, IllegalStateException
     {
+        if (dat == null)
+            throw new IllegalArgumentException("null");
+
         if (! accepted)
         {
             error = new IllegalStateException("Not accepted by server yet");

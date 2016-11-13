@@ -5605,9 +5605,14 @@ public class SOCPlayerClient
          *                {@link ClientNetwork#localTCPServer} is considered "network" here.
          *                Use <tt>isPractice</tt> only with {@link ClientNetwork#practiceServer}.
          * @return true if the message was sent, false if not
+         * @throws IllegalArgumentException if {@code s} is {@code null}
          */
         private synchronized boolean put(String s, final boolean isPractice)
+            throws IllegalArgumentException
         {
+            if (s == null)
+                throw new IllegalArgumentException("null");
+
             if (isPractice)
                 return net.putPractice(s);
             return net.putNet(s);
@@ -6742,9 +6747,14 @@ public class SOCPlayerClient
          * @param s  the message
          * @return true if the message was sent, false if not
          * @see SOCPlayerClient.GameManager#put(String, boolean)
+         * @throws IllegalArgumentException if {@code s} is {@code null}
          */
         public synchronized boolean putPractice(String s)
+            throws IllegalArgumentException
         {
+            if (s == null)
+                throw new IllegalArgumentException("null");
+
             lastMessage_P = s;
 
             if ((ex_P != null) || !prCli.isConnected())
@@ -6765,7 +6775,8 @@ public class SOCPlayerClient
          */
         public void resendNet()
         {
-            putNet(lastMessage_N);
+            if (lastMessage_N != null)
+                putNet(lastMessage_N);
         }
 
         /**
@@ -6773,7 +6784,8 @@ public class SOCPlayerClient
          */
         public void resendPractice()
         {
-            putPractice(lastMessage_P);
+            if (lastMessage_P != null)
+                putPractice(lastMessage_P);
         }
 
         /**

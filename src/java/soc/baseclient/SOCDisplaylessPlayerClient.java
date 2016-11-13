@@ -254,7 +254,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void resend()
     {
-        put(lastMessage);
+        if (lastMessage != null)
+            put(lastMessage);
     }
 
     /**
@@ -262,9 +263,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *
      * @param s  the message
      * @return true if the message was sent, false if not
+     * @throws IllegalArgumentException if {@code s} is {@code null}
      */
     public synchronized boolean put(String s)
+        throws IllegalArgumentException
     {
+        if (s == null)
+            throw new IllegalArgumentException("null");
+
         lastMessage = s;
 
         D.ebugPrintln("OUT - " + s);
