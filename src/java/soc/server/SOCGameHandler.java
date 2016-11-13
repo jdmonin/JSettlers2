@@ -234,21 +234,22 @@ public class SOCGameHandler extends GameHandler
         "For SC_FTRI: *scen* giveport #typenum #placeflag player",
         };
 
+    /**
+     * Game message handler for {@link SOCGameHandler}, shared by all game instances of this type.
+     * @since 2.0.00
+     */
+    private final SOCGameMessageHandler gameMessageHandler;
+
     public SOCGameHandler(final SOCServer server)
     {
         super(server);
+        gameMessageHandler = new SOCGameMessageHandler(this);
     }
 
-    /**
-     * this method inherit from the interface {@link GameHandler} but it must no more be used <br>
-     * use instead the {@link SOCGameMessageHandler#dispatch(SOCGame, SOCMessageForGame, StringConnection)} 
-     * <br>
-     * until a full refactoring of all the handler logic is not defined this method cannot be deleted
-     * 
-     */
-    public boolean processCommand(SOCGame ga, SOCMessageForGame mes, StringConnection c)
+    // javadoc inherited from GameHandler
+    public GameMessageHandler getMessageHandler()
     {
-        throw new UnsupportedOperationException("this operation is no more supported... use SOCGameMessageHandler to dispatch messages ");
+        return gameMessageHandler;
     }
 
     // javadoc inherited from GameHandler

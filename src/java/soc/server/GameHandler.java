@@ -26,6 +26,7 @@ import soc.util.SOCGameList;
 
 /**
  * Server class to handle game-specific actions and messages for a type of game.
+ * Each game type's inbound messages are processed through its {@link GameMessageHandler}.
  *<P>
  * Currently, these concepts are common to all hosted game types:
  *<UL>
@@ -48,7 +49,8 @@ import soc.util.SOCGameList;
  * <LI> Every server/client interaction about the game, including startup and end-game details, player actions and
  *      requests, and ending a player's turn, is taken care of within the {@code GameHandler} and {@link SOCGame}.
  *      Game reset details are handled by {@link SOCGame#resetAsCopy()}.
- * <LI> Actions and requests from players arrive here via {@link #processCommand(SOCGame, SOCMessageForGame, StringConnection)},
+ * <LI> Actions and requests from players arrive here via
+ *      {@link GameMessageHandler#dispatch(SOCGame, SOCMessageForGame, StringConnection)},
  *      called for each {@link SOCMessageForGame} sent to the server about this handler's game.
  * <LI> Communication to game members is done by handler methods calling server methods
  *      such as {@link SOCServer#messageToGame(String, soc.message.SOCMessage)}
@@ -67,7 +69,10 @@ public abstract class GameHandler
         srv = server;
     }
 
-
+    /**
+     * Get this game type's GameMessageHandler.
+     */
+    public abstract GameMessageHandler getMessageHandler();
 
     /**
      * Look for a potential debug command in a text message sent by the "debug" client/player.

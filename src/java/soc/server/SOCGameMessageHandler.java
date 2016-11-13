@@ -73,6 +73,7 @@ import soc.server.genericServer.StringConnection;
  * @since 2.0.00
  */
 public class SOCGameMessageHandler
+    implements GameMessageHandler
 {
     private final SOCGameHandler handler;
 

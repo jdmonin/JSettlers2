@@ -78,7 +78,7 @@ import java.util.StringTokenizer;
  *      for example, if adding for version 1.1.09:
  *      <code> private static final long serialVersionUID = 1109L;</code>
  * <LI> Add to the switch in SOCPlayerClient.treat and/or SOCServer.processCommand
- *      or GameHandler.processCommand.  Note the JSettlers version with a comment.
+ *      or its game type's GameMessageHandler.dispatch.  Note the JSettlers version with a comment.
  *      <P>
  *      <em>Note:</em> Most things added to SOCPlayerClient.treat should also be added to
  *      {@link soc.baseclient.SOCDisplaylessPlayerClient#treat(SOCMessage)},

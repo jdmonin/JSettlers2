@@ -113,6 +113,21 @@ public class SOCGameListAtServer extends SOCGameList
     }
 
     /**
+     * Get this game's type inbound message handler from its {@link GameInfoAtServer}.
+     * @param gaName  Game name
+     * @return  handler, or {@code null} if game unknown or its GameInfo doesn't have a handler
+     * @since 2.0.00
+     */
+    public GameMessageHandler getGameTypeMessageHandler(final String gaName)
+    {
+        GameInfo gi = gameInfo.get(gaName);
+        if ((gi == null) || ! (gi instanceof GameInfoAtServer))
+            return null;
+
+        return ((GameInfoAtServer) gi).messageHandler;
+    }
+
+    /**
      * get a game's members (client connections)
      * @param   gaName  game name
      * @return  list of members: a Vector of {@link StringConnection}s
@@ -484,13 +499,18 @@ public class SOCGameListAtServer extends SOCGameList
     }
 
     /**
-     * Game info including server-side information, such as the game type's {@link GameHandler}.
+     * Game info including server-side information, such as the game type's {@link GameHandler}
+     * and {@link GameMessageHandler}.
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 2.0.00
      */
     protected static class GameInfoAtServer extends GameInfo
     {
+        /** Game type handler */
         public final GameHandler handler;
+
+        /** {@link #handler}'s inbound message handler, denormalized from {@link GameHandler#getMessageHandler()} */
+        public final GameMessageHandler messageHandler;
 
         /**
          * Constructor, with handler and optional game options.
@@ -508,6 +528,7 @@ public class SOCGameListAtServer extends SOCGameList
                 throw new IllegalArgumentException("handler");
 
             handler = typeHandler;
+            messageHandler = handler.getMessageHandler();
         }
 
     }
