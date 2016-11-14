@@ -139,7 +139,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
 
     /**
-     * the queue of messages received from the client
+     * The queue of messages received from all clients. This queue class also includes the Treater thread
+     * which calls {@link Server.InboundMessageDispatcher#dispatch(String, StringConnection)} for each
+     * inbound message.
      *<P>
      * Before v2.0.00, this was a {@link Vector}.
      */
@@ -230,7 +232,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         this.port = port;
         this.strSocketName = null;
         this.inboundMsgDispatcher = imd;
-        this.inQueue = new InboundMessageQueue(this, imd);
+        this.inQueue = new InboundMessageQueue(imd);
 
         try
         {
@@ -261,7 +263,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         this.port = -1;
         this.strSocketName = stringSocketName;
         this.inboundMsgDispatcher = imd;
-        this.inQueue = new InboundMessageQueue(this, imd);
+        this.inQueue = new InboundMessageQueue(imd);
 
         ss = new LocalStringServerSocket(stringSocketName);
         setName("server-localstring-" + stringSocketName);  // Thread name for debugging

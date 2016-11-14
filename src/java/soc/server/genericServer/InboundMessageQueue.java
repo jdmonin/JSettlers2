@@ -76,24 +76,19 @@ public class InboundMessageQueue
     private Treater treater;
 
     /**
-     * the server that has initialized this queue
-     */
-    private Server server;
-
-    /**
-     * Message dispatcher for the server
+     * Message dispatcher at the server which will receive messages from this queue
      */
     private final Server.InboundMessageDispatcher dispatcher;
 
     /**
-     * Constructor of the SOCInboundMessageQueue.
+     * Create a new SOCInboundMessageQueue. Afterwards when the server is
+     * is ready to receive messages, you must call {@link #startMessageProcessing()}.
      *
-     * @param server that will use this SOCInboundMessageQueue to store messages and that the SOCInboundMessageQueue will use to treat the messages
+     * @param imd Message dispatcher at the server which will receive messages from this queue
      */
-    public InboundMessageQueue(Server server, Server.InboundMessageDispatcher imd)
+    public InboundMessageQueue(Server.InboundMessageDispatcher imd)
     {
         inQueue = new Vector<MessageData>();
-        this.server = server;
         dispatcher = imd;
     }
 
