@@ -67,7 +67,7 @@ import soc.server.genericServer.StringConnection;
  * <LI> See {@link SOCGameHandler} for details of the busines logic for each message.
  * </UL>
  *<P>
- * Before v2.0.00, this class was {@link SOCServer#processCommand(String, StringConnection)} and related methods.
+ * Before v2.0.00, this class was {@link SOCServer}.processCommand(String, StringConnection) and related methods.
  *
  * @author Alessandro D'Ottavio
  * @since 2.0.00
@@ -88,8 +88,8 @@ public class SOCGameMessageHandler
      * Some game messages (such as player sits down, or board reset voting) are handled the same for all game types.
      * These are handled at {@link SOCServer}; they should be ignored here and not appear in your switch statement.
      *<P>
-     * this method is called from {@link SOCServer#processCommand(String, StringConnection)} when it is recognized as
-     * an event for game.
+     * this method is called from {@link SOCMessageDispatcher#dispatch(String, StringConnection)} when the message is
+     * recognized as a command or event for a game.
      * <P>
      * Caller of this method will catch any thrown Exceptions.
      *

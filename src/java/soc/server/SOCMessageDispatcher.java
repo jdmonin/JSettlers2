@@ -19,11 +19,20 @@
  **/
 package soc.server;
 
+import soc.debug.D;
+import soc.game.SOCGame;
+import soc.message.SOCMessage;
+import soc.message.SOCMessageForGame;
 import soc.server.genericServer.Server;
 import soc.server.genericServer.StringConnection;
 
 /**
  * Server class to dispatch all inbound messages.
+ * Sole exception: The first message from a client is dispatched by
+ * {@link SOCServer#processFirstCommand(String, StringConnection)} instead.
+ *<P>
+ * Once server is initialized, call {@link #setServer(SOCServer, SOCGameListAtServer)}
+ * before calling {@link #dispatch(String, StringConnection)}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -31,9 +40,100 @@ import soc.server.genericServer.StringConnection;
 public class SOCMessageDispatcher
     implements Server.InboundMessageDispatcher
 {
-    // inherit javadoc from interface
-    public void dispatch(String str, StringConnection con)
+    /**
+     * Our SOCServer. {@code srv} and {@link #gameList} are both set non-null
+     * by {@link #setServer(SOCServer, SOCGameListAtServer)}.
+     */
+    private SOCServer srv;
+
+    /**
+     * Our game list, with game type handler info. {@code gameList} and {@link #srv} are
+     * both set non-null by {@link #setServer(SOCServer, SOCGameListAtServer).
+     */
+    private SOCGameListAtServer gameList;
+
+    /**
+     * Create a new SOCMessageDispatcher. Takes no parameters because the
+     * server and dispatcher constructors can't both call each other.
+     * Be sure to call {@link #setServer(SOCServer, SOCGameListAtServer)}
+     * before dispatching.
+     */
+    public SOCMessageDispatcher()
     {
-        // TODO implement and call from InboundMessageQueue
+    }
+
+    /**
+     * Set our SOCServer and game list references, necessary before
+     * {@link #dispatch(String, StringConnection)} can be called.
+     *
+     * @param srv  This dispatcher's server
+     * @param gameList  Game list for {@code srv}
+     * @throws IllegalArgumentException  If {@code srv} or {@link gameList} are null
+     * @throws IllegalStateException  If {@code setServer(..)} has already been called
+     */
+    public void setServer(final SOCServer srv, final SOCGameListAtServer gameList)
+        throws IllegalArgumentException, IllegalStateException
+    {
+        if ((srv == null) || (gameList == null))
+            throw new IllegalArgumentException("null");
+        if (this.srv != null)
+            throw new IllegalStateException();
+
+        this.srv = srv;
+        this.gameList = gameList;
+    }
+
+    /**
+     * {@inheritDoc}
+     * @throws IllegalStateException if not ready to dispatch because
+     *    {@link #setServer(SOCServer, SOCGameListAtServer)} hasn't been called.
+     */
+    public void dispatch(final String str, final StringConnection con)
+        throws IllegalStateException
+    {
+        if (srv == null)
+            throw new IllegalStateException("Not ready to dispatch: call setServer first");
+
+        try
+        {
+            final SOCMessage mes = SOCMessage.toMsg(str);
+
+            // D.ebugPrintln(c.getData()+" - "+mes);
+
+            if (mes == null)
+                return;
+
+            if (mes instanceof SOCMessageForGame)
+            {
+                // Try to process message through its game type's handler
+                // before falling through to server-wide handler
+
+                final String gaName = ((SOCMessageForGame) mes).getGame();
+                if (gaName == null)
+                    return;  // <--- Early return: malformed ---
+
+                if (! gaName.equals(SOCMessage.GAME_NONE))
+                {
+                    SOCGame ga = gameList.getGameData(gaName);
+                    if ((ga == null) || (con == null))
+                        return;  // <--- Early return: ignore unknown games or unlikely missing con ---
+
+                    final GameMessageHandler hand = gameList.getGameTypeMessageHandler(gaName);
+                    if (hand != null)  // all consistent games will have a handler
+                    {
+                        if (hand.dispatch(ga, (SOCMessageForGame) mes, con))
+                            return;  // <--- Handled by GameMessageHandler ---
+
+                        // else: Message type unknown or ignored by handler. Server handles it below.
+                    }
+                }
+            }
+
+            srv.processServerCommand(mes, con);
+        }
+        catch (Throwable e)
+        {
+            D.ebugPrintStackTrace(e, "ERROR -> dispatch");
+        }
     }
 }

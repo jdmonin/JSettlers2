@@ -36,6 +36,7 @@ import java.util.TreeMap;
 import java.util.Vector;
 
 import soc.debug.D; // JM
+import soc.message.SOCMessage;  // for javadocs only
 import soc.server.SOCServer;
 
 
@@ -427,17 +428,6 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         }
     }
 
-
-    /**
-     * Remove a queued incoming message from a client, and treat it.
-     * Called from the single 'treater' thread.
-     * <em>Do not block or sleep</em> because this is single-threaded.
-     *
-     * @param str Contents of message from the client
-     * @param con Connection (client) sending this message
-     */
-    abstract public void processCommand(String str, StringConnection con);
-
     /**
      * Callback to process the client's first message command specially.
      * This default implementation does nothing and returns false;
@@ -446,7 +436,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @param str Contents of first message from the client
      * @param con Connection (client) sending this message
      * @return true if processed here, false if this message should be
-     *         queued up and processed by the normal {@link #processCommand(String, StringConnection)}.
+     *     queued up and processed as normal by
+     *     {@link Server.InboundMessageDispatcher#dispatch(String, StringConnection)}.
      */
     public boolean processFirstCommand(String str, StringConnection con)
     {
@@ -1098,13 +1089,30 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     {
         /**
          * Remove a queued incoming message from a client, and treat it.
+         * Messages of unknown type are ignored.
          * Called from the single 'treater' thread of {@link InboundMessageQueue}.
+         *<P>
          * <em>Do not block or sleep</em> because this is single-threaded.
+         * {@code dispatch(..)} must catch any exception thrown by conditions or
+         * bugs in server or game code it calls.
+         *<P>
+         * The first message from a client is treated by
+         * {@link #processFirstCommand(String, StringConnection)} instead.
+         *<P>
+         *<B>Security Note:</B> When there is a choice, always use local information
+         * over information from the message.  For example, use the nickname from the connection to get the player
+         * information rather than the player information from the message.  This makes it harder to send false
+         * messages making players do things they didn't want to do.
          *
-         * @param str Contents of message from the client
-         * @param con Connection (client) sending this message
+         * @param str Contents of message from the client. Will never be {@code null}.
+         *       SOCServer implementation parses this with {@link SOCMessage#toMsg(String)}.
+         * @param con Connection (client) sending this message. Will never be {@code null}.
+         * @throws IllegalStateException if not ready to dispatch because some
+         *    initialization method needs to be called first;
+         *    see dispatcher class javadoc
          */
-        abstract public void dispatch(String str, StringConnection con);
+        abstract public void dispatch(String str, StringConnection con)
+            throws IllegalStateException;
     }
 
     /**

@@ -1002,6 +1002,7 @@ public class SOCServer extends Server
      * Common init for all constructors.
      * Prints some progress messages to {@link System#err}.
      * Sets game option default values via {@link #init_propsSetGameopts(Properties)}.
+     * Calls {@link SOCMessageDispatcher#setServer(SOCServer, SOCGameListAtServer)}.
      * Starts all server threads except the main thread, unless constructed in Utility Mode
      * ({@link #hasUtilityModeProp}).
      * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, those aren't started until {@link #serverUp()}.
@@ -1089,6 +1090,7 @@ public class SOCServer extends Server
         }
 
         this.props = props;
+        ((SOCMessageDispatcher) inboundMsgDispatcher).setServer(this, gameList);
 
         if (allowDebugUser)
         {
@@ -4128,7 +4130,8 @@ public class SOCServer extends Server
      *         Will be parsed with {@link SOCMessage#toMsg(String)}.
      * @param con Connection (client) sending this message.
      * @return true if processed here (VERSION), false if this message should be
-     *         queued up and processed by the normal {@link #processCommand(String, StringConnection)}.
+     *         queued up and processed as normal by
+     *         {@link SOCMessageDispatcher#dispatch(String, StringConnection)}.
      */
     @Override
     public boolean processFirstCommand(String str, StringConnection con)
@@ -4157,74 +4160,6 @@ public class SOCServer extends Server
     }
 
     /**
-     * Treat the incoming messages.  Messages of unknown type are ignored.
-     *<P>
-     * Called from the single 'treater' thread.
-     * <em>Do not block or sleep</em> because this is single-threaded.
-     *<P>
-     * The first message from a client is treated by
-     * {@link #processFirstCommand(String, StringConnection)} instead.
-     *<P>
-     *<B>Note:</B> When there is a choice, always use local information
-     *       over information from the message.  For example, use
-     *       the nickname from the connection to get the player
-     *       information rather than the player information from
-     *       the message.  This makes it harder to send false
-     *       messages making players do things they didn't want
-     *       to do.
-     *
-     * @param s    Contents of message from the client.
-     *       Will be parsed with {@link SOCMessage#toMsg(String)}.
-     * @param c    Connection (client) sending this message.
-     */
-    @Override
-    public void processCommand(String s, StringConnection c)
-    {
-        try
-        {
-            final SOCMessage mes = SOCMessage.toMsg(s);
-
-            // D.ebugPrintln(c.getData()+" - "+mes);
-
-            if (mes == null)
-                return;
-
-            if (mes instanceof SOCMessageForGame)
-            {
-                // Try to process message through its game type's handler
-                // before falling through to server-wide handler
-
-                final String gaName = ((SOCMessageForGame) mes).getGame();
-                if (gaName == null)
-                    return;  // <--- Early return: malformed ---
-
-                if (! gaName.equals(SOCMessage.GAME_NONE))
-                {
-                    SOCGame ga = gameList.getGameData(gaName);
-                    if ((ga == null) || (c == null))
-                        return;  // <--- Early return: ignore unknown games ---
-
-                    final GameMessageHandler hand = gameList.getGameTypeMessageHandler(gaName);
-                    if (hand != null)  // all consistent games will have a handler
-                    {
-                        if (hand.dispatch(ga, (SOCMessageForGame) mes, c))
-                            return;  // <--- Handled by GameMessageHandler ---
-
-                        // else: Message type unknown or ignored by handler. Server handles it below.
-                    }
-                }
-            }
-
-            processServerCommand(mes, c);
-        }
-        catch (Throwable e)
-        {
-            D.ebugPrintStackTrace(e, "ERROR -> processCommand");
-        }
-
-    }  // processCommand
-
-    /**
      * Process any inbound message which isn't handled by {@link SOCGameMessageHandler}.
      *<P>
      *<B>Note:</B> When there is a choice, always use local information
@@ -4239,6 +4174,7 @@ public class SOCServer extends Server
      * @throws NullPointerException  if {@code mes} is {@code null}
      * @throws Exception  Caller must catch any exceptions thrown because of
      *    conditions or bugs in any server methods called from here.
+     * @since 2.0.00
      */
     final void processServerCommand(final SOCMessage mes, final StringConnection c)
         throws NullPointerException, Exception
@@ -9709,7 +9645,8 @@ public class SOCServer extends Server
                 // Most threads are started in the SOCServer constructor, via initSocServer.
                 // initSocServer also handles command line and properties-file contents,
                 // including game option default/current values.
-                // Messages from clients are handled in processCommand's loop.
+                // Messages from clients are handled in SOCMessageHandler.dispatch()
+                // called from a loop in InboundMessageQueue's treater thread.
             }
             catch (SocketException e)
             {

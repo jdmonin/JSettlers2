@@ -53,7 +53,8 @@ import java.util.StringTokenizer;
  * Remote TCP clients receive data using {@link java.io.DataInputStream#readUTF()}.
  *<P>
  * The client receives messages in {@link soc.client.SOCPlayerClient.MessageTreater#treat(SOCMessage, boolean)}.
- * The server receives messages in {@link soc.server.SOCServer#processCommand(String, StringConnection)}.
+ * The server receives messages in
+ * {@link soc.server.SOCMessageDispatcher#dispatch(String, soc.server.genericServer.StringConnection)}.
  *<P>
  * To create and add a new message type:
  *<UL>
@@ -77,7 +78,7 @@ import java.util.StringTokenizer;
  *      Set <tt>serialVersionUID</tt> to the version it's added in.
  *      for example, if adding for version 1.1.09:
  *      <code> private static final long serialVersionUID = 1109L;</code>
- * <LI> Add to the switch in SOCPlayerClient.treat and/or SOCServer.processCommand
+ * <LI> Add to the switch in SOCPlayerClient.treat and/or SOCServerMessageHandler.dispatch
  *      or its game type's GameMessageHandler.dispatch.  Note the JSettlers version with a comment.
  *      <P>
  *      <em>Note:</em> Most things added to SOCPlayerClient.treat should also be added to

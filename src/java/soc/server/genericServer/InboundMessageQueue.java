@@ -24,7 +24,6 @@ package soc.server.genericServer;
 import java.util.Vector;
 
 import soc.message.SOCMessage;
-import soc.server.genericServer.Server.InboundMessageDispatcher;
 
 /**
  *
@@ -36,7 +35,8 @@ import soc.server.genericServer.Server.InboundMessageDispatcher;
  *
  * <P>
  * The internal implementation of the {@link InboundMessageQueue} use an internal thread implemented by the inner class {@link Treater} to process the messages received
- * in the queue and solicit the {@link Server} using the method {@link Server#processCommand(String, StringConnection)}
+ * in the queue and solicit the {@link Server} using the method
+ * {@link Server.InboundMessageDispatcher#dispatch(String, StringConnection)}.
  *
  * <P>
  * to initialize {@link InboundMessageQueue} use the constructor {@link #SOCInboundMessageQueue(Server)}.
@@ -55,9 +55,9 @@ import soc.server.genericServer.Server.InboundMessageDispatcher;
  * <UL>
  * <LI> See {@link SOCMessage} for details of the client/server protocol messaging.
  * <LI> See {@link StringConnection} for details of the client/server communication.
- * <LI> See {@link Server#processCommand(String, StringConnection)} for details of the message processing.
+ * <LI> See {@link Server.InboundMessageDispatcher#dispatch(String, StringConnection)}
+ *      for details of the message processing.
  * </UL>
- *
  *
  * @author Alessandro D'Ottavio
  * @since 2.0.00
@@ -83,14 +83,14 @@ public class InboundMessageQueue
     /**
      * Message dispatcher for the server
      */
-    private final InboundMessageDispatcher dispatcher;
+    private final Server.InboundMessageDispatcher dispatcher;
 
     /**
      * Constructor of the SOCInboundMessageQueue.
      *
      * @param server that will use this SOCInboundMessageQueue to store messages and that the SOCInboundMessageQueue will use to treat the messages
      */
-    public InboundMessageQueue(Server server, InboundMessageDispatcher imd)
+    public InboundMessageQueue(Server server, Server.InboundMessageDispatcher imd)
     {
         inQueue = new Vector<MessageData>();
         this.server = server;
@@ -118,8 +118,8 @@ public class InboundMessageQueue
      * appends an element to the end of the inbound queue.
      * this notify the {@link Treater} in case it is in wait state becouse the queue was empty
      *
-     * @param receivedMessage from the connection
-     * @param clientConnection that send the message
+     * @param receivedMessage from the connection; will never be {@code null}
+     * @param clientConnection that send the message; will never be {@code null}
      */
     public void push(String receivedMessage, StringConnection clientConnection)
     {
@@ -188,11 +188,11 @@ public class InboundMessageQueue
                 try
                 {
                     if (messageData != null)
-                        server.processCommand(messageData.getStringMessage(), messageData.getClientConnection());
+                        dispatcher.dispatch(messageData.getStringMessage(), messageData.getClientConnection());
                 }
-                catch (Exception e)  // for anything thrown by bugs in server or game code called from processCommand
+                catch (Exception e)  // for anything thrown by bugs in server or game code called from dispatch
                 {
-                    System.out.println("Exception in treater (processCommand) - " + e.getMessage());
+                    System.out.println("Exception in treater (dispatch) - " + e.getMessage());
                     e.printStackTrace();
                 }
 
