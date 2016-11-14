@@ -2871,7 +2871,8 @@ public class SOCServer extends Server
                         gameTxtLocale = cliLocale;
                     }
 
-                    c.put(gameLocalMsg);
+                    if (gameLocalMsg != null)
+                        c.put(gameLocalMsg);
                 }
 
                 if (rsrcMissing)
@@ -2952,7 +2953,7 @@ public class SOCServer extends Server
                             gameTxtLocale = cliLocale;
                         }
 
-                        if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
+                        if ((c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT) && (gameTextMsg != null))
                             c.put(gameTextMsg);
                         else
                             // old client (not common) gets a different message type
@@ -3037,7 +3038,7 @@ public class SOCServer extends Server
                             gameTxtLocale = cliLocale;
                         }
 
-                        if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
+                        if ((c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT) && (gameTextMsg != null))
                             c.put(gameTextMsg);
                         else
                             // old client (not common) gets a different message type
@@ -3244,7 +3245,7 @@ public class SOCServer extends Server
                             gameTxtLocale = cliLocale;
                         }
 
-                        if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
+                        if ((c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT) && (gameTextMsg != null))
                             c.put(gameTextMsg);
                         else
                             // old client (not common) gets a different message type
