@@ -34,14 +34,15 @@ import soc.message.SOCMessage;
  * and solicit the server to  processing the message
  *
  * <P>
- * The internal implementation of the {@link InboundMessageQueue} use an internal thread implemented by the inner class {@link Treater} to process the messages received
- * in the queue and solicit the {@link Server} using the method
- * {@link Server.InboundMessageDispatcher#dispatch(String, StringConnection)}.
+ * This class also includes the internal {@link Treater} thread, which processes the
+ * messages received in the queue and forwards them to the {@link Server} by calling
+ * {@link Server.InboundMessageDispatcher#dispatch(String, StringConnection)}
+ * for each inbound message.
  *
  * <P>
- * to initialize {@link InboundMessageQueue} use the constructor {@link #SOCInboundMessageQueue(Server)}.
- * This constructor will start only the behavior of the SOCInboundMessageQueue of receive the messages.... <br>
- * To start the processing of the message you have to call {@link #startMessageProcessing()} when the {@link Server} is ready to process the messages.
+ * This queue's constructor only sets up the InboundMessageQueue to receive messages. Afterwards when the
+ * {@link Server} is ready to process inbound messages, to start this queue's thread to forward messages
+ * into the dispatcher you must call {@link #startMessageProcessing()}.
  *
  * <P>
  * Actually this class is used  by the {@link StringConnection} instances and derived instances classes to store the new message received.<br>
@@ -81,8 +82,8 @@ public class InboundMessageQueue
     private final Server.InboundMessageDispatcher dispatcher;
 
     /**
-     * Create a new SOCInboundMessageQueue. Afterwards when the server is
-     * is ready to receive messages, you must call {@link #startMessageProcessing()}.
+     * Create a new InboundMessageQueue. Afterwards when the server is ready
+     * to receive messages, you must call {@link #startMessageProcessing()}.
      *
      * @param imd Message dispatcher at the server which will receive messages from this queue
      */
