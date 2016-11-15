@@ -150,7 +150,7 @@ public class SOCStatusMessage extends SOCMessage
     /**
      * New game requested with game options, but some are not
      * recognized by the server = 9
-     * @see soc.server.SOCServer#handleNEWGAMEWITHOPTIONSREQUEST
+     * @see soc.server.SOCServerMessageHandler#handleNEWGAMEWITHOPTIONSREQUEST
      * @since 1.1.07
      */
     public static final int SV_NEWGAME_OPTION_UNKNOWN = 9;
@@ -165,7 +165,7 @@ public class SOCStatusMessage extends SOCMessage
      *   {@link SOCMessage#sep2 SEP2} option keyname with problem
      *   {@link SOCMessage#sep2 SEP2} option keyname with problem (if more than one)
      *   ...
-     * @see soc.server.SOCServer#handleNEWGAMEWITHOPTIONSREQUEST
+     * @see soc.server.SOCServerMessageHandler#handleNEWGAMEWITHOPTIONSREQUEST
      * @since 1.1.07
      */
     public static final int SV_NEWGAME_OPTION_VALUE_TOONEW = 10;
@@ -173,7 +173,7 @@ public class SOCStatusMessage extends SOCMessage
     /**
      * New game requested with game options, but this game
      * already exists = 11
-     * @see soc.server.SOCServer#handleNEWGAMEWITHOPTIONSREQUEST
+     * @see soc.server.SOCServerMessageHandler#handleNEWGAMEWITHOPTIONSREQUEST
      * @since 1.1.07
      */
     public static final int SV_NEWGAME_ALREADY_EXISTS = 11;

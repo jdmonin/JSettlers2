@@ -25,14 +25,22 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.Vector;
 
 import soc.debug.D;
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
+import soc.game.SOCPlayer;
+import soc.game.SOCScenario;
+import soc.game.SOCVersionedItem;
 import soc.message.*;
 import soc.server.genericServer.StringConnection;
 import soc.util.SOCGameBoardReset;
+import soc.util.Version;
 
 /**
  * Server class to dispatch clients' actions and messages received from the
@@ -260,11 +268,11 @@ public class SOCServerMessageHandler
             break;
 
         case SOCMessage.CHANGEFACE:
-            srv.handleCHANGEFACE(c, (SOCChangeFace) mes);
+            handleCHANGEFACE(c, (SOCChangeFace) mes);
             break;
 
         case SOCMessage.SETSEATLOCK:
-            srv.handleSETSEATLOCK(c, (SOCSetSeatLock) mes);
+            handleSETSEATLOCK(c, (SOCSetSeatLock) mes);
             break;
 
         case SOCMessage.RESETBOARDREQUEST:
@@ -294,15 +302,15 @@ public class SOCServerMessageHandler
          */
 
         case SOCMessage.GAMEOPTIONGETDEFAULTS:
-            srv.handleGAMEOPTIONGETDEFAULTS(c, (SOCGameOptionGetDefaults) mes);
+            handleGAMEOPTIONGETDEFAULTS(c, (SOCGameOptionGetDefaults) mes);
             break;
 
         case SOCMessage.GAMEOPTIONGETINFOS:
-            srv.handleGAMEOPTIONGETINFOS(c, (SOCGameOptionGetInfos) mes);
+            handleGAMEOPTIONGETINFOS(c, (SOCGameOptionGetInfos) mes);
             break;
 
         case SOCMessage.NEWGAMEWITHOPTIONSREQUEST:
-            srv.handleNEWGAMEWITHOPTIONSREQUEST(c, (SOCNewGameWithOptionsRequest) mes);
+            handleNEWGAMEWITHOPTIONSREQUEST(c, (SOCNewGameWithOptionsRequest) mes);
             break;
 
         /**
@@ -310,7 +318,7 @@ public class SOCServerMessageHandler
          * Added 2015-09-21 for v2.0.00.
          */
         case SOCMessage.SCENARIOINFO:
-            srv.handleSCENARIOINFO(c, (SOCScenarioInfo) mes);
+            handleSCENARIOINFO(c, (SOCScenarioInfo) mes);
             break;
 
         }  // switch (mes.getType)
@@ -472,6 +480,351 @@ public class SOCServerMessageHandler
         if (rets == null)
             rets = new ArrayList<String>();
         c.put(SOCLocalizedStrings.toCmd(type, flags, rets));
+    }
+
+    /**
+     * process the "game option get defaults" message.
+     * User has clicked the "New Game" button for the first time, client needs {@link SOCGameOption} values.
+     * Responds to client by sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}.
+     * All of server's known options are sent, except empty string-valued options.
+     * Depending on client version, server's response may include option names that
+     * the client is too old to use; the client is able to ignore them.
+     * If the client is older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES},
+     * options with long names won't be sent.
+     *<P>
+     * <B>I18N:</B> Since the New Game dialog will need localized strings for {@link SOCScenario}s,
+     * v2.0.00 sends those strings before the game option default values, so the client will have them
+     * before showing the dialog.
+     *
+     * @param c  the connection
+     * @param mes  the message
+     * @since 1.1.07
+     */
+    private void handleGAMEOPTIONGETDEFAULTS(StringConnection c, SOCGameOptionGetDefaults mes)
+    {
+        if (c == null)
+            return;
+
+        final boolean hideLongNameOpts = (c.getVersion() < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES);
+        c.put(SOCGameOptionGetDefaults.toCmd
+              (SOCGameOption.packKnownOptionsToString(true, hideLongNameOpts)));
+    }
+
+    /**
+     * process the "game option get infos" message; reply with the info, with
+     * one {@link SOCGameOptionInfo GAMEOPTIONINFO} message per option keyname.
+     * Mark the end of the option list with {@link SOCGameOptionInfo GAMEOPTIONINFO}("-").
+     * If this list is empty, "-" will be the only GAMEOPTIONGETINFO message sent.
+     *<P>
+     * We check the default values, not current values, so the list is unaffected by
+     * cases where some option values are restricted to newer client versions.
+     * Any option where opt.{@link SOCGameOption#minVersion minVersion} is too new for
+     * this client's version, is sent as {@link SOCGameOption#OTYPE_UNKNOWN}.
+     * If the client is older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES},
+     * options with long names won't be sent.
+     *
+     * @param c  the connection
+     * @param mes  the message
+     * @since 1.1.07
+     */
+    private void handleGAMEOPTIONGETINFOS(StringConnection c, SOCGameOptionGetInfos mes)
+    {
+        if (c == null)
+            return;
+
+        final int cliVers = c.getVersion();
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+        boolean alreadyTrimmedEnums = false;
+        Vector<String> okeys = mes.getOptionKeys();
+        List<SOCGameOption> opts = null;
+
+        // check for request for i18n localized descriptions (client v2.0.00 or newer);
+        // if we don't have game opt localization for client's locale, ignore the request.
+        if (mes.hasTokenGetI18nDescs() && (c.getI18NLocale() != null))
+            scd.wantsI18N = true;
+        final boolean wantsLocalDescs =
+            scd.wantsI18N
+            && ! SOCServer.i18n_gameopt_PL_desc.equals(c.getLocalized("gameopt.PL"));
+
+        if (okeys == null)
+        {
+            // received "-", look for newer options (cli is older than us), or wantsLocalDescs.
+            // okeys will be null if nothing is new.
+            if (wantsLocalDescs)
+                opts = SOCGameOption.optionsForVersion(cliVers, null);
+            else
+                opts = SOCGameOption.optionsNewerThanVersion(cliVers, false, true, null);
+            alreadyTrimmedEnums = true;
+
+            if ((opts != null) && (cliVers < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES))
+            {
+                // Client is older than 2.0.00; we can't send it any long option names.
+                Iterator<SOCGameOption> opi = opts.iterator();
+                while (opi.hasNext())
+                {
+                    final SOCGameOption op = opi.next();
+                    if ((op.key.length() > 3) || op.key.contains("_"))
+                        opi.remove();
+                }
+
+                if (opts.isEmpty())
+                    opts = null;
+            }
+        }
+        else if (wantsLocalDescs)
+        {
+            // Received some okeys: cli is newer than this server, and
+            // also wants localized descriptions.
+            //
+            // We need to send them all the localized options we have,
+            // and also include the okeys they're asking for, which may
+            // not be known to our older server.
+            //
+            // This situation is not common, and okeys won't be a long list,
+            // so linear search should be good enough.
+
+            opts = SOCGameOption.optionsForVersion(cliVers, null);
+            for (final String okey : okeys)
+            {
+                boolean found = false;
+                for (final SOCGameOption opt : opts)
+                {
+                    if (opt.key.equals(okey))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (! found)
+                    opts.add(new SOCGameOption(okey));  // OTYPE_UNKNOWN
+            }
+
+            okeys = null;  // merged into opts
+        }
+
+        if ((opts != null) || (okeys != null))
+        {
+            final int L = (opts != null) ? opts.size() : okeys.size();
+            for (int i = 0; i < L; ++i)
+            {
+                SOCGameOption opt;
+                String localDesc = null;  // i18n-localized opt.desc, if wantsLocalDescs
+
+                if (opts != null)
+                {
+                    opt = opts.get(i);
+                    if (opt.minVersion > cliVers)
+                    {
+                        opt = new SOCGameOption(opt.key);  // OTYPE_UNKNOWN
+                    }
+                    else if (wantsLocalDescs)
+                    {
+                        try {
+                            localDesc = c.getLocalized("gameopt." + opt.key);
+                        } catch (MissingResourceException e) {}
+                    }
+                } else {
+                    final String okey = okeys.elementAt(i);
+                    opt = SOCGameOption.getOption(okey, false);
+
+                    if ((opt == null) || (opt.minVersion > cliVers))  // Don't use opt.getMinVersion() here
+                    {
+                        opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
+                    }
+                    else if (wantsLocalDescs)
+                    {
+                        try {
+                            localDesc = c.getLocalized("gameopt." + okey);
+                        } catch (MissingResourceException e) {}
+                    }
+                }
+
+                // Enum-type options may have their values restricted by version.
+                if ( (! alreadyTrimmedEnums)
+                    && (opt.enumVals != null)
+                    && (opt.optType != SOCGameOption.OTYPE_UNKNOWN)
+                    && (opt.lastModVersion > cliVers))
+                {
+                    opt = SOCGameOption.trimEnumForVersion(opt, cliVers);
+                }
+
+                c.put(new SOCGameOptionInfo(opt, cliVers, localDesc).toCmd());
+            }
+        }
+
+        // mark end of list, even if list was empty
+        c.put(SOCGameOptionInfo.OPTINFO_NO_MORE_OPTS.toCmd());  // GAMEOPTIONINFO("-")
+    }
+
+    /**
+     * Process client request for updated {@link SOCScenario} info.
+     * Added 2015-09-21 for v2.0.00.
+     */
+    private void handleSCENARIOINFO(final StringConnection c, final SOCScenarioInfo mes)
+    {
+        if (c == null)
+            return;
+
+        List<String> params = mes.getParams();
+        int L = params.size();
+        if (L == 0)
+            return;  // malformed
+
+        final boolean hasAnyChangedMarker = params.get(L - 1).equals(SOCScenarioInfo.MARKER_ANY_CHANGED);
+        if (hasAnyChangedMarker)
+        {
+            params.remove(L - 1);
+            --L;
+        }
+        else if (L == 1)
+        {
+            // requesting one scenario
+            srv.sendGameScenarioInfo(params.get(0), null, c, false);
+            return;
+        }
+
+        // Calculate and respond; be sure to include any requested scKeys from params
+
+        final int cliVers = c.getVersion();
+        Map<String, SOCScenario> knownScens = null;  // caches SOCScenario.getAllKnownScenarios() if called
+
+        List<SOCScenario> changes = null;
+        if (hasAnyChangedMarker && (cliVers < Version.versionNumber()))
+        {
+            knownScens = SOCScenario.getAllKnownScenarios();
+            changes = SOCVersionedItem.itemsNewerThanVersion
+                (cliVers, false, knownScens);
+        }
+
+        if (L > 0)
+        {
+            if (changes == null)
+                changes = new ArrayList<SOCScenario>();
+
+            for (String scKey : params)
+            {
+                SOCScenario sc = SOCScenario.getScenario(scKey);
+                if ((sc == null) || (sc.minVersion > cliVers))
+                    // unknown scenario, or too new; send too-new ones in case client encounters one as a listed game's
+                    // scenario (server also sends too-new SOCGameOptions as unknowns, with the same intention)
+                    c.put(new SOCScenarioInfo(scKey, true).toCmd());
+                else if (! changes.contains(sc))
+                    changes.add(sc);
+            }
+        }
+
+        if (changes != null)
+            for (final SOCScenario sc : changes)
+                if (sc.minVersion <= cliVers)
+                    srv.sendGameScenarioInfo(null, sc, c, false);
+                else
+                    c.put(new SOCScenarioInfo(sc.key, true).toCmd());
+
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+
+        if (hasAnyChangedMarker && scd.wantsI18N && ! scd.sentAllScenarioStrings)
+        {
+            // if available send each scenario's localized strings, unless we've already sent its full info
+
+            if (! scd.checkedLocaleScenStrings)
+            {
+                scd.localeHasScenStrings = SOCServer.clientHasLocalizedStrs_gameScenarios(c);
+                scd.checkedLocaleScenStrings = true;
+            }
+
+            if (scd.localeHasScenStrings)
+            {
+                if (knownScens == null)
+                    knownScens = SOCScenario.getAllKnownScenarios();
+
+                ArrayList<String> scKeys = new ArrayList<String>();
+                for (final SOCScenario sc : SOCVersionedItem.itemsForVersion(cliVers, knownScens))
+                    if ((changes == null) || ! changes.contains(sc))
+                        scKeys.add(sc.key);
+
+                List<String> scenStrs;
+                if (! scKeys.isEmpty())
+                    scenStrs = SOCServer.localizeGameScenarios(scd.locale, scKeys, false, scd);
+                else
+                    scenStrs = scKeys;  // re-use the empty list object
+
+                c.put(SOCLocalizedStrings.toCmd
+                        (SOCLocalizedStrings.TYPE_SCENARIO, SOCLocalizedStrings.FLAG_SENT_ALL, scenStrs));
+            }
+
+            scd.sentAllScenarioStrings = true;
+        }
+
+        c.put(new SOCScenarioInfo(null, null, null).toCmd());  // send end of list
+
+        if (hasAnyChangedMarker)
+        {
+            scd.sentAllScenarioInfo = true;
+            scd.sentAllScenarioStrings = true;
+        }
+    }
+
+    /**
+     * handle "change face" message.
+     *
+     * @param c  the connection
+     * @param mes  the message
+     * @since 1.0.0
+     */
+    private void handleCHANGEFACE(StringConnection c, final SOCChangeFace mes)
+    {
+        final String gaName = mes.getGame();
+        final SOCGame ga = gameList.getGameData(gaName);
+        if (ga == null)
+            return;
+        SOCPlayer player = ga.getPlayer((String) c.getData());
+        if (player == null)
+            return;
+        final int id = mes.getFaceId();
+        if ((id <= 0) && ! player.isRobot())
+            return;  // only bots should use bot icons
+
+        player.setFaceId(id);
+        srv.messageToGame(gaName, new SOCChangeFace(gaName, player.getPlayerNumber(), id));
+    }
+
+    /**
+     * handle "set seat lock" message.
+     *
+     * @param c  the connection
+     * @param mes  the message
+     * @since 1.0.0
+     */
+    private void handleSETSEATLOCK(StringConnection c, final SOCSetSeatLock mes)
+    {
+        final SOCGame.SeatLockState sl = mes.getLockState();
+        final String gaName = mes.getGame();
+        SOCGame ga = gameList.getGameData(gaName);
+        if (ga == null)
+            return;
+        SOCPlayer player = ga.getPlayer((String) c.getData());
+        if (player == null)
+            return;
+
+        try
+        {
+            final int pn = mes.getPlayerNumber();
+            ga.setSeatLock(pn, sl);
+            if ((sl != SOCGame.SeatLockState.CLEAR_ON_RESET) || (ga.clientVersionLowest >= 2000))
+            {
+                srv.messageToGame(gaName, mes);
+            } else {
+                // older clients won't recognize that lock state
+                srv.messageToGameForVersions
+                    (ga, 2000, Integer.MAX_VALUE, mes, true);
+                srv.messageToGameForVersions
+                    (ga, -1, 1999, new SOCSetSeatLock(gaName, pn, SOCGame.SeatLockState.LOCKED), true);
+            }
+        }
+        catch (IllegalStateException e) {
+            srv.messageToPlayerKeyed(c, gaName, "reply.lock.cannot");  // "Cannot set that lock right now."
+        }
     }
 
 
@@ -660,6 +1013,27 @@ public class SOCServerMessageHandler
 
     /// Game lifecycle ///
 
+
+    /**
+     * process the "new game with options request" message.
+     * For messages sent, and other details,
+     * see {@link #createOrJoinGameIfUserOK(StringConnection, String, String, String, Map)}.
+     * <P>
+     * Because this message is sent only by clients newer than 1.1.06, we definitely know that
+     * the client has already sent its version information.
+     *
+     * @param c  the connection
+     * @param mes  the message
+     * @since 1.1.07
+     */
+    private void handleNEWGAMEWITHOPTIONSREQUEST(StringConnection c, SOCNewGameWithOptionsRequest mes)
+    {
+        if (c == null)
+            return;
+
+        srv.createOrJoinGameIfUserOK
+            (c, mes.getNickname(), mes.getPassword(), mes.getGame(), mes.getOptions());
+    }
 
     /**
      * Handle the "join a game" message: Join or create a game.
