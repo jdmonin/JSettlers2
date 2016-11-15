@@ -111,8 +111,11 @@ public class InboundMessageQueue
     }
 
     /**
-     * appends an element to the end of the inbound queue.
-     * this notify the {@link Treater} in case it is in wait state becouse the queue was empty
+     * Append an element to the end of the inbound queue.
+     *<BR>
+     *<B>Threads:</B>
+     * This notifies the {@link Treater}, waking that thread if it
+     * was {@link Object#wait()}ing because the queue was empty.
      *
      * @param receivedMessage from the connection; will never be {@code null}
      * @param clientConnection that send the message; will never be {@code null}
@@ -184,7 +187,7 @@ public class InboundMessageQueue
                 try
                 {
                     if (messageData != null)
-                        dispatcher.dispatch(messageData.getStringMessage(), messageData.getClientConnection());
+                        dispatcher.dispatch(messageData.stringMessage, messageData.clientSender);
                 }
                 catch (Exception e)  // for anything thrown by bugs in server or game code called from dispatch
                 {
@@ -215,27 +218,21 @@ public class InboundMessageQueue
 
 
     /**
-     * internal class used to store a message in text format and the client, owner of the message
+     * Nested class to store a message's contents and sender.
+     * For simplicity and quick access, final fields are used instead of getters.
      */
-    private class MessageData
+    private static class MessageData
     {
-        public String stringMessage;
-        public StringConnection clientConnection;
+        /** Message data contents in text format */
+        public final String stringMessage;
 
-        public MessageData(String stringMessage, StringConnection clientConnection)
+        /** Client which sent this message */
+        public final StringConnection clientSender;
+
+        public MessageData(final String stringMessage, final StringConnection clientSender)
         {
             this.stringMessage = stringMessage;
-            this.clientConnection = clientConnection;
-        }
-
-        public String getStringMessage()
-        {
-            return stringMessage;
-        }
-
-        public StringConnection getClientConnection()
-        {
-            return clientConnection;
+            this.clientSender = clientSender;
         }
 
     }
