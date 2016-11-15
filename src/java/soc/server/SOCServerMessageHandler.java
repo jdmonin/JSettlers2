@@ -24,38 +24,15 @@ package soc.server;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Vector;
 
 import soc.debug.D;
-import soc.message.SOCAuthRequest;
-import soc.message.SOCChangeFace;
-import soc.message.SOCCreateAccount;
-import soc.message.SOCDeleteChannel;
-import soc.message.SOCGameOptionGetDefaults;
-import soc.message.SOCGameOptionGetInfos;
-import soc.message.SOCGameTextMsg;
-import soc.message.SOCImARobot;
-import soc.message.SOCJoin;
-import soc.message.SOCJoinAuth;
-import soc.message.SOCJoinGame;
-import soc.message.SOCLeave;
-import soc.message.SOCLeaveGame;
-import soc.message.SOCLocalizedStrings;
-import soc.message.SOCMembers;
-import soc.message.SOCMessage;
-import soc.message.SOCNewChannel;
-import soc.message.SOCNewGameWithOptionsRequest;
-import soc.message.SOCResetBoardRequest;
-import soc.message.SOCResetBoardVote;
-import soc.message.SOCScenarioInfo;
-import soc.message.SOCServerPing;
-import soc.message.SOCSetSeatLock;
-import soc.message.SOCSitDown;
-import soc.message.SOCStartGame;
-import soc.message.SOCStatusMessage;
-import soc.message.SOCTextMsg;
-import soc.message.SOCVersion;
+import soc.game.SOCGame;
+import soc.message.*;
 import soc.server.genericServer.StringConnection;
+import soc.util.SOCGameBoardReset;
 
 /**
  * Server class to dispatch clients' actions and messages received from the
@@ -245,7 +222,7 @@ public class SOCServerMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            srv.handleLEAVEGAME(c, (SOCLeaveGame) mes);
+            handleLEAVEGAME(c, (SOCLeaveGame) mes);
 
             //ga = (SOCGame)gamesData.get(((SOCLeaveGame)mes).getGame());
             //if (ga != null) {
@@ -715,6 +692,158 @@ public class SOCServerMessageHandler
 
         srv.createOrJoinGameIfUserOK
             (c, mes.getNickname(), mes.getPassword(), mes.getGame(), null);
+    }
+
+    /**
+     * Handle the "leave game" message
+     *
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     * @since 1.0.0
+     */
+    private void handleLEAVEGAME(StringConnection c, SOCLeaveGame mes)
+    {
+        if (c == null)
+            return;
+
+        boolean isMember = false;
+        final String gaName = mes.getGame();
+        if (! gameList.takeMonitorForGame(gaName))
+        {
+            return;  // <--- Early return: game not in gamelist ---
+        }
+
+        try
+        {
+            isMember = gameList.isMember(c, gaName);
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in handleLEAVEGAME (isMember)");
+        }
+
+        gameList.releaseMonitorForGame(gaName);
+
+        if (isMember)
+        {
+            handleLEAVEGAME_member(c, gaName);
+        }
+        else if (((SOCClientData) c.getAppData()).isRobot)
+        {
+            handleLEAVEGAME_maybeGameReset_oldRobot(gaName);
+            // During a game reset, this robot player
+            // will not be found among cg's players
+            // (isMember is false), because it's
+            // attached to the old game object
+            // instead of the new one.
+            // So, check game state and update game's reset data.
+        }
+    }
+
+    /**
+     * Handle a member leaving the game, from
+     * {@link #handleLEAVEGAME(StringConnection, SOCLeaveGame)}.
+     * @since 1.1.07
+     */
+    private void handleLEAVEGAME_member(StringConnection c, final String gaName)
+    {
+        boolean gameDestroyed = false;
+        if (! gameList.takeMonitorForGame(gaName))
+        {
+            return;  // <--- Early return: game not in gamelist ---
+        }
+
+        try
+        {
+            gameDestroyed = srv.leaveGame(c, gaName, true, false);
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in handleLEAVEGAME (leaveGame)");
+        }
+
+        gameList.releaseMonitorForGame(gaName);
+
+        if (gameDestroyed)
+        {
+            srv.broadcast(SOCDeleteGame.toCmd(gaName));
+        }
+        else
+        {
+            /*
+               SOCLeaveGame leaveMessage = new SOCLeaveGame((String)c.getData(), c.host(), mes.getGame());
+               messageToGame(mes.getGame(), leaveMessage);
+               recordGameEvent(mes.getGame(), leaveMessage.toCmd());
+             */
+        }
+
+        /**
+         * if it's a robot, remove it from the request list
+         */
+        Vector<SOCReplaceRequest> requests = srv.robotDismissRequests.get(gaName);
+
+        if (requests != null)
+        {
+            Enumeration<SOCReplaceRequest> reqEnum = requests.elements();
+            SOCReplaceRequest req = null;
+
+            while (reqEnum.hasMoreElements())
+            {
+                SOCReplaceRequest tempReq = reqEnum.nextElement();
+
+                if (tempReq.getLeaving() == c)
+                {
+                    req = tempReq;
+                    break;
+                }
+            }
+
+            if (req != null)
+            {
+                requests.removeElement(req);
+
+                /**
+                 * Taking over a robot spot: let the person replacing the robot sit down
+                 */
+                SOCGame ga = gameList.getGameData(gaName);
+                final int pn = req.getSitDownMessage().getPlayerNumber();
+                final boolean isRobot = req.getSitDownMessage().isRobot();
+                if (! isRobot)
+                {
+                    ga.getPlayer(pn).setFaceId(1);  // Don't keep the robot face icon
+                }
+                srv.sitDown(ga, req.getArriving(), pn, isRobot, false);
+            }
+        }
+    }
+
+    /**
+     * Handle an unattached robot saying it is leaving the game,
+     * from {@link #handleLEAVEGAME(StringConnection, SOCLeaveGame)}.
+     * Ignore the robot (since it's not a member of the game) unless
+     * gamestate is {@link SOCGame#READY_RESET_WAIT_ROBOT_DISMISS}.
+     *
+     * @since 1.1.07
+     */
+    private void handleLEAVEGAME_maybeGameReset_oldRobot(final String gaName)
+    {
+        SOCGame cg = gameList.getGameData(gaName);
+        if (cg.getGameState() != SOCGame.READY_RESET_WAIT_ROBOT_DISMISS)
+            return;
+
+        boolean gameResetRobotsAllDismissed = false;
+
+        // TODO locks
+        SOCGameBoardReset gr = cg.boardResetOngoingInfo;
+        if (gr != null)
+        {
+            --gr.oldRobotCount;
+            if (0 == gr.oldRobotCount)
+                gameResetRobotsAllDismissed = true;
+        }
+
+        if (gameResetRobotsAllDismissed)
+            srv.resetBoardAndNotify_finish(gr, cg);  // TODO locks?
     }
 
 }
