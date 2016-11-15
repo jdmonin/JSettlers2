@@ -1023,7 +1023,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @see #broadcastToVers(String, int, int)
      * @throws IllegalArgumentException if {@code m} is {@code null}
      */
-    protected synchronized void broadcast(String m)
+    public synchronized void broadcast(String m)
         throws IllegalArgumentException
     {
         if (m == null)
@@ -1055,7 +1055,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @see #broadcast(String)
      * @throws IllegalArgumentException if {@code m} is {@code null}
      */
-    protected synchronized void broadcastToVers(String m, final int vmin, final int vmax)
+    public synchronized void broadcastToVers(String m, final int vmin, final int vmax)
         throws IllegalArgumentException
     {
         if (m == null)

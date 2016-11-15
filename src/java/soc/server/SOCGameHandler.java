@@ -105,7 +105,6 @@ import soc.message.SOCLeaveGame;
 import soc.message.SOCLongestRoad;
 import soc.message.SOCMakeOffer;
 import soc.message.SOCMessage;
-import soc.message.SOCMessageForGame;
 import soc.message.SOCMonopolyPick;
 import soc.message.SOCMovePiece;
 import soc.message.SOCMovePieceRequest;

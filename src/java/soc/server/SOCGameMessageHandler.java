@@ -53,9 +53,9 @@ import soc.server.genericServer.StringConnection;
 /**
  * Game message handler for the {@link SOCGameHandler} game type.
  * The purpose of this class is to dispatch the messages received from the
- * {@link soc.server.genericServer.InboundMessageQueue} related to specific games.
- *<P>
- * the message for the games are recognized because they implement the interface {@link SOCMessageForGame}
+ * {@link soc.server.genericServer.InboundMessageQueue} related to specific games
+ * (which implement {@link SOCMessageForGame}). All other messages are handled by
+ * {@link SOCServerMessageHandler} instead.
  *<P>
  * when the {@link SOCGameMessageHandler} is solicited to process the message, it identify the exact type of message
  * and call the correct method
@@ -64,11 +64,12 @@ import soc.server.genericServer.StringConnection;
  * <UL>
  * <LI> See the method {@link #dispatch(SOCGameHandler, SOCGame, SOCMessageForGame, StringConnection)} to get more
  *      details of this class logic
- * <LI> See {@link SOCGameHandler} for details of the busines logic for each message.
+ * <LI> See {@link SOCGameHandler} for details of the business logic for each message.
  * </UL>
  *<P>
  * Before v2.0.00, this class was {@link SOCServer}.processCommand(String, StringConnection) and related methods.
  *
+ * @see SOCServerMessageHandler
  * @author Alessandro D'Ottavio
  * @since 2.0.00
  */

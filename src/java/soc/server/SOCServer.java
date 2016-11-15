@@ -500,12 +500,14 @@ public class SOCServer extends Server
     protected int maxConnections;
 
     /**
-     * Is a debug user allowed to run commands listed in {@link #DEBUG_COMMANDS_HELP}?
+     * Is a debug user enabled and allowed to run the commands listed in {@link #DEBUG_COMMANDS_HELP}?
      * Default is false.  Set with {@link #PROP_JSETTLERS_ALLOW_DEBUG}.
      *<P>
      * Note that all practice games are debug mode, for ease of debugging;
      * to determine this, {@link #handleGAMETEXTMSG(StringConnection, SOCGameTextMsg)} checks if the
      * client is using {@link LocalStringConnection} to talk to the server.
+     *<P>
+     * Publicly visible via {@link #isDebugUserEnabled()}.
      *
      * @see #processDebugCommand(StringConnection, String, String, String)
      * @since 1.1.14
@@ -551,6 +553,13 @@ public class SOCServer extends Server
      * @since 1.1.19
      */
     private SOCServerFeatures features = new SOCServerFeatures(false);
+
+    /**
+     * Server message handler to process inbound messages from clients.
+     * @see SOCGameMessageHandler
+     * @since 2.0.00
+     */
+    private final SOCServerMessageHandler srvHandler = new SOCServerMessageHandler(this);
 
     /**
      * Game type handler, currently shared by all game instances.
@@ -1090,7 +1099,7 @@ public class SOCServer extends Server
         }
 
         this.props = props;
-        ((SOCMessageDispatcher) inboundMsgDispatcher).setServer(this, gameList);
+        ((SOCMessageDispatcher) inboundMsgDispatcher).setServer(this, srvHandler, gameList);
 
         if (allowDebugUser)
         {
@@ -2285,6 +2294,17 @@ public class SOCServer extends Server
     public Map<String,SOCGameOption> getGameOptions(String gm)
     {
         return gameList.getGameOptions(gm);
+    }
+
+    /**
+     * Is a debug user enabled and allowed to run the commands listed in {@link #DEBUG_COMMANDS_HELP}?
+     * Default is false.  Set with {@link #PROP_JSETTLERS_ALLOW_DEBUG}.
+     * @return  True if a debug user is enabled.
+     * @since 2.0.00
+     */
+    public final boolean isDebugUserEnabled()
+    {
+        return allowDebugUser;
     }
 
     /**
@@ -4160,249 +4180,6 @@ public class SOCServer extends Server
     }
 
     /**
-     * Process any inbound message which isn't handled by {@link SOCGameMessageHandler}.
-     *<P>
-     *<B>Note:</B> When there is a choice, always use local information
-     *       over information from the message.  For example, use
-     *       the nickname from the connection to get the player
-     *       information rather than the player information from
-     *       the message.  This makes it harder to send false
-     *       messages making players do things they didn't want
-     *       to do.
-     * @param mes  Message from {@code c}; not {@code null}
-     * @param c    Connection (client) sending this message.
-     * @throws NullPointerException  if {@code mes} is {@code null}
-     * @throws Exception  Caller must catch any exceptions thrown because of
-     *    conditions or bugs in any server methods called from here.
-     * @since 2.0.00
-     */
-    final void processServerCommand(final SOCMessage mes, final StringConnection c)
-        throws NullPointerException, Exception
-    {
-        switch (mes.getType())
-        {
-
-        /**
-         * client's echo of a server ping
-         */
-        case SOCMessage.SERVERPING:
-            handleSERVERPING(c, (SOCServerPing) mes);
-            break;
-
-        /**
-         * client's "version" message
-         */
-        case SOCMessage.VERSION:
-            handleVERSION(c, (SOCVersion) mes);
-            break;
-
-        /**
-         * client's optional authentication request before creating a game
-         * or when connecting using {@code SOCAccountClient} (v1.1.19+).
-         */
-        case SOCMessage.AUTHREQUEST:
-            handleAUTHREQUEST(c, (SOCAuthRequest) mes);
-            break;
-
-        /**
-         * "join a channel" message
-         */
-        case SOCMessage.JOIN:
-            handleJOIN(c, (SOCJoin) mes);
-            break;
-
-        /**
-         * "leave a channel" message
-         */
-        case SOCMessage.LEAVE:
-            handleLEAVE(c, (SOCLeave) mes);
-            break;
-
-        /**
-         * "leave all channels" message
-         */
-        case SOCMessage.LEAVEALL:
-            removeConnection(c, true);
-            break;
-
-        /**
-         * text message
-         */
-        case SOCMessage.TEXTMSG:
-
-            final SOCTextMsg textMsgMes = (SOCTextMsg) mes;
-
-            if (allowDebugUser && c.getData().equals("debug"))
-            {
-                if (textMsgMes.getText().startsWith("*KILLCHANNEL*"))
-                {
-                    messageToChannel(textMsgMes.getChannel(), new SOCTextMsg
-                        (textMsgMes.getChannel(), SERVERNAME,
-                         "********** " + (String) c.getData() + " KILLED THE CHANNEL **********"));
-                    channelList.takeMonitor();
-
-                    try
-                    {
-                        destroyChannel(textMsgMes.getChannel());
-                    }
-                    catch (Exception e)
-                    {
-                        D.ebugPrintStackTrace(e, "Exception in KILLCHANNEL");
-                    }
-
-                    channelList.releaseMonitor();
-                    broadcast(SOCDeleteChannel.toCmd(textMsgMes.getChannel()));
-                }
-                else
-                {
-                    /**
-                     * Send the message to the members of the channel
-                     */
-                    messageToChannel(textMsgMes.getChannel(), mes);
-                }
-            }
-            else
-            {
-                /**
-                 * Send the message to the members of the channel
-                 */
-                messageToChannel(textMsgMes.getChannel(), mes);
-            }
-
-            break;
-
-        /**
-         * a robot has connected to this server
-         */
-        case SOCMessage.IMAROBOT:
-            handleIMAROBOT(c, (SOCImARobot) mes);
-            break;
-
-        /**
-         * text message from a game (includes debug commands)
-         */
-        case SOCMessage.GAMETEXTMSG:
-            handleGAMETEXTMSG(c, (SOCGameTextMsg) mes);
-            break;
-
-        /**
-         * "join a game" message
-         */
-        case SOCMessage.JOINGAME:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleJOINGAME(c, (SOCJoinGame) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCJoinGame)mes).getGame());
-            //if (ga != null) {
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCJoinGame)mes).getGame());
-            //}
-            break;
-
-        /**
-         * "leave a game" message
-         */
-        case SOCMessage.LEAVEGAME:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleLEAVEGAME(c, (SOCLeaveGame) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCLeaveGame)mes).getGame());
-            //if (ga != null) {
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCLeaveGame)mes).getGame());
-            //}
-            break;
-
-        /**
-         * someone wants to sit down
-         */
-        case SOCMessage.SITDOWN:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleSITDOWN(c, (SOCSitDown) mes);
-
-            //ga = (SOCGame)gamesData.get(((SOCSitDown)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCSitDown)mes).getGame());
-            break;
-
-        /**
-         * someone is starting a game
-         */
-        case SOCMessage.STARTGAME:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleSTARTGAME(c, (SOCStartGame) mes, 0);
-
-            //ga = (SOCGame)gamesData.get(((SOCStartGame)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCStartGame)mes).getGame());
-            break;
-
-        case SOCMessage.CHANGEFACE:
-            handleCHANGEFACE(c, (SOCChangeFace) mes);
-            break;
-
-        case SOCMessage.SETSEATLOCK:
-            handleSETSEATLOCK(c, (SOCSetSeatLock) mes);
-            break;
-
-        case SOCMessage.RESETBOARDREQUEST:
-            handleRESETBOARDREQUEST(c, (SOCResetBoardRequest) mes);
-            break;
-
-        case SOCMessage.RESETBOARDVOTE:
-            handleRESETBOARDVOTE(c, (SOCResetBoardVote) mes);
-            break;
-
-        case SOCMessage.CREATEACCOUNT:
-            handleCREATEACCOUNT(c, (SOCCreateAccount) mes);
-            break;
-
-        /**
-         * Handle client request for localized i18n strings for game items.
-         * Added 2015-01-14 for v2.0.00.
-         */
-        case SOCMessage.LOCALIZEDSTRINGS:
-            handleLOCALIZEDSTRINGS(c, (SOCLocalizedStrings) mes);
-            break;
-
-        /**
-         * Game option messages. For the best writeup of these messages' interaction with
-         * the client, see {@link soc.client.SOCPlayerClient.GameOptionServerSet}'s javadoc.
-         * Added 2009-06-01 for v1.1.07.
-         */
-
-        case SOCMessage.GAMEOPTIONGETDEFAULTS:
-            handleGAMEOPTIONGETDEFAULTS(c, (SOCGameOptionGetDefaults) mes);
-            break;
-
-        case SOCMessage.GAMEOPTIONGETINFOS:
-            handleGAMEOPTIONGETINFOS(c, (SOCGameOptionGetInfos) mes);
-            break;
-
-        case SOCMessage.NEWGAMEWITHOPTIONSREQUEST:
-            handleNEWGAMEWITHOPTIONSREQUEST(c, (SOCNewGameWithOptionsRequest) mes);
-            break;
-
-        /**
-         * Client request for updated scenario info.
-         * Added 2015-09-21 for v2.0.00.
-         */
-        case SOCMessage.SCENARIOINFO:
-            handleSCENARIOINFO(c, (SOCScenarioInfo) mes);
-            break;
-
-        }  // switch (mes.getType)
-    }
-
-    /**
      * List and description of general commands that any game member can run.
      * Used by {@link #processDebugCommand(StringConnection, String, String, String)}
      * when {@code *HELP*} is requested.
@@ -4945,7 +4722,7 @@ public class SOCServer extends Server
      * to indicate client is actively responsive to server.
      * @since 1.1.08
      */
-    private void handleSERVERPING(StringConnection c, SOCServerPing mes)
+    void handleSERVERPING(StringConnection c, SOCServerPing mes)
     {
         SOCClientData cd = (SOCClientData) c.getAppData();
         if (cd == null)
@@ -4968,7 +4745,7 @@ public class SOCServer extends Server
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleVERSION(StringConnection c, SOCVersion mes)
+    void handleVERSION(StringConnection c, SOCVersion mes)
     {
         if (c == null)
             return;
@@ -5118,7 +4895,7 @@ public class SOCServer extends Server
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleJOIN(StringConnection c, SOCJoin mes)
+    void handleJOIN(StringConnection c, SOCJoin mes)
     {
         if (c == null)
             return;
@@ -5255,7 +5032,7 @@ public class SOCServer extends Server
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleLEAVE(StringConnection c, SOCLeave mes)
+    void handleLEAVE(StringConnection c, SOCLeave mes)
     {
         D.ebugPrintln("handleLEAVE: " + mes);
 
@@ -5304,7 +5081,7 @@ public class SOCServer extends Server
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleIMAROBOT(StringConnection c, SOCImARobot mes)
+    void handleIMAROBOT(StringConnection c, SOCImARobot mes)
     {
         if (c == null)
             return;
@@ -5447,7 +5224,7 @@ public class SOCServer extends Server
      *
      * @since 1.1.07
      */
-    private void handleGAMETEXTMSG(StringConnection c, SOCGameTextMsg gameTextMsgMes)
+    void handleGAMETEXTMSG(StringConnection c, SOCGameTextMsg gameTextMsgMes)
     {
         //createNewGameEventRecord();
         //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
@@ -5836,7 +5613,7 @@ public class SOCServer extends Server
      * @see #isUserDBUserAdmin(String, boolean)
      * @since 1.1.19
      */
-    private void handleAUTHREQUEST(StringConnection c, final SOCAuthRequest mes)
+    void handleAUTHREQUEST(StringConnection c, final SOCAuthRequest mes)
     {
         if (c == null)
             return;
@@ -5907,7 +5684,7 @@ public class SOCServer extends Server
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleJOINGAME(StringConnection c, SOCJoinGame mes)
+    void handleJOINGAME(StringConnection c, SOCJoinGame mes)
     {
         if (c == null)
             return;
@@ -6193,7 +5970,7 @@ public class SOCServer extends Server
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleLEAVEGAME(StringConnection c, SOCLeaveGame mes)
+    void handleLEAVEGAME(StringConnection c, SOCLeaveGame mes)
     {
         if (c == null)
             return;
@@ -6343,7 +6120,7 @@ public class SOCServer extends Server
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleSITDOWN(StringConnection c, SOCSitDown mes)
+    void handleSITDOWN(StringConnection c, SOCSitDown mes)
     {
         if (c == null)
             return;
@@ -6484,7 +6261,7 @@ public class SOCServer extends Server
      *     or 0 to fill all empty seats. This parameter is used only when requesting a new
      *     robots-only game using the *STARTBOTGAME* debug command; ignored otherwise.
      */
-    private void handleSTARTGAME
+    void handleSTARTGAME
         (StringConnection c, final SOCStartGame mes, final int botsOnly_maxBots)
     {
         final String gn = mes.getGame();
@@ -6846,7 +6623,7 @@ public class SOCServer extends Server
      * @param c  the connection
      * @param mes  the message
      */
-    private void handleCHANGEFACE(StringConnection c, final SOCChangeFace mes)
+    void handleCHANGEFACE(StringConnection c, final SOCChangeFace mes)
     {
         final String gaName = mes.getGame();
         final SOCGame ga = gameList.getGameData(gaName);
@@ -6869,7 +6646,7 @@ public class SOCServer extends Server
      * @param c  the connection
      * @param mes  the message
      */
-    private void handleSETSEATLOCK(StringConnection c, final SOCSetSeatLock mes)
+    void handleSETSEATLOCK(StringConnection c, final SOCSetSeatLock mes)
     {
         final SOCGame.SeatLockState sl = mes.getLockState();
         final String gaName = mes.getGame();
@@ -6923,7 +6700,7 @@ public class SOCServer extends Server
      * @param c  the connection
      * @param mes  the message
      */
-    private void handleRESETBOARDREQUEST(StringConnection c, final SOCResetBoardRequest mes)
+    void handleRESETBOARDREQUEST(StringConnection c, final SOCResetBoardRequest mes)
     {
         final String gaName = mes.getGame();
         SOCGame ga = gameList.getGameData(gaName);
@@ -7040,7 +6817,7 @@ public class SOCServer extends Server
      * @param c  the connection
      * @param mes  the message
      */
-    private void handleRESETBOARDVOTE(StringConnection c, final SOCResetBoardVote mes)
+    void handleRESETBOARDVOTE(StringConnection c, final SOCResetBoardVote mes)
     {
         final String gaName = mes.getGame();
         SOCGame ga = gameList.getGameData(gaName);
@@ -7233,7 +7010,7 @@ public class SOCServer extends Server
      * Handle client request for localized i18n strings for game items.
      * Added 2015-01-14 for v2.0.00.
      */
-    private void handleLOCALIZEDSTRINGS(final StringConnection c, final SOCLocalizedStrings mes)
+    void handleLOCALIZEDSTRINGS(final StringConnection c, final SOCLocalizedStrings mes)
     {
         final List<String> str = mes.getParams();
         final String type = str.get(0);
@@ -7287,7 +7064,7 @@ public class SOCServer extends Server
      * @param mes  the message
      * @since 1.1.07
      */
-    private void handleGAMEOPTIONGETDEFAULTS(StringConnection c, SOCGameOptionGetDefaults mes)
+    void handleGAMEOPTIONGETDEFAULTS(StringConnection c, SOCGameOptionGetDefaults mes)
     {
         if (c == null)
             return;
@@ -7314,7 +7091,7 @@ public class SOCServer extends Server
      * @param mes  the message
      * @since 1.1.07
      */
-    private void handleGAMEOPTIONGETINFOS(StringConnection c, SOCGameOptionGetInfos mes)
+    void handleGAMEOPTIONGETINFOS(StringConnection c, SOCGameOptionGetInfos mes)
     {
         if (c == null)
             return;
@@ -7448,7 +7225,7 @@ public class SOCServer extends Server
      * Process client request for updated {@link SOCScenario} info.
      * Added 2015-09-21 for v2.0.00.
      */
-    private void handleSCENARIOINFO(final StringConnection c, final SOCScenarioInfo mes)
+    void handleSCENARIOINFO(final StringConnection c, final SOCScenarioInfo mes)
     {
         if (c == null)
             return;
@@ -7708,7 +7485,7 @@ public class SOCServer extends Server
      * @param mes  the message
      * @since 1.1.07
      */
-    private void handleNEWGAMEWITHOPTIONSREQUEST(StringConnection c, SOCNewGameWithOptionsRequest mes)
+    void handleNEWGAMEWITHOPTIONSREQUEST(StringConnection c, SOCNewGameWithOptionsRequest mes)
     {
         if (c == null)
             return;
@@ -7723,7 +7500,7 @@ public class SOCServer extends Server
      * @param c  the connection
      * @param mes  the message
      */
-    private void handleCREATEACCOUNT(StringConnection c, SOCCreateAccount mes)
+    void handleCREATEACCOUNT(StringConnection c, SOCCreateAccount mes)
     {
         final int cliVers = c.getVersion();
 

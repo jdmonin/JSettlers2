@@ -41,14 +41,22 @@ public class SOCMessageDispatcher
     implements Server.InboundMessageDispatcher
 {
     /**
-     * Our SOCServer. {@code srv} and {@link #gameList} are both set non-null
-     * by {@link #setServer(SOCServer, SOCGameListAtServer)}.
+     * Our SOCServer. {@code srv}, {@link #srvHandler}, and {@link #gameList} are all
+     * set non-null by {@link #setServer(SOCServer, SOCServerMessageHandler, SOCGameListAtServer)}.
      */
     private SOCServer srv;
 
     /**
-     * Our game list, with game type handler info. {@code gameList} and {@link #srv} are
-     * both set non-null by {@link #setServer(SOCServer, SOCGameListAtServer).
+     * Our SOCServer's inbound message handler.
+     * {@link srv}, {@link #gameList}, and {@code #srvHandler} are all set non-null by
+     * {@link #setServer(SOCServer, SOCServerMessageHandler, SOCGameListAtServer)}.
+     */
+    private SOCServerMessageHandler srvHandler;
+
+    /**
+     * Our game list, with game type handler info.
+     * {@code gameList}, {@link #srv}, and {@link #srvHandler} are all set non-null by
+     * {@link #setServer(SOCServer, SOCServerMessageHandler, SOCGameListAtServer)}.
      */
     private SOCGameListAtServer gameList;
 
@@ -67,19 +75,22 @@ public class SOCMessageDispatcher
      * {@link #dispatch(String, StringConnection)} can be called.
      *
      * @param srv  This dispatcher's server
+     * @param srvHandler  Server message handler for {@code srv}
      * @param gameList  Game list for {@code srv}
-     * @throws IllegalArgumentException  If {@code srv} or {@link gameList} are null
+     * @throws IllegalArgumentException  If {@code srv}, {@code srvHandler}, or {@link gameList} are null
      * @throws IllegalStateException  If {@code setServer(..)} has already been called
      */
-    public void setServer(final SOCServer srv, final SOCGameListAtServer gameList)
+    public void setServer
+        (final SOCServer srv, final SOCServerMessageHandler srvHandler, final SOCGameListAtServer gameList)
         throws IllegalArgumentException, IllegalStateException
     {
-        if ((srv == null) || (gameList == null))
+        if ((srv == null) || (srvHandler == null) || (gameList == null))
             throw new IllegalArgumentException("null");
         if (this.srv != null)
             throw new IllegalStateException();
 
         this.srv = srv;
+        this.srvHandler = srvHandler;
         this.gameList = gameList;
     }
 
@@ -129,7 +140,7 @@ public class SOCMessageDispatcher
                 }
             }
 
-            srv.processServerCommand(mes, con);
+            srvHandler.dispatch(mes, con);
         }
         catch (Throwable e)
         {
