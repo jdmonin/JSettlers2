@@ -178,7 +178,7 @@ public class LocalStringConnection
             {
                 in_reachedEOF = true;
                 if (ourServer != null)
-                    ourServer.removeConnection(this);
+                    ourServer.removeConnection(this, false);
                 error = new EOFException();
                 throw (EOFException) error;
             }
@@ -470,7 +470,7 @@ public class LocalStringConnection
             }
 
             error = e;
-            ourServer.removeConnection(this);
+            ourServer.removeConnection(this, false);
         }
     }
 

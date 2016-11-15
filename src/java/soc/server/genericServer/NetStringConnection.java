@@ -187,7 +187,7 @@ public final class NetStringConnection
             }
 
             error = e;
-            ourServer.removeConnection(this);
+            ourServer.removeConnection(this, false);
         }
     }
 
@@ -229,7 +229,7 @@ public final class NetStringConnection
             }
             else
             {
-                ourServer.removeConnection(this);
+                ourServer.removeConnection(this, false);
             }
 
             return false;

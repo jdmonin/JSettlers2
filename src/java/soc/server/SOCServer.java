@@ -4222,8 +4222,7 @@ public class SOCServer extends Server
          * "leave all channels" message
          */
         case SOCMessage.LEAVEALL:
-            removeConnection(c);
-            removeConnectionCleanup(c);
+            removeConnection(c, true);
             break;
 
         /**
@@ -4602,8 +4601,7 @@ public class SOCServer extends Server
                 {
                     botFound = true;
                     messageToGame(ga, "> DISCONNECTING " + botName);
-                    removeConnection(robotConn);
-                    removeConnectionCleanup(robotConn);
+                    removeConnection(robotConn, true);
 
                     break;
                 }

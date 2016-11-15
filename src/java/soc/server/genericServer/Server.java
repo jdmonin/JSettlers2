@@ -190,8 +190,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * <em>Keys:</em> The {@link StringConnection} object is used as the key
      *    within {@link #addConnection(StringConnection)} (for the rejoining message).
      *    The {@link StringConnection#getData() connection keyname} is used as the key
-     *    within {@link #removeConnection(StringConnection)} (for the leaving message); if this is null,
-     *    the message is printed immediately, and not added to this map.
+     *    within {@link #removeConnection(StringConnection, boolean)} (for the leaving message);
+     *    if this is null, the message is printed immediately and not added to this map.
      *<br>
      * <em>Values:</em> A {@link Server.ConnExcepDelayedPrintTask} which will
      *    print the rejoining or leaving message after a delay.
@@ -538,17 +538,20 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     }
 
     /**
-     * remove a connection from the system; synchronized on list of connections.
+     * Remove a connection from the system, and then optionally call the cleanup callback.
      * The callback {@link #leaveConnection(StringConnection)} will be called,
      * after calling {@link StringConnection#disconnect()} on c.
+     * If {@code doCleanup}, the callback {@link #removeConnectionCleanup(StringConnection)}
+     * will be called afterwards.
      *<P>
+     *<B>Locks:</B> Synchronized on list of connections.
      * This method is called within a per-client thread.
      * The add to {@link #cliConnDisconPrintsPending} is unsynchronized.
      *
-     * @param c Connection to remove; will call its disconnect() method
-     *          and remove it from the server state.
+     * @param c Connection to remove; will call its disconnect() method and remove it from the server state.
+     * @param doCleanup  If true, will also call {@link #removeConnectionCleanup(StringConnection)}.
      */
-    public void removeConnection(StringConnection c)
+    public void removeConnection(final StringConnection c, final boolean doCleanup)
     {
         Object cKey = c.getData();  // client player name
         synchronized (unnamedConns)
@@ -598,9 +601,12 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 }
             }
         }
+
+        if (doCleanup)
+            removeConnectionCleanup(c);
     }
 
-    /** do cleanup after a remove connection */
+    /** Do cleanup after removing a connection. This is a generic stub that subclass servers can override. */
     protected void removeConnectionCleanup(StringConnection c) {}
 
     /**
@@ -619,7 +625,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *
      * @param c Connecting client; its key data ({@link StringConnection#getData()}) must not be null.
      * @see #nameConnection(StringConnection)
-     * @see #removeConnection(StringConnection)
+     * @see #removeConnection(StringConnection, boolean)
      */
     public void addConnection(StringConnection c)
     {
@@ -1199,7 +1205,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * This object represents one client-connect or disconnect
      * debug-print announcement within {@link Server#cliConnDisconPrintsPending}.
-     * When a client is {@link Server#removeConnection(StringConnection) removed}
+     * When a client is {@link Server#removeConnection(StringConnection, boolean) removed}
      * due to an error, the error message print is delayed briefly, in case the client
      * is doing a disconnect/reconnect (as some robot clients do).
      * This gives the server a chance to suppress the 2 left/rejoined messages if the
