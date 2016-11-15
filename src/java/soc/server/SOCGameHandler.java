@@ -67,7 +67,6 @@ import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.SOCAcceptOffer;
-import soc.message.SOCBankTrade;
 import soc.message.SOCBoardLayout;
 import soc.message.SOCBoardLayout2;
 import soc.message.SOCBoardSpecialEdge;
@@ -78,7 +77,6 @@ import soc.message.SOCChangeFace;
 import soc.message.SOCChoosePlayer;
 import soc.message.SOCChoosePlayerRequest;
 import soc.message.SOCClearOffer;
-import soc.message.SOCClearTradeMsg;
 import soc.message.SOCDebugFreePlace;
 import soc.message.SOCDevCardAction;
 import soc.message.SOCDevCardCount;
@@ -102,7 +100,6 @@ import soc.message.SOCLargestArmy;
 import soc.message.SOCLastSettlement;
 import soc.message.SOCLeaveGame;
 import soc.message.SOCLongestRoad;
-import soc.message.SOCMakeOffer;
 import soc.message.SOCMessage;
 import soc.message.SOCMonopolyPick;
 import soc.message.SOCMovePiece;
@@ -115,7 +112,6 @@ import soc.message.SOCPlayerElement;
 import soc.message.SOCPlayerStats;
 import soc.message.SOCPotentialSettlements;
 import soc.message.SOCPutPiece;
-import soc.message.SOCRejectOffer;
 import soc.message.SOCRemovePiece;
 import soc.message.SOCResetBoardReject;
 import soc.message.SOCRevealFogHex;
@@ -2359,7 +2355,7 @@ public class SOCGameHandler extends GameHandler
      *
      * @see #reportBankTrade(SOCGame, SOCResourceSet, SOCResourceSet)
      */
-    private void reportTrade(SOCGame ga, int offering, int accepting)
+    void reportTrade(SOCGame ga, int offering, int accepting)
     {
         final String gaName = ga.getName();
         final SOCTradeOffer offer = ga.getPlayer(offering).getCurrentOffer();
@@ -2383,7 +2379,7 @@ public class SOCGameHandler extends GameHandler
      *
      * @see #reportTrade(SOCGame, int, int)
      */
-    private void reportBankTrade(SOCGame ga, SOCResourceSet give, SOCResourceSet get)
+    void reportBankTrade(SOCGame ga, SOCResourceSet give, SOCResourceSet get)
     {
         final String gaName = ga.getName();
         final int    cpn    = ga.getCurrentPlayerNumber();
@@ -3533,247 +3529,6 @@ public class SOCGameHandler extends GameHandler
             }
         }
         catch (Throwable e)
-        {
-            D.ebugPrintStackTrace(e, "Exception caught");
-        }
-
-        ga.releaseMonitor();
-    }
-
-    /**
-     * handle "make offer" message.
-     *
-     * @param c  the connection that sent the message
-     * @param mes  the message
-     */
-    void handleMAKEOFFER(SOCGame ga, StringConnection c, final SOCMakeOffer mes)
-    {
-        final String gaName = ga.getName();
-        if (ga.isGameOptionSet("NT"))
-        {
-            srv.messageToPlayer(c, gaName, "Trading is not allowed in this game.");
-            return;  // <---- Early return: No Trading ----
-        }
-
-        ga.takeMonitor();
-
-        try
-        {
-            SOCTradeOffer offer = mes.getOffer();
-
-            /**
-             * remake the offer with data that we know is accurate,
-             * namely the 'from' datum
-             */
-            SOCPlayer player = ga.getPlayer((String) c.getData());
-
-            /**
-             * announce the offer, including text message similar to bank/port trade.
-             */
-            if (player != null)
-            {
-                SOCTradeOffer remadeOffer;
-                {
-                    SOCResourceSet offGive = offer.getGiveSet(),
-                                   offGet  = offer.getGetSet();
-                    remadeOffer = new SOCTradeOffer(gaName, player.getPlayerNumber(), offer.getTo(), offGive, offGet);
-                    player.setCurrentOffer(remadeOffer);
-
-                    srv.messageToGameKeyedSpecial(ga, true, "trade.offered.rsrcs.for",
-                        player.getName(), offGive, offGet);
-                        // "{0} made a trade offer to give {1,rsrcs} for {2,rsrcs}."
-                }
-
-                SOCMakeOffer makeOfferMessage = new SOCMakeOffer(gaName, remadeOffer);
-                srv.messageToGame(gaName, makeOfferMessage);
-
-                srv.recordGameEvent(gaName, makeOfferMessage.toCmd());
-
-                /**
-                 * clear all the trade messages because a new offer has been made
-                 */
-                srv.gameList.takeMonitorForGame(gaName);
-                if (ga.clientVersionLowest >= SOCClearTradeMsg.VERSION_FOR_CLEAR_ALL)
-                {
-                    srv.messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, -1));
-                } else {
-                    for (int i = 0; i < ga.maxPlayers; i++)
-                        srv.messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, i));
-                }
-                srv.gameList.releaseMonitorForGame(gaName);
-            }
-        }
-        catch (Exception e)
-        {
-            D.ebugPrintStackTrace(e, "Exception caught");
-        }
-
-        ga.releaseMonitor();
-    }
-
-    /**
-     * handle "clear offer" message.
-     *
-     * @param c  the connection that sent the message
-     * @param mes  the message
-     */
-    void handleCLEAROFFER(SOCGame ga, StringConnection c, final SOCClearOffer mes)
-    {
-        ga.takeMonitor();
-
-        try
-        {
-            final String gaName = ga.getName();
-            ga.getPlayer((String) c.getData()).setCurrentOffer(null);
-            srv.messageToGame(gaName, new SOCClearOffer(gaName, ga.getPlayer((String) c.getData()).getPlayerNumber()));
-            srv.recordGameEvent(mes.getGame(), mes.toCmd());
-
-            /**
-             * clear all the trade messages
-             */
-            srv.gameList.takeMonitorForGame(gaName);
-            if (ga.clientVersionLowest >= SOCClearTradeMsg.VERSION_FOR_CLEAR_ALL)
-            {
-                srv.messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, -1));
-            } else {
-                for (int i = 0; i < ga.maxPlayers; i++)
-                    srv.messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, i));
-            }
-            srv.gameList.releaseMonitorForGame(gaName);
-        }
-        catch (Exception e)
-        {
-            D.ebugPrintStackTrace(e, "Exception caught");
-        }
-
-        ga.releaseMonitor();
-    }
-
-    /**
-     * handle "reject offer" message.
-     *
-     * @param c  the connection that sent the message
-     * @param mes  the message
-     */
-    void handleREJECTOFFER(SOCGame ga, StringConnection c, final SOCRejectOffer mes)
-    {
-        SOCPlayer player = ga.getPlayer((String) c.getData());
-        if (player == null)
-            return;
-
-        final String gaName = ga.getName();
-        SOCRejectOffer rejectMessage = new SOCRejectOffer(gaName, player.getPlayerNumber());
-        srv.messageToGame(gaName, rejectMessage);
-
-        srv.recordGameEvent(gaName, rejectMessage.toCmd());
-    }
-
-    /**
-     * handle "accept offer" message.
-     *
-     * @param c  the connection that sent the message
-     * @param mes  the message
-     */
-    void handleACCEPTOFFER(SOCGame ga, StringConnection c, final SOCAcceptOffer mes)
-    {
-        ga.takeMonitor();
-
-        try
-        {
-            SOCPlayer player = ga.getPlayer((String) c.getData());
-
-            if (player != null)
-            {
-                final int acceptingNumber = player.getPlayerNumber();
-                final int offeringNumber = mes.getOfferingNumber();
-                final String gaName = ga.getName();
-
-                if (ga.canMakeTrade(offeringNumber, acceptingNumber))
-                {
-                    ga.makeTrade(offeringNumber, acceptingNumber);
-                    reportTrade(ga, offeringNumber, acceptingNumber);
-
-                    srv.recordGameEvent(mes.getGame(), mes.toCmd());
-
-                    /**
-                     * clear all offers
-                     */
-                    for (int i = 0; i < ga.maxPlayers; i++)
-                    {
-                        ga.getPlayer(i).setCurrentOffer(null);
-                    }
-                    srv.gameList.takeMonitorForGame(gaName);
-                    if (ga.clientVersionLowest >= SOCClearOffer.VERSION_FOR_CLEAR_ALL)
-                    {
-                        srv.messageToGameWithMon(gaName, new SOCClearOffer(gaName, -1));
-                    } else {
-                        for (int i = 0; i < ga.maxPlayers; i++)
-                            srv.messageToGameWithMon(gaName, new SOCClearOffer(gaName, i));
-                    }
-                    srv.gameList.releaseMonitorForGame(gaName);
-
-                    /**
-                     * send a message to the bots that the offer was accepted
-                     */
-                    srv.messageToGame(gaName, mes);
-                }
-                else
-                {
-                    srv.messageToPlayer(c, gaName, "You can't make that trade.");
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            D.ebugPrintStackTrace(e, "Exception caught");
-        }
-
-        ga.releaseMonitor();
-    }
-
-    /**
-     * handle "bank trade" message.
-     *
-     * @param c  the connection that sent the message
-     * @param mes  the message
-     */
-    void handleBANKTRADE(SOCGame ga, StringConnection c, final SOCBankTrade mes)
-    {
-        final String gaName = ga.getName();
-        final SOCResourceSet give = mes.getGiveSet(),
-            get = mes.getGetSet();
-
-        ga.takeMonitor();
-
-        try
-        {
-            if (checkTurn(c, ga))
-            {
-                if (ga.canMakeBankTrade(give, get))
-                {
-                    ga.makeBankTrade(give, get);
-                    reportBankTrade(ga, give, get);
-
-                    final int cpn = ga.getCurrentPlayerNumber();
-                    final SOCPlayer cpl = ga.getPlayer(cpn);
-                    if (cpl.isRobot())
-                        c.put(SOCSimpleAction.toCmd(gaName, cpn, SOCSimpleAction.TRADE_SUCCESSFUL, 0, 0));
-                }
-                else
-                {
-                    srv.messageToPlayer(c, gaName, "You can't make that trade.");
-                    SOCClientData scd = (SOCClientData) c.getAppData();
-                    if ((scd != null) && scd.isRobot)
-                        D.ebugPrintln("ILLEGAL BANK TRADE: " + c.getData()
-                          + ": give " + give + ", get " + get);
-                }
-            }
-            else
-            {
-                srv.messageToPlayer(c, gaName, "It's not your turn.");
-            }
-        }
-        catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception caught");
         }
