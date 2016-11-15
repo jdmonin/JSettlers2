@@ -354,7 +354,7 @@ public class SOCServerMessageHandler
      * @see #isUserDBUserAdmin(String, boolean)
      * @since 1.1.19
      */
-    void handleAUTHREQUEST(StringConnection c, final SOCAuthRequest mes)
+    private void handleAUTHREQUEST(StringConnection c, final SOCAuthRequest mes)
     {
         if (c == null)
             return;
@@ -424,7 +424,7 @@ public class SOCServerMessageHandler
      * to indicate client is actively responsive to server.
      * @since 1.1.08
      */
-    void handleSERVERPING(StringConnection c, SOCServerPing mes)
+    private void handleSERVERPING(StringConnection c, SOCServerPing mes)
     {
         SOCClientData cd = (SOCClientData) c.getAppData();
         if (cd == null)
@@ -438,7 +438,7 @@ public class SOCServerMessageHandler
      * Handle client request for localized i18n strings for game items.
      * Added 2015-01-14 for v2.0.00.
      */
-    void handleLOCALIZEDSTRINGS(final StringConnection c, final SOCLocalizedStrings mes)
+    private void handleLOCALIZEDSTRINGS(final StringConnection c, final SOCLocalizedStrings mes)
     {
         final List<String> str = mes.getParams();
         final String type = str.get(0);
@@ -490,7 +490,7 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    void handleJOIN(StringConnection c, SOCJoin mes)
+    private void handleJOIN(StringConnection c, SOCJoin mes)
     {
         if (c == null)
             return;
@@ -630,7 +630,7 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    void handleLEAVE(StringConnection c, SOCLeave mes)
+    private void handleLEAVE(StringConnection c, SOCLeave mes)
     {
         D.ebugPrintln("handleLEAVE: " + mes);
 
@@ -674,7 +674,7 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    void handleJOINGAME(StringConnection c, SOCJoinGame mes)
+    private void handleJOINGAME(StringConnection c, SOCJoinGame mes)
     {
         if (c == null)
             return;
