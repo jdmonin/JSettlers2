@@ -21,6 +21,9 @@
  **/
 package soc.server;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import soc.debug.D;
 import soc.message.SOCAuthRequest;
 import soc.message.SOCChangeFace;
@@ -44,6 +47,7 @@ import soc.message.SOCServerPing;
 import soc.message.SOCSetSeatLock;
 import soc.message.SOCSitDown;
 import soc.message.SOCStartGame;
+import soc.message.SOCStatusMessage;
 import soc.message.SOCTextMsg;
 import soc.message.SOCVersion;
 import soc.server.genericServer.StringConnection;
@@ -101,7 +105,7 @@ public class SOCServerMessageHandler
          * client's echo of a server ping
          */
         case SOCMessage.SERVERPING:
-            srv.handleSERVERPING(c, (SOCServerPing) mes);
+            handleSERVERPING(c, (SOCServerPing) mes);
             break;
 
         /**
@@ -116,7 +120,7 @@ public class SOCServerMessageHandler
          * or when connecting using {@code SOCAccountClient} (v1.1.19+).
          */
         case SOCMessage.AUTHREQUEST:
-            srv.handleAUTHREQUEST(c, (SOCAuthRequest) mes);
+            handleAUTHREQUEST(c, (SOCAuthRequest) mes);
             break;
 
         /**
@@ -207,7 +211,7 @@ public class SOCServerMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            srv.handleJOINGAME(c, (SOCJoinGame) mes);
+            handleJOINGAME(c, (SOCJoinGame) mes);
 
             //ga = (SOCGame)gamesData.get(((SOCJoinGame)mes).getGame());
             //if (ga != null) {
@@ -285,7 +289,7 @@ public class SOCServerMessageHandler
          * Added 2015-01-14 for v2.0.00.
          */
         case SOCMessage.LOCALIZEDSTRINGS:
-            srv.handleLOCALIZEDSTRINGS(c, (SOCLocalizedStrings) mes);
+            handleLOCALIZEDSTRINGS(c, (SOCLocalizedStrings) mes);
             break;
 
         /**
@@ -315,6 +319,179 @@ public class SOCServerMessageHandler
             break;
 
         }  // switch (mes.getType)
+    }
+
+
+    /// Accepting connections and authentication ///
+
+
+    /**
+     * Handle the optional {@link SOCAuthRequest "authentication request"} message.
+     * Sent by clients since v1.1.19 before creating a game or when connecting using {@code SOCAccountClient}.
+     *<P>
+     * If {@link StringConnection#getData() c.getData()} != {@code null}, the client already authenticated and
+     * this method replies with {@link SOCStatusMessage#SV_OK} without checking the password in this message.
+     *
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     * @see #isUserDBUserAdmin(String, boolean)
+     * @since 1.1.19
+     */
+    void handleAUTHREQUEST(StringConnection c, final SOCAuthRequest mes)
+    {
+        if (c == null)
+            return;
+
+        if (c.getData() == null)
+        {
+            final int cliVersion = c.getVersion();
+            if (cliVersion <= 0)
+            {
+                // unlikely: AUTHREQUEST was added in 1.1.19, version message timing was stable years earlier
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_NOT_OK_GENERIC, "AUTHREQUEST: Send version first"));  // I18N OK: rare error
+                return;
+            }
+
+            if (mes.authScheme != SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT)
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_NOT_OK_GENERIC, "AUTHREQUEST: Auth scheme unknown: " + mes.authScheme));
+                        // I18N OK: rare error
+                return;
+            }
+
+            // Check user authentication.  Don't call setData or nameConnection yet, in case
+            // of role-specific things to check and reject during this initial connection.
+            final String mesUser = mes.nickname.trim();  // trim here because we'll send it in messages to clients
+            final int authResult = srv.authOrRejectClientUser(c, mesUser, mes.password, cliVersion, false, false);
+
+            if (authResult == SOCServer.AUTH_OR_REJECT__FAILED)
+                return;  // <---- Early return; authOrRejectClientUser sent the status message ----
+
+            if (mes.role.equals(SOCAuthRequest.ROLE_USER_ADMIN))
+            {
+                // Check if we're using a user admin whitelist
+                if (! srv.isUserDBUserAdmin(mesUser, false))
+                {
+                    c.put(SOCStatusMessage.toCmd
+                            (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVersion,
+                             c.getLocalized("account.create.not_auth")));
+                                // "Your account is not authorized to create accounts."
+
+                    srv.printAuditMessage
+                        (mesUser,
+                         "Requested jsettlers account creation, this requester not on account admin whitelist",
+                         null, null, c.host());
+
+                    return;
+                }
+            }
+
+            // no role-specific problems: complete the authentication
+            c.setData(mesUser);
+            srv.nameConnection(c, false);
+        }
+
+        c.put(SOCStatusMessage.toCmd
+                (SOCStatusMessage.SV_OK, c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
+    }
+
+
+    /// Communications with authenticated clients ///
+
+
+    /**
+     * Handle the client's echo of a {@link SOCMessage#SERVERPING}.
+     * Resets its {@link SOCClientData#disconnectLastPingMillis} to 0
+     * to indicate client is actively responsive to server.
+     * @since 1.1.08
+     */
+    void handleSERVERPING(StringConnection c, SOCServerPing mes)
+    {
+        SOCClientData cd = (SOCClientData) c.getAppData();
+        if (cd == null)
+            return;
+        cd.disconnectLastPingMillis = 0;
+
+        // TODO any other reaction or flags?
+    }
+
+    /**
+     * Handle client request for localized i18n strings for game items.
+     * Added 2015-01-14 for v2.0.00.
+     */
+    void handleLOCALIZEDSTRINGS(final StringConnection c, final SOCLocalizedStrings mes)
+    {
+        final List<String> str = mes.getParams();
+        final String type = str.get(0);
+        List<String> rets = null;  // for reply to client; built in localizeGameScenarios or other type-specific method
+        int flags = 0;
+
+        if (type.equals(SOCLocalizedStrings.TYPE_GAMEOPT))
+        {
+            // Already handled when client connects
+            flags = SOCLocalizedStrings.FLAG_SENT_ALL;
+        }
+        else if (type.equals(SOCLocalizedStrings.TYPE_SCENARIO))
+        {
+            // Handle individual scenario keys; ignores FLAG_REQ_ALL
+
+            final SOCClientData scd = (SOCClientData) c.getAppData();
+            if (SOCServer.clientHasLocalizedStrs_gameScenarios(c))
+            {
+                rets = SOCServer.localizeGameScenarios(scd.locale, str, true, scd);
+            } else {
+                flags = SOCLocalizedStrings.FLAG_SENT_ALL;
+                scd.sentAllScenarioStrings = true;
+            }
+        }
+        else
+        {
+            // Unrecognized string type
+            flags = SOCLocalizedStrings.FLAG_TYPE_UNKNOWN;
+        }
+
+        if (rets == null)
+            rets = new ArrayList<String>();
+        c.put(SOCLocalizedStrings.toCmd(type, flags, rets));
+    }
+
+
+    /// Game lifecycle ///
+
+
+    /**
+     * Handle the "join a game" message: Join or create a game.
+     * Will join the game, or return a STATUSMESSAGE if nickname is not OK.
+     * Clients can join game as an observer, if they don't SITDOWN after joining.
+     *<P>
+     * If client hasn't yet sent its version, assume is version 1.0.00
+     * ({@link SOCServer#CLI_VERSION_ASSUMED_GUESS CLI_VERSION_ASSUMED_GUESS}), disconnect if too low.
+     * If the client is too old to join a specific game, return a STATUSMESSAGE (since 1.1.06).
+     *
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     * @since 1.0.0
+     */
+    void handleJOINGAME(StringConnection c, SOCJoinGame mes)
+    {
+        if (c == null)
+            return;
+
+        D.ebugPrintln("handleJOINGAME: " + mes);
+
+        /**
+         * Check the client's reported version; if none, assume 1000 (1.0.00)
+         */
+        if (c.getVersion() == -1)
+        {
+            if (! srv.setClientVersSendGamesOrReject(c, SOCServer.CLI_VERSION_ASSUMED_GUESS, null, false))
+                return;  // <--- Early return: Client too old ---
+        }
+
+        srv.createOrJoinGameIfUserOK
+            (c, mes.getNickname(), mes.getPassword(), mes.getGame(), null);
     }
 
 }

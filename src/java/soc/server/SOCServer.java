@@ -473,19 +473,19 @@ public class SOCServer extends Server
      *  connection hasn't timed out yet
      *  @since 1.1.19
      */
-    private static final int AUTH_OR_REJECT__FAILED = 1;
+    static final int AUTH_OR_REJECT__FAILED = 1;
 
     /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
      *  result: Authentication succeeded
      *  @since 1.1.19
      */
-    private static final int AUTH_OR_REJECT__OK = 2;
+    static final int AUTH_OR_REJECT__OK = 2;
 
     /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
      *  result: Authentication succeeded, is taking over another connection
      *  @since 1.1.19
      */
-    private static final int AUTH_OR_REJECT__TAKING_OVER = 3;
+    static final int AUTH_OR_REJECT__TAKING_OVER = 3;
 
     /**
      * So we can get random numbers.
@@ -3757,7 +3757,7 @@ public class SOCServer extends Server
      *          or if nameConnection has previously been called for this connection.
      * @since 1.1.08
      */
-    private void nameConnection(StringConnection c, boolean isReplacing)
+    void nameConnection(StringConnection c, boolean isReplacing)
         throws IllegalArgumentException
     {
         StringConnection oldConn = null;
@@ -4524,7 +4524,7 @@ public class SOCServer extends Server
      *     {@link #AUTH_OR_REJECT__OK}, or (only if {@code allowTakeover}) {@link #AUTH_OR_REJECT__TAKING_OVER}
      * @since 1.1.19
      */
-    private int authOrRejectClientUser
+    int authOrRejectClientUser
         (StringConnection c, String msgUser, String msgPass, final int cliVers,
          final boolean doNameConnection, final boolean allowTakeover)
     {
@@ -4703,7 +4703,7 @@ public class SOCServer extends Server
      * @return  True only if the user is on the whitelist, or there is no list and {@code requireList} is false
      * @since 1.1.20
      */
-    private boolean isUserDBUserAdmin(final String uname, final boolean requireList)
+    boolean isUserDBUserAdmin(final String uname, final boolean requireList)
     {
         if (uname == null)
             return false;
@@ -4714,22 +4714,6 @@ public class SOCServer extends Server
             return ! requireList;
         else
             return databaseUserAdmins.contains(uname);
-    }
-
-    /**
-     * Handle the client's echo of a {@link SOCMessage#SERVERPING}.
-     * Resets its {@link SOCClientData#disconnectLastPingMillis} to 0
-     * to indicate client is actively responsive to server.
-     * @since 1.1.08
-     */
-    void handleSERVERPING(StringConnection c, SOCServerPing mes)
-    {
-        SOCClientData cd = (SOCClientData) c.getAppData();
-        if (cd == null)
-            return;
-        cd.disconnectLastPingMillis = 0;
-
-        // TODO any other reaction or flags?
     }
 
     /**
@@ -5602,109 +5586,6 @@ public class SOCServer extends Server
     }
 
     /**
-     * Handle the optional {@link SOCAuthRequest "authentication request"} message.
-     * Sent by clients since v1.1.19 before creating a game or when connecting using {@code SOCAccountClient}.
-     *<P>
-     * If {@link StringConnection#getData() c.getData()} != {@code null}, the client already authenticated and
-     * this method replies with {@link SOCStatusMessage#SV_OK} without checking the password in this message.
-     *
-     * @param c  the connection that sent the message
-     * @param mes  the message
-     * @see #isUserDBUserAdmin(String, boolean)
-     * @since 1.1.19
-     */
-    void handleAUTHREQUEST(StringConnection c, final SOCAuthRequest mes)
-    {
-        if (c == null)
-            return;
-
-        if (c.getData() == null)
-        {
-            final int cliVersion = c.getVersion();
-            if (cliVersion <= 0)
-            {
-                // unlikely: AUTHREQUEST was added in 1.1.19, version message timing was stable years earlier
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NOT_OK_GENERIC, "AUTHREQUEST: Send version first"));  // I18N OK: rare error
-                return;
-            }
-
-            if (mes.authScheme != SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT)
-            {
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NOT_OK_GENERIC, "AUTHREQUEST: Auth scheme unknown: " + mes.authScheme));
-                        // I18N OK: rare error
-                return;
-            }
-
-            // Check user authentication.  Don't call setData or nameConnection yet, in case
-            // of role-specific things to check and reject during this initial connection.
-            final String mesUser = mes.nickname.trim();  // trim here because we'll send it in messages to clients
-            final int authResult = authOrRejectClientUser(c, mesUser, mes.password, cliVersion, false, false);
-
-            if (authResult == AUTH_OR_REJECT__FAILED)
-                return;  // <---- Early return; authOrRejectClientUser sent the status message ----
-
-            if (mes.role.equals(SOCAuthRequest.ROLE_USER_ADMIN))
-            {
-                // Check if we're using a user admin whitelist
-                if (! isUserDBUserAdmin(mesUser, false))
-                {
-                    c.put(SOCStatusMessage.toCmd
-                            (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVersion,
-                             c.getLocalized("account.create.not_auth")));
-                                // "Your account is not authorized to create accounts."
-
-                    printAuditMessage
-                        (mesUser,
-                         "Requested jsettlers account creation, this requester not on account admin whitelist",
-                         null, null, c.host());
-
-                    return;
-                }
-            }
-
-            // no role-specific problems: complete the authentication
-            c.setData(mesUser);
-            nameConnection(c, false);
-        }
-
-        c.put(SOCStatusMessage.toCmd
-                (SOCStatusMessage.SV_OK, c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
-    }
-
-    /**
-     * Handle the "join a game" message: Join or create a game.
-     * Will join the game, or return a STATUSMESSAGE if nickname is not OK.
-     * Clients can join game as an observer, if they don't SITDOWN after joining.
-     *<P>
-     * If client hasn't yet sent its version, assume is version 1.0.00 ({@link #CLI_VERSION_ASSUMED_GUESS}), disconnect if too low.
-     * If the client is too old to join a specific game, return a STATUSMESSAGE. (since 1.1.06)
-     *
-     * @param c  the connection that sent the message
-     * @param mes  the message
-     */
-    void handleJOINGAME(StringConnection c, SOCJoinGame mes)
-    {
-        if (c == null)
-            return;
-
-        D.ebugPrintln("handleJOINGAME: " + mes);
-
-        /**
-         * Check the client's reported version; if none, assume 1000 (1.0.00)
-         */
-        if (c.getVersion() == -1)
-        {
-            if (! setClientVersSendGamesOrReject(c, CLI_VERSION_ASSUMED_GUESS, null, false))
-                return;  // <--- Early return: Client too old ---
-        }
-
-        createOrJoinGameIfUserOK
-            (c, mes.getNickname(), mes.getPassword(), mes.getGame(), null);
-    }
-
-    /**
      * Check username/password and create new game, or join game.
      * Called by handleJOINGAME and handleNEWGAMEWITHOPTIONSREQUEST.
      * JOINGAME or NEWGAMEWITHOPTIONSREQUEST may be the first message with the
@@ -5756,7 +5637,7 @@ public class SOCServer extends Server
      *
      * @since 1.1.07
      */
-    private void createOrJoinGameIfUserOK
+    void createOrJoinGameIfUserOK
         (StringConnection c, String msgUser, String msgPass,
          String gameName, Map<String, SOCGameOption> gameOpts)
     {
@@ -7004,46 +6885,6 @@ public class SOCServer extends Server
         }
 
         return rets;
-    }
-
-    /**
-     * Handle client request for localized i18n strings for game items.
-     * Added 2015-01-14 for v2.0.00.
-     */
-    void handleLOCALIZEDSTRINGS(final StringConnection c, final SOCLocalizedStrings mes)
-    {
-        final List<String> str = mes.getParams();
-        final String type = str.get(0);
-        List<String> rets = null;  // for reply to client; built in localizeGameScenarios or other type-specific method
-        int flags = 0;
-
-        if (type.equals(SOCLocalizedStrings.TYPE_GAMEOPT))
-        {
-            // Already handled when client connects
-            flags = SOCLocalizedStrings.FLAG_SENT_ALL;
-        }
-        else if (type.equals(SOCLocalizedStrings.TYPE_SCENARIO))
-        {
-            // Handle individual scenario keys; ignores FLAG_REQ_ALL
-
-            final SOCClientData scd = (SOCClientData) c.getAppData();
-            if (clientHasLocalizedStrs_gameScenarios(c))
-            {
-                rets = localizeGameScenarios(scd.locale, str, true, scd);
-            } else {
-                flags = SOCLocalizedStrings.FLAG_SENT_ALL;
-                scd.sentAllScenarioStrings = true;
-            }
-        }
-        else
-        {
-            // Unrecognized string type
-            flags = SOCLocalizedStrings.FLAG_TYPE_UNKNOWN;
-        }
-
-        if (rets == null)
-            rets = new ArrayList<String>();
-        c.put(SOCLocalizedStrings.toCmd(type, flags, rets));
     }
 
     /**
@@ -9149,7 +8990,7 @@ public class SOCServer extends Server
      * @param reqHost  Requester client's hostname, from {@link StringConnection#host()}
      * @since 1.1.20
      */
-    private void printAuditMessage
+    void printAuditMessage
         (final String req, final String msg, final String obj, Date at, final String reqHost)
     {
         if (at == null)
