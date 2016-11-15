@@ -83,7 +83,6 @@ import soc.message.SOCDebugFreePlace;
 import soc.message.SOCDevCardAction;
 import soc.message.SOCDevCardCount;
 import soc.message.SOCDiceResult;
-import soc.message.SOCDiceResultResources;
 import soc.message.SOCDiscard;
 import soc.message.SOCDiscardRequest;
 import soc.message.SOCDiscoveryPick;
@@ -109,7 +108,6 @@ import soc.message.SOCMonopolyPick;
 import soc.message.SOCMovePiece;
 import soc.message.SOCMovePieceRequest;
 import soc.message.SOCMoveRobber;
-import soc.message.SOCPickResources;
 import soc.message.SOCPickResourcesRequest;
 import soc.message.SOCPieceValue;
 import soc.message.SOCPlayDevCardRequest;
@@ -120,7 +118,6 @@ import soc.message.SOCPutPiece;
 import soc.message.SOCRejectOffer;
 import soc.message.SOCRemovePiece;
 import soc.message.SOCResetBoardReject;
-import soc.message.SOCResourceCount;
 import soc.message.SOCRevealFogHex;
 import soc.message.SOCRollDice;
 import soc.message.SOCRollDicePrompt;
@@ -144,7 +141,8 @@ import soc.util.Version;
 /**
  * Server class to handle game-specific actions and messages for the SoC game type.
  * Inbound-message handler methods are called from {@link SOCGameMessageHandler}
- * and will be moved there soon.
+ * and will be moved there soon. Use {@link #getMessageHandler()} to obtain this
+ * game handler's message handler.
  *<P>
  * Before v2.0.00, these methods and fields were part of {@link SOCServer}.
  * So, some may have {@code @since} javadoc labels with versions older than 2.0.00.
@@ -242,7 +240,7 @@ public class SOCGameHandler extends GameHandler
     public SOCGameHandler(final SOCServer server)
     {
         super(server);
-        gameMessageHandler = new SOCGameMessageHandler(this);
+        gameMessageHandler = new SOCGameMessageHandler(server, this);
     }
 
     // javadoc inherited from GameHandler
@@ -515,7 +513,7 @@ public class SOCGameHandler extends GameHandler
      * @return true if it is the player's turn;
      *         false if another player's turn, or if this player isn't in the game
      */
-    private final boolean checkTurn(StringConnection c, SOCGame ga)
+    final boolean checkTurn(StringConnection c, SOCGame ga)
     {
         if ((c == null) || (ga == null))
             return false;
@@ -561,7 +559,7 @@ public class SOCGameHandler extends GameHandler
      *           because it was called before calling this method.
      *           If false, be sure to set {@code pl} to the player whose turn it was before {@code endTurn()} was called.
      */
-    private void endGameTurn(SOCGame ga, SOCPlayer pl, final boolean callEndTurn)
+    void endGameTurn(SOCGame ga, SOCPlayer pl, final boolean callEndTurn)
     {
         final String gname = ga.getName();
 
@@ -1333,7 +1331,7 @@ public class SOCGameHandler extends GameHandler
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception in handleJOINGAME (gameMembers) - " + e);
+            D.ebugPrintln("Exception in SGH.joinGame (gameMembers) - " + e);
         }
 
         srv.gameList.releaseMonitorForGame(gameName);
@@ -1828,7 +1826,7 @@ public class SOCGameHandler extends GameHandler
      *
      * @param ga  the game
      */
-    private void sendGameState(SOCGame ga)
+    void sendGameState(SOCGame ga)
     {
         sendGameState(ga, true);
     }
@@ -1876,7 +1874,7 @@ public class SOCGameHandler extends GameHandler
      * @return    did we send a text message to prompt the player to roll?
      *    If so, sendTurn can also send a RollDicePrompt data message.
      */
-    private boolean sendGameState(SOCGame ga, boolean sendRollPrompt)
+    boolean sendGameState(SOCGame ga, boolean sendRollPrompt)
     {
         if (ga == null)
             return false;
@@ -2034,7 +2032,7 @@ public class SOCGameHandler extends GameHandler
      *                   In scenario SC_PIRI, is used to avoid announcing twice for a pick from victory against pirate fleet.
      * @since 2.0.00
      */
-    private final void sendGameState_sendGoldPickAnnounceText
+    final void sendGameState_sendGoldPickAnnounceText
         (SOCGame ga, final String gname, StringConnection playerCon, SOCGame.RollResult roll)
     {
         final int ignoreRollPirateVictory;
@@ -2443,7 +2441,7 @@ public class SOCGameHandler extends GameHandler
      * @see #handleDISCOVERYPICK(SOCGame, StringConnection, SOCDiscoveryPick)
      * @see #handleROLLDICE(SOCGame, StringConnection, SOCRollDice)
      */
-    private void reportRsrcGainLoss
+    void reportRsrcGainLoss
         (final String gaName, final SOCResourceSet rset, final boolean isLoss, final int mainPlayer, final int tradingPlayer,
          StringBuffer message, StringConnection playerConn)
     {
@@ -2493,7 +2491,7 @@ public class SOCGameHandler extends GameHandler
      * @param includeGoldHexText  If true, text ends with "from the gold hex." after the resource name.
      * @since 2.0.00
      */
-    private void reportRsrcGainGold
+    void reportRsrcGainGold
         (final SOCGame ga, final SOCPlayer player, final int pn, final SOCResourceSet rsrcs,
          final boolean includeGoldHexText)
     {
@@ -2680,7 +2678,7 @@ public class SOCGameHandler extends GameHandler
      * @param ga  the game
      * @param sendRollPrompt  whether to send a RollDicePrompt message afterwards
      */
-    private void sendTurn(final SOCGame ga, final boolean sendRollPrompt)
+    void sendTurn(final SOCGame ga, final boolean sendRollPrompt)
     {
         if (ga == null)
             return;
@@ -3186,555 +3184,6 @@ public class SOCGameHandler extends GameHandler
         ga.releaseMonitor();
     }
 
-    /**
-     * handle "roll dice" message.
-     *
-     * @param c  the connection that sent the message
-     * @param mes  the message
-     */
-    void handleROLLDICE(SOCGame ga, StringConnection c, final SOCRollDice mes)
-    {
-        final String gn = ga.getName();
-
-        ga.takeMonitor();
-
-        try
-        {
-            final String plName = (String) c.getData();
-            final SOCPlayer pl = ga.getPlayer(plName);
-            if ((pl != null) && ga.canRollDice(pl.getPlayerNumber()))
-            {
-                /**
-                 * Roll dice, distribute resources in game
-                 */
-                SOCGame.RollResult roll = ga.rollDice();
-
-                /**
-                 * Send roll results and then text to client.
-                 * Note that only the total is sent, not the 2 individual dice.
-                 * (Only the _SC_PIRI scenario cares about them indivdually, and
-                 * in that case it prints the result when needed.)
-                 *
-                 * If a 7 is rolled, sendGameState will also say who must discard
-                 * (in a GAMETEXTMSG).
-                 * If a gold hex is rolled, sendGameState will also say who
-                 * must pick resources to gain (in a GAMETEXTMSG).
-                 */
-                srv.messageToGame(gn, new SOCDiceResult(gn, ga.getCurrentDice()));
-                if (ga.clientVersionLowest < SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD)
-                {
-                    // backwards-compat: this text message is redundant to v2.0.00 and newer clients
-                    // because they print the roll results from SOCDiceResult.  Use SOCGameTextMsg
-                    // because pre-2.0.00 clients don't understand SOCGameServerText messages.
-                    srv.messageToGameForVersions(ga, 0, SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD - 1,
-                        new SOCGameTextMsg
-                            (gn, SOCGameTextMsg.SERVERNAME, plName + " rolled a " + roll.diceA + " and a " + roll.diceB + "."), // I18N
-                        true);
-                }
-                sendGameState(ga);  // For 7, give visual feedback before sending discard request
-
-                if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
-                {
-                    // pirate moves on every roll
-                    srv.messageToGame(gn, new SOCMoveRobber
-                        (gn, ga.getCurrentPlayerNumber(), -( ((SOCBoardLarge) ga.getBoard()).getPirateHex() )));
-
-                    if (roll.sc_piri_fleetAttackVictim != null)
-                    {
-                        final SOCResourceSet loot = roll.sc_piri_fleetAttackRsrcs;
-                        final int lootTotal = (loot != null) ? loot.getTotal() : 0;
-                        if (lootTotal != 0)
-                        {
-                            // use same resource-loss messages sent in handleDISCARD
-
-                            final boolean won = (loot.contains(SOCResourceConstants.GOLD_LOCAL));
-                            SOCPlayer vic = roll.sc_piri_fleetAttackVictim;
-                            final String vicName = vic.getName();
-                            final StringConnection vCon = srv.getConnection(vicName);
-                            final int pn = vic.getPlayerNumber();
-                            final int strength = (roll.diceA < roll.diceB) ? roll.diceA : roll.diceB;
-
-                            if (won)
-                            {
-                                srv.messageToGameKeyed
-                                    (ga, true, "action.rolled.sc_piri.player.won.pick.free", vicName, strength);
-                                    // "{0} won against the pirate fleet (strength {1}) and will pick a free resource."
-                            } else {
-                                /**
-                                 * tell the victim client that the player lost the resources
-                                 */
-                                reportRsrcGainLoss(gn, loot, true, pn, -1, null, vCon);
-                                srv.messageToPlayerKeyedSpecial
-                                    (vCon, ga, "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
-                                    // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
-
-                                /**
-                                 * tell everyone else that the player lost unknown resources
-                                 */
-                                srv.messageToGameExcept(gn, vCon, new SOCPlayerElement
-                                    (gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, lootTotal), true);
-                                srv.messageToGameKeyedSpecialExcept(ga, true, vCon,
-                                    "action.rolled.sc_piri.player.lost.rsrcs.to.fleet", vicName, lootTotal, strength);
-                                    // "Joe lost 1 resource to pirate fleet attack (strength 3)." or
-                                    // "Joe lost 3 resources to pirate fleet attack (strength 3)."
-                            }
-                        }
-                    }
-                }
-
-                /**
-                 * if the roll is not 7, tell players what they got
-                 * (if 7, sendGameState already told them what they lost).
-                 */
-                if (ga.getCurrentDice() != 7)
-                {
-                    boolean noPlayersGained = true;
-                    boolean[] plGained = new boolean[SOCGame.MAXPLAYERS];  // send total rsrcs only to players who gain
-
-                    /**
-                     * Clients v2.0.00 and newer get an i18n-neutral SOCDiceResultResources message.
-                     * Older clients get a string such as "Joe gets 3 sheep. Mike gets 1 clay."
-                     */
-                    String rollRsrcOldCli = null;
-                    SOCDiceResultResources rollRsrcNewCli = null;
-
-                    if (ga.clientVersionHighest >= SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
-                    {
-                        // build a SOCDiceResultResources message
-                        ArrayList<Integer> pnum = null;
-                        ArrayList<SOCResourceSet> rsrc = null;
-
-                        for (int i = 0; i < ga.maxPlayers; i++)
-                        {
-                            if (ga.isSeatVacant(i))
-                                continue;
-
-                            final SOCPlayer pli = ga.getPlayer(i);
-                            final SOCResourceSet rs = pli.getRolledResources();
-                            if (rs.getKnownTotal() == 0)
-                                continue;
-
-                            plGained[i] = true;
-                            if (noPlayersGained)
-                            {
-                                noPlayersGained = false;
-                                pnum = new ArrayList<Integer>();
-                                rsrc = new ArrayList<SOCResourceSet>();
-                            }
-                            pnum.add(Integer.valueOf(i));
-                            rsrc.add(rs);
-                        }
-
-                        if (! noPlayersGained)
-                            rollRsrcNewCli = new SOCDiceResultResources(gn, pnum, rsrc);
-                    }
-
-                    if (ga.clientVersionLowest < SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
-                    {
-                        // Build a string
-                    StringBuffer gainsText = new StringBuffer();
-
-                    noPlayersGained = true;  // for string spacing; might be false due to loop for new clients in game
-                    for (int i = 0; i < ga.maxPlayers; i++)
-                    {
-                        if (! ga.isSeatVacant(i))
-                        {
-                            SOCPlayer pli = ga.getPlayer(i);
-                            SOCResourceSet rsrcs = pli.getRolledResources();
-
-                            if (rsrcs.getKnownTotal() != 0)
-                            {
-                                plGained[i] = true;
-                                if (noPlayersGained)
-                                    noPlayersGained = false;
-                                else
-                                    gainsText.append(" ");
-
-                                gainsText.append
-                                    (c.getLocalizedSpecial(ga, "_nolocaliz.roll.gets.resources", pli.getName(), rsrcs));
-                                    // "{0} gets {1,rsrcs}."
-                                    // get it from any connection's StringManager, because that string is never localized
-
-                                // Announce SOCPlayerElement.GAIN messages
-                                reportRsrcGainLoss(gn, rsrcs, false, i, -1, null, null);
-                            }
-
-                        }  // if (! ga.isSeatVacant(i))
-                    }  // for (i)
-
-                    if (! noPlayersGained)
-                        rollRsrcOldCli = gainsText.toString();
-
-                    }
-
-                    if (noPlayersGained)
-                    {
-                        String key;
-                        if (roll.cloth == null)
-                            key = "action.rolled.no.player.gets.anything";  // "No player gets anything."
-                        else
-                            key = "action.rolled.no.player.gets.resources";  // "No player gets resources."
-                        // debug_printPieceDiceNumbers(ga, message);
-                        srv.messageToGameKeyed(ga, true, key);
-                    } else {
-                        if (rollRsrcOldCli == null)
-                            srv.messageToGame(gn, rollRsrcNewCli);
-                        else if (rollRsrcNewCli == null)
-                            srv.messageToGame(gn, rollRsrcOldCli);
-                        else
-                        {
-                            // neither is null: we have old and new clients
-                            srv.messageToGameForVersions(ga, 0, (SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES - 1),
-                                new SOCGameTextMsg(gn, SOCGameTextMsg.SERVERNAME, rollRsrcOldCli), true);
-                            srv.messageToGameForVersions(ga, SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES, Integer.MAX_VALUE,
-                                rollRsrcNewCli, true);
-                        }
-
-                        //
-                        //  Send gaining players all their resource info for accuracy
-                        //
-                        for (int pn = 0; pn < ga.maxPlayers; ++pn)
-                        {
-                            if (! plGained[pn])
-                                continue;  // skip if player didn't gain; before v2.0.00, each player in game got these
-
-                            final SOCPlayer pli = ga.getPlayer(pn);
-                            StringConnection playerCon = srv.getConnection(pli.getName());
-                            if (playerCon == null)
-                                continue;
-
-                            // CLAY, ORE, SHEEP, WHEAT, WOOD
-                            final SOCResourceSet resources = pli.getResources();
-                            for (int res = SOCPlayerElement.CLAY; res <= SOCPlayerElement.WOOD; ++res)
-                                srv.messageToPlayer(playerCon, new SOCPlayerElement(gn, pn, SOCPlayerElement.SET, res, resources.getAmount(res)));
-                            srv.messageToGame(gn, new SOCResourceCount(gn, pn, resources.getTotal()));
-
-                            // we'll send gold picks text, PLAYERELEMENT, and PICKRESOURCESREQUEST after the per-player loop
-                        }
-                    }
-
-                    if (roll.cloth != null)
-                    {
-                        // Send village cloth trade distribution
-
-                        final int coord = roll.cloth[1];
-                        final SOCBoardLarge board = (SOCBoardLarge) (ga.getBoard());
-                        SOCVillage vi = board.getVillageAtNode(coord);
-                        if (vi != null)
-                            srv.messageToGame(gn, new SOCPieceValue(gn, coord, vi.getCloth(), 0));
-
-                        if (roll.cloth[0] > 0)
-                            // some taken from board general supply
-                            srv.messageToGame(gn, new SOCPlayerElement
-                                (gn, -1, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, board.getCloth()));
-
-                        String clplName = null;   // name of first player to receive cloth
-                        ArrayList<String> clpls = null;  // names of all players receiving cloth, if more than one
-                        for (int i = 2; i < roll.cloth.length; ++i)
-                        {
-                            if (roll.cloth[i] == 0)
-                                continue;  // this player didn't receive cloth
-
-                            final int pn = i - 2;
-                            final SOCPlayer clpl = ga.getPlayer(pn);
-                            srv.messageToGame(gn, new SOCPlayerElement
-                                (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, clpl.getCloth()));
-
-                            if (clplName == null)
-                            {
-                                // first pl to receive cloth
-                                clplName = clpl.getName();
-                            } else {
-                                // second or further player
-                                if (clpls == null)
-                                {
-                                    clpls = new ArrayList<String>();
-                                    clpls.add(clplName);
-                                }
-                                clpls.add(clpl.getName());
-                            }
-                        }
-
-                        if (clpls == null)
-                            srv.messageToGameKeyed(ga, true, "action.rolled.sc_clvi.received.cloth.1", clplName);
-                                // "{0} received 1 cloth from a village."
-                        else
-                            srv.messageToGameKeyedSpecial(ga, true, "action.rolled.sc_clvi.received.cloth.n", clpls);
-                                // "{0,list} each received 1 cloth from a village."
-                    }
-
-                    if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
-                        // gold picks text, PLAYERELEMENT, and PICKRESOURCESREQUESTs
-                        sendGameState_sendGoldPickAnnounceText(ga, gn, null, roll);
-
-                    /*
-                       if (D.ebugOn) {
-                       for (int i=0; i < SOCGame.MAXPLAYERS; i++) {
-                       SOCResourceSet rsrcs = ga.getPlayer(i).getResources();
-                       String resourceMessage = "PLAYER "+i+" RESOURCES: ";
-                       resourceMessage += rsrcs.getAmount(SOCResourceConstants.CLAY)+" ";
-                       resourceMessage += rsrcs.getAmount(SOCResourceConstants.ORE)+" ";
-                       resourceMessage += rsrcs.getAmount(SOCResourceConstants.SHEEP)+" ";
-                       resourceMessage += rsrcs.getAmount(SOCResourceConstants.WHEAT)+" ";
-                       resourceMessage += rsrcs.getAmount(SOCResourceConstants.WOOD)+" ";
-                       resourceMessage += rsrcs.getAmount(SOCResourceConstants.UNKNOWN)+" ";
-                       messageToGame(gn, new SOCGameTextMsg(gn, SERVERNAME, resourceMessage));
-                       }
-                       }
-                     */
-                }
-                else
-                {
-                    /**
-                     * player rolled 7
-                     * If anyone needs to discard, prompt them.
-                     */
-                    if (ga.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
-                    {
-                        for (int i = 0; i < ga.maxPlayers; i++)
-                        {
-                            final SOCPlayer ipl = ga.getPlayer(i);
-                            if (( ! ga.isSeatVacant(i)) && ipl.getNeedToDiscard())
-                            {
-                                // Request to discard half (round down)
-                                StringConnection con = srv.getConnection(ipl.getName());
-                                if (con != null)
-                                    con.put(SOCDiscardRequest.toCmd(gn, ipl.getResources().getTotal() / 2));
-                            }
-                        }
-                    }
-                    else if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
-                    {
-                        // Used in _SC_PIRI, when 7 is rolled and a player wins against the pirate fleet
-                        for (int i = 0; i < ga.maxPlayers; ++i)
-                        {
-                            final SOCPlayer ipl = ga.getPlayer(i);
-                            final int numPick = ipl.getNeedToPickGoldHexResources();
-                            if (( ! ga.isSeatVacant(i)) && (numPick > 0))
-                            {
-                                StringConnection con = srv.getConnection(ipl.getName());
-                                if (con != null)
-                                {
-                                    srv.messageToGame(gn, new SOCPlayerElement
-                                        (gn, i, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
-                                    con.put(SOCPickResourcesRequest.toCmd(gn, numPick));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                srv.messageToPlayer(c, gn, "You can't roll right now.");
-            }
-        }
-        catch (Exception e)
-        {
-            D.ebugPrintStackTrace(e, "Exception caught at handleROLLDICE" + e);
-        }
-
-        ga.releaseMonitor();
-    }
-
-    /**
-     * handle "discard" message.
-     *
-     * @param c  the connection that sent the message
-     * @param mes  the message
-     */
-    void handleDISCARD(SOCGame ga, StringConnection c, final SOCDiscard mes)
-    {
-        final String gn = ga.getName();
-        final SOCPlayer player = ga.getPlayer((String) c.getData());
-        final int pn;
-        if (player != null)
-            pn = player.getPlayerNumber();
-        else
-            pn = -1;  // c's client no longer in the game
-
-        ga.takeMonitor();
-        try
-        {
-            if (player == null)
-            {
-                // The catch block will print this out semi-nicely
-                throw new IllegalArgumentException("player not found in game");
-            }
-
-            if (ga.canDiscard(pn, mes.getResources()))
-            {
-                ga.discard(pn, mes.getResources());  // discard, change gameState
-
-                // Same resource-loss messages are sent in handleROLLDICE after a pirate fleet attack (_SC_PIRI).
-
-                /**
-                 * tell the player client that the player discarded the resources
-                 */
-                reportRsrcGainLoss(gn, mes.getResources(), true, pn, -1, null, c);
-
-                /**
-                 * tell everyone else that the player discarded unknown resources
-                 */
-                srv.messageToGameExcept(gn, c, new SOCPlayerElement(gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, mes.getResources().getTotal()), true);
-                srv.messageToGameKeyed(ga, true, "action.discarded", (String) c.getData(), mes.getResources().getTotal());
-                    // "{0} discarded {1} resources."
-
-                /**
-                 * send the new state, or end turn if was marked earlier as forced
-                 */
-                if ((ga.getGameState() != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
-                {
-                    sendGameState(ga);
-                        // if state is WAITING_FOR_ROB_CHOOSE_PLAYER (_SC_PIRI), also sends CHOOSEPLAYERREQUEST
-                } else {
-                    endGameTurn(ga, player, true);  // already did ga.takeMonitor()
-                }
-            }
-            else
-            {
-                /**
-                 * (TODO) there could be a better feedback message here
-                 */
-                srv.messageToPlayer(c, gn, "You can't discard that many cards.");
-            }
-        }
-        catch (Throwable e)
-        {
-            D.ebugPrintStackTrace(e, "Exception caught");
-        }
-
-        ga.releaseMonitor();
-    }
-
-    /**
-     * Handle "pick resources" message (gold hex).
-     * Game state {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE},
-     * or rarely {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
-     * Also used with <tt>_SC_PIRI</tt> after winning a pirate fleet battle at dice roll.
-     *
-     * @param c  the connection that sent the message
-     * @param mes  the message
-     * @since 2.0.00
-     */
-    final void handlePICKRESOURCES(SOCGame ga, StringConnection c, final SOCPickResources mes)
-    {
-        final String gn = ga.getName();
-        final SOCPlayer player = ga.getPlayer((String) c.getData());
-        final int pn;
-        if (player != null)
-            pn = player.getPlayerNumber();
-        else
-            pn = -1;  // c's client no longer in the game
-
-        ga.takeMonitor();
-        try
-        {
-            if (player == null)
-            {
-                // The catch block will print this out semi-nicely
-                throw new IllegalArgumentException("player not found in game");
-            }
-
-            int gstate = ga.getGameState();
-            final SOCResourceSet rsrcs = mes.getResources();
-            if (ga.canPickGoldHexResources(pn, rsrcs))
-            {
-                final boolean fromInitPlace = ga.isInitialPlacement();
-                final boolean fromPirateFleet = ga.isPickResourceIncludingPirateFleet(pn);
-
-                ga.pickGoldHexResources(pn, rsrcs);
-                gstate = ga.getGameState();
-
-                /**
-                 * tell everyone what the player gained
-                 */
-                reportRsrcGainGold(ga, player, pn, rsrcs, ! fromPirateFleet);
-
-                /**
-                 * send the new state, or end turn if was marked earlier as forced
-                 * -- for gold during initial placement, current player might also change.
-                 */
-                if ((gstate != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
-                {
-                    if (! fromInitPlace)
-                    {
-                        sendGameState(ga);
-
-                        if (gstate == SOCGame.WAITING_FOR_DISCARDS)
-                        {
-                            // happens only in scenario _SC_PIRI, when 7 is rolled, player wins against pirate fleet
-                            // and has picked their won resource, and then someone must discard
-                            for (int i = 0; i < ga.maxPlayers; ++i)
-                            {
-                                SOCPlayer pl = ga.getPlayer(i);
-                                if (( ! ga.isSeatVacant(i) ) && pl.getNeedToDiscard())
-                                {
-                                    // Request to discard half (round down)
-                                    StringConnection con = srv.getConnection(pl.getName());
-                                    if (con != null)
-                                        con.put(SOCDiscardRequest.toCmd(gn, pl.getResources().getTotal() / 2));
-                                }
-                            }
-                        }
-                    } else {
-                        // send state, and current player if changed
-
-                        switch (gstate)
-                        {
-                        case SOCGame.START1B:
-                        case SOCGame.START2B:
-                        case SOCGame.START3B:
-                            // pl not changed: previously placed settlement, now placing road or ship
-                            sendGameState(ga);
-                            break;
-
-                        case SOCGame.START1A:
-                        case SOCGame.START2A:
-                        case SOCGame.START3A:
-                            // Player probably changed, announce new player if so
-                            sendGameState(ga, false);
-                            if (! checkTurn(c, ga))
-                                sendTurn(ga, true);
-                            break;
-
-                        case SOCGame.PLAY:
-                            // The last initial road was placed
-                            final boolean toldRoll = sendGameState(ga, false);
-                            if (! checkTurn(c, ga))
-                                // Announce new player (after START3A)
-                                sendTurn(ga, true);
-                            else if (toldRoll)
-                                // When play starts, or after placing 2nd free road,
-                                // announce even though player unchanged,
-                                // to trigger auto-roll for the player.
-                                srv.messageToGame(gn, new SOCRollDicePrompt(gn, ga.getCurrentPlayerNumber()));
-                            break;
-                        }
-                    }
-                } else {
-                    // force-end game turn
-                    endGameTurn(ga, player, true);  // locking: already did ga.takeMonitor()
-                }
-            }
-            else
-            {
-                srv.messageToPlayer(c, gn, "You can't pick that many resources.");
-                final int npick = player.getNeedToPickGoldHexResources();
-                if ((npick > 0) && (gstate < SOCGame.OVER))
-                    srv.messageToPlayer(c, new SOCPickResourcesRequest(gn, npick));
-                else
-                    srv.messageToPlayer(c, new SOCPlayerElement
-                        (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, 0));
-            }
-        }
-        catch (Throwable e)
-        {
-            D.ebugPrintStackTrace(e, "Exception caught");
-        }
-
-        ga.releaseMonitor();
-    }
 
     /**
      * Handle Special Item requests from a player.
