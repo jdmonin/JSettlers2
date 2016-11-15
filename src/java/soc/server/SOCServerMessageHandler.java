@@ -112,7 +112,7 @@ public class SOCServerMessageHandler
          * client's "version" message
          */
         case SOCMessage.VERSION:
-            srv.handleVERSION(c, (SOCVersion) mes);
+            handleVERSION(c, (SOCVersion) mes);
             break;
 
         /**
@@ -324,6 +324,28 @@ public class SOCServerMessageHandler
 
     /// Accepting connections and authentication ///
 
+
+    /**
+     * Handle the "version" message, client's version report.
+     * May ask to disconnect, if version is too old.
+     * Otherwise send the game list.
+     * If we've already sent the game list, send changes based on true version.
+     * If they send another VERSION later, with a different version, disconnect the client.
+     *<P>
+     * Along with the game list, the client will need to know the game option info.
+     * This is sent when the client asks (after VERSION) for {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
+     *
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     * @since 1.1.00
+     */
+    void handleVERSION(StringConnection c, SOCVersion mes)
+    {
+        if (c == null)
+            return;
+
+        srv.setClientVersSendGamesOrReject(c, mes.getVersionNumber(), mes.localeOrFeats, true);
+    }
 
     /**
      * Handle the optional {@link SOCAuthRequest "authentication request"} message.

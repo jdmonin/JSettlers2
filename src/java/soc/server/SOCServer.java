@@ -360,7 +360,7 @@ public class SOCServer extends Server
     /**
      * If client never tells us their version, assume they are version 1.0.0 (1000).
      * @see #CLI_VERSION_TIMER_FIRE_MS
-     * @see #handleJOINGAME(StringConnection, SOCJoinGame)
+     * @see SOCServerMessageHandler#handleJOINGAME(StringConnection, SOCJoinGame)
      * @since 1.1.06
      */
     public static final int CLI_VERSION_ASSUMED_GUESS = 1000;
@@ -791,7 +791,7 @@ public class SOCServer extends Server
 
     /**
      * Client version count stats since startup (includes bots).
-     * Incremented from {@link #handleVERSION(StringConnection, SOCVersion)};
+     * Incremented from {@link #setClientVersSendGamesOrReject(StringConnection, int, String, boolean)};
      * currently assumes single-threaded access to this map.
      *<P>
      * Key = version number, Value = client count.
@@ -1684,7 +1684,7 @@ public class SOCServer extends Server
      *           other reason. (this exception was added in 1.1.06)
      * @see #joinGame(SOCGame, StringConnection, boolean, boolean)
      * @see #handleSTARTGAME(StringConnection, SOCStartGame)
-     * @see #handleJOINGAME(StringConnection, SOCJoinGame)
+     * @see SOCServerMessageHandler#handleJOINGAME(StringConnection, SOCJoinGame)
      */
     public boolean connectToGame(StringConnection c, final String gaName, Map<String, SOCGameOption> gaOpts)
         throws SOCGameOptionVersionException, IllegalArgumentException
@@ -4161,7 +4161,7 @@ public class SOCServer extends Server
             SOCMessage mes = SOCMessage.toMsg(str);
             if ((mes != null) && (mes.getType() == SOCMessage.VERSION))
             {
-                handleVERSION(con, (SOCVersion) mes);
+                srvHandler.handleVERSION(con, (SOCVersion) mes);
 
                 return true;  // <--- Early return: Version was handled ---
             }
@@ -4717,27 +4717,6 @@ public class SOCServer extends Server
     }
 
     /**
-     * Handle the "version" message, client's version report.
-     * May ask to disconnect, if version is too old.
-     * Otherwise send the game list.
-     * If we've already sent the game list, send changes based on true version.
-     * If they send another VERSION later, with a different version, disconnect the client.
-     *<P>
-     * Along with the game list, the client will need to know the game option info.
-     * This is sent when the client asks (after VERSION) for {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
-     *
-     * @param c  the connection that sent the message
-     * @param mes  the message
-     */
-    void handleVERSION(StringConnection c, SOCVersion mes)
-    {
-        if (c == null)
-            return;
-
-        setClientVersSendGamesOrReject(c, mes.getVersionNumber(), mes.localeOrFeats, true);
-    }
-
-    /**
      * Set client's version and locale, and check against minimum required version {@link #CLI_VERSION_MIN}.
      * If version is too low, send {@link SOCRejectConnection REJECTCONNECTION}.
      * If we haven't yet sent the game list, send now.
@@ -4756,7 +4735,8 @@ public class SOCServer extends Server
      * If {@link StringConnection#getVersion() c.getVersion()} is already == cvers,
      * don't bother to lock and set it.
      *<P>
-     * Package access (not private) is strictly for use of {@link SOCClientData.SOCCDCliVersionTask#run()}.
+     * Package access (not private) is strictly for use of {@link SOCServerMessageHandler}
+     * and {@link SOCClientData.SOCCDCliVersionTask#run()}.
      *
      * @param c     Client's connection
      * @param cvers Version reported by client, or assumed version if no report
