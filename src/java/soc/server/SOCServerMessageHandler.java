@@ -21,7 +21,9 @@
  **/
 package soc.server;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import soc.debug.D;
@@ -34,11 +36,14 @@ import soc.message.SOCGameOptionGetInfos;
 import soc.message.SOCGameTextMsg;
 import soc.message.SOCImARobot;
 import soc.message.SOCJoin;
+import soc.message.SOCJoinAuth;
 import soc.message.SOCJoinGame;
 import soc.message.SOCLeave;
 import soc.message.SOCLeaveGame;
 import soc.message.SOCLocalizedStrings;
+import soc.message.SOCMembers;
 import soc.message.SOCMessage;
+import soc.message.SOCNewChannel;
 import soc.message.SOCNewGameWithOptionsRequest;
 import soc.message.SOCResetBoardRequest;
 import soc.message.SOCResetBoardVote;
@@ -68,11 +73,24 @@ import soc.server.genericServer.StringConnection;
  */
 public class SOCServerMessageHandler
 {
-    final SOCServer srv;
+    private final SOCServer srv;
 
-    public SOCServerMessageHandler(SOCServer srv)
+    /**
+     * List of {@link #srv}'s games.
+     */
+    private final SOCGameListAtServer gameList;
+
+    /**
+     * List of {@link #srv}'s chat channels.
+     */
+    private final SOCChannelList channelList;
+
+    public SOCServerMessageHandler
+        (SOCServer srv, final SOCGameListAtServer gameList, final SOCChannelList channelList)
     {
         this.srv = srv;
+        this.gameList = gameList;
+        this.channelList = channelList;
     }
 
     /**
@@ -127,14 +145,14 @@ public class SOCServerMessageHandler
          * "join a channel" message
          */
         case SOCMessage.JOIN:
-            srv.handleJOIN(c, (SOCJoin) mes);
+            handleJOIN(c, (SOCJoin) mes);
             break;
 
         /**
          * "leave a channel" message
          */
         case SOCMessage.LEAVE:
-            srv.handleLEAVE(c, (SOCLeave) mes);
+            handleLEAVE(c, (SOCLeave) mes);
             break;
 
         /**
@@ -158,7 +176,7 @@ public class SOCServerMessageHandler
                     srv.messageToChannel(textMsgMes.getChannel(), new SOCTextMsg
                         (textMsgMes.getChannel(), SOCServer.SERVERNAME,
                          "********** " + (String) c.getData() + " KILLED THE CHANNEL **********"));
-                    srv.channelList.takeMonitor();
+                    channelList.takeMonitor();
 
                     try
                     {
@@ -169,7 +187,7 @@ public class SOCServerMessageHandler
                         D.ebugPrintStackTrace(e, "Exception in KILLCHANNEL");
                     }
 
-                    srv.channelList.releaseMonitor();
+                    channelList.releaseMonitor();
                     srv.broadcast(SOCDeleteChannel.toCmd(textMsgMes.getChannel()));
                 }
                 else
@@ -477,6 +495,189 @@ public class SOCServerMessageHandler
         if (rets == null)
             rets = new ArrayList<String>();
         c.put(SOCLocalizedStrings.toCmd(type, flags, rets));
+    }
+
+
+    /// Channel lifecycle ///
+
+
+    /**
+     * Handle the "join a channel" message.
+     * If client hasn't yet sent its version, assume is
+     * version 1.0.00 ({@link #CLI_VERSION_ASSUMED_GUESS}), disconnect if too low.
+     *<P>
+     * Requested channel name must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * Channel name {@code "*"} is also rejected to avoid conflicts with admin commands.
+     *
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     * @since 1.0.0
+     */
+    void handleJOIN(StringConnection c, SOCJoin mes)
+    {
+        if (c == null)
+            return;
+
+        D.ebugPrintln("handleJOIN: " + mes);
+
+        int cliVers = c.getVersion();
+        final String msgUser = mes.getNickname().trim();  // trim here because we'll send it in messages to clients
+        String msgPass = mes.getPassword();
+
+        /**
+         * Check the reported version; if none, assume 1000 (1.0.00)
+         */
+        if (cliVers == -1)
+        {
+            if (! srv.setClientVersSendGamesOrReject(c, SOCServer.CLI_VERSION_ASSUMED_GUESS, null, false))
+                return;  // <--- Discon and Early return: Client too old ---
+
+            cliVers = c.getVersion();
+        }
+
+        /**
+         * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
+         */
+        final int authResult = srv.authOrRejectClientUser(c, msgUser, msgPass, cliVers, true, false);
+        if (authResult == SOCServer.AUTH_OR_REJECT__FAILED)
+            return;  // <---- Early return ----
+
+        /**
+         * Check that the channel name is ok
+         */
+
+        /*
+           if (!checkChannelName(mes.getChannel())) {
+           return;
+           }
+         */
+        final String ch = mes.getChannel().trim();
+        if ( (! SOCMessage.isSingleLineAndSafe(ch))
+             || "*".equals(ch))
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
+              // "This game name is not permitted, please choose a different name."
+
+              return;  // <---- Early return ----
+        }
+
+        /**
+         * If creating a new channel, ensure they are below their max channel count.
+         */
+        if ((! channelList.isChannel(ch))
+            && (SOCServer.CLIENT_MAX_CREATE_CHANNELS >= 0)
+            && (SOCServer.CLIENT_MAX_CREATE_CHANNELS <= ((SOCClientData) c.getAppData()).getcurrentCreatedChannels()))
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NEWCHANNEL_TOO_MANY_CREATED, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWCHANNEL_TOO_MANY_CREATED
+                     + Integer.toString(SOCServer.CLIENT_MAX_CREATE_CHANNELS)));
+            // Too many of your chat channels still active; maximum: 2
+
+            return;  // <---- Early return ----
+        }
+
+        /**
+         * Tell the client that everything is good to go
+         */
+        c.put(SOCJoinAuth.toCmd(msgUser, ch));
+        c.put(SOCStatusMessage.toCmd
+                (SOCStatusMessage.SV_OK, c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
+
+        /**
+         * Add the StringConnection to the channel
+         */
+
+        if (channelList.takeMonitorForChannel(ch))
+        {
+            try
+            {
+                srv.connectToChannel(c, ch);
+            }
+            catch (Exception e)
+            {
+                D.ebugPrintStackTrace(e, "Exception in handleJOIN (connectToChannel)");
+            }
+
+            channelList.releaseMonitorForChannel(ch);
+        }
+        else
+        {
+            /**
+             * the channel did not exist, create it
+             */
+            channelList.takeMonitor();
+
+            try
+            {
+                channelList.createChannel(ch, (String) c.getData());
+                ((SOCClientData) c.getAppData()).createdChannel();
+            }
+            catch (Exception e)
+            {
+                D.ebugPrintStackTrace(e, "Exception in handleJOIN (createChannel)");
+            }
+
+            channelList.releaseMonitor();
+            srv.broadcast(SOCNewChannel.toCmd(ch));
+            c.put(SOCMembers.toCmd(ch, channelList.getMembers(ch)));
+            if (D.ebugOn)
+                D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch + " at "
+                    + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
+            channelList.takeMonitorForChannel(ch);
+
+            try
+            {
+                channelList.addMember(c, ch);
+            }
+            catch (Exception e)
+            {
+                D.ebugPrintStackTrace(e, "Exception in handleJOIN (addMember)");
+            }
+
+            channelList.releaseMonitorForChannel(ch);
+        }
+
+        /**
+         * let everyone know about the change
+         */
+        srv.messageToChannel(ch, new SOCJoin(msgUser, "", "dummyhost", ch));
+    }
+
+    /**
+     * Handle the "leave a channel" message
+     *
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     * @since 1.0.0
+     */
+    void handleLEAVE(StringConnection c, SOCLeave mes)
+    {
+        D.ebugPrintln("handleLEAVE: " + mes);
+
+        if (c == null)
+            return;
+
+        boolean destroyedChannel = false;
+        channelList.takeMonitorForChannel(mes.getChannel());
+
+        try
+        {
+            destroyedChannel = srv.leaveChannel(c, mes.getChannel(), true, false);
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in handleLEAVE");
+        }
+
+        channelList.releaseMonitorForChannel(mes.getChannel());
+
+        if (destroyedChannel)
+        {
+            srv.broadcast(SOCDeleteChannel.toCmd(mes.getChannel()));
+        }
     }
 
 

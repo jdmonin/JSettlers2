@@ -555,14 +555,9 @@ public class SOCServer extends Server
     private SOCServerFeatures features = new SOCServerFeatures(false);
 
     /**
-     * Server message handler to process inbound messages from clients.
-     * @see SOCGameMessageHandler
-     * @since 2.0.00
-     */
-    private final SOCServerMessageHandler srvHandler = new SOCServerMessageHandler(this);
-
-    /**
      * Game type handler, currently shared by all game instances.
+     * Includes a {@link SOCGameMessageHandler}.
+     * @see #srvMsgHandler
      * @since 2.0.00
      */
     private final SOCGameHandler handler = new SOCGameHandler(this);
@@ -733,6 +728,15 @@ public class SOCServer extends Server
      * list of soc games
      */
     protected SOCGameListAtServer gameList = new SOCGameListAtServer();
+
+    /**
+     * Server message handler to process inbound messages from clients.
+     * Messages related to actions in specific games are instead processed
+     * by {@link SOCGameMessageHandler}.
+     * @see #handler
+     * @since 2.0.00
+     */
+    private final SOCServerMessageHandler srvMsgHandler = new SOCServerMessageHandler(this, gameList, channelList);
 
     /**
      * table of requests for robots to join games
@@ -1099,7 +1103,7 @@ public class SOCServer extends Server
         }
 
         this.props = props;
-        ((SOCMessageDispatcher) inboundMsgDispatcher).setServer(this, srvHandler, gameList);
+        ((SOCMessageDispatcher) inboundMsgDispatcher).setServer(this, srvMsgHandler, gameList);
 
         if (allowDebugUser)
         {
@@ -4161,7 +4165,7 @@ public class SOCServer extends Server
             SOCMessage mes = SOCMessage.toMsg(str);
             if ((mes != null) && (mes.getType() == SOCMessage.VERSION))
             {
-                srvHandler.handleVERSION(con, (SOCVersion) mes);
+                srvMsgHandler.handleVERSION(con, (SOCVersion) mes);
 
                 return true;  // <--- Early return: Version was handled ---
             }
@@ -4846,181 +4850,6 @@ public class SOCServer extends Server
 
         // This client version is OK to connect
         return true;
-    }
-
-    /**
-     * Handle the "join a channel" message.
-     * If client hasn't yet sent its version, assume is
-     * version 1.0.00 ({@link #CLI_VERSION_ASSUMED_GUESS}), disconnect if too low.
-     *<P>
-     * Requested channel name must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * Channel name {@code "*"} is also rejected to avoid conflicts with admin commands.
-     *
-     * @param c  the connection that sent the message
-     * @param mes  the message
-     */
-    void handleJOIN(StringConnection c, SOCJoin mes)
-    {
-        if (c == null)
-            return;
-
-        D.ebugPrintln("handleJOIN: " + mes);
-
-        int cliVers = c.getVersion();
-        final String msgUser = mes.getNickname().trim();  // trim here because we'll send it in messages to clients
-        String msgPass = mes.getPassword();
-
-        /**
-         * Check the reported version; if none, assume 1000 (1.0.00)
-         */
-        if (cliVers == -1)
-        {
-            if (! setClientVersSendGamesOrReject(c, CLI_VERSION_ASSUMED_GUESS, null, false))
-                return;  // <--- Discon and Early return: Client too old ---
-            cliVers = c.getVersion();
-        }
-
-        /**
-         * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
-         */
-        final int authResult = authOrRejectClientUser(c, msgUser, msgPass, cliVers, true, false);
-        if (authResult == AUTH_OR_REJECT__FAILED)
-            return;  // <---- Early return ----
-
-        /**
-         * Check that the channel name is ok
-         */
-
-        /*
-           if (!checkChannelName(mes.getChannel())) {
-           return;
-           }
-         */
-        final String ch = mes.getChannel().trim();
-        if ( (! SOCMessage.isSingleLineAndSafe(ch))
-             || "*".equals(ch))
-        {
-            c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
-              // "This game name is not permitted, please choose a different name."
-
-              return;  // <---- Early return ----
-        }
-
-        /**
-         * If creating a new channel, ensure they are below their max channel count.
-         */
-        if ((! channelList.isChannel(ch))
-            && (CLIENT_MAX_CREATE_CHANNELS >= 0)
-            && (CLIENT_MAX_CREATE_CHANNELS <= ((SOCClientData) c.getAppData()).getcurrentCreatedChannels()))
-        {
-            c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NEWCHANNEL_TOO_MANY_CREATED, cliVers,
-                     SOCStatusMessage.MSG_SV_NEWCHANNEL_TOO_MANY_CREATED + Integer.toString(CLIENT_MAX_CREATE_CHANNELS)));
-            // Too many of your chat channels still active; maximum: 2
-
-            return;  // <---- Early return ----
-        }
-
-        /**
-         * Tell the client that everything is good to go
-         */
-        c.put(SOCJoinAuth.toCmd(msgUser, ch));
-        c.put(SOCStatusMessage.toCmd
-                (SOCStatusMessage.SV_OK, c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
-
-        /**
-         * Add the StringConnection to the channel
-         */
-
-        if (channelList.takeMonitorForChannel(ch))
-        {
-            try
-            {
-                connectToChannel(c, ch);
-            }
-            catch (Exception e)
-            {
-                D.ebugPrintStackTrace(e, "Exception in handleJOIN (connectToChannel)");
-            }
-
-            channelList.releaseMonitorForChannel(ch);
-        }
-        else
-        {
-            /**
-             * the channel did not exist, create it
-             */
-            channelList.takeMonitor();
-
-            try
-            {
-                channelList.createChannel(ch, (String) c.getData());
-                ((SOCClientData) c.getAppData()).createdChannel();
-            }
-            catch (Exception e)
-            {
-                D.ebugPrintStackTrace(e, "Exception in handleJOIN (createChannel)");
-            }
-
-            channelList.releaseMonitor();
-            broadcast(SOCNewChannel.toCmd(ch));
-            c.put(SOCMembers.toCmd(ch, channelList.getMembers(ch)));
-            if (D.ebugOn)
-                D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch + " at "
-                    + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
-            channelList.takeMonitorForChannel(ch);
-
-            try
-            {
-                channelList.addMember(c, ch);
-            }
-            catch (Exception e)
-            {
-                D.ebugPrintStackTrace(e, "Exception in handleJOIN (addMember)");
-            }
-
-            channelList.releaseMonitorForChannel(ch);
-        }
-
-        /**
-         * let everyone know about the change
-         */
-        messageToChannel(ch, new SOCJoin(msgUser, "", "dummyhost", ch));
-    }
-
-    /**
-     * Handle the "leave a channel" message
-     *
-     * @param c  the connection that sent the message
-     * @param mes  the message
-     */
-    void handleLEAVE(StringConnection c, SOCLeave mes)
-    {
-        D.ebugPrintln("handleLEAVE: " + mes);
-
-        if (c == null)
-            return;
-
-        boolean destroyedChannel = false;
-        channelList.takeMonitorForChannel(mes.getChannel());
-
-        try
-        {
-            destroyedChannel = leaveChannel(c, mes.getChannel(), true, false);
-        }
-        catch (Exception e)
-        {
-            D.ebugPrintStackTrace(e, "Exception in handleLEAVE");
-        }
-
-        channelList.releaseMonitorForChannel(mes.getChannel());
-
-        if (destroyedChannel)
-        {
-            broadcast(SOCDeleteChannel.toCmd(mes.getChannel()));
-        }
     }
 
     /**
