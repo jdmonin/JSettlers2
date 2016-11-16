@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2013,2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2013,2015-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,7 +40,7 @@ package soc.game;
  */
 public enum SOCScenarioPlayerEvent
 {
-    // Note: Some SOCServer code assumes that player events are fired only during handlePUTPIECE.
+    // Note: Some SOCServer code assumes that player events are fired only during SOCGameMessageHandler.handlePUTPIECE.
     // If a new player event breaks this assumption, adjust SOCServer.playerEvent(...) and related code;
     // search where SOCGame.pendingMessagesOut is used.
 

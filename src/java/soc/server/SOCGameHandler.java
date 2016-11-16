@@ -99,7 +99,6 @@ import soc.message.SOCLeaveGame;
 import soc.message.SOCLongestRoad;
 import soc.message.SOCMessage;
 import soc.message.SOCMonopolyPick;
-import soc.message.SOCMovePiece;
 import soc.message.SOCMovePieceRequest;
 import soc.message.SOCMoveRobber;
 import soc.message.SOCPickResourcesRequest;
@@ -543,7 +542,7 @@ public class SOCGameHandler extends GameHandler
      * start of a player's own turn, if permitted.  (Added in 1.1.09)
      *<P>
      * A simplified version of this logic (during initial placement) is used in
-     * {@link #handlePUTPIECE(SOCGame, StringConnection, SOCPutPiece)}.
+     * {@link SOCGameMessageHandler#handlePUTPIECE(SOCGame, StringConnection, SOCPutPiece)}.
      *
      * @param ga Game to end turn
      * @param pl Current player in <tt>ga</tt>, or null. Not needed except in SPECIAL_BUILDING.
@@ -554,6 +553,11 @@ public class SOCGameHandler extends GameHandler
      */
     void endGameTurn(SOCGame ga, SOCPlayer pl, final boolean callEndTurn)
     {
+        // Reminder: if this method's logic is changed or added to,
+        // please also look at SOCGameMessageHandler.handlePUTPIECE
+        // to see if the simplified version there should also be
+        // updated.
+
         final String gname = ga.getName();
 
         if (ga.getGameState() == SOCGame.SPECIAL_BUILDING)
@@ -1946,7 +1950,7 @@ public class SOCGameHandler extends GameHandler
 
         // case SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE and
         // case SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE are now
-            // handled in handlePUTPIECE and handleROLLDICE, so it's sent after
+            // handled in SOCGameMessageHandler.handlePUTPIECE and handleROLLDICE, so it's sent after
             // the resource texts ("x gets 1 sheep") and not before.
             // These methods directly call sendGameState_sendGoldPickAnnounceText.
 
@@ -2743,329 +2747,6 @@ public class SOCGameHandler extends GameHandler
             throw new IllegalArgumentException("unknown board encoding v" + bef);
         }
     }
-
-    /**
-     * handle "put piece" message.
-     *<P>
-     * Because the current player changes during initial placement,
-     * this method has a simplified version of some of the logic from
-     * {@link #endGameTurn(SOCGame, SOCPlayer, boolean)} to detect and
-     * announce the new turn.
-     *
-     * @param c  the connection that sent the message
-     * @param mes  the message
-     */
-    void handlePUTPIECE(SOCGame ga, StringConnection c, SOCPutPiece mes)
-    {
-        ga.takeMonitor();
-
-        try
-        {
-            final String gaName = ga.getName();
-            final String plName = (String) c.getData();
-            SOCPlayer player = ga.getPlayer(plName);
-
-            /**
-             * make sure the player can do it
-             */
-            if (checkTurn(c, ga))
-            {
-                boolean sendDenyReply = false;
-                /*
-                   if (D.ebugOn) {
-                   D.ebugPrintln("BEFORE");
-                   for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++) {
-                   SOCPlayer tmpPlayer = ga.getPlayer(pn);
-                   D.ebugPrintln("Player # "+pn);
-                   for (int i = 0x22; i < 0xCC; i++) {
-                   if (tmpPlayer.isPotentialRoad(i))
-                   D.ebugPrintln("### POTENTIAL ROAD AT "+Integer.toHexString(i));
-                   }
-                   }
-                   }
-                 */
-
-                final int gameState = ga.getGameState();
-                final int coord = mes.getCoordinates();
-                final int pn = player.getPlayerNumber();
-
-                switch (mes.getPieceType())
-                {
-                case SOCPlayingPiece.ROAD:
-
-                    if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.START3B)
-                        || (gameState == SOCGame.PLACING_ROAD)
-                        || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
-                    {
-                        if (player.isPotentialRoad(coord) && (player.getNumPieces(SOCPlayingPiece.ROAD) >= 1))
-                        {
-                            final SOCRoad rd = new SOCRoad(player, coord, null);
-                            ga.putPiece(rd);  // Changes game state and (if initial placement) player
-
-                            // If placing this piece reveals a fog hex, putPiece will call srv.gameEvent
-                            // which will send a SOCRevealFogHex message to the game.
-
-                            /*
-                               if (D.ebugOn) {
-                               D.ebugPrintln("AFTER");
-                               for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++) {
-                               SOCPlayer tmpPlayer = ga.getPlayer(pn);
-                               D.ebugPrintln("Player # "+pn);
-                               for (int i = 0x22; i < 0xCC; i++) {
-                               if (tmpPlayer.isPotentialRoad(i))
-                               D.ebugPrintln("### POTENTIAL ROAD AT "+Integer.toHexString(i));
-                               }
-                               }
-                               }
-                             */
-                            srv.gameList.takeMonitorForGame(gaName);
-                            srv.messageToGameKeyed(ga, false, "action.built.road", plName);  // "Joe built a road."
-                            srv.messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.ROAD, coord));
-                            if (! ga.pendingMessagesOut.isEmpty())
-                                sendGamePendingMessages(ga, false);
-                            srv.gameList.releaseMonitorForGame(gaName);
-
-                            boolean toldRoll = sendGameState(ga, false);
-                            if ((ga.getGameState() == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
-                                || (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
-                            {
-                                // gold hex revealed from fog (scenario SC_FOG)
-                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
-                            }
-
-                            if (!checkTurn(c, ga))
-                            {
-                                // Player changed (or play started), announce new player.
-                                sendTurn(ga, true);
-                            }
-                            else if (toldRoll)
-                            {
-                                // When play starts, or after placing 2nd free road,
-                                // announce even though player unchanged,
-                                // to trigger auto-roll for the player.
-                                // If the client is too old (1.0.6), it will ignore the prompt.
-                                srv.messageToGame(gaName, new SOCRollDicePrompt (gaName, pn));
-                            }
-                        }
-                        else
-                        {
-                            D.ebugPrintln("ILLEGAL ROAD: 0x" + Integer.toHexString(coord)
-                                + ": player " + pn);
-                            if (player.isRobot() && D.ebugOn)
-                            {
-                                D.ebugPrintln(" - pl.isPotentialRoad: " + player.isPotentialRoad(coord));
-                                SOCPlayingPiece pp = ga.getBoard().roadAtEdge(coord);
-                                D.ebugPrintln(" - roadAtEdge: " + ((pp != null) ? pp : "none"));
-                            }
-
-                            srv.messageToPlayer(c, gaName, "You can't build a road there.");
-                            sendDenyReply = true;
-                        }
-                    }
-                    else
-                    {
-                        srv.messageToPlayer(c, gaName, "You can't build a road right now.");
-                    }
-
-                    break;
-
-                case SOCPlayingPiece.SETTLEMENT:
-
-                    if ((gameState == SOCGame.START1A) || (gameState == SOCGame.START2A)
-                        || (gameState == SOCGame.START3A) || (gameState == SOCGame.PLACING_SETTLEMENT))
-                    {
-                        if (player.canPlaceSettlement(coord) && (player.getNumPieces(SOCPlayingPiece.SETTLEMENT) >= 1))
-                        {
-                            final SOCSettlement se = new SOCSettlement(player, coord, null);
-                            ga.putPiece(se);   // Changes game state and (if initial placement) player
-
-                            srv.gameList.takeMonitorForGame(gaName);
-                            srv.messageToGameKeyed(ga, false, "action.built.stlmt", plName);  // "Joe built a settlement."
-                            srv.messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SETTLEMENT, coord));
-                            if (! ga.pendingMessagesOut.isEmpty())
-                                sendGamePendingMessages(ga, false);
-                            srv.gameList.releaseMonitorForGame(gaName);
-
-                            // Check and send new game state
-                            sendGameState(ga);
-                            if (ga.hasSeaBoard && (ga.getGameState() == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
-                            {
-                                // Prompt to pick from gold: send text and SOCPickResourcesRequest
-                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
-                            }
-
-                            if (!checkTurn(c, ga))
-                            {
-                                sendTurn(ga, false);  // Announce new current player.
-                            }
-                        }
-                        else
-                        {
-                            D.ebugPrintln("ILLEGAL SETTLEMENT: 0x" + Integer.toHexString(coord)
-                                + ": player " + pn);
-                            if (player.isRobot() && D.ebugOn)
-                            {
-                                D.ebugPrintln(" - pl.isPotentialSettlement: "
-                                    + player.isPotentialSettlement(coord));
-                                SOCPlayingPiece pp = ga.getBoard().settlementAtNode(coord);
-                                D.ebugPrintln(" - settlementAtNode: " + ((pp != null) ? pp : "none"));
-                            }
-
-                            srv.messageToPlayer(c, gaName, "You can't build a settlement there.");
-                            sendDenyReply = true;
-                        }
-                    }
-                    else
-                    {
-                        srv.messageToPlayer(c, gaName, "You can't build a settlement right now.");
-                    }
-
-                    break;
-
-                case SOCPlayingPiece.CITY:
-
-                    if (gameState == SOCGame.PLACING_CITY)
-                    {
-                        if (player.isPotentialCity(coord) && (player.getNumPieces(SOCPlayingPiece.CITY) >= 1))
-                        {
-                            boolean houseRuleFirstCity = ga.isGameOptionSet("N7C") && ! ga.hasBuiltCity();
-                            if (houseRuleFirstCity && ga.isGameOptionSet("N7")
-                                && (ga.getRoundCount() < ga.getGameOptionIntValue("N7")))
-                            {
-                                // If "No 7s for first # rounds" is active, and this isn't its last round, 7s won't
-                                // be rolled soon: Don't announce "Starting next turn, dice rolls of 7 may occur"
-                                houseRuleFirstCity = false;
-                            }
-
-                            final SOCCity ci = new SOCCity(player, coord, null);
-                            ga.putPiece(ci);  // changes game state and maybe player
-
-                            srv.gameList.takeMonitorForGame(gaName);
-                            srv.messageToGameKeyed(ga, false, "action.built.city", plName);  // "Joe built a city."
-                            srv.messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.CITY, coord));
-                            if (! ga.pendingMessagesOut.isEmpty())
-                                sendGamePendingMessages(ga, false);
-                            if (houseRuleFirstCity)
-                                srv.messageToGameKeyed(ga, false, "action.built.nextturn.7.houserule");
-                                // "Starting next turn, dice rolls of 7 may occur (house rule)."
-                            srv.gameList.releaseMonitorForGame(gaName);
-                            sendGameState(ga);
-
-                            if (!checkTurn(c, ga))
-                            {
-                                sendTurn(ga, false);  // announce new current player
-                            }
-                        }
-                        else
-                        {
-                            D.ebugPrintln("ILLEGAL CITY: 0x" + Integer.toHexString(coord)
-                                + ": player " + pn);
-                            if (player.isRobot() && D.ebugOn)
-                            {
-                                D.ebugPrintln(" - pl.isPotentialCity: " + player.isPotentialCity(coord));
-                                SOCPlayingPiece pp = ga.getBoard().settlementAtNode(coord);
-                                D.ebugPrintln(" - city/settlementAtNode: " + ((pp != null) ? pp : "none"));
-                            }
-
-                            srv.messageToPlayer(c, gaName, "You can't build a city there.");
-                            sendDenyReply = true;
-                        }
-                    }
-                    else
-                    {
-                        srv.messageToPlayer(c, gaName, "You can't build a city right now.");
-                    }
-
-                    break;
-
-                case SOCPlayingPiece.SHIP:
-
-                    if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.START3B)
-                        || (gameState == SOCGame.PLACING_SHIP)
-                        || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
-                    {
-                        // Place it if we can; canPlaceShip checks potentials and pirate ship location
-                        if (ga.canPlaceShip(player, coord) && (player.getNumPieces(SOCPlayingPiece.SHIP) >= 1))
-                        {
-                            final SOCShip sh = new SOCShip(player, coord, null);
-                            ga.putPiece(sh);  // Changes game state and (during initial placement) sometimes player
-
-                            srv.gameList.takeMonitorForGame(gaName);
-                            srv.messageToGameKeyed(ga, false, "action.built.ship", plName);  // "Joe built a ship."
-                            srv.messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SHIP, coord));
-                            if (! ga.pendingMessagesOut.isEmpty())
-                                sendGamePendingMessages(ga, false);
-                            srv.gameList.releaseMonitorForGame(gaName);
-
-                            boolean toldRoll = sendGameState(ga, false);
-                            if ((ga.getGameState() == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
-                                || (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
-                            {
-                                // gold hex revealed from fog (scenario SC_FOG)
-                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
-                            }
-
-                            if (!checkTurn(c, ga))
-                            {
-                                // Player changed (or play started), announce new player.
-                                sendTurn(ga, true);
-                            }
-                            else if (toldRoll)
-                            {
-                                // When play starts, or after placing 2nd free road,
-                                // announce even though player unchanged,
-                                // to trigger auto-roll for the player.
-                                // If the client is too old (1.0.6), it will ignore the prompt.
-                                srv.messageToGame(gaName, new SOCRollDicePrompt (gaName, pn));
-                            }
-                        }
-                        else
-                        {
-                            D.ebugPrintln("ILLEGAL SHIP: 0x" + Integer.toHexString(coord)
-                                + ": player " + pn);
-                            if (player.isRobot() && D.ebugOn)
-                            {
-                                D.ebugPrintln(" - pl.isPotentialShip: " + player.isPotentialShip(coord));
-                                SOCPlayingPiece pp = ga.getBoard().roadAtEdge(coord);
-                                D.ebugPrintln(" - ship/roadAtEdge: " + ((pp != null) ? pp : "none"));
-                            }
-
-                            srv.messageToPlayer(c, gaName, "You can't build a ship there.");
-                            sendDenyReply = true;
-                        }
-                    }
-                    else
-                    {
-                        srv.messageToPlayer(c, gaName, "You can't build a ship right now.");
-                    }
-
-                    break;
-
-                }  // switch (mes.getPieceType())
-
-                if (sendDenyReply)
-                {
-                    srv.messageToPlayer(c, new SOCCancelBuildRequest(gaName, mes.getPieceType()));
-                    if (player.isRobot())
-                    {
-                        // Set the "force end turn soon" field
-                        ga.lastActionTime = 0L;
-                    }
-                }
-            }
-            else
-            {
-                srv.messageToPlayer(c, gaName, "It's not your turn.");
-            }
-        }
-        catch (Exception e)
-        {
-            D.ebugPrintStackTrace(e, "Exception caught in handlePUTPIECE");
-        }
-
-        ga.releaseMonitor();
-    }
-
 
     /**
      * Handle Special Item requests from a player.
@@ -4031,64 +3712,6 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * Handle the client's "move piece request" message.
-     * @since 2.0.00
-     */
-    final void handleMOVEPIECEREQUEST(SOCGame ga, StringConnection c, final SOCMovePieceRequest mes)
-    {
-        final String gaName = ga.getName();
-
-        boolean denyRequest = false;
-        final int pn = mes.getPlayerNumber();
-        final int fromEdge = mes.getFromCoord(),
-                  toEdge   = mes.getToCoord();
-        if ((mes.getPieceType() != SOCPlayingPiece.SHIP)
-            || ! checkTurn(c, ga))
-        {
-            denyRequest = true;
-        } else {
-            SOCShip moveShip = ga.canMoveShip
-                (pn, fromEdge, toEdge);
-            if (moveShip == null)
-            {
-                denyRequest = true;
-            } else {
-                final int gstate = ga.getGameState();
-
-                ga.moveShip(moveShip, toEdge);
-
-                srv.messageToGame(gaName, new SOCMovePiece
-                    (gaName, pn, SOCPlayingPiece.SHIP, fromEdge, toEdge));
-                // client will also print "* Joe moved a ship.", no need to send a SOCGameServerText.
-
-                if (! ga.pendingMessagesOut.isEmpty())
-                    sendGamePendingMessages(ga, true);
-
-                if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
-                {
-                    // If ship placement reveals a gold hex in _SC_FOG,
-                    // the player gets to pick a free resource.
-                    sendGameState(ga, false);
-                    sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
-                }
-                else if (gstate != ga.getGameState())
-                {
-                    // announce new state (such as PLACING_INV_ITEM in _SC_FTRI),
-                    // or if state is now SOCGame.OVER, announce end of game
-                    sendGameState(ga, false);
-                }
-            }
-        }
-        if (denyRequest)
-        {
-            D.ebugPrintln("ILLEGAL MOVEPIECE: 0x" + Integer.toHexString(fromEdge) + " -> 0x" + Integer.toHexString(toEdge)
-                + ": player " + pn);
-            srv.messageToPlayer(c, gaName, "You can't move that ship right now.");
-            srv.messageToPlayer(c, new SOCCancelBuildRequest(gaName, SOCPlayingPiece.SHIP));
-        }
-    }
-
-    /**
      * this is a debugging command that gives resources to a player.
      * Format: rsrcs: #cl #or #sh #wh #wo playername
      */
@@ -4662,7 +4285,7 @@ public class SOCGameHandler extends GameHandler
         final boolean flagsChanged, final Object obj)
     {
         // Note: Some SOCGameHandler code assumes that player events are fired only during
-        // handlePUTPIECE and handleMOVEPIECEREQUEST.
+        // SOCGameMessageHandler.handlePUTPIECE and handleMOVEPIECEREQUEST.
         // Most handle* methods don't check pendingMessagesOut before sending game state.
         // If a new player event breaks this assumption, adjust SOCGameHandler.playerEvent(...)
         // and related code; search where SOCGame.pendingMessagesOut is used.
@@ -4830,8 +4453,9 @@ public class SOCGameHandler extends GameHandler
      * not after.
      *<P>
      * Adds the message to {@link SOCGame#pendingMessagesOut}; note that
-     * right now, that field is checked only in {@link #handlePUTPIECE(SOCGame, StringConnection, SOCPutPiece)}
-     * and {@link #handleMOVEPIECEREQUEST(SOCGame, StringConnection, SOCMovePieceRequest)},
+     * right now, that field is checked only in
+     * {@link SOCGameMessageHandler#handlePUTPIECE(SOCGame, StringConnection, SOCPutPiece)}
+     * and {@link SOCGameMessageHandler#handleMOVEPIECEREQUEST(SOCGame, StringConnection, SOCMovePieceRequest)},
      * because no other method currently awards SVP.
      * @param ga  Game
      * @param pl  Player
@@ -4866,7 +4490,7 @@ public class SOCGameHandler extends GameHandler
      * @see #updatePlayerSVPPendingMessage(SOCGame, SOCPlayer, int, String)
      * @since 2.0.00
      */
-    private void sendGamePendingMessages(SOCGame ga, final boolean takeMon)
+    void sendGamePendingMessages(SOCGame ga, final boolean takeMon)
     {
         final String gaName = ga.getName();
 
