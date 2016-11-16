@@ -23,12 +23,14 @@
 package soc.server;
 
 import java.util.ArrayList;
+import java.util.Vector;
 
 import soc.debug.D;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCInventoryItem;
+import soc.game.SOCMoveRobberResult;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
@@ -124,7 +126,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handler.handleMOVEROBBER(game, connection, (SOCMoveRobber) message);
+            handleMOVEROBBER(game, connection, (SOCMoveRobber) message);
 
             //ga = (SOCGame)gamesData.get(((SOCMoveRobber)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -168,7 +170,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handler.handleCHOOSEPLAYER(game, connection, (SOCChoosePlayer) message);
+            handleCHOOSEPLAYER(game, connection, (SOCChoosePlayer) message);
 
             //ga = (SOCGame)gamesData.get(((SOCChoosePlayer)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -899,6 +901,213 @@ public class SOCGameMessageHandler
                 else
                     srv.messageToPlayer(c, new SOCPlayerElement
                         (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, 0));
+            }
+        }
+        catch (Throwable e)
+        {
+            D.ebugPrintStackTrace(e, "Exception caught");
+        }
+
+        ga.releaseMonitor();
+    }
+
+
+    /// Robber/pirate robbery ///
+
+
+    /**
+     * handle "move robber" message (move the robber or the pirate).
+     *
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     * @since 1.0.0
+     */
+    private void handleMOVEROBBER(SOCGame ga, StringConnection c, SOCMoveRobber mes)
+    {
+        ga.takeMonitor();
+
+        try
+        {
+            SOCPlayer player = ga.getPlayer((String) c.getData());
+
+            /**
+             * make sure the player can do it
+             */
+            final String gaName = ga.getName();
+            final boolean isPirate = ga.getRobberyPirateFlag();
+            final int pn = player.getPlayerNumber();
+            int coord = mes.getCoordinates();  // negative for pirate
+            final boolean canDo =
+                (isPirate == (coord < 0))
+                && (isPirate ? ga.canMovePirate(pn, -coord)
+                             : ga.canMoveRobber(pn, coord));
+            if (canDo)
+            {
+                SOCMoveRobberResult result;
+                SOCMoveRobber moveMsg;
+                if (isPirate)
+                {
+                    result = ga.movePirate(pn, -coord);
+                    moveMsg = new SOCMoveRobber(gaName, pn, coord);
+                } else {
+                    result = ga.moveRobber(pn, coord);
+                    moveMsg = new SOCMoveRobber(gaName, pn, coord);
+                }
+                srv.messageToGame(gaName, moveMsg);
+
+                Vector<SOCPlayer> victims = result.getVictims();
+
+                /** only one possible victim */
+                if ((victims.size() == 1) && (ga.getGameState() != SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE))
+                {
+                    /**
+                     * report what was stolen
+                     */
+                    SOCPlayer victim = victims.firstElement();
+                    handler.reportRobbery(ga, player, victim, result.getLoot());
+                }
+
+                else
+                {
+                    final String msgKey;
+                    // These messages use ChoiceFormat to choose "robber" or "pirate":
+                    //    robberpirate.moved={0} moved {1,choice, 1#the robber|2#the pirate}.
+
+                    /** no victim */
+                    if (victims.size() == 0)
+                    {
+                        /**
+                         * just say it was moved; nothing is stolen
+                         */
+                        msgKey = "robberpirate.moved";  // "{0} moved the robber" or "{0} moved the pirate"
+                    }
+                    else if (ga.getGameState() == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE)
+                    {
+                        /**
+                         * only one possible victim, they have both clay and resources
+                         */
+                        msgKey = "robberpirate.moved.choose.cloth.rsrcs";
+                            // "{0} moved the robber/pirate. Must choose to steal cloth or steal resources."
+                    }
+                    else
+                    {
+                        /**
+                         * else, the player needs to choose a victim
+                         */
+                        msgKey = "robberpirate.moved.choose.victim";
+                            // "{0} moved the robber/pirate. Must choose a victim."
+                    }
+
+                    srv.messageToGameKeyed(ga, true, msgKey, player.getName(), ((isPirate) ? 2 : 1));
+                }
+
+                handler.sendGameState(ga);
+                    // For WAITING_FOR_ROB_CHOOSE_PLAYER, sendGameState also sends messages
+                    // with victim info to prompt the client to choose.
+                    // For WAITING_FOR_ROB_CLOTH_OR_RESOURCE, no need to recalculate
+                    // victims there, just send the prompt from here:
+                if (ga.getGameState() == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE)
+                {
+                    final int vpn = victims.firstElement().getPlayerNumber();
+                    srv.messageToPlayer(c, new SOCChoosePlayer(gaName, vpn));
+                }
+            }
+            else
+            {
+                srv.messageToPlayerKeyed
+                    (c, gaName, ((coord < 0) ? "robber.cantmove.pirate" : "robber.cantmove"));
+                    // "You can't move the pirate" / "You can't move the robber"
+            }
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception caught");
+        }
+
+        ga.releaseMonitor();
+    }
+
+    /**
+     * handle "choose player" message during robbery.
+     *
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     * @since 1.0.0
+     */
+    private void handleCHOOSEPLAYER(SOCGame ga, StringConnection c, final SOCChoosePlayer mes)
+    {
+        ga.takeMonitor();
+
+        try
+        {
+            if (handler.checkTurn(c, ga))
+            {
+                final int choice = mes.getChoice();
+                switch (ga.getGameState())
+                {
+                case SOCGame.WAITING_FOR_ROBBER_OR_PIRATE:
+                    ga.chooseMovePirate(choice == SOCChoosePlayer.CHOICE_MOVE_PIRATE);
+                    handler.sendGameState(ga);
+                    break;
+
+                case SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER:
+                    if ((choice == SOCChoosePlayer.CHOICE_NO_PLAYER) && ga.canChoosePlayer(-1))
+                    {
+                        ga.choosePlayerForRobbery(-1);  // state becomes PLAY1
+                        srv.messageToGameKeyed(ga, true, "robber.declined", (String) c.getData());  // "{0} declined to steal."
+                        handler.sendGameState(ga);
+                    }
+                    else if (ga.canChoosePlayer(choice))
+                    {
+                        final int rsrc = ga.choosePlayerForRobbery(choice);
+                        final boolean waitingClothOrRsrc = (ga.getGameState() == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE);
+                        if (! waitingClothOrRsrc)
+                        {
+                            handler.reportRobbery
+                                (ga, ga.getPlayer((String) c.getData()), ga.getPlayer(choice), rsrc);
+                        } else {
+                            srv.messageToGameKeyed(ga, true, "robber.moved.choose.cloth.rsrcs",
+                                ((String) c.getData()), ga.getPlayer(choice).getName());
+                                // "{0} moved the pirate, must choose to steal cloth or steal resources from {1}."
+                        }
+                        handler.sendGameState(ga);
+                        if (waitingClothOrRsrc)
+                            srv.messageToPlayer(c, new SOCChoosePlayer(ga.getName(), choice));
+                    } else {
+                        srv.messageToPlayerKeyed(c, ga.getName(), "robber.cantsteal");  // "You can't steal from that player."
+                    }
+                    break;
+
+                case SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE:
+                    {
+                        final boolean stealCloth;
+                        final int pn;
+                        if (choice < 0)
+                        {
+                            stealCloth = true;
+                            pn = (-choice) - 1;
+                        } else {
+                            stealCloth = false;
+                            pn = choice;
+                        }
+                        if (ga.canChoosePlayer(pn) && ga.canChooseRobClothOrResource(pn))
+                        {
+                            final int rsrc = ga.stealFromPlayer(pn, stealCloth);
+                            handler.reportRobbery
+                                (ga, ga.getPlayer((String) c.getData()), ga.getPlayer(pn), rsrc);
+                            handler.sendGameState(ga);
+                            break;
+                        }
+                        // else, fall through and send "can't steal" message
+                    }
+
+                default:
+                    srv.messageToPlayerKeyed(c, ga.getName(), "robber.cantsteal");  // "You can't steal from that player."
+                }
+            }
+            else
+            {
+                srv.messageToPlayerKeyed(c, ga.getName(), "reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Throwable e)
