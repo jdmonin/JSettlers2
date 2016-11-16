@@ -28,9 +28,12 @@ import soc.debug.D;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
+import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
+import soc.game.SOCSettlement;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.*;
@@ -231,7 +234,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handler.handleBUILDREQUEST(game, connection, (SOCBuildRequest) message);
+            handleBUILDREQUEST(game, connection, (SOCBuildRequest) message);
 
             //ga = (SOCGame)gamesData.get(((SOCBuildRequest)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -242,7 +245,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handler.handleCANCELBUILDREQUEST(game, connection, (SOCCancelBuildRequest) message);
+            handleCANCELBUILDREQUEST(game, connection, (SOCCancelBuildRequest) message);
 
             //ga = (SOCGame)gamesData.get(((SOCCancelBuildRequest)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -910,7 +913,6 @@ public class SOCGameMessageHandler
     /// Player trades and bank trades ///
 
 
-
     /**
      * handle "make offer" message.
      *
@@ -1157,5 +1159,313 @@ public class SOCGameMessageHandler
         ga.releaseMonitor();
     }
 
+
+    /// Building and placement ///
+
+
+    /**
+     * handle "build request" message.
+     * If client is current player, they want to buy a {@link SOCPlayingPiece}.
+     * Otherwise, if 6-player board, they want to build during the
+     * {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
+     *
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     * @since 1.0.0
+     */
+    private void handleBUILDREQUEST(SOCGame ga, StringConnection c, final SOCBuildRequest mes)
+    {
+        final String gaName = ga.getName();
+        ga.takeMonitor();
+
+        try
+        {
+            final boolean isCurrent = handler.checkTurn(c, ga);
+            SOCPlayer player = ga.getPlayer((String) c.getData());
+            final int pn = player.getPlayerNumber();
+            final int pieceType = mes.getPieceType();
+            boolean sendDenyReply = false;  // for robots' benefit
+
+            if (isCurrent)
+            {
+                if ((ga.getGameState() == SOCGame.PLAY1) || (ga.getGameState() == SOCGame.SPECIAL_BUILDING))
+                {
+                    switch (pieceType)
+                    {
+                    case SOCPlayingPiece.ROAD:
+
+                        if (ga.couldBuildRoad(pn))
+                        {
+                            ga.buyRoad(pn);
+                            srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.CLAY, 1));
+                            srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.WOOD, 1));
+                            handler.sendGameState(ga);
+                        }
+                        else
+                        {
+                            srv.messageToPlayer(c, gaName, "You can't build a road.");
+                            sendDenyReply = true;
+                        }
+
+                        break;
+
+                    case SOCPlayingPiece.SETTLEMENT:
+
+                        if (ga.couldBuildSettlement(pn))
+                        {
+                            ga.buySettlement(pn);
+                            srv.gameList.takeMonitorForGame(gaName);
+                            srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.CLAY, 1));
+                            srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.SHEEP, 1));
+                            srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 1));
+                            srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.WOOD, 1));
+                            srv.gameList.releaseMonitorForGame(gaName);
+                            handler.sendGameState(ga);
+                        }
+                        else
+                        {
+                            srv.messageToPlayer(c, gaName, "You can't build a settlement.");
+                            sendDenyReply = true;
+                        }
+
+                        break;
+
+                    case SOCPlayingPiece.CITY:
+
+                        if (ga.couldBuildCity(pn))
+                        {
+                            ga.buyCity(pn);
+                            srv.messageToGame(ga.getName(), new SOCPlayerElement(ga.getName(), pn, SOCPlayerElement.LOSE, SOCPlayerElement.ORE, 3));
+                            srv.messageToGame(ga.getName(), new SOCPlayerElement(ga.getName(), pn, SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 2));
+                            handler.sendGameState(ga);
+                        }
+                        else
+                        {
+                            srv.messageToPlayer(c, gaName, "You can't build a city.");
+                            sendDenyReply = true;
+                        }
+
+                        break;
+
+                    case SOCPlayingPiece.SHIP:
+
+                        if (ga.couldBuildShip(pn))
+                        {
+                            ga.buyShip(pn);
+                            srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.SHEEP, 1));
+                            srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.WOOD, 1));
+                            handler.sendGameState(ga);
+                        }
+                        else
+                        {
+                            srv.messageToPlayer(c, gaName, "You can't build a ship.");
+                            sendDenyReply = true;
+                        }
+
+                        break;
+                    }
+                }
+                else if (pieceType == -1)
+                {
+                    // 6-player board: Special Building Phase
+                    // during start of own turn
+                    try
+                    {
+                        ga.askSpecialBuild(pn, true);
+                        srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
+                        handler.endGameTurn(ga, player, true);  // triggers start of SBP
+                    } catch (IllegalStateException e) {
+                        srv.messageToPlayer(c, gaName, "You can't ask to build now.");
+                        sendDenyReply = true;
+                    }
+                }
+                else
+                {
+                    srv.messageToPlayer(c, gaName, "You can't build now.");
+                    sendDenyReply = true;
+                }
+            }
+            else
+            {
+                if (ga.maxPlayers <= 4)
+                {
+                    srv.messageToPlayer(c, gaName, "It's not your turn.");
+                    sendDenyReply = true;
+                } else {
+                    // 6-player board: Special Building Phase
+                    // during other player's turn
+                    try
+                    {
+                        ga.askSpecialBuild(pn, true);  // will validate that they can build now
+                        srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
+                    } catch (IllegalStateException e) {
+                        srv.messageToPlayer(c, gaName, "You can't ask to build now.");
+                        sendDenyReply = true;
+                    }
+                }
+            }
+
+            if (sendDenyReply && ga.getPlayer(pn).isRobot())
+            {
+                srv.messageToPlayer(c, new SOCCancelBuildRequest(gaName, pieceType));
+            }
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception caught at handleBUILDREQUEST");
+        }
+
+        ga.releaseMonitor();
+    }
+
+    /**
+     * handle "cancel build request" message.
+     * Cancel placement and send new game state, if cancel is allowed.
+     *
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     * @since 1.0.0
+     */
+    private void handleCANCELBUILDREQUEST(SOCGame ga, StringConnection c, final SOCCancelBuildRequest mes)
+    {
+        ga.takeMonitor();
+
+        try
+        {
+            final String gaName = ga.getName();
+            if (handler.checkTurn(c, ga))
+            {
+                final SOCPlayer player = ga.getPlayer((String) c.getData());
+                final int pn = player.getPlayerNumber();
+                final int gstate = ga.getGameState();
+
+                switch (mes.getPieceType())
+                {
+                case SOCPlayingPiece.ROAD:
+
+                    if ((gstate == SOCGame.PLACING_ROAD) || (gstate == SOCGame.PLACING_FREE_ROAD2))
+                    {
+                        ga.cancelBuildRoad(pn);
+                        if (gstate == SOCGame.PLACING_ROAD)
+                        {
+                            srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
+                            srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                        } else {
+                            srv.messageToGameKeyed(ga, true, "action.card.roadbuilding.skip.r", player.getName());
+                                // "{0} skipped placing the second road."
+                        }
+                        handler.sendGameState(ga);
+                    }
+                    else
+                    {
+                        srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a road."/*18N*/ );
+                    }
+
+                    break;
+
+                case SOCPlayingPiece.SETTLEMENT:
+
+                    if (gstate == SOCGame.PLACING_SETTLEMENT)
+                    {
+                        ga.cancelBuildSettlement(pn);
+                        srv.gameList.takeMonitorForGame(gaName);
+                        srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
+                        srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, 1));
+                        srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 1));
+                        srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                        srv.gameList.releaseMonitorForGame(gaName);
+                        handler.sendGameState(ga);
+                    }
+                    else if ((gstate == SOCGame.START1B) || (gstate == SOCGame.START2B) || (gstate == SOCGame.START3B))
+                    {
+                        SOCSettlement pp = new SOCSettlement(player, player.getLastSettlementCoord(), null);
+                        ga.undoPutInitSettlement(pp);
+                        srv.messageToGame(gaName, mes);  // Re-send to all clients to announce it
+                            // (Safe since we've validated all message parameters)
+                        srv.messageToGameKeyed(ga, true, "action.built.stlmt.cancel", player.getName());  //  "{0} cancelled this settlement placement."
+                        handler.sendGameState(ga);  // This send is redundant, if client reaction changes game state
+                    }
+                    else
+                    {
+                        srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a settlement."/*18N*/ );
+                    }
+
+                    break;
+
+                case SOCPlayingPiece.CITY:
+
+                    if (gstate == SOCGame.PLACING_CITY)
+                    {
+                        ga.cancelBuildCity(pn);
+                        srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.ORE, 3));
+                        srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 2));
+                        handler.sendGameState(ga);
+                    }
+                    else
+                    {
+                        srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a city."/*18N*/ );
+                    }
+
+                    break;
+
+                case SOCPlayingPiece.SHIP:
+
+                    if ((gstate == SOCGame.PLACING_SHIP) || (gstate == SOCGame.PLACING_FREE_ROAD2))
+                    {
+                        ga.cancelBuildShip(pn);
+                        if (gstate == SOCGame.PLACING_SHIP)
+                        {
+                            srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, 1));
+                            srv.messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                        } else {
+                            srv.messageToGameKeyed(ga, true, "action.card.roadbuilding.skip.s", player.getName());
+                                // "{0} skipped placing the second ship."
+                        }
+                        handler.sendGameState(ga);
+                    }
+                    else
+                    {
+                        srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a ship."/*18N*/ );
+                    }
+
+                    break;
+
+                case SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL:
+                    SOCInventoryItem item = null;
+                    if (gstate == SOCGame.PLACING_INV_ITEM)
+                        item = ga.cancelPlaceInventoryItem(false);
+
+                    if (item != null)
+                        srv.messageToGame(gaName, new SOCInventoryItemAction
+                            (gaName, pn, SOCInventoryItemAction.ADD_PLAYABLE, item.itype,
+                             item.isKept(), item.isVPItem(), item.canCancelPlay));
+
+                    if ((item != null) || (gstate != ga.getGameState()))
+                    {
+                        srv.messageToGameKeyed(ga, true, "reply.placeitem.cancel", player.getName());
+                            // "{0} canceled placement of a special item."
+                        handler.sendGameState(ga);
+                    } else {
+                        srv.messageToPlayerKeyed(c, gaName, "reply.placeitem.cancel.cannot");
+                            // "Cannot cancel item placement."
+                    }
+                    break;
+
+                default:
+                    throw new IllegalArgumentException("Unknown piece type " + mes.getPieceType());
+                }
+            }
+            else
+            {
+                srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
+            }
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception caught");
+        }
+
+        ga.releaseMonitor();
+    }
 
 }
