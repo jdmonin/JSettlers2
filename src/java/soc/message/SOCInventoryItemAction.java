@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -92,6 +92,9 @@ public class SOCInventoryItemAction extends SOCMessage
     implements SOCMessageForGame
 {
     private static final long serialVersionUID = 2000L;
+
+    // Item Actions:
+    // If you add or change actions, update toString().
 
     /** item action ADD_PLAYABLE: From server, add as Playable to player's inventory */
     public static final int ADD_PLAYABLE = 1;
@@ -342,7 +345,19 @@ public class SOCInventoryItemAction extends SOCMessage
      */
     public String toString()
     {
-        String s = "SOCInventoryItemAction:game=" + game + "|playerNum=" + playerNumber + "|action=" + action
+        final String ac;
+        switch (action)
+        {
+        case ADD_PLAYABLE:  ac = "ADD_PLAYABLE";  break;
+        case ADD_OTHER:     ac = "ADD_OTHER";     break;
+        case PLAY:          ac = "PLAY";          break;
+        case CANNOT_PLAY:   ac = "CANNOT_PLAY";   break;
+        case PLAYED:        ac = "PLAYED";        break;
+        case PLACING_EXTRA: ac = "PLACING_EXTRA"; break;
+        default:            ac = Integer.toString(action);
+        }
+
+        String s = "SOCInventoryItemAction:game=" + game + "|playerNum=" + playerNumber + "|action=" + ac
             + "|itemType=" + itemType;
 
         if ((action != PLAY) && (action != CANNOT_PLAY))
