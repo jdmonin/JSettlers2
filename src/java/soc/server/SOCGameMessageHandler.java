@@ -164,7 +164,7 @@ public class SOCGameMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handler.handleENDTURN(game, connection, (SOCEndTurn) message);
+            handleENDTURN(game, connection, (SOCEndTurn) message);
 
             //ga = (SOCGame)gamesData.get(((SOCEndTurn)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -307,7 +307,7 @@ public class SOCGameMessageHandler
          * debug piece Free Placement (as of 20110104 (v 1.1.12))
          */
         case SOCMessage.DEBUGFREEPLACE:
-            handler.handleDEBUGFREEPLACE(game, connection, (SOCDebugFreePlace) message);
+            handleDEBUGFREEPLACE(game, connection, (SOCDebugFreePlace) message);
             break;
 
         /**
@@ -1118,6 +1118,73 @@ public class SOCGameMessageHandler
         catch (Throwable e)
         {
             D.ebugPrintStackTrace(e, "Exception caught");
+        }
+
+        ga.releaseMonitor();
+    }
+
+
+    /// Flow of Game ///
+
+
+    /**
+     * handle "end turn" message.
+     * This normally ends a player's normal turn (phase {@link SOCGame#PLAY1}).
+     * On the 6-player board, it ends their placements during the
+     * {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
+     *
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     * @since 1.0.0
+     */
+    private void handleENDTURN(SOCGame ga, StringConnection c, final SOCEndTurn mes)
+    {
+        final String gname = ga.getName();
+
+        if (ga.isDebugFreePlacement())
+        {
+            // turn that off before ending current turn
+            handler.processDebugCommand_freePlace(c, gname, "0");
+        }
+
+        ga.takeMonitor();
+
+        try
+        {
+            final String plName = (String) c.getData();
+            if (ga.getGameState() == SOCGame.OVER)
+            {
+                // Should not happen; is here just in case.
+                SOCPlayer pl = ga.getPlayer(plName);
+                if (pl != null)
+                {
+                    String msg = ga.gameOverMessageToPlayer(pl);
+                        // msg = "The game is over; you are the winner!";
+                        // msg = "The game is over; <someone> won.";
+                        // msg = "The game is over; no one won.";
+                    srv.messageToPlayer(c, gname, msg);
+                }
+            }
+            else if (handler.checkTurn(c, ga))
+            {
+                SOCPlayer pl = ga.getPlayer(plName);
+                if ((pl != null) && ga.canEndTurn(pl.getPlayerNumber()))
+                {
+                    handler.endGameTurn(ga, pl, true);
+                }
+                else
+                {
+                    srv.messageToPlayer(c, gname, "You can't end your turn yet.");
+                }
+            }
+            else
+            {
+                srv.messageToPlayer(c, gname, "It's not your turn.");
+            }
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception caught at handleENDTURN");
         }
 
         ga.releaseMonitor();
@@ -2061,6 +2128,98 @@ public class SOCGameMessageHandler
                 + ": player " + pn);
             srv.messageToPlayer(c, gaName, "You can't move that ship right now.");
             srv.messageToPlayer(c, new SOCCancelBuildRequest(gaName, SOCPlayingPiece.SHIP));
+        }
+    }
+
+    /**
+     * Handle the client's debug Free Placement putpiece request.
+     * @since 1.1.12
+     */
+    private void handleDEBUGFREEPLACE(SOCGame ga, StringConnection c, final SOCDebugFreePlace mes)
+    {
+        if (! ga.isDebugFreePlacement())
+            return;
+        final String gaName = ga.getName();
+
+        final int coord = mes.getCoordinates();
+        SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        if (player == null)
+            return;
+
+        boolean didPut = false;
+        final int pieceType = mes.getPieceType();
+
+        final boolean initialDeny
+            = ga.isInitialPlacement() && ! player.canBuildInitialPieceType(pieceType);
+
+        switch (pieceType)
+        {
+        case SOCPlayingPiece.ROAD:
+            if (player.isPotentialRoad(coord) && ! initialDeny)
+            {
+                ga.putPiece(new SOCRoad(player, coord, null));
+                didPut = true;
+            }
+            break;
+
+        case SOCPlayingPiece.SETTLEMENT:
+            if (player.canPlaceSettlement(coord) && ! initialDeny)
+            {
+                ga.putPiece(new SOCSettlement(player, coord, null));
+                didPut = true;
+            }
+            break;
+
+        case SOCPlayingPiece.CITY:
+            if (player.isPotentialCity(coord) && ! initialDeny)
+            {
+                ga.putPiece(new SOCCity(player, coord, null));
+                didPut = true;
+            }
+            break;
+
+        case SOCPlayingPiece.SHIP:
+            if (ga.canPlaceShip(player, coord) && ! initialDeny)
+            {
+                ga.putPiece(new SOCShip(player, coord, null));
+                didPut = true;
+            }
+            break;
+
+        default:
+            srv.messageToPlayer(c, gaName, "* Unknown piece type: " + pieceType);
+        }
+
+        if (didPut)
+        {
+            srv.messageToGame(gaName, new SOCPutPiece
+                              (gaName, mes.getPlayerNumber(), pieceType, coord));
+
+            // Check for initial settlement next to gold hex
+            if (pieceType == SOCPlayingPiece.SETTLEMENT)
+            {
+                final int numGoldRes = player.getNeedToPickGoldHexResources();
+                if (numGoldRes > 0)
+                    srv.messageToPlayer(c, new SOCPickResourcesRequest(gaName, numGoldRes));
+            }
+
+            if (ga.getGameState() >= SOCGame.OVER)
+            {
+                // exit debug mode, announce end of game
+                handler.processDebugCommand_freePlace(c, gaName, "0");
+                handler.sendGameState(ga, false);
+            }
+        } else {
+            if (initialDeny)
+            {
+                final String pieceTypeFirst =
+                    ((player.getPieces().size() % 2) == 0)
+                    ? "settlement"
+                    : "road";
+                srv.messageToPlayer(c, gaName, "Place a " + pieceTypeFirst + " before placing that.");
+            } else {
+                srv.messageToPlayer(c, gaName, "Not a valid location to place that.");
+            }
         }
     }
 
