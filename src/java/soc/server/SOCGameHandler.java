@@ -2426,9 +2426,9 @@ public class SOCGameHandler extends GameHandler
      * @see #reportTrade(SOCGame, int, int)
      * @see #reportBankTrade(SOCGame, SOCResourceSet, SOCResourceSet)
      * @see #reportRsrcGainGold(SOCGame, SOCPlayer, int, SOCResourceSet, boolean)
-     * @see #handleDISCARD(SOCGame, StringConnection, SOCDiscard)
+     * @see SOCGameMessageHandler#handleDISCARD(SOCGame, StringConnection, SOCDiscard)
      * @see SOCGameMessageHandler#handleDISCOVERYPICK(SOCGame, StringConnection, SOCDiscoveryPick)
-     * @see #handleROLLDICE(SOCGame, StringConnection, SOCRollDice)
+     * @see SOCGameMessageHandler#handleROLLDICE(SOCGame, StringConnection, SOCRollDice)
      */
     void reportRsrcGainLoss
         (final String gaName, final SOCResourceSet rset, final boolean isLoss, final int mainPlayer, final int tradingPlayer,

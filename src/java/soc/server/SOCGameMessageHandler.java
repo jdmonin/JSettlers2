@@ -360,7 +360,7 @@ public class SOCGameMessageHandler
 
         }  // switch (mes.getType)
 
-        return true;  // Message was handled
+        return true;  // Message was handled in a non-default case above
     }
 
 
@@ -374,7 +374,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    void handleROLLDICE(SOCGame ga, StringConnection c, final SOCRollDice mes)
+    private void handleROLLDICE(SOCGame ga, StringConnection c, final SOCRollDice mes)
     {
         final String gn = ga.getName();
 
@@ -726,7 +726,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    void handleDISCARD(SOCGame ga, StringConnection c, final SOCDiscard mes)
+    private void handleDISCARD(SOCGame ga, StringConnection c, final SOCDiscard mes)
     {
         final String gn = ga.getName();
         final SOCPlayer player = ga.getPlayer((String) c.getData());
@@ -799,7 +799,7 @@ public class SOCGameMessageHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    final void handlePICKRESOURCES(SOCGame ga, StringConnection c, final SOCPickResources mes)
+    private void handlePICKRESOURCES(SOCGame ga, StringConnection c, final SOCPickResources mes)
     {
         final String gn = ga.getName();
         final SOCPlayer player = ga.getPlayer((String) c.getData());
@@ -1312,7 +1312,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    void handleMAKEOFFER(SOCGame ga, StringConnection c, final SOCMakeOffer mes)
+    private void handleMAKEOFFER(SOCGame ga, StringConnection c, final SOCMakeOffer mes)
     {
         final String gaName = ga.getName();
         if (ga.isGameOptionSet("NT"))
@@ -1384,7 +1384,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    void handleCLEAROFFER(SOCGame ga, StringConnection c, final SOCClearOffer mes)
+    private void handleCLEAROFFER(SOCGame ga, StringConnection c, final SOCClearOffer mes)
     {
         ga.takeMonitor();
 
@@ -1423,7 +1423,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    void handleREJECTOFFER(SOCGame ga, StringConnection c, final SOCRejectOffer mes)
+    private void handleREJECTOFFER(SOCGame ga, StringConnection c, final SOCRejectOffer mes)
     {
         SOCPlayer player = ga.getPlayer((String) c.getData());
         if (player == null)
@@ -1443,7 +1443,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    void handleACCEPTOFFER(SOCGame ga, StringConnection c, final SOCAcceptOffer mes)
+    private void handleACCEPTOFFER(SOCGame ga, StringConnection c, final SOCAcceptOffer mes)
     {
         ga.takeMonitor();
 
@@ -1507,7 +1507,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    void handleBANKTRADE(SOCGame ga, StringConnection c, final SOCBankTrade mes)
+    private void handleBANKTRADE(SOCGame ga, StringConnection c, final SOCBankTrade mes)
     {
         final String gaName = ga.getName();
         final SOCResourceSet give = mes.getGiveSet(),
@@ -2619,7 +2619,7 @@ public class SOCGameMessageHandler
 
                 default:
                     denyTextKey = "reply.playdevcard.type.unknown";  // "That card type is unknown."
-                    D.ebugPrintln("* SOCGameHandler.handlePLAYDEVCARDREQUEST: asked to play unhandled type " + mes.getDevCard());
+                    D.ebugPrintln("* srv handlePLAYDEVCARDREQUEST: asked to play unhandled type " + mes.getDevCard());
                     // debug prints dev card type from client, not ctype,
                     // in case ctype was changed here from message value.
 
