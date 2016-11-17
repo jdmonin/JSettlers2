@@ -144,7 +144,7 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> SOCBoardPanel.drawBoard
      * <LI> SOCHandPanel.addPlayer, began, removePlayer, updateAtTurn, updateValue
      * <LI> SOCGame.addPlayer
-     * <LI> SOCServer.handleSTARTGAME
+     * <LI> SOCServerMessageHandler.handleSTARTGAME
      * <LI> Your game type's GameHandler.leaveGame, sitDown, GameMessageHandler.handleCANCELBUILDREQUEST, handlePUTPIECE
      * <LI> SOCPlayerClient.handleCANCELBUILDREQUEST, SOCDisplaylessPlayerClient.handleCANCELBUILDREQUEST
      *</UL>

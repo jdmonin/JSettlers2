@@ -50,7 +50,6 @@ import soc.util.Version;
  * Before v2.0.00, these methods and fields were part of {@link SOCServer}:
  * processCommand(String, StringConnection) and related methods
  * So, some may have {@code @since} javadoc labels with versions older than 2.0.00.
- * Game message handler for the {@link SOCGameHandler} game type.
  *
  * @see SOCGameMessageHandler
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -246,7 +245,7 @@ public class SOCServerMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            srv.handleSITDOWN(c, (SOCSitDown) mes);
+            handleSITDOWN(c, (SOCSitDown) mes);
 
             //ga = (SOCGame)gamesData.get(((SOCSitDown)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -260,7 +259,7 @@ public class SOCServerMessageHandler
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            srv.handleSTARTGAME(c, (SOCStartGame) mes, 0);
+            handleSTARTGAME(c, (SOCStartGame) mes, 0);
 
             //ga = (SOCGame)gamesData.get(((SOCStartGame)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
@@ -1218,6 +1217,321 @@ public class SOCServerMessageHandler
 
         if (gameResetRobotsAllDismissed)
             srv.resetBoardAndNotify_finish(gr, cg);  // TODO locks?
+    }
+
+    /**
+     * handle "sit down" message
+     *
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     * @since 1.0.0
+     */
+    private void handleSITDOWN(StringConnection c, SOCSitDown mes)
+    {
+        if (c == null)
+            return;
+
+        final String gaName = mes.getGame();
+        SOCGame ga = gameList.getGameData(gaName);
+        if (ga == null)
+            return;
+
+        /**
+         * make sure this player isn't already sitting
+         */
+        boolean canSit = true;
+        boolean gameIsFull = false, gameAlreadyStarted = false;
+
+        /*
+           for (int i = 0; i < SOCGame.MAXPLAYERS; i++) {
+           if (ga.getPlayer(i).getName() == (String)c.getData()) {
+           canSit = false;
+           break;
+           }
+           }
+         */
+        //D.ebugPrintln("ga.isSeatVacant(mes.getPlayerNumber()) = "+ga.isSeatVacant(mes.getPlayerNumber()));
+
+        /**
+         * if this is a robot, remove it from the request list
+         */
+        boolean isBotJoinRequest = false;
+        {
+            Vector<StringConnection> joinRequests = srv.robotJoinRequests.get(gaName);
+            if (joinRequests != null)
+                isBotJoinRequest = joinRequests.removeElement(c);
+        }
+
+        /**
+         * make sure a person isn't sitting here already;
+         * can't sit at a vacant seat after everyone has placed 1st settlement+road;
+         * if a robot is sitting there, dismiss the robot.
+         *
+         * If a human leaves after game is started, seat will appear vacant when the
+         * requested bot sits to replace them, so let the bot sit at that vacant seat.
+         */
+        final int pn = mes.getPlayerNumber();
+
+        ga.takeMonitor();
+
+        try
+        {
+            if (ga.isSeatVacant(pn))
+            {
+                gameAlreadyStarted = (ga.getGameState() >= SOCGame.START2A);
+                if (! gameAlreadyStarted)
+                    gameIsFull = (1 > ga.getAvailableSeatCount());
+
+                if (gameIsFull || (gameAlreadyStarted && ! isBotJoinRequest))
+                    canSit = false;
+            } else {
+                SOCPlayer seatedPlayer = ga.getPlayer(pn);
+
+                if (seatedPlayer.isRobot()
+                    && (ga.getSeatLock(pn) != SOCGame.SeatLockState.LOCKED)
+                    && (ga.getCurrentPlayerNumber() != pn))
+                {
+                    /**
+                     * boot the robot out of the game
+                     */
+                    StringConnection robotCon = srv.getConnection(seatedPlayer.getName());
+                    robotCon.put(SOCRobotDismiss.toCmd(gaName));
+
+                    /**
+                     * this connection has to wait for the robot to leave
+                     * and then it can sit down
+                     */
+                    Vector<SOCReplaceRequest> disRequests = srv.robotDismissRequests.get(gaName);
+                    SOCReplaceRequest req = new SOCReplaceRequest(c, robotCon, mes);
+
+                    if (disRequests == null)
+                    {
+                        disRequests = new Vector<SOCReplaceRequest>();
+                        disRequests.addElement(req);
+                        srv.robotDismissRequests.put(gaName, disRequests);
+                    }
+                    else
+                    {
+                        disRequests.addElement(req);
+                    }
+                }
+
+                canSit = false;
+            }
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception caught at handleSITDOWN");
+        }
+
+        ga.releaseMonitor();
+
+        //D.ebugPrintln("canSit 2 = "+canSit);
+        if (canSit)
+        {
+            srv.sitDown(ga, c, pn, mes.isRobot(), false);
+        }
+        else
+        {
+            /**
+             * if the robot can't sit, tell it to go away.
+             * otherwise if game is full, tell the player.
+             */
+            if (mes.isRobot())
+            {
+                c.put(SOCRobotDismiss.toCmd(gaName));
+            } else if (gameAlreadyStarted) {
+                srv.messageToPlayerKeyed(c, gaName, "member.sit.game.started");
+                    // "This game has already started; to play you must take over a robot."
+            } else if (gameIsFull) {
+                srv.messageToPlayerKeyed(c, gaName, "member.sit.game.full");
+                    // "This game is full; you cannot sit down."
+            }
+        }
+    }
+
+    /**
+     * handle "start game" message.  Game state must be NEW, or this message is ignored.
+     * {@link SOCServer#readyGameAskRobotsJoin(SOCGame, StringConnection[], int) Ask some robots} to fill
+     * empty seats, or {@link GameHandler#startGame(SOCGame) begin the game} if no robots needed.
+     *<P>
+     * Called when clients have sat at a new game and a client asks to start it,
+     * not called during game board reset.
+     *<P>
+     * For robot debugging, a client can start and observe a robots-only game if the
+     * {@link SOCServer#PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL} property != 0 (including &lt; 0).
+     *<P>
+     * Visibility is package-level, not private, so {@link SOCServer} can start robot-only games.
+     *
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     * @param botsOnly_maxBots  For bot debugging, maximum number of bots to add to the game,
+     *     or 0 to fill all empty seats. This parameter is used only when requesting a new
+     *     robots-only game using the *STARTBOTGAME* debug command; ignored otherwise.
+     * @since 1.0.0
+     */
+    void handleSTARTGAME
+        (StringConnection c, final SOCStartGame mes, final int botsOnly_maxBots)
+    {
+        final String gn = mes.getGame();
+        SOCGame ga = gameList.getGameData(gn);
+        if (ga == null)
+            return;
+
+        ga.takeMonitor();
+
+        try
+        {
+            if (ga.getGameState() == SOCGame.NEW)
+            {
+                boolean allowStart = true;
+                boolean seatsFull = true;
+                boolean anyLocked = false;
+                int numEmpty = 0;
+                int numPlayers = 0;
+
+                //
+                // count the number of unlocked empty seats
+                //
+                for (int i = 0; i < ga.maxPlayers; i++)
+                {
+                    if (ga.isSeatVacant(i))
+                    {
+                        if (ga.getSeatLock(i) == SOCGame.SeatLockState.UNLOCKED)
+                        {
+                            seatsFull = false;
+                            ++numEmpty;
+                        }
+                        else
+                        {
+                            anyLocked = true;
+                        }
+                    }
+                    else
+                    {
+                        ++numPlayers;
+                    }
+                }
+
+                // Check vs max-players allowed in game (option "PL").
+                // Like seat locks, this can cause robots to be unwanted
+                // in otherwise-empty seats.
+                {
+                    final int numAvail = ga.getAvailableSeatCount();
+                    if (numAvail < numEmpty)
+                    {
+                        numEmpty = numAvail;
+                        if (numEmpty == 0)
+                            seatsFull = true;
+                    }
+                }
+
+                if (numPlayers == 0)
+                {
+                    // No one has sat, human client who requested STARTGAME is an observer.
+                    // Is server configured for robot-only games?  Prop's value can be < 0
+                    // to allow this without creating bots-only games at startup.
+
+                    if (0 == srv.getConfigIntProperty(SOCServer.PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0))
+                    {
+                        allowStart = false;
+                        srv.messageToGameKeyed(ga, true, "start.player.must.sit");
+                            // "To start the game, at least one player must sit down."
+                    } else {
+                        if ((botsOnly_maxBots != 0) && (botsOnly_maxBots < numEmpty))
+                            numEmpty = botsOnly_maxBots;
+                    }
+                }
+
+                if (seatsFull && (numPlayers < 2))
+                {
+                    // Don't start the game; client must have more humans sit or unlock some seats for bots.
+
+                    allowStart = false;
+                    numEmpty = 3;
+                    srv.messageToGameKeyed(ga, true, "start.only.cannot.lock.all");
+                        // "The only player cannot lock all seats. To start the game, other players or robots must join."
+                }
+                else if (allowStart && ! seatsFull)
+                {
+                    // Look for some bots
+
+                    final int numBots = srv.getRobotCount();
+                    if (numBots == 0)
+                    {
+                        if (numPlayers < SOCGame.MINPLAYERS)
+                            srv.messageToGameKeyed(ga, true, "start.no.robots.on.server", SOCGame.MINPLAYERS);
+                                // "No robots on this server, please fill at least {0} seats before starting."
+                        else
+                            seatsFull = true;  // Enough players to start game.
+                    }
+                    else
+                    {
+                        //
+                        // make sure there are enough robots connected,
+                        // then set gamestate READY and ask them to connect.
+                        //
+                        if (numEmpty > numBots)
+                        {
+                            final String m;
+                            if (anyLocked)
+                                m = "start.not.enough.robots";
+                                    // "Not enough robots to fill all the seats. Only {0} robots are available."
+                            else
+                                m = "start.not.enough.robots.lock";
+                                    // "Not enough robots to fill all the seats. Lock some seats. Only {0} robots are available."
+                            srv.messageToGameKeyed(ga, true, m, numBots);
+                        }
+                        else
+                        {
+                            ga.setGameState(SOCGame.READY);
+
+                            /**
+                             * Fill all the unlocked empty seats with robots.
+                             * Build a Vector of StringConnections of robots asked
+                             * to join, and add it to the robotJoinRequests table.
+                             */
+                            try
+                            {
+                                srv.readyGameAskRobotsJoin(ga, null, numEmpty);
+                            }
+                            catch (IllegalStateException e)
+                            {
+                                System.err.println("Robot-join problem in game " + gn + ": " + e);
+
+                                // recover, so that human players can still start a game
+                                ga.setGameState(SOCGame.NEW);
+                                allowStart = false;
+
+                                gameList.takeMonitorForGame(gn);
+                                srv.messageToGameKeyed(ga, false, "start.robots.cannot.join.problem", e.getMessage());
+                                    // "Sorry, robots cannot join this game: {0}"
+                                srv.messageToGameKeyed(ga, false, "start.to.start.without.robots");
+                                    // "To start the game without robots, lock all empty seats."
+                                gameList.releaseMonitorForGame(gn);
+                            }
+                        }
+                    }
+                }
+
+                /**
+                 * If this doesn't need robots, then start the game.
+                 * Otherwise wait for them to sit before starting the game.
+                 */
+                if (seatsFull && allowStart)
+                {
+                    GameHandler hand = gameList.getGameTypeHandler(gn);
+                    if (hand != null)
+                        hand.startGame(ga);
+                }
+            }
+        }
+        catch (Throwable e)
+        {
+            D.ebugPrintStackTrace(e, "Exception caught");
+        }
+
+        ga.releaseMonitor();
     }
 
 }
