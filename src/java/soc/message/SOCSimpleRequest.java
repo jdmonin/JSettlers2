@@ -93,7 +93,7 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
 
     // Reminder: If you add a request type, check client and server code to determine if the new type
     // should be added to methods such as:
-    // - SOCGameHandler.handleSIMPLEREQUEST
+    // - SOCGameMessageHandler.handleSIMPLEREQUEST
     // - SOCPlayerClient.handleSIMPLEREQUEST
     // - SOCDisplaylessPlayerClient.handleSIMPLEREQUEST
     // - SOCRobotBrain.run case SOCMessage.SIMPLEREQUEST

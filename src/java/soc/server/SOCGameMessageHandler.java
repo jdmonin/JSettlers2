@@ -30,6 +30,7 @@ import soc.debug.D;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
+import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCInventoryItem;
@@ -41,6 +42,7 @@ import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
+import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.*;
@@ -315,7 +317,7 @@ public class SOCGameMessageHandler
          * Added 2013-02-17 for v1.1.18.
          */
         case SOCMessage.SIMPLEREQUEST:
-            handler.handleSIMPLEREQUEST(game, connection, (SOCSimpleRequest) message);
+            handleSIMPLEREQUEST(game, connection, (SOCSimpleRequest) message);
             break;
 
         /**
@@ -323,7 +325,7 @@ public class SOCGameMessageHandler
          * Added 2013-11-28 for v2.0.00.
          */
         case SOCMessage.INVENTORYITEMACTION:
-            handler.handleINVENTORYITEMACTION(game, connection, (SOCInventoryItemAction) message);
+            handleINVENTORYITEMACTION(game, connection, (SOCInventoryItemAction) message);
             break;
 
         /**
@@ -347,7 +349,7 @@ public class SOCGameMessageHandler
          * Added 2014-05-17 for v2.0.00.
          */
         case SOCMessage.SETSPECIALITEM:
-            handler.handleSETSPECIALITEM(game, connection, (SOCSetSpecialItem) message);
+            handleSETSPECIALITEM(game, connection, (SOCSetSpecialItem) message);
             break;
 
         /**
@@ -1188,6 +1190,115 @@ public class SOCGameMessageHandler
         }
 
         ga.releaseMonitor();
+    }
+
+    /**
+     * Handle the "simple request" message.
+     * @param c  the connection
+     * @param mes  the message
+     * @since 1.1.18
+     */
+    private void handleSIMPLEREQUEST(SOCGame ga, StringConnection c, final SOCSimpleRequest mes)
+    {
+        final String gaName = ga.getName();
+        SOCPlayer clientPl = ga.getPlayer((String) c.getData());
+        if (clientPl == null)
+            return;
+
+        final int pn = mes.getPlayerNumber();
+        final boolean clientIsPN = (pn == clientPl.getPlayerNumber());  // probably required for most request types
+        final int reqtype = mes.getRequestType();
+        final int cpn = ga.getCurrentPlayerNumber();
+
+        boolean replyDecline = false;  // if true, reply with generic decline (pn = -1, reqtype, 0, 0)
+
+        switch (reqtype)
+        {
+        case SOCSimpleRequest.SC_PIRI_FORT_ATTACK:
+            {
+                final SOCShip adjac = ga.canAttackPirateFortress();
+                if ((! clientIsPN) || (pn != cpn) || (adjac == null) || (adjac.getPlayerNumber() != cpn))
+                {
+                    c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
+                    return;  // <--- early return: deny ---
+                }
+
+                final int prevState = ga.getGameState();
+                final SOCPlayer cp = ga.getPlayer(cpn);
+                final int prevNumWarships = cp.getNumWarships();  // in case some are lost, we'll announce that
+                final SOCFortress fort = cp.getFortress();
+
+                final int[] res = ga.attackPirateFortress(adjac);
+
+                if (res.length > 1)
+                {
+                    // lost 1 or 2 ships adjacent to fortress.  res[1] == adjac.coordinate
+
+                    srv.messageToGame(gaName, new SOCRemovePiece(gaName, adjac));
+                    if (res.length > 2)
+                        srv.messageToGame(gaName, new SOCRemovePiece(gaName, cpn, SOCPlayingPiece.SHIP, res[2]));
+
+                    final int n = cp.getNumWarships();
+                    if (n != prevNumWarships)
+                        srv.messageToGame(gaName, new SOCPlayerElement
+                            (gaName, cpn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_WARSHIP_COUNT, n));
+                } else {
+                    // player won
+
+                    final int fortStrength = fort.getStrength();
+                    srv.messageToGame(gaName, new SOCPieceValue(gaName, fort.getCoordinates(), fortStrength, 0));
+                    if (0 == fortStrength)
+                        srv.messageToGame(gaName, new SOCPutPiece
+                            (gaName, cpn, SOCPlayingPiece.SETTLEMENT, fort.getCoordinates()));
+                }
+
+                srv.messageToGame(gaName, new SOCSimpleAction
+                    (gaName, cpn, SOCSimpleAction.SC_PIRI_FORT_ATTACK_RESULT, res[0], res.length - 1));
+
+                // check for end of player's turn
+                if (! handler.checkTurn(c, ga))
+                {
+                    handler.endGameTurn(ga, cp, false);
+                } else {
+                    // still player's turn, even if they won
+                    final int gstate = ga.getGameState();
+                    if (gstate != prevState)
+                        handler.sendGameState(ga);  // might be OVER, if player won
+                }
+            }
+            break;
+
+        case SOCSimpleRequest.TRADE_PORT_PLACE:
+            {
+                if (clientIsPN && (pn == cpn))
+                {
+                    final int edge = mes.getValue1();
+                    if ((ga.getGameState() == SOCGame.PLACING_INV_ITEM) && ga.canPlacePort(clientPl, edge))
+                    {
+                        final int ptype = ga.placePort(edge);
+
+                        handler.sendGameState(ga);  // PLAY1 or SPECIAL_BUILDING
+                        srv.messageToGame(gaName, new SOCSimpleRequest
+                            (gaName, cpn, SOCSimpleRequest.TRADE_PORT_PLACE, edge, ptype));
+                    } else {
+                        replyDecline = true;  // client will print a text message, no need to send one
+                    }
+                } else {
+                    srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");
+                    replyDecline = true;
+                }
+            }
+            break;
+
+        default:
+            // deny unknown types
+            replyDecline = true;
+            System.err.println
+                ("handleSIMPLEREQUEST: Unknown type " + reqtype + " from " + c.getData() + " in game " + ga);
+        }
+
+        if (replyDecline)
+            c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
     }
 
 
@@ -2672,6 +2783,265 @@ public class SOCGameMessageHandler
         }
 
         ga.releaseMonitor();
+    }
+
+
+    /// Inventory Items and Special Items ///
+
+
+    /**
+     * Special inventory item action (play request) from a player.
+     * Ignored unless {@link SOCInventoryItemAction#action mes.action} == {@link SOCInventoryItemAction#PLAY PLAY}.
+     * Calls {@link SOCGame#canPlayInventoryItem(int, int)}, {@link SOCGame#playInventoryItem(int)}.
+     * If game state changes here, calls {@link #sendGameState(SOCGame)} just before returning.
+     *
+     * @param ga  game with {@code c} as a client player
+     * @param c  the connection sending the message
+     * @param mes  the message
+     */
+    private void handleINVENTORYITEMACTION(SOCGame ga, StringConnection c, final SOCInventoryItemAction mes)
+    {
+        if (mes.action != SOCInventoryItemAction.PLAY)
+            return;
+
+        final String gaName = ga.getName();
+        SOCPlayer clientPl = ga.getPlayer((String) c.getData());
+        if (clientPl == null)
+            return;
+
+        final int pn = clientPl.getPlayerNumber();
+
+        final int replyCannot = ga.canPlayInventoryItem(pn, mes.itemType);
+        if (replyCannot != 0)
+        {
+            srv.messageToPlayer(c, new SOCInventoryItemAction
+                (gaName, -1, SOCInventoryItemAction.CANNOT_PLAY, mes.itemType, replyCannot));
+            return;
+        }
+
+        final int oldGameState = ga.getGameState();
+
+        final SOCInventoryItem item = ga.playInventoryItem(mes.itemType);  // <--- Play the item ---
+
+        if (item == null)
+        {
+            // Wasn't able to play.  Assume canPlay was recently called and returned OK; the most
+            // volatile of its conditions is player's inventory, so assume that's what changed.
+            srv.messageToPlayer(c, new SOCInventoryItemAction
+                (gaName, -1, SOCInventoryItemAction.CANNOT_PLAY, mes.itemType, 1));  // 1 == item not in inventory
+            return;
+        }
+
+        // Item played.  Announce play and removal (or keep) from player's inventory.
+        // Announce game state if changed.
+        srv.messageToGame(gaName, new SOCInventoryItemAction
+            (gaName, pn, SOCInventoryItemAction.PLAYED, item.itype, item.isKept(), item.isVPItem(), item.canCancelPlay));
+
+        final int gstate = ga.getGameState();
+        if (gstate != oldGameState)
+            handler.sendGameState(ga);
+    }
+
+    /**
+     * Handle Special Item requests from a player.
+     * Calls {@link SOCSpecialItem#playerPickItem(String, SOCGame, SOCPlayer, int, int)}
+     * or {@link SOCSpecialItem#playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)}
+     * which provide scenario-specific responses or decline the request.
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     */
+    private void handleSETSPECIALITEM(SOCGame ga, StringConnection c, final SOCSetSpecialItem mes)
+    {
+        final String gaName = ga.getName();
+        final SOCPlayer pl = ga.getPlayer((String) c.getData());
+        final String typeKey = mes.typeKey;
+        final int op = mes.op, gi = mes.gameItemIndex, pi = mes.playerItemIndex;
+        final int pn = (pl != null) ? pl.getPlayerNumber() : -1;  // don't trust mes.playerNumber
+        boolean sendDenyReply = false;
+
+        try
+        {
+            SOCSpecialItem itm = null;
+            final boolean paidCost;  // if true, itm's cost was paid by player to PICK or SET or CLEAR
+
+            ga.takeMonitor();
+            if ((pl == null) || (op < SOCSetSpecialItem.OP_SET) || (op > SOCSetSpecialItem.OP_PICK))
+            {
+                sendDenyReply = true;
+                paidCost = false;
+            } else {
+                final int prevState = ga.getGameState();
+
+                if (op == SOCSetSpecialItem.OP_PICK)
+                {
+                    int pickCoord = -1, pickLevel = 0;  // field values to send in reply/announcement
+                    String pickSV = null;  // sv field value to send
+
+                    // When game index and player index are both given,
+                    // compare items before and after PICK in case they change
+                    final SOCSpecialItem gBefore, pBefore;
+                    if ((gi != -1) && (pi != -1))
+                    {
+                        gBefore = ga.getSpecialItem(typeKey, gi);
+                        pBefore = pl.getSpecialItem(typeKey, pi);
+                    } else {
+                        gBefore = null;  pBefore = null;
+                    }
+
+                    // Before pick, get item as per playerPickItem javadoc for cost, coord, level,
+                    // in case it's cleared by the pick. If not cleared, will get it again afterwards.
+                    itm = ga.getSpecialItem(typeKey, gi, pi, pn);
+                    if (itm != null)
+                    {
+                        pickCoord = itm.getCoordinates();
+                        pickLevel = itm.getLevel();
+                        pickSV = itm.getStringValue();
+                    }
+
+                    // perform the PICK in game
+                    paidCost = SOCSpecialItem.playerPickItem(typeKey, ga, pl, gi, pi);
+
+                    // if cost paid, send resource-loss first
+                    if (paidCost && (itm != null))
+                        handler.reportRsrcGainLoss(gaName, itm.getCost(), true, pn, -1, null, null);
+                        // TODO i18n-neutral rsrc text to report cost paid?  or, encapsulate that into reportRsrcGainLoss
+
+                    // Next, send SET/CLEAR before sending PICK announcement
+
+                    // For now, this send logic handles everything we need it to do.
+                    // Depending on usage of PICK messages in future scenarios,
+                    // we might need more info returned from playerPickItem then.
+
+                    if ((gi == -1) || (pi == -1))
+                    {
+                        // request didn't specify both gi and pi: only 1 SET/CLEAR message to send
+
+                        final SOCSpecialItem itmAfter = ga.getSpecialItem(typeKey, gi, pi, pn);
+                        final SOCSetSpecialItem msg;
+                        if (itmAfter != null)
+                        {
+                            msg = new SOCSetSpecialItem(ga, SOCSetSpecialItem.OP_SET, typeKey, gi, pi, itmAfter);
+
+                            pickCoord = itmAfter.getCoordinates();
+                            pickLevel = itmAfter.getLevel();
+                            pickSV = itmAfter.getStringValue();
+                        } else {
+                            msg = new SOCSetSpecialItem
+                                (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn);
+                        }
+                        srv.messageToGame(gaName, msg);
+                    } else {
+                        // request specified both gi and pi: might need to send 1 SET/CLEAR message if shared,
+                        // or 2 messages if not the same object for both
+
+                        final SOCSpecialItem gAfter, pAfter;
+                        gAfter = ga.getSpecialItem(typeKey, gi);
+                        pAfter = pl.getSpecialItem(typeKey, pi);
+
+                        if (gAfter == pAfter)
+                        {
+                            final SOCSetSpecialItem msg;
+                            if (gAfter != null)
+                            {
+                                msg = new SOCSetSpecialItem(ga, SOCSetSpecialItem.OP_SET, typeKey, gi, pi, gAfter);
+
+                                pickCoord = gAfter.getCoordinates();
+                                pickLevel = gAfter.getLevel();
+                                pickSV = gAfter.getStringValue();
+                            } else {
+                                msg = new SOCSetSpecialItem
+                                    (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn);
+                            }
+                            srv.messageToGame(gaName, msg);
+                        } else {
+                            // gi and pi don't share the same object; might need to send 2 messages out if both changed.
+
+                            boolean hasgAfterCoordLevel = false;
+
+                            if (gAfter == null)
+                            {
+                                if (gBefore != null)
+                                    srv.messageToGame(gaName, new SOCSetSpecialItem
+                                        (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, -1, -1));
+                            } else {
+                                srv.messageToGame(gaName, new SOCSetSpecialItem
+                                    (ga, SOCSetSpecialItem.OP_SET, typeKey, gi, -1, gAfter));
+
+                                pickCoord = gAfter.getCoordinates();
+                                pickLevel = gAfter.getLevel();
+                                pickSV = gAfter.getStringValue();
+                                hasgAfterCoordLevel = true;
+                            }
+
+                            if (pAfter == null)
+                            {
+                                if (pBefore != null)
+                                    srv.messageToGame(gaName, new SOCSetSpecialItem
+                                        (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, -1, pi, pn));
+                            } else {
+                                srv.messageToGame(gaName, new SOCSetSpecialItem
+                                    (ga, SOCSetSpecialItem.OP_SET, typeKey, -1, pi, pAfter));
+                                if (! hasgAfterCoordLevel)
+                                {
+                                    pickCoord = pAfter.getCoordinates();
+                                    pickLevel = pAfter.getLevel();
+                                    pickSV = pAfter.getStringValue();
+                                }
+                            }
+                         }
+                    }
+
+                    srv.messageToGame(gaName, new SOCSetSpecialItem
+                            (gaName, SOCSetSpecialItem.OP_PICK, typeKey, gi, pi, pn, pickCoord, pickLevel, pickSV));
+
+                } else {
+                    // OP_SET or OP_CLEAR
+
+                    if (op == SOCSetSpecialItem.OP_CLEAR)
+                        // get item before CLEAR
+                        itm = ga.getSpecialItem(typeKey, gi, pi, pn);
+
+                    paidCost = SOCSpecialItem.playerSetItem
+                        (typeKey, ga, pl, gi, pi, (op == SOCSetSpecialItem.OP_SET));
+
+                    // if cost paid, send resource-loss first
+                    if (paidCost && (itm != null))
+                        handler.reportRsrcGainLoss(gaName, itm.getCost(), true, pn, -1, null, null);
+                        // TODO i18n-neutral rsrc text to report cost paid?  or, encapsulate that into reportRsrcGainLoss
+
+                    // get item after SET, in case it's changed
+                    if (op != SOCSetSpecialItem.OP_CLEAR)
+                        itm = ga.getSpecialItem(typeKey, gi, pi, pn);
+
+                    if ((op == SOCSetSpecialItem.OP_CLEAR) || (itm == null))
+                        srv.messageToGame(gaName, new SOCSetSpecialItem
+                            (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn));
+                    else
+                        srv.messageToGame(gaName, new SOCSetSpecialItem(ga, op, typeKey, gi, pi, itm));
+                }
+
+                // check game state, check for winner
+                final int gstate = ga.getGameState();
+                if (gstate != prevState)
+                    handler.sendGameState(ga);  // might be OVER, if player won
+            }
+        }
+        catch (IllegalStateException e)
+        {
+            sendDenyReply = true;
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception caught");
+        }
+        finally
+        {
+            ga.releaseMonitor();
+        }
+
+        if (sendDenyReply)
+            c.put(new SOCSetSpecialItem
+                (gaName, SOCSetSpecialItem.OP_DECLINE, typeKey, gi, pi, mes.playerNumber).toCmd());
     }
 
 }
