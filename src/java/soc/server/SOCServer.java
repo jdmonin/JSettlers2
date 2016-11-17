@@ -520,8 +520,8 @@ public class SOCServer extends Server
      * Some properties activate optional {@link #features}.
      * @see #SOCServer(int, Properties)
      * @see #PROPS_LIST
-     * @see #getConfigBoolProperty(Properties, String, boolean)
-     * @see #getConfigIntProperty(Properties, String, int)
+     * @see #getConfigBoolProperty(String, boolean)
+     * @see #getConfigIntProperty(String, int)
      * @since 1.1.09
      */
     private Properties props;
@@ -970,10 +970,10 @@ public class SOCServer extends Server
     {
         super(p, new SOCMessageDispatcher());
 
-        maxConnections = getConfigIntProperty(props, PROP_JSETTLERS_CONNECTIONS, SOC_MAXCONN_DEFAULT);
-        allowDebugUser = getConfigBoolProperty(props, PROP_JSETTLERS_ALLOW_DEBUG, false);
-        CLIENT_MAX_CREATE_GAMES = getConfigIntProperty(props, PROP_JSETTLERS_CLI_MAXCREATEGAMES, CLIENT_MAX_CREATE_GAMES);
-        CLIENT_MAX_CREATE_CHANNELS = getConfigIntProperty(props, PROP_JSETTLERS_CLI_MAXCREATECHANNELS, CLIENT_MAX_CREATE_CHANNELS);
+        maxConnections = getConfigIntProperty(PROP_JSETTLERS_CONNECTIONS, SOC_MAXCONN_DEFAULT);
+        allowDebugUser = getConfigBoolProperty(PROP_JSETTLERS_ALLOW_DEBUG, false);
+        CLIENT_MAX_CREATE_GAMES = getConfigIntProperty(PROP_JSETTLERS_CLI_MAXCREATEGAMES, CLIENT_MAX_CREATE_GAMES);
+        CLIENT_MAX_CREATE_CHANNELS = getConfigIntProperty(PROP_JSETTLERS_CLI_MAXCREATECHANNELS, CLIENT_MAX_CREATE_CHANNELS);
         String dbuser = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "socuser");
         String dbpass = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "socpass");
         initSocServer(dbuser, dbpass, props);
@@ -1155,7 +1155,7 @@ public class SOCServer extends Server
             // caller will need to prompt for and change the password
 
             // open reg for user accounts?  if not, see if we have any yet
-            if (getConfigBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_OPEN, false))
+            if (getConfigBoolProperty(PROP_JSETTLERS_ACCOUNTS_OPEN, false))
             {
                 features.add(SOCServerFeatures.FEAT_OPEN_REG);
                 if (! hasUtilityModeProp)
@@ -1233,7 +1233,7 @@ public class SOCServer extends Server
             return;  // <--- don't continue startup if Utility Mode ---
         }
 
-        final boolean accountsRequired = getConfigBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_REQUIRED, false);
+        final boolean accountsRequired = getConfigBoolProperty(PROP_JSETTLERS_ACCOUNTS_REQUIRED, false);
 
         if (SOCDBHelper.isInitialized())
         {
@@ -1274,11 +1274,11 @@ public class SOCServer extends Server
         numberOfGamesFinished = 0;
         numberOfUsers = 0;
         clientPastVersionStats = new HashMap<Integer, Integer>();
-        numRobotOnlyGamesRemaining = getConfigIntProperty(props, PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0);
+        numRobotOnlyGamesRemaining = getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0);
         if (numRobotOnlyGamesRemaining > 0)
         {
                 final int n = SOCGame.MAXPLAYERS_STANDARD;
-                if (n > getConfigIntProperty(props, PROP_JSETTLERS_STARTROBOTS, 0))
+                if (n > getConfigIntProperty(PROP_JSETTLERS_STARTROBOTS, 0))
                 {
                     final String errmsg =
                         ("*** To start robot-only games, server needs at least " + n + " robots started.");
@@ -1354,7 +1354,7 @@ public class SOCServer extends Server
             printGameOptions();
         }
 
-        if (getConfigBoolProperty(props, PROP_JSETTLERS_BOTS_SHOWCOOKIE, false))
+        if (getConfigBoolProperty(PROP_JSETTLERS_BOTS_SHOWCOOKIE, false))
             System.err.println("Robot cookie: " + robotCookie);
 
         System.err.print("The server is ready.");
@@ -1374,9 +1374,9 @@ public class SOCServer extends Server
      * @param pDefault  Default value to use if not found or not parsable
      * @return The property's parsed integer value, or <tt>pDefault</tt>
      * @since 1.1.10
-     * @see #getConfigBoolProperty(Properties, String, boolean)
+     * @see #getConfigBoolProperty(String, boolean)
      */
-    private static int getConfigIntProperty(Properties props, final String pName, final int pDefault)
+    public final int getConfigIntProperty(final String pName, final int pDefault)
     {
         if (props == null)
             return pDefault;
@@ -1406,9 +1406,9 @@ public class SOCServer extends Server
      * @param pDefault  Default value to use if not found or not parsable
      * @return The property's parsed value, or <tt>pDefault</tt>
      * @since 1.1.14
-     * @see #getConfigIntProperty(Properties, String, int)
+     * @see #getConfigIntProperty(String, int)
      */
-    private static boolean getConfigBoolProperty(Properties props, final String pName, final boolean pDefault)
+    public final boolean getConfigBoolProperty(final String pName, final boolean pDefault)
     {
         if (props == null)
             return pDefault;
@@ -4392,7 +4392,7 @@ public class SOCServer extends Server
         }
         else if (dcmdU.startsWith("*STARTBOTGAME*"))
         {
-            if (0 == getConfigIntProperty(props, PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0))
+            if (0 == getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0))
             {
                 messageToPlayer(debugCli, ga,
                     "To start a bots-only game, must restart server with "
@@ -4598,7 +4598,7 @@ public class SOCServer extends Server
         /**
          * account and password required?
          */
-        if (getConfigBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_REQUIRED, false))
+        if (getConfigBoolProperty(PROP_JSETTLERS_ACCOUNTS_REQUIRED, false))
         {
             if (msgPass.length() == 0)
             {
@@ -5864,7 +5864,7 @@ public class SOCServer extends Server
                     // Is server configured for robot-only games?  Prop's value can be < 0
                     // to allow this without creating bots-only games at startup.
 
-                    if (0 == getConfigIntProperty(props, PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0))
+                    if (0 == getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0))
                     {
                         allowStart = false;
                         messageToGameKeyed(ga, true, "start.player.must.sit");
@@ -7215,7 +7215,7 @@ public class SOCServer extends Server
     {
         if ((ga == null) || ! SOCDBHelper.isInitialized())
             return;
-        if (! getConfigBoolProperty(props, SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES, false))
+        if (! getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES, false))
             return;
 
         //D.ebugPrintln("allOriginalPlayers for "+ga.getName()+" : "+ga.allOriginalPlayers());
