@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -71,6 +71,7 @@ public class SOCSetSpecialItem extends SOCMessage
 
     /**
      * If sent from client to server, a request to set an item in the game and/or owning player's Special Item list.
+     * Server will call {@link SOCSpecialItem#playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)}.
      *<P>
      * If sent from server to client(s) because of something in game or responding to a client request,
      * this item will be set.
@@ -90,6 +91,7 @@ public class SOCSetSpecialItem extends SOCMessage
 
     /**
      * If sent from client to server, a request to clear an item in the game and/or owning player's Special Item list.
+     * Server will call {@link SOCSpecialItem#playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)}.
      *<P>
      * If sent from server to client(s) because of something in game or in response to a client request,
      * this item will be cleared.
@@ -98,6 +100,7 @@ public class SOCSetSpecialItem extends SOCMessage
 
     /**
      * If sent from client to server, a request to pick or choose an item for some action.
+     * Server will call {@link SOCSpecialItem#playerPickItem(String, SOCGame, SOCPlayer, int, int)}.
      *<P>
      * If sent from server to client(s), this item has been picked for some action.  The server isn't required to
      * announce the pick to all players, only to the requesting player.  Depending on the situation in which the
