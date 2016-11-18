@@ -618,14 +618,17 @@ public class SOCServer extends Server
      * Robot default parameters; copied for each newly connecting robot.
      * Changing this will not change parameters of any robots already connected.
      *
-     * @see #handleIMAROBOT(StringConnection, soc.message.SOCImARobot)
+     * @see #authOrRejectClientRobot(StringConnection, String, String, String)
+     * @see SOCServerMessageHandler#handleIMAROBOT(StringConnection, soc.message.SOCImARobot)
+     * @see SOCDBHelper#retrieveRobotParams(String, boolean)
      * @see soc.robot.SOCRobotDM
      */
     public static SOCRobotParameters ROBOT_PARAMS_DEFAULT
         = new SOCRobotParameters(120, 35, 0.13f, 1.0f, 1.0f, 3.0f, 1.0f, 1, 1);
         // Formerly a literal in handleIMAROBOT.
         // Strategy type 1 == SOCRobotDM.FAST_STRATEGY.
-        // If you change values here, see handleIMAROBOT(..)
+        // If you change values here, see authOrRejectClientRobot(..),
+        // setupLocalRobots(..), SOCDBHelper.retrieveRobotParams(..),
         // and SOCPlayerClient.startPracticeGame(..)
         // for assumptions which may also need to be changed.
 
@@ -2158,6 +2161,7 @@ public class SOCServer extends Server
         }
         catch (LinkageError e)
         {
+            // Packaging error, robot classes not included in JAR
             return false;
         }
 
@@ -4533,6 +4537,7 @@ public class SOCServer extends Server
      *     old connection had joined, so the new connection has full info to participate in them.
      * @return  Result of the auth check: {@link #AUTH_OR_REJECT__FAILED},
      *     {@link #AUTH_OR_REJECT__OK}, or (only if {@code allowTakeover}) {@link #AUTH_OR_REJECT__TAKING_OVER}
+     * @see #authOrRejectClientRobot(StringConnection, String, String, String)
      * @since 1.1.19
      */
     int authOrRejectClientUser
@@ -4860,44 +4865,61 @@ public class SOCServer extends Server
     }
 
     /**
-     * Handle the "I'm a robot" message.
-     * Robots send their {@link SOCVersion} before sending this message.
-     * Their version is checked here, must equal server's version.
-     * For stability and control, the cookie in this message must
+     * Handle robot authentication (the "I'm a robot" message).
+     * Robots send their {@link SOCVersion} before sending that message.
+     * Their version is checked here (from {@link StringConnection#getVersion() c.getVersion()}),
+     * must equal server's version. For stability and control, the cookie contents sent by the bot must
      * match this server's {@link #robotCookie}.
      *<P>
-     * Bot tuning parameters are sent here to the bot.  Its {@link SOCClientData#isRobot} flag is set.  Its
-     * {@link SOCClientData#locale} is cleared, but not its
+     * If authorization is succesful, this method will set the bot client's {@link SOCClientData#isRobot} flag.
+     * Its {@link SOCClientData#locale} is cleared, but not its
      * {@link StringConnection#setI18NStringManager(SOCStringManager, String)}.
      *<P>
+     * If this method returns sucessful auth, caller must send bot tuning parameters to the bot from
+     * {@link SOCDBHelper#retrieveRobotParams(String, boolean) SOCDBHelper.retrieveRobotParams(botName, true)}.
+     *<P>
+     * If a bot is rejected, returns a disconnect reason to send to the bot client;
+     * returns {@code null} if accepted.  If the returned reason is
+     * {@link #MSG_NICKNAME_ALREADY_IN_USE}, caller should send a {@link SOCStatusMessage}
+     * ({@link SOCStatusMessage#SV_NAME_IN_USE SV_NAME_IN_USE})
+     * before sending the disconnect message.
+     *<P>
      * Before connecting here, bots are named and started in {@link #setupLocalRobots(int, int)}.
+     * Bot params can be stored in the database, see {@link SOCDBHelper#retrieveRobotParams(String, boolean)}:
      * Default bot params are {@link #ROBOT_PARAMS_SMARTER} if the robot name starts with "robot "
      * or {@link #ROBOT_PARAMS_DEFAULT} otherwise (starts with "droid ").
      *<P>
      * Sometimes a bot disconnects and quickly reconnects.  In that case
      * this method removes the disconnect/reconnect messages from
      * {@link Server#cliConnDisconPrintsPending} so they won't be printed.
+     *<P>
+     * Before v2.0.00 this method was {@code handleIMAROBOT}. v2.0.00 renamed that method and
+     * also moved sending the responses to
+     * {@link SOCServerMessageHandler#handleIMAROBOT(StringConnection, soc.message.SOCImARobot)}.
      *
-     * @param c  the connection that sent the message
-     * @param mes  the message
+     * @param c  the connection that sent the bot auth request; not null
+     * @param botName  Robot name sent from {@code c}
+     * @param cookie  robot cookie string sent from {@code c}
+     * @param rbc  {@code c}'s robot brain class; built-in bots use {@link SOCImARobot#RBCLASS_BUILTIN}
+     * @return {@code null} for successful authorization, or a failure string. See this method's
+     *     javadocs for required messages to send to client on auth success or failure.
+     * @throws NullPointerException if {@code c} is {@code null}
+     * @see #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean)
+     * @since 2.0.00
      */
-    void handleIMAROBOT(StringConnection c, SOCImARobot mes)
+    final String authOrRejectClientRobot
+        (final StringConnection c, final String botName, final String cookie, final String rbc)
+        throws NullPointerException
     {
-        if (c == null)
-            return;
-
-        final String botName = mes.getNickname();
-
         /**
          * Check the cookie given by this bot.
          */
-        if ((robotCookie != null) && ! robotCookie.equals(mes.getCookie()))
+        if ((robotCookie != null) && ! robotCookie.equals(cookie))
         {
-            final String rejectMsg = "Cookie contents do not match the running server.";
-            c.put(new SOCRejectConnection(rejectMsg).toCmd());
-            c.disconnectSoft();
             System.out.println("Rejected robot " + botName + ": Wrong cookie");
-            return;  // <--- Early return: Robot client didn't send our cookie value ---
+
+            return "Cookie contents do not match the running server.";
+                // <--- Early return: Robot client didn't send our cookie value ---
         }
 
         /**
@@ -4905,21 +4927,18 @@ public class SOCServer extends Server
          */
         final int srvVers = Version.versionNumber();
         int cliVers = c.getVersion();
-        final String rbc = mes.getRBClass();
         final boolean isBuiltIn = (rbc == null)
             || (rbc.equals(SOCImARobot.RBCLASS_BUILTIN));
         if (isBuiltIn)
         {
             if (cliVers != srvVers)
             {
-                String rejectMsg = "Sorry, robot client version does not match, version number "
-                    + Version.version(srvVers) + " is required.";
-                c.put(new SOCRejectConnection(rejectMsg).toCmd());
-                c.disconnectSoft();
                 System.out.println("Rejected robot " + botName + ": Version "
                     + cliVers + " does not match server version");
+                String rejectMsg = "Sorry, robot client version does not match, version number "
+                    + Version.version(srvVers) + " is required.";
 
-                return;  // <--- Early return: Robot client too old ---
+                return rejectMsg;  // <--- Early return: Robot client too old ---
             } else {
                 System.out.println("Robot arrived: " + botName + ": built-in type");
             }
@@ -4932,16 +4951,9 @@ public class SOCServer extends Server
          */
         if ((c.getData() == null) && (0 != checkNickname(botName, c, false)))
         {
-            c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                     MSG_NICKNAME_ALREADY_IN_USE));
-            SOCRejectConnection rcCommand = new SOCRejectConnection(MSG_NICKNAME_ALREADY_IN_USE);
-            c.put(rcCommand.toCmd());
             System.err.println("Robot login attempt, name already in use: " + botName);
-            // c.disconnect();
-            c.disconnectSoft();
 
-            return;
+            return MSG_NICKNAME_ALREADY_IN_USE;  // <--- Early return: Name in use ---
         }
 
         // Idle robots disconnect and reconnect every so often (socket timeout).
@@ -4964,29 +4976,6 @@ public class SOCServer extends Server
             }
         }
 
-        SOCRobotParameters params = null;
-        //
-        // send the current robot parameters
-        //
-        try
-        {
-            params = SOCDBHelper.retrieveRobotParams(botName);
-            if ((params != null) && D.ebugIsEnabled())
-                D.ebugPrintln("*** Robot Parameters for " + botName + " = " + params);
-        }
-        catch (SQLException sqle)
-        {
-            System.err.println("Error retrieving robot parameters from db: Using defaults.");
-        }
-
-        if (params == null)
-            if (botName.startsWith("robot "))
-                params = ROBOT_PARAMS_SMARTER;  // uses SOCRobotDM.SMART_STRATEGY
-            else  // startsWith("droid ")
-                params = ROBOT_PARAMS_DEFAULT;  // uses SOCRobotDM.FAST_STRATEGY
-
-        c.put(SOCUpdateRobotParams.toCmd(params));
-
         //
         // add this connection to the robot list
         //
@@ -5004,6 +4993,8 @@ public class SOCServer extends Server
         // Note that if c.setI18NStringManager was called, it's not cleared here
 
         nameConnection(c);
+
+        return null;  // accepted: no rejection reason string
     }
 
     /**

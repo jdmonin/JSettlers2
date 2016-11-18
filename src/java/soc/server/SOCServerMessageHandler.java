@@ -21,6 +21,7 @@
  **/
 package soc.server;
 
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,8 +39,10 @@ import soc.game.SOCPlayer;
 import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
 import soc.message.*;
+import soc.server.database.SOCDBHelper;
 import soc.server.genericServer.StringConnection;
 import soc.util.SOCGameBoardReset;
+import soc.util.SOCRobotParameters;
 import soc.util.Version;
 
 /**
@@ -196,7 +199,7 @@ public class SOCServerMessageHandler
          * a robot has connected to this server
          */
         case SOCMessage.IMAROBOT:
-            srv.handleIMAROBOT(c, (SOCImARobot) mes);
+            handleIMAROBOT(c, (SOCImARobot) mes);
             break;
 
         /**
@@ -419,6 +422,70 @@ public class SOCServerMessageHandler
 
         c.put(SOCStatusMessage.toCmd
                 (SOCStatusMessage.SV_OK, c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
+    }
+
+    /**
+     * Handle the "I'm a robot" message.
+     * Robots send their {@link SOCVersion} before sending this message.
+     * Their version is checked here, must equal server's version.
+     * For stability and control, the cookie in this message must
+     * match this server's {@link SOCServer#robotCookie}.
+     *<P>
+     * Bot tuning parameters are sent here to the bot, from
+     * {@link SOCDBHelper#retrieveRobotParams(String, boolean) SOCDBHelper.retrieveRobotParams(botName, true)}.
+     * See that method for default bot params.
+     * See {@link SOCServer#authOrRejectClientRobot(StringConnection, String, String, String)}
+     * for {@link SOCClientData} flags and fields set for the bot's connection
+     * and for other misc work done, such as {@link Server#cliConnDisconPrintsPending} updates.
+     *<P>
+     * Before connecting here, bots are named and started in {@link SOCServer#setupLocalRobots(int, int)}.
+     *
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     * @since 1.0.0
+     */
+    private void handleIMAROBOT(final StringConnection c, final SOCImARobot mes)
+    {
+        if (c == null)
+            return;
+
+        final String botName = mes.getNickname();
+        final String rejectReason = srv.authOrRejectClientRobot
+            (c, botName, mes.getCookie(), mes.getRBClass());
+
+        if (rejectReason != null)
+        {
+            if (rejectReason.equals(SOCServer.MSG_NICKNAME_ALREADY_IN_USE))
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(), rejectReason));
+            c.put(new SOCRejectConnection(rejectReason).toCmd());
+            c.disconnectSoft();
+
+            return;  // <--- Early return: rejected ---
+        }
+
+        //
+        // send the current robot parameters
+        //
+        SOCRobotParameters params = null;
+        try
+        {
+            params = SOCDBHelper.retrieveRobotParams(botName, true);
+                // if no DB in use, returns srv.ROBOT_PARAMS_SMARTER (uses SOCRobotDM.SMART_STRATEGY)
+                // or srv.ROBOT_PARAMS_DEFAULT (SOCRobotDM.FAST_STRATEGY).
+            if ((params != null) && (params != SOCServer.ROBOT_PARAMS_SMARTER)
+                && (params != SOCServer.ROBOT_PARAMS_DEFAULT) && D.ebugIsEnabled())
+                D.ebugPrintln("*** Robot Parameters for " + botName + " = " + params);
+        }
+        catch (SQLException sqle)
+        {
+            System.err.println("Error retrieving robot parameters from db: Using defaults.");
+        }
+
+        if (params == null)
+            params = SOCServer.ROBOT_PARAMS_DEFAULT;  // fallback in case of SQLException
+
+        c.put(SOCUpdateRobotParams.toCmd(params));
     }
 
 
