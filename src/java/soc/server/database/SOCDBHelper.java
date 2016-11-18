@@ -22,6 +22,7 @@ package soc.server.database;
 
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
+import soc.server.SOCServer;  // solely for javadocs and ROBOT_PARAMS_*
 import soc.util.SOCRobotParameters;
 
 import java.io.BufferedReader;
@@ -1084,14 +1085,35 @@ public class SOCDBHelper
 
     /**
      * Get this robot's specialized parameters from the database, if it has an entry there.
+     * Optionally, return defaults if not found or if no database: Default bot params are
+     * {@link SOCServer#ROBOT_PARAMS_SMARTER} if the robot name starts with "robot "
+     * or {@link SOCServer#ROBOT_PARAMS_DEFAULT} otherwise (starts with "droid ").
+     * This matches the bot names generated in {@link SOCServer#setupLocalRobots(int, int)}.
      *
      * @param robotName Name of robot for db lookup
-     *
-     * @return null if robotName not in database, or if db is empty and robotparams table doesn't exist
-     *
+     * @param useDefaults  If true, return the server's default parameters if {@code robotName} not in the table
+     *    or if a database isn't in use.
+     * @return null if robotName not in database, or if db is empty and robotparams table doesn't exist;
+     *    if {@code useDefaults}, will return the server default parameters instead of {@code null}.
      * @throws SQLException if unexpected problem retrieving the params
      */
-    public static SOCRobotParameters retrieveRobotParams(String robotName) throws SQLException
+    public static final SOCRobotParameters retrieveRobotParams(final String robotName, final boolean useDefaults)
+        throws SQLException
+    {
+        SOCRobotParameters params = retrieveRobotParams(robotName);
+
+        if ((params == null) && useDefaults)
+            if (robotName.startsWith("robot "))
+                params = SOCServer.ROBOT_PARAMS_SMARTER;  // uses SOCRobotDM.SMART_STRATEGY
+            else  // startsWith("droid ")
+                params = SOCServer.ROBOT_PARAMS_DEFAULT;  // uses SOCRobotDM.FAST_STRATEGY
+
+        return params;
+    }
+
+    /** DB query portion (no defaults) of {@link #retrieveRobotParams(String, boolean)}. */
+    private static SOCRobotParameters retrieveRobotParams(final String robotName)
+        throws SQLException
     {
         SOCRobotParameters robotParams = null;
 
