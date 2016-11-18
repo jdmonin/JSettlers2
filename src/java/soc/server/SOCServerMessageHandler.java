@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Vector;
@@ -40,8 +41,10 @@ import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
 import soc.message.*;
 import soc.server.database.SOCDBHelper;
+import soc.server.genericServer.LocalStringConnection;
 import soc.server.genericServer.StringConnection;
 import soc.util.SOCGameBoardReset;
+import soc.util.SOCGameList;
 import soc.util.SOCRobotParameters;
 import soc.util.Version;
 
@@ -206,7 +209,7 @@ public class SOCServerMessageHandler
          * text message from a game (includes debug commands)
          */
         case SOCMessage.GAMETEXTMSG:
-            srv.handleGAMETEXTMSG(c, (SOCGameTextMsg) mes);
+            handleGAMETEXTMSG(c, (SOCGameTextMsg) mes);
             break;
 
         /**
@@ -831,6 +834,10 @@ public class SOCServerMessageHandler
         }
     }
 
+
+    /// General messages during a game ///
+
+
     /**
      * handle "change face" message.
      *
@@ -890,6 +897,323 @@ public class SOCServerMessageHandler
         }
         catch (IllegalStateException e) {
             srv.messageToPlayerKeyed(c, gaName, "reply.lock.cannot");  // "Cannot set that lock right now."
+        }
+    }
+
+    /**
+     * Handle game text messages, including debug commands.
+     * Was part of SOCServer.processCommand before 1.1.07.
+     *<P>
+     * Some commands are unprivileged and can be run by any client:
+     *<UL>
+     * <LI> *ADDTIME*
+     * <LI> *CHECKTIME*
+     * <LI> *VERSION*
+     * <LI> *STATS*
+     * <LI> *WHO*
+     *</UL>
+     * These commands are processed in this method.
+     * Others can be run only by certain users or when certain server flags are set.
+     * Those are processed in {@link SOCServer#processDebugCommand(StringConnection, String, String, String)}.
+     *
+     * @since 1.1.07
+     */
+    void handleGAMETEXTMSG(StringConnection c, SOCGameTextMsg gameTextMsgMes)
+    {
+        //createNewGameEventRecord();
+        //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
+        final String gaName = gameTextMsgMes.getGame();
+        srv.recordGameEvent(gaName, gameTextMsgMes.toCmd());
+
+        SOCGame ga = gameList.getGameData(gaName);
+        if (ga == null)
+            return;  // <---- early return: no game by that name ----
+
+        final String plName = (String) c.getData();
+
+        //currentGameEventRecord.setSnapshot(ga);
+
+        final String cmdText = gameTextMsgMes.getText();
+        final String cmdTxtUC = cmdText.toUpperCase();
+
+        ///
+        /// command to add time to a game
+        /// If the command text changes from '*ADDTIME*' to something else,
+        /// please update the warning text sent in checkForExpiredGames().
+        ///
+        if (cmdTxtUC.startsWith("*ADDTIME*") || cmdTxtUC.startsWith("ADDTIME"))
+        {
+            // Unless this is a practice game, if reasonable
+            // add 30 minutes to the expiration time.  If this
+            // changes to another timespan, please update the
+            // warning text sent in checkForExpiredGames().
+            // Use ">>>" in message text to mark as urgent.
+
+            if (ga.isPractice)
+            {
+                srv.messageToPlayerKeyed(c, gaName, "reply.addtime.practice.never");  // ">>> Practice games never expire."
+            } else if (ga.getGameState() >= SOCGame.OVER) {
+                srv.messageToPlayerKeyed(c, gaName, "reply.addtime.game_over");  // "This game is over, cannot extend its time."
+            } else {
+                // check game time currently remaining: if already more than
+                // the original GAME_TIME_EXPIRE_MINUTES, don't add more now.
+                final long now = System.currentTimeMillis();
+                long exp = ga.getExpiration();
+                int minRemain = (int) ((exp - now) / (60 * 1000));
+
+                if (minRemain > SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES)
+                {
+                    srv.messageToPlayerKeyed(c, gaName, "reply.addtime.not_expire_soon", Integer.valueOf(minRemain));
+                        // "Ask again later: This game does not expire soon, it has {0} minutes remaining."
+                } else {
+                    exp += (SOCServer.GAME_TIME_EXPIRE_ADDTIME_MINUTES * 60 * 1000);
+                    minRemain += SOCServer.GAME_TIME_EXPIRE_ADDTIME_MINUTES;
+
+                    ga.setExpiration(exp);
+                    srv.messageToGameKeyed(ga, true, "reply.addtime.extended");  // ">>> Game time has been extended."
+                    srv.messageToGameKeyed(ga, true, "stats.game.willexpire.urgent",
+                        Integer.valueOf(minRemain));
+                        // ">>> This game will expire in 45 minutes."
+                }
+            }
+        }
+
+        ///
+        /// Check the time remaining for this game
+        ///
+        else if (cmdTxtUC.startsWith("*CHECKTIME*"))
+        {
+            processDebugCommand_gameStats(c, gaName, ga, true);
+        }
+        else if (cmdTxtUC.startsWith("*VERSION*"))
+        {
+            srv.messageToPlayer(c, gaName,
+                "Java Settlers Server " +Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum());
+        }
+        else if (cmdTxtUC.startsWith("*STATS*"))
+        {
+            srv.processDebugCommand_serverStats(c, ga);
+        }
+        else if (cmdTxtUC.startsWith("*WHO*"))
+        {
+            processDebugCommand_who(c, ga, cmdText);
+        }
+
+        //
+        // check for admin/debugging commands
+        //
+        // 1.1.07: all practice games are debug mode, for ease of debugging;
+        //         not much use for a chat window in a practice game anyway.
+        //
+        else
+        {
+            final boolean userIsDebug =
+                ((srv.isDebugUserEnabled() && plName.equals("debug"))
+                || (c instanceof LocalStringConnection));
+
+            if (cmdTxtUC.startsWith("*HELP"))
+            {
+                for (int i = 0; i < SOCServer.GENERAL_COMMANDS_HELP.length; ++i)
+                    srv.messageToPlayer(c, gaName, SOCServer.GENERAL_COMMANDS_HELP[i]);
+
+                if ((userIsDebug && ! (c instanceof LocalStringConnection))  // no user admins in practice games
+                    || srv.isUserDBUserAdmin(plName, true))
+                {
+                    srv.messageToPlayer(c, gaName, SOCServer.ADMIN_COMMANDS_HEADING);
+                    for (int i = 0; i < SOCServer.ADMIN_USER_COMMANDS_HELP.length; ++i)
+                        srv.messageToPlayer(c, gaName, SOCServer.ADMIN_USER_COMMANDS_HELP[i]);
+                }
+
+                if (userIsDebug)
+                {
+                    for (int i = 0; i < SOCServer.DEBUG_COMMANDS_HELP.length; ++i)
+                        srv.messageToPlayer(c, gaName, SOCServer.DEBUG_COMMANDS_HELP[i]);
+
+                    GameHandler hand = gameList.getGameTypeHandler(gaName);
+                    if (hand != null)
+                    {
+                        final String[] GAMETYPE_DEBUG_HELP = hand.getDebugCommandsHelp();
+                        if (GAMETYPE_DEBUG_HELP != null)
+                            for (int i = 0; i < GAMETYPE_DEBUG_HELP.length; ++i)
+                                srv.messageToPlayer(c, gaName, GAMETYPE_DEBUG_HELP[i]);
+                    }
+                }
+            }
+            else
+            {
+                boolean isCmd = userIsDebug && srv.processDebugCommand(c, ga.getName(), cmdText, cmdTxtUC);
+
+                if (! isCmd)
+                    //
+                    // Send the message to the members of the game
+                    //
+                    srv.messageToGame(gaName, new SOCGameTextMsg(gaName, plName, cmdText));
+            }
+        }
+
+        //saveCurrentGameEventRecord(gameTextMsgMes.getGame());
+    }
+
+    /**
+     * Print time-remaining and other game stats.
+     * Includes more detail beyond the end-game stats sent in {@link SOCGameHandler#sendGameStateOVER(SOCGame)}.
+     *<P>
+     * Before v1.1.20, this method was {@code processDebugCommand_checktime(..)}.
+     *
+     * @param c  Client requesting the stats
+     * @param gaName  {@code gameData.getName()}
+     * @param gameData  Game to print stats
+     * @param isCheckTime  True if called from *CHECKTIME* server command, false for *STATS*.
+     *     If true, mark text as urgent when sending remaining time before game expires.
+     * @since 1.1.07
+     */
+    void processDebugCommand_gameStats
+        (StringConnection c, final String gaName, SOCGame gameData, final boolean isCheckTime)
+    {
+        if (gameData == null)
+            return;
+
+        srv.messageToPlayerKeyed(c, gaName, "stats.game.title");  // "-- Game statistics: --"
+        srv.messageToPlayerKeyed(c, gaName, "stats.game.rounds", gameData.getRoundCount());  // Rounds played: 20
+
+        // player's stats
+        if (c.getVersion() >= SOCPlayerStats.VERSION_FOR_RES_ROLL)
+        {
+            SOCPlayer cp = gameData.getPlayer((String) c.getData());
+            if (cp != null)
+                srv.messageToPlayer(c, new SOCPlayerStats(cp, SOCPlayerStats.STYPE_RES_ROLL));
+        }
+
+        // time
+        Date gstart = gameData.getStartTime();
+        if (gstart != null)
+        {
+            long gameSeconds = ((new Date().getTime() - gstart.getTime())+500L) / 1000L;
+            long gameMinutes = (gameSeconds+29L)/60L;
+            srv.messageToPlayerKeyed(c, gaName, "stats.game.startedago", gameMinutes);  // "This game started 5 minutes ago."
+            // Ignore possible "1 minutes"; that game is too short to worry about.
+        }
+
+        if (! gameData.isPractice)   // practice games don't expire
+        {
+            // If isCheckTime, use ">>>" in message text to mark as urgent:
+            // ">>> This game will expire in 15 minutes."
+            srv.messageToPlayerKeyed(c, gaName,
+                ((isCheckTime) ? "stats.game.willexpire.urgent" : "stats.game.willexpire"),
+                Integer.valueOf((int) ((gameData.getExpiration() - System.currentTimeMillis()) / 60000)));
+        }
+    }
+
+    /**
+     * Process unprivileged command {@code *WHO*} to show members of current game,
+     * or privileged {@code *WHO* gameName|all|*} to show all connected clients or some other game's members.
+     *<P>
+     * <B>Locks:</B> Takes/releases {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
+     * to call {@link SOCGameListAtServer#getMembers(String)}.
+     *
+     * @param c  Client sending the *WHO* command
+     * @param ga  Game in which the command was sent
+     * @param cmdText   Text of *WHO* command
+     * @since 1.1.20
+     */
+    private void processDebugCommand_who
+        (final StringConnection c, final SOCGame ga, final String cmdText)
+    {
+        final String gaName = ga.getName();  // name of game where c is connected and sent *WHO* command
+        String gaNameWho = gaName;  // name of game to find members; if sendToCli, not equal to gaName
+        boolean sendToCli = false;  // if true, send member list only to c instead of whole game
+
+        int i = cmdText.indexOf(' ');
+        if (i != -1)
+        {
+            // look for a game name or */all
+            String gname = cmdText.substring(i+1).trim();
+
+            if (gname.length() > 0)
+            {
+                // Check if using user admins; if not, if using debug user
+
+                final String uname = (String) c.getData();
+                boolean isAdmin = srv.isUserDBUserAdmin(uname, true);
+                if (! isAdmin)
+                    isAdmin = (srv.isDebugUserEnabled() && uname.equals("debug"));
+                if (! isAdmin)
+                {
+                    srv.messageToPlayerKeyed(c, gaName, "reply.must_be_admin.view");
+                        // "Must be an administrator to view that."
+                    return;
+                }
+
+                sendToCli = true;
+
+                if (gname.equals("*") || gname.toUpperCase(Locale.US).equals("ALL"))
+                {
+                    // Instead of listing the game's members, list all connected clients.
+                    // Build list of StringBuilder not String to do as little as possible
+                    // inside synchronization block.
+
+                    final ArrayList<StringBuilder> sbs = new ArrayList<StringBuilder>();
+                    sbs.add(new StringBuilder(c.getLocalized("reply.who.conn_to_srv")));
+                        // "Currently connected to server:"
+
+                    final Integer nUnnamed = srv.getConnectedClientNames(sbs);
+                    if (nUnnamed.intValue() != 0)
+                    {
+                        StringBuilder sb = new StringBuilder("- ");
+                        sb.append(c.getLocalized("reply.who.and_unnamed", nUnnamed));
+                            // "and {0} unnamed connections"
+                        sbs.add(sb);
+                    }
+
+                    for (StringBuilder sbb : sbs)
+                        srv.messageToPlayer(c, gaName, sbb.toString());
+
+                    return;  // <--- Early return; Not listing a game's members ---
+                }
+
+                if (gameList.isGame(gname))
+                {
+                    gaNameWho = gname;
+                } else {
+                    srv.messageToPlayerKeyed(c, gaName, "reply.game.not.found");  // "Game not found."
+                    return;
+                }
+            }
+        }
+
+        Vector<StringConnection> gameMembers = null;
+
+        gameList.takeMonitorForGame(gaNameWho);
+        try
+        {
+            gameMembers = gameList.getMembers(gaNameWho);
+            if (! sendToCli)
+                srv.messageToGameKeyed(ga, false, "reply.game_members.this");  // "This game's members:"
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in *WHO* (gameMembers)");
+        }
+        gameList.releaseMonitorForGame(gaNameWho);
+
+        if (gameMembers == null)
+        {
+            return;  // unlikely since empty games are destroyed
+        }
+
+        if (sendToCli)
+            srv.messageToPlayerKeyed(c, gaName, "reply.game_members.of", gaNameWho);  // "Members of game {0}:"
+
+        Enumeration<StringConnection> membersEnum = gameMembers.elements();
+        while (membersEnum.hasMoreElements())
+        {
+            StringConnection conn = membersEnum.nextElement();
+            String mNameStr = "> " + conn.getData();
+
+            if (sendToCli)
+                srv.messageToPlayer(c, gaName, mNameStr);
+            else
+                srv.messageToGame(gaName, mNameStr);
         }
     }
 
