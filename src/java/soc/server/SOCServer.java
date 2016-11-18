@@ -5847,169 +5847,10 @@ public class SOCServer extends Server
     }
 
     /**
-     * handle "reset-board request" message.
-     * If multiple human players, start a vote.
-     * Otherwise, reset the game to a copy with
-     * same name and (copy of) same players, new layout.
-     *<P>
-     * The requesting player doesn't vote, but server still
-     * sends the vote-request-message, to tell that client their
-     * request was accepted and voting has begun.
-     *<P>
-     * If only one player remains (all other humans have left at end),
-     * ask them to start a new game instead. This is a rare occurrence
-     * and we shouldn't bring in new robots and all,
-     * since we already have an interface to set up a game.
-     *<P>
-     * If any human player's client is too old to vote for reset,
-     * assume they vote yes.
-     *
-     * @see #resetBoardAndNotify(String, int)
-     *
-     * @param c  the connection
-     * @param mes  the message
-     */
-    void handleRESETBOARDREQUEST(StringConnection c, final SOCResetBoardRequest mes)
-    {
-        final String gaName = mes.getGame();
-        SOCGame ga = gameList.getGameData(gaName);
-        if (ga == null)
-            return;
-        SOCPlayer reqPlayer = ga.getPlayer((String) c.getData());
-        if (reqPlayer == null)
-        {
-            return;  // Not playing in that game (Security)
-        }
-
-        /**
-         * Is voting already active from another player?
-         * Or, has this player already asked for voting this turn?
-         */
-        if (ga.getResetVoteActive() || reqPlayer.hasAskedBoardReset())
-        {
-            // Ignore this second request. Can't send REJECT because
-            // that would end the already-active round of voting.
-            return;
-        }
-
-        /**
-         * Is there more than one human player?
-         * Grab connection information for humans and robots.
-         */
-        StringConnection[] humanConns = new StringConnection[ga.maxPlayers];
-        StringConnection[] robotConns = new StringConnection[ga.maxPlayers];
-        final int numHuman = SOCGameBoardReset.sortPlayerConnections(ga, null, gameList.getMembers(gaName), humanConns, robotConns);
-
-        final int reqPN = reqPlayer.getPlayerNumber();
-        if (numHuman < 2)
-        {
-            // Are there robots? Go ahead and reset if so.
-            boolean hadRobot = false, hadUnlockedRobot = false;
-            for (int i = robotConns.length-1; i>=0; --i)
-            {
-                if (robotConns[i] != null)
-                {
-                    hadRobot = true;
-                    if (ga.getSeatLock(i) == SOCGame.SeatLockState.UNLOCKED)
-                    {
-                        hadUnlockedRobot = true;
-                        break;
-                    }
-                }
-            }
-            if (hadUnlockedRobot)
-            {
-                resetBoardAndNotify(gaName, reqPN);
-            } else if (hadRobot) {
-                messageToPlayerKeyed(c, gaName, "resetboard.request.unlock.bot");
-                    // "Please unlock at least one bot, so you will have an opponent."
-            } else {
-                messageToGameKeyed(ga, true, "resetboard.request.everyone.left");
-                    // "Everyone has left this game. Please start a new game with players or bots."
-            }
-        }
-        else
-        {
-            // Probably put it to a vote.
-            gameList.takeMonitorForGame(gaName);
-
-            // First, Count number of other players who can vote (connected, version chk)
-            int votingPlayers = 0;
-            for (int i = ga.maxPlayers - 1; i>=0; --i)
-            {
-                if ((i != reqPN) && ! ga.isSeatVacant(i))
-                {
-                    StringConnection pc = getConnection(ga.getPlayer(i).getName());
-                    if ((pc != null) && pc.isConnected() && (pc.getVersion() >= 1100))
-                         ++votingPlayers;
-                }
-            }
-
-            if (votingPlayers == 0)
-            {
-                // No one else is capable of voting.
-                // Reset the game immediately.
-                messageToGameKeyed(ga, false, "resetboard.vote.request.alloldcli", (String) c.getData());
-                    // ">>> {0} is resetting the game - other connected players are unable to vote (client too old)."
-                gameList.releaseMonitorForGame(gaName);
-                resetBoardAndNotify(gaName, reqPN);
-            }
-            else
-            {
-                // Put it to a vote
-                messageToGameKeyed(ga, false, "resetboard.vote.request", (String) c.getData());
-                    // "requests a board reset - other players please vote."
-                String vrCmd = SOCResetBoardVoteRequest.toCmd(gaName, reqPN);
-                ga.resetVoteBegin(reqPN);
-                gameList.releaseMonitorForGame(gaName);
-                for (int i = 0; i < ga.maxPlayers; ++i)
-                    if (humanConns[i] != null)
-                    {
-                        if (humanConns[i].getVersion() >= 1100)
-                            humanConns[i].put(vrCmd);
-                        else
-                            ga.resetVoteRegister
-                                (ga.getPlayer((String)(humanConns[i].getData())).getPlayerNumber(), true);
-                    }
-            }
-        }
-    }
-
-    /**
-     * handle message of player's vote for a "reset-board" request.
-     * Register the player's vote.
-     * If all votes have now arrived, and the vote is unanimous,
-     * reset the game to a copy with same name and players, new layout.
-     *
-     * @see #resetBoardAndNotify(String, int)
-     *
-     * @param c  the connection
-     * @param mes  the message
-     */
-    void handleRESETBOARDVOTE(StringConnection c, final SOCResetBoardVote mes)
-    {
-        final String gaName = mes.getGame();
-        SOCGame ga = gameList.getGameData(gaName);
-        if (ga == null)
-            return;
-        final String plName = (String) c.getData();
-        SOCPlayer reqPlayer = ga.getPlayer(plName);
-        if (reqPlayer == null)
-        {
-            return;  // Not playing in that game (security)
-        }
-
-        // Register this player's vote, and let game members know.
-        // If vote succeeded, go ahead and reset the game.
-        // If vote rejected, let everyone know.
-
-        resetBoardVoteNotifyOne(ga, reqPlayer.getPlayerNumber(), plName, mes.getPlayerVote());
-    }
-
-
-    /**
      * "Reset-board" request: Register one player's vote, and let game members know.
-     * If vote succeeded, go ahead and reset the game.
+     * Calls {@link SOCGame#resetVoteRegister(int, boolean)}.
+     * Check results so far from {@link SOCGame#getResetVoteResult()}.
+     * If vote succeeded, go ahead and reset the game with {@link #resetBoardAndNotify(String, int)}.
      * If vote rejected, let everyone know.
      *
      * @param ga      Game for this reset vote
@@ -6678,7 +6519,7 @@ public class SOCServer extends Server
      *     Once all robots have re-joined, the game will begin.
      *</OL>
      */
-    private void resetBoardAndNotify(final String gaName, final int requestingPlayer)
+    void resetBoardAndNotify(final String gaName, final int requestingPlayer)
     {
         /**
          * 1. Reset the board, remember player positions.
