@@ -127,6 +127,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     protected int numberCurrentConnections = 0;
 
     /** The named connections: {@link StringConnection#getData()} != {@code null}.
+     *<BR><B>Locks:</B> Adding/removing/naming/versioning of connections synchronizes on {@link #unnamedConns}.
      * @see #unnamedConns
      */
     protected Hashtable<Object, StringConnection> conns = new Hashtable<Object, StringConnection>();
