@@ -972,6 +972,8 @@ public class SOCServer extends Server
         throws SocketException, EOFException, SQLException, IllegalArgumentException
     {
         super(p, new SOCMessageDispatcher());
+        if (props != null)
+            this.props = props;  // needed for getConfig*Property; initSocServer will set this field again
 
         maxConnections = getConfigIntProperty(PROP_JSETTLERS_CONNECTIONS, SOC_MAXCONN_DEFAULT);
         allowDebugUser = getConfigBoolProperty(PROP_JSETTLERS_ALLOW_DEBUG, false);
