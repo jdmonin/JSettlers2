@@ -289,7 +289,10 @@ public class SOCServerMessageHandler
             break;
 
         case SOCMessage.CREATEACCOUNT:
-            srv.handleCREATEACCOUNT(c, (SOCCreateAccount) mes);
+            {
+                final SOCCreateAccount m = (SOCCreateAccount) mes;
+                srv.createAccount(m.getNickname(), m.getPassword(), m.getEmail(), c);
+            }
             break;
 
         /**

@@ -5871,12 +5871,24 @@ public class SOCServer extends Server
     }
 
     /**
-     * handle "create account" message
+     * Handle "create account" request from a client, either creating the account
+     * or rejecting the request. If called when ! {@link SOCDBHelper#isInitialized()},
+     * rejects with {@link SOCStatusMessage#SV_ACCT_NOT_CREATED_ERR}.
+     * Will check if the requesting connection {@code c} is authorized to create accounts
+     * or if {@link SOCServerFeatures#FEAT_OPEN_REG} is active.
+     * Sends {@link SOCStatusMessage} to {@code c} to report results.
+     *<P>
+     * Before v2.0.00, this method was {@code handleCREATEACCOUNT}.
      *
-     * @param c  the connection
-     * @param mes  the message
+     * @param nn  the account nickname to create
+     * @param pw  the new account's password; must not be null or ""
+     * @param em  the new accout's contact email; optional, can use null or ""
+     * @param c  the connection requesting the account creation.
+     *     If the account is created, {@link StringConnection#host() c.host()} is written to the db
+     *     as the requesting hostname.
      */
-    void handleCREATEACCOUNT(StringConnection c, SOCCreateAccount mes)
+    final void createAccount
+        (final String nn, final String pw, final String em, final StringConnection c)
     {
         final int cliVers = c.getVersion();
 
@@ -5951,7 +5963,7 @@ public class SOCServer extends Server
         //
         // check to see if the requested nickname is permissable
         //
-        final String userName = mes.getNickname().trim();
+        final String userName = nn.trim();
 
         if (! SOCMessage.isSingleLineAndSafe(userName))
         {
@@ -6032,7 +6044,7 @@ public class SOCServer extends Server
 
         try
         {
-            success = SOCDBHelper.createAccount(userName, c.host(), mes.getPassword(), mes.getEmail(), currentTime.getTime());
+            success = SOCDBHelper.createAccount(userName, c.host(), pw, em, currentTime.getTime());
         }
         catch (SQLException sqle)
         {
