@@ -1,9 +1,10 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2016 Alessandro D'Ottavio
- * Some contents were formerly part of SOCGameHandler.java;
- * portions of this file Copyright (C) Jeremy D Monin <jeremy@nand.net> and others
- * (details to be added soon from project source history).
+ * Some contents were formerly part of SOCServer.java and SOCGameHandler.java;
+ * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License

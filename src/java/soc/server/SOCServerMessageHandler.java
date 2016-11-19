@@ -1,8 +1,10 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2016 (C) Jeremy D Monin <jeremy@nand.net>
- * Some contents were formerly part of SOCServer.java
- * (details to be added soon from project source history).
+ * Some contents were formerly part of SOCServer.java;
+ * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -53,8 +55,8 @@ import soc.util.Version;
  * {@link soc.server.genericServer.InboundMessageQueue} not related to game play
  * in specific current games and not handled by {@link SOCGameMessageHandler}.
  *<P>
- * Before v2.0.00, these methods and fields were part of {@link SOCServer}:
- * processCommand(String, StringConnection) and related methods
+ * Before v2.0.00, these methods and fields were part of {@link SOCServer}
+ * {@code .processCommand(String, StringConnection)} and related methods.
  * So, some may have {@code @since} javadoc labels with versions older than 2.0.00.
  *
  * @see SOCGameMessageHandler
