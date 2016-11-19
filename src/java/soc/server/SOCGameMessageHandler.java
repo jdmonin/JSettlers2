@@ -54,20 +54,22 @@ import soc.server.genericServer.StringConnection;
  * {@link soc.server.genericServer.InboundMessageQueue} related to specific games
  * (which implement {@link SOCMessageForGame}). All other messages are handled by
  * {@link SOCServerMessageHandler} instead.
- *<P>
- * when the {@link SOCGameMessageHandler} is solicited to process the message, it identify the exact type of message
- * and call the correct method
- * of the {@link SOCGameHandler} that instead is responsible to execute the business
  *
- * <UL>
- * <LI> See the method {@link #dispatch(SOCGameHandler, SOCGame, SOCMessageForGame, StringConnection)} to get more
- *      details of this class logic
- * <LI> See {@link SOCGameHandler} for details of the business logic for each message.
- * </UL>
- *<P>
- * Before v2.0.00, this class was {@link SOCServer}.processCommand(String, StringConnection) and related
+ *<H4>Message Flow:</H4>
+ *<UL>
+ * <LI> Inbound game messages arrive here from {@link SOCMessageDispatcher#dispatch(String, StringConnection)}.
+ * <LI> Each specific message class is identified in {@link #dispatch(SOCGame, SOCMessageForGame, StringConnection)}
+ *      which calls handler methods such as {@link #handleBANKTRADE(SOCGame, StringConnection, SOCBankTrade)}.
+ *      See {@code dispatch} method's javadoc for more details on per-message handling.
+ * <LI> Most handler methods call into {@link SOCGameHandler} for the game's "business logic"
+ *      abstracted from inbound message processing, and then {@link SOCServer} to send
+ *      result messages to all players and observers in the game.
+ *</UL>
+ *
+ * Before v2.0.00 this class was {@link SOCServer}{@code .processCommand(String, StringConnection)} and related
  * handler methods, all part of {@link SOCServer}. So, some may have {@code @since} javadoc labels with
- * versions older than 2.0.00.
+ * versions older than 2.0.00. Refactoring for 2.0.00 in 2013 moved the handler methods from
+ * {@link SOCServer} to {@link SOCGameHandler}, and in 2016 to this class.
  *
  * @see SOCServerMessageHandler
  * @author Alessandro D'Ottavio
@@ -89,14 +91,14 @@ public class SOCGameMessageHandler
     }
 
     /**
-     * Dispatch any event that is coming from a client player for a specific game.
+     * Dispatch any request or event coming from a client player for a specific game.
+     * This method is called from {@link SOCMessageDispatcher#dispatch(String, StringConnection)} when the message is
+     * recognized as a game-related request, command, or event.
      *<P>
      * Some game messages (such as player sits down, or board reset voting) are handled the same for all game types.
-     * These are handled at {@link SOCServer}; they should be ignored here and not appear in your switch statement.
+     * These are handled by {@link SOCServerMessageHandler}; they should be ignored here and not appear in the
+     * switch statement.
      *<P>
-     * this method is called from {@link SOCMessageDispatcher#dispatch(String, StringConnection)} when the message is
-     * recognized as a command or event for a game.
-     * <P>
      * Caller of this method will catch any thrown Exceptions.
      *
      * @param game  Game in which client {@code connection} is sending {@code message}.
