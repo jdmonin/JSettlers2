@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008-2010 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2010,2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -34,12 +34,15 @@ import soc.server.genericServer.StringConnection;
  *<P>
  * If the SOCGame is in state {@link SOCGame#READY_RESET_WAIT_ROBOT_DISMISS},
  * this object is referenced within the newly created game object.
+ *<P>
+ * Before v1.1.07, this class was in the {@code soc.server} package.
  *
  * @see soc.server.SOCGameListAtServer#resetBoard(String)
  * @see soc.game.SOCGame#resetAsCopy()
  * @see soc.game.SOCGame#boardResetOngoingInfo
  *
- * @author Jeremy D. Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 1.1.00
  */
 public class SOCGameBoardReset
 {

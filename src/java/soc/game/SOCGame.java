@@ -483,6 +483,7 @@ public class SOCGame implements Serializable, Cloneable
      * To assist logic, numeric constant value is greater than {@link #OVER}.
      * @see #resetAsCopy()
      * @see #getResetOldGameState()
+     * @since 1.1.00
      */
     public static final int RESET_OLD = 1001;
 
@@ -800,6 +801,7 @@ public class SOCGame implements Serializable, Cloneable
      * All human players must vote unanimously, or board reset is rejected.
      * -1 if no vote is active.
      * Synchronize on {@link #boardResetVotes} before reading or writing.
+     * @since 1.1.00
      */
     private int boardResetVoteRequester;
 
@@ -808,6 +810,7 @@ public class SOCGame implements Serializable, Cloneable
      * Values: {@link #VOTE_NONE}, {@link #VOTE_YES}, {@link #VOTE_NO}.
      * Indexed 0 to SOCGame.MAXPLAYERS-1.
      * Synchronize on this object before reading or writing.
+     * @since 1.1.00
      */
     private int boardResetVotes[];
 
@@ -817,6 +820,7 @@ public class SOCGame implements Serializable, Cloneable
      * Synchronize on {@link #boardResetVotes} before reading or writing.
      * When the vote is complete, or before the first vote has begun, this is 0.
      * Set in resetVoteBegin, resetVoteRegister. Cleared in resetVoteClear.
+     * @since 1.1.00
      */
     private int boardResetVotesWaiting;
 
@@ -7858,6 +7862,7 @@ public class SOCGame implements Serializable, Cloneable
      * Assumes that if the game had more than one human player,
      * they've already voted interactively to reset the board.
      * @see #resetVoteBegin(int)
+     * @since 1.1.00
      */
     public SOCGame resetAsCopy()
     {
@@ -7923,6 +7928,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #getResetVoteRequester()
      * @see #resetVoteRegister(int, boolean)
      * @see #getResetVoteResult()
+     * @since 1.1.00
      */
     public void resetVoteBegin(final int reqPN) throws IllegalArgumentException, IllegalStateException
     {
@@ -7972,6 +7978,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return player number who requested the vote.
      *
      * @see #resetVoteBegin(int)
+     * @since 1.1.00
      */
     public int getResetVoteRequester()
     {
@@ -7983,6 +7990,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * @return if a board-reset vote is active (waiting for votes).
+     * @since 1.1.00
      */
     public boolean getResetVoteActive()
     {
@@ -8001,6 +8009,7 @@ public class SOCGame implements Serializable, Cloneable
      * @throws IllegalArgumentException If pn already voted, or can't vote (vacant or robot).
      * @throws IllegalStateException    If voting is not currently active.
      * @see #getResetPlayerVote(int)
+     * @since 1.1.00
      */
     public boolean resetVoteRegister(final int pn, final boolean votingYes)
         throws IllegalArgumentException, IllegalStateException
@@ -8037,6 +8046,7 @@ public class SOCGame implements Serializable, Cloneable
      *    or if player hasn't yet voted, {@link #VOTE_NONE}.
      * @see #resetVoteRegister(int, boolean)
      * @see #getResetVoteResult()
+     * @since 1.1.00
      */
     public int getResetPlayerVote(final int pn)
     {
@@ -8053,6 +8063,7 @@ public class SOCGame implements Serializable, Cloneable
      * endTurn is called only at the server, not at clients.
      * Do not call this to cancel a vote during normal gameplay, because
      * it would allow players to ask for a reset more than once per turn.
+     * @since 1.1.00
      */
     public void resetVoteClear()
     {
@@ -8073,6 +8084,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return True if accepted, false if rejected.
      * @throws IllegalStateException if voting is still active. See {@link #getResetVoteActive()}.
      * @see #getResetPlayerVote(int)
+     * @since 1.1.00
      */
     public boolean getResetVoteResult() throws IllegalStateException
     {

@@ -1387,6 +1387,7 @@ public class SOCPlayerInterface extends Frame
      * @param confirmDialogFirst  If true, a practice game is over and the user should confirm the reset
      *            with a dialog box created and shown here.  If the game is just starting, no need to confirm.
      *            If true, assumes <tt>resetBoardRequest</tt> is being called from the AWT event thread.
+     * @since 1.1.00
      */
     public void resetBoardRequest(final boolean confirmDialogFirst)
     {
@@ -2375,6 +2376,7 @@ public class SOCPlayerInterface extends Frame
      * @param requesterNumber Player who requested the board reset
      * 
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
+     * @since 1.1.00
      */
     public void resetBoard(SOCGame newGame, int rejoinPlayerNumber, int requesterNumber)
     {

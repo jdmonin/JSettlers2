@@ -457,6 +457,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * this is true if the player asked to reset the board this turn
+     * @since 1.1.00
      */
     private boolean boardResetAskedThisTurn;
 
@@ -885,6 +886,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * @return true if the player asked to reset the board this turn
+     * @since 1.1.00
      */
     public boolean hasAskedBoardReset()
     {
@@ -895,6 +897,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * set the flag indicating if the player asked to reset the board this turn
      *
      * @param value  true to set, false to clear
+     * @since 1.1.00
      */
     public void setAskedBoardReset(boolean value)
     {

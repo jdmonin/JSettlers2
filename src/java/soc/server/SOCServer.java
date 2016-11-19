@@ -5376,6 +5376,8 @@ public class SOCServer extends Server
      *<P>
      * Once the robots have all responded (from their own threads/clients)
      * and joined up, the game can begin.
+     *<P>
+     * Before v1.1.00, this method was part of {@code handleSTARTGAME}.
      *
      * @param ga  Game to ask robots to join
      * @param robotSeats If robotSeats is null, robots are randomly selected.
@@ -5390,6 +5392,7 @@ public class SOCServer extends Server
      *         somehow newer than server's version (which is assumed to be robots' version).
      * @throws IllegalArgumentException if robotSeats is not null but wrong length,
      *           or if a robotSeat element is null but that seat wants a robot (vacant non-locked).
+     * @since 1.1.00
      */
     void readyGameAskRobotsJoin(SOCGame ga, StringConnection[] robotSeats, final int maxBots)
         throws IllegalStateException, IllegalArgumentException
@@ -6240,6 +6243,7 @@ public class SOCServer extends Server
      *     JOINGAME and SITDOWN, as they do when joining a newly created game.
      *     Once all robots have re-joined, the game will begin.
      *</OL>
+     * @since 1.1.00
      */
     void resetBoardAndNotify(final String gaName, final int requestingPlayer)
     {

@@ -1526,7 +1526,7 @@ public class SOCGameHandler extends GameHandler
         boolean gameHasHumanPlayer = false;
         boolean gameHasObserver = false;
         @SuppressWarnings("unused")
-        boolean gameVotingActiveDuringStart = false;  // TODO checks/messages
+        boolean gameVotingActiveDuringStart = false;  // TODO checks/messages; added in v1.1.01, TODO not used yet
 
         final int gameState = ga.getGameState();
 
