@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012,2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012,2014,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,11 +27,11 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that a player is discarding.
- * Client's response to server's {@link SOCDiscardRequest}.
+ * This message gives the resources that a player has chosen to discard;
+ * client's response to server's {@link SOCDiscardRequest}.
  * The server will report the discard's resource total to the other
  * players via {@link SOCPlayerElement} and text, but will not send
- * a <tt>SOCDiscard</tt> message to other players.
+ * a {@code SOCDiscard} message to other players.
  *
  * @author Robert S. Thomas
  */
@@ -105,7 +105,10 @@ public class SOCDiscard extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(game, resources.getAmount(SOCResourceConstants.CLAY), resources.getAmount(SOCResourceConstants.ORE), resources.getAmount(SOCResourceConstants.SHEEP), resources.getAmount(SOCResourceConstants.WHEAT), resources.getAmount(SOCResourceConstants.WOOD), resources.getAmount(SOCResourceConstants.UNKNOWN));
+        return toCmd
+            (game, resources.getAmount(SOCResourceConstants.CLAY), resources.getAmount(SOCResourceConstants.ORE),
+             resources.getAmount(SOCResourceConstants.SHEEP), resources.getAmount(SOCResourceConstants.WHEAT),
+             resources.getAmount(SOCResourceConstants.WOOD), resources.getAmount(SOCResourceConstants.UNKNOWN));
     }
 
     /**
@@ -118,7 +121,10 @@ public class SOCDiscard extends SOCMessage
      */
     public static String toCmd(String ga, SOCResourceSet rs)
     {
-        return toCmd(ga, rs.getAmount(SOCResourceConstants.CLAY), rs.getAmount(SOCResourceConstants.ORE), rs.getAmount(SOCResourceConstants.SHEEP), rs.getAmount(SOCResourceConstants.WHEAT), rs.getAmount(SOCResourceConstants.WOOD), rs.getAmount(SOCResourceConstants.UNKNOWN));
+        return toCmd
+            (ga, rs.getAmount(SOCResourceConstants.CLAY), rs.getAmount(SOCResourceConstants.ORE),
+             rs.getAmount(SOCResourceConstants.SHEEP), rs.getAmount(SOCResourceConstants.WHEAT),
+             rs.getAmount(SOCResourceConstants.WOOD), rs.getAmount(SOCResourceConstants.UNKNOWN));
     }
 
     /**
@@ -148,12 +154,12 @@ public class SOCDiscard extends SOCMessage
     public static SOCDiscard parseDataStr(String s)
     {
         String ga; // the game name
-        int cl; // the ammount of clay being discarded
-        int or; // the ammount of ore being discarded
-        int sh; // the ammount of sheep being discarded
-        int wh; // the ammount of wheat being discarded
-        int wo; // the ammount of wood being discarded
-        int uk; // the ammount of unknown resources being discarded
+        int cl; // the amount of clay being discarded
+        int or; // the amount of ore being discarded
+        int sh; // the amount of sheep being discarded
+        int wh; // the amount of wheat being discarded
+        int wo; // the amount of wood being discarded
+        int uk; // the amount of unknown resources being discarded
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 

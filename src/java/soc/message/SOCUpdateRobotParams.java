@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,8 +26,8 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that the robot client needs to update
- * the robot parameters with the contained information
+ * This message tells the robot client to update its
+ * {@link SOCRobotParameters robot parameters} to these values.
  *
  * @author Robert S. Thomas
  */
@@ -57,7 +57,8 @@ public class SOCUpdateRobotParams extends SOCMessage
     }
 
     /**
-     * UPDATEROBOTPARAMS sep maxGameLength sep2 maxETA sep2 etaBonusFactor sep2 adversarialFactor sep2 leaderAdversarialFactor sep2 devCardMultiplier sep2 threatMultiplier sep2 strategyType sep2 tradeFlag
+     * UPDATEROBOTPARAMS sep maxGameLength sep2 maxETA sep2 etaBonusFactor sep2 adversarialFactor
+     *   sep2 leaderAdversarialFactor sep2 devCardMultiplier sep2 threatMultiplier sep2 strategyType sep2 tradeFlag
      *
      * @return the command string
      */
@@ -67,14 +68,18 @@ public class SOCUpdateRobotParams extends SOCMessage
     }
 
     /**
-     * UPDATEROBOTPARAMS sep maxGameLength sep2 maxETA sep2 etaBonusFactor sep2 adversarialFactor sep2 leaderAdversarialFactor sep2 devCardMultiplier sep2 threatMultiplier sep2 strategyType sep2 tradeFlag
+     * UPDATEROBOTPARAMS sep maxGameLength sep2 maxETA sep2 etaBonusFactor sep2 adversarialFactor
+     *   sep2 leaderAdversarialFactor sep2 devCardMultiplier sep2 threatMultiplier sep2 strategyType sep2 tradeFlag
      *
      * @param par  the robot parameters
      * @return the command string
      */
     public static String toCmd(SOCRobotParameters par)
     {
-        return UPDATEROBOTPARAMS + sep + par.getMaxGameLength() + sep2 + par.getMaxETA() + sep2 + par.getETABonusFactor() + sep2 + par.getAdversarialFactor() + sep2 + par.getLeaderAdversarialFactor() + sep2 + par.getDevCardMultiplier() + sep2 + par.getThreatMultiplier() + sep2 + par.getStrategyType() + sep2 + par.getTradeFlag();
+        return UPDATEROBOTPARAMS + sep + par.getMaxGameLength() + sep2 + par.getMaxETA()
+            + sep2 + par.getETABonusFactor() + sep2 + par.getAdversarialFactor()
+            + sep2 + par.getLeaderAdversarialFactor() + sep2 + par.getDevCardMultiplier()
+            + sep2 + par.getThreatMultiplier() + sep2 + par.getStrategyType() + sep2 + par.getTradeFlag();
     }
 
     /**
@@ -85,15 +90,15 @@ public class SOCUpdateRobotParams extends SOCMessage
      */
     public static SOCUpdateRobotParams parseDataStr(String s)
     {
-        int mgl; // maxGameLength
-        int me; // maxETA
+        int mgl;   // maxGameLength
+        int me;    // maxETA
         float ebf; // etaBonusFactor
-        float af; // adversarialFactor
+        float af;  // adversarialFactor
         float laf; // leaderAdversarialFactor
         float dcm; // devCardMultiplier
-        float tm; // threatMultiplier
-        int st; // strategyType
-        int tf; // trade flag
+        float tm;  // threatMultiplier
+        int st;    // strategyType
+        int tf;    // trade flag
 
         StringTokenizer stok = new StringTokenizer(s, sep2);
 
@@ -124,4 +129,5 @@ public class SOCUpdateRobotParams extends SOCMessage
     {
         return "SOCUpdateRobotParams:params=" + params;
     }
+
 }
