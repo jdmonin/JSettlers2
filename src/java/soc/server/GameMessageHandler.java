@@ -40,7 +40,9 @@ public interface GameMessageHandler
      * Some game messages (such as player sits down, or board reset voting) are handled the same for all game types.
      * These are handled at {@link SOCServer}; they should be ignored here and not appear in your switch statement.
      *<P>
-     * Called from {@link SOCServer} message treater loop.  Caller will catch any thrown Exceptions.
+     * Called from {@link InboundMessageQueue} message treater loop via the
+     * {@link soc.server.genericServer.Server.InboundMessageDispatcher Server.InboundMessageDispatcher}.
+     * Caller will catch any thrown Exceptions.
      *
      * @param ga  Game in which client {@code c} is sending {@code msg}.
      *            Never null; from {@link SOCMessageForGame#getGame()}.
