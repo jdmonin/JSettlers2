@@ -215,5 +215,5 @@ public class SOCGameBoardReset
 
         return numHuman;
     }
-  
+
 }  // public class SOCGameBoardReset

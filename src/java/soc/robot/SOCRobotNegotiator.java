@@ -1137,7 +1137,7 @@ public class SOCRobotNegotiator
        public int considerOffer(SOCTradeOffer offer) {
        D.ebugPrintln("***** CONSIDER OFFER *****");
        int response = REJECT_OFFER;
-    
+
        SOCPlayer offeringPlayer = game.getPlayer(offer.getFrom());
        SOCResourceSet rsrcsOut = offer.getGetSet();
        SOCResourceSet rsrcsIn = offer.getGiveSet();
@@ -1196,12 +1196,12 @@ public class SOCRobotNegotiator
        int theirNewPieceScore = 0;
        SOCPlayerTracker.updateWinGameETAs(playerTrackers);
        ourOriginalWGETA = ourPlayerTracker.getWinGameETA();
-    
+
        SOCResourceSet theirResources = offeringPlayer.getResources();
        SOCResourceSet ourResources = ourPlayerData.getResources();
-    
+
        SOCRobotDM simulator;
-    
+
        Stack ourBuildingPlan = buildingPlan;
        if (ourBuildingPlan.empty()) {
        D.ebugPrintln("**** our building plan is empty ****");
@@ -1212,7 +1212,7 @@ public class SOCRobotNegotiator
        ourBuildingPlan);
        simulator.planStuff();
        }
-    
+
        if (ourBuildingPlan.empty()) {
        return response;
        }
@@ -1222,13 +1222,13 @@ public class SOCRobotNegotiator
        ourOriginalFavoriteRoad = decisionMaker.getFavoriteRoad();
        ourOriginalPossibleCard = decisionMaker.getPossibleCard();
        SOCPlayerTracker theirPlayerTracker = (SOCPlayerTracker)playerTrackers.get(new Integer(offer.getFrom()));
-    
+
        if (theirPlayerTracker != null) {
        theirOriginalWGETA = theirPlayerTracker.getWinGameETA();
        D.ebugPrintln("CHECKING OFFER FROM PLAYER "+offer.getFrom());
        D.ebugPrintln("they give : "+rsrcsIn);
        D.ebugPrintln("they get : "+rsrcsOut);
-    
+
        D.ebugPrintln("---------< before >-----------");
        ourOriginalPiece = targetPiece;
        ourOriginalPieceType = targetPiece.getType();
@@ -1241,7 +1241,7 @@ public class SOCRobotNegotiator
        D.ebugPrintln("our target piece coord : "+Integer.toHexString(targetPiece.getCoordinates()));
        D.ebugPrintln("our target piece eta : "+targetPiece.getETA());
        D.ebugPrintln("our target piece score : "+targetPiece.getScore());
-    
+
        if (ourOriginalFavoriteSettlement != null) {
        ourOriginalFavoriteSettlementCoord = ourOriginalFavoriteSettlement.getCoordinates();
        ourOriginalFavoriteSettlementETA = ourOriginalFavoriteSettlement.getETA();
@@ -1283,14 +1283,14 @@ public class SOCRobotNegotiator
        } else {
        D.ebugPrintln("their target piece == null");
        }
-    
+
        theirResources.add(rsrcsOut);
        theirResources.subtract(rsrcsIn);
        ourResources.add(rsrcsIn);
        ourResources.subtract(rsrcsOut);
-    
+
        D.ebugPrintln("---------< after >-----------");
-    
+
        SOCPlayerTracker.updateWinGameETAs(playerTrackers);
        ourNewWGETA = ourPlayerTracker.getWinGameETA();
        theirNewWGETA = theirPlayerTracker.getWinGameETA();
@@ -1310,7 +1310,7 @@ public class SOCRobotNegotiator
        ourNewPieceCoord = ourNewTargetPiece.getCoordinates();
        ourNewPieceETA = ourNewTargetPiece.getETA();
        ourNewPieceScore = ourNewTargetPiece.getScore();
-    
+
        D.ebugPrintln("ourResources : "+ourResources);
        D.ebugPrintln("ourNewWGETA = "+ourNewWGETA);
        if (ourNewTargetPiece != null) {
@@ -1321,7 +1321,7 @@ public class SOCRobotNegotiator
        } else {
        D.ebugPrintln("our target piece == null");
        }
-    
+
        if (ourNewFavoriteSettlement != null) {
        ourNewFavoriteSettlementCoord = ourNewFavoriteSettlement.getCoordinates();
        ourNewFavoriteSettlementETA = ourNewFavoriteSettlement.getETA();
@@ -1349,7 +1349,7 @@ public class SOCRobotNegotiator
        theirBuildingPlan);
        simulator.planStuff();
        SOCPossiblePiece theirNewTargetPiece = (SOCPossiblePiece)theirBuildingPlan.pop();
-    
+
        theirNewPieceType = theirNewTargetPiece.getType();
        theirNewPieceCoord = theirNewTargetPiece.getCoordinates();
        theirNewPieceETA = theirNewTargetPiece.getETA();
@@ -1364,19 +1364,19 @@ public class SOCRobotNegotiator
        } else {
        D.ebugPrintln("their target piece == null");
        }
-    
+
        D.ebugPrintln("---------< cleanup >-----------");
-    
+
        theirResources.subtract(rsrcsOut);
        theirResources.add(rsrcsIn);
        ourResources.subtract(rsrcsIn);
        ourResources.add(rsrcsOut);
-    
+
        SOCPlayerTracker.updateWinGameETAs(playerTrackers);
-    
+
        D.ebugPrintln("ourResources : "+ourResources);
        D.ebugPrintln("theirResources : "+theirResources);
-    
+
        D.ebugPrintln("---------< done >-----------");
        }
        //
@@ -1455,7 +1455,7 @@ public class SOCRobotNegotiator
        D.ebugPrintln("--       ourNewPossibleCardScore: "+ourNewPossibleCardScore);
        D.ebugPrintln("--                            total: "+(ourNewFavoriteSettlementScore
        + ourNewFavoriteCityScore + ourNewFavoriteRoadScore + ourNewPossibleCardScore));
-    
+
        //
        // see if we have something to gain from the offer
        //

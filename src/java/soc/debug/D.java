@@ -45,7 +45,7 @@ public class D
     {
         enabled = false;
     }
-    
+
     /**
      * Is debug currently enabled?
      * */

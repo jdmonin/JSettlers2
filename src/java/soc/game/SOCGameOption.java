@@ -495,7 +495,7 @@ public class SOCGameOption
                 // TODO no robot players for DH
          *
          * Game opt "DH" was suggested by a contributor, who would implement it.
-         * For now that keyname is reserved for when this happens. 
+         * For now that keyname is reserved for when this happens.
          */
 
         // Game scenario options (rules and events)
@@ -1565,7 +1565,7 @@ public class SOCGameOption
      * adjusting for old clients if necessary.
      * This can be unpacked with {@link #parseOptionsToMap(String)}.
      * See {@link #packOptionsToString(Map, boolean)} javadoc for details.
-     * 
+     *
      * @param omap  Map of SOCGameOptions, or null
      * @param hideEmptyStringOpts omit string-valued options which are empty?
      *            Suitable only for sending defaults.

@@ -1141,7 +1141,7 @@ public class SOCRobotDM
             buildingPlan.push(tmp);
           }
         }
-      }    
+      }
   }
 
   /**
@@ -1951,7 +1951,7 @@ public class SOCRobotDM
    * @param isScoreNotETA  True if {@code bestScoreOrETA} is a score and not a building ETA;
    *          higher scores are better, lower ETAs are better
    * @param bestPlanIsDevCard  True if the current best plan is to buy a dev card
-   * @param ourBSE  Our player's current {@link SOCBuildingSpeedEstimate} with our {@link SOCPlayer#getNumbers()} 
+   * @param ourBSE  Our player's current {@link SOCBuildingSpeedEstimate} with our {@link SOCPlayer#getNumbers()}
    * @param leadersCurrentWGETA  For {@code SMART_STRATEGY}, the game leader's Win Game ETA from
    *          {@link SOCPlayerTracker#getWinGameETA()}.  Unused here (0) for {@code FAST_STRATEGY}.
    * @param forSpecialBuildingPhase  True if we're in the {@link SOCGame#SPECIAL_BUILDING} Phase, not our full turn

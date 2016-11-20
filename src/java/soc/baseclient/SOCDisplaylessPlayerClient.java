@@ -116,7 +116,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected Exception ex = null;
     protected boolean connected = false;
 
-    /** 
+    /**
      * were we rejected from server? (full or robot name taken)
      */
     protected boolean rejected = false;
@@ -186,7 +186,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public SOCDisplaylessPlayerClient(String s, boolean visual)
     {
-        this();         
+        this();
         strSocketName = s;
     }
 
@@ -209,7 +209,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             Thread.currentThread().setName("robot-netread-" + nickname);
         }
         catch (Throwable th) {}
-        
+
         try
         {
             while (connected)
@@ -584,7 +584,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
             /**
              * the current player has cancelled an initial settlement,
-             * or has tried to place a piece illegally. 
+             * or has tried to place a piece illegally.
              */
             case SOCMessage.CANCELBUILDREQUEST:
                 handleCANCELBUILDREQUEST((SOCCancelBuildRequest) mes);
@@ -870,7 +870,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         {
             final String errmsg =
                 "Internal error SOCDisplaylessPlayerClient.handleVERSION: Server must be same as our version "
-                + ourVers + ", not " + vers;  // i18n: Unlikely error, keep un-localized for possible bug reporting 
+                + ourVers + ", not " + vers;  // i18n: Unlikely error, keep un-localized for possible bug reporting
             System.err.println(errmsg);
             ex = new IllegalStateException(errmsg);
             destroy();
@@ -1405,7 +1405,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
             }
             break;
-        
+
         }
     }
 
@@ -1459,23 +1459,23 @@ public class SOCDisplaylessPlayerClient implements Runnable
         {
         case SOCPlayerElement.SET:
             pl.setNumKnights(mes.getValue());
-    
+
             break;
-    
+
         case SOCPlayerElement.GAIN:
             pl.setNumKnights(pl.getNumKnights() + mes.getValue());
-    
+
             break;
-    
+
         case SOCPlayerElement.LOSE:
             pl.setNumKnights(pl.getNumKnights() - mes.getValue());
-    
+
             break;
         }
-    
+
         ga.updateLargestArmy();
     }
-    
+
     /**
      * Update a player's amount of a resource, for {@link #handlePLAYERELEMENT(SOCPlayerElement)}.
      *<ul>
@@ -1516,7 +1516,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
             if (rtype != SOCResourceConstants.UNKNOWN)
             {
-                int playerAmt = pl.getResources().getAmount(rtype); 
+                int playerAmt = pl.getResources().getAmount(rtype);
                 if (playerAmt >= amount)
                 {
                     pl.getResources().subtract(amount, rtype);
@@ -1653,7 +1653,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     *<P>
     * - During game startup (START1B or START2B): <BR>
     *       Sent from server, CANCELBUILDREQUEST means the current player
-    *       wants to undo the placement of their initial settlement.  
+    *       wants to undo the placement of their initial settlement.
     *<P>
     * - During piece placement (PLACING_ROAD, PLACING_CITY, PLACING_SETTLEMENT,
     *                           PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2):

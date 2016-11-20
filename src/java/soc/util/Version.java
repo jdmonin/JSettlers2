@@ -34,12 +34,12 @@ public class Version {
 
   public static String COPYRIGHT = "project.copyright";
   public static String BUILDNUM  = "project.buildnum";
-  
+
   public static String JRE_MIN_VERSION = "project.jre.min.version";
   public static String JRE_MIN_MAJOR   = "project.jre.min.major";
   public static String JRE_MIN_MINOR   = "project.jre.min.minor";
   public static String JRE_MIN_EDIT    = "project.jre.min.edit";
-  
+
   /** Current version info */
   private static Properties versionInfo = null;
 
@@ -166,7 +166,7 @@ public class Version {
         jreMinMajor = Integer.parseInt(major);
         jreMinMinor = Integer.parseInt(minor);
         jreMinEdit  = Integer.parseInt(edit);
-        
+
       } catch(Exception x) { // NPE or NumberFormat uses default values
         System.err.println("Error retrieving Version info: ");
         x.printStackTrace();
@@ -187,8 +187,8 @@ public class Version {
     // String build = v.substring (6);
 
     if (versionInfo.getProperty(JRE_MIN_VERSION) == null)
-      minJREVersion();  
-    
+      minJREVersion();
+
     return (major >= jreMinMajor || minor >= jreMinMinor || edit >= jreMinEdit);
   }
 

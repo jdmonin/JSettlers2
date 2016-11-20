@@ -444,7 +444,7 @@ public class SOCResourceSet implements Serializable, Cloneable
 
             if (needComma)
                 sb.append(", ");
-            sb.append(amt);                
+            sb.append(amt);
             sb.append(" ");
             sb.append(SOCResourceConstants.resName(res));
             needComma = true;
@@ -497,7 +497,7 @@ public class SOCResourceSet implements Serializable, Cloneable
 
     /**
      * Make a copy of this resource set.
-     * To instead copy another set into this one, use {@link #setAmounts(SOCResourceSet)}. 
+     * To instead copy another set into this one, use {@link #setAmounts(SOCResourceSet)}.
      * @return a copy of this resource set
      */
     public SOCResourceSet copy()

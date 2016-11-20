@@ -882,7 +882,7 @@ public class OpeningBuildStrategy {
      * Cached after the first call, as {@link #resourceEstimates}.
      *<P>
      * Calls each hex's {@link SOCBoard#getHexTypeFromCoord(int)}, ignores all hex types besides
-     * the usual {@link SOCBoard#CLAY_HEX} through {@link SOCBoard#WOOD_HEX} and {@link SOCBoardLarge#GOLD_HEX}. 
+     * the usual {@link SOCBoard#CLAY_HEX} through {@link SOCBoard#WOOD_HEX} and {@link SOCBoardLarge#GOLD_HEX}.
      *
      * @return an array of rarity numbers, where
      *         estimates[SOCBoard.CLAY_HEX] == the clay rarity,

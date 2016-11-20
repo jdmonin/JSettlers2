@@ -122,7 +122,7 @@ public class SOCResourceConstants
             tname = "wood";  break;
         default:
             // Should not happen
-            tname = null;            
+            tname = null;
         }
         return tname;
     }

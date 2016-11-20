@@ -121,7 +121,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * When {@link #specialVP} != 0, the source is {@link #specialVPEvent}.
      *<P>
      * <b>Note:</b> This is set when the piece was placed, so it's always accurate at server.
-     * At client it may be 0 if the client joined the game after this piece was placed. 
+     * At client it may be 0 if the client joined the game after this piece was placed.
      *<P>
      * Package access for SOCPlayer's benefit.
      * @since 2.0.00
@@ -132,7 +132,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * If {@link #specialVP} != 0, the event for which the SVP was awarded. Otherwise <tt>null</tt>.
      *<P>
      * <b>Note:</b> This is set when the piece was placed, so it's always accurate at server.
-     * At client it may be <tt>null</tt> if the client joined the game after this piece was placed. 
+     * At client it may be <tt>null</tt> if the client joined the game after this piece was placed.
      *<P>
      * Package access for SOCPlayer's benefit.
      * @since 2.0.00
@@ -270,7 +270,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * <LI> If other is not a SOCPlayingPiece, use our super.equals to compare.
      * <LI> SOCPlayingPieces are equal if same piece type, coordinate, and player.
      * </UL>
-     * 
+     *
      * @param other The object to compare with, or null.
      */
     @Override

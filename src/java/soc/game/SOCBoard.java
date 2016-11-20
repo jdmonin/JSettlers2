@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The maintainer of this program can be reached at jsettlers@nand.net 
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.game;
 
@@ -142,7 +142,7 @@ import java.util.Vector;
  * <b>On the 4-player board:</b> See <tt>src/docs/hexcoord.gif</tt><br>
  * Coordinates start with hex (1,1) on the far west, and go to (D,D) on the east.
  * The ring of water hexes surrounding land, is within these coordinates. (Land
- * hexes in that row are (3,3) to (B,B). 
+ * hexes in that row are (3,3) to (B,B).
  * The first axis runs northwest to southeast; the second runs southwest to northeast.
  * Having six sides, hexes run in a straight line west to east, separated by vertical edges;
  * both coordinates increase along a west-to-east line.
@@ -257,7 +257,7 @@ public class SOCBoard implements Serializable, Cloneable
      * <tt>WOOD_PORT</tt> == {@link #WOOD_HEX}.
      */
     public static final int WOOD_PORT = 5;  // Must be last port-type integer
-    
+
     /**
      * Facing is the direction (1-6) to the hex touching a hex or edge,
      * or from a node to another node 2 nodes away.
@@ -315,7 +315,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Clockwise from upper-left (hex coordinate 0x17).
      * @since 1.1.08
      */
-    private final static int PORTS_EDGE_V1[] = 
+    private final static int PORTS_EDGE_V1[] =
     {
         0x27,  // Port touches the upper-left land hex, port facing land to its SouthEast
         0x5A,  // Touches middle land hex of top row, port facing SW
@@ -358,7 +358,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Clockwise from upper-left (hex coordinate 0x17, which is land in the V2 layout).
      * @since 1.1.08
      */
-    private final static int PORTS_EDGE_V2[] = 
+    private final static int PORTS_EDGE_V2[] =
     {
         0x07,  // Port touches the upper-left land hex, port facing land to its SouthEast
         0x3A,  // Touches middle land hex of top row, port facing SW
@@ -534,7 +534,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Land-hex coordinates in standard board ({@link #BOARD_ENCODING_ORIGINAL}).
      * @since 1.1.08
      */
-    public final static int[] HEXCOORDS_LAND_V1 = 
+    public final static int[] HEXCOORDS_LAND_V1 =
     {
         0x33, 0x35, 0x37, 0x53, 0x55, 0x57, 0x59, 0x73, 0x75, 0x77, 0x79, 0x7B,
         0x95, 0x97, 0x99, 0x9B, 0xB7, 0xB9, 0xBB
@@ -544,7 +544,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Land-hex coordinates in 6-player board ({@link #BOARD_ENCODING_6PLAYER}).
      * @since 1.1.08.
      */
-    public final static int[] HEXCOORDS_LAND_V2 = 
+    public final static int[] HEXCOORDS_LAND_V2 =
     {
         0x11, 0x13, 0x15, 0x17,      // First diagonal row (moving NE from 0x11)
         0x31, 0x33, 0x35, 0x37, 0x39,
@@ -651,7 +651,7 @@ public class SOCBoard implements Serializable, Cloneable
      *<LI> v1: Not used in the original board, these are part of {@link #hexLayout} instead,
      *         and this field is <tt>null</tt>.
      *
-     *<LI> v2: On the 6-player (v2 layout) board, each port's type.  
+     *<LI> v2: On the 6-player (v2 layout) board, each port's type.
      * Same value range as in {@link #hexLayout}.
      * 1 element per port. Same ordering as {@link #PORTS_FACING_V2}.
      *
@@ -711,20 +711,20 @@ public class SOCBoard implements Serializable, Cloneable
      * @see #HEXCOORDS_LAND_V2
      * @see #getLandHexCoords()
      */
-    private int[] numToHexID = 
+    private int[] numToHexID =
     {
         0x17, 0x39, 0x5B, 0x7D,
-        
+
         0x15, 0x37, 0x59, 0x7B, 0x9D,
-        
+
         0x13, 0x35, 0x57, 0x79, 0x9B, 0xBD,
-        
+
         0x11, 0x33, 0x55, 0x77, 0x99, 0xBB, 0xDD,
-        
+
         0x31, 0x53, 0x75, 0x97, 0xB9, 0xDB,
-        
+
         0x51, 0x73, 0x95, 0xB7, 0xD9,
-        
+
         0x71, 0x93, 0xB5, 0xD7
 
         // The hex coordinate layout given here can also
@@ -774,7 +774,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Offsets from a node to another node 2 away,
      * indexed by the facing directions: {@link #FACING_NE} is 1,
      * {@link #FACING_E} is 2, etc; {@link #FACING_NW} is 6.
-     * Used by {@link #getAdjacentNodeToNode2Away(int, int)}. 
+     * Used by {@link #getAdjacentNodeToNode2Away(int, int)}.
      * See RST dissertation figure A.2.
      * @since 1.1.12
      */
@@ -1095,7 +1095,7 @@ public class SOCBoard implements Serializable, Cloneable
         // Numbers are indexes within hexLayout (also in numberLayout) for each land hex.
         // See the hexLayout javadoc for how the indexes are arranged on the board layout,
         // and remember that the 6-player board is visually rotated clockwise 90 degrees;
-        // visual "North" used here is West internally in the board layout. 
+        // visual "North" used here is West internally in the board layout.
 
         // clockwise from north
         {
@@ -1143,7 +1143,7 @@ public class SOCBoard implements Serializable, Cloneable
      * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
      * @since 2.0.00
      */
-    protected static final int[] makeNewBoard_diceNums_v1 = 
+    protected static final int[] makeNewBoard_diceNums_v1 =
         { 5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11 };
 
     /**
@@ -1221,7 +1221,7 @@ public class SOCBoard implements Serializable, Cloneable
                 final int ptype = portHex[i];
                 final int[] nodes = getAdjacentNodesToEdge_arr(PORTS_EDGE_V2[i]);
                 placePort(ptype, -1, PORTS_FACING_V2[i], nodes[0], nodes[1]);
-            }            
+            }
         } else {
             for (int i = 0; i < PORTS_FACING_V1.length; ++i)
             {
@@ -1333,7 +1333,7 @@ public class SOCBoard implements Serializable, Cloneable
      *<P>
      * Called from {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
      * Before v2.0.00, this was part of makeNewBoard_placeHexes.
-     * 
+     *
      * @param unvisited  Contains each land hex's coordinate as an Integer;
      *          <b>Note:</b> This vector will be modified by the method. <br>
      *          See note above about occasional water hex coordinates in <tt>univisited</tt>.
@@ -1636,8 +1636,8 @@ public class SOCBoard implements Serializable, Cloneable
         nodeIDtoPortType.put(node1Int, ptypeInt);
         nodeIDtoPortType.put(node2Int, ptypeInt);
 
-        ports[ptype].addElement(node1Int); 
-        ports[ptype].addElement(node2Int); 
+        ports[ptype].addElement(node1Int);
+        ports[ptype].addElement(node2Int);
     }
 
     /**
@@ -1778,7 +1778,7 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Is this the coordinate of a land hex (not water)? 
+     * Is this the coordinate of a land hex (not water)?
      * @param hexCoord  Hex coordinate, between 0 and {@link #MAXHEX}
      * @return  True if land, false if water or not a valid hex coordinate
      * @see #isHexOnWater(int)
@@ -1794,7 +1794,7 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Is this the coordinate of a water hex (not land)? 
+     * Is this the coordinate of a water hex (not land)?
      * @param hexCoord  Hex coordinate, between 0 and {@link #MAXHEX}
      * @return  True if water, false if land or not a valid hex coordinate
      * @see #isHexOnLand(int)
@@ -1896,7 +1896,7 @@ public class SOCBoard implements Serializable, Cloneable
             return PORTS_EDGE_V2;
         default:
             return PORTS_EDGE_V1;
-        }    
+        }
     }
 
     /**
@@ -1989,7 +1989,7 @@ public class SOCBoard implements Serializable, Cloneable
      * within the port layout array.  If you call {@link #setPortsLayout(int[])}, be sure
      * you are giving all information returned by {@link #getPortsLayout()}, not just the
      * port types.
-     * 
+     *
      * @see #getPortsLayout()
      * @since 1.1.08
      */
@@ -2022,7 +2022,7 @@ public class SOCBoard implements Serializable, Cloneable
      * to set up port info in {@link #setHexLayout(int[])}.
      * @return the type of port given a hex type;
      *         in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
-     *         If called on a non-port hex, returns 0 
+     *         If called on a non-port hex, returns 0
      *         (which is <tt>MISC_PORT</tt>).
      * @param hexType  the hex type, as in {@link #hexLayout}
      * @see #getHexTypeFromCoord(int)
@@ -2417,7 +2417,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * For subclass constructor usage, set the board height and width.
      * Does not set node or edge ranges (minNode, maxEdge, etc) because these
-     * limits aren't used in all encodings. 
+     * limits aren't used in all encodings.
      * @param boardH  New maximum row coordinate, for {@link #getBoardHeight()}
      * @param boardW  New maximum column coordinate, for {@link #getBoardWidth()}
      * @since 2.0.00
@@ -2651,7 +2651,7 @@ public class SOCBoard implements Serializable, Cloneable
 
             if ((tmp >= MINHEX) && (tmp <= MAXHEX))
             {
-                hexes.addElement(new Integer(tmp));                
+                hexes.addElement(new Integer(tmp));
             }
 
             tmp = coord + 0x10;
@@ -2795,7 +2795,7 @@ public class SOCBoard implements Serializable, Cloneable
                 if (((nodeCoord & 0x0F) > 0) && (tmp >= minEdge) && (tmp <= maxEdge))
                     edge = tmp;
                 else
-                    edge = -9;              
+                    edge = -9;
             }
             break;
 
@@ -2814,7 +2814,7 @@ public class SOCBoard implements Serializable, Cloneable
                 if ((tmp >= minEdge) && (tmp <= maxEdge))
                     edge = tmp;
                 else
-                    edge = -9;                
+                    edge = -9;
             }
             break;
 
@@ -3086,7 +3086,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Get the coordinate of another node 2 away, based on a starting node.
      * Facing is indexed by the facing directions: {@link #FACING_NE} is 1,
      * {@link #FACING_E} is 2, etc; {@link #FACING_NW} is 6.
-     * 
+     *
      * @param nodeCoord  Starting node's coordinate
      * @param facing    Facing from node; 1 to 6.
      *           This will be one of the 6 directions
@@ -3372,7 +3372,7 @@ public class SOCBoard implements Serializable, Cloneable
             case FACING_SW: case FACING_W:
                 if ((0 != (edgeCoord & 0xF0))
                     && ((edgeCoord & 0x0F) >= 2))
-                    hex = edgeCoord - 0x12;   
+                    hex = edgeCoord - 0x12;
                 break;
             }
         }
@@ -3408,7 +3408,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * If there's a settlement or city at this node, find it.
-     * 
+     *
      * @param nodeCoord Location coordinate (as returned by SOCBoardPanel.findNode)
      * @return  Settlement or city at <tt>nodeCoord</tt>, or null
      */
@@ -3432,14 +3432,14 @@ public class SOCBoard implements Serializable, Cloneable
 
         return null;
     }
-    
+
     /**
      * If there's a road or ship placed at this edge, find it.
-     * 
-     * @param edgeCoord Location coordinate (as returned by SOCBoardPanel.findEdge) 
+     *
+     * @param edgeCoord Location coordinate (as returned by SOCBoardPanel.findEdge)
      * @return road or ship, or null.  Use {@link SOCPlayingPiece#getType()}
      *   or {@link SOCRoad#isRoadNotShip()} to determine the returned piece type.
-     *   At most one road or ship can be placed at any one edge. 
+     *   At most one road or ship can be placed at any one edge.
      */
     public SOCRoad roadAtEdge(int edgeCoord)
     {
@@ -3450,7 +3450,7 @@ public class SOCBoard implements Serializable, Cloneable
                 return p;  // <-- Early return: Found it ---
             }
         }
-        
+
         return null;
     }
 

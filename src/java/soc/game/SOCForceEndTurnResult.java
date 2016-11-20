@@ -266,7 +266,7 @@ public class SOCForceEndTurnResult
      */
     public boolean isLoss()
     {
-        return rsrcLoss; 
+        return rsrcLoss;
     }
 
     /**

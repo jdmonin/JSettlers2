@@ -35,7 +35,7 @@ import java.util.Vector;
  * and the probability of getting resources based on their hex types.
  *<P>
  * Calls each touched hex's {@link SOCBoard#getHexTypeFromCoord(int)}, ignores all hex types besides
- * the usual {@link SOCBoard#CLAY_HEX} through {@link SOCBoard#WOOD_HEX} and {@link SOCBoardLarge#GOLD_HEX}. 
+ * the usual {@link SOCBoard#CLAY_HEX} through {@link SOCBoard#WOOD_HEX} and {@link SOCBoardLarge#GOLD_HEX}.
  *
  * @author Robert S. Thomas
  */
@@ -139,7 +139,7 @@ public class SOCPlayerNumbers
      * will need to be updated later when the board layout is created and sent;
      * call {@link #setLandHexCoordinates(int[])} at that time.
      *
-     * @param board  The game board; used only for 
+     * @param board  The game board; used only for
      *         {@link SOCBoard#getBoardEncodingFormat()}
      *         and {@link SOCBoard#getLandHexCoords()}.
      * @throws IllegalArgumentException  If <tt>boardEncodingFormat</tt> value is unknown to this class
@@ -428,7 +428,7 @@ public class SOCPlayerNumbers
      *   (a city, or multiple pieces on the hex), there will be
      *   more than one Integer here with that resource type.
      *
-     * @param diceNum  the dice roll, 2 - 12 
+     * @param diceNum  the dice roll, 2 - 12
      * @param robberHex the robber hex coordinate
      * @see #getResourcesForNumber(int)
      */
@@ -596,10 +596,10 @@ public class SOCPlayerNumbers
 
             for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
             {
-                Iterator<Integer> numIter = numbersForResource[res].iterator();    
+                Iterator<Integer> numIter = numbersForResource[res].iterator();
                 while (numIter.hasNext())
                 {
-                    final int num = numIter.next().intValue();  
+                    final int num = numIter.next().intValue();
                     if (num == number)
                     {
                         numIter.remove();
