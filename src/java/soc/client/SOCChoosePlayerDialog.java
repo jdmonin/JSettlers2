@@ -168,7 +168,7 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener, Runnable
 
         for (int i = 0; i < num; i++)
         {
-            SOCPlayer pl = ga.getPlayer(players[i]);            
+            SOCPlayer pl = ga.getPlayer(players[i]);
 
             buttons[i] = new Button(pl.getName());
             if (gbl != null)

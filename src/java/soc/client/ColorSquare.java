@@ -103,7 +103,7 @@ public class ColorSquare extends Canvas implements MouseListener
     public final static int HEIGHT = 16;
 
     /** The warning-level text color (high, low, or zero)
-     * 
+     *
      *  @see #setHighWarningLevel(int)
      *  @see #setLowWarningLevel(int)
      *  @see #setTooltipZeroText(String)
@@ -213,7 +213,7 @@ public class ColorSquare extends Canvas implements MouseListener
      * The colorsquare's size is small by default and not changed here, so
      * be sure to call {@link #setSize(int, int) setSize} or
      * {@link #setBounds(int, int, int, int) setBounds} to make the square
-     * large enough to display your text. 
+     * large enough to display your text.
      *<P>
      * A tooltip with the resource name is created if c is one of the
      * resource colors defined in ColorSquare (CLAY, WHEAT, etc).
@@ -438,7 +438,7 @@ public class ColorSquare extends Canvas implements MouseListener
         if (ttip == null)
             ttip = new AWTToolTip(tip, this);
         else
-            ttip.setTip(tip);  // Handles its own repaint        
+            ttip.setTip(tip);  // Handles its own repaint
     }
 
     /**
@@ -497,7 +497,7 @@ public class ColorSquare extends Canvas implements MouseListener
         hasWarnLow = false;
         if (isWarnLow)
         {
-            isWarnLow = false;            
+            isWarnLow = false;
             repaint();
             if (ttip_text_warnLow != null)
             {
@@ -615,7 +615,7 @@ public class ColorSquare extends Canvas implements MouseListener
         hasWarnHigh = false;
         if (isWarnHigh)
         {
-            isWarnHigh = false;            
+            isWarnHigh = false;
             repaint();
             if (ttip_text_warnHigh != null)
             {
@@ -897,7 +897,7 @@ public class ColorSquare extends Canvas implements MouseListener
         // Must check for zero before change, because
         // isWarnLow is also true for 0, but they
         // have different tooltip texts.
-        boolean wasZero = ((intValue == 0) && (ttip_text_zero != null));  
+        boolean wasZero = ((intValue == 0) && (ttip_text_zero != null));
 
         // Set the new value
         intValue = v;
@@ -916,7 +916,7 @@ public class ColorSquare extends Canvas implements MouseListener
         // Possible tooltip text update
         if (isZero)
         {
-            ttip.setTip(ttip_text_zero);            
+            ttip.setTip(ttip_text_zero);
         }
         else if ((ttip_text != null) &&
             ((isZero != wasZero) || (isWarnLow != wasWarnLow) || (isWarnHigh != wasWarnHigh)))
@@ -978,7 +978,7 @@ public class ColorSquare extends Canvas implements MouseListener
 
     /**
      * Optionally, a square listener can be called when the value changes.
-     * If this square is part of a {@link SquaresPanel}, that panel is the listener. 
+     * If this square is part of a {@link SquaresPanel}, that panel is the listener.
      * @return square listener, or null.
      */
     public ColorSquareListener getSquareListener()

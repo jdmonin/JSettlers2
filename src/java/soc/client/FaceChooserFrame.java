@@ -272,7 +272,7 @@ public class FaceChooserFrame extends Frame implements ActionListener, WindowLis
      *
      * @see soc.client.FaceChooserFrame.FaceChooserList#moveCursor(int, int, KeyEvent)
      *
-     * @param dr Delta row: -3 jumps to very top; -2 is PageUp; -1 is one row; same for +. 
+     * @param dr Delta row: -3 jumps to very top; -2 is PageUp; -1 is one row; same for +.
      * @param dc Delta column: -2 jumps to far-left, -1 is one to left, +1 is one to right, +2 jumps to far-right.
      * @param e  KeyEvent to be consumed, or null.
      */
@@ -914,7 +914,6 @@ public class FaceChooserFrame extends Frame implements ActionListener, WindowLis
         /**
          * Within FaceChooserList, one row of faces.
          * Takes its width (number of faces) from FaceChooserList.rowFacesWidth.
-         * 
          */
         private class FaceChooserRow extends Container
         {
@@ -988,7 +987,7 @@ public class FaceChooserFrame extends Frame implements ActionListener, WindowLis
 
             /**
              * setVisible - overrides to call each face's setVisible
-             * 
+             *
              * @param vis  Make visible?
              */
             public void setVisible (boolean vis)

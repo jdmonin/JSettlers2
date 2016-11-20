@@ -153,7 +153,7 @@ public class TradeOfferPanel extends Panel
      * If true, hide the original offer's balloon point
      * (see {@link SpeechBalloon#setBalloonPoint(boolean)})
      * when the counter-offer is visible.
-     * @since 1.1.08 
+     * @since 1.1.08
      */
     private boolean counterHidesBalloonPoint;
 
@@ -171,7 +171,7 @@ public class TradeOfferPanel extends Panel
 
         messagePanel = new MessagePanel();
         offerPanel = new OfferPanel();
-        
+
         cardLayout = new CardLayout();
         setLayout(cardLayout);
 
@@ -214,7 +214,7 @@ public class TradeOfferPanel extends Panel
         {
             setLayout(null);
             setFont(new Font("SansSerif", Font.PLAIN, 18));
-        
+
             msg = new Label(" ", Label.CENTER);
             msg.setBackground(insideBGColor);
             msg2 = new Label(" ", Label.CENTER);
@@ -225,11 +225,11 @@ public class TradeOfferPanel extends Panel
             msgLines = 1;
             add(msg);
             add(msg2);
-        
+
             balloon = new SpeechBalloon(pi.getPlayerColor(from));
             add(balloon);
         }
-        
+
         /**
          * Update the text shown in this messagepanel.
          * Does not show or hide the panel, only changes the label text.
@@ -265,7 +265,7 @@ public class TradeOfferPanel extends Panel
                 validate();
             }
         }
-        
+
         /**
          * Custom layout for just the message panel.
          * To center {@link #msg} and {@link #msg2} vertically after changing {@link #msgLines},
@@ -306,7 +306,7 @@ public class TradeOfferPanel extends Panel
 
     /**
      * Panel to show a trade offer when in {@link TradeOfferPanel#OFFER_MODE OFFER_MODE},
-     * not {@link TradeOfferPanel#MESSAGE_MODE}. 
+     * not {@link TradeOfferPanel#MESSAGE_MODE}.
      * Contains both offer and counter-offer; see {@link #setCounterOfferVisible(boolean)}
      * @see MessagePanel
      */
@@ -465,7 +465,7 @@ public class TradeOfferPanel extends Panel
             this.give = offer.getGiveSet();
             this.get = offer.getGetSet();
             boolean[] offerList = offer.getTo();
-        
+
             SOCPlayer player = hp.getGame().getPlayer(hp.getClient().getNickname());
 
             if (player != null)
@@ -483,14 +483,14 @@ public class TradeOfferPanel extends Panel
                         (strings.get("trade.counter.to.x", hp.getPlayer().getName()));  // "Counter to {0}:"
 
                     counterOffer_playerInit = true;
-                }                
+                }
                 offered = offerList[player.getPlayerNumber()];
             }
             else
             {
                 offered = false;
             }
-        
+
             SOCGame ga = hp.getGame();
 
             /**
@@ -651,7 +651,7 @@ public class TradeOfferPanel extends Panel
                 getLab.setBounds(inset, top + 32 + lineH, giveW, lineH);
                 squares.setLocation(inset + giveW, top + 32);
                 squares.doLayout();
-                
+
                 if (offered)
                 {
                     int squaresHeight = squares.getBounds().height + 8;
@@ -700,7 +700,7 @@ public class TradeOfferPanel extends Panel
                     int giveSum = 0;
                     int getSum = 0;
                     counterOfferSquares.getValues(give, get);
-                    
+
                     for (int i = 0; i < 5; i++)
                     {
                         giveSum += give[i];
@@ -709,7 +709,7 @@ public class TradeOfferPanel extends Panel
 
                     SOCResourceSet giveSet = new SOCResourceSet(give);
                     SOCResourceSet getSet = new SOCResourceSet(get);
-                    
+
                     if (! player.getResources().contains(giveSet))
                     {
                         pi.print("*** " + strings.get("trade.msg.cant.offer"));  // "You can't offer what you don't have."
@@ -758,7 +758,7 @@ public class TradeOfferPanel extends Panel
             }
             } catch (Throwable th) {
                 pi.chatPrintStackTrace(th);
-            }            
+            }
         }
 
         /**
@@ -786,7 +786,7 @@ public class TradeOfferPanel extends Panel
             acceptBut.setVisible(haveResources);
         }
 
-        /** 
+        /**
          * show or hide our counter-offer panel, below the trade-offer panel.
          * Also shows or hides {@link #acceptBut} based on client player resources,
          * {@link #offered}, and ! {@code visible}; see also {@link #updateOfferButtons()}.
@@ -929,7 +929,7 @@ public class TradeOfferPanel extends Panel
      * If true, hide the original offer's balloon point
      * (see {@link SpeechBalloon#setBalloonPoint(boolean)})
      * when the counter-offer is visible.
-     * @since 1.1.08 
+     * @since 1.1.08
      */
     public boolean doesCounterHideBalloonPoint()
     {
@@ -941,7 +941,7 @@ public class TradeOfferPanel extends Panel
      * (see {@link SpeechBalloon#setBalloonPoint(boolean)})
      * when the counter-offer is visible.
      * @param hide  Hide it during counter-offer?
-     * @since 1.1.08 
+     * @since 1.1.08
      */
     public void setCounterHidesBalloonPoint(final boolean hide)
     {

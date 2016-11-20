@@ -194,7 +194,7 @@ public class SOCPlayerInterface extends Frame
      * @see #textInputGreyCountFrom
      */
     protected int textInputGreyCountdown;
-    
+
     /**
      * Initial value (20 turns) for textInputGreyCountdown
      *
@@ -314,7 +314,7 @@ public class SOCPlayerInterface extends Frame
      * @see #clientHand
      */
     protected SOCHandPanel[] hands;
-    
+
     /**
      * Tracks our own hand within {@link #hands hands[]}, if we are
      * active in a game.  Null otherwise.
@@ -436,7 +436,7 @@ public class SOCPlayerInterface extends Frame
     protected SOCMonopolyDialog monopolyDialog;
 
     private SOCGameStatistics gameStats;
-    
+
     private final ClientBridge clientListener;
 
     /**
@@ -563,7 +563,7 @@ public class SOCPlayerInterface extends Frame
          * via showScenarioInfoDialog().
          */
     }
-    
+
     /**
      * Provide access to the client listener in case this class does not directly implement it.
      */
@@ -844,12 +844,12 @@ public class SOCPlayerInterface extends Frame
         else
             return playerColors[pn];
     }
-    
+
     /**
      * @return a player's hand panel, or null if <tt>pn</tt> &lt; 0
      *
      * @param pn  the player's seat number
-     * 
+     *
      * @see #getClientHand()
      */
     public SOCHandPanel getPlayerHandPanel(final int pn)
@@ -1091,9 +1091,9 @@ public class SOCPlayerInterface extends Frame
     {
         return buildingPanel;
     }
-    
+
     /** The client player's SOCHandPanel interface, if active in a game.
-     * 
+     *
      * @return our player's hand interface, or null if not in a game.
      * @see #clientIsCurrentPlayer()
      * @see #isClientPlayer(SOCPlayer)
@@ -1102,12 +1102,12 @@ public class SOCPlayerInterface extends Frame
     {
         return clientHand;
     }
-    
+
     /** Update the client player's SOCHandPanel interface, for joining
      *  or leaving a game.
-     * 
+     *
      *  Set by SOCHandPanel's removePlayer() and addPlayer() methods.
-     * 
+     *
      * @param h  The SOCHandPanel for us, or null if none (leaving).
      */
     public void setClientHand(SOCHandPanel h)
@@ -1118,7 +1118,7 @@ public class SOCPlayerInterface extends Frame
         else
             clientHandPlayerNum = -1;
     }
-    
+
     /**
      * Is the client player active in this game, and the current player?
      * Assertion: If this returns true, {@link #getClientHand()} will return non-null.
@@ -1135,7 +1135,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * If client player is active in game, their player number.
-     * 
+     *
      * @return client's player ID, or -1.
      * @see #clientIsCurrentPlayer()
      * @see #getClientHand()
@@ -1273,7 +1273,7 @@ public class SOCPlayerInterface extends Frame
             }
         }
     }
-    
+
     /**
      * Handle local client commands for games.
      *<P>
@@ -2374,7 +2374,7 @@ public class SOCPlayerInterface extends Frame
      * @param newGame New game object
      * @param rejoinPlayerNumber Sanity check - must be our correct player number in this game
      * @param requesterNumber Player who requested the board reset
-     * 
+     *
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
      * @since 1.1.00
      */
@@ -2470,7 +2470,7 @@ public class SOCPlayerInterface extends Frame
     {
         chatPrintStackTrace(th, false);
     }
-    
+
     private void chatPrintStackTrace(Throwable th, boolean isNested)
     {
         if (! D.ebugIsEnabled())
@@ -2501,7 +2501,7 @@ public class SOCPlayerInterface extends Frame
      * Calculate a color towards gray, for a hilight or the robber ghost.
      * If srcColor is light, ghost color is darker. (average with gray)
      * If it's dark or midtone, ghost should be lighter. (average with white)
-     * 
+     *
      * @param srcColor The color to ghost from
      * @return Ghost color based on srcColor
      */
@@ -2525,7 +2525,7 @@ public class SOCPlayerInterface extends Frame
         }
         return new Color (outR, outG, outB);
     }
-    
+
     /**
      * Arrange the custom layout. If a player sits down in a 6-player game, will need to
      * {@link #invalidate()} and call this again, because {@link SOCHandPanel} sizes will change.
@@ -2652,7 +2652,7 @@ public class SOCPlayerInterface extends Frame
                 // If client player isn't sitting yet, all handpanels are 1/3 height of window.
                 // Otherwise, they're 1/3 height in the column of 3 which doesn't contain the
                 // client. and roughly 1/4 or 1/2 height in the client's column.
-    
+
                 if ((clientHandPlayerNum == -1) ||
                     ((clientHandPlayerNum >= 1) && (clientHandPlayerNum <= 3)))
                 {

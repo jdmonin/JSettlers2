@@ -64,7 +64,7 @@ public class ShadowedBox extends Canvas
     {
         this.interior = interior;
     }
-    
+
     public Color getInterior()
     {
         return interior;

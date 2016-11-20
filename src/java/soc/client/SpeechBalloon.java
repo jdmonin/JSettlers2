@@ -145,7 +145,7 @@ public class SpeechBalloon extends Canvas
             final int hdiv8 = h / 8;
             g.fillRect(0, hdiv8, w - xm, h - ym - hdiv8);
             g.setColor(Color.black);
-            g.drawRect(0, hdiv8, w - xm, h - ym - hdiv8);            
+            g.drawRect(0, hdiv8, w - xm, h - ym - hdiv8);
         }
 
         // Draw the shadow

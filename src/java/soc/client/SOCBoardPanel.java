@@ -7101,7 +7101,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * Set tooltip text (or hide tooltip if text is null) and show tooltip at appropriate location
          * when mouse is at (x,y) relative to the board. Repaint the board.
          *<P>
-         * Convenience method, calls {@link #positionToMouse(int, int)} and {@link #setHoverText(String, int)}. 
+         * Convenience method, calls {@link #positionToMouse(int, int)} and {@link #setHoverText(String, int)}.
          *
          * @param t Hover text contents, or null to clear that text (but
          *          not hovering pieces) and repaint.  Do nothing if text is
@@ -7841,7 +7841,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (debugShowCoordsTooltip)
                     setHoverText("", (hoverRoadID != 0) ? hoverRoadID : hoverShipID);
                 else
-                    setHoverText(null, 0); 
+                    setHoverText(null, 0);
 
                 bpanel.repaint();
                 return;

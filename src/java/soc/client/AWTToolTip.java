@@ -450,7 +450,7 @@ public class AWTToolTip
    */
   public void componentShown(ComponentEvent e)
   {
-    wantsShown = true; 
+    wantsShown = true;
   }
 
 }  /* public class AWTToolTip */

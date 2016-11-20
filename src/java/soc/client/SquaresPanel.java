@@ -48,7 +48,7 @@ public class SquaresPanel extends Panel implements MouseListener, ColorSquareLis
 
     /**
      *  To change its value, each ColorSquare handles its own mouse events.
-     *  We also add ourself as listeners to mouse and ColorSquare value changes. 
+     *  We also add ourself as listeners to mouse and ColorSquare value changes.
      */
     private ColorSquare[] give, get;
     boolean interactive;
@@ -62,7 +62,7 @@ public class SquaresPanel extends Panel implements MouseListener, ColorSquareLis
      */
     public SquaresPanel(boolean in)
     {
-        this (in, null);        
+        this (in, null);
     }
 
     /**
@@ -238,13 +238,13 @@ public class SquaresPanel extends Panel implements MouseListener, ColorSquareLis
             get[i] = this.get[i].getIntValue();
         }
     }
- 
+
     /** Does any grid square contain a non-zero value? */
     public boolean containsNonZero()
     {
         return notAllZero;
     }
-    
+
     /**
      * Called by colorsquare when clicked; if we're part of a HandPanel,
      * could enable/disable its buttons based on new value.
@@ -254,7 +254,7 @@ public class SquaresPanel extends Panel implements MouseListener, ColorSquareLis
     public void squareChanged(ColorSquare sq, int oldValue, int newValue)
     {
         boolean wasNotZero = notAllZero;
-        
+
         if (newValue != 0)
             notAllZero = true;
         else
@@ -274,10 +274,10 @@ public class SquaresPanel extends Panel implements MouseListener, ColorSquareLis
                     break;
                 }
             }
-            
+
             notAllZero = notAllZ;
         }
-        
+
         if ((parentHand != null) && (wasNotZero != notAllZero))
             parentHand.sqPanelZerosChange(notAllZero);
     }

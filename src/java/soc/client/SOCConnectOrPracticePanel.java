@@ -478,7 +478,7 @@ public class SOCConnectOrPracticePanel extends Panel
     public void actionPerformed(ActionEvent ae)
     {
         try {
-            
+
         Object src = ae.getSource();
         if (src == prac)
         {
@@ -486,7 +486,7 @@ public class SOCConnectOrPracticePanel extends Panel
             gd.clickPracticeButton();
             return;
         }
-        
+
         if (src == connserv)
         {
             // Show fields to get details to connect to server later
@@ -539,7 +539,7 @@ public class SOCConnectOrPracticePanel extends Panel
             validate();
             return;
         }
-        
+
         if (src == run_startserv)
         {
             // After clicking runserv, actually start a server

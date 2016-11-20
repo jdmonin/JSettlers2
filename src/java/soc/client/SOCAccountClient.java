@@ -160,7 +160,7 @@ public class SOCAccountClient extends Applet
     private boolean conn_sentAuth;
 
     protected CardLayout cardLayout;
-    
+
     protected String host;
     protected int port;
     protected Socket s;
@@ -272,7 +272,7 @@ public class SOCAccountClient extends Applet
         char pwchar = SOCPlayerClient.isJavaOnOSX ? '\u2022' : '*';
 
         setFont(new Font("SansSerif", Font.PLAIN, 12));
-        
+
         nick = new TextField(20);
         pass = new TextField(10);
         pass.setEchoChar(pwchar);
@@ -389,13 +389,13 @@ public class SOCAccountClient extends Applet
 
         Panel messagePane = new Panel(new BorderLayout());
         messagePane.add(messageLabel, BorderLayout.CENTER);
-        
+
         // all together now...
         cardLayout = new CardLayout();
         setLayout(cardLayout);
 
         add(messagePane, MESSAGE_PANEL); // shown first
-        add(mainPane, MAIN_PANEL);        
+        add(mainPane, MAIN_PANEL);
     }
 
     /**
@@ -565,8 +565,8 @@ public class SOCAccountClient extends Applet
 
         String param = null;
         int intValue;
-            
-        intValue = getHexParameter("background"); 
+
+        intValue = getHexParameter("background");
         if (intValue != -1)
             setBackground(new Color(intValue));
 
@@ -596,7 +596,7 @@ public class SOCAccountClient extends Applet
     /**
      * Attempts to connect to the server. See {@link #connected} for success or
      * failure.
-     * @throws IllegalStateException if already connected 
+     * @throws IllegalStateException if already connected
      */
     public synchronized void connect()
     {
@@ -1036,7 +1036,7 @@ public class SOCAccountClient extends Applet
         String err = strings.get("account.msg.applet_destroyed", detail); // "Sorry, the applet has been destroyed. {0}"
 
         disconnect();
-        
+
         messageLabel.setText(err);
         cardLayout.show(this, MESSAGE_PANEL);
         validate();
@@ -1056,7 +1056,7 @@ public class SOCAccountClient extends Applet
     public static void main(String[] args)
     {
         SOCAccountClient client = new SOCAccountClient();
-        
+
         if (args.length != 2)
         {
             usage();
@@ -1079,7 +1079,7 @@ public class SOCAccountClient extends Applet
         frame.addWindowListener(client.createWindowAdapter());
 
         client.initVisualElements(); // after the background is set
-        
+
         frame.add(client, BorderLayout.CENTER);
         frame.setSize(600, 350);
         frame.setVisible(true);
@@ -1091,7 +1091,7 @@ public class SOCAccountClient extends Applet
     {
         return new MyWindowAdapter();
     }
-    
+
     private class MyWindowAdapter extends WindowAdapter
     {
         public void windowClosing(WindowEvent evt)

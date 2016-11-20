@@ -1258,7 +1258,7 @@ public class NewGameOptionsFrame extends Frame
                 opt.setBoolValue(notEmpty);
                 cbSet = true;
             }
- 
+
             SOCGameOption.ChangeListener cl = opt.getChangeListener();
             if (cl == null)
                 return;
@@ -1451,7 +1451,7 @@ public class NewGameOptionsFrame extends Frame
             case SOCGameOption.OTYPE_BOOL:
                 ((Checkbox) opComp).setState(op.getBoolValue());
                 break;
-    
+
             case SOCGameOption.OTYPE_INT:
             case SOCGameOption.OTYPE_INTBOOL:
                 {
@@ -1468,7 +1468,7 @@ public class NewGameOptionsFrame extends Frame
                     }
                 }
                 break;
-    
+
             case SOCGameOption.OTYPE_ENUM:
             case SOCGameOption.OTYPE_ENUMBOOL:
                 {
@@ -1482,12 +1482,12 @@ public class NewGameOptionsFrame extends Frame
                     }
                 }
                 break;
-    
+
             case SOCGameOption.OTYPE_STR:
             case SOCGameOption.OTYPE_STRHIDE:
                 ((TextField) opComp).setText(op.getStringValue());
                 break;
-    
+
                 // default: unknown, see above
             }
         }
@@ -1717,7 +1717,7 @@ public class NewGameOptionsFrame extends Frame
         {
             super(gameDisplay, ngof, strings.get("game.options.verconfirm.title"),
                 strings.get("game.options.verconfirm.prompt", Version.version(minVers)),
-                strings.get("game.options.verconfirm.create"), 
+                strings.get("game.options.verconfirm.create"),
                 strings.get("game.options.verconfirm.change"), true, false);
         }
 

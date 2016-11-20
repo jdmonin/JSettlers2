@@ -72,5 +72,5 @@ public class ColorSquareLarger extends ColorSquare
         super(k, in, c, upper, lower);
         setSize(WIDTH_L, HEIGHT_L);
     }
-    
+
 }

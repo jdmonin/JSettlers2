@@ -40,7 +40,7 @@ public class AWTClickTester extends java.awt.Canvas implements MouseListener
     int lastX, lastY;
     int wid, ht;
     Dimension sz;
-    
+
     public AWTClickTester()
     {
         lastX = -1;  lastY = -1;
@@ -49,23 +49,23 @@ public class AWTClickTester extends java.awt.Canvas implements MouseListener
         setBackground(Color.WHITE);
         addMouseListener(this);
     }
-    
+
     @Override
     public void update(Graphics g) { paint(g); }
-    
+
     @Override
     public Dimension getPreferredSize() { return sz; }
-    
+
     @Override
     public Dimension getMinimumSize() { return sz; }
-    
+
     public void setLastClick (int x, int y)
     {
         lastX = x;
         lastY = y;
         repaint();
     }
-    
+
     @Override
     public void paint(Graphics g)
     {
@@ -110,7 +110,7 @@ public class AWTClickTester extends java.awt.Canvas implements MouseListener
     {
         report("rele ", e);
     }
-    
+
     protected void report (String etype, MouseEvent e)
     {
         int x = e.getX();
@@ -129,7 +129,7 @@ public class AWTClickTester extends java.awt.Canvas implements MouseListener
             + popclick);
         setLastClick (x, y);
     }
-    
+
     public void printButtonsMods()
     {
         System.out.println("BUTTON:");

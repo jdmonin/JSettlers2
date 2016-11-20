@@ -149,7 +149,7 @@ public class SOCFaceButton extends Canvas
             tracker = new MediaTracker(c);
             Toolkit tk = c.getToolkit();
             Class<?> clazz = c.getClass();
-        
+
             images = new Image[NUM_FACES];
             robotImages = new Image[NUM_ROBOT_FACES];
 
@@ -641,7 +641,7 @@ public class SOCFaceButton extends Canvas
         }
 
         /** Show menu at this position.
-         * 
+         *
          * @param x   Mouse x-position relative to facebutton
          * @param y   Mouse y-position relative to facebutton
          */

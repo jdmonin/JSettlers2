@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The maintainer of this program can be reached at jsettlers@nand.net 
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.client.stats;
 
@@ -37,35 +37,35 @@ public class SOCGameStatistics
     public interface Listener
     {
         void statsUpdated(SOCGameStatistics stats);
-        
+
         //HACK: because the frame itself has no lifecycle and there is not an easy way to pass disposal
         //      in to its parent (building panel), pass dispose notification through this listener interface
         void statsDisposing();
     }
-    
+
     public interface ListenerRegistration
     {
         void unregister();
     }
-    
+
     public static class DiceRollEvent
     {
         public final int roll;
         public final SOCPlayer player;
-        
+
         public DiceRollEvent(int roll, SOCPlayer p)
         {
             this.roll = roll;
             player = p;
         }
-        
+
         @Override
         public String toString()
         {
             return "DiceRollEvent["+roll+" "+player.getName()+":"+player.getPlayerNumber()+"]";
         }
     }
-    
+
     public SOCGameStatistics(SOCGame game)
     {
         this.game = game;
@@ -82,7 +82,7 @@ public class SOCGameStatistics
             old.statsDisposing();
         }
     }
-    
+
     public ListenerRegistration addListener(Listener listener)
     {
         Listener old = this.listener.getAndSet(listener);
@@ -90,7 +90,7 @@ public class SOCGameStatistics
         {
             old.statsDisposing();
         }
-        
+
         return new ListenerRegistration()
         {
             public void unregister()
@@ -99,7 +99,7 @@ public class SOCGameStatistics
             }
         };
     }
-    
+
     protected void fire()
     {
         Listener ears = listener.get();
@@ -120,7 +120,7 @@ public class SOCGameStatistics
             e.printStackTrace();
         }
     }
-    
+
     /**
      * @param roll
      * @param playerId
@@ -135,7 +135,7 @@ public class SOCGameStatistics
         int r = rolls.rollCounts[playerId].get(roll);
         return Integer.valueOf(r);
     }
-    
+
     /**
      * Tracks the number of times each dice value is rolled by each player.
      */
@@ -143,7 +143,7 @@ public class SOCGameStatistics
     {
         // indexed by player-id, each array is 13 elements for dice roll counts, 0 and 1 are unused
         AtomicIntegerArray[] rollCounts;
-        
+
         public DiceRolls(List<SOCPlayer> players)
         {
             rollCounts = new AtomicIntegerArray[players.size()];

@@ -101,7 +101,7 @@ public abstract class AskDialog extends Dialog
 
     /**
      * Button area, for resizing multi-line dialog height in {@link #checkSizeAndFocus()}.
-     * @since 2.0.00 
+     * @since 2.0.00
      */
     protected final JPanel pBtns;
 
@@ -204,7 +204,7 @@ public abstract class AskDialog extends Dialog
     /**
      * Creates a new AskDialog with two buttons, not about a specific game.
      *
-     * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen 
+     * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen
      * @param parentFr SOCPlayerClient or other parent frame
      * @param titlebar Title bar text; if text contains \n, only the portion before \n is used.
      *            If begins with \n, title is "JSettlers" instead.
@@ -234,7 +234,7 @@ public abstract class AskDialog extends Dialog
      * Creates a new AskDialog with three buttons, about a specific game.
      * Also can create with two.
      *
-     * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen 
+     * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen
      * @param gamePI   Current game's player interface
      * @param titlebar Title bar text; if text contains \n, only the portion before \n is used.
      *            If begins with \n, title is "JSettlers" instead.
@@ -266,7 +266,7 @@ public abstract class AskDialog extends Dialog
      * Creates a new AskDialog with one, two, or three buttons, not about
      * a specific game.
      *
-     * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen 
+     * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen
      * @param parentFr SOCPlayerClient or other parent frame
      * @param titlebar Title bar text; if text contains \n, only the portion before \n is used.
      *              If begins with \n, title is "JSettlers" instead.
@@ -410,7 +410,7 @@ public abstract class AskDialog extends Dialog
         final int pbboarder = ColorSquare.HEIGHT / 2;
         pBtns.setBorder
             (BorderFactory.createEmptyBorder(pbboarder, pbboarder, pbboarder, pbboarder));
-        
+
         pBtns.add(choice1But);
         choice1But.addActionListener(this);
 

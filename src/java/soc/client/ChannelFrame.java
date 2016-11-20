@@ -156,7 +156,7 @@ public class ChannelFrame extends Frame
         synchronized(lst.getTreeLock())
         {
             int i;
-            
+
             for (i = lst.getItemCount() - 1; i >= 0; i--)
             {
                 if (lst.getItem(i).compareTo(s) < 0)
@@ -179,7 +179,7 @@ public class ChannelFrame extends Frame
                 if (lst.getItem(i).equals(s))
                 {
                     lst.remove(i);
-                    
+
                     break;
                 }
             }
@@ -296,7 +296,7 @@ public class ChannelFrame extends Frame
             tf.requestFocus();
         }
     }
-    
+
     /**
      * DOCUMENT ME!
      */

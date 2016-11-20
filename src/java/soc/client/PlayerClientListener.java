@@ -87,7 +87,7 @@ public interface PlayerClientListener
     /**
      * A client (us or someone else) has joined the game.
      * They will be an observer until {@link #playerSitdown(int, String)} is called,
-     * then they will be an active player. 
+     * then they will be an active player.
      * @param nickname  New client's player/observer name
      */
     void playerJoined(String nickname);
@@ -321,7 +321,7 @@ public interface PlayerClientListener
      */
     void gameStateChanged(int gameState);
     void gameEnded(Map<SOCPlayer, Integer> scores);
-    
+
     void gameDisconnected(String errorMessage);
 
     void messageBroadcast(String message);

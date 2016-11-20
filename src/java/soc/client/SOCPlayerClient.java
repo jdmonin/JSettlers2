@@ -165,12 +165,12 @@ public class SOCPlayerClient
      * Helper object to deal with network connectivity.
      */
     private ClientNetwork net;
-    
+
     /**
      * Helper object to receive incoming network traffic from the server.
      */
     private MessageTreater treater;
-    
+
     /**
      * Helper object to send outgoing network traffic to the server.
      */
@@ -822,7 +822,7 @@ public class SOCPlayerClient
          * @see #hasConnectOrPractice
          */
         protected CardLayout cardLayout;
-        
+
         /**
          * the channels we've joined
          */
@@ -872,17 +872,17 @@ public class SOCPlayerClient
         {
             return client;
         }
-        
+
         public GameManager getGameManager()
         {
             return client.getGameManager();
         }
-        
+
         public WindowAdapter createWindowAdapter()
         {
             return new ClientWindowAdapter(this);
         }
-        
+
         public void setMessage(String message)
         {
             messageLabel.setText(message);
@@ -951,7 +951,7 @@ public class SOCPlayerClient
                     }
                 }
             });
-            
+
             ActionListener actionListener = new ActionListener()
             {
                 /**
@@ -973,7 +973,7 @@ public class SOCPlayerClient
                     }
                 }
             };
-            
+
             nick.addActionListener(actionListener);  // hit Enter to go to next field
             pass.addActionListener(actionListener);
             channel.addActionListener(actionListener);
@@ -1330,7 +1330,7 @@ public class SOCPlayerClient
         private void guardedActionPerform(Object target)
         {
             boolean showPopupCannotJoin = false;
-        
+
             if ((target == jc) || (target == channel) || (target == chlist)) // Join channel stuff
             {
                 showPopupCannotJoin = ! guardedActionPerform_channels(target);
@@ -1340,7 +1340,7 @@ public class SOCPlayerClient
             {
                 showPopupCannotJoin = ! guardedActionPerform_games(target);
             }
-        
+
             if (showPopupCannotJoin)
             {
                 status.setText(STATUS_CANNOT_JOIN_THIS_GAME);
@@ -1348,15 +1348,15 @@ public class SOCPlayerClient
                 NotifyDialog.createAndShow(this, (Frame) null,
                     STATUS_CANNOT_JOIN_THIS_GAME,
                     client.strings.get("base.cancel"), true);
-        
+
                 return;
             }
-        
+
             if (target == nick)
             { // Nickname TextField
                 nick.transferFocus();
             }
-        
+
             return;
         }
 
@@ -1369,11 +1369,11 @@ public class SOCPlayerClient
         private boolean guardedActionPerform_channels(Object target)
         {
             String ch;
-        
+
             if (target == jc) // "Join Channel" Button
             {
                 ch = channel.getText().trim();
-        
+
                 if (ch.length() == 0)
                 {
                     try
@@ -1401,19 +1401,19 @@ public class SOCPlayerClient
                     return true;
                 }
             }
-        
+
             if (ch.length() == 0)
             {
                 return true;
             }
-        
+
             if (ch.startsWith(GAMENAME_PREFIX_CANNOT_JOIN))
             {
                 return false;
             }
-        
+
             ChannelFrame cf = channels.get(ch);
-        
+
             if (cf == null)
             {
                 if (channels.isEmpty())
@@ -1422,7 +1422,7 @@ public class SOCPlayerClient
                     if (! readValidNicknameAndPassword())
                         return true;  // not filled in yet
                 }
-        
+
                 status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
                 client.net.putNet(SOCJoin.toCmd
                     (client.nickname, (client.gotPassword ? "" : client.password), client.net.getHost(), ch));
@@ -1431,7 +1431,7 @@ public class SOCPlayerClient
             {
                 cf.setVisible(true);
             }
-        
+
             channel.setText("");
             return true;
         }
@@ -1450,7 +1450,7 @@ public class SOCPlayerClient
                                             // like NEED_NICKNAME_BEFORE_JOIN
             if (client.nickname == null)
                return false;  // not filled in yet
-        
+
             if (!client.gotPassword)
             {
                 client.password = getPassword();  // may be 0-length
@@ -1467,13 +1467,13 @@ public class SOCPlayerClient
         private boolean guardedActionPerform_games(Object target)
         {
             String gm;  // May also be 0-length string, if pulled from Lists
-        
+
             if ((target == pg) || (target == pgm)) // "Practice Game" Buttons
             {
                 gm = client.DEFAULT_PRACTICE_GAMENAME;  // "Practice"
-        
+
                 // If blank, fill in player name
-        
+
                 if (0 == nick.getText().trim().length())
                 {
                     nick.setText(client.strings.get("default.name.practice.player"));  // "Player"
@@ -1512,13 +1512,13 @@ public class SOCPlayerClient
                     return true;
                 }
             }
-        
+
             // System.out.println("GM = |"+gm+"|");
             if (gm.length() == 0)
             {
                 return true;
             }
-        
+
             if (target == gi)  // show game info, game options, for an existing game
             {
                 // This game is either from the tcp server, or practice server,
@@ -1540,7 +1540,7 @@ public class SOCPlayerClient
                         // If parsed options include a scenario, and we don't have its
                         // localized strings, ask the server for that but don't wait for
                         // a reply before showing the NewGameOptionsFrame.
-        
+
                         if (client.tcpServGameOpts.allOptionsReceived)
                         {
                             opts = client.serverGames.parseGameOptions(gm);
@@ -1550,28 +1550,28 @@ public class SOCPlayerClient
                             // when all are received, will show it,
                             // and will also clear WAIT_CURSOR.
                             // (see handleGAMEOPTIONINFO)
-        
+
                             client.tcpServGameOpts.gameInfoWaitingForOpts = gm;
                             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                             return true;  // <---- early return: not yet ready to show ----
                         }
                     }
                 }
-        
+
                 // don't overwrite newGameOptsFrame field; this popup is to show an existing game.
                 NewGameOptionsFrame.createAndShow(this, gm, opts, false, true);
                 return true;
             }
-        
+
             final boolean unjoinablePrefix = gm.startsWith(GAMENAME_PREFIX_CANNOT_JOIN);
             if (unjoinablePrefix)
             {
                 // Game is marked as un-joinable by this client. Remember that,
                 // then continue to process the game name, without prefix.
-        
+
                 gm = gm.substring(GAMENAME_PREFIX_CANNOT_JOIN.length());
             }
-        
+
             // Can we not join that game?
             if (unjoinablePrefix || ((client.serverGames != null) && client.serverGames.isUnjoinableGame(gm)))
             {
@@ -1581,10 +1581,10 @@ public class SOCPlayerClient
                     return false;
                 }
             }
-        
+
             // Are we already in a game with that name?
             SOCPlayerInterface pi = playerInterfaces.get(gm);
-        
+
             if ((pi == null)
                     && ((target == pg) || (target == pgm))
                     && (client.net.practiceServer != null)
@@ -1594,7 +1594,7 @@ public class SOCPlayerClient
                 // Check for other active practice games. (Could be "Practice 2")
                 pi = findAnyActiveGame(true);
             }
-        
+
             if ((pi != null) && ((target == pg) || (target == pgm)))
             {
                 // Practice game requested, already exists.
@@ -1604,7 +1604,7 @@ public class SOCPlayerClient
                 // enter a game name; make a name up if needed.
                 // If we already have a game going, our nickname is not empty.
                 // So, it's OK to not check that here or in the dialog.
-        
+
                 // Is the game over yet?
                 if (pi.getGame().getGameState() == SOCGame.OVER)
                 {
@@ -1615,10 +1615,10 @@ public class SOCPlayerClient
                 {
                     new SOCPracticeAskDialog(this, pi).setVisible(true);
                 }
-        
+
                 return true;
             }
-        
+
             if (pi == null)
             {
                 if (client.games.isEmpty())
@@ -1627,18 +1627,18 @@ public class SOCPlayerClient
                                                // like NEED_NICKNAME_BEFORE_JOIN
                     if (client.nickname == null)
                         return true;  // not filled in yet
-        
+
                     if (!client.gotPassword)
                         client.password = getPassword();  // may be 0-length
                 }
-        
+
                 int endOfName = gm.indexOf(STATSPREFEX);
-        
+
                 if (endOfName > 0)
                 {
                     gm = gm.substring(0, endOfName);
                 }
-        
+
                 if (((target == pg) || (target == pgm)) && (null == client.net.ex_P))
                 {
                     if (target == pg)
@@ -1652,7 +1652,7 @@ public class SOCPlayerClient
                     // Join a game on the remote server.
                     // Send JOINGAME right away.
                     // (Create New Game is done above; see calls to gameWithOptionsBeginSetup)
-        
+
                     // May take a while for server to start game, so set WAIT_CURSOR.
                     // The new-game window will clear this cursor
                     // (SOCPlayerInterface constructor)
@@ -1667,7 +1667,7 @@ public class SOCPlayerClient
             {
                 pi.setVisible(true);
             }
-        
+
             return true;
         }
 
@@ -1681,7 +1681,7 @@ public class SOCPlayerClient
         protected String getValidNickname(boolean precheckOnly)
         {
             String n = nick.getText().trim();
-        
+
             if (n.length() == 0)
             {
                 final String stat = status.getText();
@@ -1699,7 +1699,7 @@ public class SOCPlayerClient
                          : NEED_NICKNAME_BEFORE_JOIN_G );
                 return null;
             }
-        
+
             if (n.length() > 20)
             {
                 n = n.substring(0, 20);
@@ -1725,14 +1725,14 @@ public class SOCPlayerClient
         {
             if (client.gotPassword)
                 return client.password;
-        
+
             String p = pass.getText().trim();
-        
+
             if (p.length() > 20)
             {
                 p = p.substring(0, 20);
             }
-        
+
             client.password = p;
             return p;
         }
@@ -1987,7 +1987,7 @@ public class SOCPlayerClient
         {
             SOCPlayerInterface pi = null;
             int gs;  // gamestate
-        
+
             Collection<String> gameNames;
             if (fromPracticeServer)
             {
@@ -1997,7 +1997,7 @@ public class SOCPlayerClient
             } else {
                 gameNames = playerInterfaces.keySet();
             }
-        
+
             for (String tryGm : gameNames)
             {
                 if (fromPracticeServer)
@@ -2017,12 +2017,12 @@ public class SOCPlayerClient
                         gs = pi.getGame().getGameState();
                         if (gs < SOCGame.OVER)
                             break;      // Active
-        
+
                         pi = null;  // Avoid false positive
                     }
                 }
             }
-        
+
             return pi;  // Active game, or null
         }
 
@@ -2042,7 +2042,7 @@ public class SOCPlayerClient
         {
             // In case was WAIT_CURSOR while connecting
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        
+
             if (canPractice)
             {
                 messageLabel_top.setText(err);
@@ -2056,7 +2056,7 @@ public class SOCPlayerClient
                 messageLabel.setText(err);
                 pgm.setVisible(false);
             }
-        
+
             if (hasConnectOrPractice)
             {
                 // If we have the startup panel with buttons to connect to a server or practice,
@@ -2064,7 +2064,7 @@ public class SOCPlayerClient
                 nick.setEditable(true);
                 pass.setText("");
                 pass.setEditable(true);
-        
+
                 cardLayout.show(this, CONNECT_OR_PRACTICE_PANEL);
                 validate();
                 connectOrPracticePane.clickConnCancel();
@@ -2172,12 +2172,12 @@ public class SOCPlayerClient
             fr.print("*** " + client.strings.get("channel.joined", nickname) + "\n");  // "{0} has joined this channel."
             fr.addMember(nickname);
         }
-        
+
         public void channelLeft(String channelName)
         {
             channels.remove(channelName);
         }
-        
+
         public void channelLeft(String channelName, String nickname)
         {
             ChannelFrame fr = channels.get(channelName);
@@ -2194,12 +2194,12 @@ public class SOCPlayerClient
 
             fr.began();
         }
-        
+
         public void channelDeleted(String channelName)
         {
             deleteFromList(channelName, chlist);
         }
-        
+
         public void channelsClosed(String message)
         {
             for (ChannelFrame cf : channels.values())
@@ -2274,7 +2274,7 @@ public class SOCPlayerClient
         {
             addToList(channelName, chlist);
         }
-        
+
         public void channelList(Collection<String> channelNames, boolean isPractice)
         {
             //
@@ -2308,7 +2308,7 @@ public class SOCPlayerClient
                 fr.print("::: " + message + " :::");
             }
         }
-        
+
         public void messageReceived(String channelName, String nickname, String message)
         {
             ChannelFrame fr = channels.get(channelName);
@@ -2321,7 +2321,7 @@ public class SOCPlayerClient
                 }
             }
         }
-        
+
         public void leaveGame(SOCGame game)
         {
             playerInterfaces.remove(game.getName());
@@ -2342,16 +2342,16 @@ public class SOCPlayerClient
                 }
                 hasJoinedServer = true;
             }
-            
+
             SOCPlayerInterface pi = new SOCPlayerInterface(game.getName(), GameAwtDisplay.this, game);
             System.err.println("L2325 new pi at " + System.currentTimeMillis());
             pi.setVisible(true);
             System.err.println("L2328 visible at " + System.currentTimeMillis());
             playerInterfaces.put(game.getName(), pi);
-            
+
             return pi.getClientListener();
         }
-        
+
         /**
          * Start the game-options info timeout
          * ({@link GameOptionsTimeoutTask}) at 5 seconds.
@@ -2365,7 +2365,7 @@ public class SOCPlayerClient
             gameOptsTask = new GameOptionsTimeoutTask(this, client.tcpServGameOpts);
             eventTimer.schedule(gameOptsTask, 5000 /* ms */ );
         }
-     
+
         /**
          * Cancel the game-options info timeout.
          * @see #gameOptionsSetTimeoutTask()
@@ -2384,14 +2384,14 @@ public class SOCPlayerClient
         {
             gameOptionsSetTimeoutTask();
         }
-        
+
         public void optionsReceived(ServerGametypeInfo opts, boolean isPractice)
         {
             gameOptionsCancelTimeoutTask();
             newGameOptsFrame = NewGameOptionsFrame.createAndShow
                 (GameAwtDisplay.this, (String) null, opts.optionSet, isPractice, false);
         }
-        
+
         public void optionsReceived(ServerGametypeInfo opts, boolean isPractice, boolean isDash, boolean hasAllNow)
         {
             final boolean newGameWaiting;
@@ -2401,7 +2401,7 @@ public class SOCPlayerClient
                 newGameWaiting = opts.newGameWaitingForOpts;
                 gameInfoWaiting = opts.gameInfoWaitingForOpts;
             }
-            
+
             if ((! isPractice) && isDash)
                 gameOptionsCancelTimeoutTask();
 
@@ -2570,7 +2570,7 @@ public class SOCPlayerClient
 
             return found;
         }
-        
+
         /**
          * send a text message to a channel
          *
@@ -3828,7 +3828,7 @@ public class SOCPlayerClient
         final String name = mes.getNickname();
         if (name == null)
             return;
-        
+
         PlayerClientListener pcl = clientListeners.get(gn);
         pcl.playerJoined(name);
     }
@@ -3846,11 +3846,11 @@ public class SOCPlayerClient
         {
             final String name = mes.getNickname();
             final SOCPlayer player = ga.getPlayer(name);
-            
+
             // Give the listener a chance to clean up while the player is still in the game
             PlayerClientListener pcl = clientListeners.get(gn);
             pcl.playerLeft(name, player);
-            
+
             if (player != null)
             {
                 //
@@ -3899,10 +3899,10 @@ public class SOCPlayerClient
     {
         String ga = mes.getGame();
         int[] scores = mes.getScores();
-        
+
         // Update game list (initial window)
         gameDisplay.updateGameStats(ga, scores, mes.getRobotSeats());
-        
+
         // If we're playing in a game, update the scores. (SOCPlayerInterface)
         // This is used to show the true scores, including hidden
         // victory-point cards, at the game's end.
@@ -3943,13 +3943,13 @@ public class SOCPlayerClient
         if (ga != null)
         {
             final int mesPN = mes.getPlayerNumber();
-    
+
             ga.takeMonitor();
             SOCPlayer player = null;
             try
             {
                 ga.addPlayer(mes.getNickname(), mesPN);
-    
+
                 player = ga.getPlayer(mesPN);
                 /**
                  * set the robot flag
@@ -3960,20 +3960,20 @@ public class SOCPlayerClient
             {
                 System.out.println("Exception caught - " + e);
                 e.printStackTrace();
-                
+
                 return;
             }
             finally
             {
                 ga.releaseMonitor();
             }
-    
+
             /**
              * tell the GUI that a player is sitting
              */
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
             pcl.playerSitdown(mesPN, mes.getNickname());
-            
+
             /**
              * let the board panel & building panel find our player object if we sat down
              */
@@ -4243,7 +4243,7 @@ public class SOCPlayerClient
                 // This case is not really an element update, so route as a 'request'
                 pcl.requestedSpecialBuild(pl);
                 break;
-                
+
             case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple(mes, ga, pl, pn);
                 pcl.requestedGoldResourceCountUpdated(pl, 0);
@@ -4308,7 +4308,7 @@ public class SOCPlayerClient
                 }
 
                 boolean isClientPlayer = pl.getName().equals(client.getNickname());
-                
+
                 //
                 //  fix it
                 //
@@ -4333,18 +4333,18 @@ public class SOCPlayerClient
         SOCGame ga = games.get(gameName);
         if (ga == null)
             throw new IllegalStateException("No game found for name '"+gameName+"'");
-        
+
         final int cpn = ga.getCurrentPlayerNumber();
         SOCPlayer p = null;
         if (cpn >= 0)
             p = ga.getPlayer(cpn);
-        
+
         final int roll = mes.getResult();
         final SOCPlayer player = p;
-        
+
         // update game state
         ga.setCurrentDice(roll);
-        
+
         // notify listener
         PlayerClientListener listener = clientListeners.get(gameName);
         listener.diceRolled(player, roll);
@@ -4359,11 +4359,11 @@ public class SOCPlayerClient
         SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return;
-        
+
         final SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
         final int coord = mes.getCoordinates();
         final int ptype = mes.getPieceType();
-        
+
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
         if (pcl == null)
             return;
@@ -4449,7 +4449,7 @@ public class SOCPlayerClient
                 ga.getBoard().setRobberHex(newHex, true);
             else
                 ((SOCBoardLarge) ga.getBoard()).setPirateHex(-newHex, true);
-            
+
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
             pcl.robberMoved();
         }
@@ -4510,7 +4510,7 @@ public class SOCPlayerClient
         SOCGame ga = games.get(mes.getGame());
         int victimPlayerNumber = mes.getChoice();
         SOCPlayer player = ga.getPlayer(victimPlayerNumber);
-        
+
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
         pcl.requestedChooseRobResourceType(player);
     }
@@ -4528,7 +4528,7 @@ public class SOCPlayerClient
             SOCTradeOffer offer = mes.getOffer();
             SOCPlayer from = ga.getPlayer(offer.getFrom());
             from.setCurrentOffer(offer);
-            
+
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
             pcl.requestedTrade(from);
         }
@@ -4548,7 +4548,7 @@ public class SOCPlayerClient
             SOCPlayer player = null;
             if (pn != -1)
                 player = ga.getPlayer(pn);
-            
+
             if (pn != -1)
             {
                 ga.getPlayer(pn).setCurrentOffer(null);
@@ -4558,7 +4558,7 @@ public class SOCPlayerClient
                     ga.getPlayer(i).setCurrentOffer(null);
                 }
             }
-            
+
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
             pcl.requestedTradeClear(player);
         }
@@ -4572,7 +4572,7 @@ public class SOCPlayerClient
     {
         SOCGame ga = games.get(mes.getGame());
         SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
-        
+
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
         pcl.requestedTradeRejection(player);
     }
@@ -4588,7 +4588,7 @@ public class SOCPlayerClient
         SOCPlayer player = null;
         if (pn != -1)
             player = ga.getPlayer(pn);
-        
+
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
         pcl.requestedTradeReset(player);
     }
@@ -4798,7 +4798,7 @@ public class SOCPlayerClient
             pcl.seatLockUpdated();
         }
     }
-    
+
     /**
      * handle the "roll dice prompt" message;
      *   if we're in a game and we're the dice roller,
@@ -5594,12 +5594,12 @@ public class SOCPlayerClient
             if (net == null)
                 throw new IllegalArgumentException("client network is null");
         }
-        
+
         /**
          * Write a message to the net or practice server.
          * Because the player can be in both network games and practice games,
          * we must route to the appropriate client-server connection.
-         * 
+         *
          * @param s  the message
          * @param isPractice  Put to the practice server, not tcp network?
          *                {@link ClientNetwork#localTCPServer} is considered "network" here.
@@ -5850,7 +5850,7 @@ public class SOCPlayerClient
     {
         put(SOCChoosePlayer.toCmd(ga.getName(), ch), ga.isPractice);
     }
-    
+
     /**
      * The user is reacting to the move robber request.
      *
@@ -5860,7 +5860,7 @@ public class SOCPlayerClient
     {
         choosePlayer(ga, SOCChoosePlayer.CHOICE_MOVE_ROBBER);
     }
-    
+
     /**
      * The user is reacting to the move pirate request.
      *
@@ -6049,7 +6049,7 @@ public class SOCPlayerClient
     {
         put(SOCResetBoardVote.toCmd(ga.getName(), pn, voteYes), ga.isPractice);
     }
-    
+
         /**
          * send a command to the server with a message
          * asking a robot to show the debug info for
@@ -6063,29 +6063,29 @@ public class SOCPlayerClient
         public void considerMove(SOCGame ga, String pname, SOCPlayingPiece piece)
         {
             String msg = pname + ":consider-move ";
-    
+
             switch (piece.getType())
             {
             case SOCPlayingPiece.SETTLEMENT:
                 msg += "settlement";
-    
+
                 break;
-    
+
             case SOCPlayingPiece.ROAD:
                 msg += "road";
-    
+
                 break;
-    
+
             case SOCPlayingPiece.CITY:
                 msg += "city";
-    
+
                 break;
             }
-    
+
             msg += (" " + piece.getCoordinates());
             put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, msg), ga.isPractice);
         }
-    
+
         /**
          * send a command to the server with a message
          * asking a robot to show the debug info for
@@ -6098,25 +6098,25 @@ public class SOCPlayerClient
         public void considerTarget(SOCGame ga, String pname, SOCPlayingPiece piece)
         {
             String msg = pname + ":consider-target ";
-    
+
             switch (piece.getType())
             {
             case SOCPlayingPiece.SETTLEMENT:
                 msg += "settlement";
-    
+
                 break;
-    
+
             case SOCPlayingPiece.ROAD:
                 msg += "road";
-    
+
                 break;
-    
+
             case SOCPlayingPiece.CITY:
                 msg += "city";
-    
+
                 break;
             }
-    
+
             msg += (" " + piece.getCoordinates());
             put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, msg), ga.isPractice);
         }
@@ -6251,7 +6251,7 @@ public class SOCPlayerClient
             if (!(canPractice && isPractice))
                 e.getValue().gameDisconnected(err);
         }
-        
+
         net.dispose();
 
         gameDisplay.showErrorPanel(err, canPractice);
@@ -6349,7 +6349,7 @@ public class SOCPlayerClient
         public static final int SOC_PORT_DEFAULT = 8880;
 
         final SOCPlayerClient client;
-        
+
         /**
          * Hostname we're connected to, or null
          */
@@ -6359,7 +6359,7 @@ public class SOCPlayerClient
          * TCP port we're connected to; default is {@link #SOC_PORT_DEFAULT}.
          */
         private int port = SOC_PORT_DEFAULT;
-        
+
         /**
          * Client-hosted TCP server. If client is running this server, it's also connected
          * as a client, instead of being client of a remote server.
@@ -6368,7 +6368,7 @@ public class SOCPlayerClient
          * Note that {@link SOCGame#isPractice} is false for localTCPServer's games.
          */
         private SOCServer localTCPServer = null;
-        
+
         Socket s;
         DataInputStream in;
         DataOutputStream out;
@@ -6417,7 +6417,7 @@ public class SOCPlayerClient
          * Last message is in {@link #lastMessage_P}; any error is in {@link #ex_P}.
          */
         protected StringConnection prCli = null;
-        
+
         public ClientNetwork(SOCPlayerClient c)
         {
             client = c;
@@ -6554,7 +6554,7 @@ public class SOCPlayerClient
         {
             return connected;
         }
-        
+
         /**
          * Attempts to connect to the server. See {@link #isConnected()} for success or
          * failure. Once connected, starts a {@link #reader} thread.
@@ -6636,7 +6636,7 @@ public class SOCPlayerClient
                 s = null;
             }
         }
-        
+
         /**
          * Disconnect from the net (client of remote server).
          * If a problem occurs, sets {@link #ex}.
@@ -6667,7 +6667,7 @@ public class SOCPlayerClient
         {
             return localTCPServer != null;
         }
-        
+
         /**
          * Look for active games that we're hosting (state >= START1A, not yet OVER).
          *
@@ -6678,7 +6678,7 @@ public class SOCPlayerClient
         {
             if (localTCPServer == null)
                 return false;
-            
+
             Collection<String> gameNames = localTCPServer.getGameNames();
 
             for (String tryGm : gameNames)
@@ -6692,7 +6692,7 @@ public class SOCPlayerClient
 
             return false;  // No active games found
         }
-        
+
         /**
          * write a message to the net: either to a remote server,
          * or to {@link #localTCPServer} for games we're hosting.
@@ -6769,7 +6769,7 @@ public class SOCPlayerClient
 
             return true;
         }
-        
+
         /**
          * resend the last message (to the network)
          */
@@ -6806,7 +6806,7 @@ public class SOCPlayerClient
             putNet(leaveAllMes.toCmd());
             if ((prCli != null) && ! canPractice)
                 putPractice(leaveAllMes.toCmd());
-            
+
             shutdownLocalServer();
 
             return canPractice;
@@ -6821,13 +6821,13 @@ public class SOCPlayerClient
         {
             final ClientNetwork net;
             final SOCPlayerClient client;
-            
+
             public NetReadTask(SOCPlayerClient client, ClientNetwork net)
             {
                 this.client = client;
                 this.net = net;
             }
-            
+
             /**
              * continuously read from the net in a separate thread;
              * not used for talking to the practice server.
@@ -6894,7 +6894,7 @@ public class SOCPlayerClient
                     {
                         String s = locl.readNext();
                         SOCMessage msg = SOCMessage.toMsg(s);
-                        
+
                         client.treater.treat(msg, true);
                     }
                 }
@@ -6963,7 +6963,7 @@ public class SOCPlayerClient
                     SOCQuitAllConfirmDialog.createAndShow(cli, (Frame) c);
                 }
             }
-            
+
             if (! canAskHostingGames)
             {
                 // Just quit.
