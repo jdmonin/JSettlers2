@@ -103,7 +103,7 @@ public class SOCDevCardCount extends SOCMessage
     public static SOCDevCardCount parseDataStr(String s)
     {
         String ga; // the game name
-        int nd; // the number of dev cards 
+        int nd; // the number of dev cards
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -127,4 +127,5 @@ public class SOCDevCardCount extends SOCMessage
     {
         return "SOCDevCardCount:game=" + game + "|numDevCards=" + numDevCards;
     }
+
 }

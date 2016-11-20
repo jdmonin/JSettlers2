@@ -84,7 +84,7 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
 
     /**
      * Constructor for server to tell client about a player stat.
-     * 
+     *
      * @param pl  Player for these stats
      * @param stype  Stats type.  Newer servers and clients may support
      *           more types.  For each type (such as {@link #STYPE_RES_ROLL}),

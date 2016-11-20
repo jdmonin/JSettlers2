@@ -25,7 +25,7 @@ package soc.message;
  * Client sends this when the user clicks the "New Game" button for the first time.
  *<P>
  * Server responds to client's GAMEOPTIONGETDEFAULTS by sending its own GAMEOPTIONGETDEFAULTS.
- * All of server's known options are sent, except empty string-valued options. 
+ * All of server's known options are sent, except empty string-valued options.
  * Depending on client version, server's response may include option names that
  * the client is too old to use; the client is able to ignore them.
  * If the client asks about such an option (by sending {@link SOCGameOptionInfo GAMEOPTIONINFO}),
@@ -129,4 +129,5 @@ public class SOCGameOptionGetDefaults extends SOCMessage
     {
         return "SOCGameOptionGetDefaults:opts=" + opts;
     }
+
 }

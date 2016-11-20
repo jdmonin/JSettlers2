@@ -54,7 +54,7 @@ public class SOCPlayerElement extends SOCMessage
 
     /**
      * Number of SHIP pieces; added in v2.0.00.
-     * @since 2.0.00 
+     * @since 2.0.00
      */
     public static final int SHIPS = 13;
 
@@ -319,4 +319,5 @@ public class SOCPlayerElement extends SOCMessage
 
         return s;
     }
+
 }

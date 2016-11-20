@@ -32,7 +32,7 @@ import soc.game.SOCBoard;
  * about where the player's pieces are on the board.
  *<P>
  * This message sends the standard board layout of the
- * original game, {@link soc.game.SOCBoard#BOARD_ENCODING_ORIGINAL}. 
+ * original game, {@link soc.game.SOCBoard#BOARD_ENCODING_ORIGINAL}.
  * As of version 1.1.08, there is a newer board layout for
  * game expansions.  See the new message type {@link SOCBoardLayout2 BOARDLAYOUT2}.
  *<P>
@@ -68,7 +68,7 @@ public class SOCBoardLayout extends SOCMessage
      *     2 : 4
      *     3 : 5
      *     4 : 6
-     *     5 : 8 (7 is skipped)         
+     *     5 : 8 (7 is skipped)
      *     6 : 9
      *     7 : 10
      *     8 : 11

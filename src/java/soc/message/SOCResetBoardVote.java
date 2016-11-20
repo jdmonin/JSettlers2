@@ -32,7 +32,7 @@ import java.util.StringTokenizer;
  * <LI> Once voting is complete, server sends to all either a {@link SOCResetBoardAuth} or
  *      {@link SOCResetBoardReject} message.
  *</UL>
- * For details of messages sent, see 
+ * For details of messages sent, see
  * {@link soc.server.SOCServer#resetBoardAndNotify(String, int)}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;

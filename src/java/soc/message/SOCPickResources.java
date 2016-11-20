@@ -42,7 +42,7 @@ import java.util.StringTokenizer;
  * message.
  *<P>
  * Also used in scenario SC_PIRI when player wins a free resource for defeating the
- * pirate fleet attack at a dice roll. 
+ * pirate fleet attack at a dice roll.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -160,12 +160,12 @@ public class SOCPickResources extends SOCMessage
     public static SOCPickResources parseDataStr(String s)
     {
         final String ga; // the game name
-        final int cl, // the amount of clay being picked  
-                  or, // the amount of ore being picked  
-                  sh, // the amount of sheep being picked  
+        final int cl, // the amount of clay being picked
+                  or, // the amount of ore being picked
+                  sh, // the amount of sheep being picked
                   wh, // the amount of wheat being picked
-                  wo, // the amount of wood being picked  
-                  uk; // the amount of unknown resources being picked  
+                  wo, // the amount of wood being picked
+                  uk; // the amount of unknown resources being picked
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 

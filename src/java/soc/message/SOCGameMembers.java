@@ -122,7 +122,7 @@ public class SOCGameMembers extends SOCMessage
                 {
                     str = obj.toString();  // fallback; expecting String or conn
                 }
-                
+
                 cmd += (sep2 + str);
             }
         }
@@ -173,4 +173,5 @@ public class SOCGameMembers extends SOCMessage
             enumIntoStringBuf(members.elements(), sb);
         return sb.toString();
     }
+
 }

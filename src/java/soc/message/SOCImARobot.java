@@ -77,7 +77,7 @@ public class SOCImARobot extends SOCMessage
      * The robot's brain class, to show 3rd-party robots.
      * The built-in robot is {@link #RBCLASS_BUILTIN}.
      * If {@link #cookie} != null, then {@code rbclass} != null.
-     * @since 1.1.09 
+     * @since 1.1.09
      */
     private String rbclass;
 
@@ -221,4 +221,5 @@ public class SOCImARobot extends SOCMessage
 
         return s;
     }
+
 }

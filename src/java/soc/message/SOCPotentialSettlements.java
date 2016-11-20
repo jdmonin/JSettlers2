@@ -111,7 +111,7 @@ public class SOCPotentialSettlements extends SOCMessage
      * Usually {@code null} because all sea edges are legal.
      * Legal sea edges are currently restricted only in scenario {@code _SC_PIRI}.
      *<P>
-     * If {@link #playerNumber} != -1, {@code legalSeaEdges} contains 1 array, the legal sea edges for that player. 
+     * If {@link #playerNumber} != -1, {@code legalSeaEdges} contains 1 array, the legal sea edges for that player.
      * Otherwise, will contain 1 array for each player position (total 4 or 6 arrays).
      *<P>
      * Each per-player array is the same format as in {@code SOCBoardLargeAtServer.PIR_ISL_SEA_EDGES}:
@@ -555,7 +555,7 @@ public class SOCPotentialSettlements extends SOCMessage
                     s.append("(psList)");
                     continue;
                 }
-    
+
                 Iterator<Integer> laIter = landAreasLegalNodes[i].iterator();
                 while (laIter.hasNext())
                 {
@@ -595,4 +595,5 @@ public class SOCPotentialSettlements extends SOCMessage
 
         return s.toString();
     }
+
 }

@@ -57,7 +57,7 @@ package soc.message;
  *<P>
  * Note that if, on the sending end of the network connection, you passed a
  * non-null gamename to the {@link SOCMessageTemplateMs} or {@link SOCMessageTemplateMi}
- * constructor, then on this end within the toMsg code, 
+ * constructor, then on this end within the toMsg code,
  * multiData[0] is the gamename, and multiData[1] == param[0] from the sending end.
  * Your parseDataStr will need to separate out the gamename again, so it doesn't
  * become param[0] at this end.

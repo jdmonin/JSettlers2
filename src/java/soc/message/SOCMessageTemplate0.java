@@ -80,7 +80,7 @@ public abstract class SOCMessageTemplate0 extends SOCMessage
     /**
      * MESSAGETYPE sep game
      *<P>
-     * Public method only because there are no parameters, so this is easy to call. 
+     * Public method only because there are no parameters, so this is easy to call.
      *
      * @param messageType The message type id
      * @param ga  the game name
@@ -109,4 +109,5 @@ public abstract class SOCMessageTemplate0 extends SOCMessage
     {
         return getClassNameShort() + ":game=" + game;
     }
+
 }

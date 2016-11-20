@@ -113,7 +113,7 @@ public class SOCGameTextMsg extends SOCMessage
 
     /**
      * Get the player's nickname for a chat message, or the server for game announcement text
-     * @return the player's nickname, or {@link #SERVERNAME} 
+     * @return the player's nickname, or {@link #SERVERNAME}
      */
     public String getNickname()
     {
@@ -188,4 +188,5 @@ public class SOCGameTextMsg extends SOCMessage
 
         return s;
     }
+
 }

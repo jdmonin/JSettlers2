@@ -187,23 +187,23 @@ public class SOCStatusMessage extends SOCMessage
 
     /**
      * New game requested, but name of game or player is too long = 13.
-     * The text returned with this status shall indicate the max permitted length. 
+     * The text returned with this status shall indicate the max permitted length.
      * @see soc.server.SOCServer#createOrJoinGameIfUserOK
      * @since 1.1.07
      */
     public static final int SV_NEWGAME_NAME_TOO_LONG = 13;
 
     /**
-     * New game requested, but client already has created too many active games. 
-     * The text returned with this status shall indicate the max number. 
+     * New game requested, but client already has created too many active games.
+     * The text returned with this status shall indicate the max number.
      * @see soc.server.SOCServer#createOrJoinGameIfUserOK
      * @since 1.1.10
      */
     public static final int SV_NEWGAME_TOO_MANY_CREATED = 14;
 
     /**
-     * New chat channel requested, but client already has created too many active channels. 
-     * The text returned with this status shall indicate the max number. 
+     * New chat channel requested, but client already has created too many active channels.
+     * The text returned with this status shall indicate the max number.
      * @since 1.1.10
      */
     public static final int SV_NEWCHANNEL_TOO_MANY_CREATED = 15;
@@ -445,7 +445,7 @@ public class SOCStatusMessage extends SOCMessage
      * @param statusValue  status value (from constants defined here, such as {@link #SV_OK})
      * @param cliVersion Client's version, same format as {@link soc.util.Version#versionNumber()};
      *                   below 1.1.06, only 0 ({@link #SV_OK}) is allowed.
-     *                   If cliVersion > ourVersion, will act as if cliVersion == ourVersion. 
+     *                   If cliVersion > ourVersion, will act as if cliVersion == ourVersion.
      * @since 1.1.07
      */
     public static boolean statusValidAtVersion(int statusValue, int cliVersion)

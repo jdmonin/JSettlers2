@@ -148,12 +148,12 @@ public class SOCDiscard extends SOCMessage
     public static SOCDiscard parseDataStr(String s)
     {
         String ga; // the game name
-        int cl; // the ammount of clay being discarded  
-        int or; // the ammount of ore being discarded  
-        int sh; // the ammount of sheep being discarded  
+        int cl; // the ammount of clay being discarded
+        int or; // the ammount of ore being discarded
+        int sh; // the ammount of sheep being discarded
         int wh; // the ammount of wheat being discarded
-        int wo; // the ammount of wood being discarded  
-        int uk; // the ammount of unknown resources being discarded  
+        int wo; // the ammount of wood being discarded
+        int uk; // the ammount of unknown resources being discarded
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -182,4 +182,5 @@ public class SOCDiscard extends SOCMessage
     {
         return "SOCDiscard:game=" + game + "|resources=" + resources;
     }
+
 }

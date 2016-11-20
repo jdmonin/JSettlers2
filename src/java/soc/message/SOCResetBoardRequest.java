@@ -25,7 +25,7 @@ package soc.message;
  * a game being played. (New game, same name, same players, new layout).
  *<P>
  * If reset is allowed, server will respond with {@link SOCResetBoardVoteRequest}
- * or {@link SOCResetBoardAuth} and subsequent messages. For details, see 
+ * or {@link SOCResetBoardAuth} and subsequent messages. For details, see
  * {@link soc.server.SOCServer#resetBoardAndNotify(String, int)}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;

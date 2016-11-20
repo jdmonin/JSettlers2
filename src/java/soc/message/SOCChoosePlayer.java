@@ -26,7 +26,7 @@ import java.util.StringTokenizer;
 /**
  * This message from client to server has a few purposes, all related to robbing:
  *<UL>
- *<LI> After a server's {@link SOCChoosePlayerRequest}, 
+ *<LI> After a server's {@link SOCChoosePlayerRequest},
  *     it says which player the current player wants to
  *     steal from.
  *     <P>
@@ -119,7 +119,7 @@ public class SOCChoosePlayer extends SOCMessage
      * For <tt>WAITING_FOR_ROB_CLOTH_OR_RESOURCE</tt>, <tt>getChoice()</tt> &gt;= 0
      * means rob a resource from that player number, and <tt>getChoice()</tt> &lt; 0
      * means rob cloth from player number (<tt>-getChoice()</tt>) - 1.
-     * 
+     *
      */
     public int getChoice()
     {
@@ -158,7 +158,7 @@ public class SOCChoosePlayer extends SOCMessage
     public static SOCChoosePlayer parseDataStr(String s)
     {
         String ga; // the game name
-        int ch; // the number of the chosen player 
+        int ch; // the number of the chosen player
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -182,4 +182,5 @@ public class SOCChoosePlayer extends SOCMessage
     {
         return "SOCChoosePlayer:game=" + game + "|choice=" + choice;
     }
+
 }

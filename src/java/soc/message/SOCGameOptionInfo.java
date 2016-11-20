@@ -219,7 +219,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 	    opt.setBoolValue(bval_cur);
 	    opt.setIntValue(ival_cur);
 	    break;
-	    
+
 	case SOCGameOption.OTYPE_ENUM:
 	    {
 		String[] choices = new String[ival_max];

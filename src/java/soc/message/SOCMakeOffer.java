@@ -132,7 +132,7 @@ public class SOCMakeOffer extends SOCMessage
         String ga; // the game name
         int from; // the number of the offering player
         boolean[] to; // the players to which this trade is offered
-        SOCResourceSet give; // the set of resources being asked for 
+        SOCResourceSet give; // the set of resources being asked for
         SOCResourceSet get; // the set of resources that the offerer wants in exchange
 
         give = new SOCResourceSet();
@@ -180,4 +180,5 @@ public class SOCMakeOffer extends SOCMessage
     {
         return "SOCMakeOffer:game=" + game + "|offer=" + offer;
     }
+
 }
