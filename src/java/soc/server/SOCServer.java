@@ -89,36 +89,56 @@ import java.util.Vector;
  * There's a database setup script parameter {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP}.
  * If the setup script is ran, the server exits afterward, so that the
  * script won't be part of the command line for normal server operation.
+ *
+ *<H3>Network Traffic and Message Flow:</H3>
+ *
+ * All messages from client connections arrive through {@link SOCMessageDispatcher}
+ * into either {@link SOCGameMessageHandler} or {@link SOCServerMessageHandler},
+ * depending on whether the message is about a specific game. See those classes'
+ * javadocs for more details.
  *<P>
- *<b>Network traffic:</b>
- * The first message over the connection is the client's version
- * and the second is the server's response:
- * Either {@link SOCRejectConnection}, or the lists of
- * channels and games ({@link SOCChannels}, {@link SOCGames}).
+ * The first message the server sends over the connection is its version
+ * and features ({@link SOCVersion}). This is sent immediately without
+ * first waiting for the client to send its version.
+ *<P>
+ * The first message the client sends over the connection is its version and locale
+ * ({@link SOCVersion}), to which the server responds with either {@link SOCRejectConnection}
+ * or the lists of channels and games ({@link SOCChannels}, {@link SOCGames}).
+ *
+ *<H3>The most important server systems:</H3>
  *<UL>
+ *<LI> {@code SOCServer} manages the overall lifecycle of the server
+ *     and its games; game creation occurs in
+ *     {@link SOCGameListAtServer#createGame(String, String, String, Map, GameHandler)}.
+ *<LI> After a game is created, in-game actions are handled by {@link SOCGameHandler}
+ *     as called by handlers for client requests and actions in {@link SOCGameMessageHandler}.
  *<LI> See {@link SOCMessage} for details of the client/server protocol.
  *<LI> See {@link Server} for details of the server threading and processing.
  *<LI> To get a player's connection, use {@link #getConnection(Object) getConnection(plName)}.
  *<LI> To get a client's nickname, use <tt>(String)</tt> {@link StringConnection#getData() connection.getData()}.
  *<LI> To get the rest of a client's data, use ({@link SOCClientData})
- *       {@link StringConnection#getAppData() connection.getAppData()}.
+ *     {@link StringConnection#getAppData() connection.getAppData()}.
  *<LI> To send a message to all players in a game, use {@link #messageToGame(String, SOCMessage)}
- *       and related methods.
+ *     and related methods. Send text with {@link #messageToGameKeyed(SOCGame, boolean, String)}.
+ *<LI> For i18n, nearly all text sent from the server starts as a unique key
+ *     appearing in {@code soc/server/strings/*.properties} and is localized
+ *     to the client's locale through {@link StringConnection#getLocalized(String)}.
+ *<LI> Timer threads are used to check for inactive robots and idle games: See
+ *     {@link SOCGameTimeoutChecker} and {@link SOCGameHandler#endTurnIfInactive(SOCGame, long)}.
  *</UL>
  *<P>
- * The server supports several <b>debug commands</b> when {@link #allowDebugUser enabled}, and
- * when sent as chat messages by a user named "debug".
- * (Or, by the only user in a practice game.)
- * See {@link #processDebugCommand(StringConnection, String, String, String)}
- * and {@link SOCServerMessageHandler#handleGAMETEXTMSG(StringConnection, SOCGameTextMsg)}
+ * The server supports several <b>debug commands</b> when {@link #isDebugUserEnabled()}, and
+ * when sent as chat messages by a user named {@code "debug"} or by the only human in a practice game.
+ * See {@link #processDebugCommand(StringConnection, String, String, String)} and
+ * {@link SOCServerMessageHandler#handleGAMETEXTMSG(StringConnection, SOCGameTextMsg)}
  * for details.
  *<P>
  * The version check timer is set in {@link SOCClientData#setVersionTimer(SOCServer, StringConnection)}.
- * Before 1.1.06, the server's response was first message,
+ * Before 1.1.06 the server's currently active game and channel lists were sent beforehand,
  * and client version was then sent in reply to server's version.
  *<P>
- * Java properties (starting with "jsettlers.") were added in 1.1.09, with constant names
- * starting with PROP_JSETTLERS_, and listed in {@link #PROPS_LIST}.
+ * Java <B>properties</B> (starting with {@code "jsettlers."}) were added in 1.1.09, with constant names
+ * starting with {@code PROP_JSETTLERS_} and listed in {@link #PROPS_LIST}.
  */
 @SuppressWarnings("serial")
 public class SOCServer extends Server

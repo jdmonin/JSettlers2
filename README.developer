@@ -27,11 +27,18 @@ CONTENTS
 
 Overall Structure
 -----------------
-The main server class is soc.server.SOCServer.
+The most important major classes have several paragraphs of class javadocs
+describing their structure and interactions. If something is unclear after
+reading those docs and this README section, please file an issue at github
+or email jsettlers@nand.net to clarify things.
+
+The main server class is soc.server.SOCServer; clients' requests and actions are
+dispatched into SOCServerMessageHandler, SOCGameMessageHandler, and SOCGameHandler.
 The client communication and game-list window is in soc.client.SOCPlayerClient,
 and in-game interface is in soc.client.SOCPlayerInterface.
 Game state is held at the server in soc.game.SOCGame and its fields; only
-partial game state is known at clients.
+partial game state is known at clients. The game's "business logic" is mostly in
+SOCGame, SOCPlayer, and SOCBoard. The sea board and scenarios use SOCBoardLarge.
 
 Communication is described in soc.message.SOCMessage.
 Robots talk with the server like normal human clients.
