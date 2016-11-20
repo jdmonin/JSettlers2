@@ -646,11 +646,13 @@ public class SOCGame implements Serializable, Cloneable
      * <b>Note:</b> Only a few of the server message-handling methods check this field, because
      * only those few can potentially lead to special victory points or other game/scenario events.
      * If you add code where other player actions can lead to {@code pendingMessagesOut} adds, be sure
-     * the server handler for those actions checks this list afterwards, to send before GAMESTATE.
+     * the server's SOCGameHandler/SOCGameMessageHandler for those actions checks this list afterwards,
+     * to send before GAMESTATE via {@code SOCGameHandler.sendGamePendingMessages(..)}.
      *<P>
      * Because this is server-only, it's null until {@link #startGame()}.
      * To send and clear this list's contents, the server should call
      * {@code SOCGameHandler.sendGamePendingMessages(SOCGame, boolean)}.
+     *
      * @since 2.0.00
      */
     public transient List<Object> pendingMessagesOut;
