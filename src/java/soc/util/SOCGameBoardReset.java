@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.util;
 
