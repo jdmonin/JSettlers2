@@ -244,7 +244,7 @@ and backport minor new features until 2.0.00 is ready.
 - Bugfix: Couldn't place initial road on 6-player board's northernmost edge
 - Fix infinite loop when robot leaves during game setup
 - Game last-action time tracked, to detect idle games
-- Debug commands now case-insensitive 
+- Debug commands now case-insensitive
 - Per-game messages indicated by new interface SOCMessageForGame
 
     > 1.1.10 (build JM20100613)

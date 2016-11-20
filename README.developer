@@ -483,7 +483,7 @@ Use spaces, not tabs.  The basic indent is 4.  Place braces on their own line.
 Lines should be less than about 120 characters long; if you have to indent too
 much, consider refactoring into a new method.
 
-Use 1 blank line between methods.  If you have nested classes, use 3 blank 
+Use 1 blank line between methods.  If you have nested classes, use 3 blank
 lines between them, and comment each one's closing brace with the class name.
 If you have a long method whose work can be divided into "sections",
 preface each section with a /** javadoc-style */ multi-line comment.
