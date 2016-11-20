@@ -3,7 +3,7 @@
  *
  * This file copyright (c)2000 IoS Gesellschaft fr innovative Softwareentwicklung mbH
  * http://www.IoS-Online.de    mailto:info@IoS-Online.de
- * Portions of this file copyright (c) 2007-2009,2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (c) 2007-2009,2011,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * originally from (GPL'd) de.ios.framework.gui.ExpandTooltip;
  * using for jsettlers AWT tooltip
@@ -30,13 +30,15 @@ import java.awt.*;
 import java.awt.event.*;
 
 /**
- * A short tooltip for a component.
+ * A short tooltip for a non-Swing component.
  * Does not handle component resize or moving, but will respond to hide/un-hide.
  *<P>
  * To change the tooltip text, call {@link #setTip(String)}.
  *<P>
  * The tooltip adds itself as a listener to the parent component.
  * If you need to remove this tooltip from the parent, call {@link #destroy()}.
+ *
+ * @since 1.1.00
  */
 @SuppressWarnings("serial")
 public class AWTToolTip
@@ -45,7 +47,7 @@ public class AWTToolTip
 {
 
   /** The tip is hidden after the mouse has been moved
-   *  closeAfterMoveX poinntes horizontally or closeAfterMoveY
+   *  closeAfterMoveX points horizontally or closeAfterMoveY
    *  points vertically away from the point where it has been clicked
    *  (or it has left its parent component's area)
    */

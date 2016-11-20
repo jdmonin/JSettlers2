@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2007-2011,2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@ import java.net.URL;
  * When you click on the face, it changes to another face.
  *<P>
  * There are two modes: Standard (with associated player ID) for use in HandPanel;
- * and Bordered (with associated FaceChooserFrame) for choosing a new face icon.
+ * and Bordered (with associated {@link FaceChooserFrame}) for choosing a new face icon.
  * The two constructors correspond to the two modes.
  *
  * @see soc.client.FaceChooserFrame
@@ -211,6 +211,7 @@ public class SOCFaceButton extends Canvas
      * @param pi  Player interface (for stack-print callback ONLY)
      * @param fcf Face chooser frame for callback
      * @param faceId Face ID to show; same range as {@link #setFace(int)}
+     * @since 1.1.00
      */
     public SOCFaceButton(SOCPlayerInterface pi, FaceChooserFrame fcf, int faceId)
     {
@@ -230,6 +231,7 @@ public class SOCFaceButton extends Canvas
      *
      * @throws IllegalArgumentException if pn is < -1 or >= {@link SOCGame#maxPlayers},
      *           or if <tt>pi.getGame()</tt> is null.
+     * @since 1.1.00
      */
     protected SOCFaceButton(SOCPlayerInterface pi, int pn, Color bgColor, int width)
         throws IllegalArgumentException
@@ -266,6 +268,7 @@ public class SOCFaceButton extends Canvas
 
     /**
      * @return  which image id is shown
+     * @since 1.1.00
      */
     public int getFace()
     {
@@ -304,6 +307,7 @@ public class SOCFaceButton extends Canvas
      * If we already have one, nothing happens.
      *
      * @throws IllegalStateException if player isn't client (checks getName vs client.getNickname)
+     * @since 1.1.00
      */
     public void addFacePopupMenu()
         throws IllegalStateException
@@ -321,6 +325,7 @@ public class SOCFaceButton extends Canvas
     /**
      * If we have a popup menu, remove it.
      * All clicks will be ignored, and won't change the face id shown.
+     * @since 1.1.00
      */
     public void removeFacePopupMenu()
     {
@@ -336,6 +341,7 @@ public class SOCFaceButton extends Canvas
      * If menu item is chosen again, don't show the previous one, create a new face-chooser window.
      *
      * @see #addFacePopupMenu()
+     * @since 1.1.00
      */
     public void clearFacePopupPreviousChooser()
     {
@@ -349,6 +355,7 @@ public class SOCFaceButton extends Canvas
      * @param wantBorder Show the hilight border?
      *
      * @throws IllegalStateException If this FaceButton wasn't created for a face chooser.
+     * @since 1.1.00
      */
     public void setHilightBorder(boolean wantBorder)
         throws IllegalStateException
@@ -385,6 +392,7 @@ public class SOCFaceButton extends Canvas
 
     /**
      * @return Size of this square facebutton
+     * @since 1.1.00
      */
     @Override
     public Dimension getSize()
@@ -469,7 +477,10 @@ public class SOCFaceButton extends Canvas
         g.drawImage(fimage, offs, offs, getBackground(), this);
     }
 
-    /** Paint or clear the hilight border */
+    /**
+     * Paint or clear the highlight border
+     * @since 1.1.00
+     */
     private void paintBorder(Graphics g, boolean showNotClear)
     {
         Color drawColor;
@@ -621,7 +632,8 @@ public class SOCFaceButton extends Canvas
     /**
      * Menu for right-click on face icon to choose a new face (Player's hand only).
      *
-     * @author Jeremy D Monin <jeremy@nand.net>
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 1.1.00
      */
     protected static class FaceButtonPopupMenu extends PopupMenu
         implements java.awt.event.ActionListener

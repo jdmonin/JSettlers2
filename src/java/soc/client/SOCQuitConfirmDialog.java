@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007,2008,2010,2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007,2008,2010,2013-2014,2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -25,9 +25,11 @@ import soc.util.SOCStringManager;
 
 
 /**
- * This is the modal dialog to confirm when someone clicks the Quit Game button.
+ * This is the modal dialog to confirm when someone clicks the Quit Game button
+ * or the game window's close button.
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 1.1.00
  */
 @SuppressWarnings("serial")
 class SOCQuitConfirmDialog extends AskDialog

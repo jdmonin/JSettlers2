@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2007 Jeremy D. Monin <jeremy@nand.net>
+ * This file Copyright (C) 2007,2016 Jeremy D. Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -28,12 +28,13 @@ import java.awt.Color;
  * possibly a number or X in it.  This box can be
  * interactive, or non-interactive.  The possible
  * colors of the box correspond to resources in SoC.
- *
+ *<P>
  * Because ColorSquares and their dimensions are used widely,
- * this subclass limits the changes needed for larger
+ * having this subclass limits the changes needed for larger
  * squares for player interaction.
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 1.1.00
  */
 @SuppressWarnings("serial")
 public class ColorSquareLarger extends ColorSquare

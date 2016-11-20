@@ -1326,6 +1326,7 @@ public class SOCPlayerClient
         /**
          * Wrapped version of actionPerformed() for easier encapsulation.
          * @param target Action source, from ActionEvent.getSource()
+         * @since 1.1.00
          */
         private void guardedActionPerform(Object target)
         {
@@ -4396,6 +4397,7 @@ public class SOCPlayerClient
      *      message that the human player is capable of reading and acting on.
      *
      * @param mes  the message
+     * @since 1.1.00
      */
     protected void handleCANCELBUILDREQUEST(SOCCancelBuildRequest mes)
     {
@@ -5533,6 +5535,7 @@ public class SOCPlayerClient
     /** If we're playing in a game that's just finished, update the scores.
      *  This is used to show the true scores, including hidden
      *  victory-point cards, at the game's end.
+     *  @since 1.1.00
      */
     public void updateGameEndStats(String game, final int[] scores)
     {
@@ -6173,6 +6176,7 @@ public class SOCPlayerClient
     /**
      * Create a game name, and start a practice game.
      * Assumes {@link GameAwtDisplay#MAIN_PANEL} is initialized.
+     * @since 1.1.00
      */
     public void startPracticeGame()
     {
@@ -6189,6 +6193,7 @@ public class SOCPlayerClient
      * @param mainPanelIsActive Is the SOCPlayerClient main panel active?
      *         False if we're being called from elsewhere, such as
      *         {@link SOCConnectOrPracticePanel}.
+     * @since 1.1.00
      */
     public void startPracticeGame
         (String practiceGameName, final Map<String, SOCGameOption> gameOpts, final boolean mainPanelIsActive)
@@ -6748,6 +6753,7 @@ public class SOCPlayerClient
          * @return true if the message was sent, false if not
          * @see SOCPlayerClient.GameManager#put(String, boolean)
          * @throws IllegalArgumentException if {@code s} is {@code null}
+         * @since 1.1.00
          */
         public synchronized boolean putPractice(String s)
             throws IllegalArgumentException
@@ -6781,6 +6787,7 @@ public class SOCPlayerClient
 
         /**
          * resend the last message (to the practice server)
+         * @since 1.1.00
          */
         public void resendPractice()
         {

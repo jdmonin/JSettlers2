@@ -1,6 +1,6 @@
 /**
  * Local (StringConnection) network system.  Version 1.2.0.
- * This file Copyright (C) 2007-2009,2013,2015 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2007-2009,2013,2015-2016 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
  * This program is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@ import soc.util.SOCStringManager;
  * with no difference between local and actual networked traffic.
  *
  *<PRE>
- *  1.0.0 - 2007-11-18 - initial release
+ *  1.0.0 - 2007-11-18 - initial release, becoming part of jsettlers v1.1.00
  *  1.0.1 - 2008-06-28 - add getConnectTime
  *  1.0.2 - 2008-07-30 - no change in this file
  *  1.0.3 - 2008-08-08 - add disconnectSoft, getVersion, setVersion
@@ -45,7 +45,7 @@ import soc.util.SOCStringManager;
  *                       {@link #getLocalized(String)}. StringConnection is now a superclass, not an interface.
  *</PRE>
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @version 1.2.0
  */
 public abstract class StringConnection

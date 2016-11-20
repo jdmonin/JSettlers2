@@ -1,7 +1,7 @@
 /**
  * Testing for cross-platform context-click (right-click)
  *
- * This file copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007-2010,2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -31,8 +31,8 @@ import java.awt.event.MouseListener;
 
 /**
  * Testing for cross-platform context-click (right-click); standalone class.
- * @author Jeremy D Monin <jeremy@nand.net>
- *
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 1.1.00
  */
 @SuppressWarnings("serial")
 public class AWTClickTester extends java.awt.Canvas implements MouseListener
@@ -133,9 +133,12 @@ public class AWTClickTester extends java.awt.Canvas implements MouseListener
     public void printButtonsMods()
     {
         System.out.println("BUTTON:");
-        System.out.println("  1:  0x" + Integer.toHexString(MouseEvent.BUTTON1) + " mask 0x" + Integer.toHexString(InputEvent.BUTTON1_MASK));
-        System.out.println("  2:  0x" + Integer.toHexString(MouseEvent.BUTTON2) + " mask 0x" + Integer.toHexString(InputEvent.BUTTON2_MASK));
-        System.out.println("  3:  0x" + Integer.toHexString(MouseEvent.BUTTON3) + " mask 0x" + Integer.toHexString(InputEvent.BUTTON3_MASK));
+        System.out.println("  1:  0x" + Integer.toHexString(MouseEvent.BUTTON1)
+            + " mask 0x" + Integer.toHexString(InputEvent.BUTTON1_MASK));
+        System.out.println("  2:  0x" + Integer.toHexString(MouseEvent.BUTTON2)
+            + " mask 0x" + Integer.toHexString(InputEvent.BUTTON2_MASK));
+        System.out.println("  3:  0x" + Integer.toHexString(MouseEvent.BUTTON3)
+            + " mask 0x" + Integer.toHexString(InputEvent.BUTTON3_MASK));
         System.out.println("MODS:");
         System.out.println("  Shift: 0x" + Integer.toHexString(InputEvent.SHIFT_MASK));
         System.out.println("  Ctrl:  0x" + Integer.toHexString(InputEvent.CTRL_MASK));

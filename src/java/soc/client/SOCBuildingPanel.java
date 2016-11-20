@@ -742,6 +742,7 @@ public class SOCBuildingPanel extends Panel
      * @param game   The game, for status
      * @param target Button clicked, as returned by ActionEvent.getActionCommand
      * @param doNotClearPopup Do not call {@link SOCBoardPanel#popupClearBuildRequest()}
+     * @since 1.1.00
      */
     public void clickBuildingButton(SOCGame game, String target, boolean doNotClearPopup)
     {

@@ -42,7 +42,7 @@ import soc.util.SOCStringManager;
  * If you add something to one class, you should probably add it to the other, or to the superclass instead.
  *
  *<PRE>
- *  1.0.0 - 2007-11-18 - initial release
+ *  1.0.0 - 2007-11-18 - initial release, becoming part of jsettlers v1.1.00
  *  1.0.1 - 2008-06-28 - add getConnectTime
  *  1.0.2 - 2008-07-30 - check if s already null in disconnect
  *  1.0.3 - 2008-08-08 - add disconnectSoft, getVersion, setVersion
@@ -57,7 +57,7 @@ import soc.util.SOCStringManager;
  *                       StringConnection is now a superclass, not an interface
  *</PRE>
  *
- * @author Jeremy D. Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @version 1.2.0
  */
 public class LocalStringConnection

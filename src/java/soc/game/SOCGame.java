@@ -3814,6 +3814,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pp the piece to remove from the board
      * @see #canCancelBuildPiece(int)
+     * @since 1.1.00
      */
     public void undoPutInitSettlement(SOCPlayingPiece pp)
     {

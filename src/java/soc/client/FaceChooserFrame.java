@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2007,2013 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007,2013,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -47,14 +47,15 @@ import soc.game.SOCGame;
 
 /**
  * Popup window for the user to browse and choose a face icon.
- *
- * To adjust size, set FaceChooserList.rowFacesWidth and .faceRowsHeight .
+ *<P>
+ * To adjust size, set FaceChooserList.rowFacesWidth and .faceRowsHeight:
  *
  * @see soc.client.FaceChooserFrame.FaceChooserList#rowFacesWidth
  * @see soc.client.FaceChooserFrame.FaceChooserList#faceRowsHeight
  * @see soc.client.SOCFaceButton
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 1.1.00
  */
 @SuppressWarnings("serial")
 public class FaceChooserFrame extends Frame implements ActionListener, WindowListener, KeyListener

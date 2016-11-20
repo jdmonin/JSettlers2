@@ -642,6 +642,7 @@ public class SOCServer extends Server
      * @see SOCServerMessageHandler#handleIMAROBOT(StringConnection, soc.message.SOCImARobot)
      * @see SOCDBHelper#retrieveRobotParams(String, boolean)
      * @see soc.robot.SOCRobotDM
+     * @since 1.1.00
      */
     public static SOCRobotParameters ROBOT_PARAMS_DEFAULT
         = new SOCRobotParameters(120, 35, 0.13f, 1.0f, 1.0f, 3.0f, 1.0f, 1, 1);
@@ -658,6 +659,7 @@ public class SOCServer extends Server
      *
      * @see #ROBOT_PARAMS_DEFAULT
      * @see soc.robot.SOCRobotDM
+     * @since 1.1.00
      */
     public static SOCRobotParameters ROBOT_PARAMS_SMARTER
         = new SOCRobotParameters(120, 35, 0.13f, 1.0f, 1.0f, 3.0f, 1.0f, 0, 1);
@@ -1026,6 +1028,7 @@ public class SOCServer extends Server
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now
      * @throws SQLException   If db setup script fails
+     * @since 1.1.00
      */
     public SOCServer(String s, int mc, String databaseUserName, String databasePassword)
         throws SocketException, EOFException, SQLException
@@ -1092,6 +1095,7 @@ public class SOCServer extends Server
      *       with bad syntax. See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for expected syntax.
      *       See {@link #parseCmdline_DashedArgs(String[])} for how game option properties are checked.
      *       {@link Throwable#getMessage()} will have problem details.
+     * @since 1.1.00
      */
     private void initSocServer(String databaseUserName, String databasePassword, Properties props)
         throws SocketException, EOFException, SQLException, IllegalArgumentException
@@ -2288,6 +2292,7 @@ public class SOCServer extends Server
     /**
      * Used when SOCPlayerClient is also hosting games.
      * @return The names (Strings) of games on this server
+     * @since 1.1.00
      */
     public Collection<String> getGameNames()
     {

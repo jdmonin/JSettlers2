@@ -6161,6 +6161,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *
      * @param x x-coordinate of click, actual screen pixels (not unscaled internal)
      * @param y y-coordinate of click, actual screen pixels (not unscaled internal)
+     * @since 1.1.00
      */
     protected void doBoardMenuPopup (final int x, final int y)
     {
@@ -6235,6 +6236,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /** If the client has used the board popup menu to request building a piece,
      *  this method is used in client network-receive message treatment.
+     *  @since 1.1.00
      */
     public boolean popupExpectingBuildRequest()
     {
@@ -7882,6 +7884,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * {@link BoardPopupMenu#actionPerformed(ActionEvent)} usually calls
      * {@link SOCBuildingPanel#clickBuildingButton(SOCGame, String, boolean)}
      * to send messages to the server.
+     * @since 1.1.00
      */
     private class BoardPopupMenu extends PopupMenu
         implements java.awt.event.ActionListener

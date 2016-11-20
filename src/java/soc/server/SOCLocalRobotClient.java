@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>. Contents were
- * formerly part of SOCServer.java; portions of this file Copyright (C) 2007-2013 Jeremy D Monin.
+ * formerly part of SOCServer.java; portions of this file Copyright (C) 2007-2013,2016 Jeremy D Monin.
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -27,9 +27,11 @@ import soc.robot.SOCRobotClient;
 
 /**
  * Each local robot in the {@link SOCServer} gets its own client thread.
- * Equivalent to main thread in {@link SOCRobotClient} in network games.
+ * Equivalent to main thread used in {@link SOCRobotClient} when connected
+ * over the TCP network.
  *<P>
- * This class was originally SOCPlayerClient.SOCPlayerLocalRobotRunner, then moved in 1.1.09 to SOCServer.SOCPlayerLocalRobotRunner,
+ * This class was originally SOCPlayerClient.SOCPlayerLocalRobotRunner,
+ * then moved in 1.1.09 to SOCServer.SOCPlayerLocalRobotRunner.
  * Split out in 2.0.00 to its own top-level class.
  * Before 2.0.00, the thread name prefix was {@code robotrunner-} not {@code localrobotclient-}.
  *

@@ -1667,6 +1667,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     *      message that the human player is capable of reading and acting on.
     *
     * @param mes  the message
+    * @since 1.1.00
     */
     protected void handleCANCELBUILDREQUEST(SOCCancelBuildRequest mes)
     {

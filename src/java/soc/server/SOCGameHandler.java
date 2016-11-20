@@ -1862,6 +1862,7 @@ public class SOCGameHandler extends GameHandler
      *
      * @return    did we send a text message to prompt the player to roll?
      *    If so, sendTurn can also send a RollDicePrompt data message.
+     * @since 1.1.00
      */
     boolean sendGameState(SOCGame ga, boolean sendRollPrompt)
     {
@@ -2097,6 +2098,7 @@ public class SOCGameHandler extends GameHandler
      *  Make sure {@link SOCGameState}({@link SOCGame#OVER OVER}) is sent before calling this method.
      *
      * @param ga This game is over; state should be OVER
+     * @since 1.1.00
      */
     private void sendGameStateOVER(SOCGame ga)
     {

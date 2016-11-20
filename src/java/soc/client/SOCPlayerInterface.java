@@ -173,6 +173,7 @@ public class SOCPlayerInterface extends Frame
      *
      * @see #textInput
      * @see #TEXTINPUT_INITIAL_PROMPT_MSG
+     * @since 1.1.00
      */
     protected boolean textInputIsInitial;
 
@@ -192,6 +193,7 @@ public class SOCPlayerInterface extends Frame
      *
      * @see #textInput
      * @see #textInputGreyCountFrom
+     * @since 1.1.00
      */
     protected int textInputGreyCountdown;
 
@@ -206,6 +208,7 @@ public class SOCPlayerInterface extends Frame
      * Not yet typed-in; display prompt message.
      *
      * @see #textInput
+     * @since 1.1.00
      */
     public static final String TEXTINPUT_INITIAL_PROMPT_MSG
         = strings.get("interface.type.here.chat");  // "Type here to chat."
@@ -322,6 +325,7 @@ public class SOCPlayerInterface extends Frame
      * by calling {@link #setClientHand(SOCHandPanel)}.
      * @see #clientHandPlayerNum
      * @see #clientIsCurrentPlayer()
+     * @since 1.1.00
      */
     protected SOCHandPanel clientHand;
 
@@ -330,6 +334,7 @@ public class SOCPlayerInterface extends Frame
      * Set by {@link SOCHandPanel}'s removePlayer() and addPlayer() methods
      * by calling {@link #setClientHand(SOCHandPanel)}.
      * @see #clientIsCurrentPlayer()
+     * @since 1.1.00
      */
     private int clientHandPlayerNum;  // the field for this in some other packages is called ourPN or ourPlayerNumber
 
@@ -884,6 +889,7 @@ public class SOCPlayerInterface extends Frame
      * Update the display.
      *<P>
      * See also {@link ClientBridge#simpleAction(int, int, int, int)} with {@link SOCSimpleAction#DEVCARD_BOUGHT}.
+     * @since 1.1.00
      */
     public void updateDevCardCount()
     {
@@ -1097,6 +1103,7 @@ public class SOCPlayerInterface extends Frame
      * @return our player's hand interface, or null if not in a game.
      * @see #clientIsCurrentPlayer()
      * @see #isClientPlayer(SOCPlayer)
+     * @since 1.1.00
      */
     public SOCHandPanel getClientHand()
     {
@@ -1109,6 +1116,7 @@ public class SOCPlayerInterface extends Frame
      *  Set by SOCHandPanel's removePlayer() and addPlayer() methods.
      *
      * @param h  The SOCHandPanel for us, or null if none (leaving).
+     * @since 1.1.00
      */
     public void setClientHand(SOCHandPanel h)
     {
@@ -1124,6 +1132,7 @@ public class SOCPlayerInterface extends Frame
      * Assertion: If this returns true, {@link #getClientHand()} will return non-null.
      * @see #getClientPlayerNumber()
      * @see #isClientPlayer(SOCPlayer)
+     * @since 1.1.00
      */
     public final boolean clientIsCurrentPlayer()
     {
@@ -1139,6 +1148,7 @@ public class SOCPlayerInterface extends Frame
      * @return client's player ID, or -1.
      * @see #clientIsCurrentPlayer()
      * @see #getClientHand()
+     * @since 1.1.00
      */
     public final int getClientPlayerNumber()
     {
@@ -1755,6 +1765,7 @@ public class SOCPlayerInterface extends Frame
      * for each player.  Refresh the display.
      *
      * @param finalScores Final score for each player position
+     * @since 1.1.00
      */
     public void updateAtOver(int[] finalScores)
     {
@@ -1783,6 +1794,7 @@ public class SOCPlayerInterface extends Frame
      * Game's current player has changed.  Update displays.
      *
      * @param pnum New current player number; should match game.getCurrentPlayerNumber()
+     * @since 1.1.00
      */
     public void updateAtTurn(final int pnum)
     {
@@ -1872,6 +1884,7 @@ public class SOCPlayerInterface extends Frame
      *    already sent chat text (textInputHasSent).
      *
      * @see #TEXTINPUT_INITIAL_PROMPT_MSG
+     * @since 1.1.00
      */
     protected void textInputSetToInitialPrompt(boolean setToInitial)
         throws IllegalStateException
@@ -1991,6 +2004,7 @@ public class SOCPlayerInterface extends Frame
      *   playerInterface.{@link #startGame()};
      *   playerInterface.updateAtGameState();
      *</pre></code>
+     * @since 1.1.00
      */
     public void updateAtGameState()
     {
@@ -2465,6 +2479,7 @@ public class SOCPlayerInterface extends Frame
      * if debug is enabled, print this exception's stack trace in
      * the chat display.  This eases tracing of exceptions when
      * our code is called in AWT threads (such as EventDispatch).
+     * @since 1.1.00
      */
     public void chatPrintStackTrace(Throwable th)
     {
@@ -2504,6 +2519,7 @@ public class SOCPlayerInterface extends Frame
      *
      * @param srcColor The color to ghost from
      * @return Ghost color based on srcColor
+     * @since 1.1.00
      */
     public static Color makeGhostColor(Color srcColor)
     {

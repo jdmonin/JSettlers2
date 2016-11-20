@@ -144,6 +144,7 @@ public class SOCPlayerTracker
     /**
      * Player's settlement during initial placement; delay processing until
      * the road is placed, and thus the settlement placement can't be moved around.
+     * @since 1.1.00
      */
     protected SOCSettlement pendingInitSettlement;
 
@@ -568,6 +569,7 @@ public class SOCPlayerTracker
      * @param road Location of our bad road or ship
      *
      * @see SOCRobotBrain#cancelWrongPiecePlacement(SOCCancelBuildRequest)
+     * @since 1.1.00
      */
     public void cancelWrongRoadOrShip(SOCRoad road)
     {
@@ -1397,6 +1399,7 @@ public class SOCPlayerTracker
      * @param settlement Location of our bad settlement
      *
      * @see SOCRobotBrain#cancelWrongPiecePlacement(SOCCancelBuildRequest)
+     * @since 1.1.00
      */
     public void cancelWrongSettlement(SOCSettlement settlement)
     {
@@ -2032,6 +2035,7 @@ public class SOCPlayerTracker
      * @param city Location of our bad city
      *
      * @see SOCRobotBrain#cancelWrongPiecePlacement(SOCCancelBuildRequest)
+     * @since 1.1.00
      */
     public void cancelWrongCity(SOCCity city)
     {

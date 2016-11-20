@@ -1981,6 +1981,7 @@ public class SOCHandPanel extends Panel
      * Countdown begins with AUTOROLL_TIME seconds.
      *
      * @see #autoRollOrPromptPlayer()
+     * @since 1.1.00
      */
     protected void autoRollSetupTimer()
     {
@@ -2003,6 +2004,7 @@ public class SOCHandPanel extends Panel
      * Called also at start of game by {@link SOCPlayerInterface#updateAtGameState()},
      * because the server sends no TURN between the last road (gamestate START2B)
      * and the first player's turn (state PLAY).
+     * @since 1.1.00
      */
     public void updateAtTurn()
     {
@@ -2085,6 +2087,7 @@ public class SOCHandPanel extends Panel
      * Call only when if player is client and is current player.
      *<P>
      * Before 2.0.00, this was updateAtPlay1().
+     * @since 1.1.00
      */
     void updateAtOurGameState()
     {
@@ -2094,9 +2097,10 @@ public class SOCHandPanel extends Panel
         updateRollDoneBankButtons();
     }
 
-    /** Enable,disable the proper buttons
+    /** Enable, disable the proper buttons
      * when the client (player) is added to a game.
      * Call only if {@link #playerIsClient}.
+     * @since 1.1.00
      */
     private void updateButtonsAtAdd()
     {
@@ -2125,6 +2129,7 @@ public class SOCHandPanel extends Panel
     /**
      * During this player's first turn, calculate the player name label's
      * background color for current player.
+     * @since 1.1.00
      */
     protected void pnameCalcColors()
     {
@@ -2133,7 +2138,10 @@ public class SOCHandPanel extends Panel
         pnameActiveBG = SOCPlayerInterface.makeGhostColor(getBackground());
     }
 
-    /** If trade offer is set/cleared, enable/disable buttons accordingly. */
+    /**
+     * If trade offer is set/cleared, enable/disable buttons accordingly.
+     * @since 1.1.00
+     */
     public void sqPanelZerosChange(boolean notAllZero)
     {
         int gs = game.getGameState();
@@ -2182,6 +2190,7 @@ public class SOCHandPanel extends Panel
      *
      * @see #updateAtTurn()
      * @see #autoRollSetupTimer()
+     * @since 1.1.00
      */
     public void autoRollOrPromptPlayer()
     {
@@ -2249,6 +2258,7 @@ public class SOCHandPanel extends Panel
      *
      * @see #addSittingRobotLockBut()
      * @see #removeSitBut()
+     * @since 1.1.00
      */
     public void removeSittingRobotLockBut()
     {
@@ -2295,6 +2305,7 @@ public class SOCHandPanel extends Panel
      * button label is "sit here", our interface is a newly joining
      * player to a game that's already started; otherwise they arrived
      * while the game was forming, and now it's started, so clean up the window.
+     * @since 1.1.00
      */
     public void removeSitLockoutBut()
     {
@@ -2310,6 +2321,7 @@ public class SOCHandPanel extends Panel
      * but a different button in the client (the sit-here button).
      * @see #addSitButton(boolean)
      * @see #updateSeatLockButton()
+     * @since 1.1.00
      */
     public void renameSitButLock()
     {
@@ -2349,6 +2361,7 @@ public class SOCHandPanel extends Panel
     /**
      * Internal mechanism to remove start button (if visible) and add VP label.
      * Also refreshes status of "send-offer" checkboxes vs. vacant seats.
+     * @since 1.1.00
      */
     public void removeStartBut()
     {
@@ -2754,6 +2767,8 @@ public class SOCHandPanel extends Panel
      * an item on the board.  They can hit Cancel to return the item to their inventory instead.
      * (Checks the flag set in {@link #setCanCancelInvItemPlay(boolean)}.)
      * Once that state is over, button and inventory return to normal.
+     *
+     * @since 1.1.00
      */
     private void updateRollDoneBankButtons()
     {
@@ -2795,6 +2810,7 @@ public class SOCHandPanel extends Panel
      * buttons: The robot-seat-lock (when robot playing at
      * this position) and the robot-lockout (game forming,
      * seat vacant, no robot here please) buttons.
+     * @since 1.1.00
      */
     public void updateSeatLockButton()
     {
@@ -3141,6 +3157,7 @@ public class SOCHandPanel extends Panel
     /**
      * Re-read player's resource info and victory points, update the
      * display and resource trade costs and resourceTradeMenu text.
+     * @since 1.1.00
      */
     public void updateResourcesVP()
     {
@@ -3231,7 +3248,9 @@ public class SOCHandPanel extends Panel
      * is changed to the next player.  So, it appears that
      * this player can roll again, but they cannot.
      * To guard against this, use {@link #isClientAndCurrentlyCanRoll()} instead.
+     *
      * @see SOCPlayerInterface#clientIsCurrentPlayer()
+     * @since 1.1.00
      */
     public boolean isClientAndCurrentPlayer()
     {
@@ -3254,6 +3273,7 @@ public class SOCHandPanel extends Panel
      *
      * @param prompt The message to display, or null to clear it.
      * @param cancelTimer Cancel {@link #autoRollTimerTask}, for use with null prompt
+     * @since 1.1.00
      */
     protected void setRollPrompt(String prompt, final boolean cancelTimer)
     {
@@ -3654,7 +3674,8 @@ public class SOCHandPanel extends Panel
      * @see SOCHandPanel#AUTOROLL_TIME
      * @see SOCHandPanel#autoRollSetupTimer()
      *
-     * @author Jeremy D Monin <jeremy@nand.net>
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 1.1.00
      */
     protected class HandPanelAutoRollTask extends java.util.TimerTask
     {
@@ -3704,7 +3725,8 @@ public class SOCHandPanel extends Panel
      * Menu item for right-click on resource square to trade with bank/port.
      *
      * @see soc.client.SOCHandPanel.ResourceTradePopupMenu
-     * @author Jeremy D Monin <jeremy@nand.net>
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 1.1.00
      */
     protected static class ResourceTradeMenuItem extends MenuItem
     {
@@ -3815,7 +3837,8 @@ public class SOCHandPanel extends Panel
      *
      * @see SOCHandPanel.ResourceTradeTypeMenu
      * @see SOCBoardPanel.ResourceTradeAllMenu
-     * @author Jeremy D Monin <jeremy@nand.net>
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 1.1.00
      */
     /* package-access */ static abstract class ResourceTradePopupMenu extends PopupMenu
     {
@@ -3853,7 +3876,8 @@ public class SOCHandPanel extends Panel
     /**
      * Menu for right-click on resource square to trade one resource type with bank/port.
      *
-     * @author Jeremy D Monin <jeremy@nand.net>
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 1.1.00
      */
     /* package-access */ static class ResourceTradeTypeMenu extends ResourceTradePopupMenu
         implements java.awt.event.MouseListener, java.awt.event.ActionListener
