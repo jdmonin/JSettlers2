@@ -33,6 +33,8 @@ import soc.util.SOCStringManager;
 /**
  * Symmetric buffered connection sending strings between two local peers.
  * Uses vectors and thread synchronization, no actual network traffic.
+ * When using this class from the server (not client), after the constructor
+ * call {@link #setServer(Server)}.
  *<P>
  * This class has a run method, but you must start the thread yourself.
  * Constructors will not create or start a thread.
@@ -76,9 +78,12 @@ public class LocalStringConnection
 
     /**
      * Create a new, unused LocalStringConnection.
-     *
+     *<P>
      * After construction, call {@link #connect(String)} to use this object.
-     *
+     * When using this class from the server (not client)
+     * call {@link #setServer(Server)} before {@code connect(..)}
+     * and before starting any thread.
+     *<P>
      * This class has a run method, but you must start the thread yourself.
      * Constructors will not create or start a thread.
      */
@@ -91,7 +96,10 @@ public class LocalStringConnection
 
     /**
      * Constructor for an existing peer; we'll share two Vectors for in/out queues.
-     *
+     *<P>
+     * When using this class from the server (not client)
+     * call {@link #setServer(Server)} before starting any thread.
+     *<P>
      * This class has a run method, but you must start the thread yourself.
      * Constructors will not create or start a thread.
      *
@@ -130,7 +138,7 @@ public class LocalStringConnection
     /**
      * Read the next string sent from the remote end,
      * blocking if necessary to wait.
-     *
+     *<P>
      * Synchronized on in-buffer.
      *
      * @return Next string in the in-buffer; never {@code null}.
@@ -376,6 +384,7 @@ public class LocalStringConnection
      * This is how the code knows it's on the server (not client) side.
      * If a server is set, its removeConnection method is called if our input reaches EOF,
      * and it's notified if our version changes.
+     *<P>
      * Call this before calling run().
      *
      * @param srv The new server, or null
@@ -441,18 +450,20 @@ public class LocalStringConnection
 
         try
         {
+            final InboundMessageQueue inQueue = ourServer.inQueue;
+
             if (! in_reachedEOF)
             {
                 String firstMsg = readNext();
                 if (! ourServer.processFirstCommand(firstMsg, this)){
-                    inboundMessageQueue.push(firstMsg, this);
+                    inQueue.push(firstMsg, this);
                 }
 
             }
 
             while (! in_reachedEOF)
             {
-                inboundMessageQueue.push(readNext(), this);
+                inQueue.push(readNext(), this);  // readNext() blocks until next message is available
             }
         }
         catch (IOException e)

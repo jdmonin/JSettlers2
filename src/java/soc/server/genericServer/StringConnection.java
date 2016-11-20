@@ -85,15 +85,11 @@ public abstract class StringConnection
     protected boolean remoteVersionTrack;
     protected boolean hideTimeoutMessage;
 
-    /** Is set if server-side. Notifies at EOF (calls removeConnection). */
-    protected Server ourServer;
-
     /**
-     * queue where to push message received from this connection
-     * @since 2.0.00
+     * Is set if server-side. Notifies at EOF (calls removeConnection).
+     * Messages from client will go into ourServer's {@link InboundMessageQueue}.
      */
-    protected InboundMessageQueue inboundMessageQueue;
-
+    protected Server ourServer;
 
     /** Any error encountered, or {@code null} */
     protected Exception error;
@@ -411,17 +407,6 @@ public abstract class StringConnection
     public void setHideTimeoutMessage(final boolean wantsHide)
     {
         hideTimeoutMessage = wantsHide;
-    }
-
-    /**
-     * when the StringConnection is used in the server side... the messaged received by the connection must be
-     * inserted in the queue
-     *
-     * @param inboundMessageQueue in the server side where this connection must put messaged
-     */
-    public void setInboundMessageQueue(InboundMessageQueue inboundMessageQueue)
-    {
-        this.inboundMessageQueue = inboundMessageQueue;
     }
 
 }

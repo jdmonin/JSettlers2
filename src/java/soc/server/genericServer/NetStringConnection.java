@@ -59,6 +59,7 @@ public final class NetStringConnection
     DataInputStream in = null;
     DataOutputStream out = null;
     Socket s = null;
+
     /** Hostname of the remote end of the connection, for {@link #host()} */
     protected String hst;
 
@@ -68,12 +69,11 @@ public final class NetStringConnection
     private Vector<String> outQueue = new Vector<String>();
 
     /** initialize the connection data */
-    NetStringConnection(Socket so, Server sve, InboundMessageQueue inboundMessageQueue)
+    NetStringConnection(Socket so, Server sve)
     {
         hst = so.getInetAddress().getHostName();
         ourServer = sve;
         s = so;
-        this.inboundMessageQueue = inboundMessageQueue;
     }
 
     /**
@@ -159,17 +159,19 @@ public final class NetStringConnection
 
         try
         {
+            final InboundMessageQueue inQueue = ourServer.inQueue;
+
             if (inputConnected)
             {
                 String firstMsg = in.readUTF();
                 if (! ourServer.processFirstCommand(firstMsg, this))
-                    inboundMessageQueue.push(firstMsg, this);
+                    inQueue.push(firstMsg, this);
             }
 
             while (inputConnected)
             {
                 // readUTF max message size is 65535 chars, modified utf-8 format
-                inboundMessageQueue.push(in.readUTF(), this);
+                inQueue.push(in.readUTF(), this);  // readUTF() blocks until next message is available
             }
         }
         catch (IOException e)

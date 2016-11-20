@@ -146,7 +146,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *<P>
      * Before v2.0.00, this was a {@link Vector}.
      */
-    public InboundMessageQueue inQueue;
+    public final InboundMessageQueue inQueue;
 
     /**
      * Versions of currently connected clients, according to
@@ -237,7 +237,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
         try
         {
-            ss = new NetStringServerSocket(port, this, inQueue);
+            ss = new NetStringServerSocket(port, this);
         }
         catch (IOException e)
         {
@@ -396,7 +396,6 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     {
                         LocalStringConnection localConnection = (LocalStringConnection) connection;
                         localConnection.setServer(this);
-                        localConnection.setInboundMessageQueue(inQueue);
 
                         new Thread(localConnection).start();
                     }
@@ -417,7 +416,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             {
                 ss.close();
                 if (strSocketName == null)
-                    ss = new NetStringServerSocket(port, this, inQueue);
+                    ss = new NetStringServerSocket(port, this);
                 else
                     ss = new LocalStringServerSocket(strSocketName);
             }
