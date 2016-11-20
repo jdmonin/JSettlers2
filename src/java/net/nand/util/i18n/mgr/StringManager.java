@@ -85,7 +85,7 @@ public class StringManager
      * Get and format a localized string (with parameters) with the given key.
      * @param key  Key to use for string retrieval
      * @param arguments  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
-     *                   by calling {@link MessageFormat#format(String, Object...)}. 
+     *                   by calling {@link MessageFormat#format(String, Object...)}.
      * @return the localized formatted string from the manager's bundle or one of its parents
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      */
