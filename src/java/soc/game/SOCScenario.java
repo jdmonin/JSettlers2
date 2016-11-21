@@ -40,6 +40,8 @@ import soc.message.SOCMessage;
  * Scenarios use {@link SOCGameOption}s to change the game to the scenario's concept.
  * Each scenario's {@link #scOpts} field gives the scenario's option names and values.
  * The game also knows its scenario by setting {@link SOCGameOption} "SC" = {@link SOCVersionedItem#key key}.
+ * Some scenarios restrict initial placement (see "land areas" in {@link SOCBoardLarge} class javadoc)
+ * or have special winning conditions (see {@link SOCGame#checkForWinner()}).
  *<P>
  * Scenario name keys must start with a letter and contain only ASCII uppercase
  * letters ('A' through 'Z'), underscore ('_'), and digits ('0' through '9'), in order to normalize
@@ -106,6 +108,7 @@ public class SOCScenario
      *   If the new scenario has a new game option just for itself, instead of a reusable one like
      *   {@link SOCGameOption#K_SC_SANY _SC_SANY}, the option name is "_" + scenario name:
      *   {@code "_SC_PIRI"} for scenario {@link #K_SC_PIRI SC_PIRI}.
+     *<LI> If your scenario has special winning conditions, see {@link SOCGame#checkForWinner()}.
      *<LI> Rarely, a scenario changes the pirate or robber behavior.  If the new scenario does this,
      *   see {@link SOCGame#canChooseMovePirate()} or {@link SOCGame#rollDice()}.
      *<LI> Not all scenarios require a game option.  {@link #K_SC_TTD SC_TTD} has only a board layout,
