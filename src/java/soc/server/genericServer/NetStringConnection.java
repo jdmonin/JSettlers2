@@ -47,6 +47,8 @@ import java.util.Vector;
  * If you add something to one class, you should probably add it to the other, or to the superclass instead.
  *<P>
  * Refactored in v1.2.0 to extend {@link StringConnection} instead of Thread.
+ *<P>
+ * Before JSettlers v2.0.00, this class was called {@code Connection}.
  */
 @SuppressWarnings("serial")
 public final class NetStringConnection
