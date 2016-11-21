@@ -153,9 +153,10 @@ class SOCSpecialItemDialog
             final int pn = pi.getClientPlayerNumber();
             cliPlayer = (pn != -1) ? ga.getPlayer(pn) : null;
         }
+
         didSetLocation = false;
 
-        final JLabel prompt = new JLabel(strings.get("dialog.specitem._SC_WOND.prompt"));  // "Please choose a Wonder to build."
+        final JLabel prompt = new JLabel(strings.get("dialog.specitem._SC_WOND.prompt"));  // "Choose the Wonder you will build."
         prompt.setHorizontalAlignment(SwingConstants.CENTER);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(prompt, gbc);
