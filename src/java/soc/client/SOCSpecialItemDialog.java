@@ -156,11 +156,14 @@ class SOCSpecialItemDialog
 
         didSetLocation = false;
 
-        final JLabel prompt = new JLabel(strings.get("dialog.specitem._SC_WOND.prompt"));  // "Choose the Wonder you will build."
-        prompt.setHorizontalAlignment(SwingConstants.CENTER);
+        final JLabel subtitle_prompt = new JLabel
+            (strings.get("dialog.specitem._SC_WOND.subtitle"));  // "The Wonders and their Builders:"
+            // If client player doesn't have a Wonder yet, text will change below to prompt them:
+            // "dialog.specitem._SC_WOND.prompt" -- "Choose the Wonder you will build."
+        subtitle_prompt.setHorizontalAlignment(SwingConstants.CENTER);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(prompt, gbc);
-        cpane.add(prompt);
+        gbl.setConstraints(subtitle_prompt, gbc);
+        cpane.add(subtitle_prompt);
 
         JLabel L;
 
@@ -199,7 +202,10 @@ class SOCSpecialItemDialog
 
         final boolean playerOwnsWonder =
             (cliPlayer != null) && (cliPlayer.getSpecialItem(SOCGameOption.K_SC_WOND, 0) != null);
+
         final String buildStr = strings.get("base.build");
+        if ((cliPlayer != null) && ! playerOwnsWonder)
+            subtitle_prompt.setText(strings.get("dialog.specitem._SC_WOND.prompt"));  // "Choose the Wonder you will build."
 
         for (int i = 0; i < numWonders; ++i)
         {
