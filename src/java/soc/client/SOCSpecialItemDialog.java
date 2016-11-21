@@ -314,7 +314,8 @@ class SOCSpecialItemDialog
                 if (owner != null)
                     sb.append(" - ");
 
-                sb.append(strings.get("dialog.specitem._SC_WOND.current_level", itm.getLevel()));  // "Current Level: {0}"
+                sb.append(strings.get
+                    ("dialog.specitem._SC_WOND.current_level", itm.getLevel(), SOCSpecialItem.SC_WOND_WIN_LEVEL));  // "Current Level: {0} of {1}"
             }
 
             L = new JLabel(sb.toString());

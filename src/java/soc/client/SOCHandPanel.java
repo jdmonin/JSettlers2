@@ -3102,8 +3102,9 @@ public class SOCHandPanel extends Panel
                         }
                     }
                     wonderLab.setText(strings.get("hpan.wonderlevel", pLevel));  // "Wonder Level: #"
-                    wonderLab.setToolTipText(strings.get("hpan.wonderlevel.tip", pLevel, ofWonder));
-                        // "Built # levels of the Monument"
+                    wonderLab.setToolTipText
+                        (strings.get("hpan.wonderlevel.tip", pLevel, SOCSpecialItem.SC_WOND_WIN_LEVEL, ofWonder));
+                        // "Built # of # levels of the Monument"
                 }
             }
             break;

@@ -227,6 +227,7 @@ public class SOCScenario
                  + "must complete your Wonder's 4 levels, or reach 10 VP and complete "
                  + "more levels than any other player.",
                  "_SC_WOND=t,SBL=t,VP=t10,_SC_SANY=t"));  // win condition: Complete Wonder, or 10 VP _and_ built the most levels
+            // The "all 4 levels" win condition is also stored in SOCSpecialItem.SC_WOND_WIN_LEVEL.
 
         return allSc;
 
@@ -335,6 +336,7 @@ public class SOCScenario
      * {@link SOCPlayer#setSpecialItem(String, int, SOCSpecialItem) pl.setSpecialItem("_SC_WOND", 0, item)}.
      *<P>
      * The player's request to build must use player item index (pi) 0, game item index (gi) 1 to <em>n</em>.
+     * Completing all 4 levels of a Wonder ({@link SOCSpecialItem#SC_WOND_WIN_LEVEL}) wins the game.
      */
     public static final String K_SC_WOND = "SC_WOND";
 
