@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -218,9 +218,9 @@ public class SOCScenario
         allSc.put(K_SC_WOND, new SOCScenario
                 (K_SC_WOND, 2000, 2000,
                  "Wonders",
-                 "Each player must choose a unique Wonder and build all 4 of its levels. "
-                 + "Each Wonder has its own requirements before you may start it, "
-                 + "such as a port at a location or the number of cities built. To win, you "
+                 "Each player chooses a unique Wonder and can build all 4 of its levels. "
+                 + "Each Wonder has its own requirements before you may start it, such as "
+                 + "several cities built or a port at a certain location. To win you "
                  + "must complete your Wonder's 4 levels, or reach 10 VP and complete "
                  + "more levels than any other player.",
                  "_SC_WOND=t,SBL=t,VP=t10,_SC_SANY=t"));  // win condition: Complete Wonder, or 10 VP _and_ built the most levels
@@ -305,13 +305,13 @@ public class SOCScenario
      * Main option is {@link SOCGameOption#K_SC_WOND "_SC_WOND"}.
      * The pirate ship is not used in this scenario.
      *<P>
-     * Players must choose a unique Wonder and build all 4 of its levels.
+     * Players choose a unique Wonder and can build all 4 of its levels.
      * Each Wonder has its own requirements before they may start it,
-     * such as a harbor location or number of cities built.
+     * such as several cities built or a port at a certain location.
      *<P>
-     * When a player starts to build a wonder, it's added to their Special Items for visibility; see below.
+     * When a player starts to build a Wonder, it's added to their Special Items for visibility; see below.
      *<P>
-     * To win, the player must complete their Wonder's 4 levels, or reach 10 VP and
+     * To win the player must complete their Wonder's 4 levels, or reach 10 VP and
      * complete more levels than any other player.
      *<P>
      * Certain sets of nodes are special in this scenario's board layout.
