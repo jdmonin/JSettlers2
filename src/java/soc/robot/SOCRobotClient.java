@@ -70,6 +70,14 @@ import java.util.Vector;
  * responds with {@link SOCJoinGameAuth JOINGAMEAUTH}. That message handler creates
  * a {@link SOCRobotBrain} to play the game it is joining.
  *
+ *<H4>Debugging</H4>
+ * Several bot debug messages are available by sending text messages from other players
+ * with certain keywords. See {@link #handleGAMETEXTMSG_debug(SOCGameTextMsg)} for details.
+ *
+ *<H4>I18N</H4>
+ * The bot ignores the contents of all {@link SOCGameServerText} messages and has no locale.
+ * If debug commands are used, the results are sent in English.
+ *
  * @author Robert S Thomas
  */
 public class SOCRobotClient extends SOCDisplaylessPlayerClient
@@ -328,7 +336,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
     /**
      * Treat the incoming messages.
-     * Messages of unknown type are ignored
+     * Messages of unknown type are ignored. All {@link SOCGameServerText} are ignored.
      * ({@code mes} will be null from {@link SOCMessage#toMsg(String)}).
      *<P>
      *<B>Note:</B> Currently, does not call {@link SOCDisplaylessPlayerClient#treat(SOCMessage)}.
@@ -788,7 +796,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * Added 2013-09-05 for v2.0.00.
              */
             case SOCMessage.GAMESERVERTEXT:
-                break;  // this message type is ignored by bots
+                break;  // SOCGameServerText contents are ignored by bots
 
             /**
              * All players' dice roll result resources.

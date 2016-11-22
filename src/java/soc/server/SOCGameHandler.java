@@ -80,9 +80,9 @@ import soc.message.SOCDiscardRequest;
 import soc.message.SOCDiscoveryPick;
 import soc.message.SOCFirstPlayer;
 import soc.message.SOCGameMembers;
+import soc.message.SOCGameServerText;
 import soc.message.SOCGameState;
 import soc.message.SOCGameStats;
-import soc.message.SOCGameTextMsg;
 import soc.message.SOCInventoryItemAction;
 import soc.message.SOCJoinGame;
 import soc.message.SOCJoinGameAuth;
@@ -1333,7 +1333,7 @@ public class SOCGameHandler extends GameHandler
             D.ebugPrintln("*** " + c.getData() + " joined the game " + gameName + " at "
                 + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
 
-        //messageToGame(gameName, new SOCGameTextMsg(gameName, SERVERNAME, n+" joined the game"));
+        //messageToGame(gameName, new SOCGameServerText(gameName, SERVERNAME, n+" joined the game"));
         /**
          * Let everyone else know about the change
          */
@@ -2341,7 +2341,7 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * report a trade that has taken place between players, using {@link SOCPlayerElement}
-     * and {@link SOCGameTextMsg} messages.  Trades are also reported to robots
+     * and {@link SOCGameServerText} messages.  Trades are also reported to robots
      * by re-sending the accepting player's {@link SOCAcceptOffer} message.
      *
      * @param ga        the game
@@ -2366,7 +2366,7 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * report that the current player traded with the bank or a port,
-     * using {@link SOCPlayerElement} and {@link SOCGameTextMsg} messages.
+     * using {@link SOCPlayerElement} and {@link SOCGameServerText} messages.
      *
      * @param ga        the game
      * @param give      the number of the player making the offer

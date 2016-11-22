@@ -3722,8 +3722,9 @@ public class SOCPlayerClient
     }
 
     /**
-     * handle a text message
+     * handle a text message received in a channel
      * @param mes  the message
+     * @see #handleGAMETEXTMSG(SOCGameTextMsg)
      */
     protected void handleTEXTMSG(SOCTextMsg mes)
     {
@@ -3918,6 +3919,8 @@ public class SOCPlayerClient
      * which has less activity, so they are harder to miss.
      *
      * @param mes  the message
+     * @see #handleGAMESERVERTEXT(SOCGameServerText)
+     * @see #handleTEXTMSG(SOCTextMsg)
      */
     protected void handleGAMETEXTMSG(SOCGameTextMsg mes)
     {
@@ -5183,6 +5186,7 @@ public class SOCPlayerClient
 
     /**
      * Handle game server text and announcements.
+     * @see #handleGAMETEXTMSG(SOCGameTextMsg)
      * @since 2.0.00
      */
     protected void handleGAMESERVERTEXT(SOCGameServerText mes)
