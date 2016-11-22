@@ -1,7 +1,8 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.util;
 
@@ -24,18 +25,19 @@ import java.util.Vector;
 
 
 /**
- * This queue has a size limit
+ * Synchronized queue with a size limit, set in the constructor.
+ * Once the limit is reached, further {@link #put(Object)} calls throw {@link CutoffExceededException}.
  */
 public class CappedQueue<T>
 {
-    // Internal storage for the queue'd objects
+    /** Internal storage for the queue'd objects */
     private Vector<T> vec = new Vector<T>();
 
-    // The max size for this queue
-    private int sizeLimit;
+    /** The max size for this queue */
+    private final int sizeLimit;
 
     /**
-     * constructor
+     * constructor with default size limit (2000).
      */
     public CappedQueue()
     {
@@ -53,11 +55,12 @@ public class CappedQueue<T>
     }
 
     /**
-     * DOCUMENT ME!
+     * Add an item to the end of the queue.
      *
-     * @param o DOCUMENT ME!
+     * @param o Object to add
      *
-     * @throws CutoffExceededException DOCUMENT ME!
+     * @throws CutoffExceededException if queue's new size (including the put object)
+     *     exceeds the limit given to its constructor
      */
     synchronized public void put(T o) throws CutoffExceededException
     {
