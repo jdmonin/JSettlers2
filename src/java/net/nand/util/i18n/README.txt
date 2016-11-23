@@ -53,6 +53,7 @@ ISO-8859-1 encoding (with unicode escapes) automatically.
 
 Keys can be added by right-clicking a blank line.
 Ctrl-F finds text in the source and destination files.
+Ctrl-S saves any unsaved changes to the source and destination.
 Click the main window's Help button for more info.
 
 When starting the editor this message is harmless, because preferences are stored per-user:

@@ -81,7 +81,7 @@ import net.nand.util.i18n.mgr.StringManager;
  * Property file editor for translators (side-by-side source and destination languages).
  * Presents the source and destination language keys and values.
  * Highlights values that still need to be translated into the destination.
- * Saves in the ISO-8859-1 encoding required for .properties files, escaping unicode characters where needed.
+ * Saves using the ISO-8859-1 encoding required for .properties files, escaping unicode characters where needed.
  *<P>
  * The main startup class for this package is {@link PTEMain}, which has buttons for New, Open, About, etc.
  *<P>
@@ -89,6 +89,7 @@ import net.nand.util.i18n.mgr.StringManager;
  *<UL>
  * <LI> Can only change string values, not key names
  * <LI> Can't delete or move lines in the files
+ * <LI> To test this editor's own localization in other locales, you must change your system default locale
  * <LI> Search the source for {@code TODO} for other minor items
  *</UL>
  * There are other properties editors out there, I wanted to see what writing one would be like.
@@ -437,6 +438,7 @@ public class PropertiesTranslatorEditor
         opan.add(sPan, BorderLayout.SOUTH);
 
         // Keyboard shortcut setup
+        // Consider adding new shortcuts to Help dialog (editor.help.text) and README.txt "Using this Editor" section.
         {
             final InputMap im = opan.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
             final ActionMap am = opan.getActionMap();
