@@ -419,7 +419,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             // we still need to process mes.
         }
 
-        D.ebugPrintln("IN - " + mes);
+        if (D.ebugIsEnabled())
+            D.ebugPrintln("IN - " + mes);
 
         try
         {
@@ -882,6 +883,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 e.printStackTrace();
             }
             System.err.println("-- end stacktrace --");
+            System.out.println("  For message: " + mes);
         }
     }
 

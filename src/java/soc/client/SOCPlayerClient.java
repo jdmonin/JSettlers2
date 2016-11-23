@@ -3268,7 +3268,7 @@ public class SOCPlayerClient
                 break;
 
             /**
-             * a player (or us) is requesting a board reset: we must vote
+             * another player is requesting a board reset: we must vote
              */
             case SOCMessage.RESETBOARDVOTEREQUEST:
                 handleRESETBOARDVOTEREQUEST((SOCResetBoardVoteRequest) mes);
@@ -3451,6 +3451,7 @@ public class SOCPlayerClient
         {
             System.out.println("SOCPlayerClient treat ERROR - " + e.getMessage());
             e.printStackTrace();
+            System.out.println("  For message: " + mes);
         }
 
     }  // treat

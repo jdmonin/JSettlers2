@@ -322,7 +322,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (mes == null)
             return;  // Msg parsing error
 
-        D.ebugPrintln(mes.toString());
+        if (D.ebugIsEnabled())
+            D.ebugPrintln(mes.toString());
 
         try
         {
@@ -814,6 +815,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         {
             System.out.println("SOCDisplaylessPlayerClient treat ERROR - " + e.getMessage());
             e.printStackTrace();
+            System.out.println("  For message: " + mes);
         }
     }
 
