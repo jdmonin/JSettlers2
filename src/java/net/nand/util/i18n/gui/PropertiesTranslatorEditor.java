@@ -450,6 +450,14 @@ public class PropertiesTranslatorEditor
             {
                 public void actionPerformed(ActionEvent arg0) { doSearchHotkey(); }
             });
+
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK), "saveboth");  // TODO i18n VK_S ?
+            if (mask != InputEvent.CTRL_DOWN_MASK)
+                im.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, mask), "saveboth");  // Cmd-S on OSX
+            am.put("saveboth", new AbstractAction()
+            {
+                public void actionPerformed(ActionEvent arg0) { saveChangesToAny(); }
+            });
         }
 
         // show it
@@ -617,7 +625,10 @@ public class PropertiesTranslatorEditor
         return pair.unsavedDest || pair.unsavedSrc;
     }
 
-    /** Save any unsaved changes to the destination and/or source properties files. */
+    /**
+     * Save any unsaved changes to the destination and/or source properties files.
+     * Equivalent to hitting both the Save Dest and Save Src buttons if each is enabled.
+     */
     public void saveChangesToAny()
     {
         if (pair.unsavedDest)
