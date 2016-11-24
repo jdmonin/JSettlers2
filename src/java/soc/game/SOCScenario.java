@@ -205,7 +205,7 @@ public class SOCScenario
              + "the player upgrades their ships to warships.  To win, you must build ships directly to the Fortress "
              + "with your color, which the pirates have captured from you, and defeat it 3 times using warships.  "
              + "So, ship routes can't branch in different directions, only extend from their ends.  "
-             + "No robber or largest army.",
+             + "No robber or largest army.  When 7 is rolled, any pirate fleet attack happens before the usual discards.",
              "_SC_PIRI=t,SBL=t,VP=t10,_SC_0RVP=t"));  // win condition: 10 VP _and_ defeat a pirate fortress
 
         allSc.put(K_SC_FTRI, new SOCScenario
