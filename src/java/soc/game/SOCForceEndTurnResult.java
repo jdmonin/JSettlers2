@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008,2010,2012-2013,2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008,2010,2012-2013,2015-2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -96,7 +96,10 @@ public class SOCForceEndTurnResult
      */
     public static final int FORCE_ENDTURN_RSRC_RET_UNPLACE  = 5;
 
-    /** Robber movement has been cancelled. Call {@link #getReturnedInvItem()} to see if a Knight card was returned. */
+    /**
+     * Robber movement or pirate ship movement has been cancelled.
+     * Call {@link #getReturnedInvItem()} to see if a Knight card was returned.
+     */
     public static final int FORCE_ENDTURN_UNPLACE_ROBBER    = 6;
 
     /**

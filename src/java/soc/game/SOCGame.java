@@ -4454,6 +4454,7 @@ public class SOCGame implements Serializable, Cloneable
                     (SOCForceEndTurnResult.FORCE_ENDTURN_NONE);
 
         case PLACING_ROBBER:
+        case PLACING_PIRATE:
             {
                 boolean isFromDevCard = placingRobberForKnightCard;
                 gameState = PLAY1;
