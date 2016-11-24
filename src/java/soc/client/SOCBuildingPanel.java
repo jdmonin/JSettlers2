@@ -525,7 +525,8 @@ public class SOCBuildingPanel extends Panel
             if (hasLargeBoard)
             {
                 // Large Board: 1 line, no label
-                sbPanel.setSize(dim.width - curX - margin, rowSpaceH + lineH);
+                // Leaves room for right-hand column of buttons
+                sbPanel.setSize(dim.width - curX - (2 * (butW + margin)), rowSpaceH + lineH);
                 sbPanel.setLocation(curX, curY - (rowSpaceH / 2));
             } else {
                 // Standard board: 2 lines, label and button
@@ -608,7 +609,10 @@ public class SOCBuildingPanel extends Panel
 
         curX = dim.width - (2 * butW) - margin;
         gameInfoBut.setSize(butW * 2, lineH);
-        gameInfoBut.setLocation(curX, curY);
+        if ((maxPlayers <= 4) && ! hasLargeBoard)
+            gameInfoBut.setLocation(curX, 1 + (rowSpaceH + lineH)); // move up to row 2; row 3 will have VP to Win
+        else
+            gameInfoBut.setLocation(curX, curY);
         statsBut.setSize(butW * 2, lineH);
         if (hasLargeBoard)
             statsBut.setLocation(curX, 1 + (2 * (rowSpaceH + lineH)));
@@ -623,21 +627,20 @@ public class SOCBuildingPanel extends Panel
 
             if (hasLargeBoard)
             {
-                // bottom-right corner of panel, left of Game Info
-                curX -= (ColorSquare.WIDTH + (2*margin));
+                // right-hand side of panel, above Game Stats
+                curY = rowSpaceH + lineH;
+                curX = dim.width - ColorSquare.WIDTH - margin;
                 vpToWin.setLocation(curX, curY);
 
-                curX -= (vpLabW + (2*margin));
+                curX -= vpLabW + (2*margin);
                 vpToWinLab.setLocation(curX, curY);
                 vpToWinLab.setSize(vpLabW + margin, lineH);
             } else {
-                // upper-right corner of panel
-                //    If 6-player, shift left to make room for Game Stats button
-                //    (which is moved up to make room for Special Building button)
                 if (maxPlayers <= 4)
                 {
-                    // 4-player: row 2, align from right; not enough room on row 1 with Game Stats button
-                    curY = 1 + (rowSpaceH + lineH);
+                    // 4-player: row 3, align from right, below Game Info;
+                    // not enough room on row 1 with Game Stats button
+                    curY = 1 + 2 * (rowSpaceH + lineH);
 
                     curX = dim.width - ColorSquare.WIDTH - margin;
                     vpToWin.setLocation(curX, curY);
@@ -645,7 +648,9 @@ public class SOCBuildingPanel extends Panel
                     curX -= (vpLabW + (2*margin));
                     vpToWinLab.setLocation(curX, curY);
                 } else {
-                    // 6-player: row 1, align from left if possible, above "special building" button's wide panel
+                    // 6-player: row 1, upper-right corner of panel; shift left to make room
+                    // for Game Stats button (which is moved up to make room for Special Building button).
+                    // Align from left if possible, above Special Building button's wide panel
                     curY = 1;
                     curX = buttonMargin + butW + margin + (costW + margin) + (4 * (ColorSquare.WIDTH + 2));
                     final int statsButX = statsBut.getX();
