@@ -345,11 +345,13 @@ public class SOCBuildingPanel extends Panel
         {
             // Special Building Phase button for 6-player game
             sbIsHilight = false;
-            sbPanel = new Panel(null) {
-                /** Custom layout for this Panel, with label/button centered on 1 line or 2 lines based on their text widths.
+            sbPanel = new Panel(null)
+            {
+                /** Custom layout for this Panel, with button and optional label centered on their own lines.
                  *  Line height is {@link ColorSquare#HEIGHT}, the same used in {@link SOCBuildingPanel#doLayout()}.
                  */
-                public void doLayout() {
+                public void doLayout()
+                {
                     final Dimension dim = getSize();
                     final FontMetrics fm = this.getFontMetrics(this.getFont());
                     if ((dim.height == 0) || (sbBut == null) || (fm == null))
@@ -363,7 +365,6 @@ public class SOCBuildingPanel extends Panel
                     if (lineH == 0)
                         lineH = ColorSquare.HEIGHT;
 
-                    final int lblW = (sbLab != null) ? fm.stringWidth(sbLab.getText()) : 0;
                     int btnW = sbBut.getPreferredSize().width;
                     final int btnTxtW = 8 + sbBut.getFontMetrics(sbBut.getFont()).stringWidth(sbBut.getLabel());
                     if (btnTxtW > btnW)
@@ -371,28 +372,18 @@ public class SOCBuildingPanel extends Panel
                     if (btnW > dim.width)
                         btnW = dim.width;
 
-                    final int bothW = (lblW + btnW + 4 + 2 + 2);
-                    if ((sbLab == null) || (bothW <= dim.width))
+                    if (sbLab == null)
                     {
-                        // layout on 1 line
-                        int x;
+                        // button only: layout on 1 line
+                        int x = (dim.width - btnW) / 2;
                         int y = (dim.height - lineH) / 2 - 1;
-                        if (sbLab != null)
-                        {
-                            x = (dim.width - bothW) / 2;
-                            sbLab.setLocation(x, y);
-                            sbLab.setSize(lblW, lineH);
-                            x += lblW + 4;
-                        } else {
-                            x = (dim.width - btnW) / 2;
-                        }
                         sbBut.setLocation(x, y);
                         sbBut.setSize(btnW, lineH);
                     } else {
                         // layout on 2 lines; y == line height == half of panel height, then adjust for padding
                         int y = (dim.height / 2) - 1;
                         sbLab.setLocation(0, 0);
-                        sbLab.setSize(dim.width, y);
+                        sbLab.setSize(dim.width, y);  // text is centered within label width
                         sbBut.setLocation((dim.width - btnW) / 2, y);
                         sbBut.setSize(btnW, y);
                     }
