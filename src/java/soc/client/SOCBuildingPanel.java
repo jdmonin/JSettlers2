@@ -122,6 +122,7 @@ public class SOCBuildingPanel extends Panel
     /** For 6-player board: request Special Building Phase.
      *  Given variable custom layout in v2.0.00 for i18n. Contains {@link #sbLab} and {@link #sbBut}
      *  centered on 1 line or 2 lines based on their text widths.
+     *  (Large Board omits {@code sbLab}.)
      *  @since 1.1.08
      */
     private Panel sbPanel;
@@ -374,16 +375,16 @@ public class SOCBuildingPanel extends Panel
                     if ((sbLab == null) || (bothW <= dim.width))
                     {
                         // layout on 1 line
-                        int y = (dim.height - lineH) / 2;
-                        int x = (dim.width - bothW) / 2;
+                        int x;
+                        int y = (dim.height - lineH) / 2 - 1;
                         if (sbLab != null)
                         {
+                            x = (dim.width - bothW) / 2;
                             sbLab.setLocation(x, y);
                             sbLab.setSize(lblW, lineH);
                             x += lblW + 4;
                         } else {
-                            x += 2;
-                            ++y;
+                            x = (dim.width - btnW) / 2;
                         }
                         sbBut.setLocation(x, y);
                         sbBut.setSize(btnW, lineH);
@@ -400,7 +401,7 @@ public class SOCBuildingPanel extends Panel
             sbPanel.setBackground(ColorSquare.GREY);
             if (ga.hasSeaBoard)
             {
-                // Large board: 1 line, no label
+                // Large board: 1 line, no room for sbLab
                 sbBut = new Button(strings.get("build.special.build"));  // "Special Build"
             } else {
                 // Standard board: 2 lines, label and button
@@ -632,7 +633,7 @@ public class SOCBuildingPanel extends Panel
                 curX = dim.width - ColorSquare.WIDTH - margin;
                 vpToWin.setLocation(curX, curY);
 
-                curX -= vpLabW + (2*margin);
+                curX -= (vpLabW + (2*margin));
                 vpToWinLab.setLocation(curX, curY);
                 vpToWinLab.setSize(vpLabW + margin, lineH);
             } else {
@@ -640,8 +641,7 @@ public class SOCBuildingPanel extends Panel
                 {
                     // 4-player: row 3, align from right, below Game Info;
                     // not enough room on row 1 with Game Stats button
-                    curY = 1 + 2 * (rowSpaceH + lineH);
-
+                    curY = 1 + (2 * (rowSpaceH + lineH));
                     curX = dim.width - ColorSquare.WIDTH - margin;
                     vpToWin.setLocation(curX, curY);
 
