@@ -209,25 +209,25 @@ public class SOCScenario
              "_SC_PIRI=t,SBL=t,VP=t10,_SC_0RVP=t"));  // win condition: 10 VP _and_ defeat a pirate fortress
 
         allSc.put(K_SC_FTRI, new SOCScenario
-                (K_SC_FTRI, 2000, 2000,
-                 "The Forgotten Tribe",
-                 "Far areas of the board have small habitations of a \"forgotten tribe\" of settlers. "
-                 + "When players reach them they are greeted with \"gifts\" of a development card or Special Victory Point. "
-                 + "Ports at these far areas can be claimed by players and must be moved adjacent to one "
-                 + "of their coastal settlements/cities if possible, or set aside for the "
-                 + "player to place later when they can.",
-                 "_SC_FTRI=t,SBL=t,VP=t13"));
+            (K_SC_FTRI, 2000, 2000,
+             "The Forgotten Tribe",
+             "Far areas of the board have small habitations of a \"forgotten tribe\" of settlers. "
+             + "When players reach them they are greeted with \"gifts\" of a development card or Special Victory Point. "
+             + "Ports at these far areas can be claimed by players and must be moved adjacent to one "
+             + "of their coastal settlements/cities if possible, or set aside for the "
+             + "player to place later when they can.",
+             "_SC_FTRI=t,SBL=t,VP=t13"));
 
         allSc.put(K_SC_WOND, new SOCScenario
-                (K_SC_WOND, 2000, 2000,
-                 "Wonders",
-                 "Each player chooses a unique Wonder and can build all 4 of its levels. "
-                 + "Each Wonder has its own requirements before you may start it, such as "
-                 + "several cities built or a port at a certain location. To win you "
-                 + "must complete your Wonder's 4 levels, or reach 10 VP and complete "
-                 + "more levels than any other player.",
-                 "_SC_WOND=t,SBL=t,VP=t10,_SC_SANY=t"));  // win condition: Complete Wonder, or 10 VP _and_ built the most levels
-            // The "all 4 levels" win condition is also stored in SOCSpecialItem.SC_WOND_WIN_LEVEL.
+            (K_SC_WOND, 2000, 2000,
+             "Wonders",
+             "Each player chooses a unique Wonder and can build all 4 of its levels. "
+             + "Each Wonder has its own requirements before you may start it, such as "
+             + "several cities built or a port at a certain location. To win you "
+             + "must complete your Wonder's 4 levels, or reach 10 VP and complete "
+             + "more levels than any other player.",
+             "_SC_WOND=t,SBL=t,VP=t10,_SC_SANY=t"));  // win condition: Complete Wonder, or 10 VP _and_ built the most levels
+                // The "all 4 levels" win condition is also stored in SOCSpecialItem.SC_WOND_WIN_LEVEL.
 
         return allSc;
 
@@ -278,6 +278,9 @@ public class SOCScenario
      * the player must build ships directly to the Fortress with their color, and defeat it several
      * times using warships.  Also, ship routes can't branch in different directions in this scenario,
      * only extend from their ends.
+     *<P>
+     * The pirate fleet moves with every dice roll. When a 7 is rolled, the fleet moves and any
+     * battle is resolved before the usual discards.
      */
     public static final String K_SC_PIRI = "SC_PIRI";
 
