@@ -1016,6 +1016,7 @@ public class PropertiesTranslatorEditor
             {
                 etext = JOptionPane.showInputDialog
                     (jfra, strings.get("dialog.edit.key", (String) mod.getValueAt(row, 0)), etext);  // "Edit key: {0}"
+                // TODO any validation of key chars?
             } else {
                 final boolean isComment = mod.isRowComment(row);
 
@@ -1038,7 +1039,8 @@ public class PropertiesTranslatorEditor
 
                     if ((! isComment) && (etext.indexOf('\n') != -1))
                     {
-                        // TODO what if a multi-line comment is created
+                        // TODO any validation of comment chars? Ensure still starts with #, etc?
+                        // TODO what if a multi-line comment is created by pasting text?
                         etext = etext.replace("\n", "\\n");
                     }
 
@@ -1072,6 +1074,8 @@ public class PropertiesTranslatorEditor
      * >http://stackoverflow.com/questions/6251665/setting-component-focus-in-joptionpane-showoptiondialog</A> :
      *<UL>
      * <LI> Class javadoc for background and context
+     * <LI> Put JTextComponent cursor at end, not start, of JTextArea
+     * <LI> Prevent JTextField default select-all
      * <LI> SwingUtilities.invokeLater -> EventQueue.invokeLater
      * <LI> Declare final al = this -> use RequestFocusListener.this
      *</UL>
@@ -1087,6 +1091,17 @@ public class PropertiesTranslatorEditor
                     final JComponent component = (JComponent) e.getComponent();
                     component.requestFocusInWindow();
                     component.removeAncestorListener(RequestFocusListener.this);
+                    if (component instanceof JTextComponent)
+                        // put cursor at end, not start
+                        EventQueue.invokeLater(new Runnable()
+                        {
+                            public void run()
+                            {
+                                final JTextComponent tc = (JTextComponent) component;
+                                tc.setSelectionEnd(0);  // prevent default select-all seen in JTextField
+                                tc.setCaretPosition(tc.getDocument().getLength());
+                            }
+                        });
                 }
             });
         }
