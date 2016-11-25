@@ -1,6 +1,7 @@
 /*
  * nand.net i18n utilities for Java: Property file editor for translators (side-by-side source and destination languages).
  * This file Copyright (C) 2013-2014,2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2011 Jim Morris: RequestFocusListener (CC BY-SA 3.0)
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,6 +23,7 @@ package net.nand.util.i18n.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.EventQueue;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.TextComponent;
@@ -65,6 +67,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
@@ -1018,11 +1022,12 @@ public class PropertiesTranslatorEditor
                 if ((! isComment) && (etext.indexOf("\\n") != -1))
                     etext = etext.replace("\\n", "\n");  // for easier editing, replace all "\n" with actual newlines
 
-                JTextComponent jtc;
+                final JTextComponent jtc;
                 if (isComment)
                     jtc = new JTextField(etext, 50);
                 else
                     jtc = new JTextArea(etext, 7, 50);
+                jtc.addAncestorListener(new RequestFocusListener());
 
                 int ret = JOptionPane.showConfirmDialog
                     (jfra, new JScrollPane(jtc), strings.get("dialog.edit.new_text"),  // "Enter the new text"
@@ -1048,6 +1053,46 @@ public class PropertiesTranslatorEditor
 
             mod.setValueAt(etext, row, col);
         }
+    }
+
+    /**
+     * Utility to give a component field the input focus when used in {@link JOptionPane}.showConfirmDialog.
+     *<H5>Usage:</H5>
+     * <tt> textfield.addAncestorListener(new RequestFocusListener()); </tt>
+     *<P>
+     * Needed because by default the OK button has focus, but user wants to type something.
+     * Overriding {@code addNotify()} to {@code requestFocus()} doesn't work:
+     * Swing setup is asynchronous and the button requests focus afterwards per
+     * <A href="http://bugs.java.com/bugdatabase/view_bug.do?bug_id=5018574"
+     * >Bug JDK-5018574: Unable to set focus to another component in JOptionPane</A>
+     * (as seen 2016-11-25). Tested on OSX Java 1.5 to work with JTextField and JTextArea.
+     *<P>
+     * Adapted from Jim Morris' 2011-07-14 answer (licensed CC BY-SA 3.0) to
+     * <A href="http://stackoverflow.com/questions/6251665/setting-component-focus-in-joptionpane-showoptiondialog"
+     * >http://stackoverflow.com/questions/6251665/setting-component-focus-in-joptionpane-showoptiondialog</A> :
+     *<UL>
+     * <LI> Class javadoc for background and context
+     * <LI> SwingUtilities.invokeLater -> EventQueue.invokeLater
+     * <LI> Declare final al = this -> use RequestFocusListener.this
+     *</UL>
+     */
+    public static class RequestFocusListener implements AncestorListener
+    {
+        public void ancestorAdded(final AncestorEvent e)
+        {
+            EventQueue.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    final JComponent component = (JComponent) e.getComponent();
+                    component.requestFocusInWindow();
+                    component.removeAncestorListener(RequestFocusListener.this);
+                }
+            });
+        }
+
+        public void ancestorMoved(AncestorEvent e) {}
+        public void ancestorRemoved(AncestorEvent e) {}
     }
 
     /**
