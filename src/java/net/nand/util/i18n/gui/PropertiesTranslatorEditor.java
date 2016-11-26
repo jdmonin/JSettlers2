@@ -1014,8 +1014,11 @@ public class PropertiesTranslatorEditor
 
             if (col == 0)
             {
-                etext = JOptionPane.showInputDialog
-                    (jfra, strings.get("dialog.edit.key", (String) mod.getValueAt(row, 0)), etext);  // "Edit key: {0}"
+                final String prompt = strings.get("dialog.edit.key", (String) mod.getValueAt(row, 0));  // "Edit key: {0}"
+                etext = (String) JOptionPane.showInputDialog
+                    (jfra, (Object) prompt, prompt, JOptionPane.PLAIN_MESSAGE, null, (Object[]) null, etext);
+                    // - Null icon with QUESTION_MESSAGE shows an icon
+                    // - Null icon with PLAIN_MESSAGE shows no icon
                 // TODO any validation of key chars?
             } else {
                 final boolean isComment = mod.isRowComment(row);
