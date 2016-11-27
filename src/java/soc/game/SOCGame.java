@@ -290,7 +290,14 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Player is placing the robber on a new land hex.
      * May follow state {@link #WAITING_FOR_ROBBER_OR_PIRATE} if the game {@link #hasSeaBoard}.
-     * Next game state may be {@link #WAITING_FOR_ROB_CHOOSE_PLAYER} if multiple possible victims.
+     *<P>
+     * Possible next game states:
+     *<UL>
+     * <LI> {@link #PLAY1}, after robbing no one or the single possible victim
+     * <LI> {@link #WAITING_FOR_ROB_CHOOSE_PLAYER} if multiple possible victims
+     * <LI> In scenario {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}
+     *   if the victim has cloth and has resources
+     *</UL>
      * @see #PLACING_PIRATE
      * @see #canMoveRobber(int, int)
      * @see #moveRobber(int, int)
@@ -301,9 +308,7 @@ public class SOCGame implements Serializable, Cloneable
      * Player is placing the pirate ship on a new water hex,
      * in a game which {@link #hasSeaBoard}.
      * May follow state {@link #WAITING_FOR_ROBBER_OR_PIRATE}.
-     * Next game state may be {@link #WAITING_FOR_ROB_CHOOSE_PLAYER} if multiple possible victims.
-     * In scenario {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, next may be {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}.
-     * @see #PLACING_ROBBER
+     * Has the same possible next game states as {@link #PLACING_ROBBER}.
      * @see #canMovePirate(int, int)
      * @see #movePirate(int, int)
      * @since 2.0.00
