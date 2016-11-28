@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2012,2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2012,2014,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,24 +26,26 @@ import java.util.StringTokenizer;
 /**
  * This message from client to server has a few purposes, all related to robbing:
  *<UL>
- *<LI> After a server's {@link SOCChoosePlayerRequest},
+ *<LI> In response to a server's {@link SOCChoosePlayerRequest},
  *     it says which player the current player wants to
  *     steal from.
  *     <P>
  *     In some game scenarios in version 2.0.00 or newer,
  *     the player might have the option to steal from no one.
  *     If the player makes that choice, {@link #getChoice()} is {@link #CHOICE_NO_PLAYER}.
- *<LI> After a server's {@link SOCGameState}
+ *<LI> In response to a server's {@link SOCGameState}
  *     ({@link soc.game.SOCGame#WAITING_FOR_ROBBER_OR_PIRATE WAITING_FOR_ROBBER_OR_PIRATE}) message,
  *     it says whether the player wants to move the robber
  *     or the pirate ship. (v2.0.00+)
- *<LI> After a server's {@link SOCChoosePlayer} message, it says whether the player wants to
+ *<LI> In response to a server's {@link SOCChoosePlayer} message, it says whether the player wants to
  *     rob cloth or rob a resource from the victim. (v2.0.00+)
  *</UL>
  * {@link #getChoice()} gets the client's choice.
  *<P>
- * Also sent from server to client (v2.0.00+) to prompt the client to choose to rob
- * cloth or rob a resource from the victim; {@link #getChoice()} is the victim player number.
+ * Also sent from server to client (v2.0.00+) in game state
+ * {@link soc.game.SOCGame#WAITING_FOR_ROB_CLOTH_OR_RESOURCE WAITING_FOR_ROB_CLOTH_OR_RESOURCE}
+ * to prompt the client player to choose what to rob from the victim (cloth or a resource);
+ * {@link #getChoice()} is the victim player number.
  *
  * @author Robert S. Thomas &lt;thomas@infolab.northwestern.edu&gt;
  */

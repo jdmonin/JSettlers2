@@ -658,6 +658,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.CHOOSEPLAYER:
                 handlePutBrainQ((SOCChoosePlayer) mes);
+                break;
 
             /**
              * a player has made an offer
