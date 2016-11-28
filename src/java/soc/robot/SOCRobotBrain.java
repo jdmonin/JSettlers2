@@ -2921,9 +2921,11 @@ public class SOCRobotBrain extends Thread
     /**
      * Handle a CANCELBUILDREQUEST for this game.
      *<P>
-     *<b> During game startup</b> (START1B or START2B): <BR>
+     *<b> During game startup</b> (START1B, START2B, or START3B): <BR>
      *    When sent from server to client, CANCELBUILDREQUEST means the current
      *    player wants to undo the placement of their initial settlement.
+     *    This handler method calls {@link SOCGame#undoPutInitSettlement(SOCPlayingPiece)}
+     *    and {@link SOCPlayerTracker#setPendingInitSettlement(SOCSettlement) tracker.setPendingInitSettlement(null)}.
      *<P>
      *<b> During piece placement</b> (PLACING_ROAD, PLACING_CITY, PLACING_SETTLEMENT,
      *                         PLACING_FREE_ROAD1, or PLACING_FREE_ROAD2): <BR>
@@ -2958,7 +2960,8 @@ public class SOCRobotBrain extends Thread
             else
             {
                 //
-                // human player placed, then cancelled placement.
+                // Human player placed, then cancelled placement
+                // (assume mes.getPieceType() == SOCPlayingPiece.SETTLEMENT).
                 // Our robot wouldn't do that, and if it's ourTurn,
                 // the cancel happens only if we try an illegal placement.
                 //

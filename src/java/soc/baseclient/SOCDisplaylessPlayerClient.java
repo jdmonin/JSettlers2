@@ -1656,6 +1656,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
     * - During game startup (START1B or START2B): <BR>
     *       Sent from server, CANCELBUILDREQUEST means the current player
     *       wants to undo the placement of their initial settlement.
+    *       This handler method calls <tt>{@link SOCGame#undoPutInitSettlement(SOCPlayingPiece) ga.undoPutInitSettlement}
+    *       (new SOCSettlement {@link SOCPlayer#getLastSettlementCoord() (currPlayer.getLastSettlementCoord())})</tt>.
     *<P>
     * - During piece placement (PLACING_ROAD, PLACING_CITY, PLACING_SETTLEMENT,
     *                           PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2):
