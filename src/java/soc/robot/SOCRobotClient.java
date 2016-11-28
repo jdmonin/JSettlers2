@@ -794,13 +794,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
-             * game server text and announcements (ignored).
-             * Added 2013-09-05 for v2.0.00.
-             */
-            case SOCMessage.GAMESERVERTEXT:
-                break;  // SOCGameServerText contents are ignored by bots
-
-            /**
              * All players' dice roll result resources.
              * Added 2013-09-20 for v2.0.00.
              */
@@ -871,6 +864,35 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 handlePutBrainQ((SOCSetSpecialItem) mes);
                 break;
 
+            // These message types are ignored by the robot client;
+            // don't send them to SOCDisplaylessClient.treat:
+
+            case SOCMessage.BCASTTEXTMSG:
+            case SOCMessage.CHANGEFACE:
+            case SOCMessage.CHANNELS:
+            case SOCMessage.DELETECHANNEL:
+            case SOCMessage.GAMES:
+            case SOCMessage.GAMESERVERTEXT:  // SOCGameServerText contents are ignored by bots
+            case SOCMessage.GAMESTATS:
+            case SOCMessage.JOIN:
+            case SOCMessage.JOINAUTH:
+            case SOCMessage.LARGESTARMY:
+            case SOCMessage.LEAVE:
+            case SOCMessage.LONGESTROAD:
+            case SOCMessage.MEMBERS:
+            case SOCMessage.NEWCHANNEL:
+            case SOCMessage.NEWGAME:
+            case SOCMessage.SETSEATLOCK:
+            case SOCMessage.TEXTMSG:
+                break;  // ignore this message type
+
+            /**
+             * Call SOCDisplaylessClient.treat for all other message types.
+             * For types relevant to robots, it will update data from the message contents.
+             * Other message types will be ignored.
+             */
+            default:
+                super.treat(mes);
             }
         }
         catch (Throwable e)
