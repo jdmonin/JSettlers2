@@ -435,13 +435,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
-             * server's version message
-             */
-            case SOCMessage.VERSION:
-                super.treat(mes);
-                break;
-
-            /**
              * server ping
              */
             case SOCMessage.SERVERPING:
@@ -482,22 +475,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
-             * someone joined a game
-             */
-            case SOCMessage.JOINGAME:
-                handleJOINGAME((SOCJoinGame) mes);
-
-                break;
-
-            /**
-             * someone left a game
-             */
-            case SOCMessage.LEAVEGAME:
-                handleLEAVEGAME((SOCLeaveGame) mes);
-
-                break;
-
-            /**
              * game has been destroyed
              */
             case SOCMessage.DELETEGAME:
@@ -533,27 +510,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.SITDOWN:
                 handleSITDOWN((SOCSitDown) mes);
 
-                break;
-
-            /**
-             * receive a board layout
-             */
-            case SOCMessage.BOARDLAYOUT:
-                handleBOARDLAYOUT((SOCBoardLayout) mes);  // in SOCDisplaylessPlayerClient
-                break;
-
-            /**
-             * receive a board layout (new format, as of 20091104 (v 1.1.08))
-             */
-            case SOCMessage.BOARDLAYOUT2:
-                handleBOARDLAYOUT2(games, (SOCBoardLayout2) mes);  // in SOCDisplaylessPlayerClient
-                break;
-
-            /**
-             * message that the game is starting
-             */
-            case SOCMessage.STARTGAME:
-                handleSTARTGAME(games, (SOCStartGame) mes);  // in SOCDisplaylessPlayerClient
                 break;
 
             /**
@@ -693,14 +649,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
-             * the trade message needs to be cleared
-             */
-            case SOCMessage.CLEARTRADEMSG:
-                handleCLEARTRADEMSG((SOCClearTradeMsg) mes);
-
-                break;
-
-            /**
              * the current number of development cards
              */
             case SOCMessage.DEVCARDCOUNT:
@@ -727,15 +675,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
-             * get a list of all the potential settlements for a player
-             * or legal/potential settlements for all players
-             */
-            case SOCMessage.POTENTIALSETTLEMENTS:
-                handlePOTENTIALSETTLEMENTS
-                    ((SOCPotentialSettlements) mes, games);
-                break;
-
-            /**
              * the server is requesting that we join a game
              */
             case SOCMessage.ROBOTJOINGAMEREQUEST:
@@ -748,14 +687,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.ROBOTDISMISS:
                 handleROBOTDISMISS((SOCRobotDismiss) mes);
-
-                break;
-
-            /**
-             * handle the reject connection message - JM TODO: placement within switch? (vs displaylesscli, playercli)
-             */
-            case SOCMessage.REJECTCONNECTION:
-                handleREJECTCONNECTION((SOCRejectConnection) mes);
 
                 break;
 
@@ -794,51 +725,11 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
-             * All players' dice roll result resources.
-             * Added 2013-09-20 for v2.0.00.
-             */
-            case SOCMessage.DICERESULTRESOURCES:
-                super.handleDICERESULTRESOURCES((SOCDiceResultResources) mes);
-                break;
-
-            /**
              * move a previous piece (a ship) somewhere else on the board.
              * Added 2013-03-16 for v2.0.00.
              */
             case SOCMessage.MOVEPIECE:
                 handlePutBrainQ((SOCMovePiece) mes);  // will update game data and player trackers
-                break;
-
-            /**
-             * remove a piece (a ship) from the board in certain scenarios.
-             * Added 2013-02-19 for v2.0.00.
-             */
-            case SOCMessage.REMOVEPIECE:
-                super.handleREMOVEPIECE((SOCRemovePiece) mes);
-                break;
-
-            /**
-             * reveal a hidden hex on the board.
-             * Added 2012-11-08 for v2.0.00.
-             */
-            case SOCMessage.REVEALFOGHEX:
-                super.handleREVEALFOGHEX((SOCRevealFogHex) mes);
-                break;
-
-            /**
-             * update a village piece's value on the board (cloth remaining).
-             * Added 2012-11-16 for v2.0.00.
-             */
-            case SOCMessage.PIECEVALUE:
-                super.handlePIECEVALUE((SOCPieceValue) mes);
-                break;
-
-            /**
-             * set or clear a special edge on the board.
-             * Added 2013-11-07 for v2.0.00.
-             */
-            case SOCMessage.BOARDSPECIALEDGE:
-                super.handleBOARDSPECIALEDGE(games, (SOCBoardSpecialEdge) mes);
                 break;
 
             /**
@@ -1047,13 +938,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         SOCRobotBrain rb = new SOCRobotBrain(this, currentRobotParameters, ga, brainQ);
         robotBrains.put(gaName, rb);
     }
-
-    /**
-     * handle the "join game" message
-     * @param mes  the message
-     */
-    @Override
-    protected void handleJOINGAME(SOCJoinGame mes) {}
 
     /**
      * handle the "game members" message, which indicates the entire game state has now been sent.
@@ -1557,13 +1441,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * handle the "clear trade" message
-     * @param mes  the message
-     */
-    @Override
-    protected void handleCLEARTRADEMSG(SOCClearTradeMsg mes) {}
-
-    /**
      * handle the "dismiss robot" message
      * @param mes  the message
      */
@@ -1592,66 +1469,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             if ((brain == null) || (! brain.isAlive()))
             {
                 leaveGame(games.get(mes.getGame()), "brain not alive in handleROBOTDISMISS", true, false);
-            }
-        }
-    }
-
-    /**
-     * handle the "change face" message
-     * @param mes  the message
-     */
-    @Override
-    protected void handleCHANGEFACE(SOCChangeFace mes)
-    {
-        SOCGame ga = games.get(mes.getGame());
-
-        if (ga != null)
-        {
-            SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
-            player.setFaceId(mes.getFaceId());
-        }
-    }
-
-    /**
-     * handle the "longest road" message
-     * @param mes  the message
-     */
-    @Override
-    protected void handleLONGESTROAD(SOCLongestRoad mes)
-    {
-        SOCGame ga = games.get(mes.getGame());
-
-        if (ga != null)
-        {
-            if (mes.getPlayerNumber() == -1)
-            {
-                ga.setPlayerWithLongestRoad((SOCPlayer) null);
-            }
-            else
-            {
-                ga.setPlayerWithLongestRoad(ga.getPlayer(mes.getPlayerNumber()));
-            }
-        }
-    }
-
-    /**
-     * handle the "largest army" message
-     * @param mes  the message
-     */
-    @Override
-    protected void handleLARGESTARMY(SOCLargestArmy mes)
-    {
-        SOCGame ga = games.get(mes.getGame());
-
-        if (ga != null)
-        {
-            if (mes.getPlayerNumber() == -1)
-            {
-                ga.setPlayerWithLargestArmy((SOCPlayer) null);
-            }
-            else
-            {
-                ga.setPlayerWithLargestArmy(ga.getPlayer(mes.getPlayerNumber()));
             }
         }
     }
