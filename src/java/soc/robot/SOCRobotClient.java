@@ -435,14 +435,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
-             * server ping
-             */
-            case SOCMessage.SERVERPING:
-                handleSERVERPING((SOCServerPing) mes);
-
-                break;
-
-            /**
              * admin ping
              */
             case SOCMessage.ADMINPING:
@@ -624,9 +616,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.GAMESTATS:
             case SOCMessage.JOIN:
             case SOCMessage.JOINAUTH:
-            case SOCMessage.LARGESTARMY:
             case SOCMessage.LEAVE:
-            case SOCMessage.LONGESTROAD:
             case SOCMessage.MEMBERS:
             case SOCMessage.NEWCHANNEL:
             case SOCMessage.NEWGAME:
@@ -656,24 +646,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             System.err.println("-- end stacktrace --");
             System.out.println("  For message: " + mes);
         }
-    }
-
-    /**
-     * handle the server ping message.
-     * Echo back to server, to ensure we're still connected.
-     * (ignored before version 1.1.08)
-     *
-     * @param mes  the message
-     */
-    protected void handleSERVERPING(SOCServerPing mes)
-    {
-        put(mes.toCmd());
-        /*
-           D.ebugPrintln("(*)(*) ServerPing message = "+mes);
-           D.ebugPrintln("(*)(*) ServerPing sleepTime = "+mes.getSleepTime());
-           D.ebugPrintln("(*)(*) resetThread = "+resetThread);
-           resetThread.sleepMore();
-         */
     }
 
     /**

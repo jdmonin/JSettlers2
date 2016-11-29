@@ -353,6 +353,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * server ping
+             */
+            case SOCMessage.SERVERPING:
+                handleSERVERPING((SOCServerPing) mes);
+                break;
+
+            /**
              * join channel authorization
              */
             case SOCMessage.JOINAUTH:
@@ -831,6 +838,27 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param mes  the message
      */
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes) {}
+
+    /**
+     * handle the server ping message.
+     * Echo back to server, to ensure we're still connected.
+     *<P>
+     * Message was ignored before version 1.1.08 (this method was an empty stub).
+     * Moved for v2.0.00 from subclass {@code SOCRobotClient}.
+     *
+     * @param mes  the message
+     */
+    protected void handleSERVERPING(SOCServerPing mes)
+    {
+        put(mes.toCmd());
+
+        /*
+           D.ebugPrintln("(*)(*) ServerPing message = "+mes);
+           D.ebugPrintln("(*)(*) ServerPing sleepTime = "+mes.getSleepTime());
+           D.ebugPrintln("(*)(*) resetThread = "+resetThread);
+           resetThread.sleepMore();
+         */
+    }
 
     /**
      * handle the "join authorization" message
