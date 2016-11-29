@@ -498,13 +498,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
-             * server's 1x/second timing ping
-             */
-            case SOCMessage.TIMINGPING:
-                handlePutBrainQ((SOCTimingPing) mes);
-                break;
-
-            /**
              * someone is sitting down
              */
             case SOCMessage.SITDOWN:
@@ -521,156 +514,10 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
-             * set the current turn
-             */
-            case SOCMessage.SETTURN:
-                handlePutBrainQ((SOCSetTurn) mes);
-
-                break;
-
-            /**
-             * set who the first player is
-             */
-            case SOCMessage.FIRSTPLAYER:
-                handlePutBrainQ((SOCFirstPlayer) mes);
-
-                break;
-
-            /**
-             * update who's turn it is
-             */
-            case SOCMessage.TURN:
-                handlePutBrainQ((SOCTurn) mes);
-
-                break;
-
-            /**
-             * receive player information
-             */
-            case SOCMessage.PLAYERELEMENT:
-                handlePutBrainQ((SOCPlayerElement) mes);
-
-                break;
-
-            /**
-             * receive resource count
-             */
-            case SOCMessage.RESOURCECOUNT:
-                handlePutBrainQ((SOCResourceCount) mes);
-
-                break;
-
-            /**
-             * the latest dice result
-             */
-            case SOCMessage.DICERESULT:
-                handlePutBrainQ((SOCDiceResult) mes);
-
-                break;
-
-            /**
              * a player built something
              */
             case SOCMessage.PUTPIECE:
                 handlePUTPIECE((SOCPutPiece) mes);
-
-                break;
-
-            /**
-             * the current player has cancelled an initial settlement
-             */
-            case SOCMessage.CANCELBUILDREQUEST:
-                handlePutBrainQ((SOCCancelBuildRequest) mes);
-
-                break;
-
-            /**
-             * the robber moved
-             */
-            case SOCMessage.MOVEROBBER:
-                handlePutBrainQ((SOCMoveRobber) mes);
-
-                break;
-
-            /**
-             * the server wants this player to discard
-             */
-            case SOCMessage.DISCARDREQUEST:
-                handlePutBrainQ((SOCDiscardRequest) mes);
-
-                break;
-
-            /**
-             * the server wants this player to choose a player to rob
-             */
-            case SOCMessage.CHOOSEPLAYERREQUEST:
-                handlePutBrainQ((SOCChoosePlayerRequest) mes);
-
-                break;
-
-            /**
-             * The server wants this player to choose to rob cloth or rob resources,
-             * after moving the pirate ship.  Added 2012-11-17 for v2.0.00.
-             */
-            case SOCMessage.CHOOSEPLAYER:
-                handlePutBrainQ((SOCChoosePlayer) mes);
-                break;
-
-            /**
-             * a player has made an offer
-             */
-            case SOCMessage.MAKEOFFER:
-                handlePutBrainQ((SOCMakeOffer) mes);
-
-                break;
-
-            /**
-             * a player has cleared her offer
-             */
-            case SOCMessage.CLEAROFFER:
-                handlePutBrainQ((SOCClearOffer) mes);
-
-                break;
-
-            /**
-             * a player has rejected an offer
-             */
-            case SOCMessage.REJECTOFFER:
-                handlePutBrainQ((SOCRejectOffer) mes);
-
-                break;
-
-            /**
-             * a player has accepted an offer
-             */
-            case SOCMessage.ACCEPTOFFER:
-                handlePutBrainQ((SOCAcceptOffer) mes);
-
-                break;
-
-            /**
-             * the current number of development cards
-             */
-            case SOCMessage.DEVCARDCOUNT:
-                handlePutBrainQ((SOCDevCardCount) mes);
-
-                break;
-
-            /**
-             * a dev card action: either draw, play, or add to hand,
-             * or we cannot play our requested dev card.
-             */
-            case SOCMessage.DEVCARDACTION:
-                handlePutBrainQ((SOCDevCardAction) mes);
-
-                break;
-
-            /**
-             * set the flag that tells if a player has played a
-             * development card this turn
-             */
-            case SOCMessage.SETPLAYEDDEVCARD:
-                handlePutBrainQ((SOCSetPlayedDevCard) mes);
 
                 break;
 
@@ -717,22 +564,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
-             * pick resources to gain from the gold hex.
-             * Added 2012-01-12 for v2.0.00.
-             */
-            case SOCMessage.PICKRESOURCESREQUEST:
-                handlePutBrainQ((SOCPickResourcesRequest) mes);
-                break;
-
-            /**
-             * move a previous piece (a ship) somewhere else on the board.
-             * Added 2013-03-16 for v2.0.00.
-             */
-            case SOCMessage.MOVEPIECE:
-                handlePutBrainQ((SOCMovePiece) mes);  // will update game data and player trackers
-                break;
-
-            /**
              * a special inventory item action: either add or remove,
              * or we cannot play our requested item.
              * Added 2013-11-26 for v2.0.00.
@@ -753,6 +584,32 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.SETSPECIALITEM:
                 super.handleSETSPECIALITEM(games, (SOCSetSpecialItem) mes);
                 handlePutBrainQ((SOCSetSpecialItem) mes);
+                break;
+
+            // These message types are handled entirely by SOCRobotBrain:
+
+            case SOCMessage.ACCEPTOFFER:
+            case SOCMessage.CANCELBUILDREQUEST:  // current player has cancelled an initial settlement
+            case SOCMessage.CHOOSEPLAYER:  // server wants our player to choose to rob cloth or rob resources from victim
+            case SOCMessage.CHOOSEPLAYERREQUEST:
+            case SOCMessage.CLEAROFFER:
+            case SOCMessage.DEVCARDACTION:  // either draw, play, or add to hand, or cannot play our requested dev card
+            case SOCMessage.DEVCARDCOUNT:
+            case SOCMessage.DICERESULT:
+            case SOCMessage.DISCARDREQUEST:
+            case SOCMessage.FIRSTPLAYER:
+            case SOCMessage.MAKEOFFER:
+            case SOCMessage.MOVEPIECE:   // move a previously placed ship; will update game data and player trackers
+            case SOCMessage.MOVEROBBER:
+            case SOCMessage.PICKRESOURCESREQUEST:  // pick resources to gain from the gold hex
+            case SOCMessage.PLAYERELEMENT:
+            case SOCMessage.REJECTOFFER:
+            case SOCMessage.RESOURCECOUNT:
+            case SOCMessage.SETPLAYEDDEVCARD:
+            case SOCMessage.SETTURN:
+            case SOCMessage.TIMINGPING:  // server's 1x/second timing ping
+            case SOCMessage.TURN:
+                handlePutBrainQ((SOCMessageForGame) mes);
                 break;
 
             // These message types are ignored by the robot client;
