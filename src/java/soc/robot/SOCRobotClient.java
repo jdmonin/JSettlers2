@@ -618,7 +618,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * Other message types will be ignored.
              */
             default:
-                super.treat(mes);
+                super.treat(mes, true);
             }
         }
         catch (Throwable e)

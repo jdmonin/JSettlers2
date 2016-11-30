@@ -326,10 +326,25 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void treat(SOCMessage mes)
     {
+        treat(mes, false);
+    }
+
+    /**
+     * Treat the incoming messages, callable from subclasses. For details see {@link #treat(SOCMessage)}.
+     * This method adds a flag parameter to prevent debug printing message contents twice.
+     *
+     * @param mes  The message
+     * @param didDebugPrintAlready  If true, don't debug print {@code mes.toString()}
+     *     even if {@link D#ebugIsEnabled()}. Intended for use from subclasses which
+     *     would have done that debug print if enabled.
+     * @since 2.0.00
+     */
+    protected void treat(final SOCMessage mes, final boolean didDebugPrintAlready)
+    {
         if (mes == null)
             return;  // Msg parsing error
 
-        if (D.ebugIsEnabled())
+        if (D.ebugIsEnabled() && ! didDebugPrintAlready)
             D.ebugPrintln(mes.toString());
 
         try
