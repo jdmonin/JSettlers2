@@ -431,7 +431,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.STATUSMESSAGE:
                 handleSTATUSMESSAGE((SOCStatusMessage) mes);
-
                 break;
 
             /**
@@ -439,7 +438,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.ADMINPING:
                 handleADMINPING((SOCAdminPing) mes);
-
                 break;
 
             /**
@@ -447,7 +445,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.ADMINRESET:
                 handleADMINRESET((SOCAdminReset) mes);
-
                 break;
 
             /**
@@ -455,7 +452,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.UPDATEROBOTPARAMS:
                 handleUPDATEROBOTPARAMS((SOCUpdateRobotParams) mes);
-
                 break;
 
             /**
@@ -463,7 +459,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.JOINGAMEAUTH:
                 handleJOINGAMEAUTH((SOCJoinGameAuth) mes, (sLocal != null));
-
                 break;
 
             /**
@@ -471,7 +466,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.DELETEGAME:
                 handleDELETEGAME((SOCDeleteGame) mes);
-
                 break;
 
             /**
@@ -479,7 +473,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.GAMEMEMBERS:
                 handleGAMEMEMBERS((SOCGameMembers) mes);
-
                 break;
 
             /**
@@ -494,7 +487,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.SITDOWN:
                 handleSITDOWN((SOCSitDown) mes);
-
                 break;
 
             /**
@@ -502,7 +494,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.GAMESTATE:
                 handleGAMESTATE((SOCGameState) mes);
-
                 break;
 
             /**
@@ -510,7 +501,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.PUTPIECE:
                 handlePUTPIECE((SOCPutPiece) mes);
-
                 break;
 
             /**
@@ -518,7 +508,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.ROBOTJOINGAMEREQUEST:
                 handleROBOTJOINGAMEREQUEST((SOCRobotJoinGameRequest) mes);
-
                 break;
 
             /**
@@ -526,7 +515,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.ROBOTDISMISS:
                 handleROBOTDISMISS((SOCRobotDismiss) mes);
-
                 break;
 
             /**

@@ -341,7 +341,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.VERSION:
                 handleVERSION((sLocal != null), (SOCVersion) mes);
-
                 break;
 
             /**
@@ -349,7 +348,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.STATUSMESSAGE:
                 handleSTATUSMESSAGE((SOCStatusMessage) mes);
-
                 break;
 
             /**
@@ -364,7 +362,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.JOINAUTH:
                 handleJOINAUTH((SOCJoinAuth) mes);
-
                 break;
 
             /**
@@ -372,7 +369,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.JOIN:
                 handleJOIN((SOCJoin) mes);
-
                 break;
 
             /**
@@ -380,7 +376,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.MEMBERS:
                 handleMEMBERS((SOCMembers) mes);
-
                 break;
 
             /**
@@ -388,7 +383,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.NEWCHANNEL:
                 handleNEWCHANNEL((SOCNewChannel) mes);
-
                 break;
 
             /**
@@ -396,7 +390,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.CHANNELS:
                 handleCHANNELS((SOCChannels) mes);
-
                 break;
 
             /**
@@ -404,7 +397,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.TEXTMSG:
                 handleTEXTMSG((SOCTextMsg) mes);
-
                 break;
 
             /**
@@ -412,7 +404,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.LEAVE:
                 handleLEAVE((SOCLeave) mes);
-
                 break;
 
             /**
@@ -420,7 +411,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.DELETECHANNEL:
                 handleDELETECHANNEL((SOCDeleteChannel) mes);
-
                 break;
 
             /**
@@ -428,7 +418,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.GAMES:
                 handleGAMES((SOCGames) mes);
-
                 break;
 
             /**
@@ -436,7 +425,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.JOINGAMEAUTH:
                 handleJOINGAMEAUTH((SOCJoinGameAuth) mes, (sLocal != null));
-
                 break;
 
             /**
@@ -444,7 +432,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.JOINGAME:
                 handleJOINGAME((SOCJoinGame) mes);
-
                 break;
 
             /**
@@ -452,7 +439,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.LEAVEGAME:
                 handleLEAVEGAME((SOCLeaveGame) mes);
-
                 break;
 
             /**
@@ -460,7 +446,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.NEWGAME:
                 handleNEWGAME((SOCNewGame) mes);
-
                 break;
 
             /**
@@ -468,7 +453,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.DELETEGAME:
                 handleDELETEGAME((SOCDeleteGame) mes);
-
                 break;
 
             /**
@@ -476,7 +460,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.GAMEMEMBERS:
                 handleGAMEMEMBERS((SOCGameMembers) mes);
-
                 break;
 
             /**
@@ -484,7 +467,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.GAMESTATS:
                 handleGAMESTATS((SOCGameStats) mes);
-
                 break;
 
             /**
@@ -506,7 +488,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.SITDOWN:
                 handleSITDOWN((SOCSitDown) mes);
-
                 break;
 
             /**
@@ -514,7 +495,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.BOARDLAYOUT:
                 handleBOARDLAYOUT((SOCBoardLayout) mes);
-
                 break;
 
             /**
@@ -536,7 +516,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.GAMESTATE:
                 handleGAMESTATE((SOCGameState) mes);
-
                 break;
 
             /**
@@ -544,7 +523,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.SETTURN:
                 handleSETTURN((SOCSetTurn) mes);
-
                 break;
 
             /**
@@ -552,7 +530,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.FIRSTPLAYER:
                 handleFIRSTPLAYER((SOCFirstPlayer) mes);
-
                 break;
 
             /**
@@ -560,7 +537,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.TURN:
                 handleTURN((SOCTurn) mes);
-
                 break;
 
             /**
@@ -568,7 +544,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.PLAYERELEMENT:
                 handlePLAYERELEMENT((SOCPlayerElement) mes);
-
                 break;
 
             /**
@@ -576,7 +551,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.RESOURCECOUNT:
                 handleRESOURCECOUNT((SOCResourceCount) mes);
-
                 break;
 
             /**
@@ -584,7 +558,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.DICERESULT:
                 handleDICERESULT((SOCDiceResult) mes);
-
                 break;
 
             /**
@@ -603,7 +576,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.CANCELBUILDREQUEST:
                 handleCANCELBUILDREQUEST((SOCCancelBuildRequest) mes);
-
                 break;
 
             /**
@@ -611,7 +583,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.MOVEROBBER:
                 handleMOVEROBBER((SOCMoveRobber) mes);
-
                 break;
 
             /**
@@ -619,7 +590,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.DISCARDREQUEST:
                 handleDISCARDREQUEST((SOCDiscardRequest) mes);
-
                 break;
 
             /**
@@ -627,7 +597,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.CHOOSEPLAYERREQUEST:
                 handleCHOOSEPLAYERREQUEST((SOCChoosePlayerRequest) mes);
-
                 break;
 
             /**
@@ -635,7 +604,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.MAKEOFFER:
                 handleMAKEOFFER((SOCMakeOffer) mes);
-
                 break;
 
             /**
@@ -643,7 +611,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.CLEAROFFER:
                 handleCLEAROFFER((SOCClearOffer) mes);
-
                 break;
 
             /**
@@ -651,7 +618,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.REJECTOFFER:
                 handleREJECTOFFER((SOCRejectOffer) mes);
-
                 break;
 
             /**
@@ -659,7 +625,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.CLEARTRADEMSG:
                 handleCLEARTRADEMSG((SOCClearTradeMsg) mes);
-
                 break;
 
             /**
@@ -667,7 +632,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.DEVCARDCOUNT:
                 handleDEVCARDCOUNT((SOCDevCardCount) mes);
-
                 break;
 
             /**
@@ -675,7 +639,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.DEVCARDACTION:
                 handleDEVCARDACTION((sLocal != null), (SOCDevCardAction) mes);
-
                 break;
 
             /**
@@ -684,7 +647,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.SETPLAYEDDEVCARD:
                 handleSETPLAYEDDEVCARD((SOCSetPlayedDevCard) mes);
-
                 break;
 
             /**
@@ -692,7 +654,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.POTENTIALSETTLEMENTS:
                 handlePOTENTIALSETTLEMENTS((SOCPotentialSettlements) mes, games);
-
                 break;
 
             /**
@@ -700,7 +661,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.CHANGEFACE:
                 handleCHANGEFACE((SOCChangeFace) mes);
-
                 break;
 
             /**
@@ -708,7 +668,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.REJECTCONNECTION:
                 handleREJECTCONNECTION((SOCRejectConnection) mes);
-
                 break;
 
             /**
@@ -716,7 +675,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.LONGESTROAD:
                 handleLONGESTROAD((SOCLongestRoad) mes);
-
                 break;
 
             /**
@@ -724,7 +682,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.LARGESTARMY:
                 handleLARGESTARMY((SOCLargestArmy) mes);
-
                 break;
 
             /**
@@ -732,7 +689,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.SETSEATLOCK:
                 handleSETSEATLOCK((SOCSetSeatLock) mes);
-
                 break;
 
             /**
@@ -740,7 +696,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.RESETBOARDAUTH:
                 handleRESETBOARDAUTH((SOCResetBoardAuth) mes);
-
                 break;
 
             /**
