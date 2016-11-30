@@ -82,9 +82,9 @@ import java.util.StringTokenizer;
  *      or its game type's GameMessageHandler.dispatch.  Note the JSettlers version with a comment.
  *      <P>
  *      <em>Note:</em> Most things added to SOCPlayerClient.treat should also be added to
- *      {@link soc.baseclient.SOCDisplaylessPlayerClient#treat(SOCMessage)},
- *      to {@link soc.robot.SOCRobotClient#treat(SOCMessage)},
- *      and possibly to {@link soc.robot.SOCRobotBrain#run()}.
+ *      {@link soc.baseclient.SOCDisplaylessPlayerClient#treat(SOCMessage)}. If robots
+ *      should react, also add to {@link soc.robot.SOCRobotClient#treat(SOCMessage)}
+ *      and maybe also {@link soc.robot.SOCRobotBrain#run()}.
  *      <P>
  *      If the message is player-state related, you might also want to add
  *      it in your game type's <tt>soc.server.GameHandler.sitDown_sendPrivateInfo()</tt>.
