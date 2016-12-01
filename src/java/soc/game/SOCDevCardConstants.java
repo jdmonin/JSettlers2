@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2012-2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2012-2013,2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -113,14 +113,16 @@ public interface SOCDevCardConstants
 
     /**
      * Destroy settlement or downgrade city.
-     * For House Rule dev cards; game option <tt>"DH"</tt>.
+     * For House Rule dev cards; game option <tt>"DH"</tt>,
+     * which is reserved but currently not implemented.
      * @since 2.0.00
      */
     public static final int DESTROY = 10;
 
     /**
      * Swap settlement/city with another player.
-     * For House Rule dev cards; game option <tt>"DH"</tt>.
+     * For House Rule dev cards; game option <tt>"DH"</tt>,
+     * which is reserved but currently not implemented.
      * @since 2.0.00
      */
     public static final int SWAP = 11;

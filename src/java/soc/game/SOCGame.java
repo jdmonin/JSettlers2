@@ -450,7 +450,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Waiting for player to choose a settlement to destroy, or
      * a city to downgrade (Dev card {@link SOCDevCardConstants#DESTROY}).
-     * Used with game option <tt>"DH"</tt>.
+     * Used with game option <tt>"DH"</tt> which is reserved but currently not implemented.
      * @since 2.0.00
      */
     public static final int WAITING_FOR_DESTROY = 57;
@@ -458,7 +458,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Waiting for player to choose a settlement or city to swap
      * with another player (Dev card {@link SOCDevCardConstants#SWAP}).
-     * Used with game option <tt>"DH"</tt>.
+     * Used with game option <tt>"DH"</tt> which is reserved but currently not implemented.
      * @since 2.0.00
      */
     public static final int WAITING_FOR_SWAP = 58;
@@ -3931,7 +3931,7 @@ public class SOCGame implements Serializable, Cloneable
         int i;
         int j;
 
-        if (isGameOptionSet("DH"))  // House Rules dev cards
+        if (isGameOptionSet("DH"))  // House Rules dev cards -- reserved but currently not implemented
         {
             // Some knights become other card types
             for (i = 0; i < 4; i++)
