@@ -458,6 +458,9 @@ If jsettlers.bots.botgames.total != 0 (including < 0), at any time the client ca
 join but not sit down at a seat, and start that game as bots-only using the debug command
 *STARTBOTGAME* [maxBots] to test the bots with any given combination of game options and scenarios.
 
+For robustness testing, the SOCRobotClient.debugRandomPause flag can be enabled to inject random
+delays into handling messages and commands from the server.
+
 
 Network Communication and interop with other versions or languages
 ------------------------------------------------------------------

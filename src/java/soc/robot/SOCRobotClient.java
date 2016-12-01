@@ -95,6 +95,10 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      *<b>Note:</b> This debugging tool is not scalable to many simultaneous games,
      * because it delays all messages, not just ones for a specific game / brain,
      * and it won't be our turn in each of those games.
+     *<P>
+     * Because of the limited scope, currently there is no way to enable this
+     * debug flag at runtime; the value must be edited here in the source.
+     *
      * @see #DEBUGRANDOMPAUSE_FREQ
      * @see #debugRandomPauseActive
      * @since 1.1.11
@@ -103,9 +107,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
     /**
      * Is {@link #debugRandomPause} currently in effect for this client?
-     * If so, store messages into {@link #debugRandomPauseQueue} instead of
+     * If so, this flag becomes {@code true} while pausing.
+     * When true, store messages into {@link #debugRandomPauseQueue} instead of
      * sending them to {@link #robotBrains} immediately.
-     * The pause goes on until {@link #debugRandomPauseUntil} arrives.
+     * The pause goes on until {@link #debugRandomPauseUntil} arrives
+     * and then {@code debugRandomPauseActive} becomes {@code false}
+     * until the next random float below {@link #DEBUGRANDOMPAUSE_FREQ}.
      * This is all handled within {@link #treat(SOCMessage)}.
      * @since 1.1.11
      */
