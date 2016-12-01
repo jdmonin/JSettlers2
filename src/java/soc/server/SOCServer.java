@@ -1398,7 +1398,6 @@ public class SOCServer extends Server
      *<P>
      * Before v2.0.00, this method was <tt>init_getIntProperty</tt>.
      *
-     * @param props  Properties to look in, such as {@link SOCServer#props}, or null for <tt>pDefault</tt>
      * @param pName  Property name
      * @param pDefault  Default value to use if not found or not parsable
      * @return The property's parsed integer value, or <tt>pDefault</tt>
@@ -1427,7 +1426,6 @@ public class SOCServer extends Server
      * False values are: F N 0.
      * Not case-sensitive.
      * Any other value will be ignored and get <tt>pDefault</tt>.
-     * @param props  Properties to look in, such as {@link SOCServer#props}, or null for <tt>pDefault</tt>
      *<P>
      * Before v2.0.00, this method was <tt>init_getBoolProperty</tt>.
      *
