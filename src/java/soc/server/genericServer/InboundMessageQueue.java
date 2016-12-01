@@ -26,39 +26,31 @@ import java.util.Vector;
 import soc.message.SOCMessage;
 
 /**
- *
- * this is one of the main class in the messaging infrastructure implemented in the {@link Server}
- * <P>
- *
- * The main target of this class is to store all the inbound {@link SOCMessage} in text format received from the server by the client connected
- * and solicit the server to  processing the message
- *
- * <P>
- * This class also includes the internal {@link Treater} thread, which processes the
- * messages received in the queue and forwards them to the {@link Server} by calling
+ * The single Inbound Message Queue for all messages coming from clients.
+ * Stores all unparsed inbound {@link SOCMessage}s received from the server from all
+ * connected clients' {@link StringConnection} threads through {@link #push(String, StringConnection)},
+ * then dispatched to the {@link Server} for parsing and processing.
+ *<P>
+ * That dispatch is done through this class's single internal {@link Treater} thread, which de-queues
+ * the received messages from the queue and forwards them to the {@link Server} by calling
  * {@link Server.InboundMessageDispatcher#dispatch(String, StringConnection)}
  * for each inbound message.
- *
- * <P>
+ *<P>
  * This queue's constructor only sets up the InboundMessageQueue to receive messages. Afterwards when the
- * {@link Server} is ready to process inbound messages, to start this queue's thread to forward messages
- * into the dispatcher you must call {@link #startMessageProcessing()}.
+ * {@link Server} is ready to process inbound messages, you must call {@link #startMessageProcessing()}
+ * to start this queue's thread to forward messages into the dispatcher.
+ *<P>
+ * At server shutdown time, {@code InboundMessageQueue} can be stopped by calling {@link #stopMessageProcessing()}
+ * which will stop its {@link Treater} thread.
  *
- * <P>
- * Actually this class is used  by the {@link StringConnection} instances and derived instances classes to store the new message received.<br>
- * The method used to put messages in this queue is {@link #push(String, StringConnection)} <br>
- * the implementation of the  {@link InboundMessageQueue} use an internal thread-safe implementation queue, so it doesn't need to be synchronized
- *
- * <P>
- * The {@link InboundMessageQueue} must be stopped when the {@link Server} owner of this queue is stopped calling {@link #stopMessageProcessing()}.<br>
- * This will stop also the {@link Treater} instance of this queue
- *
- * <UL>
+ *<H3>More Information:</H3>
+ *<UL>
+ * <LI> See {@link Server} class javadoc for an overall picture of inbound processing.
  * <LI> See {@link SOCMessage} for details of the client/server protocol messaging.
  * <LI> See {@link StringConnection} for details of the client/server communication.
  * <LI> See {@link Server.InboundMessageDispatcher#dispatch(String, StringConnection)}
- *      for details of the message processing.
- * </UL>
+ *      for details on further message processing.
+ *</UL>
  *
  * @author Alessandro D'Ottavio
  * @since 2.0.00
@@ -67,17 +59,17 @@ public class InboundMessageQueue
 {
 
     /**
-     * this queue is used to store the {@link MessageData}
+     * Internal queue to used to store all clients' {@link MessageData}.
      */
     private Vector<MessageData> inQueue;
 
     /**
-     * the Thread responsible to process the data in the {@link #inQueue}
+     * Internal thread to process data out of the {@link #inQueue}.
      */
     private Treater treater;
 
     /**
-     * Message dispatcher at the server which will receive messages from this queue
+     * Message dispatcher at the server which will receive all messages from this queue.
      */
     private final Server.InboundMessageDispatcher dispatcher;
 
@@ -114,8 +106,10 @@ public class InboundMessageQueue
      * Append an element to the end of the inbound queue.
      *<BR>
      *<B>Threads:</B>
-     * This notifies the {@link Treater}, waking that thread if it
+     * This method notifies the {@link Treater}, waking that thread if it
      * was {@link Object#wait()}ing because the queue was empty.
+     * Although {@code push(..)} isn't declared {@code synchronized},
+     * it's thread-safe because it synchronizes on the internal queue object.
      *
      * @param receivedMessage from the connection; will never be {@code null}
      * @param clientConnection that send the message; will never be {@code null}
@@ -147,17 +141,18 @@ public class InboundMessageQueue
         return null;
     }
 
+
     /**
-     * Internal class user, a single-threaded reader to process each message stored in the {@link #inQueue}
-     * and pass them to the server dispatch.
+     * {@link InboundMessageQueue}'s internal single-threaded reader to de-queue each message
+     * stored in the {@link #inQueue} and send it to the server dispatcher.
      *<P>
-     * This thread can be stopped calling {@link #stopTreater()}.
+     * This thread can be stopped by calling {@link #stopTreater()}.
      *<P>
      * Before v2.0.00 this class was {@code Server.Treater}.
      *
      * @author Alessandro
      */
-    class Treater extends Thread
+    final class Treater extends Thread
     {
 
         /**
