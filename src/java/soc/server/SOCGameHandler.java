@@ -2341,8 +2341,10 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * report a trade that has taken place between players, using {@link SOCPlayerElement}
-     * and {@link SOCGameServerText} messages.  Trades are also reported to robots
-     * by re-sending the accepting player's {@link SOCAcceptOffer} message.
+     * and {@link SOCGameServerText} messages.
+     *<P>
+     * Callers must also report trades to robots by re-sending the accepting player's
+     * {@link SOCAcceptOffer} message to the game after calling this method.
      *
      * @param ga        the game
      * @param offering  the number of the player making the offer

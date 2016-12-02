@@ -1485,7 +1485,7 @@ public class SOCGameMessageHandler
                     srv.gameList.releaseMonitorForGame(gaName);
 
                     /**
-                     * send a message to the bots that the offer was accepted
+                     * send a message (for the bots) that the offer was accepted
                      */
                     srv.messageToGame(gaName, mes);
                 }
