@@ -60,6 +60,18 @@
 # the default winning victory points to 12:
 #   jsettlers.gameopt.vp=t12
 
+# Server Config Validation:
+# Flag to validate any server properties given in jsserver.properties or on
+# the command line; print whether there were any problems; then exit with
+# code 0 if OK or 1 if problems. If DB connect properties are given, the
+# validation will include connecting to the database; failure to connect
+# successfully will cause exit code 1.
+# This flag should not be set =Y in the actual jsserver.properties file you
+# use for your JSettlers Server, because it will not complete startup and run
+# normally. For testing or validation purposes, use this flag on the command
+# line: -Djsettlers.test.validate_config=Y
+# jsettlers.test.validate_config=N
+
 # Optional User Database:
 # JSettlers can optionally use a database for game scores and/or user accounts
 # ("nicknames" and passwords). Here are the properties for server features

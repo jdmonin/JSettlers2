@@ -321,6 +321,20 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_GAMEOPT_PREFIX = "jsettlers.gameopt.";
 
     /**
+     * Boolean property {@code jsettlers.test.validate_config} to validate any server properties
+     * given in {@code jsserver.properties} or on the command line, print whether there were
+     * any problems, then exit with code 0 if OK or 1 if problems.
+     *<P>
+     * If DB connect properties are given, validation will include connecting to the database.
+     * Failure to successfully connect will cause exit code 1.
+     *<P>
+     * Setting this property true will also set {@link #hasUtilityModeProperty()}.
+     *
+     * @since 2.0.00
+     */
+    public static final String PROP_JSETTLERS_TEST_VALIDATE__CONFIG = "jsettlers.test.validate_config";
+
+    /**
      * List and descriptions of all available JSettlers {@link Properties properties},
      * such as {@link #PROP_JSETTLERS_PORT} and {@link SOCDBHelper#PROP_JSETTLERS_DB_URL}.
      *<P>
@@ -348,6 +362,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL,     "Run this many robot-only games, a few at a time (default 0); allow bot-only games",
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
+        PROP_JSETTLERS_TEST_VALIDATE__CONFIG,    "Flag to validate server and DB config, then exit",
         SOCDBHelper.PROP_JSETTLERS_DB_USER,     "DB username",
         SOCDBHelper.PROP_JSETTLERS_DB_PASS,     "DB password",
         SOCDBHelper.PROP_JSETTLERS_DB_URL,      "DB connection URL",
@@ -1102,10 +1117,16 @@ public class SOCServer extends Server
     {
         Version.printVersionText(System.err, "Java Settlers Server ");
 
+        final boolean validate_config_mode = getConfigBoolProperty(PROP_JSETTLERS_TEST_VALIDATE__CONFIG, false);
+
         // Set this flag as early as possible
-        hasUtilityModeProp = (props != null)
+        hasUtilityModeProp = validate_config_mode ||
+           ((props != null)
             && ((null != props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP))
-                || (null != props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET)));
+                || (null != props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET))));
+
+        if (validate_config_mode)
+            System.err.println("* Config Validation Mode: Checking configuration and exiting.");
 
         /* Check for problems during super setup (such as port already in use).
          * Ignore net errors if we're running a DB setup script and then exiting.
@@ -1257,7 +1278,7 @@ public class SOCServer extends Server
 
         // No errors; continue normal startup.
 
-        if (hasUtilityModeProp)
+        if (hasUtilityModeProp && ! validate_config_mode)
         {
             return;  // <--- don't continue startup if Utility Mode ---
         }
@@ -1364,10 +1385,14 @@ public class SOCServer extends Server
         /**
          * Start various threads.
          */
-        serverRobotPinger = new SOCServerRobotPinger(this, robots);
-        serverRobotPinger.start();
-        gameTimeoutChecker = new SOCGameTimeoutChecker(this);
-        gameTimeoutChecker.start();
+        if (! validate_config_mode)
+        {
+            serverRobotPinger = new SOCServerRobotPinger(this, robots);
+            serverRobotPinger.start();
+            gameTimeoutChecker = new SOCGameTimeoutChecker(this);
+            gameTimeoutChecker.start();
+        }
+
         this.databaseUserName = databaseUserName;
         this.databasePassword = databasePassword;
 
@@ -1386,9 +1411,16 @@ public class SOCServer extends Server
         if (getConfigBoolProperty(PROP_JSETTLERS_BOTS_SHOWCOOKIE, false))
             System.err.println("Robot cookie: " + robotCookie);
 
-        System.err.print("The server is ready.");
-        if (port > 0)
-            System.err.print(" Listening on port " + port);
+        if (validate_config_mode)
+        {
+            System.err.println();
+            System.err.println("* Config Validation Mode: No problems found.");
+        } else {
+            System.err.print("The server is ready.");
+            if (port > 0)
+                System.err.print(" Listening on port " + port);
+        }
+
         System.err.println();
         System.err.println();
     }
@@ -2358,6 +2390,7 @@ public class SOCServer extends Server
      *<P>
      * The current Utility Mode properties/arguments are:
      *<UL>
+     * <LI> {@link #PROP_JSETTLERS_TEST_VALIDATE__CONFIG} flag property
      * <LI> {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP} property
      * <LI> {@code --pw-reset=username} argument
      *</UL>
@@ -7820,9 +7853,15 @@ public class SOCServer extends Server
                     server.setPriority(5);
                     server.start();  // <---- Start the Main SOCServer Thread: serverUp() method ----
                 } else {
+                    final boolean validate_config_mode
+                        = server.getConfigBoolProperty(PROP_JSETTLERS_TEST_VALIDATE__CONFIG, false);
+
                     String pval = argp.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET);
                     if (pval != null)
-                        server.init_resetUserPassword(pval);
+                        if (validate_config_mode)
+                            System.err.println("Skipping password reset: Config Validation mode");
+                        else
+                            server.init_resetUserPassword(pval);
 
                     final String msg = server.getUtilityModeMessage();
                     System.err.println(
