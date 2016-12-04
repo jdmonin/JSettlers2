@@ -24,13 +24,16 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that someone is joining a channel
+ * From a client, this message is a request to join or create a chat channel.
+ * If successful, server will send {@link SOCJoinAuth} to requesting client
+ * and {@link SOCJoin} to all members of the channel.
  *<P>
- * Once the client has successfully joined or created a channel or game, the
+ * Once a client has successfully joined or created any channel or game, the
  * password field can be left blank in later join/create requests.  All server
  * versions ignore the password field after a successful request.
  *
  * @author Robert S Thomas
+ * @see SOCJoinGame
  */
 public class SOCJoin extends SOCMessage
 {

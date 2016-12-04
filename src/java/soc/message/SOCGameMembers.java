@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2012,2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2012,2014,2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -28,13 +28,20 @@ import java.util.Vector;
 
 
 /**
- * This message lists all the members of a game.
- * The group of messages sent by server in response to JOINGAME ends
- * with GAMEMEMBERS, SETTURN and GAMESTATE, and GAMEMEMBERS thus tells the client
- * that the server's ready for its input.  Robots use GAMEMEMBERS as their cue to
- * sit down at the game, if they've been asked to sit.
+ * This message lists all the members of a game: Players and observers.
+ *<P>
+ * In response to {@link SOCJoinGame JOINGAME}, the joining player is sent a specific
+ * sequence of messages with details about the game: Board layout, player scores,
+ * piece counts, etc. This sequence ends with GAMEMEMBERS, SETTURN and GAMESTATE.
+ * GAMEMEMBERS thus tells the client that the server is ready for its input.
+ *<P>
+ * Robots use GAMEMEMBERS as their cue to sit down at the game, if they've been
+ * asked to sit from {@link SOCRobotJoinGameRequest ROBOTJOINGAMEREQUEST}.
+ * In order for the robot to be certain it has all details about a game,
+ * bots should take no action before receiving GAMEMEMBERS.
  *
  * @author Robert S Thomas
+ * @see SOCMembers
  */
 public class SOCGameMembers extends SOCMessage
     implements SOCMessageForGame

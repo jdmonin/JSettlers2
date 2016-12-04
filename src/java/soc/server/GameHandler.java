@@ -181,7 +181,8 @@ public abstract class GameHandler
      * Check the game and clean up, forcing end of current turn if necessary.
      * Call {@link SOCGame#removePlayer(String)}.
      * If the game still has other players, continue it, otherwise it will be ended after
-     * returning from {@code leaveGame}. Send messages out to other game members.
+     * returning from {@code leaveGame}. Send messages out to other game members
+     * notifying them the player has left.
      *<P>
      * <B>Locks:</b> Has {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gm)}
      * when calling this method; does not have {@link SOCGame#takeMonitor()}.

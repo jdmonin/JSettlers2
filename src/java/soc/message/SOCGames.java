@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2014,2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -29,10 +29,13 @@ import soc.game.SOCGame;
 
 
 /**
- * This message lists all the soc games currently on a server,
- * without {@link soc.game.SOCGameOption game options}.
+ * This backwards-compatibility message lists the names of all the games currently
+ * created on a server, without their {@link soc.game.SOCGameOption game options}.
  * It's constructed and sent for each connecting client
- * which can't understand game options (older than 1.1.07).
+ * having an old version which doesn't support game options.
+ *<P>
+ * Version 1.1.07 and later clients are sent {@link SOCGamesWithOptions}
+ * instead of this message type.
  *<P>
  * Version 1.1.06 and later:
  * Any game's name within the list may start with the "unjoinable"

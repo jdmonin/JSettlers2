@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2013-2014,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,21 +24,34 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message is used to join any existing game (with or without game options).
- * It can also be a client asking to create a game
- * with no {@link soc.game.SOCGameOption game options}.
+ * From a client, this message is a request to join any existing game
+ * (having game options or not) or to create a game without any
+ * {@link soc.game.SOCGameOption game options}.
+ *<P>
  * Server responds to client's request with {@link SOCJoinGameAuth JOINGAMEAUTH}
- * and sends JOINGAME to all players/observers of the game (including client).
+ * and sends JOINGAME to all members of the game (players and observers)
+ * including the requesting client, then further messages to the requesting client
+ * (see below). The newly joined client may be an observer; if they are a player
+ * {@link SOCSitDown SITDOWN} will be sent too.
  *<P>
- * To request a new game with game options, send {@link SOCNewGameWithOptionsRequest NEWGAMEWITHOPTIONSREQUEST} instead.
+ * To request a new game with game options, send
+ * {@link SOCNewGameWithOptionsRequest NEWGAMEWITHOPTIONSREQUEST} instead.
  *<P>
- * Once the client has successfully joined or created a game or channel, the
+ * If the join request is successful, requesting client is sent a specific sequence
+ * of messages with details about the game; see {@link SOCGameMembers}.
+ * In order for robot clients to be certain they have all details about a game
+ * (board layout, player scores, piece counts, etc), they should take no action
+ * before receiving {@link SOCGameMembers} about that game.
+ *<P>
+ * Once a client has successfully joined or created any game or channel, the
  * password field can be left blank in later join/create requests.  All server
  * versions ignore the password field after a successful request.
  *<P>
- * Although this is a game-specific message, it's handled by {@code SOCServer} instead of a {@code GameHandler}.
+ * Although this is a game-specific message, it's about the game lifecycle
+ * so it's handled by {@code SOCServer} instead of a {@code GameHandler}.
  *
  * @author Robert S Thomas
+ * @see SOCJoin
  */
 public class SOCJoinGame extends SOCMessageTemplateJoinGame
 {

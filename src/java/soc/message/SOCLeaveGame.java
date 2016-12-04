@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,9 +28,11 @@ import java.util.StringTokenizer;
  * Sent from leaving client to server (if leaving cleanly),
  * then sent from server out to all clients in game.
  *<P>
- * Although this is a game-specific message, it's handled by {@code SOCServer} instead of a {@code GameHandler}.
+ * Although this is a game-specific message, it's about the game lifecycle
+ * so it's handled by {@code SOCServer} instead of a {@code GameHandler}.
  *
  * @author Robert S Thomas
+ * @see SOCLeave
  */
 public class SOCLeaveGame extends SOCMessage
     implements SOCMessageForGame

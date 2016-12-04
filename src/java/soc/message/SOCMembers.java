@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012,2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012,2014,2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -28,9 +28,10 @@ import java.util.Vector;
 
 
 /**
- * This message lists all the members of a chat channel
+ * This message lists all the members of a single chat channel.
  *
  * @author Robert S Thomas
+ * @see SOCGameMembers
  */
 public class SOCMembers extends SOCMessage
 {

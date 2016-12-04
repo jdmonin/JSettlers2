@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,16 +24,19 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that someone is leaveing a channel
+ * From a client, this message tells the server the client is leaving a chat channel.
+ * From server, it announces to all members of a channel that someone has left it.
  *
  * @author Robert S Thomas
+ * @see SOCLeaveAll
+ * @see SOCLeaveGame
  */
 public class SOCLeave extends SOCMessage
 {
     private static final long serialVersionUID = 1111L;  // last structural change v1.1.11
 
     /**
-     * Nickname of the leaveing member
+     * Nickname of the leaving member
      */
     private String nickname;
 

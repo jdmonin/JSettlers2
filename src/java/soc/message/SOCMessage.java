@@ -124,14 +124,23 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     public static final int NULLMESSAGE = 1000;
 
+    /** {@link SOCNewChannel}: A new channel has been created. */
     public static final int NEWCHANNEL = 1001;
+    /** {@link SOCMembers}: List of one channel's members. */
     public static final int MEMBERS = 1002;
+    /** {@link SOCChannels}: List of all channel names. */
     public static final int CHANNELS = 1003;
+    /** {@link SOCJoin}: Join or create a channel. */
     public static final int JOIN = 1004;
+    /** {@link SOCTextMsg}: A text message in a channel. */
     public static final int TEXTMSG = 1005;
+    /** {@link SOCLeave}: Leaving a channel. */
     public static final int LEAVE = 1006;
+    /** {@link SOCDeleteChannel}: Deleting a channel. */
     public static final int DELETECHANNEL = 1007;
+    /** {@link SOCLeaveAll}: Leaving all games and channels. */
     public static final int LEAVEALL = 1008;
+
     public static final int PUTPIECE = 1009;
 
     /** {@link SOCGameTextMsg} - Game text from players.
@@ -141,19 +150,37 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     public static final int GAMETEXTMSG = 1010;
 
+    /** {@link SOCLeaveGame}: Leaving a game. */
     public static final int LEAVEGAME = 1011;
+    /** {@link SOCSitDown}: Taking a seat at specific position in a game. */
     public static final int SITDOWN = 1012;
+    /**
+     * {@link SOCJoinGame}: Joining game's members as a player or observer,
+     * or requesting new game creation having no game options.
+     * See {@link #NEWGAMEWITHOPTIONSREQUEST}.
+     */
     public static final int JOINGAME = 1013;
+    /** {@link SOCBoardLayout}: Board layout info (classic 4-player board). See {@link #BOARDLAYOUT2}. */
     public static final int BOARDLAYOUT = 1014;
+    /** {@link SOCDeleteGame}: Game has been destroyed. */
     public static final int DELETEGAME = 1015;
+    /** {@link SOCNewGame}: New game has been created; see {@link #NEWGAMEWITHOPTIONS}. */
     public static final int NEWGAME = 1016;
+    /** {@link SOCGameMembers}: List of all members of a game; used as a signal all game details have been sent. */
     public static final int GAMEMEMBERS = 1017;
     public static final int STARTGAME = 1018;
+    /** {@link SOCGames}: List of all game names; see {@link #GAMESWITHOPTIONS}. */
     public static final int GAMES = 1019;
+    /** {@link SOCJoinAuth}: Your client is authorized to join a channel. */
     public static final int JOINAUTH = 1020;
+    /** {@link SOCJoinGameAuth}: Your client is authorized to join a game. */
     public static final int JOINGAMEAUTH = 1021;
     public static final int IMAROBOT = 1022;
-    public static final int ROBOTJOINGAMEREQUEST = 1023;  // was JOINGAMEREQUEST before v2.0.00
+    /**
+     * {@link SOCRobotJoinGameRequest}: Ask a robot client to join a game.
+     * Was JOINGAMEREQUEST before v2.0.00.
+     */
+    public static final int ROBOTJOINGAMEREQUEST = 1023;
     public static final int PLAYERELEMENT = 1024;
     public static final int GAMESTATE = 1025;
     public static final int TURN = 1026;
@@ -208,10 +235,17 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int RESETBOARDVOTE = 1076;     // resetboard, 20080223, sf patch#tbd
     public static final int RESETBOARDREJECT = 1077;   // resetboard, 20080223, sf patch#tbd
 
-    /** @since 1.1.07 */
+    /**
+     * {@link SOCNewGameWithOptionsRequest}: Requesting creation of a new game
+     * having game options; replaces {@link #JOINGAME} for game creation.
+     * @since 1.1.07
+     */
     public static final int NEWGAMEWITHOPTIONSREQUEST = 1078;  // gameoptions, 20090601
 
-    /** @since 1.1.07 */
+    /**
+     * {@link SOCNewGameWithOptions}: New game has been created; see {@link #NEWGAME}.
+     * @since 1.1.07
+     */
     public static final int NEWGAMEWITHOPTIONS = 1079;  // gameoptions, 20090601
 
     /** @since 1.1.07 */
@@ -223,10 +257,17 @@ public abstract class SOCMessage implements Serializable, Cloneable
     /** @since 1.1.07 */
     public static final int GAMEOPTIONINFO = 1082;  // gameoptions, 20090601
 
-    /** @since 1.1.07 */
+    /**
+     * {@link SOCGamesWithOptions}: List of all games and their options; see {@link #GAMES}.
+     * @since 1.1.07
+     */
     public static final int GAMESWITHOPTIONS = 1083;  // gameoptions, 20090601
 
-    /** @since 1.1.08 */
+    /**
+     * {@link SOCBoardLayout2}: Board layout info (6-player or other new layout).
+     * See {@link #BOARDLAYOUT}.
+     * @since 1.1.08
+     */
     public static final int BOARDLAYOUT2 = 1084;  // 6-player board, 20091104
 
     /** @since 1.1.09 */

@@ -1656,7 +1656,10 @@ public class SOCServer extends Server
 
     /**
      * Connection {@code c} leaves the channel {@code ch}.
+     * Send {@link SOCLeave} message to remaining members of {@code ch}.
      * If the channel becomes empty after removing {@code c}, this method can destroy it.
+     *<P>
+     * <B>Note:</B> Caller must send {@link SOCDeleteChannel} message, this method does not do so.
      *<P>
      * <B>Locks:</B> Must have {@link SOCChannelList#takeMonitorForChannel(String) channelList.takeMonitorForChannel(ch)}
      * when calling this method.
@@ -1721,6 +1724,8 @@ public class SOCServer extends Server
      * Destroy a channel and then clean up related data, such as the owner's count of
      * {@link SOCClientData#getcurrentCreatedChannels()}.
      * Calls {@link SOCChannelList#deleteChannel(String)}.
+     *<P>
+     * <B>Note:</B> Caller must send {@link SOCDeleteChannel} message, this method does not do so.
      *<P>
      * <B>Locks:</B> Must have {@link #channelList}{@link SOCChannelList#takeMonitor() .takeMonitor()}
      * before calling this method.
@@ -2487,6 +2492,7 @@ public class SOCServer extends Server
     /**
      * Connection {@code c} is leaving the server; remove from all channels it was in.
      * In channels where {@code c} was the last connection, calls {@link #destroyChannel(String)}.
+     * Sends {@link SOCDeleteChannel} to announce any destroyed channels.
      *
      * @param c  the connection
      */
@@ -3635,7 +3641,9 @@ public class SOCServer extends Server
     }
 
     /**
-     * things to do when the connection c leaves
+     * Things to do when the connection c leaves:
+     * Calls {@link #leaveAllChannels(StringConnection)}
+     * and {@link #leaveAllGames(StringConnection)}.
      *<P>
      * This method is called within a per-client thread,
      * after connection is removed from conns collection

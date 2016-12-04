@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2013-2014,2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -26,11 +26,11 @@ import java.util.StringTokenizer;
 import soc.game.SOCGameOption;
 
 /**
- * This message means that client wants to create a new game, with options;
+ * This message from client is a request to create a new game with options;
  * needs same username/password options as {@link SOCJoinGame JOINGAME}.
- * Server's reply, if it can create the game, is a broadcast {@link SOCNewGameWithOptions}.
+ * If it can create the game, server's reply is a broadcast {@link SOCNewGameWithOptions}.
  *<P>
- * Once the client has successfully joined or created a game or channel, the
+ * Once a client has successfully joined or created any game or channel, the
  * password field can be left blank in later join/create requests.  All server
  * versions ignore the password field after a successful request.
  *<P>

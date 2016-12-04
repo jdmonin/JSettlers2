@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -31,7 +31,8 @@ import soc.game.SOCScenario;    // for javadocs
 
 
 /**
- * This message contains the board's layout information and its encoding version.
+ * This message contains the board's encoding version and layout information
+ * in a flexible format to allow for expansions and 6-player extensions.
  * The layout is represented as a series of named integer arrays and
  * named integer parameters.  These contain the hex layout, the
  * number layout, where the robber is, and possibly the port layout.

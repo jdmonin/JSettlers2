@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,11 @@ package soc.message;
 
 
 /**
- * This message means that someone is leaving all the channels
+ * This message from client means they are leaving all the games and channels they're connected to.
+ * Client is about to disconnect and actively close its connection to the server.
+ *<P>
+ * Server replies by notifying remaining members of those games and channels
+ * and deleting newly empty ones.
  *
  * @author Robert S Thomas
  */

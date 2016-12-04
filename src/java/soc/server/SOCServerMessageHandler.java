@@ -148,7 +148,7 @@ public class SOCServerMessageHandler
             break;
 
         /**
-         * "leave all channels" message
+         * "leave all games and channels" message (SOCLeaveAll)
          */
         case SOCMessage.LEAVEALL:
             srv.removeConnection(c, true);

@@ -512,6 +512,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *  and version collection, and after c.disconnect() has been called.
      *<P>
      * This method is called within a per-client thread.
+     *
+     * @see #removeConnectionCleanup(StringConnection)
      */
     protected void leaveConnection(StringConnection c) {}
 
@@ -606,7 +608,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             removeConnectionCleanup(c);
     }
 
-    /** Do cleanup after removing a connection. This is a generic stub that subclass servers can override. */
+    /**
+     * Do cleanup after removing a connection. This is a generic stub that subclass servers can override.
+     *
+     * @see #leaveConnection(StringConnection)
+     */
     protected void removeConnectionCleanup(StringConnection c) {}
 
     /**
@@ -1113,7 +1119,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
          * messages making players do things they didn't want to do.
          *
          * @param str Contents of message from the client. Will never be {@code null}.
-         *       SOCServer implementation parses this with {@link SOCMessage#toMsg(String)}.
+         *    {@code SOCServer}'s implementation parses this with {@link SOCMessage#toMsg(String)}.
          * @param con Connection (client) sending this message. Will never be {@code null}.
          * @throws IllegalStateException if not ready to dispatch because some
          *    initialization method needs to be called first;
