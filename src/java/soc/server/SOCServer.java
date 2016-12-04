@@ -362,7 +362,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL,     "Run this many robot-only games, a few at a time (default 0); allow bot-only games",
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
-        PROP_JSETTLERS_TEST_VALIDATE__CONFIG,    "Flag to validate server and DB config, then exit",
+        PROP_JSETTLERS_TEST_VALIDATE__CONFIG,   "Flag to validate server and DB config, then exit",
         SOCDBHelper.PROP_JSETTLERS_DB_USER,     "DB username",
         SOCDBHelper.PROP_JSETTLERS_DB_PASS,     "DB password",
         SOCDBHelper.PROP_JSETTLERS_DB_URL,      "DB connection URL",
@@ -1400,7 +1400,8 @@ public class SOCServer extends Server
          * Print game options if we've set them on commandline, or if
          * any option defaults require a minimum client version.
          */
-        if (hasSetGameOptions || (SOCVersionedItem.itemsMinimumVersion(SOCGameOption.getAllKnownOptions()) > -1))
+        if (hasSetGameOptions || validate_config_mode
+            || (SOCVersionedItem.itemsMinimumVersion(SOCGameOption.getAllKnownOptions()) > -1))
         {
             Thread.yield();  // wait for other output to appear first
             try { Thread.sleep(200); } catch (InterruptedException ie) {}
@@ -1413,6 +1414,18 @@ public class SOCServer extends Server
 
         if (validate_config_mode)
         {
+            // Print configured known properties (ignore if not in PROPS_LIST);
+            // this also gives them in the same order as PROPS_LIST,
+            // which is the same order --help prints them out.
+            System.err.println();
+            System.err.println("-- Configured server properties: --");
+            for (int i = 0; i < PROPS_LIST.length; i += 2)
+            {
+                final String pkey = PROPS_LIST[i];
+                if ((! pkey.equals(PROP_JSETTLERS_TEST_VALIDATE__CONFIG)) && props.containsKey(pkey))
+                    System.err.format("%-40s %s\n", pkey, props.getProperty(pkey));
+            }
+
             System.err.println();
             System.err.println("* Config Validation Mode: No problems found.");
         } else {
