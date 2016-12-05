@@ -51,7 +51,7 @@ import java.util.StringTokenizer;
  * so it's handled by {@code SOCServer} instead of a {@code GameHandler}.
  *
  * @author Robert S Thomas
- * @see SOCJoin
+ * @see SOCJoinChannel
  */
 public class SOCJoinGame extends SOCMessageTemplateJoinGame
 {

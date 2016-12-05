@@ -24,19 +24,20 @@ import java.util.StringTokenizer;
 
 
 /**
- * From a client, this message tells the server the client is leaving a chat channel.
- * From server, it announces to all members of a channel that someone has left it.
+ * This message means that the server has authorized
+ * this client to join a channel.
+ *<P>
+ * Before v2.0.00 this class was named {@code SOCJoinAuth}.
  *
  * @author Robert S Thomas
- * @see SOCLeaveAll
- * @see SOCLeaveGame
+ * @see SOCJoinGameAuth
  */
-public class SOCLeave extends SOCMessage
+public class SOCJoinChannelAuth extends SOCMessage
 {
-    private static final long serialVersionUID = 1111L;  // last structural change v1.1.11
+    private static final long serialVersionUID = 2000L;  // Renamed in v2.0.00; previous structural change v1.0.0 or earlier
 
     /**
-     * Nickname of the leaving member
+     * Nickname of the joining member
      */
     private String nickname;
 
@@ -46,39 +47,24 @@ public class SOCLeave extends SOCMessage
     private String channel;
 
     /**
-     * Host name
-     */
-    private String host;
-
-    /**
-     * Create a Leave message.
+     * Create a JoinChannelAuth message.
      *
      * @param nn  nickname
-     * @param hn  host name
      * @param ch  name of chat channel
      */
-    public SOCLeave(String nn, String hn, String ch)
+    public SOCJoinChannelAuth(String nn, String ch)
     {
-        messageType = LEAVE;
+        messageType = JOINCHANNELAUTH;
         nickname = nn;
         channel = ch;
-        host = hn;
     }
 
     /**
-     * @return the nickname
+     * @return the nickname of the joining member
      */
     public String getNickname()
     {
         return nickname;
-    }
-
-    /**
-     * @return the host name
-     */
-    public String getHost()
-    {
-        return host;
     }
 
     /**
@@ -90,38 +76,36 @@ public class SOCLeave extends SOCMessage
     }
 
     /**
-     * <LEAVE> sep <nickname> sep2 <host> sep2 <channel>
+     * JOINCHANNELAUTH sep nickname sep2 channel
      *
      * @return the command String
      */
     public String toCmd()
     {
-        return toCmd(nickname, host, channel);
+        return toCmd(nickname, channel);
     }
 
     /**
-     * <LEAVE> sep <nickname> sep2 <host> sep2 <channel>
+     * JOINCHANNELAUTH sep nickname sep2 channel
      *
      * @param nn  the neckname
-     * @param hn  the host name
-     * @param ch  the new channel name
+     * @param ch  the channel name
      * @return    the command string
      */
-    public static String toCmd(String nn, String hn, String ch)
+    public static String toCmd(String nn, String ch)
     {
-        return LEAVE + sep + nn + sep2 + hn + sep2 + ch;
+        return JOINCHANNELAUTH + sep + nn + sep2 + ch;
     }
 
     /**
-     * Parse the command String into a Leave message
+     * Parse the command String into a Join Channel Auth message.
      *
      * @param s   the String to parse
-     * @return    a Leave message, or null of the data is garbled
+     * @return    a JoinChannelAuth message, or null of the data is garbled
      */
-    public static SOCLeave parseDataStr(String s)
+    public static SOCJoinChannelAuth parseDataStr(String s)
     {
         String nn;
-        String hn;
         String ch;
 
         StringTokenizer st = new StringTokenizer(s, sep2);
@@ -129,7 +113,6 @@ public class SOCLeave extends SOCMessage
         try
         {
             nn = st.nextToken();
-            hn = st.nextToken();
             ch = st.nextToken();
         }
         catch (Exception e)
@@ -137,7 +120,7 @@ public class SOCLeave extends SOCMessage
             return null;
         }
 
-        return new SOCLeave(nn, hn, ch);
+        return new SOCJoinChannelAuth(nn, ch);
     }
 
     /**
@@ -145,7 +128,7 @@ public class SOCLeave extends SOCMessage
      */
     public String toString()
     {
-        String s = "SOCLeave:nickname=" + nickname + "|host=" + host + "|channel=" + channel;
+        String s = "SOCJoinChannelAuth:nickname=" + nickname + "|channel=" + channel;
 
         return s;
     }

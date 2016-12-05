@@ -34,7 +34,7 @@ package soc.message;
  * {@link SOCLocalizedStrings}.
  *
  * @author Robert S Thomas
- * @see SOCJoinAuth
+ * @see SOCJoinChannelAuth
  */
 public class SOCJoinGameAuth extends SOCMessage
     implements SOCMessageForGame

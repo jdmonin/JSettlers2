@@ -1643,9 +1643,9 @@ public class SOCServer extends Server
 
         if (channelList.isChannel(ch))
         {
-            if (!channelList.isMember(c, ch))
+            if (! channelList.isMember(c, ch))
             {
-                c.put(SOCMembers.toCmd(ch, channelList.getMembers(ch)));
+                c.put(SOCChannelMembers.toCmd(ch, channelList.getMembers(ch)));
                 if (D.ebugOn)
                     D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch + " at "
                         + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
@@ -1656,7 +1656,7 @@ public class SOCServer extends Server
 
     /**
      * Connection {@code c} leaves the channel {@code ch}.
-     * Send {@link SOCLeave} message to remaining members of {@code ch}.
+     * Send {@link SOCLeaveChannel} message to remaining members of {@code ch}.
      * If the channel becomes empty after removing {@code c}, this method can destroy it.
      *<P>
      * <B>Note:</B> Caller must send {@link SOCDeleteChannel} message, this method does not do so.
@@ -1686,7 +1686,7 @@ public class SOCServer extends Server
         {
             channelList.removeMember(c, ch);
 
-            SOCLeave leaveMessage = new SOCLeave((String) c.getData(), c.host(), ch);
+            SOCLeaveChannel leaveMessage = new SOCLeaveChannel((String) c.getData(), c.host(), ch);
             messageToChannelWithMon(ch, leaveMessage);
             if (D.ebugOn)
                 D.ebugPrintln("*** " + c.getData() + " left the channel " + ch + " at "

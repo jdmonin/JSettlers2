@@ -41,7 +41,7 @@ import java.util.Vector;
  * bots should take no action before receiving GAMEMEMBERS.
  *
  * @author Robert S Thomas
- * @see SOCMembers
+ * @see SOCChannelMembers
  */
 public class SOCGameMembers extends SOCMessage
     implements SOCMessageForGame

@@ -29,11 +29,14 @@ import java.util.Vector;
 
 /**
  * This message lists all the members of a single chat channel.
+<P>
+ * Before v2.0.00 this class was named {@code SOCMembers}.
  *
  * @author Robert S Thomas
  * @see SOCGameMembers
+ * @see SOCChannels
  */
-public class SOCMembers extends SOCMessage
+public class SOCChannelMembers extends SOCMessage
 {
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
@@ -48,14 +51,14 @@ public class SOCMembers extends SOCMessage
     private String channel;
 
     /**
-     * Create a Members message.
+     * Create a Channel Members message.
      *
      * @param ch  name of chat channel
      * @param ml  list of members
      */
-    public SOCMembers(String ch, Vector<String> ml)
+    public SOCChannelMembers(String ch, Vector<String> ml)
     {
-        messageType = MEMBERS;
+        messageType = CHANNELMEMBERS;
         members = ml;
         channel = ch;
     }
@@ -77,7 +80,7 @@ public class SOCMembers extends SOCMessage
     }
 
     /**
-     * MEMBERS sep channel sep2 members
+     * CHANNELMEMBERS sep channel sep2 members
      *
      * @return the command String
      */
@@ -88,7 +91,7 @@ public class SOCMembers extends SOCMessage
     }
 
     /**
-     * MEMBERS sep channel sep2 members
+     * CHANNELMEMBERS sep channel sep2 members
      *<P>
      * Used from instance method {@link #toCmd()} with Strings,
      * and from other callers with StringConnections for convenience.
@@ -99,7 +102,7 @@ public class SOCMembers extends SOCMessage
      */
     public static String toCmd(String ch, Vector<?> ml)
     {
-        String cmd = MEMBERS + sep + ch;
+        String cmd = CHANNELMEMBERS + sep + ch;
 
         try
         {
@@ -127,12 +130,12 @@ public class SOCMembers extends SOCMessage
     }
 
     /**
-     * Parse the command String into a Members message
+     * Parse the command String into a Channel Members message.
      *
      * @param s   the String to parse
      * @return    a Members message, or null of the data is garbled
      */
-    public static SOCMembers parseDataStr(String s)
+    public static SOCChannelMembers parseDataStr(String s)
     {
         String ch;
         Vector<String> ml = new Vector<String>();
@@ -152,7 +155,7 @@ public class SOCMembers extends SOCMessage
             return null;
         }
 
-        return new SOCMembers(ch, ml);
+        return new SOCChannelMembers(ch, ml);
     }
 
     /**
@@ -161,7 +164,7 @@ public class SOCMembers extends SOCMessage
     @Override
     public String toString()
     {
-        StringBuffer sb = new StringBuffer("SOCMembers:channel=");
+        StringBuffer sb = new StringBuffer("SOCChannelMembers:channel=");
         sb.append(channel);
         sb.append("|members=");
         if (members != null)

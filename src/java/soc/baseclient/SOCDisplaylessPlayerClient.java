@@ -375,33 +375,33 @@ public class SOCDisplaylessPlayerClient implements Runnable
             /**
              * join channel authorization
              */
-            case SOCMessage.JOINAUTH:
-                handleJOINAUTH((SOCJoinAuth) mes);
+            case SOCMessage.JOINCHANNELAUTH:
+                handleJOINCHANNELAUTH((SOCJoinChannelAuth) mes);
                 break;
 
             /**
-             * someone joined a channel
+             * someone joined a chat channel
              */
-            case SOCMessage.JOIN:
-                handleJOIN((SOCJoin) mes);
+            case SOCMessage.JOINCHANNEL:
+                handleJOINCHANNEL((SOCJoinChannel) mes);
                 break;
 
             /**
-             * list of members for a channel
+             * list of members for a chat channel
              */
-            case SOCMessage.MEMBERS:
-                handleMEMBERS((SOCMembers) mes);
+            case SOCMessage.CHANNELMEMBERS:
+                handleCHANNELMEMBERS((SOCChannelMembers) mes);
                 break;
 
             /**
-             * a new channel has been created
+             * a new chat channel has been created
              */
             case SOCMessage.NEWCHANNEL:
                 handleNEWCHANNEL((SOCNewChannel) mes);
                 break;
 
             /**
-             * list of channels on the server
+             * list of chat channels on the server
              */
             case SOCMessage.CHANNELS:
                 handleCHANNELS((SOCChannels) mes);
@@ -415,14 +415,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
-             * someone left the channel
+             * someone left the chat channel
              */
-            case SOCMessage.LEAVE:
-                handleLEAVE((SOCLeave) mes);
+            case SOCMessage.LEAVECHANNEL:
+                handleLEAVECHANNEL((SOCLeaveChannel) mes);
                 break;
 
             /**
-             * delete a channel
+             * delete a chat channel
              */
             case SOCMessage.DELETECHANNEL:
                 handleDELETECHANNEL((SOCDeleteChannel) mes);
@@ -831,10 +831,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * handle the "join authorization" message
+     * handle the "join channel authorization" message.
      * @param mes  the message
      */
-    protected void handleJOINAUTH(SOCJoinAuth mes)
+    protected void handleJOINCHANNELAUTH(SOCJoinChannelAuth mes)
     {
         gotPassword = true;
     }
@@ -890,16 +890,16 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * handle the "join channel" message
+     * handle the "a client joined a channel" message.
      * @param mes  the message
      */
-    protected void handleJOIN(SOCJoin mes) {}
+    protected void handleJOINCHANNEL(SOCJoinChannel mes) {}
 
     /**
-     * handle the "members" message
+     * handle the "channel members" message.
      * @param mes  the message
      */
-    protected void handleMEMBERS(SOCMembers mes) {}
+    protected void handleCHANNELMEMBERS(SOCChannelMembers mes) {}
 
     /**
      * handle the "new channel" message
@@ -929,7 +929,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * handle the "leave channel" message
      * @param mes  the message
      */
-    protected void handleLEAVE(SOCLeave mes) {}
+    protected void handleLEAVECHANNEL(SOCLeaveChannel mes) {}
 
     /**
      * handle the "delete channel" message
@@ -2377,7 +2377,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * send a text message to a channel
+     * send a text message to a chat channel
      *
      * @param ch   the name of the channel
      * @param mes  the message
@@ -2388,14 +2388,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user leaves the given channel
+     * the user leaves the given chat channel
      *
      * @param ch  the name of the channel
      */
     public void leaveChannel(String ch)
     {
         channels.remove(ch);
-        put(SOCLeave.toCmd(nickname, host, ch));
+        put(SOCLeaveChannel.toCmd(nickname, host, ch));
     }
 
     /**

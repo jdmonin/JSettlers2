@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2016 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,17 +24,21 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that the server has authorized
- * this client to join a channel
+ * From a client, this message tells the server the client is leaving a chat channel.
+ * From server, it announces to all members of a channel that someone has left it.
+<P>
+ * Before v2.0.00 this class was named {@code SOCLeave}.
  *
  * @author Robert S Thomas
+ * @see SOCLeaveAll
+ * @see SOCLeaveGame
  */
-public class SOCJoinAuth extends SOCMessage
+public class SOCLeaveChannel extends SOCMessage
 {
-    private static final long serialVersionUID = 100L;  // last structural change v1.0.0 or earlier
+    private static final long serialVersionUID = 2000L;  // renamed in v2.0.00; previous structural change v1.1.11
 
     /**
-     * Nickname of the joining member
+     * Nickname of the leaving member
      */
     private String nickname;
 
@@ -44,16 +48,23 @@ public class SOCJoinAuth extends SOCMessage
     private String channel;
 
     /**
-     * Create a JoinAuth message.
+     * Host name
+     */
+    private String host;
+
+    /**
+     * Create a Leave message.
      *
      * @param nn  nickname
+     * @param hn  host name
      * @param ch  name of chat channel
      */
-    public SOCJoinAuth(String nn, String ch)
+    public SOCLeaveChannel(String nn, String hn, String ch)
     {
-        messageType = JOINAUTH;
+        messageType = LEAVECHANNEL;
         nickname = nn;
         channel = ch;
+        host = hn;
     }
 
     /**
@@ -65,6 +76,14 @@ public class SOCJoinAuth extends SOCMessage
     }
 
     /**
+     * @return the host name
+     */
+    public String getHost()
+    {
+        return host;
+    }
+
+    /**
      * @return the channel name
      */
     public String getChannel()
@@ -73,36 +92,38 @@ public class SOCJoinAuth extends SOCMessage
     }
 
     /**
-     * JOINAUTH sep nickname sep2 channel
+     * {@code LEAVECHANNEL} sep <em>nickname</em> sep2 <em>host</em> sep2 <em>channel</em>
      *
      * @return the command String
      */
     public String toCmd()
     {
-        return toCmd(nickname, channel);
+        return toCmd(nickname, host, channel);
     }
 
     /**
-     * JOINAUTH sep nickname sep2 channel
+     * {@code LEAVECHANNEL} sep <em>nickname</em> sep2 <em>host</em> sep2 <em>channel</em>
      *
      * @param nn  the neckname
-     * @param ch  the channel name
+     * @param hn  the host name
+     * @param ch  the new channel name
      * @return    the command string
      */
-    public static String toCmd(String nn, String ch)
+    public static String toCmd(String nn, String hn, String ch)
     {
-        return JOINAUTH + sep + nn + sep2 + ch;
+        return LEAVECHANNEL + sep + nn + sep2 + hn + sep2 + ch;
     }
 
     /**
-     * Parse the command String into a Join message
+     * Parse the command String into a Leave Channel message.
      *
      * @param s   the String to parse
-     * @return    a Join message, or null of the data is garbled
+     * @return    a Leave message, or null of the data is garbled
      */
-    public static SOCJoinAuth parseDataStr(String s)
+    public static SOCLeaveChannel parseDataStr(String s)
     {
         String nn;
+        String hn;
         String ch;
 
         StringTokenizer st = new StringTokenizer(s, sep2);
@@ -110,6 +131,7 @@ public class SOCJoinAuth extends SOCMessage
         try
         {
             nn = st.nextToken();
+            hn = st.nextToken();
             ch = st.nextToken();
         }
         catch (Exception e)
@@ -117,7 +139,7 @@ public class SOCJoinAuth extends SOCMessage
             return null;
         }
 
-        return new SOCJoinAuth(nn, ch);
+        return new SOCLeaveChannel(nn, hn, ch);
     }
 
     /**
@@ -125,7 +147,7 @@ public class SOCJoinAuth extends SOCMessage
      */
     public String toString()
     {
-        String s = "SOCJoinAuth:nickname=" + nickname + "|channel=" + channel;
+        String s = "SOCLeaveChannel:nickname=" + nickname + "|host=" + host + "|channel=" + channel;
 
         return s;
     }

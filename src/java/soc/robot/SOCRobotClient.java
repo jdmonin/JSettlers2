@@ -604,15 +604,15 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
             case SOCMessage.BCASTTEXTMSG:
             case SOCMessage.CHANGEFACE:
+            case SOCMessage.CHANNELMEMBERS:
             case SOCMessage.CHANNELS:
             case SOCMessage.DELETECHANNEL:
             case SOCMessage.GAMES:
             case SOCMessage.GAMESERVERTEXT:  // SOCGameServerText contents are ignored by bots
             case SOCMessage.GAMESTATS:
-            case SOCMessage.JOIN:
-            case SOCMessage.JOINAUTH:
-            case SOCMessage.LEAVE:
-            case SOCMessage.MEMBERS:
+            case SOCMessage.JOINCHANNEL:
+            case SOCMessage.JOINCHANNELAUTH:
+            case SOCMessage.LEAVECHANNEL:
             case SOCMessage.NEWCHANNEL:
             case SOCMessage.NEWGAME:
             case SOCMessage.SETSEATLOCK:

@@ -32,7 +32,7 @@ import java.util.StringTokenizer;
  * so it's handled by {@code SOCServer} instead of a {@code GameHandler}.
  *
  * @author Robert S Thomas
- * @see SOCLeave
+ * @see SOCLeaveChannel
  */
 public class SOCLeaveGame extends SOCMessage
     implements SOCMessageForGame

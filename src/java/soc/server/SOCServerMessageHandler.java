@@ -134,21 +134,21 @@ public class SOCServerMessageHandler
             break;
 
         /**
-         * "join a channel" message
+         * "join a chat channel" message
          */
-        case SOCMessage.JOIN:
-            handleJOIN(c, (SOCJoin) mes);
+        case SOCMessage.JOINCHANNEL:
+            handleJOINCHANNEL(c, (SOCJoinChannel) mes);
             break;
 
         /**
-         * "leave a channel" message
+         * "leave a chat channel" message
          */
-        case SOCMessage.LEAVE:
-            handleLEAVE(c, (SOCLeave) mes);
+        case SOCMessage.LEAVECHANNEL:
+            handleLEAVECHANNEL(c, (SOCLeaveChannel) mes);
             break;
 
         /**
-         * "leave all games and channels" message (SOCLeaveAll)
+         * "leave all games and chat channels" message (SOCLeaveAll)
          */
         case SOCMessage.LEAVEALL:
             srv.removeConnection(c, true);
@@ -1238,12 +1238,13 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleJOIN(StringConnection c, SOCJoin mes)
+    private void handleJOINCHANNEL(StringConnection c, SOCJoinChannel mes)
     {
         if (c == null)
             return;
 
-        D.ebugPrintln("handleJOIN: " + mes);
+        if (D.ebugIsEnabled())
+            D.ebugPrintln("handleJOINCHANNEL: " + mes);
 
         int cliVers = c.getVersion();
         final String msgUser = mes.getNickname().trim();  // trim here because we'll send it in messages to clients
@@ -1307,7 +1308,7 @@ public class SOCServerMessageHandler
         /**
          * Tell the client that everything is good to go
          */
-        c.put(SOCJoinAuth.toCmd(msgUser, ch));
+        c.put(SOCJoinChannelAuth.toCmd(msgUser, ch));
         c.put(SOCStatusMessage.toCmd
                 (SOCStatusMessage.SV_OK, c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
 
@@ -1347,7 +1348,7 @@ public class SOCServerMessageHandler
 
             channelList.releaseMonitor();
             srv.broadcast(SOCNewChannel.toCmd(ch));
-            c.put(SOCMembers.toCmd(ch, channelList.getMembers(ch)));
+            c.put(SOCChannelMembers.toCmd(ch, channelList.getMembers(ch)));
             if (D.ebugOn)
                 D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch + " at "
                     + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
@@ -1368,7 +1369,7 @@ public class SOCServerMessageHandler
         /**
          * let everyone know about the change
          */
-        srv.messageToChannel(ch, new SOCJoin(msgUser, "", "dummyhost", ch));
+        srv.messageToChannel(ch, new SOCJoinChannel(msgUser, "", "dummyhost", ch));
     }
 
     /**
@@ -1378,9 +1379,10 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleLEAVE(StringConnection c, SOCLeave mes)
+    private void handleLEAVECHANNEL(StringConnection c, SOCLeaveChannel mes)
     {
-        D.ebugPrintln("handleLEAVE: " + mes);
+        if (D.ebugIsEnabled())
+            D.ebugPrintln("handleLEAVECHANNEL: " + mes);
 
         if (c == null)
             return;
@@ -1394,7 +1396,7 @@ public class SOCServerMessageHandler
         }
         catch (Exception e)
         {
-            D.ebugPrintStackTrace(e, "Exception in handleLEAVE");
+            D.ebugPrintStackTrace(e, "Exception in handleLEAVECHANNEL");
         }
 
         channelList.releaseMonitorForChannel(mes.getChannel());

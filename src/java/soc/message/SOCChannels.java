@@ -34,6 +34,7 @@ import java.util.Vector;
  * signal the connection is complete, and display their main user interface panel.
  *
  * @author Robert S Thomas
+ * @see SOCChannelMembers
  */
 public class SOCChannels extends SOCMessage
 {

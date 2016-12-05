@@ -25,19 +25,21 @@ import java.util.StringTokenizer;
 
 /**
  * From a client, this message is a request to join or create a chat channel.
- * If successful, server will send {@link SOCJoinAuth} to requesting client
- * and {@link SOCJoin} to all members of the channel.
+ * If successful, server will send {@link SOCJoinChannelAuth} to requesting client
+ * and {@link SOCJoinChannel} to all members of the channel.
  *<P>
  * Once a client has successfully joined or created any channel or game, the
  * password field can be left blank in later join/create requests.  All server
  * versions ignore the password field after a successful request.
+ *<P>
+ * Before v2.0.00 this class was named {@code SOCJoin}.
  *
  * @author Robert S Thomas
  * @see SOCJoinGame
  */
-public class SOCJoin extends SOCMessage
+public class SOCJoinChannel extends SOCMessage
 {
-    private static final long serialVersionUID = 100L;  // last structural change v1.0.0 or earlier
+    private static final long serialVersionUID = 2000L;  // renamed in v2.0.00; previous structural change v1.0.0 or earlier
 
     /**
      * symbol to represent a null or empty password over the network, to avoid 2 adjacent field-delimiter characters
@@ -73,9 +75,9 @@ public class SOCJoin extends SOCMessage
      * @param hn  server host name
      * @param ch  name of chat channel
      */
-    public SOCJoin(String nn, String pw, String hn, String ch)
+    public SOCJoinChannel(String nn, String pw, String hn, String ch)
     {
-        messageType = JOIN;
+        messageType = JOINCHANNEL;
         nickname = nn;
         password = pw;
         channel = ch;
@@ -117,7 +119,7 @@ public class SOCJoin extends SOCMessage
     }
 
     /**
-     * JOIN sep nickname sep2 password sep2 host sep2 channel
+     * JOINCHANNEL sep nickname sep2 password sep2 host sep2 channel
      *
      * @return the command String
      */
@@ -127,7 +129,7 @@ public class SOCJoin extends SOCMessage
     }
 
     /**
-     * JOIN sep nickname sep2 password sep2 host sep2 channel
+     * JOINCHANNEL sep nickname sep2 password sep2 host sep2 channel
      *
      * @param nn  the nickname
      * @param pw  the optional password, or "" if none
@@ -144,7 +146,7 @@ public class SOCJoin extends SOCMessage
             temppw = NULLPASS;
         }
 
-        return JOIN + sep + nn + sep2 + temppw + sep2 + hn + sep2 + ch;
+        return JOINCHANNEL + sep + nn + sep2 + temppw + sep2 + hn + sep2 + ch;
     }
 
     /**
@@ -153,7 +155,7 @@ public class SOCJoin extends SOCMessage
      * @param s   the String to parse
      * @return    a Join message, or null of the data is garbled
      */
-    public static SOCJoin parseDataStr(String s)
+    public static SOCJoinChannel parseDataStr(String s)
     {
         String nn;
         String pw;
@@ -179,7 +181,7 @@ public class SOCJoin extends SOCMessage
             return null;
         }
 
-        return new SOCJoin(nn, pw, hn, ch);
+        return new SOCJoinChannel(nn, pw, hn, ch);
     }
 
     /**
@@ -193,7 +195,7 @@ public class SOCJoin extends SOCMessage
         else
             pwmask = "|password=***";
 
-        String s = "SOCJoin:nickname=" + nickname + pwmask + "|host=" + host + "|channel=" + channel;
+        String s = "SOCJoinChannel:nickname=" + nickname + pwmask + "|host=" + host + "|channel=" + channel;
         return s;
     }
 

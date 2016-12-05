@@ -126,19 +126,28 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
     /** {@link SOCNewChannel}: A new channel has been created. */
     public static final int NEWCHANNEL = 1001;
-    /** {@link SOCMembers}: List of one channel's members. */
-    public static final int MEMBERS = 1002;
-    /** {@link SOCChannels}: List of all channel names. */
+    /**
+     * {@link SOCChannelMembers}: List of one channel's members.
+     * Before v2.0.00 this constant was {@code MEMBERS}.
+     */
+    public static final int CHANNELMEMBERS = 1002;
+    /** {@link SOCChannels}: List of all chat channel names. */
     public static final int CHANNELS = 1003;
-    /** {@link SOCJoin}: Join or create a channel. */
-    public static final int JOIN = 1004;
+    /**
+     * {@link SOCJoinChannel}: Join or create a chat channel.
+     * Before v2.0.00 this constant was {@code JOIN}.
+     */
+    public static final int JOINCHANNEL = 1004;
     /** {@link SOCTextMsg}: A text message in a channel. */
     public static final int TEXTMSG = 1005;
-    /** {@link SOCLeave}: Leaving a channel. */
-    public static final int LEAVE = 1006;
+    /**
+     * {@link SOCLeaveChannel}: Leaving a channel.
+     * Before v2.0.00 this constant was {@code LEAVE}.
+     */
+    public static final int LEAVECHANNEL = 1006;
     /** {@link SOCDeleteChannel}: Deleting a channel. */
     public static final int DELETECHANNEL = 1007;
-    /** {@link SOCLeaveAll}: Leaving all games and channels. */
+    /** {@link SOCLeaveAll}: Leaving all games and chat channels. */
     public static final int LEAVEALL = 1008;
 
     public static final int PUTPIECE = 1009;
@@ -171,16 +180,22 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int STARTGAME = 1018;
     /** {@link SOCGames}: List of all game names; see {@link #GAMESWITHOPTIONS}. */
     public static final int GAMES = 1019;
-    /** {@link SOCJoinAuth}: Your client is authorized to join a channel. */
-    public static final int JOINAUTH = 1020;
+    /**
+     * {@link SOCJoinChannelAuth}: Your client is authorized to join a channel.
+     * Before v2.0.00 this constant was {@code JOINAUTH}.
+     */
+    public static final int JOINCHANNELAUTH = 1020;
     /** {@link SOCJoinGameAuth}: Your client is authorized to join a game. */
     public static final int JOINGAMEAUTH = 1021;
+
     public static final int IMAROBOT = 1022;
+
     /**
      * {@link SOCRobotJoinGameRequest}: Ask a robot client to join a game.
      * Was JOINGAMEREQUEST before v2.0.00.
      */
     public static final int ROBOTJOINGAMEREQUEST = 1023;
+
     public static final int PLAYERELEMENT = 1024;
     public static final int GAMESTATE = 1025;
     public static final int TURN = 1026;
@@ -688,20 +703,20 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case NEWCHANNEL:
                 return SOCNewChannel.parseDataStr(data);
 
-            case MEMBERS:
-                return SOCMembers.parseDataStr(data);
+            case CHANNELMEMBERS:
+                return SOCChannelMembers.parseDataStr(data);
 
             case CHANNELS:
                 return SOCChannels.parseDataStr(data);
 
-            case JOIN:
-                return SOCJoin.parseDataStr(data);
+            case JOINCHANNEL:
+                return SOCJoinChannel.parseDataStr(data);
 
             case TEXTMSG:
                 return SOCTextMsg.parseDataStr(data);
 
-            case LEAVE:
-                return SOCLeave.parseDataStr(data);
+            case LEAVECHANNEL:
+                return SOCLeaveChannel.parseDataStr(data);
 
             case DELETECHANNEL:
                 return SOCDeleteChannel.parseDataStr(data);
@@ -742,8 +757,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case STARTGAME:
                 return SOCStartGame.parseDataStr(data);
 
-            case JOINAUTH:
-                return SOCJoinAuth.parseDataStr(data);
+            case JOINCHANNELAUTH:
+                return SOCJoinChannelAuth.parseDataStr(data);
 
             case JOINGAMEAUTH:
                 return SOCJoinGameAuth.parseDataStr(data);

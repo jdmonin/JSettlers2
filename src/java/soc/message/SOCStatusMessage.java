@@ -26,13 +26,13 @@ import soc.util.SOCServerFeatures;  // for javadocs only
 /**
  * This is a text message that shows in a status box on the client.
  * Used for "welcome" message at initial connect to game (follows
- * {@link SOCJoinAuth JOINAUTH} or {@link SOCJoinGameAuth JOINGAMEAUTH}),
+ * {@link SOCJoinChannelAuth JOINCHANNELAUTH} or {@link SOCJoinGameAuth JOINGAMEAUTH}),
  * or rejection if client can't join that game (or channel).
  * Also used in {@link soc.client.SOCAccountClient SOCAccountClient}
  * to tell the user if their change was made successfully.
  *<P>
  * Sent in response to any message type used by clients to request authentication
- * and create or connect to a game or channel: {@link SOCJoinGame}, {@link SOCJoin},
+ * and create or connect to a game or channel: {@link SOCJoinGame}, {@link SOCJoinChannel},
  * {@link SOCImARobot}, {@link SOCAuthRequest}, {@link SOCNewGameWithOptionsRequest}.
  *
  * <H3>Status values:</H3>

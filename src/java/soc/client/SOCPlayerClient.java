@@ -1425,7 +1425,7 @@ public class SOCPlayerClient
                 }
 
                 status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
-                client.net.putNet(SOCJoin.toCmd
+                client.net.putNet(SOCJoinChannel.toCmd
                     (client.nickname, (client.gotPassword ? "" : client.password), client.net.getHost(), ch));
             }
             else
@@ -2868,29 +2868,29 @@ public class SOCPlayerClient
             /**
              * join channel authorization
              */
-            case SOCMessage.JOINAUTH:
-                handleJOINAUTH((SOCJoinAuth) mes);
+            case SOCMessage.JOINCHANNELAUTH:
+                handleJOINCHANNELAUTH((SOCJoinChannelAuth) mes);
 
                 break;
 
             /**
              * someone joined a channel
              */
-            case SOCMessage.JOIN:
-                handleJOIN((SOCJoin) mes);
+            case SOCMessage.JOINCHANNEL:
+                handleJOINCHANNEL((SOCJoinChannel) mes);
 
                 break;
 
             /**
-             * list of members for a channel
+             * list of members for a chat channel
              */
-            case SOCMessage.MEMBERS:
-                handleMEMBERS((SOCMembers) mes);
+            case SOCMessage.CHANNELMEMBERS:
+                handleCHANNELMEMBERS((SOCChannelMembers) mes);
 
                 break;
 
             /**
-             * a new channel has been created
+             * a new chat channel has been created
              */
             case SOCMessage.NEWCHANNEL:
                 handleNEWCHANNEL((SOCNewChannel) mes);
@@ -2898,7 +2898,7 @@ public class SOCPlayerClient
                 break;
 
             /**
-             * List of channels on the server: Server connection is complete.
+             * List of chat channels on the server: Server connection is complete.
              * (sent at connect after VERSION, even if no channels)
              * Show main panel if not already showing; see handleCHANNELS javadoc.
              */
@@ -2908,7 +2908,7 @@ public class SOCPlayerClient
                 break;
 
             /**
-             * text message
+             * text message to a chat channel
              */
             case SOCMessage.TEXTMSG:
                 handleTEXTMSG((SOCTextMsg) mes);
@@ -2916,15 +2916,15 @@ public class SOCPlayerClient
                 break;
 
             /**
-             * someone left the channel
+             * someone left the chat channel
              */
-            case SOCMessage.LEAVE:
-                handleLEAVE((SOCLeave) mes);
+            case SOCMessage.LEAVECHANNEL:
+                handleLEAVECHANNEL((SOCLeaveChannel) mes);
 
                 break;
 
             /**
-             * delete a channel
+             * delete a chat channel
              */
             case SOCMessage.DELETECHANNEL:
                 handleDELETECHANNEL((SOCDeleteChannel) mes);
@@ -3662,7 +3662,7 @@ public class SOCPlayerClient
      * handle the "join channel authorization" message
      * @param mes  the message
      */
-    protected void handleJOINAUTH(SOCJoinAuth mes)
+    protected void handleJOINCHANNELAUTH(SOCJoinChannelAuth mes)
     {
         gotPassword = true;
         gameDisplay.channelJoined(mes.getChannel());
@@ -3672,7 +3672,7 @@ public class SOCPlayerClient
      * handle the "join channel" message
      * @param mes  the message
      */
-    protected void handleJOIN(SOCJoin mes)
+    protected void handleJOINCHANNEL(SOCJoinChannel mes)
     {
         gameDisplay.channelJoined(mes.getChannel(), mes.getNickname());
     }
@@ -3681,7 +3681,7 @@ public class SOCPlayerClient
      * handle the "channel members" message
      * @param mes  the message
      */
-    protected void handleMEMBERS(SOCMembers mes)
+    protected void handleCHANNELMEMBERS(SOCChannelMembers mes)
     {
         gameDisplay.channelMemberList(mes.getChannel(), mes.getMembers());
     }
@@ -3736,7 +3736,7 @@ public class SOCPlayerClient
      * handle the "leave channel" message
      * @param mes  the message
      */
-    protected void handleLEAVE(SOCLeave mes)
+    protected void handleLEAVECHANNEL(SOCLeaveChannel mes)
     {
         gameDisplay.channelLeft(mes.getChannel(), mes.getNickname());
     }
@@ -5565,14 +5565,14 @@ public class SOCPlayerClient
     }
 
     /**
-     * the user leaves the given channel
+     * the user leaves the given chat channel
      *
      * @param ch  the name of the channel
      */
     public void leaveChannel(String ch)
     {
         gameDisplay.channelLeft(ch);
-        net.putNet(SOCLeave.toCmd(nickname, net.getHost(), ch));
+        net.putNet(SOCLeaveChannel.toCmd(nickname, net.getHost(), ch));
     }
 
     public GameManager getGameManager()
