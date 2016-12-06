@@ -612,6 +612,7 @@ public class SOCGame implements Serializable, Cloneable
      * The {@link SOCBoard.BoardFactory} for creating new boards in the SOCGame constructors.
      * Differs at client and at server.
      * If null, SOCGame constructor sets to {@link SOCBoard.DefaultBoardFactory}.
+     * @see soc.server.SOCBoardLargeAtServer.BoardFactoryAtServer
      * @since 2.0.00
      */
     public static SOCBoard.BoardFactory boardFactory;

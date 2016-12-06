@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -378,8 +378,14 @@ public class SOCBoard implements Serializable, Cloneable
      * ------------------------------------------------------------------------------------
      */
 
+    // If you add a new BOARD_ENCODING_* constant:
+    // - Update MAX_BOARD_ENCODING
+    // - Update the getBoardEncodingFormat javadocs
+    // - Do where-used on the existing encoding constants and MAX_BOARD_ENCODING
+    //   to look for other places you may need to check for the new constant
+
     /**
-     * Original format (v1) for {@link #getBoardEncodingFormat()}:
+     * 4-player original format (v1) for {@link #getBoardEncodingFormat()}:
      * Hexadecimal 0x00 to 0xFF along 2 diagonal axes.
      * Coordinate range on each axis is 0 to 15 decimal. In hex:<pre>
      *   Hexes: 11 to DD
@@ -407,14 +413,13 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int BOARD_ENCODING_6PLAYER = 2;
 
     /**
-     * Sea board format (v3) for {@link #getBoardEncodingFormat()}:
+     * Sea board format (v3) used with {@link SOCBoardLarge} for {@link #getBoardEncodingFormat()}:
      * Allows up to 127 x 127 board with an arbitrary mix of land and water tiles.
      * Land, water, and port locations/facings are no longer hardcoded.
      * Use {@link #getPortsCount()} to get the number of ports.
      * For other port information, use the same methods as in {@link #BOARD_ENCODING_6PLAYER}.
      *<P>
      * Activated with {@link SOCGameOption} {@code "SBL"}.
-     * @see SOCBoardLarge
      * @since 2.0.00
      */
     public static final int BOARD_ENCODING_LARGE = 3;
@@ -2430,8 +2435,17 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Get the encoding format of this board (for coordinates, etc).
-     * See the encoding constants' javadocs for more documentation.
-     * @return board coordinate-encoding format, such as {@link #BOARD_ENCODING_ORIGINAL}
+     * Some formats use a {@code SOCBoard} subclass like {@link SOCBoardLarge}.
+     *<P>
+     * See the encoding constants' javadocs for more documentation:
+     *<UL>
+     * <LI> {@link #BOARD_ENCODING_ORIGINAL}
+     * <LI> {@link #BOARD_ENCODING_6PLAYER}
+     * <LI> {@link #BOARD_ENCODING_LARGE}
+     *</UL>
+     * @return board coordinate-encoding format, from the list above
+     * @see #setBoardEncodingFormat(int)
+     * @see SOCBoard.BoardFactory#createBoard(Map, boolean, int)
      * @since 1.1.06
      */
     public int getBoardEncodingFormat()
@@ -3567,7 +3581,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Called by game constructor via <tt>static {@link SOCGame#boardFactory}</tt>.
      *<P>
      * The default factory is {@link SOCBoard.DefaultBoardFactory}.
-     * For a server-side board factory, see <tt>soc.server.SOCBoardLargeAtServer.ServerBoardFactory</tt>.
+     * For a server-side board factory, see {@link soc.server.SOCBoardLargeAtServer.BoardFactoryAtServer}.
      * @author Jeremy D Monin
      * @since 2.0.00
      */
@@ -3576,7 +3590,8 @@ public class SOCBoard implements Serializable, Cloneable
         /**
          * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
          * @param gameOpts  game's options if any, otherwise null
-         * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
+         * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding
+         *     {@link SOCBoard#BOARD_ENCODING_LARGE BOARD_ENCODING_LARGE})
          * @param maxPlayers Maximum players; must be 4 or 6.
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */
