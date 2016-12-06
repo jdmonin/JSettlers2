@@ -42,6 +42,7 @@ import java.util.Vector;
  *
  * @author Robert S Thomas
  * @see SOCChannelMembers
+ * @see SOCGamesWithOptions
  */
 public class SOCGameMembers extends SOCMessage
     implements SOCMessageForGame

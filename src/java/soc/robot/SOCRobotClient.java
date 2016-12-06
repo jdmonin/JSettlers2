@@ -605,7 +605,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.BCASTTEXTMSG:
             case SOCMessage.CHANGEFACE:
             case SOCMessage.CHANNELMEMBERS:
-            case SOCMessage.CHANNELS:
+            case SOCMessage.CHANNELS:        // If bot ever uses CHANNELS, update SOCChannels class javadoc
             case SOCMessage.DELETECHANNEL:
             case SOCMessage.GAMES:
             case SOCMessage.GAMESERVERTEXT:  // SOCGameServerText contents are ignored by bots

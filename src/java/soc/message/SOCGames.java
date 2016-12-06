@@ -43,6 +43,7 @@ import soc.game.SOCGame;
  *
  * @author Robert S Thomas
  * @see SOCGamesWithOptions
+ * @see SOCGameMembers
  */
 public class SOCGames extends SOCMessage
 {

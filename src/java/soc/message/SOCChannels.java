@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -32,6 +32,9 @@ import java.util.Vector;
  * when connecting. {@code SOCChannels} is sent even if the server isn't using
  * {@link soc.util.SOCServerFeatures#FEAT_CHANNELS} because clients see it as a
  * signal the connection is complete, and display their main user interface panel.
+ *<P>
+ * Robots ignore {@code SOCChannels}. They don't need to wait for "connection complete"
+ * because their actions are initiated by the server.
  *
  * @author Robert S Thomas
  * @see SOCChannelMembers
