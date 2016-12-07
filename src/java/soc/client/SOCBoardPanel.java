@@ -1067,25 +1067,31 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Context menu for build/cancel-build
+     * @see #popupMenuSystime
+     * @see #buildReqTimerTask
+     * @see #doBoardMenuPopup(int, int)
      */
     private BoardPopupMenu popupMenu;
 
     /**
-     * Tracks last menu-popup time.  Avoids misinterpretation of popup-click with placement-click
-     * during initial placement: On Windows, popup-click must be caught in mouseReleased,
-     * but mousePressed is called immediately afterwards.
+     * Tracks last menu-popup time for {@link #popupMenu}. Avoids misinterpretation
+     * of popup-click with placement-click during initial placement: On Windows,
+     * popup-click must be caught in mouseReleased, but mousePressed is called
+     * immediately afterwards.
      */
     private long popupMenuSystime;
 
     /**
-     * For right-click build menu; used for fallback part of client-server-client
-     * communication of a build request. Created whenever right-click build request sent.
-     * This is the fallback for the normal method:
-     * <pre>
-     *  SOCBoardPanel.popupExpectingBuildRequest
-     *  SOCPlayerInterface.updateAtGameState
-     *  SOCBoardPanel.popupFireBuildingRequest
-     * </pre>
+     * For right-click build {@link #popupMenu}; used for fallback part of
+     * client-server-client communication of a build request. Created whenever
+     * right-click build request is sent to server.
+     *<P>
+     * Is fallback for this usual sequence of calls:
+     *<OL>
+     * <LI> {@link SOCBoardPanel#popupExpectingBuildRequest()}
+     * <LI> {@link SOCPlayerInterface#updateAtGameState()}
+     * <LI> {@link SOCBoardPanel#popupFireBuildingRequest()}
+     *</OL>
      */
     protected BoardPanelSendBuildTask buildReqTimerTask;
 
