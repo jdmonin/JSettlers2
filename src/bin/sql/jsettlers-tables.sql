@@ -5,6 +5,7 @@
 --      Postgres: $ psql --file jsettlers-tables.sql socdata
 -- See bottom of file for copyright and license information (GPLv3+).
 -- Always use lowercase for table names and field names.  0-9 and underscore (_) are also safe.
+-- Don't create "mytable_name" if that name without underscores ("mytablename") is already a table.
 -- Remember that the sql must be valid for mysql, postgresql, sqlite, and oracle.
 -- For indexes, use the table name + __ + one lowercase letter.
 -- For multi-line SQLs, indent so that SOCDBHelper.runSetupScript can combine them.
