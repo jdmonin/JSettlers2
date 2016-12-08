@@ -1195,6 +1195,63 @@ public class SOCDBHelper
     }
 
     /**
+     * Query to see if a table exists in the database.
+     * Any exception is caught here and returns false.
+     * @param tabname  Table name to check for; case-sensitive in some db types
+     * @return  true if table exists in the current connection's database
+     * @throws IllegalStateException  If not connected and if {@link #checkConnection()} fails
+     * @see #doesTableColumnExist(String, String)
+     * @since 2.0.00
+     */
+    public static boolean doesTableExist(final String tabname)
+        throws IllegalStateException
+    {
+        try
+        {
+            if (! checkConnection())
+                throw new IllegalStateException();
+        } catch (SQLException e) {
+            throw new IllegalStateException();
+        }
+
+        ResultSet rs = null;
+        boolean found = false;
+
+        try
+        {
+            rs = connection.getMetaData().getTables(null, null, tabname, null);
+            while (rs.next())
+            {
+                // Check name, in case of multiple rows (wildcard from '_' in name).
+                // Use equalsIgnoreCase for case-insensitive db catalogs; assumes
+                // this db follows jsettlers table naming rules so wouldn't have two
+                // tables with same names differing only by upper/lowercase.
+
+                final String na = rs.getString("TABLE_NAME");
+                if ((na != null) && na.equalsIgnoreCase(tabname))
+                {
+                    found = true;
+                    break;
+                }
+            }
+            rs.close();
+        }
+        catch (Exception e)
+        {
+            if (rs != null)
+            {
+                try
+                {
+                    rs.close();
+                }
+                catch (SQLException se) {}
+            }
+        }
+
+        return found;
+    }
+
+    /**
      * Query to see if a column exists in a table.
      * Any exception is caught here and returns false.
      * @param tabname  Table name to check <tt>colname</tt> within; case-sensitive in some db types
@@ -1202,6 +1259,7 @@ public class SOCDBHelper
      *    The jsettlers standard is to always use lowercase names when creating tables and columns.
      * @return  true if column exists in the current connection's database
      * @throws IllegalStateException  If not connected and if {@link #checkConnection()} fails
+     * @see #doesTableExist(String)
      * @since 1.1.14
      */
     public static boolean doesTableColumnExist
