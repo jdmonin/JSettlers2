@@ -321,6 +321,14 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_GAMEOPT_PREFIX = "jsettlers.gameopt.";
 
     /**
+     * Boolean property {@code jsettlers.test.db} to test database methods,
+     * then exit with code 0 if OK or 1 if any required tests failed.
+     * @see SOCDBHelper#testDBHelper()
+     * @since 2.0.00
+     */
+    public static final String PROP_JSETTLERS_TEST_DB = "jsettlers.test.db";
+
+    /**
      * Boolean property {@code jsettlers.test.validate_config} to validate any server properties
      * given in {@code jsserver.properties} or on the command line, print whether there were
      * any problems, then exit with code 0 if OK or 1 if problems.
@@ -363,6 +371,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
         PROP_JSETTLERS_TEST_VALIDATE__CONFIG,   "Flag to validate server and DB config, then exit",
+        PROP_JSETTLERS_TEST_DB,                 "Flag to test database methods, then exit",
         SOCDBHelper.PROP_JSETTLERS_DB_USER,     "DB username",
         SOCDBHelper.PROP_JSETTLERS_DB_PASS,     "DB password",
         SOCDBHelper.PROP_JSETTLERS_DB_URL,      "DB connection URL",
@@ -930,7 +939,8 @@ public class SOCServer extends Server
      * @param databasePassword  the password for the db user, or ""
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now
-     * @throws SQLException   If db setup script fails
+     * @throws SQLException   If db setup script fails,
+     *       or if required tests failed in {@link SOCDBHelper#testDBHelper()}
      */
     public SOCServer(int p, int mc, String databaseUserName, String databasePassword)
         throws SocketException, EOFException, SQLException
@@ -998,7 +1008,8 @@ public class SOCServer extends Server
      * @since 1.1.09
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now
-     * @throws SQLException   If db setup script fails, or need db but can't connect
+     * @throws SQLException   If db setup script fails, or need db but can't connect,
+     *       or if required tests failed in {@link SOCDBHelper#testDBHelper()}
      * @throws IllegalArgumentException  If {@code props} contains game options ({@code jsettlers.gameopt.*})
      *       with bad syntax. See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for expected syntax.
      *       See {@link #parseCmdline_DashedArgs(String[])} for how game option properties are checked.
@@ -1042,7 +1053,8 @@ public class SOCServer extends Server
      * @param databasePassword  the password for the user
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now
-     * @throws SQLException   If db setup script fails
+     * @throws SQLException   If db setup script fails,
+     *       or if required tests failed in {@link SOCDBHelper#testDBHelper()}
      * @since 1.1.00
      */
     public SOCServer(String s, int mc, String databaseUserName, String databasePassword)
@@ -1117,14 +1129,22 @@ public class SOCServer extends Server
     {
         Version.printVersionText(System.err, "Java Settlers Server ");
 
+        /**
+         * If true, connect to DB (like validate_config_mode) but start no threads.
+         * Will run the requested tests and exit.
+         */
+        final boolean test_mode_with_db = getConfigBoolProperty(PROP_JSETTLERS_TEST_DB, false);
+
         final boolean validate_config_mode = getConfigBoolProperty(PROP_JSETTLERS_TEST_VALIDATE__CONFIG, false);
 
         // Set this flag as early as possible
-        hasUtilityModeProp = validate_config_mode ||
+        hasUtilityModeProp = validate_config_mode || test_mode_with_db ||
            ((props != null)
             && ((null != props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP))
                 || (null != props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET))));
 
+        if (test_mode_with_db)
+            System.err.println("* DB Test Mode: Will run tests and exit.");
         if (validate_config_mode)
             System.err.println("* Config Validation Mode: Checking configuration and exiting.");
 
@@ -1215,7 +1235,7 @@ public class SOCServer extends Server
                     acctsNotOpenRegButNoUsers = true;
             }
         }
-        catch (SQLException sqle) // just a warning
+        catch (SQLException sqle)  // just a warning at this point; other code checks if db failed but is required
         {
             System.err.println("No user database available: " + sqle.getMessage());
             Throwable cause = sqle.getCause();
@@ -1278,7 +1298,7 @@ public class SOCServer extends Server
 
         // No errors; continue normal startup.
 
-        if (hasUtilityModeProp && ! validate_config_mode)
+        if (hasUtilityModeProp && ! (test_mode_with_db || validate_config_mode))
         {
             return;  // <--- don't continue startup if Utility Mode ---
         }
@@ -1385,7 +1405,7 @@ public class SOCServer extends Server
         /**
          * Start various threads.
          */
-        if (! validate_config_mode)
+        if (! (test_mode_with_db || validate_config_mode))
         {
             serverRobotPinger = new SOCServerRobotPinger(this, robots);
             serverRobotPinger.start();
@@ -1428,7 +1448,15 @@ public class SOCServer extends Server
 
             System.err.println();
             System.err.println("* Config Validation Mode: No problems found.");
-        } else {
+        }
+
+        if (test_mode_with_db)
+        {
+            SOCDBHelper.testDBHelper();  // failures/errors throw SQLException for our caller to catch
+        }
+
+        if (! (test_mode_with_db || validate_config_mode))
+        {
             System.err.print("The server is ready.");
             if (port > 0)
                 System.err.print(" Listening on port " + port);
@@ -2408,6 +2436,7 @@ public class SOCServer extends Server
      *<P>
      * The current Utility Mode properties/arguments are:
      *<UL>
+     * <LI> {@link #PROP_JSETTLERS_TEST_DB} flag property
      * <LI> {@link #PROP_JSETTLERS_TEST_VALIDATE__CONFIG} flag property
      * <LI> {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP} property
      * <LI> {@code --pw-reset=username} argument
@@ -7915,6 +7944,7 @@ public class SOCServer extends Server
             {
                 // the sql setup script was ran by initialize, but failed to complete.
                 // or, a db URL was specified and server was unable to connect.
+                // or, required database test(s) failed in SOCDBHelper.testDBHelper().
                 // exception detail was printed in initSocServer.
                 if (argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP))
                     System.err.println("\n* DB setup script failed. Exiting now.\n");

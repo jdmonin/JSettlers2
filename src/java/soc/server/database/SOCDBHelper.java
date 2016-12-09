@@ -71,6 +71,8 @@ import java.util.Properties;
  * CREATE TABLE games (gamename VARCHAR(20), player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20), player4 VARCHAR(20), score1 TINYINT, score2 TINYINT, score3 TINYINT, score4 TINYINT, starttime TIMESTAMP);
  * CREATE TABLE robotparams (robotname VARCHAR(20), maxgamelength INT, maxeta INT, etabonusfactor FLOAT, adversarialfactor FLOAT, leaderadversarialfactor FLOAT, devcardmultiplier FLOAT, threatmultiplier FLOAT, strategytype INT, starttime TIMESTAMP, endtime TIMESTAMP, gameswon INT, gameslost INT, tradeFlag BOOL);
  *</code>
+ *<P>
+ * For tests, call {@link #testDBHelper()}.
  *
  * @author Robert S. Thomas
  */
@@ -1197,7 +1199,8 @@ public class SOCDBHelper
     /**
      * Query to see if a table exists in the database.
      * Any exception is caught here and returns false.
-     * @param tabname  Table name to check for; case-sensitive in some db types
+     * @param tabname  Table name to check for; case-sensitive in some db types.
+     *    The jsettlers standard is to always use lowercase names when creating tables and columns.
      * @return  true if table exists in the current connection's database
      * @throws IllegalStateException  If not connected and if {@link #checkConnection()} fails
      * @see #doesTableColumnExist(String, String)
@@ -1423,4 +1426,67 @@ public class SOCDBHelper
             more = rs.next();
         }
     }
+
+    /**
+     * Unit testing: Call {@link #doesTableExist(String)} and print results.
+     * @param tabname  Table name to check
+     * @param wantSuccess  True if expecting it to be found
+     * @return true if call result == {@code wantSuccess}
+     * @throws IllegalStateException if not connected; see {@link #doesTableExist(String)} javadoc
+     * @since 2.0.00
+     */
+    private static boolean testOne_doesTableExist(final String tabname, final boolean wantSuccess)
+        throws IllegalStateException
+    {
+        final boolean exists = SOCDBHelper.doesTableExist(tabname),
+            pass = (exists == wantSuccess);
+        System.err.println
+            ( ((pass) ? "test ok" : "test FAIL") + ": doesTableExist(" + tabname + "): " + exists);
+        return (pass);
+    }
+
+    /**
+     * Tests for a working database connection, unit tests for {@link SOCDBHelper} methods.
+     * Prints success or failure to {@link System#err}.
+     *<P>
+     * To run these tests, DB connection info must be initialized and the DB schema should
+     * contain what's in {@code jsettlers-tables.sql}: {@code games}, etc.
+     *<P>
+     * Called from {@link SOCServer#initSocServer(String, String, Properties)}
+     * if {@link SOCServer#PROP_JSETTLERS_TEST_DB} flag is set.
+     * @throws SQLException  if connection fails or any required tests failed
+     * @since 2.0.00
+     */
+    public static final void testDBHelper()
+        throws SQLException
+    {
+        boolean anyFailed = false;
+
+        // Unit tests: all in one try block because the only expected exception would
+        // occur only if the DB connection fails, instead of a per-test condition
+        try
+        {
+            System.err.println();
+            anyFailed |= testOne_doesTableExist("games", true);
+            anyFailed |= testOne_doesTableExist("gamesxyz", false);
+            anyFailed |= testOne_doesTableExist("gam_es", false);  // wildcard
+
+            // Optional tests, OK if these fail: Case-insensitive table name search
+            testOne_doesTableExist("GAMES", true);
+            testOne_doesTableExist("Games", true);
+        } catch (Exception e) {
+            soc.debug.D.ebugPrintStackTrace(e, "test caught exception: doesTableExist");
+            if (e instanceof SQLException)
+                throw (SQLException) e;
+            else
+                throw new SQLException(e);
+        }
+
+        if (anyFailed)
+        {
+            System.err.println("* Some required DB tests failed.");
+            throw new SQLException("Required test(s) failed");
+        }
+    }
+
 }
