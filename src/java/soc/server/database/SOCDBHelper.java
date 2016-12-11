@@ -1467,25 +1467,28 @@ public class SOCDBHelper
         try
         {
             System.err.println();
-            anyFailed |= testOne_doesTableExist("games", true);
-            anyFailed |= testOne_doesTableExist("gamesxyz", false);
-            anyFailed |= testOne_doesTableExist("gam_es", false);  // wildcard
+            anyFailed |= ! testOne_doesTableExist("games", true);
+            anyFailed |= ! testOne_doesTableExist("gamesxyz", false);
+            anyFailed |= ! testOne_doesTableExist("gam_es", false);  // wildcard
 
             // Optional tests, OK if these fail: Case-insensitive table name search
             testOne_doesTableExist("GAMES", true);
             testOne_doesTableExist("Games", true);
         } catch (Exception e) {
-            soc.debug.D.ebugPrintStackTrace(e, "test caught exception: doesTableExist");
+            soc.debug.D.ebugPrintStackTrace(e, "test caught exception: testDBHelper");
             if (e instanceof SQLException)
                 throw (SQLException) e;
             else
                 throw new SQLException(e);
         }
 
+        System.err.println();
         if (anyFailed)
         {
             System.err.println("* Some required DB tests failed.");
             throw new SQLException("Required test(s) failed");
+        } else {
+            System.err.println("* All required DB tests passed.");
         }
     }
 
