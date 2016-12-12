@@ -1446,6 +1446,27 @@ public class SOCDBHelper
     }
 
     /**
+     * Unit testing: Call {@link #doesTableColumnExist(String, String)} and print results.
+     * @param tabname  Table name to check
+     * @param colname  Column name to check
+     * @param wantSuccess  True if expecting it to be found
+     * @return true if call result == {@code wantSuccess}
+     * @throws IllegalStateException if not connected; see {@link #doesTableColumnExist(String, String)} javadoc
+     * @since 2.0.00
+     */
+    private static boolean testOne_doesTableColumnExist
+        (final String tabname, final String colname, final boolean wantSuccess)
+        throws IllegalStateException
+    {
+        final boolean exists = SOCDBHelper.doesTableColumnExist(tabname, colname),
+            pass = (exists == wantSuccess);
+        System.err.println
+            ( ((pass) ? "test ok" : "test FAIL")
+              + ": doesTableColumnExist(" + tabname + ", " + colname + "): " + exists);
+        return (pass);
+    }
+
+    /**
      * Tests for a working database connection, unit tests for {@link SOCDBHelper} methods.
      * Prints success or failure to {@link System#err}.
      *<P>
@@ -1474,6 +1495,15 @@ public class SOCDBHelper
             // Optional tests, OK if these fail: Case-insensitive table name search
             testOne_doesTableExist("GAMES", true);
             testOne_doesTableExist("Games", true);
+
+            System.err.println();
+            anyFailed |= ! testOne_doesTableColumnExist("games", "gamename", true);
+            anyFailed |= ! testOne_doesTableColumnExist("games", "gamenamexyz", false);
+            anyFailed |= ! testOne_doesTableColumnExist("gamesxyz", "xyz", false);
+
+            // Optional tests, OK if these fail: Case-insensitive column name search
+            testOne_doesTableColumnExist("GAMES", "GAMENAME", true);
+            testOne_doesTableColumnExist("Games", "gameName", true);
         } catch (Exception e) {
             soc.debug.D.ebugPrintStackTrace(e, "test caught exception: testDBHelper");
             if (e instanceof SQLException)
