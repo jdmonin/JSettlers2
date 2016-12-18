@@ -1431,17 +1431,20 @@ public class SOCDBHelper
      * Unit testing: Call {@link #doesTableExist(String)} and print results.
      * @param tabname  Table name to check
      * @param wantSuccess  True if expecting it to be found
+     * @param isRequired  True if test is required, not optional (affects only the output text, not return value)
      * @return true if call result == {@code wantSuccess}
      * @throws IllegalStateException if not connected; see {@link #doesTableExist(String)} javadoc
      * @since 2.0.00
      */
-    private static boolean testOne_doesTableExist(final String tabname, final boolean wantSuccess)
+    private static boolean testOne_doesTableExist
+        (final String tabname, final boolean wantSuccess, final boolean isRequired)
         throws IllegalStateException
     {
         final boolean exists = SOCDBHelper.doesTableExist(tabname),
             pass = (exists == wantSuccess);
         System.err.println
-            ( ((pass) ? "test ok" : "test FAIL") + ": doesTableExist(" + tabname + "): " + exists);
+            ( ((pass) ? "test ok" : ((isRequired) ? "test FAIL" : "test failed but optional: ok"))
+              + ": doesTableExist(" + tabname + "): " + exists);
         return (pass);
     }
 
@@ -1450,18 +1453,19 @@ public class SOCDBHelper
      * @param tabname  Table name to check
      * @param colname  Column name to check
      * @param wantSuccess  True if expecting it to be found
+     * @param isRequired  True if test is required, not optional (affects only the output text, not return value)
      * @return true if call result == {@code wantSuccess}
      * @throws IllegalStateException if not connected; see {@link #doesTableColumnExist(String, String)} javadoc
      * @since 2.0.00
      */
     private static boolean testOne_doesTableColumnExist
-        (final String tabname, final String colname, final boolean wantSuccess)
+        (final String tabname, final String colname, final boolean wantSuccess, final boolean isRequired)
         throws IllegalStateException
     {
         final boolean exists = SOCDBHelper.doesTableColumnExist(tabname, colname),
             pass = (exists == wantSuccess);
         System.err.println
-            ( ((pass) ? "test ok" : "test FAIL")
+            ( ((pass) ? "test ok" : ((isRequired) ? "test FAIL" : "test failed but optional: ok"))
               + ": doesTableColumnExist(" + tabname + ", " + colname + "): " + exists);
         return (pass);
     }
@@ -1488,22 +1492,22 @@ public class SOCDBHelper
         try
         {
             System.err.println();
-            anyFailed |= ! testOne_doesTableExist("games", true);
-            anyFailed |= ! testOne_doesTableExist("gamesxyz", false);
-            anyFailed |= ! testOne_doesTableExist("gam_es", false);  // wildcard
+            anyFailed |= ! testOne_doesTableExist("games", true, true);
+            anyFailed |= ! testOne_doesTableExist("gamesxyz", false, true);
+            anyFailed |= ! testOne_doesTableExist("gam_es", false, true);  // wildcard
 
             // Optional tests, OK if these fail: Case-insensitive table name search
-            testOne_doesTableExist("GAMES", true);
-            testOne_doesTableExist("Games", true);
+            testOne_doesTableExist("GAMES", true, false);
+            testOne_doesTableExist("Games", true, false);
 
             System.err.println();
-            anyFailed |= ! testOne_doesTableColumnExist("games", "gamename", true);
-            anyFailed |= ! testOne_doesTableColumnExist("games", "gamenamexyz", false);
-            anyFailed |= ! testOne_doesTableColumnExist("gamesxyz", "xyz", false);
+            anyFailed |= ! testOne_doesTableColumnExist("games", "gamename", true, true);
+            anyFailed |= ! testOne_doesTableColumnExist("games", "gamenamexyz", false, true);
+            anyFailed |= ! testOne_doesTableColumnExist("gamesxyz", "xyz", false, true);
 
             // Optional tests, OK if these fail: Case-insensitive column name search
-            testOne_doesTableColumnExist("GAMES", "GAMENAME", true);
-            testOne_doesTableColumnExist("Games", "gameName", true);
+            testOne_doesTableColumnExist("GAMES", "GAMENAME", true, false);
+            testOne_doesTableColumnExist("Games", "gameName", true, false);
         } catch (Exception e) {
             soc.debug.D.ebugPrintStackTrace(e, "test caught exception: testDBHelper");
             if (e instanceof SQLException)
