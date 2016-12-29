@@ -329,7 +329,8 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_TEST_DB = "jsettlers.test.db";
 
     /**
-     * Boolean property {@code jsettlers.test.validate_config} to validate any server properties
+     * From command-line flag {@code -t} or {@code --test-config},
+     * boolean property {@code jsettlers.test.validate_config} to validate any server properties
      * given in {@code jsserver.properties} or on the command line, print whether there were
      * any problems, then exit with code 0 if OK or 1 if problems.
      *<P>
@@ -370,7 +371,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL,     "Run this many robot-only games, a few at a time (default 0); allow bot-only games",
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
-        PROP_JSETTLERS_TEST_VALIDATE__CONFIG,   "Flag to validate server and DB config, then exit",
+        PROP_JSETTLERS_TEST_VALIDATE__CONFIG,   "Flag to validate server and DB config, then exit (same as -t command-line option)",
         PROP_JSETTLERS_TEST_DB,                 "Flag to test database methods, then exit",
         SOCDBHelper.PROP_JSETTLERS_DB_USER,     "DB username",
         SOCDBHelper.PROP_JSETTLERS_DB_PASS,     "DB password",
@@ -7085,6 +7086,10 @@ public class SOCServer extends Server
                     }
                 }
             }
+            else if (arg.equals("-t") || arg.equalsIgnoreCase("--test-config"))
+            {
+                argp.put(PROP_JSETTLERS_TEST_VALIDATE__CONFIG, "y");
+            }
             else if (arg.startsWith("--pw-reset"))
             {
                 String name = null;
@@ -7694,6 +7699,7 @@ public class SOCServer extends Server
             System.err.println("usage: recognized options:");
             System.err.println("       -V or --version    : print version information");
             System.err.println("       -h or --help or -? : print this screen");
+            System.err.println("       -t or --test-config: validate server and DB config, then exit");
             System.err.println("       -o or --option name=value : set per-game options' default values");
             System.err.println("       -D name=value : set properties such as " + SOCDBHelper.PROP_JSETTLERS_DB_USER);
             System.err.println("-- Recognized properties: --");
