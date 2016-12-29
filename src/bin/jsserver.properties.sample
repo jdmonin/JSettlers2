@@ -61,6 +61,7 @@
 #   jsettlers.gameopt.vp=t12
 
 # Server Config Validation:
+# (This flag is equivalent to command line option -t or --test-config.)
 # Flag to validate any server properties given in jsserver.properties or on
 # the command line; print whether there were any problems; then exit with
 # code 0 if OK or 1 if problems. If DB connect properties are given, the
@@ -68,8 +69,9 @@
 # successfully will cause exit code 1.
 # This flag should not be set =Y in the actual jsserver.properties file you
 # use for your JSettlers Server, because it will not complete startup and run
-# normally. For testing or validation purposes, use this flag on the command
-# line: -Djsettlers.test.validate_config=Y
+# normally. For testing or validation purposes, use this option on the command
+# line: -t or --test-config or -Djsettlers.test.validate_config=Y
+# (all of which are equivalent to each other).
 # jsettlers.test.validate_config=N
 
 # Optional User Database:
