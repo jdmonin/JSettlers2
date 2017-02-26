@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016 (C) Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2017 Jeremy D Monin <jeremy@nand.net>
  * Some contents were formerly part of SOCServer.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
@@ -155,49 +155,10 @@ public class SOCServerMessageHandler
             break;
 
         /**
-         * text message
+         * text message to a channel (includes channel debug commands)
          */
         case SOCMessage.TEXTMSG:
-
-            final SOCTextMsg textMsgMes = (SOCTextMsg) mes;
-
-            if (srv.isDebugUserEnabled() && c.getData().equals("debug"))
-            {
-                if (textMsgMes.getText().startsWith("*KILLCHANNEL*"))
-                {
-                    srv.messageToChannel(textMsgMes.getChannel(), new SOCTextMsg
-                        (textMsgMes.getChannel(), SOCServer.SERVERNAME,
-                         "********** " + (String) c.getData() + " KILLED THE CHANNEL **********"));
-                    channelList.takeMonitor();
-
-                    try
-                    {
-                        srv.destroyChannel(textMsgMes.getChannel());
-                    }
-                    catch (Exception e)
-                    {
-                        D.ebugPrintStackTrace(e, "Exception in KILLCHANNEL");
-                    }
-
-                    channelList.releaseMonitor();
-                    srv.broadcast(SOCDeleteChannel.toCmd(textMsgMes.getChannel()));
-                }
-                else
-                {
-                    /**
-                     * Send the message to the members of the channel
-                     */
-                    srv.messageToChannel(textMsgMes.getChannel(), mes);
-                }
-            }
-            else
-            {
-                /**
-                 * Send the message to the members of the channel
-                 */
-                srv.messageToChannel(textMsgMes.getChannel(), mes);
-            }
-
+            handleTEXTMSG(c, (SOCTextMsg) mes);
             break;
 
         /**
@@ -903,6 +864,49 @@ public class SOCServerMessageHandler
         catch (IllegalStateException e) {
             srv.messageToPlayerKeyed(c, gaName, "reply.lock.cannot");  // "Cannot set that lock right now."
         }
+    }
+
+    /**
+     * Handle text message to a channel, including {@code *KILLCHANNEL*} channel debug command.
+     * Was part of {@code SOCServer.processCommand} before 2.0.00.
+     *
+     * @param c  the connection
+     * @param mes  the message
+     * @since 2.0.00
+     */
+    void handleTEXTMSG(final StringConnection c, final SOCTextMsg mes)
+    {
+        final String chName = mes.getChannel();
+
+        if (srv.isDebugUserEnabled() && c.getData().equals("debug"))
+        {
+            if (mes.getText().startsWith("*KILLCHANNEL*"))
+            {
+                srv.messageToChannel(chName, new SOCTextMsg
+                    (chName, SOCServer.SERVERNAME,
+                     "********** " + (String) c.getData() + " KILLED THE CHANNEL **********"));
+                channelList.takeMonitor();
+
+                try
+                {
+                    srv.destroyChannel(chName);
+                }
+                catch (Exception e)
+                {
+                    D.ebugPrintStackTrace(e, "Exception in KILLCHANNEL");
+                }
+
+                channelList.releaseMonitor();
+                srv.broadcast(SOCDeleteChannel.toCmd(chName));
+
+                return;
+            }
+        }
+
+        /**
+         * Send the message to the members of the channel
+         */
+        srv.messageToChannel(chName, mes);
     }
 
     /**
