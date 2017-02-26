@@ -7,7 +7,7 @@
  and also includes a build-i18neditor target for the PTEMain i18n editor (PTE.jar) not built by default.
 
  Copyright (C) 2004-2005 Chadwick A McHenry (mchenryc@acm.org)
- Portions of this file Copyright (C) 2007-2016 Jeremy D Monin (jeremy@nand.net)
+ Portions of this file Copyright (C) 2007-2017 Jeremy D Monin (jeremy@nand.net)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@
   <!-- Special case: New major version v2.0.00 has itself as this "no-warn" version -->
   <!-- to avoid unnecessary warning dialogs. -->
   <property name="versionnumMaxNoWarn" value="2000" />
-  <property name="copyright" value="2001-2004 Robb Thomas, portions (C) 2007-2016 Jeremy D Monin and contributors" />
+  <property name="copyright" value="2001-2004 Robb Thomas, portions (C) 2007-2017 Jeremy D Monin and contributors" />
   <property name="url"       value="http://nand.net/jsettlers/devel/" />
   <!-- version string for the PTE i18n editor; written to net/nand/util/i18n/gui/pteversion.properties during build-i18neditor -->
   <property name="i18neditor.version" value="1.0.0" />
