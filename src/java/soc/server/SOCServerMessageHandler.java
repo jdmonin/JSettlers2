@@ -906,7 +906,8 @@ public class SOCServerMessageHandler
         /**
          * Send the message to the members of the channel
          */
-        srv.messageToChannel(chName, mes);
+        if (srv.channelList.isMember(c, chName))
+            srv.messageToChannel(chName, mes);
     }
 
     /**
@@ -939,6 +940,8 @@ public class SOCServerMessageHandler
             return;  // <---- early return: no game by that name ----
 
         final String plName = (String) c.getData();
+        if (null == ga.getPlayer(plName))
+            return;  // <---- early return: player isn't in that game ----
 
         //currentGameEventRecord.setSnapshot(ga);
 

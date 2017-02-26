@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, nested class refactoring, parameterize types
  *
@@ -2577,6 +2577,7 @@ public class SOCPlayerClient
          *
          * @param ch   the name of the channel
          * @param mes  the message
+         * @see SOCPlayerClient.GameManager#sendText(SOCGame, String)
          */
         public void chSend(String ch, String mes)
         {
@@ -5754,6 +5755,7 @@ public class SOCPlayerClient
      *
      * @param ga   the game
      * @param me   the message
+     * @see SOCPlayerClient.GameAwtDisplay#chSend(String, String)
      */
     public void sendText(SOCGame ga, String me)
     {
