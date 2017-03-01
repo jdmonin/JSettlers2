@@ -31,7 +31,7 @@ Contents
 
   Documentation
   Requirements
-  Setting up and testing
+  Server Setup and Testing
   Shutting down the server
   Hosting a JSettlers Server
   Upgrading from an earlier version
@@ -75,7 +75,7 @@ To build JSettlers from source, you will need Apache Ant, available from
 http://ant.apache.org, or an IDE such as Eclipse which understands Ant's format.
 
 
-Setting up and testing
+Server Setup and Testing
 ----------------------
 
 From the command line, make sure you are in the JSettlers distribution
@@ -181,6 +181,14 @@ To determine if the server is reading the properties file, look for this text
 near the start of the console output:
   Reading startup properties from jsserver.properties
 
+To check the syntax and values of a jsserver.properties file, use the -t or
+--test-config command line parameter for Config Validation Mode:
+  java -jar JSettlersServer.jar --test-config
+This will test and print all configured values and then exit with return code 0
+if no problems are found, nonzero otherwise. Output will include a summary line
+such as:
+  * Config Validation Mode: No problems found.
+
 
 CLIENT CONNECT:
 
@@ -252,9 +260,12 @@ Hosting a JSettlers server
   - Start http server (optional)
   - Copy JSettlers.jar client JAR and web/*.html to an http-served directory (optional)
 
-To host a JSettlers server, start the server as described in "Setting up
-and Testing". To maintain user accounts, be sure to start the database
-first. (If you use a database, you can give users an account; everyone else
+To host a JSettlers server, start the server as described in "Server Setup
+and Testing". Remember that you can set server parameters and game option
+default values with a jsserver.properties file.
+
+To maintain user accounts, be sure to start the database first. (If you
+use a database, you can give users an account; everyone else
 can still log in and play, by leaving the password field blank.)
 
 Remote users can simply start their clients as described there,
