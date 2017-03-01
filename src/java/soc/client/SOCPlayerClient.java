@@ -104,12 +104,13 @@ import soc.util.Version;
 
 /**
  * Standalone client for connecting to the SOCServer. (For applet see {@link SOCApplet}.)
- * Prompts for name and password, displays list of games and channels available.
+ * Nested class {@link GameAwtDisplay} prompts for name and password, then connects and
+ * displays the lists of games and channels available.
  * The actual game is played in a separate {@link SOCPlayerInterface} window.
  *<P>
  * If you want another connection port, you have to specify it as the "port"
- * argument in the html source. If you run this as a stand-alone, you have to
- * specify the port.
+ * argument in the html source. If you run this as a stand-alone, the port can be
+ * specified on the command line or typed into {@code GameAwtDisplay}'s connect dialog.
  *<P>
  * At startup or init, will try to connect to server via {@link SOCPlayerClient.ClientNetwork#connect(String, int)}.
  * See that method for more details.
@@ -403,7 +404,16 @@ public class SOCPlayerClient
         void channelCreated(String channelName);
         void channelLeft(String channelName);
         void channelLeft(String channelName, String nickname);
+
+        /**
+         * Server has sent its list of chat channels (or an empty list), so
+         * populate and show that list along with the rest of the UI.
+         * The server sends the list when the client successfully connects.
+         * @param channelNames  List of server's chat channels, from server message
+         * @param isPractice  True if this is the practice server, not a TCP server
+         */
         void channelList(Collection<String> channelNames, boolean isPractice);
+
         void channelDeleted(String channelName);
         void channelsClosed(String message);
 
@@ -577,6 +587,15 @@ public class SOCPlayerClient
 
     /**
      * A {@link GameDisplay} implementation for AWT.
+     * Uses {@link CardLayout} to display an appropriate interface:
+     *<UL>
+     * <LI> Initial "Connect or Practice" panel to connect to a server
+     * <LI> Main panel to list the connected server's current games and channels
+     *     and create new ones
+     * <LI> Message panel to show a server connectivity error
+     *</UL>
+     * Individual games are shown using {@link SOCPlayerInterface}
+     * and channels use {@link ChannelFrame}.
      *<P>
      * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
      * @since 2.0.00
@@ -2278,9 +2297,6 @@ public class SOCPlayerClient
 
         public void channelList(Collection<String> channelNames, boolean isPractice)
         {
-            //
-            // this message indicates that we're connected to the server
-            //
             if (! isPractice)
             {
                 cardLayout.show(GameAwtDisplay.this, MAIN_PANEL);
