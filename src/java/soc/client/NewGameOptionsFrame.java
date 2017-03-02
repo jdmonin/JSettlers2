@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2015 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2015,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -92,6 +92,8 @@ import soc.util.Version;
 public class NewGameOptionsFrame extends Frame
     implements ActionListener, KeyListener, ItemListener, TextListener, MouseListener
 {
+    // see clickCreate() for method which handles game setup after options have been chosen.
+
     /**
      * Maximum range (min-max value) for integer-type options
      * to be rendered using a value popup, instead of a textfield.
@@ -193,7 +195,9 @@ public class NewGameOptionsFrame extends Frame
 
     /**
      * Creates a new NewGameOptionsFrame.
-     * Once created, reset the mouse cursor from hourglass to normal, and clear main panel's status text.
+     * Once created, resets the mouse cursor from hourglass to normal, and clears main panel's status text.
+     *<P>
+     * See also convenience method {@link #createAndShow(GameAwtDisplay, String, Map, boolean, boolean)}.
      *
      * @param gd      Game display interface
      * @param gaName   Name of existing game,
@@ -245,6 +249,7 @@ public class NewGameOptionsFrame extends Frame
         setForeground(Color.black);
 
         addKeyListener(this);
+
         initInterfaceElements(gaName);
 
         addWindowListener(new WindowAdapter() {
@@ -253,7 +258,7 @@ public class NewGameOptionsFrame extends Frame
             });
 
         /**
-         * complete - reset mouse cursor from hourglass to normal
+         * setup is complete; reset mouse cursor from hourglass to normal
          * (was set to hourglass before calling this constructor)
          */
         gd.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -262,7 +267,7 @@ public class NewGameOptionsFrame extends Frame
 
     /**
      * Creates and shows a new NewGameOptionsFrame.
-     * Once created, reset the mouse cursor from hourglass to normal, and clear main panel's status text.
+     * Once created, resets the mouse cursor from hourglass to normal, and clears main panel's status text.
      * See {@link #NewGameOptionsFrame(SOCPlayerClient.GameAwtDisplay, String, Map, boolean, boolean) constructor}
      * for notes about <tt>opts</tt> and other parameters.
      * @param gaName  Name of existing game, or {@code null} to show options for a new game;
@@ -275,6 +280,7 @@ public class NewGameOptionsFrame extends Frame
         NewGameOptionsFrame ngof = new NewGameOptionsFrame(cli, gaName, opts, forPractice, readOnly);
         ngof.pack();
         ngof.setVisible(true);
+
         return ngof;
     }
 
