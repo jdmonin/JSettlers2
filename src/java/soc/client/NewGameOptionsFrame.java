@@ -19,6 +19,7 @@
  **/
 package soc.client;
 
+import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Checkbox;
 import java.awt.Choice;
@@ -56,6 +57,8 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import javax.swing.JComboBox;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
 
 import soc.client.SOCPlayerClient.GameAwtDisplay;
 import soc.game.SOCGame;
@@ -92,7 +95,8 @@ import soc.util.Version;
 public class NewGameOptionsFrame extends Frame
     implements ActionListener, KeyListener, ItemListener, TextListener, MouseListener
 {
-    // see clickCreate() for method which handles game setup after options have been chosen.
+    // See initInterfaceElements() for most of the UI setup.
+    // See clickCreate() for method which handles game setup after options have been chosen.
 
     /**
      * Maximum range (min-max value) for integer-type options
@@ -222,7 +226,7 @@ public class NewGameOptionsFrame extends Frame
                     ? strings.get("game.options.title.newpractice")
                     : strings.get("game.options.title.new")));
 
-        setLayout(new FlowLayout(FlowLayout.LEFT, 4, 4));  // include padding insets around edges of frame
+        // Uses default BorderLayout, for simple stretching when frame is resized
 
         this.gameDisplay = gd;
         SOCPlayerClient cli = gd.getClient();
@@ -293,12 +297,14 @@ public class NewGameOptionsFrame extends Frame
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
 
-        Panel bp = new Panel(gbl);  // Actual button panel
+        final JPanel bp = new JPanel(gbl);  // Actual button panel
+        bp.setBorder(new EmptyBorder(4, 4, 4, 4));  // need padding around edges, because panel fills the frame
         bp.setForeground(getForeground());
         bp.setBackground(NGOF_BG);  // If this is omitted, firefox 3.5+ applet uses themed bg-color (seen OS X)
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.weightx = 1;  // stretch with frame resize
 
         if ((! readOnly) && (opts != null))
         {
@@ -320,6 +326,7 @@ public class NewGameOptionsFrame extends Frame
         L.setBackground(HEADER_LABEL_BG);
         L.setForeground(HEADER_LABEL_FG);
         gbc.gridwidth = 2;
+        gbc.weightx = 0;
         gbl.setConstraints(L, gbc);
         bp.add(L);
 
@@ -334,6 +341,7 @@ public class NewGameOptionsFrame extends Frame
             gameName.addKeyListener(this);     // for ESC/ENTER
         }
         gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.weightx = 1;
         gbl.setConstraints(gameName, gbc);
         bp.add(gameName);
 
@@ -347,6 +355,7 @@ public class NewGameOptionsFrame extends Frame
          */
 
         gbc.insets = new Insets(4, 2, 0, 2);  // padding between option rows, buttons
+        gbc.weightx = 0;
 
         if (readOnly)
         {
@@ -378,7 +387,7 @@ public class NewGameOptionsFrame extends Frame
 
         // Final assembly setup
         bp.validate();
-        add(bp);
+        add(bp, BorderLayout.CENTER);
     }
 
     private final static Color LABEL_TXT_COLOR = new Color(252, 251, 243); // off-white
@@ -402,7 +411,7 @@ public class NewGameOptionsFrame extends Frame
      *<P>
      * If options are null, put a label with "This server version does not support game options" (localized).
      */
-    private void initInterface_Options(Panel bp, GridBagLayout gbl, GridBagConstraints gbc)
+    private void initInterface_Options(JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
         final boolean hideUnderscoreOpts = (! readOnly) && (! gameDisplay.nick.getText().equalsIgnoreCase("debug"));
 
@@ -509,7 +518,7 @@ public class NewGameOptionsFrame extends Frame
      * @param gbl Use this layout
      * @param gbc Use these constraints
      */
-    private void initInterface_OptLine(SOCGameOption op, Panel bp, GridBagLayout gbl, GridBagConstraints gbc)
+    private void initInterface_OptLine(SOCGameOption op, JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
         if (op.key.equals("SC"))
         {
@@ -564,6 +573,7 @@ public class NewGameOptionsFrame extends Frame
 
                 Label blank = new Label();
                 gbc.gridwidth = 1;
+                gbc.weightx = 0;
                 gbl.setConstraints(blank, gbc);
                 bp.add(blank);
                 scenInfo = new Button(strings.get("game.options.scenario.info_btn"));  // "Scenario Info..."
@@ -659,11 +669,12 @@ public class NewGameOptionsFrame extends Frame
      */
     private void initInterface_Opt1(SOCGameOption op, Component oc,
             boolean hasCB, boolean allowPH,
-            Panel bp, GridBagLayout gbl, GridBagConstraints gbc)
+            JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
         Label L;
 
         gbc.gridwidth = 1;
+        gbc.weightx = 0;
         if (hasCB)
         {
             Checkbox cb;
@@ -753,6 +764,7 @@ public class NewGameOptionsFrame extends Frame
         }
 
         gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.weightx = 1;
         gbl.setConstraints(optp, gbc);
         bp.add(optp);
     }
