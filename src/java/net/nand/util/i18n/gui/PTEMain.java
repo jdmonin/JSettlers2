@@ -1,6 +1,6 @@
 /*
  * nand.net i18n utilities for Java: Property file editor for translators (side-by-side source and destination languages).
- * This file Copyright (C) 2013,2015-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -104,7 +104,10 @@ public class PTEMain extends JFrame
     private final JPanel btns;
     private JButton bNewDest, bOpenDest, bOpenDestSrc, bAbout, bExit;
 
-    /** {@link Preferences} key in {@link #userPrefs} for directory of the most recently edited properties file. */
+    /**
+     * {@link Preferences} key in {@link #userPrefs} for directory of the most recently edited properties file.
+     * @see #tryGetPrefLastEditedDir()
+     */
     private final static String LAST_EDITED_DIR = "lastEditedDir";
 
     /**
@@ -252,7 +255,7 @@ public class PTEMain extends JFrame
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);  // check unsaved in windowClosing before dispose
 
         userPrefs = Preferences.userNodeForPackage(PTEMain.class);
-        tryGetLastEditedDir();
+        tryGetPrefLastEditedDir();
 
         ptes = new ArrayList<PropertiesTranslatorEditor>();
 
@@ -315,9 +318,9 @@ public class PTEMain extends JFrame
      * If possible, reads from persistent {@link #userPrefs} and changes
      * 'current' directory field ({@link #lastEditedDir}) to that of
      * the most recently edited destination properties file.
-     * @see #trySetDirMostRecent()
+     * @see #trySetPrefLastEditedDir()
      */
-    private void tryGetLastEditedDir()
+    private void tryGetPrefLastEditedDir()
     {
         lastEditedDir = null;
 
@@ -343,10 +346,11 @@ public class PTEMain extends JFrame
      * Store 'current' directory {@link #lastEditedDir} to loaded {@link #userPrefs} preferences.
      * Catches and ignores {@link SecurityException}s, because this field is stored only for convenience.
      *<P>
-     * <b>Note: Does not</b> persist to disk; to do so, call {@link #userPrefs}.{@link Preferences#flush() flush()}.
-     * @see #tryGetLastEditedDir()
+     * <B>Note:</B> Does <B>not</B> immediately persist to disk:
+     * To do so, call {@link #userPrefs}.{@link Preferences#flush() flush()}.
+     * @see #tryGetPrefLastEditedDir()
      */
-    private void trySetDirMostRecent()
+    private void trySetPrefLastEditedDir()
     {
         if ((lastEditedDir == null) || (userPrefs == null))
             return;
@@ -529,7 +533,7 @@ public class PTEMain extends JFrame
             return null;
 
         lastEditedDir = fc.getCurrentDirectory();
-        trySetDirMostRecent();
+        trySetPrefLastEditedDir();
 
         File file = fc.getSelectedFile();
         return file;
