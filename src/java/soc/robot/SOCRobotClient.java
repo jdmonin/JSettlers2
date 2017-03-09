@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -56,7 +56,7 @@ import java.util.Vector;
  * For each game this robot client plays, there is a {@link SOCRobotBrain}.
  *<P>
  * The built-in robots must be the same version as the server, to simplify things.
- * Third-party bots might be based on this code and be other versions, to simplify their maintenance.
+ * Third-party bots might be based on this code and be other versions, to simplify their code.
  *<P>
  * The {@link soc.message.SOCImARobot IMAROBOT} connect message gives the bot's class name and
  * a required security cookie, which is passed into the robot client constructor and which must
@@ -73,6 +73,15 @@ import java.util.Vector;
  *<H4>Debugging</H4>
  * Several bot debug messages are available by sending text messages from other players
  * with certain keywords. See {@link #handleGAMETEXTMSG_debug(SOCGameTextMsg)} for details.
+ *
+ *<H4>Third-Party Bots</H4>
+ * Third-party robot clients can be built from scratch, or extend this class and/or {@link SOCRobotBrain}.
+ * If extending this class, please remember to:
+ *<UL>
+ * <LI> Update {@link #rbclass} value before calling {@link #init()}
+ * <LI> Override {@link #createBrain(SOCRobotParameters, SOCGame, CappedQueue)}
+ *     to provide your subclass of {@link SOCRobotBrain}
+ *</UL>
  *
  *<H4>I18N</H4>
  * The bot ignores the contents of all {@link SOCGameServerText} messages and has no locale.
@@ -148,6 +157,15 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @see #debugRandomPauseUntil
      */
     private static final int DEBUGRANDOMPAUSE_SECONDS = 12;
+
+    /**
+     * Robot class, to be reported to the server when connecting and
+     * sending our {@link SOCImARobot} message. Defaults to
+     * {@link SOCImARobot#RBCLASS_BUILTIN}: Third-party bots
+     * should update this field before calling {@link #init()}.
+     * @since 2.0.00
+     */
+    protected String rbclass = SOCImARobot.RBCLASS_BUILTIN;
 
     /**
      * The security cookie value; required by server v1.1.19 and higher.
@@ -269,6 +287,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
     /**
      * Initialize the robot player; connect to server, send first messages
+     * including our version and {@link #rbclass}.
      */
     public void init()
     {
@@ -292,7 +311,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             //resetThread = new SOCRobotResetThread(this);
             //resetThread.start();
             put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
-            put(SOCImARobot.toCmd(nickname, cookie, SOCImARobot.RBCLASS_BUILTIN));
+            put(SOCImARobot.toCmd(nickname, cookie, rbclass));
         }
         catch (Exception e)
         {
@@ -339,6 +358,24 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             ex = e;
             System.err.println("disconnectReconnect error: " + ex);
         }
+    }
+
+    /**
+     * Factory method for creating a new {@link SOCRobotBrain}.
+     *<P>
+     * Third-party clients can override this method to use this client with
+     * different robot brain subclasses.
+     *
+     * @param params  the robot parameters to use
+     * @param ga  the game in which the brain will play
+     * @param mq  the inbound message queue for this brain from the client
+     * @return the newly created brain
+     * @since 2.0.00
+     */
+    public SOCRobotBrain createBrain
+        (final SOCRobotParameters params, final SOCGame ga, final CappedQueue<SOCMessage> mq)
+    {
+        return new SOCRobotBrain(this, params, ga, mq);
     }
 
     /**
@@ -759,7 +796,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         CappedQueue<SOCMessage> brainQ = new CappedQueue<SOCMessage>();
         brainQs.put(gaName, brainQ);
 
-        SOCRobotBrain rb = new SOCRobotBrain(this, currentRobotParameters, ga, brainQ);
+        SOCRobotBrain rb = createBrain(currentRobotParameters, ga, brainQ);
         robotBrains.put(gaName, rb);
     }
 
