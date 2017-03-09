@@ -80,8 +80,9 @@ import java.util.Vector;
  *<UL>
  * <LI> Update {@link #rbclass} value before calling {@link #init()}
  * <LI> Override {@link #createBrain(SOCRobotParameters, SOCGame, CappedQueue)}
- *     to provide your subclass of {@link SOCRobotBrain}
+ *      to provide your subclass of {@link SOCRobotBrain}
  *</UL>
+ * See {@link soc.robot.sample3p.Sample3PClient} for a trivial example subclass.
  *
  *<H4>I18N</H4>
  * The bot ignores the contents of all {@link SOCGameServerText} messages and has no locale.

@@ -456,7 +456,8 @@ also has some discussion on those structures.
 
 Right now bots are instantiated within the server for security; for a 3rd-party bot, start with the
 soc.robot.SOCRobotClient class.  You can start a bot separately from the server through the
-SOCRobotClient constructor or main method.
+SOCRobotClient constructor or main method.  For a trivial example subclass extending SOCRobotClient,
+see soc.robot.sample3p.Sample3PClient.
 
 The server generates a security cookie that bots must send at connect. You can view the cookie by
 starting the server with
