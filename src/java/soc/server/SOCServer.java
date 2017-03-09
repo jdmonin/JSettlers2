@@ -207,6 +207,19 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_BOTS_SHOWCOOKIE = "jsettlers.bots.showcookie";
 
     /**
+     * Integer property <tt>jsettlers.bots.percent3p</tt> to set a goal for the minimum
+     * percentage of third-party bots when randomly picking robots to start a game.
+     * If set, should be a number between 0 and 100 inclusive.
+     *<P>
+     * If not enough third-party bots are connected to the server when starting a game,
+     * the built-in bots will be used instead so that the game can begin. If also using
+     * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}, remember those games will be started
+     * as soon as the server is ready, so the third-party bots may not yet be connected.
+     * @since 2.0.00
+     */
+    public static final String PROP_JSETTLERS_BOTS_PERCENT3P = "jsettlers.bots.percent3p";
+
+    /**
      * Property <tt>jsettlers.bots.botgames.total</tt> will start robot-only games,
      * a few at a time, until this many have been played. (The default is 0.)
      *<P>
@@ -215,6 +228,7 @@ public class SOCServer extends Server
      * combination of game options and scenarios.  To permit starting such games without
      * also starting any at server startup, use a value less than 0.
      *
+     * @see #PROP_JSETTLERS_BOTS_PERCENT3P
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL = "jsettlers.bots.botgames.total";
@@ -371,6 +385,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL,     "Run this many robot-only games, a few at a time (default 0); allow bot-only games",
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
+        PROP_JSETTLERS_BOTS_PERCENT3P,          "Percent of bots which should be third-party (0 to 100) if available",
         PROP_JSETTLERS_TEST_VALIDATE__CONFIG,   "Flag to validate server and DB config, then exit (same as -t command-line option)",
         PROP_JSETTLERS_TEST_DB,                 "Flag to test database methods, then exit",
         SOCDBHelper.PROP_JSETTLERS_DB_USER,     "DB username",
@@ -654,10 +669,19 @@ public class SOCServer extends Server
     private String robotCookie;
 
     /**
-     * A list of robot {@link StringConnection}s connected to this server.
+     * A list of all robot client {@link StringConnection}s connected to this server.
+     * Includes built-in bots and any third-party bots (which are also in {@link #robots3p}).
      * @see SOCLocalRobotClient#robotClients
      */
     protected Vector<StringConnection> robots = new Vector<StringConnection>();
+
+    /**
+     * A list of third-party bot clients connected to this server, if any.
+     * Third-party bot clients' {@link SOCClientData#robot3rdPartyBrainClass} != {@code null}.
+     * @see #robots
+     * @since 2.0.00
+     */
+    protected Vector<StringConnection> robots3p = new Vector<StringConnection>();
 
     /**
      * Robot default parameters; copied for each newly connecting robot.
@@ -5198,7 +5222,10 @@ public class SOCServer extends Server
         scd.isRobot = true;
         scd.isBuiltInRobot = isBuiltIn;
         if (! isBuiltIn)
+        {
             scd.robot3rdPartyBrainClass = rbc;
+            robots3p.add(c);
+        }
 
         scd.locale = null;  // bots don't care about message text contents
         scd.localeStr = null;
@@ -5475,8 +5502,12 @@ public class SOCServer extends Server
      * Builds a Vector of StringConnections of robots asked to join,
      * and adds it to the robotJoinRequests table.
      * Game state should be READY.
+     *<P>
      * At most {@link SOCGame#getAvailableSeatCount()} robots will
-     * be asked.
+     * be asked. If third-party bots are connected to the server,
+     * optional property {@link #PROP_JSETTLERS_BOTS_PERCENT3P} can
+     * set a goal for the minimum percentage of third-party bots in
+     * the game; see its javadoc.
      *<P>
      * Called by {@link SOCServerMessageHandler#handleSTARTGAME(StringConnection, SOCStartGame) handleSTARTGAME},
      * {@link #resetBoardAndNotify(String, int) resetBoardAndNotify}.
@@ -5565,7 +5596,6 @@ public class SOCServer extends Server
                     /**
                      * record the request
                      */
-                    D.ebugPrintln("@@@ JOIN GAME REQUEST for " + (String) robotConn.getData());
                     if (robotRequests == null)
                         robotRequests = new Vector<StringConnection>();
                     robotRequests.addElement(robotConn);
@@ -5575,14 +5605,110 @@ public class SOCServer extends Server
 
         if (robotRequests != null)
         {
-            // we know it isn't empty,
+            // request third-party bots, if available and wanted
+            final int reqPct3p = getConfigIntProperty(PROP_JSETTLERS_BOTS_PERCENT3P, 0);
+            if (reqPct3p > 0)
+                readyGameAskRobotsMix3p(reqPct3p, robotRequests, robotSeatsConns);
+
+            // we know robotRequests isn't empty,
             // so add to the request table
             robotJoinRequests.put(gname, robotRequests);
 
             // now, make the requests
             for (int i = 0; i < ga.maxPlayers; ++i)
+            {
                 if (robotSeatsConns[i] != null)
+                {
+                    D.ebugPrintln("@@@ JOIN GAME REQUEST for " + (String) robotSeatsConns[i].getData());
                     robotSeatsConns[i].put(SOCRobotJoinGameRequest.toCmd(gname, i, gopts));
+                }
+            }
+        }
+    }
+
+    /**
+     * While readying a game in {@link #readyGameAskRobotsJoin(SOCGame, StringConnection[], int)},
+     * adjust the mix of requested bots as needed when third-party bots are wanted.
+     *<P>
+     * <B>Note:</B> Currently treats {@code reqPct3p} as a minimum percentage; third-party
+     * bots are only added, not removed, to the bots requested for the new game.
+     *
+     * @param reqPct3p  Requested third-party bot percentage, from {@link #PROP_JSETTLERS_BOTS_PERCENT3P}
+     * @param robotRequests  List of randomly-selected bots; third-party bots may be swapped into here
+     * @param robotSeatsConns  Array of player positions (seats) to be occupied by bots;
+     *        third-party bots may be swapped into here
+     * @since 2.0.00
+     */
+    private void readyGameAskRobotsMix3p
+        (final int reqPct3p, final Vector<StringConnection> robotRequests, final StringConnection[] robotSeatsConns)
+    {
+        // TODO this algorithm isn't elegant or very efficient
+
+        final int numBotsReq = robotRequests.size();
+        final int num3pReq = Math.round((numBotsReq * reqPct3p) / 100f);
+        int curr3pReq = 0;
+        boolean[] curr3pSeat = new boolean[robotSeatsConns.length];
+        for (int i = 0; i < robotSeatsConns.length; ++i)
+        {
+            if ((robotSeatsConns[i] != null)
+                && ! ((SOCClientData) (robotSeatsConns[i].getAppData())).isBuiltInRobot)
+            {
+                ++curr3pReq;
+                curr3pSeat[i] = true;
+            }
+        }
+
+        // TODO handle reduction if too many 3p bots (curr3pReq > num3pReq)
+
+        if (curr3pReq >= num3pReq)
+            return;  // <--- Early return: Already the right minimum percentage ---
+
+        // find the 3p bots which aren't already requested
+        List<StringConnection> unused3p;
+        synchronized (robots3p)
+        {
+            unused3p = new ArrayList<StringConnection>(robots3p);
+        }
+        for (int i = 0; i < robotSeatsConns.length; ++i)
+            if (curr3pSeat[i])
+                unused3p.remove(robotSeatsConns[i]);
+
+        int nAdd = num3pReq - curr3pReq;
+        while ((nAdd > 0) && ! unused3p.isEmpty())
+        {
+            // pick iNon, a non-3p bot seat index to remove
+            int iNon = -1;
+            int nSkip = (nAdd > 1) ? rand.nextInt(num3pReq - curr3pReq) : 0;
+            for (int i = 0; i < robotSeatsConns.length; ++i)
+            {
+                if ((robotSeatsConns[i] != null) && ! curr3pSeat[i])
+                {
+                    if (nSkip == 0)
+                    {
+                        iNon = i;
+                        break;
+                    } else {
+                        --nSkip;
+                    }
+                }
+            }
+            if (iNon == -1)
+                return;  // <--- Early return: Non-3p bot seat not found ---
+
+            // pick bot3p, an unused 3p bot to fill iNon
+            int s = unused3p.size();
+            StringConnection bot3p = unused3p.remove((s > 1) ? rand.nextInt(s) : 0);
+
+            // update structures
+            synchronized(robotRequests)
+            {
+                robotRequests.remove(robotSeatsConns[iNon]);
+                robotRequests.add(bot3p);
+            }
+            robotSeatsConns[iNon] = bot3p;
+            curr3pSeat[iNon] = true;
+
+            --nAdd;
         }
     }
 

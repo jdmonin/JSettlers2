@@ -28,9 +28,13 @@ import soc.robot.SOCRobotClient;
  * it must know the server's robot cookie to connect:
  *<UL>
  * <LI> Start the server with command-line parameter {@code -Djsettlers.bots.showcookie=Y}
- *      or something like {@code -Djsettlers.bots.cookie=bottest97481483}.
- * <LI> Start the client with a command line such as:<pre>
- *      localhost 8880 samplebot1 x bottest97481483</pre>
+ *      or something like {@code -Djsettlers.bots.cookie=bottest97481483}
+ * <LI> To use third-party bots as a certain percentage of the bots in each game,
+ *      also use server parameter {@code -Djsettlers.bots.percent3p=50} (for 50%)
+ * <LI> Start your bot client(s) with command lines such as:<pre>
+ *      localhost 8880 samplebot1 x bottest97481483
+ *      localhost 8880 samplebot2 x bottest97481483
+ *      localhost 8880 samplebot3 x bottest97481483</pre>
  *
  * @author Jeremy D Monin
  * @since 2.0.00
