@@ -209,7 +209,7 @@ public class SOCServer extends Server
     /**
      * Integer property <tt>jsettlers.bots.percent3p</tt> to set a goal for the minimum
      * percentage of third-party bots when randomly picking robots to start a game.
-     * If set, should be a number between 0 and 100 inclusive.
+     * If set, should be in range 0 to 100 inclusive.
      *<P>
      * If not enough third-party bots are connected to the server when starting a game,
      * the built-in bots will be used instead so that the game can begin. If also using
@@ -5631,12 +5631,12 @@ public class SOCServer extends Server
      * adjust the mix of requested bots as needed when third-party bots are wanted.
      *<P>
      * <B>Note:</B> Currently treats {@code reqPct3p} as a minimum percentage; third-party
-     * bots are only added, not removed, to the bots requested for the new game.
+     * bots are only added to, not removed from, the bots requested for the new game.
      *
      * @param reqPct3p  Requested third-party bot percentage, from {@link #PROP_JSETTLERS_BOTS_PERCENT3P}
-     * @param robotRequests  List of randomly-selected bots; third-party bots may be swapped into here
-     * @param robotSeatsConns  Array of player positions (seats) to be occupied by bots;
-     *        third-party bots may be swapped into here
+     * @param robotRequests  List of randomly-selected bots joining the game; third-party bots may be swapped into here
+     * @param robotSeatsConns  Array of player positions (seats) to be occupied by bots; all non-null elements
+     *        are bots in {@code robotRequests}; third-party bots may be swapped into here
      * @since 2.0.00
      */
     private void readyGameAskRobotsMix3p
@@ -5663,7 +5663,7 @@ public class SOCServer extends Server
         if (curr3pReq >= num3pReq)
             return;  // <--- Early return: Already the right minimum percentage ---
 
-        // find the 3p bots which aren't already requested
+        // fill unused3p, the list of 3p bots which aren't already requested and in robotRequests
         List<StringConnection> unused3p;
         synchronized (robots3p)
         {
@@ -5673,6 +5673,7 @@ public class SOCServer extends Server
             if (curr3pSeat[i])
                 unused3p.remove(robotSeatsConns[i]);
 
+        // use random bots from unused3p in robotRequests and robotSeatsConns:
         int nAdd = num3pReq - curr3pReq;
         while ((nAdd > 0) && ! unused3p.isEmpty())
         {
