@@ -35,6 +35,7 @@ import soc.robot.SOCRobotClient;
  *      localhost 8880 samplebot1 x bottest97481483
  *      localhost 8880 samplebot2 x bottest97481483
  *      localhost 8880 samplebot3 x bottest97481483</pre>
+ *</UL>
  *
  * @author Jeremy D Monin
  * @since 2.0.00
@@ -42,7 +43,7 @@ import soc.robot.SOCRobotClient;
 public class Sample3PClient extends SOCRobotClient
 {
     /** Our class name, for {@link #rbclass}: {@code "soc.robot.sample3p.Sample3PClient"} */
-    private final static String RBCLASSNAME_SAMPLE = Sample3PClient.class.getName();
+    private static final String RBCLASSNAME_SAMPLE = Sample3PClient.class.getName();
 
     /**
      * Constructor for connecting to the specified server, on the specified port.
