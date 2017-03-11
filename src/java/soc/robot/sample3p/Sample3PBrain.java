@@ -20,9 +20,13 @@
 package soc.robot.sample3p;
 
 import soc.game.SOCGame;
+import soc.game.SOCResourceConstants;
+import soc.game.SOCResourceSet;
+import soc.game.SOCTradeOffer;
 import soc.message.SOCMessage;
 import soc.robot.SOCRobotBrain;
 import soc.robot.SOCRobotClient;
+import soc.robot.SOCRobotNegotiator;
 import soc.util.CappedQueue;
 import soc.util.SOCRobotParameters;
 
@@ -32,8 +36,8 @@ import soc.util.SOCRobotParameters;
  *<P>
  * Trivial behavioral changes from standard {@code SOCRobotBrain}:
  *<UL>
- * <LI> When sitting down, greets the game members - {@link #setOurPlayerData()}
- * <LI> Refuses trades unless they contain brick or sheep - (TBD)
+ * <LI> When sitting down, greet the game members: {@link #setOurPlayerData()}
+ * <LI> Reject trades unless we're offered clay or sheep: {@link #considerOffer(SOCTradeOffer)}
  *</UL>
  *
  * @author Jeremy D Monin
@@ -60,6 +64,7 @@ public class Sample3PBrain extends SOCRobotBrain
      * It would be unfair for a bot to ever send text that the players must understand
      * for gameplay.
      */
+    @Override
     public void setOurPlayerData()
     {
         super.setOurPlayerData();
@@ -67,4 +72,25 @@ public class Sample3PBrain extends SOCRobotBrain
         client.sendText(game, "Hello from sample bot " + client.getNickname() + "!");
     }
 
+    /**
+     * Consider a trade offer; reject if we aren't offered clay or sheep.
+     *<P>
+     * {@inheritDoc}
+     */
+    @Override
+    protected int considerOffer(SOCTradeOffer offer)
+    {
+        if (! offer.getTo()[getOurPlayerNumber()])
+        {
+            return SOCRobotNegotiator.IGNORE_OFFER;
+        }
+
+        final SOCResourceSet res = offer.getGiveSet();
+        if (! (res.contains(SOCResourceConstants.CLAY) || res.contains(SOCResourceConstants.SHEEP)))
+        {
+            return SOCRobotNegotiator.REJECT_OFFER;
+        }
+
+        return super.considerOffer(offer);
+    }
 }

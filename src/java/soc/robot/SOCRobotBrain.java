@@ -801,10 +801,21 @@ public class SOCRobotBrain extends Thread
 
     /**
      * @return our player data
+     * @see #getOurPlayerNumber()
      */
     public SOCPlayer getOurPlayerData()
     {
         return ourPlayerData;
+    }
+
+    /**
+     * Get our player number, as set in {@link #setOurPlayerData()}.
+     * @return Our {@link #getOurPlayerData()}'s player number
+     * @since 2.0.00
+     */
+    public final int getOurPlayerNumber()
+    {
+        return ourPlayerNumber;
     }
 
     /**
