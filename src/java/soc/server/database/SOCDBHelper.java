@@ -1331,6 +1331,35 @@ public class SOCDBHelper
     }
 
     /**
+     * Run a DDL command to create or remove a database structure.
+     * @param sql  SQL to run
+     * @throws IllegalStateException if not connected and if {@link #checkConnection()} fails
+     * @throws SQLException if an error occurs while running {@code sql}
+     * @since 2.0.00
+     */
+    private static void runDDL(final String sql)
+        throws IllegalStateException, SQLException
+    {
+        try
+        {
+            if (! checkConnection())
+                throw new IllegalStateException();
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+
+        Statement s = connection.createStatement();
+        try
+        {
+            s.execute(sql);
+        } finally {
+            try {
+                s.close();
+            } catch (SQLException e) {}
+        }
+    }
+
+    /**
      * Close out and shut down the database connection.
      * @param isForShutdown  If true, set <tt>connection = null</tt>
      *          so we won't try to reconnect later.
@@ -1472,33 +1501,16 @@ public class SOCDBHelper
 
     /**
      * For {@link #testDBHelper()}, run a DDL command to create or remove a test fixture.
+     * See {@link #runDDL(String)} for exception descriptions.
      * @param desc Description to print as part of testing log; will be preceded by "For testing: "
      * @param sql  SQL to run
-     * @throws IllegalStateException if not connected and if {@link #checkConnection()} fails
-     * @throws SQLException if an error occurs while running {@code sql}
      * @since 2.0.00
      */
     private static void testDBHelper_runDDL(final String desc, final String sql)
         throws IllegalStateException, SQLException
     {
-        try
-        {
-            if (! checkConnection())
-                throw new IllegalStateException();
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        }
-
         System.err.println("For testing: " + desc);
-        Statement s = connection.createStatement();
-        try
-        {
-            s.execute(sql);
-        } finally {
-            try {
-                s.close();
-            } catch (SQLException e) {}
-        }
+        runDDL(sql);
     }
 
     /**
