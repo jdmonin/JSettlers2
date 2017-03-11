@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -120,6 +120,11 @@ import java.util.Vector;
  *<P>
  * To keep the game moving, the server may force an inactive bot to end its turn;
  * see {@link soc.server.SOCForceEndTurnThread}.
+ *
+ *<H3>AI/Robot development:</H3>
+ *
+ * Extending this class is one way to begin developing a custom JSettlers bot.
+ * For a trivial example see {@link soc.robot.sample3p.Sample3PBrain}.
  *
  * @author Robert S Thomas
  */

@@ -19,10 +19,16 @@
  */
 package soc.robot.sample3p;
 
+import soc.game.SOCGame;
+import soc.message.SOCMessage;
+import soc.robot.SOCRobotBrain;
 import soc.robot.SOCRobotClient;
+import soc.util.CappedQueue;
+import soc.util.SOCRobotParameters;
 
 /**
- * Sample of a trivially simple "third-party" subclass of {@link SOCRobotClient}.
+ * Sample of a trivially simple "third-party" subclass of {@link SOCRobotClient}
+ * using {@link Sample3PBrain}.
  *<P>
  * Since this bot isn't started up as part of the SOCServer,
  * it must know the server's robot cookie to connect:
@@ -59,6 +65,20 @@ public class Sample3PClient extends SOCRobotClient
         super(h, p, nn, pw, co);
 
         rbclass = RBCLASSNAME_SAMPLE;
+    }
+
+    /**
+     * Factory to provide our client's {@link Sample3PBrain} to games instead of the standard brain.
+     *<P>
+     * Javadocs from original factory:
+     *<BR>
+     * {@inheritDoc}
+     */
+    @Override
+    public SOCRobotBrain createBrain
+        (final SOCRobotParameters params, final SOCGame ga, final CappedQueue<SOCMessage> mq)
+    {
+        return new Sample3PBrain(this, params, ga, mq);
     }
 
     /**
