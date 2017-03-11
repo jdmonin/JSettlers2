@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2014,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,10 +40,9 @@ public class SOCTradeOffer implements Serializable, Cloneable
      *
      * @param  game  the name of the game in which this offer was made
      * @param  from  the number of the player making the offer
-     * @param  to    a boolean array where 'true' means that the offer
-     *               is being made to the player with the same number as
-     *               the index of the 'true'
-     * @param  give  the set of resources being given
+     * @param  to    a boolean array with the set of player numbers this offer is made to;
+     *               see {@link #getTo()} for details.
+     * @param  give  the set of resources being given (offered) by the {@code from} player
      * @param  get   the set of resources being asked for
      */
     public SOCTradeOffer(String game, int from, boolean[] to, SOCResourceSet give, SOCResourceSet get)
@@ -93,7 +92,11 @@ public class SOCTradeOffer implements Serializable, Cloneable
     }
 
     /**
-     * @return the boolean array representing to whom this offer was made
+     * Get the set of player numbers this offer is made to.
+     * @return the boolean array representing player numbers to whom this offer was made:
+     *    An array with {@link SOCGame#maxPlayers} elements, set true for
+     *    the {@link SOCPlayer#getPlayerNumber()} of each player to whom
+     *    the offer was made.
      */
     public boolean[] getTo()
     {

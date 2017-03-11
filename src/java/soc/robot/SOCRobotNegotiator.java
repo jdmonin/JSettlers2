@@ -38,7 +38,7 @@ import java.util.Vector;
 
 
 /**
- * Make and consider resource trade offers with other players.
+ * Make and consider resource trade offers ({@link SOCTradeOffer}) with other players.
  *<P>
  * Chooses a response:
  *<UL>
@@ -59,7 +59,10 @@ public class SOCRobotNegotiator
     protected static final int WIN_GAME_CUTOFF = 25;
 
     /**
-     * Response: Ignore an offer.
+     * Response: Ignore an offer. Should be used only if we aren't
+     * among the offer's recipients from {@link SOCTradeOffer#getTo()}.
+     * If the offer is meant for us, the offering player is waiting for
+     * our response and ignoring it will delay the game.
      * @since 2.0.00
      */
     public static final int IGNORE_OFFER = -1;
