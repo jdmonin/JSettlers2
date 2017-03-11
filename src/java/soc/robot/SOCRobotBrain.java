@@ -114,6 +114,7 @@ import java.util.Vector;
  * All these fields can be output for inspection by calling {@link #debugPrintBrainStatus()}.
  *<P>
  * See {@link #run()} for more details of how the bot waits for and reacts to incoming messages.
+ * Some reactions are chosen in methods like {@link #considerOffer(SOCTradeOffer)} called from {@code run()}.
  * Some robot actions wait for other players or other timeouts; the brain counts {@link SOCTimingPing} messages
  * (1 per second) for timing.  For robustness testing, the {@code SOCRobotClient.debugRandomPause} flag can
  * be used to inject random delays in incoming messages.
@@ -3109,7 +3110,7 @@ public class SOCRobotBrain extends Thread
         D.ebugPrintln("%%% ourResponseToOffer = " + ourResponseToOffer);
 
         if (ourResponseToOffer < 0)
-            return;
+            return;  // <--- Early return: SOCRobotNegotiator.IGNORE_OFFER ---
 
         int delayLength = Math.abs(rand.nextInt() % 500) + 3500;
         if (gameIs6Player && ! waitingForTradeResponse)
@@ -4765,15 +4766,21 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Consider a trade offer made by another player.
+     * If offered to our player, calls {@link SOCRobotNegotiator#considerOffer2(SOCTradeOffer, int)}.
      *
      * @param offer  the offer to consider
-     * @return a code that represents how we want to respond.
-     *      Note: a negative result means we do nothing
+     * @return a code from {@link SOCRobotNegotiator} that represents how we want to respond:
+     *     {@link SOCRobotNegotiator#IGNORE_OFFER IGNORE_OFFER},
+     *     {@link SOCRobotNegotiator#ACCEPT_OFFER ACCEPT_OFFER},
+     *     {@link SOCRobotNegotiator#REJECT_OFFER REJECT_OFFER},
+     *     or {@link SOCRobotNegotiator#COUNTER_OFFER COUNTER_OFFER}.
+     *     Note: any negative value returned means we do nothing
+     *     ({@link SOCRobotNegotiator#IGNORE_OFFER IGNORE_OFFER}).
      * @see #makeCounterOffer(SOCTradeOffer)
      */
     protected int considerOffer(SOCTradeOffer offer)
     {
-        int response = -1;
+        int response = SOCRobotNegotiator.IGNORE_OFFER;
 
         SOCPlayer offeringPlayer = game.getPlayer(offer.getFrom());
 
@@ -4831,14 +4838,19 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * make a counter offer to another player
+     * Plan a counter offer to another player, and make it from our client.
+     * Calls {@link SOCRobotNegotiator#makeCounterOffer(SOCTradeOffer)},
+     * then {@link #ourPlayerData}{@link SOCPlayer#setCurrentOffer(SOCTradeOffer) .setCurrentOffer(..)}
+     * with the result or {@code null}. Updates {@link #waitingForTradeResponse} flag.
+     * If no counteroffer is made here, sets {@link #doneTrading}.
      *
-     * @param offer their offer
-     * @return true if we made an offer
+     * @param offer  the other player's offer
+     * @return true if we made and sent an offer
      */
     protected boolean makeCounterOffer(SOCTradeOffer offer)
     {
         boolean result = false;
+
         SOCTradeOffer counterOffer = negotiator.makeCounterOffer(offer);
         ourPlayerData.setCurrentOffer(counterOffer);
 
@@ -4851,6 +4863,7 @@ public class SOCRobotBrain extends Thread
             waitingForTradeResponse = true;
             counter = 0;
             client.offerTrade(game, counterOffer);
+
             result = true;
         }
         else

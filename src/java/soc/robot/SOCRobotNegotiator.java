@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2011-2013,2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2013,2015,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -40,6 +40,14 @@ import java.util.Vector;
 /**
  * Make and consider resource trade offers with other players.
  *<P>
+ * Chooses a response:
+ *<UL>
+ * <LI> {@link #IGNORE_OFFER}
+ * <LI> {@link #REJECT_OFFER}
+ * <LI> {@link #ACCEPT_OFFER}
+ * <LI> {@link #COUNTER_OFFER}
+ *</UL>
+ *<P>
  * Moved the routines that make and
  * consider offers out of the robot
  * brain.
@@ -49,9 +57,22 @@ import java.util.Vector;
 public class SOCRobotNegotiator
 {
     protected static final int WIN_GAME_CUTOFF = 25;
+
+    /**
+     * Response: Ignore an offer.
+     * @since 2.0.00
+     */
+    public static final int IGNORE_OFFER = -1;
+
+    /** Response: Reject an offer. */
     public static final int REJECT_OFFER = 0;
+
+    /** Response: Accept an offer. */
     public static final int ACCEPT_OFFER = 1;
+
+    /** Response: Plan and make a counter-offer if possible, otherwise reject. */
     public static final int COUNTER_OFFER = 2;
+
     protected SOCRobotBrain brain;
     protected int strategyType;
     protected SOCGame game;
