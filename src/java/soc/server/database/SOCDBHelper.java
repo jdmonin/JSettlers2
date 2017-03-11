@@ -1471,6 +1471,37 @@ public class SOCDBHelper
     }
 
     /**
+     * For {@link #testDBHelper()}, run a DDL command to create or remove a test fixture.
+     * @param desc Description to print as part of testing log; will be preceded by "For testing: "
+     * @param sql  SQL to run
+     * @throws IllegalStateException if not connected and if {@link #checkConnection()} fails
+     * @throws SQLException if an error occurs while running {@code sql}
+     * @since 2.0.00
+     */
+    private static void testDBHelper_runDDL(final String desc, final String sql)
+        throws IllegalStateException, SQLException
+    {
+        try
+        {
+            if (! checkConnection())
+                throw new IllegalStateException();
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+
+        System.err.println("For testing: " + desc);
+        Statement s = connection.createStatement();
+        try
+        {
+            s.execute(sql);
+        } finally {
+            try {
+                s.close();
+            } catch (SQLException e) {}
+        }
+    }
+
+    /**
      * Tests for a working database connection, unit tests for {@link SOCDBHelper} methods.
      * Prints success or failure to {@link System#err}.
      *<P>
@@ -1508,6 +1539,32 @@ public class SOCDBHelper
             // Optional tests, OK if these fail: Case-insensitive column name search
             testOne_doesTableColumnExist("GAMES", "GAMENAME", true, false);
             testOne_doesTableColumnExist("Games", "gameName", true, false);
+
+            // Temporarily add a table and field, then test existence.
+            // Assumes current DB user has been granted ability to create and drop tables.
+            if (! anyFailed)
+            {
+                System.err.println();
+                boolean hasFixtureTabXYZ = false;
+                try
+                {
+                    testDBHelper_runDDL
+                        ("fixture: create table gamesxyz2", "CREATE TABLE gamesxyz2 ( name VARCHAR(20) not null );");
+                    hasFixtureTabXYZ = true;
+                    anyFailed |= ! testOne_doesTableExist("gamesxyz2", true, true);
+                    anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "name", true, true);
+                    anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "xyz", false, true);
+                } finally {
+                    if (hasFixtureTabXYZ)
+                    {
+                        testDBHelper_runDDL("fixture cleanup: drop table gamesxyz2", "DROP TABLE gamesxyz2;");
+                        anyFailed |= ! testOne_doesTableExist("gamesxyz2", false, true);
+                    }
+                }
+            } else {
+                System.err.println("4 tests skipped because not creating fixture after previous failures.");
+            }
+
         } catch (Exception e) {
             soc.debug.D.ebugPrintStackTrace(e, "test caught exception: testDBHelper");
             if (e instanceof SQLException)
