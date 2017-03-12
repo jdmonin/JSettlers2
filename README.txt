@@ -28,7 +28,6 @@ and pull requests can be posted at the github page.
 
 Contents
 --------
-
   Documentation
   Requirements
   Server Setup and Testing
@@ -37,7 +36,7 @@ Contents
   Upgrading from an earlier version
   Database Setup
   Security and Admin Users
-  Development and Compiling
+  Development and Building JSettlers
 
 
 Documentation
@@ -267,6 +266,7 @@ default values with a jsserver.properties file.
 To maintain user accounts, be sure to start the database first. (If you
 use a database, you can give users an account; everyone else
 can still log in and play, by leaving the password field blank.)
+For details see the "Database Setup" section below.
 
 Remote users can simply start their clients as described there,
 and specify your server as host.
@@ -349,13 +349,15 @@ the JSettlers JAR, see below for details. Besides PostgreSQL, MySQL, or SQLite
 any JDBC database can be used, including Oracle or MS SQL Server; however only
 those three db types are tested in depth with JSettlers.
 
-The default name for the database is "socdata".  To use another name,
-you'll need to specify it as a JDBC URL on the command line, such as:
+The default type and name for the database is MySQL and "socdata". To use
+another db type or another name, you'll need to specify it as a JDBC URL on
+the command line, such as:
 	-Djsettlers.db.url=jdbc:mysql://localhost/socdata
 or
 	-Djsettlers.db.url=jdbc:postgresql://localhost/socdata
 or
 	-Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
+
 If needed you can also specify a database username and password as:
 	-Djsettlers.db.user=socuser -Djsettlers.db.pass=socpass
 or place them on the command line after the port number and max connections:
@@ -416,6 +418,10 @@ Run these commands as the postgres system user:
   $ psql -d socdata --file jsettlers-sec-postgres.sql
 If the scripts run without any errors, they will produce very terse output
 such as "CREATE DATABASE" or "CREATE TABLE".
+When you start your JSettlers server, remember to specify the postgres DB using:
+  -Djsettlers.db.url=jdbc:postgresql://localhost/socdata
+You may also need to specify a jsettlers.db.jar value as noted in the
+"JDBC driver" section.
 
 For sqlite:
 Copy jsettlers-tables.sql to the same directory as JSettlersServer.jar
@@ -426,6 +432,8 @@ You should see this message:
 	DB setup script was successful. Exiting now.
 This will create a jsettlers.sqlite file containing the empty tables.
 This script will fail if the file and tables already exist.
+Later when you start your JSettlers server, remember to specify the sqlite DB
+using the same -Djsettlers.db.url and -Djsettlers.db.jar values.
 
 
 Optional: Storing Game Scores in the DB:
@@ -491,15 +499,15 @@ prompted for username's new password. This command can be run while the server i
 It will reset the password and exit, won't start a JSettlersServer.
 
 
-Development and Compiling
--------------------------
+Development and Building JSettlers
+----------------------------------
 
 JSettlers is an open-source project licensed under the GPL. The project
 source code is hosted at https://github.com/jdmonin/JSettlers2/ and
 the project website is http://nand.net/jsettlers/devel/ .  Questions,
 bugs, patches, and pull requests can be posted at the github page.
 
-For more information on compiling or developing JSettlers, see README.developer.
+For more information on building or developing JSettlers, see README.developer.
 That readme also has information about translating jsettlers to other languages,
 see the "I18N" section.
 
