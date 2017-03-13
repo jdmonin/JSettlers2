@@ -1566,6 +1566,13 @@ public class SOCDBHelper
                     anyFailed |= ! testOne_doesTableExist("gamesxyz2", true, true);
                     anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "name", true, true);
                     anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "xyz", false, true);
+                    // test field-add syntax:
+                    testDBHelper_runDDL
+                        ("fixture: table gamesxyz2 add field xyz", "ALTER TABLE gamesxyz2 ADD COLUMN xyz VARCHAR(20);");
+                    testDBHelper_runDDL
+                        ("fixture: table gamesxyz2 add field xyzw", "ALTER TABLE gamesxyz2 ADD COLUMN xyzw int;");
+                    anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "xyz", true, true);
+                    anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "xyzw", true, true);
                 } finally {
                     if (hasFixtureTabXYZ)
                     {
@@ -1574,7 +1581,7 @@ public class SOCDBHelper
                     }
                 }
             } else {
-                System.err.println("4 tests skipped because not creating fixture after previous failures.");
+                System.err.println("6 tests skipped because not creating fixture after previous failures.");
             }
 
         } catch (Exception e) {
