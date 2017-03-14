@@ -289,7 +289,7 @@ public class NewGameOptionsFrame extends Frame
     }
 
     /**
-     * Interface setup for constructor. Assumes BorderLayout.
+     * Interface setup for constructor. Assumes frame is using BorderLayout.
      * Most elements are part of a sub-panel occupying most of this Frame, and using GridBagLayout.
      */
     private void initInterfaceElements(final String gaName)
@@ -312,8 +312,7 @@ public class NewGameOptionsFrame extends Frame
             msgText.setEditable(false);
             msgText.setForeground(LABEL_TXT_COLOR);
             msgText.setBackground(getBackground());
-            gbl.setConstraints(msgText, gbc);
-            bp.add(msgText);
+            add(msgText, BorderLayout.NORTH);
         }
 
         /**
@@ -352,24 +351,21 @@ public class NewGameOptionsFrame extends Frame
 
         /**
          * Interface setup: Buttons
+         * Bottom row, centered in middle
          */
-
-        gbc.insets = new Insets(4, 2, 0, 2);  // padding between option rows, buttons
-        gbc.weightx = 0;
+        JPanel btnPan = new JPanel();
+        btnPan.setBorder(new EmptyBorder(4, 2, 0, 2));  // padding between option rows, buttons
 
         if (readOnly)
         {
             cancel = new Button(strings.get("base.ok"));
             cancel.setEnabled(true);
-            gbc.gridwidth = GridBagConstraints.REMAINDER;
         } else {
             cancel = new Button(strings.get("base.cancel"));
             cancel.addKeyListener(this);  // for win32 keyboard-focus
-            gbc.gridwidth = 2;
         }
-        gbl.setConstraints(cancel, gbc);
-        bp.add(cancel);
         cancel.addActionListener(this);
+        btnPan.add(cancel);
 
         if (! readOnly)
         {
@@ -380,10 +376,9 @@ public class NewGameOptionsFrame extends Frame
             create.setEnabled(! readOnly);
             if ((gaName == null) || (gaName.length() == 0))
                 create.setEnabled(false);  // Will enable when gameName not empty
-            gbc.gridwidth = GridBagConstraints.REMAINDER;
-            gbl.setConstraints(create, gbc);
-            bp.add(create);
+            btnPan.add(create);
         }
+        add(btnPan, BorderLayout.SOUTH);
 
         // Final assembly setup
         bp.validate();
