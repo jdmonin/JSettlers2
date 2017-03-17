@@ -110,10 +110,13 @@ import java.util.Vector;
  *<LI> {@code SOCServer} manages the overall lifecycle of the server
  *     and its games; game creation occurs in
  *     {@link SOCGameListAtServer#createGame(String, String, String, Map, GameHandler)}.
+ *<LI> See {@link Server} for details of the server threading and processing.
+ *     After constructing a {@code SOCServer} instance, the caller must
+ *     call {@link Thread#start()} to run the server's main thread.
+ *<LI> Any built-in bots are started at {@link #serverUp()}.
  *<LI> After a game is created, in-game actions are handled by {@link SOCGameHandler}
  *     as called by handlers for client requests and actions in {@link SOCGameMessageHandler}.
  *<LI> See {@link SOCMessage} for details of the client/server protocol.
- *<LI> See {@link Server} for details of the server threading and processing.
  *<LI> To get a player's connection, use {@link #getConnection(Object) getConnection(plName)}.
  *<LI> To get a client's nickname, use <tt>(String)</tt> {@link StringConnection#getData() connection.getData()}.
  *<LI> To get the rest of a client's data, use ({@link SOCClientData})
@@ -1561,10 +1564,11 @@ public class SOCServer extends Server
 
     /**
      * Callback to take care of things when server comes up, after the server socket
-     * is bound and listening, in the main thread.
-     * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, starts those {@link SOCRobotClient}s now.
-     * If {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL} is specified, waits briefly and then
-     * calls {@link #startRobotOnlyGames(boolean)}.
+     * is bound and listening, in the server's main thread.
+     *<P>
+     * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, starts those {@link SOCRobotClient}s now
+     * by calling {@link #setupLocalRobots(int, int)}. If {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}
+     * is specified, waits briefly and then calls {@link #startRobotOnlyGames(boolean)}.
      *<P>
      * Once this method completes, server begins its main loop of listening for incoming
      * client connections, and starting a Thread for each one to handle that client's messages.
