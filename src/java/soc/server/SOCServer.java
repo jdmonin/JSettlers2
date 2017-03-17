@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -5120,7 +5120,7 @@ public class SOCServer extends Server
      * ({@link SOCStatusMessage#SV_NAME_IN_USE SV_NAME_IN_USE})
      * before sending the disconnect message.
      *<P>
-     * Before connecting here, bots are named and started in {@link #setupLocalRobots(int, int)}.
+     * Before connecting here, bot clients are named and started in {@link #setupLocalRobots(int, int)}.
      * Bot params can be stored in the database, see {@link SOCDBHelper#retrieveRobotParams(String, boolean)}:
      * Default bot params are {@link #ROBOT_PARAMS_SMARTER} if the robot name starts with "robot "
      * or {@link #ROBOT_PARAMS_DEFAULT} otherwise (starts with "droid ").
@@ -5134,8 +5134,9 @@ public class SOCServer extends Server
      * {@link SOCServerMessageHandler#handleIMAROBOT(StringConnection, soc.message.SOCImARobot)}.
      *
      * @param c  the connection that sent the bot auth request; not null
-     * @param botName  Robot name sent from {@code c}
-     * @param cookie  robot cookie string sent from {@code c}
+     *     but {@link StringConnection#getData() c.getData()} should be null
+     * @param botName  Robot name sent in message from {@code c}
+     * @param cookie  robot cookie string sent in message from {@code c}
      * @param rbc  {@code c}'s robot brain class; built-in bots use {@link SOCImARobot#RBCLASS_BUILTIN}
      * @return {@code null} for successful authorization, or a failure string. See this method's
      *     javadocs for required messages to send to client on auth success or failure.
@@ -5147,6 +5148,16 @@ public class SOCServer extends Server
         (final StringConnection c, final String botName, final String cookie, final String rbc)
         throws NullPointerException
     {
+        /**
+         * Check that client hasn't already auth'd, as a human or bot
+         */
+        if (c.getData() != null)
+        {
+            System.out.println("Rejected robot " + botName + ": Client sent authorize already");
+
+            return "Client has already authorized.";  // <---- Early return: Already authenticated ----
+        }
+
         /**
          * Check the cookie given by this bot.
          */
@@ -5185,7 +5196,7 @@ public class SOCServer extends Server
         /**
          * Check that the nickname is ok
          */
-        if ((c.getData() == null) && (0 != checkNickname(botName, c, false)))
+        if (0 != checkNickname(botName, c, false))
         {
             System.err.println("Robot login attempt, name already in use: " + botName);
 
