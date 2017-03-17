@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2016 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2013-2017 Jeremy D Monin <jeremy@nand.net>.
  * Contents were formerly part of SOCServer.java;
  * portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -34,7 +34,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Random;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -63,7 +62,6 @@ import soc.game.SOCSettlement;
 import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
-import soc.message.SOCAcceptOffer;
 import soc.message.SOCBoardLayout;
 import soc.message.SOCBoardLayout2;
 import soc.message.SOCBoardSpecialEdge;
@@ -373,7 +371,7 @@ public class SOCGameHandler extends GameHandler
     /**
      * Process any {@code *SCEN*} scenario debug commands.
      *
-     *<H5>Currently recognized commands, by scenario:</H5>
+     *<H5>Currently recognized commands, per scenario:</H5>
      *<UL>
      *  <LI> <B>{@link SOCGameOption#K_SC_FTRI SC_FTRI}:</B>
      *    <UL>
@@ -385,7 +383,7 @@ public class SOCGameHandler extends GameHandler
      * @param c   Connection (client) sending this message
      * @param gaName  Game to which this applies
      * @param args  Debug command string from the user.
-     *     Caller trims after removing prefix {@link #DEBUG_CMD_PFX_SCENARIO}.
+     *     Caller must remove prefix {@link #DEBUG_CMD_PFX_SCENARIO} and then {@link String#trim()}.
      * @since 2.0.00
      */
     private final void processDebugCommand_scenario
@@ -410,7 +408,7 @@ public class SOCGameHandler extends GameHandler
 
         // Tokenize the command arguments:
         // Don't use string.split("\\s+") because the last argument might be a player name with a space,
-        // and "un-splitting isn't easy
+        // and "un-splitting" isn't easy
         StringTokenizer st = new StringTokenizer(argStr);
         if (! st.hasMoreTokens())
             return;  // unlikely: argStr was already trimmed and then checked length != 0
