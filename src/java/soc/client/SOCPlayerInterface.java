@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, type parameterization, GUI API updates, etc
  *
@@ -92,7 +92,8 @@ import java.io.StringWriter;
  * chat interface, game message window, and the {@link SOCBuildingPanel building/buying panel}.
  *<P>
  * Players' {@link SOCHandPanel hands} start with player 0 at top-left, and go clockwise;
- * see {@link #doLayout()} for details.
+ * see {@link #doLayout()} for details. Component sizes including {@link SOCBoardPanel}
+ * are recalculated by {@link #doLayout()} when the frame is resized.
  *<P>
  * When we join a game, the client will update visible game state by calling methods here like
  * {@link #addPlayer(String, int)}; when all this activity is complete, and the interface is
@@ -2543,8 +2544,12 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * Arrange the custom layout. If a player sits down in a 6-player game, will need to
+     * Arrange the custom layout at creation or frame resize.
+     * Stretches {@link SOCBoardPanel}, {@link SOCHandPanel}s, etc to fit.
+     *<P>
+     * If a player sits down in a 6-player game, will need to
      * {@link #invalidate()} and call this again, because {@link SOCHandPanel} sizes will change.
+     *<P>
      * Also, on first call, resets mouse cursor to normal, in case it was WAIT_CURSOR.
      * On first call, if the game options have a {@link SOCScenario} with any long description,
      * it will be shown in a popup via {@link #showScenarioInfoDialog()}.

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -110,6 +110,9 @@ import java.util.Timer;
  * actual (scaled/rotated) and unscaled/un-rotated "internal" coordinates with
  * {@link #scaleFromActualX(int)}, {@link #scaleFromActualY(int)},
  * {@link #scaleToActualX(int)}, {@link #scaleToActualY(int)}.
+ *<P>
+ * The panel can in some cases be stretched wider than the board requires, with a built-in x-margin:
+ * {@link SOCPlayerInterface#doLayout()} checks for the necessary conditions.
  *
  *<H3>Sequence for loading, rendering, and drawing images:</H3>
  *<UL>
@@ -761,10 +764,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     protected final int panelMinBW, panelMinBH;
 
     /**
-     * Scaled (actual) panel margin on left, in pixels, for narrow boards, if board's unscaled
+     * Scaled (actual pixels) panel x-margin on left, for narrow boards, if board's unscaled
      * width is less than {@link #panelMinBW}.
+     *<P>
      * Used only when {@link #isLargeBoard} and not {@link #isRotated}, otherwise 0.
-     * Never less than 0.
+     * Never less than 0. Updated in {@link #rescaleBoard(int, int)}.
      * @since 2.0.00
      */
     protected int panelMarginX;
@@ -1018,7 +1022,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private int[] scaledArrowXL, scaledArrowXR, scaledArrowY;
 
-    /** hex corners, clockwise from top-center, as located in waterHex.gif, hexBorder.gif, and other hex graphics:
+    /**
+     * Hex polygon's corner coordinates, clockwise from top-center,
+     * as located in waterHex.gif, hexBorder.gif, and other hex graphics:
      * (27,0) (54,16) (54,46) (27,62) (0,46) (0,16).
      *  If rotated 90deg clockwise, clockwise from center-right, would be:
      * (62,27) (46,54) (16,54) (0,27) (16,0) (46,0);
@@ -1034,7 +1040,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         27, 54, 54, 27, 0, 0, 27
     };
 
-    /** hex corners, clockwise from top-center.
+    /** hex polygon's corner coordinates, clockwise from top-center.
      * @see #hexCornersX
      * @see #HEXY_OFF_SLOPE_HEIGHT
      * @since 1.1.07
@@ -1045,7 +1051,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     };
 
     /**
-     * hex corner coordinates, as scaled to current board size.
+     * hex polygon corner coordinates, as scaled to current board size.
      * @see #hexCornersX
      * @see #rescaleCoordinateArrays()
      * @since 1.1.07
@@ -1109,7 +1115,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Calculated in {@link #drawSuperText(Graphics)}.
      * @since 1.1.07
      */
-    private int superText1_w, superText_h, superText_des, superText2_w, superTextBox_x, superTextBox_y, superTextBox_w, superTextBox_h;
+    private int superText1_w, superText_h, superText_des, superText2_w,
+        superTextBox_x, superTextBox_y, superTextBox_w, superTextBox_h;
 
     /**
      * Text to be displayed as 1 line superimposed over the top-center
@@ -1325,7 +1332,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Number of times that hint message has been shown which
      * prompts the player to right-click (not left- or double-click)
-     * to build (by displaying the build menu).
+     * and show the build menu in order to build.
      * Show at most twice to avoid annoying new users.
      * @see #mouseClicked(MouseEvent)
      * @since 1.1.20
@@ -1333,10 +1340,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private int hintShownCount_RightClickToBuild;
 
     /**
-     * This holds the coord of the last stlmt
-     * placed in the initial phase.
+     * During initial placement, the node coordinate of
+     * the most recent settlement placed by the player.
+     *<P>
+     * Before v2.0.00 this field was {@code initstlmt}.
      */
-    private int initstlmt;
+    private int initSettlementNode;
 
     /**
      * the player interface that this board is a part of
@@ -2170,7 +2179,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Set the board fields to a new size, rescale graphics if needed.
      * Does not call repaint.  Does not call setSize.
-     * Will update {@link #isScaledOrRotated}, {@link #scaledPanelX}, and other fields.
+     * Updates {@link #isScaledOrRotated}, {@link #scaledPanelX}, {@link #panelMarginX}, and other fields.
      * Calls {@link #renderBorderedHex(Image, Image, Color)} and {@link #renderPortImages()}.
      *
      * @param newW New width in pixels, no less than {@link #PANELX} (or if rotated, {@link #PANELY})
@@ -5409,13 +5418,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     }
 
                     // Figure out if this is a legal road/ship;
-                    // It must be attached to the last stlmt
+                    // It must be attached to the last settlement
                     if ((player == null)
                         || (! (player.isPotentialRoad(edgeNum)
                                || game.canPlaceShip(player, edgeNum) ))
                         || (! (game.isDebugFreePlacement()
                                || board.isEdgeAdjacentToNode
-                                  (initstlmt,
+                                  (initSettlementNode,
                                    (edgeNum != -1) ? edgeNum : 0))))
                     {
                         edgeNum = 0;
@@ -5956,7 +5965,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 case PLACE_INIT_SETTLEMENT:
                     if (playerNumber == playerInterface.getClientPlayerNumber())
                     {
-                        initstlmt = hilight;
+                        initSettlementNode = hilight;
                     }
                     // no break: fall through
 
@@ -8412,7 +8421,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               {
                   playerInterface.getClient().getGameManager().putPiece(game, new SOCSettlement(player, buildLoc, board));
                   if (isInitialPlacement)
-                      initstlmt = buildLoc;  // track for initial road mouseover hilight
+                      initSettlementNode = buildLoc;  // track for initial road mouseover hilight
               }
               btarget = SOCBuildingPanel.STLMT;
               break;

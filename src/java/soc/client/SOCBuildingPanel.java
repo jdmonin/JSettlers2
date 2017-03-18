@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014,2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net> - GameStatisticsFrame
  *
  * This program is free software; you can redistribute it and/or
@@ -56,7 +56,7 @@ public class SOCBuildingPanel extends Panel
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     static final String ROAD = "road";  // I18N: These are internal command labels, not user-visible strings
-    static final String STLMT = "stlmt";
+    static final String STLMT = "stlmt";  // Build Settlement
     static final String CITY = "city";
     static final String CARD = "card";
     static final String SHIP = "ship";  // Ship for large sea board; @since 2.0.00
