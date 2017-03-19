@@ -4708,6 +4708,8 @@ public class SOCServer extends Server
 
     /**
      * Handle the client's echo of a {@link SOCMessage#SERVERPING}.
+     * Resets its {@link SOCClientData#disconnectLastPingMillis} to 0
+     * to indicate client is actively responsive to server.
      * @since 1.1.08
      */
     private void handleSERVERPING(StringConnection c, SOCServerPing mes)
@@ -10498,7 +10500,7 @@ public class SOCServer extends Server
     {
         // Take the gameList monitor, build arrays of expired and
         // expiring-soon games, then release it.
-        ArrayList expiredGameNames = new ArrayList(), expiringSoonGames = new ArrayList();
+        ArrayList expiredGameNames = new ArrayList(), expiringSoonGames = new ArrayList(), pingIdle = new ArrayList();
 
         // Add 2 minutes because of coarse 5-minute granularity in SOCGameTimeoutChecker.run()
         long warn_ms = (2 + GAME_EXPIRE_WARN_MINUTES) * 60L * 1000L; 
@@ -10515,12 +10517,12 @@ public class SOCServer extends Server
 
                 long gameExpir = gameData.getExpiration();
 
-                // Start our text messages with ">>>" to mark as urgent to the client.
-
                 if (gameExpir <= currentTimeMillis)
                     expiredGameNames.add(gameData.getName());
                 else if ((gameExpir - warn_ms) <= currentTimeMillis)
                     expiringSoonGames.add(gameData);
+                else if ((currentTimeMillis - gameData.lastActionTime) > (GAME_TIME_EXPIRE_CHECK_MINUTES * 60 * 1000))
+                    pingIdle.add(gameData);
             }
         }
         catch (Exception e)
@@ -10532,6 +10534,7 @@ public class SOCServer extends Server
 
         //
         // give warning on the expiring-soon games
+        // Start our text messages with ">>>" to mark as urgent to the client.
         //
         if (! expiringSoonGames.isEmpty())
         {
@@ -10548,6 +10551,18 @@ public class SOCServer extends Server
                 messageToGameUrgent(gameData.getName(), ">>> Less than "
                     + minutes + " minutes remaining.  Type *ADDTIME* to extend this game another 30 minutes.");
             }
+        }
+
+        //
+        // If games are idle since previous check, send keepalive ping to their clients
+        // so the network doesn't disconnect while all players are taking a break
+        //
+        if (! pingIdle.isEmpty())
+        {
+            final SOCServerPing pmsg = new SOCServerPing(GAME_TIME_EXPIRE_CHECK_MINUTES * 60);
+
+            for (Iterator esoon = pingIdle.iterator(); esoon.hasNext(); )
+                messageToGame(((SOCGame) esoon.next()).getName(), pmsg);
         }
 
         //
