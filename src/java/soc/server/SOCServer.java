@@ -457,7 +457,7 @@ public class SOCServer extends Server
      * Sleep time (minutes) between checks for expired games in {@link SOCGameTimeoutChecker#run()}.
      * Default is 5 minutes. Must be at most half of {@link #GAME_TIME_EXPIRE_WARN_MINUTES}
      * so the user has time to react after seeing the warning.
-     * @since 2.0.00
+     * @since 1.2.00
      */
     public static int GAME_TIME_EXPIRE_CHECK_MINUTES = GAME_TIME_EXPIRE_WARN_MINUTES / 2;
 
@@ -6811,12 +6811,12 @@ public class SOCServer extends Server
                     messageToGameKeyed(gameData, true, "game.time.expire.soon.addtime", Integer.valueOf(minutes));
                         // ">>> Less than {0} minutes remaining. Type *ADDTIME* to extend this game another 30 minutes."
                 }
-                else if ((currentTimeMillis - gameData.lastActionTime) > (60 * 1000 * GAME_TIME_EXPIRE_CHECK_MINUTES))
+                else if ((currentTimeMillis - gameData.lastActionTime) > (GAME_TIME_EXPIRE_CHECK_MINUTES * 60 * 1000))
                 {
                     // If game is idle since previous check, send keepalive ping to its clients
                     // so the network doesn't disconnect while all players are taking a break
 
-                    messageToGame(gameData.getName(), new SOCServerPing(60 * GAME_TIME_EXPIRE_CHECK_MINUTES));
+                    messageToGame(gameData.getName(), new SOCServerPing(GAME_TIME_EXPIRE_CHECK_MINUTES * 60));
                 }
             }
         }
@@ -6877,7 +6877,7 @@ public class SOCServer extends Server
                     // bump out that time, so we don't see
                     // it again every few seconds
                     ga.lastActionTime
-                        += (SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES * 60L * 1000L);
+                        += (SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES * 60 * 1000);
                     continue;
                 }
 
