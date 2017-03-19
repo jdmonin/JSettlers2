@@ -22,7 +22,6 @@
  along with this program.  If not, see http://www.gnu.org/licenses/ .
  -->
 
-  <!-- Reminder for javac tasks: To prevent ant 1.8+ warning message, use includeantruntime="false" -->
   <!-- Reminder for tar tasks: ant 1.7+ assumed; uses ant's internal tar implementation
        and not the system tar, which means on OSX it won't include junk ._* files -->
 
@@ -35,6 +34,17 @@
   <property name="debug"       value="true" />
   <property name="optimize"    value="true" />
   <property name="deprecation" value="false" />
+
+  <!-- Defaults for javac tasks:
+      * To prevent ant 1.8+ warning message, use includeantruntime="false"
+      * To override system's default encoding, specify UTF-8 for *.java
+      -->
+  <presetdef name="javac">
+    <javac encoding="UTF-8" includeantruntime="false" />
+  </presetdef>
+  <presetdef name="javadoc">
+    <javadoc encoding="UTF-8" />
+  </presetdef>
 
   <property name="name"      value="jsettlers" />
   <property name="Name"      value="JSettlers" />
@@ -210,7 +220,6 @@
              classpathref="classpath"
              debug="${debug}" 
              optimize="${optimize}"
-             includeantruntime="false"
              deprecation="${deprecation}" />
   </target>
  
@@ -291,7 +300,6 @@
              classpathref="classpath"
              debug="${debug}"
              optimize="${optimize}"
-             includeantruntime="false"
              deprecation="${deprecation}" />
   </target>
 
