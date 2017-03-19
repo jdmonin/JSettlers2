@@ -12,15 +12,13 @@ and backport minor new features until 2.0.00 is ready.
 
 
 
-    > 2.0.00 (build JM20160xxx)
+    > 2.0.00 (build JM20170xxx)
 - Large board (sea board) support
 - Game Scenario and special-rules support
 - "House rules" dev card types (New game option "DH")
 - New Game options: Popup if old versions can't play: Default to Create, not Change Options
 - Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard's dialog)
 - To ensure everyone has 2 initial settlements, don't allow new clients to sit after 1st settlements are all placed
-- Client initial Connect dialog: If username given, ensure New Game button is enabled
-- Network: Send keepalive messages to idle games to keep clients connected
 - More efficient game-setup messages over network
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
 - Client sends server its locale, to support i18n localization
@@ -55,6 +53,7 @@ and backport minor new features until 2.0.00 is ready.
 
     > 1.2.00 (build OV20170xxx)
 - Network: Send keepalive messages to idle games to keep clients connected
+- Client initial Connect dialog: If username given, ensure New Game button is enabled
 
     > 1.1.20 (build OV20161024)
 - Board hex graphics updated for smoother look and scaling
