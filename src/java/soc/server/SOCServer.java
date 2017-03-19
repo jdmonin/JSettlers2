@@ -176,6 +176,7 @@ public class SOCServer extends Server
 
     // If a new property is added, please add a PROP_JSETTLERS_ constant,
     // add it to PROPS_LIST, and update /src/bin/jsserver.properties.sample.
+    // If a new robot property, consider mentioning it in soc.robot.sample3p.Sample3PClient javadocs.
 
     /** Property <tt>jsettlers.port</tt> to specify the port the server binds to and listens on.
      * Default is {@link #SOC_PORT_DEFAULT}.
@@ -221,6 +222,18 @@ public class SOCServer extends Server
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_PERCENT3P = "jsettlers.bots.percent3p";
+
+    /**
+     * Integer property <tt>jsettlers.bots.timeout.turn</tt> to increase
+     * {@link #ROBOT_FORCE_ENDTURN_SECONDS} for third-party robots, which may
+     * have more complex logic than the built-in bots. The third-party bots will
+     * have this many seconds to make a move before the server ends their turn.
+     *<P>
+     * Default is {@link #ROBOT_FORCE_ENDTURN_SECONDS}. The built-in robots are limited
+     * to {@code ROBOT_FORCE_ENDTURN_SECONDS} even when this property is set.
+     * @since 2.0.00
+     */
+    public static final String PROP_JSETTLERS_BOTS_TIMEOUT_TURN = "jsettlers.bots.timeout.turn";
 
     /**
      * Property <tt>jsettlers.bots.botgames.total</tt> will start robot-only games,
@@ -389,6 +402,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
         PROP_JSETTLERS_BOTS_PERCENT3P,          "Percent of bots which should be third-party (0 to 100) if available",
+        PROP_JSETTLERS_BOTS_TIMEOUT_TURN,       "Robot turn timeout (seconds) for third-party bots",
         PROP_JSETTLERS_TEST_VALIDATE__CONFIG,   "Flag to validate server and DB config, then exit (same as -t command-line option)",
         PROP_JSETTLERS_TEST_DB,                 "Flag to test database methods, then exit",
         SOCDBHelper.PROP_JSETTLERS_DB_USER,     "DB username",
@@ -471,12 +485,16 @@ public class SOCServer extends Server
         // if you change it here, you will need to also search for those.
 
     /**
-     * Force robot to end their turn after this many seconds
-     * of inactivity. Default is 8.
+     * Force robot to end their turn after this many seconds of inactivity.
+     * Default is 8. Can override this for third-party bots by setting
+     * {@link #PROP_JSETTLERS_BOTS_TIMEOUT_TURN}.
+     *
      * @see #checkForExpiredTurns(long)
      * @since 1.1.11
      */
     public static int ROBOT_FORCE_ENDTURN_SECONDS = 8;
+        // If this value is changed, also update the jsettlers.bots.timeout.turn
+        // comments in /src/bin/jsserver.properties.sample.
 
     /**
      * Maximum permitted game name length, default 30 characters.
@@ -6844,7 +6862,8 @@ public class SOCServer extends Server
      * Robot turns may end from inactivity or from an illegal placement.
      * Checks each game's {@link SOCGame#lastActionTime} field, and calls
      * {@link GameHandler#endTurnIfInactive(SOCGame, long)} if the
-     * last action is older than {@link #ROBOT_FORCE_ENDTURN_SECONDS}.
+     * last action is older than {@link #ROBOT_FORCE_ENDTURN_SECONDS}
+     * (or for third-party bots, {@link #PROP_JSETTLERS_BOTS_TIMEOUT_TURN}).
      *<P>
      * Is callback method every few seconds from {@link SOCGameTimeoutChecker#run()}.
      *
@@ -6860,7 +6879,14 @@ public class SOCServer extends Server
         // we shouldn't need to worry about locking.
         // So, we don't need gameList.takeMonitor().
 
-        final long inactiveTime = currentTimeMillis - (1000L * ROBOT_FORCE_ENDTURN_SECONDS);
+        final long inactiveTime = currentTimeMillis - (ROBOT_FORCE_ENDTURN_SECONDS * 1000L);
+        final long inactiveTime3p;  // if set, longer time for 3rd-party bot players
+        {
+            final int timeout3p = getConfigIntProperty(PROP_JSETTLERS_BOTS_TIMEOUT_TURN, 0);
+            inactiveTime3p = (timeout3p <= ROBOT_FORCE_ENDTURN_SECONDS)
+                ? 0
+                : currentTimeMillis - (timeout3p * 1000L);
+        }
 
         try
         {
@@ -6884,6 +6910,13 @@ public class SOCServer extends Server
                 final int cpn = ga.getCurrentPlayerNumber();
                 if (cpn == -1)
                     continue;  // not started yet
+
+                if ((inactiveTime3p != 0) && (lastActionTime > inactiveTime3p))
+                {
+                    final SOCPlayer pl = ga.getPlayer(cpn);
+                    if (pl.isRobot() && ! pl.isBuiltInRobot())
+                        continue;  // the third-party robot player has more time
+                }
 
                 GameHandler hand = gameList.getGameTypeHandler(ga.getName());
                 if (hand != null)

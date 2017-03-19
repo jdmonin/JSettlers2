@@ -29,18 +29,30 @@ import soc.util.SOCRobotParameters;
 /**
  * Sample of a trivially simple "third-party" subclass of {@link SOCRobotClient}
  * using {@link Sample3PBrain}.
- *<P>
+ *
+ *<H5>Connecting to the Server:</H5>
  * Since this bot isn't started up as part of the SOCServer,
  * it must know the server's robot cookie to connect:
  *<UL>
  * <LI> Start the server with command-line parameter {@code -Djsettlers.bots.showcookie=Y}
- *      or something like {@code -Djsettlers.bots.cookie=bottest97481483}
- * <LI> To use third-party bots as a certain percentage of the bots in each game,
- *      also use server parameter {@code -Djsettlers.bots.percent3p=50} (for 50%)
+ *      or a specific value like {@code -Djsettlers.bots.cookie=bottest97481483}
  * <LI> Start your bot client(s) with command lines such as:<pre>
  *      localhost 8880 samplebot1 x bottest97481483
  *      localhost 8880 samplebot2 x bottest97481483
  *      localhost 8880 samplebot3 x bottest97481483</pre>
+ *</UL>
+ *
+ *<H5>Other Useful Server Properties:</H5>
+ * See {@code /src/bin/jsserver.properties.sample} comments for more details on any parameter.
+ *<BR>
+ * All server properties can be specified in a {@code jsserver.properties} file,
+ * or on the command line as {@code -Dpropertyname=propertyvalue}.
+ *<UL>
+ * <LI> To use third-party bots as a certain percentage of the bots in each game:<BR>
+ *      {@code jsettlers.bots.percent3p=50} (for 50%)
+ * <LI> To give third-party bots more time before forcing their turn to end:<BR>
+ *      {@code jsettlers.bots.timeout.turn=18} (for 18 seconds). The default is
+ *      {@link soc.server.SOCServer#ROBOT_FORCE_ENDTURN_SECONDS SOCServer.ROBOT_FORCE_ENDTURN_SECONDS}.
  *</UL>
  *
  * @author Jeremy D Monin

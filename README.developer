@@ -462,7 +462,8 @@ Right now bots are instantiated within the server for security; for a 3rd-party 
 soc.robot.SOCRobotClient class.  You can start a bot separately from the server through the
 SOCRobotClient constructor or main method.  For trivial example subclasses extending SOCRobotClient
 and SOCRobotBrain, see soc.robot.sample3p.Sample3PClient and Sample3PBrain.  The Sample3PClient
-class javadoc mentions useful server properties such as jsettlers.bots.percent3p.
+class javadoc mentions useful server properties such as jsettlers.bots.percent3p and
+jsettlers.bots.timeout.turn.
 
 The server generates a security cookie that bots must send at connect. You can view the cookie by
 starting the server with

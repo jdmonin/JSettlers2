@@ -171,6 +171,22 @@
 #   Robot cookie: 03883269284ee140cb907ea203846333
 # jsettlers.bots.showcookie=N
 
+# Percent of bot players which should be third-party (0 to 100) if available
+# when starting a game. No default; if not set, the server randomly chooses
+# any connected bots without checking their type.
+# If not enough third-party bots are connected to the server when starting a
+# game, the built-in bots will be used instead so that the game can begin.
+# If also using jsettlers.bots.botgames.total, remember those games will be
+# started as soon as the server is ready, so the third-party bots may not
+# yet be connected.
+# jsettlers.bots.percent3p=50
+
+# Robot turn timeout (seconds) for third-party robots, which may have more
+# complex logic than the built-in bots. The third-party bots will have this
+# many seconds to make a move before the server ends their turn.
+# Default is 8 seconds, the same limit as the built-in bots.
+# jsettlers.bots.timeout.turn=8
+
 # -- End of list of recognized available properties --
 
 # This sample file is documentation about the available properties.
@@ -179,7 +195,7 @@
 #
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2016 Jeremy D Monin (jeremy@nand.net)
+# This file Copyright (C) 2016-2017 Jeremy D Monin (jeremy@nand.net)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
