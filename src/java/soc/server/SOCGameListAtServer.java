@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2012,2014,2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2012,2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +28,6 @@ import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
 import soc.util.Version;
 
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -324,7 +323,7 @@ public class SOCGameListAtServer extends SOCGameList
             SOCGame rgame = reset.newGame;
 
             // As in createGame, set expiration timer to 90 min. from now
-            rgame.setExpiration(new Date().getTime() + (60 * 1000 * GAME_EXPIRE_MINUTES));
+            rgame.setExpiration(System.currentTimeMillis() + (60 * 1000 * GAME_EXPIRE_MINUTES));
 
             // Adjust game-list
             gameData.remove(gaName);

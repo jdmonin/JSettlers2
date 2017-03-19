@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -354,9 +354,11 @@ public class SOCServer extends Server
     public static final int CLI_VERSION_TIMER_FIRE_MS = 1200;
 
     /**
-     * If game will expire in this or fewer minutes, warn the players. Default 10.
+     * If game will expire in this or fewer minutes, warn the players. Default is 10.
      * Must be at least twice the sleep-time in {@link SOCGameTimeoutChecker#run()}.
      * The game expiry time is set at game creation in {@link SOCGameListAtServer#createGame(String, String, Hashtable)}.
+     *<P>
+     * If you update this field, also update {@link #GAME_TIME_EXPIRE_CHECK_MINUTES}.
      *
      * @see #checkForExpiredGames(long)
      * @see SOCGameTimeoutChecker#run()
@@ -364,6 +366,14 @@ public class SOCServer extends Server
      * @see #GAME_TIME_EXPIRE_ADDTIME_MINUTES
      */
     public static int GAME_EXPIRE_WARN_MINUTES = 10;
+
+    /**
+     * Sleep time (minutes) between checks for expired games in {@link SOCGameTimeoutChecker#run()}.
+     * Default is 5 minutes. Must be at most half of {@link #GAME_EXPIRE_WARN_MINUTES}
+     * so the user has time to react after seeing the warning.
+     * @since 1.2.00
+     */
+    public static int GAME_TIME_EXPIRE_CHECK_MINUTES = GAME_EXPIRE_WARN_MINUTES / 2;
 
     /**
      * Amount of time to add (30 minutes) when the <tt>*ADDTIME*</tt> command is used by a player.
@@ -10613,7 +10623,7 @@ public class SOCServer extends Server
                     // bump out that time, so we don't see
                     // it again every few seconds
                     ga.lastActionTime
-                        += (1000L * 60L * SOCGameListAtServer.GAME_EXPIRE_MINUTES);
+                        += (SOCGameListAtServer.GAME_EXPIRE_MINUTES * 60 * 1000);
                     continue;
                 }
                 final int cpn = ga.getCurrentPlayerNumber();
