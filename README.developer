@@ -1,4 +1,4 @@
-README.developer - Notes and current status of 2016 JSettlers development
+README.developer - Notes and current status of 2017 JSettlers development
 	(version 2.0.xx, beta server running at nand.net)
 	http://nand.net/jsettlers/devel/
 	https://github.com/jdmonin/JSettlers2
@@ -120,6 +120,10 @@ or right-clicking on the board.  (Don't use the "Buy" buttons for Free Placement
 The placements must follow game rules, except that they cost no resources.
 To place for another player, click their face icon.  You cannot remove a piece
 once it is placed.
+
+During initial placement, you can use Free Placement for any player/bot to set up
+some or all of the initial settlements and roads/ships. The number of settlements
+must equal the number of roads/ships before the game can continue.
 
 The placed pieces accumulate victory points for their players as normal, and
 Longest Road is tracked.  If a player gets 10 VP total, the game will be over
@@ -440,7 +444,7 @@ botname:command into the chat textbox while playing or observing a game with bot
 See SOCRobotClient.handleGAMETEXTMSG_debug for more details.
 
 You can also build pieces for the bots using "Free Placement" debug mode (see above)
-to help set up debugging or testing situations.
+to help set up debugging or testing situations, including the game's initial placement.
 
 When testing with the robots, you may need to send them resources or commands on their turn.
 The easiest way to do that is to type the debug command but don't hit enter, then wait for the
@@ -486,6 +490,8 @@ Network Communication and interop with other versions or languages
 Players' clients talk to the JSettlers server using a simple string-based message format.
 See "Overall Structure" for an overview on network message handling.
 Communication format and more details are described in soc.message.SOCMessage.
+To see all message traffic from a client, set jsettlers.debug.traffic=Y
+(see "Tips for Debugging" section).
 
 Keeping the network protocol simple helps with interoperability between different
 versions and implementations. At the TCP level, JSettlers messages are unicode Strings
