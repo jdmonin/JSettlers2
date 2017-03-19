@@ -53,6 +53,9 @@ import soc.util.SOCRobotParameters;
  * <LI> To give third-party bots more time before forcing their turn to end:<BR>
  *      {@code jsettlers.bots.timeout.turn=18} (for 18 seconds). The default is
  *      {@link soc.server.SOCServer#ROBOT_FORCE_ENDTURN_SECONDS SOCServer.ROBOT_FORCE_ENDTURN_SECONDS}.
+ * <LI> To wait before starting robot-only games at server startup:<BR>
+ *      {@code jsettlers.bots.botgames.wait_sec=30} (for 30 seconds)<BR>
+        in order to give bot clients more time to connect first.
  *</UL>
  *
  * @author Jeremy D Monin

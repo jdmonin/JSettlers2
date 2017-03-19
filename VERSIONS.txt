@@ -34,6 +34,9 @@ and backport minor new features until 2.0.00 is ready.
 - For AI/Robot development:
      The server can run bot-only games with new startup option:
 	-Djsettlers.bots.botgames.total=7
+     Those bot-only games begin at server startup, or can be delayed with startup option:
+	-Djsettlers.bots.botgames.wait_sec=30
+	(this example uses 30 seconds) to give bot clients more time to connect first.
      The server can use third-party bots as a certain percentage of the bots in each game
 	with new startup option: (this example uses 50%)
 	-Djsettlers.bots.percent3p=50

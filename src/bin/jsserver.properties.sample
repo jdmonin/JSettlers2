@@ -158,6 +158,12 @@
 # use a value less than 0.
 # jsettlers.bots.botgames.total=0
 
+# Wait this many seconds at startup before starting robot-only games (default
+# 1.6 seconds), in order to give bot clients more time to connect first. The
+# server will print a reminder message:
+# "Waiting 30 seconds before starting robot-only games."
+# jsettlers.bots.botgames.wait_sec=30
+
 # Specify the robot connect cookie string. By default a new random string is
 # generated each time the server runs. Bots can't connect without giving the
 # cookie string to the server; without that cookie they are treated as human

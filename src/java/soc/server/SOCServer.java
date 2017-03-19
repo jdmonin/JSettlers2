@@ -236,18 +236,31 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_BOTS_TIMEOUT_TURN = "jsettlers.bots.timeout.turn";
 
     /**
-     * Property <tt>jsettlers.bots.botgames.total</tt> will start robot-only games,
+     * Integer property <tt>jsettlers.bots.botgames.total</tt> will start robot-only games,
      * a few at a time, until this many have been played. (The default is 0.)
+     * As the first few games end, the server will start new games until the total is reached.
+     *<P>
+     * To wait at server startup time before starting these games, use
+     * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC}.
      *<P>
      * If this property's value != 0, a robots-only game can be started with the
      * {@code *STARTBOTGAME*} debug command. This can be used to test the bots with any given
      * combination of game options and scenarios.  To permit starting such games without
-     * also starting any at server startup, use a value less than 0.
+     * automatically starting any at server startup, use a value less than 0.
      *
      * @see #PROP_JSETTLERS_BOTS_PERCENT3P
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL = "jsettlers.bots.botgames.total";
+
+    /**
+     * Integer property <tt>jsettlers.bots.botgames.wait_sec</tt> to wait this many seconds
+     * before starting robot-only games with {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}.
+     * This is useful if some bots are slow to start, or are third-party bots not automatically
+     * started with the server. (The default is 1.6 seconds.)
+     * @since 2.0.00
+     */
+    public static final String PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC = "jsettlers.bots.botgames.wait_sec";
 
     /**
      * Property <tt>jsettlers.startrobots</tt> to start some robots when the server starts.
@@ -399,6 +412,7 @@ public class SOCServer extends Server
         // I18n.PROP_JSETTLERS_LOCALE,             "Locale override from the default, such as es or en_US, for console output",
             // -- not used yet at server
         PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL,     "Run this many robot-only games, a few at a time (default 0); allow bot-only games",
+        PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC, "Wait at startup before starting robot-only games (default 1.6 seconds)",
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
         PROP_JSETTLERS_BOTS_PERCENT3P,          "Percent of bots which should be third-party (0 to 100) if available",
@@ -1643,13 +1657,22 @@ public class SOCServer extends Server
                         System.err.println
                             ("** To start robot-only games, server needs at least " + n +  " robots started.");
                     } else {
+                        final int waitSec = getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC, 0);
+                        final int waitmSec = (waitSec > 0) ? (1000 * waitSec) : 1600;
+                        if (waitSec > 2)
+                            System.err.println("\nWaiting " + waitSec + " seconds before starting robot-only games.\n");
+
                         new Thread() {
                             @Override
                             public void run()
                             {
                                 try {
-                                    Thread.sleep(1600);  // wait for bots to connect
+                                    Thread.sleep(waitmSec);  // wait for bots to connect
                                 } catch (InterruptedException e) {}
+
+                                if (waitSec > 2)
+                                    System.err.println
+                                        ("\nStarting robot-only games now, after waiting " + waitSec + " seconds.\n");
 
                                 startRobotOnlyGames(false);
                             }
@@ -1659,7 +1682,8 @@ public class SOCServer extends Server
             }
             catch (NumberFormatException e)
             {
-                System.err.println("Not starting robots: Bad number format, ignoring property " + PROP_JSETTLERS_STARTROBOTS);
+                System.err.println
+                    ("** Not starting robots: Bad number format, ignoring property " + PROP_JSETTLERS_STARTROBOTS);
             }
         }
     }
@@ -5498,11 +5522,14 @@ public class SOCServer extends Server
 
     /**
      * Start a few robot-only games if {@link #numRobotOnlyGamesRemaining} &gt; 0.
+     * Later as these games end, the server will start new games as long as
+     * {@link #numRobotOnlyGamesRemaining} &gt; 0 at the time.
      *<P>
      * <B>Locks:</b> May or may not have {@link SOCGameList#takeMonitor()} when calling;
      * see {@code hasGameListMonitor} parameter.  If not already held, this method takes and releases that monitor.
      *
      * @param hasGameListMonitor  True if caller holds the {@link SOCGameList#takeMonitor()} lock already
+     * @see #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL
      * @since 2.0.00
      */
     private void startRobotOnlyGames(final boolean hasGameListMonitor)
@@ -6915,7 +6942,7 @@ public class SOCServer extends Server
                 {
                     final SOCPlayer pl = ga.getPlayer(cpn);
                     if (pl.isRobot() && ! pl.isBuiltInRobot())
-                        continue;  // the third-party robot player has more time
+                        continue;  // third-party robot player has more time
                 }
 
                 GameHandler hand = gameList.getGameTypeHandler(ga.getName());
