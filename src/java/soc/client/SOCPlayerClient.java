@@ -250,10 +250,10 @@ public class SOCPlayerClient
 
     /**
      * True if contents of incoming and outgoing network message traffic should be debug-printed.
-     * Set if optional system property {@code jsettlers.debug.traffic} is set.
+     * Set if optional system property {@link SOCDisplaylessPlayerClient#PROP_JSETTLERS_DEBUG_TRAFFIC} is set.
      *<P>
-     * Versions earlier than 1.1.20 always printed this debug output.
-     * @since 2.0.00
+     * Versions earlier than 1.1.20 always printed this debug output; 1.1.20 never prints it.
+     * @since 1.2.00
      */
     private boolean debugTraffic;
 
@@ -522,7 +522,7 @@ public class SOCPlayerClient
         gotPassword = false;
         lastFaceChange = 1;  // Default human face
 
-        if (null != System.getProperty("jsettlers.debug.traffic"))
+        if (null != System.getProperty(SOCDisplaylessPlayerClient.PROP_JSETTLERS_DEBUG_TRAFFIC))
             debugTraffic = true;  // set flag if debug prop has any value at all
 
         String jsLocale = System.getProperty(I18n.PROP_JSETTLERS_LOCALE);

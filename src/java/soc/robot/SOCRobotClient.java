@@ -464,8 +464,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             // we still need to process mes.
         }
 
-        if (D.ebugIsEnabled())
-            D.ebugPrintln("IN - " + mes);
+        if (debugTraffic || D.ebugIsEnabled())
+            soc.debug.D.ebugPrintln("IN - " + nickname + " - " + mes);
 
         try
         {

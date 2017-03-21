@@ -30,7 +30,6 @@ and backport minor new features until 2.0.00 is ready.
   Their option keynames all start with '_' and are hidden in the New Game options window.
 - Player's inventory can hold more than just development cards
 - Game window during debug: Reset "current player" indicator when exiting *FREEPLACE* debug mode
-- Client debug: Print network message contents if system property jsettlers.debug.traffic is set
 - For AI/Robot development:
      The server can run bot-only games with new startup option:
 	-Djsettlers.bots.botgames.total=7
@@ -60,6 +59,7 @@ and backport minor new features until 2.0.00 is ready.
     > 1.2.00 (build OV20170xxx)
 - Network: Send keepalive messages to idle games to keep clients connected
 - Client initial Connect dialog: If username given, ensure New Game button is enabled
+- Client debug, bot debug: Print network message contents if system property jsettlers.debug.traffic is set
 
     > 1.1.20 (build OV20161024)
 - Board hex graphics updated for smoother look and scaling
