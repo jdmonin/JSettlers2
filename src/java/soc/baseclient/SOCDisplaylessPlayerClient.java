@@ -159,7 +159,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * True if contents of incoming and outgoing network message traffic should be debug-printed.
      * Set if optional system property {@link #PROP_JSETTLERS_DEBUG_TRAFFIC} is set.
-     *<P>
      * @since 1.2.00
      */
     protected boolean debugTraffic;
@@ -246,7 +245,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         }
         catch (IOException e)
         {
-            if (!connected)
+            if (! connected)
             {
                 return;
             }
@@ -2781,7 +2780,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
         put(SOCSetSeatLock.toCmd(ga.getName(), pn, sl));
     }
 
-    /** destroy the applet */
+    /**
+     * Connection to server has raised an error; leave all games, then disconnect.
+     * {@link SOCRobotClient} overrides this to try and reconnect.
+     */
     public void destroy()
     {
         SOCLeaveAll leaveAllMes = new SOCLeaveAll();

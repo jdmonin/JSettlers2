@@ -322,42 +322,50 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * disconnect and then try to reconnect.
-     * If the reconnect fails, {@link #ex} is set. Otherwise ex is null.
+     * Disconnect and then try to reconnect.
+     * If the reconnect fails, will retry a maximum of 3 times.
+     * If those attempts all fail, {@link #ex} is set. Otherwise {@code ex} is null when method returns.
      */
     public void disconnectReconnect()
     {
         D.ebugPrintln("(*)(*)(*)(*)(*)(*)(*) disconnectReconnect()");
         ex = null;
 
-        try
+        for (int attempt = 3; attempt > 0; --attempt)
         {
-            connected = false;
-            if (strSocketName == null)
+            try
             {
-                s.close();
-                s = new Socket(host, port);
-                in = new DataInputStream(s.getInputStream());
-                out = new DataOutputStream(s.getOutputStream());
-            }
-            else
-            {
-                sLocal.disconnect();
-                sLocal = LocalStringServerSocket.connectTo(strSocketName);
-            }
-            connected = true;
-            readerRobot = new Thread(this);
-            readerRobot.start();
+                connected = false;
+                if (strSocketName == null)
+                {
+                    s.close();
+                    s = new Socket(host, port);
+                    in = new DataInputStream(s.getInputStream());
+                    out = new DataOutputStream(s.getOutputStream());
+                }
+                else
+                {
+                    sLocal.disconnect();
+                    sLocal = LocalStringServerSocket.connectTo(strSocketName);
+                }
+                connected = true;
+                readerRobot = new Thread(this);
+                readerRobot.start();
 
-            //resetThread = new SOCRobotResetThread(this);
-            //resetThread.start();
-            put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
-            put(SOCImARobot.toCmd(nickname, cookie, SOCImARobot.RBCLASS_BUILTIN));
-        }
-        catch (Exception e)
-        {
-            ex = e;
-            System.err.println("disconnectReconnect error: " + ex);
+                //resetThread = new SOCRobotResetThread(this);
+                //resetThread.start();
+                put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
+                put(SOCImARobot.toCmd(nickname, cookie, SOCImARobot.RBCLASS_BUILTIN));
+
+                break;  // <--- Exit attempt-loop ---
+            }
+            catch (Exception e)
+            {
+                ex = e;
+                System.err.println("disconnectReconnect error: " + ex);
+                if (attempt > 0)
+                    System.err.println("-> Retrying");
+            }
         }
     }
 
@@ -1452,7 +1460,9 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         cleanBrainKills++;
     }
 
-    /** losing connection to server; leave all games, then try to reconnect */
+    /**
+     * Connection to server has raised an error; leave all games, then try to reconnect.
+     */
     @Override
     public void destroy()
     {
