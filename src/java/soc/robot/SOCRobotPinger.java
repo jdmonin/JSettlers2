@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2011 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2011,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.robot;
 
@@ -29,16 +29,17 @@ import soc.util.CutoffExceededException;
 
 
 /**
- * Pings the robots so that they can have a sense of time
+ * Pings a {@link SOCRobotBrain} to give a sense of time while its game is in progress.
+ * Once per second, adds a {@link SOCTimingPing} into the brain's {@link CappedQueue}.
  *
  * @author Robert S Thomas
  */
 public class SOCRobotPinger extends Thread
 {
-    CappedQueue<SOCMessage> messageQueue;
-    SOCTimingPing ping;
-    boolean alive;
-    String robotNickname;
+    private CappedQueue<SOCMessage> messageQueue;
+    private final SOCTimingPing ping;
+    private volatile boolean alive;
+    private final String robotNickname;
 
     /**
      * Create a robot pinger
@@ -55,7 +56,7 @@ public class SOCRobotPinger extends Thread
     }
 
     /**
-     * DOCUMENT ME!
+     * Once per second queue a {@link SOCTimingPing}, until {@link #stopPinger()} is called.
      */
     @Override
     public void run()
@@ -88,14 +89,14 @@ public class SOCRobotPinger extends Thread
         }
 
         messageQueue = null;
-        ping = null;
     }
 
     /**
-     * DOCUMENT ME!
+     * Stop the pinger thread's {@link #run()} loop by clearing its "alive" flag.
      */
     public void stopPinger()
     {
         alive = false;
     }
+
 }
