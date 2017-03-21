@@ -97,9 +97,10 @@ the command line). This works for the player client and the robot client, includ
 bots started as part of the SOCServer.
 
 If you want to inspect the game object state at the server or robot:
-	Set a breakpoint at SOCServer.processDebugCommand, or at "case SOCMessage.GAMETEXTMSG"
-	  send a text msg from a client (the chat textfield), and inspect the game obj at that point
-	To inspect game state at robot, breakpoint robotcli.treat and send a text msg like *BOTLIST* or robot2:current-plans
+	Set a breakpoint at SOCServer.processDebugCommand or SOCServerMessageHandler.handleGAMETEXTMSG,
+	  send a text message from a client (the chat textfield), and inspect the game obj at that point
+	To inspect game state at robot, breakpoint SOCRobotClient.treat and send a text message like
+          *BOTLIST* or robot2:current-plans
 	On Linux/Unix JVMs, you can print a stack trace / thread dump at the server by sending SIGQUIT
 	  (kill -QUIT pidnumber). In deadlocks the thread dump won't show what has an object locked,
 	  but may show what's waiting on the object.
