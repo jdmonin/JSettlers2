@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2011-2013,2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2011-2013,2015,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -717,7 +717,7 @@ public class TradeOfferPanel extends Panel
                     else if ((giveSum == 0) || (getSum == 0))
                     {
                         pi.print("*** " + strings.get("trade.msg.must.contain"));
-                            // "A trade must contain at least one resource from each player." (v1.1.xx: ... resource card ...)
+                            // "A trade must contain at least one resource from each player." (v1.x.xx: ... resource card ...)
                     }
                     else
                     {

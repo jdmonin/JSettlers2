@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>. Contents were
- * formerly part of SOCServer.java; portions of this file Copyright (C) 2007-2013,2016 Jeremy D Monin.
+ * This file Copyright (C) 2013,2016-2017 Jeremy D Monin <jeremy@nand.net>. Contents were
+ * formerly part of SOCServer.java; portions of this file Copyright (C) 2007-2013 Jeremy D Monin.
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -64,7 +64,7 @@ class SOCLocalRobotClient implements Runnable
     public void run()
     {
         final String rname = rob.getNickname();
-        Thread.currentThread().setName("localrobotclient-" + rname);  // was robotrunner- in 1.1.xx
+        Thread.currentThread().setName("localrobotclient-" + rname);  // was robotrunner- in v1.x.xx
         robotClients.put(rname, rob);
         rob.init();
     }

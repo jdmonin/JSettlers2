@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -4670,7 +4670,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
          * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
          * Board size is based on <tt>maxPlayers</tt> and optional scenario (game option <tt>"SC"</tt>).
          *<P>
-         * From v1.1.11 through 1.1.xx, this was SOCBoard.createBoard.  Moved to new factory class in 2.0.00.
+         * From v1.1.11 through all v1.x.xx, this was SOCBoard.createBoard.  Moved to new factory class in 2.0.00.
          *
          * @param gameOpts  if game has options, its map of {@link SOCGameOption}; otherwise null.
          *                  If <tt>largeBoard</tt>, and

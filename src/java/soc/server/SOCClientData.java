@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2008-2010,2013,2015 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2010,2013,2015,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -127,7 +127,7 @@ public class SOCClientData
      * new game and needs the scenario dropdown.
      *<P>
      * Also true if the client's locale doesn't have localized strings for scenarios,
-     * or if the client is too old (1.1.xx) to use i18n localization.
+     * or if the client is too old (v1.x.xx) to use i18n localization.
      *
      * @since 2.0.00
      * @see #scenariosInfoSent
@@ -140,7 +140,7 @@ public class SOCClientData
      * True if we've sent all updated {@link soc.game.SOCScenario SOCScenario} info.
      * Like {@link #sentAllScenarioStrings}, scenario info messages aren't sent unless needed.
      *<P>
-     * Also true if the client is too old (1.1.xx) to use scenarios.
+     * Also true if the client is too old (v1.x.xx) to use scenarios.
      *
      * @since 2.0.00
      * @see #scenariosInfoSent

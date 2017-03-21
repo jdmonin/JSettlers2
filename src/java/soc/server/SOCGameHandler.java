@@ -2328,7 +2328,7 @@ public class SOCGameHandler extends GameHandler
 
         /**
          * send the text messages:
-         * "You stole a sheep from viName."  [In 1.1.xx, "stole a sheep resource"]
+         * "You stole a sheep from viName."  [In v1.x.xx, "stole a sheep resource"]
          * "peName stole a sheep from you."
          * "peName stole a resource from viName."
          */

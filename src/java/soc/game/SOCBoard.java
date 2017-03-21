@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -758,7 +758,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @since 1.1.08
      */
     protected HashMap<Integer,Integer> nodeIDtoPortType;
-        // was int[] in v1.1.08 and later 1.1.xx versions; HashMap in v2.0.00+
+        // was int[] in v1.1.08 and later 1.x.xx versions; HashMap in v2.0.00+
 
     /**
      * Offset to add to hex coordinate to get all adjacent node coords, starting at
@@ -2160,7 +2160,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Descriptive text key for a given port type, for i18n
      * {@link soc.util.SOCStringManager#get(String) SOCStringManager.get(key)}.
      *<P>
-     * From v1.1.08 through all v1.1.xx, this method was in {@code SOCBoardPanel}.
+     * From v1.1.08 through all v1.x.xx, this method was in {@code SOCBoardPanel}.
      *
      * @param portType Port type, as from {@link #getPortTypeFromNodeCoord(int)}.
      *           Should be in range {@link #MISC_PORT} to {@link #WOOD_PORT}, or -1.
@@ -3631,7 +3631,7 @@ public class SOCBoard implements Serializable, Cloneable
         /**
          * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
          *<P>
-         * From v1.1.11 through 1.1.xx, this was SOCBoard.createBoard.  Moved to new factory class in 2.0.00.
+         * From v1.1.11 through all 1.x.xx, this was SOCBoard.createBoard.  Moved to new factory class in 2.0.00.
          *
          * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
          * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)

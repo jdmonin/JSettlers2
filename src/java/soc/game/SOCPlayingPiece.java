@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2012,2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2012,2014,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -87,7 +87,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
 
     /**
      * One past the maximum type number of playing piece.
-     * MAXPLUSONE == 3 up through all 1.1.xx versions.
+     * MAXPLUSONE == 3 up through all v1.x.xx versions.
      * MAXPLUSONE == 6 in v2.0.00.
      */
     public static final int MAXPLUSONE = 6;

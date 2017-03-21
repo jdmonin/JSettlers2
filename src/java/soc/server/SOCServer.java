@@ -561,7 +561,7 @@ public class SOCServer extends Server
      */
     public static String PRACTICE_STRINGPORT = "SOCPRACTICE";
 
-    // These AUTH_OR_REJECT constants are int not enum for backwards compatibility with 1.1.xx (java 1.4)
+    // These AUTH_OR_REJECT constants are int not enum for backwards compatibility with v1.x.xx (java 1.4)
 
     /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
      *  result: Failed authentication, failed name validation, or name is already logged in and that

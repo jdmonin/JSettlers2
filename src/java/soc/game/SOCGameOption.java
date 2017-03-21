@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -281,7 +281,7 @@ public class SOCGameOption
     /**
      * Version 2.0.00 introduced longer option keynames (8 characters, earlier max was 3)
      * and underscores '_' in option names.
-     * Game option names sent to 1.1.xx servers must be 3 characters or less, alphanumeric, no underscores ('_').
+     * Game option names sent to v1.x.xx servers must be 3 characters or less, alphanumeric, no underscores ('_').
      * @since 2.0.00
      */
     public static final int VERSION_FOR_LONGER_OPTNAMES = 2000;
@@ -1903,12 +1903,12 @@ public class SOCGameOption
      *<P>
      * <B>Game option names:</B><br>
      * When running this at the client (<tt>vers</tt> is the older remote server's version),
-     * some of the returned too-new options have long names that can't be sent to a 1.1.xx
+     * some of the returned too-new options have long names that can't be sent to a v1.x.xx
      * server (<tt>vers</tt> &lt; {@link #VERSION_FOR_LONGER_OPTNAMES}).
      * You must check for this and remove them before sending them to the remote server.
-     * Game option names sent to 1.1.xx servers must be 3 characters or less, alphanumeric, no underscores ('_').
+     * Game option names sent to 1.x.xx servers must be 3 characters or less, alphanumeric, no underscores ('_').
      *<P>
-     * When running at the server, we will never send an option whose name is invalid to 1.1.xx clients,
+     * When running at the server, we will never send an option whose name is invalid to v1.x.xx clients,
      * because the SOCGameOption constructors enforce <tt>minVers >= 2000</tt> when the name is longer than 3
      * characters or contains '_'.
      *
