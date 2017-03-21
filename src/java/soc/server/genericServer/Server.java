@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - parameterize types, removeConnection bugfix
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -48,20 +48,19 @@ import soc.server.SOCServer;
  *  to a {@link LocalStringServerSocket}.
  *<P>
  *  Newly connecting clients arrive in {@link #run()},
- *  start a thread for the server side of their Connection or LocalStringConnection,
+ *  start a thread for the server side of their {@link NetStringConnection} or {@link LocalStringConnection},
  *  and are integrated into server data via {@link #addConnection(StringConnection)}
  *  called from that thread.  If the client's connection is accepted in
- *  {@link #newConnection1(StringConnection)},
- *  the per-client thread enters a while-loop and calls {@link #treat(String, StringConnection)}
- *  to handle messages from the client.  Treat places them in a server-wide {@link #inQueue},
+ *  {@link #newConnection1(StringConnection)}, the per-client thread enters a while-loop and
+ *  will place each inbound message into a server-wide {@link #inQueue},
  *  which is processed in a server-wide single thread called the "treater".
  *<P>
- *  Alternately, it could be rejected in <tt>newConnection1</tt> for any reason,
+ *  Alternately the client's connection could be rejected in <tt>newConnection1</tt> for any reason,
  *  including too many connections versus {@link #getNamedConnectionCount()}.
  *<P>
  *  To handle inbound messages from the clients, the server-wide "treater" thread
  *  of {@link InboundMessageQueue} will call {@link InboundMessageDispatcher#dispatch(String, StringConnection)}
- *  for each message.
+ *  for each message in the shared {@link #inQueue}.
  *<P>
  *  The first processed message over the connection will be from the server to the client,
  *  in {@link #newConnection1(StringConnection)} or {@link #newConnection2(StringConnection)}.
