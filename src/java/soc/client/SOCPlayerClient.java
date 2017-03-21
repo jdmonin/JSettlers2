@@ -448,6 +448,15 @@ public class SOCPlayerClient extends Applet
     protected boolean isNGOFWaitingForAuthStatus;
 
     /**
+     * True if contents of incoming and outgoing network message traffic should be debug-printed.
+     * Set if optional system property {@link SOCDisplaylessPlayerClient#PROP_JSETTLERS_DEBUG_TRAFFIC} is set.
+     *<P>
+     * Versions earlier than 1.1.20 always printed this debug output; 1.1.20 never prints it.
+     * @since 1.2.00
+     */
+    private boolean debugTraffic;
+
+    /**
      * face ID chosen most recently (for use in new games)
      */
     protected int lastFaceChange;
@@ -577,6 +586,9 @@ public class SOCPlayerClient extends Applet
         port = p;
         hasConnectOrPractice = cp;
         lastFaceChange = 1;  // Default human face
+
+        if (null != System.getProperty(SOCDisplaylessPlayerClient.PROP_JSETTLERS_DEBUG_TRAFFIC))
+            debugTraffic = true;  // set flag if debug prop has any value at all
     }
 
     /**
@@ -1901,8 +1913,8 @@ public class SOCPlayerClient extends Applet
             return false;
         }
 
-        if (D.ebugIsEnabled())
-            D.ebugPrintln("OUT - " + SOCMessage.toMsg(s));
+        if (debugTraffic || D.ebugIsEnabled())
+            soc.debug.D.ebugPrintln("OUT - " + SOCMessage.toMsg(s));
 
         try
         {
@@ -1942,8 +1954,8 @@ public class SOCPlayerClient extends Applet
             return false;
         }
 
-        if (D.ebugIsEnabled())
-            D.ebugPrintln("OUT L- " + SOCMessage.toMsg(s));
+        if (debugTraffic || D.ebugIsEnabled())
+            soc.debug.D.ebugPrintln("OUT L- " + SOCMessage.toMsg(s));
 
         prCli.put(s);
 
@@ -1982,8 +1994,8 @@ public class SOCPlayerClient extends Applet
         if (mes == null)
             return;  // Parsing error
 
-        if (D.ebugIsEnabled())
-            D.ebugPrintln(mes.toString());
+        if (debugTraffic || D.ebugIsEnabled())
+            soc.debug.D.ebugPrintln(mes.toString());
 
         try
         {

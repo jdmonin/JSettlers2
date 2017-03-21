@@ -133,6 +133,15 @@ import java.util.Hashtable;
  */
 public class SOCDisplaylessPlayerClient implements Runnable
 {
+    /**
+     * Flag property <tt>jsettlers.debug.traffic</tt>: When present, the
+     * contents of incoming and outgoing network message traffic should be debug-printed.
+     * Used by this class, {@link soc.robot.SOCRobotClient SOCRobotClient}, and
+     * {@link soc.client.SOCPlayerClient SOCPlayerClient}.
+     * @since 1.2.00
+     */
+    public static final String PROP_JSETTLERS_DEBUG_TRAFFIC = "jsettlers.debug.traffic";
+
     protected static String STATSPREFEX = "  [";
     protected String doc;
     protected String lastMessage;
@@ -144,6 +153,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected DataInputStream in;
     protected DataOutputStream out;
     protected LocalStringConnection sLocal;  // if strSocketName not null
+
     /** Server version number, sent soon after connect, or -1 if unknown */
     protected int sVersion, sLocalVersion;
 
@@ -189,6 +199,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected Hashtable games = new Hashtable();
 
     /**
+     * True if contents of incoming and outgoing network message traffic should be debug-printed.
+     * Set if optional system property {@link #PROP_JSETTLERS_DEBUG_TRAFFIC} is set.
+     * @since 1.2.00
+     */
+    protected boolean debugTraffic;
+
+    /**
      * Create a SOCDisplaylessPlayerClient, which would connect to localhost port 8889.
      * Does not actually connect; subclass must connect, such as {@link soc.robot.SOCRobotClient#init()}
      *<P>
@@ -213,6 +230,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
         port = p;
         strSocketName = null;
         sVersion = -1;  sLocalVersion = -1;
+
+        if (null != System.getProperty(PROP_JSETTLERS_DEBUG_TRAFFIC))
+            debugTraffic = true;  // set flag if debug prop has any value at all
     }
 
     /**
@@ -306,9 +326,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
     {
         lastMessage = s;
 
-        D.ebugPrintln("OUT - " + s);
+        if (debugTraffic || D.ebugIsEnabled())
+            soc.debug.D.ebugPrintln("OUT - " + nickname + " - " + s);
 
-        if ((ex != null) || !connected)
+        if ((ex != null) || ! connected)
         {
             return false;
         }
@@ -341,6 +362,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * Messages of unknown type are ignored
      * (<tt>mes</tt> will be null from {@link SOCMessage#toMsg(String)}).
      *<P>
+     * If {@link #PROP_JSETTLERS_DEBUG_TRAFFIC} is set, debug-prints message contents.
+     *<P>
      * <B>Note:</B> Currently, <tt>SOCRobotClient.treat(mes)</tt> does not call this method.
      * New message types should be added to both methods if both displayless and robot should handle them.
      *
@@ -351,7 +374,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (mes == null)
             return;  // Msg parsing error
 
-        D.ebugPrintln(mes.toString());
+        if (debugTraffic || D.ebugIsEnabled())
+            soc.debug.D.ebugPrintln("IN - " + nickname + " - " + mes.toString());
 
         try
         {
