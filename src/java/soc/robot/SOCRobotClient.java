@@ -367,6 +367,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                     System.err.println("-> Retrying");
             }
         }
+
+        if (! connected)
+        {
+            // Couldn't reconnect. Shut down active games' brains.
+            for (SOCRobotBrain rb : robotBrains.values())
+                rb.kill();
+        }
     }
 
     /**

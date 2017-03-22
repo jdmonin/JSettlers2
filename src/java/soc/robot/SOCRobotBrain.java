@@ -4325,7 +4325,8 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * kill this brain
+     * Kill this brain's thread: clears its "alive" flag, kills pinger,
+     * puts a null message into brain's event queue.
      */
     public void kill()
     {
@@ -4333,6 +4334,8 @@ public class SOCRobotBrain extends Thread
 
         try
         {
+            if (pinger != null)
+                pinger.stopPinger();
             gameEventQ.put(null);
         }
         catch (Exception exc) {}
