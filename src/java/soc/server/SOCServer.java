@@ -712,8 +712,11 @@ public class SOCServer extends Server
 
     /**
      * A list of third-party bot clients connected to this server, if any.
+     * A subset of {@link #robots} which also includes built-in bots.
      * Third-party bot clients' {@link SOCClientData#robot3rdPartyBrainClass} != {@code null}.
-     * @see #robots
+     *<P>
+     *<B>Locking:</B> Adding or removing from this list should synchronize on {@link #robots}
+     * to keep the two lists in sync.
      * @since 2.0.00
      */
     protected Vector<StringConnection> robots3p = new Vector<StringConnection>();
@@ -3763,7 +3766,16 @@ public class SOCServer extends Server
         /**
          * if it is a robot, remove it from the list
          */
-        robots.removeElement(c);
+        final SOCClientData scd = (SOCClientData) (c.getAppData());
+        if (scd.isRobot)
+        {
+            synchronized(robots)
+            {
+                robots.removeElement(c);
+                if (! scd.isBuiltInRobot)
+                    robots3p.removeElement(c);
+            }
+        }
     }
 
     /**
@@ -5274,14 +5286,16 @@ public class SOCServer extends Server
         //
         c.setData(botName);
         c.setHideTimeoutMessage(true);
-        robots.addElement(c);
         SOCClientData scd = (SOCClientData) c.getAppData();
         scd.isRobot = true;
         scd.isBuiltInRobot = isBuiltIn;
         if (! isBuiltIn)
-        {
             scd.robot3rdPartyBrainClass = rbc;
-            robots3p.add(c);
+        synchronized(robots)
+        {
+            robots.addElement(c);
+            if (! isBuiltIn)
+                robots3p.add(c);
         }
 
         scd.locale = null;  // bots don't care about message text contents
