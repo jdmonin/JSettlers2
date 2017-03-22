@@ -137,9 +137,10 @@ public class SOCRobotBrain extends Thread
     SOCRobotParameters robotParameters;
 
     /**
-     * Flag for whether or not we're alive
+     * Flag for whether or not we're alive.
+     * From other threads, set false by calling {@link #kill()}.
      */
-    protected boolean alive;
+    protected volatile boolean alive;
 
     /**
      * Flag for whether or not it is our turn.
@@ -1061,6 +1062,9 @@ public class SOCRobotBrain extends Thread
      * Nearly all bot actions start in this method; the overview of bot structures
      * is in the {@link SOCRobotBrain class javadoc} for prominence.
      * See comments within <tt>run()</tt> for minor details.
+     *<P>
+     * The brain thread will run until {@link #kill()} has been called or its pinger stops,
+     * or it receives a {@link SOCMessage#ROBOTDISMISS} request to exit the game.
      */
     @Override
     public void run()
