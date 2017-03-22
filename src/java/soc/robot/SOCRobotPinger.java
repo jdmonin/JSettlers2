@@ -49,6 +49,8 @@ public class SOCRobotPinger extends Thread
      */
     public SOCRobotPinger(CappedQueue<SOCMessage> q, String gameName, String nickname)
     {
+        setDaemon(true);
+
         messageQueue = q;
         ping = new SOCTimingPing(gameName);
         alive = true;
