@@ -3282,6 +3282,7 @@ public class SOCServer extends Server
      * For the SoC-specific parameters such as <tt>{0,rsrcs}</tt>, see the javadoc for
      * {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}.
      *<P>
+     * Game members with null locale (such as robots) will not be sent the message.
      * Client versions older than v2.0.00 will be sent {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt).
      *<P>
      * <b>Locks:</b> If {@code takeMon} is true, takes and releases {@link SOCGameList#takeMonitorForGame(String)}.
@@ -3321,6 +3322,8 @@ public class SOCServer extends Server
      * Same as {@link #messageToGame(String, String)} but calls each member connection's
      * {@link StringConnection#getLocalizedSpecial(SOCGame, String, Object...) c.getLocalizedSpecial(...)} for the
      * localized text to send.
+     *<P>
+     * Game members with null locale (such as robots) will not be sent the message.
      *
      * @param ga  the game object
      * @param takeMon Should this method take and release
@@ -3356,6 +3359,8 @@ public class SOCServer extends Server
      * Same as {@link #messageToGame(String, String)} but calls each member connection's
      * {@link StringConnection#getLocalizedSpecial(SOCGame, String, Object...) c.getLocalizedSpecial(...)} for the
      * localized text to send.
+     *<P>
+     * Game members with null locale (such as robots) will not be sent the message.
      *
      * @param ga  the game object
      * @param takeMon Should this method take and release
@@ -3403,6 +3408,7 @@ public class SOCServer extends Server
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
      *                True unless caller already holds that monitor.
      * @param members  Game members to send to, from {@link SOCGameListAtServer#getMembers(String)}.
+     *            Any member in this list with null locale (such as robots) will be skipped and not sent the message.
      *            If we're excluding several members of the game, make a new list from getMembers, remove them from
      *            that list, then pass it to this method.
      * @param ex  the excluded connection, or {@code null}
@@ -3442,23 +3448,24 @@ public class SOCServer extends Server
         {
                 Iterator<StringConnection> miter = members.iterator();
 
-                String gameTextMsg = null, gameTxtLocale = null;
+                String gameTextMsg = null, gameTxtLocale = null;  // as rendered for previous client during loop
                 while (miter.hasNext())
                 {
                     StringConnection c = miter.next();
                     if ((c != null) && (c != ex))
                     {
                         final String cliLocale = c.getI18NLocale();
+                        if (cliLocale == null)
+                            continue;  // skip bots
+
                         if ((gameTextMsg == null)
-                            || (hasMultiLocales
-                                 && (  (cliLocale == null)
-                                       ? (gameTxtLocale != null)
-                                       : ! cliLocale.equals(gameTxtLocale)  )))
+                            || (hasMultiLocales && ! cliLocale.equals(gameTxtLocale)))
                         {
                             if (fmtSpecial)
                                 gameTextMsg = SOCGameServerText.toCmd(gaName, c.getLocalizedSpecial(ga, key, params));
                             else
                                 gameTextMsg = SOCGameServerText.toCmd(gaName, c.getLocalized(key, params));
+
                             gameTxtLocale = cliLocale;
                         }
 
