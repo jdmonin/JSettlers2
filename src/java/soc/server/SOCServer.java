@@ -3061,7 +3061,7 @@ public class SOCServer extends Server
                 Enumeration<StringConnection> menum = v.elements();
 
                 final String msgKey = msg.getKey();
-                String gameLocalMsg = null, localText = null, gameTxtLocale = null;
+                String gameLocalMsg = null, localText = null, gameTxtLocale = null;  // as rendered during prev. iter.
                 while (menum.hasMoreElements())
                 {
                     StringConnection c = menum.nextElement();
@@ -3153,11 +3153,13 @@ public class SOCServer extends Server
             {
                 Enumeration<StringConnection> menum = v.elements();
 
-                String gameTextMsg = null, gameTxtLocale = null;
+                String gameTextMsg = null, gameTxtLocale = null;  // as rendered for previous client during loop
                 while (menum.hasMoreElements())
                 {
                     StringConnection c = menum.nextElement();
-                    if (c != null)
+                    if (c == null)
+                        continue;
+
                     {
                         final String cliLocale = c.getI18NLocale();
                         if ((gameTextMsg == null)
@@ -3238,11 +3240,13 @@ public class SOCServer extends Server
             {
                 Enumeration<StringConnection> menum = v.elements();
 
-                String gameTextMsg = null, gameTxtLocale = null;
+                String gameTextMsg = null, gameTxtLocale = null;  // as rendered for previous client during loop
                 while (menum.hasMoreElements())
                 {
                     StringConnection c = menum.nextElement();
-                    if (c != null)
+                    if (c == null)
+                        continue;
+
                     {
                         final String cliLocale = c.getI18NLocale();
                         if ((gameTextMsg == null)
@@ -3452,7 +3456,9 @@ public class SOCServer extends Server
                 while (miter.hasNext())
                 {
                     StringConnection c = miter.next();
-                    if ((c != null) && (c != ex))
+                    if ((c == null) || (c == ex))
+                        continue;
+
                     {
                         final String cliLocale = c.getI18NLocale();
                         if (cliLocale == null)
