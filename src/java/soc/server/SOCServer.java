@@ -5086,8 +5086,8 @@ public class SOCServer extends Server
      * match this server's {@link #robotCookie}.
      *<P>
      * If authorization is succesful, this method will set the bot client's {@link SOCClientData#isRobot} flag.
-     * Its {@link SOCClientData#locale} is cleared, but not its
-     * {@link StringConnection#setI18NStringManager(SOCStringManager, String)}.
+     * Its {@link SOCClientData#locale} and {@link StringConnection#setI18NStringManager(SOCStringManager, String)}
+     * are also cleared.
      *<P>
      * If this method returns sucessful auth, caller must send bot tuning parameters to the bot from
      * {@link SOCDBHelper#retrieveRobotParams(String, boolean) SOCDBHelper.retrieveRobotParams(botName, true)}.
@@ -5220,7 +5220,7 @@ public class SOCServer extends Server
 
         scd.locale = null;  // bots don't care about message text contents
         scd.localeStr = null;
-        // Note that if c.setI18NStringManager was called, it's not cleared here
+        c.setI18NStringManager(null, null);
 
         nameConnection(c);
 
