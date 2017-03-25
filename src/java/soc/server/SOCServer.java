@@ -3032,7 +3032,7 @@ public class SOCServer extends Server
      *
      * @param ga  The game
      * @param msg  The data message to be sent after localizing text.
-     *     This message's fields are not changed here, the localization results are not kept with {@code msg}.
+     *     This message object's fields are not changed here, the localization results are not kept with {@code msg}.
      * @param takeMon Should this method take and release game's monitor via
      *     {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}?
      *     True unless caller already holds that monitor.
@@ -3042,7 +3042,7 @@ public class SOCServer extends Server
      */
     public void messageToGameKeyedType(SOCGame ga, SOCKeyedMessage msg, final boolean takeMon)
     {
-        // Very similar code to messageToGameKeyed; also similar to impl_messageToGameKeyedSpecial.
+        // Very similar code to impl_messageToGameKeyedSpecial:
         // if you change code here, consider changing it there too
 
         final boolean hasMultiLocales = ga.hasMultiLocales;
@@ -3110,6 +3110,7 @@ public class SOCServer extends Server
      * Same as {@link #messageToGame(String, String)} but calls each member connection's
      * {@link StringConnection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
      *<P>
+     * Game members with null locale (such as robots) will not be sent the message.
      * Client versions older than v2.0.00 will be sent {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt).
      *<P>
      * <b>Locks:</b> If {@code takeMon} is true, takes and releases {@link SOCGameList#takeMonitorForGame(String)}.
@@ -3143,6 +3144,7 @@ public class SOCServer extends Server
      * Same as {@link #messageToGame(String, String)} but calls each member connection's
      * {@link StringConnection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
      *<P>
+     * Game members with null locale (such as robots) will not be sent the message.
      * Client versions older than v2.0.00 will be sent {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt).
      *<P>
      * <b>Locks:</b> If {@code takeMon} is true, takes and releases {@link SOCGameList#takeMonitorForGame(String)}.
@@ -3170,61 +3172,8 @@ public class SOCServer extends Server
     public void messageToGameKeyed(SOCGame ga, final boolean takeMon, final String key, final Object ... params)
         throws MissingResourceException
     {
-        // Very similar code to messageToGameKeyedType; also similar to impl_messageToGameKeyedSpecial.
-        // if you change code here, change it there too
-
-        final boolean hasMultiLocales = ga.hasMultiLocales;
-        final String gaName = ga.getName();
-
-        if (takeMon)
-            gameList.takeMonitorForGame(gaName);
-
-        try
-        {
-            Vector<StringConnection> v = gameList.getMembers(gaName);
-
-            if (v != null)
-            {
-                Enumeration<StringConnection> menum = v.elements();
-
-                String gameTextMsg = null, gameTxtLocale = null;  // as rendered for previous client during loop
-                while (menum.hasMoreElements())
-                {
-                    StringConnection c = menum.nextElement();
-                    if (c == null)
-                        continue;
-
-                    {
-                        final String cliLocale = c.getI18NLocale();
-                        if ((gameTextMsg == null)
-                            || (hasMultiLocales
-                                 && (  (cliLocale == null)
-                                       ? (gameTxtLocale != null)
-                                       : ! cliLocale.equals(gameTxtLocale)  )))
-                        {
-                            gameTextMsg = SOCGameServerText.toCmd
-                                (gaName, (params != null) ? c.getLocalized(key, params) : c.getLocalized(key));
-                            gameTxtLocale = cliLocale;
-                        }
-
-                        if ((c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT) && (gameTextMsg != null))
-                            c.put(gameTextMsg);
-                        else
-                            // old client (not common) gets a different message type
-                            c.put(SOCGameTextMsg.toCmd
-                                (gaName, SERVERNAME,
-                                 (params != null) ? c.getLocalized(key, params) : c.getLocalized(key)));
-                    }
-                }
-            }
-        }
-        catch (Throwable e)
-        {
-            D.ebugPrintStackTrace(e, "Exception in messageToGameKeyed");
-        }
-
-        if (takeMon)
-            gameList.releaseMonitorForGame(gaName);
+        impl_messageToGameKeyedSpecial
+            (ga, takeMon, gameList.getMembers(ga.getName()), null, false, key, params);
     }
 
     /**
@@ -3355,7 +3304,8 @@ public class SOCServer extends Server
     }
 
     /**
-     * Implement {@code messageToGameKeyedSpecial} and {@code messageToGameKeyedSpecialExcept}.
+     * Implement {@link #messageToGameKeyed(SOCGame, boolean, String, Object...)},
+     * {@code messageToGameKeyedSpecial}, and {@code messageToGameKeyedSpecialExcept}.
      *
      * @param ga  the game object
      * @param takeMon Should this method take and release
@@ -3365,9 +3315,12 @@ public class SOCServer extends Server
      *            Any member in this list with null locale (such as robots) will be skipped and not sent the message.
      *            If we're excluding several members of the game, make a new list from getMembers, remove them from
      *            that list, then pass it to this method.
+     *            Returns immediately if {@code null}.
      * @param ex  the excluded connection, or {@code null}
      * @param fmtSpecial  Should this method call {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}
      *            instead of the usual {@link SOCStringManager#get(String, Object...)} ?
+     *            True if called from {@code messageToGameKeyedSpecial*}, false from other
+     *            {@code messageToGameKeyed} methods.
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
      *            If its localized text begins with ">>>", the client should consider this
      *            an urgent message, and draw the user's attention in some way.
@@ -3389,8 +3342,8 @@ public class SOCServer extends Server
         if (members == null)
             return;
 
-        // same code as messageToGameKeyed, except for checking ex and the call to c.getKeyedSpecial,
-        // and very similar to messageToGameKeyedType; if you change code here, change it there too
+        // Very similar code to messageToGameKeyedType:
+        // If you change code here, change it there too.
 
         final boolean hasMultiLocales = ga.hasMultiLocales;
         final String gaName = ga.getName();
@@ -3418,27 +3371,32 @@ public class SOCServer extends Server
                             || (hasMultiLocales && ! cliLocale.equals(gameTxtLocale)))
                         {
                             if (fmtSpecial)
-                                gameTextMsg = SOCGameServerText.toCmd(gaName, c.getLocalizedSpecial(ga, key, params));
+                                gameTextMsg = SOCGameServerText.toCmd
+                                    (gaName, c.getLocalizedSpecial(ga, key, params));
                             else
-                                gameTextMsg = SOCGameServerText.toCmd(gaName, c.getLocalized(key, params));
-
+                                gameTextMsg = SOCGameServerText.toCmd
+                                    (gaName, (params != null) ? c.getLocalized(key, params) : c.getLocalized(key));
                             gameTxtLocale = cliLocale;
                         }
 
                         if ((c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT) && (gameTextMsg != null))
                             c.put(gameTextMsg);
                         else
-                            // old client (not common) gets a different message type
+                            // old client (this is uncommon) needs a different message type
                             if (fmtSpecial)
-                                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalizedSpecial(ga, key, params)));
+                                c.put(SOCGameTextMsg.toCmd
+                                    (gaName, SERVERNAME, c.getLocalizedSpecial(ga, key, params)));
                             else
-                                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key, params)));
+                                c.put(SOCGameTextMsg.toCmd
+                                    (gaName, SERVERNAME,
+                                     (params != null) ? c.getLocalized(key, params) : c.getLocalized(key)));
                     }
                 }
         }
         catch (Throwable e)
         {
-            D.ebugPrintStackTrace(e, "Exception in messageToGameKeyedSpecial");
+            D.ebugPrintStackTrace
+                (e, (fmtSpecial) ? "Exception in messageToGameKeyedSpecial" : "Exception in messageToGameKeyed");
         }
 
         if (takeMon)
