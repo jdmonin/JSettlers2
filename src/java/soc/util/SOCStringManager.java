@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2013 Luis A. Ramirez <lartkma@gmail.com>
- * Some parts of this file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * Some parts of this file Copyright (C) 2013,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The maintainer of this program can be reached at lartkma@gmail.com
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.util;
 
@@ -80,6 +80,7 @@ public class SOCStringManager extends StringManager
 
     /**
      * Fallback for {@link #serverManagerForClientLocale} using server's default locale.
+     * Set if needed by {@link #getFallbackServerManagerForClient()}.
      */
     private static SOCStringManager serverManagerForClientLocale_fallback;
 
@@ -350,6 +351,7 @@ public class SOCStringManager extends StringManager
      * If the client manager already exists, further gets will return that manager
      * with its Locale, ignoring the default locale of the new call.
      * @return  The client manager
+     * @see #getClientManager(Locale)
      */
     public static SOCStringManager getClientManager(){
         if(clientManager == null)
@@ -364,6 +366,7 @@ public class SOCStringManager extends StringManager
      * with its Locale, ignoring the Locale of the new call.
      * @param loc  Locale to use; not {@code null}
      * @return  The client manager
+     * @see #getClientManager()
      */
     public static SOCStringManager getClientManager(Locale loc) {
         if (clientManager == null)
@@ -374,7 +377,7 @@ public class SOCStringManager extends StringManager
 
     /**
      * Create or retrieve the server's string manager to send text to a clients with a certain locale.
-     * @param loc  Locale to use, or {@code null} for the {@link Locale#getDefault()}
+     * @param loc  Locale to use, or {@code null} to use {@link Locale#getDefault()}
      * @return  The server manager for that client locale
      */
     public static SOCStringManager getServerManagerForClient(Locale loc) {
@@ -396,6 +399,7 @@ public class SOCStringManager extends StringManager
      * Create or retrieve the server's string manager for fallback to send text to clients with unknown locale.
      * Can be used for messages while a client hasn't yet sent their locale.
      * @return  The server string manager with default locale
+     *     from {@link #getServerManagerForClient(Locale) getServerManagerForClient(null)}
      */
     public static SOCStringManager getFallbackServerManagerForClient() {
         SOCStringManager sm = serverManagerForClientLocale_fallback;
