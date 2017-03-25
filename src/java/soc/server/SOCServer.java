@@ -4958,8 +4958,8 @@ public class SOCServer extends Server
      * sent options is based on client version.
      *<P>
      *<B>I18N:</B> If client doesn't send a locale string, the default locale {@code en_US} is used.
-     * Robot clients will get the default locale and localeStr here, those will be cleared soon in
-     * {@link #handleIMAROBOT(StringConnection, SOCImARobot)}.
+     * Robot clients will get the default locale and localeStr here; those will be cleared to {@code null} by
+     * {@link #authOrRejectClientRobot(StringConnection, String, String, String)} when the bot sends {@link SOCImARobot}.
      *<P>
      *<b>Locks:</b> To set the version, will synchronize briefly on {@link Server#unnamedConns unnamedConns}.
      * If {@link StringConnection#getVersion() c.getVersion()} is already == cvers,
