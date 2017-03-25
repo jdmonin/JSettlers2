@@ -1073,7 +1073,7 @@ public class SOCAccountClient extends Applet
         }
 
         Frame frame = new Frame("SOCAccountClient");
-        frame.setBackground(new Color(Integer.parseInt("61AF71",16)));
+        frame.setBackground(new Color(97, 175, 113));  // green tone #61AF71
         frame.setForeground(Color.black);
         // Add a listener for the close event
         frame.addWindowListener(client.createWindowAdapter());

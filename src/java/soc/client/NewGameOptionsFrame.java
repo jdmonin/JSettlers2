@@ -186,7 +186,7 @@ public class NewGameOptionsFrame extends Frame
     private TextField msgText;
 
     // // TODO refactor; these are from connectorprac panel
-    private static final Color NGOF_BG = new Color(Integer.parseInt("61AF71",16));
+    private static final Color NGOF_BG = new Color(97, 175, 113);  // green tone #61AF71
     private static final Color HEADER_LABEL_BG = new Color(220,255,220);
     private static final Color HEADER_LABEL_FG = new Color( 50, 80, 50);
 

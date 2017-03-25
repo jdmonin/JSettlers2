@@ -506,7 +506,7 @@ public class SOCPlayerInterface extends Frame
         playerColors[3] = new Color(249, 128,  29); // orange
         if (is6player)
         {
-            playerColors[4] = new Color(97, 151, 113); // same green as playerclient bg ("61AF71")
+            playerColors[4] = new Color(97, 151, 113); // almost same green as playerclient bg (97, 175, 113 #61AF71)
             playerColors[5] = playerColors[3];  // orange
             playerColors[3] = new Color(166, 88, 201);  // violet
         }

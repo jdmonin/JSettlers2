@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2008-2009,2012-2013 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2009,2012-2013,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -108,7 +108,7 @@ public class SOCConnectOrPracticePanel extends Panel
         canLaunchServer = checkCanLaunchServer();
 
         // same Frame setup as in SOCPlayerClient.main
-        setBackground(new Color(Integer.parseInt("61AF71",16)));
+        setBackground(new Color(97, 175, 113));  // green tone #61AF71
         setForeground(Color.black);
 
         addKeyListener(this);

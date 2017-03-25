@@ -6329,7 +6329,7 @@ public class SOCPlayerClient
         client.setGameDisplay(gameDisplay);
 
         Frame frame = new Frame(client.strings.get("pcli.main.title", Version.version()));  // "JSettlers client {0}"
-        frame.setBackground(new Color(Integer.parseInt("61AF71",16)));
+        frame.setBackground(new Color(97, 175, 113));  // green tone #61AF71
         frame.setForeground(Color.black);
         // Add a listener for the close event
         frame.addWindowListener(gameDisplay.createWindowAdapter());
