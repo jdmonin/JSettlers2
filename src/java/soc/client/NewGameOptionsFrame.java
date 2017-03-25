@@ -31,7 +31,6 @@ import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.Label;
 import java.awt.Panel;
 import java.awt.TextField;
@@ -188,7 +187,7 @@ public class NewGameOptionsFrame extends Frame
     // // TODO refactor; these are from connectorprac panel
     private static final Color NGOF_BG = new Color(97, 175, 113);  // green tone #61AF71
     private static final Color HEADER_LABEL_BG = new Color(220,255,220);
-    private static final Color HEADER_LABEL_FG = new Color( 50, 80, 50);
+    private static final Color HEADER_LABEL_FG = Color.BLACK;
 
     /**
      * i18n text strings; will use same locale as SOCPlayerClient's string manager.
