@@ -86,7 +86,7 @@ import java.util.Vector;
  *
  *<H4>I18N</H4>
  * The bot ignores the contents of all {@link SOCGameServerText} messages and has no locale.
- * If debug commands are used, the results are sent in English.
+ * If robot debug commands ({@link SOCGameTextMsg}) are sent to the bot, its responses to the server are in English.
  *
  * @author Robert S Thomas
  */
@@ -536,7 +536,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
-             * game text message
+             * game text message (bot debug commands)
              */
             case SOCMessage.GAMETEXTMSG:
                 handleGAMETEXTMSG((SOCGameTextMsg) mes);
@@ -662,6 +662,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.DELETECHANNEL:
             case SOCMessage.GAMES:
             case SOCMessage.GAMESERVERTEXT:  // SOCGameServerText contents are ignored by bots
+                                             // (but not SOCGameTextMsg, which is used solely for debug commands)
             case SOCMessage.GAMESTATS:
             case SOCMessage.JOINCHANNEL:
             case SOCMessage.JOINCHANNELAUTH:
@@ -870,7 +871,9 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * handle the "game text message" message
+     * Handle the "game text message" message, including
+     * debug text messages to the robot which start with
+     * the robot's nickname + ":".
      * @param mes  the message
      */
     @Override
@@ -881,8 +884,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         {
             handleGAMETEXTMSG_debug(mes);
         }
-
-        handlePutBrainQ(mes);
     }
 
     /**

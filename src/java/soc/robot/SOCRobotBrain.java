@@ -124,8 +124,11 @@ import java.util.Vector;
  *
  *<H3>AI/Robot development:</H3>
  *
+ * The bot can be sent debug commands to examine its state; see
+ * {@link SOCRobotClient#handleGAMETEXTMSG(soc.message.SOCGameTextMsg)}.
  * Extending this class is one way to begin developing a custom JSettlers bot.
  * For a trivial example see {@link soc.robot.sample3p.Sample3PBrain}.
+ * See {@code README.developer} for more about bot development.
  *
  * @author Robert S Thomas
  */
@@ -1098,7 +1101,7 @@ public class SOCRobotBrain extends Thread
                         // skip the pings; note (mesType != SOCMessage.TIMINGPING) here.
 
                         mesType = mes.getType();
-                        if ((mesType != SOCMessage.TIMINGPING) && (mesType != SOCMessage.GAMETEXTMSG))
+                        if (mesType != SOCMessage.TIMINGPING)
                             turnEventsCurrent.addElement(mes);
                         if (D.ebugOn)
                             D.ebugPrintln("mes - " + mes);

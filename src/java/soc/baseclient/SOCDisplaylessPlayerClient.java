@@ -743,6 +743,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
             /**
              * game server text and announcements.
+             * Ignored by bots; stub is here for future use by other subclasses.
              * Added 2013-09-05 for v2.0.00.
              */
             case SOCMessage.GAMESERVERTEXT:
@@ -1034,13 +1035,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleGAMESTATS(SOCGameStats mes) {}
 
     /**
-     * handle the "game text message" message
+     * handle the "game text message" message; stub.
+     * Overridden by bot to look for its debug commands.
      * @param mes  the message
      */
     protected void handleGAMETEXTMSG(SOCGameTextMsg mes) {}
 
     /**
-     * handle the "game server text" message; stub for now
+     * Handle the "game server text" message; stub.
+     * Ignored by bots. This stub can be overridden by future subclasses.
      * @param mes  the message
      */
     protected void handleGAMESERVERTEXT(SOCGameServerText mes) {}
