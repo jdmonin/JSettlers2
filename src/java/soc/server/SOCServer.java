@@ -3042,7 +3042,7 @@ public class SOCServer extends Server
      */
     public void messageToGameKeyedType(SOCGame ga, SOCKeyedMessage msg, final boolean takeMon)
     {
-        // similar code as the two messageToGameKeyed methods;
+        // Very similar code to messageToGameKeyed; also similar to impl_messageToGameKeyedSpecial.
         // if you change code here, consider changing it there too
 
         final boolean hasMultiLocales = ga.hasMultiLocales;
@@ -3135,59 +3135,7 @@ public class SOCServer extends Server
     public void messageToGameKeyed(SOCGame ga, final boolean takeMon, final String key)
         throws MissingResourceException
     {
-        // same code as the other messageToGameKeyed, except for the call to cli.getLocalized;
-        // messageToGameKeyedType is also very similar.
-        // if you change code here, change it there too
-
-        final boolean hasMultiLocales = ga.hasMultiLocales;
-        final String gaName = ga.getName();
-
-        if (takeMon)
-            gameList.takeMonitorForGame(gaName);
-
-        try
-        {
-            Vector<StringConnection> v = gameList.getMembers(gaName);
-
-            if (v != null)
-            {
-                Enumeration<StringConnection> menum = v.elements();
-
-                String gameTextMsg = null, gameTxtLocale = null;  // as rendered for previous client during loop
-                while (menum.hasMoreElements())
-                {
-                    StringConnection c = menum.nextElement();
-                    if (c == null)
-                        continue;
-
-                    {
-                        final String cliLocale = c.getI18NLocale();
-                        if ((gameTextMsg == null)
-                            || (hasMultiLocales
-                                 && (  (cliLocale == null)
-                                       ? (gameTxtLocale != null)
-                                       : ! cliLocale.equals(gameTxtLocale)  )))
-                        {
-                            gameTextMsg = SOCGameServerText.toCmd(gaName, c.getLocalized(key));
-                            gameTxtLocale = cliLocale;
-                        }
-
-                        if ((c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT) && (gameTextMsg != null))
-                            c.put(gameTextMsg);
-                        else
-                            // old client (not common) gets a different message type
-                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key)));
-                    }
-                }
-            }
-        }
-        catch (Throwable e)
-        {
-            D.ebugPrintStackTrace(e, "Exception in messageToGameKeyed");
-        }
-
-        if (takeMon)
-            gameList.releaseMonitorForGame(gaName);
+        messageToGameKeyed(ga, takeMon, key, (Object[]) null);
     }
 
     /**
@@ -3222,8 +3170,7 @@ public class SOCServer extends Server
     public void messageToGameKeyed(SOCGame ga, final boolean takeMon, final String key, final Object ... params)
         throws MissingResourceException
     {
-        // same code as the other messageToGameKeyed, except for the call to cli.getLocalized;
-        // messageToGameKeyedType is also very similar.
+        // Very similar code to messageToGameKeyedType; also similar to impl_messageToGameKeyedSpecial.
         // if you change code here, change it there too
 
         final boolean hasMultiLocales = ga.hasMultiLocales;
@@ -3255,7 +3202,8 @@ public class SOCServer extends Server
                                        ? (gameTxtLocale != null)
                                        : ! cliLocale.equals(gameTxtLocale)  )))
                         {
-                            gameTextMsg = SOCGameServerText.toCmd(gaName, c.getLocalized(key, params));
+                            gameTextMsg = SOCGameServerText.toCmd
+                                (gaName, (params != null) ? c.getLocalized(key, params) : c.getLocalized(key));
                             gameTxtLocale = cliLocale;
                         }
 
@@ -3263,7 +3211,9 @@ public class SOCServer extends Server
                             c.put(gameTextMsg);
                         else
                             // old client (not common) gets a different message type
-                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key, params)));
+                            c.put(SOCGameTextMsg.toCmd
+                                (gaName, SERVERNAME,
+                                 (params != null) ? c.getLocalized(key, params) : c.getLocalized(key)));
                     }
                 }
             }
@@ -3439,8 +3389,8 @@ public class SOCServer extends Server
         if (members == null)
             return;
 
-        // same code as the other messageToGameKeyed, except for checking ex and the call to c.getKeyedSpecial;
-        // if you change code here, change it there too
+        // same code as messageToGameKeyed, except for checking ex and the call to c.getKeyedSpecial,
+        // and very similar to messageToGameKeyedType; if you change code here, change it there too
 
         final boolean hasMultiLocales = ga.hasMultiLocales;
         final String gaName = ga.getName();
