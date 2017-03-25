@@ -3344,6 +3344,7 @@ public class SOCServer extends Server
 
         // Very similar code to messageToGameKeyedType:
         // If you change code here, change it there too.
+        // Indentation within try/catch matches messageToGameKeyedType's.
 
         final boolean hasMultiLocales = ga.hasMultiLocales;
         final String gaName = ga.getName();
@@ -3362,35 +3363,33 @@ public class SOCServer extends Server
                     if ((c == null) || (c == ex))
                         continue;
 
+                    final String cliLocale = c.getI18NLocale();
+                    if (cliLocale == null)
+                        continue;  // skip bots
+
+                    if ((gameTextMsg == null)
+                        || (hasMultiLocales && ! cliLocale.equals(gameTxtLocale)))
                     {
-                        final String cliLocale = c.getI18NLocale();
-                        if (cliLocale == null)
-                            continue;  // skip bots
-
-                        if ((gameTextMsg == null)
-                            || (hasMultiLocales && ! cliLocale.equals(gameTxtLocale)))
-                        {
-                            if (fmtSpecial)
-                                gameTextMsg = SOCGameServerText.toCmd
-                                    (gaName, c.getLocalizedSpecial(ga, key, params));
-                            else
-                                gameTextMsg = SOCGameServerText.toCmd
-                                    (gaName, (params != null) ? c.getLocalized(key, params) : c.getLocalized(key));
-                            gameTxtLocale = cliLocale;
-                        }
-
-                        if ((c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT) && (gameTextMsg != null))
-                            c.put(gameTextMsg);
+                        if (fmtSpecial)
+                            gameTextMsg = SOCGameServerText.toCmd
+                                (gaName, c.getLocalizedSpecial(ga, key, params));
                         else
-                            // old client (this is uncommon) needs a different message type
-                            if (fmtSpecial)
-                                c.put(SOCGameTextMsg.toCmd
-                                    (gaName, SERVERNAME, c.getLocalizedSpecial(ga, key, params)));
-                            else
-                                c.put(SOCGameTextMsg.toCmd
-                                    (gaName, SERVERNAME,
-                                     (params != null) ? c.getLocalized(key, params) : c.getLocalized(key)));
+                            gameTextMsg = SOCGameServerText.toCmd
+                                (gaName, (params != null) ? c.getLocalized(key, params) : c.getLocalized(key));
+                        gameTxtLocale = cliLocale;
                     }
+
+                    if ((c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT) && (gameTextMsg != null))
+                        c.put(gameTextMsg);
+                    else
+                        // old client (this is uncommon) needs a different message type
+                        if (fmtSpecial)
+                            c.put(SOCGameTextMsg.toCmd
+                                (gaName, SERVERNAME, c.getLocalizedSpecial(ga, key, params)));
+                        else
+                            c.put(SOCGameTextMsg.toCmd
+                                (gaName, SERVERNAME,
+                                 (params != null) ? c.getLocalized(key, params) : c.getLocalized(key)));
                 }
         }
         catch (Throwable e)
