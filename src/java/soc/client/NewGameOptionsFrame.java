@@ -78,7 +78,7 @@ public class NewGameOptionsFrame extends Frame
 
     /**
      * Maximum range (min-max value) for integer-type options
-     * to be rendered using a value popup, instead of a textfield. 
+     * to be rendered using a value popup, instead of a textfield.
      * @see #initOption_int(SOCGameOption)
      */
     public static final int INTFIELD_POPUP_MAXRANGE = 21;
@@ -152,15 +152,14 @@ public class NewGameOptionsFrame extends Frame
      *                 Null if server doesn't support game options.
      *                 Unknown options ({@link SOCGameOption#OTYPE_UNKNOWN}) will be removed.
      * @param forPractice Will this game be on local practice server, vs remote tcp server?
-     * @param readOnly    Is this display-only (for use during a game), or can it be changed?
+     * @param readOnly    Is this display-only (for use during a game), or can it be changed (making a new game)?
      */
     public NewGameOptionsFrame
         (SOCPlayerClient cli, String gaName, Hashtable opts, boolean forPractice, boolean readOnly)
     {
         super( readOnly
                 ? ("Current game options: " + gaName)
-                :
-                   (forPractice
+                : (forPractice
                     ? "New Game options: Practice game"
                     : "New Game options"));
 
@@ -189,18 +188,19 @@ public class NewGameOptionsFrame extends Frame
         setForeground(Color.black);
 
         addKeyListener(this);
+
         initInterfaceElements(gaName);
 
         addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) { clickCancel(); }    
-            });
+            public void windowClosing(WindowEvent e) { clickCancel(); }
+        });
 
         /**
-         * complete - reset mouse cursor from hourglass to normal
+         * setup is complete; reset mouse cursor from hourglass to normal
          * (was set to hourglass before calling this constructor)
          */
         cli.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        cli.status.setText("");  // clear "Talking to server..."        
+        cli.status.setText("");  // clear "Talking to server..."
     }
 
     /**
@@ -215,9 +215,10 @@ public class NewGameOptionsFrame extends Frame
         NewGameOptionsFrame ngof = new NewGameOptionsFrame(cli, gaName, opts, forPractice, readOnly);
         ngof.pack();
         ngof.show();
+
         return ngof;
     }
-    
+
     /**
      * Interface setup for constructor. Assumes frame is using BorderLayout.
      * Most elements are part of a sub-panel occupying most of this Frame, and using GridBagLayout.
@@ -320,7 +321,7 @@ public class NewGameOptionsFrame extends Frame
     private final static Color LABEL_TXT_COLOR = new Color(252, 251, 243); // off-white
 
     /**
-     * Interface setup: Options. 
+     * Interface setup: Options.
      * One row per option, except for 3-letter options which group with 2-letter ones.
      * Boolean checkboxes go on the left edge; text and int/enum values are to right of checkboxes.
      *<P>
@@ -546,7 +547,8 @@ public class NewGameOptionsFrame extends Frame
                 {
                     ((TextField) oc).addTextListener(this);  // for enable/disable
                     ((TextField) oc).addKeyListener(this);   // for ESC/ENTER
-                } else if (oc instanceof Choice)
+                }
+                else if (oc instanceof Choice)
                 {
                     ((Choice) oc).addItemListener(this);  // for related cb, and op.ChangeListener and userChanged
                 }
@@ -572,7 +574,7 @@ public class NewGameOptionsFrame extends Frame
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbc.weightx = 1;
         gbl.setConstraints(optp, gbc);
-        bp.add(optp);      
+        bp.add(optp);
     }
 
     /**
@@ -669,7 +671,6 @@ public class NewGameOptionsFrame extends Frame
     {
         try
         {
-            
             Object src = ae.getSource();
             if (src == create)
             {
@@ -768,6 +769,7 @@ public class NewGameOptionsFrame extends Frame
     {
         if (this == cl.newGameOptsFrame)
             cl.newGameOptsFrame = null;
+
         super.dispose();
     }
 
@@ -1151,7 +1153,7 @@ public class NewGameOptionsFrame extends Frame
             case SOCGameOption.OTYPE_BOOL:
                 ((Checkbox) opComp).setState(op.getBoolValue());
                 break;
-    
+
             case SOCGameOption.OTYPE_INT:
             case SOCGameOption.OTYPE_INTBOOL:
                 {
@@ -1168,7 +1170,7 @@ public class NewGameOptionsFrame extends Frame
                     }
                 }
                 break;
-    
+
             case SOCGameOption.OTYPE_ENUM:
             case SOCGameOption.OTYPE_ENUMBOOL:
                 {
@@ -1182,12 +1184,12 @@ public class NewGameOptionsFrame extends Frame
                     }
                 }
                 break;
-    
+
             case SOCGameOption.OTYPE_STR:
             case SOCGameOption.OTYPE_STRHIDE:
                 ((TextField) opComp).setText(op.getStringValue());
                 break;
-    
+
                 // default: unknown, see above
             }
         }
@@ -1202,12 +1204,14 @@ public class NewGameOptionsFrame extends Frame
         Checkbox cb = (Checkbox) boolOptCheckboxes.get(opt.optKey);
         if (cb == null)
             return;
+
         final boolean becameChecked = ! cb.getState();
         cb.setState(becameChecked);
         opt.setBoolValue(becameChecked);
         SOCGameOption.ChangeListener cl = opt.getChangeListener();
         if (cl == null)
             return;
+
         final Boolean newValue = (becameChecked) ? Boolean.TRUE : Boolean.FALSE;
         final Boolean oldValue = (becameChecked) ? Boolean.FALSE : Boolean.TRUE;
         fireOptionChangeListener(cl, opt, oldValue, newValue);
