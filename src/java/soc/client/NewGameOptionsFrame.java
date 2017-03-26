@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2011,2013-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2011,2013-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,6 +18,7 @@
  **/
 package soc.client;
 
+import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Checkbox;
 import java.awt.Choice;
@@ -29,7 +30,6 @@ import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.Label;
 import java.awt.Panel;
 import java.awt.TextField;
@@ -49,6 +49,9 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.TreeSet;
 import java.util.Vector;
+
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
 
 import soc.game.SOCGameOption;
 import soc.message.SOCMessage;
@@ -70,6 +73,9 @@ import soc.util.Version;
 public class NewGameOptionsFrame extends Frame
     implements ActionListener, KeyListener, ItemListener, TextListener, MouseListener
 {
+    // See initInterfaceElements() for most of the UI setup.
+    // See clickCreate() for method which handles game setup after options have been chosen.
+
     /**
      * Maximum range (min-max value) for integer-type options
      * to be rendered using a value popup, instead of a textfield. 
@@ -130,7 +136,7 @@ public class NewGameOptionsFrame extends Frame
     // // TODO refactor; these are from connectorprac panel
     private static final Color NGOF_BG = new Color(Integer.parseInt("61AF71",16));
     private static final Color HEADER_LABEL_BG = new Color(220,255,220);
-    private static final Color HEADER_LABEL_FG = new Color( 50, 80, 50);
+    private static final Color HEADER_LABEL_FG = Color.BLACK;
 
     /**
      * Creates a new NewGameOptionsFrame.
@@ -158,7 +164,7 @@ public class NewGameOptionsFrame extends Frame
                     ? "New Game options: Practice game"
                     : "New Game options"));
 
-        setLayout(new FlowLayout(FlowLayout.LEFT, 4, 4));  // include padding insets around edges of frame
+        // Uses default BorderLayout, for simple stretching when frame is resized
 
         this.cl = cli;
         this.opts = opts;
@@ -213,7 +219,7 @@ public class NewGameOptionsFrame extends Frame
     }
     
     /**
-     * Interface setup for constructor. Assumes BorderLayout.
+     * Interface setup for constructor. Assumes frame is using BorderLayout.
      * Most elements are part of a sub-panel occupying most of this Frame, and using GridBagLayout.
      */
     private void initInterfaceElements(final String gaName)
@@ -221,12 +227,14 @@ public class NewGameOptionsFrame extends Frame
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints gbc = new GridBagConstraints();
 
-        Panel bp = new Panel(gbl);  // Actual button panel
+        final JPanel bp = new JPanel(gbl);  // Actual button panel
+        bp.setBorder(new EmptyBorder(4, 4, 4, 4));  // need padding around edges, because panel fills the frame
         bp.setForeground(getForeground());
         bp.setBackground(NGOF_BG);  // If this is omitted, firefox 3.5+ applet uses themed bg-color (seen OS X)
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.weightx = 1;  // stretch with frame resize
 
         if ((! readOnly) && (opts != null))
         {
@@ -234,8 +242,7 @@ public class NewGameOptionsFrame extends Frame
             msgText.setEditable(false);
             msgText.setForeground(LABEL_TXT_COLOR);
             msgText.setBackground(getBackground());
-            gbl.setConstraints(msgText, gbc);
-            bp.add(msgText);
+            add(msgText, BorderLayout.NORTH);
         }
 
         /**
@@ -248,6 +255,7 @@ public class NewGameOptionsFrame extends Frame
         L.setBackground(HEADER_LABEL_BG);
         L.setForeground(HEADER_LABEL_FG);
         gbc.gridwidth = 2;
+        gbc.weightx = 0;
         gbl.setConstraints(L, gbc);
         bp.add(L);
 
@@ -262,6 +270,7 @@ public class NewGameOptionsFrame extends Frame
             gameName.addKeyListener(this);     // for ESC/ENTER
         }
         gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.weightx = 1;
         gbl.setConstraints(gameName, gbc);
         bp.add(gameName);
 
@@ -272,24 +281,23 @@ public class NewGameOptionsFrame extends Frame
 
         /**
          * Interface setup: Buttons
+         * Bottom row, centered in middle
          */
 
-        gbc.insets = new Insets(4, 2, 0, 2);  // padding between option rows, buttons
+        JPanel btnPan = new JPanel();
+        btnPan.setBorder(new EmptyBorder(4, 2, 0, 2));  // padding between option rows, buttons
 
         if (readOnly)
         {
             cancel = new Button("OK");
             cancel.setEnabled(true);
-            gbc.gridwidth = GridBagConstraints.REMAINDER;
         } else {
             cancel = new Button("Cancel");
             cancel.addKeyListener(this);  // for win32 keyboard-focus
-            gbc.gridwidth = 2;
         }
-        gbl.setConstraints(cancel, gbc);
-        bp.add(cancel);
         cancel.addActionListener(this);
-        
+        btnPan.add(cancel);
+
         if (! readOnly)
         {
             create = new Button("Create Game");
@@ -299,14 +307,14 @@ public class NewGameOptionsFrame extends Frame
             create.setEnabled(! readOnly);
             if ((gaName == null) || (gaName.length() == 0))
                 create.setEnabled(false);  // Will enable when gameName not empty
-            gbc.gridwidth = GridBagConstraints.REMAINDER;
-            gbl.setConstraints(create, gbc);
-            bp.add(create);
+            btnPan.add(create);
         }
+
+        add(btnPan, BorderLayout.SOUTH);
 
         // Final assembly setup
         bp.validate();
-        add(bp);
+        add(bp, BorderLayout.CENTER);
     }
 
     private final static Color LABEL_TXT_COLOR = new Color(252, 251, 243); // off-white
@@ -318,7 +326,7 @@ public class NewGameOptionsFrame extends Frame
      *<P>
      * If options are null, put a label with {@link #TXT_SERVER_TOO_OLD}.
      */
-    private void initInterface_Options(Panel bp, GridBagLayout gbl, GridBagConstraints gbc)
+    private void initInterface_Options(JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
         Label L;
 
@@ -390,15 +398,15 @@ public class NewGameOptionsFrame extends Frame
 
     /**
      * Set up one game option in one line of the panel.
-     * Based on the option type, create the appropriate AWT component
-     * and call {@link #initInterface_Opt1(SOCGameOption, Component, boolean, boolean, Panel, GridBagLayout, GridBagConstraints)}.
+     * Based on the option type, create the appropriate AWT component and call
+     * {@link #initInterface_Opt1(SOCGameOption, Component, boolean, boolean, JPanel, GridBagLayout, GridBagConstraints)}.
      * @param op  Option data
      * @param bp  Add to this panel
      * @param gbl Use this layout
      * @param gbc Use these constraints
      */
-    private void initInterface_OptLine(SOCGameOption op, Panel bp,
-        GridBagLayout gbl, GridBagConstraints gbc)
+    private void initInterface_OptLine
+        (SOCGameOption op, JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
         switch (op.optType)  // OTYPE_*
         {
@@ -473,11 +481,12 @@ public class NewGameOptionsFrame extends Frame
      */
     private void initInterface_Opt1(SOCGameOption op, Component oc,
             boolean hasCB, boolean allowPH,
-            Panel bp, GridBagLayout gbl, GridBagConstraints gbc)
+            JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
         Label L;
 
         gbc.gridwidth = 1;
+        gbc.weightx = 0;
         if (hasCB)
         {
             Checkbox cb;
@@ -561,6 +570,7 @@ public class NewGameOptionsFrame extends Frame
         }
 
         gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.weightx = 1;
         gbl.setConstraints(optp, gbc);
         bp.add(optp);      
     }
