@@ -5025,11 +5025,12 @@ public class SOCServer extends Server
      * Bot tuning parameters are sent here to the bot.
      * Its {@link SOCClientData#isRobot} flag is set.
      *<P>
-     * Before connecting here, bots are named and started in {@link #setupLocalRobots(int, int)}.
+     * Before connecting here, bot clients are named and started in {@link #setupLocalRobots(int, int)}.
      * Default bot params are {@link #ROBOT_PARAMS_SMARTER} if the robot name starts with "robot "
      * or {@link #ROBOT_PARAMS_DEFAULT} otherwise (starts with "droid ").
      *
-     * @param c  the connection that sent the message
+     * @param c  the connection that sent the message; not null
+     *     but {@link StringConnection#getData() c.getData()} should be null
      * @param mes  the message
      */
     private void handleIMAROBOT(StringConnection c, SOCImARobot mes)
@@ -5037,6 +5038,18 @@ public class SOCServer extends Server
         if (c != null)
         {
             final String botName = mes.getNickname();
+
+            /**
+             * Check that client hasn't already auth'd, as a human or bot
+             */
+            if (c.getData() != null)
+            {
+                c.put(new SOCRejectConnection("Client has already authorized.").toCmd());
+                c.disconnectSoft();
+                System.out.println("Rejected robot " + botName + ": Client sent authorize already");
+
+                return;  // <--- Early return: Already authenticated ---
+            }
 
             /**
              * Check the cookie given by this bot.
@@ -5047,6 +5060,7 @@ public class SOCServer extends Server
                 c.put(new SOCRejectConnection(rejectMsg).toCmd());
                 c.disconnectSoft();
                 System.out.println("Rejected robot " + botName + ": Wrong cookie");
+
                 return;  // <--- Early return: Robot client didn't send our cookie value ---
             }
 
@@ -5068,6 +5082,7 @@ public class SOCServer extends Server
                     c.disconnectSoft();
                     System.out.println("Rejected robot " + botName + ": Version "
                         + cliVers + " does not match server version");
+
                     return;  // <--- Early return: Robot client too old ---
                 } else {
                     System.out.println("Robot arrived: " + botName + ": built-in type");
@@ -5079,7 +5094,7 @@ public class SOCServer extends Server
             /**
              * Check that the nickname is ok
              */
-            if ((c.getData() == null) && (0 != checkNickname(botName, c, false)))
+            if (0 != checkNickname(botName, c, false))
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
