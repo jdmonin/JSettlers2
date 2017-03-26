@@ -14,6 +14,7 @@ and backport minor new features until 2.0.00 is ready.
     > 1.2.00 (build OV20170xxx)
 - New Game options: Popup if old versions can't play: Default to Create, not Change Options
 - Network: Send keepalive messages to idle games to keep clients connected
+- Game window during debug: Reset "current player" indicator when exiting *FREEPLACE* debug mode
 - Client initial Connect dialog: If username given, ensure New Game button is enabled
 - Client debug, bot debug: Print network message contents if system property jsettlers.debug.traffic is set
 
