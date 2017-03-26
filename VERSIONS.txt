@@ -5,11 +5,10 @@ hosted at http://nand.net/jsettlers/devel/ and (for recent
 versions) https://github.com/jdmonin/JSettlers2/releases ;
 project home and source history at https://github.com/jdmonin/JSettlers2
 
-From 1.0 up through 1.1.13, there is a single line of development.
-
-Right after 1.1.13, new development branch 2.0.00 split off; further 1.x.xx
-versions are stable-branch releases to bring out bugfixes and backport minor
-new features, until 2.0.00 is ready.
+From 1.0 up through 1.1.13, there was a single line of development.
+Right after 1.1.13 the main development branch became 2.0.00, with a
+stable branch for further 1.x.xx version releases to bring out bugfixes
+and backport minor new features until 2.0.00 is ready.
 
 
     > 1.2.00 (build OV20170xxx)
