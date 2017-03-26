@@ -1318,7 +1318,7 @@ public class NewGameOptionsFrame extends Frame
         {
             super(cl, ngof, "Confirm options minimum version",
                 "JSettlers " + Version.version(minVers) + " or newer is required for these game options.\nOlder clients won't be able to join.",
-                "Create with these options", "Change options", false, true);
+                "Create with these options", "Change options", true, false);
         }
 
         /**
