@@ -155,7 +155,7 @@ public class NewGameOptionsFrame extends Frame
     /**
      * Scenario info for {@link #scenDropdown}, if {@link #opts} contains the {@code "SC"} game option, or null.
      * Initialized from {@link SOCScenario#getAllKnownScenarios()} during
-     * {@link #initInterface_Options(Panel, GridBagLayout, GridBagConstraints)},
+     * {@link #initInterface_Options(JPanel, GridBagLayout, GridBagConstraints)},
      * which is called after any server negotiations.
      * @since 2.0.00
      */
@@ -377,6 +377,7 @@ public class NewGameOptionsFrame extends Frame
                 create.setEnabled(false);  // Will enable when gameName not empty
             btnPan.add(create);
         }
+
         add(btnPan, BorderLayout.SOUTH);
 
         // Final assembly setup
@@ -501,8 +502,8 @@ public class NewGameOptionsFrame extends Frame
 
     /**
      * Set up one game option in one line of the panel.
-     * Based on the option type, create the appropriate AWT component
-     * and call {@link #initInterface_Opt1(SOCGameOption, Component, boolean, boolean, Panel, GridBagLayout, GridBagConstraints)}.
+     * Based on the option type, create the appropriate AWT component and call
+     * {@link #initInterface_Opt1(SOCGameOption, Component, boolean, boolean, JPanel, GridBagLayout, GridBagConstraints)}.
      *<P>
      * Special handling: Scenario (option {@code "SC"}) gets a checkbox, label, dropdown, and a second line with
      * an Info button. (Sets {@link #scenDropdown}, {@link #scenInfo}).
@@ -512,7 +513,8 @@ public class NewGameOptionsFrame extends Frame
      * @param gbl Use this layout
      * @param gbc Use these constraints
      */
-    private void initInterface_OptLine(SOCGameOption op, JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
+    private void initInterface_OptLine
+        (SOCGameOption op, JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
         if (op.key.equals("SC"))
         {
@@ -1524,6 +1526,7 @@ public class NewGameOptionsFrame extends Frame
         SOCGameOption.ChangeListener cl = opt.getChangeListener();
         if (cl == null)
             return;
+
         final Boolean newValue = (becameChecked) ? Boolean.TRUE : Boolean.FALSE;
         final Boolean oldValue = (becameChecked) ? Boolean.FALSE : Boolean.TRUE;
         fireOptionChangeListener(cl, opt, oldValue, newValue);
