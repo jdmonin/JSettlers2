@@ -309,11 +309,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     protected SOCGame game;
 
     /**
-     * Flag to ensure interface is updated, when the first actual
-     * turn begins (state changes from {@link SOCGame#START2B}
-     * to {@link SOCGame#PLAY}).
-     * Initially set in {@link #startGame()}.
-     * Checked/cleared in {@link #updateAtGameState()};
+     * Flag to ensure interface will be updated later when the first actual
+     * turn begins (state changes from {@link SOCGame#START2B} to {@link SOCGame#PLAY}).
+     * Initially set in {@link #startGame()} while leaving state {@link SOCGame#NEW}.
+     * Checked/cleared in {@link #updateAtGameState()}.
      */
     protected boolean gameIsStarting;
 
