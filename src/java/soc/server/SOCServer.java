@@ -6149,9 +6149,12 @@ public class SOCServer extends Server
                    }
                  */
                 //D.ebugPrintln("ga.isSeatVacant(mes.getPlayerNumber()) = "+ga.isSeatVacant(mes.getPlayerNumber()));
+
                 /**
                  * make sure a person isn't sitting here already;
                  * if a robot is sitting there, dismiss the robot.
+                 * Can't sit at a vacant seat after everyone has
+                 * placed 1st settlement+road (state >= START2A).
                  */
                 ga.takeMonitor();
 
@@ -6159,13 +6162,14 @@ public class SOCServer extends Server
                 {
                     if (ga.isSeatVacant(mes.getPlayerNumber()))
                     {
-                        gameIsFull = (1 > ga.getAvailableSeatCount());
+                        gameIsFull = (1 > ga.getAvailableSeatCount());  // always 0 if >= START2A
                         if (gameIsFull)
                             canSit = false;
                     } else {
                         SOCPlayer seatedPlayer = ga.getPlayer(mes.getPlayerNumber());
 
-                        if (seatedPlayer.isRobot() && (!ga.isSeatLocked(mes.getPlayerNumber())) && (ga.getCurrentPlayerNumber() != mes.getPlayerNumber()))
+                        if (seatedPlayer.isRobot() && (! ga.isSeatLocked(mes.getPlayerNumber()))
+                            && (ga.getCurrentPlayerNumber() != mes.getPlayerNumber()))
                         {
                             /**
                              * boot the robot out of the game
@@ -8969,8 +8973,10 @@ public class SOCServer extends Server
      * First message sent to connecting client is JOINGAMEAUTH, unless isReset.
      *<P>
      * Among other messages, player names are sent via SITDOWN, and pieces on board
-     * sent by PUTPIECE.  See comments here for further details.
-     * The group of messages sent here ends with GAMEMEMBERS, SETTURN and GAMESTATE.
+     * sent by PUTPIECE. See comments here for further details. The group of messages
+     * sent here to the client ends with GAMEMEMBERS, SETTURN and GAMESTATE.
+     * If game has started (state &gt;= {@link SOCGame#START2A START2A}), they're
+     * then prompted with a GAMETEXTMSG to take over a bot in order to play.
      *<P>
      * @param gameData Game to join
      * @param c        The connection of joining client
@@ -8984,6 +8990,7 @@ public class SOCServer extends Server
      */
     private void joinGame(SOCGame gameData, StringConnection c, boolean isReset, boolean isTakingOver)
     {
+        boolean hasRobot = false;  // If game's already started, true if any bot is seated (can be taken over)
         String gameName = gameData.getName();
         if (! isReset)
         {
@@ -9004,10 +9011,13 @@ public class SOCServer extends Server
             if (! isReset)
             {
                 SOCPlayer pl = gameData.getPlayer(i);
-                String plName = pl.getName(); 
-                if ((plName != null) && (!gameData.isSeatVacant(i)))
+                String plName = pl.getName();
+                if ((plName != null) && ! gameData.isSeatVacant(i))
                 {
-                    c.put(SOCSitDown.toCmd(gameName, plName, i, pl.isRobot()));
+                    final boolean isRobot = pl.isRobot();
+                    if (isRobot)
+                        hasRobot = true;
+                    c.put(SOCSitDown.toCmd(gameName, plName, i, isRobot));
                 }
             }
 
@@ -9154,6 +9164,7 @@ public class SOCServer extends Server
         c.put(membersCommand);
         c.put(SOCSetTurn.toCmd(gameName, gameData.getCurrentPlayerNumber()));
         c.put(SOCGameState.toCmd(gameName, gameData.getGameState()));
+
         if (D.ebugOn)
             D.ebugPrintln("*** " + c.getData() + " joined the game " + gameName + " at "
                 + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
@@ -9168,6 +9179,11 @@ public class SOCServer extends Server
         }
         messageToGame(gameName, new SOCJoinGame
             ((String)c.getData(), "", "dummyhost", gameName));
+
+        if ((! isReset) && (gameData.getGameState() >= SOCGame.START2A))
+            messageToPlayer(c, gameName,
+                (hasRobot) ? "This game has started. To play, take over a robot."
+                           : "This game has started, no new players can sit down.");
     }
 
     /**

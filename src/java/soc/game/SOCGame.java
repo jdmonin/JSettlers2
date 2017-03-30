@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2013,2015-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013,2015-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1022,6 +1022,11 @@ public class SOCGame implements Serializable, Cloneable
      * How many seats are vacant and available for players?
      * Based on {@link #isSeatVacant(int)}, and game
      * option "PL" (maximum players) or {@link #maxPlayers}.
+     *<P>
+     * Once the game has started and everyone already has placed their
+     * first settlement and road (gamestate is &gt;= {@link #START2A}}),
+     * no one new can sit down at a vacant seat and this method returns 0.
+     * <em>(added in v1.2.00)</em>
      *
      * @return number of available vacant seats
      * @see #isSeatVacant(int)
@@ -1029,6 +1034,9 @@ public class SOCGame implements Serializable, Cloneable
      */
     public int getAvailableSeatCount()
     {
+        if (gameState >= START2A)
+            return 0;
+
         int availSeats;
         if (isGameOptionDefined("PL"))
             availSeats = getGameOptionIntValue("PL");
