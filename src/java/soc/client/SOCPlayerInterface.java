@@ -366,11 +366,10 @@ public class SOCPlayerInterface extends Frame
     private boolean knowsGameState;
 
     /**
-     * Flag to ensure interface is updated, when the first actual
-     * turn begins (state changes from {@link SOCGame#START2B} or {@link SOCGame#START3B}
-     * to {@link SOCGame#PLAY}).
-     * Initially set in {@link #startGame()}.
-     * Checked/cleared in {@link #updateAtGameState()};
+     * Flag to ensure interface will be updated later when the first actual turn
+     * begins (state changes from {@link SOCGame#START2B} or {@link SOCGame#START3B}
+     * to {@link SOCGame#PLAY}). Initially set in {@link #startGame()} while leaving
+     * state {@link SOCGame#NEW}. Checked/cleared in {@link #updateAtGameState()}.
      */
     protected boolean gameIsStarting;
 
