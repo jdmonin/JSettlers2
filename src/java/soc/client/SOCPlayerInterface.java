@@ -2044,7 +2044,7 @@ public class SOCPlayerInterface extends Frame
 
         // Update our interface at start of first turn;
         // The server won't send a TURN message after the
-        // final road is placed (state START2 -> PLAY).
+        // final road/ship is placed (state START2 -> PLAY).
         if (gameIsStarting && (gs >= SOCGame.PLAY))
         {
             gameIsStarting = false;

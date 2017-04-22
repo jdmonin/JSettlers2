@@ -115,7 +115,8 @@ import java.util.Vector;
  *     call {@link Thread#start()} to run the server's main thread.
  *<LI> Any built-in bots are started at {@link #serverUp()}.
  *<LI> After a game is created, in-game actions are handled by {@link SOCGameHandler}
- *     as called by handlers for client requests and actions in {@link SOCGameMessageHandler}.
+ *     as called by the message handlers for client requests and actions in {@link SOCGameMessageHandler}
+ *     and the game-lifecycle message handlers in {@link SOCServerMessageHandler}.
  *<LI> See {@link SOCMessage} for details of the client/server protocol.
  *<LI> To get a player's connection, use {@link #getConnection(Object) getConnection(plName)}.
  *<LI> To get a client's nickname, use <tt>(String)</tt> {@link StringConnection#getData() connection.getData()}.

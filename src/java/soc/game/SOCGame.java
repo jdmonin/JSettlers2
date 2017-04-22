@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -1497,7 +1497,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pn    the player's requested player number; the seat number at which they would sit
      * @throws IllegalStateException if player is already sitting in
      *              another seat in this game, or if there are no open seats
-     *              (based on seats[] == OCCUPIED, and game option "PL" or {@link #maxPlayers})
+     *              (based on seats[pn] == OCCUPIED, and game option "PL" or {@link #maxPlayers})
      *               via {@link #getAvailableSeatCount()}
      * @throws IllegalArgumentException if name fails {@link SOCMessage#isSingleLineAndSafe(String)}.
      *           This exception was added in 1.1.07.

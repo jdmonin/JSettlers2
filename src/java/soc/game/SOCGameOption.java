@@ -597,7 +597,7 @@ public class SOCGameOption
             }
         });
 
-        // If SC (scenario) is chosen, also set SBL (sea board)
+        // If SC (scenario) is chosen, also set SBL (use sea board)
         // and VP (vp to win), unless already changed by user.
         // This is for NGOF responsiveness during new-game option setup at the client;
         // game creation at the server doesn't rely on these updates.

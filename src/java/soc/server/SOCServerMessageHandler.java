@@ -54,6 +54,8 @@ import soc.util.Version;
  * Server class to dispatch clients' actions and messages received from the
  * {@link soc.server.genericServer.InboundMessageQueue} not related to game play
  * in specific current games and not handled by {@link SOCGameMessageHandler}.
+ * This also includes some messages related to game lifecycle like
+ * {@link SOCJoinGame} and {@link SOCSitDown}.
  *<P>
  * Before v2.0.00, these methods and fields were part of {@link SOCServer}
  * {@code .processCommand(String, StringConnection)} and related methods.

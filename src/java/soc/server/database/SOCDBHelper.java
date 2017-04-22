@@ -141,8 +141,12 @@ public class SOCDBHelper
      * When present at server startup, the server will prompt and reset the password if the user exists,
      * then exit.
      *<P>
-     * This is a Utility Mode parameter; not for use in property files, because the program always exits
+     * This is a Utility Mode parameter; not for use in property files, because the server always exits
      * after trying to change the password.
+     *<P>
+     * As with {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP}, the SOCServer constructor throws either
+     * {@link java.io.EOFException EOFException} or {@link SQLException} (for success or failure)
+     * which are caught by {@code main(..)}.
      *
      * @since 1.1.20
      */
