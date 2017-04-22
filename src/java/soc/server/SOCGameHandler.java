@@ -833,7 +833,7 @@ public class SOCGameHandler extends GameHandler
     @SuppressWarnings("unchecked")
     public void joinGame(SOCGame gameData, StringConnection c, final boolean isReset, final boolean isTakingOver)
     {
-        boolean hasRobot = false;  // If game's already started, true if a bot is seated (and can be taken over)
+        boolean hasRobot = false;  // If game's already started, true if any bot is seated (can be taken over)
         String gameName = gameData.getName();
         if (! isReset)
         {
@@ -1343,12 +1343,10 @@ public class SOCGameHandler extends GameHandler
 
         if ((! isReset) && gameData.getGameState() >= SOCGame.START2A)
         {
-            if (hasRobot)
-                srv.messageToPlayerKeyed
-                    (c, gameName, "member.join.game.started.bots");  // "This game has started. To play, take over a robot."
-            else
-                srv.messageToPlayerKeyed
-                    (c, gameName, "member.join.game.started");  // "This game has started; no new players can sit down."
+            srv.messageToPlayerKeyed
+                (c, gameName,
+                 (hasRobot) ? "member.join.game.started.bots"  // "This game has started. To play, take over a robot."
+                            : "member.join.game.started");     // "This game has started; no new players can sit down."
         }
     }
 

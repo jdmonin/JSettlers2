@@ -17,7 +17,6 @@ and backport minor new features until 2.0.00 is ready.
 - Game Scenario and special-rules support
 - "House rules" dev card types (New game option "DH")
 - Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard's dialog)
-- To ensure everyone has 2 initial settlements, don't allow new clients to sit after 1st settlements are all placed
 - More efficient game-setup messages over network
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
 - Client sends server its locale, to support i18n localization
@@ -57,6 +56,7 @@ and backport minor new features until 2.0.00 is ready.
 
     > 1.2.00 (build OV20170xxx)
 - New Game options: Popup if old versions can't play: Default to Create, not Change Options
+- To ensure everyone has initial settlements, don't allow new clients to sit after 1st settlements are all placed
 - Network: Send keepalive messages to idle games to keep clients connected
 - Game window during debug: Reset "current player" indicator when exiting *FREEPLACE* debug mode
 - Client initial Connect dialog: If username given, ensure New Game button is enabled

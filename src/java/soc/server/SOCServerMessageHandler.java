@@ -1671,8 +1671,9 @@ public class SOCServerMessageHandler
 
         /**
          * make sure a person isn't sitting here already;
-         * can't sit at a vacant seat after everyone has placed 1st settlement+road;
          * if a robot is sitting there, dismiss the robot.
+         * Can't sit at a vacant seat after everyone has
+         * placed 1st settlement+road (state >= START2A).
          *
          * If a human leaves after game is started, seat will appear vacant when the
          * requested bot sits to replace them, so let the bot sit at that vacant seat.

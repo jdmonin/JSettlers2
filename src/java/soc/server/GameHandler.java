@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -107,10 +107,13 @@ public abstract class GameHandler
      * First message sent to connecting client is JOINGAMEAUTH, unless isReset.
      *<P>
      * Among other messages, player names are sent via SITDOWN, and pieces on board
-     * sent by PUTPIECE.  See comments here for further details.
-     * If <tt>isTakingOver</tt>, assume the game already started and send any details
+     * sent by PUTPIECE. See comments here for further details. The group of messages
+     * sent here to the client ends with GAMEMEMBERS, SETTURN and GAMESTATE.
+     * If game has started (state &gt;= {@link SOCGame#START2A START2A}), they're
+     * then prompted with a GAMESERVERTEXT to take over a bot in order to play.
+     *<P>
+     * If <tt>isTakingOver</tt>, assume the game already started and also include any details
      * about pieces, number of items, cards in hand, etc.
-     * The group of messages sent here ends with GAMEMEMBERS, SETTURN and GAMESTATE.
      *<P>
      * @param gameData Game to join
      * @param c        The connection of joining client
