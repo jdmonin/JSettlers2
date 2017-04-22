@@ -4093,21 +4093,20 @@ public class SOCPlayerClient
     protected void handleGAMESTATE(SOCGameState mes)
     {
         SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        final int newState = mes.getState();
+        final boolean gameStarted = (ga.getGameState() == SOCGame.NEW) && (newState != SOCGame.NEW);
+
+        ga.setGameState(newState);
+        if (gameStarted)
         {
-            PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            final boolean gameStarted = (ga.getGameState() == SOCGame.NEW && mes.getState() != SOCGame.NEW);
-            final int newState = mes.getState();
-
-            ga.setGameState(newState);
-            if (gameStarted)
-            {
-                // call here, not just in handleSTARTGAME, in case we joined a game in progress
-                pcl.gameStarted();
-            }
-            pcl.gameStateChanged(newState);
+            // call here, not just in handleSTARTGAME, in case we joined a game in progress
+            pcl.gameStarted();
         }
+        pcl.gameStateChanged(newState);
     }
 
     /**
