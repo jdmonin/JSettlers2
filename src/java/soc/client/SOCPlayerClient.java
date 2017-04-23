@@ -4082,7 +4082,7 @@ public class SOCPlayerClient
             return;
 
         if (ga.getGameState() == SOCGame.NEW)
-            // skip this call if handleGAMESTATE already called it
+            // skip gameStarted call if handleGAMESTATE already called it
             pcl.gameStarted();
     }
 

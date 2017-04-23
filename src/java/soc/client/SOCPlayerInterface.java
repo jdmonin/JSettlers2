@@ -361,7 +361,7 @@ public class SOCPlayerInterface extends Frame
      * If true, {@link #updateAtGameState()} has been called at least once,
      * or the constructor was called with a non-zero {@link SOCGame#getGameState()}.
      * If false, the 'known' game state (from the constructor) is 0.
-     * @since 2.0.00
+     * @since 1.2.00
      */
     private boolean knowsGameState;
 
@@ -962,8 +962,9 @@ public class SOCPlayerInterface extends Frame
     /**
      * Show the maximum and available number of player positions,
      * if game parameter "PL" is less than {@link SOCGame#maxPlayers}.
-     * Also, if show, and {@code isGameStart}, check for game-is-full,
+     * Also, if {@code show} and {@code isGameStart}, check for game-is-full
      * and hide or show "sit down" buttons if necessary.
+     *<P>
      * If the game has already started, and the client is playing in this game,
      * will not show this display (it overlays the board, which is in use).
      * It will still hide/show sit-here buttons if needed.

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2011,2013-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2011,2013-2014,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,8 +37,8 @@ import soc.game.SOCGame;  // for javadoc's use
  * For {@link SOCGame#WAITING_FOR_ROBBER_OR_PIRATE}, the player should
  * respond with {@link SOCChoosePlayer}; see that message's javadoc.
  *<P>
- * When a new game is starting, leaving state {@code NEW}, the server
- * sends the new game state and then sends {@code SOCStartGame}.
+ * When a new game is starting (leaving state {@code NEW}), the server
+ * sends the new game state and then sends {@link SOCStartGame}.
  *
  * @author Robert S Thomas &lt;thomas@infolab.northwestern.edu&gt;
  * @see SOCGame#getGameState()
