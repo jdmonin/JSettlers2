@@ -27,7 +27,7 @@ import soc.game.SOCGame;  // for javadoc's use
 /**
  * This message communicates the current state of the game
  *<P>
- * When a new game is starting, leaving state <tt>NEW</tt>, the server
+ * When a new game is starting (leaving state <tt>NEW</tt>), the server
  * sends the new game state and then sends {@link SOCStartGame}.
  *
  * @author Robert S Thomas

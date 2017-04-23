@@ -933,13 +933,13 @@ public class SOCGame implements Serializable, Cloneable
      * Called at server and at client.
      *<P>
      * If the game just started, players are placing their first settlement and road
-     * (gamestate is &lt; {@link #START2A}), and the new player sits at a vacant seat,
+     * (gamestate &lt; {@link #START2A}), and the new player sits at a vacant seat,
      * check and update the first player number or last player number if necessary.
      * If the new player's <tt>pn</tt> is less than {@link #getCurrentPlayerNumber()},
      * they already missed their first settlement and road placement but will get their second one.
      *<P>
      * <B>Note:</B> Once the game has started and everyone already has placed their
-     * first settlement and road (gamestate is &gt;= {@link #START2A}), no one new
+     * first settlement and road (gamestate &gt;= {@link #START2A}), no one new
      * should sit down at a vacant seat, they won't have initial placements to receive
      * resources.  This method doesn't know if the seat has always been vacant, or if
      * a robot has just left the game to vacate the seat. So this restriction must be
@@ -1028,11 +1028,11 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * How many seats are vacant and available for players?
-     * Based on {@link #isSeatVacant(int)}, and game
+     * Based on {@link #isSeatVacant(int)} and game
      * option "PL" (maximum players) or {@link #maxPlayers}.
      *<P>
      * <B>Note:</B> Once the game has started and everyone already has placed their
-     * first settlement and road (gamestate is &gt;= {@link #START2A}}),
+     * first settlement and road (gamestate &gt;= {@link #START2A}),
      * no one new should sit down at a vacant seat; see {@link #addPlayer(String, int)}.
      *
      * @return number of available vacant seats

@@ -905,8 +905,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     /**
      * Show the maximum and available number of player positions,
      * if game parameter "PL" is less than {@link SOCGame#maxPlayers}.
-     * Also, if <tt>show</tt> and <tt>isGameStart</tt>, check for game-is-full,
+     * Also, if <tt>show</tt> and <tt>isGameStart</tt>, check for game-is-full
      * and hide or show "sit down" buttons if necessary.
+     *<P>
      * If the game has already started, and the client is playing in this game,
      * will not show this display (it overlays the board, which is in use).
      * It will still hide/show sit-here buttons if needed.
