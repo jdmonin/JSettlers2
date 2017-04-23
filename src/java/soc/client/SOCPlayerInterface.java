@@ -309,6 +309,14 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     protected SOCGame game;
 
     /**
+     * If true, {@link #updateAtGameState()} has been called at least once,
+     * or the constructor was called with a non-zero {@link SOCGame#getGameState()}.
+     * If false, the 'known' game state (from the constructor) is 0.
+     * @since 1.2.00
+     */
+    private boolean knowsGameState;
+
+    /**
      * Flag to ensure interface will be updated later when the first actual
      * turn begins (state changes from {@link SOCGame#START2B} to {@link SOCGame#PLAY}).
      * Initially set in {@link #startGame()} while leaving state {@link SOCGame#NEW}.
@@ -416,6 +424,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
         client = cl;
         game = ga;
+        knowsGameState = (game.getGameState() != 0);
         gameIsStarting = false;
         clientHand = null;
         clientHandPlayerNum = -1;
@@ -1728,6 +1737,18 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     {
         int gs = game.getGameState();
 
+        if (! knowsGameState)
+        {
+            knowsGameState = true;
+
+            // game state was 0 when PI and handpanels were created:
+            // update Sit Here buttons' status now
+            final boolean clientSatAlready = (clientHand != null);
+            for (int i = 0; i < game.maxPlayers; i++)
+                if (game.isSeatVacant(i))
+                    hands[i].addSitButton(clientSatAlready);
+        }
+
         getBoardPanel().updateMode();
         getBuildingPanel().updateButtonStatus();
         getBoardPanel().repaint();
@@ -1852,6 +1873,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         // Clear out old state (similar to constructor)
         int oldGameState = game.getResetOldGameState();
         game = newGame;
+        knowsGameState = (game.getGameState() != 0);
         for (int i = 0; i < hands.length; ++i)
         {
             hands[i].removePlayer();  // will cancel roll countdown timer, right-click menus, etc

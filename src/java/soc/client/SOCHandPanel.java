@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2015,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1166,6 +1166,10 @@ public class SOCHandPanel extends Panel implements ActionListener
      * a "lock" button to keep out a robot, revert the label to "Sit Here"
      * unless clientHasSatAlready.
      *<P>
+     * If the game's already started (state {@link SOCGame#START2A} or later),
+     * the player can't sit there; this method will hide the Sit button
+     * if <tt>! clientHasSatAlready</tt>.
+     *<P>
      * <b>Note:</b> Does not check if the seat is vacant (in case we're
      * removing a player, and game state is not yet updated);
      * please call {@link SOCGame#isSeatVacant(int)} before calling this.
@@ -1177,19 +1181,30 @@ public class SOCHandPanel extends Panel implements ActionListener
      */
     public void addSitButton(boolean clientHasSatAlready)
     {
-        if (sitButIsLock && ! clientHasSatAlready)
+        if (! clientHasSatAlready)
         {
-            sitBut.setLabel(SIT);
-            sitButIsLock = false;
-            if (sitButTip != null)
+            if (game.getGameState() >= SOCGame.START2A)
             {
-                sitButTip.destroy();
-                sitButTip = null;
+                sitBut.setVisible(false);
+                return;  // <--- Early return ---
             }
-        } else if (clientHasSatAlready && ! sitButIsLock)
+
+            if (sitButIsLock)
+            {
+                sitBut.setLabel(SIT);
+                sitButIsLock = false;
+                if (sitButTip != null)
+                {
+                    sitButTip.destroy();
+                    sitButTip = null;
+                }
+            }
+        }
+        else if (clientHasSatAlready && ! sitButIsLock)
         {
             renameSitButLock();
         }
+
         sitBut.setVisible(true);
     }
 
