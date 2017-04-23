@@ -600,8 +600,12 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         add(boardPanel);
         if (game.isGameOptionDefined("PL"))
         {
-            updatePlayerLimitDisplay(true, -1);  // Player data may not be received yet;
+            updatePlayerLimitDisplay(true, false, -1);
+                // Player data may not be received yet;
                 // game is created empty, then SITDOWN messages are received from server.
+                // gameState is at default 0 (NEW) during JOINGAMEAUTH and SITDOWN.
+                // initInterfaceElements is also called at board reset.
+                // updatePlayerLimitDisplay will check the current gameState.
         }
 
         /**
@@ -892,21 +896,24 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     /**
      * Show the maximum and available number of player positions,
      * if game parameter "PL" is less than {@link SOCGame#maxPlayers}.
-     * Also, if show, and gamestate is {@link SOCGame#NEW}, check for game-is-full,
+     * Also, if <tt>show</tt> and <tt>isGameStart</tt>, check for game-is-full,
      * and hide or show "sit down" buttons if necessary.
      * If the game has already started, and the client is playing in this game,
      * will not show this display (it overlays the board, which is in use).
      * It will still hide/show sit-here buttons if needed.
      * @param show show the text, or clear the display (at game start)?
+     * @param isGameStart  True if calling from {@link #startGame()}; will be set true if gameState is {@link SOCGame#NEW}
      * @param playerLeaving The player number if a player is leaving the game, otherwise -1.
      * @since 1.1.07
      */
-    private void updatePlayerLimitDisplay(final boolean show, final int playerLeaving)
+    private void updatePlayerLimitDisplay(final boolean show, boolean isGameStart, final int playerLeaving)
     {
         final int gstate = game.getGameState();
         final boolean clientSatAlready = (clientHand != null);
         boolean noTextOverlay =  ((! show) ||
             ((gstate >= SOCGame.READY) && clientSatAlready));
+        if (gstate == SOCGame.NEW)
+            isGameStart = true;
 
         if (noTextOverlay)
         {
@@ -924,7 +931,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             boardPanel.setSuperimposedText
                 ("Maximum players: " + maxPl, availTxt);
         }
-        if ((gstate == SOCGame.NEW) || ! clientSatAlready)
+        if (isGameStart || ! clientSatAlready)
         {
             if (availPl == 0)
             {
@@ -1474,7 +1481,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         }
 
         if (game.isGameOptionDefined("PL"))
-            updatePlayerLimitDisplay(true, -1);
+            updatePlayerLimitDisplay(true, false, -1);
 
         if (game.isBoardReset())
         {
@@ -1497,7 +1504,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     {
         hands[pn].removePlayer();  // May also clear clientHand
         if (game.isGameOptionDefined("PL"))
-            updatePlayerLimitDisplay(true, pn);
+            updatePlayerLimitDisplay(true, false, pn);
         else
             hands[pn].addSitButton(clientHand != null);  // Is the client player already sitting down at this game?
 
@@ -1524,7 +1531,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             // If we're joining a game in progress, keep it (as "sit here").
             hands[i].removeSitLockoutBut();
         }
-        updatePlayerLimitDisplay(false, -1);
+        updatePlayerLimitDisplay(false, true, -1);
         gameIsStarting = true;
     }
 
