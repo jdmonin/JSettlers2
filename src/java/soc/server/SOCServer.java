@@ -6138,7 +6138,7 @@ public class SOCServer extends Server
                  * make sure this player isn't already sitting
                  */
                 boolean canSit = true;
-                boolean gameIsFull = false;
+                boolean gameIsFull = false, gameAlreadyStarted = false;
 
                 /*
                    for (int i = 0; i < SOCGame.MAXPLAYERS; i++) {
@@ -6151,10 +6151,24 @@ public class SOCServer extends Server
                 //D.ebugPrintln("ga.isSeatVacant(mes.getPlayerNumber()) = "+ga.isSeatVacant(mes.getPlayerNumber()));
 
                 /**
+                 * if this is a robot, remove it from the request list
+                 */
+                boolean isBotJoinRequest = false;
+                {
+                    Vector joinRequests = (Vector) robotJoinRequests.get(gaName);
+                    if (joinRequests != null)
+                        isBotJoinRequest = joinRequests.removeElement(c);
+                }
+
+                /**
                  * make sure a person isn't sitting here already;
                  * if a robot is sitting there, dismiss the robot.
                  * Can't sit at a vacant seat after everyone has
                  * placed 1st settlement+road (state >= START2A).
+                 *
+                 * If a human leaves after game is started, seat will
+                 * appear vacant when the requested bot sits to replace
+                 * them, so let the bot sit at that vacant seat.
                  */
                 ga.takeMonitor();
 
@@ -6162,8 +6176,11 @@ public class SOCServer extends Server
                 {
                     if (ga.isSeatVacant(mes.getPlayerNumber()))
                     {
-                        gameIsFull = (1 > ga.getAvailableSeatCount());  // always 0 if >= START2A
-                        if (gameIsFull)
+                        gameAlreadyStarted = (ga.getGameState() >= SOCGame.START2A);
+                        if (! gameAlreadyStarted)
+                            gameIsFull = (1 > ga.getAvailableSeatCount());
+
+                        if (gameIsFull || (gameAlreadyStarted && ! isBotJoinRequest))
                             canSit = false;
                     } else {
                         SOCPlayer seatedPlayer = ga.getPlayer(mes.getPlayerNumber());
@@ -6206,16 +6223,6 @@ public class SOCServer extends Server
 
                 ga.releaseMonitor();
 
-                /**
-                 * if this is a robot, remove it from the request list
-                 */
-                Vector joinRequests = (Vector) robotJoinRequests.get(gaName);
-
-                if (joinRequests != null)
-                {
-                    joinRequests.removeElement(c);
-                }
-
                 //D.ebugPrintln("canSit 2 = "+canSit);
                 if (canSit)
                 {
@@ -6230,6 +6237,8 @@ public class SOCServer extends Server
                     if (mes.isRobot())
                     {
                         c.put(SOCRobotDismiss.toCmd(gaName));
+                    } else if (gameAlreadyStarted) {
+                        messageToPlayer(c, gaName, "This game has already started, to play you must take over a robot.");
                     } else if (gameIsFull) {
                         messageToPlayer(c, gaName, "This game is full, you cannot sit down.");
                     }
@@ -6748,7 +6757,8 @@ public class SOCServer extends Server
             if (ga.isSeatVacant(i) && ! ga.isSeatLocked(i))
             {
                 /**
-                 * fetch a robot player
+                 * fetch a robot player; game will start when all bots have arrived.
+                 * Similar to SOCGameHandler.leaveGame, where a player has left and must be replaced by a bot.
                  */
                 if (idx < robots.size())
                 {

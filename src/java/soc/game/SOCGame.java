@@ -937,6 +937,14 @@ public class SOCGame implements Serializable, Cloneable
      * check and update the first player number or last player number if necessary.
      * If the new player's <tt>pn</tt> is less than {@link #getCurrentPlayerNumber()},
      * they already missed their first settlement and road placement but will get their second one.
+     *<P>
+     * <B>Note:</B> Once the game has started and everyone already has placed their
+     * first settlement and road (gamestate is &gt;= {@link #START2A}), no one new
+     * should sit down at a vacant seat, they won't have initial placements to receive
+     * resources.  This method doesn't know if the seat has always been vacant, or if
+     * a robot has just left the game to vacate the seat. So this restriction must be
+     * enforced earlier, when the player requests sitting down at a vacant seat or at
+     * a robot's position.
      *
      * @param name  the player's name; must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param pn    the player's number
@@ -1023,10 +1031,9 @@ public class SOCGame implements Serializable, Cloneable
      * Based on {@link #isSeatVacant(int)}, and game
      * option "PL" (maximum players) or {@link #maxPlayers}.
      *<P>
-     * Once the game has started and everyone already has placed their
+     * <B>Note:</B> Once the game has started and everyone already has placed their
      * first settlement and road (gamestate is &gt;= {@link #START2A}}),
-     * no one new can sit down at a vacant seat and this method returns 0.
-     * <em>(added in v1.2.00)</em>
+     * no one new should sit down at a vacant seat; see {@link #addPlayer(String, int)}.
      *
      * @return number of available vacant seats
      * @see #isSeatVacant(int)
@@ -1034,9 +1041,6 @@ public class SOCGame implements Serializable, Cloneable
      */
     public int getAvailableSeatCount()
     {
-        if (gameState >= START2A)
-            return 0;
-
         int availSeats;
         if (isGameOptionDefined("PL"))
             availSeats = getGameOptionIntValue("PL");
