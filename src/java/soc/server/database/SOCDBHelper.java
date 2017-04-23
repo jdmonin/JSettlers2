@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -134,8 +134,12 @@ public class SOCDBHelper
      * When present at server startup, the server will prompt and reset the password if the user exists,
      * then exit.
      *<P>
-     * This is a Utility Mode parameter; not for use in property files, because the program always exits
+     * This is a Utility Mode parameter; not for use in property files, because the server always exits
      * after trying to change the password.
+     *<P>
+     * As with {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP}, the SOCServer constructor throws either
+     * {@link java.io.EOFException EOFException} or {@link SQLException} (for success or failure)
+     * which are caught by <tt>main(..)</tt>.
      *
      * @since 1.1.20
      */

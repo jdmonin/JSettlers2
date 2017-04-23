@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2010,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
@@ -26,6 +26,10 @@ import java.util.StringTokenizer;
 /**
  * This message from server to client signals end of the current player's turn.
  * Client should end current turn, clear dice, set current player number, reset votes, etc.
+ *<P>
+ * The server won't send a TURN message after the final road or ship is placed at the
+ * end of initial placement and start of regular gameplay, only a {@link SOCGameState}
+ * message (state START2 -> PLAY).
  *
  * @author Robert S. Thomas
  * @see SOCSetTurn

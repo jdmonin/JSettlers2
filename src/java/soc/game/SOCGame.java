@@ -942,7 +942,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pn    the player's number
      * @throws IllegalStateException if player is already sitting in
      *              another seat in this game, or if there are no open seats
-     *              (based on seats[] == OCCUPIED, and game option "PL" or MAXPLAYERS)
+     *              (based on seats[pn] == OCCUPIED, and game option "PL" or MAXPLAYERS)
      *               via {@link #getAvailableSeatCount()}
      * @throws IllegalArgumentException if name fails {@link SOCMessage#isSingleLineAndSafe(String)}.
      *           This exception was added in 1.1.07.
