@@ -1709,13 +1709,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
     /**
      * Update interface after game state has changed.
-     * Please call after {@link SOCGame#setGameState(int)}.
+     * Please call {@link SOCGame#setGameState(int)} first.
      * If the game is now starting, please call in this order:
-     *<code>
-     *   playerInterface.{@link #startGame()};
+     *<code><pre>
      *   game.setGameState(newState);
+     *   playerInterface.{@link #startGame()};
      *   playerInterface.updateAtGameState();
-     *</code>
+     *</pre></code>
      */
     public void updateAtGameState()
     {

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2010,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,13 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
 
 /**
- * This message means that a player wants to start the game
+ * From client, this message means that a player wants to start the game;
+ * from server, it means that a game has just started, leaving state <tt>NEW</tt>.
+ * The server sends the game's new {@link SOCGameState} before sending <tt>SOCStartGame</tt>.
+ *<P>
+ * If a client joins a game in progress, it won't be sent a <tt>SOCStartGame</tt> message,
+ * only the game's current <tt>SOCGameState</tt> and other parts of the game's and
+ * players' current status.
  *
  * @author Robert S. Thomas
  */

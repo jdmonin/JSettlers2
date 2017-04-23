@@ -3217,7 +3217,13 @@ public class SOCPlayerClient extends Applet
     protected void handleSTARTGAME(SOCStartGame mes)
     {
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-        pi.startGame();
+        final SOCGame ga = (SOCGame) games.get(mes.getGame());
+        if ((pi == null) || (ga == null))
+            return;
+
+        if (ga.getGameState() == SOCGame.NEW)
+            // skip startGame call if handleGAMESTATE already called it
+            pi.startGame();
     }
 
     /**
@@ -3231,12 +3237,15 @@ public class SOCPlayerClient extends Applet
         if (ga != null)
         {
             SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-            if (ga.getGameState() == SOCGame.NEW && mes.getState() != SOCGame.NEW)
+            final int newState = mes.getState();
+            final boolean gameStarted = (ga.getGameState() == SOCGame.NEW) && (newState != SOCGame.NEW);
+
+            ga.setGameState(newState);
+            if (gameStarted)
             {
+                // call here, not just in handleSTARTGAME, in case we joined a game in progress
                 pi.startGame();
             }
-
-            ga.setGameState(mes.getState());
             pi.updateAtGameState();
         }
     }
