@@ -3,7 +3,7 @@
  * This file Copyright (C) 2016 Alessandro D'Ottavio
  * Some contents were formerly part of SOCServer.java and SOCGameHandler.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -50,18 +50,18 @@ import soc.message.*;
 import soc.server.genericServer.StringConnection;
 
 /**
- * Game message handler for the {@link SOCGameHandler} game type.
- * The purpose of this class is to dispatch the messages received from the
+ * Game message handler for {@link SOCGameHandler}: Dispatches all messages received from the
  * {@link soc.server.genericServer.InboundMessageQueue} related to specific games
- * (which implement {@link SOCMessageForGame}). All other messages are handled by
+ * (implementing {@link SOCMessageForGame}). All other messages are handled by
  * {@link SOCServerMessageHandler} instead.
  *
  *<H4>Message Flow:</H4>
  *<UL>
  * <LI> Inbound game messages arrive here from {@link SOCMessageDispatcher#dispatch(String, StringConnection)}.
- * <LI> Each specific message class is identified in {@link #dispatch(SOCGame, SOCMessageForGame, StringConnection)}
+ * <LI> Each specific message class is identified in
+ *      {@link #dispatch(SOCGame, SOCMessageForGame, StringConnection) dispatch(..)}
  *      which calls handler methods such as {@link #handleBANKTRADE(SOCGame, StringConnection, SOCBankTrade)}.
- *      See {@code dispatch} method's javadoc for more details on per-message handling.
+ *      See {@code dispatch(..)} method's javadoc for more details on per-message handling.
  * <LI> Most handler methods call into {@link SOCGameHandler} for the game's "business logic"
  *      abstracted from inbound message processing, and then {@link SOCServer} to send
  *      result messages to all players and observers in the game.
