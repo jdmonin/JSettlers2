@@ -111,7 +111,7 @@ public class NewGameOptionsFrame extends Frame
 
     /**
      * Is this NGOF used to set options for a new game, not to show them for an existing one?
-     * @since 1.1.19
+     * @since 2.0.00
      */
     private final boolean forNewGame;
 
