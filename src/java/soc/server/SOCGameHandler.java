@@ -94,7 +94,6 @@ import soc.message.SOCLongestRoad;
 import soc.message.SOCMessage;
 import soc.message.SOCMovePieceRequest;
 import soc.message.SOCMoveRobber;
-import soc.message.SOCPickResourcesRequest;
 import soc.message.SOCPieceValue;
 import soc.message.SOCPlayerElement;
 import soc.message.SOCPlayerStats;
@@ -111,6 +110,7 @@ import soc.message.SOCSetSeatLock;
 import soc.message.SOCSetSpecialItem;
 import soc.message.SOCSetTurn;
 import soc.message.SOCSimpleAction;
+import soc.message.SOCSimpleRequest;
 import soc.message.SOCSitDown;
 import soc.message.SOCStartGame;
 import soc.message.SOCStatusMessage;
@@ -1433,7 +1433,7 @@ public class SOCGameHandler extends GameHandler
     }
 
     // javadoc inherited from GameHandler
-    public void sitDown_sendPrivateInfo(SOCGame ga, StringConnection c, int pn)
+    public void sitDown_sendPrivateInfo(final SOCGame ga, final StringConnection c, final int pn)
     {
         final String gaName = ga.getName();
         final SOCPlayer pl = ga.getPlayer(pn);
@@ -1504,7 +1504,8 @@ public class SOCGameHandler extends GameHandler
         {
             final int numGoldRes = pl.getNeedToPickGoldHexResources();
             if (numGoldRes > 0)
-                srv.messageToPlayer(c, new SOCPickResourcesRequest(gaName, numGoldRes));
+                srv.messageToPlayer(c, new SOCSimpleRequest
+                    (gaName, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, numGoldRes));
         }
 
         /**
@@ -1996,12 +1997,14 @@ public class SOCGameHandler extends GameHandler
     /**
      * Send a game text message "x, y, and z need to pick resources from the gold hex."
      * and, for each picking player, a {@link SOCPlayerElement}({@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
-     * To prompt the specific players to choose a resource, also sends their clients a {@link SOCPickResourcesRequest}.
+     * To prompt the specific players to choose a resource, also sends their clients a
+     * {@link SOCSimpleRequest}({@link SOCSimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES}).
+     *<P>
      * Used in game state {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}
      * and {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}.
      *<P>
      * The text and SOCPlayerElement messages are sent to the entire game.
-     * Any SOCPickResourcesRequests are sent to those player clients only.
+     * Any {@code PROMPT_PICK_RESOURCES} are sent to those player clients only.
      * If you know that only 1 player will pick gold, pass their <tt>playerCon</tt> for efficiency.
      *<P>
      * This is separate from {@link #sendGameState(SOCGame)} because when the dice are rolled,
@@ -2010,8 +2013,8 @@ public class SOCGameHandler extends GameHandler
      *
      * @param ga  Game object
      * @param gname  Game name
-     * @param playerCon  <tt>null</tt>, or current player's client connection to send
-     *                   {@link SOCPickResourcesRequest} if they are the only one to pick gold.
+     * @param playerCon  <tt>null</tt>, or current player's client connection to send the
+     *                   {@code PROMPT_PICK_RESOURCES} if they are the only one to pick gold.
      *                   If more than 1 player has {@link SOCPlayer#getNeedToPickGoldHexResources()},
      *                   no message will be sent to <tt>playerCon</tt>.
      * @param roll  For gold gained from dice rolls, the roll details, otherwise null.
@@ -2027,7 +2030,7 @@ public class SOCGameHandler extends GameHandler
         else
             ignoreRollPirateVictory = 0;
 
-        int count = 0, amount = 0;
+        int count = 0, amount = 0, firstPN = -1;
         ArrayList<String> names = new ArrayList<String>();
         int[] num = new int[ga.maxPlayers];
 
@@ -2045,7 +2048,10 @@ public class SOCGameHandler extends GameHandler
                     names.add(player.getName());
                     count++;
                     if (count == 1)
+                    {
                         amount = numGoldRes;
+                        firstPN = pl;
+                    }
                 }
             }
         }
@@ -2069,13 +2075,15 @@ public class SOCGameHandler extends GameHandler
                 {
                     StringConnection plCon = srv.getConnection(ga.getPlayer(pl).getName());
                     if (plCon != null)
-                        srv.messageToPlayer(plCon, new SOCPickResourcesRequest(gname, num[pl]));
+                        srv.messageToPlayer(plCon, new SOCSimpleRequest
+                            (gname, pl, SOCSimpleRequest.PROMPT_PICK_RESOURCES, num[pl]));
                 }
             }
         }
 
         if (singlePlayerGetsPickRequest)
-            srv.messageToPlayer(playerCon, new SOCPickResourcesRequest(gname, amount));
+            srv.messageToPlayer(playerCon, new SOCSimpleRequest
+                (gname, firstPN, SOCSimpleRequest.PROMPT_PICK_RESOURCES, amount));
     }
 
     /**

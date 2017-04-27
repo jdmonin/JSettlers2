@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -333,60 +333,54 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  @since 2.0.00 */
     public static final int REMOVEPIECE = 1095;  // pirate islands scenario, 20130218, v2.0.00
 
-    /** Ask client to pick this many resources,
-     *  when they have a settlement or city next to a gold hex.
-     *  Client replies with {@link #PICKRESOURCES}.
-     *  @since 2.0.00 */
-    public static final int PICKRESOURCESREQUEST = 1096;  // gold hex resources, 20120112, v2.0.00
-
-    /** Client reply to {@link #PICKRESOURCESREQUEST}.
+    /** Client reply to {@link #SIMPLEREQUEST}(PROMPT_PICK_RESOURCES).
      *  Has picked these resource types/counts.
      *  @since 2.0.00 */
-    public static final int PICKRESOURCES = 1097;  // gold hex resources, 20120112, v2.0.00
+    public static final int PICKRESOURCES = 1777;  // gold hex resources, 20120112, v2.0.00; removing soon
 
     /** Reveal a hidden hex on the board; server to all clients in game.
      *  @since 2.0.00 */
-    public static final int REVEALFOGHEX = 1098;  // fog hexes, 20121108, v2.0.00
+    public static final int REVEALFOGHEX = 1096;  // fog hexes, 20121108, v2.0.00
 
     /** Update the value(s) of a piece on the board.
      *  @since 2.0.00 */
-    public static final int PIECEVALUE = 1099;  // cloth villages scenario, 20121115, v2.0.00
+    public static final int PIECEVALUE = 1097;  // cloth villages scenario, 20121115, v2.0.00
 
     /** Legal road or ship edges for the large sea board.
      *  @since 2.0.00 */
-    public static final int LEGALEDGES = 1100;  // large sea board, 20121216, v2.0.00
+    public static final int LEGALEDGES = 1098;  // large sea board, 20121216, v2.0.00
 
     /** Text that a player has been awarded Special Victory Point(s).
      *  The server will also send a {@link SOCPlayerElement} with the SVP total.
      *  @since 2.0.00 */
-    public static final int SVPTEXTMSG = 1101;  // SVP text messages, 20121221, v2.0.00
+    public static final int SVPTEXTMSG = 1099;  // SVP text messages, 20121221, v2.0.00
 
     /** Make an edge on the board special or no longer special ({@link SOCBoardSpecialEdge}).
      *  Used in some game scenarios.
      * @since 2.0.00 */
-    public static final int BOARDSPECIALEDGE = 1102;  // board special edges, 20131107, v2.0.00
+    public static final int BOARDSPECIALEDGE = 1100;  // board special edges, 20131107, v2.0.00
 
     /** {@link SOCInventoryItemAction} message: Add or remove a {@code SOCInventoryItem}
      *  (excluding {@code SOCDevCard}s) from a player's inventory.
      *  Used in some game scenarios.
      * @see #DEVCARDACTION
      * @since 2.0.00 */
-    public static final int INVENTORYITEMACTION = 1103;  // player inventory items, 20131126, v2.0.00
+    public static final int INVENTORYITEMACTION = 1101;  // player inventory items, 20131126, v2.0.00
 
     /** {@link SOCSetSpecialItem} - Special Item requests and change announcements.
      *  {@code SOCSpecialItem}s are used in some game scenarios.
      *  @since 2.0.00 */
-    public static final int SETSPECIALITEM = 1104;  // Special Items, 20140416, v2.0.00
+    public static final int SETSPECIALITEM = 1102;  // Special Items, 20140416, v2.0.00
 
     /** {@link SOCLocalizedStrings} - Localized i18n strings for items such as game options or scenarios.
      *  @since 2.0.00 */
-    public static final int LOCALIZEDSTRINGS = 1105;  // Localized strings, 20150111, v2.0.00
+    public static final int LOCALIZEDSTRINGS = 1103;  // Localized strings, 20150111, v2.0.00
 
     /** {@link SOCScenarioInfo} - Client's request about available {@link soc.game.SOCScenario SOCScenario}s,
      *  or server's reply about a single scenario.
      * @since 2.0.00
      */
-    public static final int SCENARIOINFO = 1106;    // Scenario info, 20150920, v2.0.00
+    public static final int SCENARIOINFO = 1104;    // Scenario info, 20150920, v2.0.00
 
 
     /////////////////////////////////////////
@@ -984,9 +978,6 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case REMOVEPIECE:       // pirate islands scenario, 20130218, v2.0.00
                 return SOCRemovePiece.parseDataStr(data);
-
-            case PICKRESOURCESREQUEST:  // gold hex resources, 20120112, v2.0.00
-                return SOCPickResourcesRequest.parseDataStr(data);
 
             case PICKRESOURCES:     // gold hex resources, 20120112, v2.0.00
                 return SOCPickResources.parseDataStr(data);

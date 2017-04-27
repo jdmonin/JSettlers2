@@ -3438,6 +3438,10 @@ public class SOCPlayerInterface extends Frame
                 }
                 break;
 
+            case SOCSimpleRequest.PROMPT_PICK_RESOURCES:
+                requestedResourceSelect(value1);
+                break;
+
             default:
                 // ignore unknown request types
                 System.err.println

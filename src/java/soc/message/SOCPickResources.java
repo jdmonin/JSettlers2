@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012,2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2013,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -28,11 +28,12 @@ import java.util.StringTokenizer;
 
 /**
  * This message from client means that the client player has picked these resources
- * to receive from the gold hex.
- * Client response to server's {@link SOCPickResourcesRequest}.
- * (Similar send/response pattern as {@link SOCDiscardRequest} / {@link SOCDiscard}.)
+ * to receive from the gold hex. Client response to server's
+ * {@link SOCSimpleRequest}({@link SOCSimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES}).
+ * (Same prompt/response pattern as {@link SOCDiscardRequest} / {@link SOCDiscard}.)
  *<P>
- * If the resource count is wrong, the server will resend <tt>SOCPickResourcesRequest</tt>.
+ * If the resource count is wrong, the server will resend {@code SOCSimpleRequest(PROMPT_PICK_RESOURCES)}
+ * with the required resource count.
  * Otherwise:
  * The server will report the picked resources to the other
  * players via {@link SOCPlayerElement} and text, but will not send

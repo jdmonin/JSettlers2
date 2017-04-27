@@ -587,7 +587,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             /**
              * generic "simple request" responses or announcements from the server.
              * Message type added 2013-02-17 for v1.1.18,
-             * bot ignored these until 2015-10-10 for v2.0.00 SC_PIRI.
+             * bot ignored these until 2015-10-10 for v2.0.00 SC_PIRI
+             * and for PROMPT_PICK_RESOURCES from gold hex.
              */
             case SOCMessage.SIMPLEREQUEST:
                 super.handleSIMPLEREQUEST(games, (SOCSimpleRequest) mes);
@@ -641,7 +642,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.MAKEOFFER:
             case SOCMessage.MOVEPIECE:   // move a previously placed ship; will update game data and player trackers
             case SOCMessage.MOVEROBBER:
-            case SOCMessage.PICKRESOURCESREQUEST:  // pick resources to gain from the gold hex
             case SOCMessage.PLAYERELEMENT:
             case SOCMessage.REJECTOFFER:
             case SOCMessage.RESOURCECOUNT:

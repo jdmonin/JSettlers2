@@ -3390,14 +3390,6 @@ public class SOCPlayerClient
                 break;
 
             /**
-             * pick resources to gain from the gold hex.
-             * Added 2012-01-12 for v2.0.00.
-             */
-            case SOCMessage.PICKRESOURCESREQUEST:
-                handlePICKRESOURCESREQUEST((SOCPickResourcesRequest) mes);
-                break;
-
-            /**
              * reveal a hidden hex on the board.
              * Added 2012-11-08 for v2.0.00.
              */
@@ -4485,17 +4477,6 @@ public class SOCPlayerClient
     {
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
         pcl.requestedDiscard(mes.getNumberOfDiscards());
-    }
-
-    /**
-     * handle the "pick resources request" message
-     * @param mes  the message
-     * @since 2.0.00
-     */
-    protected void handlePICKRESOURCESREQUEST(SOCPickResourcesRequest mes)
-    {
-        PlayerClientListener pcl = clientListeners.get(mes.getGame());
-        pcl.requestedResourceSelect(mes.getParam());
     }
 
     /**

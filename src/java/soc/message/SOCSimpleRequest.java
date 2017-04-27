@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2015-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,9 +25,12 @@ import soc.game.SOCGame;  // for javadocs only
 import soc.game.SOCGameOption;  // for javadocs only
 
 /**
- * This generic message handles a simple request from a client player in a game.
+ * This generic message handles a simple request from a client player in a game,
+ * or a prompt from the server to a client player who needs to make a decision or take action.
  * This is a way to add game actions without adding new SOCMessage subclasses.
  * It has a player number, a request type code, and two optional detail-value fields.
+ * The type code constants' javadocs detail usage of that type code.
+ * Request types which are prompts from the server are declared with prefix {@code PROMPT_}.
  *<P>
  * To get the optional detail value fields from a {@code SOCSimpleRequest}, be sure to use {@link #getValue1()}
  * and {@link #getValue2()}, not {@link #getParam1()} and {@link #getParam2()} which would instead return the
@@ -37,6 +40,8 @@ import soc.game.SOCGameOption;  // for javadocs only
  * This message type would be useful for new functions that don't have a complicated
  * set of details attached.  If {@link SOCRollDiceRequest} or the Ask-Special-Build message types
  * were implemented today, they would add request types to this message type.
+ *
+ *<H3>Request from Client to Server</H3>
  *<UL>
  * <LI> Client sends to server: (pn, typecode, value1, value2). Unless the request type code's javadoc says otherwise,
  *      {@code pn} must be their own player number so that the server could announce the request using the same message
@@ -49,6 +54,20 @@ import soc.game.SOCGameOption;  // for javadocs only
  *      Announce the client's request to all players in game,
  *      or take some game action and announce the results using other message types.
  *</UL>
+ *
+ *<H3>Prompt from Server to Client</H3>
+ *<UL>
+ * <LI> Server sends to client: (pn, typecode, value, value2). Some request type codes may send
+ *      to all players in the game. Their javadocs will say so; otherwise, assume only a single client player
+ *      receives the prompt message. If a client player receives such a "broadcast" {@code SOCSimpleRequest}
+ *      having {@code pn} != their player number, no action is needed and the message is only to tell the game
+ *      why everyone is waiting on {@code pn}.
+ * <LI> Unless client is a bot, client UI indicates to the user they need to make a decision or take action
+ * <LI> User makes their decision, responds to prompt seen in UI
+ * <LI> Client sends to server the appropriate message(s) specified in {@code typecode} constant's javadoc
+ *</UL>
+ *
+ *<H3>Request Type Code Number Ranges</H3>
  * Request type codes below 1000 are for general types that different kinds of games might be able to use. <BR>
  * Gametype-specific request types start at 1000.
  *
@@ -59,6 +78,21 @@ import soc.game.SOCGameOption;  // for javadocs only
 public class SOCSimpleRequest extends SOCMessageTemplate4i
 {
     private static final long serialVersionUID = 1118L;
+
+    /**
+     * This prompt from the server informs the client's player that
+     * they must pick which resources they want from a gold hex.
+     * {@code value1} = number of resources the client must pick.
+     * Client should respond with {@link SOCPickResources}.
+     *<P>
+     * Also used in scenario {@link SOCGameOption#K_SC_PIRI SC_PIRI}
+     * when player wins a free resource for defeating the
+     * pirate fleet attack during a dice roll.
+     *<P>
+     * Same prompt/response pattern as {@link SOCDiscardRequest} / {@link SOCDiscard}.
+     * @since 2.0.00
+     */
+    public static final int PROMPT_PICK_RESOURCES = 1;
 
     /**
      * The current player wants to attack their pirate fortress (scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}).
@@ -96,7 +130,7 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
     // - SOCGameMessageHandler.handleSIMPLEREQUEST
     // - SOCPlayerClient.handleSIMPLEREQUEST
     // - SOCDisplaylessPlayerClient.handleSIMPLEREQUEST
-    // - SOCRobotBrain.run case SOCMessage.SIMPLEREQUEST
+    // - SOCRobotBrain.run case SOCMessage.SIMPLEREQUEST (in 2 switches)
 
     /**
      * Create a SOCSimpleRequest message.

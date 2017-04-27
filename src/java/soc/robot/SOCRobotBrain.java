@@ -58,7 +58,6 @@ import soc.message.SOCMakeOffer;
 import soc.message.SOCMessage;
 import soc.message.SOCMovePiece;
 import soc.message.SOCMoveRobber;
-import soc.message.SOCPickResourcesRequest;
 import soc.message.SOCPlayerElement;
 import soc.message.SOCPutPiece;
 import soc.message.SOCRejectOffer;
@@ -1409,8 +1408,10 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     case SOCMessage.SIMPLEREQUEST:
-                        // These messages can almost always be ignored,
+                        // These messages can almost always be ignored by bots,
                         // unless we've just sent a request to attack a pirate fortress.
+                        // Some request types are handled at the bottom of the loop body;
+                        // search for SOCMessage.SIMPLEREQUEST
 
                         if (ourTurn && waitingForSC_PIRI_FortressRequest)
                         {
@@ -1878,19 +1879,30 @@ public class SOCRobotBrain extends Thread
                         }
                         break;
 
-                    case SOCMessage.PICKRESOURCESREQUEST:
-                        // gold hex
-                        counter = 0;
-                        pickFreeResources( ((SOCPickResourcesRequest) mes).getParam() );
-                        waitingForGameState = true;
-                        if (game.isInitialPlacement())
+                    case SOCMessage.SIMPLEREQUEST:
+                        // These messages can almost always be ignored by bots.
+                        // Some request types are handled at the top of the loop body;
+                        // search for SOCMessage.SIMPLEREQUEST
                         {
-                            if (game.isGameOptionSet(SOCGameOption.K_SC_3IP))
-                                expectSTART3B = true;
-                            else
-                                expectSTART2B = true;
-                        } else {
-                            expectPLAY1 = true;
+                            final SOCSimpleRequest rqMes = (SOCSimpleRequest) mes;
+                            switch (rqMes.getRequestType())
+                            {
+                            case SOCSimpleRequest.PROMPT_PICK_RESOURCES:
+                                // gold hex
+                                counter = 0;
+                                pickFreeResources(rqMes.getValue1());
+                                waitingForGameState = true;
+                                if (game.isInitialPlacement())
+                                {
+                                    if (game.isGameOptionSet(SOCGameOption.K_SC_3IP))
+                                        expectSTART3B = true;
+                                    else
+                                        expectSTART2B = true;
+                                } else {
+                                    expectPLAY1 = true;
+                                }
+                                break;
+                            }
                         }
                         break;
 

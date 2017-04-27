@@ -594,7 +594,8 @@ public class SOCGameMessageHandler
                                 srv.messageToPlayer(playerCon, new SOCPlayerElement(gn, pn, SOCPlayerElement.SET, res, resources.getAmount(res)));
                             srv.messageToGame(gn, new SOCResourceCount(gn, pn, resources.getTotal()));
 
-                            // we'll send gold picks text, PLAYERELEMENT, and PICKRESOURCESREQUEST after the per-player loop
+                            // we'll send gold picks text, PLAYERELEMENT, and SIMPLEREQUEST(PROMPT_PICK_RESOURCES)
+                            // after the per-player loop
                         }
                     }
 
@@ -649,7 +650,7 @@ public class SOCGameMessageHandler
                     }
 
                     if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
-                        // gold picks text, PLAYERELEMENT, and PICKRESOURCESREQUESTs
+                        // gold picks text, PLAYERELEMENT, and SIMPLEREQUEST(PROMPT_PICK_RESOURCES)s
                         handler.sendGameState_sendGoldPickAnnounceText(ga, gn, null, roll);
 
                     /*
@@ -702,7 +703,9 @@ public class SOCGameMessageHandler
                                 {
                                     srv.messageToGame(gn, new SOCPlayerElement
                                         (gn, i, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
-                                    con.put(SOCPickResourcesRequest.toCmd(gn, numPick));
+                                    con.put
+                                        (SOCSimpleRequest.toCmd
+                                            (gn, i, SOCSimpleRequest.PROMPT_PICK_RESOURCES, numPick, 0));
                                 }
                             }
                         }
@@ -907,7 +910,8 @@ public class SOCGameMessageHandler
                 srv.messageToPlayer(c, gn, "You can't pick that many resources.");
                 final int npick = player.getNeedToPickGoldHexResources();
                 if ((npick > 0) && (gstate < SOCGame.OVER))
-                    srv.messageToPlayer(c, new SOCPickResourcesRequest(gn, npick));
+                    srv.messageToPlayer(c, new SOCSimpleRequest
+                        (gn, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, npick));
                 else
                     srv.messageToPlayer(c, new SOCPlayerElement
                         (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, 0));
@@ -2010,7 +2014,7 @@ public class SOCGameMessageHandler
                             handler.sendGameState(ga);
                             if (ga.hasSeaBoard && (ga.getGameState() == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
                             {
-                                // Prompt to pick from gold: send text and SOCPickResourcesRequest
+                                // Prompt to pick from gold: send text and SOCSimpleRequest(PROMPT_PICK_RESOURCES)
                                 handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
 
@@ -2249,14 +2253,14 @@ public class SOCGameMessageHandler
      * Handle the client's debug Free Placement putpiece request.
      * @since 1.1.12
      */
-    private void handleDEBUGFREEPLACE(SOCGame ga, StringConnection c, final SOCDebugFreePlace mes)
+    private void handleDEBUGFREEPLACE(final SOCGame ga, final StringConnection c, final SOCDebugFreePlace mes)
     {
         if (! ga.isDebugFreePlacement())
             return;
         final String gaName = ga.getName();
 
         final int coord = mes.getCoordinates();
-        SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        final SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
         if (player == null)
             return;
 
@@ -2314,7 +2318,8 @@ public class SOCGameMessageHandler
             {
                 final int numGoldRes = player.getNeedToPickGoldHexResources();
                 if (numGoldRes > 0)
-                    srv.messageToPlayer(c, new SOCPickResourcesRequest(gaName, numGoldRes));
+                    srv.messageToPlayer(c, new SOCSimpleRequest
+                        (gaName, player.getPlayerNumber(), SOCSimpleRequest.PROMPT_PICK_RESOURCES, numGoldRes));
             }
 
             if (ga.getGameState() >= SOCGame.OVER)

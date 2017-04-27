@@ -2154,6 +2154,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             // Known types with no game data update:
             // Catch these before default case, so 'unknown type' won't be printed
 
+            case SOCSimpleRequest.PROMPT_PICK_RESOURCES:
             case SOCSimpleRequest.SC_PIRI_FORT_ATTACK:
                 break;
 
@@ -2162,7 +2163,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 // Since the bots and server are almost always the same version, this
                 // shouldn't often occur: print for debugging.
                 System.err.println
-                    ("handleSIMPLEREQUEST: Unknown type ignored: " + rtype + " in game " + gaName);
+                    ("DPC.handleSIMPLEREQUEST: Unknown type ignored: " + rtype + " in game " + gaName);
         }
     }
 
