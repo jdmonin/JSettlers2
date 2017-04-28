@@ -436,7 +436,7 @@ public class SOCGameMessageHandler
                             SOCPlayer vic = roll.sc_piri_fleetAttackVictim;
                             final String vicName = vic.getName();
                             final StringConnection vCon = srv.getConnection(vicName);
-                            final int pn = vic.getPlayerNumber();
+                            final int vpn = vic.getPlayerNumber();
                             final int strength = (roll.diceA < roll.diceB) ? roll.diceA : roll.diceB;
 
                             if (won)
@@ -448,7 +448,7 @@ public class SOCGameMessageHandler
                                 /**
                                  * tell the victim client that the player lost the resources
                                  */
-                                handler.reportRsrcGainLoss(gn, loot, true, pn, -1, null, vCon);
+                                handler.reportRsrcGainLoss(gn, loot, true, vpn, -1, null, vCon);
                                 srv.messageToPlayerKeyedSpecial
                                     (vCon, ga, "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
                                     // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
@@ -457,7 +457,7 @@ public class SOCGameMessageHandler
                                  * tell everyone else that the player lost unknown resources
                                  */
                                 srv.messageToGameExcept(gn, vCon, new SOCPlayerElement
-                                    (gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, lootTotal), true);
+                                    (gn, vpn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, lootTotal), true);
                                 srv.messageToGameKeyedSpecialExcept(ga, true, vCon,
                                     "action.rolled.sc_piri.player.lost.rsrcs.to.fleet", vicName, lootTotal, strength);
                                     // "Joe lost 1 resource to pirate fleet attack (strength 3)." or
@@ -489,24 +489,24 @@ public class SOCGameMessageHandler
                         ArrayList<Integer> pnum = null;
                         ArrayList<SOCResourceSet> rsrc = null;
 
-                        for (int i = 0; i < ga.maxPlayers; i++)
+                        for (int pn = 0; pn < ga.maxPlayers; ++pn)
                         {
-                            if (ga.isSeatVacant(i))
+                            if (ga.isSeatVacant(pn))
                                 continue;
 
-                            final SOCPlayer pli = ga.getPlayer(i);
-                            final SOCResourceSet rs = pli.getRolledResources();
+                            final SOCPlayer pp = ga.getPlayer(pn);
+                            final SOCResourceSet rs = pp.getRolledResources();
                             if (rs.getKnownTotal() == 0)
                                 continue;
 
-                            plGained[i] = true;
+                            plGained[pn] = true;
                             if (noPlayersGained)
                             {
                                 noPlayersGained = false;
                                 pnum = new ArrayList<Integer>();
                                 rsrc = new ArrayList<SOCResourceSet>();
                             }
-                            pnum.add(Integer.valueOf(i));
+                            pnum.add(Integer.valueOf(pn));
                             rsrc.add(rs);
                         }
 
@@ -520,32 +520,31 @@ public class SOCGameMessageHandler
                     StringBuffer gainsText = new StringBuffer();
 
                     noPlayersGained = true;  // for string spacing; might be false due to loop for new clients in game
-                    for (int i = 0; i < ga.maxPlayers; i++)
+                    for (int pn = 0; pn < ga.maxPlayers; ++pn)
                     {
-                        if (! ga.isSeatVacant(i))
+                        if (! ga.isSeatVacant(pn))
                         {
-                            SOCPlayer pli = ga.getPlayer(i);
-                            SOCResourceSet rsrcs = pli.getRolledResources();
+                            SOCPlayer pp = ga.getPlayer(pn);
+                            SOCResourceSet rsrcs = pp.getRolledResources();
 
                             if (rsrcs.getKnownTotal() != 0)
                             {
-                                plGained[i] = true;
+                                plGained[pn] = true;
                                 if (noPlayersGained)
                                     noPlayersGained = false;
                                 else
                                     gainsText.append(" ");
 
                                 gainsText.append
-                                    (c.getLocalizedSpecial(ga, "_nolocaliz.roll.gets.resources", pli.getName(), rsrcs));
+                                    (c.getLocalizedSpecial(ga, "_nolocaliz.roll.gets.resources", pp.getName(), rsrcs));
                                     // "{0} gets {1,rsrcs}."
                                     // get it from any connection's StringManager, because that string is never localized
 
                                 // Announce SOCPlayerElement.GAIN messages
-                                handler.reportRsrcGainLoss(gn, rsrcs, false, i, -1, null, null);
+                                handler.reportRsrcGainLoss(gn, rsrcs, false, pn, -1, null, null);
                             }
-
-                        }  // if (! ga.isSeatVacant(i))
-                    }  // for (i)
+                        }
+                    }
 
                     if (! noPlayersGained)
                         rollRsrcOldCli = gainsText.toString();
@@ -583,13 +582,13 @@ public class SOCGameMessageHandler
                             if (! plGained[pn])
                                 continue;  // skip if player didn't gain; before v2.0.00, each player in game got these
 
-                            final SOCPlayer pli = ga.getPlayer(pn);
-                            StringConnection playerCon = srv.getConnection(pli.getName());
+                            final SOCPlayer pp = ga.getPlayer(pn);
+                            StringConnection playerCon = srv.getConnection(pp.getName());
                             if (playerCon == null)
                                 continue;
 
                             // CLAY, ORE, SHEEP, WHEAT, WOOD
-                            final SOCResourceSet resources = pli.getResources();
+                            final SOCResourceSet resources = pp.getResources();
                             for (int res = SOCPlayerElement.CLAY; res <= SOCPlayerElement.WOOD; ++res)
                                 srv.messageToPlayer(playerCon, new SOCPlayerElement(gn, pn, SOCPlayerElement.SET, res, resources.getAmount(res)));
                             srv.messageToGame(gn, new SOCResourceCount(gn, pn, resources.getTotal()));
@@ -677,35 +676,35 @@ public class SOCGameMessageHandler
                      */
                     if (ga.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
                     {
-                        for (int i = 0; i < ga.maxPlayers; i++)
+                        for (int pn = 0; pn < ga.maxPlayers; ++pn)
                         {
-                            final SOCPlayer ipl = ga.getPlayer(i);
-                            if (( ! ga.isSeatVacant(i)) && ipl.getNeedToDiscard())
+                            final SOCPlayer pp = ga.getPlayer(pn);
+                            if (( ! ga.isSeatVacant(pn)) && pp.getNeedToDiscard())
                             {
                                 // Request to discard half (round down)
-                                StringConnection con = srv.getConnection(ipl.getName());
+                                StringConnection con = srv.getConnection(pp.getName());
                                 if (con != null)
-                                    con.put(SOCDiscardRequest.toCmd(gn, ipl.getResources().getTotal() / 2));
+                                    con.put(SOCDiscardRequest.toCmd(gn, pp.getResources().getTotal() / 2));
                             }
                         }
                     }
                     else if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
                     {
                         // Used in _SC_PIRI, when 7 is rolled and a player wins against the pirate fleet
-                        for (int i = 0; i < ga.maxPlayers; ++i)
+                        for (int pn = 0; pn < ga.maxPlayers; ++pn)
                         {
-                            final SOCPlayer ipl = ga.getPlayer(i);
-                            final int numPick = ipl.getNeedToPickGoldHexResources();
-                            if (( ! ga.isSeatVacant(i)) && (numPick > 0))
+                            final SOCPlayer pp = ga.getPlayer(pn);
+                            final int numPick = pp.getNeedToPickGoldHexResources();
+                            if (( ! ga.isSeatVacant(pn)) && (numPick > 0))
                             {
-                                StringConnection con = srv.getConnection(ipl.getName());
+                                StringConnection con = srv.getConnection(pp.getName());
                                 if (con != null)
                                 {
                                     srv.messageToGame(gn, new SOCPlayerElement
-                                        (gn, i, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
+                                        (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
                                     con.put
                                         (SOCSimpleRequest.toCmd
-                                            (gn, i, SOCSimpleRequest.PROMPT_PICK_RESOURCES, numPick, 0));
+                                            (gn, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, numPick, 0));
                                 }
                             }
                         }

@@ -2034,23 +2034,23 @@ public class SOCGameHandler extends GameHandler
         ArrayList<String> names = new ArrayList<String>();
         int[] num = new int[ga.maxPlayers];
 
-        for (int pl = 0; pl < ga.maxPlayers; ++pl)
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
         {
-            final SOCPlayer player = ga.getPlayer(pl);
-            int numGoldRes = player.getNeedToPickGoldHexResources();
+            final SOCPlayer pp = ga.getPlayer(pn);
+            int numGoldRes = pp.getNeedToPickGoldHexResources();
             if (numGoldRes > 0)
             {
-                num[pl] = numGoldRes;
-                if ((ignoreRollPirateVictory > 0) && (player == roll.sc_piri_fleetAttackVictim))
+                num[pn] = numGoldRes;
+                if ((ignoreRollPirateVictory > 0) && (pp == roll.sc_piri_fleetAttackVictim))
                     numGoldRes -= ignoreRollPirateVictory;
                 if (numGoldRes > 0)
                 {
-                    names.add(player.getName());
+                    names.add(pp.getName());
                     count++;
                     if (count == 1)
                     {
                         amount = numGoldRes;
-                        firstPN = pl;
+                        firstPN = pn;
                     }
                 }
             }
@@ -2064,19 +2064,19 @@ public class SOCGameHandler extends GameHandler
                 // "Joe needs to pick resources from the gold hex."
 
         final boolean singlePlayerGetsPickRequest = ((playerCon != null) && (count == 1));
-        for (int pl = 0; pl < ga.maxPlayers; ++pl)
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
         {
-            if (num[pl] > 0)
+            if (num[pn] > 0)
             {
                 srv.messageToGame(gname, new SOCPlayerElement
-                    (gname, pl, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, num[pl]));
+                    (gname, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, num[pn]));
 
                 if (! singlePlayerGetsPickRequest)
                 {
-                    StringConnection plCon = srv.getConnection(ga.getPlayer(pl).getName());
+                    StringConnection plCon = srv.getConnection(ga.getPlayer(pn).getName());
                     if (plCon != null)
                         srv.messageToPlayer(plCon, new SOCSimpleRequest
-                            (gname, pl, SOCSimpleRequest.PROMPT_PICK_RESOURCES, num[pl]));
+                            (gname, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, num[pn]));
                 }
             }
         }
