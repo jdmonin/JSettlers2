@@ -1,7 +1,7 @@
 package soc.util;
 
 // Version.java - mchenryc@acm.org Chadwick A. McHenry
-// Portions copyright (C) 2008,2010,2011,2013-2015 Jeremy D Monin <jeremy@nand.net>
+// Portions copyright (C) 2008,2010,2011,2013-2015,2017 Jeremy D Monin <jeremy@nand.net>
 
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -15,6 +15,9 @@ import java.util.Properties;
  * ant to build Callisto you can do this manually by copying Version.java.in
  * to Version.java, replacing "@ VERSION @" with the "version" property value
  * in the file build.xml.
+ *<P>
+ * If the version file cannot be found, or version number can't be parsed,
+ * {@link #versionNumber()} returns 0.
  *
  * @author <a href="mailto:mchenryc@acm.org">Chadwick A. McHenry</a>
  */
@@ -40,7 +43,7 @@ public class Version {
   public static String JRE_MIN_MINOR   = "project.jre.min.minor";
   public static String JRE_MIN_EDIT    = "project.jre.min.edit";
 
-  /** Current version info */
+  /** Current version info, parsed from {@code version.info} file */
   private static Properties versionInfo = null;
 
   /** ints for comparisons, concatentated and stored as JRE_MIN_VERSION */
@@ -97,7 +100,10 @@ public class Version {
       }
   }
 
-  /** Return the current version string. @see #versionNumber() */
+  /**
+   * Return the current version string.
+   * @see #versionNumber()
+   */
   public static String version() {
     return versionInfo.getProperty(VERSION);
   }
@@ -117,6 +123,7 @@ public class Version {
     catch (Throwable e) {
         vnum = 0;
     }
+
     return vnum;
   }
 
