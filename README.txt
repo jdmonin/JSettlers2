@@ -57,11 +57,11 @@ Requirements
 ------------
 
 To play JSettlers by connecting to a remote server you will need the
-Java Runtime Version 1.4 or above (1.5 or later recommended). To connect as an
-applet, use any browser which is Java enabled (using the browser plug-in)
+Java Runtime Version 5 or above. To connect as an applet,
+use any browser which is Java enabled (using the browser plug-in)
 or just download the JAR from http://nand.net/jsettlers/ and run it.
 
-To Play JSettlers locally you need the Java Runtime 1.4 or above.
+To Play JSettlers locally you need the Java Runtime 5 or above.
 JSettlers-full.jar can connect directly to any server over the Internet.
 
 To host a JSettlers server that provides a web applet for clients, you will
@@ -71,8 +71,9 @@ The JSettlers-full.jar file can also run locally as a server, without
 needing a web server.  The applet is considered more convenient,
 because you know everyone will have the same version.
 
-To build JSettlers from source, you will need Apache Ant, available from
-http://ant.apache.org, or an IDE such as Eclipse which understands Ant's format.
+To build JSettlers from source, you will need Java JDK 1.5 or newer and Apache Ant,
+available from http://ant.apache.org, or an IDE such as Eclipse which understands
+Ant's format. See README.developer for details.
 
 
 Setting up and testing
@@ -80,17 +81,17 @@ Setting up and testing
 
 From the command line, make sure you are in the JSettlers distribution
 directory which contains both JSettlers.jar, JsettlersServer.jar and the
-"lib" directory.  (If you have downloaded jsettlers-1.1.xx-full.tar.gz,
+"lib" directory.  (If you have downloaded jsettlers-1.x.xx-full.tar.gz,
 look in the src/target directory for these files.)
 
-If you have downloaded jsettlers-1.1.xx-full.jar or jsettlers-1.1.x-server.jar
+If you have downloaded jsettlers-1.x.xx-full.jar or jsettlers-1.x.x-server.jar
 instead of the full tar.gz, use that filename on the command lines shown below.
 
 
 SERVER STARTUP:
 
 Start the server with the following command
-(server requires Java 1.4 or higher):
+(server requires Java 5 or higher):
 
   java -jar JSettlersServer.jar
 
@@ -378,11 +379,11 @@ Database Creation:
 
 To create the jsettlers database and its db user ('socuser') and security,
 execute the SQL db scripts located in src/bin/sql/
-(included in jsettlers-1.1.xx-full.tar.gz): Change to that directory
+(included in jsettlers-1.x.xx-full.tar.gz): Change to that directory
 and follow the instructions here for your database type.
 
 If you downloaded the JAR and not the full tar.gz, you can get the SQL scripts
-from https://github.com/jdmonin/JSettlers2/tree/old-1.1.xx/src/bin/sql .
+from https://github.com/jdmonin/JSettlers2/tree/stable-1.x.xx/src/bin/sql .
 To get each script needed for your DB type: Click the SQL file to view it;
 click Raw; save to the folder containing your JSettlers JAR.
 

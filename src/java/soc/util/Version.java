@@ -47,7 +47,7 @@ public class Version {
 
   /** ints for comparisons, concatentated and stored as JRE_MIN_VERSION */
   private static int jreMinMajor = 1;
-  private static int jreMinMinor = 4;
+  private static int jreMinMinor = 5;
   private static int jreMinEdit = 0;
 
   static {

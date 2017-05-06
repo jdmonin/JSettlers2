@@ -1,10 +1,10 @@
-README.developer - Notes and current status of 2016 JSettlers development
-	(version 1.1.xx, running at nand.net)
+README.developer - Notes and current status of 2017 JSettlers development
+	(stable version 1.x.xx, running at nand.net)
 	http://nand.net/jsettlers/devel/
 	https://github.com/jdmonin/JSettlers2
 
-At this point (after 1.1.13), the 1.1.xx series is for stable bugfixes and
-backports of minor new features.  New JSettlers development is version 2.0.xx.
+Since v1.1.13, the 1.x.xx series is solely for stable bugfixes and backports
+of minor new features.  New JSettlers development is version 2.0.xx.
 
 See VERSIONS.txt for recent changes.
 
@@ -36,8 +36,9 @@ Robots talk with the server like normal human clients.
 Most robot messages are per-game; instead of being handled in SOCRobotClient,
 these are handled in a loop in SOCRobotBrain.run().
 
-Coding for version 1.1.xx is done in Java 1.4 (jsettlers 2.0 uses Java 5), but should compile
-cleanly in newer JDKs.  The build system is Ant, which is natively understood by Eclipse.
+Coding is done in Java 5, but should compile cleanly in newer JDKs.
+(Before v1.2.00, we restricted ourselves to java 1.4 for backwards compatibility.)
+The build system is Ant, which is natively understood by Eclipse.
 Use any IDE you want, including vi.  Use spaces, not tabs.  Please try to keep the other
 conventions of the code already there (see "Coding Style" below for more details.).
 
@@ -112,7 +113,7 @@ Setup instructions for JSettlers as an Eclipse project
   (written for Eclipse 3.6, should be applicable to other versions with minor changes)
 
 - choose File -> New -> Project... -> Java Project from Existing Ant Buildfile.
-- Browse to jsettlers-1.1.xx-src/build.xml, select the "javac" task in target "compile".
+- Browse to jsettlers-1.x.xx-src/build.xml, select the "javac" task in target "compile".
 - Project -> Properties: Resource: Text file encoding: UTF-8
 - You'll need to build once before you run it, to create version.info from resources/version.info.in.
 
@@ -145,7 +146,7 @@ Java applications:
 
 Build Setup and Results
 -----------------------
-Before building, make sure you have the Java Development Kit version 1.4 or later.
+Before building, make sure you have the Java Development Kit version 1.5 or later.
 If you simply want to run the client or server, you only need the Java Runtime (JRE).
 If you wish to maintain a user database for your server, you need MySQL or PostgreSQL
 installed and configured, or the sqlite jdbc driver for a file-based local database.
@@ -161,8 +162,8 @@ There are several build targets, here are the most useful ones:
 
  build      Create project jar files. (default)
  clean      Cleans the project of all generated files
- dist-src   Create a tarball of the source tree (jsettlers-1.1.xx-src.tar.gz)
- dist-full  Build dist-src and a tarball of the source + built JARs (jsettlers-1.1.xx-full.tar.gz)
+ dist-src   Create a tarball of the source tree (jsettlers-1.x.xx-src.tar.gz)
+ dist-full  Build dist-src and a tarball of the source + built JARs (jsettlers-1.x.xx-full.tar.gz)
  javadoc    Creates JavaDoc files in "target/docs/api"
 
 All files created by building are in the "target" directory, including
@@ -317,7 +318,7 @@ Here's how to set up the coding style in Eclipse:
 		configure visibility -> trailing space, trailing ideographic space, trailing tab
 
 	project properties -> java compiler -> configure workspace settings
-	  compiler compliance level: 1.4
+	  compiler compliance level: 1.5
 
 	prefs -> java -> code style -> formatter -> Click "Configure Project Specific Settings"
 		{
@@ -389,8 +390,8 @@ release.  As soon as a bug is fixed or a feature's design is fairly stable, it
 should be committed to master.
 
 The master branch has new 2.0.xx development.  Until 2.0.00 is ready,
-there's an old-1.1.xx branch in case of urgent bugfixes, so we can release
-new stable versions.  Most work on 1.1.xx is backported from 2.0; changeset
+there's a stable-1.x.xx branch in case of urgent bugfixes, so we can release
+new stable versions.  Most work on 1.x.xx is backported from 2.0; changeset
 comments often mention a hash from a master commit.  Version 2.0.00 was
 split off right after releasing version 1.1.13.
 
