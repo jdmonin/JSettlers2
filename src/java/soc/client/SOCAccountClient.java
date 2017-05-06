@@ -597,6 +597,7 @@ public class SOCAccountClient extends Applet
      * Attempts to connect to the server. See {@link #connected} for success or
      * failure.
      * @throws IllegalStateException if already connected
+     *         or if {@link Version#versionNumber()} returns 0 (packaging error)
      */
     public synchronized void connect()
     {
@@ -606,6 +607,15 @@ public class SOCAccountClient extends Applet
             throw new IllegalStateException("Already connected to " +
                                             hostString);
         }
+
+        if (Version.versionNumber() == 0)
+        {
+            messageLabel.setText("Packaging error: Cannot read version");
+                // I18N: Can't localize this, the i18n files are provided by the same packaging steps
+                // which would create /resources/version.info
+            throw new IllegalStateException("Packaging error: Cannot read version");
+        }
+
         System.out.println("Connecting to " + hostString);
         messageLabel.setText(strings.get("pcli.message.connecting.serv"));  // "Connecting to server..."
 

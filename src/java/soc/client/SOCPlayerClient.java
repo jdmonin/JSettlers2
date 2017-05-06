@@ -6320,6 +6320,14 @@ public class SOCPlayerClient
         frame.setSize(620, 400);
         frame.setVisible(true);
 
+        if (Version.versionNumber() == 0)
+        {
+            client.gameDisplay.showErrorPanel("Packaging error: Cannot read version", false);
+                // I18N: Can't localize this, the i18n files are provided by the same packaging steps
+                // which would create /resources/version.info
+            return;
+        }
+
         if ((host != null) && (port != -1))
             client.net.connect(host, port);
     }
@@ -6444,11 +6452,18 @@ public class SOCPlayerClient
          * Start a practice game.  If needed, create and start {@link #practiceServer}.
          * @param practiceGameName  Game name
          * @param gameOpts  Game options
+         * @throws IllegalStateException if {@link Version#versionNumber()} returns 0 (packaging error)
          */
         public void startPracticeGame(final String practiceGameName, final Map<String, SOCGameOption> gameOpts)
+            throws IllegalStateException
         {
             if (practiceServer == null)
             {
+                if (Version.versionNumber() == 0)
+                {
+                    throw new IllegalStateException("Packaging error: Cannot read version");
+                }
+
                 try
                 {
                     practiceServer = new SOCServer(SOCServer.PRACTICE_STRINGPORT, SOCServer.SOC_MAXCONN_DEFAULT, null, null);
@@ -6580,6 +6595,7 @@ public class SOCPlayerClient
          * @param chost  Server host to connect to, or {@code null} for localhost
          * @param sPort  Server TCP port to connect to; the default server port is {@link ClientNetwork#SOC_PORT_DEFAULT}.
          * @throws IllegalStateException if already connected
+         *     or if {@link Version#versionNumber()} returns 0 (packaging error)
          * @see soc.server.SOCServer#newConnection1(StringConnection)
          */
         public synchronized void connect(String chost, int sPort)
@@ -6589,6 +6605,11 @@ public class SOCPlayerClient
             {
                 throw new IllegalStateException
                     ("Already connected to " + (host != null ? host : "localhost") + ":" + port);
+            }
+
+            if (Version.versionNumber() == 0)
+            {
+                throw new IllegalStateException("Packaging error: Cannot read version");
             }
 
             ex = null;
