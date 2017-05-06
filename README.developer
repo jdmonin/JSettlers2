@@ -208,6 +208,11 @@ JARs, Java .class files, and JavaDoc files. Distribution tarballs, zip
 files, and installation files are placed in "dist". If you run dist-src or
 dist-full, run the dist-tar-clean target afterwards to remove temp files.
 
+Note: Even if you're in an IDE running SOCServer or SOCPlayerClient as Java apps,
+first build either the "build" or "compile" target to create resources/version.info;
+otherwise startup will fail with this error:
+	Packaging error: Cannot determine JSettlers version
+
 
 Recommended debug/run configurations for testing
 ------------------------------------------------
