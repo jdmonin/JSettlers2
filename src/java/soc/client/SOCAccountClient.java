@@ -610,10 +610,10 @@ public class SOCAccountClient extends Applet
 
         if (Version.versionNumber() == 0)
         {
-            messageLabel.setText("Packaging error: Cannot read version");
+            messageLabel.setText("Packaging error: Cannot determine JSettlers version");
                 // I18N: Can't localize this, the i18n files are provided by the same packaging steps
                 // which would create /resources/version.info
-            throw new IllegalStateException("Packaging error: Cannot read version");
+            throw new IllegalStateException("Packaging error: Cannot determine JSettlers version");
         }
 
         System.out.println("Connecting to " + hostString);

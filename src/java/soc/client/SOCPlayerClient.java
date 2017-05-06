@@ -6324,7 +6324,7 @@ public class SOCPlayerClient
 
         if (Version.versionNumber() == 0)
         {
-            client.gameDisplay.showErrorPanel("Packaging error: Cannot read version", false);
+            client.gameDisplay.showErrorPanel("Packaging error: Cannot determine JSettlers version", false);
                 // I18N: Can't localize this, the i18n files are provided by the same packaging steps
                 // which would create /resources/version.info
             return;
@@ -6463,7 +6463,7 @@ public class SOCPlayerClient
             {
                 if (Version.versionNumber() == 0)
                 {
-                    throw new IllegalStateException("Packaging error: Cannot read version");
+                    throw new IllegalStateException("Packaging error: Cannot determine JSettlers version");
                 }
 
                 try
@@ -6611,7 +6611,7 @@ public class SOCPlayerClient
 
             if (Version.versionNumber() == 0)
             {
-                throw new IllegalStateException("Packaging error: Cannot read version");
+                throw new IllegalStateException("Packaging error: Cannot determine JSettlers version");
             }
 
             ex = null;
