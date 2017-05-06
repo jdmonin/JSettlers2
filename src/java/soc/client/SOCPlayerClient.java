@@ -360,7 +360,8 @@ public class SOCPlayerClient
          * instead of the main user/password/games/channels panel.
          *<P>
          * If we have the startup panel (started as JAR client app, not applet) with buttons to connect
-         * to a server or practice, show that instead of the simpler practice-only message panel.
+         * to a server or practice, and {@code canPractice} is true, shows that panel instead of the
+         * simpler practice-only message panel.
          *
          * @param err  Error message to show
          * @param canPractice  In current state of client, can we start a practice game?
@@ -2051,8 +2052,9 @@ public class SOCPlayerClient
          * instead of the main user/password/games/channels panel ({@link #MAIN_PANEL}).
          *<P>
          * If {@link #hasConnectOrPractice we have the startup panel} (started as JAR client
-         * app, not applet) with buttons to connect to a server or practice, we'll show that
-         * instead of the simpler practice-only message panel.
+         * app, not applet) with buttons to connect to a server or practice, and
+         * {@code canPractice} is true, shows that panel instead of the simpler
+         * practice-only message panel.
          *
          * @param err  Error message to show
          * @param canPractice  In current state of client, can we start a practice game?
@@ -2077,7 +2079,7 @@ public class SOCPlayerClient
                 pgm.setVisible(false);
             }
 
-            if (hasConnectOrPractice)
+            if (hasConnectOrPractice && canPractice)
             {
                 // If we have the startup panel with buttons to connect to a server or practice,
                 // prep to show that by un-setting read-only fields we'll need again after connect.
