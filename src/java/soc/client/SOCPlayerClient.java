@@ -5834,7 +5834,7 @@ public class SOCPlayerClient
      */
     public void pickResources(SOCGame ga, SOCResourceSet rs)
     {
-        put(SOCDiscoveryPick.toCmd(ga.getName(), rs), ga.isPractice);
+        put(SOCPickResources.toCmd(ga.getName(), rs), ga.isPractice);
     }
 
     /**
@@ -5976,17 +5976,6 @@ public class SOCPlayerClient
     {
         put(new SOCSetSpecialItem
             (ga.getName(), SOCSetSpecialItem.OP_PICK, typeKey, gi, pi, -1).toCmd(), ga.isPractice);
-    }
-
-    /**
-     * the user picked 2 resources to discover
-     *
-     * @param ga    the game
-     * @param rscs  the resources
-     */
-    public void discoveryPick(SOCGame ga, SOCResourceSet rscs)
-    {
-        put(SOCDiscoveryPick.toCmd(ga.getName(), rscs), ga.isPractice);
     }
 
     /**

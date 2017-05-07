@@ -75,7 +75,6 @@ import soc.message.SOCDevCardCount;
 import soc.message.SOCDiceResult;
 import soc.message.SOCDiscard;
 import soc.message.SOCDiscardRequest;
-import soc.message.SOCDiscoveryPick;
 import soc.message.SOCFirstPlayer;
 import soc.message.SOCGameMembers;
 import soc.message.SOCGameServerText;
@@ -2435,7 +2434,7 @@ public class SOCGameHandler extends GameHandler
      * @see #reportBankTrade(SOCGame, SOCResourceSet, SOCResourceSet)
      * @see #reportRsrcGainGold(SOCGame, SOCPlayer, int, SOCResourceSet, boolean)
      * @see SOCGameMessageHandler#handleDISCARD(SOCGame, StringConnection, SOCDiscard)
-     * @see SOCGameMessageHandler#handleDISCOVERYPICK(SOCGame, StringConnection, SOCDiscoveryPick)
+     * @see SOCGameMessageHandler#handlePICKRESOURCES(SOCGame, StringConnection, SOCPickResources)
      * @see SOCGameMessageHandler#handleROLLDICE(SOCGame, StringConnection, SOCRollDice)
      */
     void reportRsrcGainLoss

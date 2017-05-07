@@ -54,7 +54,7 @@ import java.util.StringTokenizer;
  *
  * @author Robert S. Thomas
  */
-public class SOCDiscoveryPick extends SOCMessage
+public class SOCPickResources extends SOCMessage
     implements SOCMessageForGame
 {
     private static final long serialVersionUID = 1111L;  // last structural change v1.1.11
@@ -80,20 +80,20 @@ public class SOCDiscoveryPick extends SOCMessage
      * @param wo  the amount of wood being picked
      * @since 2.0.00
      */
-    public SOCDiscoveryPick(String ga, int cl, int or, int sh, int wh, int wo)
+    public SOCPickResources(String ga, int cl, int or, int sh, int wh, int wo)
     {
         this(ga, new SOCResourceSet(cl, or, sh, wh, wo, 0));
     }
 
     /**
-     * Create a DiscoveryPick message.
+     * Create a PickResources message.
      *
      * @param ga  the name of the game
      * @param rs  the resources being picked
      */
-    public SOCDiscoveryPick(String ga, SOCResourceSet rs)
+    public SOCPickResources(String ga, SOCResourceSet rs)
     {
-        messageType = DISCOVERYPICK;
+        messageType = PICKRESOURCES;
         game = ga;
         resources = rs;
     }
@@ -133,7 +133,7 @@ public class SOCDiscoveryPick extends SOCMessage
      */
     public static String toCmd(String ga, SOCResourceSet rs)
     {
-        String cmd = DISCOVERYPICK + sep + ga;
+        String cmd = PICKRESOURCES + sep + ga;
 
         for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD;
                 i++)
@@ -158,16 +158,16 @@ public class SOCDiscoveryPick extends SOCMessage
      */
     public static String toCmd(String ga, int cl, int or, int sh, int wh, int wo)
     {
-        return DISCOVERYPICK + sep + ga + sep2 + cl + sep2 + or + sep2 + sh + sep2 + wh + sep2 + wo;
+        return PICKRESOURCES + sep + ga + sep2 + cl + sep2 + or + sep2 + sh + sep2 + wh + sep2 + wo;
     }
 
     /**
-     * Parse the command String into a DiscoveryPick message
+     * Parse the command String into a PickResources message.
      *
      * @param s   the String to parse
-     * @return    a DiscoveryPick message, or null if the data is garbled
+     * @return    a PickResources message, or null if the data is garbled
      */
-    public static SOCDiscoveryPick parseDataStr(String s)
+    public static SOCPickResources parseDataStr(String s)
     {
         final String ga; // the game name
         final int cl, // the amount of clay being picked
@@ -192,7 +192,7 @@ public class SOCDiscoveryPick extends SOCMessage
             return null;
         }
 
-        return new SOCDiscoveryPick(ga, cl, or, sh, wh, wo);
+        return new SOCPickResources(ga, cl, or, sh, wh, wo);
     }
 
     /**
@@ -200,7 +200,7 @@ public class SOCDiscoveryPick extends SOCMessage
      */
     public String toString()
     {
-        return "SOCDiscoveryPick:game=" + game + "|resources=" + resources;
+        return "SOCPickResources:game=" + game + "|resources=" + resources;
     }
 
 }

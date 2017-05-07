@@ -2737,7 +2737,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void pickResources(SOCGame ga, SOCResourceSet rscs)
     {
-        put(SOCDiscoveryPick.toCmd(ga.getName(), rscs));
+        put(SOCPickResources.toCmd(ga.getName(), rscs));
     }
 
     /**

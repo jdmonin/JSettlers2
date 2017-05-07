@@ -223,7 +223,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int DEVCARDCOUNT = 1047;
     public static final int SETPLAYEDDEVCARD = 1048;
     public static final int PLAYDEVCARDREQUEST = 1049;
-    public static final int DISCOVERYPICK = 1052;
+    /** {@link SOCPickResources} message; before v2.0.00, this was {@code DISCOVERYPICK} (class {@code SOCDiscoveryPick)}. */
+    public static final int PICKRESOURCES = 1052;
     public static final int MONOPOLYPICK = 1053;
     public static final int FIRSTPLAYER = 1054;
     public static final int SETTURN = 1055;
@@ -836,8 +837,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case PLAYDEVCARDREQUEST:
                 return SOCPlayDevCardRequest.parseDataStr(data);
 
-            case DISCOVERYPICK:  // Discovery/Year of Plenty, or v2.0.00 gold hex resources
-                return SOCDiscoveryPick.parseDataStr(data);
+            case PICKRESOURCES:  // Discovery/Year of Plenty, or v2.0.00 gold hex resources
+                return SOCPickResources.parseDataStr(data);
 
             case MONOPOLYPICK:
                 return SOCMonopolyPick.parseDataStr(data);

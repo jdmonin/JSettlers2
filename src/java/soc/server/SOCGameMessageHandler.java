@@ -286,15 +286,15 @@ public class SOCGameMessageHandler
             //saveCurrentGameEventRecord(((SOCPlayDevCardRequest)mes).getGame());
             break;
 
-        case SOCMessage.DISCOVERYPICK:  // Discovery / Year of Plenty / Gold Hex resource picks
+        case SOCMessage.PICKRESOURCES:  // Discovery / Year of Plenty / Gold Hex resource picks
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-            handleDISCOVERYPICK(game, connection, (SOCDiscoveryPick) message);
+            handlePICKRESOURCES(game, connection, (SOCPickResources) message);
 
-            //ga = (SOCGame)gamesData.get(((SOCDiscoveryPick)mes).getGame());
+            //ga = (SOCGame)gamesData.get(((SOCPickResources)mes).getGame());
             //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCDiscoveryPick)mes).getGame());
+            //saveCurrentGameEventRecord(((SOCPickResources)mes).getGame());
             break;
 
         case SOCMessage.MONOPOLYPICK:
@@ -2529,7 +2529,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleDISCOVERYPICK(SOCGame ga, StringConnection c, final SOCDiscoveryPick mes)
+    private void handlePICKRESOURCES(SOCGame ga, StringConnection c, final SOCPickResources mes)
     {
         final String gaName = ga.getName();
         final SOCResourceSet rsrcs = mes.getResources();
