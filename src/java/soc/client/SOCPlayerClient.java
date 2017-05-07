@@ -5834,10 +5834,7 @@ public class SOCPlayerClient
      */
     public void pickResources(SOCGame ga, SOCResourceSet rs)
     {
-        if (ga.getGameState() != SOCGame.WAITING_FOR_DISCOVERY)
-            put(SOCPickResources.toCmd(ga.getName(), rs), ga.isPractice);
-        else
-            put(SOCDiscoveryPick.toCmd(ga.getName(), rs), ga.isPractice);
+        put(SOCDiscoveryPick.toCmd(ga.getName(), rs), ga.isPractice);
     }
 
     /**

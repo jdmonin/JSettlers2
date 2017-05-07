@@ -286,7 +286,7 @@ public class SOCGameMessageHandler
             //saveCurrentGameEventRecord(((SOCPlayDevCardRequest)mes).getGame());
             break;
 
-        case SOCMessage.DISCOVERYPICK:
+        case SOCMessage.DISCOVERYPICK:  // Discovery / Year of Plenty / Gold Hex resource picks
 
             //createNewGameEventRecord();
             //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
@@ -337,14 +337,6 @@ public class SOCGameMessageHandler
          */
         case SOCMessage.MOVEPIECEREQUEST:
             handleMOVEPIECEREQUEST(game, connection, (SOCMovePieceRequest) message);
-            break;
-
-        /**
-         * Picking resources to gain from a Gold Hex.
-         * Added 2012-01-12 for v2.0.00.
-         */
-        case SOCMessage.PICKRESOURCES:
-            handlePICKRESOURCES(game, connection, (SOCPickResources) message);
             break;
 
         /**
@@ -785,135 +777,6 @@ public class SOCGameMessageHandler
                  * (TODO) there could be a better feedback message here
                  */
                 srv.messageToPlayer(c, gn, "You can't discard that many cards.");
-            }
-        }
-        catch (Throwable e)
-        {
-            D.ebugPrintStackTrace(e, "Exception caught");
-        }
-
-        ga.releaseMonitor();
-    }
-
-    /**
-     * Handle "pick resources" message (gold hex).
-     * Game state {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE},
-     * or rarely {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
-     * Also used with <tt>_SC_PIRI</tt> after winning a pirate fleet battle at dice roll.
-     *
-     * @param c  the connection that sent the message
-     * @param mes  the message
-     */
-    private void handlePICKRESOURCES(SOCGame ga, StringConnection c, final SOCPickResources mes)
-    {
-        final String gn = ga.getName();
-        final SOCPlayer player = ga.getPlayer((String) c.getData());
-        final int pn;
-        if (player != null)
-            pn = player.getPlayerNumber();
-        else
-            pn = -1;  // c's client no longer in the game
-
-        ga.takeMonitor();
-        try
-        {
-            if (player == null)
-            {
-                // The catch block will print this out semi-nicely
-                throw new IllegalArgumentException("player not found in game");
-            }
-
-            int gstate = ga.getGameState();
-            final SOCResourceSet rsrcs = mes.getResources();
-            if (ga.canPickGoldHexResources(pn, rsrcs))
-            {
-                final boolean fromInitPlace = ga.isInitialPlacement();
-                final boolean fromPirateFleet = ga.isPickResourceIncludingPirateFleet(pn);
-
-                ga.pickGoldHexResources(pn, rsrcs);
-                gstate = ga.getGameState();
-
-                /**
-                 * tell everyone what the player gained
-                 */
-                handler.reportRsrcGainGold(ga, player, pn, rsrcs, ! fromPirateFleet);
-
-                /**
-                 * send the new state, or end turn if was marked earlier as forced
-                 * -- for gold during initial placement, current player might also change.
-                 */
-                if ((gstate != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
-                {
-                    if (! fromInitPlace)
-                    {
-                        handler.sendGameState(ga);
-
-                        if (gstate == SOCGame.WAITING_FOR_DISCARDS)
-                        {
-                            // happens only in scenario _SC_PIRI, when 7 is rolled, player wins against pirate fleet
-                            // and has picked their won resource, and then someone must discard
-                            for (int i = 0; i < ga.maxPlayers; ++i)
-                            {
-                                SOCPlayer pl = ga.getPlayer(i);
-                                if (( ! ga.isSeatVacant(i) ) && pl.getNeedToDiscard())
-                                {
-                                    // Request to discard half (round down)
-                                    StringConnection con = srv.getConnection(pl.getName());
-                                    if (con != null)
-                                        con.put(SOCDiscardRequest.toCmd(gn, pl.getResources().getTotal() / 2));
-                                }
-                            }
-                        }
-                    } else {
-                        // send state, and current player if changed
-
-                        switch (gstate)
-                        {
-                        case SOCGame.START1B:
-                        case SOCGame.START2B:
-                        case SOCGame.START3B:
-                            // pl not changed: previously placed settlement, now placing road or ship
-                            handler.sendGameState(ga);
-                            break;
-
-                        case SOCGame.START1A:
-                        case SOCGame.START2A:
-                        case SOCGame.START3A:
-                            // Player probably changed, announce new player if so
-                            handler.sendGameState(ga, false);
-                            if (! handler.checkTurn(c, ga))
-                                handler.sendTurn(ga, true);
-                            break;
-
-                        case SOCGame.PLAY:
-                            // The last initial road was placed
-                            final boolean toldRoll = handler.sendGameState(ga, false);
-                            if (! handler.checkTurn(c, ga))
-                                // Announce new player (after START3A)
-                                handler.sendTurn(ga, true);
-                            else if (toldRoll)
-                                // When play starts, or after placing 2nd free road,
-                                // announce even though player unchanged,
-                                // to trigger auto-roll for the player.
-                                srv.messageToGame(gn, new SOCRollDicePrompt(gn, ga.getCurrentPlayerNumber()));
-                            break;
-                        }
-                    }
-                } else {
-                    // force-end game turn
-                    handler.endGameTurn(ga, player, true);  // locking: already did ga.takeMonitor()
-                }
-            }
-            else
-            {
-                srv.messageToPlayer(c, gn, "You can't pick that many resources.");
-                final int npick = player.getNeedToPickGoldHexResources();
-                if ((npick > 0) && (gstate < SOCGame.OVER))
-                    srv.messageToPlayer(c, new SOCSimpleRequest
-                        (gn, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, npick));
-                else
-                    srv.messageToPlayer(c, new SOCPlayerElement
-                        (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, 0));
             }
         }
         catch (Throwable e)
@@ -2660,7 +2523,7 @@ public class SOCGameMessageHandler
     }
 
     /**
-     * handle "discovery pick" message (while playing Discovery/Year of Plenty card).
+     * handle "discovery pick" (while playing Discovery/Year of Plenty card) / Gold Hex resource pick message.
      *
      * @param c  the connection that sent the message
      * @param mes  the message
@@ -2668,33 +2531,143 @@ public class SOCGameMessageHandler
      */
     private void handleDISCOVERYPICK(SOCGame ga, StringConnection c, final SOCDiscoveryPick mes)
     {
+        final String gaName = ga.getName();
+        final SOCResourceSet rsrcs = mes.getResources();
+
         ga.takeMonitor();
+
+        final SOCPlayer player = ga.getPlayer((String) c.getData());
+        final int pn;
+        if (player != null)
+            pn = player.getPlayerNumber();
+        else
+            pn = -1;  // c's client no longer in the game
 
         try
         {
-            final String gaName = ga.getName();
-            if (handler.checkTurn(c, ga))
+            if (player == null)
             {
-                SOCPlayer player = ga.getPlayer((String) c.getData());
-                final SOCResourceSet discovRsrcs = mes.getResources();
+                // The catch block will print this out semi-nicely
+                throw new IllegalArgumentException("player not found in game");
+            }
 
-                if (ga.canDoDiscoveryAction(discovRsrcs))
+            final int gstate = ga.getGameState();
+            if (gstate == SOCGame.WAITING_FOR_DISCOVERY)
+            {
+                // Message is Discovery/Year of Plenty picks
+
+                if (handler.checkTurn(c, ga))
                 {
-                    ga.doDiscoveryAction(discovRsrcs);
+                    if (ga.canDoDiscoveryAction(rsrcs))
+                    {
+                        ga.doDiscoveryAction(rsrcs);
 
-                    handler.reportRsrcGainLoss(gaName, discovRsrcs, false, player.getPlayerNumber(), -1, null, null);
-                    srv.messageToGameKeyedSpecial(ga, true, "action.card.discov.received", player.getName(), discovRsrcs);
-                        // "{0} received {1,rsrcs} from the bank."
-                    handler.sendGameState(ga);
+                        handler.reportRsrcGainLoss(gaName, rsrcs, false, pn, -1, null, null);
+                        srv.messageToGameKeyedSpecial(ga, true, "action.card.discov.received", player.getName(), rsrcs);
+                            // "{0} received {1,rsrcs} from the bank."
+                        handler.sendGameState(ga);
+                    }
+                    else
+                    {
+                        srv.messageToPlayerKeyed(c, gaName, "action.card.discov.notlegal");  // "That is not a legal Year of Plenty pick."
+                    }
                 }
                 else
                 {
-                    srv.messageToPlayerKeyed(c, gaName, "action.card.discov.notlegal");  // "That is not a legal Year of Plenty pick."
+                    srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
                 }
-            }
-            else
-            {
-                srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
+            } else {
+                // Message is Gold Hex picks
+
+                if (ga.canPickGoldHexResources(pn, rsrcs))
+                {
+                    final boolean fromInitPlace = ga.isInitialPlacement();
+                    final boolean fromPirateFleet = ga.isPickResourceIncludingPirateFleet(pn);
+
+                    ga.pickGoldHexResources(pn, rsrcs);
+
+                    /**
+                     * tell everyone what the player gained
+                     */
+                    handler.reportRsrcGainGold(ga, player, pn, rsrcs, ! fromPirateFleet);
+
+                    /**
+                     * send the new state, or end turn if was marked earlier as forced
+                     * -- for gold during initial placement, current player might also change.
+                     */
+                    if ((gstate != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
+                    {
+                        if (! fromInitPlace)
+                        {
+                            handler.sendGameState(ga);
+
+                            if (gstate == SOCGame.WAITING_FOR_DISCARDS)
+                            {
+                                // happens only in scenario _SC_PIRI, when 7 is rolled, player wins against pirate fleet
+                                // and has picked their won resource, and then someone must discard
+                                for (int i = 0; i < ga.maxPlayers; ++i)
+                                {
+                                    SOCPlayer pl = ga.getPlayer(i);
+                                    if (( ! ga.isSeatVacant(i) ) && pl.getNeedToDiscard())
+                                    {
+                                        // Request to discard half (round down)
+                                        StringConnection con = srv.getConnection(pl.getName());
+                                        if (con != null)
+                                            con.put(SOCDiscardRequest.toCmd(gaName, pl.getResources().getTotal() / 2));
+                                    }
+                                }
+                            }
+                        } else {
+                            // send state, and current player if changed
+
+                            switch (gstate)
+                            {
+                            case SOCGame.START1B:
+                            case SOCGame.START2B:
+                            case SOCGame.START3B:
+                                // pl not changed: previously placed settlement, now placing road or ship
+                                handler.sendGameState(ga);
+                                break;
+
+                            case SOCGame.START1A:
+                            case SOCGame.START2A:
+                            case SOCGame.START3A:
+                                // Player probably changed, announce new player if so
+                                handler.sendGameState(ga, false);
+                                if (! handler.checkTurn(c, ga))
+                                    handler.sendTurn(ga, true);
+                                break;
+
+                            case SOCGame.PLAY:
+                                // The last initial road was placed
+                                final boolean toldRoll = handler.sendGameState(ga, false);
+                                if (! handler.checkTurn(c, ga))
+                                    // Announce new player (after START3A)
+                                    handler.sendTurn(ga, true);
+                                else if (toldRoll)
+                                    // When play starts, or after placing 2nd free road,
+                                    // announce even though player unchanged,
+                                    // to trigger auto-roll for the player.
+                                    srv.messageToGame(gaName, new SOCRollDicePrompt(gaName, ga.getCurrentPlayerNumber()));
+                                break;
+                            }
+                        }
+                    } else {
+                        // force-end game turn
+                        handler.endGameTurn(ga, player, true);  // locking: already did ga.takeMonitor()
+                    }
+                }
+                else
+                {
+                    srv.messageToPlayer(c, gaName, "You can't pick that many resources.");
+                    final int npick = player.getNeedToPickGoldHexResources();
+                    if ((npick > 0) && (gstate < SOCGame.OVER))
+                        srv.messageToPlayer(c, new SOCSimpleRequest
+                            (gaName, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, npick));
+                    else
+                        srv.messageToPlayer(c, new SOCPlayerElement
+                            (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, 0));
+                }
             }
         }
         catch (Exception e)

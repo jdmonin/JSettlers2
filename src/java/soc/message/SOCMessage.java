@@ -333,11 +333,6 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  @since 2.0.00 */
     public static final int REMOVEPIECE = 1095;  // pirate islands scenario, 20130218, v2.0.00
 
-    /** Client reply to {@link #SIMPLEREQUEST}(PROMPT_PICK_RESOURCES).
-     *  Has picked these resource types/counts.
-     *  @since 2.0.00 */
-    public static final int PICKRESOURCES = 1777;  // gold hex resources, 20120112, v2.0.00; removing soon
-
     /** Reveal a hidden hex on the board; server to all clients in game.
      *  @since 2.0.00 */
     public static final int REVEALFOGHEX = 1096;  // fog hexes, 20121108, v2.0.00
@@ -841,7 +836,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case PLAYDEVCARDREQUEST:
                 return SOCPlayDevCardRequest.parseDataStr(data);
 
-            case DISCOVERYPICK:
+            case DISCOVERYPICK:  // Discovery/Year of Plenty, or v2.0.00 gold hex resources
                 return SOCDiscoveryPick.parseDataStr(data);
 
             case MONOPOLYPICK:
@@ -978,9 +973,6 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case REMOVEPIECE:       // pirate islands scenario, 20130218, v2.0.00
                 return SOCRemovePiece.parseDataStr(data);
-
-            case PICKRESOURCES:     // gold hex resources, 20120112, v2.0.00
-                return SOCPickResources.parseDataStr(data);
 
             case REVEALFOGHEX:      // fog hexes, 20121108, v2.0.00
                 return SOCRevealFogHex.parseDataStr(data);

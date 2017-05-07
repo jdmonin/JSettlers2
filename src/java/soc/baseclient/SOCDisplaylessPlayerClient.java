@@ -2632,18 +2632,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * The user wants to pick these resources to gain from the gold hex.
-     *
-     * @param ga  the game
-     * @param rs  Resources to gain
-     * @since 2.0.00
-     */
-    public void pickFreeResources(SOCGame ga, SOCResourceSet rs)
-    {
-        put(SOCPickResources.toCmd(ga.getName(), rs));
-    }
-
-    /**
      * The user chose a player to steal from,
      * or (game state {@link SOCGame#WAITING_FOR_ROBBER_OR_PIRATE})
      * chose whether to move the robber or the pirate,
@@ -2739,12 +2727,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user picked 2 resources to discover
+     * the user picked 2 resources to discover (Year of Plenty),
+     * or picked these resources to gain from the gold hex.
+     *<P>
+     * Before v2.0.00, this method was {@code discoveryPick(..)}.
      *
      * @param ga    the game
      * @param rscs  the resources
      */
-    public void discoveryPick(SOCGame ga, SOCResourceSet rscs)
+    public void pickResources(SOCGame ga, SOCResourceSet rscs)
     {
         put(SOCDiscoveryPick.toCmd(ga.getName(), rscs));
     }

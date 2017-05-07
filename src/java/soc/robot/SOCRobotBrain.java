@@ -1546,7 +1546,7 @@ public class SOCRobotBrain extends Thread
                                 waitingForGameState = true;
                                 expectPLAY1 = true;
                                 counter = 0;
-                                client.discoveryPick(game, resourceChoices);
+                                client.pickResources(game, resourceChoices);
                                 pause(1500);
                             }
                         }
@@ -4519,7 +4519,7 @@ public class SOCRobotBrain extends Thread
             }
         }
 
-        client.pickFreeResources(game, resourceChoices);
+        client.pickResources(game, resourceChoices);
     }
 
     /**

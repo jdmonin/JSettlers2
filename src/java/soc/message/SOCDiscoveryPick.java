@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2010,2014,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +20,7 @@
  **/
 package soc.message;
 
+import soc.game.SOCGame;  // for javadocs only
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 
@@ -27,8 +28,29 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message says which resources the player picked
- * for a Discovery card
+ * This message from client says which resources the player picked for a
+ * Discovery/Year of Plenty card, or (v2.0.00+) free resources from the Gold Hex
+ * or other events in Sea Board scenarios.
+ *<P>
+ * For <B>Discovery/Year of Plenty,</B> this is the client response to server's
+ * {@link SOCGameState GAMESTATE}({@link SOCGame#WAITING_FOR_DISCOVERY WAITING_FOR_DISCOVERY}).
+ *<P>
+ * For <B>Gold Hex</B> picks or other Sea Board scenarios, this is the Client response to server's
+ * {@link SOCSimpleRequest}({@link SOCSimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES}).
+ * (Same prompt/response pattern as {@link SOCDiscardRequest} / {@link SOCDiscard}.)
+ *<BR>
+ * If the resource count is wrong, the server will resend {@code SOCSimpleRequest(PROMPT_PICK_RESOURCES)}
+ * with the required resource count.
+ *<BR>
+ * Otherwise: <BR>
+ * The server will report the picked resources to the other players via {@link SOCPlayerElement} and text, but
+ * will not send a {@code SOCPickResources} message to other players. The server will also send all players a
+ * {@link SOCPlayerElement}({@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}, 0).
+ *<P>
+ * Also used in scenario SC_PIRI when player wins a free resource for defeating the
+ * pirate fleet attack at a dice roll.
+ *<P>
+ * Before v2.0.00, this message class was called {@code SOCDiscoveryPick}.
  *
  * @author Robert S. Thomas
  */
@@ -43,15 +65,31 @@ public class SOCDiscoveryPick extends SOCMessage
     private String game;
 
     /**
-     * The chosen resources
+     * The set of resources picked to be gained
      */
     private SOCResourceSet resources;
 
     /**
+     * Create a Pick Resources message.
+     *
+     * @param ga  the name of the game
+     * @param cl  the amount of clay being picked
+     * @param or  the amount of ore being picked
+     * @param sh  the amount of sheep being picked
+     * @param wh  the amount of wheat being picked
+     * @param wo  the amount of wood being picked
+     * @since 2.0.00
+     */
+    public SOCDiscoveryPick(String ga, int cl, int or, int sh, int wh, int wo)
+    {
+        this(ga, new SOCResourceSet(cl, or, sh, wh, wo, 0));
+    }
+
+    /**
      * Create a DiscoveryPick message.
      *
-     * @param ga   the name of the game
-     * @param rs   the chosen resources
+     * @param ga  the name of the game
+     * @param rs  the resources being picked
      */
     public SOCDiscoveryPick(String ga, SOCResourceSet rs)
     {
@@ -69,7 +107,7 @@ public class SOCDiscoveryPick extends SOCMessage
     }
 
     /**
-     * @return the chosen resources
+     * @return the set of picked resources
      */
     public SOCResourceSet getResources()
     {
@@ -77,6 +115,8 @@ public class SOCDiscoveryPick extends SOCMessage
     }
 
     /**
+     * PICKRESOURCES sep game sep2 clay sep2 ore sep2 sheep sep2 wheat sep2 wood
+     *
      * @return the command string
      */
     public String toCmd()
@@ -85,10 +125,11 @@ public class SOCDiscoveryPick extends SOCMessage
     }
 
     /**
-     * @return the command string
+     * Build a command string for this message.
      *
      * @param ga  the name of the game
-     * @param rs   the chosen resources
+     * @param rs  the resources being picked
+     * @return the command string
      */
     public static String toCmd(String ga, SOCResourceSet rs)
     {
@@ -104,38 +145,54 @@ public class SOCDiscoveryPick extends SOCMessage
     }
 
     /**
+     * PICKRESOURCES sep game sep2 clay sep2 ore sep2 sheep sep2 wheat sep2 wood
+     *
+     * @param ga  the name of the game
+     * @param cl  the amount of clay being picked
+     * @param or  the amount of ore being picked
+     * @param sh  the amount of sheep being picked
+     * @param wh  the amount of wheat being picked
+     * @param wo  the amount of wood being picked
+     * @return the command string
+     * @since 2.0.00
+     */
+    public static String toCmd(String ga, int cl, int or, int sh, int wh, int wo)
+    {
+        return DISCOVERYPICK + sep + ga + sep2 + cl + sep2 + or + sep2 + sh + sep2 + wh + sep2 + wo;
+    }
+
+    /**
      * Parse the command String into a DiscoveryPick message
      *
      * @param s   the String to parse
-     * @return    a DiscoveryPick message, or null of the data is garbled
+     * @return    a DiscoveryPick message, or null if the data is garbled
      */
     public static SOCDiscoveryPick parseDataStr(String s)
     {
-        String ga; // the game name
-        SOCResourceSet rs; // the chosen resources
-
-        rs = new SOCResourceSet();
+        final String ga; // the game name
+        final int cl, // the amount of clay being picked
+                  or, // the amount of ore being picked
+                  sh, // the amount of sheep being picked
+                  wh, // the amount of wheat being picked
+                  wo; // the amount of wood being picked
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
         {
             ga = st.nextToken();
-
-            /**
-             * Note: this only works if SOCResourceConstants.CLAY == 1
-             */
-            for (int i = 1; i <= SOCResourceConstants.WOOD; i++)
-            {
-                rs.setAmount(Integer.parseInt(st.nextToken()), i);
-            }
+            cl = Integer.parseInt(st.nextToken());
+            or = Integer.parseInt(st.nextToken());
+            sh = Integer.parseInt(st.nextToken());
+            wh = Integer.parseInt(st.nextToken());
+            wo = Integer.parseInt(st.nextToken());
         }
         catch (Exception e)
         {
             return null;
         }
 
-        return new SOCDiscoveryPick(ga, rs);
+        return new SOCDiscoveryPick(ga, cl, or, sh, wh, wo);
     }
 
     /**
@@ -145,4 +202,5 @@ public class SOCDiscoveryPick extends SOCMessage
     {
         return "SOCDiscoveryPick:game=" + game + "|resources=" + resources;
     }
+
 }
