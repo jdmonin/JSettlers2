@@ -206,21 +206,21 @@ public interface PlayerClientListener
     void requestedDiscard(int countToDiscard);
 
     /**
-     * The client player gets some free resources of their choice.
+     * The client player must pick which free resource(s) to receive.
      * Used with "Year of Plenty"/"Discovery" cards, and the Gold Hex.
-     * @param countToSelect  Must choose this many resources
+     * @param countToPick  Must choose this many resources
      * @see #requestedGoldResourceCountUpdated(SOCPlayer, int)
      */
-    void requestedResourceSelect(int countToSelect);
+    void promptPickResources(int countToPick);
 
     /**
      * This player must pick this many gold-hex resources, or no longer needs to pick them.
-     * Informational only: do not ask the client player to pick resources,
-     * {@link #requestedResourceSelect(int)} is used for that.
+     * Update displays accordingly. This method is informational only: Do not ask
+     * the client player to pick resources, {@link #promptPickResources(int)} is used for that.
      * @param player  The player
      * @param countToSelect  Number of free resources they must pick, or 0 if they've just picked them
      */
-    void requestedGoldResourceCountUpdated(SOCPlayer player, int countToSelect);
+    void requestedGoldResourceCountUpdated(SOCPlayer player, int countToPick);
 
     /**
      * This player must choose a player for robbery.

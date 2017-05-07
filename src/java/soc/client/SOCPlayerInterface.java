@@ -3226,7 +3226,7 @@ public class SOCPlayerInterface extends Frame
                 pi.getBuildingPanel().updateButtonStatus();
         }
 
-        public void requestedGoldResourceCountUpdated(SOCPlayer player, int countToSelect)
+        public void requestedGoldResourceCountUpdated(SOCPlayer player, int countToPick)
         {
             final SOCHandPanel hpan = pi.getPlayerHandPanel(player.getPlayerNumber());
             hpan.updatePickGoldHexResources();
@@ -3439,7 +3439,7 @@ public class SOCPlayerInterface extends Frame
                 break;
 
             case SOCSimpleRequest.PROMPT_PICK_RESOURCES:
-                requestedResourceSelect(value1);
+                promptPickResources(value1);
                 break;
 
             default:
@@ -3635,9 +3635,9 @@ public class SOCPlayerInterface extends Frame
             pi.showDiscardOrGainDialog(countToDiscard, true);
         }
 
-        public void requestedResourceSelect(int countToDiscard)
+        public void promptPickResources(int countToPick)
         {
-            pi.showDiscardOrGainDialog(countToDiscard, false);
+            pi.showDiscardOrGainDialog(countToPick, false);
         }
 
         public void requestedChoosePlayer(final List<SOCPlayer> choices, final boolean isNoneAllowed)
