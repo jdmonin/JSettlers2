@@ -788,9 +788,10 @@ public class SOCServer extends Server
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now
      * @throws SQLException   If db setup script fails
+     * @throws IllegalStateException  If {@link Version#versionNumber()} returns 0 (packaging error)
      */
     public SOCServer(int p, int mc, String databaseUserName, String databasePassword)
-        throws SocketException, EOFException, SQLException
+        throws SocketException, EOFException, SQLException, IllegalStateException
     {
         super(p);
         maxConnections = mc;
@@ -856,9 +857,10 @@ public class SOCServer extends Server
      *       with bad syntax. See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for expected syntax.
      *       See {@link #parseCmdline_DashedArgs(String[])} for how game option properties are checked.
      *       {@link Throwable#getMessage()} will have problem details.
+     * @throws IllegalStateException  If {@link Version#versionNumber()} returns 0 (packaging error)
      */
     public SOCServer(final int p, Properties props)
-        throws SocketException, EOFException, SQLException, IllegalArgumentException
+        throws SocketException, EOFException, SQLException, IllegalArgumentException, IllegalStateException
     {
         super(p);
 
@@ -892,9 +894,10 @@ public class SOCServer extends Server
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now
      * @throws SQLException   If db setup script fails
+     * @throws IllegalStateException  If {@link Version#versionNumber()} returns 0 (packaging error)
      */
     public SOCServer(String s, int mc, String databaseUserName, String databasePassword)
-        throws SocketException, EOFException, SQLException
+        throws SocketException, EOFException, SQLException, IllegalStateException
     {
         super(s);
 
@@ -953,11 +956,16 @@ public class SOCServer extends Server
      *       with bad syntax. See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for expected syntax.
      *       See {@link #parseCmdline_DashedArgs(String[])} for how game option properties are checked.
      *       {@link Throwable#getMessage()} will have problem details.
+     * @throws IllegalStateException  If {@link Version#versionNumber()} returns 0 (packaging error)
      */
     private void initSocServer(String databaseUserName, String databasePassword, Properties props)
-        throws SocketException, EOFException, SQLException, IllegalArgumentException
+        throws SocketException, EOFException, SQLException, IllegalArgumentException, IllegalStateException
     {
         Version.printVersionText(System.err, "Java Settlers Server ");
+        if (Version.versionNumber() == 0)
+        {
+            throw new IllegalStateException("Packaging error: Cannot determine JSettlers version");
+        }
 
         // Set this flag as early as possible
         hasUtilityModeProp = (props != null)
@@ -11681,13 +11689,14 @@ public class SOCServer extends Server
     }
 
     /**
-     * Starting the server from the command line
+     * Starting the server from the command line.
+     * Creates and starts a {@link SOCServer} via {@link #SOCServer(int, Properties)}.
      *<P>
      * Checks for the optional server startup properties file <tt>jsserver.properties</tt>,
      * and parses the command line for switches. If a property appears on the command line and
      * also in <tt>jsserver.properties</tt>, the command line's value overrides the file's.
      *<P>
-     * If there are problems with the network setup,
+     * If there are problems with the network setup, the jar packaging,
      * or with running a {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP db setup script},
      * this method will call {@link System#exit(int) System.exit(1)}.
      *<P>
@@ -11705,9 +11714,16 @@ public class SOCServer extends Server
             printUsage(false);
             return;
         }
+
         if (hasStartupPrintAndExit)
         {
             return;
+        }
+
+        if (Version.versionNumber() == 0)
+        {
+            System.err.println("*** Packaging Error in server JAR: Cannot determine JSettlers version. Exiting now.");
+            System.exit(1);
         }
 
         try
@@ -11766,6 +11782,12 @@ public class SOCServer extends Server
             {
                 System.err.println(e.getMessage());
                 System.err.println("\n* Error in game options properties: Exiting now.\n");
+                System.exit(1);
+            }
+            catch (IllegalStateException e)
+            {
+                System.err.println(e.getMessage());
+                System.err.println("\n* Packaging Error in server JAR: Exiting now.\n");
                 System.exit(1);
             }
         }

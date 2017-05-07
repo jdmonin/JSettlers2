@@ -18,6 +18,7 @@ and backport minor new features until 2.0.00 is ready.
 - Game window during debug: Reset "current player" indicator when exiting *FREEPLACE* debug mode
 - Client initial Connect dialog: If username given, ensure New Game button is enabled
 - Client debug, bot debug: Print network message contents if system property jsettlers.debug.traffic is set
+- Startup: Show error if can't read own JSettlers version info
 
     > 1.1.20 (build OV20161024)
 - Board hex graphics updated for smoother look and scaling

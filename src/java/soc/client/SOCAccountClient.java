@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2009-2011,2013-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2011,2013-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -548,6 +548,7 @@ public class SOCAccountClient extends Applet
      * Attempts to connect to the server. See {@link #connected} for success or
      * failure.
      * @throws IllegalStateException if already connected 
+     *         or if {@link Version#versionNumber()} returns 0 (packaging error)
      */
     public synchronized void connect()
     {
@@ -557,6 +558,13 @@ public class SOCAccountClient extends Applet
             throw new IllegalStateException("Already connected to " +
                                             hostString);
         }
+
+        if (Version.versionNumber() == 0)
+        {
+            messageLabel.setText("Packaging error: Cannot determine JSettlers version");
+            throw new IllegalStateException("Packaging error: Cannot determine JSettlers version");
+        }
+
         System.out.println("Connecting to " + hostString);
         messageLabel.setText("Connecting to server...");
 

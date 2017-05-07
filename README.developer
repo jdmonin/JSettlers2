@@ -116,9 +116,15 @@ Setup instructions for JSettlers as an Eclipse project
 - Browse to jsettlers-1.x.xx-src/build.xml, select the "javac" task in target "compile".
 - Project -> Properties: Resource: Text file encoding: UTF-8
 - You'll need to build once before you run it, to create version.info from resources/version.info.in.
+  This is true even if you're running SOCServer or SOCPlayerClient as Java apps within Eclipse,
+  otherwise startup will fail with this error:
+	Packaging error: Cannot determine JSettlers version
 
 Continue reading to see how to set up the builds and the coding style in Eclipse.
 
+
+Recommended debug/run configurations for testing
+------------------------------------------------
 In my Eclipse project, I've created these debug/run configurations for testing:
 
 Java applet: soc.client.SOCPlayerClient

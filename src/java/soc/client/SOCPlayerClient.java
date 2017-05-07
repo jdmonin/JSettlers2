@@ -1024,9 +1024,16 @@ public class SOCPlayerClient extends Applet
      * @param cport Port number to connect to
      * @param cuser User nickname
      * @param cpass User optional password
+     * @throws IllegalStateException if {@link Version#versionNumber()} returns 0 (packaging error)
      */
     public void connect(String chost, int cport, String cuser, String cpass)
+        throws IllegalStateException
     {
+        if (Version.versionNumber() == 0)
+        {
+            throw new IllegalStateException("Packaging error: Cannot determine JSettlers version");
+        }
+
         host = chost;
         port = cport;
         nick.setEditable(true);  // in case of reconnect. Will disable after starting or joining a game.
@@ -1052,9 +1059,11 @@ public class SOCPlayerClient extends Applet
      * and version was sent in reply to server's version.
      *
      * @throws IllegalStateException if already connected
+     *         or if {@link Version#versionNumber()} returns 0 (packaging error)
      * @see soc.server.SOCServer#newConnection1(StringConnection)
      */
     public synchronized void connect()
+        throws IllegalStateException
     {
         String hostString = (host != null ? host : "localhost") + ":" + port;
         if (connected)
@@ -1062,7 +1071,12 @@ public class SOCPlayerClient extends Applet
             throw new IllegalStateException("Already connected to " +
                                             hostString);
         }
-                
+
+        if (Version.versionNumber() == 0)
+        {
+            throw new IllegalStateException("Packaging error: Cannot determine JSettlers version");
+        }
+
         System.out.println("Connecting to " + hostString);
         messageLabel.setText("Connecting to server...");
         
@@ -5209,15 +5223,20 @@ public class SOCPlayerClient extends Applet
     /**
      * Create a game name, and start a practice game.
      * Assumes {@link #MAIN_PANEL} is initialized.
+     * See {@link #startPracticeGame(String, Hashtable, boolean)} for details.
+     * @return True if the practice game request was sent, false if there was a problem
+     *         starting the practice server or client
      */
-    public void startPracticeGame()
+    public boolean startPracticeGame()
     {
-        startPracticeGame(null, null, true);
+        return startPracticeGame(null, null, true);
     }
 
     /**
      * Setup for local practice game (local non-tcp server).
      * If needed, a (stringport, not tcp) server, client, and robots are started.
+     *<P>
+     * Will not start the practice server if {@link Version#versionNumber()} returns 0 (packaging error).
      *
      * @param practiceGameName Unique name to give practice game; if name unknown, call
      *         {@link #startPracticeGame()} instead
@@ -5225,8 +5244,10 @@ public class SOCPlayerClient extends Applet
      * @param mainPanelIsActive Is the SOCPlayerClient main panel active?
      *         False if we're being called from elsewhere, such as
      *         {@link SOCConnectOrPracticePanel}.
+     * @return True if the practice game request was sent, false if there was a problem
+     *         starting the practice server or client
      */
-    public void startPracticeGame(String practiceGameName, Hashtable gameOpts, boolean mainPanelIsActive)
+    public boolean startPracticeGame(String practiceGameName, Hashtable gameOpts, boolean mainPanelIsActive)
     {
         ++numPracticeGames;
 
@@ -5241,6 +5262,11 @@ public class SOCPlayerClient extends Applet
         {
             try
             {
+                if (Version.versionNumber() == 0)
+                {
+                    throw new IllegalStateException("Packaging error: Cannot determine JSettlers version");
+                }
+
                 practiceServer = new SOCServer(SOCServer.PRACTICE_STRINGPORT, SOCServer.SOC_MAXCONN_DEFAULT, null, null);
                 practiceServer.setPriority(5);  // same as in SOCServer.main
                 practiceServer.start();
@@ -5253,6 +5279,8 @@ public class SOCPlayerClient extends Applet
             {
                 NotifyDialog.createAndShow
                     (this, null, "Problem starting practice server:\n" + th, "Cancel", true);
+
+                return false;
             }
         }
         if (prCli == null)
@@ -5272,7 +5300,8 @@ public class SOCPlayerClient extends Applet
             catch (ConnectException e)
             {
                 ex_L = e;
-                return;
+
+                return false;
             }
         }
 
@@ -5281,6 +5310,8 @@ public class SOCPlayerClient extends Applet
             putPractice(SOCJoinGame.toCmd(nickname, "", host, practiceGameName));
         else
             putPractice(SOCNewGameWithOptionsRequest.toCmd(nickname, "", host, practiceGameName, gameOpts));
+
+        return true;
     }
 
     /**
@@ -5453,8 +5484,9 @@ public class SOCPlayerClient extends Applet
      * instead of the main user/password/games/channels panel ({@link #MAIN_PANEL}).
      *<P>
      * If {@link #hasConnectOrPractice we have the startup panel} (started as JAR client
-     * app, not applet) with buttons to connect to a server or practice, we'll show that
-     * instead of the simpler practice-only message panel.
+     * app, not applet) with buttons to connect to a server or practice, and
+     * {@code canPractice} is true, shows that panel instead of the simpler
+     * practice-only message panel.
      *
      * @param err  Error message to show
      * @param canPractice  In current state of client, can we start a practice game?
@@ -5479,7 +5511,7 @@ public class SOCPlayerClient extends Applet
             pgm.setVisible(false);
         }
 
-        if (hasConnectOrPractice)
+        if (hasConnectOrPractice && canPractice)
         {
             // If we have the startup panel with buttons to connect to a server or practice,
             // prep to show that by un-setting read-only fields we'll need again after connect.
@@ -5589,6 +5621,12 @@ public class SOCPlayerClient extends Applet
         frame.add(client, BorderLayout.CENTER);
         frame.setSize(620, 400);
         frame.setVisible(true);
+
+        if (Version.versionNumber() == 0)
+        {
+            client.showErrorPanel("Packaging error: Cannot determine JSettlers version", false);
+            return;
+        }
 
         if (! withConnectOrPractice)
             client.connect();
