@@ -8042,7 +8042,7 @@ public class SOCServer extends Server
 
         if (Version.versionNumber() == 0)
         {
-            System.err.println("*** Exiting: Packaging error: Cannot determine JSettlers version");
+            System.err.println("*** Packaging Error in server JAR: Cannot determine JSettlers version. Exiting now.");
                 // I18N: Can't localize this, the i18n files are provided by the same packaging steps
                 // which would create /resources/version.info
             System.exit(1);

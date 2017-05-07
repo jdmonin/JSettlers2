@@ -6181,11 +6181,14 @@ public class SOCPlayerClient
     /**
      * Create a game name, and start a practice game.
      * Assumes {@link GameAwtDisplay#MAIN_PANEL} is initialized.
+     * See {@link #startPracticeGame(String, Map, boolean)} for details.
+     * @return True if the practice game request was sent, false if there was a problem
+     *         starting the practice server or client
      * @since 1.1.00
      */
-    public void startPracticeGame()
+    public boolean startPracticeGame()
     {
-        startPracticeGame(null, null, true);
+        return startPracticeGame(null, null, true);
     }
 
     /**
@@ -6198,9 +6201,11 @@ public class SOCPlayerClient
      * @param mainPanelIsActive Is the SOCPlayerClient main panel active?
      *         False if we're being called from elsewhere, such as
      *         {@link SOCConnectOrPracticePanel}.
+     * @return True if the practice game request was sent, false if there was a problem
+     *         starting the practice server or client
      * @since 1.1.00
      */
-    public void startPracticeGame
+    public boolean startPracticeGame
         (String practiceGameName, final Map<String, SOCGameOption> gameOpts, final boolean mainPanelIsActive)
     {
         ++numPracticeGames;
@@ -6212,7 +6217,7 @@ public class SOCPlayerClient
         // The new-game window will clear this cursor.
         gameDisplay.practiceGameStarting();
 
-        net.startPracticeGame(practiceGameName, gameOpts);
+        return net.startPracticeGame(practiceGameName, gameOpts);
     }
 
     /**
@@ -6454,20 +6459,20 @@ public class SOCPlayerClient
          * Start a practice game.  If needed, create and start {@link #practiceServer}.
          * @param practiceGameName  Game name
          * @param gameOpts  Game options
-         * @throws IllegalStateException if {@link Version#versionNumber()} returns 0 (packaging error)
+         * @return True if the practice game request was sent, false if there was a problem
+         *         starting the practice server or client
          */
-        public void startPracticeGame(final String practiceGameName, final Map<String, SOCGameOption> gameOpts)
-            throws IllegalStateException
+        public boolean startPracticeGame(final String practiceGameName, final Map<String, SOCGameOption> gameOpts)
         {
             if (practiceServer == null)
             {
-                if (Version.versionNumber() == 0)
-                {
-                    throw new IllegalStateException("Packaging error: Cannot determine JSettlers version");
-                }
-
                 try
                 {
+                    if (Version.versionNumber() == 0)
+                    {
+                        throw new IllegalStateException("Packaging error: Cannot determine JSettlers version");
+                    }
+
                     practiceServer = new SOCServer(SOCServer.PRACTICE_STRINGPORT, SOCServer.SOC_MAXCONN_DEFAULT, null, null);
                     practiceServer.setPriority(5);  // same as in SOCServer.main
                     practiceServer.start();
@@ -6481,6 +6486,8 @@ public class SOCPlayerClient
                     client.gameDisplay.showErrorDialog
                         (client.strings.get("pcli.error.startingpractice") + "\n" + th,  // "Problem starting practice server:"
                          client.strings.get("base.cancel"));
+
+                    return false;
                 }
             }
 
@@ -6501,7 +6508,8 @@ public class SOCPlayerClient
                 catch (ConnectException e)
                 {
                     ex_P = e;
-                    return;
+
+                    return false;
                 }
             }
 
@@ -6511,6 +6519,8 @@ public class SOCPlayerClient
             else
                 putPractice(SOCNewGameWithOptionsRequest.toCmd
                     (client.nickname, "", getHost(), practiceGameName, gameOpts));
+
+            return true;
         }
 
         /**

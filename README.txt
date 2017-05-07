@@ -70,8 +70,9 @@ The JSettlers-full.jar file can also run locally as a server, without
 needing a web server.  The applet is considered more convenient,
 because you know everyone will have the same version.
 
-To build JSettlers from source, you will need Apache Ant, available from
-http://ant.apache.org, or an IDE such as Eclipse which understands Ant's format.
+To build JSettlers from source, you will need Java JDK 1.5 or newer and Apache Ant,
+available from http://ant.apache.org, or an IDE such as Eclipse which understands
+Ant's format. See README.developer for details.
 
 
 Server Setup and Testing

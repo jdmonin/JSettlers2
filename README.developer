@@ -50,7 +50,7 @@ Options have flags for their properties ("hidden internal option", "drop if not 
 All scenario-related game option keynames start with "_SC_", and provide special rules for the scenario.
 
 Coding is done in Java 5, but should compile cleanly in newer JDKs.
-(Before v1.2.00, we restricted ourselves to 1.4 for backwards compatibility.)
+(Before v1.2.00, we restricted ourselves to java 1.4 for backwards compatibility.)
 The build system is Ant, which is natively understood by Eclipse.
 Use any IDE you want, including vi.  Use spaces, not tabs.  Please try to keep the other
 conventions of the code already there (see "Coding Style" below for more details.).
