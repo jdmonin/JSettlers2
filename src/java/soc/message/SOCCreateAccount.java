@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014,2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -181,10 +181,10 @@ public class SOCCreateAccount extends SOCMessage
 
     /**
      * Parse the command String into a CreateAccount message.
-     * A blank email field becomes "" (not null).
+     * A blank email field becomes "", not null.
      *
      * @param s   the String to parse
-     * @return    a CreateAccount message, or null of the data is garbled
+     * @return    a CreateAccount message, or null if the data is garbled
      */
     public static SOCCreateAccount parseDataStr(String s)
     {
@@ -201,11 +201,8 @@ public class SOCCreateAccount extends SOCMessage
             pw = st.nextToken();
             hn = st.nextToken();
             em = st.nextToken();
-
             if (em.equals(NULLEMAIL))
-            {
                 em = "";
-            }
         }
         catch (Exception e)
         {

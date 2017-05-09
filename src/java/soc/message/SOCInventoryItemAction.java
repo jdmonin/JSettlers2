@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2016-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -300,7 +300,7 @@ public class SOCInventoryItemAction extends SOCMessage
      * Parse the command String into an InventoryItemAction message.
      *
      * @param s   the String to parse
-     * @return    an InventoryItemAction message, or null of the data is garbled
+     * @return    an InventoryItemAction message, or null if the data is garbled
      */
     public static SOCInventoryItemAction parseDataStr(String s)
     {

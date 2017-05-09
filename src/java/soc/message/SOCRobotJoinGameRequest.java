@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2013-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2013-2015,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -131,7 +131,7 @@ public class SOCRobotJoinGameRequest extends SOCMessage
      * Parse the command String into a RobotJoinGameRequest message
      *
      * @param s   the String to parse
-     * @return    a RobotJoinGameRequest message, or null of the data is garbled
+     * @return    a RobotJoinGameRequest message, or null if the data is garbled
      */
     public static SOCRobotJoinGameRequest parseDataStr(String s)
     {

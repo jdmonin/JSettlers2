@@ -113,7 +113,7 @@ public class SOCGameState extends SOCMessage
      * Parse the command String into a GameState message
      *
      * @param s   the String to parse
-     * @return    a GameState message, or null of the data is garbled
+     * @return    a GameState message, or null if the data is garbled
      */
     public static SOCGameState parseDataStr(String s)
     {

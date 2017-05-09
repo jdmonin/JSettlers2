@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011,2013,2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011,2013,2015,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003-2004  Robert S. Thomas
  *
  * This program is free software; you can redistribute it and/or
@@ -81,10 +81,10 @@ public class SOCTimingPing extends SOCMessage
     }
 
     /**
-     * Parse the command String into a GameTextMsg message
+     * Parse the command String into a TIMINGPING message.
      *
-     * @param s   the String to parse; should contain only the game name.
-     * @return    a GameTextMsg message, or null of the data is garbled
+     * @param s   the String to parse; should contain only the game name
+     * @return    a TIMINGPING message, or null if the data is garbled
      */
     public static SOCTimingPing parseDataStr(String s)
     {

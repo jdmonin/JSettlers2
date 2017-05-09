@@ -106,10 +106,10 @@ public class SOCTurn extends SOCMessage
     }
 
     /**
-     * Parse the command String into a StartGame message
+     * Parse the command String into a TURN message.
      *
      * @param s   the String to parse
-     * @return    a StartGame message, or null of the data is garbled
+     * @return    a TURN message, or null if the data is garbled
      */
     public static SOCTurn parseDataStr(String s)
     {

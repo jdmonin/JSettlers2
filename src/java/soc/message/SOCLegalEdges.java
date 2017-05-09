@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012,2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2014,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -124,7 +124,7 @@ public class SOCLegalEdges extends SOCMessage
      * Parse the command String into a SOCLegalEdges message
      *
      * @param s   the String to parse
-     * @return    a LEGALEDGES message, or null of the data is garbled
+     * @return    a LEGALEDGES message, or null if the data is garbled
      */
     public static SOCLegalEdges parseDataStr(String s)
     {

@@ -103,7 +103,7 @@ public class SOCDiscardRequest extends SOCMessage
      * Parse the command String into a DiscardRequest message
      *
      * @param s   the String to parse
-     * @return    a DiscardRequest message, or null of the data is garbled
+     * @return    a DiscardRequest message, or null if the data is garbled
      */
     public static SOCDiscardRequest parseDataStr(String s)
     {

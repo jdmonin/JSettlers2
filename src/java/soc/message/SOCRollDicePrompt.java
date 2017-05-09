@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2007-2008,2010,2013,2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2007-2008,2010,2013,2016-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -103,10 +103,10 @@ public class SOCRollDicePrompt extends SOCMessage
     }
 
     /**
-     * Parse the command String into a RollDiceRequest message
+     * Parse the command String into a ROLLDICEPROMPT message.
      *
      * @param s   the String to parse
-     * @return    a DiceResult message, or null of the data is garbled
+     * @return    a ROLLDICEPROMPT message, or null if the data is garbled
      */
     public static SOCRollDicePrompt parseDataStr(String s)
     {

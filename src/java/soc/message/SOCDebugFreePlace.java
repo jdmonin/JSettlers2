@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011,2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011,2014,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -159,10 +159,10 @@ public class SOCDebugFreePlace extends SOCMessage
     }
 
     /**
-     * parse the command string into a PutPiece message
+     * parse the command string into a DEBUGFREEPLACE message.
      *
      * @param s   the String to parse
-     * @return    a TextMsg message, or null of the data is garbled
+     * @return    a DEBUGFREEPLACE message, or null if the data is garbled
      */
     public static SOCDebugFreePlace parseDataStr(String s)
     {

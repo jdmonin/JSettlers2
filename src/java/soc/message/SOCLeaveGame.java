@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -121,10 +121,10 @@ public class SOCLeaveGame extends SOCMessage
     }
 
     /**
-     * Parse the command String into a Leave message
+     * Parse the command String into a LeaveGame message.
      *
      * @param s   the String to parse
-     * @return    a LeaveGame message, or null of the data is garbled
+     * @return    a LeaveGame message, or null if the data is garbled
      */
     public static SOCLeaveGame parseDataStr(String s)
     {
