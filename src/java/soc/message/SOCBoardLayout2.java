@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014,2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -85,7 +85,8 @@ import soc.game.SOCScenario;    // for javadocs
  *         scenario, and/or for additional legal nodes (see layout part {@code "AL"}).
  *</UL>
  * The "CE" and "VE" layout parts are lists of Special Edges on the board.  During game play, these
- * edges may change.  The server announces each change with a {@link SOCBoardSpecialEdge} message.
+ * edges may change.  The server announces each change with a
+ * {@link SOCSimpleAction}({@link SOCSimpleAction#BOARD_EDGE_SET_SPECIAL BOARD_EDGE_SET_SPECIAL}) message.
  * If you add a layout part which is a Special Edge type, be sure to update
  * {@link SOCBoardLarge#SPECIAL_EDGE_LAYOUT_PARTS} and {@link SOCBoardLarge#SPECIAL_EDGE_TYPES .SPECIAL_EDGE_TYPES}
  * so players joining during the game will get updated Special Edge data.

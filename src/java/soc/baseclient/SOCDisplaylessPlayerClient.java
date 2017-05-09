@@ -791,14 +791,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
-             * set or clear a special edge on the board.
-             * Added 2013-11-07 for v2.0.00.
-             */
-            case SOCMessage.BOARDSPECIALEDGE:
-                handleBOARDSPECIALEDGE(games, (SOCBoardSpecialEdge) mes);
-                break;
-
-            /**
              * Update player inventory.
              * Added 2013-11-26 for v2.0.00.
              */
@@ -2191,6 +2183,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
         {
         // Types which may update some game data:
 
+        case SOCSimpleAction.BOARD_EDGE_SET_SPECIAL:
+            {
+                final SOCBoard bd = ga.getBoard();
+                if (bd instanceof SOCBoardLarge)
+                    ((SOCBoardLarge) bd).setSpecialEdge(mes.getValue1(), mes.getValue2());
+            }
+            break;
+
         case SOCSimpleAction.TRADE_PORT_REMOVED:
             if (ga.hasSeaBoard)
                 ga.removePort(null, mes.getValue1());
@@ -2308,28 +2308,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if (fort != null)
                 fort.setStrength(pv);
         }
-    }
-
-    /**
-     * Handle the "board special edge" message: Set or clear a special edge on the board.
-     * @param games  Games the client is playing, for method reuse by SOCPlayerClient
-     * @param mes  the message
-     * @since 2.0.00
-     * @return True if game was found and layout understood, false otherwise;
-     *     false if the game doesn't use {@link SOCBoardLarge}.
-     */
-    public static final boolean handleBOARDSPECIALEDGE(final Map<String, SOCGame> games, final SOCBoardSpecialEdge mes)
-    {
-        SOCGame ga = games.get(mes.getGame());
-        if (ga == null)
-            return false;
-
-        SOCBoard bd = ga.getBoard();
-        if ((bd == null) || ! (bd instanceof SOCBoardLarge))
-            return false;
-
-        ((SOCBoardLarge) bd).setSpecialEdge(mes.getParam1(), mes.getParam2());
-        return true;
     }
 
     /**

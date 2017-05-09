@@ -3416,14 +3416,6 @@ public class SOCPlayerClient
                 break;
 
             /**
-             * Set or clear a special edge on the board.
-             * Added 2013-11-07 for v2.0.00.
-             */
-            case SOCMessage.BOARDSPECIALEDGE:
-                handleBOARDSPECIALEDGE((SOCBoardSpecialEdge) mes);
-                break;
-
-            /**
              * a special inventory item action: either add or remove,
              * or we cannot play our requested item.
              * Added 2013-11-26 for v2.0.00.
@@ -5169,6 +5161,9 @@ public class SOCPlayerClient
             pcl.scen_SC_PIRI_pirateFortressAttackResult(false, mes.getValue1(), mes.getValue2());
             break;
 
+        case SOCSimpleAction.BOARD_EDGE_SET_SPECIAL:
+            // fall through: displayless sets game data, pcl.simpleAction displays updated board layout
+
         case SOCSimpleAction.TRADE_PORT_REMOVED:
             SOCDisplaylessPlayerClient.handleSIMPLEACTION(games, mes);  // calls ga.removePort(..)
             // fall through so pcl.simpleAction updates displayed board
@@ -5340,20 +5335,6 @@ public class SOCPlayerClient
         if (pcl == null)
             return;
         pcl.playerSVPAwarded(pl, mes.svp, mes.desc);
-    }
-
-    /**
-     * Set or clear a special edge on the board.
-     * @since 2.0.00
-     */
-    private void handleBOARDSPECIALEDGE(final SOCBoardSpecialEdge mes)
-    {
-        if (SOCDisplaylessPlayerClient.handleBOARDSPECIALEDGE(games, mes))
-        {
-            PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            if (pcl != null)
-                pcl.boardLayoutUpdated();
-        }
     }
 
     /**

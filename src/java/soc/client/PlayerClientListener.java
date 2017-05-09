@@ -358,7 +358,7 @@ public interface PlayerClientListener
      *<P>
      * This will be called only after other game data is updated (number of dev cards, resource gains/loss, etc).
      *
-     * @param pn  The player number acting or acted on
+     * @param pn  The player number acting or acted on, or -1 if this action isn't about a specific player
      * @param acttype  The action type, from {@link soc.message.SOCSimpleAction} constants for simplicity
      * @param value1  First optional detail value, or 0
      * @param value2  Second optional detail value, or 0

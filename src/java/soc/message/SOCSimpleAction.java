@@ -21,11 +21,12 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.game.SOCBoardLarge;  // solely for javadocs
 import soc.game.SOCGameOption;  // solely for javadocs
 
 /**
- * This generic message from the server to clients handles a simple action or event for a client player in a game.
- * This is a way to add game actions and events without adding new SOCMessage subclasses.
+ * This generic message from the server to clients handles a simple action or event in a game, usually about
+ * a client player. This is a way to add game actions and events without adding new SOCMessage subclasses.
  * It has a player number, an action type code, and two optional detail-value fields.
  * This message comes after, not before, any messages that update the game and player data for the action.
  *<P>
@@ -37,6 +38,7 @@ import soc.game.SOCGameOption;  // solely for javadocs
  * This message type is useful for functions that don't have a complicated set of
  * details attached, such as telling all players that someone has bought a development card,
  * or telling a bot that it's made a successful bank/port trade, or some event or condition just happened.
+ * Some action types may not be about a specific player; this will be mentioned in the typecode's javadoc.
  *<P>
  * Depending on the action type code, this message may be broadcast to the entire game
  * or sent to only the affected player.  Clients should ignore action types they don't
@@ -75,6 +77,19 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * @since 1.1.19
      */
     public static final int TRADE_SUCCESSFUL = 2;
+
+    /**
+     * This edge coordinate on the game board has become a Special Edge, or is no longer a Special Edge.
+     * Used in some game scenarios.  Applies only to games using {@link SOCBoardLarge}.
+     * Client should call {@link SOCBoardLarge#setSpecialEdge(int, int)}.
+     *<P>
+     * pn: Unused; -1 <br>
+     * Param 1: The edge coordinate <br>
+     * Param 2: Its new special edge type, such as {@link SOCBoardLarge#SPECIAL_EDGE_DEV_CARD},
+     *     or 0 if no longer special
+     * @since 2.0.00
+     */
+    public static final int BOARD_EDGE_SET_SPECIAL = 3;
 
     /**
      * This message from server announces the results of the current player's pirate fortress attack attempt:
@@ -134,7 +149,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * Create a SOCSimpleAction message.
      *
      * @param ga  the name of the game
-     * @param pn  the player acting or acted on
+     * @param pn  the player acting or acted on, or -1 if this action isn't about a specific player
      * @param acttype  the action type; below 1000 is general, 1000+ is specific to one kind of game
      */
     public SOCSimpleAction(final String ga, final int pn, final int acttype)
@@ -146,7 +161,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * Create a SOCSimpleAction message with a detail value.
      *
      * @param ga  the name of the game
-     * @param pn  the player acting or acted on
+     * @param pn  the player acting or acted on, or -1 if this action isn't about a specific player
      * @param acttype  the action type; below 1000 is general, 1000+ is specific to one kind of game
      * @param value1  Optional detail value, or 0.  Use {@link #getValue1()}, not {@link #getParam1()}, to get
      *     this value from a {@code SOCSimpleAction} message.
@@ -160,7 +175,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * Create a SOCSimpleAction message with 2 detail values.
      *
      * @param ga  the name of the game
-     * @param pn  the player acting or acted on
+     * @param pn  the player acting or acted on, or -1 if this action isn't about a specific player
      * @param acttype  the action type; below 1000 is general, 1000+ is specific to one kind of game
      * @param value1  First optional detail value, or 0.  Use {@link #getValue1()}, not {@link #getParam1()}, to get
      *     this value from a {@code SOCSimpleAction} message.
@@ -173,7 +188,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
     }
 
     /**
-     * @return the player number acting or acted on
+     * @return the player number acting or acted on, or -1 if this action isn't about a specific player
      */
     public final int getPlayerNumber()
     {
@@ -208,7 +223,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * {@link SOCMessage#SIMPLEACTION SIMPLEACTION} sep game sep2 playernumber sep2 acttype sep2 value1 sep2 value2
      *
      * @param ga  the name of the game
-     * @param pn  the player acting or acted on
+     * @param pn  the player acting or acted on, or -1 if this action isn't about a specific player
      * @param acttype  the action type; below 1000 is general, 1000+ is specific to one kind of game
      * @param value1  First optional detail value, or 0
      * @param value2  Second optional detail value, or 0
@@ -229,7 +244,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
     public static SOCSimpleAction parseDataStr(final String s)
     {
         final String ga; // the game name
-        final int pn;    // the player number
+        final int pn;    // the player number or -1
         final int at;    // action type code
         final int v1;    // optional value1
         final int v2;    // optional value2

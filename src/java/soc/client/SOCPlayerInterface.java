@@ -3452,7 +3452,7 @@ public class SOCPlayerInterface extends Frame
 
         public final void simpleAction(final int pn, final int acttype, final int value1, final int value2)
         {
-            final String plName = pi.game.getPlayer(pn).getName();
+            final String plName = (pn >= 0) ? pi.game.getPlayer(pn).getName() : null;
 
             switch (acttype)
             {
@@ -3471,6 +3471,10 @@ public class SOCPlayerInterface extends Frame
                     }
                     pi.printKeyed(remainKey, value1);
                 }
+                break;
+
+            case SOCSimpleAction.BOARD_EDGE_SET_SPECIAL:
+                boardLayoutUpdated();
                 break;
 
             case SOCSimpleAction.TRADE_PORT_REMOVED:

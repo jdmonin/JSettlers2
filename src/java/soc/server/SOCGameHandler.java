@@ -64,7 +64,6 @@ import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.SOCBoardLayout;
 import soc.message.SOCBoardLayout2;
-import soc.message.SOCBoardSpecialEdge;
 import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCChangeFace;
 import soc.message.SOCChoosePlayerRequest;
@@ -1389,7 +1388,7 @@ public class SOCGameHandler extends GameHandler
 
                 if (seType != edgeSEType)
                     // removed (type 0) or changed type
-                    c.put(SOCBoardSpecialEdge.toCmd(gaName, edge, seType));
+                    c.put(SOCSimpleAction.toCmd(gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, edge, seType));
             }
         }
 
@@ -1427,7 +1426,7 @@ public class SOCGameHandler extends GameHandler
 
             if (! found)
                 // added since start of game
-                c.put(SOCBoardSpecialEdge.toCmd(gaName, edge, seType));
+                c.put(SOCSimpleAction.toCmd(gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, edge, seType));
         }
     }
 
@@ -3392,7 +3391,8 @@ public class SOCGameHandler extends GameHandler
                     // "{0} gets a Development Card as a gift from the Lost Tribe."
                 srv.messageToPlayer(c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, edge_cardType.getB()));
                 srv.messageToGameExcept(gaName, c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
-                srv.messageToGame(gaName, new SOCBoardSpecialEdge(gaName, edge_cardType.getA(), 0));
+                srv.messageToGame(gaName, new SOCSimpleAction
+                    (gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, edge_cardType.getA(), 0));
             }
             break;
 
@@ -3400,7 +3400,8 @@ public class SOCGameHandler extends GameHandler
             {
                 updatePlayerSVPPendingMessage(ga, pl, 1, "event.svp.sc_ftri.gift");  // "a gift from the Lost Tribe"
                 sendPlayerEventsBitmask = false;
-                srv.messageToGame(gaName, new SOCBoardSpecialEdge(gaName, ((Integer) obj).intValue(), 0));
+                srv.messageToGame(gaName, new SOCSimpleAction
+                    (gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, ((Integer) obj).intValue(), 0));
             }
             break;
 

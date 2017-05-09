@@ -307,7 +307,6 @@ Game/scenario framework:
 	Other expansions should be possible to add later within the framework released with 2.0.00
 Network message system:
 	Scenario negotiation across versions, like SOCGameOption negotation
-	Review all message types added for 2.0.00, see if can instead use SIMPLEREQUEST/SIMPLEACTION
 	Consider a common handler/constant for EMPTYSTR token
 	Send client legal/potential nodes/edges if joins or rejoins a game in progress
 Server:

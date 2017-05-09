@@ -302,7 +302,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  @since 1.1.18 */
     public static final int SIMPLEREQUEST = 1089;  // simple player requests, 20130217, v1.1.18
 
-    /** {@link SOCSimpleAction} - Generic message type for simple actions for players.
+    /** {@link SOCSimpleAction} - Generic message type for simple actions for players or for the game.
      *  @since 1.1.19 */
     public static final int SIMPLEACTION = 1090;  // simple player actions, 20130904, v1.1.19
 
@@ -351,32 +351,27 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  @since 2.0.00 */
     public static final int SVPTEXTMSG = 1099;  // SVP text messages, 20121221, v2.0.00
 
-    /** Make an edge on the board special or no longer special ({@link SOCBoardSpecialEdge}).
-     *  Used in some game scenarios.
-     * @since 2.0.00 */
-    public static final int BOARDSPECIALEDGE = 1100;  // board special edges, 20131107, v2.0.00
-
     /** {@link SOCInventoryItemAction} message: Add or remove a {@code SOCInventoryItem}
      *  (excluding {@code SOCDevCard}s) from a player's inventory.
      *  Used in some game scenarios.
      * @see #DEVCARDACTION
      * @since 2.0.00 */
-    public static final int INVENTORYITEMACTION = 1101;  // player inventory items, 20131126, v2.0.00
+    public static final int INVENTORYITEMACTION = 1100;  // player inventory items, 20131126, v2.0.00
 
     /** {@link SOCSetSpecialItem} - Special Item requests and change announcements.
      *  {@code SOCSpecialItem}s are used in some game scenarios.
      *  @since 2.0.00 */
-    public static final int SETSPECIALITEM = 1102;  // Special Items, 20140416, v2.0.00
+    public static final int SETSPECIALITEM = 1101;  // Special Items, 20140416, v2.0.00
 
     /** {@link SOCLocalizedStrings} - Localized i18n strings for items such as game options or scenarios.
      *  @since 2.0.00 */
-    public static final int LOCALIZEDSTRINGS = 1103;  // Localized strings, 20150111, v2.0.00
+    public static final int LOCALIZEDSTRINGS = 1102;  // Localized strings, 20150111, v2.0.00
 
     /** {@link SOCScenarioInfo} - Client's request about available {@link soc.game.SOCScenario SOCScenario}s,
      *  or server's reply about a single scenario.
      * @since 2.0.00
      */
-    public static final int SCENARIOINFO = 1104;    // Scenario info, 20150920, v2.0.00
+    public static final int SCENARIOINFO = 1103;    // Scenario info, 20150920, v2.0.00
 
 
     /////////////////////////////////////////
@@ -986,9 +981,6 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case SVPTEXTMSG:        // SVP text messages, 20121221, v2.0.00
                 return SOCSVPTextMessage.parseDataStr(data);
-
-            case BOARDSPECIALEDGE:  // board special edges, 20131107, v2.0.00
-                return SOCBoardSpecialEdge.parseDataStr(data);
 
             case INVENTORYITEMACTION:         // player inventory items, 20131126, v2.0.00
                 return SOCInventoryItemAction.parseDataStr(data);
