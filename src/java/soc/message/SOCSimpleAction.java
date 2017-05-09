@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,9 +37,6 @@ import soc.game.SOCGameOption;  // solely for javadocs
  * This message type is useful for functions that don't have a complicated set of
  * details attached, such as telling all players that someone has bought a development card,
  * or telling a bot that it's made a successful bank/port trade, or some event or condition just happened.
- *<P>
- * It can also be used to prompt the player that they may or must take some action at this time.
- * Action types that do this have {@code MAY_} or {@code MUST_} in their name.
  *<P>
  * Depending on the action type code, this message may be broadcast to the entire game
  * or sent to only the affected player.  Clients should ignore action types they don't
