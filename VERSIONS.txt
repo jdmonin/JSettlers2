@@ -17,6 +17,7 @@ and backport minor new features until 2.0.00 is ready.
 - Game Scenario and special-rules support
 - "House rules" dev card types (New game option "DH")
 - Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard's dialog)
+- To avoid disruptions by game observers, only players can chat after initial placement
 - More efficient game-setup messages over network
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
 - Client sends server its locale, to support i18n localization
@@ -48,7 +49,7 @@ and backport minor new features until 2.0.00 is ready.
 - Server inbound message handling refactored in collaboration with Alessandro D'Ottavio
 - Robot client's inbound-message treat method calls super.treat in the default case,
     so SOCDisplaylessClient.treat() handles all messages which don't need robot-specific handling.
-- Text messages to games or channels can be sent only by members
+- Text messages to channels can be sent only by members
 - Minor refactoring
 - Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 

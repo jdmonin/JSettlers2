@@ -943,7 +943,19 @@ public class SOCServerMessageHandler
 
         final String plName = (String) c.getData();
         if (null == ga.getPlayer(plName))
-            return;  // <---- early return: player isn't in that game ----
+        {
+            // c isn't a seated player in that game; have they joined it?
+            // To help form the game, non-seated members can send text messages
+            // only until the end of initial placement.
+
+            final boolean canChat = gameList.isMember(c, gaName) && (ga.getGameState() < SOCGame.PLAY);
+            if (! canChat)
+            {
+                srv.messageToPlayerKeyed(c, gaName, "member.chat.not_observers");  // "Observers can't chat during the game."
+
+                return;  // <---- early return: not a player in that game ----
+            }
+        }
 
         //currentGameEventRecord.setSnapshot(ga);
 
