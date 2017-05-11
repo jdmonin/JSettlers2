@@ -945,8 +945,8 @@ public class SOCServerMessageHandler
         if (null == ga.getPlayer(plName))
         {
             // c isn't a seated player in that game; have they joined it?
-            // To help form the game, non-seated members can send text messages
-            // only until the end of initial placement.
+            // To avoid disruptions by game observers, only players can chat after initial placement.
+            // To help form the game, non-seated members can also participate in the chat until then.
 
             final boolean canChat = gameList.isMember(c, gaName) && (ga.getGameState() < SOCGame.PLAY);
             if (! canChat)
