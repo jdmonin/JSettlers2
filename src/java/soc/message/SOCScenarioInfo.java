@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -131,9 +131,6 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      */
     public static final SOCScenarioInfo SCENINFO_NO_MORE_SCENS
         = new SOCScenarioInfo(null, null, null);
-
-    /** Symbol to represent a null or empty string value, because empty pa[] elements can't be parsed. */
-    private static final String EMPTYSTR  = "\t";
 
     /**
      * {@link #scKey} marker {@code "?"} from client to ask for any new or changed scenarios

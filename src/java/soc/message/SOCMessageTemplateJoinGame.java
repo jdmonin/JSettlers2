@@ -42,11 +42,6 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
-     * symbol to represent a null or empty password over the network, to avoid 2 adjacent field-delimiter characters
-     */
-    protected static final String NULLPASS = "\t";
-
-    /**
      * Nickname of the joining member
      */
     protected String nickname;
@@ -125,7 +120,7 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     public String toString(String classname, String otherParams)
     {
         final String pwmask;
-        if ((password == null) || (password.length() == 0) || password.equals(NULLPASS))
+        if ((password == null) || (password.length() == 0) || password.equals(EMPTYSTR))
             pwmask = "|password empty";
         else
             pwmask = "|password=***";

@@ -42,11 +42,6 @@ public class SOCJoinChannel extends SOCMessage
     private static final long serialVersionUID = 2000L;  // renamed in v2.0.00; previous structural change v1.0.0 or earlier
 
     /**
-     * symbol to represent a null or empty password over the network, to avoid 2 adjacent field-delimiter characters
-     */
-    private static String NULLPASS = "\t";
-
-    /**
      * Nickname of the joining member
      */
     private String nickname;
@@ -139,12 +134,9 @@ public class SOCJoinChannel extends SOCMessage
      */
     public static String toCmd(String nn, String pw, String hn, String ch)
     {
-        String temppw = new String(pw);
-
-        if (temppw.equals(""))
-        {
-            temppw = NULLPASS;
-        }
+        String temppw = pw;
+        if (pw.length() == 0)
+            temppw = EMPTYSTR;
 
         return JOINCHANNEL + sep + nn + sep2 + temppw + sep2 + hn + sep2 + ch;
     }
@@ -171,10 +163,8 @@ public class SOCJoinChannel extends SOCMessage
             hn = st.nextToken();
             ch = st.nextToken();
 
-            if (pw.equals(NULLPASS))
-            {
+            if (pw.equals(EMPTYSTR))
                 pw = "";
-            }
         }
         catch (Exception e)
         {

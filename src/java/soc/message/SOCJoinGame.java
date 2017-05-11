@@ -55,7 +55,7 @@ import java.util.StringTokenizer;
  */
 public class SOCJoinGame extends SOCMessageTemplateJoinGame
 {
-    private static final long serialVersionUID = 1107L;  // last structural change v1.1.07
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
      * Create a Join Game message.
@@ -91,12 +91,9 @@ public class SOCJoinGame extends SOCMessageTemplateJoinGame
      */
     public static String toCmd(String nn, String pw, String hn, String ga)
     {
-        String temppw = new String(pw);
-
-        if (temppw.equals(""))
-        {
-            temppw = NULLPASS;
-        }
+        String temppw = pw;
+        if (temppw.length() == 0)
+            temppw = EMPTYSTR;
 
         return JOINGAME + sep + nn + sep2 + temppw + sep2 + hn + sep2 + ga;
     }
@@ -123,10 +120,8 @@ public class SOCJoinGame extends SOCMessageTemplateJoinGame
             hn = st.nextToken();
             ga = st.nextToken();
 
-            if (pw.equals(NULLPASS))
-            {
+            if (pw.equals(EMPTYSTR))
                 pw = "";
-            }
         }
         catch (Exception e)
         {

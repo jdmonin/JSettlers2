@@ -60,7 +60,7 @@ import java.util.StringTokenizer;
  */
 public class SOCAuthRequest extends SOCMessage
 {
-    private static final long serialVersionUID = 1119L;
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /** Minimum version (1.1.19) of client/server which send and recognize AUTHREQUEST */
     public static final int VERSION_FOR_AUTHREQUEST = 1119;
@@ -73,9 +73,6 @@ public class SOCAuthRequest extends SOCMessage
 
     /** Scheme #1, for client to connect using a plaintext password */
     public static final int SCHEME_CLIENT_PLAINTEXT = 1;
-
-    /** Token to indicate host is {@code null} or "", to avoid adjacent delimiters */
-    private final static String NULLHOST = "\t";
 
     /**
      * Role that requester connected to server for, such as {@link #ROLE_GAME_PLAYER}
@@ -92,7 +89,10 @@ public class SOCAuthRequest extends SOCMessage
     /** Nickname (username) of the joining client */
     public final String nickname;
 
-    /**Optional password, or "" */
+    /**
+     * Optional password, or "". This is the last field of the message
+     * so it can contain delimiter chars.
+     */
     public final String password;
 
     /**
@@ -155,7 +155,7 @@ public class SOCAuthRequest extends SOCMessage
      * @param pw  the optional password, or ""; this is the last field of the message
      *     so that it can contain delimiter chars
      * @param sch  auth scheme number, such as {@link #SCHEME_CLIENT_PLAINTEXT}
-     * @param hn  the server host name, or null
+     * @param hn  the server host name, or null; "" is sent as null
      * @return    the command string
      * @throws IllegalArgumentException if {@code ro}, {@code nn}, or {@code hn} contains a delimiter character
      *     or is null or otherwise doesn't pass {@link SOCMessage#isSingleLineAndSafe(String)}
@@ -170,7 +170,9 @@ public class SOCAuthRequest extends SOCMessage
         if ((hn != null) && ! SOCMessage.isSingleLineAndSafe(hn))
             throw new IllegalArgumentException("hostname: " + hn);
 
-        return AUTHREQUEST + sep + ro + sep2 + nn + sep2 + sch + sep2 + ((hn != null) ? hn : NULLHOST) + sep2 + pw;
+        return AUTHREQUEST + sep + ro + sep2 + nn + sep2 + sch + sep2
+            + (((hn != null) && (hn.length() > 0)) ? hn : EMPTYSTR)
+            + sep2 + pw;
     }
 
     /**
@@ -197,7 +199,7 @@ public class SOCAuthRequest extends SOCMessage
             nn = st.nextToken();
             sch = Integer.parseInt(st.nextToken());
             hn = st.nextToken();
-            if (hn.equals(NULLHOST))
+            if (hn.equals(EMPTYSTR))
                 hn = null;
 
             // get all of the rest for password, by choosing an unlikely delimiter character

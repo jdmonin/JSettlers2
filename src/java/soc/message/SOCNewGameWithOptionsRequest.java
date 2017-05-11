@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2013-2014,2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2013-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -118,7 +118,7 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      * NEWGAMEWITHOPTIONSREQUEST sep nickname sep2 password sep2 host sep2 game sep2 options
      *
      * @param nn  the nickname
-     * @param pw  the optional password, or "" if none
+     * @param pw  the optional password, or "" if none; not null
      * @param hn  the server host name
      * @param ga  the game name
      * @param optstr the game options as a string name-value pairs, as created by
@@ -127,10 +127,8 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      */
     public static String toCmd(String nn, String pw, String hn, String ga, String optstr)
     {
-        if (pw.equals(""))
-        {
-            pw = NULLPASS;
-        }
+        if (pw.length() == 0)
+            pw = EMPTYSTR;
 
         return NEWGAMEWITHOPTIONSREQUEST + sep + nn + sep2 + pw + sep2 + hn + sep2 + ga + sep2 + optstr;
     }
@@ -176,10 +174,8 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
             ga = st.nextToken();
             optstr = st.nextToken(sep);  // not sep2 ! Commas are used to sep options.
 
-            if (pw.equals(NULLPASS))
-            {
+            if (pw.equals(EMPTYSTR))
                 pw = "";
-            }
         }
         catch (Exception e)
         {

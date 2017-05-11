@@ -30,15 +30,17 @@ import java.util.StringTokenizer;
 /**
  * Messages used for game data, events, and chatting on a channel.
  *<P>
- * No Objects, only strings and integers, are to be sent over the network
+ * Text announcements ({@link SOCGameServerText} or {@link SOCGameTextMsg})
+ * are often sent after data messages. Bots ignore text messages except for
+ * a few bot-debug commands.
+ *
+ *<H3>Implementation:</H3>
+ * No {@code Object}s, only strings and integers, are to be sent over the network
  * between servers and clients!  Your game's code must guarantee that no string
  * sent contains a separator character ({@link #sep_char} or {@link #sep2_char}).
  * To help with this, use {@link #isSingleLineAndSafe(String)}.
  * Keeping the network protocol simple helps with interoperability
  * between different versions and implementations.
- *<P>
- * Text announcements ({@link SOCGameServerText} or {@link SOCGameTextMsg})
- * are often sent after data messages.
  *<P>
  * The message data is sent over the network as type ID + data strings
  * built by each SOCMessage subclass's toCmd() method.
@@ -55,8 +57,8 @@ import java.util.StringTokenizer;
  * The client receives messages in {@link soc.client.SOCPlayerClient.MessageTreater#treat(SOCMessage, boolean)}.
  * The server receives messages in
  * {@link soc.server.SOCMessageDispatcher#dispatch(String, soc.server.genericServer.StringConnection)}.
- *<P>
- * To create and add a new message type:
+ *
+ *<H3>To create and add a new message type:</H3>
  *<UL>
  * <LI> Decide on the message type name.  Add to the end of the constant list in this
  *      class.  Add a comment to note the JSettlers version in which it was introduced, and the date.
@@ -89,21 +91,36 @@ import java.util.StringTokenizer;
  *      If the message is player-state related, you might also want to add
  *      it in your game type's <tt>soc.server.GameHandler.sitDown_sendPrivateInfo()</tt>.
  *</UL>
- *<P>
- * Backwards compatibility: Unknown message types are ignored by client and by server:
+ *
+ *<H3>Backwards compatibility:</H3>
+ * Unknown message types are ignored by client and by server:
  * They are returned as {@code null} from {@link #toMsg(String)} if the local copy
  * (the old version's code) of SOCMessage doesn't know that message type.
- *<P>
- * Format:
+ *
+ *<H3>Format:</H3>
  * For most messages, at most one {@link #sep} token per message, which separates the messagetype number
  * from the message data; multiple SEP2 are allowed after SEP.
  * For multi-messages, multiple SEP are allowed; see {@link SOCMessageMulti}.
+ * Some message types allow blank fields; these must use a token like {@link #EMPTYSTR}
+ * to avoid adjacent field separators.
  *
  * @author Robert S Thomas
  */
 public abstract class SOCMessage implements Serializable, Cloneable
 {
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
+
+    /**
+     * Placeholder token to represent a null or empty string over the network
+     * to avoid 2 adjacent field-delimiter characters, used in
+     * some message types: A single tab {@code "\t"}.
+     *<P>
+     * If using this token for a new message type's field(s), be sure
+     * the token could never be a valid value for the field. To help
+     * with this, the token value fails {@link #isSingleLineAndSafe(String)}.
+     * @since 2.0.00
+     */
+    public static final String EMPTYSTR = "\t";
 
     /**
      * message type IDs.

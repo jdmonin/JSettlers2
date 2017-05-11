@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -59,13 +59,6 @@ public class SOCSetSpecialItem extends SOCMessage
     implements SOCMessageForGame
 {
     private static final long serialVersionUID = 2000L;
-
-    /**
-     * Symbol to represent a null or empty string value, because
-     * empty {@code pa[]} elements can't be parsed over the network
-     * with the current tokenizer.
-     */
-    public static final String EMPTYSTR = "\t";
 
     // If you add an OP_ constant, also update OPS_STRS[].
 
@@ -177,7 +170,7 @@ public class SOCSetSpecialItem extends SOCMessage
     /** Optional level of construction or strength, or 0. */
     public final int level;
 
-    /** Optional string value from {@link SOCSpecialItem#getStringValue()}, or {@code null}. */
+    /** Optional string value from {@link SOCSpecialItem#getStringValue()}, or {@code null}. Never "". */
     public final String sv;
 
     /**
@@ -255,7 +248,7 @@ public class SOCSetSpecialItem extends SOCMessage
         playerNumber = pn;
         coord = co;
         level = lv;
-        this.sv = sv;
+        this.sv = ((sv != null) && (sv.length() > 0)) ? sv : null;
     }
 
     // getGame is required by interface; all message fields are public final, no getters needed

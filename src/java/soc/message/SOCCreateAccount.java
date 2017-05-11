@@ -24,7 +24,7 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message is a request to create an account
+ * This message is a request to create an account.
  *<P>
  * The server will respond with a {@link SOCStatusMessage} indicating whether the account was created,
  * with status {@link SOCStatusMessage#SV_ACCT_CREATED_OK} or an error/rejection status and brief text.
@@ -40,12 +40,7 @@ import java.util.StringTokenizer;
  */
 public class SOCCreateAccount extends SOCMessage
 {
-    private static final long serialVersionUID = 100L;  // last structural change v1.0.0 or earlier
-
-    /**
-     * symbol to represent a null email
-     */
-    private static String NULLEMAIL = "\t";
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
      * Nickname
@@ -63,7 +58,7 @@ public class SOCCreateAccount extends SOCMessage
     private String host;
 
     /**
-     * Email address, optional; see {@link #getEmail()}.
+     * Email address, optional, or ""; see {@link #getEmail()}.
      */
     private String email;
 
@@ -89,7 +84,7 @@ public class SOCCreateAccount extends SOCMessage
         messageType = CREATEACCOUNT;
         nickname = nn;
         password = pw;
-        email = em;
+        email = (em != null) ? em : "";
         host = hn;
     }
 
@@ -174,7 +169,7 @@ public class SOCCreateAccount extends SOCMessage
             throw new IllegalArgumentException("hn");
 
         if ((em == null) || (em.length() == 0))
-            em = NULLEMAIL;
+            em = EMPTYSTR;
 
         return CREATEACCOUNT + sep + nn + sep2 + pw + sep2 + hn + sep2 + em;
     }
@@ -201,7 +196,7 @@ public class SOCCreateAccount extends SOCMessage
             pw = st.nextToken();
             hn = st.nextToken();
             em = st.nextToken();
-            if (em.equals(NULLEMAIL))
+            if (em.equals(EMPTYSTR))
                 em = "";
         }
         catch (Exception e)

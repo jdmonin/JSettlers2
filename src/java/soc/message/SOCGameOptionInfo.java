@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2012-2013,2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2012-2013,2015,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -70,12 +70,6 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      */
     public static final SOCGameOptionInfo OPTINFO_NO_MORE_OPTS
         = new SOCGameOptionInfo(new SOCGameOption("-"), 0, null);
-
-    /**
-     * symbol to represent a null or empty string value,
-     * because empty pa[] elements can't be parsed
-     */
-    protected static final String EMPTYSTR  = "\t";
 
     protected SOCGameOption opt = null;
 

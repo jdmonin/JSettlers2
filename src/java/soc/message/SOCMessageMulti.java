@@ -32,7 +32,8 @@ package soc.message;
  * MessageMultis are treated specially in {@link SOCMessage#toMsg(String)}.
  * Multiple {@link SOCMessage#sep_char} are allowed, separating each parameter.
  * This allows use of {@link SOCMessage#sep2_char} within the parameter to
- * separate its sub-fields.
+ * separate its sub-fields. Blank field values must be replaced with {@link SOCMessage#EMPTYSTR}
+ * to avoid adjacent separator characters which would skip fields during parsing.
  *<P>
  * The required static parseDataStr method is given a List of one or more Strings,
  * each of which is a parameter:

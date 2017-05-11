@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2008-2012,2014-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2012,2014-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -71,6 +71,8 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
 
     /**
      * List of string parameters, or null if none.
+     * Blank field values must use {@link SOCMessage#EMPTYSTR}
+     * because empty {@code pa} elements can't be parsed.
      *<P>
      * Before v2.0.00, this was an array of Strings.
      */
@@ -83,7 +85,8 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      * @param ga  Name of game this message is for, or null if none. See {@link #getGame()} for details.
      *     The server's message treater requires a non-null {@link #getGame()}
      *     for incoming messages from clients; see {@link SOCMessageForGame#getGame()} for details.
-     * @param pal List of parameters, or null if none
+     * @param pal List of parameters, or null if none.
+     *     Blank or null field values must be {@link SOCMessage#EMPTYSTR} in this List.
      */
     protected SOCMessageTemplateMs(final int id, final String ga, final List<String> pal)
     {
@@ -126,8 +129,8 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      *
      * @param messageType The message type id
      * @param gaName  the game name, or null
-     * @param pal  The parameter list, or null if no additional parameters;
-     *             elements of {@code pal} can be null.
+     * @param pal  The parameter list, or null if no additional parameters.
+     *             Blank or null values must be {@link SOCMessage#EMPTYSTR} in this List.
      * @return    the command string
      */
     protected static String toCmd(final int messageType, final String gaName, final List<String> pal)
@@ -139,6 +142,7 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
             sb.append(sep);
             sb.append(gaName);
         }
+
         if (pal != null)
         {
             for (final String p : pal)
