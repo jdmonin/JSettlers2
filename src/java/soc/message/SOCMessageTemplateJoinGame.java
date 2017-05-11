@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2010,2013-2014,2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2010,2013-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,17 +22,17 @@ package soc.message;
 
 
 /**
- * This message means that someone is joining a game.
+ * This message means that someone is joining or creating a game.
  *<P>
  * Once the client has successfully joined or created a game or channel, the
- * password field can be left blank in later join/create requests.  All server
+ * password field can be left blank in its later join/create requests.  All server
  * versions ignore the password field after a successful request.
  *<P>
  * v1.1.07: This template class is copied from {@link SOCJoinGame} to
  * share functionality with the new {@link SOCNewGameWithOptions}. - JDM
  *<P>
- * v2.0.00: Don't implement SOCMessageForGame, to avoid server looking
- * for a GameHandler for our new game which doesn't exist yet.
+ * v2.0.00: No longer implements {@link SOCMessageForGame}, to avoid server looking
+ * for a {@code GameHandler} for our new game which doesn't exist yet.
  *
  * @author Robert S Thomas
  * @since 1.1.07
@@ -68,7 +68,7 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     protected String host;
 
     /**
-     * Create a Join message.
+     * Create a Join message. Subclasses should set {@link #messageType} after calling.
      *
      * @param nn  nickname
      * @param pw  optional password, or ""
@@ -79,7 +79,7 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     {
         messageType = JOINGAME;
         nickname = nn;
-        password = pw;
+        password = (pw != null) ? pw : "";
         game = ga;
         host = hn;
     }
@@ -125,7 +125,7 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     public String toString(String classname, String otherParams)
     {
         final String pwmask;
-        if ((password == null) || (password.length() == 0) || password.equals("\t"))
+        if ((password == null) || (password.length() == 0) || password.equals(NULLPASS))
             pwmask = "|password empty";
         else
             pwmask = "|password=***";
@@ -133,6 +133,7 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
         String s = classname + ":nickname=" + nickname + pwmask + "|host=" + host + "|game=" + game;
         if (otherParams != null)
             s = s + "|" + otherParams;
+
         return s;
     }
 
