@@ -3385,8 +3385,8 @@ public class SOCGameHandler extends GameHandler
                 sendSVP = false;
                 IntPair edge_cardType = (IntPair) obj;
                 StringConnection c = srv.getConnection(plName);
-                srv.messageToGameKeyed(ga, true, "action.built.sc_ftri.dev", plName);
-                    // "{0} gets a Development Card as a gift from the Lost Tribe."
+                ga.pendingMessagesOut.add(new UnlocalizedString
+                    ("action.built.sc_ftri.dev", plName));  // "{0} gets a Development Card as a gift from the Lost Tribe."
                 srv.messageToPlayer(c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, edge_cardType.getB()));
                 srv.messageToGameExcept(gaName, c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
                 srv.messageToGame(gaName, new SOCSimpleAction
