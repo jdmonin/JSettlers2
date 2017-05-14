@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,10 +29,15 @@ import java.util.concurrent.atomic.AtomicReference;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 
+/**
+ * Track game statistics with event methods such as {@link #diceRolled(DiceRollEvent)}.
+ * Events notify any listeners, to update stats if shown on screen in {@link GameStatisticsFrame}.
+ *
+ * @since 2.0.00
+ */
 public class SOCGameStatistics
 {
     private final AtomicReference<Listener> listener;
-    private final SOCGame game;
     private final DiceRolls rolls;
 
     public interface Listener
@@ -50,7 +56,10 @@ public class SOCGameStatistics
 
     public static class DiceRollEvent
     {
+        /** Dice result number (2-12) */
         public final int roll;
+
+        /** Player who rolled this result */
         public final SOCPlayer player;
 
         public DiceRollEvent(int roll, SOCPlayer p)
@@ -59,18 +68,18 @@ public class SOCGameStatistics
             player = p;
         }
 
+        /** Includes class name, dice number, player, player number: {@code "DiceRollEvent[7 Robot 2:0]"} */
         @Override
         public String toString()
         {
-            return "DiceRollEvent["+roll+" "+player.getName()+":"+player.getPlayerNumber()+"]";
+            return "DiceRollEvent[" + roll + " " + player.getName() + ":" + player.getPlayerNumber() + "]";
         }
     }
 
-    public SOCGameStatistics(SOCGame game)
+    public SOCGameStatistics(final SOCGame game)
     {
-        this.game = game;
         listener = new AtomicReference<Listener>();
-        List<SOCPlayer> ps = Arrays.asList(game.getPlayers());
+        final List<SOCPlayer> ps = Arrays.asList(game.getPlayers());
         rolls = new DiceRolls(ps);
     }
 
@@ -78,18 +87,14 @@ public class SOCGameStatistics
     {
         Listener old = this.listener.get();
         if (old != null)
-        {
             old.statsDisposing();
-        }
     }
 
     public ListenerRegistration addListener(Listener listener)
     {
         Listener old = this.listener.getAndSet(listener);
         if (old != null)
-        {
             old.statsDisposing();
-        }
 
         return new ListenerRegistration()
         {
@@ -107,6 +112,7 @@ public class SOCGameStatistics
             ears.statsUpdated(this);
     }
 
+    /** Update stats and call listeners for a Dice Roll event. */
     public void diceRolled(DiceRollEvent evt)
     {
         try
@@ -116,24 +122,25 @@ public class SOCGameStatistics
         }
         catch (Exception e)
         {
-            System.err.println("Failed updating dice roll "+evt);
+            System.err.println("Failed updating dice roll " + evt);
             e.printStackTrace();
         }
     }
 
     /**
-     * @param roll
-     * @param playerId
-     * @return {@code null} If out of range
+     * Get how many times a dice result has been rolled by one player.
+     * @param roll  Dice roll result (2-12)
+     * @param pn  Player number
+     * @return Player's roll result count, or -1 if out of range
      */
-    public Integer getRollCount(int roll, int playerId)
+    public int getRollCount(int roll, int pn)
     {
         if (roll < 2 || roll > 12)
-            return null;
-        if (playerId < 0 || playerId >= game.getPlayers().length)
-            return null;
-        int r = rolls.rollCounts[playerId].get(roll);
-        return Integer.valueOf(r);
+            return -1;
+        if ((pn < 0) || (pn >= rolls.rollCounts.length))
+            return -1;
+
+        return rolls.rollCounts[pn].get(roll);
     }
 
     /**
@@ -141,14 +148,18 @@ public class SOCGameStatistics
      */
     private static class DiceRolls
     {
-        // indexed by player-id, each array is 13 elements for dice roll counts, 0 and 1 are unused
+        /**
+         * Array (indexed by player number) of atomic arrays:
+         * Each atomic array is 13 elements for dice roll counts 2-12; 0 and 1 are unused.
+         */
         AtomicIntegerArray[] rollCounts;
 
         public DiceRolls(List<SOCPlayer> players)
         {
             rollCounts = new AtomicIntegerArray[players.size()];
-            for (int i=0; i<players.size(); ++i)
+            for (int i = 0; i < rollCounts.length; ++i)
                 rollCounts[i] = new AtomicIntegerArray(13);
         }
     }
+
 }
