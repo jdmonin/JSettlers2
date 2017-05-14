@@ -649,7 +649,16 @@ public class SOCGame implements Serializable, Cloneable
      * the pending PLAYERELEMENT message so that the game's clients will update that player's
      * {@link SOCPlayer#setScenarioPlayerEvents(int)} or other related fields, before the GAMESTATE message.
      *<P>
-     * <b>Note:</b> Only a few of the server message-handling methods check this queue, because
+     * <B>Contents:</B> When sending out to game members, the server handles queue elements by class:
+     *<UL>
+     * <LI> {@code SOCKeyedMessage}: Localize and send
+     * <LI> Other {@code SOCMessage} types: Send
+     * <LI> {@code UnlocalizedString}: Localize and send with
+     *      {@code SOCServer.messageToGameKeyed(SOCGame, boolean, String, Object...)}
+     * <LI> Anything else: Ignore or print error message at server console
+     *</UL>
+     *<P>
+     * <B>Note:</B> Only a few of the server message-handling methods check this queue, because
      * only those few can potentially lead to special victory points or other game/scenario events.
      * If you add code where other player actions can lead to {@code pendingMessagesOut} adds, be sure
      * the server's SOCGameHandler/SOCGameMessageHandler for those actions checks this list afterwards,

@@ -3365,7 +3365,8 @@ public class SOCGameHandler extends GameHandler
                 sendSVP = false;
                 if (! flagsChanged)
                     sendPlayerEventsBitmask = false;
-                srv.messageToGameKeyed(ga, true, "event.sc_clvi.established", plName);  // "{0} established a trade route with a village."
+                ga.pendingMessagesOut.add(new UnlocalizedString
+                    ("event.sc_clvi.established", plName));  // "{0} established a trade route with a village."
                 if (flagsChanged)
                     srv.messageToPlayerPendingKeyed(pl, gaName, "event.sc_clvi.not.prevented.pirate");
                         // "You are no longer prevented from moving the pirate ship."
@@ -3512,6 +3513,8 @@ public class SOCGameHandler extends GameHandler
      * <B>I18N:</B> Checks {@code pendingMessagesOut} for {@link SOCKeyedMessage}s and handles them accordingly.
      * Currently this is the only method that checks for those, because other places send text messages
      * immediately instead of queueing them and localizing/sending later.
+     * Also checks for {@link UnlocalizedString}s, to be localized and sent with
+     * {@link SOCServer#messageToGameKeyed(SOCGame, boolean, String, Object...)}.
      *<P>
      * <B>Locks:</B> If {@code takeMon} is true, takes and releases
      * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}.
@@ -3535,8 +3538,14 @@ public class SOCGameHandler extends GameHandler
         {
             if (msg instanceof SOCKeyedMessage)
                 srv.messageToGameKeyedType(ga, (SOCKeyedMessage) msg, false);
-            else
+            else if (msg instanceof SOCMessage)
                 srv.messageToGameWithMon(gaName, (SOCMessage) msg);
+            else if (msg instanceof UnlocalizedString)
+            {
+                final UnlocalizedString us = (UnlocalizedString) msg;
+                srv.messageToGameKeyed(ga, false, us.key, us.params);
+            }
+            // else: ignore
         }
         ga.pendingMessagesOut.clear();
 
