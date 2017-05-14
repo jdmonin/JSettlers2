@@ -2846,6 +2846,7 @@ public class SOCServer extends Server
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
      * @since 2.0.00
      * @see #messageToPlayerKeyed(StringConnection, String, String, Object...)
+     * @see #messageToPlayerPendingKeyed(SOCPlayer, String, String)
      */
     public final void messageToPlayerKeyed(StringConnection c, final String gaName, final String key)
     {
@@ -2875,6 +2876,7 @@ public class SOCServer extends Server
      * @since 2.0.00
      * @see #messageToPlayerKeyed(StringConnection, String, String)
      * @see #messageToPlayerKeyedSpecial(StringConnection, SOCGame, String, Object...)
+     * @see #messageToPlayerPendingKeyed(SOCPlayer, String, String)
      */
     public final void messageToPlayerKeyed
         (StringConnection c, final String gaName, final String key, final Object ... args)
@@ -2919,6 +2921,37 @@ public class SOCServer extends Server
             c.put(SOCGameServerText.toCmd(ga.getName(), c.getLocalizedSpecial(ga, key, args)));
         else
             c.put(SOCGameTextMsg.toCmd(ga.getName(), SERVERNAME, c.getLocalizedSpecial(ga, key, args)));
+    }
+
+    /**
+     * Add a pending localized {@link SOCGameServerText} game text message to {@link SOCPlayer#pendingMessagesOut},
+     * to be sent soon to player's client with {@link SOCGameHandler#sendGamePendingMessages(SOCGame, boolean)}.
+     *<P>
+     * If client's version is 2.0.00 or newer they will be sent
+     * {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
+     *<P>
+     * <b>Note:</b> Only a few of the server message-handling methods check the queue;
+     * see {@link SOCGame#pendingMessagesOut}.
+     *
+     * @param pl  the player; {@code null} is ignored and not an error.
+     * @param gaName  game name
+     * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
+     * @see #messageToPlayerKeyed(StringConnection, String, String)
+     * @since 2.0.00
+     */
+    public final void messageToPlayerPendingKeyed
+        (final SOCPlayer pl, final String gaName, final String key)
+    {
+        if (pl == null)
+            return;
+        final StringConnection c = getConnection(pl.getName());
+        if (c == null)
+            return;
+
+        if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
+            pl.pendingMessagesOut.add(new SOCGameServerText(gaName, c.getLocalized(key)));
+        else
+            pl.pendingMessagesOut.add(new SOCGameTextMsg(gaName, SERVERNAME, c.getLocalized(key)));
     }
 
     /**

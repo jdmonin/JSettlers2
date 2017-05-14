@@ -1,6 +1,6 @@
 /**
  * Local (StringConnection) network system.  Version 1.2.0.
- * This file Copyright (C) 2007-2009,2013,2015-2016 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2007-2009,2013,2015-2017 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ import java.text.MessageFormat;
 import java.util.Date;
 import java.util.MissingResourceException;
 
-import soc.game.SOCGame;  // strictly for passthrough in getLocalizedSpecial; not used otherwise
+import soc.game.SOCGame;  // strictly for passthrough in getLocalizedSpecial, and javadocs; not used otherwise
 import soc.util.SOCStringManager;
 
 /**

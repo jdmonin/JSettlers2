@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -73,6 +73,11 @@ import java.util.Vector;
  *<P>
  * On the {@link SOCBoardLarge large sea board}, our list of the player's roads also
  * contains their ships.  They are otherwise treated separately.
+ *<P>
+ * Some fields are for use at the server only, and are null at the client:
+ * {@link #resourceStats}, {@link #pendingMessagesOut}, etc.
+ * To get a SOCPlayer client's {@code StringConnection}, use
+ * {@code SOCServer.getConnection(player.{@link #getName()}).
  *
  * @author Robert S Thomas
  */
@@ -553,6 +558,27 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
 
     // private SOCBuildingSpeedEstimate buildingSpeed;
+
+    /**
+     * For games at server, a convenient queue to hold any outbound {@code SOCMessage}s during game action callbacks.
+     * Public access for use by server classes. See {@link SOCGame#pendingMessagesOut} for more details.
+     * If a message contains text field(s) or is dependent on the client version, localize or resolve it
+     * before adding to this queue.
+     *<P>
+     * To send and clear this queue's contents, call {@code SOCGameHandler.sendGamePendingMessages(SOCGame, boolean)}.
+     *<P>
+     * <B>Note:</B> Only a few of the server message-handling methods check this queue:
+     * See {@link SOCGame#pendingMessagesOut}.
+     *<P>
+     * <B>Locking:</B> Not thread-safe, because all of a game's message handling
+     * is done within a single thread.
+     *<P>
+     * Because this queue is server-only, it's null until {@link SOCGame#startGame()}.
+     * This field is also not copied by the {@link #SOCPlayer(SOCPlayer)} constructor.
+     *
+     * @since 2.0.00
+     */
+    public transient List<Object> pendingMessagesOut;
 
     /**
      * create a copy of the player

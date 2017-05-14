@@ -3367,11 +3367,8 @@ public class SOCGameHandler extends GameHandler
                     sendPlayerEventsBitmask = false;
                 srv.messageToGameKeyed(ga, true, "event.sc_clvi.established", plName);  // "{0} established a trade route with a village."
                 if (flagsChanged)
-                {
-                    StringConnection c = srv.getConnection(plName);
-                    srv.messageToPlayerKeyed(c, gaName, "event.sc_clvi.not.prevented.pirate");  // null c is okay
+                    srv.messageToPlayerPendingKeyed(pl, gaName, "event.sc_clvi.not.prevented.pirate");
                         // "You are no longer prevented from moving the pirate ship."
-                }
 
                 // Player gets 1 cloth for establishing trade
                 SOCVillage vi = (SOCVillage) obj;
@@ -3542,6 +3539,21 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToGameWithMon(gaName, (SOCMessage) msg);
         }
         ga.pendingMessagesOut.clear();
+
+        for (SOCPlayer p : ga.getPlayers())
+        {
+            final List<Object> pq = p.pendingMessagesOut;
+            final int L = pq.size();
+            if (L >= 0)
+            {
+                final StringConnection c = srv.getConnection(p.getName());
+                if (c != null)
+                    for (int i = 0; i < L; ++i)
+                        c.put(((SOCMessage) pq.get(i)).toCmd());
+
+                pq.clear();
+            }
+        }
 
         if (takeMon)
             srv.gameList.releaseMonitorForGame(gaName);

@@ -641,7 +641,7 @@ public class SOCGame implements Serializable, Cloneable
     boolean isAtServer;
 
     /**
-     * For games at server, a convenient place to hold outbound messages during game actions.
+     * For games at server, a convenient queue to hold any outbound SOCMessages during game actions.
      * Public access for use by SOCServer.  The server will handle a game action as usual
      * (for example, {@link #putPiece(SOCPlayingPiece)}), create pending PLAYERELEMENT messages from
      * {@link SOCScenarioEventListener#playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object) SOCScenarioEventListener.playerEvent(...)},
@@ -649,16 +649,20 @@ public class SOCGame implements Serializable, Cloneable
      * the pending PLAYERELEMENT message so that the game's clients will update that player's
      * {@link SOCPlayer#setScenarioPlayerEvents(int)} or other related fields, before the GAMESTATE message.
      *<P>
-     * <b>Note:</b> Only a few of the server message-handling methods check this field, because
+     * <b>Note:</b> Only a few of the server message-handling methods check this queue, because
      * only those few can potentially lead to special victory points or other game/scenario events.
      * If you add code where other player actions can lead to {@code pendingMessagesOut} adds, be sure
      * the server's SOCGameHandler/SOCGameMessageHandler for those actions checks this list afterwards,
      * to send before GAMESTATE via {@code SOCGameHandler.sendGamePendingMessages(..)}.
      *<P>
-     * Because this is server-only, it's null until {@link #startGame()}.
-     * To send and clear this list's contents, the server should call
+     * Because this queue is server-only, it's null until {@link #startGame()}.
+     * To send and clear contents, the server should call
      * {@code SOCGameHandler.sendGamePendingMessages(SOCGame, boolean)}.
+     *<P>
+     * <B>Locking:</B> Not thread-safe, because all of a game's message handling
+     * is done within a single thread.
      *
+     * @see SOCPlayer#pendingMessagesOut
      * @since 2.0.00
      */
     public transient List<Object> pendingMessagesOut;
@@ -1643,10 +1647,15 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Get the player object sitting at this position.
+     * <B>Does not check for vacant seats:</B>
+     * Even if a seat is vacant, its unused {@link SOCPlayer} will be returned.
+     * Call {@link #isSeatVacant(int)} to check for vacant seats.
      * @return the player object for a player id; never null if pn is in range
-     *
      * @param pn  the player number, in range 0 to {@link #maxPlayers}-1
      * @throws ArrayIndexOutOfBoundsException if {@code pn} is out of range
+     * @see #getPlayer(String)
+     * @see #getPlayers()
      */
     public SOCPlayer getPlayer(final int pn)
         throws ArrayIndexOutOfBoundsException
@@ -1660,6 +1669,7 @@ public class SOCGame implements Serializable, Cloneable
      *   if there is no match, return null
      *
      * @param nn  the nickname
+     * @see #getPlayer(int)
      */
     public SOCPlayer getPlayer(final String nn)
     {
@@ -1923,6 +1933,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * @return the list of players
+     * @see #getPlayer(int)
      */
     public SOCPlayer[] getPlayers()
     {
@@ -3870,6 +3881,8 @@ public class SOCGame implements Serializable, Cloneable
     {
         isAtServer = true;
         pendingMessagesOut = new ArrayList<Object>();
+        for (int i = 0; i < maxPlayers; ++i)
+            players[i].pendingMessagesOut = new ArrayList<Object>();
 
         startGame_setupDevCards();
 
