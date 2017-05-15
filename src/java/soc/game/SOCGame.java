@@ -655,6 +655,7 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> Other {@code SOCMessage} types: Send
      * <LI> {@code UnlocalizedString}: Localize and send with
      *      {@code SOCServer.messageToGameKeyed(SOCGame, boolean, String, Object...)}
+     *      or {@code SOCServer.messageToGameKeyedSpecial(..)}
      * <LI> Anything else: Ignore or print error message at server console
      *</UL>
      *<P>

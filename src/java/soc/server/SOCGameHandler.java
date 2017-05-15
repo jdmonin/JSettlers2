@@ -3252,8 +3252,8 @@ public class SOCGameHandler extends GameHandler
                           hexType  = board.getHexTypeFromCoord(hexCoord),
                           diceNum  = board.getNumberOnHexFromCoord(hexCoord);
                 final String gaName = ga.getName();
-                srv.messageToGame
-                    (gaName, new SOCRevealFogHex(gaName, hexCoord, hexType, diceNum));
+
+                ga.pendingMessagesOut.add(new SOCRevealFogHex(gaName, hexCoord, hexType, diceNum));
 
                 final int cpn = ga.getCurrentPlayerNumber();
                 if (cpn != -1)
@@ -3261,11 +3261,12 @@ public class SOCGameHandler extends GameHandler
                     final int res = board.getHexTypeFromNumber(hexCoord);
                     if ((res >= SOCResourceConstants.CLAY) && (res <= SOCResourceConstants.WOOD))
                     {
-                        srv.messageToGame
-                            (gaName, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.GAIN, res, 1));
-                        srv.messageToGameKeyedSpecial
-                            (ga, true, "event.fog.reveal",  // "{0} gets 1 {1,rsrcs} by revealing the fog hex."
-                             ga.getPlayer(cpn).getName(), Integer.valueOf(1), Integer.valueOf(res));
+                        ga.pendingMessagesOut.add
+                            (new SOCPlayerElement(gaName, cpn, SOCPlayerElement.GAIN, res, 1));
+                        ga.pendingMessagesOut.add
+                            (new UnlocalizedString
+                                (true, "event.fog.reveal",  // "{0} gets 1 {1,rsrcs} by revealing the fog hex."
+                                 ga.getPlayer(cpn).getName(), Integer.valueOf(1), Integer.valueOf(res)));
                     }
                 }
             }
@@ -3514,7 +3515,8 @@ public class SOCGameHandler extends GameHandler
      * Currently this is the only method that checks for those, because other places send text messages
      * immediately instead of queueing them and localizing/sending later.
      * Also checks for {@link UnlocalizedString}s, to be localized and sent with
-     * {@link SOCServer#messageToGameKeyed(SOCGame, boolean, String, Object...)}.
+     * {@link SOCServer#messageToGameKeyed(SOCGame, boolean, String, Object...)}
+     * or {@link SOCServer#messageToGameKeyedSpecial(SOCGame, boolean, String, Object...)}.
      *<P>
      * <B>Locks:</B> If {@code takeMon} is true, takes and releases
      * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}.
@@ -3543,7 +3545,10 @@ public class SOCGameHandler extends GameHandler
             else if (msg instanceof UnlocalizedString)
             {
                 final UnlocalizedString us = (UnlocalizedString) msg;
-                srv.messageToGameKeyed(ga, false, us.key, us.params);
+                if (us.isSpecial)
+                    srv.messageToGameKeyedSpecial(ga, false, us.key, us.params);
+                else
+                    srv.messageToGameKeyed(ga, false, us.key, us.params);
             }
             // else: ignore
         }

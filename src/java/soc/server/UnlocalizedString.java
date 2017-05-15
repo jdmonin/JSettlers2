@@ -19,6 +19,8 @@
  **/
 package soc.server;
 
+import java.util.Arrays;
+
 import soc.util.SOCStringManager;  // for javadocs only
 
 /**
@@ -37,6 +39,12 @@ public final class UnlocalizedString
     public final Object[] params;
 
     /**
+     * If true, message contains special JSettlers-specific tokens and should be localized
+     * using {@link SOCStringManager#getSpecial(soc.game.SOCGame, String, Object...)}
+     */
+    public final boolean isSpecial;
+
+    /**
      * Create an UnlocalizedString with no parameters.
      *
      * @param k  Message localization key, to retrieve text with {@link SOCStringManager#get(String)}
@@ -45,7 +53,7 @@ public final class UnlocalizedString
     public UnlocalizedString(final String k)
         throws IllegalArgumentException
     {
-        this(k, (Object[]) null);
+        this(false, k, (Object[]) null);
     }
 
     /**
@@ -58,11 +66,36 @@ public final class UnlocalizedString
     public UnlocalizedString(final String k, final Object ... p)
         throws IllegalArgumentException
     {
+        this(false, k, p);
+    }
+
+    /**
+     * Create an UnlocalizedString with {@code isSpecial} flag and optional parameters.
+     *
+     * @param k  Message localization key, to retrieve text with {@link SOCStringManager#get(String)}
+     * @param p  Parameters to use when localizing {@code k}'s string
+     * @param isSpecial  If true, message contains special JSettlers-specific tokens and should
+     *     be localized using {@link SOCStringManager#getSpecial(soc.game.SOCGame, String, Object...)}
+     * @throws IllegalArgumentException if {@code k} is null or {@code p} is a 0-length array
+     */
+    public UnlocalizedString(final boolean isSpecial, final String k, final Object ... p)
+        throws IllegalArgumentException
+    {
         if ((k == null) || ((p != null) && (p.length == 0)))
             throw new IllegalArgumentException();
 
         key = k;
         params = p;
+        this.isSpecial = isSpecial;
+    }
+
+    /** Contents as string: <tt>UnlocalizedString{isSpecial, "keystring", params}</tt> */
+    public String toString()
+    {
+        return "UnlocalizedString{" + isSpecial + ", \"" + key
+            + ((params != null)
+                ? ("\", " + Arrays.toString(params) + "}")
+                : "\"}");
     }
 
 }
