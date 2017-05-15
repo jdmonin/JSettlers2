@@ -343,6 +343,7 @@ public class SOCStringManager extends StringManager
         // now format the rest of the message:
         if (argsLocal == null)
             argsLocal = arguments;
+
         return MessageFormat.format(txtfmt, argsLocal);
     }
 
@@ -353,7 +354,8 @@ public class SOCStringManager extends StringManager
      * @return  The client manager
      * @see #getClientManager(Locale)
      */
-    public static SOCStringManager getClientManager(){
+    public static SOCStringManager getClientManager()
+    {
         if(clientManager == null)
             clientManager = new SOCStringManager("soc/client/strings/data");
 
@@ -368,7 +370,8 @@ public class SOCStringManager extends StringManager
      * @return  The client manager
      * @see #getClientManager()
      */
-    public static SOCStringManager getClientManager(Locale loc) {
+    public static SOCStringManager getClientManager(Locale loc)
+    {
         if (clientManager == null)
             clientManager = new SOCStringManager("soc/client/strings/data", loc);
 
@@ -380,7 +383,8 @@ public class SOCStringManager extends StringManager
      * @param loc  Locale to use, or {@code null} to use {@link Locale#getDefault()}
      * @return  The server manager for that client locale
      */
-    public static SOCStringManager getServerManagerForClient(Locale loc) {
+    public static SOCStringManager getServerManagerForClient(Locale loc)
+    {
         if (loc == null)
             loc = Locale.getDefault();
 
@@ -401,7 +405,8 @@ public class SOCStringManager extends StringManager
      * @return  The server string manager with default locale
      *     from {@link #getServerManagerForClient(Locale) getServerManagerForClient(null)}
      */
-    public static SOCStringManager getFallbackServerManagerForClient() {
+    public static SOCStringManager getFallbackServerManagerForClient()
+    {
         SOCStringManager sm = serverManagerForClientLocale_fallback;
         if (sm == null)
         {
