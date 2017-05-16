@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012,2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2014,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,7 +26,9 @@ import soc.game.SOCBoard;  // for javadocs only
 /**
  * This message from server reveals a hex previously hidden by fog on the large sea board.
  * Hexes are revealed by placing roads or ships that touch a corner of a fog hex.
- * This message is sent out before the {@link SOCPutPiece} for the new road or ship.
+ * This message is sent out before the {@link SOCPutPiece} or {@link SOCMovePiece} for the road
+ * or ship, to reveal the hex so the piece message can update players' potential placement edge sets.
+ * Client should call {@link soc.game.SOCGame#revealFogHiddenHex(int, int, int)}.
  *<P>
  * Param 1: Coordinate of the land hex to reveal <br>
  * Param 2: Revealed hex type, same value as {@link SOCBoard#getHexTypeFromCoord(int)} <br>

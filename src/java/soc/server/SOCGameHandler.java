@@ -3253,7 +3253,8 @@ public class SOCGameHandler extends GameHandler
                           diceNum  = board.getNumberOnHexFromCoord(hexCoord);
                 final String gaName = ga.getName();
 
-                ga.pendingMessagesOut.add(new SOCRevealFogHex(gaName, hexCoord, hexType, diceNum));
+                srv.messageToGame
+                    (gaName, new SOCRevealFogHex(gaName, hexCoord, hexType, diceNum));
 
                 final int cpn = ga.getCurrentPlayerNumber();
                 if (cpn != -1)
