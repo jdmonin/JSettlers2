@@ -823,6 +823,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Set or cleared with {@link #setDebugShowCoordsFlag(boolean)}, from
      * SOCPlayerInterface debug command {@code =*= showcoords} or {@code =*= hidecoords}.
      * @see BoardToolTip#setHoverText(String, int)
+     * @see #debugShowPotentials
      * @since 2.0.00
      */
     private boolean debugShowCoordsTooltip = false;
@@ -841,7 +842,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<LI> 4: Potential roads - green parallel lines
      *<LI> 5: Potential settlements - green squares
      *<LI> 6: Potential cities - green larger squares
-     *<LI> 7: Potential ships - yellow diamonds
+     *<LI> 7: Potential ships - green diamonds
      *<LI> 8: Land hexes - red round rects
      *<LI> 9: Nodes on land - red round rects
      *</UL>
@@ -851,6 +852,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * where {@code n} is an index shown above or {@code all}.
      *<P>
      * Has package-level visibility, for use by {@link SOCPlayerInterface#updateAtPutPiece(int, int, int, boolean, int)}.
+     * @see #debugShowCoordsTooltip
      * @since 2.0.00
      */
     boolean[] debugShowPotentials;
@@ -4178,10 +4180,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private void drawBoardEmpty(Graphics g)
     {
         Set<Integer> landHexShow;
+        final int SC_6;
         if (debugShowPotentials[8] && isLargeBoard)
+        {
             landHexShow = ((SOCBoardLarge) board).getLandHexCoordsSet();
-        else
+            SC_6 = scaleToActualX(6);
+        } else {
             landHexShow = null;  // almost always null, unless debugging large board
+            SC_6 = 0;            // unused unless debugging large board
+        }
 
         g.setPaintMode();
 
@@ -4277,9 +4284,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     {
                        g.setColor(Color.RED);
                        g.drawRoundRect
-                           (x + (halfdeltaX / 2),
-                            y + ((halfdeltaY + HEXY_OFF_SLOPE_HEIGHT) / 2) + 1,
-                            halfdeltaX, halfdeltaY + 1, 6, 6);
+                           (scaleToActualX(x + (halfdeltaX / 2)),
+                            scaleToActualY(y + ((halfdeltaY + HEXY_OFF_SLOPE_HEIGHT) / 2) + 1),
+                            scaleToActualX(halfdeltaX), scaleToActualY(halfdeltaY + 1),
+                            SC_6, SC_6);
                     }
                 }
 
@@ -4489,6 +4497,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // 2,6: cities: larger squares (potential green; there is no legal set)
         // 9: nodes on land: red round rects
 
+        final int SC_3  = scaleToActualX(3),  SC_10 = scaleToActualX(10), SC_12 = scaleToActualX(12),
+                  SC_14 = scaleToActualX(14), SC_18 = scaleToActualX(18);
+
         for (int r = 0, y = halfdeltaY + (HEXY_OFF_SLOPE_HEIGHT / 2);
              r <= board.getBoardHeight();
              ++r, y += halfdeltaY)
@@ -4503,26 +4514,26 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (debugShowPotentials[1] && pl.isLegalSettlement(nodeCoord))
                 {
                     g.setColor(Color.YELLOW);
-                    g.drawRect(x-6, y-6, 12, 12);
+                    g.drawRect(scaleToActualX(x-6), scaleToActualY(y-6), SC_12, SC_12);
                 }
                 if (debugShowPotentials[5] && pl.isPotentialSettlement(nodeCoord))
                 {
                     g.setColor(Color.GREEN);
-                    g.drawRect(x-7, y-7, 14, 14);
+                    g.drawRect(scaleToActualX(x-7), scaleToActualY(y-7), SC_14, SC_14);
                 }
 
                     // 6: cities (potential only)
                 if (debugShowPotentials[6] && pl.isPotentialCity(nodeCoord))
                 {
                     g.setColor(Color.GREEN);
-                    g.drawRect(x-9, y-9, 18, 18);
+                    g.drawRect(scaleToActualX(x-9), scaleToActualY(y-9), SC_18, SC_18);
                 }
 
                     // 9: nodes on land
                 if (debugShowPotentials[9] && board.isNodeOnLand(nodeCoord))
                 {
                     g.setColor(Color.RED);
-                    g.drawRoundRect(x-5, y-5, 10, 10, 3, 3);
+                    g.drawRoundRect(scaleToActualX(x-5), scaleToActualY(y-5), SC_10, SC_10, SC_3, SC_3);
                 }
             }
         }
@@ -4547,18 +4558,18 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (debugShowPotentials[3] && pl.isLegalShip(edgeCoord))
                 {
                     g.setColor(Color.YELLOW);
-                    g.drawLine(x-4, y, x, y-4);
-                    g.drawLine(x, y-4, x+4, y);
-                    g.drawLine(x+4, y, x, y+4);
-                    g.drawLine(x, y+4, x-4, y);
+                    g.drawLine(scaleToActualX(x-4), scaleToActualY(y),   scaleToActualX(x),   scaleToActualY(y-4));
+                    g.drawLine(scaleToActualX(x),   scaleToActualY(y-4), scaleToActualX(x+4), scaleToActualY(y));
+                    g.drawLine(scaleToActualX(x+4), scaleToActualY(y),   scaleToActualX(x),   scaleToActualY(y+4));
+                    g.drawLine(scaleToActualX(x),   scaleToActualY(y+4), scaleToActualX(x-4), scaleToActualY(y));
                 }
                 if (debugShowPotentials[7] && pl.isPotentialShip(edgeCoord))
                 {
                     g.setColor(Color.GREEN);
-                    g.drawLine(x-6, y, x, y-6);
-                    g.drawLine(x, y-6, x+6, y);
-                    g.drawLine(x+6, y, x, y+6);
-                    g.drawLine(x, y+6, x-6, y);
+                    g.drawLine(scaleToActualX(x-6), scaleToActualY(y),   scaleToActualX(x),   scaleToActualY(y-6));
+                    g.drawLine(scaleToActualX(x),   scaleToActualY(y-6), scaleToActualX(x+6), scaleToActualY(y));
+                    g.drawLine(scaleToActualX(x+6), scaleToActualY(y),   scaleToActualX(x),   scaleToActualY(y+6));
+                    g.drawLine(scaleToActualX(x),   scaleToActualY(y+6), scaleToActualX(x-6), scaleToActualY(y));
                 }
 
                     // 0,4: roads - parallel lines
@@ -4572,7 +4583,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         (g, x, y, r, c, edgeIsVert, Color.GREEN, 6);
             }
         }
-
     }
 
     /**
@@ -4581,15 +4591,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * (x,y) is the center of the edge.
      *<P>
      * For large board only for now (TODO).
+     * Will scale as needed, but assumes {@code g} is already
+     * translated by {@link #panelMarginX} pixels.
      *
      * @param g  Graphics
-     * @param x  Pixel x-coordinate of center of this edge
-     * @param y  Pixel y-coordinate of center of this edge
+     * @param x  Unscaled internal x-coordinate of center of this edge
+     * @param y  Unscaled internal y-coordinate of center of this edge
      * @param r  Board row coordinate of this edge
      * @param c  Board column coordinate of this edge
      * @param isVert  Is this edge vertical (running north-south), not diagonal?
      * @param co  Color to draw the edge
-     * @param offset  Approx pixel offset, outwards parallel to road
+     * @param offset  Approx unscaled internal-coordinate offset, outwards parallel to road
      */
     private final void drawBoardEmpty_drawDebugShowPotentialRoad
         (Graphics g, final int x, final int y, final int r, final int c,
@@ -4599,8 +4611,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         if (isVert)
         {
-            g.drawLine(x-offset, y-10, x-offset, y+10);
-            g.drawLine(x+offset, y-10, x+offset, y+10);
+            g.drawLine(scaleToActualX(x-offset), scaleToActualY(y-10),
+                       scaleToActualX(x-offset), scaleToActualY(y+10));
+            g.drawLine(scaleToActualX(x+offset), scaleToActualY(y-10),
+                       scaleToActualX(x+offset), scaleToActualY(y+10));
             return;
         }
 
@@ -4614,12 +4628,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if ((c % 2) != ((r/2) % 2))
         {
             // road is "/"
-            g.drawLine(x-10-off2, y+6-offset, x+10-off2, y-6-offset);
-            g.drawLine(x-10+off2, y+6+offset, x+10+off2, y-6+offset);
+            g.drawLine(scaleToActualX(x-10-off2), scaleToActualY(y+6-offset),
+                       scaleToActualX(x+10-off2), scaleToActualY(y-6-offset));
+            g.drawLine(scaleToActualX(x-10+off2), scaleToActualY(y+6+offset),
+                       scaleToActualX(x+10+off2), scaleToActualY(y-6+offset));
         } else {
             // road is "\"
-            g.drawLine(x+10+off2, y+6-offset, x-10+off2, y-6-offset);
-            g.drawLine(x+10-off2, y+6+offset, x-10-off2, y-6+offset);
+            g.drawLine(scaleToActualX(x+10+off2), scaleToActualY(y+6-offset),
+                       scaleToActualX(x-10+off2), scaleToActualY(y-6-offset));
+            g.drawLine(scaleToActualX(x+10-off2), scaleToActualY(y+6+offset),
+                       scaleToActualX(x-10-off2), scaleToActualY(y-6+offset));
         }
     }
 

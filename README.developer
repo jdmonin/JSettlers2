@@ -154,9 +154,10 @@ These debug commands are used at the client to help show the board's status:
 		show or hide potential and legal piece placements which are
 		currently valid for player 0 (sits in the upper-left corner);
 		available only for the sea board layout, not the classic 4- or
-		6-player boards.  To show only some piece types' legals and
-		potentials, instead of 'all' use an index number from
-		SOCBoardPanel.debugShowPotentials javadoc.
+		6-player boards. Yellow shapes show legal coordinates, green
+		shows potential, red shows "on land". To show only some piece
+		types' legals and potentials, instead of 'all' use an index number
+		from SOCBoardPanel.debugShowPotentials javadoc.
 
 If you want the robots to play a few games without any humans, set this
 property on the command line when starting the server:
