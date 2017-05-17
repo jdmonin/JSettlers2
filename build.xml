@@ -68,6 +68,9 @@
   <property name="main.class"     value="${client.class}" />
   <property name="i18neditor.class" value="net.nand.util.i18n.gui.PTEMain" />
 
+  <!-- NOTE: If testing with junit, you must update the JAR locations in "classpath-junit-only". -->
+  <!-- junit is required for testing, but optional for building the JSettlers JARs. -->
+
   <!-- directory names -->
   <!-- These must remain simple values, (relative to basedir) -->
   <property name="src"            value="src" />
@@ -75,7 +78,7 @@
   <property name="docs.src"       value="xdocs" />
   <property name="bin.src"        value="src/bin" />
   <property name="java.src"       value="src/java" />
-  <property name="test.src"       value="src/test" />
+  <property name="test.src"       value="test/test-src" />
   <property name="web.src"        value="src/web" />
 
   <property name="test"           value="test" />
@@ -137,11 +140,22 @@
 
   <!-- external libraries -->
   <fileset id="ext.libs" dir="${lib}" includes="*.jar" />
+  <!-- testing with junit is optional: If testing, give junit JAR locations in classpath-junit-only below. -->
 
   <!-- class paths -->
   <path id="classpath">
     <pathelement location="${classes}" />
     <fileset dir="${lib.target}" includes="*.jar" />
+  </path>
+  <!-- testing with junit is optional: If using it, -->
+  <!-- must give full path to junit 4 JARs here   -->
+  <path id="classpath-junit-only">
+    <pathelement location="/path/to/org.hamcrest/hamcrest-core.jar" />
+    <pathelement location="/path/to/org.junit/junit.jar" />
+  </path>
+  <path id="classpath-junit">
+    <path refid="classpath" />
+    <path refid="classpath-junit-only" />
   </path>
 
   <!-- Not used: For later.... -->
@@ -194,11 +208,12 @@ pte.version = ${i18neditor.version}
   <!-- Third party dependancy checks -->
   <!-- ************************************** -->
 
-  <!-- Not used: For later.... -->
+  <!-- Check for junit: optional for build, required for testing -->
   <target name="check-junit" depends="init">
      <available property="junit.present"
                 classname="junit.framework.TestCase"
-                classpathref="ext.cp" />
+                classpathref="classpath-junit-only"
+     />
   </target>
 
   <!-- Not used: For later installer.... see http://izpack.org/ -->
@@ -281,9 +296,9 @@ pte.version = ${i18neditor.version}
   <!-- Testing targets -->
   <!-- ************************************** -->
 
-  <target name="test" depends="build"
+  <target name="test" depends="build,test-junit"
           description="Run tests against the built JARs; fail the build if any errors">
-      <echo message="Running tests, wait for output:" />
+      <echo message="Running test scripts, wait for output:" />
       <!--
         These take more than a minute to run; the python script produces output after
         each test, but ant buffers it all; no output appears until the script completes.
@@ -298,22 +313,21 @@ pte.version = ${i18neditor.version}
       <echo message="Tests completed successfully." />
   </target>
 
-  <target name="unused_old_example_test" depends="unused_old_example_compile-tests">
-      <mkdir dir="${test.reports}" />
+  <target name="test-junit" depends="compile-tests"
+           description="Run jsettlers JUnit tests" >
       <junit dir="./"
              failureproperty="test.failure"
              printSummary="yes"
              fork="true"
-             haltonerror="no">
+             haltonerror="no" >
         <sysproperty key="basedir" value="." />
-        <formatter type="xml" />
-        <formatter usefile="true" type="plain" />
+        <formatter usefile="false" type="brief" />
         <classpath>
-          <fileset refid="ext.libs" />
+          <path refid="classpath-junit" />
           <pathelement path="${test.classes}" />
           <pathelement path="${classes}" />
         </classpath>
-        <batchtest fork="yes" todir="${test.reports}">
+        <batchtest fork="yes">
           <fileset dir="${test.classes}">
             <include name="**/Test*.class"/>
             <exclude name="**/TestAll.class"/>
@@ -321,19 +335,18 @@ pte.version = ${i18neditor.version}
         </batchtest>
       </junit>
 
-      <junitreport>
-        <fileset dir="${test.reports}" includes="TEST-*.xml" />
-        <report format="noframes" />
-      </junitreport>
-
       <fail if="test.failure" message="There were test failures." />
   </target>
 
-  <target name="unused_old_example_compile-tests" depends="compile">
+  <target name="compile-tests" depends="compile,check-junit"
+          description="Build test classes for JUnit testing" >
+      <fail message="Could not find junit: Set classpath-junit-only jar paths in build.xml"
+      	unless="${junit.present}"
+      	/>
       <mkdir dir="${test.classes}" />
       <javac srcdir="${test.src}"
              destdir="${test.classes}"
-             classpathref="classpath"
+             classpathref="classpath-junit"
              debug="${debug}"
              optimize="${optimize}"
              deprecation="${deprecation}" />

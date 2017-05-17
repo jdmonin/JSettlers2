@@ -11,3 +11,4 @@
 /target/java.policy.applet
 /target/classes/*
 /target/lib/*
+/target/test-classes/*
