@@ -933,7 +933,8 @@ public class SOCServer extends Server
      * String value is captured here as soon as SOCServer is referenced, in case SOCPlayerClient's
      * practice server will localize the descriptions used by {@link SOCGameOption#getOption(String, boolean)}.
      * @since 2.0.00
-     * @see {@link #i18n_scenario_SC_WOND_desc}
+     * @see #i18n_scenario_SC_WOND_desc
+     * @see soctest.TestI18NGameoptScenStrings
      */
     final static String i18n_gameopt_PL_desc;
     static
@@ -954,6 +955,7 @@ public class SOCServer extends Server
      * @see #clientHasLocalizedStrs_gameScenarios(StringConnection)
      * @since 2.0.00
      * @see #i18n_gameopt_PL_desc
+     * @see soctest.TestI18NGameoptScenStrings
      */
     final static String i18n_scenario_SC_WOND_desc;
     static
