@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -67,9 +67,10 @@ import soc.message.SOCMessage;
  * their versions differ.
  *<P>
  * <B>I18N:</B><br>
- * Game scenario names and descriptions are also stored as {@code gamescen.*.n}, {@code .p}
+ * Game scenario names and descriptions are also stored as {@code gamescen.*.n}, {@code .d}
  * in {@code server/strings/toClient_*.properties} to be sent to clients if needed.
  * A scenario's text can be localized with {@link #setDesc(String, String)}.
+ * See unit test {@link soctest.TestI18NGameoptScenStrings}.
  *<P>
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -212,10 +213,9 @@ public class SOCScenario
             (K_SC_FTRI, 2000, 2000,
              "The Forgotten Tribe",
              "Far areas of the board have small habitations of a \"forgotten tribe\" of settlers. "
-             + "When players reach them they are greeted with \"gifts\" of a development card or Special Victory Point. "
-             + "Ports at these far areas can be claimed by players and must be moved adjacent to one "
-             + "of their coastal settlements/cities if possible, or set aside for the "
-             + "player to place later when they can.",
+             + "When players build ships to reach them, they are greeted with \"gifts\" of a development card, "
+             + "Special Victory Point, or a Port given to the player which must be moved adjacent to one "
+             + "of their coastal settlements/cities if possible, or set aside to place later.",
              "_SC_FTRI=t,SBL=t,VP=t13"));
 
         allSc.put(K_SC_WOND, new SOCScenario
