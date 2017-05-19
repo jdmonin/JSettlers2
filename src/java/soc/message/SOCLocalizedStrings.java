@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2015 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -259,6 +259,19 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     public static String toCmd(final String type, final int flags, List<String> strs)
         throws IllegalArgumentException
     {
+        return toCmd(type, flags, strs, false);
+    }
+
+    /**
+     * Implement server-side {@code toCmd(..)}: See {@link #toCmd(String, int, List)} for details.
+     * @param skipFirstStr  If true, {@code str}'s first element is {@code type}: skip it while building cmd.
+     * @throws IllegalArgumentException  If {@code type} or any element of {@code strs} fails
+     *     {@link SOCMessage#isSingleLineAndSafe(String)}.
+     */
+    private static String toCmd
+        (final String type, final int flags, List<String> strs, final boolean skipFirstStr)
+        throws IllegalArgumentException
+    {
         checkParams(type, strs);  // isSingleLineAndSafe(type), isSingleLineAndSafe(each str), etc
 
         StringBuilder sb = new StringBuilder(Integer.toString(SOCMessage.LOCALIZEDSTRINGS));
@@ -271,6 +284,9 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
         {
             for (int i = 0; i < strs.size(); ++i)
             {
+                if ((i == 0) && skipFirstStr)
+                    continue;
+
                 sb.append(sep);
 
                 String itm = strs.get(i);
@@ -313,6 +329,15 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
         ArrayList<String> strs = new ArrayList<String>();
         strs.add(str);
         return toCmd(type, flags, strs);
+    }
+
+    /**
+     * Build the command string; used at server side.
+     * See {@link #toCmd(String, int, List)} for details.
+     */
+    public String toCmd()
+    {
+        return toCmd(pa.get(0), flags, pa, true);  // won't throw anything: constructor checked those conditions
     }
 
     /**
