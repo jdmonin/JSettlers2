@@ -336,9 +336,9 @@ Current TODO list
 	- Control the speed of robots in practice games
 		Adjust SOCRobotBrain.pause, ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS, etc
 	- Sound effects
-	- Add more functional and unit tests, in test/bin/ and test/src/ directories and build.xml
+	- Add more functional and unit tests, in test/bin/ and test/test-src/ directories and build.xml
 	- Possible: Auto-add robots when needed as server runs, with server active-game count
-		Only do it if jsettlers.startrobots property is set
+		Only do so if jsettlers.startrobots property is set
 	- refactor: ga.getPlayer(ga.getCurrentPlayer()) or getClient().getClientManager()
 	- Refactor SOCRobotClient: Move simple handle-methods which don't
 		put the message into brainQ, but only update game fields/
