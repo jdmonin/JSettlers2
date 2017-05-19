@@ -622,26 +622,6 @@ public class SOCServerMessageHandler
                     opts = null;
             }
         }
-        else if (wantsLocalDescs)
-        {
-            // Received some okeys: cli is newer than this server, and
-            // also wants localized descriptions.
-            //
-            // We need to send them all the okeys they're asking for,
-            // some of which may not be known to our older server.
-
-            opts = new ArrayList<SOCGameOption>();
-            for (final String okey : okeys)
-            {
-                SOCGameOption opt = SOCGameOption.getOption(okey, false);
-                if (opt != null)
-                    opts.add(opt);
-                else
-                    opts.add(new SOCGameOption(okey));  // OTYPE_UNKNOWN
-            }
-
-            okeys = null;  // merged into opts
-        }
 
         // Iterate through requested okeys or calculated opts list.
         // Send requested options' info, and remove them from optsToLocal to
