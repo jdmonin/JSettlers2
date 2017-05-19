@@ -30,6 +30,7 @@ import static org.junit.Assert.*;
 
 import soc.game.SOCGameOption;
 import soc.game.SOCScenario;
+import soc.message.SOCMessage;
 import soc.util.SOCStringManager;
 
 /**
@@ -63,15 +64,19 @@ public class TestI18NGameoptScenStrings
 
         final Map<String, SOCGameOption> allOpts = SOCGameOption.getAllKnownOptions();
         final TreeSet<String> mismatchKeys = new TreeSet<String>(),  // use TreeSet for sorted results
-                              missingKeys  = new TreeSet<String>();
+                              missingKeys  = new TreeSet<String>(),
+                              strBadChar   = new TreeSet<String>();
         for (final SOCGameOption opt : allOpts.values())
         {
             // "Hidden" gameopts starting with "_" don't need to be in sm,
             // but if present there the description strings do need to match.
             try
             {
-                if (! opt.getDesc().equals(sm.get("gameopt." + opt.key)))
+                final String smDesc = sm.get("gameopt." + opt.key);
+                if (! opt.getDesc().equals(smDesc))
                     mismatchKeys.add(opt.key);
+                if ((smDesc != null) && ! SOCMessage.isSingleLineAndSafe(smDesc))
+                    strBadChar.add(opt.key);
             } catch (MissingResourceException e) {
                 if (opt.key.charAt(0) != '_')
                     missingKeys.add(opt.key);
@@ -92,6 +97,13 @@ public class TestI18NGameoptScenStrings
                 ("Game opts missing from toClient.properties gameopt.* strings: " + missingKeys);
         }
 
+        if (! strBadChar.isEmpty())
+        {
+            allOK = false;
+            System.out.println
+                ("Game opts with gameopt.* strings failing SOCMessage.isSingleLineAndSafe(..): " + strBadChar);
+        }
+
         assertTrue("SOCGameOption i18n strings", allOK);
     }
 
@@ -106,14 +118,18 @@ public class TestI18NGameoptScenStrings
 
         final Map<String, SOCScenario> allScens = SOCScenario.getAllKnownScenarios();
         final TreeSet<String> mismatchKeys = new TreeSet<String>(),  // use TreeSet for sorted results
-                              missingKeys  = new TreeSet<String>();
+                              missingKeys  = new TreeSet<String>(),
+                              strBadChar   = new TreeSet<String>();
         for (final SOCScenario sc : allScens.values())
         {
             String strKey = sc.key + ".n";
             try
             {
-                if (! sc.getDesc().equals(sm.get("gamescen." + strKey)))
+                final String smDesc = sm.get("gamescen." + strKey);
+                if (! sc.getDesc().equals(smDesc))
                     mismatchKeys.add(strKey);
+                if ((smDesc != null) && ! SOCMessage.isSingleLineAndSafe(smDesc))
+                    strBadChar.add(strKey);
             } catch (MissingResourceException e) {
                 missingKeys.add(strKey);
             }
@@ -124,8 +140,12 @@ public class TestI18NGameoptScenStrings
                 strKey = sc.key + ".d";
                 try
                 {
-                    if (! longDesc.equals(sm.get("gamescen." + strKey)))
+                    final String smDesc = sm.get("gamescen." + strKey);
+                    if (! longDesc.equals(smDesc))
                         mismatchKeys.add(strKey);
+                    if ((smDesc != null) &&
+                        (smDesc.contains(SOCMessage.sep) || ! SOCMessage.isSingleLineAndSafe(smDesc, true)))
+                        strBadChar.add(strKey);
                 } catch (MissingResourceException e) {
                     missingKeys.add(strKey);
                 }
@@ -144,6 +164,13 @@ public class TestI18NGameoptScenStrings
             allOK = false;
             System.out.println
                 ("SOCScenario keys missing from toClient.properties gamescen.* strings: " + missingKeys);
+        }
+
+        if (! strBadChar.isEmpty())
+        {
+            allOK = false;
+            System.out.println
+                ("SOCScenario key strings in gamescen.* failing SOCMessage.isSingleLineAndSafe(..): " + strBadChar);
         }
 
         assertTrue("SOCScenario i18n strings", allOK);
