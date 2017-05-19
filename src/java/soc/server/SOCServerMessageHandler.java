@@ -28,6 +28,7 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -493,6 +494,7 @@ public class SOCServerMessageHandler
         if (type.equals(SOCLocalizedStrings.TYPE_GAMEOPT))
         {
             // Already handled when client connects
+            // and sends GAMEOPTIONGETINFOS
             flags = SOCLocalizedStrings.FLAG_SENT_ALL;
         }
         else if (type.equals(SOCLocalizedStrings.TYPE_SCENARIO))
@@ -550,6 +552,8 @@ public class SOCServerMessageHandler
     /**
      * process the "game option get infos" message; reply with the info, with
      * one {@link SOCGameOptionInfo GAMEOPTIONINFO} message per option keyname.
+     * If client version >= 2.0.00, send any unchanged but localized options using
+     * {@link SOCLocalizedStrings}({@link SOCLocalizedStrings#TYPE_GAMEOPT TYPE_GAMEOPT}).
      * Mark the end of the option list with {@link SOCGameOptionInfo GAMEOPTIONINFO}("-").
      * If this list is empty, "-" will be the only GAMEOPTIONGETINFO message sent.
      *<P>
@@ -573,24 +577,34 @@ public class SOCServerMessageHandler
         final SOCClientData scd = (SOCClientData) c.getAppData();
         boolean alreadyTrimmedEnums = false;
         Vector<String> okeys = mes.getOptionKeys();
-        List<SOCGameOption> opts = null;
+        List<SOCGameOption> opts = null;  // opts to send as SOCGameOptionInfo
+        final Map<String, SOCGameOption> optsToLocal;  // opts to send in a SOCLocalizedStrings instead
 
         // check for request for i18n localized descriptions (client v2.0.00 or newer);
-        // if we don't have game opt localization for client's locale, ignore the request.
+        // if we don't have game opt localization for client's locale, ignore that request flag.
         if (mes.hasTokenGetI18nDescs() && (c.getI18NLocale() != null))
             scd.wantsI18N = true;
         final boolean wantsLocalDescs =
             scd.wantsI18N
             && ! SOCServer.i18n_gameopt_PL_desc.equals(c.getLocalized("gameopt.PL"));
 
+        if (wantsLocalDescs)
+        {
+            // Gather all game opts we have that we could possibly localize;
+            // this list will be narrowed down soon
+            optsToLocal = new HashMap<String, SOCGameOption>();
+            for (final SOCGameOption opt : SOCGameOption.optionsForVersion(cliVers, null))
+                optsToLocal.put(opt.key, opt);
+        } else {
+            optsToLocal = null;
+        }
+
+        // Gather requested game option info:
         if (okeys == null)
         {
-            // received "-", look for newer options (cli is older than us), or wantsLocalDescs.
-            // okeys will be null if nothing is new.
-            if (wantsLocalDescs)
-                opts = SOCGameOption.optionsForVersion(cliVers, null);
-            else
-                opts = SOCGameOption.optionsNewerThanVersion(cliVers, false, true, null);
+            // received "-", look for newer options (cli is older than us).
+            // opts will be null if there are no newer ones.
+            opts = SOCGameOption.optionsNewerThanVersion(cliVers, false, true, null);
             alreadyTrimmedEnums = true;
 
             if ((opts != null) && (cliVers < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES))
@@ -613,32 +627,25 @@ public class SOCServerMessageHandler
             // Received some okeys: cli is newer than this server, and
             // also wants localized descriptions.
             //
-            // We need to send them all the localized options we have,
-            // and also include the okeys they're asking for, which may
-            // not be known to our older server.
-            //
-            // This situation is not common, and okeys won't be a long list,
-            // so linear search should be good enough.
+            // We need to send them all the okeys they're asking for,
+            // some of which may not be known to our older server.
 
-            opts = SOCGameOption.optionsForVersion(cliVers, null);
+            opts = new ArrayList<SOCGameOption>();
             for (final String okey : okeys)
             {
-                boolean found = false;
-                for (final SOCGameOption opt : opts)
-                {
-                    if (opt.key.equals(okey))
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (! found)
+                SOCGameOption opt = SOCGameOption.getOption(okey, false);
+                if (opt != null)
+                    opts.add(opt);
+                else
                     opts.add(new SOCGameOption(okey));  // OTYPE_UNKNOWN
             }
 
             okeys = null;  // merged into opts
         }
+
+        // Iterate through requested okeys or calculated opts list.
+        // Send requested options' info, and remove them from optsToLocal to
+        // avoid sending separate message with those opts' localization info:
 
         if ((opts != null) || (okeys != null))
         {
@@ -665,7 +672,7 @@ public class SOCServerMessageHandler
                     final String okey = okeys.elementAt(i);
                     opt = SOCGameOption.getOption(okey, false);
 
-                    if ((opt == null) || (opt.minVersion > cliVers))  // Don't use opt.getMinVersion() here
+                    if ((opt == null) || (opt.minVersion > cliVers))  // Don't use dynamic opt.getMinVersion(Map) here
                     {
                         opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
                     }
@@ -675,6 +682,16 @@ public class SOCServerMessageHandler
                             localDesc = c.getLocalized("gameopt." + okey);
                         } catch (MissingResourceException e) {}
                     }
+                }
+
+                if (wantsLocalDescs)
+                {
+                    // don't send opt's localization info again after GAMEOPTIONINFOs
+                    optsToLocal.remove(opt.key);
+
+                    if (opt.getDesc().equals(localDesc))
+                        // don't send desc if not localized, client already has unlocalized desc string
+                        localDesc = null;
                 }
 
                 // Enum-type options may have their values restricted by version.
@@ -688,6 +705,26 @@ public class SOCServerMessageHandler
 
                 c.put(new SOCGameOptionInfo(opt, cliVers, localDesc).toCmd());
             }
+        }
+
+        // send any opts which are localized but otherwise unchanged between server's/client's version
+        if (optsToLocal != null)  // empty is OK
+        {
+            List<String> strs = new ArrayList<String>(2 * optsToLocal.size());
+            for (final SOCGameOption opt : optsToLocal.values())
+            {
+                try {
+                    String localDesc = c.getLocalized("gameopt." + opt.key);
+                    if (! opt.getDesc().equals(localDesc))
+                    {
+                        strs.add(opt.key);
+                        strs.add(localDesc);
+                    }
+                } catch (MissingResourceException e) {}
+            }
+
+            c.put(new SOCLocalizedStrings
+                (SOCLocalizedStrings.TYPE_GAMEOPT, SOCLocalizedStrings.FLAG_SENT_ALL, strs).toCmd());
         }
 
         // mark end of list, even if list was empty

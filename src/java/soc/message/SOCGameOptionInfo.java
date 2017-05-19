@@ -31,7 +31,8 @@ import soc.game.SOCVersionedItem;
  * Information on one available {@link SOCGameOption} game option.
  * Reply from server to a client's {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS} message.
  * Provides the option's information, including default value and current value at the
- * server for new games.  In v2.0.00+ the option description can be localized for the client.
+ * server for new games.  In v2.0.00+ the option description can be localized for the client;
+ * see also {@link SOCLocalizedStrings}({@link SOCLocalizedStrings#TYPE_GAMEOPT TYPE_GAMEOPT}).
  *<P>
  * If the server doesn't know this option, the returned option type is
  * {@link SOCGameOption#OTYPE_UNKNOWN}.

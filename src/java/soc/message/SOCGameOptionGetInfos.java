@@ -45,6 +45,10 @@ import soc.game.SOCGameOption;
  * if available, by including {@link #OPTKEY_GET_I18N_DESCS} as the last option keyname
  * in their list sent to the server.  Check server version against
  * {@link soc.util.SOCStringManager#VERSION_FOR_I18N SOCStringManager.VERSION_FOR_I18N}.
+ * Server's response sequence may include a
+ * {@link SOCLocalizedStrings}({@link SOCLocalizedStrings#TYPE_GAMEOPT TYPE_GAMEOPT})
+ * with any unchanged but localized game options.
+ *<P>
  * The keyname list sent by the client would be:
  *<UL>
  * <LI> If older than server, or same version: "-", {@link #OPTKEY_GET_I18N_DESCS}

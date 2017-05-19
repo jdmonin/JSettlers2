@@ -54,6 +54,7 @@ public class TestI18NGameoptScenStrings
     /**
      * Test {@link SOCGameOption} text strings.
      * @see soc.server.SOCServer#localizeKnownOptions(java.util.Locale, boolean)
+     * @see soc.server.SOCServerMessageHandler#handleGAMEOPTIONGETINFOS(soc.server.genericServer.StringConnection, soc.message.SOCGameOptionGetInfos)
      */
     @Test
     public void testGameoptsText()
