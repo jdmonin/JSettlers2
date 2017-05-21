@@ -300,6 +300,7 @@ public class SOCGameListAtServer extends SOCGameList
      *                Should already be validated, by calling
      *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *                with <tt>doServerPreadjust</tt> true.
+     *                That call is also needed to add any {@code "SC"} options into {@code gaOpts}.
      * @param handler  Game type handler for this game
      * @return new game object, or null if it already existed
      * @throws IllegalArgumentException  if {@code handler} is null

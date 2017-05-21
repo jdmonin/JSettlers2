@@ -2507,6 +2507,8 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * If {@link SOCGame#hasSeaBoard}: Once the board is made, send the updated
      * {@link SOCPotentialSettlements potential settlements}.
+     *<P>
+     * If this code changes, must also update {@link soctest.TestBoardLayouts#testSingleLayout(SOCScenario, int)}.
      */
     public void startGame(SOCGame ga)
     {
@@ -2518,7 +2520,9 @@ public class SOCGameHandler extends GameHandler
         srv.numberOfGamesStarted++;  // TODO once multiple handler threads, encapsulate this
 
         /**
-         * start the game, place any initial pieces
+         * start the game, place any initial pieces.
+         * If anything is added to this game object setup code,
+         * update soctest.TestBoardLayouts.testSingleLayout(..).
          */
 
         ga.setScenarioEventListener(this);  // for playerEvent, gameEvent callbacks (since 2.0.00)

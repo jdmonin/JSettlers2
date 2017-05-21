@@ -3876,6 +3876,8 @@ public class SOCGame implements Serializable, Cloneable
      * gameState becomes {@link #START1A}.
      * Updates {@link #lastActionTime}.
      *<P>
+     * <B>Note:</B> This method requires at least 1 seated player, or it will loop forever.
+     *<P>
      * Called only at server, not client.  For a method called during game start
      * at server and clients, see {@link #updateAtBoardLayout()}.
      *<P>

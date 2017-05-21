@@ -2086,6 +2086,8 @@ public class SOCGameOption
      *            an option's current value will be changed if it's outside of
      *            the min/max for that option in knownOpts.
      *            Must not be null.
+     *            If {@code doServerPreadjust} and contains {@code "SC"},
+     *            adds the scenario's game options to this set.
      * @param knownOpts Set of known SOCGameOptions to check against, or null to use
      *            the server's static copy
      * @param doServerPreadjust  If true, we're calling from the server before creating a game;
