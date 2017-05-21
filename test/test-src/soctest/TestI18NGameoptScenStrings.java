@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
@@ -35,13 +36,17 @@ import static org.junit.Assert.*;
 
 import soc.game.SOCGameOption;
 import soc.game.SOCScenario;
+import soc.message.SOCLocalizedStrings;
 import soc.message.SOCMessage;
+import soc.server.genericServer.StringConnection;
 import soc.util.SOCStringManager;
 
 /**
  * Tests for I18N - Consistency of {@link SOCGameOption} and {@link SOCScenario} strings
  * in their Java classes versus the {@code en_US} properties file used by
- * {@link SOCStringManager#getServerManagerForClient(Locale)}.
+ * {@link SOCStringManager#getServerManagerForClient(Locale)};
+ * unsendable characters; combined length of all strings versus max allowable size
+ * for a {@link SOCLocalizedStrings} message ({@link StringConnection#MAX_MESSAGE_SIZE_UTF8}).
  *
  * @since 2.0.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -165,12 +170,12 @@ public class TestI18NGameoptScenStrings
     }
 
     /**
-     * For {@link #testDescriptions()}, test one string props file's description strings.
+     * For {@link #testDescriptionsForNet()}, test one string props file's description strings.
      * @param pfile Full filename to open and test
      * @return True if OK, or prints failed strings and return false
      * @throws Exception if {@code pfile} can't be opened and read
      */
-    private boolean testDescriptions(File pfile)
+    private boolean testDescriptionsFile(File pfile)
         throws Exception
     {
         final FileInputStream fis = new FileInputStream(pfile);
@@ -182,6 +187,8 @@ public class TestI18NGameoptScenStrings
 
         final TreeSet<String> optBadChar  = new TreeSet<String>(), // use TreeSet for sorted results
                               scenBadChar = new TreeSet<String>();
+        final ArrayList<String> optsStr = new ArrayList<String>(),
+                                scenStr = new ArrayList<String>();
 
         for (final SOCGameOption opt : allOpts.values())
         {
@@ -190,8 +197,12 @@ public class TestI18NGameoptScenStrings
             try
             {
                 final String smDesc = props.getString("gameopt." + opt.key);
-                if ((smDesc != null) && ! SOCMessage.isSingleLineAndSafe(smDesc))
-                    optBadChar.add(opt.key);
+                if (smDesc != null)
+                {
+                    optsStr.add(smDesc);
+                    if (! SOCMessage.isSingleLineAndSafe(smDesc))
+                        optBadChar.add(opt.key);
+                }
             } catch (MissingResourceException e) {}
         }
 
@@ -201,8 +212,12 @@ public class TestI18NGameoptScenStrings
             try
             {
                 final String smDesc = props.getString("gamescen." + strKey);
-                if ((smDesc != null) && ! SOCMessage.isSingleLineAndSafe(smDesc))
-                    scenBadChar.add(strKey);
+                if (smDesc != null)
+                {
+                    scenStr.add(smDesc);
+                    if (! SOCMessage.isSingleLineAndSafe(smDesc))
+                        scenBadChar.add(strKey);
+                }
             } catch (MissingResourceException e) {}
 
             final String longDesc = sc.getLongDesc();
@@ -212,9 +227,12 @@ public class TestI18NGameoptScenStrings
                 try
                 {
                     final String smDesc = props.getString("gamescen." + strKey);
-                    if ((smDesc != null) &&
-                        (smDesc.contains(SOCMessage.sep) || ! SOCMessage.isSingleLineAndSafe(smDesc, true)))
-                        scenBadChar.add(strKey);
+                    if (smDesc != null)
+                    {
+                        scenStr.add(smDesc);
+                        if (smDesc.contains(SOCMessage.sep) || ! SOCMessage.isSingleLineAndSafe(smDesc, true))
+                            scenBadChar.add(strKey);
+                    }
                 } catch (MissingResourceException e) {}
             }
         }
@@ -235,15 +253,43 @@ public class TestI18NGameoptScenStrings
                  + scenBadChar);
         }
 
+        final int MAX = StringConnection.MAX_MESSAGE_SIZE_UTF8;  // alias for brevity
+
+        String msg = SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_GAMEOPT, Integer.MAX_VALUE, optsStr);
+        int L = msg.getBytes("utf-8").length;
+        if (L > MAX)
+        {
+            allOK = false;
+            System.out.println
+                (pfile.getName() + ": Total length gameopt.* strings too long for SOCLocalizedStrings ("
+                 + L + ", max " + MAX + ")");
+        }
+
+        msg = SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, Integer.MAX_VALUE, scenStr);
+        L = msg.getBytes("utf-8").length;
+        if (L > MAX)
+        {
+            allOK = false;
+            System.out.println
+                (pfile.getName() + ": Total length gamescen.* strings too long for SOCLocalizedStrings ("
+                 + L + ", max " + MAX + ")");
+        }
+
         return allOK;
     }
 
     /**
-     * test all locales' {@link SOCGameOption} and {@link SOCScenario} description strings for bad characters.
+     * Network compatibility: Test all locales' {@link SOCGameOption} and {@link SOCScenario} description strings for
+     * unsendable characters; test combined length of all its strings versus max length of {@link SOCLocalizedStrings}
+     * ({@link StringConnection#MAX_MESSAGE_SIZE_UTF8}).
+     *<P>
+     * If a locale's strings fail versus {@link StringConnection#MAX_MESSAGE_SIZE_UTF8}, the server code should
+     * be enhanced to break them into multiple messages when that situation arises.
+     *
      * @throws Exception if any locale's props file can't be opened and read
      */
     @Test
-    public void testDescriptions()
+    public void testDescriptionsForNet()
         throws Exception
     {
         String pfull = SOCStringManager.PROPS_PATH_SERVER_FOR_CLIENT + ".properties";
@@ -264,7 +310,7 @@ public class TestI18NGameoptScenStrings
         {
             if (! f.getName().startsWith(pname))
                 continue;
-            if (! testDescriptions(f))
+            if (! testDescriptionsFile(f))
                 allOK = false;
         }
 
