@@ -65,6 +65,11 @@ public class SOCStringManager extends StringManager
     public static final int VERSION_FOR_I18N = 2000;
 
     /**
+     * Path and prefix of {@link #getServerManagerForClient(Locale)} properties files.
+     */
+    public static final String PROPS_PATH_SERVER_FOR_CLIENT = "soc/server/strings/toClient";
+
+    /**
      * Manager for all client strings. Static is okay because the client is seen by 1 person with 1 locale.
      */
     private static SOCStringManager clientManager = null;
@@ -392,7 +397,7 @@ public class SOCStringManager extends StringManager
         SOCStringManager smc = serverManagerForClientLocale.get(lstr);
         if (smc == null)
         {
-            smc = new SOCStringManager("soc/server/strings/toClient", loc);
+            smc = new SOCStringManager(PROPS_PATH_SERVER_FOR_CLIENT, loc);
             serverManagerForClientLocale.put(lstr, smc);
         }
 
