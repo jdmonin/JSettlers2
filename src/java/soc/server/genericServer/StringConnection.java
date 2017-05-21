@@ -20,7 +20,7 @@
  **/
 package soc.server.genericServer;
 
-import java.io.DataOutputStream;
+import java.io.DataOutputStream;  // strictly for javadocs
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.MissingResourceException;
@@ -52,14 +52,15 @@ import soc.util.SOCStringManager;
 public abstract class StringConnection
 {
     /**
-     * Because {@link NetStringConnection}'s connection protocol uses {@link DataOutputStream#writeUTF(String)},
+     * Because subclass {@link NetStringConnection}'s connection protocol uses {@link DataOutputStream#writeUTF(String)},
      * its messages must be no longer than 65535 bytes when encoded into {@code UTF-8}
      * (which is not Java's internal string encoding).
      *<P>
-     * Although {@code LocalStringConnection} doesn't have this limitation, it's mentioned here
-     * for writing code which may send messages over either type of {@code StringConnection}.
+     * This limitation is mentioned here for writing code which may send messages over either type of
+     * {@code StringConnection}. {@link LocalStringConnection} is limited only by java's {@code String} max length.
      *<P>
-     * You can check a string's {@code UTF-8} length with {@link String#getBytes(String) str.getBytes("utf-8").length}.
+     * You can check a string's {@code UTF-8} length with {@link String#getBytes(String) str.getBytes("utf-8")}.length.
+     * Because of its cost, that's probably best done within the test cases, not production code.
      * @since 1.2.0
      */
     public final static int MAX_MESSAGE_SIZE_UTF8 = 0xFFFF;
