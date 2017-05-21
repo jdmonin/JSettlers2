@@ -20,6 +20,7 @@
  **/
 package soc.server.genericServer;
 
+import java.io.DataOutputStream;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.MissingResourceException;
@@ -41,7 +42,7 @@ import soc.util.SOCStringManager;
  *                       setVersionTracking, isInputAvailable,
  *                       wantsHideTimeoutMessage, setHideTimeoutMessage
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed; remove unused import EOFException
- *  1.2.0 - 2013-09-07 - for I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and
+ *  1.2.0 - 2017-05-21 - for I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and
  *                       {@link #getLocalized(String)}. StringConnection is now a superclass, not an interface.
  *</PRE>
  *
@@ -50,6 +51,18 @@ import soc.util.SOCStringManager;
  */
 public abstract class StringConnection
 {
+    /**
+     * Because {@link NetStringConnection}'s connection protocol uses {@link DataOutputStream#writeUTF(String)},
+     * its messages must be no longer than 65535 bytes when encoded into {@code UTF-8}
+     * (which is not Java's internal string encoding).
+     *<P>
+     * Although {@code LocalStringConnection} doesn't have this limitation, it's mentioned here
+     * for writing code which may send messages over either type of {@code StringConnection}.
+     *<P>
+     * You can check a string's {@code UTF-8} length with {@link String#getBytes(String) str.getBytes("utf-8").length}.
+     * @since 1.2.0
+     */
+    public final static int MAX_MESSAGE_SIZE_UTF8 = 0xFFFF;
 
     /**
      * The arbitrary key data (client "name") associated with this connection, or {@code null}.

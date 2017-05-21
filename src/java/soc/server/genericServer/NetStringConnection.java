@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2010,2013,2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2010,2013,2016-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -198,6 +198,10 @@ public final class NetStringConnection
     /**
      * Send this data over the connection.  Adds it to the {@link #outQueue}
      * to be sent by the Putter thread.
+     *<P>
+     * Because the connection protocol uses {@link DataOutputStream#writeUTF(String)},
+     * {@code str} must be no longer than 65535 bytes when encoded into {@code UTF-8}
+     * (which is not Java's internal string encoding): See {@link StringConnection#MAX_MESSAGE_SIZE_UTF8}.
      *
      * @param str Data to send
      */
@@ -259,6 +263,7 @@ public final class NetStringConnection
         {
             //D.ebugPrintln("trying to put "+str+" to "+data);
             out.writeUTF(str);
+                // throws UTFDataFormatException (an IOException) if string length > 65535 in UTF-8
         }
         catch (IOException e)
         {

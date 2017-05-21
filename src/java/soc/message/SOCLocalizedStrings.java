@@ -52,6 +52,19 @@ import java.util.List;
  * The rest of {@code getParams()} is organized according to the type; see type constant javadocs.
  * Since {@code getParams()} can't contain empty strings, check contents for {@link #EMPTY}.
  *<P>
+ * <B>Max Length:</B> When sending a long list, watch for the 65535-character limit mentioned at
+ * {@link soc.server.genericServer.StringConnection#MAX_MESSAGE_SIZE_UTF8}. Remember that limit is
+ * against the strings' {@code UTF-8} encoding, not the internal encoding used with {@link String#length()}.
+ * If unsure, you can test length of the final message string with code like:
+ * <pre><code>
+ *   final String msg = {@link SOCLocalizedStrings#toCmd(String, int, List) SOCLocalizedStrings.toCmd}(...);
+ *   final int len = msg.{@link String#getBytes(String) getBytes("utf-8")}.length;
+ *   if (len > {@link soc.server.genericServer.StringConnection#MAX_MESSAGE_SIZE_UTF8 StringConnection.MAX_MESSAGE_SIZE_UTF8})
+ *   {
+ *       ....
+ *   }
+ * </code></pre>
+ *<P>
  * Not a per-game message; {@link #getGame()} returns {@link SOCMessage#GAME_NONE}.
  *<P>
  * Robot clients don't need to know about or handle this message type,
@@ -160,6 +173,8 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      *    <P>
      *     If any string starts with {@link #MARKER_PREFIX}, it must be a recognized marker:
      *     ({@link #MARKER_KEY_UNKNOWN}) declared in this class.
+     *    <P>
+     *     <B>Max Length:</B> See {@link SOCLocalizedStrings class javadoc} for combined max length of list's strings.
      *
      * @throws IllegalArgumentException  If {@code type} or any element of {@code strs} fails
      *     {@link SOCMessage#isSingleLineAndSafe(String)}.
@@ -250,6 +265,8 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      *    <P>
      *     If any string starts with {@link #MARKER_PREFIX}, it must be a recognized marker:
      *     ({@link #MARKER_KEY_UNKNOWN}) declared in this class.
+     *    <P>
+     *     <B>Max Length:</B> See {@link SOCLocalizedStrings class javadoc} for combined max length of list's strings.
      *
      * @return    the command string
      * @throws IllegalArgumentException  If {@code type} or any element of {@code strs} fails
