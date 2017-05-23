@@ -44,8 +44,14 @@ import java.sql.Timestamp;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.Properties;
+import java.util.Set;
 
 
 /**
@@ -62,17 +68,24 @@ import java.util.Properties;
  * for {@link #PROP_JSETTLERS_DB_URL} and {@link #PROP_JSETTLERS_DB_DRIVER}.
  *<P>
  * It uses a database created with the following commands:
- *<BR> (See src/bin/sql/jsettlers-tables.sql) <BR>
- *<code>
+ *<BR> (See {@code src/bin/sql/jsettlers-tables.sql}) <BR>
+ *<code><pre>
  * CREATE DATABASE socdata;
  * USE socdata;
- * CREATE TABLE users (nickname VARCHAR(20), host VARCHAR(50), password VARCHAR(20), email VARCHAR(50), lastlogin DATE);
+ * CREATE TABLE users (nickname VARCHAR(20), host VARCHAR(50), password VARCHAR(20), email VARCHAR(50), lastlogin DATE, nickname_lc VARCHAR(20));
  * CREATE TABLE logins (nickname VARCHAR(20), host VARCHAR(50), lastlogin DATE);
  * CREATE TABLE games (gamename VARCHAR(20), player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20), player4 VARCHAR(20), score1 TINYINT, score2 TINYINT, score3 TINYINT, score4 TINYINT, starttime TIMESTAMP);
  * CREATE TABLE robotparams (robotname VARCHAR(20), maxgamelength INT, maxeta INT, etabonusfactor FLOAT, adversarialfactor FLOAT, leaderadversarialfactor FLOAT, devcardmultiplier FLOAT, threatmultiplier FLOAT, strategytype INT, starttime TIMESTAMP, endtime TIMESTAMP, gameswon INT, gameslost INT, tradeFlag BOOL);
- *</code>
- *<P>
- * For tests, call {@link #testDBHelper()}.
+ *</pre></code>
+ *
+ *<H3>Schema Upgrades:</H3>
+ * Sometimes a new JSettlers version adds or updates the DB schema. When starting the JSettlers server, call
+ * {@link #isSchemaLatestVersion()} to check, and if needed {@link #upgradeSchema()}.
+ * To improve flexibility, currently we let the server's admin defer upgrades and continue running
+ * with the old schema until they have time to upgrade it.
+ *
+ *<H3>Testing:</H3>
+ * For unit tests, call {@link #testDBHelper()} on a temporary copy of a database.
  *
  * @author Robert S. Thomas
  */
@@ -206,13 +219,28 @@ public class SOCDBHelper
      */
     private static boolean initialized = false;
 
+    /**
+     * True if this DB contains the optional field {@code users.nickname_lc} ({@link #FIELD_USERS_NICKNAME_LC}).
+     * Set in {@link #connect(String, String, String)}.
+     * @since 1.2.00
+     */
+    private static boolean hasField_Users_NicknameLC = false;
+
     /** Cached username used when reconnecting on error */
     private static String userName;
 
     /** Cached password used when reconnecting on error */
     private static String password;
 
-    private static String CREATE_ACCOUNT_COMMAND = "INSERT INTO users VALUES (?,?,?,?,?);";
+    /**
+     * {@code users} field for nickname as lowercase, to prevent collisions among user nicknames.
+     * @see #hasField_Users_NicknameLC
+     * @since 1.2.00
+     */
+    private static final String FIELD_USERS_NICKNAME_LC = "nickname_lc";
+
+    private static String CREATE_ACCOUNT_COMMAND
+        = "INSERT INTO users(nickname,host,password,email,lastlogin) VALUES (?,?,?,?,?);";
     private static String RECORD_LOGIN_COMMAND = "INSERT INTO logins VALUES (?,?,?);";
     private static String USER_PASSWORD_QUERY = "SELECT password FROM users WHERE ( users.nickname = ? );";
     private static String HOST_QUERY = "SELECT nickname FROM users WHERE ( users.host = ? );";
@@ -405,6 +433,22 @@ public class SOCDBHelper
     }
 
     /**
+     * Does the currently connected DB have the latest schema, with all optional fields?
+     * @return True if DB schema is the most up-to-date version
+     * @throws IllegalStateException  if not connected to DB (! {@link #isInitialized()})
+     * @see #upgradeSchema()
+     * @since 1.2.00
+     */
+    public static boolean isSchemaLatestVersion()
+        throws IllegalStateException
+    {
+        if (! isInitialized())
+            throw new IllegalStateException();
+
+        return hasField_Users_NicknameLC;
+    }
+
+    /**
      * Checks if connection is supposed to be present and attempts to reconnect
      * if there was previously an error.  Reconnecting closes the current
      * {@link #connection}, opens a new one, and re-initializes the prepared statements.
@@ -461,6 +505,9 @@ public class SOCDBHelper
 
         if (setupScriptPath != null)
             runSetupScript(setupScriptPath);  // may throw IOException, SQLException
+
+        // check schema upgrade status
+        hasField_Users_NicknameLC = doesTableColumnExist("users", FIELD_USERS_NICKNAME_LC);
 
         // prepare PreparedStatements for queries
         createAccountCommand = connection.prepareStatement(CREATE_ACCOUNT_COMMAND);
@@ -557,6 +604,182 @@ public class SOCDBHelper
             Statement cmd = connection.createStatement();
             cmd.executeUpdate(sql);
             cmd.close();
+        }
+    }
+
+    /**
+     * Perform pre-checks and upgrade the currently connected DB to the latest schema, with all optional fields.
+     *<P>
+     * Pre-checks include {@link #queryUsersDuplicateLCase(Set)}.
+     *
+     *<H3>Security note:</H3>
+     * To upgrade the schema, the DB connect username must have authorization grants to
+     * run DDL commands, add or alter tables, etc.
+     *
+     *<H3>Rollback of failed upgrade:</H3>
+     * If the schema upgrade fails, errors will be printed to {@link System#err} and thrown as a SQLException.
+     * If failures also occur during rollback, those are also printed to {@link System#err}.
+     * If the DB is SQLite, any added table fields can't be dropped, and the DB file must be restored from a backup
+     * because rollback is incomplete.
+     *
+     * @throws IllegalStateException  if already latest version ({@link #isSchemaLatestVersion()}),
+     *     or if not connected to DB (! {@link #isInitialized()})
+     * @throws MissingResourceException  if pre-checks indicate a problem in the data (such as nicknames which collide
+     *     with each other when lowercase) which must be manually resolved by this server's administrator before upgrade:
+     *     {@link Throwable#getMessage()} will be a multi-line String with problem details to show to the server admin.
+     * @throws SQLException  if any unexpected database problem during the upgrade
+     * @see {@link #isSchemaLatestVersion()}
+     * @since 1.2.00
+     */
+    public static void upgradeSchema()
+        throws IllegalStateException, SQLException, MissingResourceException
+    {
+        if (isSchemaLatestVersion())  // throws IllegalStateException if ! isInitialized()
+            throw new IllegalStateException("already at latest schema");
+
+        final int UPG_BATCH_MAX = 100;  // if data conversion batch gets this many rows, execute and start a new batch
+
+        final boolean is_sqlite = driverclass.toLowerCase().contains("sqlite");
+
+        // NOTES for future schema changes:
+        // - Keep your DDL SQL syntax consistent with the DDL commands in testDBHelper().
+        // - Be prepared to rollback to a known-good state if a problem occurs.
+        //   Each unrelated part of an upgrade must completely succeed or fail.
+        //   That requirement is for postgresql and mysql: sqlite can't drop any added columns;
+        //   the server's admin must back up their sqlite db before running the upgrade.
+
+        if (! hasField_Users_NicknameLC)
+        {
+            /* pre-checks */
+            final Set<String> allUsers = new HashSet<String>();
+            final Map<String, List<String>> dupes = queryUsersDuplicateLCase(allUsers);
+            if (dupes != null)
+            {
+                StringBuilder sb = new StringBuilder
+                    ("These groups of users' nicknames collide with each other when lowercase:\n");
+                for (String k : dupes.keySet())
+                {
+                    sb.append(dupes.get(k));  // "[jtest2, JTest2, JTesT2]"
+                    sb.append('\n');
+                }
+                sb.append
+                    ("\nTo upgrade, the nicknames must be changed to be unique when lowercase.\n"
+                     + "Contact each user and determine new nicknames, then for each user run this SQL:\n"
+                     + "  BEGIN TRANSACTION;\n"
+                     + "  UPDATE users SET nickname='newnick' WHERE nickname='oldnick';\n"
+                     + "  UPDATE logins SET nickname='newnick' WHERE nickname='oldnick';\n"
+                     + "  UPDATE games SET player1='newnick' WHERE player1='oldnick';\n"
+                     + "  UPDATE games SET player2='newnick' WHERE player2='oldnick';\n"
+                     + "  UPDATE games SET player3='newnick' WHERE player3='oldnick';\n"
+                     + "  UPDATE games SET player4='newnick' WHERE player4='oldnick';\n"
+                     + "  COMMIT;\n"
+                     + "Then, retry the DB schema upgrade.\n"
+                    );
+
+                throw new MissingResourceException(sb.toString(), "unused", "unused");
+            }
+
+            /* add field, fill it, add unique index */
+            boolean added = false;
+            try
+            {
+                runDDL("ALTER TABLE users ADD COLUMN nickname_lc VARCHAR(20);");
+                added = true;
+
+                // fill the new field; use String.toLowerCase(..), not SQL lower(..) which is ascii-only on sqlite.
+                if (! allUsers.isEmpty())
+                {
+                    final boolean was_conn_autocommit = connection.getAutoCommit();
+
+                    PreparedStatement ps = connection.prepareStatement
+                        ("UPDATE users SET nickname_lc=? WHERE nickname=?");
+
+                    // begin transaction
+                    if (was_conn_autocommit)
+                        connection.setAutoCommit(false);
+                    else
+                        try {
+                            connection.commit();  // end previous transaction, if any
+                                // TODO test case: see if 2 commit()s in a row are OK
+                        } catch (SQLException e) {}
+
+                        // TODO do all supported DBs use transactions? Need test case.
+
+                    try
+                    {
+                        int n = 0;
+                        for (final String nm : allUsers)
+                        {
+                            ps.setString(1, nm.toLowerCase(Locale.US));
+                            ps.setString(2, nm);
+                            ps.addBatch();
+                            ++n;
+                            if (n >= UPG_BATCH_MAX)
+                            {
+                                ps.executeBatch();  // TODO test case: ensure jdbc drivers support executeBatch; javadoc says is optional
+                                ps.clearBatch();
+                                n = 0;
+                            }
+                        }
+                        ps.executeBatch();
+                        connection.commit();
+                    } catch (SQLException e) {
+                        connection.rollback();
+                        throw e;
+                    } finally {
+                        if (was_conn_autocommit)
+                            connection.setAutoCommit(true);
+                    }
+
+                }
+
+                // create unique index
+                runDDL("CREATE UNIQUE INDEX users__l ON users(nickname_lc);");
+                    // TODO test case, on a newly created table (maybe after executeBatch ins there?)
+
+            } catch (SQLException e) {
+                System.err.println
+                    ("*** Problem occurred during schema upgrade: Will attempt to roll back.\n" + e + "\n");
+
+                boolean couldRollback = true;
+
+                if (added)
+                {
+                    if (is_sqlite || ! runDDL_rollback("ALTER TABLE users DROP COLUMN nickname_lc;"))
+                        couldRollback = false;
+                }
+
+                if (! couldRollback)
+                    System.err.println
+                        ("*** Could not completely roll back failed upgrade: Must restore DB from backup!");
+
+                throw e;
+            }
+        }
+
+        /* upgrade is completed. */
+        System.err.println("* DB schema upgrade completed.\n\n");
+    }
+
+    /**
+     * Run a DDL command to roll back part of a database upgrade.
+     * Assumes this is run within a {@code catch} block, and thus
+     * any {@link SQLException}s should be caught here. If an Exception
+     * occurs, it will be printed to {@link System#err}.
+     *
+     * @param sql  SQL to run
+     * @return True if command succeeded, false if an Exception was thrown
+     * @since 1.2.00
+     */
+    private static boolean runDDL_rollback(final String sql)
+    {
+        try {
+            runDDL(sql);
+            return true;
+        }
+        catch (Exception rollE) {
+            System.err.println("* Problem during rollback: " + rollE);
+            return false;
         }
     }
 
@@ -1335,11 +1558,77 @@ public class SOCDBHelper
     }
 
     /**
+     * Query all users to find any 'duplicate' user names, according to
+     * {@link String#toLowerCase(java.util.Locale) String.toLowercase}
+     * ({@link java.util.Locale#US Locale.US}).
+     * Return any if found.
+     * @param out_allNames if not {@code null}, will place all usernames in the database into this set
+     * @return {@code null} if no dupes, or a Map of any lowercased names
+     *     to all the non-lowercased names which all map to that lowercased name
+     * @since 1.2.00
+     */
+    public static Map<String,List<String>> queryUsersDuplicateLCase(final Set<String> out_allNames)
+        throws IllegalStateException, SQLException
+    {
+        try
+        {
+            if (! checkConnection())
+                throw new IllegalStateException();
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+
+        HashMap<String,String> namesFromLC = new HashMap<String,String>();  // lowercase -> non-lowercase name
+        Map<String,List<String>> dupeMap = new HashMap<String,List<String>>();  // duplicates from namesFromLC
+
+        Statement s = connection.createStatement();
+        ResultSet rs = null;
+        try
+        {
+            rs = s.executeQuery("SELECT nickname FROM users");
+            while (rs.next())
+            {
+                String nm = rs.getString(1);
+                String nmLC = nm.toLowerCase(Locale.US);
+                if (namesFromLC.containsKey(nmLC))
+                {
+                    List<String> li = dupeMap.get(nmLC);
+                    if (li == null)
+                    {
+                        li = new ArrayList<String>();
+                        li.add(namesFromLC.get(nmLC));  // previously-found name with this lc
+                        dupeMap.put(nmLC, li);
+                    }
+                    li.add(nm);
+                } else {
+                    namesFromLC.put(nmLC, nm);
+                }
+
+                if (out_allNames != null)
+                    out_allNames.add(nm);
+            }
+
+        } finally {
+            try {
+                if (rs != null)
+                    rs.close();
+            } catch (SQLException e) {}
+            try {
+                s.close();
+            } catch (SQLException e) {}
+        }
+
+        namesFromLC.clear();
+        return (dupeMap.isEmpty()) ? null : dupeMap;
+    }
+
+    /**
      * Run a DDL command to create or remove a database structure.
      * @param sql  SQL to run
      * @throws IllegalStateException if not connected and if {@link #checkConnection()} fails
      * @throws SQLException if an error occurs while running {@code sql}
-     * @since 2.0.00
+     * @since 1.2.00
+     * @see #runDDL_rollback(String)
      */
     private static void runDDL(final String sql)
         throws IllegalStateException, SQLException
@@ -1526,6 +1815,10 @@ public class SOCDBHelper
      *<P>
      * Called from {@link SOCServer#initSocServer(String, String, Properties)}
      * if {@link SOCServer#PROP_JSETTLERS_TEST_DB} flag is set.
+     *<P>
+     * <B>Security note:</B> To run some tests, the DB connect username must have authorization grants to
+     * run DDL commands, add or alter tables, etc.
+     *
      * @throws SQLException  if connection fails or any required tests failed
      * @since 2.0.00
      */
@@ -1561,7 +1854,7 @@ public class SOCDBHelper
             if (! anyFailed)
             {
                 System.err.println();
-                boolean hasFixtureTabXYZ = false;
+                boolean hasFixtureTabXYZ = false, hasFixtureFieldXYZW = false;
                 try
                 {
                     testDBHelper_runDDL
@@ -1575,11 +1868,21 @@ public class SOCDBHelper
                         ("fixture: table gamesxyz2 add field xyz", "ALTER TABLE gamesxyz2 ADD COLUMN xyz VARCHAR(20);");
                     testDBHelper_runDDL
                         ("fixture: table gamesxyz2 add field xyzw", "ALTER TABLE gamesxyz2 ADD COLUMN xyzw int;");
+                    hasFixtureFieldXYZW = true;
                     anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "xyz", true, true);
                     anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "xyzw", true, true);
                 } finally {
                     if (hasFixtureTabXYZ)
                     {
+                        if (hasFixtureFieldXYZW && ! driverclass.toLowerCase().contains("sqlite"))
+                        {
+                            // test field-drop syntax:
+                            testDBHelper_runDDL("drop table field gamesxyz2.xyzw",
+                                "ALTER TABLE gamesxyz2 DROP COLUMN xyzw;");
+                            anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "xyzw", false, true);
+                        } else {
+                            System.err.println("test skipped for sqlite: drop table field gamesxyz2.xyzw");
+                        }
                         testDBHelper_runDDL("fixture cleanup: drop table gamesxyz2", "DROP TABLE gamesxyz2;");
                         anyFailed |= ! testOne_doesTableExist("gamesxyz2", false, true);
                     }
