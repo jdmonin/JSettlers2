@@ -79,7 +79,7 @@ import java.util.Set;
  *</pre></code>
  *
  *<H3>Schema Upgrades:</H3>
- * Sometimes a new JSettlers version adds or updates the DB schema. When starting the JSettlers server, call
+ * Sometimes a new JSettlers version adds to the DB schema. When starting the JSettlers server, call
  * {@link #isSchemaLatestVersion()} to check, and if needed {@link #upgradeSchema()}.
  * To improve flexibility, currently we let the server's admin defer upgrades and continue running
  * with the old schema until they have time to upgrade it.
@@ -166,6 +166,12 @@ public class SOCDBHelper
     public static final String PROP_IMPL_JSETTLERS_PW_RESET = "_jsettlers.user.pw_reset";
 
     /**
+     * During {@link #upgradeSchema()} if a data conversion batch gets this many rows, execute and start a new batch.
+     * @since 1.2.00
+     */
+    private static final int UPG_BATCH_MAX = 100;
+
+    /**
      * The db driver used, or null if none.
      * If {@link #driverinstance} != null, use that to connect instead of driverclass;
      * we still need to remember driverclass to detect various db-specific behaviors.
@@ -233,7 +239,7 @@ public class SOCDBHelper
     private static String password;
 
     /**
-     * {@code users} field for nickname as lowercase, to prevent collisions among user nicknames.
+     * Optional {@code users} field for nickname as lowercase, to prevent collisions among user nicknames.
      * @see #hasField_Users_NicknameLC
      * @since 1.2.00
      */
@@ -637,8 +643,6 @@ public class SOCDBHelper
         if (isSchemaLatestVersion())  // throws IllegalStateException if ! isInitialized()
             throw new IllegalStateException("already at latest schema");
 
-        final int UPG_BATCH_MAX = 100;  // if data conversion batch gets this many rows, execute and start a new batch
-
         final boolean is_sqlite = driverclass.toLowerCase().contains("sqlite");
 
         // NOTES for future schema changes:
@@ -700,10 +704,7 @@ public class SOCDBHelper
                     else
                         try {
                             connection.commit();  // end previous transaction, if any
-                                // TODO test case: see if 2 commit()s in a row are OK
                         } catch (SQLException e) {}
-
-                        // TODO do all supported DBs use transactions? Need test case.
 
                     try
                     {
@@ -716,7 +717,7 @@ public class SOCDBHelper
                             ++n;
                             if (n >= UPG_BATCH_MAX)
                             {
-                                ps.executeBatch();  // TODO test case: ensure jdbc drivers support executeBatch; javadoc says is optional
+                                ps.executeBatch();
                                 ps.clearBatch();
                                 n = 0;
                             }
@@ -735,7 +736,6 @@ public class SOCDBHelper
 
                 // create unique index
                 runDDL("CREATE UNIQUE INDEX users__l ON users(nickname_lc);");
-                    // TODO test case, on a newly created table (maybe after executeBatch ins there?)
 
             } catch (SQLException e) {
                 System.err.println
@@ -1825,7 +1825,12 @@ public class SOCDBHelper
     public static final void testDBHelper()
         throws SQLException
     {
+        final boolean was_conn_autocommit = connection.getAutoCommit();
         boolean anyFailed = false;
+
+        System.err.println();
+        System.err.println
+            ("DB testing note: driver class: " + driverclass + ", autoCommit: " + was_conn_autocommit);
 
         // Unit tests: all in one try block because the only expected exception would
         // occur only if the DB connection fails, instead of a per-test condition
@@ -1849,12 +1854,14 @@ public class SOCDBHelper
             testOne_doesTableColumnExist("GAMES", "GAMENAME", true, false);
             testOne_doesTableColumnExist("Games", "gameName", true, false);
 
-            // Temporarily add a table and field, then test existence.
+            // Temporarily add a table and field, then test existence, then batch-insert rows.
             // Assumes current DB user has been granted ability to create and drop tables.
             if (! anyFailed)
             {
                 System.err.println();
                 boolean hasFixtureTabXYZ = false, hasFixtureFieldXYZW = false;
+                boolean switchedAutoCommitOff = false;
+
                 try
                 {
                     testDBHelper_runDDL
@@ -1871,9 +1878,112 @@ public class SOCDBHelper
                     hasFixtureFieldXYZW = true;
                     anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "xyz", true, true);
                     anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "xyzw", true, true);
+
+                    System.err.println();
+
+                    // use try-catch for CREATE UNIQUE INDEX, because we don't have a doesTableIndexExist method
+                    try
+                    {
+                        runDDL("CREATE UNIQUE INDEX gamesxyz2__w ON gamesxyz2(xyzw);");
+                        System.err.println("Test ok: Create unique index gamesxyz2__w");
+                    } catch (SQLException e) {
+                        System.err.println("Test failed: Create unique index gamesxyz2__w: " + e);
+                        anyFailed = true;
+                    }
+
+                    // batch insert/convert, as seen in upgradeSchema():
+                    // ensure jdbc drivers support executeBatch (optional in javadoc) and transactions
+
+                    try
+                    {
+                        PreparedStatement ps = connection.prepareStatement
+                            ("INSERT INTO gamesxyz2(name,xyzw) VALUES(?,?)");
+
+                        // begin transaction
+                        if (was_conn_autocommit)
+                        {
+                            connection.setAutoCommit(false);
+                            switchedAutoCommitOff = true;
+                        } else {
+                            try {
+                                connection.commit();  // end previous transaction, if any
+                            } catch (SQLException e) {
+                                System.err.println("Unexpected error at pre-transaction commit: " + e);
+                                e.printStackTrace();
+                                throw e;
+                            }
+                        }
+
+                        for (int i = 0; i < UPG_BATCH_MAX; ++i)
+                        {
+                            ps.setString(1, "test" + i);
+                            ps.setInt(2, i);
+                            ps.addBatch();
+                        }
+                        ps.executeBatch();
+                        ps.clearBatch();
+
+                        for (int i = 1; i <= UPG_BATCH_MAX; ++i)
+                        {
+                            ps.setString(1, "test2_" + i);
+                            ps.setInt(2, -i);
+                            ps.addBatch();
+                        }
+                        ps.executeBatch();
+                        connection.commit();
+
+                        ResultSet rs = connection.createStatement().executeQuery("SELECT count(*) FROM gamesxyz2");
+                        rs.next();
+                        int n = rs.getInt(1);
+                        rs.close();
+                        if (n == 2 * UPG_BATCH_MAX)
+                            System.err.println("Test ok: executeBatch");
+                        else
+                            System.err.println
+                                ("Test failed: executeBatch: count(*) " + n + " expected " + (2 * UPG_BATCH_MAX));
+                    } catch (SQLException e) {
+                        System.err.println("Test failed: executeBatch: " + e);
+                        anyFailed = true;
+                    }
+
+                    // see if 2 commit()s in a row are OK
+                    try {
+                        connection.commit();
+                        connection.commit();
+                        System.err.println("Test ok: empty commits");
+                    } catch (SQLException e) {
+                        System.err.println("Test failed: empty commits: " + e);
+                        anyFailed = true;
+                    }
+
                 } finally {
+                    System.err.println();
+
+                    // end of transaction tests: restore previous mode
+                    if (switchedAutoCommitOff)
+                    {
+                        try
+                        {
+                            connection.setAutoCommit(true);
+                            System.err.println("Cleanup ok: Restore autoCommit mode");
+                        } catch (SQLException e) {
+                            System.err.println("Cleanup failed: Restore autoCommit mode: " + e);
+                            anyFailed = true;
+                        }
+                    }
+
                     if (hasFixtureTabXYZ)
                     {
+                        // test index-drop syntax:
+                        try
+                        {
+                            testDBHelper_runDDL("fixture cleanup: drop index gamesxyz2__w",
+                                "DROP INDEX IF EXISTS gamesxyz2__w;");
+                        } catch (SQLException e) {
+                            System.err.println("Cleanup failed: Drop index gamesxyz2__w: " + e);
+                            anyFailed = true;
+                        }
+
                         if (hasFixtureFieldXYZW && ! driverclass.toLowerCase().contains("sqlite"))
                         {
                             // test field-drop syntax:
