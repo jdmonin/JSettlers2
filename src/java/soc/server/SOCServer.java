@@ -426,6 +426,7 @@ public class SOCServer extends Server
         SOCDBHelper.PROP_JSETTLERS_DB_JAR,      "DB driver jar filename",
         SOCDBHelper.PROP_JSETTLERS_DB_DRIVER,   "DB driver class name",
         SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP, "If set, full path or relative path to db setup sql script; will run and exit",
+        SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA, "Flag: If set, server will upgrade the DB schema to latest version and exit (if 1 or Y)",
         SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES,  "Flag to save all games in DB (if 1 or Y)"
     };
 
@@ -1147,7 +1148,8 @@ public class SOCServer extends Server
      * If there are problems with the network setup ({@link #error} != null),
      * this method will throw {@link SocketException}.
      *<P>
-     * If problems running a {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP db setup script},
+     * If problems running a {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP db setup script}
+     * or {@link SOCDBHelper#PROP_JSETTLERS_DB_UPGRADE__SCHEMA schema upgrade},
      * this method will throw {@link SQLException}.
      *<P>
      * If we can't connect to a database, but it looks like we need one (because
@@ -1190,7 +1192,9 @@ public class SOCServer extends Server
      * @throws IllegalArgumentException  If {@code props} contains game options ({@code jsettlers.gameopt.*})
      *       with bad syntax. See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for expected syntax.
      *       See {@link #parseCmdline_DashedArgs(String[])} for how game option properties are checked.
-     *       {@link Throwable#getMessage()} will have problem details.
+     *       Also thrown if {@link SOCDBHelper#PROP_JSETTLERS_DB_UPGRADE__SCHEMA} flag
+     *       is set, but {@link SOCDBHelper#isSchemaLatestVersion()}. {@link Throwable#getMessage()} will have
+     *       problem details for any {@code IllegalArgumentException} thrown here.
      * @throws IllegalStateException  If {@link Version#versionNumber()} returns 0 (packaging error)
      * @since 1.1.00
      */
@@ -1208,11 +1212,11 @@ public class SOCServer extends Server
          * Will run the requested tests and exit.
          */
         final boolean test_mode_with_db = getConfigBoolProperty(PROP_JSETTLERS_TEST_DB, false);
-
         final boolean validate_config_mode = getConfigBoolProperty(PROP_JSETTLERS_TEST_VALIDATE__CONFIG, false);
+        final boolean wants_upg_schema = getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA, false);
 
         // Set this flag as early as possible
-        hasUtilityModeProp = validate_config_mode || test_mode_with_db ||
+        hasUtilityModeProp = validate_config_mode || test_mode_with_db || wants_upg_schema ||
            ((props != null)
             && ((null != props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP))
                 || (null != props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET))));
@@ -1295,6 +1299,43 @@ public class SOCServer extends Server
                 throw new EOFException(msg);
             }
 
+            // check schema version, upgrade if requested:
+            if (! SOCDBHelper.isSchemaLatestVersion())
+            {
+                if (wants_upg_schema)
+                {
+                    try
+                    {
+                        SOCDBHelper.upgradeSchema();
+
+                        final String msg = "DB schema upgrade successful";
+                        utilityModeMessage = msg;
+                        throw new EOFException(msg);
+                    }
+                    catch (EOFException e)
+                    {
+                        throw e;
+                    }
+                    catch (Exception e)
+                    {
+                        System.err.println(e);
+                        if (e instanceof SQLException)
+                            throw (SQLException) e;
+                        else
+                            throw new SQLException("Error during DB schema upgrade", e);
+                    }
+                } else {
+                    System.err.println("* Database schema upgrade is recommended: To upgrade, use -D"
+                        + SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA + "=Y command line flag.");
+                }
+            }
+            else if (wants_upg_schema)
+            {
+                final String errmsg = "* Cannot upgrade database schema: Already at latest version";
+                System.err.println(errmsg);
+                throw new IllegalArgumentException(errmsg);
+            }
+
             // reminder: if props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET),
             // caller will need to prompt for and change the password
 
@@ -1311,6 +1352,14 @@ public class SOCServer extends Server
         }
         catch (SQLException sqle)  // just a warning at this point; other code checks if db failed but is required
         {
+            if (wants_upg_schema || props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
+            {
+                // the sql script in initialize, or schema upgrade, failed to complete;
+                // don't continue server startup with just a warning
+
+                throw sqle;
+            }
+
             System.err.println("No user database available: " + sqle.getMessage());
             Throwable cause = sqle.getCause();
 
@@ -1318,13 +1367,6 @@ public class SOCServer extends Server
             {
                 System.err.println("\t" + cause);
                 cause = cause.getCause();
-            }
-
-            if (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
-            {
-                // the sql script was ran by initialize, but failed to complete;
-                // don't continue server startup with just a warning
-                throw sqle;
             }
 
             if (props.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_URL)
@@ -1345,7 +1387,7 @@ public class SOCServer extends Server
 
             System.err.println("Users will not be authenticated.");
         }
-        catch (EOFException eox)  // successfully ran script, signal to exit
+        catch (EOFException eox)  // successfully ran script or schema upgrade, signal to exit
         {
             throw eox;
         }
@@ -2524,6 +2566,7 @@ public class SOCServer extends Server
      * <LI> {@link #PROP_JSETTLERS_TEST_DB} flag property
      * <LI> {@link #PROP_JSETTLERS_TEST_VALIDATE__CONFIG} flag property
      * <LI> {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP} property
+     * <LI> {@link SOCDBHelper#PROP_JSETTLERS_DB_UPGRADE__SCHEMA} flag property
      * <LI> {@code --pw-reset=username} argument
      *</UL>
      *
@@ -5915,7 +5958,7 @@ public class SOCServer extends Server
      *    to simplify SOCPlayerClient's localizations before starting its practice server.
      * @param scKeys  Scenario keynames to localize, such as a {@link List} of keynames or the {@link Set}
      *    returned from {@link SOCScenario#getAllKnownScenarioKeynames()}.
-     *    {@code null} to use {@link SOCScenario#getAllKnownScenarioKeynames()}.
+     *    If {@code null}, this method will call {@link SOCScenario#getAllKnownScenarioKeynames()}.
      * @param checkUnknowns_skipFirst  Switch to allow calling this method from multiple places:
      *    <UL>
      *    <LI> If false, assumes {@code scKeys} has no unknown keys, will not call
@@ -8052,7 +8095,8 @@ public class SOCServer extends Server
      * Creates and starts a {@link SOCServer} via {@link #SOCServer(int, Properties)}.
      *<P>
      * If there are problems with the network setup, the jar packaging,
-     * or with running a {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP db setup script},
+     * or with running a {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP db setup script}
+     * or {@link SOCDBHelper#PROP_JSETTLERS_DB_UPGRADE__SCHEMA schema upgrade},
      * this method will call {@link System#exit(int) System.exit(1)}.
      *<P>
      * If a db setup script runs successfully,
@@ -8130,9 +8174,14 @@ public class SOCServer extends Server
             }
             catch (EOFException e)
             {
-                // The sql setup script was ran successfully by initialize;
-                // exit server, user will re-run without the setup script param.
-                System.err.println("\nDB setup script was successful. Exiting now.\n");
+                // The sql setup script or schema upgrade was ran successfully by initialize;
+                // exit server, user will re-run without the setup script or schema upgrade param.
+
+                if (argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP))
+                    System.err.println("\nDB setup script was successful. Exiting now.\n");
+                else
+                    // assume is from SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA
+                    System.err.println("\nDB schema upgrade was successful. Exiting now.\n");
                 System.exit(2);
             }
             catch (SQLException e)
@@ -8143,6 +8192,8 @@ public class SOCServer extends Server
                 // exception detail was printed in initSocServer.
                 if (argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP))
                     System.err.println("\n* DB setup script failed. Exiting now.\n");
+                else if (argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA))
+                    System.err.println("\n* DB schema upgrade failed. Exiting now.\n");
                 System.exit(1);
             }
             catch (IllegalArgumentException e)

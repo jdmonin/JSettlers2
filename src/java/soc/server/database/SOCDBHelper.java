@@ -133,7 +133,7 @@ public class SOCDBHelper
 
     /** Property <tt>jsettlers.db.script.setup</tt> to run a SQL setup script
      * at server startup, then exit.  Used to create tables when setting up a server.
-     * To activate this feature, set this to the SQL script's full path or relative path.
+     * To activate this mode, set this to the SQL script's full path or relative path.
      *<P>
      * To implement this, the SOCServer constructor connects to the db and runs the setup script,
      * then signals success by throwing an {@link java.io.EOFException EOFException} which is
@@ -141,6 +141,16 @@ public class SOCDBHelper
      * @since 1.1.15
      */
     public static final String PROP_JSETTLERS_DB_SCRIPT_SETUP = "jsettlers.db.script.setup";
+
+    /**
+     * Boolean property {@code jsettlers.db.upgrade_schema} to run {@link #upgradeSchema()}
+     * at server startup, then exit. To activate this mode, set this to true.
+     *<P>
+     * Same SOCServer semantics/exceptions as {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP},
+     * see that property's javadoc for details.
+     * @since 1.2.00
+     */
+    public static final String PROP_JSETTLERS_DB_UPGRADE__SCHEMA = "jsettlers.db.upgrade_schema";
 
     /** Property <tt>jsettlers.db.save.games</tt> to ask to save
      * all game results in the database.
