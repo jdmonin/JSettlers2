@@ -2029,7 +2029,7 @@ public class SOCDBHelper
                         try
                         {
                             testDBHelper_runDDL("fixture cleanup: drop index gamesxyz2__w",
-                                "DROP INDEX IF EXISTS gamesxyz2__w;");
+                                "DROP INDEX gamesxyz2__w;");
                         } catch (SQLException e) {
                             System.err.println("Cleanup failed: Drop index gamesxyz2__w: " + e);
                             anyFailed = true;

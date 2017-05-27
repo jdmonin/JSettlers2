@@ -1325,8 +1325,8 @@ public class SOCServer extends Server
                             throw new SQLException("Error during DB schema upgrade", e);
                     }
                 } else {
-                    System.err.println("* Database schema upgrade is recommended: To upgrade, use -D"
-                        + SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA + "=Y command line flag.");
+                    System.err.println("\n* Database schema upgrade is recommended: To upgrade, use -D"
+                        + SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA + "=Y command line flag.\n");
                 }
             }
             else if (wants_upg_schema)
@@ -1352,9 +1352,9 @@ public class SOCServer extends Server
         }
         catch (SQLException sqle)  // just a warning at this point; other code checks if db failed but is required
         {
-            if (wants_upg_schema || props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
+            if (wants_upg_schema)
             {
-                // the sql script in initialize, or schema upgrade, failed to complete;
+                // the schema upgrade failed to complete; upgradeSchema() has printed it.
                 // don't continue server startup with just a warning
 
                 throw sqle;
@@ -1367,6 +1367,14 @@ public class SOCServer extends Server
             {
                 System.err.println("\t" + cause);
                 cause = cause.getCause();
+            }
+
+            if (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
+            {
+                // the sql script in initialize failed to complete;
+                // now that we've printed the exception, don't continue server startup with just a warning
+
+                throw sqle;
             }
 
             if (props.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_URL)
