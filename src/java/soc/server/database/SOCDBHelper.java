@@ -176,6 +176,33 @@ public class SOCDBHelper
     public static final String PROP_IMPL_JSETTLERS_PW_RESET = "_jsettlers.user.pw_reset";
 
     /**
+     * Original JSettlers schema version (1.0.00), before any new/extra tables/fields.
+     * @see #SCHEMA_VERSION_1200
+     * @see #SCHEMA_VERSION_LATEST
+     * @since 1.2.00
+     */
+    public static final int SCHEMA_VERSION_ORIGINAL = 1000;
+
+    /**
+     * First new JSettlers schema version (1.2.00) which adds any new/extra tables/fields.
+     *<UL>
+     * <LI> Add {@code users.nickname_lc}, index {@code users__l}: nickname as lowercase,
+     *      to prevent collisions among user nicknames
+     *</LI>
+     * @see #SCHEMA_VERSION_ORIGINAL
+     * @see #SCHEMA_VERSION_LATEST
+     * @since 1.2.00
+     */
+    public static final int SCHEMA_VERSION_1200 = 1200;
+
+    /**
+     * Latest version of the JSettlers schema, currently 1.2.00.
+     * @see #isSchemaLatestVersion()
+     * @since 1.2.00
+     */
+    public static final int SCHEMA_VERSION_LATEST = 1200;
+
+    /**
      * During {@link #upgradeSchema()} if a data conversion batch gets this many rows, execute and start a new batch.
      * @since 1.2.00
      */
@@ -236,24 +263,18 @@ public class SOCDBHelper
     private static boolean initialized = false;
 
     /**
-     * True if this DB contains the optional field {@code users.nickname_lc} ({@link #FIELD_USERS_NICKNAME_LC}).
-     * Set in {@link #connect(String, String, String)}.
+     * The detected schema version of the currently connected database.
+     * See {@link #getSchemaVersion()} javadocs for details.
+     * Is set in {@link #connect(String, String, String)}.
      * @since 1.2.00
      */
-    private static boolean hasField_Users_NicknameLC = false;
+    private static int schemaVersion;
 
     /** Cached username used when reconnecting on error */
     private static String userName;
 
     /** Cached password used when reconnecting on error */
     private static String password;
-
-    /**
-     * Optional {@code users} field for nickname as lowercase, to prevent collisions among user nicknames.
-     * @see #hasField_Users_NicknameLC
-     * @since 1.2.00
-     */
-    private static final String FIELD_USERS_NICKNAME_LC = "nickname_lc";
 
     private static String CREATE_ACCOUNT_COMMAND
         = "INSERT INTO users(nickname,host,password,email,lastlogin) VALUES (?,?,?,?,?);";
@@ -449,10 +470,24 @@ public class SOCDBHelper
     }
 
     /**
+     * Get the detected schema version of the currently connected database.
+     * To upgrade an older schema to the latest available, see {@link #upgradeSchema()}.
+     * @return Schema version, such as {@link #SCHEMA_VERSION_ORIGINAL} or {@link #SCHEMA_VERSION_1200}
+     * @see #SCHEMA_VERSION_LATEST
+     * @see #isSchemaLatestVersion()
+     */
+    public static int getSchemaVersion()
+    {
+        return schemaVersion;
+    }
+
+    /**
      * Does the currently connected DB have the latest schema, with all optional fields?
+     * ({@link #SCHEMA_VERSION_LATEST})
      * @return True if DB schema is the most up-to-date version
      * @throws IllegalStateException  if not connected to DB (! {@link #isInitialized()})
      * @see #upgradeSchema()
+     * @see #getSchemaVersion()
      * @since 1.2.00
      */
     public static boolean isSchemaLatestVersion()
@@ -461,7 +496,7 @@ public class SOCDBHelper
         if (! isInitialized())
             throw new IllegalStateException();
 
-        return hasField_Users_NicknameLC;
+        return (schemaVersion == SCHEMA_VERSION_LATEST);
     }
 
     /**
@@ -523,7 +558,10 @@ public class SOCDBHelper
             runSetupScript(setupScriptPath);  // may throw IOException, SQLException
 
         // check schema upgrade status
-        hasField_Users_NicknameLC = doesTableColumnExist("users", FIELD_USERS_NICKNAME_LC);
+        if (doesTableColumnExist("users", "nickname_lc"))
+            schemaVersion = SCHEMA_VERSION_1200;
+        else
+            schemaVersion = SCHEMA_VERSION_ORIGINAL;
 
         // prepare PreparedStatements for queries
         createAccountCommand = connection.prepareStatement(CREATE_ACCOUNT_COMMAND);
@@ -662,7 +700,10 @@ public class SOCDBHelper
         //   That requirement is for postgresql and mysql: sqlite can't drop any added columns;
         //   the server's admin must back up their sqlite db before running the upgrade.
 
-        if (! hasField_Users_NicknameLC)
+        /**
+         * 1.2.00: users.nickname_lc, index users__l
+         */
+        if (schemaVersion < SCHEMA_VERSION_1200)
         {
             /* pre-checks */
             final Set<String> allUsers = new HashSet<String>();
