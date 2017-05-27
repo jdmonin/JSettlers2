@@ -1320,9 +1320,13 @@ public class SOCServer extends Server
                     {
                         System.err.println(e);
                         if (e instanceof SQLException)
+                        {
                             throw (SQLException) e;
-                        else
-                            throw new SQLException("Error during DB schema upgrade", e);
+                        } else {
+                            SQLException sqle = new SQLException("Error during DB schema upgrade");
+                            sqle.initCause(e);
+                            throw sqle;
+                        }
                     }
                 } else {
                     System.err.println("\n* Database schema upgrade is recommended: To upgrade, use -D"

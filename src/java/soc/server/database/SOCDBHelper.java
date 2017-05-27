@@ -2055,9 +2055,13 @@ public class SOCDBHelper
         } catch (Exception e) {
             soc.debug.D.ebugPrintStackTrace(e, "test caught exception: testDBHelper");
             if (e instanceof SQLException)
+            {
                 throw (SQLException) e;
-            else
-                throw new SQLException(e);
+            } else {
+                SQLException sx = new SQLException("Error during testDBHelper()");
+                sx.initCause(e);
+                throw sx;
+            }
         }
 
         System.err.println();
