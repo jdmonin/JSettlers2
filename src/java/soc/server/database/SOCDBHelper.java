@@ -903,7 +903,7 @@ public class SOCDBHelper
      * If schema &gt;= {@link #SCHEMA_VERSION_1200}, this check is case-insensitive.
      * Returns their nickname as stored in the database.
      *<P>
-     * This method replaces {@code doesUserExist(..)} used before v1.2.00.
+     * This method replaces {@code doesUserExist(..)} used in v1.1.20.
      *
      * @param userName  User nickname to check
      * @return  Nickname if found in users table, {@code null} otherwise or if no database is currently connected

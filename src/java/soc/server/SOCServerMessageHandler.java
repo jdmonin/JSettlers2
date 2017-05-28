@@ -341,6 +341,8 @@ public class SOCServerMessageHandler
         if (c == null)
             return;
 
+        int authResult = -1;
+
         if (c.getData() == null)
         {
             final int cliVersion = c.getVersion();
@@ -364,7 +366,7 @@ public class SOCServerMessageHandler
             // are role-specific things to check and reject during this initial connection.
             final boolean isPlayerRole = mes.role.equals(SOCAuthRequest.ROLE_GAME_PLAYER);
             final String mesUser = mes.nickname.trim();  // trim before db query calls
-            final int authResult = srv.authOrRejectClientUser
+            authResult = srv.authOrRejectClientUser
                 (c, mesUser, mes.password, cliVersion, isPlayerRole, false);
 
             if (authResult == SOCServer.AUTH_OR_REJECT__FAILED)
@@ -406,8 +408,13 @@ public class SOCServerMessageHandler
             }
         }
 
-        c.put(SOCStatusMessage.toCmd
-                (SOCStatusMessage.SV_OK, c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
+        final String txt = c.getLocalized("member.welcome");  // "Welcome to Java Settlers of Catan!"
+        if (authResult != SOCServer.AUTH_OR_REJECT__SET_USERNAME)
+            c.put(SOCStatusMessage.toCmd
+                (SOCStatusMessage.SV_OK, txt));
+        else
+            c.put(SOCStatusMessage.toCmd
+                (SOCStatusMessage.SV_OK_SET_NICKNAME, ((String) c.getData()) + SOCMessage.sep2_char + txt));
     }
 
     /**
@@ -1361,8 +1368,13 @@ public class SOCServerMessageHandler
          * Tell the client that everything is good to go
          */
         c.put(SOCJoinChannelAuth.toCmd(msgUser, ch));
-        c.put(SOCStatusMessage.toCmd
-                (SOCStatusMessage.SV_OK, c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
+        final String txt = c.getLocalized("member.welcome");  // "Welcome to Java Settlers of Catan!"
+        if (authResult != SOCServer.AUTH_OR_REJECT__SET_USERNAME)
+            c.put(SOCStatusMessage.toCmd
+                (SOCStatusMessage.SV_OK, txt));
+        else
+            c.put(SOCStatusMessage.toCmd
+                (SOCStatusMessage.SV_OK_SET_NICKNAME, ((String) c.getData()) + SOCMessage.sep2_char + txt));
 
         /**
          * Add the StringConnection to the channel

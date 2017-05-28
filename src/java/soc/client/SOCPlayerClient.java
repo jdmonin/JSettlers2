@@ -393,6 +393,9 @@ public class SOCPlayerClient
          */
         void showStatus(String statusText, boolean debugWarn);
 
+        /** Set the contents of the nickname field. */
+        public void setNickname(final String nm);
+
         /** If the password field is currently visible, focus the cursor there for the user to type something. */
         public void focusPassword();
 
@@ -2157,6 +2160,11 @@ public class SOCPlayerClient
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
 
+        public void setNickname(final String nm)
+        {
+            nick.setText(nm);
+        }
+
         public void focusPassword()
         {
             pass.requestFocusInWindow();
@@ -3584,8 +3592,21 @@ public class SOCPlayerClient
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes, final boolean isPractice)
     {
         System.err.println("L2045 statusmsg at " + System.currentTimeMillis());
-        final int sv = mes.getStatusValue();
-        final String statusText = mes.getStatus();
+        int sv = mes.getStatusValue();
+        String statusText = mes.getStatus();
+
+        if ((sv == SOCStatusMessage.SV_OK_SET_NICKNAME))
+        {
+            sv = SOCStatusMessage.SV_OK;
+
+            final int i = statusText.indexOf(SOCMessage.sep2_char);
+            if (i > 0)
+            {
+                client.nickname = statusText.substring(0, i);
+                statusText = statusText.substring(i + 1);
+                gameDisplay.setNickname(nickname);
+            }
+        }
 
         final boolean srvDebugMode;
         if (isPractice || (sVersion >= 2000))
