@@ -360,36 +360,50 @@ public class SOCServerMessageHandler
                 return;
             }
 
-            // Check user authentication.  Don't call setData or nameConnection yet, in case
-            // of role-specific things to check and reject during this initial connection.
-            final String mesUser = mes.nickname.trim();  // trim here because we'll send it in messages to clients
-            final int authResult = srv.authOrRejectClientUser(c, mesUser, mes.password, cliVersion, false, false);
+            // Check user authentication.  Don't call setData or nameConnection yet if there
+            // are role-specific things to check and reject during this initial connection.
+            final boolean isPlayerRole = mes.role.equals(SOCAuthRequest.ROLE_GAME_PLAYER);
+            final String mesUser = mes.nickname.trim();  // trim before db query calls
+            final int authResult = srv.authOrRejectClientUser
+                (c, mesUser, mes.password, cliVersion, isPlayerRole, false);
 
             if (authResult == SOCServer.AUTH_OR_REJECT__FAILED)
                 return;  // <---- Early return; authOrRejectClientUser sent the status message ----
 
-            if (mes.role.equals(SOCAuthRequest.ROLE_USER_ADMIN))
+            if (! isPlayerRole)
             {
-                // Check if we're using a user admin whitelist
-                if (! srv.isUserDBUserAdmin(mesUser, false))
+                if (mes.role.equals(SOCAuthRequest.ROLE_USER_ADMIN))
                 {
+                    // Check if we're using a user admin whitelist
+                    if (! srv.isUserDBUserAdmin(mesUser, false))
+                    {
+                        c.put(SOCStatusMessage.toCmd
+                                (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVersion,
+                                 c.getLocalized("account.create.not_auth")));
+                                    // "Your account is not authorized to create accounts."
+
+                        srv.printAuditMessage
+                            (mesUser,
+                             "Requested jsettlers account creation, this requester not on account admin whitelist",
+                             null, null, c.host());
+
+                        return;
+                    }
+                }
+
+                // no role-specific problems: complete the authentication
+                try
+                {
+                    c.setData(SOCDBHelper.getUser(mesUser));  // because mesUser is case-insensitive
+                    srv.nameConnection(c, false);
+                } catch (SQLException e) {
+                    // unlikely, we've just queried db in authOrRejectClientUser
                     c.put(SOCStatusMessage.toCmd
-                            (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVersion,
-                             c.getLocalized("account.create.not_auth")));
-                                // "Your account is not authorized to create accounts."
-
-                    srv.printAuditMessage
-                        (mesUser,
-                         "Requested jsettlers account creation, this requester not on account admin whitelist",
-                         null, null, c.host());
-
+                            (SOCStatusMessage.SV_PROBLEM_WITH_DB, c.getVersion(),
+                            "Problem connecting to database, please try again later."));
                     return;
                 }
             }
-
-            // no role-specific problems: complete the authentication
-            c.setData(mesUser);
-            srv.nameConnection(c, false);
         }
 
         c.put(SOCStatusMessage.toCmd

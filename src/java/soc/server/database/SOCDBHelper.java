@@ -296,13 +296,13 @@ public class SOCDBHelper
      * {@link #userPasswordQuery} for schema older than {@link #SCHEMA_VERSION_1200}.
      * Before v1.2.00 this field was {@code USER_PASSWORD_QUERY}.
      */
-    private static final String USER_PASSWORD_QUERY_1000 = "SELECT password FROM users WHERE nickname = ? ;";
+    private static final String USER_PASSWORD_QUERY_1000 = "SELECT nickname,password FROM users WHERE nickname = ? ;";
 
     /**
      * {@link #userPasswordQuery} for schema &gt;= {@link #SCHEMA_VERSION_1200}.
      * @since 1.2.00
      */
-    private static final String USER_PASSWORD_QUERY_1200 = "SELECT password FROM users WHERE nickname_lc = ? ;";
+    private static final String USER_PASSWORD_QUERY_1200 = "SELECT nickname,password FROM users WHERE nickname_lc = ? ;";
 
     private static String HOST_QUERY = "SELECT nickname FROM users WHERE ( users.host = ? );";
     private static String LASTLOGIN_UPDATE = "UPDATE users SET lastlogin = ?  WHERE nickname = ? ;";
@@ -329,13 +329,13 @@ public class SOCDBHelper
      * Before v1.2.00 this field was {@code USER_EXISTS_QUERY}.
      * @since 1.1.20
      */
-    private static final String USER_EXISTS_QUERY_1000 = "SELECT count(nickname) FROM users WHERE nickname = ?;";
+    private static final String USER_EXISTS_QUERY_1000 = "SELECT nickname FROM users WHERE nickname = ?;";
 
     /**
      * {@link #userExistsQuery} for schema &gt;= {@link #SCHEMA_VERSION_1200}.
      * @since 1.2.00
      */
-    private static final String USER_EXISTS_QUERY_1200 = "SELECT count(nickname_lc) FROM users WHERE nickname_lc = ?;";
+    private static final String USER_EXISTS_QUERY_1200 = "SELECT nickname FROM users WHERE nickname_lc = ?;";
 
     /** Create a new account in {@code users}: {@link #CREATE_ACCOUNT_COMMAND_1200} */
     private static PreparedStatement createAccountCommand = null;
@@ -345,7 +345,7 @@ public class SOCDBHelper
     /** Query whether a user nickname exists in {@code users}: {@link #USER_EXISTS_QUERY_1200} */
     private static PreparedStatement userExistsQuery = null;
 
-    /** Query for a user's password in {@code users}: {@link #USER_PASSWORD_QUERY_1200} */
+    /** Query for a user's password and original-cased nickname in {@code users}: {@link #USER_PASSWORD_QUERY_1200} */
     private static PreparedStatement userPasswordQuery = null;
 
     private static PreparedStatement hostQuery = null;
@@ -899,54 +899,71 @@ public class SOCDBHelper
     }
 
     /**
-     * Does this user (nickname) exist in the database?
+     * Search for and return this user (nickname) if it exists in the database.
      * If schema &gt;= {@link #SCHEMA_VERSION_1200}, this check is case-insensitive.
+     * Returns their nickname as stored in the database.
+     *<P>
+     * This method replaces {@code doesUserExist(..)} used before v1.2.00.
+     *
      * @param userName  User nickname to check
-     * @return  True if found in users table, false otherwise or if no database is currently connected
+     * @return  Nickname if found in users table, {@code null} otherwise or if no database is currently connected
      * @throws IllegalArgumentException if {@code userName} is {@code null}
      * @throws SQLException if any unexpected database problem
-     * @since 1.1.20
-     * @see #getUserPassword(String)
+     * @since 1.2.00
+     * @see #authenticateUserPassword(String, String)
      */
-    public static boolean doesUserExist(String userName)
+    public static String getUser(String userName)
         throws IllegalArgumentException, SQLException
     {
         if (userName == null)
             throw new IllegalArgumentException();
 
         if (! checkConnection())
-            return false;
+            return null;
 
         if (schemaVersion >= SCHEMA_VERSION_1200)
             userName = userName.toLowerCase(Locale.US);
         userExistsQuery.setString(1, userName);
-        boolean found;
 
         ResultSet rs = userExistsQuery.executeQuery();
         if (rs.next())
-            found = (rs.getInt(1) > 0);
+            userName = rs.getString(1);
         else
-            found = false;
+            userName = null;
 
         rs.close();
-        return found;
+        return userName;
     }
 
     /**
-     * Verify that this user exists, and retrieve their password from the database.
+     * Check if this user exists, if so validate their password from the database.
      * If schema &gt;= {@link #SCHEMA_VERSION_1200}, username check is case-insensitive.
+     * For use of the originally-cased name from that search, if successful this method
+     * returns their nickname as stored in the database.
+     *<P>
+     * For running without the optional database, or when user accounts are optional:
+     * If never connected to a database or user's nickname isn't in the users table,
+     * and {@code sPassword} is "", returns {@code sUserName}.
+     *<P>
+     * This method replaces {@code getUserPassword(..)} used before v1.2.00.
      *
-     * @param sUserName Username who needs password
+     * @param sUserName Username needing password authentication
+     * @param sPassword  Password being tried, or "" if none
      *
-     * @return null if user account doesn't exist, or if database is not currently connected
+     * @return user's nickname if password is correct;
+     *     {@code sUserName} if password is "" but user doesn't exist in db
+     *     or if database is not currently connected;
+     *     {@code null} if account exists in db and password is wrong.
      *
      * @throws SQLException if any unexpected database problem
      * @see #updateUserPassword(String, String)
-     * @see #doesUserExist(String)
+     * @see #getUser(String)
+     * @since 1.2.00
      */
-    public static String getUserPassword(String sUserName) throws SQLException
+    public static String authenticateUserPassword(String sUserName, final String sPassword)
+        throws SQLException
     {
-        String password = null;
+        String dbPassword = null;
 
         // ensure that the JDBC connection is still valid
         if (checkConnection())
@@ -961,10 +978,11 @@ public class SOCDBHelper
                 // execute the Query
                 ResultSet resultSet = userPasswordQuery.executeQuery();
 
-                // if no results, user is not authenticated
+                // if no results, nickname isn't in the users table
                 if (resultSet.next())
                 {
-                    password = resultSet.getString(1);
+                    sUserName = resultSet.getString(1);  // get nickname with its original case; searched on nickname_lc
+                    dbPassword = resultSet.getString(2);
                 }
 
                 resultSet.close();
@@ -977,7 +995,10 @@ public class SOCDBHelper
             }
         }
 
-        return password;
+        final boolean ok = (dbPassword == null)
+            ? "".equals(sPassword)
+            : dbPassword.equals(sPassword);
+        return (ok) ? sUserName: null;
     }
 
     /**
@@ -988,6 +1009,7 @@ public class SOCDBHelper
      * @return  null if user is not authenticated
      *
      * @throws SQLException DOCUMENT ME!
+     * @see #getUser(String)
      */
     public static String getUserFromHost(String host) throws SQLException
     {
@@ -1024,11 +1046,10 @@ public class SOCDBHelper
     }
 
     /**
-     * Attempt to create a new account with a unique {@code userName} in the {@code users} table.
+     * Attempt to create a new account with a unique {@code userName} (nickname) in the {@code users} table.
      *<P>
      * <B>Before calling, validate the user doesn't already exist</B>
-     * by calling {@link #doesUserExist(String) doesUserExist(userName)}
-     * or {@link #getUserPassword(String) getUserPassword(userName)}.
+     * by calling {@link #getUser(String) getUser(userName)}.
      * This method doesn't verify that the user is a unique new user before trying to create the record.
      * The DB will throw an exception instead, especially at {@link #SCHEMA_VERSION_1200} or higher
      * which adds a column and unique index for case-insensitive nickname.
@@ -1169,14 +1190,14 @@ public class SOCDBHelper
 
     /**
      * Update a user's password if the user is in the database.
-     * @param userName  Username to update.  Does not validate this user exists: Call {@link #doesUserExist(String)}
+     * @param userName  Username to update.  Does not validate this user exists: Call {@link #getUser(String)}
      *     first to do so.  If schema &gt;= {@link #SCHEMA_VERSION_1200}, {@code userName} is case-insensitive.
      * @param newPassword  New password (length can be 1 to 20)
      * @return  True if the update command succeeded, false if can't connect to db.
      *     <BR><B>Note:</B> If there is no user with {@code userName}, will nonetheless return true.
      * @throws IllegalArgumentException  If user or password are null, or password is too short or too long
      * @throws SQLException if an error occurs
-     * @see #getUserPassword(String)
+     * @see #authenticateUserPassword(String, String)
      * @since 1.1.20
      */
     public static boolean updateUserPassword(String userName, final String newPassword)
