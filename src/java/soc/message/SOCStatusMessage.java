@@ -445,18 +445,29 @@ public class SOCStatusMessage extends SOCMessage
     {
         if (! statusValidAtVersion(sv, cliVers))
         {
-            if (sv == SV_OK_DEBUG_MODE_ON)
+            boolean reject = false;
+            switch(sv)
+            {
+            case SV_OK_DEBUG_MODE_ON:
                 sv = SV_OK;
-            else if (sv == SV_PW_REQUIRED)
+                break;
+            case SV_PW_REQUIRED:
                 sv = SV_PW_WRONG;
-            else if (sv == SV_ACCT_CREATED_OK_FIRST_ONE)
+                break;
+            case SV_ACCT_CREATED_OK_FIRST_ONE:
                 sv = SV_ACCT_CREATED_OK;
-            else if (sv == SV_OK_SET_NICKNAME)
+                break;
+            case SV_OK_SET_NICKNAME:
+                reject = true;
+                break;
+            default:
+                if (cliVers >= 1106)
+                    sv = SV_NOT_OK_GENERIC;
+                else
+                    sv = SV_OK;
+            }
+            if (reject)
                 throw new IllegalArgumentException("No fallback for sv " + sv + " at client v" + cliVers);
-            else if (cliVers >= 1106)
-                sv = SV_NOT_OK_GENERIC;
-            else
-                sv = SV_OK;
 
             return toCmd(sv, cliVers, st);  // ensure fallback value is valid at client's version
         } else {
