@@ -121,6 +121,7 @@ public class SOCDBHelper
      * the driver will be "org.postgresql.Driver".
      * If the <tt>URL</tt> begins with "jdbc:sqlite:",
      * the driver will be "org.sqlite.JDBC".
+     * @see #dbType
      * @since 1.1.09
      */
     public static final String PROP_JSETTLERS_DB_DRIVER = "jsettlers.db.driver";
@@ -202,6 +203,24 @@ public class SOCDBHelper
      */
     public static final int SCHEMA_VERSION_LATEST = 1200;
 
+    // Known DB types: These constants aren't used outside the class or stored anywhere,
+    // so they can change between versions if needed. All @since 1.2.00.
+
+    /** Known DB type mysql for {@link #dbType}. */
+    private static final char DBTYPE_MYSQL = 'M';
+
+    /** Unsupported known DB type ora for {@link #dbType}. */
+    private static final char DBTYPE_ORA = 'O';
+
+    /** Known DB type postgresql for {@link #dbType}. */
+    private static final char DBTYPE_POSTGRESQL = 'P';
+
+    /** Known DB type sqlite for {@link #dbType}. */
+    private static final char DBTYPE_SQLITE = 'S';
+
+    /** Unknown DB type for {@link #dbType}. */
+    private static final char DBTYPE_UNKNOWN = '?';
+
     /**
      * During {@link #upgradeSchema()} if a data conversion batch gets this many rows, execute and start a new batch.
      * @since 1.2.00
@@ -209,10 +228,22 @@ public class SOCDBHelper
     private static final int UPG_BATCH_MAX = 100;
 
     /**
+     * The db driver type if detected, or null char if never connected. Used when certain DB types
+     * need special consideration. If DB has been initialized, value will be {@link #DBTYPE_MYSQL},
+     * {@link #DBTYPE_SQLITE}, etc, or {@link #DBTYPE_UNKNOWN}.
+     *<P>
+     * Set in {@link #initialize(String, String, Properties)} based on db URL and jdbc driver name.
+     * @see #driverclass
+     * @since 1.2.00
+     */
+    private static char dbType;
+
+    /**
      * The db driver used, or null if none.
      * If {@link #driverinstance} != null, use that to connect instead of driverclass;
      * we still need to remember driverclass to detect various db-specific behaviors.
      * Set in {@link #initialize(String, String, Properties)}.
+     * @see #dbType
      * @since 1.1.14
      */
     private static String driverclass = null;
@@ -404,20 +435,40 @@ public class SOCDBHelper
         // be the same as those listed in README.txt.
 
         driverclass = "com.mysql.jdbc.Driver";
+        dbType = DBTYPE_MYSQL;
     	dbURL = "jdbc:mysql://localhost/socdata";
+
     	if (props != null)
     	{
     	    String prop_dbURL = props.getProperty(PROP_JSETTLERS_DB_URL);
     	    String prop_driverclass = props.getProperty(PROP_JSETTLERS_DB_DRIVER);
+
     	    if (prop_dbURL != null)
     	    {
     	        dbURL = prop_dbURL;
+
     	        if (prop_driverclass != null)
+    	        {
     	            driverclass = prop_driverclass;
+
+    	            // dbType detection from driver string:
+    	            if (driverclass.contains("postgresql"))
+    	                dbType = DBTYPE_POSTGRESQL;
+                    else if (driverclass.contains("sqlite"))
+                        dbType = DBTYPE_SQLITE;
+                    else if (! driverclass.contains("mysql"))
+                        dbType = DBTYPE_UNKNOWN;
+    	        }
     	        else if (prop_dbURL.startsWith("jdbc:postgresql"))
+    	        {
     	            driverclass = "org.postgresql.Driver";
+    	            dbType = DBTYPE_POSTGRESQL;
+    	        }
     	        else if (prop_dbURL.startsWith("jdbc:sqlite:"))
+    	        {
     	            driverclass = "org.sqlite.JDBC";
+    	            dbType = DBTYPE_SQLITE;
+    	        }
     	        else if (! prop_dbURL.startsWith("jdbc:mysql"))
     	        {
     	            throw new SQLException("JDBC: URL property is set, but driver property is not: ("
@@ -430,13 +481,16 @@ public class SOCDBHelper
                 // if it's mysql, use the mysql default url above.
                 // if it's postgres or sqlite, use that.
                 // otherwise, not sure what they have.
+
                 if (driverclass.contains("postgresql"))
                 {
                     dbURL = "jdbc:postgresql://localhost/socdata";
+                    dbType = DBTYPE_POSTGRESQL;
                 }
                 else if (driverclass.contains("sqlite"))
                 {
                     dbURL = "jdbc:sqlite:socdata.sqlite";
+                    dbType = DBTYPE_SQLITE;
                 }
                 else if (! driverclass.contains("mysql"))
     	        {
@@ -444,6 +498,14 @@ public class SOCDBHelper
     	                + PROP_JSETTLERS_DB_DRIVER + ", " + PROP_JSETTLERS_DB_URL + ")");
     	        }
     	    }
+    	}
+
+    	if (dbType == DBTYPE_UNKNOWN)
+    	{
+    	    // try to detect unsupported/semi-known types from driver
+
+    	    if (driverclass.toLowerCase().contains("oracle"))
+                dbType = DBTYPE_ORA;
     	}
 
     	driverinstance = null;
@@ -657,8 +719,6 @@ public class SOCDBHelper
         if (! checkConnection())
             return;  // also may throw SQLException
 
-        final boolean isSqlite = (dbURL.startsWith("jdbc:sqlite:"));
-
         FileReader fr = new FileReader(setupScriptPath);
         BufferedReader br = new BufferedReader(fr);
         List<String> sqls = new ArrayList<String>();
@@ -679,7 +739,7 @@ public class SOCDBHelper
                 if (nextLine.startsWith("--"))
                     continue;  // <-- skip comment lines with no leading whitespace --
 
-                if (isSqlite && nextLine.toLowerCase().startsWith("use "))
+                if ((dbType == DBTYPE_SQLITE) && nextLine.toLowerCase().startsWith("use "))
                     continue;  // <-- sqlite doesn't support "USE"
 
                 // If starts with whitespace, append it to sb (continue previous line).
@@ -754,8 +814,6 @@ public class SOCDBHelper
     {
         if (isSchemaLatestVersion())  // throws IllegalStateException if ! isInitialized()
             throw new IllegalStateException("already at latest schema");
-
-        final boolean is_sqlite = driverclass.toLowerCase().contains("sqlite");
 
         // NOTES for future schema changes:
         // - Keep your DDL SQL syntax consistent with the DDL commands in testDBHelper().
@@ -860,7 +918,7 @@ public class SOCDBHelper
 
                 if (added)
                 {
-                    if (is_sqlite || ! runDDL_rollback("ALTER TABLE users DROP COLUMN nickname_lc;"))
+                    if ((dbType == DBTYPE_SQLITE) || ! runDDL_rollback("ALTER TABLE users DROP COLUMN nickname_lc;"))
                         couldRollback = false;
                 }
 
@@ -1661,7 +1719,7 @@ public class SOCDBHelper
             final boolean checkResultNum;  // Do we need to check query result contents?
 
             PreparedStatement ps;
-            if (! driverclass.toLowerCase().contains("oracle"))
+            if (dbType != DBTYPE_ORA)
             {
                 ps = connection.prepareStatement
                     ("select " + colname + " from " + tabname + " LIMIT 1;");
@@ -1981,7 +2039,7 @@ public class SOCDBHelper
 
         System.err.println();
         System.err.println
-            ("DB testing note: driver class: " + driverclass + ", autoCommit: " + was_conn_autocommit);
+            ("DB testing note: dbType " + dbType + ", driver class: " + driverclass + ", autoCommit: " + was_conn_autocommit);
 
         // Unit tests: all in one try block because the only expected exception would
         // occur only if the DB connection fails, instead of a per-test condition
@@ -2135,7 +2193,7 @@ public class SOCDBHelper
                             anyFailed = true;
                         }
 
-                        if (hasFixtureFieldXYZW && ! driverclass.toLowerCase().contains("sqlite"))
+                        if (hasFixtureFieldXYZW && (dbType != DBTYPE_SQLITE))
                         {
                             // test field-drop syntax:
                             testDBHelper_runDDL("drop table field gamesxyz2.xyzw",
