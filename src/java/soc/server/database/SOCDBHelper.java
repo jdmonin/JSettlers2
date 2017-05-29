@@ -2186,16 +2186,18 @@ public class SOCDBHelper
                         // test index-drop syntax:
                         try
                         {
-                            testDBHelper_runDDL("fixture cleanup: drop index gamesxyz2__w",
-                                "DROP INDEX gamesxyz2__w;");
+                            String sql = (dbType != DBTYPE_MYSQL)
+                                ? "DROP INDEX gamesxyz2__w;"
+                                : "DROP INDEX gamesxyz2__w ON gamesxyz2;";
+                            testDBHelper_runDDL("fixture cleanup: drop index gamesxyz2__w", sql);
                         } catch (SQLException e) {
                             System.err.println("Cleanup failed: Drop index gamesxyz2__w: " + e);
                             anyFailed = true;
                         }
 
+                        // test field-drop syntax, if not sqlite:
                         if (hasFixtureFieldXYZW && (dbType != DBTYPE_SQLITE))
                         {
-                            // test field-drop syntax:
                             testDBHelper_runDDL("drop table field gamesxyz2.xyzw",
                                 "ALTER TABLE gamesxyz2 DROP COLUMN xyzw;");
                             anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "xyzw", false, true);
