@@ -344,6 +344,7 @@ for reports or community-building.
 
 For these instructions we'll assume you already installed the PostgreSQL or
 MySQL software, or will download a SQLite JAR to avoid database server setup.
+JSettlers is tested with sqlite 3.7, mysql 5.5, and postgresql 8.4 and 9.5.
 
 You will need a JDBC driver JAR file in your classpath or the same directory as
 the JSettlers JAR, see below for details. Besides PostgreSQL, MySQL, or SQLite
@@ -430,7 +431,18 @@ Run these commands as the postgres system user:
   $ psql -d socdata --file jsettlers-tables.sql
   $ psql -d socdata --file jsettlers-sec-postgres.sql
 If the scripts run without any errors, they will produce very terse output
-such as "CREATE DATABASE" or "CREATE TABLE".
+such as "CREATE DATABASE", "CREATE TABLE", and "NOTICE:
+CREATE TABLE / PRIMARY KEY will create implicit index".
+You can validate by listing the newly created tables with this command:
+  $ psql -d socdata -c '\dt'
+	            List of relations
+	 Schema |    Name     | Type  |  Owner   
+	--------+-------------+-------+----------
+	 public | games       | table | postgres
+	 public | logins      | table | postgres
+	 public | robotparams | table | postgres
+	 public | users       | table | postgres
+
 When you start your JSettlers server, remember to specify the postgres DB using:
   -Djsettlers.db.url=jdbc:postgresql://localhost/socdata
 You may also need to specify a jsettlers.db.jar value as noted in the
