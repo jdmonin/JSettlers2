@@ -118,16 +118,19 @@ public class SOCAccountClient extends Applet
      */
     private Label nickLabel;
 
-    /** Nickname field tooltip reference, for use if its text must be updated. */
+    /** Nickname field ({@link #nick}) tooltip. */
     private AWTToolTip nickTTip;
 
+    /** Name of new user to be created. */
     protected TextField nick;
     protected TextField pass;
     protected TextField pass2;
     protected TextField email;
+
     protected TextField status;
     protected Button submit;
     protected Label messageLabel;
+
     protected AppletContext ac;
     protected boolean submitLock;
 
@@ -982,8 +985,6 @@ public class SOCAccountClient extends Applet
             {
                 nickname = statusText.substring(0, i);
                 statusText = statusText.substring(i + 1);
-                if (nick != null)
-                    nick.setText(nickname);
             }
         }
 

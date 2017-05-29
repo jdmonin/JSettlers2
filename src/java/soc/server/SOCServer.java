@@ -994,6 +994,8 @@ public class SOCServer extends Server
      * User admins whitelist, from {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS}, or {@code null} if disabled.
      * If not null, only usernames on this list can create user accounts in
      * {@link #handleCREATEACCOUNT(StringConnection, SOCCreateAccount)}.
+     * If DB schema &gt;= {@link SOCDBHelper#SCHEMA_VERSION_1200}, this whitelist is
+     * made lowercase for case-insensitive checks in {@link #isUserDBUserAdmin(String, boolean)}.
      * @since 1.1.19
      */
     private Set<String> databaseUserAdmins;
@@ -1518,12 +1520,18 @@ public class SOCServer extends Server
             } else if (features.isActive(SOCServerFeatures.FEAT_OPEN_REG)) {
                 errmsg = "* Cannot use Open Registration with User Accounts Admin List.";
             } else {
+                final boolean downcase = (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200);
                 databaseUserAdmins = new HashSet<String>();
+
                 for (String adm : userAdmins.split(SOCMessage.sep2))  // split on "," - sep2 will never be in a username
                 {
                     String na = adm.trim();
                     if (na.length() > 0)
+                    {
+                        if (downcase)
+                            na = na.toLowerCase(Locale.US);
                         databaseUserAdmins.add(na);
+                    }
                 }
                 if (databaseUserAdmins.isEmpty())  // was it commas only?
                     errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + " cannot be an empty list.";
@@ -5077,12 +5085,13 @@ public class SOCServer extends Server
     /**
      * Is this username on the {@link #databaseUserAdmins} whitelist, if that whitelist is being used?
      * @param uname  Username to check; if null, returns false.
+     *     If supported by DB schema version, this check is case-insensitive.
      * @param requireList  If true, the whitelist cannot be null.
      *     If false, this function returns true for any user when we aren't using the whitelist and its field is null.
      * @return  True only if the user is on the whitelist, or there is no list and {@code requireList} is false
      * @since 1.1.20
      */
-    boolean isUserDBUserAdmin(final String uname, final boolean requireList)
+    boolean isUserDBUserAdmin(String uname, final boolean requireList)
     {
         if (uname == null)
             return false;
@@ -5090,9 +5099,13 @@ public class SOCServer extends Server
         // Check if we're using a user admin whitelist, and if uname's on it; this check is also in handleCREATEACCOUNT.
 
         if (databaseUserAdmins == null)
+        {
             return ! requireList;
-        else
+        } else {
+            if (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200)
+                uname = uname.toLowerCase(Locale.US);
             return databaseUserAdmins.contains(uname);
+        }
     }
 
     /**
@@ -6370,7 +6383,10 @@ public class SOCServer extends Server
         //
         if (databaseUserAdmins != null)
         {
-            final String chkName = (isDBCountedEmpty) ? userName : requester;
+            String chkName = (isDBCountedEmpty) ? userName : requester;
+            if ((chkName != null) && (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200))
+                chkName = chkName.toLowerCase(Locale.US);
+
             if ((chkName == null) || ! databaseUserAdmins.contains(chkName))
             {
                 // Requester not on user-admin whitelist.
