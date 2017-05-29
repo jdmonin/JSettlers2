@@ -399,7 +399,9 @@ Database Creation:
 To create the jsettlers database and its db user ('socuser') and security,
 execute the SQL db scripts located in src/bin/sql/
 (included in jsettlers-2.x.xx-full.tar.gz): Change to that directory
-and follow the instructions here for your database type.
+and follow the instructions here for your database type. Afterwards,
+see above for instructions on starting the JSettlers server and connecting
+to the database.
 
 If you downloaded the JAR and not the full tar.gz, you can get the SQL scripts
 from https://github.com/jdmonin/JSettlers2/tree/master/src/bin/sql .
@@ -411,6 +413,16 @@ Run these commands, which will ask for the mysql root password:
   $ mysql -u root -p -e "SOURCE jsettlers-create-mysql.sql"
   $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables.sql"
 If the scripts run without any errors, they will produce no output.
+To validate, you can list tables with this command:
+  $ mysql -u root -D socdata -p -e "show tables"
+	+-------------------+
+	| Tables_in_socdata |
+	+-------------------+
+	| games             |
+	| logins            |
+	| robotparams       |
+	| users             |
+	+-------------------+
 
 For Postgres:
 Run these commands as the postgres system user:
