@@ -1329,7 +1329,13 @@ public class SOCServer extends Server
                     }
                     catch (Exception e)
                     {
-                        System.err.println(e);
+                        if (e instanceof MissingResourceException)
+                        {
+                            System.err.println("* To begin schema upgrade, please fix and rerun: " + e.getMessage());
+                        } else {
+                            System.err.println(e);
+                        }
+
                         if (e instanceof SQLException)
                         {
                             throw (SQLException) e;
