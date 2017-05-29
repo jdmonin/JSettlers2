@@ -21,12 +21,12 @@ CREATE ROLE socuser LOGIN PASSWORD 'socpass'
 -- (jsettlers-sec-postgres.sql) after jsettlers-tables.sql creates them.
 -- ALTER DEFAULT PRIVILEGES is available in postgres 9+, but CentOS 6 comes with 8.
 
--- Tested with postgres 8.4 on centos 6
+-- Tested with postgres 8.4 and 9.5 on centos 6
 
 
 -- This file is part of the JSettlers project.
 --
---  This file Copyright (C) 2014,2016 Jeremy D Monin (jeremy@nand.net)
+--  This file Copyright (C) 2014,2016-2017 Jeremy D Monin (jeremy@nand.net)
 --
 --  This program is free software: you can redistribute it and/or modify
 --  it under the terms of the GNU General Public License as published by

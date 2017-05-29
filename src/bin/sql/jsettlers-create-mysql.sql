@@ -9,9 +9,12 @@ GRANT ALL PRIVILEGES
   TO 'socuser'@'localhost'
   IDENTIFIED BY 'socpass';
 
+-- Tested with mysql 5.1 and 5.5 on centos 6, 5.5 on MacOSX 10.9
+
+
 -- This file is part of the JSettlers project.
 --
---  This file Copyright (C) 2012 Jeremy D Monin (jeremy@nand.net)
+--  This file Copyright (C) 2012,2017 Jeremy D Monin (jeremy@nand.net)
 --  Portions of this file Copyright (C) 2004-2005 Chadwick A McHenry (mchenryc@acm.org)
 --
 --  This program is free software: you can redistribute it and/or modify
