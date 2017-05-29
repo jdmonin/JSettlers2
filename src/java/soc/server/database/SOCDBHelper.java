@@ -802,9 +802,10 @@ public class SOCDBHelper
      *
      * @throws IllegalStateException  if already latest version ({@link #isSchemaLatestVersion()}),
      *     or if not connected to DB (! {@link #isInitialized()})
-     * @throws MissingResourceException  if pre-checks indicate a problem in the data (such as nicknames which collide
-     *     with each other when lowercase) which must be manually resolved by this server's administrator before upgrade:
-     *     {@link Throwable#getMessage()} will be a multi-line String with problem details to show to the server admin.
+     * @throws MissingResourceException  if pre-checks indicate a problem in the data (such as wrong current DB user,
+     *     or nicknames which collide with each other when lowercase) which must be manually resolved by this
+     *     server's administrator before upgrade: {@link Throwable#getMessage()} will be a multi-line string with
+     *     problem details to show to the server admin.
      * @throws SQLException  if any unexpected database problem during the upgrade
      * @see {@link #isSchemaLatestVersion()}
      * @since 1.2.00
@@ -814,6 +815,15 @@ public class SOCDBHelper
     {
         if (isSchemaLatestVersion())  // throws IllegalStateException if ! isInitialized()
             throw new IllegalStateException("already at latest schema");
+
+        if (dbType == DBTYPE_POSTGRESQL)
+        {
+            // Check table ownership since table create scripts may have ran as postgres user, not socuser
+            String otherOwner = upg_postgres_checkIsTableOwner();
+            if (otherOwner != null)
+                throw new MissingResourceException
+                    ("Upgrade must run as db user " + otherOwner + " (which owns the tables)", "unused", "unused");
+        }
 
         // NOTES for future schema changes:
         // - Keep your DDL SQL syntax consistent with the DDL commands in testDBHelper().
@@ -954,6 +964,50 @@ public class SOCDBHelper
             System.err.println("* Problem during rollback: " + rollE);
             return false;
         }
+    }
+
+    /**
+     * For {@link #upgradeSchema()} with {@link #DBTYPE_POSTGRESQL}, check that we're
+     * currently connected as the owner of jsettlers tables such as {@code 'users'}.
+     * If not, DDL will probably fail.
+     * @return {@code null} if OK, or table owner name if <B>not</B> currently connected as table owner.
+     * @throws SQLException  if any unexpected database problem querying current user or table owner
+     * @since 1.2.00
+     */
+    private static String upg_postgres_checkIsTableOwner()
+        throws SQLException
+    {
+        String curr = null, owner = null, error = null;
+
+        String sql = "select current_user;";
+        ResultSet rs = connection.createStatement().executeQuery(sql);
+        if (rs.next())
+            curr = rs.getString(1);
+        else
+            error = "Empty result: " + sql;
+        rs.close();
+
+        if (error == null)
+        {
+            sql = "select tableowner from pg_tables where tablename='users';";
+            rs = connection.createStatement().executeQuery(sql);
+            if (rs.next())
+            {
+                owner = rs.getString(1);
+                if (owner == null)
+                    error = "Null owner for users table from: " + sql;
+            } else{
+                error = "Empty result: " + sql;
+            }
+            rs.close();
+        }
+
+        if (error != null)
+            throw new SQLException(error);
+
+        // assert: owner != null
+
+        return (owner.equals(curr)) ? null : owner;
     }
 
     /**
@@ -2021,6 +2075,9 @@ public class SOCDBHelper
      *<P>
      * To run these tests, DB connection info must be initialized and the DB schema should
      * contain what's in {@code jsettlers-tables.sql}: {@code games}, etc.
+     * The current DB user must have been granted ability to create and drop new tables,
+     * but does not need to be the owner of the currently existing tables. That is, tests
+     * can run as the {@code socuser} user and not {@code postgres} or mysql {@code root} user.
      *<P>
      * Called from {@link SOCServer#initSocServer(String, String, Properties)}
      * if {@link SOCServer#PROP_JSETTLERS_TEST_DB} flag is set.
@@ -2062,6 +2119,20 @@ public class SOCDBHelper
             // Optional tests, OK if these fail: Case-insensitive column name search
             testOne_doesTableColumnExist("GAMES", "GAMENAME", true, false);
             testOne_doesTableColumnExist("Games", "gameName", true, false);
+
+            // Any dbType-specific tests
+            if (dbType == DBTYPE_POSTGRESQL)
+            {
+                // Test that we can get this info without errors; test doesn't need current DB user to be tables' owner
+                try
+                {
+                    upg_postgres_checkIsTableOwner();
+                    System.err.println("Test ok: upg_postgres_checkIsTableOwner()");
+                } catch (SQLException e) {
+                    System.err.println("Test failed: upg_postgres_checkIsTableOwner(): " + e);
+                    anyFailed = true;
+                }
+            }
 
             // Temporarily add a table and field, then test existence, then batch-insert rows.
             // Assumes current DB user has been granted ability to create and drop tables.
@@ -2209,7 +2280,7 @@ public class SOCDBHelper
                     }
                 }
             } else {
-                System.err.println("6 tests skipped because not creating fixture after previous failures.");
+                System.err.println("10 tests skipped because not creating fixture after previous failures.");
             }
 
         } catch (Exception e) {
