@@ -424,6 +424,9 @@ To validate, you can list tables with this command:
 	| robotparams       |
 	| users             |
 	+-------------------+
+If mysql gives the error: Unknown character set: 'utf8mb4'
+you will need to make a small change to jsettlers-create-mysql.sql
+and re-run the commands; see comments at the top of that script.
 
 For Postgres:
 Run these commands as the postgres system user:
