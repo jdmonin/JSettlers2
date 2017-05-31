@@ -852,7 +852,7 @@ public class SOCDBHelper
                 sb.append
                     ("\nTo upgrade, the nicknames must be changed to be unique when lowercase.\n"
                      + "Contact each user and determine new nicknames, then for each user run this SQL:\n"
-                     + "  BEGIN TRANSACTION;\n"
+                     + "  BEGIN;\n"
                      + "  UPDATE users SET nickname='newnick' WHERE nickname='oldnick';\n"
                      + "  UPDATE logins SET nickname='newnick' WHERE nickname='oldnick';\n"
                      + "  UPDATE games SET player1='newnick' WHERE player1='oldnick';\n"
