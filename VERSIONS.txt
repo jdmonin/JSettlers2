@@ -62,7 +62,10 @@ and backport minor new features until 2.0.00 is ready.
 - Game window during debug: Reset "current player" indicator when exiting *FREEPLACE* debug mode
 - Client initial Connect dialog: If username given, ensure New Game button is enabled
 - Client debug, bot debug: Print network message contents if system property jsettlers.debug.traffic is set
+- Database: If using mysql, newly created DBs will have unicode text encoding (UTF-8).
+    (The postgresql and sqlite DB scripts have always created the DB as unicode.)
 - Startup: Show error if can't read own JSettlers version info
+
 
     > 1.1.20 (build OV20161024)
 - Board hex graphics updated for smoother look and scaling
