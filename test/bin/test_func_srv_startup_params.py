@@ -21,7 +21,7 @@
 
 from __future__ import print_function  # Python 2.6 or higher is required
 
-import os, re, subprocess, sys, time
+import os, re, socket, subprocess, sys, time
 from threading import Thread
 
 FNAME_JSSERVER_JAR = "JSettlersServer.jar"
@@ -75,6 +75,21 @@ def env_ok():
         all_ok = False
         print_err("Failed to run: java -version")
         print_err(str(e))  # "OSError: [Errno 2] No such file or directory"
+
+    # shouldn't have any server running already on default tcp port
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(1)
+        s.connect(('127.0.0.1', 8880))
+        s.close()
+        all_ok = False
+        print_err("Test environment cannot already have a server running on tcp port 8880")
+    except IOError:
+        pass
+    except Exception as e:
+        all_ok = False
+        print_err("Failed to check tcp port 8880")
+        print_err(str(e))
 
     return all_ok
 
@@ -398,7 +413,7 @@ main()
 
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2016 Jeremy D Monin <jeremy@nand.net>
+# This file Copyright (C) 2016-2017 Jeremy D Monin <jeremy@nand.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
