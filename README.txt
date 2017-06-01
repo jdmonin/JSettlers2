@@ -431,6 +431,7 @@ and re-run the commands; see comments at the top of that script.
 For Postgresql:
 Run these commands as the postgres system user:
   $ psql --file jsettlers-create-postgres.sql
+  $ psql -d socdata --file jsettlers-sec-postgres.sql
   $ psql -d socdata -U socuser -h 127.0.0.1 --file jsettlers-tables.sql
   Password for user socuser: socpass
 If the scripts run without any errors, they will produce very terse output

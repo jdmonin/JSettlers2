@@ -3,7 +3,8 @@
 -- If you're using the pgAdmin GUI, you can create the socdata db with the
 --   Create Database dialog, then bring up the SQL window (Query Tool) and
 --   paste the rest of this file into there.
--- Run jsettlers-tables.sql as socuser right after this script.
+-- Run jsettlers-tables.sql in the new db socdata as socuser right after this script.
+-- Then, run jsettlers-sec-postgres.sql in socdata as 'postgres' or another admin user.
 -- See bottom of file for copyright and license information (GPLv3).
 
 CREATE DATABASE socdata
