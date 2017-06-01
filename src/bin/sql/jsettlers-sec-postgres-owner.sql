@@ -1,11 +1,13 @@
 -- DB Security grants script for jsettlers in postgresql.
--- First, run jsettlers-tables.sql.
 -- Run this script as 'postgres' or another admin user.
+-- To help with schema upgrades, this script changes all
+-- pre-v1.2.00 tables' ownership from postgres to socuser.
 -- See bottom of file for copyright and license information (GPLv3).
 
-GRANT SELECT, INSERT, UPDATE, DELETE
-  ON TABLE users, logins, games, robotparams
-  TO socuser;
+ALTER TABLE users  OWNER TO socuser;
+ALTER TABLE logins OWNER TO socuser;
+ALTER TABLE games  OWNER TO socuser;
+ALTER TABLE robotparams OWNER TO socuser;
 
 -- no sequences defined yet
 -- GRANT USAGE, SELECT
@@ -15,13 +17,13 @@ GRANT SELECT, INSERT, UPDATE, DELETE
 
 
 -- misc notes:
--- Tested with postgres 8.4 on centos 6
+-- Tested with postgres 8.4 and 9.5 on centos 6
 -- Reminder: psql shell can list existing privs with \z [objectname]
 
 
 -- This file is part of the JSettlers project.
 --
---  This file Copyright (C) 2016 Jeremy D Monin (jeremy@nand.net)
+--  This file Copyright (C) 2016-2017 Jeremy D Monin (jeremy@nand.net)
 --
 --  This program is free software: you can redistribute it and/or modify
 --  it under the terms of the GNU General Public License as published by
