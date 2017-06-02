@@ -118,7 +118,7 @@ import java.util.Vector;
  *     as called by the message handlers for client requests and actions in {@link SOCGameMessageHandler}
  *     and the game-lifecycle message handlers in {@link SOCServerMessageHandler}.
  *<LI> See {@link SOCMessage} for details of the client/server protocol.
- *<LI> To get a player's connection, use {@link #getConnection(Object) getConnection(plName)}.
+ *<LI> To get a player's connection, use {@link Server#getConnection(String) getConnection(plName)}.
  *<LI> To get a client's nickname, use <tt>(String)</tt> {@link StringConnection#getData() connection.getData()}.
  *<LI> To get the rest of a client's data, use ({@link SOCClientData})
  *     {@link StringConnection#getAppData() connection.getAppData()}.
@@ -2672,18 +2672,6 @@ public class SOCServer extends Server
     }
 
     /**
-     * Given a connection's key, return the connected client.
-     * Package-level access for other server classes.
-     * @param connKey Client name (Object key data), as in {@link StringConnection#getData()}; if null, returns null
-     * @return The connection with this key, or null if none
-     * @since 2.0.00
-     */
-    StringConnection getConnection(final String connKey)
-    {
-        return super.getConnection(connKey);
-    }
-
-    /**
      * Connection {@code c} is leaving the server; remove from all channels it was in.
      * In channels where {@code c} was the last connection, calls {@link #destroyChannel(String)}.
      * Sends {@link SOCDeleteChannel} to announce any destroyed channels.
@@ -3990,7 +3978,7 @@ public class SOCServer extends Server
     /**
      * Name a current connection to the system, which may replace an older connection.
      * Call c.setData(name) just before calling this method.
-     * Calls {@link Server#nameConnection(StringConnection)} to move the connection
+     * Calls {@link Server#nameConnection(StringConnection, boolean)} to move the connection
      * from the unnamed to the named connection list.  Increments {@link #numberOfUsers}.
      *<P>
      * If {@code isReplacing}:
@@ -4007,7 +3995,8 @@ public class SOCServer extends Server
      *          or if nameConnection has previously been called for this connection.
      * @since 1.1.08
      */
-    void nameConnection(StringConnection c, boolean isReplacing)
+    @Override
+    public void nameConnection(StringConnection c, boolean isReplacing)
         throws IllegalArgumentException
     {
         StringConnection oldConn = null;
@@ -4021,7 +4010,7 @@ public class SOCServer extends Server
                 isReplacing = false;  // shouldn't happen, but fail gracefully
         }
 
-        super.nameConnection(c);
+        super.nameConnection(c, isReplacing);
 
         if (isReplacing)
         {
@@ -4322,7 +4311,7 @@ public class SOCServer extends Server
         }
 
         // check conns hashtable
-        StringConnection oldc = getConnection(n);
+        StringConnection oldc = getConnection(n, false);
         if (oldc == null)
         {
             return 0;  // OK: no player by that name already
@@ -4847,7 +4836,7 @@ public class SOCServer extends Server
      *<P>
      * If this connection isn't already logged on and named ({@link StringConnection#getData() c.getData()}
      * == {@code null}) and all checks pass: Unless {@code doNameConnection} is false, calls
-     * {@link StringConnection#setData(Object) c.setData(nickname)} and
+     * {@link StringConnection#setData(String) c.setData(nickname)} and
      * {@link #nameConnection(StringConnection, boolean) nameConnection(c, isTakingOver)} before
      * returning the {@link #AUTH_OR_REJECT__OK} flag, and possibly also the {@link #AUTH_OR_REJECT__SET_USERNAME}
      * and/or {@link #AUTH_OR_REJECT__TAKING_OVER} flags.
@@ -4879,7 +4868,7 @@ public class SOCServer extends Server
      *     or ""; will be {@link String#trim() trim()med}.
      * @param cliVers  Client version, from {@link StringConnection#getVersion()}
      * @param doNameConnection  True if successful auth of an unnamed connection should have this method call
-     *     {@link StringConnection#setData(Object) c.setData(nickname)} and
+     *     {@link StringConnection#setData(String) c.setData(nickname)} and
      *     {@link #nameConnection(StringConnection, boolean) nameConnection(c, isTakingOver)}.
      *     <P>
      *     If using the optional user DB, {@code nickname} is queried from the database by case-insensitive
@@ -5031,7 +5020,7 @@ public class SOCServer extends Server
      *<P>
      * Nickname search in the database is case-insensitive if supported by
      * db schema version; see {@link SOCDBHelper#authenticateUserPassword(String, String)}.
-     * To give the originally-cased name from that search, if successful this method
+     * To give the originally-cased name from that search, if found this method
      * returns their nickname as stored in the database.
      *
      * @param c         the user's connection
@@ -5391,7 +5380,7 @@ public class SOCServer extends Server
         scd.localeStr = null;
         c.setI18NStringManager(null, null);
 
-        nameConnection(c);
+        super.nameConnection(c, false);
 
         return null;  // accepted: no rejection reason string
     }

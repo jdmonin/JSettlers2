@@ -42,8 +42,10 @@ import soc.util.SOCStringManager;
  *                       setVersionTracking, isInputAvailable,
  *                       wantsHideTimeoutMessage, setHideTimeoutMessage
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed; remove unused import EOFException
- *  1.2.0 - 2017-05-21 - for I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and
- *                       {@link #getLocalized(String)}. StringConnection is now a superclass, not an interface.
+ *  1.2.0 - 2017-06-03 - StringConnection is now a superclass, not an interface.
+ *                       {@link #setData(String)} now takes a String, not Object.
+ *                       For I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and
+ *                       {@link #getLocalized(String)}.
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -66,9 +68,11 @@ public abstract class StringConnection
     public final static int MAX_MESSAGE_SIZE_UTF8 = 0xFFFF;
 
     /**
-     * The arbitrary key data (client "name") associated with this connection, or {@code null}.
+     * The key (client "name") associated with this connection, or {@code null}.
+     *<P>
+     * Before v1.2.0, this field was an Object and could contain any arbitrary key data.
      */
-    protected Object data;
+    protected String data;
 
     /**
      * The arbitrary app-specific data associated with this connection, or {@code null}.
@@ -150,9 +154,11 @@ public abstract class StringConnection
     public abstract void disconnectSoft();
 
     /**
-     * The optional key data used to name this connection.
+     * The optional name key used to name this connection.
+     *<P>
+     * Before v1.2.0, this returned an {@link Object}; getData is always a {@link String} in v1.2.0 and up.
      *
-     * @return The key data for this connection, or null.
+     * @return The name key for this connection, or null.
      * @see #getAppData()
      */
     public Object getData()
@@ -173,20 +179,20 @@ public abstract class StringConnection
     }
 
     /**
-     * Set the optional key data for this connection.
+     * Set the optional name key for this connection.
      *<P>
-     * This is anything your application wants to associate with the connection.
      * The StringConnection system uses this data to name the connection,
      * so it should not change once set.
      *<P>
      * If you call setData after {@link Server#newConnection1(StringConnection)},
-     * please call {@link Server#nameConnection(StringConnection)} afterwards
+     * please call {@link Server#nameConnection(StringConnection, boolean)} afterwards
      * to ensure the name is tracked properly at the server.
-     *
-     * @param data The new key data, or null
-     * @see #setAppData(Object)
+     *<P>
+     * For anything else your application wants to associate with the connection,
+     * see {@link #setAppData(Object)}.
+     * @param data The new name key, or null
      */
-    public void setData(Object data)
+    public void setData(String data)
     {
         this.data = data;
     }
@@ -199,7 +205,7 @@ public abstract class StringConnection
      * You can change it as often as you'd like, or not use it.
      *
      * @param data The new data, or null
-     * @see #setData(Object)
+     * @see #setData(String)
      */
     public void setAppData(Object data)
     {

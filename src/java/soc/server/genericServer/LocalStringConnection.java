@@ -1,6 +1,6 @@
 /**
  * Local (StringConnection) network system.  Version 1.2.0.
- * Copyright (C) 2007-2010,2012-2013,2016 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2007-2010,2012-2013,2016-2017 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at jeremy@nand.net
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.server.genericServer;
 
@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.Vector;
 
 import soc.disableDebug.D;
-import soc.util.SOCStringManager;
 
 /**
  * Symmetric buffered connection sending strings between two local peers.
@@ -55,8 +54,8 @@ import soc.util.SOCStringManager;
  *                       common constructor code moved to init().
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed
  *  1.0.5.2- 2010-04-05- add toString for debugging
- *  1.2.0 - 2013-09-07 - for I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and {@link #getLocalized(String)}.
- *                       StringConnection is now a superclass, not an interface
+ *  1.2.0 - 2017-06-03 - StringConnection is now a superclass, not an interface.
+ *                       {@link #setData(String)} now takes a String, not Object.
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -271,6 +270,8 @@ public class LocalStringConnection
 
     /**
      * Connect to specified stringport. Calling thread waits until accepted.
+     *<P>
+     * Connection must be unnamed (<tt>{@link #getData()} == null</tt>) at this point.
      *
      * @param serverSocketName  stringport name to connect to
      * @throws ConnectException If stringport name is not found, or is EOF,
@@ -438,6 +439,8 @@ public class LocalStringConnection
      * For server-side; continuously read and treat input.
      * You must create and start the thread.
      * We are on server side if ourServer != null.
+     *<P>
+     * When starting the thread, {@link #getData()} must be null.
      */
     public void run()
     {
@@ -447,6 +450,7 @@ public class LocalStringConnection
             return;
 
         ourServer.addConnection(this);
+            // won't throw IllegalArgumentException, because conn is unnamed at this point; getData() is null
 
         try
         {
@@ -486,7 +490,7 @@ public class LocalStringConnection
     }
 
     /**
-     * toString includes data.toString for debugging.
+     * For debugging, toString includes connection name key ({@link #getData()}) if available.
      * @since 1.0.5.2
      */
     @Override
@@ -494,7 +498,7 @@ public class LocalStringConnection
     {
         StringBuffer sb = new StringBuffer("LocalStringConnection[");
         if (data != null)
-            sb.append(data.toString());
+            sb.append(data);
         else
             sb.append(super.hashCode());
         sb.append(']');

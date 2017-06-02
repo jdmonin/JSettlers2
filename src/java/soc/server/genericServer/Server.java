@@ -30,6 +30,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
@@ -74,9 +75,8 @@ import soc.server.SOCServer;
  *  version.  You must send this in an app-specific way, during the initial exchange
  *  when a client connects.
  *<P>
- *  @version 1.7
  *  @author Original author: <A HREF="http://www.nada.kth.se/~cristi">Cristian Bogdan</A> <br>
- *  Lots of mods by Robert S. Thomas and Jay Budzik <br>
+ *  Lots of mods (version "1.7") by Robert S. Thomas and Jay Budzik <br>
  *  Local (StringConnection) network system by Jeremy D Monin &lt;jeremy@nand.net&gt; <br>
  *  Version-tracking system, javadocs, and other minor mods by Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
@@ -127,6 +127,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /** The named connections: {@link StringConnection#getData()} != {@code null}.
      *<BR><B>Locks:</B> Adding/removing/naming/versioning of connections synchronizes on {@link #unnamedConns}.
+     * @see #connNames
      * @see #unnamedConns
      */
     protected Hashtable<Object, StringConnection> conns = new Hashtable<Object, StringConnection>();
@@ -137,6 +138,18 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     protected Vector<StringConnection> unnamedConns = new Vector<StringConnection>();
 
+    /**
+     * Map for case-insensitive lookup of connection names in {@link #conns}.
+     *<P>
+     *<B>Key:</B> {@link StringConnection#getData() c.getData()}
+     * {@link String#toLowerCase(Locale) .toLowerCase}({@link Locale#US}).
+     *<BR>
+     *<B>Value:</B> {@link StringConnection#getData() c.getData()} with its actual case
+     *<P>
+     * <B>Locks:</B> Adding/removing/naming/versioning of connections synchronizes on {@link #unnamedConns}.
+     * @since 1.2.00
+     */
+    private HashMap<String, String> connNames = new HashMap<String, String>();
 
     /**
      * The queue of messages received from all clients. This queue class also includes the Treater thread
@@ -285,11 +298,15 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     }
 
     /**
-     * Given a connection's key, return the connected client.
-     * @param connKey Object key data, as in {@link StringConnection#getData()}; if null, returns null
-     * @return The connection with this key, or null if none
+     * Given a connection's name key, return the connected client; always case-sensitive.
+     *<P>
+     * Before v1.2.00 this method was protected and took an Object, not String, for {@code connKey}.
+     *
+     * @param connKey Case-sensitive client name key, from {@link StringConnection#getData()}; if null, returns null
+     * @return The connection with this name, or null if none
+     * @see #getConnection(String, boolean)
      */
-    protected StringConnection getConnection(Object connKey)
+    public StringConnection getConnection(final String connKey)
     {
         if (connKey != null)
             return conns.get(connKey);
@@ -297,6 +314,27 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             return null;
     }
 
+    /**
+     * Given a connection's name key, return the connected client; optionally case-insensitive.
+     * @param connKey Client name key, from {@link StringConnection#getData()}; if null, returns null
+     * @param isCaseSensitive  Use case-insensitive lookup for {@code connKey}?
+     * @return The connection with this name, or null if none
+     * @see #getConnection(String)
+     * @since 1.2.00
+     */
+    public StringConnection getConnection(String connKey, final boolean isCaseSensitive)
+    {
+        if (! isCaseSensitive)
+            synchronized(unnamedConns)
+            {
+                connKey = connNames.get(connKey.toLowerCase(Locale.US));
+            }
+
+        if (connKey != null)
+            return getConnection(connKey);
+        else
+            return null;
+    }
     /**
      * @return the list of named connections: StringConnections where {@link StringConnection#getData()}
      *         is not null
@@ -474,7 +512,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * Should send a message to the client in either {@link #newConnection1(StringConnection)}
      * or {@link #newConnection2(StringConnection)}.
      * You may also name the connection here by calling
-     * {@link StringConnection#setData(Object) c.setData},
+     * {@link StringConnection#setData(String) c.setData(name)},
      * which will help add to conns or unnamedConns.
      * This is also where the version should be set.
      *<P>
@@ -491,7 +529,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *
      * @see #addConnection(StringConnection)
      * @see #newConnection2(StringConnection)
-     * @see #nameConnection(StringConnection)
+     * @see #nameConnection(StringConnection, boolean)
      */
     protected boolean newConnection1(StringConnection c) { return true; }
 
@@ -536,6 +574,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         }
 
         conns.clear();
+        connNames.clear();
     }
 
     /**
@@ -554,7 +593,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     public void removeConnection(final StringConnection c, final boolean doCleanup)
     {
-        Object cKey = c.getData();  // client player name
+        final String cKey = (String) c.getData();  // client player name
+
         synchronized (unnamedConns)
         {
             if (cKey != null)
@@ -568,6 +608,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 if (c == cKeyConn)
                 {
                     conns.remove(cKey);
+                    connNames.remove(cKey.toLowerCase(Locale.US));
                 }
                 // else, was replaced by a
                 // different conn for cKey.
@@ -629,10 +670,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * The add to {@link #cliConnDisconPrintsPending} is unsynchronized.
      *
      * @param c Connecting client; its key data ({@link StringConnection#getData()}) must not be null.
-     * @see #nameConnection(StringConnection)
+     * @see #nameConnection(StringConnection, boolean)
      * @see #removeConnection(StringConnection, boolean)
      */
     public void addConnection(StringConnection c)
+        throws IllegalArgumentException
     {
         boolean connAccepted;
 
@@ -643,11 +685,18 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 connAccepted = newConnection1(c);  // <-- App-specific #1 --
                 if (connAccepted)
                 {
-                    Object cKey = c.getData();  // May be null
+                    final String cKey = (String) c.getData();
                     if (cKey != null)
+                    {
+                        final String cName = cKey.toLowerCase(Locale.US);
+                        if (connNames.containsKey(cName))
+                                throw new IllegalArgumentException("already in connNames: " + cName);
+
                         conns.put(cKey, c);
-                    else
+                        connNames.put(cName, cKey);
+                    } else {
                         unnamedConns.add(c);
+                    }
 
                     clientVersionAdd(c.getVersion());  // Count one more client with that version
                     numberCurrentConnections++;
@@ -684,29 +733,37 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * Name a current connection to the system.
      * Call c.setData(name) just before calling this method.
      * Can be called once per connection (once named, cannot be changed).
-     * Synchronized on unnamedConns.
+     * Synchronized on {@link #unnamedConns}.
      *<P>
      * If you name the connection inside {@link #newConnection1(StringConnection)},
      * you don't need to call nameConnection, because it hasn't yet been added
      * to a connection list.
      *
-     * @param c Connected client; its key data ({@link StringConnection#getData()}) must not be null
+     * @param c Connected client; its name key ({@link StringConnection#getData()}) must not be null
+     * @param isReplacing  Are we replacing / taking over a current connection?
      * @throws IllegalArgumentException If c isn't already connected, if c.getData() returns null,
-     *          or if nameConnection has previously been called for this connection.
+     *          nameConnection has previously been called for this connection, or there's already
+     *          a connection with this name (case-insensitive) and {@code ! isReplacing}
      * @see #addConnection(StringConnection)
+     * @see #getConnection(String, boolean)
      */
-    public void nameConnection(StringConnection c)
+    public void nameConnection(StringConnection c, boolean isReplacing)
         throws IllegalArgumentException
     {
-        Object cKey = c.getData();
+        String cKey = (String) c.getData();
         if (cKey == null)
             throw new IllegalArgumentException("null c.getData");
 
         synchronized (unnamedConns)
         {
+            final String cName = cKey.toLowerCase(Locale.US);
+            if ((! isReplacing) && connNames.containsKey(cName))
+                    throw new IllegalArgumentException("already in connNames: " + cName);
+
             if (unnamedConns.removeElement(c))
             {
                 conns.put(cKey, c);
+                connNames.put(cName, cKey);
             }
             else
             {

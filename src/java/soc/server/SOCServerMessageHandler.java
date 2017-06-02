@@ -396,7 +396,7 @@ public class SOCServerMessageHandler
                 // no role-specific problems: complete the authentication
                 try
                 {
-                    c.setData(SOCDBHelper.getUser(mesUser));  // because mesUser is case-insensitive
+                    c.setData(SOCDBHelper.getUser(mesUser));  // case-insensitive db search on mesUser
                     srv.nameConnection(c, false);
                 } catch (SQLException e) {
                     // unlikely, we've just queried db in authOrRejectClientUser

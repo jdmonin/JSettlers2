@@ -1072,9 +1072,10 @@ public class SOCDBHelper
      * @see #getUser(String)
      * @since 1.2.00
      */
-    public static String authenticateUserPassword(String sUserName, final String sPassword)
+    public static String authenticateUserPassword(final String sUserName, final String sPassword)
         throws SQLException
     {
+        String dbUserName = sUserName;
         String dbPassword = null;
 
         // ensure that the JDBC connection is still valid
@@ -1083,9 +1084,8 @@ public class SOCDBHelper
             try
             {
                 // fill in the data values to the Prepared statement
-                if (schemaVersion >= SCHEMA_VERSION_1200)
-                    sUserName = sUserName.toLowerCase(Locale.US);
-                userPasswordQuery.setString(1, sUserName);
+                dbUserName = (schemaVersion < SCHEMA_VERSION_1200) ? sUserName : sUserName.toLowerCase(Locale.US);
+                userPasswordQuery.setString(1, dbUserName);
 
                 // execute the Query
                 ResultSet resultSet = userPasswordQuery.executeQuery();
@@ -1093,8 +1093,10 @@ public class SOCDBHelper
                 // if no results, nickname isn't in the users table
                 if (resultSet.next())
                 {
-                    sUserName = resultSet.getString(1);  // get nickname with its original case; searched on nickname_lc
+                    dbUserName = resultSet.getString(1);  // get nickname with its original case; searched on nickname_lc
                     dbPassword = resultSet.getString(2);
+                } else {
+                    dbUserName = sUserName;  // not in db: ret original case
                 }
 
                 resultSet.close();
@@ -1110,7 +1112,7 @@ public class SOCDBHelper
         final boolean ok = (dbPassword == null)
             ? "".equals(sPassword)
             : dbPassword.equals(sPassword);
-        return (ok) ? sUserName: null;
+        return (ok) ? dbUserName: null;
     }
 
     /**

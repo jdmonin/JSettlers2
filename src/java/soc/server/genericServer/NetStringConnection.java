@@ -80,7 +80,7 @@ public final class NetStringConnection
 
     /**
      * Get our connection thread name for debugging.  Also used by {@link #toString()}.
-     * @return "connection-"remotehostname-portnumber, or "connection-(null)-"hashCode
+     * @return "connection-" + <em>remotehostname-portnumber</em>, or "connection-(null)-" + {@link #hashCode()}
      * @since 1.2.0
      */
     public String getName()
@@ -101,12 +101,21 @@ public final class NetStringConnection
 
     /** Set up to reading from the net, start a new Putter thread to send to the net; called only by the server.
      * If successful, also sets connectTime to now.
-     * Before calling {@code connect()}, be sure to call {@link #run()} to start the inbound reading thread.
+     * Before calling {@code connect()}, be sure to make a new {@link Thread}{@code (this)} and {@code start()} it
+     * for the inbound reading thread.
+     *<P>
+     * Connection must be unnamed (<tt>{@link #getData()} == null</tt>) at this point.
      *
      * @return true if thread start was successful, false if an error occurred.
      */
     public boolean connect()
     {
+        if (getData() != null)
+        {
+            D.ebugPrintln("conn.connect() requires null getData()");
+            return false;
+        }
+
         try
         {
             s.setSoTimeout(TIMEOUT_VALUE);
@@ -153,11 +162,17 @@ public final class NetStringConnection
         }
     }
 
-    /** continuously read from the net */
+    /**
+     * Inbound reading thread: continuously read from the net.
+     *<P>
+     * When starting the thread, {@link #getData()} must be null;
+     * {@link #connect()} mentions and checks that, but {@code connect()} is a different thread.
+     */
     public void run()
     {
         Thread.currentThread().setName(getName());  // connection-remotehostname-portnumber
         ourServer.addConnection(this);
+            // won't throw IllegalArgumentException, because conn is unnamed at this point; getData() is null
 
         try
         {
@@ -350,14 +365,14 @@ public final class NetStringConnection
     }
 
     /**
-     * toString includes data.toString for debugging, and {@link #getName()}.
+     * For debugging, toString includes data.toString and {@link #getName()}.
      * @since 1.0.5.2
      */
     public String toString()
     {
         StringBuffer sb = new StringBuffer("Connection[");
         if (data != null)
-            sb.append(data.toString());
+            sb.append(data);
         else
             sb.append(super.hashCode());
         sb.append('-');
