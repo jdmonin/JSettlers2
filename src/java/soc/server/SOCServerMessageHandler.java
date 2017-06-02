@@ -409,7 +409,7 @@ public class SOCServerMessageHandler
         }
 
         final String txt = c.getLocalized("member.welcome");  // "Welcome to Java Settlers of Catan!"
-        if (authResult != SOCServer.AUTH_OR_REJECT__SET_USERNAME)
+        if (0 == (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME))
             c.put(SOCStatusMessage.toCmd
                 (SOCStatusMessage.SV_OK, txt));
         else
@@ -1369,7 +1369,7 @@ public class SOCServerMessageHandler
          */
         c.put(SOCJoinChannelAuth.toCmd(msgUser, ch));
         final String txt = c.getLocalized("member.welcome");  // "Welcome to Java Settlers of Catan!"
-        if (authResult != SOCServer.AUTH_OR_REJECT__SET_USERNAME)
+        if (0 == (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME))
             c.put(SOCStatusMessage.toCmd
                 (SOCStatusMessage.SV_OK, txt));
         else
