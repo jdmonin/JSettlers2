@@ -156,12 +156,12 @@ public abstract class StringConnection
     /**
      * The optional name key used to name this connection.
      *<P>
-     * Before v1.2.0, this returned an {@link Object}; getData is always a {@link String} in v1.2.0 and up.
+     * Before v1.2.0, this returned an {@link Object}; getData is a {@link String} in v1.2.0 and up.
      *
      * @return The name key for this connection, or null.
      * @see #getAppData()
      */
-    public Object getData()
+    public String getData()
     {
         return data;
     }

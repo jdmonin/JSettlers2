@@ -414,7 +414,7 @@ public class SOCServerMessageHandler
                 (SOCStatusMessage.SV_OK, txt));
         else
             c.put(SOCStatusMessage.toCmd
-                (SOCStatusMessage.SV_OK_SET_NICKNAME, ((String) c.getData()) + SOCMessage.sep2_char + txt));
+                (SOCStatusMessage.SV_OK_SET_NICKNAME, c.getData() + SOCMessage.sep2_char + txt));
     }
 
     /**
@@ -857,7 +857,7 @@ public class SOCServerMessageHandler
         final SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
             return;
-        SOCPlayer player = ga.getPlayer((String) c.getData());
+        SOCPlayer player = ga.getPlayer(c.getData());
         if (player == null)
             return;
         final int id = mes.getFaceId();
@@ -882,7 +882,7 @@ public class SOCServerMessageHandler
         SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
             return;
-        SOCPlayer player = ga.getPlayer((String) c.getData());
+        SOCPlayer player = ga.getPlayer(c.getData());
         if (player == null)
             return;
 
@@ -924,7 +924,7 @@ public class SOCServerMessageHandler
             {
                 srv.messageToChannel(chName, new SOCTextMsg
                     (chName, SOCServer.SERVERNAME,
-                     "********** " + (String) c.getData() + " KILLED THE CHANNEL **********"));
+                     "********** " + c.getData() + " KILLED THE CHANNEL **********"));
                 channelList.takeMonitor();
 
                 try
@@ -979,7 +979,7 @@ public class SOCServerMessageHandler
         if (ga == null)
             return;  // <---- early return: no game by that name ----
 
-        final String plName = (String) c.getData();
+        final String plName = c.getData();
         if (null == ga.getPlayer(plName))
         {
             // c isn't a seated player in that game; have they joined it?
@@ -1143,7 +1143,7 @@ public class SOCServerMessageHandler
         // player's stats
         if (c.getVersion() >= SOCPlayerStats.VERSION_FOR_RES_ROLL)
         {
-            SOCPlayer cp = gameData.getPlayer((String) c.getData());
+            SOCPlayer cp = gameData.getPlayer(c.getData());
             if (cp != null)
                 srv.messageToPlayer(c, new SOCPlayerStats(cp, SOCPlayerStats.STYPE_RES_ROLL));
         }
@@ -1197,7 +1197,7 @@ public class SOCServerMessageHandler
             {
                 // Check if using user admins; if not, if using debug user
 
-                final String uname = (String) c.getData();
+                final String uname = c.getData();
                 boolean isAdmin = srv.isUserDBUserAdmin(uname, true);
                 if (! isAdmin)
                     isAdmin = (srv.isDebugUserEnabled() && uname.equals("debug"));
@@ -1374,7 +1374,7 @@ public class SOCServerMessageHandler
                 (SOCStatusMessage.SV_OK, txt));
         else
             c.put(SOCStatusMessage.toCmd
-                (SOCStatusMessage.SV_OK_SET_NICKNAME, ((String) c.getData()) + SOCMessage.sep2_char + txt));
+                (SOCStatusMessage.SV_OK_SET_NICKNAME, c.getData() + SOCMessage.sep2_char + txt));
 
         /**
          * Add the StringConnection to the channel
@@ -1402,7 +1402,7 @@ public class SOCServerMessageHandler
 
             try
             {
-                channelList.createChannel(ch, (String) c.getData());
+                channelList.createChannel(ch, c.getData());
                 ((SOCClientData) c.getAppData()).createdChannel();
             }
             catch (Exception e)
@@ -2024,7 +2024,7 @@ public class SOCServerMessageHandler
         SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
             return;
-        SOCPlayer reqPlayer = ga.getPlayer((String) c.getData());
+        SOCPlayer reqPlayer = ga.getPlayer(c.getData());
         if (reqPlayer == null)
         {
             return;  // Not playing in that game (Security)
@@ -2099,7 +2099,7 @@ public class SOCServerMessageHandler
             {
                 // No one else is capable of voting.
                 // Reset the game immediately.
-                srv.messageToGameKeyed(ga, false, "resetboard.vote.request.alloldcli", (String) c.getData());
+                srv.messageToGameKeyed(ga, false, "resetboard.vote.request.alloldcli", c.getData());
                     // ">>> {0} is resetting the game - other connected players are unable to vote (client too old)."
 
                 gameList.releaseMonitorForGame(gaName);
@@ -2108,7 +2108,7 @@ public class SOCServerMessageHandler
             else
             {
                 // Put it to a vote
-                srv.messageToGameKeyed(ga, false, "resetboard.vote.request", (String) c.getData());
+                srv.messageToGameKeyed(ga, false, "resetboard.vote.request", c.getData());
                     // "requests a board reset - other players please vote."
                 String vrCmd = SOCResetBoardVoteRequest.toCmd(gaName, reqPN);
 
@@ -2121,7 +2121,7 @@ public class SOCServerMessageHandler
                             humanConns[i].put(vrCmd);
                         else
                             ga.resetVoteRegister
-                                (ga.getPlayer((String)(humanConns[i].getData())).getPlayerNumber(), true);
+                                (ga.getPlayer(humanConns[i].getData()).getPlayerNumber(), true);
             }
         }
     }
@@ -2144,7 +2144,7 @@ public class SOCServerMessageHandler
         SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
             return;
-        final String plName = (String) c.getData();
+        final String plName = c.getData();
         SOCPlayer reqPlayer = ga.getPlayer(plName);
         if (reqPlayer == null)
         {

@@ -111,11 +111,11 @@ public class SOCChannelMembers extends SOCMessage
                 String msg;
                 if (obj instanceof StringConnection)
                 {
-                    msg = (String)((StringConnection)obj).getData();
+                    msg = ((StringConnection) obj).getData();
                 }
                 else if (obj instanceof String)
                 {
-                    msg = (String)obj;
+                    msg = (String) obj;
                 }
                 else
                 {

@@ -1878,7 +1878,7 @@ public class SOCServer extends Server
         {
             channelList.removeMember(c, ch);
 
-            SOCLeaveChannel leaveMessage = new SOCLeaveChannel((String) c.getData(), c.host(), ch);
+            SOCLeaveChannel leaveMessage = new SOCLeaveChannel(c.getData(), c.host(), ch);
             messageToChannelWithMon(ch, leaveMessage);
             if (D.ebugOn)
                 D.ebugPrintln("*** " + c.getData() + " left the channel " + ch + " at "
@@ -2105,7 +2105,7 @@ public class SOCServer extends Server
             // Create new game, expiring in SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES.
 
             newGame = gameList.createGame
-                (gaName, (c != null) ? (String) c.getData() : null, (scd != null) ? scd.localeStr : null,
+                (gaName, (c != null) ? c.getData() : null, (scd != null) ? scd.localeStr : null,
                  gaOpts, handler);
 
             if (isBotsOnly)
@@ -3989,7 +3989,7 @@ public class SOCServer extends Server
      * <LI> Sends the old connection an informational disconnect {@link SOCServerPing SOCServerPing(-1)}
      *</UL>
      *
-     * @param c  Connected client; its key data ({@link StringConnection#getData()}) must not be null
+     * @param c  Connected client; its name key ({@link StringConnection#getData()}) must not be null
      * @param isReplacing  Are we replacing / taking over a current connection?
      * @throws IllegalArgumentException If c isn't already connected, if c.getData() returns null,
      *          or if nameConnection has previously been called for this connection.
@@ -4002,7 +4002,7 @@ public class SOCServer extends Server
         StringConnection oldConn = null;
         if (isReplacing)
         {
-            Object cKey = c.getData();
+            String cKey = c.getData();
             if (cKey == null)
                 throw new IllegalArgumentException("null c.getData");
             oldConn = conns.get(cKey);
@@ -4053,7 +4053,7 @@ public class SOCServer extends Server
             Enumeration<StringConnection> ec = getConnections();  // the named ones
             while (ec.hasMoreElements())
             {
-                String cname = (String) (ec.nextElement().getData());
+                String cname = ec.nextElement().getData();
 
                 int L = sb.length();
                 if (L + cname.length() > 50)
@@ -4555,7 +4555,7 @@ public class SOCServer extends Server
 
         if (dcmdU.startsWith("*KILLGAME*"))
         {
-            messageToGameUrgent(ga, ">>> ********** " + (String) debugCli.getData() + " KILLED THE GAME!!! ********** <<<");
+            messageToGameUrgent(ga, ">>> ********** " + debugCli.getData() + " KILLED THE GAME!!! ********** <<<");
             destroyGameAndBroadcast(ga, "KILLGAME");
         }
         else if (dcmdU.startsWith("*GC*"))
@@ -4589,13 +4589,13 @@ public class SOCServer extends Server
                     sb.append((char) (33 + rand.nextInt(126 - 33)));
                 srvShutPassword = sb.toString();
                 System.err.println("** Shutdown password generated: " + srvShutPassword);
-                broadcast(SOCBCastTextMsg.toCmd((String) debugCli.getData() + " WANTS TO STOP THE SERVER"));
+                broadcast(SOCBCastTextMsg.toCmd(debugCli.getData() + " WANTS TO STOP THE SERVER"));
                 messageToPlayer(debugCli, ga, "Send stop command again with the password.");
             }
 
             if (shutNow)
             {
-                String stopMsg = ">>> ********** " + (String) debugCli.getData() + " KILLED THE SERVER!!! ********** <<<";
+                String stopMsg = ">>> ********** " + debugCli.getData() + " KILLED THE SERVER!!! ********** <<<";
                 stopServer(stopMsg);
                 System.exit(0);
             }
@@ -5549,7 +5549,7 @@ public class SOCServer extends Server
             if (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME))
                 c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_OK_SET_NICKNAME,
-                     ((String) c.getData()) + SOCMessage.sep2_char +
+                     c.getData() + SOCMessage.sep2_char +
                      c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
 
             if (isTakingOver)
@@ -5777,7 +5777,7 @@ public class SOCServer extends Server
             {
                 if (robotSeatsConns[i] != null)
                 {
-                    D.ebugPrintln("@@@ JOIN GAME REQUEST for " + (String) robotSeatsConns[i].getData());
+                    D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotSeatsConns[i].getData());
                     robotSeatsConns[i].put(SOCRobotJoinGameRequest.toCmd(gname, i, gopts));
                 }
             }
@@ -6298,7 +6298,7 @@ public class SOCServer extends Server
             return;
         }
 
-        final String requester = (String) c.getData();  // null if client isn't authenticated
+        final String requester = c.getData();  // null if client isn't authenticated
         final Date currentTime = new Date();
         boolean isDBCountedEmpty = false;  // with null requester, did we query and find the users table is empty?
             // Not set if FEAT_OPEN_REG is active.
@@ -6535,7 +6535,7 @@ public class SOCServer extends Server
                 try
                 {
                     SOCClientData cd = (SOCClientData) c.getAppData();
-                    ga.addPlayer((String) c.getData(), pn);
+                    ga.addPlayer(c.getData(), pn);
                     ga.getPlayer(pn).setRobotFlag(robot, (cd != null) && cd.isBuiltInRobot);
                 }
                 catch (IllegalStateException e)
@@ -6551,7 +6551,7 @@ public class SOCServer extends Server
             /**
              * if the player can sit, then tell the other clients in the game
              */
-            SOCSitDown sitMessage = new SOCSitDown(gaName, (String) c.getData(), pn, robot);
+            SOCSitDown sitMessage = new SOCSitDown(gaName, c.getData(), pn, robot);
             messageToGame(gaName, sitMessage);
 
             D.ebugPrintln("*** sent SOCSitDown message to game ***");

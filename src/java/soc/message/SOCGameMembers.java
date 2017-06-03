@@ -120,11 +120,11 @@ public class SOCGameMembers extends SOCMessage
                 String str;
                 if (obj instanceof StringConnection)
                 {
-                    str = (String)((StringConnection)obj).getData();
+                    str = ((StringConnection) obj).getData();
                 }
                 else if (obj instanceof String)
                 {
-                    str = (String)obj;
+                    str = (String) obj;
                 }
                 else
                 {

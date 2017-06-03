@@ -326,7 +326,7 @@ public class SOCGameHandler extends GameHandler
                          + " or newer.");
                     return;  // <--- early return ---
                 }
-                SOCPlayer cliPl = ga.getPlayer((String) c.getData());
+                SOCPlayer cliPl = ga.getPlayer(c.getData());
                 if (cliPl == null)
                     return;  // <--- early return ---
                 if (ga.getCurrentPlayerNumber() != cliPl.getPlayerNumber())
@@ -500,7 +500,7 @@ public class SOCGameHandler extends GameHandler
 
         try
         {
-            return (ga.getCurrentPlayerNumber() == ga.getPlayer((String) c.getData()).getPlayerNumber());
+            return (ga.getCurrentPlayerNumber() == ga.getPlayer(c.getData()).getPlayerNumber());
         }
         catch (Throwable th)
         {
@@ -1292,7 +1292,7 @@ public class SOCGameHandler extends GameHandler
          */
         if (isTakingOver)
         {
-            SOCPlayer cliPl = gameData.getPlayer((String) c.getData());
+            SOCPlayer cliPl = gameData.getPlayer(c.getData());
             if (cliPl != null)
             {
                 int pn = cliPl.getPlayerNumber();
@@ -1337,7 +1337,7 @@ public class SOCGameHandler extends GameHandler
         {
             return;
         }
-        srv.messageToGame(gameName, new SOCJoinGame((String)c.getData(), "", "dummyhost", gameName));
+        srv.messageToGame(gameName, new SOCJoinGame(c.getData(), "", "dummyhost", gameName));
 
         if ((! isReset) && gameData.getGameState() >= SOCGame.START2A)
         {
@@ -1516,7 +1516,7 @@ public class SOCGameHandler extends GameHandler
     public boolean leaveGame(SOCGame ga, StringConnection c)
     {
         final String gm = ga.getName();
-        final String plName = (String) c.getData();  // Retain name, since will become null within game obj.
+        final String plName = c.getData();  // Retain name, since will become null within game obj.
 
         boolean gameHasHumanPlayer = false;
         boolean gameHasObserver = false;
@@ -1741,7 +1741,7 @@ public class SOCGameHandler extends GameHandler
                         /**
                          * make the request
                          */
-                        D.ebugPrintln("@@@ JOIN GAME REQUEST for " + (String) robotConn.getData());
+                        D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotConn.getData());
 
                         if (ga.getSeatLock(playerNumber) != SOCGame.SeatLockState.UNLOCKED)
                         {

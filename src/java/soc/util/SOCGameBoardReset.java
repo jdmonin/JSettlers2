@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008-2010,2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2010,2016-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -157,7 +157,9 @@ public class SOCGameBoardReset
      *
      * @return The number of human players in newGame
      */
-    public static int sortPlayerConnections (SOCGame newGame, SOCGame oldGame, Vector<StringConnection> memberConns, StringConnection[] humanConns, StringConnection[] robotConns)
+    public static int sortPlayerConnections
+        (SOCGame newGame, SOCGame oldGame, Vector<StringConnection> memberConns,
+         StringConnection[] humanConns, StringConnection[] robotConns)
     {
         // This enum is easier than enumerating all connected clients;
         // there is no server-wide mapping of clientname -> connection.
@@ -167,7 +169,7 @@ public class SOCGameBoardReset
         while (playersEnum.hasMoreElements())
         {
             StringConnection pCon = playersEnum.nextElement();
-            String pname = (String) pCon.getData();
+            String pname = pCon.getData();
             SOCPlayer p = newGame.getPlayer(pname);
             if (p != null)
             {

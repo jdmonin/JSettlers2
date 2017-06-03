@@ -377,7 +377,7 @@ public class SOCGameMessageHandler
 
         try
         {
-            final String plName = (String) c.getData();
+            final String plName = c.getData();
             final SOCPlayer pl = ga.getPlayer(plName);
             if ((pl != null) && ga.canRollDice(pl.getPlayerNumber()))
             {
@@ -726,7 +726,7 @@ public class SOCGameMessageHandler
     private void handleDISCARD(SOCGame ga, StringConnection c, final SOCDiscard mes)
     {
         final String gn = ga.getName();
-        final SOCPlayer player = ga.getPlayer((String) c.getData());
+        final SOCPlayer player = ga.getPlayer(c.getData());
         final int pn;
         if (player != null)
             pn = player.getPlayerNumber();
@@ -757,7 +757,7 @@ public class SOCGameMessageHandler
                  * tell everyone else that the player discarded unknown resources
                  */
                 srv.messageToGameExcept(gn, c, new SOCPlayerElement(gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, mes.getResources().getTotal()), true);
-                srv.messageToGameKeyed(ga, true, "action.discarded", (String) c.getData(), mes.getResources().getTotal());
+                srv.messageToGameKeyed(ga, true, "action.discarded", c.getData(), mes.getResources().getTotal());
                     // "{0} discarded {1} resources."
 
                 /**
@@ -804,7 +804,7 @@ public class SOCGameMessageHandler
 
         try
         {
-            SOCPlayer player = ga.getPlayer((String) c.getData());
+            SOCPlayer player = ga.getPlayer(c.getData());
 
             /**
              * make sure the player can do it
@@ -930,7 +930,7 @@ public class SOCGameMessageHandler
                     if ((choice == SOCChoosePlayer.CHOICE_NO_PLAYER) && ga.canChoosePlayer(-1))
                     {
                         ga.choosePlayerForRobbery(-1);  // state becomes PLAY1
-                        srv.messageToGameKeyed(ga, true, "robber.declined", (String) c.getData());  // "{0} declined to steal."
+                        srv.messageToGameKeyed(ga, true, "robber.declined", c.getData());  // "{0} declined to steal."
                         handler.sendGameState(ga);
                     }
                     else if (ga.canChoosePlayer(choice))
@@ -940,10 +940,10 @@ public class SOCGameMessageHandler
                         if (! waitingClothOrRsrc)
                         {
                             handler.reportRobbery
-                                (ga, ga.getPlayer((String) c.getData()), ga.getPlayer(choice), rsrc);
+                                (ga, ga.getPlayer(c.getData()), ga.getPlayer(choice), rsrc);
                         } else {
                             srv.messageToGameKeyed(ga, true, "robber.moved.choose.cloth.rsrcs",
-                                ((String) c.getData()), ga.getPlayer(choice).getName());
+                                c.getData(), ga.getPlayer(choice).getName());
                                 // "{0} moved the pirate, must choose to steal cloth or steal resources from {1}."
                         }
                         handler.sendGameState(ga);
@@ -970,7 +970,7 @@ public class SOCGameMessageHandler
                         {
                             final int rsrc = ga.stealFromPlayer(pn, stealCloth);
                             handler.reportRobbery
-                                (ga, ga.getPlayer((String) c.getData()), ga.getPlayer(pn), rsrc);
+                                (ga, ga.getPlayer(c.getData()), ga.getPlayer(pn), rsrc);
                             handler.sendGameState(ga);
                             break;
                         }
@@ -1022,7 +1022,7 @@ public class SOCGameMessageHandler
 
         try
         {
-            final String plName = (String) c.getData();
+            final String plName = c.getData();
             if (ga.getGameState() == SOCGame.OVER)
             {
                 // Should not happen; is here just in case.
@@ -1070,7 +1070,7 @@ public class SOCGameMessageHandler
     private void handleSIMPLEREQUEST(SOCGame ga, StringConnection c, final SOCSimpleRequest mes)
     {
         final String gaName = ga.getName();
-        SOCPlayer clientPl = ga.getPlayer((String) c.getData());
+        SOCPlayer clientPl = ga.getPlayer(c.getData());
         if (clientPl == null)
             return;
 
@@ -1200,7 +1200,7 @@ public class SOCGameMessageHandler
              * remake the offer with data that we know is accurate,
              * namely the 'from' datum
              */
-            SOCPlayer player = ga.getPlayer((String) c.getData());
+            SOCPlayer player = ga.getPlayer(c.getData());
 
             /**
              * announce the offer, including text message similar to bank/port trade.
@@ -1260,8 +1260,8 @@ public class SOCGameMessageHandler
         try
         {
             final String gaName = ga.getName();
-            ga.getPlayer((String) c.getData()).setCurrentOffer(null);
-            srv.messageToGame(gaName, new SOCClearOffer(gaName, ga.getPlayer((String) c.getData()).getPlayerNumber()));
+            ga.getPlayer(c.getData()).setCurrentOffer(null);
+            srv.messageToGame(gaName, new SOCClearOffer(gaName, ga.getPlayer(c.getData()).getPlayerNumber()));
             srv.recordGameEvent(mes.getGame(), mes.toCmd());
 
             /**
@@ -1294,7 +1294,7 @@ public class SOCGameMessageHandler
      */
     private void handleREJECTOFFER(SOCGame ga, StringConnection c, final SOCRejectOffer mes)
     {
-        SOCPlayer player = ga.getPlayer((String) c.getData());
+        SOCPlayer player = ga.getPlayer(c.getData());
         if (player == null)
             return;
 
@@ -1318,7 +1318,7 @@ public class SOCGameMessageHandler
 
         try
         {
-            SOCPlayer player = ga.getPlayer((String) c.getData());
+            SOCPlayer player = ga.getPlayer(c.getData());
 
             if (player != null)
             {
@@ -1442,7 +1442,7 @@ public class SOCGameMessageHandler
         try
         {
             final boolean isCurrent = handler.checkTurn(c, ga);
-            SOCPlayer player = ga.getPlayer((String) c.getData());
+            SOCPlayer player = ga.getPlayer(c.getData());
             final int pn = player.getPlayerNumber();
             final int pieceType = mes.getPieceType();
             boolean sendDenyReply = false;  // for robots' benefit
@@ -1596,7 +1596,7 @@ public class SOCGameMessageHandler
             final String gaName = ga.getName();
             if (handler.checkTurn(c, ga))
             {
-                final SOCPlayer player = ga.getPlayer((String) c.getData());
+                final SOCPlayer player = ga.getPlayer(c.getData());
                 final int pn = player.getPlayerNumber();
                 final int gstate = ga.getGameState();
 
@@ -1748,7 +1748,7 @@ public class SOCGameMessageHandler
         try
         {
             final String gaName = ga.getName();
-            final String plName = (String) c.getData();
+            final String plName = c.getData();
             SOCPlayer player = ga.getPlayer(plName);
 
             /**
@@ -2222,7 +2222,7 @@ public class SOCGameMessageHandler
         try
         {
             final String gaName = ga.getName();
-            SOCPlayer player = ga.getPlayer((String) c.getData());
+            SOCPlayer player = ga.getPlayer(c.getData());
             final int pn = player.getPlayerNumber();
             boolean sendDenyReply = false;  // for robots' benefit
 
@@ -2356,7 +2356,7 @@ public class SOCGameMessageHandler
 
             if (handler.checkTurn(c, ga))
             {
-                final SOCPlayer player = ga.getPlayer((String) c.getData());
+                final SOCPlayer player = ga.getPlayer(c.getData());
                 final int pn = player.getPlayerNumber();
 
                 int ctype = mes.getDevCard();
@@ -2536,7 +2536,7 @@ public class SOCGameMessageHandler
 
         ga.takeMonitor();
 
-        final SOCPlayer player = ga.getPlayer((String) c.getData());
+        final SOCPlayer player = ga.getPlayer(c.getData());
         final int pn;
         if (player != null)
             pn = player.getPlayerNumber();
@@ -2698,7 +2698,7 @@ public class SOCGameMessageHandler
                 {
                     final int rsrc = mes.getResource();
                     final int[] monoPicks = ga.doMonopolyAction(rsrc);
-                    final String monoPlayerName = (String) c.getData();
+                    final String monoPlayerName = c.getData();
 
                     srv.gameList.takeMonitorForGame(gaName);
                     srv.messageToGameKeyedSpecialExcept
@@ -2785,7 +2785,7 @@ public class SOCGameMessageHandler
             return;
 
         final String gaName = ga.getName();
-        SOCPlayer clientPl = ga.getPlayer((String) c.getData());
+        SOCPlayer clientPl = ga.getPlayer(c.getData());
         if (clientPl == null)
             return;
 
@@ -2833,7 +2833,7 @@ public class SOCGameMessageHandler
     private void handleSETSPECIALITEM(SOCGame ga, StringConnection c, final SOCSetSpecialItem mes)
     {
         final String gaName = ga.getName();
-        final SOCPlayer pl = ga.getPlayer((String) c.getData());
+        final SOCPlayer pl = ga.getPlayer(c.getData());
         final String typeKey = mes.typeKey;
         final int op = mes.op, gi = mes.gameItemIndex, pi = mes.playerItemIndex;
         final int pn = (pl != null) ? pl.getPlayerNumber() : -1;  // don't trust mes.playerNumber
