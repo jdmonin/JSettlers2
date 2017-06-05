@@ -11,7 +11,7 @@
 -- For multi-line SQLs, indent so that SOCDBHelper.runSetupScript can combine them.
 
 -- Schema upgrades: See SOCDBHelper.upgradeSchema()
---  2017-05-25 v1.2.00: Add users.nickname_lc
+--   2017-05-25 v1.2.00: Add users.nickname_lc
 
 -- Users:
 -- When the password encoding or max length changes,
@@ -33,7 +33,7 @@ CREATE TABLE games (
 	gamename VARCHAR(20) not null,
 	player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20), player4 VARCHAR(20),
 	score1 SMALLINT, score2 SMALLINT, score3 SMALLINT, score4 SMALLINT,
-	starttime TIMESTAMP not null
+	starttime TIMESTAMP WITHOUT TIME ZONE not null
 	);
 
 CREATE INDEX games__n ON games(gamename);
@@ -42,7 +42,7 @@ CREATE INDEX games__n ON games(gamename);
 CREATE TABLE robotparams (
 	robotname VARCHAR(20) not null,
 	maxgamelength INT, maxeta INT, etabonusfactor FLOAT, adversarialfactor FLOAT, leaderadversarialfactor FLOAT, devcardmultiplier FLOAT, threatmultiplier FLOAT,
-	strategytype INT, starttime TIMESTAMP, endtime TIMESTAMP, gameswon INT, gameslost INT, tradeFlag SMALLINT,
+	strategytype INT, starttime TIMESTAMP WITHOUT TIME ZONE, endtime TIMESTAMP WITHOUT TIME ZONE, gameswon INT, gameslost INT, tradeFlag SMALLINT,
 	PRIMARY KEY (robotname)
 	);
 
