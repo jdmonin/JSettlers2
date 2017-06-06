@@ -296,7 +296,7 @@ pte.version = ${i18neditor.version}
   <!-- Testing targets -->
   <!-- ************************************** -->
 
-  <target name="test" depends="test-src-health,build,test-junit"
+  <target name="test" depends="test-src-consistent,build,test-junit"
           description="Run tests against the built JARs; fail the build if any errors">
       <echo message="Running test scripts, wait for output:" />
       <!--
@@ -313,8 +313,13 @@ pte.version = ${i18neditor.version}
       <echo message="Tests completed successfully." />
   </target>
 
-  <target name="test-src-health" depends="init,-test-db-templates,-dist-check-src-untracked"
+  <target name="test-src-consistent" depends="init,-test-db-templates"
           description="Target to run all tests about consistent src directories">
+      <!-- tests are all in the depends; also used for dist-src target, so don't depend on compile -->
+  </target>
+
+  <target name="test-src-status" depends="init,test-src-consistent,-dist-check-src-untracked"
+          description="Target to run all dist-build tests about consistent src directories and clean git status">
       <!-- tests are all in the depends; also used for dist-src target, so don't depend on compile -->
   </target>
 
@@ -499,7 +504,7 @@ pte.version = ${i18neditor.version}
   </target>
 
   <!-- Copy files to set up for dist-src and/or dist-full -->
-  <target name="-dist-copy-src" depends="test-src-health">
+  <target name="-dist-copy-src" depends="test-src-status">
       <!--
         This copies everything in your "src" directory, so be sure
         to run on a clean repository only!
