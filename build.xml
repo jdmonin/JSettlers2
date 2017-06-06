@@ -296,7 +296,7 @@ pte.version = ${i18neditor.version}
   <!-- Testing targets -->
   <!-- ************************************** -->
 
-  <target name="test" depends="test-db-templates,build,test-junit"
+  <target name="test" depends="test-src-health,build,test-junit"
           description="Run tests against the built JARs; fail the build if any errors">
       <echo message="Running test scripts, wait for output:" />
       <!--
@@ -313,24 +313,29 @@ pte.version = ${i18neditor.version}
       <echo message="Tests completed successfully." />
   </target>
 
-  <target name="test-db-templates" depends="compile"
-          description="Test if rendered DB sql templates are up to date" >
+  <target name="test-src-health" depends="init,-test-db-templates,-dist-check-src-untracked"
+          description="Target to run all tests about consistent src directories">
+      <!-- tests are all in the depends; also used for dist-src target, so don't depend on compile -->
+  </target>
+
+  <target name="-test-db-templates" depends="init"
+          description="Test if rendered DB sql templates are up to date">
       <exec dir="${bin.src}/sql/template" executable="python" failonerror="false"
-        resultproperty="test.template.sql.mysql.ret" outputproperty="test.template.sql.mysql.out" >
+        resultproperty="test.template.sql.mysql.ret" outputproperty="test.template.sql.mysql.out">
         <arg line="render.py -i jsettlers-tables-tmpl.sql -d mysql -c ../jsettlers-tables-mysql.sql" />
         </exec>
       <exec dir="${bin.src}/sql/template" executable="python" failonerror="false"
-        resultproperty="test.template.sql.postgres.ret" outputproperty="test.template.sql.postgres.out" >
+        resultproperty="test.template.sql.postgres.ret" outputproperty="test.template.sql.postgres.out">
         <arg line="render.py -i jsettlers-tables-tmpl.sql -d postgres -c ../jsettlers-tables-postgres.sql" />
         </exec>
       <exec dir="${bin.src}/sql/template" executable="python" failonerror="false"
-        resultproperty="test.template.sql.sqlite.ret" outputproperty="test.template.sql.sqlite.out" >
+        resultproperty="test.template.sql.sqlite.ret" outputproperty="test.template.sql.sqlite.out">
         <arg line="render.py -i jsettlers-tables-tmpl.sql -d sqlite -c ../jsettlers-tables-sqlite.sql" />
         </exec>
       <property name="test.template.sql.all.out"
         value="${test.template.sql.mysql.out} ${test.template.sql.postgres.out} ${test.template.sql.sqlite.out}"
         />
-      <fail message="Must regenerate SQL script(s) from templates: ${test.template.sql.all.out}" >
+      <fail message="Must regenerate SQL script(s) from templates: ${test.template.sql.all.out}">
         <condition>
           <not><and>
             <equals arg1="0" arg2="${test.template.sql.mysql.ret}" />
@@ -494,7 +499,7 @@ pte.version = ${i18neditor.version}
   </target>
 
   <!-- Copy files to set up for dist-src and/or dist-full -->
-  <target name="-dist-copy-src" depends="-dist-check-src-untracked">
+  <target name="-dist-copy-src" depends="test-src-health">
       <!--
         This copies everything in your "src" directory, so be sure
         to run on a clean repository only!
