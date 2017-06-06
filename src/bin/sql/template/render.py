@@ -128,8 +128,7 @@ try:
         with codecs.open(compfile, 'r', encoding='utf8') as file_comp:
             comp_str = file_comp.read()
         if out_str != comp_str:
-            sys.stderr.write("Compare failed: "
-                + compfile + " contents differ from " + infile + " for dbtype " + dbtype + "\n")
+            sys.stderr.write(compfile + " contents differ from " + infile + " for dbtype " + dbtype + "\n")
             sys_exit = 1
     else:
         # output mode
