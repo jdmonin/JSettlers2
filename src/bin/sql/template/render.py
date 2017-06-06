@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 # render.py - Simple template renderer for SQL DML/DDL to specific DBMS types.
-#   usage: render.py [-i infile] [-o outfile] -d mysql|postgres|sqlite
-#   returns: 0 on success, 1 if error reading infile or writing outfile, 2 if problems with command line
-#   assumes utf-8 encoding for infile, outfile
+#   Usage: render.py [-i infile] [-o outfile] [-c comparefile] -d mysql|postgres|sqlite
+#   Returns: 0 on success, 1 if error reading/writing or failed comparison, 2 if problems with command line
+#   Assumes utf-8 encoding for infile, outfile, comparefile
 #
 # This file is part of the JSettlers project.
 #
@@ -27,6 +27,7 @@ import codecs, getopt, re, sys
 dbtype = None  # mysql|postgres|sqlite; see parse_cmdline()
 infile = None
 outfile = None
+compfile = None  # for comparison mode, against rendered template
 
 DB_TOKENS = {
     'mysql': {
@@ -47,38 +48,51 @@ DB_TOKENS = {
 }
 
 def print_usage():
-    sys.stderr.write("usage: render.py [-i infile] [-o outfile] -d mysql|postgres|sqlite\n");
-    sys.stderr.write("default infile and outfile are the program's input and output.\n");
-    sys.stderr.write("returns: 0 on success, 1 if error reading infile or writing outfile, 2 if problems with command line\n");
-    sys.stderr.write("token format: {{now}}, {{TIMESTAMP}}, etc\n");
+    sys.stderr.write("Usage: render.py [-i infile] [-o outfile] [-c comparefile] -d mysql|postgres|sqlite\n")
+    sys.stderr.write("Output Mode renders infile's template to outfile for a given dbtype.\n")
+    sys.stderr.write("Comparison Mode checks if a previously rendered file is up to date with the current template.\n")
+    sys.stderr.write("Default infile and outfile are the program's input and output streams.\n")
+    sys.stderr.write("Returns: 0 on success, 1 if error reading infile or writing outfile or if comparefile differs, 2 if problems with command line\n")
+    sys.stderr.write("Token format: {{now}}, {{TIMESTAMP}}, etc\n")
 
 def parse_cmdline():
     """Parse command line. If any problems, calls sys.exit(2)."""
-    global dbtype, infile, outfile
+    global dbtype, infile, outfile, compfile
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "?hd:i:o:", ["help", "dbtype=", "input=", "output="])
+        opts, args = getopt.getopt(sys.argv[1:], "?hd:i:o:c:", ["help", "dbtype=", "input=", "output=", "compare="])
         if (len(args)):
-            raise getopt.GetoptError("Unrecognized item on command line: Use only -i, -o, -d")
+            raise getopt.GetoptError("Unrecognized item on command line: Use only -d, -i, -o, -c")
     except getopt.GetoptError as ex:
-        sys.stderr.write(str(ex) + "\n");
+        sys.stderr.write(str(ex) + "\n")
         print_usage()
         sys.exit(2)
+    all_ok = True
     for opt, oVal in opts:
         if opt in ('-i', '--input'):
             infile = oVal
         elif opt in ('-o', '--output'):
             outfile = oVal
+        elif opt in ('-c', '--compare'):
+            compfile = oVal
+            if oVal == '-':
+                sys.stderr.write('cannot use -c with stdin ("-")\n')
+                all_ok = False
         elif opt in ('-d', '--dbtype'):
             if oVal in ('mysql', 'postgres', 'sqlite'):
                 dbtype = oVal
             else:
-                sys.stderr.write('dbtype ' + oVal + ' not recognized, only: mysql postgres sqlite\n');
-                sys.exit(2);
+                sys.stderr.write('dbtype ' + oVal + ' not recognized, only: mysql postgres sqlite\n')
+                all_ok = False
         elif opt in ('-h', '-?', '--help'):
             print_usage()
             sys.exit(0)
     if dbtype is None:
+        all_ok = False
+    if (compfile is not None) and (outfile is not None):
+        all_ok = False
+        sys.stderr.write('Cannot use both -o and -c\n')
+    if not all_ok:
         print_usage()
         sys.exit(2)
 
@@ -93,10 +107,15 @@ def render(in_str):
             raise KeyError("unknown template token " + s.group(0))
     return in_str
 
-parse_cmdline();  # exits if problems found
+# main:
+
+parse_cmdline()  # exits if problems found
+
+sys_exit = 0  # to set sys.exit's value within try-except
 try:
     if infile is None or infile == '-':
         file_in = sys.stdin
+        infile = '(stdin)'  # for possible syserr.write below
     else:
         file_in = codecs.open(infile, 'r', encoding='utf8')
     with file_in:
@@ -104,19 +123,30 @@ try:
 
     out_str = render(in_str)
 
-    if outfile is None or outfile == '-':
-        file_out = sys.stdout
+    if compfile is not None:
+        # comparison mode
+        with codecs.open(compfile, 'r', encoding='utf8') as file_comp:
+            comp_str = file_comp.read()
+        if out_str != comp_str:
+            sys.stderr.write("Compare failed: "
+                + compfile + " contents differ from " + infile + " for dbtype " + dbtype + "\n")
+            sys_exit = 1
     else:
-        file_out = codecs.open(outfile, 'w', encoding='utf8')
-    with file_out:
-        file_out.write(out_str)
+        # output mode
+        if outfile is None or outfile == '-':
+            file_out = sys.stdout
+        else:
+            file_out = codecs.open(outfile, 'w', encoding='utf8')
+        with file_out:
+            file_out.write(out_str)
 except BaseException as e:
-    if infile is None:
-        infile = '(stdin)'
-    if outfile is None:
-        outfile = '(stdout)'
-    sys.stderr.write("Error processing " + infile + " to " + outfile + ": " + str(e) + "\n")
-    sys.exit(1)
+    if compfile is None:
+        if outfile is None or outfile == '-':
+            outfile = '(stdout)'
+        sys.stderr.write("Error rendering " + infile + " to " + outfile + ": " + str(e) + "\n")
+    else:
+        sys.stderr.write("Error comparing " + infile + " to " + compfile + ": " + str(e) + "\n")
+    sys_exit = 1
 
-sys.exit(0)
+sys.exit(sys_exit)
 
