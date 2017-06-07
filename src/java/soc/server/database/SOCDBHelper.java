@@ -41,6 +41,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -419,8 +420,9 @@ public class SOCDBHelper
      *       {@link #PROP_JSETTLERS_DB_URL}, and any other desired properties.
      *       Ignores {@link #PROP_JSETTLERS_DB_USER} and {@link #PROP_JSETTLERS_DB_PASS} if present,
      *       uses the {@code user} and {@code pswd} parameters instead.
-     * @throws SQLException if an SQL command fails, or the db couldn't be
-     *         initialized;
+     * @throws SQLException if an SQL command fails, or the DB couldn't be initialized;
+     *         or if the DB schema version couldn't be detected (if so, exception's
+     *         {@link Exception#getCause() .getCause()} will be an {@link IllegalStateException});
      *         or if the {@link #PROP_JSETTLERS_DB_DRIVER} property is not mysql, not sqlite, not postgres,
      *         but the {@link #PROP_JSETTLERS_DB_URL} property is not provided.
      * @throws IOException  if <tt>props</tt> includes {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP} but
@@ -645,7 +647,7 @@ public class SOCDBHelper
     }
 
     /**
-     * Opens a new connection and initializes the prepared statements.
+     * Opens a new connection, detects its {@link #schemaVersion}, and initializes the prepared statements.
      * {@link #initialize(String, String, Properties)} and {@link #checkConnection()} use this to get ready.
      * Uses {@link #dbURL} and {@link #driverinstance}.
      *<P>
@@ -656,12 +658,14 @@ public class SOCDBHelper
      * @param pswd  DB user password, or ""
      * @param setupScriptPath  Full path or relative path to SQL script to run at connect, or null;
      *     typically from {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP}
-     * @throws IOException  if <tt>setupScriptPath</tt> wasn't found, or if any other IO error occurs reading the script
      * @throws SQLException if any connect error, missing table, or SQL error occurs
+     * @throws IllegalStateException if schema version can't be determined,
+     *     or DB upgrade was started but is incomplete ({@code db_version.ddl_done} field is null)
+     * @throws IOException  if <tt>setupScriptPath</tt> wasn't found, or if any other IO error occurs reading the script
      * @return  true on success; will never return false, instead will throw a sqlexception
      */
     private static boolean connect(final String user, final String pswd, final String setupScriptPath)
-        throws SQLException, IOException
+        throws SQLException, IllegalStateException, IOException
     {
         if (driverinstance == null) {
             connection = DriverManager.getConnection(dbURL, user, pswd);
@@ -679,13 +683,90 @@ public class SOCDBHelper
         if (setupScriptPath != null)
             runSetupScript(setupScriptPath);  // may throw IOException, SQLException
 
-        // check schema upgrade status
+        detectSchemaVersion();
+        prepareStatements();
+
+        return true;
+    }
+
+    /**
+     * Detect connected DB's {@link #schemaVersion} and check its upgrade status.
+     * @throws SQLException if any unexpected problem occurs
+     * @throws IllegalStateException if schema version can't be determined,
+     *     or DB upgrade was started but is incomplete ({@code db_version.ddl_done} field is null)
+     * @since 1.2.00
+     */
+    private static void detectSchemaVersion()
+        throws SQLException, IllegalStateException
+    {
+        schemaVersion = -1;
+
+        /* primary schema-version detection: db_version table */
+        if (doesTableExist("db_version"))
+        {
+            ResultSet rs = connection.createStatement().executeQuery
+                ("SELECT max(to_version) FROM db_version;");
+            if (rs.next())
+            {
+                schemaVersion = rs.getInt(1);
+                if (rs.wasNull())
+                    schemaVersion = -1;
+            }
+            rs.close();
+        }
+        if (schemaVersion > 0)
+        {
+            int from_vers = 0;
+            boolean upg_ddl_unfinished = false, upg_bg_unfinished = false;
+
+            ResultSet rs = connection.createStatement().executeQuery
+                ("SELECT from_vers, ddl_done, bg_tasks_done FROM db_version WHERE to_version=" + schemaVersion + ";");
+            if (rs.next())
+            {
+                from_vers = rs.getInt(1);
+                rs.getTimestamp(2);
+                if (rs.wasNull())
+                {
+                    upg_ddl_unfinished = true;
+                } else {
+                    rs.getTimestamp(3);
+                    if (rs.wasNull())
+                        upg_bg_unfinished = true;
+                }
+            }
+            rs.close();
+
+            if (upg_ddl_unfinished)
+                throw new IllegalStateException
+                    ("Incomplete DB schema upgrade from version " + from_vers + " to " + schemaVersion
+                     + ": db_version.ddl_done field is null");
+
+            if (upg_bg_unfinished)
+                // TODO - restart upgrade-bg-tasks thread if not running?
+                System.err.println("* Warning: DB schema upgrade BG tasks are incomplete per db_version table");
+
+            return;  // <--- schema version is known ---
+        }
+
+        /* fallback schema-version detection: look for added fields */
         if (doesTableColumnExist("users", "nickname_lc"))
             schemaVersion = SCHEMA_VERSION_1200;
         else
             schemaVersion = SCHEMA_VERSION_ORIGINAL;
 
-        // prepare PreparedStatements for queries
+        if (schemaVersion > SCHEMA_VERSION_ORIGINAL)
+            System.err.println
+                ("* Warning: DB schema version appears to be " + schemaVersion + ", but missing from db_version table");
+    }
+
+    /**
+     * Prepare statements like {@link #createAccountCommand} based on {@link #schemaVersion}.
+     * @throws SQLException if any unexpected problem occurs during {@link Connection#prepareStatement(String)} calls
+     * @since 1.2.00
+     */
+    private static void prepareStatements()
+        throws SQLException
+    {
         createAccountCommand = connection.prepareStatement
             ((schemaVersion >= SCHEMA_VERSION_1200) ? CREATE_ACCOUNT_COMMAND_1200 : CREATE_ACCOUNT_COMMAND_1000);
         recordLoginCommand = connection.prepareStatement(RECORD_LOGIN_COMMAND);
@@ -700,8 +781,6 @@ public class SOCDBHelper
         saveGameCommand = connection.prepareStatement(SAVE_GAME_COMMAND);
         robotParamsQuery = connection.prepareStatement(ROBOT_PARAMS_QUERY);
         userCountQuery = connection.prepareStatement(USER_COUNT_QUERY);
-
-        return true;
     }
 
     /**
@@ -816,6 +895,7 @@ public class SOCDBHelper
         if (isSchemaLatestVersion())  // throws IllegalStateException if ! isInitialized()
             throw new IllegalStateException("already at latest schema");
 
+        /* final pre-checks */
         if (dbType == DBTYPE_POSTGRESQL)
         {
             // Check table ownership since table create scripts may have ran as postgres user, not socuser
@@ -824,22 +904,11 @@ public class SOCDBHelper
                 throw new MissingResourceException
                     ("Upgrade must run as db user " + otherOwner + " (which owns the tables)", "unused", "unused");
         }
-
-        // NOTES for future schema changes:
-        // - Keep your DDL SQL syntax consistent with the DDL commands in testDBHelper().
-        // - Be prepared to rollback to a known-good state if a problem occurs.
-        //   Each unrelated part of an upgrade must completely succeed or fail.
-        //   That requirement is for postgresql and mysql: sqlite can't drop any added columns;
-        //   the server's admin must back up their sqlite db before running the upgrade.
-
-        /**
-         * 1.2.00: users.nickname_lc, index users__l
-         */
+        final Set<String> upg_1200_allUsers = new HashSet<String>();  // built during pre-check, used during upgrade
         if (schemaVersion < SCHEMA_VERSION_1200)
         {
             /* pre-checks */
-            final Set<String> allUsers = new HashSet<String>();
-            final Map<String, List<String>> dupes = queryUsersDuplicateLCase(allUsers);
+            final Map<String, List<String>> dupes = queryUsersDuplicateLCase(upg_1200_allUsers);
             if (dupes != null)
             {
                 StringBuilder sb = new StringBuilder
@@ -865,7 +934,60 @@ public class SOCDBHelper
 
                 throw new MissingResourceException(sb.toString(), "unused", "unused");
             }
+        }
 
+        /* 1.2.00: First, create db_version table */
+        if (schemaVersion < SCHEMA_VERSION_1200)
+        {
+            // no rollback needed if fails, so don't try/catch here
+
+            final String TIMESTAMP = (dbType != DBTYPE_POSTGRESQL) ? "TIMESTAMP" : "TIMESTAMP WITHOUT TIME ZONE";
+            final String sql = "CREATE TABLE db_version ("
+                + "from_vers INT not null, to_vers INT not null, ddl_done "
+                + TIMESTAMP +", bg_tasks_done " + TIMESTAMP
+                + ", PRIMARY KEY (to_vers) );";
+            runDDL(sql);
+        }
+
+        /* add upgrade in progress to db_version history table */
+        final int from_vers = schemaVersion;
+        try
+        {
+            // no rollback needed if fails, unless schemaVersion < SCHEMA_VERSION_1200
+
+            PreparedStatement ps = connection.prepareStatement
+                ("INSERT into db_version(from_vers, to_vers, ddl_done, bg_tasks_done) VALUES(?,?,null,null);");
+            ps.setInt(1, from_vers);
+            ps.setInt(2, SCHEMA_VERSION_LATEST);
+            ps.executeUpdate();
+            ps.close();
+        } catch (SQLException e) {
+            if (schemaVersion < SCHEMA_VERSION_1200)
+            {
+                try {
+                    runDDL("DROP TABLE db_version;");
+                }
+                catch (SQLException se) {
+                    if (se.getCause() == null)
+                        se.initCause(e);
+                    throw se;
+                }
+            }
+            throw e;
+        }
+
+        // NOTES for future schema changes:
+        // - Keep your DDL SQL syntax consistent with the DDL commands in testDBHelper().
+        // - Be prepared to rollback to a known-good state if a problem occurs.
+        //   Each unrelated part of an upgrade must completely succeed or fail.
+        //   That requirement is for postgresql and mysql: sqlite can't drop any added columns;
+        //   the server's admin must back up their sqlite db before running the upgrade.
+
+        /**
+         * 1.2.00: users.nickname_lc, index users__l
+         */
+        if (schemaVersion < SCHEMA_VERSION_1200)
+        {
             /* add field, fill it, add unique index */
             boolean added = false;
             try
@@ -874,7 +996,7 @@ public class SOCDBHelper
                 added = true;
 
                 // fill the new field; use String.toLowerCase(..), not SQL lower(..) which is ascii-only on sqlite.
-                if (! allUsers.isEmpty())
+                if (! upg_1200_allUsers.isEmpty())
                 {
                     final boolean was_conn_autocommit = connection.getAutoCommit();
 
@@ -892,7 +1014,7 @@ public class SOCDBHelper
                     try
                     {
                         int n = 0;
-                        for (final String nm : allUsers)
+                        for (final String nm : upg_1200_allUsers)
                         {
                             ps.setString(1, nm.toLowerCase(Locale.US));
                             ps.setString(2, nm);
@@ -939,6 +1061,24 @@ public class SOCDBHelper
                 throw e;
             }
         }
+
+        /* mark upgrade as completed in db_version table */
+        final boolean has_bg_tasks = false;
+        {
+            PreparedStatement ps = connection.prepareStatement
+                ("UPDATE db_version SET ddl_done=?, bg_tasks_done=? WHERE to_vers=?;");
+            final Timestamp now = new Timestamp(System.currentTimeMillis());
+            ps.setTimestamp(1, now);
+            if (has_bg_tasks)
+                ps.setNull(2, Types.TIMESTAMP);
+            else
+                ps.setTimestamp(2, now);
+            ps.setInt(3, SCHEMA_VERSION_LATEST);
+            ps.executeUpdate();
+            ps.close();
+        }
+
+        prepareStatements();
 
         /* upgrade is completed. */
         System.err.println("* DB schema upgrade completed.\n\n");

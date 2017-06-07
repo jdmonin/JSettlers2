@@ -4,14 +4,34 @@
 --      MySQL:    $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables.sql"
 --      Postgres: $ psql --file jsettlers-tables.sql socdata
 -- See bottom of file for copyright and license information (GPLv3+).
+
+-- When changing the schema, update template/jsettlers-tables-tmpl.sql and not db-specific files.
 -- Always use lowercase for table names and field names.  0-9 and underscore (_) are also safe.
 -- Don't create "mytable_name" if that name without underscores ("mytablename") is already a table.
 -- Remember that the sql must be valid for mysql, postgresql, sqlite, and oracle.
 -- For indexes, use the table name + __ + one lowercase letter.
 -- For multi-line SQLs, indent so that SOCDBHelper.runSetupScript can combine them.
+-- Comments must begin with a space: "-- ".
 
--- Schema upgrades: See SOCDBHelper.upgradeSchema()
---   2017-05-25 v1.2.00: Add users.nickname_lc
+-- Schema upgrades:
+--   See SOCDBHelper.upgradeSchema(). DDL here must be kept in sync with what's found there.
+--   2017-06-06 v1.2.00: Add db_version table; users.nickname_lc; TIMESTAMP column type now dbtype-specific
+
+-- DB Schema Version / upgrade history: Added in v1.2.00 (schema version 1200).
+-- At startup, SOCDBHelper checks max(to_vers) here for this db's schema version.
+-- If this table is empty, as a fallback the version will be detected based on new fields and
+-- a warning message is printed. If fallback detection is incorrect, prepared statements should fail
+-- and startup will be halted; the server admin will need to intervene and add that row.
+
+CREATE TABLE db_version (
+	from_vers INT not null,  -- or 0 for new install
+	to_vers   INT not null,
+	ddl_done  {{TIMESTAMP}},      -- null if upgrade's DDL changes are incomplete
+	bg_tasks_done {{TIMESTAMP}},  -- null if upgrade is incomplete;
+	           -- if upgrade requires no background tasks/conversions, same value as ddl_done
+	PRIMARY KEY (to_vers)
+	);
+-- At DB creation, a row is added to this table to indicate current version: See bottom of this script.
 
 -- Users:
 -- When the password encoding or max length changes,
@@ -46,6 +66,10 @@ CREATE TABLE robotparams (
 	PRIMARY KEY (robotname)
 	);
 
+-- Mark this newly created db's schema version:
+{{set_session_tz_utc}}
+INSERT INTO db_version(from_vers, to_vers, ddl_done, bg_tasks_done)
+	VALUES(0, 1200, {{now}}, {{now}});
 
 
 -- This file is part of the JSettlers project.
