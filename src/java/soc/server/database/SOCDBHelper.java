@@ -705,7 +705,7 @@ public class SOCDBHelper
         if (doesTableExist("db_version"))
         {
             ResultSet rs = connection.createStatement().executeQuery
-                ("SELECT max(to_version) FROM db_version;");
+                ("SELECT max(to_vers) FROM db_version;");
             if (rs.next())
             {
                 schemaVersion = rs.getInt(1);
@@ -720,7 +720,7 @@ public class SOCDBHelper
             boolean upg_ddl_unfinished = false, upg_bg_unfinished = false;
 
             ResultSet rs = connection.createStatement().executeQuery
-                ("SELECT from_vers, ddl_done, bg_tasks_done FROM db_version WHERE to_version=" + schemaVersion + ";");
+                ("SELECT from_vers, ddl_done, bg_tasks_done FROM db_version WHERE to_vers=" + schemaVersion + ";");
             if (rs.next())
             {
                 from_vers = rs.getInt(1);
