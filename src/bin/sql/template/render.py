@@ -33,16 +33,20 @@ DB_TOKENS = {
     'mysql': {
         'now': 'now()',
         'TIMESTAMP': 'TIMESTAMP',  # stored in table data as unix epoch seconds
+        'TIMESTAMP_NULL': 'TIMESTAMP NULL DEFAULT null',
+            # 'NULL default null' needed to deactivate mysql's default settings for timestamp columns
         'set_session_tz_utc': "SET TIME_ZONE='+0:00';  -- UTC not always set up in mysql as a TZ name"
         },
     'postgres': {
         'now': 'now()',
         'TIMESTAMP': 'TIMESTAMP WITHOUT TIME ZONE',  # stored in table data as UTC
+        'TIMESTAMP_NULL': 'TIMESTAMP WITHOUT TIME ZONE',
         'set_session_tz_utc': "SET TIME ZONE 'UTC';"
         },
     'sqlite': {
         'now': "strftime('%s', 'now')",
-        'TIMESTAMP': 'TIMESTAMP',
+        'TIMESTAMP': 'TIMESTAMP',  # zentus-sqlite stores java.sql.Timestamp in table data as epoch milliseconds
+        'TIMESTAMP_NULL': 'TIMESTAMP',
         'set_session_tz_utc': "-- reminder: sqlite has no session timezone setting, only the server process's TZ"
         }
 }

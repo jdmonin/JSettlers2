@@ -941,7 +941,11 @@ public class SOCDBHelper
         {
             // no rollback needed if fails, so don't try/catch here
 
-            final String TIMESTAMP = (dbType != DBTYPE_POSTGRESQL) ? "TIMESTAMP" : "TIMESTAMP WITHOUT TIME ZONE";
+            final String TIMESTAMP = (dbType == DBTYPE_POSTGRESQL)
+                ? "TIMESTAMP WITHOUT TIME ZONE"
+                : (dbType == DBTYPE_MYSQL)
+                    ? "TIMESTAMP NULL DEFAULT null"
+                    : "TIMESTAMP";
             final String sql = "CREATE TABLE db_version ("
                 + "from_vers INT not null, to_vers INT not null, ddl_done "
                 + TIMESTAMP +", bg_tasks_done " + TIMESTAMP
