@@ -343,11 +343,13 @@ It's a simple process to upgrade to the latest version of JSettlers:
   upgrade_schema flag is not used during day-to-day operation of the server.
 
   Note: If you've been using jsettlers 1.1.20 or older with postgresql,
-  the upgrade may tell you to change your tables' owner to socuser first.
+  the upgrade may tell you to change your tables' owner to socuser first:
+	* To begin schema upgrade, please fix and rerun:
+	  Must change table owner to socuser from postgres
   JSettlers comes with the script jsettlers-upg-prep-postgres-owner.sql
   to do so, in the same directory as the scripts mentioned in the
   Database Creation section of this README. As the postgres system user, run:
-	psql --file jsettlers-upg-prep-postgres-owner.sql
+	psql -d socdata --file jsettlers-upg-prep-postgres-owner.sql -v to=socuser
   Then, run the schema upgrade command.
 
 - Test that you can connect and start games as usual, with and without bots.

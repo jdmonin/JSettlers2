@@ -6,6 +6,7 @@ REVOKE ALL ON SCHEMA public FROM PUBLIC;
 GRANT ALL ON SCHEMA public TO socuser;
 
 -- Tested with postgres 8.4 and 9.5 on centos 6
+-- Reminder: psql shell can list existing privs with \dn+  and  \z [objectname]
 
 
 -- This file is part of the JSettlers project.

@@ -1,13 +1,14 @@
 -- DB Security grants script for jsettlers in postgresql.
--- Run this script as 'postgres' or another admin user.
+-- Run this script as 'postgres' or another admin user:
+--    psql -d socdata --file jsettlers-upg-prep-postgres-owner.sql -v to=socuser
 -- To help with schema upgrades, this script changes all
 -- pre-v1.2.00 tables' ownership from postgres to socuser.
 -- See bottom of file for copyright and license information (GPLv3).
 
-ALTER TABLE users  OWNER TO socuser;
-ALTER TABLE logins OWNER TO socuser;
-ALTER TABLE games  OWNER TO socuser;
-ALTER TABLE robotparams OWNER TO socuser;
+ALTER TABLE users  OWNER TO :to;
+ALTER TABLE logins OWNER TO :to;
+ALTER TABLE games  OWNER TO :to;
+ALTER TABLE robotparams OWNER TO :to;
 
 -- no sequences defined yet
 -- GRANT USAGE, SELECT
@@ -18,7 +19,7 @@ ALTER TABLE robotparams OWNER TO socuser;
 
 -- misc notes:
 -- Tested with postgres 8.4 and 9.5 on centos 6
--- Reminder: psql shell can list existing privs with \z [objectname]
+-- Reminder: psql shell can list existing privs with \dn+  and  \z [objectname]
 
 
 -- This file is part of the JSettlers project.

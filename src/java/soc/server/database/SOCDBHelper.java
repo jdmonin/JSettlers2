@@ -902,7 +902,7 @@ public class SOCDBHelper
             String otherOwner = upg_postgres_checkIsTableOwner();
             if (otherOwner != null)
                 throw new MissingResourceException
-                    ("Upgrade must run as db user " + otherOwner + " (which owns the tables)", "unused", "unused");
+                    ("Must change table owner to " + userName + " from " + otherOwner, "unused", "unused");
         }
         final Set<String> upg_1200_allUsers = new HashSet<String>();  // built during pre-check, used during upgrade
         if (schemaVersion < SCHEMA_VERSION_1200)
