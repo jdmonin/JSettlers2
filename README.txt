@@ -320,8 +320,8 @@ It's a simple process to upgrade to the latest version of JSettlers:
   in case you want to run the old version for any reason.
 
 - If you're using the optional database for user accounts and game scores,
-  make a backup or export its contents.  Note that no schema changes or
-  SQL scripts are needed to upgrade to the latest version.
+  make a backup or export its contents.  JSettlers 1.2.00 is the first version
+  which has schema changes, which are recommended but optional (see below).
 
 - Stop the old server
 
@@ -329,18 +329,43 @@ It's a simple process to upgrade to the latest version of JSettlers:
 
 - Start the new server, including any new options you wanted from VERSIONS.txt
 
+- If the new server's startup messages include this line:
+	* Database schema upgrade is recommended: To upgrade, use -Djsettlers.db.upgrade_schema=Y command line flag.
+  Then do so now if convenient. The schema upgrade is not required immediately,
+  to give you more flexibility, but may be required for some new features.
+
+  When you run JSettlersServer with that upgrade flag plus your usual parameters
+  it will check necessary conditions; upgrade the database; report success or
+  any problems found; then exit immediately. You should see:
+	DB schema upgrade was successful. Exiting now.
+
+  The schema version and upgrade history is kept in the db_version table. The
+  upgrade_schema flag is not used during day-to-day operation of the server.
+
+  Note: If you've been using jsettlers 1.1.20 or older with postgresql,
+  the upgrade may tell you to change your tables' owner to socuser first.
+  JSettlers comes with the script jsettlers-upg-prep-postgres-owner.sql
+  to do so, in the same directory as the scripts mentioned in the
+  Database Creation section of this README. As the postgres system user, run:
+	psql --file jsettlers-upg-prep-postgres-owner.sql
+  Then, run the schema upgrade command.
+
 - Test that you can connect and start games as usual, with and without bots.
-  When you connect make sure the version number shown in the left-center of
+  When you connect make sure the version number shown in the left side of
   the client window is the new JSettlers version.
 
 
 Database Setup
 --------------
 
-If you want to maintain user accounts, you will need to set up a MySQL, SQLite,
-or PostgreSQL database. This will eliminate the "Problem connecting to database"
-errors from the server, and also gives you the option to save all game scores
-for reports or community-building.
+If you want to maintain user accounts or save scores of all completed games,
+you will need to set up a MySQL, SQLite, or PostgreSQL database. This will
+eliminate the "Problem connecting to database" message seen when starting
+the server.
+
+This section describes setting up the database and the JSettlers server's
+connection to it, and then how to turn on optional features for Game Scores
+or User Accounts.
 
 For these instructions we'll assume you already installed the PostgreSQL or
 MySQL software, or will download a SQLite JAR to avoid database server setup.
@@ -467,10 +492,12 @@ using the same -Djsettlers.db.url and -Djsettlers.db.jar values.
 
 Optional: Storing Game Scores in the DB:
 
-To automatically save all completed game results in database, use this option
+Game scores can optionally be saved for reports or community-building. To
+automatically save all completed game results in the database, use this option
 when starting the JSettlers server:
 	-Djsettlers.db.save.games=Y
-
+Or, in your server's jsserver.properties file, add the line:
+	jsettlers.db.save.games=Y
 
 Optional: Creating JSettlers Player Accounts in the DB:
 
