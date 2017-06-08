@@ -21,6 +21,7 @@
 package soc.server.database;
 
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 import soc.server.SOCServer;  // solely for javadocs and ROBOT_PARAMS_*
 import soc.util.SOCRobotParameters;
@@ -68,16 +69,7 @@ import java.util.Set;
  * These can be changed by supplying properties to {@link #initialize(String, String, Properties)}
  * for {@link #PROP_JSETTLERS_DB_URL} and {@link #PROP_JSETTLERS_DB_DRIVER}.
  *<P>
- * It uses a database created with the following commands:
- *<BR> (See {@code src/bin/sql/jsettlers-tables.sql}) <BR>
- *<code><pre>
- * CREATE DATABASE socdata;
- * USE socdata;
- * CREATE TABLE users (nickname VARCHAR(20), host VARCHAR(50), password VARCHAR(20), email VARCHAR(50), lastlogin DATE, nickname_lc VARCHAR(20));
- * CREATE TABLE logins (nickname VARCHAR(20), host VARCHAR(50), lastlogin DATE);
- * CREATE TABLE games (gamename VARCHAR(20), player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20), player4 VARCHAR(20), score1 TINYINT, score2 TINYINT, score3 TINYINT, score4 TINYINT, starttime TIMESTAMP);
- * CREATE TABLE robotparams (robotname VARCHAR(20), maxgamelength INT, maxeta INT, etabonusfactor FLOAT, adversarialfactor FLOAT, leaderadversarialfactor FLOAT, devcardmultiplier FLOAT, threatmultiplier FLOAT, strategytype INT, starttime TIMESTAMP, endtime TIMESTAMP, gameswon INT, gameslost INT, tradeFlag BOOL);
- *</pre></code>
+ * For database schema, see {@code src/bin/sql/template/jsettlers-tables-tmpl.sql}.
  *
  *<H3>Schema Upgrades:</H3>
  * Sometimes a new JSettlers version adds to the DB schema. When starting the JSettlers server, call
@@ -352,7 +344,22 @@ public class SOCDBHelper
      */
     private static final String PASSWORD_UPDATE_COMMAND_1200 = "UPDATE users SET password = ? WHERE nickname_lc = ? ;";
 
-    private static String SAVE_GAME_COMMAND = "INSERT INTO games VALUES (?,?,?,?,?,?,?,?,?,?);";
+    /**
+     * {@link #saveGameCommand} for schema older than {@link #SCHEMA_VERSION_1200}.
+     * Before v1.2.00 this field was {@code SAVE_GAME_COMMAND}.
+     */
+    private static String SAVE_GAME_COMMAND_1000 =
+        "INSERT INTO games(gamename,player1,player2,player3,player4,score1,score2,score3,score4,starttime)"
+        + " VALUES (?,?,?,?,?,?,?,?,?,?);";
+
+    /**
+     * {@link #saveGameCommand} for schema &gt;= {@link #SCHEMA_VERSION_1200}.
+     * @since 1.2.00
+     */
+    private static String SAVE_GAME_COMMAND_1200 =
+        "INSERT INTO games(gamename,player1,player2,player3,player4,player5,player6,score1,score2,score3,score4,score5,score6,"
+        + "starttime,duration_sec,winner,gameopts) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+
     private static String ROBOT_PARAMS_QUERY = "SELECT * FROM robotparams WHERE robotname = ?;";
     private static final String USER_COUNT_QUERY = "SELECT count(*) FROM users;";
 
@@ -390,7 +397,7 @@ public class SOCDBHelper
      */
     private static PreparedStatement passwordUpdateCommand = null;
 
-    /** Completed-game info insert into {@code games}: {@link #SAVE_GAME_COMMAND} */
+    /** Completed-game info insert into {@code games}: {@link #SAVE_GAME_COMMAND_1200} */
     private static PreparedStatement saveGameCommand = null;
 
     /** Query all robot parameters for a bot name; {@link #ROBOT_PARAMS_QUERY}.
@@ -778,7 +785,8 @@ public class SOCDBHelper
         lastloginUpdate = connection.prepareStatement(LASTLOGIN_UPDATE);
         passwordUpdateCommand = connection.prepareStatement
             ((schemaVersion >= SCHEMA_VERSION_1200) ? PASSWORD_UPDATE_COMMAND_1200 : PASSWORD_UPDATE_COMMAND_1000);
-        saveGameCommand = connection.prepareStatement(SAVE_GAME_COMMAND);
+        saveGameCommand = connection.prepareStatement
+            ((schemaVersion >= SCHEMA_VERSION_1200) ? SAVE_GAME_COMMAND_1200 : SAVE_GAME_COMMAND_1000);
         robotParamsQuery = connection.prepareStatement(ROBOT_PARAMS_QUERY);
         userCountQuery = connection.prepareStatement(USER_COUNT_QUERY);
     }
@@ -988,16 +996,27 @@ public class SOCDBHelper
         //   the server's admin must back up their sqlite db before running the upgrade.
 
         /**
-         * 1.2.00: users.nickname_lc, index users__l
+         * 1.2.00: games + player5, player6, score5, score6, duration_sec, winner, gameopts;
+         *     users + nickname_lc, index users__l
          */
         if (schemaVersion < SCHEMA_VERSION_1200)
         {
-            /* add field, fill it, add unique index */
-            boolean added = false;
+            /* add games fields; add users field, fill it, add unique index */
+            boolean added_game_fields = false, added_nick_lc = false;
             try
             {
+                // sqlite can't add multiple fields at once
+                runDDL("ALTER TABLE games ADD COLUMN player5 VARCHAR(20);");
+                added_game_fields = true;
+                runDDL("ALTER TABLE games ADD COLUMN player6 VARCHAR(20);");
+                runDDL("ALTER TABLE games ADD COLUMN score5 SMALLINT;");
+                runDDL("ALTER TABLE games ADD COLUMN score6 SMALLINT;");
+                runDDL("ALTER TABLE games ADD COLUMN duration_sec INT not null;");
+                runDDL("ALTER TABLE games ADD COLUMN winner VARCHAR(20) not null;");
+                runDDL("ALTER TABLE games ADD COLUMN gameopts VARCHAR(500);");
+
                 runDDL("ALTER TABLE users ADD COLUMN nickname_lc VARCHAR(20);");
-                added = true;
+                added_nick_lc = true;
 
                 // fill the new field; use String.toLowerCase(..), not SQL lower(..) which is ascii-only on sqlite.
                 if (! upg_1200_allUsers.isEmpty())
@@ -1052,11 +1071,16 @@ public class SOCDBHelper
 
                 boolean couldRollback = true;
 
-                if (added)
-                {
+                if (added_nick_lc)
                     if ((dbType == DBTYPE_SQLITE) || ! runDDL_rollback("ALTER TABLE users DROP COLUMN nickname_lc;"))
                         couldRollback = false;
-                }
+
+                if (couldRollback && added_game_fields)
+                    if ((dbType == DBTYPE_SQLITE)
+                        || ! (runDDL_rollback("ALTER TABLE games DROP player5")  // first field added, if exception thrown for that
+                              && runDDL_rollback
+                                   ("ALTER TABLE games DROP player6, DROP score5, DROP score6, DROP duration_sec, DROP winner, DROP gameopts;")))
+                        couldRollback = false;
 
                 if (! couldRollback)
                     System.err.println
@@ -1477,27 +1501,27 @@ public class SOCDBHelper
     }
 
     /**
-     * Record this game's time, players, and scores in the database.
+     * Record this completed game's time, players, and scores in the database.
      *
      * @param ga  Game that's just completed
      * @param gameLengthSeconds  Duration of game
      *
      * @return true if the save succeeded
-     *
-     * @throws SQLException DOCUMENT ME!
+     * @throws IllegalArgumentException if {@link SOCGame#getPlayerWithWin() ga.getPlayerWithWin()} is null
+     * @throws SQLException if an error occurs
      */
     public static boolean saveGameScores
-        (SOCGame ga, final long gameLengthSeconds)
-        throws SQLException
+        (final SOCGame ga, final int gameLengthSeconds)
+        throws IllegalArgumentException, SQLException
     {
-        // TODO 6-player: save their scores too, if
-        // those fields are in the database.
-        // Check ga.maxPlayers.
+        final SOCPlayer winner = ga.getPlayerWithWin();
+        if (winner == null)
+            throw new IllegalArgumentException("no winner");
 
         if (checkConnection())
         {
-            String[] names = new String[ga.maxPlayers];
-            short[] scores = new short[ga.maxPlayers];
+            String[] names = new String[SOCGame.MAXPLAYERS];  // DB max 6; ga.maxPlayers max 4 or 6
+            short[] scores = new short[SOCGame.MAXPLAYERS];
             for (int pn = 0; pn < ga.maxPlayers; ++pn)
             {
                 SOCPlayer pl = ga.getPlayer(pn);
@@ -1505,7 +1529,8 @@ public class SOCDBHelper
                 scores[pn] = (short) pl.getTotalVP();
             }
 
-            if ((ga.maxPlayers > 4)
+            final int db_max_players = (schemaVersion < SCHEMA_VERSION_1200) ? 4 : 6;
+            if ((ga.maxPlayers > db_max_players)
                 && ! (ga.isSeatVacant(4) && ga.isSeatVacant(5)))
             {
                 // Need to try and fit player 5 and/or player 6
@@ -1516,15 +1541,26 @@ public class SOCDBHelper
             try
             {
                 saveGameCommand.setString(1, ga.getName());
-                saveGameCommand.setString(2, names[0]);
-                saveGameCommand.setString(3, names[1]);
-                saveGameCommand.setString(4, names[2]);
-                saveGameCommand.setString(5, names[3]);
-                saveGameCommand.setShort(6, scores[0]);
-                saveGameCommand.setShort(7, scores[1]);
-                saveGameCommand.setShort(8, scores[2]);
-                saveGameCommand.setShort(9, scores[3]);
-                saveGameCommand.setTimestamp(10, new Timestamp(ga.getStartTime().getTime()));
+                int i = 2;
+                for (int pn = 0; pn < db_max_players; ++i, ++pn)
+                    saveGameCommand.setString(i, names[pn]);
+                for (int pn = 0; pn < db_max_players; ++i, ++pn)
+                    if ((scores[pn] != 0) || (names[pn] != null))
+                        saveGameCommand.setShort(i, scores[pn]);
+                    else
+                        saveGameCommand.setNull(i, Types.SMALLINT);
+                saveGameCommand.setTimestamp(i, new Timestamp(ga.getStartTime().getTime()));
+
+                if (schemaVersion >= SCHEMA_VERSION_1200)
+                {
+                    saveGameCommand.setInt(i, gameLengthSeconds);  ++i;
+
+                    saveGameCommand.setString(i, winner.getName());  ++i;
+
+                    final Map<String, SOCGameOption> opts = ga.getGameOptions();
+                    final String optsStr = (opts == null) ? null : SOCGameOption.packOptionsToString(opts, false);
+                    saveGameCommand.setString(i, optsStr);
+                }
 
                 saveGameCommand.executeUpdate();
 
@@ -2383,11 +2419,13 @@ public class SOCDBHelper
                         // test field-drop syntax, if not sqlite:
                         if (hasFixtureFieldXYZW && (dbType != DBTYPE_SQLITE))
                         {
-                            testDBHelper_runDDL("drop table field gamesxyz2.xyzw",
-                                "ALTER TABLE gamesxyz2 DROP COLUMN xyzw;");
+                            testDBHelper_runDDL("drop table column gamesxyz2.xyzw",
+                                "ALTER TABLE gamesxyz2 DROP xyzw;");
                             anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "xyzw", false, true);
+
+                            // TODO test drop multiple fields
                         } else {
-                            System.err.println("test skipped for sqlite: drop table field gamesxyz2.xyzw");
+                            System.err.println("test skipped for sqlite: drop table column gamesxyz2.xyzw");
                         }
                         testDBHelper_runDDL("fixture cleanup: drop table gamesxyz2", "DROP TABLE gamesxyz2;");
                         anyFailed |= ! testOne_doesTableExist("gamesxyz2", false, true);

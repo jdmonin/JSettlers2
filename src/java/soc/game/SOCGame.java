@@ -479,6 +479,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * The game is over.  A player has accumulated enough ({@link #vp_winner}) victory points,
      * or all players have left the game.
+     * The winning player, if any, is {@link #getPlayerWithWin()}.
      * @see #checkForWinner()
      */
     public static final int OVER = 1000; // The game is over
@@ -1711,6 +1712,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
      * @see #getGameOptionIntValue(String)
+     * @see SOCGameOption#packOptionsToString(Map, boolean)
      */
     public Map<String, SOCGameOption> getGameOptions()
     {

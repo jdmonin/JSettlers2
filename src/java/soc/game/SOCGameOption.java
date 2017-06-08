@@ -1534,6 +1534,8 @@ public class SOCGameOption
     /**
      * Utility - build a string of option name-value pairs.
      * This can be unpacked with {@link #parseOptionsToMap(String)}.
+     *<P>
+     * For sending options to a client, use {@link #packOptionsToString(Map, boolean, int)} instead.
      *
      * @param omap  Map of SOCGameOptions, or null
      * @param hideEmptyStringOpts omit string-valued options which are empty?
