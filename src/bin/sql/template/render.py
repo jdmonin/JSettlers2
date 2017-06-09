@@ -44,7 +44,7 @@ DB_TOKENS = {
         'set_session_tz_utc': "SET TIME ZONE 'UTC';"
         },
     'sqlite': {
-        'now': "strftime('%s', 'now')",
+        'now': "strftime('%s000', 'now')",  # +000 for millis, not epoch seconds
         'TIMESTAMP': 'TIMESTAMP',  # zentus-sqlite stores java.sql.Timestamp in table data as epoch milliseconds
         'TIMESTAMP_NULL': 'TIMESTAMP',
         'set_session_tz_utc': "-- reminder: sqlite has no session timezone setting, only the server process's TZ"

@@ -90,7 +90,7 @@ CREATE TABLE robotparams (
 -- Mark this newly created db's schema version:
 -- reminder: sqlite has no session timezone setting, only the server process's TZ
 INSERT INTO db_version(from_vers, to_vers, ddl_done, bg_tasks_done)
-	VALUES(0, 1200, strftime('%s', 'now'), strftime('%s', 'now'));
+	VALUES(0, 1200, strftime('%s000', 'now'), strftime('%s000', 'now'));
 
 
 -- This file is part of the JSettlers project.
