@@ -989,7 +989,7 @@ public class SOCDBHelper
         }
 
         // NOTES for future schema changes:
-        // - Keep your DDL SQL syntax consistent with the DDL commands in testDBHelper().
+        // - Keep your DDL SQL syntax consistent with the commands tested in testDBHelper().
         // - Be prepared to rollback to a known-good state if a problem occurs.
         //   Each unrelated part of an upgrade must completely succeed or fail.
         //   That requirement is for postgresql and mysql: sqlite can't drop any added columns;
@@ -1011,8 +1011,8 @@ public class SOCDBHelper
                 runDDL("ALTER TABLE games ADD COLUMN player6 VARCHAR(20);");
                 runDDL("ALTER TABLE games ADD COLUMN score5 SMALLINT;");
                 runDDL("ALTER TABLE games ADD COLUMN score6 SMALLINT;");
-                runDDL("ALTER TABLE games ADD COLUMN duration_sec INT not null;");
-                runDDL("ALTER TABLE games ADD COLUMN winner VARCHAR(20) not null;");
+                runDDL("ALTER TABLE games ADD COLUMN duration_sec INT;");
+                runDDL("ALTER TABLE games ADD COLUMN winner VARCHAR(20);");
                 runDDL("ALTER TABLE games ADD COLUMN gameopts VARCHAR(500);");
 
                 runDDL("ALTER TABLE users ADD COLUMN nickname_lc VARCHAR(20);");
@@ -1549,7 +1549,7 @@ public class SOCDBHelper
                         saveGameCommand.setShort(i, scores[pn]);
                     else
                         saveGameCommand.setNull(i, Types.SMALLINT);
-                saveGameCommand.setTimestamp(i, new Timestamp(ga.getStartTime().getTime()));
+                saveGameCommand.setTimestamp(i, new Timestamp(ga.getStartTime().getTime()));  ++i;
 
                 if (schemaVersion >= SCHEMA_VERSION_1200)
                 {

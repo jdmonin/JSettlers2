@@ -50,6 +50,9 @@ CREATE TABLE logins (
 	PRIMARY KEY (nickname)
 	);
 
+-- Players and scores for completed games.
+-- If database schema was upgraded from an earlier version,
+-- duration_sec and winner will be null for old data rows.
 CREATE TABLE games (
 	gamename VARCHAR(20) not null,
 	player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20),
