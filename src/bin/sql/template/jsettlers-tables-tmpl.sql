@@ -15,8 +15,10 @@
 
 -- Schema upgrades:
 --   See SOCDBHelper.upgradeSchema(). DDL here must be kept in sync with what's found there.
---   2017-06-08 v1.2.00: Add db_version table; users.nickname_lc; TIMESTAMP column type now dbtype-specific;
---       games + player5, player6, score5, score6, duration_sec, winner, gameopts
+--   2017-06-09 v1.2.00: Add db_version and settings tables;
+--	users + nickname_lc, pw_vers, pw_store, pw_change;
+--	TIMESTAMP column type now dbtype-specific;
+--	games + player5, player6, score5, score6, duration_sec, winner, gameopts
 
 -- DB Schema Version / upgrade history: Added in v1.2.00 (schema version 1200).
 -- At startup, SOCDBHelper checks max(to_vers) here for this db's schema version.
@@ -34,12 +36,24 @@ CREATE TABLE db_version (
 	);
 -- At DB creation, a row is added to this table to indicate current version: See bottom of this script.
 
+
+-- General settings, especially about features using the database.
+CREATE TABLE settings (
+	s_name varchar(32) not null,  -- all-uppercase
+	s_value varchar(500), i_value INT,
+	s_changed {{TIMESTAMP}} not null,
+	PRIMARY KEY (s_name)
+	);
+	-- Each setting uses s_value or i_value. Empty strings (s_values) are stored as null, not as empty string.
+	-- Important s_names may be listed here.
+
 -- Users:
 -- When the password encoding or max length changes,
 -- be sure to update SOCDBHelper.createAccount and updateUserPassword.
 CREATE TABLE users (
 	nickname VARCHAR(20) not null, host VARCHAR(50) not null, password VARCHAR(20) not null, email VARCHAR(50), lastlogin DATE,
-	nickname_lc VARCHAR(20),
+	nickname_lc VARCHAR(20) not null, pw_vers INT,  -- use original password field if pw_vers is NULL, else pw_store
+	pw_store VARCHAR(255), pw_change {{TIMESTAMP_NULL}},
 	PRIMARY KEY (nickname)
 	);
 
