@@ -1002,7 +1002,7 @@ public class SOCDBHelper
         /**
          * 1.2.00: settings table;
          *     games + player5, player6, score5, score6, duration_sec, winner, gameopts;
-         *     users + nickname_lc, pw_vers, pw_store, pw_change, index users__l
+         *     users + nickname_lc, pw_scheme, pw_store, pw_change, index users__l
          */
         if (schemaVersion < SCHEMA_VERSION_1200)
         {
@@ -1027,7 +1027,7 @@ public class SOCDBHelper
 
                 runDDL("ALTER TABLE users ADD COLUMN nickname_lc VARCHAR(20);");
                 added_user_fields = true;
-                runDDL("ALTER TABLE users ADD COLUMN pw_vers INT;");
+                runDDL("ALTER TABLE users ADD COLUMN pw_scheme INT;");
                 runDDL("ALTER TABLE users ADD COLUMN pw_store VARCHAR(255);");
                 runDDL("ALTER TABLE users ADD COLUMN pw_change " + TIMESTAMP_NULL + ";");
 
@@ -1092,7 +1092,7 @@ public class SOCDBHelper
                               // roll back first field added, if exception was thrown for that
                         || ! (runDDL_rollback("ALTER TABLE users DROP COLUMN nickname_lc;")
                               && runDDL_rollback
-                                   ("ALTER TABLE users DROP pw_vers, DROP pw_store, DROP pw_change;")))
+                                   ("ALTER TABLE users DROP pw_scheme, DROP pw_store, DROP pw_change;")))
                         couldRollback = false;
 
                 if (couldRollback && added_game_fields)

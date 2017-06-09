@@ -16,7 +16,7 @@
 -- Schema upgrades:
 --   See SOCDBHelper.upgradeSchema(). DDL here must be kept in sync with what's found there.
 --   2017-06-09 v1.2.00: Add db_version and settings tables;
---	users + nickname_lc, pw_vers, pw_store, pw_change;
+--	users + nickname_lc, pw_scheme, pw_store, pw_change;
 --	TIMESTAMP column type now dbtype-specific;
 --	games + player5, player6, score5, score6, duration_sec, winner, gameopts
 
@@ -52,7 +52,7 @@ CREATE TABLE settings (
 -- be sure to update SOCDBHelper.createAccount and updateUserPassword.
 CREATE TABLE users (
 	nickname VARCHAR(20) not null, host VARCHAR(50) not null, password VARCHAR(20) not null, email VARCHAR(50), lastlogin DATE,
-	nickname_lc VARCHAR(20) not null, pw_vers INT,  -- use original password field if pw_vers is NULL, else pw_store
+	nickname_lc VARCHAR(20) not null, pw_scheme INT,  -- use original password field if pw_scheme is NULL, else pw_store
 	pw_store VARCHAR(255), pw_change TIMESTAMP,
 	PRIMARY KEY (nickname)
 	);
