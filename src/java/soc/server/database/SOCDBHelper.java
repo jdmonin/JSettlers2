@@ -1088,19 +1088,23 @@ public class SOCDBHelper
                     couldRollback = false;
 
                 if (couldRollback && added_user_fields)
+                {
+                    final String[] cols = {"pw_scheme", "pw_store", "pw_change"};
                     if ((dbType == DBTYPE_SQLITE)
                               // roll back first field added, if exception was thrown for that
-                        || ! (runDDL_rollback("ALTER TABLE users DROP COLUMN nickname_lc;")
-                              && runDDL_rollback
-                                   ("ALTER TABLE users DROP pw_scheme, DROP pw_store, DROP pw_change;")))
+                        || ! (runDDL_rollback("ALTER TABLE users DROP nickname_lc;")
+                              && runDDL_dropCols("users", cols)))
                         couldRollback = false;
+                }
 
                 if (couldRollback && added_game_fields)
+                {
+                    final String[] cols = {"player6", "score5", "score6", "duration_sec", "winner", "gameopts"};
                     if ((dbType == DBTYPE_SQLITE)
                         || ! (runDDL_rollback("ALTER TABLE games DROP player5;")
-                              && runDDL_rollback
-                                   ("ALTER TABLE games DROP player6, DROP score5, DROP score6, DROP duration_sec, DROP winner, DROP gameopts;")))
+                              && runDDL_dropCols("games", cols)))
                         couldRollback = false;
+                }
 
                 if (! couldRollback)
                     System.err.println
@@ -1130,6 +1134,58 @@ public class SOCDBHelper
 
         /* upgrade is completed. */
         System.err.println("* DB schema upgrade completed.\n\n");
+    }
+
+    /**
+     * Run DDL to drop columns, useful during rollback. Syntax varies by DB type.
+     * @param tabName Table name
+     * @param colNames Columns to drop
+     * @return True if drops succeeded, false if an Exception occurred.
+     *    The Exception will also be printed to {@link System#err}.
+     * @throws IllegalStateException if {@link #dbType} is {@link #DBTYPE_SQLITE}, which cannot drop columns
+     * @since 1.2.00
+     */
+    private static boolean runDDL_dropCols(final String tabName, final String[] colNames)
+        throws IllegalStateException
+    {
+        if (dbType == DBTYPE_SQLITE)
+            throw new IllegalStateException("sqlite cannot drop columns");
+
+        try {
+            if ((dbType == DBTYPE_MYSQL) || (dbType == DBTYPE_POSTGRESQL) || (dbType == DBTYPE_ORA))
+            {
+                // These dbTypes can drop multiple columns as a single statement; see 2013-09-01 item
+                // https://stackoverflow.com/questions/6346120/how-do-i-drop-multiple-columns-with-a-single-alter-table-statement
+                // mysql, postgres: ALTER TABLE users DROP pw_scheme, DROP pw_store, DROP pw_change;
+                // ora:             ALTER TABLE users DROP (pw_scheme, pw_store, pw_change);
+                StringBuilder sb = new StringBuilder("ALTER TABLE ");
+                sb.append(tabName);
+                for (int i = 0; i < colNames.length; ++i)
+                {
+                    if (i > 0)
+                        sb.append(',');
+                    if (dbType != DBTYPE_ORA)
+                        sb.append(" DROP ");
+                    else if (i == 0)
+                        sb.append(" DROP (");
+                    sb.append(colNames[i]);
+                }
+                if (dbType == DBTYPE_ORA)
+                    sb.append(')');
+                sb.append(';');
+                runDDL(sb.toString());
+            } else {
+                for (int i = 0; i < colNames.length; ++i)
+                    runDDL("ALTER TABLE " + tabName + " DROP " + colNames[i] + ';');
+            }
+
+            return true;
+        }
+        catch (Exception e) {
+            System.err.println("* Problem during drop columns for " + tabName + ": " + e);
+
+            return false;
+        }
     }
 
     /**
@@ -2066,7 +2122,7 @@ public class SOCDBHelper
 
     /**
      * Run a DDL command to create or remove a database structure.
-     * @param sql  SQL to run
+     * @param sql  SQL to run. Some DB types, including zentus sqlite JDBC, might ignore any SQL after the first ";".
      * @throws IllegalStateException if not connected and if {@link #checkConnection()} fails
      * @throws SQLException if an error occurs while running {@code sql}
      * @since 1.2.00
@@ -2227,7 +2283,7 @@ public class SOCDBHelper
 
     /**
      * For {@link #testDBHelper()}, run a DDL command to create or remove a test fixture.
-     * See {@link #runDDL(String)} for exception descriptions.
+     * See {@link #runDDL(String)} for details and exception descriptions.
      * @param desc Description to print as part of testing log; will be preceded by "For testing: "
      * @param sql  SQL to run
      * @since 2.0.00
@@ -2309,7 +2365,7 @@ public class SOCDBHelper
             if (! anyFailed)
             {
                 System.err.println();
-                boolean hasFixtureTabXYZ = false, hasFixtureFieldXYZW = false;
+                boolean hasFixtureTabXYZ = false, hasFixtureFieldXYZW = false, hasFixtureFieldD3 = false;
                 boolean switchedAutoCommitOff = false;
 
                 try
@@ -2326,6 +2382,18 @@ public class SOCDBHelper
                     testDBHelper_runDDL
                         ("fixture: table gamesxyz2 add field xyzw", "ALTER TABLE gamesxyz2 ADD COLUMN xyzw int;");
                     hasFixtureFieldXYZW = true;
+                    // fixtures for runDDL_dropCols:
+                    {
+                        final String[] cols = {"d1", "d2", "d3"};
+                        for (String c : cols)
+                        {
+                            testDBHelper_runDDL
+                                ("fixture: table gamesxyz2 add field " + c,
+                                 "ALTER TABLE gamesxyz2 ADD COLUMN " + c + " int;");
+                            anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", c, true, true);
+                        }
+                        hasFixtureFieldD3 = true;
+                    }
                     anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "xyz", true, true);
                     anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "xyzw", true, true);
 
@@ -2436,23 +2504,38 @@ public class SOCDBHelper
                             anyFailed = true;
                         }
 
-                        // test field-drop syntax, if not sqlite:
+                        // test column-drop syntax, if not sqlite:
                         if (hasFixtureFieldXYZW && (dbType != DBTYPE_SQLITE))
                         {
                             testDBHelper_runDDL("drop table column gamesxyz2.xyzw",
                                 "ALTER TABLE gamesxyz2 DROP xyzw;");
                             anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "xyzw", false, true);
 
-                            // TODO test drop multiple fields
+                            // test drop multiple columns
+                            if (hasFixtureFieldD3)
+                            {
+                                final String[] cols = {"d1", "d2", "d3"};
+                                if (runDDL_dropCols("gamesxyz2", cols))
+                                {
+                                    System.err.println("Test ok: runDDL_dropCols gamesxyz2");
+                                    anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "d1", false, true);
+                                    anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "d2", false, true);
+                                    anyFailed |= ! testOne_doesTableColumnExist("gamesxyz2", "d3", false, true);
+                                } else {
+                                    anyFailed = true;
+                                    System.err.println("4 Tests failed: runDDL_dropCols gamesxyz2");
+                                }
+                            }
                         } else {
-                            System.err.println("test skipped for sqlite: drop table column gamesxyz2.xyzw");
+                            System.err.println
+                                ("5 tests skipped for sqlite: drop table column gamesxyz2.xyzw, runDDL_dropCols");
                         }
                         testDBHelper_runDDL("fixture cleanup: drop table gamesxyz2", "DROP TABLE gamesxyz2;");
                         anyFailed |= ! testOne_doesTableExist("gamesxyz2", false, true);
                     }
                 }
             } else {
-                System.err.println("10 tests skipped because not creating fixture after previous failures.");
+                System.err.println("15 tests skipped because not creating fixture after previous failures.");
             }
 
         } catch (Exception e) {
