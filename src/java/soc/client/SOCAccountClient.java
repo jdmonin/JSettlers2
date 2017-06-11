@@ -20,6 +20,7 @@
  **/
 package soc.client;
 
+import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.disableDebug.D;
 
 import soc.message.SOCAuthRequest;
@@ -199,6 +200,13 @@ public class SOCAccountClient extends Applet
     protected String emailAddress = null;
 
     /**
+     * True if contents of incoming and outgoing network message traffic should be debug-printed.
+     * Set if optional system property {@link SOCDisplaylessPlayerClient#PROP_JSETTLERS_DEBUG_TRAFFIC} is set.
+     * @since 1.2.00
+     */
+    private boolean debugTraffic;
+
+    /**
      * Create a SOCAccountClient connecting to localhost port 8880
      */
     public SOCAccountClient()
@@ -217,6 +225,9 @@ public class SOCAccountClient extends Applet
     {
         host = h;
         port = p;
+
+        if (null != System.getProperty(SOCDisplaylessPlayerClient.PROP_JSETTLERS_DEBUG_TRAFFIC))
+            debugTraffic = true;  // set flag if debug prop has any value at all
     }
 
     /**
@@ -755,7 +766,8 @@ public class SOCAccountClient extends Applet
      */
     public synchronized boolean put(String s)
     {
-        D.ebugPrintln("OUT - " + s);
+        if (debugTraffic || D.ebugIsEnabled())
+            soc.debug.D.ebugPrintln("OUT - " + s);
 
         if ((ex != null) || !connected)
         {
@@ -779,7 +791,9 @@ public class SOCAccountClient extends Applet
     }
 
     /**
-     * Treat the incoming messages
+     * Treat the incoming messages.
+     *<P>
+     * If {@link SOCDisplaylessPlayerClient#PROP_JSETTLERS_DEBUG_TRAFFIC} is set, debug-prints message contents.
      *
      * @param mes    the message
      */
@@ -788,7 +802,8 @@ public class SOCAccountClient extends Applet
         if (mes == null)
             return;  // Msg parsing error
 
-        D.ebugPrintln(mes.toString());
+        if (debugTraffic || D.ebugIsEnabled())
+            soc.debug.D.ebugPrintln("IN - " + mes.toString());
 
         try
         {
