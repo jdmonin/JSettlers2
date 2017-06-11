@@ -170,7 +170,7 @@ public class SOCDBHelper
     public static final String PROP_IMPL_JSETTLERS_PW_RESET = "_jsettlers.user.pw_reset";
 
     /**
-     * Original JSettlers schema version (1.0.00), before any new/extra tables/fields.
+     * Original JSettlers schema version (1.0.00), before any new extra tables/fields.
      * @see #SCHEMA_VERSION_1200
      * @see #SCHEMA_VERSION_LATEST
      * @since 1.2.00
@@ -178,10 +178,11 @@ public class SOCDBHelper
     public static final int SCHEMA_VERSION_ORIGINAL = 1000;
 
     /**
-     * First new JSettlers schema version (1.2.00) which adds any new/extra tables/fields.
+     * First new JSettlers schema version (1.2.00) which adds any new extra tables/fields.
      *<UL>
-     * <LI> Add {@code users.nickname_lc}, unique index {@code users__l}: nickname as lowercase,
-     *      to prevent collisions among user nicknames
+     * <LI> {@code db_version} table with upgrade history
+     * <LI> {@code settings} table
+     * <LI> Added fields to {@code games} and {@code users}; see {@code VERSIONS.TXT} for details
      *</LI>
      * @see #SCHEMA_VERSION_ORIGINAL
      * @see #SCHEMA_VERSION_LATEST
@@ -314,7 +315,7 @@ public class SOCDBHelper
     private static final String CREATE_ACCOUNT_COMMAND_1200
         = "INSERT INTO users(nickname,host,password,email,lastlogin,nickname_lc) VALUES (?,?,?,?,?,?);";
 
-    private static String RECORD_LOGIN_COMMAND = "INSERT INTO logins VALUES (?,?,?);";
+    private static final String RECORD_LOGIN_COMMAND = "INSERT INTO logins VALUES (?,?,?);";
 
     /**
      * {@link #userPasswordQuery} for schema older than {@link #SCHEMA_VERSION_1200}.
@@ -328,8 +329,8 @@ public class SOCDBHelper
      */
     private static final String USER_PASSWORD_QUERY_1200 = "SELECT nickname,password FROM users WHERE nickname_lc = ? ;";
 
-    private static String HOST_QUERY = "SELECT nickname FROM users WHERE ( users.host = ? );";
-    private static String LASTLOGIN_UPDATE = "UPDATE users SET lastlogin = ?  WHERE nickname = ? ;";
+    private static final String HOST_QUERY = "SELECT nickname FROM users WHERE ( users.host = ? );";
+    private static final String LASTLOGIN_UPDATE = "UPDATE users SET lastlogin = ?  WHERE nickname = ? ;";
 
     /**
      * {@link #passwordUpdateCommand} for schema older than {@link #SCHEMA_VERSION_1200}.
@@ -348,7 +349,7 @@ public class SOCDBHelper
      * {@link #saveGameCommand} for schema older than {@link #SCHEMA_VERSION_1200}.
      * Before v1.2.00 this field was {@code SAVE_GAME_COMMAND}.
      */
-    private static String SAVE_GAME_COMMAND_1000 =
+    private static final String SAVE_GAME_COMMAND_1000 =
         "INSERT INTO games(gamename,player1,player2,player3,player4,score1,score2,score3,score4,starttime)"
         + " VALUES (?,?,?,?,?,?,?,?,?,?);";
 
@@ -356,11 +357,11 @@ public class SOCDBHelper
      * {@link #saveGameCommand} for schema &gt;= {@link #SCHEMA_VERSION_1200}.
      * @since 1.2.00
      */
-    private static String SAVE_GAME_COMMAND_1200 =
+    private static final String SAVE_GAME_COMMAND_1200 =
         "INSERT INTO games(gamename,player1,player2,player3,player4,player5,player6,score1,score2,score3,score4,score5,score6,"
         + "starttime,duration_sec,winner,gameopts) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
 
-    private static String ROBOT_PARAMS_QUERY = "SELECT * FROM robotparams WHERE robotname = ?;";
+    private static final String ROBOT_PARAMS_QUERY = "SELECT * FROM robotparams WHERE robotname = ?;";
     private static final String USER_COUNT_QUERY = "SELECT count(*) FROM users;";
 
     /**

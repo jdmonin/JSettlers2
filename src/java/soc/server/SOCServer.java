@@ -1377,7 +1377,7 @@ public class SOCServer extends Server
         {
             if (wants_upg_schema)
             {
-                // the schema upgrade failed to complete; upgradeSchema() has printed it.
+                // the schema upgrade failed to complete; upgradeSchema() printed the exception.
                 // don't continue server startup with just a warning
 
                 throw sqle;
@@ -1394,7 +1394,7 @@ public class SOCServer extends Server
 
             if (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
             {
-                // the sql script in initialize failed to complete;
+                // the sql script ran in initialize failed to complete;
                 // now that we've printed the exception, don't continue server startup with just a warning
 
                 throw sqle;
