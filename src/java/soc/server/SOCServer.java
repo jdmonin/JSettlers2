@@ -60,6 +60,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
@@ -1085,7 +1086,11 @@ public class SOCServer extends Server
                     }
                     catch (Exception e)
                     {
-                        System.err.println(e);
+                        if (e instanceof MissingResourceException)
+                            System.err.println("* To begin schema upgrade, please fix and rerun: " + e.getMessage());
+                        else
+                            System.err.println(e);
+
                         if (e instanceof SQLException)
                         {
                             throw (SQLException) e;
@@ -1125,7 +1130,7 @@ public class SOCServer extends Server
         {
             if (wants_upg_schema)
             {
-                // the schema upgrade failed to complete; upgradeSchema() has printed the exception.
+                // the schema upgrade failed to complete; upgradeSchema() printed the exception.
                 // don't continue server startup with just a warning
 
                 throw sqle;

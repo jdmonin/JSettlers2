@@ -327,6 +327,7 @@ for reports or community-building.
 
 For these instructions we'll assume you already installed the PostgreSQL or
 MySQL software, or will download a SQLite JAR to avoid database server setup.
+JSettlers is tested with sqlite 3.7, mysql 5.5, and postgresql 8.4 and 9.5.
 
 You will need a JDBC driver JAR file in your classpath or the same directory as
 the JSettlers JAR, see below for details. Besides PostgreSQL, MySQL, or SQLite
@@ -380,7 +381,9 @@ Database Creation:
 To create the jsettlers database and its db user ('socuser') and security,
 execute the SQL db scripts located in src/bin/sql/
 (included in jsettlers-1.x.xx-full.tar.gz): Change to that directory
-and follow the instructions here for your database type.
+and follow the instructions here for your database type. Afterwards,
+see above for instructions on starting the JSettlers server and connecting
+to the database.
 
 If you downloaded the JAR and not the full tar.gz, you can get the SQL scripts
 from https://github.com/jdmonin/JSettlers2/tree/stable-1.x.xx/src/bin/sql .
@@ -392,6 +395,16 @@ Run these commands, which will ask for the mysql root password:
   $ mysql -u root -p -e "SOURCE jsettlers-create-mysql.sql"
   $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables.sql"
 If the scripts run without any errors, they will produce no output.
+To validate, you can list tables with this command:
+  $ mysql -u root -D socdata -p -e "show tables"
+	+-------------------+
+	| Tables_in_socdata |
+	+-------------------+
+	| games             |
+	| logins            |
+	| robotparams       |
+	| users             |
+	+-------------------+
 
 For Postgres:
 Run these commands as the postgres system user:
@@ -399,7 +412,17 @@ Run these commands as the postgres system user:
   $ psql -d socdata --file jsettlers-tables.sql
   $ psql -d socdata --file jsettlers-sec-postgres.sql
 If the scripts run without any errors, they will produce very terse output
-such as "CREATE DATABASE" or "CREATE TABLE".
+such as "CREATE DATABASE", "CREATE TABLE", and "NOTICE:
+CREATE TABLE / PRIMARY KEY will create implicit index".
+You can validate by listing the newly created tables with this command:
+  $ psql -d socdata -c '\dt'
+	            List of relations
+	 Schema |    Name     | Type  |  Owner   
+	--------+-------------+-------+----------
+	 public | games       | table | socuser
+	 public | logins      | table | socuser
+	 public | robotparams | table | socuser
+	 public | users       | table | socuser
 
 For sqlite:
 Copy jsettlers-tables.sql to the same directory as JSettlersServer.jar
