@@ -60,7 +60,7 @@ import java.util.Set;
  * This class contains methods for connecting to a database
  * and for manipulating the data stored there.
  *<P>
- * Based on jdbc code found at www.javaworld.com
+ * Originally based on jdbc code found at www.javaworld.com
  *<P>
  * This code assumes that you're using mySQL as your database,
  * but allows you to use other database types.
@@ -409,6 +409,10 @@ public class SOCDBHelper
      *  @since 1.1.19
      */
     private static PreparedStatement userCountQuery = null;
+
+    /****************************************
+     * Connect and initialize, related methods and getters
+     ****************************************/
 
     /**
      * This makes a connection to the database
@@ -791,468 +795,9 @@ public class SOCDBHelper
         userCountQuery = connection.prepareStatement(USER_COUNT_QUERY);
     }
 
-    /**
-     * Load and run a SQL script.
-     * Typically DDL commands to create or alter tables, indexes, etc.
-     * @param setupScriptPath  Full path or relative path to the SQL script filename
-     * @throws FileNotFoundException  if file not found
-     * @throws IOException  if any other IO error occurs
-     * @throws SQLException if any unexpected database problem
-     * @since 1.1.15
-     */
-    private static void runSetupScript(final String setupScriptPath)
-        throws FileNotFoundException, IOException, SQLException
-    {
-        if (! checkConnection())
-            return;  // also may throw SQLException
-
-        FileReader fr = new FileReader(setupScriptPath);
-        BufferedReader br = new BufferedReader(fr);
-        List<String> sqls = new ArrayList<String>();
-
-        // Read 1 line at a time, with continuations; build a list
-        try
-        {
-            StringBuilder sb = new StringBuilder();
-
-            for (String nextLine = br.readLine(); nextLine != null; nextLine = br.readLine())
-            {
-                // Reminder: java String.trim removes ascii whitespace (including tabs) but not unicode whitespace.
-                // Character.isWhitespace is true for both ascii and unicode whitespace, except non-breaking spaces.
-
-                if ((nextLine.length() == 0) || (nextLine.trim().length() == 0))
-                    continue;  // <-- skip empty lines --
-
-                if (nextLine.startsWith("--"))
-                    continue;  // <-- skip comment lines with no leading whitespace --
-
-                if ((dbType == DBTYPE_SQLITE) && nextLine.toLowerCase().startsWith("use "))
-                    continue;  // <-- sqlite doesn't support "USE"
-
-                // If starts with whitespace, append it to sb (continue previous line).
-                // Otherwise, add previous sb to the sqls list, and start a new sb containing nextLine.
-                if (Character.isWhitespace(nextLine.codePointAt(0)))
-                {
-                    if (sb.length() > 0)
-                        sb.append("\n");  // previous line's readLine doesn't include the trailing \n
-                } else {
-                    sqls.add(sb.toString());
-                    sb.delete(0, sb.length());
-                }
-                sb.append(nextLine);
-            }
-
-            // don't forget the last command
-            sqls.add(sb.toString());
-
-            // done reading the file
-            try { br.close(); }
-            catch (IOException eclose) {}
-            try { fr.close(); }
-            catch (IOException eclose) {}
-        }
-        catch (IOException e)
-        {
-            try { br.close(); }
-            catch (IOException eclose) {}
-            try { fr.close(); }
-            catch (IOException eclose) {}
-
-            throw e;
-        }
-
-        // No errors: Run the built list of SQLs
-        for (String sql : sqls)
-        {
-            if (sql.trim().length() == 0)
-                continue;
-            Statement cmd = connection.createStatement();
-            cmd.executeUpdate(sql);
-            cmd.close();
-        }
-    }
-
-    /**
-     * Perform pre-checks and upgrade the currently connected DB to the latest schema, with all optional fields.
-     *<P>
-     * Pre-checks include {@link #queryUsersDuplicateLCase(Set)}.
-     *
-     *<H3>Security note:</H3>
-     * To upgrade the schema, the DB connect username must have authorization grants to
-     * run DDL commands, add or alter tables, etc.
-     *
-     *<H3>Rollback of failed upgrade:</H3>
-     * If the schema upgrade fails, errors will be printed to {@link System#err} and thrown as a SQLException.
-     * If failures also occur during rollback, those are also printed to {@link System#err}.
-     * If the DB is SQLite, any added table fields can't be dropped, and the DB file must be restored from a backup
-     * because rollback is incomplete.
-     *
-     * @throws IllegalStateException  if already latest version ({@link #isSchemaLatestVersion()}),
-     *     or if not connected to DB (! {@link #isInitialized()})
-     * @throws MissingResourceException  if pre-checks indicate a problem in the data (such as wrong current DB user,
-     *     or nicknames which collide with each other when lowercase) which must be manually resolved by this
-     *     server's administrator before upgrade: {@link Throwable#getMessage()} will be a multi-line string with
-     *     problem details to show to the server admin.
-     * @throws SQLException  if any unexpected database problem during the upgrade
-     * @see {@link #isSchemaLatestVersion()}
-     * @since 1.2.00
-     */
-    public static void upgradeSchema()
-        throws IllegalStateException, SQLException, MissingResourceException
-    {
-        if (isSchemaLatestVersion())  // throws IllegalStateException if ! isInitialized()
-            throw new IllegalStateException("already at latest schema");
-
-        /* final pre-checks */
-        if (dbType == DBTYPE_POSTGRESQL)
-        {
-            // Check table ownership since table create scripts may have ran as postgres user, not socuser
-            String otherOwner = upg_postgres_checkIsTableOwner();
-            if (otherOwner != null)
-                throw new MissingResourceException
-                    ("Must change table owner to " + userName + " from " + otherOwner, "unused", "unused");
-        }
-        final Set<String> upg_1200_allUsers = new HashSet<String>();  // built during pre-check, used during upgrade
-        if (schemaVersion < SCHEMA_VERSION_1200)
-        {
-            /* pre-checks */
-            final Map<String, List<String>> dupes = queryUsersDuplicateLCase(upg_1200_allUsers);
-            if (dupes != null)
-            {
-                StringBuilder sb = new StringBuilder
-                    ("These groups of users' nicknames collide with each other when lowercase:\n");
-                for (String k : dupes.keySet())
-                {
-                    sb.append(dupes.get(k));  // "[jtest2, JTest2, JTesT2]"
-                    sb.append('\n');
-                }
-                sb.append
-                    ("\nTo upgrade, the nicknames must be changed to be unique when lowercase.\n"
-                     + "Contact each user and determine new nicknames, then for each user run this SQL:\n"
-                     + "  BEGIN;\n"
-                     + "  UPDATE users SET nickname='newnick' WHERE nickname='oldnick';\n"
-                     + "  UPDATE logins SET nickname='newnick' WHERE nickname='oldnick';\n"
-                     + "  UPDATE games SET player1='newnick' WHERE player1='oldnick';\n"
-                     + "  UPDATE games SET player2='newnick' WHERE player2='oldnick';\n"
-                     + "  UPDATE games SET player3='newnick' WHERE player3='oldnick';\n"
-                     + "  UPDATE games SET player4='newnick' WHERE player4='oldnick';\n"
-                     + "  COMMIT;\n"
-                     + "Then, retry the DB schema upgrade.\n"
-                    );
-
-                throw new MissingResourceException(sb.toString(), "unused", "unused");
-            }
-        }
-
-        final String TIMESTAMP_NULL = (dbType == DBTYPE_POSTGRESQL)
-            ? "TIMESTAMP WITHOUT TIME ZONE"
-            : (dbType == DBTYPE_MYSQL)
-                ? "TIMESTAMP NULL DEFAULT null"
-                : "TIMESTAMP";
-        final String TIMESTAMP = (dbType == DBTYPE_POSTGRESQL)
-            ? "TIMESTAMP WITHOUT TIME ZONE"
-            : "TIMESTAMP";
-
-        /* 1.2.00: First, create db_version table */
-        if (schemaVersion < SCHEMA_VERSION_1200)
-        {
-            // no rollback needed if fails, so don't try/catch here
-
-            final String sql = "CREATE TABLE db_version ("
-                + "from_vers INT not null, to_vers INT not null, ddl_done "
-                + TIMESTAMP_NULL +", bg_tasks_done " + TIMESTAMP_NULL
-                + ", PRIMARY KEY (to_vers) );";
-            runDDL(sql);
-        }
-
-        /* add upgrade in progress to db_version history table */
-        final int from_vers = schemaVersion;
-        try
-        {
-            // no rollback needed if fails, unless schemaVersion < SCHEMA_VERSION_1200
-
-            PreparedStatement ps = connection.prepareStatement
-                ("INSERT into db_version(from_vers, to_vers, ddl_done, bg_tasks_done) VALUES(?,?,null,null);");
-            ps.setInt(1, from_vers);
-            ps.setInt(2, SCHEMA_VERSION_LATEST);
-            ps.executeUpdate();
-            ps.close();
-        } catch (SQLException e) {
-            if (schemaVersion < SCHEMA_VERSION_1200)
-            {
-                try {
-                    runDDL("DROP TABLE db_version;");
-                }
-                catch (SQLException se) {
-                    if (se.getCause() == null)
-                        se.initCause(e);
-                    throw se;
-                }
-            }
-            throw e;
-        }
-
-        // NOTES for future schema changes:
-        // - Keep your DDL SQL syntax consistent with the commands tested in testDBHelper().
-        // - Be prepared to rollback to a known-good state if a problem occurs.
-        //   Each unrelated part of an upgrade must completely succeed or fail.
-        //   That requirement is for postgresql and mysql: sqlite can't drop any added columns;
-        //   the server's admin must back up their sqlite db before running the upgrade.
-
-        /**
-         * 1.2.00: settings table;
-         *     games + player5, player6, score5, score6, duration_sec, winner, gameopts;
-         *     users + nickname_lc, pw_scheme, pw_store, pw_change, index users__l
-         */
-        if (schemaVersion < SCHEMA_VERSION_1200)
-        {
-            /* add games fields; add users field, fill it, add unique index */
-            boolean added_tab_settings = false, added_game_fields = false, added_user_fields = false;
-            try
-            {
-                runDDL
-                    ("CREATE TABLE settings ( s_name varchar(32) not null, s_value varchar(500), i_value int, "
-                     + "s_changed " + TIMESTAMP + " not null, PRIMARY KEY (s_name) );");
-                added_tab_settings = true;
-
-                // sqlite can't add multiple fields at once
-                runDDL("ALTER TABLE games ADD COLUMN player5 VARCHAR(20);");
-                added_game_fields = true;
-                runDDL("ALTER TABLE games ADD COLUMN player6 VARCHAR(20);");
-                runDDL("ALTER TABLE games ADD COLUMN score5 SMALLINT;");
-                runDDL("ALTER TABLE games ADD COLUMN score6 SMALLINT;");
-                runDDL("ALTER TABLE games ADD COLUMN duration_sec INT;");
-                runDDL("ALTER TABLE games ADD COLUMN winner VARCHAR(20);");
-                runDDL("ALTER TABLE games ADD COLUMN gameopts VARCHAR(500);");
-
-                runDDL("ALTER TABLE users ADD COLUMN nickname_lc VARCHAR(20);");
-                added_user_fields = true;
-                runDDL("ALTER TABLE users ADD COLUMN pw_scheme INT;");
-                runDDL("ALTER TABLE users ADD COLUMN pw_store VARCHAR(255);");
-                runDDL("ALTER TABLE users ADD COLUMN pw_change " + TIMESTAMP_NULL + ";");
-
-                // fill nickname_lc field; use String.toLowerCase(..), not SQL lower(..) which is ascii-only on sqlite.
-                if (! upg_1200_allUsers.isEmpty())
-                {
-                    final boolean was_conn_autocommit = connection.getAutoCommit();
-
-                    PreparedStatement ps = connection.prepareStatement
-                        ("UPDATE users SET nickname_lc=? WHERE nickname=?");
-
-                    // begin transaction
-                    if (was_conn_autocommit)
-                        connection.setAutoCommit(false);
-                    else
-                        try {
-                            connection.commit();  // end previous transaction, if any
-                        } catch (SQLException e) {}
-
-                    try
-                    {
-                        int n = 0;
-                        for (final String nm : upg_1200_allUsers)
-                        {
-                            ps.setString(1, nm.toLowerCase(Locale.US));
-                            ps.setString(2, nm);
-                            ps.addBatch();
-                            ++n;
-                            if (n >= UPG_BATCH_MAX)
-                            {
-                                ps.executeBatch();
-                                ps.clearBatch();
-                                n = 0;
-                            }
-                        }
-                        ps.executeBatch();
-                        connection.commit();
-                    } catch (SQLException e) {
-                        connection.rollback();
-                        throw e;
-                    } finally {
-                        if (was_conn_autocommit)
-                            connection.setAutoCommit(true);
-                    }
-
-                }
-
-                // create unique index
-                runDDL("CREATE UNIQUE INDEX users__l ON users(nickname_lc);");
-
-            } catch (SQLException e) {
-                System.err.println
-                    ("*** Problem occurred during schema upgrade: Will attempt to roll back.\n" + e + "\n");
-
-                boolean couldRollback = true;
-
-                if (added_tab_settings && ! runDDL_rollback("DROP TABLE settings;"))
-                    couldRollback = false;
-
-                if (couldRollback && added_user_fields)
-                {
-                    final String[] cols = {"pw_scheme", "pw_store", "pw_change"};
-                    if ((dbType == DBTYPE_SQLITE)
-                              // roll back first field added, if exception was thrown for that
-                        || ! (runDDL_rollback("ALTER TABLE users DROP nickname_lc;")
-                              && runDDL_dropCols("users", cols)))
-                        couldRollback = false;
-                }
-
-                if (couldRollback && added_game_fields)
-                {
-                    final String[] cols = {"player6", "score5", "score6", "duration_sec", "winner", "gameopts"};
-                    if ((dbType == DBTYPE_SQLITE)
-                        || ! (runDDL_rollback("ALTER TABLE games DROP player5;")
-                              && runDDL_dropCols("games", cols)))
-                        couldRollback = false;
-                }
-
-                if (! couldRollback)
-                    System.err.println
-                        ("*** Could not completely roll back failed upgrade: Must restore DB from backup!");
-
-                throw e;
-            }
-        }
-
-        /* mark upgrade as completed in db_version table */
-        final boolean has_bg_tasks = false;
-        {
-            PreparedStatement ps = connection.prepareStatement
-                ("UPDATE db_version SET ddl_done=?, bg_tasks_done=? WHERE to_vers=?;");
-            final Timestamp now = new Timestamp(System.currentTimeMillis());
-            ps.setTimestamp(1, now);
-            if (has_bg_tasks)
-                ps.setNull(2, Types.TIMESTAMP);
-            else
-                ps.setTimestamp(2, now);
-            ps.setInt(3, SCHEMA_VERSION_LATEST);
-            ps.executeUpdate();
-            ps.close();
-        }
-
-        prepareStatements();
-
-        /* upgrade is completed. */
-        System.err.println("* DB schema upgrade completed.\n\n");
-    }
-
-    /**
-     * Run DDL to drop columns, useful during rollback. Syntax varies by DB type.
-     * @param tabName Table name
-     * @param colNames Columns to drop
-     * @return True if drops succeeded, false if an Exception occurred.
-     *    The Exception will also be printed to {@link System#err}.
-     * @throws IllegalStateException if {@link #dbType} is {@link #DBTYPE_SQLITE}, which cannot drop columns
-     * @since 1.2.00
-     */
-    private static boolean runDDL_dropCols(final String tabName, final String[] colNames)
-        throws IllegalStateException
-    {
-        if (dbType == DBTYPE_SQLITE)
-            throw new IllegalStateException("sqlite cannot drop columns");
-
-        try {
-            if ((dbType == DBTYPE_MYSQL) || (dbType == DBTYPE_POSTGRESQL) || (dbType == DBTYPE_ORA))
-            {
-                // These dbTypes can drop multiple columns as a single statement; see 2013-09-01 item
-                // https://stackoverflow.com/questions/6346120/how-do-i-drop-multiple-columns-with-a-single-alter-table-statement
-                // mysql, postgres: ALTER TABLE users DROP pw_scheme, DROP pw_store, DROP pw_change;
-                // ora:             ALTER TABLE users DROP (pw_scheme, pw_store, pw_change);
-                StringBuilder sb = new StringBuilder("ALTER TABLE ");
-                sb.append(tabName);
-                for (int i = 0; i < colNames.length; ++i)
-                {
-                    if (i > 0)
-                        sb.append(',');
-                    if (dbType != DBTYPE_ORA)
-                        sb.append(" DROP ");
-                    else if (i == 0)
-                        sb.append(" DROP (");
-                    sb.append(colNames[i]);
-                }
-                if (dbType == DBTYPE_ORA)
-                    sb.append(')');
-                sb.append(';');
-                runDDL(sb.toString());
-            } else {
-                for (int i = 0; i < colNames.length; ++i)
-                    runDDL("ALTER TABLE " + tabName + " DROP " + colNames[i] + ';');
-            }
-
-            return true;
-        }
-        catch (Exception e) {
-            System.err.println("* Problem during drop columns for " + tabName + ": " + e);
-
-            return false;
-        }
-    }
-
-    /**
-     * Run a DDL command to roll back part of a database upgrade.
-     * Assumes this is run within a {@code catch} block, and thus
-     * any {@link SQLException}s should be caught here. If an Exception
-     * occurs, it will be printed to {@link System#err}.
-     *
-     * @param sql  SQL to run
-     * @return True if command succeeded, false if an Exception was thrown
-     * @since 1.2.00
-     */
-    private static boolean runDDL_rollback(final String sql)
-    {
-        try {
-            runDDL(sql);
-            return true;
-        }
-        catch (Exception rollE) {
-            System.err.println("* Problem during rollback: " + rollE);
-            return false;
-        }
-    }
-
-    /**
-     * For {@link #upgradeSchema()} with {@link #DBTYPE_POSTGRESQL}, check that we're
-     * currently connected as the owner of jsettlers tables such as {@code 'users'}.
-     * If not, DDL will probably fail.
-     * @return {@code null} if OK, or table owner name if <B>not</B> currently connected as table owner.
-     * @throws SQLException  if any unexpected database problem querying current user or table owner
-     * @since 1.2.00
-     */
-    private static String upg_postgres_checkIsTableOwner()
-        throws SQLException
-    {
-        String curr = null, owner = null, error = null;
-
-        String sql = "select current_user;";
-        ResultSet rs = connection.createStatement().executeQuery(sql);
-        if (rs.next())
-            curr = rs.getString(1);
-        else
-            error = "Empty result: " + sql;
-        rs.close();
-
-        if (error == null)
-        {
-            sql = "select tableowner from pg_tables where tablename='users';";
-            rs = connection.createStatement().executeQuery(sql);
-            if (rs.next())
-            {
-                owner = rs.getString(1);
-                if (owner == null)
-                    error = "Null owner for users table from: " + sql;
-            } else{
-                error = "Empty result: " + sql;
-            }
-            rs.close();
-        }
-
-        if (error != null)
-            throw new SQLException(error);
-
-        // assert: owner != null
-
-        return (owner.equals(curr)) ? null : owner;
-    }
+    /****************************************
+     * SOCDBHelper API methods
+     ****************************************/
 
     /**
      * Search for and return this user (nickname) if it exists in the database.
@@ -1921,6 +1466,75 @@ public class SOCDBHelper
         }
     }
 
+    /****************************************
+     * Public utility methods
+     ****************************************/
+
+    /**
+     * Query all users to find any 'duplicate' user names, according to
+     * {@link String#toLowerCase(java.util.Locale) String.toLowercase}
+     * ({@link java.util.Locale#US Locale.US}).
+     * Return any if found.
+     * @param out_allNames if not {@code null}, will place all usernames in the database into this set
+     * @return {@code null} if no dupes, or a Map of any lowercased names
+     *     to all the non-lowercased names which all map to that lowercased name
+     * @since 1.2.00
+     */
+    public static Map<String,List<String>> queryUsersDuplicateLCase(final Set<String> out_allNames)
+        throws IllegalStateException, SQLException
+    {
+        try
+        {
+            if (! checkConnection())
+                throw new IllegalStateException();
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+
+        HashMap<String,String> namesFromLC = new HashMap<String,String>();  // lowercase -> non-lowercase name
+        Map<String,List<String>> dupeMap = new HashMap<String,List<String>>();  // duplicates from namesFromLC
+
+        Statement s = connection.createStatement();
+        ResultSet rs = null;
+        try
+        {
+            rs = s.executeQuery("SELECT nickname FROM users");
+            while (rs.next())
+            {
+                String nm = rs.getString(1);
+                String nmLC = nm.toLowerCase(Locale.US);
+                if (namesFromLC.containsKey(nmLC))
+                {
+                    List<String> li = dupeMap.get(nmLC);
+                    if (li == null)
+                    {
+                        li = new ArrayList<String>();
+                        li.add(namesFromLC.get(nmLC));  // previously-found name with this lc
+                        dupeMap.put(nmLC, li);
+                    }
+                    li.add(nm);
+                } else {
+                    namesFromLC.put(nmLC, nm);
+                }
+
+                if (out_allNames != null)
+                    out_allNames.add(nm);
+            }
+
+        } finally {
+            try {
+                if (rs != null)
+                    rs.close();
+            } catch (SQLException e) {}
+            try {
+                s.close();
+            } catch (SQLException e) {}
+        }
+
+        namesFromLC.clear();
+        return (dupeMap.isEmpty()) ? null : dupeMap;
+    }
+
     /**
      * Query to see if a table exists in the database.
      * Any exception is caught here and returns false.
@@ -2055,100 +1669,358 @@ public class SOCDBHelper
         return true;
     }
 
+    /****************************************
+     * DB install, schema upgrade
+     ****************************************/
+
     /**
-     * Query all users to find any 'duplicate' user names, according to
-     * {@link String#toLowerCase(java.util.Locale) String.toLowercase}
-     * ({@link java.util.Locale#US Locale.US}).
-     * Return any if found.
-     * @param out_allNames if not {@code null}, will place all usernames in the database into this set
-     * @return {@code null} if no dupes, or a Map of any lowercased names
-     *     to all the non-lowercased names which all map to that lowercased name
-     * @since 1.2.00
+     * Load and run a SQL script.
+     * Typically DDL commands to create or alter tables, indexes, etc.
+     * @param setupScriptPath  Full path or relative path to the SQL script filename
+     * @throws FileNotFoundException  if file not found
+     * @throws IOException  if any other IO error occurs
+     * @throws SQLException if any unexpected database problem
+     * @since 1.1.15
      */
-    public static Map<String,List<String>> queryUsersDuplicateLCase(final Set<String> out_allNames)
-        throws IllegalStateException, SQLException
+    private static void runSetupScript(final String setupScriptPath)
+        throws FileNotFoundException, IOException, SQLException
     {
+        if (! checkConnection())
+            return;  // also may throw SQLException
+
+        FileReader fr = new FileReader(setupScriptPath);
+        BufferedReader br = new BufferedReader(fr);
+        List<String> sqls = new ArrayList<String>();
+
+        // Read 1 line at a time, with continuations; build a list
         try
         {
-            if (! checkConnection())
-                throw new IllegalStateException();
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        }
+            StringBuilder sb = new StringBuilder();
 
-        HashMap<String,String> namesFromLC = new HashMap<String,String>();  // lowercase -> non-lowercase name
-        Map<String,List<String>> dupeMap = new HashMap<String,List<String>>();  // duplicates from namesFromLC
-
-        Statement s = connection.createStatement();
-        ResultSet rs = null;
-        try
-        {
-            rs = s.executeQuery("SELECT nickname FROM users");
-            while (rs.next())
+            for (String nextLine = br.readLine(); nextLine != null; nextLine = br.readLine())
             {
-                String nm = rs.getString(1);
-                String nmLC = nm.toLowerCase(Locale.US);
-                if (namesFromLC.containsKey(nmLC))
-                {
-                    List<String> li = dupeMap.get(nmLC);
-                    if (li == null)
-                    {
-                        li = new ArrayList<String>();
-                        li.add(namesFromLC.get(nmLC));  // previously-found name with this lc
-                        dupeMap.put(nmLC, li);
-                    }
-                    li.add(nm);
-                } else {
-                    namesFromLC.put(nmLC, nm);
-                }
+                // Reminder: java String.trim removes ascii whitespace (including tabs) but not unicode whitespace.
+                // Character.isWhitespace is true for both ascii and unicode whitespace, except non-breaking spaces.
 
-                if (out_allNames != null)
-                    out_allNames.add(nm);
+                if ((nextLine.length() == 0) || (nextLine.trim().length() == 0))
+                    continue;  // <-- skip empty lines --
+
+                if (nextLine.startsWith("--"))
+                    continue;  // <-- skip comment lines with no leading whitespace --
+
+                if ((dbType == DBTYPE_SQLITE) && nextLine.toLowerCase().startsWith("use "))
+                    continue;  // <-- sqlite doesn't support "USE"
+
+                // If starts with whitespace, append it to sb (continue previous line).
+                // Otherwise, add previous sb to the sqls list, and start a new sb containing nextLine.
+                if (Character.isWhitespace(nextLine.codePointAt(0)))
+                {
+                    if (sb.length() > 0)
+                        sb.append("\n");  // previous line's readLine doesn't include the trailing \n
+                } else {
+                    sqls.add(sb.toString());
+                    sb.delete(0, sb.length());
+                }
+                sb.append(nextLine);
             }
 
-        } finally {
-            try {
-                if (rs != null)
-                    rs.close();
-            } catch (SQLException e) {}
-            try {
-                s.close();
-            } catch (SQLException e) {}
+            // don't forget the last command
+            sqls.add(sb.toString());
+
+            // done reading the file
+            try { br.close(); }
+            catch (IOException eclose) {}
+            try { fr.close(); }
+            catch (IOException eclose) {}
+        }
+        catch (IOException e)
+        {
+            try { br.close(); }
+            catch (IOException eclose) {}
+            try { fr.close(); }
+            catch (IOException eclose) {}
+
+            throw e;
         }
 
-        namesFromLC.clear();
-        return (dupeMap.isEmpty()) ? null : dupeMap;
+        // No errors: Run the built list of SQLs
+        for (String sql : sqls)
+        {
+            if (sql.trim().length() == 0)
+                continue;
+            Statement cmd = connection.createStatement();
+            cmd.executeUpdate(sql);
+            cmd.close();
+        }
     }
 
     /**
-     * Run a DDL command to create or remove a database structure.
-     * @param sql  SQL to run. Some DB types, including zentus sqlite JDBC, might ignore any SQL after the first ";".
-     * @throws IllegalStateException if not connected and if {@link #checkConnection()} fails
-     * @throws SQLException if an error occurs while running {@code sql}
+     * Perform pre-checks and upgrade the currently connected DB to the latest schema, with all optional fields.
+     *<P>
+     * Pre-checks include {@link #queryUsersDuplicateLCase(Set)}.
+     *
+     *<H3>Security note:</H3>
+     * To upgrade the schema, the DB connect username must have authorization grants to
+     * run DDL commands, add or alter tables, etc.
+     *
+     *<H3>Rollback of failed upgrade:</H3>
+     * If the schema upgrade fails, errors will be printed to {@link System#err} and thrown as a SQLException.
+     * If failures also occur during rollback, those are also printed to {@link System#err}.
+     * If the DB is SQLite, any added table fields can't be dropped, and the DB file must be restored from a backup
+     * because rollback is incomplete.
+     *
+     * @throws IllegalStateException  if already latest version ({@link #isSchemaLatestVersion()}),
+     *     or if not connected to DB (! {@link #isInitialized()})
+     * @throws MissingResourceException  if pre-checks indicate a problem in the data (such as wrong current DB user,
+     *     or nicknames which collide with each other when lowercase) which must be manually resolved by this
+     *     server's administrator before upgrade: {@link Throwable#getMessage()} will be a multi-line string with
+     *     problem details to show to the server admin.
+     * @throws SQLException  if any unexpected database problem during the upgrade
+     * @see {@link #isSchemaLatestVersion()}
      * @since 1.2.00
-     * @see #runDDL_rollback(String)
      */
-    private static void runDDL(final String sql)
-        throws IllegalStateException, SQLException
+    public static void upgradeSchema()
+        throws IllegalStateException, SQLException, MissingResourceException
     {
-        try
+        if (isSchemaLatestVersion())  // throws IllegalStateException if ! isInitialized()
+            throw new IllegalStateException("already at latest schema");
+
+        /* final pre-checks */
+        if (dbType == DBTYPE_POSTGRESQL)
         {
-            if (! checkConnection())
-                throw new IllegalStateException();
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
+            // Check table ownership since table create scripts may have ran as postgres user, not socuser
+            String otherOwner = upg_postgres_checkIsTableOwner();
+            if (otherOwner != null)
+                throw new MissingResourceException
+                    ("Must change table owner to " + userName + " from " + otherOwner, "unused", "unused");
+        }
+        final Set<String> upg_1200_allUsers = new HashSet<String>();  // built during pre-check, used during upgrade
+        if (schemaVersion < SCHEMA_VERSION_1200)
+        {
+            /* pre-checks */
+            final Map<String, List<String>> dupes = queryUsersDuplicateLCase(upg_1200_allUsers);
+            if (dupes != null)
+            {
+                StringBuilder sb = new StringBuilder
+                    ("These groups of users' nicknames collide with each other when lowercase:\n");
+                for (String k : dupes.keySet())
+                {
+                    sb.append(dupes.get(k));  // "[jtest2, JTest2, JTesT2]"
+                    sb.append('\n');
+                }
+                sb.append
+                    ("\nTo upgrade, the nicknames must be changed to be unique when lowercase.\n"
+                     + "Contact each user and determine new nicknames, then for each user run this SQL:\n"
+                     + "  BEGIN;\n"
+                     + "  UPDATE users SET nickname='newnick' WHERE nickname='oldnick';\n"
+                     + "  UPDATE logins SET nickname='newnick' WHERE nickname='oldnick';\n"
+                     + "  UPDATE games SET player1='newnick' WHERE player1='oldnick';\n"
+                     + "  UPDATE games SET player2='newnick' WHERE player2='oldnick';\n"
+                     + "  UPDATE games SET player3='newnick' WHERE player3='oldnick';\n"
+                     + "  UPDATE games SET player4='newnick' WHERE player4='oldnick';\n"
+                     + "  COMMIT;\n"
+                     + "Then, retry the DB schema upgrade.\n"
+                    );
+
+                throw new MissingResourceException(sb.toString(), "unused", "unused");
+            }
         }
 
-        Statement s = connection.createStatement();
+        final String TIMESTAMP_NULL = (dbType == DBTYPE_POSTGRESQL)
+            ? "TIMESTAMP WITHOUT TIME ZONE"
+            : (dbType == DBTYPE_MYSQL)
+                ? "TIMESTAMP NULL DEFAULT null"
+                : "TIMESTAMP";
+        final String TIMESTAMP = (dbType == DBTYPE_POSTGRESQL)
+            ? "TIMESTAMP WITHOUT TIME ZONE"
+            : "TIMESTAMP";
+
+        /* 1.2.00: First, create db_version table */
+        if (schemaVersion < SCHEMA_VERSION_1200)
+        {
+            // no rollback needed if fails, so don't try/catch here
+
+            final String sql = "CREATE TABLE db_version ("
+                + "from_vers INT not null, to_vers INT not null, ddl_done "
+                + TIMESTAMP_NULL +", bg_tasks_done " + TIMESTAMP_NULL
+                + ", PRIMARY KEY (to_vers) );";
+            runDDL(sql);
+        }
+
+        /* add upgrade in progress to db_version history table */
+        final int from_vers = schemaVersion;
         try
         {
-            s.execute(sql);
-        } finally {
-            try {
-                s.close();
-            } catch (SQLException e) {}
+            // no rollback needed if fails, unless schemaVersion < SCHEMA_VERSION_1200
+
+            PreparedStatement ps = connection.prepareStatement
+                ("INSERT into db_version(from_vers, to_vers, ddl_done, bg_tasks_done) VALUES(?,?,null,null);");
+            ps.setInt(1, from_vers);
+            ps.setInt(2, SCHEMA_VERSION_LATEST);
+            ps.executeUpdate();
+            ps.close();
+        } catch (SQLException e) {
+            if (schemaVersion < SCHEMA_VERSION_1200)
+            {
+                try {
+                    runDDL("DROP TABLE db_version;");
+                }
+                catch (SQLException se) {
+                    if (se.getCause() == null)
+                        se.initCause(e);
+                    throw se;
+                }
+            }
+            throw e;
         }
+
+        // NOTES for future schema changes:
+        // - Keep your DDL SQL syntax consistent with the commands tested in testDBHelper().
+        // - Be prepared to rollback to a known-good state if a problem occurs.
+        //   Each unrelated part of an upgrade must completely succeed or fail.
+        //   That requirement is for postgresql and mysql: sqlite can't drop any added columns;
+        //   the server's admin must back up their sqlite db before running the upgrade.
+
+        /**
+         * 1.2.00: settings table;
+         *     games + player5, player6, score5, score6, duration_sec, winner, gameopts;
+         *     users + nickname_lc, pw_scheme, pw_store, pw_change, index users__l
+         */
+        if (schemaVersion < SCHEMA_VERSION_1200)
+        {
+            /* add games fields; add users field, fill it, add unique index */
+            boolean added_tab_settings = false, added_game_fields = false, added_user_fields = false;
+            try
+            {
+                runDDL
+                    ("CREATE TABLE settings ( s_name varchar(32) not null, s_value varchar(500), i_value int, "
+                     + "s_changed " + TIMESTAMP + " not null, PRIMARY KEY (s_name) );");
+                added_tab_settings = true;
+
+                // sqlite can't add multiple fields at once
+                runDDL("ALTER TABLE games ADD COLUMN player5 VARCHAR(20);");
+                added_game_fields = true;
+                runDDL("ALTER TABLE games ADD COLUMN player6 VARCHAR(20);");
+                runDDL("ALTER TABLE games ADD COLUMN score5 SMALLINT;");
+                runDDL("ALTER TABLE games ADD COLUMN score6 SMALLINT;");
+                runDDL("ALTER TABLE games ADD COLUMN duration_sec INT;");
+                runDDL("ALTER TABLE games ADD COLUMN winner VARCHAR(20);");
+                runDDL("ALTER TABLE games ADD COLUMN gameopts VARCHAR(500);");
+
+                runDDL("ALTER TABLE users ADD COLUMN nickname_lc VARCHAR(20);");
+                added_user_fields = true;
+                runDDL("ALTER TABLE users ADD COLUMN pw_scheme INT;");
+                runDDL("ALTER TABLE users ADD COLUMN pw_store VARCHAR(255);");
+                runDDL("ALTER TABLE users ADD COLUMN pw_change " + TIMESTAMP_NULL + ";");
+
+                // fill nickname_lc field; use String.toLowerCase(..), not SQL lower(..) which is ascii-only on sqlite.
+                if (! upg_1200_allUsers.isEmpty())
+                {
+                    final boolean was_conn_autocommit = connection.getAutoCommit();
+
+                    PreparedStatement ps = connection.prepareStatement
+                        ("UPDATE users SET nickname_lc=? WHERE nickname=?");
+
+                    // begin transaction
+                    if (was_conn_autocommit)
+                        connection.setAutoCommit(false);
+                    else
+                        try {
+                            connection.commit();  // end previous transaction, if any
+                        } catch (SQLException e) {}
+
+                    try
+                    {
+                        int n = 0;
+                        for (final String nm : upg_1200_allUsers)
+                        {
+                            ps.setString(1, nm.toLowerCase(Locale.US));
+                            ps.setString(2, nm);
+                            ps.addBatch();
+                            ++n;
+                            if (n >= UPG_BATCH_MAX)
+                            {
+                                ps.executeBatch();
+                                ps.clearBatch();
+                                n = 0;
+                            }
+                        }
+                        ps.executeBatch();
+                        connection.commit();
+                    } catch (SQLException e) {
+                        connection.rollback();
+                        throw e;
+                    } finally {
+                        if (was_conn_autocommit)
+                            connection.setAutoCommit(true);
+                    }
+
+                }
+
+                // create unique index
+                runDDL("CREATE UNIQUE INDEX users__l ON users(nickname_lc);");
+
+            } catch (SQLException e) {
+                System.err.println
+                    ("*** Problem occurred during schema upgrade: Will attempt to roll back.\n" + e + "\n");
+
+                boolean couldRollback = true;
+
+                if (added_tab_settings && ! runDDL_rollback("DROP TABLE settings;"))
+                    couldRollback = false;
+
+                if (couldRollback && added_user_fields)
+                {
+                    final String[] cols = {"pw_scheme", "pw_store", "pw_change"};
+                    if ((dbType == DBTYPE_SQLITE)
+                              // roll back first field added, if exception was thrown for that
+                        || ! (runDDL_rollback("ALTER TABLE users DROP nickname_lc;")
+                              && runDDL_dropCols("users", cols)))
+                        couldRollback = false;
+                }
+
+                if (couldRollback && added_game_fields)
+                {
+                    final String[] cols = {"player6", "score5", "score6", "duration_sec", "winner", "gameopts"};
+                    if ((dbType == DBTYPE_SQLITE)
+                        || ! (runDDL_rollback("ALTER TABLE games DROP player5;")
+                              && runDDL_dropCols("games", cols)))
+                        couldRollback = false;
+                }
+
+                if (! couldRollback)
+                    System.err.println
+                        ("*** Could not completely roll back failed upgrade: Must restore DB from backup!");
+
+                throw e;
+            }
+        }
+
+        /* mark upgrade as completed in db_version table */
+        final boolean has_bg_tasks = false;
+        {
+            PreparedStatement ps = connection.prepareStatement
+                ("UPDATE db_version SET ddl_done=?, bg_tasks_done=? WHERE to_vers=?;");
+            final Timestamp now = new Timestamp(System.currentTimeMillis());
+            ps.setTimestamp(1, now);
+            if (has_bg_tasks)
+                ps.setNull(2, Types.TIMESTAMP);
+            else
+                ps.setTimestamp(2, now);
+            ps.setInt(3, SCHEMA_VERSION_LATEST);
+            ps.executeUpdate();
+            ps.close();
+        }
+
+        prepareStatements();
+
+        /* upgrade is completed. */
+        System.err.println("* DB schema upgrade completed.\n\n");
     }
+
+    /****************************************
+     * Connection cleanup
+     ****************************************/
 
     /**
      * Close out and shut down the database connection.
@@ -2190,6 +2062,158 @@ public class SOCDBHelper
                 sqlE.printStackTrace();
                 throw sqlE;
             }
+        }
+    }
+
+    /****************************************
+     * Helpers for upgrade, etc
+     ****************************************/
+
+    /**
+     * For {@link #upgradeSchema()} with {@link #DBTYPE_POSTGRESQL}, check that we're
+     * currently connected as the owner of jsettlers tables such as {@code 'users'}.
+     * If not, DDL will probably fail.
+     * @return {@code null} if OK, or table owner name if <B>not</B> currently connected as table owner.
+     * @throws SQLException  if any unexpected database problem querying current user or table owner
+     * @since 1.2.00
+     */
+    private static String upg_postgres_checkIsTableOwner()
+        throws SQLException
+    {
+        String curr = null, owner = null, error = null;
+
+        String sql = "select current_user;";
+        ResultSet rs = connection.createStatement().executeQuery(sql);
+        if (rs.next())
+            curr = rs.getString(1);
+        else
+            error = "Empty result: " + sql;
+        rs.close();
+
+        if (error == null)
+        {
+            sql = "select tableowner from pg_tables where tablename='users';";
+            rs = connection.createStatement().executeQuery(sql);
+            if (rs.next())
+            {
+                owner = rs.getString(1);
+                if (owner == null)
+                    error = "Null owner for users table from: " + sql;
+            } else{
+                error = "Empty result: " + sql;
+            }
+            rs.close();
+        }
+
+        if (error != null)
+            throw new SQLException(error);
+
+        // assert: owner != null
+
+        return (owner.equals(curr)) ? null : owner;
+    }
+
+    /**
+     * Run DDL to drop columns, useful during rollback. Syntax varies by DB type.
+     * @param tabName Table name
+     * @param colNames Columns to drop
+     * @return True if drops succeeded, false if an Exception occurred.
+     *    The Exception will also be printed to {@link System#err}.
+     * @throws IllegalStateException if {@link #dbType} is {@link #DBTYPE_SQLITE}, which cannot drop columns
+     * @since 1.2.00
+     */
+    private static boolean runDDL_dropCols(final String tabName, final String[] colNames)
+        throws IllegalStateException
+    {
+        if (dbType == DBTYPE_SQLITE)
+            throw new IllegalStateException("sqlite cannot drop columns");
+
+        try {
+            if ((dbType == DBTYPE_MYSQL) || (dbType == DBTYPE_POSTGRESQL) || (dbType == DBTYPE_ORA))
+            {
+                // These dbTypes can drop multiple columns as a single statement; see 2013-09-01 item
+                // https://stackoverflow.com/questions/6346120/how-do-i-drop-multiple-columns-with-a-single-alter-table-statement
+                // mysql, postgres: ALTER TABLE users DROP pw_scheme, DROP pw_store, DROP pw_change;
+                // ora:             ALTER TABLE users DROP (pw_scheme, pw_store, pw_change);
+                StringBuilder sb = new StringBuilder("ALTER TABLE ");
+                sb.append(tabName);
+                for (int i = 0; i < colNames.length; ++i)
+                {
+                    if (i > 0)
+                        sb.append(',');
+                    if (dbType != DBTYPE_ORA)
+                        sb.append(" DROP ");
+                    else if (i == 0)
+                        sb.append(" DROP (");
+                    sb.append(colNames[i]);
+                }
+                if (dbType == DBTYPE_ORA)
+                    sb.append(')');
+                sb.append(';');
+                runDDL(sb.toString());
+            } else {
+                for (int i = 0; i < colNames.length; ++i)
+                    runDDL("ALTER TABLE " + tabName + " DROP " + colNames[i] + ';');
+            }
+
+            return true;
+        }
+        catch (Exception e) {
+            System.err.println("* Problem during drop columns for " + tabName + ": " + e);
+
+            return false;
+        }
+    }
+
+    /**
+     * Run a DDL command to roll back part of a database upgrade.
+     * Assumes this is run within a {@code catch} block, and thus
+     * any {@link SQLException}s should be caught here. If an Exception
+     * occurs, it will be printed to {@link System#err}.
+     *
+     * @param sql  SQL to run
+     * @return True if command succeeded, false if an Exception was thrown
+     * @since 1.2.00
+     */
+    private static boolean runDDL_rollback(final String sql)
+    {
+        try {
+            runDDL(sql);
+            return true;
+        }
+        catch (Exception rollE) {
+            System.err.println("* Problem during rollback: " + rollE);
+            return false;
+        }
+    }
+
+    /**
+     * Run a DDL command to create or remove a database structure.
+     * @param sql  SQL to run. Some DB types, including zentus sqlite JDBC, might ignore any SQL after the first ";".
+     * @throws IllegalStateException if not connected and if {@link #checkConnection()} fails
+     * @throws SQLException if an error occurs while running {@code sql}
+     * @since 1.2.00
+     * @see #runDDL_rollback(String)
+     */
+    private static void runDDL(final String sql)
+        throws IllegalStateException, SQLException
+    {
+        try
+        {
+            if (! checkConnection())
+                throw new IllegalStateException();
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+
+        Statement s = connection.createStatement();
+        try
+        {
+            s.execute(sql);
+        } finally {
+            try {
+                s.close();
+            } catch (SQLException e) {}
         }
     }
 
@@ -2235,6 +2259,10 @@ public class SOCDBHelper
             more = rs.next();
         }
     }
+
+    /****************************************
+     * testDBHelper() unit tests
+     ****************************************/
 
     /**
      * Unit testing: Call {@link #doesTableExist(String)} and print results.
