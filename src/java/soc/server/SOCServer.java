@@ -4553,7 +4553,7 @@ public class SOCServer extends Server
      *<P>
      * If this connection isn't already logged on and named ({@link StringConnection#getData() c.getData()}
      * == <tt>null</tt>) and all checks pass: Unless <tt>doNameConnection</tt> is false, calls
-     * {@link StringConnection#setData(Object) c.setData(msgUser)} and
+     * {@link StringConnection#setData(Object) c.setData(nickname)} and
      * {@link #nameConnection(StringConnection, boolean) nameConnection(c, isTakingOver)} before
      * returning {@link #AUTH_OR_REJECT__OK} or {@link #AUTH_OR_REJECT__TAKING_OVER}.
      *<P>
@@ -4568,14 +4568,19 @@ public class SOCServer extends Server
      *     or ""; will be {@link String#trim() trim()med}.
      * @param cliVers  Client version, from {@link StringConnection#getVersion()}
      * @param doNameConnection  True if successful auth of an unnamed connection should have this method call
-     *     {@link StringConnection#setData(Object) c.setData(msgUser)} and
+     *     {@link StringConnection#setData(Object) c.setData(nickname)} and
      *     {@link #nameConnection(StringConnection, boolean) nameConnection(c, isTakingOver)}.
+     *     <P>
+     *     If using the optional user DB, {@code nickname} is queried from the database by case-insensitive
+     *     search; see {@link SOCDBHelper#authenticateUserPassword(String, String)}.
+     *     Otherwise {@code nickname} is {@code msgUser}.
      *     <P>
      *     For the usual connect sequence, callers will want <tt>true</tt>.  Some callers might want to check
      *     other things after this method and possibly reject the connection at that point; they will want
-     *     <tt>false</tt>. Those callers must remember to call <tt>c.setData(msgUser)</tt> and
+     *     <tt>false</tt>. Those callers must remember to call <tt>c.setData(nickname)</tt> and
      *     <tt>nameConnection(c, (result == {@link #AUTH_OR_REJECT__TAKING_OVER}))</tt> themselves to finish
-     *     authenticating a connection.
+     *     authenticating a connection. They will also need to get the originally-cased nickname by
+     *     calling {@link SOCDBHelper#getUser(String)}.
      * @param allowTakeover  True if the new connection can "take over" an older connection in response to the
      *     message it sent.  If true, the caller must be prepared to send all game info/channel info that the
      *     old connection had joined, so the new connection has full info to participate in them.
@@ -4668,9 +4673,10 @@ public class SOCServer extends Server
         }
 
         /**
-         * password check new connection from database, if not done already and if possible
+         * password check new connection from optional database, if not done already and if possible
          */
-        if (! authenticateUser(c, msgUser, msgPass))
+        String authUsername = authenticateUser(c, msgUser, msgPass);
+        if (authUsername == null)
         {
             return AUTH_OR_REJECT__FAILED;  // <---- Early return: Password auth failed ----
         }
@@ -4681,7 +4687,7 @@ public class SOCServer extends Server
          */
         if (doNameConnection)
         {
-            c.setData(msgUser);
+            c.setData(authUsername);
             nameConnection(c, isTakingOver);
         }
 
@@ -4694,40 +4700,40 @@ public class SOCServer extends Server
      * if they're not in the db, but they supplied a password,
      * then send a message (not OK).
      * if they're not in the db, and no password, then ok.
+     *<P>
+     * Nickname search in the database is case-insensitive if supported by
+     * db schema version; see {@link SOCDBHelper#authenticateUserPassword(String, String)}.
+     * To give the originally-cased name from that search, if successful this method
+     * returns their nickname as stored in the database.
      *
      * @param c         the user's connection
-     * @param userName  the user's nickname; trim before calling
+     * @param userName  the user's nickname; trim before calling.
+     *     Case-insensitive if supported by db schema version.
      * @param password  the user's password; trim before calling
-     * @return true if the user has been authenticated
+     * @return nickname from DB  if the user has been authenticated;
+     *     {@code userName} if doesn't exist in database or not using the optional db at all;
+     *     {@code null} if user is in the db but password is wrong.
      */
-    private boolean authenticateUser(StringConnection c, final String userName, final String password)
+    private String authenticateUser(StringConnection c, final String userName, final String password)
     {
-        String userPassword = null;
+        String dbUserName = null;
 
         try
         {
-            userPassword = SOCDBHelper.getUserPassword(userName);
+            dbUserName = SOCDBHelper.authenticateUserPassword(userName, password);
         }
         catch (SQLException sqle)
         {
-            // Indicates a db problem: don't authenticate empty password
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_PROBLEM_WITH_DB, c.getVersion(),
                     "Problem connecting to database, please try again later."));
-            return false;
+            return null;
         }
 
         int replySV = 0;
-        if (userPassword != null)
+        if (dbUserName == null)
         {
-            if (! userPassword.equals(password))
-                replySV = SOCStatusMessage.SV_PW_WRONG;
-        }
-        else if (! password.equals(""))
-        {
-            // No password found in database.
-            // (Or, no database connected.)
-            // If they supplied a password, it won't work here.
+            // User found in database, incorrect password
 
             replySV = SOCStatusMessage.SV_PW_WRONG;
         }
@@ -4736,7 +4742,7 @@ public class SOCServer extends Server
         {
             final String txt = "Incorrect password for '" + userName + "'.";
             c.put(SOCStatusMessage.toCmd(replySV, c.getVersion(), txt));
-            return false;
+            return null;
         }
 
         //
@@ -4749,7 +4755,8 @@ public class SOCServer extends Server
         // Record the login info for this user
         //
         //SOCDBHelper.recordLogin(userName, c.host(), currentTime.getTime());
-        return true;
+
+        return dbUserName;
     }
 
     /**
@@ -5756,35 +5763,49 @@ public class SOCServer extends Server
                 return;
             }
 
-            // Check user authentication.  Don't call setData or nameConnection yet, in case
-            // of role-specific things to check and reject during this initial connection.
-            final String mesUser = mes.nickname.trim();  // trim here because we'll send it in messages to clients
-            final int authResult = authOrRejectClientUser(c, mesUser, mes.password, cliVersion, false, false);
+            // Check user authentication.  Don't call setData or nameConnection yet if there
+            // are role-specific things to check and reject during this initial connection.
+            final boolean isPlayerRole = mes.role.equals(SOCAuthRequest.ROLE_GAME_PLAYER);
+            final String mesUser = mes.nickname.trim();  // trim before db query calls
+            final int authResult = authOrRejectClientUser
+                (c, mesUser, mes.password, cliVersion, isPlayerRole, false);
 
             if (authResult == AUTH_OR_REJECT__FAILED)
                 return;  // <---- Early return; authOrRejectClientUser sent the status message ----
 
-            if (mes.role.equals(SOCAuthRequest.ROLE_USER_ADMIN))
+            if (! isPlayerRole)
             {
-                // Check if we're using a user admin whitelist
-                if (! isUserDBUserAdmin(mesUser, false))
+                if (mes.role.equals(SOCAuthRequest.ROLE_USER_ADMIN))
                 {
+                    // Check if we're using a user admin whitelist
+                    if (! isUserDBUserAdmin(mesUser, false))
+                    {
+                        c.put(SOCStatusMessage.toCmd
+                                (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVersion,
+                                 "Your account is not authorized to create accounts."));
+
+                        printAuditMessage
+                            (mesUser,
+                             "Requested jsettlers account creation, this requester not on account admin whitelist",
+                             null, null, c.host());
+
+                        return;
+                    }
+                }
+
+                // no role-specific problems: complete the authentication
+                try
+                {
+                    c.setData(SOCDBHelper.getUser(mesUser));  // because mesUser is case-insensitive
+                    nameConnection(c, false);
+                } catch (SQLException e) {
+                    // unlikely, we've just queried db in authOrRejectClientUser
                     c.put(SOCStatusMessage.toCmd
-                            (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVersion,
-                             "Your account is not authorized to create accounts."));
-
-                    printAuditMessage
-                        (mesUser,
-                         "Requested jsettlers account creation, this requester not on account admin whitelist",
-                         null, null, c.host());
-
+                            (SOCStatusMessage.SV_PROBLEM_WITH_DB, c.getVersion(),
+                             "Problem connecting to database, please try again later."));
                     return;
                 }
             }
-
-            // no role-specific problems: complete the authentication
-            c.setData(mesUser);
-            nameConnection(c, false);
         }
 
         c.put(SOCStatusMessage.toCmd
@@ -8986,11 +9007,12 @@ public class SOCServer extends Server
         //
         try
         {
-            if (SOCDBHelper.doesUserExist(userName))
+            final String dbUserName = SOCDBHelper.getUser(userName);
+            if (dbUserName != null)
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                         "The nickname '" + userName + "' is already in use."));
+                         "The nickname '" + dbUserName + "' is already in use."));
 
                 printAuditMessage
                     (requester, "Requested jsettlers account creation, already exists",
@@ -11454,11 +11476,11 @@ public class SOCServer extends Server
             return;
         }
 
-        System.out.println("Resetting password for " + uname + ".");
-
+        String dbUname = null;
         try
         {
-            if (! SOCDBHelper.doesUserExist(uname))
+            dbUname = SOCDBHelper.getUser(uname);
+            if (dbUname == null)
             {
                 System.err.println("pw-reset user " + uname + " not found in database.");
                 return;
@@ -11467,6 +11489,8 @@ public class SOCServer extends Server
             System.err.println("Error while querying user " + uname + ": " + e.getMessage());
             return;
         }
+
+        System.out.println("Resetting password for " + dbUname + ".");
 
         StringBuilder pw1 = null;
         boolean hasNewPW = false;
@@ -11518,7 +11542,7 @@ public class SOCServer extends Server
 
         try
         {
-            SOCDBHelper.updateUserPassword(uname, pw1.toString());
+            SOCDBHelper.updateUserPassword(dbUname, pw1.toString());
             clearBuffer(pw1);
             utilityModeMessage = "The password was changed";
         } catch (SQLException e) {
