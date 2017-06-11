@@ -58,7 +58,7 @@ import java.util.Set;
  * This class contains methods for connecting to a database
  * and for manipulating the data stored there.
  *<P>
- * Based on jdbc code found at www.javaworld.com
+ * Originally based on jdbc code found at www.javaworld.com
  *<P>
  * This code assumes that you're using mySQL as your database,
  * but allows you to use other database types.
@@ -172,7 +172,7 @@ public class SOCDBHelper
     public static final String PROP_IMPL_JSETTLERS_PW_RESET = "_jsettlers.user.pw_reset";
 
     /**
-     * Original JSettlers schema version (1.0.00), before any new/extra tables/fields.
+     * Original JSettlers schema version (1.0.00), before any new extra tables/fields.
      * @see #SCHEMA_VERSION_1200
      * @see #SCHEMA_VERSION_LATEST
      * @since 1.2.00
@@ -180,10 +180,11 @@ public class SOCDBHelper
     public static final int SCHEMA_VERSION_ORIGINAL = 1000;
 
     /**
-     * First new JSettlers schema version (1.2.00) which adds any new/extra tables/fields.
+     * First new JSettlers schema version (1.2.00) which adds any new extra tables/fields.
      *<UL>
-     * <LI> Add {@code users.nickname_lc}, unique index {@code users__l}: nickname as lowercase,
-     *      to prevent collisions among user nicknames
+     * <LI> {@code db_version} table with upgrade history
+     * <LI> {@code settings} table
+     * <LI> Added fields to {@code games} and {@code users}; see {@code VERSIONS.TXT} for details
      *</LI>
      * @see #SCHEMA_VERSION_ORIGINAL
      * @see #SCHEMA_VERSION_LATEST
@@ -286,7 +287,7 @@ public class SOCDBHelper
     private static final String CREATE_ACCOUNT_COMMAND_1200
         = "INSERT INTO users(nickname,host,password,email,lastlogin,nickname_lc) VALUES (?,?,?,?,?,?);";
 
-    private static String RECORD_LOGIN_COMMAND = "INSERT INTO logins VALUES (?,?,?);";
+    private static final String RECORD_LOGIN_COMMAND = "INSERT INTO logins VALUES (?,?,?);";
 
     /**
      * {@link #userPasswordQuery} for schema older than {@link #SCHEMA_VERSION_1200}.
@@ -300,8 +301,8 @@ public class SOCDBHelper
      */
     private static final String USER_PASSWORD_QUERY_1200 = "SELECT nickname,password FROM users WHERE nickname_lc = ? ;";
 
-    private static String HOST_QUERY = "SELECT nickname FROM users WHERE ( users.host = ? );";
-    private static String LASTLOGIN_UPDATE = "UPDATE users SET lastlogin = ?  WHERE nickname = ? ;";
+    private static final String HOST_QUERY = "SELECT nickname FROM users WHERE ( users.host = ? );";
+    private static final String LASTLOGIN_UPDATE = "UPDATE users SET lastlogin = ?  WHERE nickname = ? ;";
 
     /**
      * {@link #passwordUpdateCommand} for schema older than {@link #SCHEMA_VERSION_1200}.
@@ -316,8 +317,8 @@ public class SOCDBHelper
      */
     private static final String PASSWORD_UPDATE_COMMAND_1200 = "UPDATE users SET password = ? WHERE nickname_lc = ? ;";
 
-    private static String SAVE_GAME_COMMAND = "INSERT INTO games VALUES (?,?,?,?,?,?,?,?,?,?);";
-    private static String ROBOT_PARAMS_QUERY = "SELECT * FROM robotparams WHERE robotname = ?;";
+    private static final String SAVE_GAME_COMMAND = "INSERT INTO games VALUES (?,?,?,?,?,?,?,?,?,?);";
+    private static final String ROBOT_PARAMS_QUERY = "SELECT * FROM robotparams WHERE robotname = ?;";
     private static final String USER_COUNT_QUERY = "SELECT count(*) FROM users;";
 
     /**
@@ -356,17 +357,19 @@ public class SOCDBHelper
 
     private static PreparedStatement saveGameCommand = null;
 
-    /**
-     * Query all robot parameters for a bot name; {@link #ROBOT_PARAMS_QUERY}.
-     * Used in {@link #retrieveRobotParams(String)}.
+    /** Query all robot parameters for a bot name; {@link #ROBOT_PARAMS_QUERY}.
+     *  Used in {@link #retrieveRobotParams(String)}.
      */
     private static PreparedStatement robotParamsQuery = null;
 
-    /**
-     * Query how many users, if any, exist in the users table; {@link #USER_COUNT_QUERY}.
-     * @since 1.1.19
+    /** Query how many users, if any, exist in the {@code users} table: {@link #USER_COUNT_QUERY}.
+     *  @since 1.1.19
      */
     private static PreparedStatement userCountQuery = null;
+
+    /****************************************
+     * Connect and initialize, related methods and getters
+     ****************************************/
 
     /**
      * This makes a connection to the database
@@ -639,100 +642,20 @@ public class SOCDBHelper
         return true;
     }
 
-    /**
-     * Load and run a SQL script.
-     * Typically DDL commands to create or alter tables, indexes, etc.
-     * @param setupScriptPath  Full path or relative path to the SQL script filename
-     * @throws FileNotFoundException  if file not found
-     * @throws IOException  if any other IO error occurs
-     * @throws SQLException if any unexpected database problem
-     * @since 1.1.15
-     */
-    private static void runSetupScript(final String setupScriptPath)
-        throws FileNotFoundException, IOException, SQLException
-    {
-        if (! checkConnection())
-            return;  // also may throw SQLException
-
-        final boolean isSqlite = (dbURL.startsWith("jdbc:sqlite:"));
-
-        FileReader fr = new FileReader(setupScriptPath);
-        BufferedReader br = new BufferedReader(fr);
-        List sqls = new ArrayList();
-
-        // Read 1 line at a time, with continuations; build a list
-        try
-        {
-            StringBuffer sb = new StringBuffer();
-
-            for (String nextLine = br.readLine(); nextLine != null; nextLine = br.readLine())
-            {
-                // Reminder: java String.trim removes ascii whitespace (including tabs) but not unicode whitespace.
-                // Character.isWhitespace is true for both ascii and unicode whitespace, except non-breaking spaces.
-
-                if ((nextLine.length() == 0) || (nextLine.trim().length() == 0))
-                    continue;  // <-- skip empty lines --
-
-                if (nextLine.startsWith("--"))
-                    continue;  // <-- skip comment lines with no leading whitespace --
-
-                if (isSqlite && nextLine.toLowerCase().startsWith("use "))
-                    continue;  // <-- sqlite doesn't support "USE"
-
-                // If starts with whitespace, append it to sb (continue previous line).
-                // Otherwise, add previous sb to the sqls list, and start a new sb containing nextLine.
-                if (Character.isWhitespace(nextLine.charAt(0)))
-                {
-                    if (sb.length() > 0)
-                        sb.append("\n");  // previous line's readLine doesn't include the trailing \n
-                } else {
-                    sqls.add(sb.toString());
-                    sb.delete(0, sb.length());
-                }
-                sb.append(nextLine);
-            }
-
-            // don't forget the last command
-            sqls.add(sb.toString());
-
-            // done reading the file
-            try { br.close(); }
-            catch (IOException eclose) {}
-            try { fr.close(); }
-            catch (IOException eclose) {}
-        }
-        catch (IOException e)
-        {
-            try { br.close(); }
-            catch (IOException eclose) {}
-            try { fr.close(); }
-            catch (IOException eclose) {}
-
-            throw e;
-        }
-
-        // No errors: Run the built list of SQLs
-        for (Iterator li = sqls.iterator(); li.hasNext(); )
-        {
-            String sql = (String) li.next();
-            if (sql.trim().length() == 0)
-                continue;
-            Statement cmd = connection.createStatement();
-            cmd.executeUpdate(sql);
-            cmd.close();
-        }
-    }
+    /****************************************
+     * SOCDBHelper API methods
+     ****************************************/
 
     /**
      * Search for and return this user (nickname) if it exists in the database.
      * If schema &gt;= {@link #SCHEMA_VERSION_1200}, this check is case-insensitive.
      * Returns their nickname as stored in the database.
      *<P>
-     * This method replaces {@code doesUserExist(..)} used before v1.2.00.
+     * This method replaces {@code doesUserExist(..)} used in v1.1.20.
      *
      * @param userName  User nickname to check
      * @return  Nickname if found in users table, {@code null} otherwise or if no database is currently connected
-     * @throws IllegalArgumentException if <code>userName</code> is <code>null</code>
+     * @throws IllegalArgumentException if {@code userName} is {@code null}
      * @throws SQLException if any unexpected database problem
      * @since 1.2.00
      * @see #authenticateUserPassword(String, String)
@@ -780,9 +703,10 @@ public class SOCDBHelper
      *     or if database is not currently connected;
      *     {@code null} if account exists in db and password is wrong.
      *
-     * @throws SQLException if any unexpected database problem occurs
+     * @throws SQLException if any unexpected database problem
      * @see #updateUserPassword(String, String)
      * @see #getUser(String)
+     * @since 1.2.00
      */
     public static String authenticateUserPassword(String sUserName, final String sPassword)
         throws SQLException
@@ -1371,6 +1295,75 @@ public class SOCDBHelper
         }
     }
 
+    /****************************************
+     * Public utility methods
+     ****************************************/
+
+    /**
+     * Query all users to find any 'duplicate' user names, according to
+     * {@link String#toLowerCase(java.util.Locale) String.toLowercase}
+     * ({@link java.util.Locale#US Locale.US}).
+     * Return any if found.
+     * @param out_allNames if not {@code null}, will place all usernames in the database into this set
+     * @return {@code null} if no dupes, or a Map of any lowercased names
+     *     to all the non-lowercased names which all map to that lowercased name
+     * @since 1.2.00
+     */
+    public static Map<String,List<String>> queryUsersDuplicateLCase(final Set<String> out_allNames)
+        throws IllegalStateException, SQLException
+    {
+        try
+        {
+            if (! checkConnection())
+                throw new IllegalStateException();
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+
+        HashMap<String,String> namesFromLC = new HashMap<String,String>();  // lowercase -> non-lowercase name
+        Map<String,List<String>> dupeMap = new HashMap<String,List<String>>();  // duplicates from namesFromLC
+
+        Statement s = connection.createStatement();
+        ResultSet rs = null;
+        try
+        {
+            rs = s.executeQuery("SELECT nickname FROM users");
+            while (rs.next())
+            {
+                String nm = rs.getString(1);
+                String nmLC = nm.toLowerCase(Locale.US);
+                if (namesFromLC.containsKey(nmLC))
+                {
+                    List<String> li = dupeMap.get(nmLC);
+                    if (li == null)
+                    {
+                        li = new ArrayList<String>();
+                        li.add(namesFromLC.get(nmLC));  // previously-found name with this lc
+                        dupeMap.put(nmLC, li);
+                    }
+                    li.add(nm);
+                } else {
+                    namesFromLC.put(nmLC, nm);
+                }
+
+                if (out_allNames != null)
+                    out_allNames.add(nm);
+            }
+
+        } finally {
+            try {
+                if (rs != null)
+                    rs.close();
+            } catch (SQLException e) {}
+            try {
+                s.close();
+            } catch (SQLException e) {}
+        }
+
+        namesFromLC.clear();
+        return (dupeMap.isEmpty()) ? null : dupeMap;
+    }
+
     /**
      * Query to see if a column exists in a table.
      * Any exception is caught here and returns false.
@@ -1393,7 +1386,7 @@ public class SOCDBHelper
             if (! checkConnection())
                 throw new IllegalStateException();
         } catch (SQLException e) {
-            throw new IllegalStateException();
+            throw new IllegalStateException(e);
         }
 
         ResultSet rs = null;
@@ -1447,6 +1440,94 @@ public class SOCDBHelper
         }
 
         return true;
+    }
+
+    /****************************************
+     * DB install, schema upgrade
+     ****************************************/
+
+    /**
+     * Load and run a SQL script.
+     * Typically DDL commands to create or alter tables, indexes, etc.
+     * @param setupScriptPath  Full path or relative path to the SQL script filename
+     * @throws FileNotFoundException  if file not found
+     * @throws IOException  if any other IO error occurs
+     * @throws SQLException if any unexpected database problem
+     * @since 1.1.15
+     */
+    private static void runSetupScript(final String setupScriptPath)
+        throws FileNotFoundException, IOException, SQLException
+    {
+        if (! checkConnection())
+            return;  // also may throw SQLException
+
+        final boolean isSqlite = (dbURL.startsWith("jdbc:sqlite:"));
+
+        FileReader fr = new FileReader(setupScriptPath);
+        BufferedReader br = new BufferedReader(fr);
+        List sqls = new ArrayList();
+
+        // Read 1 line at a time, with continuations; build a list
+        try
+        {
+            StringBuffer sb = new StringBuffer();
+
+            for (String nextLine = br.readLine(); nextLine != null; nextLine = br.readLine())
+            {
+                // Reminder: java String.trim removes ascii whitespace (including tabs) but not unicode whitespace.
+                // Character.isWhitespace is true for both ascii and unicode whitespace, except non-breaking spaces.
+
+                if ((nextLine.length() == 0) || (nextLine.trim().length() == 0))
+                    continue;  // <-- skip empty lines --
+
+                if (nextLine.startsWith("--"))
+                    continue;  // <-- skip comment lines with no leading whitespace --
+
+                if (isSqlite && nextLine.toLowerCase().startsWith("use "))
+                    continue;  // <-- sqlite doesn't support "USE"
+
+                // If starts with whitespace, append it to sb (continue previous line).
+                // Otherwise, add previous sb to the sqls list, and start a new sb containing nextLine.
+                if (Character.isWhitespace(nextLine.charAt(0)))
+                {
+                    if (sb.length() > 0)
+                        sb.append("\n");  // previous line's readLine doesn't include the trailing \n
+                } else {
+                    sqls.add(sb.toString());
+                    sb.delete(0, sb.length());
+                }
+                sb.append(nextLine);
+            }
+
+            // don't forget the last command
+            sqls.add(sb.toString());
+
+            // done reading the file
+            try { br.close(); }
+            catch (IOException eclose) {}
+            try { fr.close(); }
+            catch (IOException eclose) {}
+        }
+        catch (IOException e)
+        {
+            try { br.close(); }
+            catch (IOException eclose) {}
+            try { fr.close(); }
+            catch (IOException eclose) {}
+
+            throw e;
+        }
+
+        // No errors: Run the built list of SQLs
+        for (Iterator li = sqls.iterator(); li.hasNext(); )
+        {
+            String sql = (String) li.next();
+            if (sql.trim().length() == 0)
+                continue;
+            Statement cmd = connection.createStatement();
+            cmd.executeUpdate(sql);
+            cmd.close();
+        }
     }
 
     /**
@@ -1600,70 +1681,9 @@ public class SOCDBHelper
         System.err.println("* DB schema upgrade completed.\n\n");
     }
 
-    /**
-     * Query all users to find any 'duplicate' user names, according to
-     * {@link String#toLowerCase(java.util.Locale) String.toLowercase}
-     * ({@link java.util.Locale#US Locale.US}).
-     * Return any if found.
-     * @param out_allNames if not {@code null}, will place all usernames in the database into this set
-     * @return {@code null} if no dupes, or a Map of any lowercased names
-     *     to all the non-lowercased names which all map to that lowercased name
-     * @since 1.2.00
-     */
-    public static Map<String,List<String>> queryUsersDuplicateLCase(final Set<String> out_allNames)
-        throws IllegalStateException, SQLException
-    {
-        try
-        {
-            if (! checkConnection())
-                throw new IllegalStateException();
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        }
-
-        HashMap<String,String> namesFromLC = new HashMap<String,String>();  // lowercase -> non-lowercase name
-        Map<String,List<String>> dupeMap = new HashMap<String,List<String>>();  // duplicates from namesFromLC
-
-        Statement s = connection.createStatement();
-        ResultSet rs = null;
-        try
-        {
-            rs = s.executeQuery("SELECT nickname FROM users");
-            while (rs.next())
-            {
-                String nm = rs.getString(1);
-                String nmLC = nm.toLowerCase(Locale.US);
-                if (namesFromLC.containsKey(nmLC))
-                {
-                    List<String> li = dupeMap.get(nmLC);
-                    if (li == null)
-                    {
-                        li = new ArrayList<String>();
-                        li.add(namesFromLC.get(nmLC));  // previously-found name with this lc
-                        dupeMap.put(nmLC, li);
-                    }
-                    li.add(nm);
-                } else {
-                    namesFromLC.put(nmLC, nm);
-                }
-
-                if (out_allNames != null)
-                    out_allNames.add(nm);
-            }
-
-        } finally {
-            try {
-                if (rs != null)
-                    rs.close();
-            } catch (SQLException e) {}
-            try {
-                s.close();
-            } catch (SQLException e) {}
-        }
-
-        namesFromLC.clear();
-        return (dupeMap.isEmpty()) ? null : dupeMap;
-    }
+    /****************************************
+     * Connection cleanup
+     ****************************************/
 
     /**
      * Close out and shut down the database connection.
@@ -1707,6 +1727,10 @@ public class SOCDBHelper
             }
         }
     }
+
+    /****************************************
+     * Helpers for upgrade, etc
+     ****************************************/
 
     /**
      * Run a DDL command to roll back part of a database upgrade.
