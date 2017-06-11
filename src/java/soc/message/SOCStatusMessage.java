@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014,2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -60,7 +60,7 @@ public class SOCStatusMessage extends SOCMessage
     private static final long serialVersionUID = 1110L;  // Last structural change v1.1.10
 
     /**
-     * Status value constants. SV_OK = 0 : Welcome, OK to connect.
+     * Status value constants. SV_OK = 0 : Welcome, OK to give a username and optional password.
      * @see #SV_NOT_OK_GENERIC
      * @since 1.1.06
      */
@@ -81,8 +81,10 @@ public class SOCStatusMessage extends SOCMessage
 
     /**
      * Name not found in server's accounts = 2.
-     * In version 1.1.19 and higher, the server never replies with this to any authentication
+     * Server version 1.1.19 and 1.1.20 never replies with this to any authentication
      * request message type; {@link #SV_PW_WRONG} is sent even if the name doesn't exist.
+     * Server v1.2.00 and higher will send this reply to any older clients which
+     * can't recognize {@link #SV_OK_SET_NICKNAME}.
      * @since 1.1.06
      */
     public static final int SV_NAME_NOT_FOUND = 2;
@@ -238,6 +240,23 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static final int SV_ACCT_CREATED_OK_FIRST_ONE = 18;
 
+    /**
+     * Client has authenticated successfully, but their case-insensitive username differs from
+     * their exact case-sensitive name in the database. To join and create games and channels,
+     * the client must update its internal nickname field.
+     *<P>
+     * Status text format: exactUsername + {@link SOCMessage#sep2_char} + text to display
+     *<P>
+     * Clients older than v1.2.00 won't recognize this status value, and won't know to update their nickname
+     * once authenticated; they will instead be sent {@link #SV_NAME_NOT_FOUND} with status text indicating
+     * the exact case-sensitive nickname to use.
+     *<P>
+     * <B>Bots:</B> Server and client code assume that only human player clients, not bots or
+     * {@code SOCDisplaylessPlayerClient}, will need to handle this status value.
+     * @since 1.2.00
+     */
+    public static final int SV_OK_SET_NICKNAME = 19;
+
     // IF YOU ADD A STATUS VALUE:
     // Do not change or remove the numeric values of earlier ones.
     // Be sure to update statusValidAtVersion().
@@ -387,6 +406,8 @@ public class SOCStatusMessage extends SOCMessage
      *<UL>
      * <LI> {@link #SV_PW_REQUIRED} falls back to {@link #SV_PW_WRONG}
      * <LI> {@link #SV_ACCT_CREATED_OK_FIRST_ONE} falls back to {@link #SV_ACCT_CREATED_OK}
+     * <LI> {@link #SV_OK_SET_NICKNAME} has no successful fallback, the client must be
+     *      sent {@link #SV_NAME_NOT_FOUND} and must reauthenticate; throws {@link IllegalArgumentException}
      * <LI> All others fall back to {@link #SV_NOT_OK_GENERIC}
      * <LI> In case the fallback value is also not recognized at the client,
      *      <tt>toCmd(..)</tt> will fall back again to something more generic
@@ -401,20 +422,36 @@ public class SOCStatusMessage extends SOCMessage
      *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
      *            in your string, and they will be passed on for the receiver to parse.
      * @return the command string
+     * @throws IllegalArgumentException If a {@code sv} has no successful fallback at {@code cliVers},
+     *     such as with {@link #SV_OK_SET_NICKNAME}, and the client must reauthenticate instead;
+     *     the exception is thrown to prevent continued server processing as if the fallback was successful.
      * @since 1.1.07
      */
     public static String toCmd(int sv, final int cliVers, final String st)
+        throws IllegalArgumentException
     {
         if (! statusValidAtVersion(sv, cliVers))
         {
-            if (sv == SV_PW_REQUIRED)
+            boolean reject = false;
+            switch (sv)
+            {
+            case SV_PW_REQUIRED:
                 sv = SV_PW_WRONG;
-            else if (sv == SV_ACCT_CREATED_OK_FIRST_ONE)
+                break;
+            case SV_ACCT_CREATED_OK_FIRST_ONE:
                 sv = SV_ACCT_CREATED_OK;
-            else if (cliVers >= 1106)
-                sv = SV_NOT_OK_GENERIC;
-            else
-                sv = SV_OK;
+                break;
+            case SV_OK_SET_NICKNAME:
+                reject = true;
+                break;
+            default:
+                if (cliVers >= 1106)
+                    sv = SV_NOT_OK_GENERIC;
+                else
+                    sv = SV_OK;
+            }
+            if (reject)
+                throw new IllegalArgumentException("No fallback for sv " + sv + " at client v" + cliVers);
 
             return toCmd(sv, cliVers, st);  // ensure fallback value is valid at client's version
         } else {
@@ -451,15 +488,17 @@ public class SOCStatusMessage extends SOCMessage
             return (statusValue <= SV_ACCT_NOT_CREATED_DENIED);
         case 1120:
             return (statusValue <= SV_ACCT_CREATED_OK_FIRST_ONE);
+        case 1200:
+            return (statusValue <= SV_OK_SET_NICKNAME);
         default:
             {
-            if (cliVersion < 1106)
+            if (cliVersion < 1106)       // for 1000 - 1105 inclusive
                 return (statusValue == 0);
-            else if (cliVersion < 1119)
+            else if (cliVersion < 1119)  // for 1111 - 1118 inclusive
                 return (statusValue < SV_PW_REQUIRED);
             else
-                // newer; check vs highest constant that we know
-                return (statusValue <= SV_ACCT_CREATED_OK_FIRST_ONE);
+                // our version or newer; check vs highest constant that we know
+                return (statusValue <= SV_OK_SET_NICKNAME);
             }
         }
     }

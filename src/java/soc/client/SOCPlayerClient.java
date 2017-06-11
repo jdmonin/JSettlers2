@@ -2622,8 +2622,22 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes, final boolean isPractice)
     {
-        final int sv = mes.getStatusValue();
-        final String statusText = mes.getStatus();
+        int sv = mes.getStatusValue();
+        String statusText = mes.getStatus();
+
+        if ((sv == SOCStatusMessage.SV_OK_SET_NICKNAME))
+        {
+            sv = SOCStatusMessage.SV_OK;
+
+            final int i = statusText.indexOf(SOCMessage.sep2_char);
+            if (i > 0)
+            {
+                nickname = statusText.substring(0, i);
+                statusText = statusText.substring(i + 1);
+                nick.setText(nickname);
+            }
+        }
+
         status.setText(statusText);
 
         // If warning about debug during initial connect, show that.

@@ -111,16 +111,19 @@ public class SOCAccountClient extends Applet
      */
     private Label nickLabel;
 
-    /** Nickname field tooltip reference, for use if its text must be updated. */
+    /** Nickname field ({@link #nick}) tooltip. */
     private AWTToolTip nickTTip;
 
+    /** Name of new user to be created. */
     protected TextField nick;
     protected TextField pass;
     protected TextField pass2;
     protected TextField email;
+
     protected TextField status;
     protected Button submit;
     protected Label messageLabel;
+
     protected AppletContext ac;
     protected boolean submitLock;
 
@@ -916,7 +919,20 @@ public class SOCAccountClient extends Applet
      */
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes)
     {
-        final int sv = mes.getStatusValue();
+        int sv = mes.getStatusValue();
+        String statusText = mes.getStatus();
+
+        if (sv == SOCStatusMessage.SV_OK_SET_NICKNAME)
+        {
+            sv = SOCStatusMessage.SV_OK;
+
+            final int i = statusText.indexOf(SOCMessage.sep2_char);
+            if (i > 0)
+            {
+                nickname = statusText.substring(0, i);
+                statusText = statusText.substring(i + 1);
+            }
+        }
 
         if ((connPanel != null) && connPanel.isVisible())
         {
@@ -926,7 +942,7 @@ public class SOCAccountClient extends Applet
 
             if ((sv != SOCStatusMessage.SV_OK) || ! conn_sentAuth)
             {
-                conn_status.setText(mes.getStatus());
+                conn_status.setText(statusText);
                 return;
             }
 
@@ -936,7 +952,7 @@ public class SOCAccountClient extends Applet
             nick.requestFocus();
         }
 
-        status.setText(mes.getStatus());
+        status.setText(statusText);
         if ((sv == SOCStatusMessage.SV_ACCT_CREATED_OK)
             || (sv == SOCStatusMessage.SV_ACCT_CREATED_OK_FIRST_ONE))
         {

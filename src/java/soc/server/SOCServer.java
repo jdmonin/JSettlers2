@@ -461,15 +461,26 @@ public class SOCServer extends Server
 
     /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
      *  result: Authentication succeeded
+     *  @see #AUTH_OR_REJECT__SET_USERNAME
+     *  @see #AUTH_OR_REJECT__TAKING_OVER
      *  @since 1.1.19
      */
     private static final int AUTH_OR_REJECT__OK = 2;
 
     /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
      *  result: Authentication succeeded, is taking over another connection
+     *  @see #AUTH_OR_REJECT__OK
      *  @since 1.1.19
      */
     private static final int AUTH_OR_REJECT__TAKING_OVER = 3;
+
+    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
+     *  result: Authentication succeeded, but nickname is not an exact case-sensitive match to DB username and client
+     *  must be sent a status message with its exact nickname. See {@code authOrRejectClientUser(..)} javadoc.
+     *  @see #AUTH_OR_REJECT__OK
+     *  @since 1.2.00
+     */
+    private static final int AUTH_OR_REJECT__SET_USERNAME = 4;
 
     /**
      * So we can get random numbers.
@@ -765,9 +776,11 @@ public class SOCServer extends Server
      * User admins whitelist, from {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS}, or <tt>null</tt> if disabled:
      * a set of Strings.  If not null, only usernames on this list can create user accounts in
      * {@link #handleCREATEACCOUNT(StringConnection, SOCCreateAccount)}.
+     * If DB schema &gt;= {@link SOCDBHelper#SCHEMA_VERSION_1200}, this whitelist is
+     * made lowercase for case-insensitive checks in {@link #isUserDBUserAdmin(String, boolean)}.
      * @since 1.1.19
      */
-    private Set databaseUserAdmins;
+    private Set<String> databaseUserAdmins;
 
     /**
      * Create a Settlers of Catan server listening on TCP port <tt>p</tt>.
@@ -1239,13 +1252,18 @@ public class SOCServer extends Server
             } else if (features.isActive(SOCServerFeatures.FEAT_OPEN_REG)) {
                 errmsg = "* Cannot use Open Registration with User Accounts Admin List.";
             } else {
-                databaseUserAdmins = new HashSet();
+                final boolean downcase = (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200);
+                databaseUserAdmins = new HashSet<String>();
                 String[] admins = userAdmins.split(SOCMessage.sep2);  // split on "," - sep2 will never be in a username
                 for (int i = 0; i < admins.length; ++i)
                 {
                     String na = admins[i].trim();
                     if (na.length() > 0)
+                    {
+                        if (downcase)
+                            na = na.toLowerCase(Locale.US);
                         databaseUserAdmins.add(na);
+                    }
                 }
                 if (databaseUserAdmins.isEmpty())  // was it commas only?
                     errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + " cannot be an empty list.";
@@ -4555,7 +4573,21 @@ public class SOCServer extends Server
      * == <tt>null</tt>) and all checks pass: Unless <tt>doNameConnection</tt> is false, calls
      * {@link StringConnection#setData(Object) c.setData(nickname)} and
      * {@link #nameConnection(StringConnection, boolean) nameConnection(c, isTakingOver)} before
-     * returning {@link #AUTH_OR_REJECT__OK} or {@link #AUTH_OR_REJECT__TAKING_OVER}.
+     * returning {@link #AUTH_OR_REJECT__OK}, {@link #AUTH_OR_REJECT__SET_USERNAME},
+     * or {@link #AUTH_OR_REJECT__TAKING_OVER}.
+     *<P>
+     * If the password is correct but the username is only a case-insensitive match with the database,
+     * the client must update its internal nickname field to the exact-case username:
+     *<UL>
+     * <LI> If client's version is new enough to do that (v1.2.00+), caller must send
+     *     {@link SOCStatusMessage}({@link SOCStatusMessage#SV_OK_SET_NICKNAME SV_OK_SET_NICKNAME}):
+     *     Returns {@link #AUTH_OR_REJECT__SET_USERNAME}. If {@code doNameConnection},
+     *     caller can get the exact-case username from {@link StringConnection#getData()};
+     *     otherwise {@link SOCDBHelper#getUser(String)} must be called.
+     * <LI> If client is too old, this method sends
+     *     {@link SOCStatusMessage}({@link SOCStatusMessage#SV_NAME_NOT_FOUND SV_NAME_NOT_FOUND})
+     *     and returns {@link #AUTH_OR_REJECT__FAILED}.
+     *</UL>
      *<P>
      * If this connection is already logged on and named ({@link StringConnection#getData() c.getData()} != <tt>null</tt>),
      * does nothing.  Won't check username or password, just returns {@link #AUTH_OR_REJECT__OK}.
@@ -4585,7 +4617,8 @@ public class SOCServer extends Server
      *     message it sent.  If true, the caller must be prepared to send all game info/channel info that the
      *     old connection had joined, so the new connection has full info to participate in them.
      * @return  Result of the auth check: {@link #AUTH_OR_REJECT__FAILED},
-     *     {@link #AUTH_OR_REJECT__OK} or (only if <tt>allowTakeover</tt>) {@link #AUTH_OR_REJECT__TAKING_OVER}
+     *     {@link #AUTH_OR_REJECT__OK}, {@link #AUTH_OR_REJECT__SET_USERNAME},
+     *     or (only if <tt>allowTakeover</tt>) {@link #AUTH_OR_REJECT__TAKING_OVER}
      * @since 1.1.19
      */
     private int authOrRejectClientUser
@@ -4680,6 +4713,15 @@ public class SOCServer extends Server
         {
             return AUTH_OR_REJECT__FAILED;  // <---- Early return: Password auth failed ----
         }
+        final boolean mustSetUsername = ! authUsername.equals(msgUser);
+        if (mustSetUsername && (cliVers < 1200))
+        {
+            // Case differs: must reject if client too old for SOCStatusMessage.SV_OK_SET_NICKNAME
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NAME_NOT_FOUND, cliVers,
+                     "Nickname is case-sensitive: Use " + authUsername));
+            return AUTH_OR_REJECT__FAILED;
+        }
 
         /**
          * Now that everything's validated, name this connection/user/player.
@@ -4691,7 +4733,9 @@ public class SOCServer extends Server
             nameConnection(c, isTakingOver);
         }
 
-        return (isTakingOver) ? AUTH_OR_REJECT__TAKING_OVER : AUTH_OR_REJECT__OK;
+        return (mustSetUsername)
+            ? AUTH_OR_REJECT__SET_USERNAME
+            : ((isTakingOver) ? AUTH_OR_REJECT__TAKING_OVER : AUTH_OR_REJECT__OK);
     }
 
     /**
@@ -4762,12 +4806,13 @@ public class SOCServer extends Server
     /**
      * Is this username on the {@link #databaseUserAdmins} whitelist, if that whitelist is being used?
      * @param uname  Username to check; if null, returns false.
+     *     If supported by DB schema version, this check is case-insensitive.
      * @param requireList  If true, the whitelist cannot be null.
      *     If false, this function returns true for any user when we aren't using the whitelist and its field is null.
      * @return  True only if the user is on the whitelist, or there is no list and <tt>requireList</tt> is false
      * @since 1.1.20
      */
-    private boolean isUserDBUserAdmin(final String uname, final boolean requireList)
+    private boolean isUserDBUserAdmin(String uname, final boolean requireList)
     {
         if (uname == null)
             return false;
@@ -4775,9 +4820,13 @@ public class SOCServer extends Server
         // Check if we're using a user admin whitelist, and if uname's on it; this check is also in handleCREATEACCOUNT.
 
         if (databaseUserAdmins == null)
+        {
             return ! requireList;
-        else
+        } else {
+            if (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200)
+                uname = uname.toLowerCase(Locale.US);
             return databaseUserAdmins.contains(uname);
+        }
     }
 
     /**
@@ -4952,6 +5001,8 @@ public class SOCServer extends Server
             if (authResult == AUTH_OR_REJECT__FAILED)
                 return;  // <---- Early return ----
 
+            // TODO if SET_USERNAME, update msgUser
+
             /**
              * Check that the channel name is ok
              */
@@ -4992,8 +5043,13 @@ public class SOCServer extends Server
              * Tell the client that everything is good to go
              */
             c.put(SOCJoinAuth.toCmd(msgUser, ch));
-            c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_OK, "Welcome to Java Settlers of Catan!"));
+            final String txt = "Welcome to Java Settlers of Catan!";
+            if (authResult != AUTH_OR_REJECT__SET_USERNAME)
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_OK, txt));
+            else
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_OK_SET_NICKNAME, ((String) c.getData()) + SOCMessage.sep2_char + txt));
 
             /**
              * Add the StringConnection to the channel
@@ -5745,6 +5801,8 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
+        int authResult = -1;
+
         if (c.getData() == null)
         {
             final int cliVersion = c.getVersion();
@@ -5767,7 +5825,7 @@ public class SOCServer extends Server
             // are role-specific things to check and reject during this initial connection.
             final boolean isPlayerRole = mes.role.equals(SOCAuthRequest.ROLE_GAME_PLAYER);
             final String mesUser = mes.nickname.trim();  // trim before db query calls
-            final int authResult = authOrRejectClientUser
+            authResult = authOrRejectClientUser
                 (c, mesUser, mes.password, cliVersion, isPlayerRole, false);
 
             if (authResult == AUTH_OR_REJECT__FAILED)
@@ -5808,8 +5866,13 @@ public class SOCServer extends Server
             }
         }
 
-        c.put(SOCStatusMessage.toCmd
-                (SOCStatusMessage.SV_OK, "Welcome to Java Settlers of Catan!"));
+        final String txt = "Welcome to Java Settlers of Catan!";
+        if (authResult != AUTH_OR_REJECT__SET_USERNAME)
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_OK, txt));
+        else
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_OK_SET_NICKNAME, ((String) c.getData()) + SOCMessage.sep2_char + txt));
     }
 
     /**
@@ -5994,6 +6057,12 @@ public class SOCServer extends Server
          */
         try
         {
+            if (authResult == SOCServer.AUTH_OR_REJECT__SET_USERNAME)
+                c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_OK_SET_NICKNAME,
+                     ((String) c.getData()) + SOCMessage.sep2_char +
+                     "Welcome to Java Settlers of Catan!"));
+
             if (isTakingOver)
             {
                 /**
@@ -8979,7 +9048,10 @@ public class SOCServer extends Server
         //
         if (databaseUserAdmins != null)
         {
-            final String chkName = (isDBCountedEmpty) ? userName : requester;
+            String chkName = (isDBCountedEmpty) ? userName : requester;
+            if ((chkName != null) && (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200))
+                chkName = chkName.toLowerCase(Locale.US);
+
             if ((chkName == null) || ! databaseUserAdmins.contains(chkName))
             {
                 // Requester not on user-admin whitelist.
