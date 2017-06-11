@@ -1,9 +1,13 @@
 -- DB Create script for jsettlers.  Run jsettlers-tables.sql right after this script.
 -- See bottom of file for copyright and license information (GPLv3).
 
-CREATE DATABASE socdata;
+CREATE DATABASE socdata
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- Might be mysql-specific:
+-- note: utf8mb4 was added in mysql 5.5.3 (released 2010-03-24) to support
+-- unicode characters outside the BMP. If your mysql is older and you can't upgrade,
+-- change utf8mb4 to utf8 and utf8mb4_unicode_ci to utf8_unicode_ci and rerun the script.
+
 GRANT ALL PRIVILEGES
   ON socdata.*
   TO 'socuser'@'localhost'
