@@ -9,10 +9,16 @@
 -- For indexes, use the table name + __ + one lowercase letter.
 -- For multi-line SQLs, indent so that SOCDBHelper.runSetupScript can combine them.
 
+-- Schema upgrades: See SOCDBHelper.upgradeSchema()
+--   2017-06-xx v1.2.00: Add users.nickname_lc
+
 CREATE TABLE users (
 	nickname VARCHAR(20) not null, host VARCHAR(50) not null, password VARCHAR(20) not null, email VARCHAR(50), lastlogin DATE,
+	nickname_lc VARCHAR(20),
 	PRIMARY KEY (nickname)
 	);
+
+CREATE UNIQUE INDEX users__l ON users(nickname_lc);
 
 CREATE TABLE logins (
 	nickname VARCHAR(20) not null, host VARCHAR(50), lastlogin DATE,
