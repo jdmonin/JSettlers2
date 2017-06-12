@@ -515,7 +515,7 @@ public class SOCStatusMessage extends SOCMessage
             else if (cliVersion < 2000)
                 return (statusValue < SV_OK_DEBUG_MODE_ON);
             else
-                // newer; check vs highest constant that we know
+                // our version or newer; check vs highest constant that we know
                 return (statusValue <= SV_OK_DEBUG_MODE_ON);
             }
         }

@@ -114,7 +114,6 @@ public class SOCDBHelper
      * the driver will be "org.postgresql.Driver".
      * If the <tt>URL</tt> begins with "jdbc:sqlite:",
      * the driver will be "org.sqlite.JDBC".
-     * @see #dbType
      * @since 1.1.09
      */
     public static final String PROP_JSETTLERS_DB_DRIVER = "jsettlers.db.driver";
