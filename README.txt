@@ -409,11 +409,12 @@ If mysql gives the error: Unknown character set: 'utf8mb4'
 you will need to make a small change to jsettlers-create-mysql.sql
 and re-run the commands; see comments at the top of that script.
 
-For Postgres:
+For Postgresql:
 Run these commands as the postgres system user:
   $ psql --file jsettlers-create-postgres.sql
-  $ psql -d socdata --file jsettlers-tables.sql
   $ psql -d socdata --file jsettlers-sec-postgres.sql
+  $ psql -d socdata -U socuser -h 127.0.0.1 --file jsettlers-tables.sql
+  Password for user socuser: socpass
 If the scripts run without any errors, they will produce very terse output
 such as "CREATE DATABASE", "CREATE TABLE", and "NOTICE:
 CREATE TABLE / PRIMARY KEY will create implicit index".
