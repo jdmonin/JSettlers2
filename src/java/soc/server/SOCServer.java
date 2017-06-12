@@ -4995,7 +4995,7 @@ public class SOCServer extends Server
             D.ebugPrintln("handleJOIN: " + mes);
 
             int cliVers = c.getVersion();
-            final String msgUser = mes.getNickname().trim();  // trim here because we'll send it in a message to client
+            String msgUser = mes.getNickname().trim();  // trim before db query calls
             String msgPass = mes.getPassword();
 
             /**
@@ -5015,7 +5015,9 @@ public class SOCServer extends Server
             if (authResult == AUTH_OR_REJECT__FAILED)
                 return;  // <---- Early return ----
 
-            // TODO if SET_USERNAME, update msgUser
+            final boolean mustSetUsername = (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME));
+            if (mustSetUsername)
+                msgUser = (String) c.getData();  // set to original case, from db case-insensitive search
 
             /**
              * Check that the channel name is ok
@@ -5058,7 +5060,7 @@ public class SOCServer extends Server
              */
             c.put(SOCJoinAuth.toCmd(msgUser, ch));
             final String txt = "Welcome to Java Settlers of Catan!";
-            if (0 == (authResult & AUTH_OR_REJECT__SET_USERNAME))
+            if (! mustSetUsername)
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_OK, txt));
             else
