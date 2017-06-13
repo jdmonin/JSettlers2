@@ -1,6 +1,6 @@
 /**
- * Local (StringConnection) network system.  Version 1.0.5.
- * Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>.
+ * Local (StringConnection) network system.  Version 1.2.0.
+ * This file Copyright (C) 2007-2010,2017 Jeremy D Monin <jeremy@nand.net>.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at jeremy@nand.net
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.server.genericServer;
 
@@ -51,10 +51,11 @@ import soc.disableDebug.D;
  *                       common constructor code moved to init().
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed
  *  1.0.5.2- 2010-04-05- add toString for debugging
+ *  1.2.0 - 2017-06-03 - {@link #setData(String)} now takes a String, not Object.
  *</PRE>
  *
  * @author Jeremy D. Monin <jeremy@nand.net>
- * @version 1.0.5.1
+ * @version 1.2.0
  */
 public class LocalStringConnection
     implements StringConnection, Runnable
@@ -77,9 +78,11 @@ public class LocalStringConnection
     protected boolean hideTimeoutMessage = false;
 
     /**
-     * the arbitrary key data associated with this connection.
+     * The key (client "name") associated with this connection, or {@code null}.
+     *<P>
+     * Before v1.2.0, this field was an Object and could contain any arbitrary key data.
      */
-    protected Object data;    
+    protected String data;
 
     /**
      * the arbitrary app-specific data associated with this connection.
@@ -279,7 +282,9 @@ public class LocalStringConnection
     }
 
     /**
-     * Connect to specified stringport. Calling thread waits until accepted.  
+     * Connect to specified stringport. Calling thread waits until accepted.
+     *<P>
+     * Connection must be unnamed (<tt>{@link #getData()} == null</tt>) at this point.
      * 
      * @param serverSocketName  stringport name to connect to
      * @throws ConnectException If stringport name is not found, or is EOF,
@@ -379,10 +384,7 @@ public class LocalStringConnection
     }
 
     /**
-     * The optional key data used to name this connection.
-     *
-     * @return The key data for this connection, or null.
-     * @see #getAppData()
+     * {@inheritDoc}
      */
     public Object getData()
     {
@@ -390,11 +392,7 @@ public class LocalStringConnection
     }
 
     /**
-     * The optional app-specific changeable data for this connection.
-     * Not used anywhere in the generic server, only in your app.
-     *
-     * @return The app-specific data for this connection.
-     * @see #getData()
+     * {@inheritDoc}
      */
     public Object getAppData()
     {
@@ -402,33 +400,15 @@ public class LocalStringConnection
     }
 
     /**
-     * Set the optional key data for this connection.
-     *
-     * This is anything your application wants to associate with the connection.
-     * The StringConnection system uses this data to name the connection,
-     * so it should not change once set.
-     *<P>
-     * If you call setData after {@link Server#newConnection1(StringConnection)},
-     * please call {@link Server#nameConnection(StringConnection)} afterwards
-     * to ensure the name is tracked properly at the server.
-     *
-     * @param dat The new key data, or null
-     * @see #setAppData(Object)
+     * {@inheritDoc}
      */
-    public void setData(Object dat)
+    public void setData(String dat)
     {
         data = dat;
     }
 
     /**
-     * Set the app-specific non-key data for this connection.
-     *
-     * This is anything your application wants to associate with the connection.
-     * The StringConnection system itself does not reference or use this data.
-     * You can change it as often as you'd like, or not use it.
-     *
-     * @param data The new data, or null
-     * @see #setData(Object)
+     * {@inheritDoc}
      */
     public void setAppData(Object data)
     {
@@ -618,6 +598,8 @@ public class LocalStringConnection
      * For server-side; continuously read and treat input.
      * You must create and start the thread.
      * We are on server side if ourServer != null.
+     *<P>
+     * When starting the thread, {@link #getData()} must be null.
      */
     public void run()
     {
@@ -627,6 +609,7 @@ public class LocalStringConnection
             return;
 
         ourServer.addConnection(this);
+            // won't throw IllegalArgumentException, because conn is unnamed at this point; getData() is null
 
         try
         {
@@ -662,14 +645,14 @@ public class LocalStringConnection
     }
 
     /**
-     * toString includes data.toString for debugging.
+     * For debugging, toString includes connection name key ({@link #getData()}) if available.
      * @since 1.0.5.2
      */
     public String toString()
     {
         StringBuffer sb = new StringBuffer("LocalStringConnection[");
         if (data != null)
-            sb.append(data.toString());
+            sb.append(data);
         else
             sb.append(super.hashCode());
         sb.append(']');

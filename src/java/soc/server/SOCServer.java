@@ -93,7 +93,7 @@ import java.util.Vector;
  *<UL>
  *<LI> See {@link SOCMessage} for details of the client/server protocol.
  *<LI> See {@link Server} for details of the server threading and processing.
- *<LI> To get a player's connection, use {@link #getConnection(Object) getConnection(plName)}.
+ *<LI> To get a player's connection, use {@link Server#getConnection(String) getConnection(plName)}.
  *<LI> To get a client's nickname, use <tt>(String)</tt> {@link StringConnection#getData() connection.getData()}.
  *<LI> To get the rest of a client's data, use ({@link SOCClientData})
  *       {@link StringConnection#getAppData() connection.getAppData()}.
@@ -3372,7 +3372,7 @@ public class SOCServer extends Server
     /**
      * Name a current connection to the system, which may replace an older connection.
      * Call c.setData(name) just before calling this method.
-     * Calls {@link Server#nameConnection(StringConnection)} to move the connection
+     * Calls {@link Server#nameConnection(StringConnection, boolean)} to move the connection
      * from the unnamed to the named connection list.  Increments {@link #numberOfUsers}.
      *<P>
      * If <tt>isReplacing</tt>:
@@ -3389,7 +3389,8 @@ public class SOCServer extends Server
      *          or if nameConnection has previously been called for this connection.
      * @since 1.1.08
      */
-    private void nameConnection(StringConnection c, boolean isReplacing)
+    @Override
+    public void nameConnection(StringConnection c, boolean isReplacing)
         throws IllegalArgumentException
     {
         StringConnection oldConn = null;
@@ -3403,7 +3404,7 @@ public class SOCServer extends Server
                 isReplacing = false;  // shouldn't happen, but fail gracefully
         }
 
-        super.nameConnection(c);
+        super.nameConnection(c, isReplacing);
 
         if (isReplacing)
         {
@@ -3664,7 +3665,7 @@ public class SOCServer extends Server
         }
 
         // check conns hashtable
-        StringConnection oldc = getConnection(n); 
+        StringConnection oldc = getConnection(n, false);
         if (oldc == null)
         {
             return 0;  // OK: no player by that name already
@@ -4578,7 +4579,7 @@ public class SOCServer extends Server
      *<P>
      * If this connection isn't already logged on and named ({@link StringConnection#getData() c.getData()}
      * == <tt>null</tt>) and all checks pass: Unless <tt>doNameConnection</tt> is false, calls
-     * {@link StringConnection#setData(Object) c.setData(nickname)} and
+     * {@link StringConnection#setData(String) c.setData(nickname)} and
      * {@link #nameConnection(StringConnection, boolean) nameConnection(c, isTakingOver)} before
      * returning the {@link #AUTH_OR_REJECT__OK} flag, and possibly also the {@link #AUTH_OR_REJECT__SET_USERNAME}
      * and/or {@link #AUTH_OR_REJECT__TAKING_OVER} flags.
@@ -4610,7 +4611,7 @@ public class SOCServer extends Server
      *     or ""; will be {@link String#trim() trim()med}.
      * @param cliVers  Client version, from {@link StringConnection#getVersion()}
      * @param doNameConnection  True if successful auth of an unnamed connection should have this method call
-     *     {@link StringConnection#setData(Object) c.setData(nickname)} and
+     *     {@link StringConnection#setData(String) c.setData(nickname)} and
      *     {@link #nameConnection(StringConnection, boolean) nameConnection(c, isTakingOver)}.
      *     <P>
      *     If using the optional user DB, {@code nickname} is queried from the database by case-insensitive
@@ -4761,7 +4762,7 @@ public class SOCServer extends Server
      *<P>
      * Nickname search in the database is case-insensitive if supported by
      * db schema version; see {@link SOCDBHelper#authenticateUserPassword(String, String)}.
-     * To give the originally-cased name from that search, if successful this method
+     * To give the originally-cased name from that search, if found this method
      * returns their nickname as stored in the database.
      *
      * @param c         the user's connection
@@ -5308,7 +5309,7 @@ public class SOCServer extends Server
             scd.isBuiltInRobot = isBuiltIn;
             if (! isBuiltIn)
                 scd.robot3rdPartyBrainClass = rbc;
-            nameConnection(c);
+            super.nameConnection(c, false);
         }
     }
 
@@ -5870,7 +5871,7 @@ public class SOCServer extends Server
                 // no role-specific problems: complete the authentication
                 try
                 {
-                    c.setData(SOCDBHelper.getUser(mesUser));  // because mesUser is case-insensitive
+                    c.setData(SOCDBHelper.getUser(mesUser));  // case-insensitive db search on mesUser
                     nameConnection(c, false);
                 } catch (SQLException e) {
                     // unlikely, we've just queried db in authOrRejectClientUser

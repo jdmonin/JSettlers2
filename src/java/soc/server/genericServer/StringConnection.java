@@ -1,6 +1,6 @@
 /**
- * Local (StringConnection) network system.  Version 1.0.5.
- * Copyright (C) 2007-2009 Jeremy D Monin <jeremy@nand.net>.
+ * Local (StringConnection) network system.  Version 1.2.0.
+ * This file Copyright (C) 2007-2009,2017 Jeremy D Monin <jeremy@nand.net>.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at jeremy@nand.net
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.server.genericServer;
 
@@ -35,10 +35,11 @@ import java.util.Date;
  *                       setVersionTracking, isInputAvailable,
  *                       wantsHideTimeoutMessage, setHideTimeoutMessage
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed; remove unused import EOFException
+ *  1.2.0 - 2017-06-03 - {@link #setData(String)} now takes a String, not Object.
  *</PRE>
  *
  * @author Jeremy D Monin <jeremy@nand.net>
- * @version 1.0.5.1
+ * @version 1.2.0
  */
 public interface StringConnection
 {
@@ -82,9 +83,11 @@ public interface StringConnection
     public abstract void disconnectSoft();
 
     /**
-     * The optional key data used to name this connection.
+     * The optional name key used to name this connection.
+     *<P>
+     * Before v1.2.0, this returned an {@link Object}; getData is always a {@link String} in v1.2.0 and up.
      *
-     * @return The key data for this connection, or null.
+     * @return The name key for this connection, or null.
      * @see #getAppData()
      */
     public abstract Object getData();
@@ -99,20 +102,20 @@ public interface StringConnection
     public abstract Object getAppData();
 
     /**
-     * Set the optional key data for this connection.
+     * Set the optional name key for this connection.
      *
-     * This is anything your application wants to associate with the connection.
      * The StringConnection system uses this data to name the connection,
      * so it should not change once set.
      *<P>
      * If you call setData after {@link Server#newConnection1(StringConnection)},
-     * please call {@link Server#nameConnection(StringConnection)} afterwards
+     * please call {@link Server#nameConnection(StringConnection, boolean)} afterwards
      * to ensure the name is tracked properly at the server.
-     *
-     * @param data The new key data, or null
-     * @see #setAppData(Object)
+     *<P>
+     * For anything else your application wants to associate with the connection,
+     * see {@link #setAppData(Object)}.
+     * @param data The new name key, or null
      */
-    public abstract void setData(Object data);
+    public abstract void setData(String data);
 
     /**
      * Set the app-specific non-key data for this connection.
@@ -122,7 +125,7 @@ public interface StringConnection
      * You can change it as often as you'd like, or not use it.
      *
      * @param data The new data, or null
-     * @see #setData(Object)
+     * @see #setData(String)
      */
     public abstract void setAppData(Object data);
 

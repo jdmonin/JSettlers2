@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2010,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.server.genericServer;
 
@@ -34,7 +34,7 @@ import java.util.Vector;
 
 
 /** A client's connection at a server.
- *  @version 1.1.06
+ *  @version 1.2.0
  *  @author <A HREF="http://www.nada.kth.se/~cristi">Cristian Bogdan</A>
  *  Reads from the net, writes atomically to the net and
  *  holds the connection data
@@ -44,17 +44,22 @@ import java.util.Vector;
  * interface.  If you add something to one class (or to StringConnection),
  * you should probably add it to the other.
  */
-public final class Connection extends Thread implements Runnable, Serializable, Cloneable, StringConnection
+public final class Connection
+    extends Thread
+    implements Runnable, Serializable, Cloneable, StringConnection
 {
     static int putters = 0;
     static Object puttersMonitor = new Object();
     protected final static int TIMEOUT_VALUE = 3600000; // approx. 1 hour
 
     /**
-     * the arbitrary key data ("name") associated with this connection.
+     * The key (client "name") associated with this connection, or {@code null}.
+     *<P>
+     * Before v1.2.0, this field was an Object and could contain any arbitrary key data.
+     *<P>
      * Protected to force callers to use getData() part of StringConnection interface.
      */
-    protected Object data;    
+    protected String data;
 
     /**
      * the arbitrary app-specific data associated with this connection.
@@ -110,11 +115,21 @@ public final class Connection extends Thread implements Runnable, Serializable, 
 
     /** start reading from the net; called only by the server.
      * If successful, also sets connectTime to now.
+     * Before calling {@code connect()}, be sure to make a new {@link Thread}{@code (this)} and {@code start()} it
+     * for the inbound reading thread.
+     *<P>
+     * Connection must be unnamed (<tt>{@link #getData()} == null</tt>) at this point.
      * 
      * @return true if thread start was successful, false if an error occurred.
      */
     public boolean connect()
     {
+        if (getData() != null)
+        {
+            D.ebugPrintln("conn.connect() requires null getData()");
+            return false;
+        }
+
         try
         {
             s.setSoTimeout(TIMEOUT_VALUE);
@@ -185,10 +200,16 @@ public final class Connection extends Thread implements Runnable, Serializable, 
         hideTimeoutMessage = wantsHide;
     }
  
-    /** continuously read from the net */
+    /**
+     * Inbound reading thread: continuously read from the net.
+     *<P>
+     * When starting the thread, {@link #getData()} must be null;
+     * {@link #connect()} mentions and checks that, but {@code connect()} is a different thread.
+     */
     public void run()
     {
         sv.addConnection(this);
+            // won't throw IllegalArgumentException, because conn is unnamed at this point; getData() is null
 
         try
         {
@@ -318,10 +339,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
     }
 
     /**
-     * The optional key data used to name this connection.
-     *
-     * @return The key data for this connection, or null.
-     * @see #getAppData()
+     * {@inheritDoc}
      */
     public Object getData()
     {
@@ -329,11 +347,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
     }
 
     /**
-     * The optional app-specific changeable data for this connection.
-     * Not used anywhere in the generic server, only in your app.
-     *
-     * @return The app-specific data for this connection.
-     * @see #getData()
+     * {@inheritDoc}
      */
     public Object getAppData()
     {
@@ -341,33 +355,15 @@ public final class Connection extends Thread implements Runnable, Serializable, 
     }
 
     /**
-     * Set the optional key data for this connection.
-     *
-     * This is anything your application wants to associate with the connection.
-     * The StringConnection system uses this data to name the connection,
-     * so it should not change once set.
-     *<P>
-     * If you call setData after {@link Server#newConnection1(StringConnection)},
-     * please call {@link Server#nameConnection(StringConnection)} afterwards
-     * to ensure the name is tracked properly at the server.
-     *
-     * @param dat The new key data, or null
-     * @see #setAppData(Object)
+     * {@inheritDoc}
      */
-    public void setData(Object dat)
+    public void setData(String dat)
     {
         data = dat;
     }
 
     /**
-     * Set the app-specific non-key data for this connection.
-     *
-     * This is anything your application wants to associate with the connection.
-     * The StringConnection system itself does not reference or use this data.
-     * You can change it as often as you'd like, or not use it.
-     *
-     * @param data The new data, or null
-     * @see #setData(Object)
+     * {@inheritDoc}
      */
     public void setAppData(Object data)
     {
@@ -519,14 +515,14 @@ public final class Connection extends Thread implements Runnable, Serializable, 
     }
 
     /**
-     * toString includes data.toString for debugging.
+     * For debugging, toString includes data.toString and {@link #getName()}.
      * @since 1.0.5.2
      */
     public String toString()
     {
         StringBuffer sb = new StringBuffer("Connection[");
         if (data != null)
-            sb.append(data.toString());
+            sb.append(data);
         else
             sb.append(super.hashCode());
         sb.append('-');
