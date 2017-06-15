@@ -386,7 +386,7 @@ public class LocalStringConnection
     /**
      * {@inheritDoc}
      */
-    public Object getData()
+    public String getData()
     {
         return data;
     }

@@ -572,7 +572,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     public void removeConnection(StringConnection c)
     {
-        final String cKey = (String) c.getData();
+        final String cKey = c.getData();
 
         synchronized (unnamedConns)
         {
@@ -617,7 +617,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     cliConnDisconPrintsPending.put(cKey, leftMsgTask);
                     utilTimer.schedule(leftMsgTask, CLI_DISCON_PRINT_TIMER_FIRE_MS);
                 } else {
-                    // no connection-key data; we can't identify it later if it reconnects;
+                    // no connection-name key data; we can't identify it later if it reconnects;
                     // just print the announcement right now.
                     D.ebugPrintln(c.host() + " left (" + getNamedConnectionCount() + "," + numberCurrentConnections + ")  " + (new Date()).toString() + ((cerr != null) ? (": " + cerr.toString()) : ""));
                 }
@@ -659,7 +659,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 connAccepted = newConnection1(c);  // <-- App-specific #1 --
                 if (connAccepted)
                 {
-                    final String cKey = (String) c.getData();
+                    final String cKey = c.getData();
                     if (cKey != null)
                     {
                         final String cName = cKey.toLowerCase(Locale.US);
@@ -723,7 +723,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     public void nameConnection(StringConnection c, final boolean isReplacing)
         throws IllegalArgumentException
     {
-        String cKey = (String) c.getData();
+        String cKey = c.getData();
         if (cKey == null)
             throw new IllegalArgumentException("null c.getData");
 
@@ -1317,8 +1317,14 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         /** may be null */
         public Throwable excep;
 
-        /** non-null unless isArriveNotDepart */
-        public Object connData;
+        /**
+         * Key for {@link #cliConnDisconPrintsPending};
+         * non-null unless {@link #isArriveNotDepart}; if so,
+         * connection name from {@link StringConnection#getData()}
+         *<P>
+         * Before v1.2.00, this field was {@code connData}.
+         */
+        public String connName;
 
         /** @see StringConnection#host() */
         public String connHost;
@@ -1358,10 +1364,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             thrownAt = System.currentTimeMillis();
             isArriveNotDepart = isArrival;
             connHost = c.host();
-            connData = c.getData();
+            connName = c.getData();
             if (isArrival)
                 arrivingConn = c;
-            else if (connData == null)
+            else if (connName == null)
                 throw new IllegalArgumentException("null c.getData");
         }
 
@@ -1377,7 +1383,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 cliConnDisconPrintsPending.remove(arrivingConn);
             } else {
                 D.ebugPrintln(connHost + " left (" + getNamedConnectionCount() + "," + numberCurrentConnections + ")  " + (new Date(thrownAt)).toString() + ((excep != null) ? (": " + excep.toString()) : ""));
-                cliConnDisconPrintsPending.remove(connData);
+                cliConnDisconPrintsPending.remove(connName);
             }
         }
         

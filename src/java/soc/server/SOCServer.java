@@ -1530,7 +1530,7 @@ public class SOCServer extends Server
             {
                 channelList.removeMember(c, ch);
 
-                SOCLeave leaveMessage = new SOCLeave((String) c.getData(), c.host(), ch);
+                SOCLeave leaveMessage = new SOCLeave(c.getData(), c.host(), ch);
                 messageToChannelWithMon(ch, leaveMessage);
                 if (D.ebugOn)
                     D.ebugPrintln("*** " + c.getData() + " left the channel " + ch + " at "
@@ -1706,7 +1706,7 @@ public class SOCServer extends Server
             try
             {
                 // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES .
-                gameList.createGame(gaName, (String) c.getData(), gaOpts);
+                gameList.createGame(gaName, c.getData(), gaOpts);
                 if ((strSocketName != null) && (strSocketName.equals(PRACTICE_STRINGPORT)))
                 {
                     gameList.getGameData(gaName).isPractice = true;  // flag if practice game (set since 1.1.09)
@@ -1915,7 +1915,7 @@ public class SOCServer extends Server
         boolean gameVotingActiveDuringStart = false;
 
         final int gameState = ga.getGameState();
-        final String plName = (String) c.getData();  // Retain name, since will become null within game obj.
+        final String plName = c.getData();  // Retain name, since will become null within game obj.
 
         for (playerNumber = 0; playerNumber < ga.maxPlayers;
                 playerNumber++)
@@ -2001,7 +2001,7 @@ public class SOCServer extends Server
                 {
                     SOCPlayer player = ga.getPlayer(pn);
 
-                    if ((player != null) && (player.getName() != null) && (player.getName().equals((String) member.getData())))
+                    if ((player != null) && (player.getName() != null) && (player.getName().equals(member.getData())))
                     {
                         nameMatch = true;
                         break;
@@ -2092,7 +2092,7 @@ public class SOCServer extends Server
     
                                 // D.ebugPrintln("CHECKING " + (String) robotConn.getData() + " == " + pname);
     
-                                if ((pname != null) && (pname.equals((String) robotConn.getData())))
+                                if ((pname != null) && (pname.equals(robotConn.getData())))
                                 {
                                     nameMatch = true;
     
@@ -2131,7 +2131,7 @@ public class SOCServer extends Server
                         /**
                          * make the request
                          */
-                        D.ebugPrintln("@@@ JOIN GAME REQUEST for " + (String) robotConn.getData());
+                        D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotConn.getData());
 
                         if (ga.isSeatLocked(playerNumber))
                         {
@@ -3383,7 +3383,7 @@ public class SOCServer extends Server
      * <LI> Sends the old connection an informational disconnect {@link SOCServerPing SOCServerPing(-1)}
      *</UL>
      *
-     * @param c  Connected client; its key data ({@link StringConnection#getData()}) must not be null
+     * @param c  Connected client; its name key ({@link StringConnection#getData()}) must not be null
      * @param isReplacing  Are we replacing / taking over a current connection?
      * @throws IllegalArgumentException If c isn't already connected, if c.getData() returns null,
      *          or if nameConnection has previously been called for this connection.
@@ -3396,7 +3396,7 @@ public class SOCServer extends Server
         StringConnection oldConn = null;
         if (isReplacing)
         {
-            Object cKey = c.getData();
+            String cKey = c.getData();
             if (cKey == null)
                 throw new IllegalArgumentException("null c.getData");
             oldConn = (StringConnection) conns.get(cKey);
@@ -3903,7 +3903,9 @@ public class SOCServer extends Server
                     {
                         if (textMsgMes.getText().startsWith("*KILLCHANNEL*"))
                         {
-                            messageToChannel(textMsgMes.getChannel(), new SOCTextMsg(textMsgMes.getChannel(), SERVERNAME, "********** " + (String) c.getData() + " KILLED THE CHANNEL **********"));
+                            messageToChannel(textMsgMes.getChannel(), new SOCTextMsg
+                                (textMsgMes.getChannel(), SERVERNAME,
+                                 "********** " + c.getData() + " KILLED THE CHANNEL **********"));
                             channelList.takeMonitor();
 
                             try
@@ -4406,7 +4408,7 @@ public class SOCServer extends Server
 
         if (dcmdU.startsWith("*KILLGAME*"))
         {
-            messageToGameUrgent(ga, ">>> ********** " + (String) debugCli.getData() + " KILLED THE GAME!!! ********** <<<");
+            messageToGameUrgent(ga, ">>> ********** " + debugCli.getData() + " KILLED THE GAME!!! ********** <<<");
             gameList.takeMonitor();
 
             try
@@ -4430,7 +4432,7 @@ public class SOCServer extends Server
         }
         else if (dcmd.startsWith("*STOP*"))  // dcmd to force case-sensitivity
         {
-            String stopMsg = ">>> ********** " + (String) debugCli.getData() + " KILLED THE SERVER!!! ********** <<<";
+            String stopMsg = ">>> ********** " + debugCli.getData() + " KILLED THE SERVER!!! ********** <<<";
             stopServer(stopMsg);
             System.exit(0);
         }
@@ -4463,7 +4465,7 @@ public class SOCServer extends Server
             while (robotsEnum.hasMoreElements())
             {
                 StringConnection robotConn = (StringConnection) robotsEnum.nextElement();
-                if (botName.equals((String) robotConn.getData()))
+                if (botName.equals(robotConn.getData()))
                 {
                     botFound = true;
                     messageToGame(ga, "> SENDING RESET COMMAND TO " + botName);
@@ -4489,7 +4491,7 @@ public class SOCServer extends Server
             {
                 StringConnection robotConn = (StringConnection) robotsEnum.nextElement();
 
-                if (botName.equals((String) robotConn.getData()))
+                if (botName.equals(robotConn.getData()))
                 {
                     botFound = true;
                     messageToGame(ga, "> DISCONNECTING " + botName);
@@ -5018,7 +5020,7 @@ public class SOCServer extends Server
 
             final boolean mustSetUsername = (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME));
             if (mustSetUsername)
-                msgUser = (String) c.getData();  // set to original case, from db case-insensitive search
+                msgUser = c.getData();  // set to original case, from db case-insensitive search
 
             /**
              * Check that the channel name is ok
@@ -5066,7 +5068,7 @@ public class SOCServer extends Server
                         (SOCStatusMessage.SV_OK, txt));
             else
                 c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_OK_SET_NICKNAME, ((String) c.getData()) + SOCMessage.sep2_char + txt));
+                        (SOCStatusMessage.SV_OK_SET_NICKNAME, c.getData() + SOCMessage.sep2_char + txt));
 
             /**
              * Add the StringConnection to the channel
@@ -5094,7 +5096,7 @@ public class SOCServer extends Server
 
                 try
                 {
-                    channelList.createChannel(ch, (String) c.getData());
+                    channelList.createChannel(ch, c.getData());
                     ((SOCClientData) c.getAppData()).createdChannel();
                 }
                 catch (Exception e)
@@ -5450,7 +5452,7 @@ public class SOCServer extends Server
         //
         else
         {
-            final String plName = (String) c.getData();
+            final String plName = c.getData();
             final boolean userIsDebug =
                 (allowDebugUser && plName.equals("debug"))
                 || (c instanceof LocalStringConnection);
@@ -5531,7 +5533,7 @@ public class SOCServer extends Server
         // player's stats
         if (c.getVersion() >= SOCPlayerStats.VERSION_FOR_RES_ROLL)
         {
-            SOCPlayer cp = gameData.getPlayer((String) c.getData());
+            SOCPlayer cp = gameData.getPlayer(c.getData());
             if (cp != null)
                 messageToPlayer(c, new SOCPlayerStats(cp, SOCPlayerStats.STYPE_RES_ROLL));
         }
@@ -5613,7 +5615,7 @@ public class SOCServer extends Server
                          + " or newer.");
                     return;  // <--- early return ---
                 }
-                SOCPlayer cliPl = ga.getPlayer((String) c.getData());
+                SOCPlayer cliPl = ga.getPlayer(c.getData());
                 if (cliPl == null)
                     return;  // <--- early return ---
                 if (ga.getCurrentPlayerNumber() != cliPl.getPlayerNumber())
@@ -5683,7 +5685,7 @@ public class SOCServer extends Server
                 // Check if using user admins; if not, if using debug user
                 // Then: look for game name or */all
 
-                final String uname = (String) c.getData();
+                final String uname = c.getData();
                 boolean isAdmin = isUserDBUserAdmin(uname, true);
                 if (! isAdmin)
                     isAdmin = (allowDebugUser && uname.equals("debug"));
@@ -5714,7 +5716,7 @@ public class SOCServer extends Server
                         Enumeration ec = getConnections();  // the named StringConnections
                         while (ec.hasMoreElements())
                         {
-                            String cname = (String) ( ((StringConnection) ec.nextElement()).getData() );
+                            String cname = ((StringConnection) ec.nextElement()).getData();
 
                             int L = sb.length();
                             if (L + cname.length() > 50)
@@ -5889,7 +5891,7 @@ public class SOCServer extends Server
                     (SOCStatusMessage.SV_OK, txt));
         else
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_OK_SET_NICKNAME, ((String) c.getData()) + SOCMessage.sep2_char + txt));
+                    (SOCStatusMessage.SV_OK_SET_NICKNAME, c.getData() + SOCMessage.sep2_char + txt));
     }
 
     /**
@@ -6077,7 +6079,7 @@ public class SOCServer extends Server
             if (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME))
                 c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_OK_SET_NICKNAME,
-                     ((String) c.getData()) + SOCMessage.sep2_char +
+                     c.getData() + SOCMessage.sep2_char +
                      "Welcome to Java Settlers of Catan!"));
 
             if (isTakingOver)
@@ -6440,7 +6442,7 @@ public class SOCServer extends Server
         try
         {
             final String gaName = ga.getName();
-            final String plName = (String) c.getData();
+            final String plName = c.getData();
             SOCPlayer player = ga.getPlayer(plName);
 
             /**
@@ -6654,7 +6656,7 @@ public class SOCServer extends Server
 
                 try
                 {
-                    SOCPlayer player = ga.getPlayer((String) c.getData());
+                    SOCPlayer player = ga.getPlayer(c.getData());
 
                     /**
                      * make sure the player can do it
@@ -6682,14 +6684,14 @@ public class SOCServer extends Server
                             /**
                              * just say it was moved; nothing is stolen
                              */
-                            messageToGame(gaName, (String) c.getData() + " moved the robber.");
+                            messageToGame(gaName, c.getData() + " moved the robber.");
                         }
                         else
                         {
                             /**
                              * else, the player needs to choose a victim
                              */
-                            messageToGame(gaName, (String) c.getData() + " moved the robber, must choose a victim.");                            
+                            messageToGame(gaName, c.getData() + " moved the robber, must choose a victim.");
                         }
 
                         sendGameState(ga);
@@ -6956,7 +6958,7 @@ public class SOCServer extends Server
                     /**
                      * record the request
                      */
-                    D.ebugPrintln("@@@ JOIN GAME REQUEST for " + (String) robotConn.getData());
+                    D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotConn.getData());
                     if (robotRequests == null)
                         robotRequests = new Vector();
                     robotRequests.addElement(robotConn);
@@ -6996,7 +6998,7 @@ public class SOCServer extends Server
 
                 try
                 {
-                    final String plName = (String) c.getData();
+                    final String plName = c.getData();
                     final SOCPlayer pl = ga.getPlayer(plName);
                     if ((pl != null) && ga.canRollDice(pl.getPlayerNumber()))
                     {
@@ -7143,7 +7145,7 @@ public class SOCServer extends Server
 
             if (ga != null)
             {
-                final SOCPlayer player = ga.getPlayer((String) c.getData());
+                final SOCPlayer player = ga.getPlayer(c.getData());
                 final int pn;
                 if (player != null)
                     pn = player.getPlayerNumber();
@@ -7172,7 +7174,7 @@ public class SOCServer extends Server
                          * tell everyone else that the player discarded unknown resources
                          */
                         messageToGameExcept(gn, c, new SOCPlayerElement(gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, mes.getResources().getTotal()), true);
-                        messageToGame(gn, (String) c.getData() + " discarded " + mes.getResources().getTotal() + " resources.");
+                        messageToGame(gn, c.getData() + " discarded " + mes.getResources().getTotal() + " resources.");
 
                         /**
                          * send the new state, or end turn if was marked earlier as forced
@@ -7231,7 +7233,7 @@ public class SOCServer extends Server
 
         try
         {
-            final String plName = (String) c.getData();
+            final String plName = c.getData();
             if (ga.getGameState() == SOCGame.OVER)
             {
                 // Should not happen; is here just in case.
@@ -7492,7 +7494,7 @@ public class SOCServer extends Server
                         if (ga.canChoosePlayer(mes.getChoice()))
                         {
                             int rsrc = ga.stealFromPlayer(mes.getChoice());
-                            reportRobbery(ga, ga.getPlayer((String) c.getData()), ga.getPlayer(mes.getChoice()), rsrc);
+                            reportRobbery(ga, ga.getPlayer(c.getData()), ga.getPlayer(mes.getChoice()), rsrc);
                             sendGameState(ga);
                         }
                         else
@@ -7546,7 +7548,7 @@ public class SOCServer extends Server
                      * remake the offer with data that we know is accurate,
                      * namely the 'from' datum
                      */
-                    SOCPlayer player = ga.getPlayer((String) c.getData());
+                    SOCPlayer player = ga.getPlayer(c.getData());
 
                     /**
                      * announce the offer, including text message similar to bank/port trade.
@@ -7559,7 +7561,7 @@ public class SOCServer extends Server
                                            offGet  = offer.getGetSet();
                             remadeOffer = new SOCTradeOffer(gaName, player.getPlayerNumber(), offer.getTo(), offGive, offGet);
                             player.setCurrentOffer(remadeOffer);
-                            StringBuffer offMsgText = new StringBuffer((String) c.getData());
+                            StringBuffer offMsgText = new StringBuffer(c.getData());
                             offMsgText.append(" made an offer to trade ");
                             offGive.toFriendlyString(offMsgText);
                             offMsgText.append(" for ");
@@ -7616,8 +7618,8 @@ public class SOCServer extends Server
                 try
                 {
                     final String gaName = ga.getName();
-                    ga.getPlayer((String) c.getData()).setCurrentOffer(null);
-                    messageToGame(gaName, new SOCClearOffer(gaName, ga.getPlayer((String) c.getData()).getPlayerNumber()));
+                    ga.getPlayer(c.getData()).setCurrentOffer(null);
+                    messageToGame(gaName, new SOCClearOffer(gaName, ga.getPlayer(c.getData()).getPlayerNumber()));
                     recordGameEvent(mes.getGame(), mes.toCmd());
 
                     /**
@@ -7657,7 +7659,7 @@ public class SOCServer extends Server
 
             if (ga != null)
             {
-                SOCPlayer player = ga.getPlayer((String) c.getData());
+                SOCPlayer player = ga.getPlayer(c.getData());
 
                 if (player != null)
                 {
@@ -7689,7 +7691,7 @@ public class SOCServer extends Server
 
                 try
                 {
-                    SOCPlayer player = ga.getPlayer((String) c.getData());
+                    SOCPlayer player = ga.getPlayer(c.getData());
 
                     if (player != null)
                     {
@@ -7823,7 +7825,7 @@ public class SOCServer extends Server
         try
         {
             final boolean isCurrent = checkTurn(c, ga);
-            SOCPlayer player = ga.getPlayer((String) c.getData());
+            SOCPlayer player = ga.getPlayer(c.getData());
             final int pn = player.getPlayerNumber();
             final int pieceType = mes.getPieceType();
             boolean sendDenyReply = false;  // for robots' benefit
@@ -7964,7 +7966,7 @@ public class SOCServer extends Server
                     final String gaName = ga.getName();
                     if (checkTurn(c, ga))
                     {
-                        final SOCPlayer player = ga.getPlayer((String) c.getData());
+                        final SOCPlayer player = ga.getPlayer(c.getData());
                         final int pn = player.getPlayerNumber();
                         final int gstate = ga.getGameState();
 
@@ -8074,7 +8076,7 @@ public class SOCServer extends Server
         try
         {
             final String gaName = ga.getName();
-            SOCPlayer player = ga.getPlayer((String) c.getData());
+            SOCPlayer player = ga.getPlayer(c.getData());
             final int pn = player.getPlayerNumber();
             boolean sendDenyReply = false;  // for robots' benefit
 
@@ -8109,7 +8111,7 @@ public class SOCServer extends Server
 
                         // Only pre-1.1.19 clients will see the game text messages
                         messageToGameForVersions(ga, -1, SOCSimpleAction.VERSION_FOR_SIMPLEACTION - 1,
-                            new SOCGameTextMsg(gaName, SERVERNAME, (String) c.getData() + " bought a development card."),
+                            new SOCGameTextMsg(gaName, SERVERNAME, c.getData() + " bought a development card."),
                             false);
 
                         final String remainTxt;
@@ -8194,7 +8196,7 @@ public class SOCServer extends Server
 
                     if (checkTurn(c, ga))
                     {
-                        SOCPlayer player = ga.getPlayer((String) c.getData());
+                        SOCPlayer player = ga.getPlayer(c.getData());
 
                         switch (mes.getDevCard())
                         {
@@ -8342,13 +8344,13 @@ public class SOCServer extends Server
                     final String gaName = ga.getName();
                     if (checkTurn(c, ga))
                     {
-                        SOCPlayer player = ga.getPlayer((String) c.getData());
+                        SOCPlayer player = ga.getPlayer(c.getData());
 
                         if (ga.canDoDiscoveryAction(mes.getResources()))
                         {
                             ga.doDiscoveryAction(mes.getResources());
 
-                            StringBuffer message = new StringBuffer((String) c.getData());
+                            StringBuffer message = new StringBuffer(c.getData());
                             message.append(" received ");
                             reportRsrcGainLoss(gaName, mes.getResources(), false, player.getPlayerNumber(), -1, message, null);
                             message.append(" from the bank.");
@@ -8400,7 +8402,7 @@ public class SOCServer extends Server
                         {
                             int[] monoPicks = ga.doMonopolyAction(mes.getResource());
 
-                            final String monoPlayerName = (String) c.getData();
+                            final String monoPlayerName = c.getData();
                             final String resName
                                 = " " + SOCResourceConstants.resName(mes.getResource()) + ".";
                             String message = monoPlayerName + " monopolized" + resName;
@@ -8478,7 +8480,7 @@ public class SOCServer extends Server
         SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
             return;
-        SOCPlayer clientPl = ga.getPlayer((String) c.getData());
+        SOCPlayer clientPl = ga.getPlayer(c.getData());
         if (clientPl == null)
             return;
 
@@ -8513,7 +8515,7 @@ public class SOCServer extends Server
 
             if (ga != null)
             {
-                SOCPlayer player = ga.getPlayer((String) c.getData());
+                SOCPlayer player = ga.getPlayer(c.getData());
 
                 if (player != null)
                 {
@@ -8544,7 +8546,7 @@ public class SOCServer extends Server
 
             if (ga != null)
             {
-                SOCPlayer player = ga.getPlayer((String) c.getData());
+                SOCPlayer player = ga.getPlayer(c.getData());
                 if (player == null)
                     return;
 
@@ -8599,7 +8601,7 @@ public class SOCServer extends Server
         SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
             return;        
-        SOCPlayer reqPlayer = ga.getPlayer((String) c.getData());
+        SOCPlayer reqPlayer = ga.getPlayer(c.getData());
         if (reqPlayer == null)
         {
             return;  // Not playing in that game (Security)
@@ -8622,7 +8624,8 @@ public class SOCServer extends Server
          */
         StringConnection[] humanConns = new StringConnection[ga.maxPlayers];
         StringConnection[] robotConns = new StringConnection[ga.maxPlayers];
-        int numHuman = SOCGameBoardReset.sortPlayerConnections(ga, null, gameList.getMembers(gaName), humanConns, robotConns);
+        int numHuman = SOCGameBoardReset.sortPlayerConnections
+            (ga, null, gameList.getMembers(gaName), humanConns, robotConns);
 
         final int reqPN = reqPlayer.getPlayerNumber();
         if (numHuman < 2)
@@ -8674,7 +8677,7 @@ public class SOCServer extends Server
                 // No one else is capable of voting.
                 // Reset the game immediately.
                 messageToGameWithMon(gaName, new SOCGameTextMsg
-                    (gaName, SERVERNAME, ">>> " + (String) c.getData()
+                    (gaName, SERVERNAME, ">>> " + c.getData()
                      + " is resetting the game - other connected players are unable to vote (client too old)."));
                 gameList.releaseMonitorForGame(gaName);
                 resetBoardAndNotify(gaName, reqPN);
@@ -8683,7 +8686,7 @@ public class SOCServer extends Server
             {
                 // Put it to a vote
                 messageToGameWithMon(gaName, new SOCGameTextMsg
-                    (gaName, SERVERNAME, (String) c.getData() + " requests a board reset - other players please vote."));
+                    (gaName, SERVERNAME, c.getData() + " requests a board reset - other players please vote."));
                 String vrCmd = SOCResetBoardVoteRequest.toCmd(gaName, reqPN);
                 ga.resetVoteBegin(reqPN);
                 gameList.releaseMonitorForGame(gaName);
@@ -8694,7 +8697,7 @@ public class SOCServer extends Server
                             humanConns[i].put(vrCmd);
                         else
                             ga.resetVoteRegister
-                                (ga.getPlayer((String)(humanConns[i].getData())).getPlayerNumber(), true);
+                                (ga.getPlayer(humanConns[i].getData()).getPlayerNumber(), true);
                     }
             }
         }
@@ -8718,7 +8721,7 @@ public class SOCServer extends Server
         SOCGame ga = gameList.getGameData(mes.getGame());
         if (ga == null)
             return;
-        final String plName = (String) c.getData();
+        final String plName = c.getData();
         SOCPlayer reqPlayer = ga.getPlayer(plName);
         if (reqPlayer == null)
         {
@@ -8985,7 +8988,7 @@ public class SOCServer extends Server
             return;
         }
 
-        final String requester = (String) c.getData();  // null if client isn't authenticated
+        final String requester = c.getData();  // null if client isn't authenticated
         final Date currentTime = new Date();
         boolean isDBCountedEmpty = false;  // with null requester, did we query and find the users table is empty?
             // Not set if FEAT_OPEN_REG is active.
@@ -9321,7 +9324,7 @@ public class SOCServer extends Server
          */
         if (isTakingOver)
         {
-            SOCPlayer cliPl = gameData.getPlayer((String) c.getData());
+            SOCPlayer cliPl = gameData.getPlayer(c.getData());
             if (cliPl != null)
             {
                 int pn = cliPl.getPlayerNumber();
@@ -9366,7 +9369,7 @@ public class SOCServer extends Server
             return;
         }
         messageToGame(gameName, new SOCJoinGame
-            ((String)c.getData(), "", "dummyhost", gameName));
+            (c.getData(), "", "dummyhost", gameName));
 
         if ((! isReset) && (gameData.getGameState() >= SOCGame.START2A))
             messageToPlayer(c, gameName,
@@ -9398,7 +9401,7 @@ public class SOCServer extends Server
                     try
                     {
                         SOCClientData cd = (SOCClientData) c.getAppData();
-                        ga.addPlayer((String) c.getData(), pn);
+                        ga.addPlayer(c.getData(), pn);
                         ga.getPlayer(pn).setRobotFlag(robot, (cd != null) && cd.isBuiltInRobot);
                     }
                     catch (IllegalStateException e)
@@ -9414,7 +9417,7 @@ public class SOCServer extends Server
                 /**
                  * if the player can sit, then tell the other clients in the game
                  */
-                SOCSitDown sitMessage = new SOCSitDown(gaName, (String) c.getData(), pn, robot);
+                SOCSitDown sitMessage = new SOCSitDown(gaName, c.getData(), pn, robot);
                 messageToGame(gaName, sitMessage);
 
                 D.ebugPrintln("*** sent SOCSitDown message to game ***");
@@ -10192,7 +10195,7 @@ public class SOCServer extends Server
         {
             try
             {
-                if (ga.getCurrentPlayerNumber() != ga.getPlayer((String) c.getData()).getPlayerNumber())
+                if (ga.getCurrentPlayerNumber() != ga.getPlayer(c.getData()).getPlayerNumber())
                 {
                     return false;
                 }

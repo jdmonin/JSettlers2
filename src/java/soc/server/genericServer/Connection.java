@@ -341,7 +341,7 @@ public final class Connection
     /**
      * {@inheritDoc}
      */
-    public Object getData()
+    public String getData()
     {
         return data;
     }
