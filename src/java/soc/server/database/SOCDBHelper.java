@@ -442,6 +442,7 @@ public class SOCDBHelper
     	    if (prop_dbURL != null)
     	    {
     	        dbURL = prop_dbURL;
+
     	        if (prop_driverclass != null)
     	        {
     	            driverclass = prop_driverclass;
@@ -773,16 +774,13 @@ public class SOCDBHelper
         String dbUserName = sUserName;
         String dbPassword = null;
 
-        // ensure that the JDBC connection is still valid
         if (checkConnection())
         {
             try
             {
-                // fill in the data values to the Prepared statement
                 dbUserName = (schemaVersion < SCHEMA_VERSION_1200) ? sUserName : sUserName.toLowerCase(Locale.US);
                 userPasswordQuery.setString(1, dbUserName);
 
-                // execute the Query
                 ResultSet resultSet = userPasswordQuery.executeQuery();
 
                 // if no results, nickname isn't in the users table
@@ -824,18 +822,14 @@ public class SOCDBHelper
     {
         String nickname = null;
 
-        // ensure that the JDBC connection is still valid
         if (checkConnection())
         {
             try
             {
-                // fill in the data values to the Prepared statement
                 hostQuery.setString(1, host);
 
-                // execute the Query
                 ResultSet resultSet = hostQuery.executeQuery();
 
-                // if no results, user is not authenticated
                 if (resultSet.next())
                 {
                     nickname = resultSet.getString(1);
@@ -876,7 +870,6 @@ public class SOCDBHelper
     public static boolean createAccount
         (String userName, String host, String password, String email, long time) throws SQLException
     {
-        // ensure that the JDBC connection is still valid
         if (checkConnection())
         {
             try
@@ -884,7 +877,6 @@ public class SOCDBHelper
                 java.sql.Date sqlDate = new java.sql.Date(time);
                 Calendar cal = Calendar.getInstance();
 
-                // fill in the data values to the Prepared statement
                 createAccountCommand.setString(1, userName);
                 createAccountCommand.setString(2, host);
                 createAccountCommand.setString(3, password);
@@ -893,7 +885,6 @@ public class SOCDBHelper
                 if (schemaVersion >= SCHEMA_VERSION_1200)
                     createAccountCommand.setString(6, userName.toLowerCase(Locale.US));
 
-                // execute the Command
                 createAccountCommand.executeUpdate();
 
                 return true;
@@ -922,7 +913,6 @@ public class SOCDBHelper
      */
     public static boolean recordLogin(String userName, String host, long time) throws SQLException
     {
-        // ensure that the JDBC connection is still valid
         if (checkConnection())
         {
             try
@@ -930,12 +920,10 @@ public class SOCDBHelper
                 java.sql.Date sqlDate = new java.sql.Date(time);
                 Calendar cal = Calendar.getInstance();
 
-                // fill in the data values to the Prepared statement
                 recordLoginCommand.setString(1, userName);
                 recordLoginCommand.setString(2, host);
                 recordLoginCommand.setDate(3, sqlDate, cal);
 
-                // execute the Command
                 recordLoginCommand.executeUpdate();
 
                 return true;
@@ -963,7 +951,6 @@ public class SOCDBHelper
      */
     public static boolean updateLastlogin(String userName, long time) throws SQLException
     {
-        // ensure that the JDBC connection is still valid
         if (checkConnection())
         {
             try
@@ -971,11 +958,9 @@ public class SOCDBHelper
                 java.sql.Date sqlDate = new java.sql.Date(time);
                 Calendar cal = Calendar.getInstance();
 
-                // fill in the data values to the Prepared statement
                 lastloginUpdate.setDate(1, sqlDate, cal);
                 lastloginUpdate.setString(2, userName);
 
-                // execute the Command
                 lastloginUpdate.executeUpdate();
 
                 return true;
@@ -1054,7 +1039,6 @@ public class SOCDBHelper
         // those fields are in the database.
         // Check ga.maxPlayers.
 
-        // ensure that the JDBC connection is still valid
         if (checkConnection())
         {
             String[] names = new String[ga.maxPlayers];
@@ -1076,7 +1060,6 @@ public class SOCDBHelper
 
             try
             {
-                // fill in the data values to the Prepared statement
                 saveGameCommand.setString(1, ga.getName());
                 saveGameCommand.setString(2, names[0]);
                 saveGameCommand.setString(3, names[1]);
@@ -1088,7 +1071,6 @@ public class SOCDBHelper
                 saveGameCommand.setShort(9, scores[3]);
                 saveGameCommand.setTimestamp(10, new Timestamp(ga.getStartTime().getTime()));
 
-                // execute the Command
                 saveGameCommand.executeUpdate();
 
                 return true;
@@ -1279,7 +1261,6 @@ public class SOCDBHelper
     {
         SOCRobotParameters robotParams = null;
 
-        // ensure that the JDBC connection is still valid
         if (checkConnection())
         {
             if (robotParamsQuery == null)
@@ -1287,16 +1268,12 @@ public class SOCDBHelper
 
             try
             {
-                // fill in the data values to the Prepared statement
                 robotParamsQuery.setString(1, robotName);
 
-                // execute the Query
                 ResultSet resultSet = robotParamsQuery.executeQuery();
 
-                // if no results, user is not authenticated
                 if (resultSet.next())
                 {
-                    // retrieve the resultset
                     int mgl = resultSet.getInt(2);
                     int me = resultSet.getInt(3);
                     float ebf = resultSet.getFloat(4);
@@ -1907,44 +1884,34 @@ public class SOCDBHelper
         // used for the column headings
         ResultSetMetaData rsmd = rs.getMetaData();
 
-        // Get the number of columns in the result set
         int numCols = rsmd.getColumnCount();
 
         // Display column headings
         for (i = 1; i <= numCols; i++)
         {
             if (i > 1)
-            {
                 System.out.print(",");
-            }
 
             System.out.print(rsmd.getColumnLabel(i));
         }
 
         System.out.println("");
 
-        // Display data, fetching until end of the result set
-
         boolean more = rs.next();
-
         while (more)
         {
-            // Loop through each column, getting the
-            // column data and displaying
             for (i = 1; i <= numCols; i++)
             {
                 if (i > 1)
-                {
                     System.out.print(",");
-                }
 
                 System.out.print(rs.getString(i));
             }
 
             System.out.println("");
 
-            // Fetch the next result set row
             more = rs.next();
         }
     }
+
 }
