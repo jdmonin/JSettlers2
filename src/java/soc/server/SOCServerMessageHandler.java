@@ -1610,7 +1610,7 @@ public class SOCServerMessageHandler
         else
         {
             /*
-               SOCLeaveGame leaveMessage = new SOCLeaveGame((String)c.getData(), c.host(), mes.getGame());
+               SOCLeaveGame leaveMessage = new SOCLeaveGame(c.getData(), c.host(), mes.getGame());
                messageToGame(mes.getGame(), leaveMessage);
                recordGameEvent(mes.getGame(), leaveMessage.toCmd());
              */
@@ -1710,7 +1710,7 @@ public class SOCServerMessageHandler
 
         /*
            for (int i = 0; i < SOCGame.MAXPLAYERS; i++) {
-           if (ga.getPlayer(i).getName() == (String)c.getData()) {
+           if (ga.getPlayer(i).getName() == c.getData()) {
            canSit = false;
            break;
            }

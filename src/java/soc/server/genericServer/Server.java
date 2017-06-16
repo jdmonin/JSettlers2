@@ -126,7 +126,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     protected int numberCurrentConnections = 0;
 
     /** The named connections: {@link StringConnection#getData()} != {@code null}.
-     *<BR><B>Locks:</B> Adding/removing/naming/versioning of connections synchronizes on {@link #unnamedConns}.
+     *<BR>
+     * <B>Locks:</B> Adding/removing/naming/versioning of connections synchronizes on {@link #unnamedConns}.
      * @see #connNames
      * @see #unnamedConns
      */
@@ -324,7 +325,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     public StringConnection getConnection(String connKey, final boolean isCaseSensitive)
     {
-        if (! isCaseSensitive)
+        if ((! isCaseSensitive) && (connKey != null))
             synchronized(unnamedConns)
             {
                 connKey = connNames.get(connKey.toLowerCase(Locale.US));
@@ -593,7 +594,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     public void removeConnection(final StringConnection c, final boolean doCleanup)
     {
-        final String cKey = (String) c.getData();  // client player name
+        final String cKey = c.getData();  // client player name
 
         synchronized (unnamedConns)
         {
@@ -671,7 +672,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * named conns (getData not null) are added to conns, not unnamedConns.
      * The add to {@link #cliConnDisconPrintsPending} is unsynchronized.
      *
-     * @param c Connecting client; its name key ({@link StringConnection#getData()}) must not be null.
+     * @param c Connecting client; its name key ({@link StringConnection#getData()}) may be null.
+     * @throws IllegalArgumentException if there's already a connection using {@code c}'s name key (case-insensitive)
      * @see #nameConnection(StringConnection, boolean)
      * @see #removeConnection(StringConnection, boolean)
      */
@@ -749,7 +751,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @see #addConnection(StringConnection)
      * @see #getConnection(String, boolean)
      */
-    public void nameConnection(StringConnection c, boolean isReplacing)
+    public void nameConnection(StringConnection c, final boolean isReplacing)
         throws IllegalArgumentException
     {
         String cKey = c.getData();
@@ -760,7 +762,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         {
             final String cName = cKey.toLowerCase(Locale.US);
             if ((! isReplacing) && connNames.containsKey(cName))
-                    throw new IllegalArgumentException("already in connNames: " + cName);
+                throw new IllegalArgumentException("already in connNames: " + cName);
 
             if (unnamedConns.removeElement(c))
             {
@@ -1291,7 +1293,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         public Throwable excep;
 
         /** Key for {@link #cliConnDisconPrintsPending};
-         *  non-null unless isArriveNotDepart; if so,
+         *  non-null unless {@link #isArriveNotDepart}; if so,
          *  connection name from {@link StringConnection#getData()}
          *<P>
          * Before v1.2.00, this field was {@code connData}.
