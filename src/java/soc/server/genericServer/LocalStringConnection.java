@@ -1,5 +1,5 @@
 /**
- * Local (StringConnection) network system.  Version 1.2.0.
+ * Local (StringConnection) network system.
  * This file Copyright (C) 2007-2010,2012-2013,2016-2017 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
@@ -54,12 +54,12 @@ import soc.disableDebug.D;
  *                       common constructor code moved to init().
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed
  *  1.0.5.2- 2010-04-05- add toString for debugging
- *  1.2.0 - 2017-06-03 - StringConnection is now a superclass, not an interface.
- *                       {@link #setData(String)} now takes a String, not Object.
+ *  1.2.0 - 2017-06-03 - {@link #setData(String)} now takes a String, not Object.
+ *  2.0.0 - 2017-06-16 - StringConnection is now a superclass, not an interface.
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
- * @version 1.2.0
+ * @version 2.0.0
  */
 public class LocalStringConnection
     extends StringConnection implements Runnable

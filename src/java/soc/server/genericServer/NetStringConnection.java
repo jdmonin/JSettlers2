@@ -34,7 +34,7 @@ import java.util.Vector;
 
 
 /** A client's connection at a server.
- *  @version 1.2.0
+ *  @version 2.0.0
  *  @author <A HREF="http://www.nada.kth.se/~cristi">Cristian Bogdan</A>
  *  Reads from the net, writes atomically to the net and
  *  holds the connection data
@@ -46,7 +46,7 @@ import java.util.Vector;
  * with {@link LocalStringConnection}, as they both subclass {@link StringConnection}.
  * If you add something to one class, you should probably add it to the other, or to the superclass instead.
  *<P>
- * Refactored in v1.2.0 to extend {@link StringConnection} instead of Thread.
+ * Refactored in v2.0.0 to extend {@link StringConnection} instead of Thread.
  *<P>
  * Before JSettlers v2.0.00, this class was called {@code Connection}.
  */
@@ -81,7 +81,7 @@ public final class NetStringConnection
     /**
      * Get our connection thread name for debugging.  Also used by {@link #toString()}.
      * @return "connection-" + <em>remotehostname-portnumber</em>, or "connection-(null)-" + {@link #hashCode()}
-     * @since 1.2.0
+     * @since 2.0.0
      */
     public String getName()
     {

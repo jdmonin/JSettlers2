@@ -1,5 +1,5 @@
 /**
- * Local (StringConnection) network system.  Version 1.2.0.
+ * Local (StringConnection) network system.
  * This file Copyright (C) 2007-2009,2013,2015-2017 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -44,12 +44,13 @@ import soc.util.SOCStringManager;
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed; remove unused import EOFException
  *  1.2.0 - 2017-06-03 - StringConnection is now a superclass, not an interface.
  *                       {@link #setData(String)} now takes a String, not Object.
+ *  2.0.0 - 2017-06-16 - StringConnection is now a superclass, not an interface.
  *                       For I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and
  *                       {@link #getLocalized(String)}.
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
- * @version 1.2.0
+ * @version 2.0.0
  */
 public abstract class StringConnection
 {
@@ -63,7 +64,7 @@ public abstract class StringConnection
      *<P>
      * You can check a string's {@code UTF-8} length with {@link String#getBytes(String) str.getBytes("utf-8")}.length.
      * Because of its cost, that's probably best done within the test cases, not production code.
-     * @since 1.2.0
+     * @since 2.0.0
      */
     public final static int MAX_MESSAGE_SIZE_UTF8 = 0xFFFF;
 
@@ -87,14 +88,14 @@ public abstract class StringConnection
      * App-specific connection data ({@link #getAppData()}) can hold a full {@code Locale} object;
      * see {@link soc.server.SOCClientData} for an example.
      *
-     * @since 1.2.0
+     * @since 2.0.0
      */
     protected String localeStr;
 
     /**
      * The server-side string manager for app-specific client message formatting, or {@code null}.
      * Not used or referenced by the generic server layer.
-     * @since 1.2.0
+     * @since 2.0.0
      */
     protected SOCStringManager stringMgr;
 
@@ -215,7 +216,7 @@ public abstract class StringConnection
     /**
      * Get the locale for this connection, as reported to {@link #setI18NStringManager(SOCStringManager, String)}.
      * @return the locale passed to {@code setI18NStringManager}, which may be {@code null}
-     * @since 1.2.0
+     * @since 2.0.0
      */
     public String getI18NLocale()
     {
@@ -227,7 +228,7 @@ public abstract class StringConnection
      * Used for {@link #getLocalized(String)}.
      * @param mgr  String manager, or null
      * @param loc  Locale name, used only for {@link #getI18NLocale()}
-     * @since 1.2.0
+     * @since 2.0.0
      */
     public void setI18NStringManager(SOCStringManager mgr, final String loc)
     {
@@ -241,7 +242,7 @@ public abstract class StringConnection
      * @param key  Key to use for string retrieval
      * @return the localized string from the manager's bundle or one of its parents
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
-     * @since 1.2.0
+     * @since 2.0.0
      * @see #getLocalized(String, Object...)
      * @see #getLocalizedSpecial(SOCGame, String, Object...)
      */
@@ -263,7 +264,7 @@ public abstract class StringConnection
      *                   by calling {@link MessageFormat#format(String, Object...)}.
      * @return the localized formatted string from the manager's bundle or one of its parents
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
-     * @since 1.2.0
+     * @since 2.0.0
      * @see #getLocalized(String)
      * @see #getLocalizedSpecial(SOCGame, String, Object...)
      */
@@ -290,7 +291,7 @@ public abstract class StringConnection
      * @return the localized formatted string from the manager's bundle or one of its parents
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
-     * @since 1.2.0
+     * @since 2.0.0
      * @see #getLocalized(String)
      * @see #getLocalized(String, Object...)
      */
