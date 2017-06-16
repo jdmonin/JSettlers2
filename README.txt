@@ -393,7 +393,7 @@ click Raw; save to the folder containing your JSettlers JAR.
 For mysql:
 Run these commands, which will ask for the mysql root password:
   $ mysql -u root -p -e "SOURCE jsettlers-create-mysql.sql"
-  $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables.sql"
+  $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables-mysql.sql"
 If the scripts run without any errors, they will produce no output.
 To validate, you can list tables with this command:
   $ mysql -u root -D socdata -p -e "show tables"
@@ -413,7 +413,7 @@ For Postgresql:
 Run these commands as the postgres system user:
   $ psql --file jsettlers-create-postgres.sql
   $ psql -d socdata --file jsettlers-sec-postgres.sql
-  $ psql -d socdata -U socuser -h 127.0.0.1 --file jsettlers-tables.sql
+  $ psql -d socdata -U socuser -h 127.0.0.1 --file jsettlers-tables-postgres.sql
   Password for user socuser: socpass
 If the scripts run without any errors, they will produce very terse output
 such as "CREATE DATABASE", "CREATE TABLE", and "NOTICE:
@@ -429,10 +429,10 @@ You can validate by listing the newly created tables with this command:
 	 public | users       | table | socuser
 
 For sqlite:
-Copy jsettlers-tables.sql to the same directory as JSettlersServer.jar
+Copy jsettlers-tables-sqlite.sql to the same directory as JSettlersServer.jar
 and sqlite-jdbc-3.7.2.jar and run this command (sqlite jar filename may
 vary, update the jsettlers.db.jar parameter to match it):
-  $ java -jar JSettlersServer.jar -Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar  -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=jsettlers-tables.sql
+  $ java -jar JSettlersServer.jar -Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar  -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=jsettlers-tables-sqlite.sql
 You should see this message:
 	DB setup script was successful. Exiting now.
 This will create a jsettlers.sqlite file containing the empty tables.
