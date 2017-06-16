@@ -2,7 +2,7 @@
 -- Run jsettlers-create-mysql.sql or jsettlers-create-postgres.sql before this script.
 -- Make sure socdata is the database you are connected to when running this script:
 --      MySQL:    $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables.sql"
---      Postgres: $ psql --file jsettlers-tables.sql socdata
+--      Postgres: $ psql -d socdata --file jsettlers-tables.sql
 -- See bottom of file for copyright and license information (GPLv3+).
 
 -- When changing the schema, update template/jsettlers-tables-tmpl.sql and not db-specific files.
