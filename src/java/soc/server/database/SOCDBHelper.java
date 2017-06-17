@@ -1543,7 +1543,7 @@ public class SOCDBHelper
      * @return  true if table exists in the current connection's database
      * @throws IllegalStateException  If not connected and if {@link #checkConnection()} fails
      * @see #doesTableColumnExist(String, String)
-     * @since 2.0.00
+     * @since 1.2.00
      */
     public static boolean doesTableExist(final String tabname)
         throws IllegalStateException
@@ -1581,13 +1581,11 @@ public class SOCDBHelper
         catch (Exception e)
         {
             if (rs != null)
-            {
                 try
                 {
                     rs.close();
                 }
                 catch (SQLException se) {}
-            }
         }
 
         return found;
@@ -1655,13 +1653,11 @@ public class SOCDBHelper
         } catch (Throwable th) {
 
             if (rs != null)
-            {
                 try
                 {
                     rs.close();
                 }
                 catch (SQLException e) {}
-            }
 
             return false;
         }
