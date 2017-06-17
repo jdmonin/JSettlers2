@@ -26,8 +26,8 @@
 CREATE TABLE db_version (
 	from_vers INT not null,  -- or 0 for new install
 	to_vers   INT not null,
-	ddl_done  TIMESTAMP,      -- null if upgrade's DDL changes are incomplete
-	bg_tasks_done TIMESTAMP,  -- null if upgrade is incomplete;
+	ddl_done  TIMESTAMP NULL DEFAULT null,      -- null if upgrade's DDL changes are incomplete
+	bg_tasks_done TIMESTAMP NULL DEFAULT null,  -- null if upgrade is incomplete;
 	           -- if upgrade requires no background tasks/conversions, same value as ddl_done
 	PRIMARY KEY (to_vers)
 	);
