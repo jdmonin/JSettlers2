@@ -1233,6 +1233,8 @@ public class SOCGameOption implements Cloneable, Comparable
     /**
      * Utility - build a string of option name-value pairs.
      * This can be unpacked with {@link #parseOptionsToHash(String)}.
+     *<P>
+     * For sending options to a client, use {@link #packOptionsToString(Hashtable, boolean, int)} instead.
      *
      * @param ohash Hashtable of SOCGameOptions, or null
      * @param hideEmptyStringOpts omit string-valued options which are empty?

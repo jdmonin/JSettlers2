@@ -15,7 +15,8 @@
 
 -- Schema upgrades:
 --   See SOCDBHelper.upgradeSchema(). DDL here must be kept in sync with what's found there.
---   2017-06-xx v1.2.00: Add db_version table; users.nickname_lc; TIMESTAMP column type now dbtype-specific
+--   2017-06-xx v1.2.00: Add db_version table; users.nickname_lc; TIMESTAMP column type now dbtype-specific;
+--      games + player5, player6, score5, score6, duration_sec, winner, gameopts
 
 -- DB Schema Version / upgrade history: Added in v1.2.00 (schema version 1200).
 -- At startup, SOCDBHelper checks max(to_vers) here for this db's schema version.
@@ -49,11 +50,17 @@ CREATE TABLE logins (
 	PRIMARY KEY (nickname)
 	);
 
+-- Players and scores for completed games.
+-- If database schema was upgraded from an earlier version,
+-- duration_sec and winner will be null for old data rows.
 CREATE TABLE games (
 	gamename VARCHAR(20) not null,
-	player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20), player4 VARCHAR(20),
-	score1 SMALLINT, score2 SMALLINT, score3 SMALLINT, score4 SMALLINT,
-	starttime TIMESTAMP not null
+	player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20),
+	player4 VARCHAR(20), player5 VARCHAR(20), player6 VARCHAR(20),
+	score1 SMALLINT, score2 SMALLINT, score3 SMALLINT,
+	score4 SMALLINT, score5 SMALLINT, score6 SMALLINT,
+	starttime TIMESTAMP not null, duration_sec INT not null,
+	winner VARCHAR(20) not null, gameopts VARCHAR(500)
 	);
 
 CREATE INDEX games__n ON games(gamename);

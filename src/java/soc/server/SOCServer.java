@@ -10557,7 +10557,7 @@ public class SOCServer extends Server
     /**
      * if all the players stayed for the whole game,
      * or if the game has any human players,
-     * record the scores in the database.
+     * record the winner and scores in the database.
      * Called only if property <tt>jsettlers.db.save.games</tt>
      * is true. ({@link SOCDBHelper#PROP_JSETTLERS_DB_SAVE_GAMES})
      *
@@ -10575,14 +10575,12 @@ public class SOCServer extends Server
 
         try
         {
-            // TODO 6-player: add fields to db schema to save all 6 scores, winner, game options;
-            // save all 6 if those fields are in the database.
-            final long gameSeconds = ((System.currentTimeMillis() - ga.getStartTime().getTime())+500L) / 1000L;
+            final int gameSeconds = (int) (((System.currentTimeMillis() - ga.getStartTime().getTime())+500L) / 1000L);
             SOCDBHelper.saveGameScores(ga, gameSeconds);
         }
-        catch (SQLException sqle)
+        catch (Exception e)
         {
-            System.err.println("Error saving game scores in db: " + sqle);
+            System.err.println("Error saving game scores in db: " + e);
         }
     }
 
