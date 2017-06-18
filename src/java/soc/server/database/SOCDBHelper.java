@@ -1937,19 +1937,21 @@ public class SOCDBHelper
                     couldRollback = false;
 
                 if (couldRollback && added_user_fields)
+                {
+                    final String[] cols = {"pw_scheme", "pw_store", "pw_change"};
                     if ((dbType == DBTYPE_SQLITE)
                               // roll back first field added, if exception was thrown for that
-                        || ! (runDDL_rollback("ALTER TABLE users DROP COLUMN nickname_lc;")
-                              && runDDL_rollback
-                                   ("ALTER TABLE users DROP pw_scheme, DROP pw_store, DROP pw_change;")))
+                        || ! (runDDL_rollback("ALTER TABLE users DROP nickname_lc;")
+                              && runDDL_dropCols("users", cols)))
                         couldRollback = false;
+                }
 
                 if (couldRollback && added_game_fields)
                 {
+                    final String[] cols = {"player6", "score5", "score6", "duration_sec", "winner", "gameopts"};
                     if ((dbType == DBTYPE_SQLITE)
                         || ! (runDDL_rollback("ALTER TABLE games DROP player5")
-                              && runDDL_rollback
-                                   ("ALTER TABLE games DROP player6, DROP score5, DROP score6, DROP duration_sec, DROP winner, DROP gameopts;")))
+                              && runDDL_dropCols("games", cols)))
                         couldRollback = false;
                 }
 
@@ -2079,6 +2081,58 @@ public class SOCDBHelper
     }
 
     /**
+     * Run DDL to drop columns, useful during rollback. Syntax varies by DB type.
+     * @param tabName Table name
+     * @param colNames Columns to drop
+     * @return True if drops succeeded, false if an Exception occurred.
+     *    The Exception will also be printed to {@link System#err}.
+     * @throws IllegalStateException if {@link #dbType} is {@link #DBTYPE_SQLITE}, which cannot drop columns
+     * @since 1.2.00
+     */
+    private static boolean runDDL_dropCols(final String tabName, final String[] colNames)
+        throws IllegalStateException
+    {
+        if (dbType == DBTYPE_SQLITE)
+            throw new IllegalStateException("sqlite cannot drop columns");
+
+        try {
+            if ((dbType == DBTYPE_MYSQL) || (dbType == DBTYPE_POSTGRESQL) || (dbType == DBTYPE_ORA))
+            {
+                // These dbTypes can drop multiple columns as a single statement; see 2013-09-01 item
+                // https://stackoverflow.com/questions/6346120/how-do-i-drop-multiple-columns-with-a-single-alter-table-statement
+                // mysql, postgres: ALTER TABLE users DROP pw_scheme, DROP pw_store, DROP pw_change;
+                // ora:             ALTER TABLE users DROP (pw_scheme, pw_store, pw_change);
+                StringBuilder sb = new StringBuilder("ALTER TABLE ");
+                sb.append(tabName);
+                for (int i = 0; i < colNames.length; ++i)
+                {
+                    if (i > 0)
+                        sb.append(',');
+                    if (dbType != DBTYPE_ORA)
+                        sb.append(" DROP ");
+                    else if (i == 0)
+                        sb.append(" DROP (");
+                    sb.append(colNames[i]);
+                }
+                if (dbType == DBTYPE_ORA)
+                    sb.append(')');
+                sb.append(';');
+                runDDL(sb.toString());
+            } else {
+                for (int i = 0; i < colNames.length; ++i)
+                    runDDL("ALTER TABLE " + tabName + " DROP " + colNames[i] + ';');
+            }
+
+            return true;
+        }
+        catch (Exception e) {
+            System.err.println("* Problem during drop columns for " + tabName + ": " + e);
+
+            return false;
+        }
+    }
+
+    /**
      * Run a DDL command to roll back part of a database upgrade.
      * Assumes this is run within a {@code catch} block, and thus
      * any {@link SQLException}s should be caught here. If an Exception
@@ -2102,7 +2156,7 @@ public class SOCDBHelper
 
     /**
      * Run a DDL command to create or remove a database structure.
-     * @param sql  SQL to run
+     * @param sql  SQL to run. Some DB types, including zentus sqlite JDBC, might ignore any SQL after the first ";".
      * @throws IllegalStateException if not connected and if {@link #checkConnection()} fails
      * @throws SQLException if an error occurs while running {@code sql}
      * @since 1.2.00
