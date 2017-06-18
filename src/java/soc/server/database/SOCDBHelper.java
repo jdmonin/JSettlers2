@@ -1793,19 +1793,23 @@ public class SOCDBHelper
             }
         }
 
+        final String TIMESTAMP_NULL = (dbType == DBTYPE_POSTGRESQL)
+            ? "TIMESTAMP WITHOUT TIME ZONE"
+            : (dbType == DBTYPE_MYSQL)
+                ? "TIMESTAMP NULL DEFAULT null"
+                : "TIMESTAMP";
+        final String TIMESTAMP = (dbType == DBTYPE_POSTGRESQL)
+            ? "TIMESTAMP WITHOUT TIME ZONE"
+            : "TIMESTAMP";
+
         /* 1.2.00: First, create db_version table */
         if (schemaVersion < SCHEMA_VERSION_1200)
         {
             // no rollback needed if fails, so don't try/catch here
 
-            final String TIMESTAMP = (dbType == DBTYPE_POSTGRESQL)
-                ? "TIMESTAMP WITHOUT TIME ZONE"
-                : (dbType == DBTYPE_MYSQL)
-                    ? "TIMESTAMP NULL DEFAULT null"
-                    : "TIMESTAMP";
             final String sql = "CREATE TABLE db_version ("
                 + "from_vers INT not null, to_vers INT not null, ddl_done "
-                + TIMESTAMP +", bg_tasks_done " + TIMESTAMP
+                + TIMESTAMP_NULL +", bg_tasks_done " + TIMESTAMP_NULL
                 + ", PRIMARY KEY (to_vers) );";
             runDDL(sql);
         }
@@ -1845,15 +1849,21 @@ public class SOCDBHelper
         //   the server's admin must back up their sqlite db before running the upgrade.
 
         /**
-         * 1.2.00: games + player5, player6, score5, score6, duration_sec, winner, gameopts;
-         *     users + nickname_lc, index users__l
+         * 1.2.00: settings table;
+         *     games + player5, player6, score5, score6, duration_sec, winner, gameopts;
+         *     users + nickname_lc, pw_scheme, pw_store, pw_change, index users__l
          */
         if (schemaVersion < SCHEMA_VERSION_1200)
         {
             /* add games fields; add users field, fill it, add unique index */
-            boolean added_game_fields = false, added_nick_lc = false;
+            boolean added_tab_settings = false, added_game_fields = false, added_user_fields = false;
             try
             {
+                runDDL
+                    ("CREATE TABLE settings ( s_name varchar(32) not null, s_value varchar(500), i_value int, "
+                      + "s_changed " + TIMESTAMP + " not null, PRIMARY KEY (s_name) );");
+                added_tab_settings = true;
+
                 // sqlite can't add multiple fields at once
                 runDDL("ALTER TABLE games ADD COLUMN player5 VARCHAR(20);");
                 added_game_fields = true;
@@ -1865,9 +1875,12 @@ public class SOCDBHelper
                 runDDL("ALTER TABLE games ADD COLUMN gameopts VARCHAR(500);");
 
                 runDDL("ALTER TABLE users ADD COLUMN nickname_lc VARCHAR(20);");
-                added_nick_lc = true;
+                added_user_fields = true;
+                runDDL("ALTER TABLE users ADD COLUMN pw_scheme INT;");
+                runDDL("ALTER TABLE users ADD COLUMN pw_store VARCHAR(255);");
+                runDDL("ALTER TABLE users ADD COLUMN pw_change " + TIMESTAMP_NULL + ";");
 
-                // fill the new field; use String.toLowerCase(..), not SQL lower(..) which is ascii-only on sqlite.
+                // fill nickname_lc field; use String.toLowerCase(..), not SQL lower(..) which is ascii-only on sqlite.
                 if (! upg_1200_allUsers.isEmpty())
                 {
                     final boolean was_conn_autocommit = connection.getAutoCommit();
@@ -1920,14 +1933,21 @@ public class SOCDBHelper
 
                 boolean couldRollback = true;
 
-                if (added_nick_lc)
-                    if ((dbType == DBTYPE_SQLITE) || ! runDDL_rollback("ALTER TABLE users DROP COLUMN nickname_lc;"))
+                if (added_tab_settings && ! runDDL_rollback("DROP TABLE settings;"))
+                    couldRollback = false;
+
+                if (couldRollback && added_user_fields)
+                    if ((dbType == DBTYPE_SQLITE)
+                              // roll back first field added, if exception was thrown for that
+                        || ! (runDDL_rollback("ALTER TABLE users DROP COLUMN nickname_lc;")
+                              && runDDL_rollback
+                                   ("ALTER TABLE users DROP pw_scheme, DROP pw_store, DROP pw_change;")))
                         couldRollback = false;
 
                 if (couldRollback && added_game_fields)
                 {
                     if ((dbType == DBTYPE_SQLITE)
-                        || ! (runDDL_rollback("ALTER TABLE games DROP player5")  // first field added, if exception thrown for that
+                        || ! (runDDL_rollback("ALTER TABLE games DROP player5")
                               && runDDL_rollback
                                    ("ALTER TABLE games DROP player6, DROP score5, DROP score6, DROP duration_sec, DROP winner, DROP gameopts;")))
                         couldRollback = false;
