@@ -48,11 +48,11 @@ CREATE TABLE settings (
 	-- Important s_names may be listed here.
 
 -- Users:
--- When the password encoding or max length changes,
+-- When the password encoding scheme or max length changes,
 -- be sure to update SOCDBHelper.createAccount and updateUserPassword.
 CREATE TABLE users (
 	nickname VARCHAR(20) not null, host VARCHAR(50) not null, password VARCHAR(20) not null, email VARCHAR(50), lastlogin DATE,
-	nickname_lc VARCHAR(20) not null, pw_scheme INT,  -- use original password field if pw_scheme is NULL, else pw_store
+	nickname_lc VARCHAR(20) not null, pw_scheme INT,  -- use original password field if pw_scheme is NULL, else use pw_store
 	pw_store VARCHAR(255), pw_change TIMESTAMP WITHOUT TIME ZONE,
 	PRIMARY KEY (nickname)
 	);

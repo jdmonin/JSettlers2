@@ -66,7 +66,7 @@ and backport minor new features until 2.0.00 is ready.
      Optional Schema Upgrade process with -Djsettlers.db.upgrade_schema=Y startup option
      Schema v1.2.00 adds:
        - games table: winner, options, duration, player 5 and 6 names and scores
-       - users table: case-insensitive unique usernames/nicknames; password schemes
+       - users table: case-insensitive unique usernames/nicknames; password encodings
        - db_version table with upgrade history (if any)
        - settings table
      If using mysql: Newly created DBs now have unicode text encoding (UTF-8).

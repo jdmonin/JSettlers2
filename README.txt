@@ -446,9 +446,11 @@ To validate, you can list tables with this command:
 	+-------------------+
 	| Tables_in_socdata |
 	+-------------------+
+	| db_version        |
 	| games             |
 	| logins            |
 	| robotparams       |
+	| settings          |
 	| users             |
 	+-------------------+
 If mysql gives the error: Unknown character set: 'utf8mb4'
@@ -469,9 +471,11 @@ You can validate by listing the newly created tables with this command:
 	            List of relations
 	 Schema |    Name     | Type  |  Owner   
 	--------+-------------+-------+----------
+	 public | db_version  | table | socuser
 	 public | games       | table | socuser
 	 public | logins      | table | socuser
 	 public | robotparams | table | socuser
+	 public | settings    | table | socuser
 	 public | users       | table | socuser
 
 When you start your JSettlers server, remember to specify the postgres DB using:
