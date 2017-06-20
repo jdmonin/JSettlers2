@@ -1297,6 +1297,7 @@ public class SOCServer extends Server
         /**
          * Try to connect to the DB, if any.
          */
+        boolean db_err_printed = false;
         try
         {
             SOCDBHelper.initialize(databaseUserName, databasePassword, props);
@@ -1331,6 +1332,7 @@ public class SOCServer extends Server
                     }
                     catch (Exception e)
                     {
+                        db_err_printed = true;
                         if (e instanceof MissingResourceException)
                             System.err.println("* To begin schema upgrade, please fix and rerun: " + e.getMessage());
                         else
@@ -1352,6 +1354,7 @@ public class SOCServer extends Server
             }
             else if (wants_upg_schema)
             {
+                db_err_printed = true;
                 final String errmsg = "* Cannot upgrade database schema: Already at latest version";
                 System.err.println(errmsg);
                 throw new IllegalArgumentException(errmsg);
@@ -1373,11 +1376,10 @@ public class SOCServer extends Server
         }
         catch (SQLException sqle)  // just a warning at this point; other code checks if db failed but is required
         {
-            if (wants_upg_schema)
+            if (wants_upg_schema && db_err_printed)
             {
                 // the schema upgrade failed to complete; upgradeSchema() printed the exception.
                 // don't continue server startup with just a warning
-
                 throw sqle;
             }
 
@@ -1390,7 +1392,7 @@ public class SOCServer extends Server
                 cause = cause.getCause();
             }
 
-            if (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
+            if (wants_upg_schema || (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null))
             {
                 // the sql script ran in initialize failed to complete;
                 // now that we've printed the exception, don't continue server startup with just a warning
