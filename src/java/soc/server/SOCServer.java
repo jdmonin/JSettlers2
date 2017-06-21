@@ -1294,6 +1294,8 @@ public class SOCServer extends Server
             robotCookie = generateRobotCookie();
         }
 
+        final boolean accountsRequired = getConfigBoolProperty(PROP_JSETTLERS_ACCOUNTS_REQUIRED, false);
+
         /**
          * Try to connect to the DB, if any.
          */
@@ -1312,6 +1314,9 @@ public class SOCServer extends Server
                 utilityModeMessage = msg;
                 throw new EOFException(msg);
             }
+
+            // set some DB-related SOCServer fields: acctsNotOpenRegButNoUsers, databaseUserAdmins
+            initSocServer_dbParamFields(accountsRequired, wants_upg_schema);
 
             // check schema version, upgrade if requested:
             if (! SOCDBHelper.isSchemaLatestVersion())
@@ -1362,17 +1367,6 @@ public class SOCServer extends Server
 
             // reminder: if props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET),
             // caller will need to prompt for and change the password
-
-            // open reg for user accounts?  if not, see if we have any yet
-            if (getConfigBoolProperty(PROP_JSETTLERS_ACCOUNTS_OPEN, false))
-            {
-                features.add(SOCServerFeatures.FEAT_OPEN_REG);
-                if (! hasUtilityModeProp)
-                    System.err.println("User database Open Registration is active, anyone can create accounts.");
-            } else {
-                if (SOCDBHelper.countUsers() == 0)
-                    acctsNotOpenRegButNoUsers = true;
-            }
         }
         catch (SQLException sqle)  // just a warning at this point; other code checks if db failed but is required
         {
@@ -1398,6 +1392,20 @@ public class SOCServer extends Server
                 // now that we've printed the exception, don't continue server startup with just a warning
 
                 throw sqle;
+            }
+
+            String propReqDB = null;
+            if (accountsRequired)
+                propReqDB = PROP_JSETTLERS_ACCOUNTS_REQUIRED;
+            else if (props.containsKey(PROP_JSETTLERS_ACCOUNTS_ADMINS))
+                propReqDB = PROP_JSETTLERS_ACCOUNTS_ADMINS;
+
+            if (propReqDB != null)
+            {
+                final String errMsg = "* Property " + propReqDB + " requires a database.";
+                System.err.println(errMsg);
+                System.err.println("\n* Exiting because current startup properties specify a database.");
+                throw new SQLException(errMsg);
             }
 
             if (props.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_URL)
@@ -1450,8 +1458,6 @@ public class SOCServer extends Server
             return;  // <--- don't continue startup if Utility Mode ---
         }
 
-        final boolean accountsRequired = getConfigBoolProperty(PROP_JSETTLERS_ACCOUNTS_REQUIRED, false);
-
         if (SOCDBHelper.isInitialized())
         {
             if (accountsRequired)
@@ -1479,12 +1485,6 @@ public class SOCServer extends Server
                 System.err.println("Warning: Could not register shutdown hook for database disconnect. Check java security settings.");
             }
         }
-        else if (accountsRequired)
-        {
-            final String errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_REQUIRED + " requires a database.";
-            System.err.println(errmsg);
-            throw new IllegalArgumentException(errmsg);
-        }
 
         startTime = System.currentTimeMillis();
         numberOfGamesStarted = 0;
@@ -1506,54 +1506,6 @@ public class SOCServer extends Server
 
         if (CLIENT_MAX_CREATE_CHANNELS != 0)
             features.add(SOCServerFeatures.FEAT_CHANNELS);
-
-        if (props.containsKey(PROP_JSETTLERS_ACCOUNTS_ADMINS))
-        {
-            String errmsg = null;
-
-            final String userAdmins = props.getProperty(PROP_JSETTLERS_ACCOUNTS_ADMINS);
-            if (! SOCDBHelper.isInitialized())
-            {
-                errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + " requires a database.";
-            } else if (userAdmins.length() == 0) {
-                errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + " cannot be an empty string.";
-            } else if (features.isActive(SOCServerFeatures.FEAT_OPEN_REG)) {
-                errmsg = "* Cannot use Open Registration with User Accounts Admin List.";
-            } else {
-                final boolean downcase = (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200);
-                databaseUserAdmins = new HashSet<String>();
-
-                for (String adm : userAdmins.split(SOCMessage.sep2))  // split on "," - sep2 will never be in a username
-                {
-                    String na = adm.trim();
-                    if (na.length() > 0)
-                    {
-                        if (downcase)
-                            na = na.toLowerCase(Locale.US);
-                        databaseUserAdmins.add(na);
-                    }
-                }
-                if (databaseUserAdmins.isEmpty())  // was it commas only?
-                    errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + " cannot be an empty list.";
-            }
-
-            if (errmsg != null)
-            {
-                System.err.println(errmsg);
-                throw new IllegalArgumentException(errmsg);
-            }
-
-            System.err.println("User account administrators limited to: " + userAdmins);
-            if (acctsNotOpenRegButNoUsers)
-                System.err.println("** User database is currently empty: Run SOCAccountClient to create the user admin account(s) named above.");
-        }
-        else if (acctsNotOpenRegButNoUsers)
-        {
-            if (accountsRequired)
-                System.err.println("** User database is currently empty. You must run SOCAccountClient to create users.");
-            else
-                System.err.println("User database is currently empty. You can run SOCAccountClient to create users.");
-        }
 
         /**
          * Start various threads.
@@ -1617,6 +1569,88 @@ public class SOCServer extends Server
 
         System.err.println();
         System.err.println();
+    }
+
+    /**
+     * Set some DB-related SOCServer fields and features:
+     * {@link #databaseUserAdmins} from {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS},
+     * {@link #features}({@link SOCServerFeatures#FEAT_OPEN_REG}) and {@link #acctsNotOpenRegButNoUsers}
+     * from {@link #PROP_JSETTLERS_ACCOUNTS_OPEN}.
+     *<P>
+     * Prints some status messages and any problems to {@link System#err}.
+     *<P>
+     * Must not call this method until after {@link SOCDBHelper#initialize(String, String, Properties)}.
+     *
+     * @param accountsRequired  Are accounts required? Caller should check {@link #PROP_JSETTLERS_ACCOUNTS_REQUIRED}.
+     * @param wantsUpgSchema  If true, server is preparing to try to upgrade the schema and exit.
+     *     Certain hint messages here won't be printed, because the server is exiting afterwards.
+     * @throws IllegalArgumentException if {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS} is inconsistent or empty
+     * @throws SQLException  if unexpected problem with DB when calling {@link SOCDBHelper#countUsers()}
+     *     for {@link #acctsNotOpenRegButNoUsers}
+     * @since 1.2.00
+     */
+    private void initSocServer_dbParamFields(final boolean accountsRequired, final boolean wantsUpgSchema)
+        throws IllegalArgumentException, SQLException
+    {
+        // open reg for user accounts?  if not, see if we have any yet
+        if (getConfigBoolProperty(PROP_JSETTLERS_ACCOUNTS_OPEN, false))
+        {
+            features.add(SOCServerFeatures.FEAT_OPEN_REG);
+            if (! hasUtilityModeProp)
+                System.err.println("User database Open Registration is active, anyone can create accounts.");
+        } else {
+            if (SOCDBHelper.countUsers() == 0)
+                acctsNotOpenRegButNoUsers = true;
+        }
+
+        if (props.containsKey(PROP_JSETTLERS_ACCOUNTS_ADMINS))
+        {
+            String errmsg = null;
+
+            final String userAdmins = props.getProperty(PROP_JSETTLERS_ACCOUNTS_ADMINS);
+            if (userAdmins.length() == 0)
+            {
+                errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + " cannot be an empty string.";
+            } else if (features.isActive(SOCServerFeatures.FEAT_OPEN_REG)) {
+                errmsg = "* Cannot use Open Registration with User Accounts Admin List.";
+            } else {
+                final boolean downcase = (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200);
+                databaseUserAdmins = new HashSet<String>();
+
+                for (String adm : userAdmins.split(SOCMessage.sep2))  // split on "," - sep2 will never be in a username
+                {
+                    String na = adm.trim();
+                    if (na.length() > 0)
+                    {
+                        if (downcase)
+                            na = na.toLowerCase(Locale.US);
+                        databaseUserAdmins.add(na);
+                    }
+                }
+
+                if (databaseUserAdmins.isEmpty())  // was it commas only?
+                    errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + " cannot be an empty list.";
+            }
+
+            if (errmsg != null)
+            {
+                System.err.println(errmsg);
+                throw new IllegalArgumentException(errmsg);
+            }
+
+            System.err.println("User account administrators limited to: " + userAdmins);
+            if (acctsNotOpenRegButNoUsers)
+                System.err.println
+                    ("** User database is currently empty: Run SOCAccountClient to create the user admin account(s) named above.");
+        }
+        else if (acctsNotOpenRegButNoUsers && ! wantsUpgSchema)
+        {
+            if (accountsRequired)
+                System.err.println("** User database is currently empty. You must run SOCAccountClient to create users.");
+            else
+                System.err.println("User database is currently empty. You can run SOCAccountClient to create users.");
+        }
+
     }
 
     /**
