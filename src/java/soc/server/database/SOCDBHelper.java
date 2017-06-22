@@ -1646,6 +1646,50 @@ public class SOCDBHelper
     }
 
     /**
+     * Build and run a SELECT query, with a LIMIT clause appropriate to the DB type if possible.
+     * Currently possible for MySQL, Postgres, SQLite, and semi-supported ORA.
+     * Otherwise this will be a standard SELECT without any LIMIT clause.
+     * @param selectStmt  SQL statement, beginning with SELECT, omitting trailing {@code ';'}.
+     *     <BR>
+     *     Example: {@code "SELECT * FROM games WHERE duration_sec >= 3600"}
+     * @param limit  Number of rows for LIMIT clause
+     * @return  This limited SELECT statement's ResultSet, from {@link Statement#executeQuery(String)}
+     * @throws SQLException if any unexpected database problem
+     * @since 1.2.00
+     */
+    public static ResultSet selectWithLimit(final String selectStmt, final int limit)
+        throws SQLException
+    {
+        StringBuilder sql = new StringBuilder(selectStmt);
+        int L = sql.length();
+        if (sql.charAt(L - 1) == ';')
+            sql.setLength(L - 1);
+
+        switch (dbType)
+        {
+        case DBTYPE_MYSQL:
+        case DBTYPE_POSTGRESQL:
+        case DBTYPE_SQLITE:
+            sql.append(" LIMIT ");
+            sql.append(limit);
+            break;
+
+        case DBTYPE_ORA:
+            sql.insert(0, "SELECT * FROM (");
+            sql.append(") t WHERE ROWNUM <= ");
+            sql.append(limit);
+            break;
+
+        default:
+            // no limit clause
+        }
+
+        sql.append(';');
+
+        return connection.createStatement().executeQuery(sql.toString());
+    }
+
+    /**
      * Query to see if a table exists in the database.
      * Any exception is caught here and returns false.
      * @param tabname  Table name to check for; case-sensitive in some db types.
@@ -2595,7 +2639,8 @@ public class SOCDBHelper
             if (! anyFailed)
             {
                 System.err.println();
-                boolean hasFixtureTabXYZ = false, hasFixtureFieldXYZW = false, hasFixtureFieldD3 = false;
+                boolean hasFixtureTabXYZ = false, hasFixtureFieldXYZW = false,
+                    hasFixtureFieldD3 = false, didBulkIns = false;
                 boolean switchedAutoCommitOff = false;
 
                 try
@@ -2680,6 +2725,8 @@ public class SOCDBHelper
                         ps.executeBatch();
                         connection.commit();
 
+                        didBulkIns = true;
+
                         ResultSet rs = connection.createStatement().executeQuery("SELECT count(*) FROM gamesxyz2");
                         rs.next();
                         int n = rs.getInt(1);
@@ -2716,6 +2763,31 @@ public class SOCDBHelper
                             System.err.println("Cleanup ok: Restore autoCommit mode");
                         } catch (SQLException e) {
                             System.err.println("Cleanup failed: Restore autoCommit mode: " + e);
+                            anyFailed = true;
+                        }
+                    }
+
+                    if (didBulkIns)
+                    {
+                        try
+                        {
+                            ResultSet rs = selectWithLimit("SELECT * FROM gamesxyz2 WHERE xyzw <= 9", 5);
+                            int i = 0;
+                            while (rs.next())
+                                ++i;
+                            rs.close();
+                            if (i == 5)
+                            {
+                                System.err.println("Test ok: selectWithLimit");
+                            } else {
+                                System.err.println("Test failed: selectWithLimit: Expected 5 rows, got " + i);
+                                if (dbType != DBTYPE_UNKNOWN)
+                                    anyFailed = true;
+                                else
+                                    System.err.println("  (failure OK here: dbType is unknown)");
+                            }
+                        } catch (SQLException e) {
+                            System.err.println("Test failed: selectWithLimit: " + e);
                             anyFailed = true;
                         }
                     }
@@ -2765,7 +2837,7 @@ public class SOCDBHelper
                     }
                 }
             } else {
-                System.err.println("15 tests skipped because not creating fixture after previous failures.");
+                System.err.println("16 tests skipped because not creating fixture after previous failures.");
             }
 
         } catch (Exception e) {
