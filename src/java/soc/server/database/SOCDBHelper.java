@@ -2271,6 +2271,57 @@ public class SOCDBHelper
         System.err.println("* DB schema upgrade completed.\n\n");
     }
 
+    /****************************************
+     * Connection cleanup
+     ****************************************/
+
+    /**
+     * Close out and shut down the database connection.
+     * @param isForShutdown  If true, set <tt>connection = null</tt>
+     *          so we won't try to reconnect later.
+     */
+    public static void cleanup(final boolean isForShutdown) throws SQLException
+    {
+        if (checkConnection())
+        {
+            try
+            {
+                createAccountCommand.close();
+                userPasswordQuery.close();
+                hostQuery.close();
+                lastloginUpdate.close();
+                saveGameCommand.close();
+                robotParamsQuery.close();
+                userCountQuery.close();
+            }
+            catch (Throwable thr)
+            {
+                ; /* ignore failures in query closes */
+            }
+
+            try
+            {
+                connection.close();
+                initialized = false;
+                if (isForShutdown)
+                    connection = null;
+            }
+            catch (SQLException sqlE)
+            {
+                errorCondition = true;
+                initialized = false;
+                if (isForShutdown)
+                    connection = null;
+                sqlE.printStackTrace();
+                throw sqlE;
+            }
+        }
+    }
+
+    /****************************************
+     * Helpers for upgrade, etc
+     ****************************************/
+
     /**
      * As part of schema upgrade to 1200, encode passwords for a set of users.
      * Assumes their {@code pw_store} column is currently {@code null}.
@@ -2369,57 +2420,6 @@ public class SOCDBHelper
         if (doneText != null)
             System.err.println(doneText);
     }
-
-    /****************************************
-     * Connection cleanup
-     ****************************************/
-
-    /**
-     * Close out and shut down the database connection.
-     * @param isForShutdown  If true, set <tt>connection = null</tt>
-     *          so we won't try to reconnect later.
-     */
-    public static void cleanup(final boolean isForShutdown) throws SQLException
-    {
-        if (checkConnection())
-        {
-            try
-            {
-                createAccountCommand.close();
-                userPasswordQuery.close();
-                hostQuery.close();
-                lastloginUpdate.close();
-                saveGameCommand.close();
-                robotParamsQuery.close();
-                userCountQuery.close();
-            }
-            catch (Throwable thr)
-            {
-                ; /* ignore failures in query closes */
-            }
-
-            try
-            {
-                connection.close();
-                initialized = false;
-                if (isForShutdown)
-                    connection = null;
-            }
-            catch (SQLException sqlE)
-            {
-                errorCondition = true;
-                initialized = false;
-                if (isForShutdown)
-                    connection = null;
-                sqlE.printStackTrace();
-                throw sqlE;
-            }
-        }
-    }
-
-    /****************************************
-     * Helpers for upgrade, etc
-     ****************************************/
 
     /**
      * For {@link #upgradeSchema()} with {@link #DBTYPE_POSTGRESQL}, check that we're
