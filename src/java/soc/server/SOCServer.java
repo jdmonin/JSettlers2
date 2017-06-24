@@ -1082,8 +1082,11 @@ public class SOCServer extends Server
                     {
                         SOCDBHelper.upgradeSchema(databaseUserAdmins);
 
-                        final String msg = "DB schema upgrade successful";
+                        String msg = "DB schema upgrade was successful";
+                        if (SOCDBHelper.doesSchemaUpgradeNeedBGTasks())
+                            msg += "; some upgrade tasks will complete in the background during normal server operation";
                         utilityModeMessage = msg;
+
                         throw new EOFException(msg);
                     }
                     catch (EOFException e)
@@ -1277,6 +1280,10 @@ public class SOCServer extends Server
         System.err.print("The server is ready.");
         if (port > 0)
             System.err.print(" Listening on port " + port);
+
+        if (SOCDBHelper.doesSchemaUpgradeNeedBGTasks())
+            SOCDBHelper.startSchemaUpgradeBGTasks();  // includes 5-second sleep before conversions begin
+
         System.err.println();
         System.err.println();
     }
@@ -11977,10 +11984,16 @@ public class SOCServer extends Server
                 // The sql setup script or schema upgrade was ran successfully by initialize;
                 // exit server, user will re-run without the setup script or schema upgrade param.
                 if (argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP))
+                {
                     System.err.println("\nDB setup script was successful. Exiting now.\n");
-                else
+                } else {
                     // assume is from SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA
-                    System.err.println("\nDB schema upgrade was successful. Exiting now.\n");
+                    // and getMessage() is from initSocServer's call to SOCDBHelper.upgradeSchema();
+                    // text will be "DB schema upgrade was successful", possibly with detail like
+                    // "some upgrade tasks will complete in the background during normal server operation".
+
+                    System.err.println("\n" + e.getMessage() + ". Exiting now.\n");
+                }
                 System.exit(2);
             }
             catch (SQLException e)

@@ -77,6 +77,10 @@ import java.util.Set;
  * {@link #isSchemaLatestVersion()} to check, and if needed {@link #upgradeSchema()}.
  * To improve flexibility, currently we let the server's admin defer upgrades and continue running
  * with the old schema until they have time to upgrade it.
+ *<P>
+ * After an upgrade, further background tasks such as data conversions may be needed.
+ * These can run while the server is operating normally (running games, bots, and channels).
+ * See {@link #doesSchemaUpgradeNeedBGTasks()}.
  *
  * @author Robert S. Thomas
  */
@@ -319,9 +323,34 @@ public class SOCDBHelper
      * The detected schema version of the currently connected database.
      * See {@link #getSchemaVersion()} javadocs for details.
      * Is set in {@link #connect(String, String, String)}.
+     * @see #schemaUpgBGTasks_fromVersion
      * @since 1.2.00
      */
     private static int schemaVersion;
+
+    /**
+     * If not 0, the version from which a recent schema upgrade must perform background tasks to complete
+     * (data conversions, etc). See {@link #doesSchemaUpgradeNeedBGTasks()} for details.
+     *<P>
+     * If there are multiple schema versions between {@code from_vers} and {@code to_vers},
+     * the background tasks thread can set this field to an intermediate version after
+     * finishing all tasks of an upgrade from {@code from_vers} to that version, then
+     * continue tasks towards {@code to_vers}.
+     * @see #schemaUpgBGTasksThread
+     * @see #schemaVersion
+     * @since 1.2.00
+     */
+    private static volatile int schemaUpgBGTasks_fromVersion;
+
+    /**
+     * Schema upgrade background tasks thread, if any; see {@link #doesSchemaUpgradeNeedBGTasks()} for details.
+     * Started by {@link #startSchemaUpgradeBGTasks()}.
+     *<P>
+     * <B>Locks:</B> Writes to this field are synchronized on {@link #connection}.
+     * @see #schemaUpgBGTasks_fromVersion
+     * @since 1.2.00
+     */
+    private static volatile UpgradeBGTasksThread schemaUpgBGTasksThread;
 
     /**
      * Cached DB connection username, used when reconnecting on error.
@@ -585,7 +614,7 @@ public class SOCDBHelper
                     driverinstance = (Driver) dclass.newInstance();
                 } else {
                     // JDBC driver class must already be loaded.
-                    Class.forName(driverclass).newInstance();
+                    driverinstance = (Driver) (Class.forName(driverclass).newInstance());
                 }
             }
             catch (Throwable x)
@@ -662,6 +691,7 @@ public class SOCDBHelper
      * @throws IllegalStateException  if not connected to DB (! {@link #isInitialized()})
      * @see #upgradeSchema()
      * @see #getSchemaVersion()
+     * @see #doesSchemaUpgradeNeedBGTasks()
      * @since 1.2.00
      */
     public static boolean isSchemaLatestVersion()
@@ -671,6 +701,59 @@ public class SOCDBHelper
             throw new IllegalStateException();
 
         return (schemaVersion == SCHEMA_VERSION_LATEST);
+    }
+
+    /**
+     * For the currently connected DB, are any background tasks needed to complete a recent {@link #upgradeSchema(Set)}?
+     * If so, start those tasks by calling {@link #startSchemaUpgradeBGTasks()}.
+     *<P>
+     * Background tasks would typically be data conversions to populate new fields, which will gradually activate
+     * new functionality such as per-user password encoding. The tasks are idempotent operations and will cleanly resume
+     * if interrupted by server shutdown.
+     *<P>
+     * This flag is determined at {@link #initialize(String, String, Properties)}, by reading the
+     * {@code db_version} table record having {@code max(to_vers)}, checking that record for
+     * a null {@code bg_tasks_done} field.
+     *
+     * @return True if DB schema upgrade needs background tasks
+     * @throws IllegalStateException  if not connected to DB (! {@link #isInitialized()})
+     * @see #isSchemaLatestVersion()
+     * @since 1.2.00
+     */
+    public static boolean doesSchemaUpgradeNeedBGTasks()
+        throws IllegalStateException
+    {
+        if (! isInitialized())
+            throw new IllegalStateException();
+
+        return (0 != schemaUpgBGTasks_fromVersion);
+    }
+
+    /**
+     * If not already running, start a thread to do any background tasks needed to complete a
+     * recent {@link #upgradeSchema(Set)}. Thread will start with a 5-second sleep to let other
+     * SOCServer startup tasks complete.
+     * @return true if a thread was started, false if it was already running or ! {@link #isInitialized()}
+     * @see #doesSchemaUpgradeNeedBGTasks()
+     * @since 1.2.00
+     */
+    public static boolean startSchemaUpgradeBGTasks()
+    {
+        if (! isInitialized())
+            return false;
+
+        synchronized(connection)
+        {
+            UpgradeBGTasksThread t = schemaUpgBGTasksThread;
+            if ((t != null) && t.isAlive())
+                return false;
+
+            t = new UpgradeBGTasksThread();
+            schemaUpgBGTasksThread = t;
+            t.start();
+
+            return true;
+        }
     }
 
     /**
@@ -792,8 +875,13 @@ public class SOCDBHelper
                      + ": db_version.ddl_done field is null");
 
             if (upg_bg_unfinished)
-                // TODO - restart upgrade-bg-tasks thread if not running?
+            {
+                // Caller will need to check doesSchemaUpgradeNeedBGTasks()
+                // and restart the upgrade-bg-tasks thread if not running.
+
+                schemaUpgBGTasks_fromVersion = from_vers;
                 System.err.println("* Warning: DB schema upgrade BG tasks are incomplete per db_version table");
+            }
 
             return;  // <--- schema version is known ---
         }
@@ -1617,6 +1705,50 @@ public class SOCDBHelper
     }
 
     /**
+     * Build and run a SELECT query, with a LIMIT clause appropriate to the DB type if possible.
+     * Currently possible for MySQL, Postgres, SQLite, and semi-supported ORA.
+     * Otherwise this will be a standard SELECT without any LIMIT clause.
+     * @param selectStmt  SQL statement, beginning with SELECT, omitting trailing {@code ';'}.
+     *     <BR>
+     *     Example: {@code "SELECT * FROM games WHERE duration_sec >= 3600"}
+     * @param limit  Number of rows for LIMIT clause
+     * @return  This limited SELECT statement's ResultSet, from {@link Statement#executeQuery(String)}
+     * @throws SQLException if any unexpected database problem
+     * @since 1.2.00
+     */
+    public static ResultSet selectWithLimit(final String selectStmt, final int limit)
+        throws SQLException
+    {
+        StringBuilder sql = new StringBuilder(selectStmt);
+        int L = sql.length();
+        if (sql.charAt(L - 1) == ';')
+            sql.setLength(L - 1);
+
+        switch (dbType)
+        {
+        case DBTYPE_MYSQL:
+        case DBTYPE_POSTGRESQL:
+        case DBTYPE_SQLITE:
+            sql.append(" LIMIT ");
+            sql.append(limit);
+            break;
+
+        case DBTYPE_ORA:
+            sql.insert(0, "SELECT * FROM (");
+            sql.append(") t WHERE ROWNUM <= ");
+            sql.append(limit);
+            break;
+
+        default:
+            // no limit clause
+        }
+
+        sql.append(';');
+
+        return connection.createStatement().executeQuery(sql.toString());
+    }
+
+    /**
      * Query to see if a table exists in the database.
      * Any exception is caught here and returns false.
      * @param tabname  Table name to check for; case-sensitive in some db types.
@@ -1836,6 +1968,8 @@ public class SOCDBHelper
 
     /**
      * Perform pre-checks and upgrade the currently connected DB to the latest schema, with all optional fields.
+     * After this method returns, call {@link #doesSchemaUpgradeNeedBGTasks()} to determine if the upgrade needs
+     * further tasks or conversions in a background thread. See that method's javadoc for how to start the thread.
      *<P>
      * Pre-checks include {@link #queryUsersDuplicateLCase(Set)}.
      *
@@ -2044,7 +2178,11 @@ public class SOCDBHelper
                 runDDL("CREATE UNIQUE INDEX users__l ON users(nickname_lc);");
 
                 if (userAdmins != null)
-                    upgradeSchema_1200_encodeUserPasswords(userAdmins, null);
+                    upgradeSchema_1200_encodeUserPasswords
+                        (userAdmins, null,
+                         "Encoding passwords for user account admins...",
+                         "* Warning: No user account admins found to encode",
+                         "User admin password encoding completed");
 
             } catch (SQLException e) {
                 System.err.println
@@ -2077,13 +2215,15 @@ public class SOCDBHelper
                 if (! couldRollback)
                     System.err.println
                         ("*** Could not completely roll back failed upgrade: Must restore DB from backup!");
+                else
+                    System.err.println("\nAll rollbacks were successful.\n");
 
                 throw e;
             }
         }
 
         /* mark upgrade as completed in db_version table */
-        final boolean has_bg_tasks = false;
+        final boolean has_bg_tasks = (schemaVersion < SCHEMA_VERSION_1200);
         {
             PreparedStatement ps = connection.prepareStatement
                 ("UPDATE db_version SET ddl_done=?, bg_tasks_done=? WHERE to_vers=?;");
@@ -2097,6 +2237,9 @@ public class SOCDBHelper
             ps.executeUpdate();
             ps.close();
         }
+
+        if (has_bg_tasks)
+            schemaUpgBGTasks_fromVersion = schemaVersion;
 
         prepareStatements();
 
@@ -2132,19 +2275,22 @@ public class SOCDBHelper
                 ; /* ignore failures in query closes */
             }
 
+            if (isForShutdown && (schemaUpgBGTasksThread != null) && schemaUpgBGTasksThread.isAlive())
+                schemaUpgBGTasksThread.doShutdown = true;
+
+            initialized = false;
             try
             {
                 connection.close();
-                initialized = false;
                 if (isForShutdown)
                     connection = null;
             }
             catch (SQLException sqlE)
             {
                 errorCondition = true;
-                initialized = false;
                 if (isForShutdown)
                     connection = null;
+
                 sqlE.printStackTrace();
                 throw sqlE;
             }
@@ -2162,17 +2308,22 @@ public class SOCDBHelper
      *     if {@link #schemaVersion} &lt; {@link #SCHEMA_VERSION_1200} they must be case-sensitive for
      *     {@code users.nickname}, otherwise must be lowercase for {@code users.nickname_lc}.
      * @param sr  SecureRandom to use, or {@code null} for a new one
+     * @param beginText  Null or text to print at start of conversion
+     * @param warnEmptyText  Null or text to print if no matching users found in db to convert
+     * @param doneText  Null or text to print at end of conversion
      * @return true if any of these {@code users} were found in the database and encoded, false if none found
      * @throws SQLException  if any unexpected database problem
      */
-    private static void upgradeSchema_1200_encodeUserPasswords
-        (final Set<String> users, SecureRandom sr)
+    private static boolean upgradeSchema_1200_encodeUserPasswords
+        (final Set<String> users, SecureRandom sr,
+         final String beginText, final String warnEmptyText, final String doneText)
         throws SQLException
     {
         if (sr == null)
             sr = new SecureRandom();
 
-        System.err.println("Encoding passwords for user account admins...");
+        if (beginText != null)
+            System.err.println(beginText);
 
         Map<String, String> userConvPW = new HashMap<String, String>();
         for (String uname : users)
@@ -2204,8 +2355,10 @@ public class SOCDBHelper
 
         if (userConvPW.isEmpty())
         {
-            System.err.println("* Warning: No user account admins found to encode");
-            return;  // <--- Early return: Nothing to do ---
+            if (warnEmptyText != null)
+                System.err.println(warnEmptyText);
+
+            return false;  // <--- Early return: Nothing to do ---
         }
 
         final boolean wasConnAutocommit = connection.getAutoCommit();
@@ -2246,7 +2399,10 @@ public class SOCDBHelper
                 connection.setAutoCommit(true);
         }
 
-        System.err.println("User admin password encoding completed");
+        if (doneText != null)
+            System.err.println(doneText);
+
+        return true;
     }
 
     /**
@@ -2438,6 +2594,132 @@ public class SOCDBHelper
 
             more = rs.next();
         }
+    }
+
+    /**
+     * Thread to run any background tasks needed to complete a schema upgrade,
+     * such as data conversions. See {@link SOCDBHelper#doesSchemaUpgradeNeedBGTasks()}
+     * for details.
+     *<P>
+     * Thread will start with a 5-second sleep to let other SOCServer startup tasks complete.
+     *<P>
+     * To track progress towards {@link SOCDBHelper#SCHEMA_VERSION_LATEST SCHEMA_VERSION_LATEST},
+     * this thread reads and updates {@link SOCDBHelper#schemaUpgBGTasks_fromVersion}.
+     * When started, that field must be a known {@code SCHEMA_VERSION_*} constant, or 0 to do nothing.
+     *
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 1.2.00
+     */
+    private static class UpgradeBGTasksThread extends Thread
+    {
+        /** Flag to shut down the thread if set true */
+        public volatile boolean doShutdown = false;
+
+        public void run()
+        {
+            try
+            {
+                setName("UpgradeBGTasksThread");
+            }
+            catch (Exception e) {}
+
+            try
+            {
+                Thread.sleep(5000);
+            }
+            catch (InterruptedException e) {}
+
+            System.err.println("\n* Schema upgrade: Beginning background tasks\n");
+
+            try
+            {
+                while ((schemaUpgBGTasks_fromVersion < SCHEMA_VERSION_LATEST) && ! doShutdown)
+                {
+                    if (schemaUpgBGTasks_fromVersion == 0)
+                        break;
+
+                    if (schemaUpgBGTasks_fromVersion != SCHEMA_VERSION_ORIGINAL)
+                    {
+                        System.err.println("UpgradeBGTasksThread: Unknown fromVersion: " + schemaUpgBGTasks_fromVersion);
+
+                        return;  // <--- Early return: Unknown version ----
+                    }
+
+                    upgradeBGTasks_1000_1200();  // SCHEMA_VERSION_ORIGINAL -> SCHEMA_VERSION_1200
+                }
+            } catch (SQLException e) {
+                if (! doShutdown)
+                {
+                    System.err.println
+                        ("*** Schema upgrade: SQL error during background tasks: " + e);
+                    e.printStackTrace();
+                } else {
+                    System.err.println
+                        ("*** Schema upgrade: SQL error during shutdown: " + e);
+                }
+
+                return;  // <--- Early return: Unexpected problem ---
+            }
+
+            schemaUpgBGTasks_fromVersion = 0;
+
+            try
+            {
+                Timestamp sqlNow = new Timestamp(System.currentTimeMillis());
+
+                PreparedStatement ps = connection.prepareStatement
+                    ("UPDATE db_version SET bg_tasks_done = ? WHERE bg_tasks_done IS NULL AND to_vers = ?;");
+                ps.setTimestamp(1, sqlNow);
+                ps.setInt(2, schemaVersion);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                System.err.println
+                    ("*** Schema upgrade BG tasks completed, but SQL error setting db_version.bg_tasks_done: " + e);
+            }
+
+            if (! doShutdown)
+                System.err.println("\n* Schema upgrade: Completed background tasks\n");
+            else
+                // This may not print, depending on shutdown method
+                System.err.println("\n* Schema upgrade: Shutting shutdown background tasks, will complete later\n");
+        }
+
+        /**
+         * Upgrade from {@link SOCDBHelper#SCHEMA_VERSION_ORIGINAL SCHEMA_VERSION_ORIGINAL}
+         * to {@link SOCDBHelper#SCHEMA_VERSION_1200 SCHEMA_VERSION_1200}:
+         * Encode all {@code users.password} fields into {@code users.pw_store} using {@link BCrypt}.
+         */
+        private void upgradeBGTasks_1000_1200()
+            throws SQLException
+        {
+            int UPG_BATCH = 10;  // smaller batch, because BCrypt takes a while to run each record
+            if (UPG_BATCH > UPG_BATCH_MAX)
+                UPG_BATCH = UPG_BATCH_MAX;
+
+            System.err.println("Schema upgrade: Encoding passwords for users");
+
+            SecureRandom sr = new SecureRandom();
+            HashSet<String> users = new HashSet<String>();
+            do
+            {
+                users.clear();
+
+                ResultSet rs = selectWithLimit("SELECT nickname_lc FROM users WHERE pw_store IS NULL", UPG_BATCH);
+                for (int i = 0; (i < UPG_BATCH) && rs.next(); ++i)
+                    users.add(rs.getString(1));
+                rs.close();
+
+                if (! users.isEmpty())
+                    if (! upgradeSchema_1200_encodeUserPasswords(users, sr, null, null, null))
+                        throw new SQLException("L3087 Internal error: Could not select any users.nickname to encode");
+            } while (! (doShutdown || users.isEmpty()));
+
+            if (! doShutdown)
+                System.err.println("Schema upgrade: User password encoding complete");
+
+            schemaUpgBGTasks_fromVersion = SCHEMA_VERSION_1200;
+        }
+
     }
 
 }
