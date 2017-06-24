@@ -35,6 +35,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.SecureRandom;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -620,7 +621,7 @@ public class SOCDBHelper
                     driverinstance = (Driver) dclass.newInstance();
                 } else {
                     // JDBC driver class must already be loaded.
-                    Class.forName(driverclass).newInstance();
+                    driverinstance = (Driver) (Class.forName(driverclass).newInstance());
                 }
     	    }
     	    catch (Throwable x)
@@ -2701,8 +2702,16 @@ public class SOCDBHelper
         boolean anyFailed = false;
 
         System.err.println();
-        System.err.println
-            ("DB testing note: dbType " + dbType + ", driver class: " + driverclass + ", autoCommit: " + was_conn_autocommit);
+        {
+            final DatabaseMetaData meta = connection.getMetaData();
+            System.err.println
+                ("DB testing note: dbType " + dbType + ", driver class: " + driverclass
+                 + " v" + driverinstance.getMajorVersion() + '.' + driverinstance.getMinorVersion()
+                 + " (jdbc v" + meta.getJDBCMajorVersion() + '.' + meta.getJDBCMinorVersion()
+                 + "), db version: " + meta.getDatabaseProductVersion()
+                 + ", autoCommit: " + was_conn_autocommit);
+            // Note that ORA's getJDBCMajorVersion() reports the DB version (10, 11, etc) not JDBC's version
+        }
 
         // Unit tests: all in one try block because the only expected exception would
         // occur only if the DB connection fails, instead of a per-test condition
