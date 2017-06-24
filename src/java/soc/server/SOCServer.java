@@ -1049,9 +1049,12 @@ public class SOCServer extends Server
             robotCookie = generateRobotCookie();
         }
 
+        final boolean accountsRequired = init_getBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_REQUIRED, false);
+
         /**
          * Try to connect to the DB, if any.
          */
+        boolean db_err_printed = false;
         try
         {
             SOCDBHelper.initialize(databaseUserName, databasePassword, props);
@@ -1066,6 +1069,9 @@ public class SOCServer extends Server
                 utilityModeMessage = msg;
                 throw new EOFException(msg);
             }
+
+            // set some DB-related SOCServer fields: acctsNotOpenRegButNoUsers, databaseUserAdmins
+            initSocServer_dbParamFields(accountsRequired, wants_upg_schema);
 
             // check schema version, upgrade if requested:
             if (! SOCDBHelper.isSchemaLatestVersion())
@@ -1086,6 +1092,7 @@ public class SOCServer extends Server
                     }
                     catch (Exception e)
                     {
+                        db_err_printed = true;
                         if (e instanceof MissingResourceException)
                             System.err.println("* To begin schema upgrade, please fix and rerun: " + e.getMessage());
                         else
@@ -1107,6 +1114,7 @@ public class SOCServer extends Server
             }
             else if (wants_upg_schema)
             {
+                db_err_printed = true;
                 final String errmsg = "* Cannot upgrade database schema: Already at latest version";
                 System.err.println(errmsg);
                 throw new IllegalArgumentException(errmsg);
@@ -1114,21 +1122,10 @@ public class SOCServer extends Server
 
             // reminder: if props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET),
             // caller will need to prompt for and change the password
-
-            // open reg for user accounts?  if not, see if we have any yet
-            if (init_getBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_OPEN, false))
-            {
-                features.add(SOCServerFeatures.FEAT_OPEN_REG);
-                if (! hasUtilityModeProp)
-                    System.err.println("User database Open Registration is active, anyone can create accounts.");
-            } else {
-                if (SOCDBHelper.countUsers() == 0)
-                    acctsNotOpenRegButNoUsers = true;
-            }
         }
         catch (SQLException sqle) // just a warning
         {
-            if (wants_upg_schema)
+            if (wants_upg_schema && db_err_printed)
             {
                 // the schema upgrade failed to complete; upgradeSchema() printed the exception.
                 // don't continue server startup with just a warning
@@ -1144,12 +1141,26 @@ public class SOCServer extends Server
                 cause = cause.getCause();
             }
 
-            if (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
+            if (wants_upg_schema || (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null))
             {
                 // the sql script ran in initialize failed to complete;
                 // now that we've printed the exception, don't continue server startup with just a warning
 
                 throw sqle;
+            }
+
+            String propReqDB = null;
+            if (accountsRequired)
+                propReqDB = PROP_JSETTLERS_ACCOUNTS_REQUIRED;
+            else if (props.containsKey(PROP_JSETTLERS_ACCOUNTS_ADMINS))
+                propReqDB = PROP_JSETTLERS_ACCOUNTS_ADMINS;
+
+            if (propReqDB != null)
+            {
+                final String errMsg = "* Property " + propReqDB + " requires a database.";
+                System.err.println(errMsg);
+                System.err.println("\n* Exiting because current startup properties specify a database.");
+                throw new SQLException(errMsg);
             }
 
             if (props.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_URL)
@@ -1202,8 +1213,6 @@ public class SOCServer extends Server
             return;  // <--- don't continue startup if Utility Mode ---
         }
 
-        final boolean accountsRequired = init_getBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_REQUIRED, false);
-
         if (SOCDBHelper.isInitialized())
         {
             if (accountsRequired)
@@ -1230,12 +1239,6 @@ public class SOCServer extends Server
                 System.err.println("Warning: Could not register shutdown hook for database disconnect. Check java security settings.");            
             }
         }
-        else if (accountsRequired)
-        {
-            final String errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_REQUIRED + " requires a database.";
-            System.err.println(errmsg);
-            throw new IllegalArgumentException(errmsg);
-        }
 
         startTime = System.currentTimeMillis();
         numberOfGamesStarted = 0;
@@ -1245,6 +1248,70 @@ public class SOCServer extends Server
 
         if (CLIENT_MAX_CREATE_CHANNELS != 0)
             features.add(SOCServerFeatures.FEAT_CHANNELS);
+
+        /**
+         *  Start various threads.
+         */
+        serverRobotPinger = new SOCServerRobotPinger(this, robots);
+        serverRobotPinger.start();
+        gameTimeoutChecker = new SOCGameTimeoutChecker(this);
+        gameTimeoutChecker.start();
+        this.databaseUserName = databaseUserName;
+        this.databasePassword = databasePassword;
+
+        /**
+         * Print game options if we've set them on commandline, or if
+         * any option defaults require a minimum client version.
+         */
+        if (hasSetGameOptions || (SOCGameOption.optionsMinimumVersion(SOCGameOption.getAllKnownOptions()) > -1))
+        {
+            Thread.yield();  // wait for other output to appear first
+            try { Thread.sleep(200); } catch (InterruptedException ie) {}
+
+            printGameOptions();
+        }
+
+        if (init_getBoolProperty(props, PROP_JSETTLERS_BOTS_SHOWCOOKIE, false))
+            System.err.println("Robot cookie: " + robotCookie);
+
+        System.err.print("The server is ready.");
+        if (port > 0)
+            System.err.print(" Listening on port " + port);
+        System.err.println();
+        System.err.println();
+    }
+
+    /**
+     * Set some DB-related SOCServer fields and features:
+     * {@link #databaseUserAdmins} from {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS},
+     * {@link #features}({@link SOCServerFeatures#FEAT_OPEN_REG}) and {@link #acctsNotOpenRegButNoUsers}
+     * from {@link #PROP_JSETTLERS_ACCOUNTS_OPEN}.
+     *<P>
+     * Prints some status messages and any problems to {@link System#err}.
+     *<P>
+     * Must not call this method until after {@link SOCDBHelper#initialize(String, String, Properties)}.
+     *
+     * @param accountsRequired  Are accounts required? Caller should check {@link #PROP_JSETTLERS_ACCOUNTS_REQUIRED}.
+     * @param wantsUpgSchema  If true, server is preparing to try to upgrade the schema and exit.
+     *     Certain hint messages here won't be printed, because the server is exiting afterwards.
+     * @throws IllegalArgumentException if {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS} is inconsistent or empty
+     * @throws SQLException  if unexpected problem with DB when calling {@link SOCDBHelper#countUsers()}
+     *     for {@link #acctsNotOpenRegButNoUsers}
+     * @since 1.2.00
+     */
+    private void initSocServer_dbParamFields(final boolean accountsRequired, final boolean wantsUpgSchema)
+        throws IllegalArgumentException, SQLException
+    {
+        // open reg for user accounts?  if not, see if we have any yet
+        if (init_getBoolProperty(props, PROP_JSETTLERS_ACCOUNTS_OPEN, false))
+        {
+            features.add(SOCServerFeatures.FEAT_OPEN_REG);
+            if (! hasUtilityModeProp)
+                System.err.println("User database Open Registration is active, anyone can create accounts.");
+        } else {
+            if (SOCDBHelper.countUsers() == 0)
+                acctsNotOpenRegButNoUsers = true;
+        }
 
         if (props.containsKey(PROP_JSETTLERS_ACCOUNTS_ADMINS))
         {
@@ -1293,37 +1360,6 @@ public class SOCServer extends Server
             else
                 System.err.println("User database is currently empty. You can run SOCAccountClient to create users.");
         }
-
-        /**
-         *  Start various threads.
-         */
-        serverRobotPinger = new SOCServerRobotPinger(this, robots);
-        serverRobotPinger.start();
-        gameTimeoutChecker = new SOCGameTimeoutChecker(this);
-        gameTimeoutChecker.start();
-        this.databaseUserName = databaseUserName;
-        this.databasePassword = databasePassword;
-
-        /**
-         * Print game options if we've set them on commandline, or if
-         * any option defaults require a minimum client version.
-         */
-        if (hasSetGameOptions || (SOCGameOption.optionsMinimumVersion(SOCGameOption.getAllKnownOptions()) > -1))
-        {
-            Thread.yield();  // wait for other output to appear first
-            try { Thread.sleep(200); } catch (InterruptedException ie) {}
-
-            printGameOptions();
-        }
-
-        if (init_getBoolProperty(props, PROP_JSETTLERS_BOTS_SHOWCOOKIE, false))
-            System.err.println("Robot cookie: " + robotCookie);
-
-        System.err.print("The server is ready.");
-        if (port > 0)
-            System.err.print(" Listening on port " + port);
-        System.err.println();
-        System.err.println();
     }
 
     /**
