@@ -2326,14 +2326,17 @@ public class SOCDBHelper
     /**
      * As part of schema upgrade to 1200, encode passwords for a set of users.
      * Assumes their {@code pw_store} column is currently {@code null}.
-     * @param users  Users to encode passwords
+     * @param users  Usernames to encode passwords. These are used here with {@link #userPasswordQuery}, so
+     *     if {@link #schemaVersion} &lt; {@link #SCHEMA_VERSION_1200} they must be case-sensitive for
+     *     {@code users.nickname}, otherwise must be lowercase for {@code users.nickname_lc}.
      * @param sr  SecureRandom to use, or {@code null} for a new one
      * @param beginText  Null or text to print at start of conversion
      * @param warnEmptyText  Null or text to print if no matching users found in db to convert
      * @param doneText  Null or text to print at end of conversion
+     * @return true if any of these {@code users} were found in the database and encoded, false if none found
      * @throws SQLException  if any unexpected database problem
      */
-    private static void upgradeSchema_1200_encodeUserPasswords
+    private static boolean upgradeSchema_1200_encodeUserPasswords
         (final Set<String> users, SecureRandom sr,
          final String beginText, final String warnEmptyText, final String doneText)
         throws SQLException
@@ -2377,7 +2380,7 @@ public class SOCDBHelper
             if (warnEmptyText != null)
                 System.err.println(warnEmptyText);
 
-            return;  // <--- Early return: Nothing to do ---
+            return false;  // <--- Early return: Nothing to do ---
         }
 
         final boolean wasConnAutocommit = connection.getAutoCommit();
@@ -2420,6 +2423,8 @@ public class SOCDBHelper
 
         if (doneText != null)
             System.err.println(doneText);
+
+        return true;
     }
 
     /**
@@ -3071,13 +3076,15 @@ public class SOCDBHelper
             do
             {
                 users.clear();
-                ResultSet rs = selectWithLimit("SELECT nickname FROM users WHERE pw_store IS NULL", UPG_BATCH);
+
+                ResultSet rs = selectWithLimit("SELECT nickname_lc FROM users WHERE pw_store IS NULL", UPG_BATCH);
                 for (int i = 0; (i < UPG_BATCH) && rs.next(); ++i)
                     users.add(rs.getString(1));
                 rs.close();
 
                 if (! users.isEmpty())
-                    upgradeSchema_1200_encodeUserPasswords(users, sr, null, null, null);
+                    if (! upgradeSchema_1200_encodeUserPasswords(users, sr, null, null, null))
+                        throw new SQLException("L3087 Internal error: Could not select any users.nickname to encode");
             } while (! users.isEmpty());
 
             System.err.println("Schema upgrade: User password encoding complete");
