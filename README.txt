@@ -410,10 +410,7 @@ appropriate JDBC drivers, by placing them in your java classpath.
 Your database system's JDBC drivers can be downloaded at these locations:
 	MySQL:   http://www.mysql.com/products/connector/
 	PostgreSQL:  http://jdbc.postgresql.org/download.html
-	SQLite:  https://bitbucket.org/xerial/sqlite-jdbc
-	  If sqlite crashes jsettlers on launch, or gives java.lang.UnsatisfiedLinkError
-	  at launch but doesn't crash, add -Dsqlite.purejava=true before -jar on the
-	  java command line and retry.
+	SQLite:  https://bitbucket.org/xerial/sqlite-jdbc/downloads/
 
 In some cases, adding to the classpath won't work because of JVM restrictions
 about JAR files.  If you find that's the case, place the JDBC jar in the same
