@@ -192,6 +192,32 @@ public class SOCDBHelper
      */
     public static final int SCHEMA_VERSION_LATEST = 1200;
 
+    // Password encoding schemes, as seen in schema v1200's users.pw_scheme field
+
+    /**
+     * No password encoding scheme: plain text.
+     * This scheme is {@code null} in {@code users.pw_scheme} database field,
+     * password is stored in {@code users.password}.
+     *<P>
+     * Used in versions before {@link #SCHEMA_VERSION_1200}.
+     * @since 1.2.00
+     * @see #PW_SCHEME_BCRYPT
+     */
+    public static final int PW_SCHEME_NONE = 0;
+
+    /**
+     * Password encoding scheme #1: {@link BCrypt}.
+     * Scheme is stored in {@code users.pw_scheme} database field,
+     * encoded password stored in {@code users.pw_store}.
+     * The old field {@code users.password} is unused, ignored, and contains '!'
+     * because the older schema specified NOT NULL and sqlite can't alter fields.
+     *<P>
+     * Used with {@link #SCHEMA_VERSION_1200} and higher.
+     * @since 1.2.00
+     * @see #PW_SCHEME_NONE
+     */
+    public static final int PW_SCHEME_BCRYPT = 1;
+
     // Known DB types: These constants aren't used outside the class or stored anywhere,
     // so they can change between versions if needed. All @since 1.2.00.
 
@@ -297,7 +323,7 @@ public class SOCDBHelper
     private static String dbcUserName;
 
     /**
-     * Cached DB connection password, used when reconnecting on error
+     * Cached DB connection password, used when reconnecting on error.
      * Before v1.2.00 this field was {@code password}.
      */
     private static String dbcPassword;
@@ -306,15 +332,15 @@ public class SOCDBHelper
      * {@link #createAccountCommand} for schema older than {@link #SCHEMA_VERSION_1200}.
      * Before v1.2.00 this field was {@code CREATE_ACCOUNT_COMMAND}.
      */
-    private static final String CREATE_ACCOUNT_COMMAND_1000
-        = "INSERT INTO users(nickname,host,password,email,lastlogin) VALUES (?,?,?,?,?);";
+    private static final String CREATE_ACCOUNT_COMMAND_1000 =
+        "INSERT INTO users(nickname,host,password,email,lastlogin) VALUES (?,?,?,?,?);";
 
     /**
      * {@link #createAccountCommand} for schema &gt;= {@link #SCHEMA_VERSION_1200}.
      * @since 1.2.00
      */
-    private static final String CREATE_ACCOUNT_COMMAND_1200
-        = "INSERT INTO users(nickname,host,password,email,lastlogin,nickname_lc) VALUES (?,?,?,?,?,?);";
+    private static final String CREATE_ACCOUNT_COMMAND_1200 =
+        "INSERT INTO users(nickname,host,password,email,lastlogin,nickname_lc,pw_scheme,pw_store) VALUES (?,?,'!',?,?,?,?,?);";
 
     private static final String RECORD_LOGIN_COMMAND = "INSERT INTO logins VALUES (?,?,?);";
 
@@ -322,13 +348,15 @@ public class SOCDBHelper
      * {@link #userPasswordQuery} for schema older than {@link #SCHEMA_VERSION_1200}.
      * Before v1.2.00 this field was {@code USER_PASSWORD_QUERY}.
      */
-    private static final String USER_PASSWORD_QUERY_1000 = "SELECT nickname,password FROM users WHERE nickname = ? ;";
+    private static final String USER_PASSWORD_QUERY_1000 =
+        "SELECT nickname,password FROM users WHERE nickname = ? ;";
 
     /**
      * {@link #userPasswordQuery} for schema &gt;= {@link #SCHEMA_VERSION_1200}.
      * @since 1.2.00
      */
-    private static final String USER_PASSWORD_QUERY_1200 = "SELECT nickname,password FROM users WHERE nickname_lc = ? ;";
+    private static final String USER_PASSWORD_QUERY_1200 =
+        "SELECT nickname,password,pw_scheme,pw_store FROM users WHERE nickname_lc = ? ;";
 
     private static final String HOST_QUERY = "SELECT nickname FROM users WHERE ( users.host = ? );";
     private static final String LASTLOGIN_UPDATE = "UPDATE users SET lastlogin = ?  WHERE nickname = ? ;";
@@ -338,13 +366,15 @@ public class SOCDBHelper
      * Before v1.2.00 this field was {@code PASSWORD_UPDATE}.
      * @since 1.1.20
      */
-    private static final String PASSWORD_UPDATE_COMMAND_1000 = "UPDATE users SET password = ? WHERE nickname = ? ;";
+    private static final String PASSWORD_UPDATE_COMMAND_1000 =
+        "UPDATE users SET password = ? WHERE nickname = ? ;";
 
     /**
      * {@link #passwordUpdateCommand} for schema &gt;= {@link #SCHEMA_VERSION_1200}.
      * @since 1.2.00
      */
-    private static final String PASSWORD_UPDATE_COMMAND_1200 = "UPDATE users SET password = ? WHERE nickname_lc = ? ;";
+    private static final String PASSWORD_UPDATE_COMMAND_1200 =
+        "UPDATE users SET password = '!', pw_scheme = ?, pw_store = ? WHERE nickname_lc = ? ;";
 
     /**
      * {@link #saveGameCommand} for schema older than {@link #SCHEMA_VERSION_1200}.
@@ -867,7 +897,9 @@ public class SOCDBHelper
         throws SQLException
     {
         String dbUserName = sUserName;
-        String dbPassword = null;
+        String dbPassword = null;  // encoded value, unless user has PW_SCHEME_NONE
+        int pwScheme = PW_SCHEME_NONE;
+        boolean dbUserFound = false;
 
         if (checkConnection())
         {
@@ -881,8 +913,15 @@ public class SOCDBHelper
                 // if no results, nickname isn't in the users table
                 if (resultSet.next())
                 {
+                    dbUserFound = true;
                     dbUserName = resultSet.getString(1);  // get nickname with its original case; searched on nickname_lc
                     dbPassword = resultSet.getString(2);
+                    if (schemaVersion >= SCHEMA_VERSION_1200)
+                    {
+                        pwScheme = resultSet.getInt(3);  // returns 0 for NULL, which is PW_SCHEME_NONE
+                        if (pwScheme != PW_SCHEME_NONE)
+                            dbPassword = resultSet.getString(4);
+                    }
                 } else {
                     dbUserName = sUserName;  // not in db: ret original case
                 }
@@ -897,9 +936,30 @@ public class SOCDBHelper
             }
         }
 
-        final boolean ok = (dbPassword == null)
-            ? "".equals(sPassword)
-            : dbPassword.equals(sPassword);
+        boolean ok;
+
+        if (dbUserFound && (dbPassword != null))
+        {
+            ok = false;
+
+            try
+            {
+                switch (pwScheme)
+                {
+                case PW_SCHEME_NONE:
+                    ok = dbPassword.equals(sPassword);
+                    break;
+                case PW_SCHEME_BCRYPT:
+                    ok = BCrypt.checkpw(sPassword, dbPassword);  // may throw IllegalArgumentException
+                    break;
+                default:
+                    // pw_scheme not recognized.  TODO print or log something?
+                }
+            } catch (RuntimeException e) {}
+        } else {
+            ok = "".equals(sPassword);
+        }
+
         return (ok) ? dbUserName: null;
     }
 
@@ -945,6 +1005,7 @@ public class SOCDBHelper
 
     /**
      * Attempt to create a new account with a unique {@code userName} (nickname) in the {@code users} table.
+     * If schema &gt;= {@link #SCHEMA_VERSION_1200}, the password will be encoded with {@link #PW_SCHEME_BCRYPT}.
      *<P>
      * <B>Before calling, validate the user doesn't already exist</B>
      * by calling {@link #getUser(String) getUser(userName)}.
@@ -965,6 +1026,9 @@ public class SOCDBHelper
     public static boolean createAccount
         (String userName, String host, String password, String email, long time) throws SQLException
     {
+        // When the password encoding or max length changes in jsettlers-tables-tmpl.sql,
+        // be sure to update this method and updateUserPassword.
+
         if (checkConnection())
         {
             try
@@ -974,11 +1038,29 @@ public class SOCDBHelper
 
                 createAccountCommand.setString(1, userName);
                 createAccountCommand.setString(2, host);
-                createAccountCommand.setString(3, password);
-                createAccountCommand.setString(4, email);
-                createAccountCommand.setDate(5, sqlDate, cal);
-                if (schemaVersion >= SCHEMA_VERSION_1200)
-                    createAccountCommand.setString(6, userName.toLowerCase(Locale.US));
+                if (schemaVersion < SCHEMA_VERSION_1200)
+                {
+                    createAccountCommand.setString(3, password);
+                    createAccountCommand.setString(4, email);
+                    createAccountCommand.setDate(5, sqlDate, cal);
+                } else {
+                    // password field is unused, value hardcoded in query sql
+                    createAccountCommand.setString(3, email);
+                    createAccountCommand.setDate(4, sqlDate, cal);
+                    createAccountCommand.setString(5, userName.toLowerCase(Locale.US));
+                    createAccountCommand.setInt(6, PW_SCHEME_BCRYPT);
+                    try
+                    {
+                        String pw_store = BCrypt.hashpw(password, BCrypt.gensalt(12));
+                            // hashpw may throw IllegalArgumentException
+                            // TODO parameterize bcrypt work factor
+                        createAccountCommand.setString(7, pw_store);
+                    } catch (RuntimeException e) {
+                        SQLException sqlE = new SQLException("BCrypt exception");
+                        sqlE.initCause(e);
+                        throw sqlE;  // caught, printed, re-thrown below
+                    }
+                }
 
                 createAccountCommand.executeUpdate();
 
@@ -1073,6 +1155,7 @@ public class SOCDBHelper
 
     /**
      * Update a user's password if the user is in the database.
+     * If schema &gt;= {@link #SCHEMA_VERSION_1200}, the password will be encoded with {@link #PW_SCHEME_BCRYPT}.
      * @param userName  Username to update.  Does not validate this user exists: Call {@link #getUser(String)}
      *     first to do so.  If schema &gt;= {@link #SCHEMA_VERSION_1200}, {@code userName} is case-insensitive.
      * @param newPassword  New password (length can be 1 to 20)
@@ -1091,7 +1174,7 @@ public class SOCDBHelper
         if ((newPassword == null) || (newPassword.length() == 0) || (newPassword.length() > 20))
             throw new IllegalArgumentException("newPassword");
 
-        // When the password encoding or max length changes in jsettlers-tables.sql,
+        // When the password encoding or max length changes in jsettlers-tables-tmpl.sql,
         // be sure to update this method and createAccount.
 
         if (! checkConnection())
@@ -1101,8 +1184,25 @@ public class SOCDBHelper
             userName = userName.toLowerCase(Locale.US);
         try
         {
-            passwordUpdateCommand.setString(1, newPassword);
-            passwordUpdateCommand.setString(2, userName);
+            if (schemaVersion < SCHEMA_VERSION_1200)
+            {
+                passwordUpdateCommand.setString(1, newPassword);
+                passwordUpdateCommand.setString(2, userName);
+            } else {
+                passwordUpdateCommand.setInt(1, PW_SCHEME_BCRYPT);
+                try
+                {
+                    String pw_store = BCrypt.hashpw(newPassword, BCrypt.gensalt(12));
+                        // hashpw may throw IllegalArgumentException
+                        // TODO parameterize bcrypt work factor
+                    passwordUpdateCommand.setString(2, pw_store);
+                } catch (RuntimeException e) {
+                    SQLException sqlE = new SQLException("BCrypt exception");
+                    sqlE.initCause(e);
+                    throw sqlE;  // caught, printed, re-thrown below
+                }
+                passwordUpdateCommand.setString(3, userName);
+            }
             passwordUpdateCommand.executeUpdate();
 
             return true;
