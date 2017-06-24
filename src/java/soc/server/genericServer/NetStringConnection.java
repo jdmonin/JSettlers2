@@ -403,7 +403,8 @@ public final class NetStringConnection
             {
                 String c = null;
 
-                D.ebugPrintln("** " + data + " is at the top of the putter loop");
+                if (D.ebugIsEnabled())
+                    D.ebugPrintln("** " + data + " is at the top of the putter loop");
 
                 synchronized (outQueue)
                 {
