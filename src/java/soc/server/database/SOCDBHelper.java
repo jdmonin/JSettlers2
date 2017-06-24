@@ -2242,6 +2242,8 @@ public class SOCDBHelper
                 if (! couldRollback)
                     System.err.println
                         ("*** Could not completely roll back failed upgrade: Must restore DB from backup!");
+                else
+                    System.err.println("\nAll rollbacks were successful.\n");
 
                 throw e;
             }
