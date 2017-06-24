@@ -32,6 +32,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -217,6 +218,12 @@ public class SOCDBHelper
      * @see #PW_SCHEME_NONE
      */
     public static final int PW_SCHEME_BCRYPT = 1;
+
+    /**
+     * Default work factor for {@link #PW_SCHEME_BCRYPT} encoding.
+     * @since 1.2.00
+     */
+    private static final int BCRYPT_DEFAULT_WORK_FACTOR = 12;
 
     // Known DB types: These constants aren't used outside the class or stored anywhere,
     // so they can change between versions if needed. All @since 1.2.00.
@@ -1051,7 +1058,7 @@ public class SOCDBHelper
                     createAccountCommand.setInt(6, PW_SCHEME_BCRYPT);
                     try
                     {
-                        String pw_store = BCrypt.hashpw(password, BCrypt.gensalt(12));
+                        String pw_store = BCrypt.hashpw(password, BCrypt.gensalt(BCRYPT_DEFAULT_WORK_FACTOR));
                             // hashpw may throw IllegalArgumentException
                             // TODO parameterize bcrypt work factor
                         createAccountCommand.setString(7, pw_store);
@@ -1192,7 +1199,7 @@ public class SOCDBHelper
                 passwordUpdateCommand.setInt(1, PW_SCHEME_BCRYPT);
                 try
                 {
-                    String pw_store = BCrypt.hashpw(newPassword, BCrypt.gensalt(12));
+                    String pw_store = BCrypt.hashpw(newPassword, BCrypt.gensalt(BCRYPT_DEFAULT_WORK_FACTOR));
                         // hashpw may throw IllegalArgumentException
                         // TODO parameterize bcrypt work factor
                     passwordUpdateCommand.setString(2, pw_store);
@@ -1842,6 +1849,8 @@ public class SOCDBHelper
      * If the DB is SQLite, any added table fields can't be dropped, and the DB file must be restored from a backup
      * because rollback is incomplete.
      *
+     * @param userAdmins List of users who are user admins, for special treatment during upgrade if needed,
+     *     or {@code null}. These user nicknames do not need to actually exist in the database.
      * @throws IllegalStateException  if already latest version ({@link #isSchemaLatestVersion()}),
      *     or if not connected to DB (! {@link #isInitialized()})
      * @throws MissingResourceException  if pre-checks indicate a problem in the data (such as wrong current DB user,
@@ -1852,7 +1861,7 @@ public class SOCDBHelper
      * @see {@link #isSchemaLatestVersion()}
      * @since 1.2.00
      */
-    public static void upgradeSchema()
+    public static void upgradeSchema(final Set<String> userAdmins)
         throws IllegalStateException, SQLException, MissingResourceException
     {
         if (isSchemaLatestVersion())  // throws IllegalStateException if ! isInitialized()
@@ -1987,6 +1996,7 @@ public class SOCDBHelper
                 runDDL("ALTER TABLE users ADD COLUMN pw_change " + TIMESTAMP_NULL + ";");
 
                 // fill nickname_lc field; use String.toLowerCase(..), not SQL lower(..) which is ascii-only on sqlite.
+                // This is much quicker to calculate and update than pw_store, so we won't do that field yet.
                 if (! upg_1200_allUsers.isEmpty())
                 {
                     final boolean was_conn_autocommit = connection.getAutoCommit();
@@ -2032,6 +2042,9 @@ public class SOCDBHelper
 
                 // create unique index
                 runDDL("CREATE UNIQUE INDEX users__l ON users(nickname_lc);");
+
+                if (userAdmins != null)
+                    upgradeSchema_1200_encodeUserPasswords(userAdmins, null);
 
             } catch (SQLException e) {
                 System.err.println
@@ -2141,6 +2154,100 @@ public class SOCDBHelper
     /****************************************
      * Helpers for upgrade, etc
      ****************************************/
+
+    /**
+     * As part of schema upgrade to 1200, encode passwords for a set of users.
+     * Assumes their {@code pw_store} column is currently {@code null}.
+     * @param users  Usernames to encode passwords. These are used here with {@link #userPasswordQuery}, so
+     *     if {@link #schemaVersion} &lt; {@link #SCHEMA_VERSION_1200} they must be case-sensitive for
+     *     {@code users.nickname}, otherwise must be lowercase for {@code users.nickname_lc}.
+     * @param sr  SecureRandom to use, or {@code null} for a new one
+     * @return true if any of these {@code users} were found in the database and encoded, false if none found
+     * @throws SQLException  if any unexpected database problem
+     */
+    private static void upgradeSchema_1200_encodeUserPasswords
+        (final Set<String> users, SecureRandom sr)
+        throws SQLException
+    {
+        if (sr == null)
+            sr = new SecureRandom();
+
+        System.err.println("Encoding passwords for user account admins...");
+
+        Map<String, String> userConvPW = new HashMap<String, String>();
+        for (String uname : users)
+        {
+            userPasswordQuery.setString(1, uname);
+
+            String dbUserName = null, dbPassword = null;
+            ResultSet resultSet = userPasswordQuery.executeQuery();
+            if (resultSet.next())
+            {
+                dbUserName = resultSet.getString(1);
+                dbPassword = resultSet.getString(2);
+            }
+            resultSet.close();
+
+            if (dbPassword != null)
+                try
+                {
+                    String pwStore = BCrypt.hashpw(dbPassword, BCrypt.gensalt(BCRYPT_DEFAULT_WORK_FACTOR));
+                        // hashpw may throw IllegalArgumentException
+                        // TODO parameterize bcrypt work factor
+                    userConvPW.put(dbUserName, pwStore);
+                } catch (RuntimeException e) {
+                    SQLException sqlE = new SQLException("BCrypt exception");
+                    sqlE.initCause(e);
+                    throw sqlE;
+                }
+        }
+
+        if (userConvPW.isEmpty())
+        {
+            System.err.println("* Warning: No user account admins found to encode");
+            return;  // <--- Early return: Nothing to do ---
+        }
+
+        final boolean wasConnAutocommit = connection.getAutoCommit();
+        PreparedStatement ps = connection.prepareStatement
+            ("UPDATE users SET password='!', pw_scheme=" + PW_SCHEME_BCRYPT + ", pw_store=? WHERE nickname=?");
+
+        // begin transaction
+        if (wasConnAutocommit)
+            connection.setAutoCommit(false);
+        else
+            try {
+                connection.commit();  // end previous transaction, if any
+            } catch (SQLException e) {}
+
+        try
+        {
+            int n = 0;
+            for (Map.Entry<String, String> e : userConvPW.entrySet())
+            {
+                ps.setString(1, e.getValue());
+                ps.setString(2, e.getKey());
+                ps.addBatch();
+                ++n;
+                if (n >= UPG_BATCH_MAX)
+                {
+                    ps.executeBatch();
+                    ps.clearBatch();
+                    n = 0;
+                }
+            }
+            ps.executeBatch();
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        } finally {
+            if (wasConnAutocommit)
+                connection.setAutoCommit(true);
+        }
+
+        System.err.println("User admin password encoding completed");
+    }
 
     /**
      * For {@link #upgradeSchema()} with {@link #DBTYPE_POSTGRESQL}, check that we're

@@ -1080,7 +1080,7 @@ public class SOCServer extends Server
                 {
                     try
                     {
-                        SOCDBHelper.upgradeSchema();
+                        SOCDBHelper.upgradeSchema(databaseUserAdmins);
 
                         final String msg = "DB schema upgrade successful";
                         utilityModeMessage = msg;
