@@ -2300,19 +2300,22 @@ public class SOCDBHelper
                 ; /* ignore failures in query closes */
             }
 
+            if (isForShutdown && (schemaUpgBGTasksThread != null) && schemaUpgBGTasksThread.isAlive())
+                schemaUpgBGTasksThread.doShutdown = true;
+
+            initialized = false;
             try
             {
                 connection.close();
-                initialized = false;
                 if (isForShutdown)
                     connection = null;
             }
             catch (SQLException sqlE)
             {
                 errorCondition = true;
-                initialized = false;
                 if (isForShutdown)
                     connection = null;
+
                 sqlE.printStackTrace();
                 throw sqlE;
             }
@@ -2998,6 +3001,9 @@ public class SOCDBHelper
      */
     private static class UpgradeBGTasksThread extends Thread
     {
+        /** Flag to shut down the thread if set true */
+        public volatile boolean doShutdown = false;
+
         public void run()
         {
             try
@@ -3012,11 +3018,11 @@ public class SOCDBHelper
             }
             catch (InterruptedException e) {}
 
-            System.err.println("\n*Schema upgrade: Beginning background tasks\n");
+            System.err.println("\n* Schema upgrade: Beginning background tasks\n");
 
             try
             {
-                while (schemaUpgBGTasks_fromVersion < SCHEMA_VERSION_LATEST)
+                while ((schemaUpgBGTasks_fromVersion < SCHEMA_VERSION_LATEST) && ! doShutdown)
                 {
                     if (schemaUpgBGTasks_fromVersion == 0)
                         break;
@@ -3031,9 +3037,15 @@ public class SOCDBHelper
                     upgradeBGTasks_1000_1200();  // SCHEMA_VERSION_ORIGINAL -> SCHEMA_VERSION_1200
                 }
             } catch (SQLException e) {
-                System.err.println
-                    ("*** Schema upgrade: SQL error during background tasks: " + e);
-                e.printStackTrace();
+                if (! doShutdown)
+                {
+                    System.err.println
+                        ("*** Schema upgrade: SQL error during background tasks: " + e);
+                    e.printStackTrace();
+                } else {
+                    System.err.println
+                        ("*** Schema upgrade: SQL error during shutdown: " + e);
+                }
 
                 return;  // <--- Early return: Unexpected problem ---
             }
@@ -3054,7 +3066,11 @@ public class SOCDBHelper
                     ("*** Schema upgrade BG tasks completed, but SQL error setting db_version.bg_tasks_done: " + e);
             }
 
-            System.err.println("\n*Schema upgrade: Completed background tasks\n");
+            if (! doShutdown)
+                System.err.println("\n* Schema upgrade: Completed background tasks\n");
+            else
+                // This may not print, depending on shutdown method
+                System.err.println("\n* Schema upgrade: Shutting shutdown background tasks, will complete later\n");
         }
 
         /**
@@ -3085,9 +3101,10 @@ public class SOCDBHelper
                 if (! users.isEmpty())
                     if (! upgradeSchema_1200_encodeUserPasswords(users, sr, null, null, null))
                         throw new SQLException("L3087 Internal error: Could not select any users.nickname to encode");
-            } while (! users.isEmpty());
+            } while (! (doShutdown || users.isEmpty()));
 
-            System.err.println("Schema upgrade: User password encoding complete");
+            if (! doShutdown)
+                System.err.println("Schema upgrade: User password encoding complete");
 
             schemaUpgBGTasks_fromVersion = SCHEMA_VERSION_1200;
         }
