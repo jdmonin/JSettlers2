@@ -550,6 +550,10 @@ lists contributors by year.  A copyright year range (for example, 2007-2011)
 means the file was contributed to by that person in each year of that range.
 See individual source files for the GPL version and other details.
 
+BCrypt.java is licensed under the "new BSD" license, and is copyright
+(C) 2006 Damien Miller; see BCrypt.java for details.  jBCrypt-0.4.tar.gz
+retrieved 2017-05-27 from http://www.mindrot.org/projects/jBCrypt/
+
 The hex and port images were created by Jeremy Monin, and are licensed
 Creative Commons Attribution Share Alike (cc-by-sa 3.0 US) or Creative
 Commons Attribution (CC-BY 3.0 US); see each image's gif comments for details.
