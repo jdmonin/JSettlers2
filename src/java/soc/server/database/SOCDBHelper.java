@@ -163,7 +163,7 @@ public class SOCDBHelper
      *<P>
      * As with {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP}, the SOCServer constructor throws either
      * {@link java.io.EOFException EOFException} or {@link SQLException} (for success or failure)
-     * which are caught by <tt>main(..)</tt>.
+     * which are caught by {@code main(..)}.
      *
      * @since 1.1.20
      */
@@ -416,8 +416,8 @@ public class SOCDBHelper
      * {@link #saveGameCommand} for schema older than {@link #SCHEMA_VERSION_1200}.
      * Before v1.2.00 this field was {@code SAVE_GAME_COMMAND}.
      */
-    private static final String SAVE_GAME_COMMAND_1000
-        = "INSERT INTO games(gamename,player1,player2,player3,player4,score1,score2,score3,score4,starttime)"
+    private static final String SAVE_GAME_COMMAND_1000 =
+        "INSERT INTO games(gamename,player1,player2,player3,player4,score1,score2,score3,score4,starttime)"
         + " VALUES (?,?,?,?,?,?,?,?,?,?);";
 
     /**
@@ -533,10 +533,10 @@ public class SOCDBHelper
     	            // dbType detection from driver string:
     	            if (driverclass.contains("postgresql"))
     	                dbType = DBTYPE_POSTGRESQL;
-    	            else if (driverclass.contains("sqlite"))
-    	                dbType = DBTYPE_SQLITE;
-    	            else if (! driverclass.contains("mysql"))
-    	                dbType = DBTYPE_UNKNOWN;
+                    else if (driverclass.contains("sqlite"))
+                        dbType = DBTYPE_SQLITE;
+                    else if (! driverclass.contains("mysql"))
+                        dbType = DBTYPE_UNKNOWN;
     	        }
     	        else if (prop_dbURL.startsWith("jdbc:postgresql"))
     	        {
@@ -561,17 +561,17 @@ public class SOCDBHelper
                 // if it's postgres or sqlite, use that.
                 // otherwise, not sure what they have.
 
-                if (driverclass.indexOf("postgresql") != -1)
+                if (driverclass.contains("postgresql"))
                 {
                     dbURL = "jdbc:postgresql://localhost/socdata";
                     dbType = DBTYPE_POSTGRESQL;
                 }
-                else if (driverclass.indexOf("sqlite") != -1)
+                else if (driverclass.contains("sqlite"))
                 {
                     dbURL = "jdbc:sqlite:socdata.sqlite";
                     dbType = DBTYPE_SQLITE;
                 }
-                else if (driverclass.indexOf("mysql") == -1)
+                else if (! driverclass.contains("mysql"))
     	        {
     	            throw new SQLException("JDBC: Driver property is set, but URL property is not: ("
     	                + PROP_JSETTLERS_DB_DRIVER + ", " + PROP_JSETTLERS_DB_URL + ")");
@@ -584,16 +584,16 @@ public class SOCDBHelper
     	    // try to detect unsupported/semi-known types from driver
 
     	    if (driverclass.toLowerCase().contains("oracle"))
-    	        dbType = DBTYPE_ORA;
+                dbType = DBTYPE_ORA;
     	}
 
     	driverinstance = null;
-        boolean driverNewInstanceFailed = false;
-        try
+    	boolean driverNewInstanceFailed = false;
+    	try
         {
             // Load the JDBC driver
-            try
-            {
+    	    try
+    	    {
                 String prop_jarname = props.getProperty(PROP_JSETTLERS_DB_JAR);
                 if ((prop_jarname != null) && (prop_jarname.length() == 0))
                     prop_jarname = null;
@@ -608,38 +608,38 @@ public class SOCDBHelper
                         System.err.println("Could not find " + prop_jarname + " for JDBC driver class " + driverclass);
                         throw new FileNotFoundException(prop_jarname);
                     }
-                    final URL[] urls = { jf.toURL() };
+                    final URL[] urls = { jf.toURI().toURL() };
                     URLClassLoader child = new URLClassLoader(urls, ClassLoader.getSystemClassLoader());
-                    final Class dclass = Class.forName(driverclass, true, child);
+                    final Class<?> dclass = Class.forName(driverclass, true, child);
                     driverinstance = (Driver) dclass.newInstance();
                 } else {
                     // JDBC driver class must already be loaded.
                     driverinstance = (Driver) (Class.forName(driverclass).newInstance());
                 }
-            }
-            catch (Throwable x)
-            {
+    	    }
+    	    catch (Throwable x)
+    	    {
                 // InstantiationException, IllegalAccessException, ClassNotFoundException
                 // (seen for org.gjt.mm.mysql.Driver)
-                driverNewInstanceFailed = true;
-                SQLException sx =
-                    new SQLException("JDBC driver is unavailable: " + driverclass + ": " + x);
-                sx.initCause(x);
-                throw sx;
-            }
+    	        driverNewInstanceFailed = true;
+    	        SQLException sx =
+    	            new SQLException("JDBC driver is unavailable: " + driverclass + ": " + x);
+    	        sx.initCause(x);
+    	        throw sx;
+    	    }
 
-            // Do we have a setup script to run?
-            String prop_dbSetupScript = props.getProperty(PROP_JSETTLERS_DB_SCRIPT_SETUP);
-            if ((prop_dbSetupScript != null) && (prop_dbSetupScript.length() == 0))
-                prop_dbSetupScript = null;
+    	    // Do we have a setup script to run?
+    	    String prop_dbSetupScript = props.getProperty(PROP_JSETTLERS_DB_SCRIPT_SETUP);
+    	    if ((prop_dbSetupScript != null) && (prop_dbSetupScript.length() == 0))
+    	        prop_dbSetupScript = null;
 
             // Connect and prepare table queries; run the setup script, if any, first
             connect(user, pswd, prop_dbSetupScript);
         }
-        catch (IOException iox)
-        {
-            throw iox;  // Let the caller deal with DB setup script IO errors
-        }
+    	catch (IOException iox)
+    	{
+    	    throw iox;  // Let the caller deal with DB setup script IO errors
+    	}
         catch (Throwable x) // everything else
         {
             if (driverNewInstanceFailed && (x instanceof SQLException))
@@ -1114,12 +1114,14 @@ public class SOCDBHelper
      * @param email  Optional email address to contact this user
      * @param time  User creation timestamp, in same format as {@link java.sql.Date#Date(long)}
      *
-     * @return true if the account was created, false if no database is currently connected
+     * @return true if the DB connection is open and the account was created,
+     *     false if no database is currently connected
      *
      * @throws SQLException if any unexpected database problem occurs
      */
     public static boolean createAccount
-        (String userName, String host, String password, String email, long time) throws SQLException
+        (String userName, String host, String password, String email, long time)
+        throws SQLException
     {
         // When the password encoding or max length changes in jsettlers-tables-tmpl.sql,
         // be sure to update this method and updateUserPassword.
@@ -1255,7 +1257,7 @@ public class SOCDBHelper
      *     first to do so.  If schema &gt;= {@link #SCHEMA_VERSION_1200}, {@code userName} is case-insensitive.
      * @param newPassword  New password (length can be 1 to 20)
      * @return  True if the update command succeeded, false if can't connect to db.
-     *     <BR><B>Note:</B> If there is no user with <code>userName</code>, will nonetheless return true.
+     *     <BR><B>Note:</B> If there is no user with {@code userName}, will nonetheless return true.
      * @throws IllegalArgumentException  If user or password are null, or password is too short or too long
      * @throws SQLException if an error occurs
      * @see #authenticateUserPassword(String, String)
@@ -1587,7 +1589,7 @@ public class SOCDBHelper
                     int tf = resultSet.getInt(14);
                     robotParams = new SOCRobotParameters(mgl, me, ebf, af, laf, dcm, tm, st, tf);
                 }
-                
+
                 resultSet.close();
             }
             catch (SQLException sqlE)
@@ -1907,7 +1909,7 @@ public class SOCDBHelper
         // Read 1 line at a time, with continuations; build a list
         try
         {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
 
             for (String nextLine = br.readLine(); nextLine != null; nextLine = br.readLine())
             {
@@ -1925,7 +1927,7 @@ public class SOCDBHelper
 
                 // If starts with whitespace, append it to sb (continue previous line).
                 // Otherwise, add previous sb to the sqls list, and start a new sb containing nextLine.
-                if (Character.isWhitespace(nextLine.charAt(0)))
+                if (Character.isWhitespace(nextLine.codePointAt(0)))
                 {
                     if (sb.length() > 0)
                         sb.append("\n");  // previous line's readLine doesn't include the trailing \n
@@ -2091,7 +2093,7 @@ public class SOCDBHelper
         }
 
         // NOTES for future schema changes:
-        // - Keep your DDL SQL syntax consistent with the DDL commands tested in master testDBHelper().
+        // - Keep your DDL SQL syntax consistent with the commands tested in master testDBHelper().
         // - Be prepared to rollback to a known-good state if a problem occurs.
         //   Each unrelated part of an upgrade must completely succeed or fail.
         //   That requirement is for postgresql and mysql: sqlite can't drop any added columns;
@@ -2110,7 +2112,7 @@ public class SOCDBHelper
             {
                 runDDL
                     ("CREATE TABLE settings ( s_name varchar(32) not null, s_value varchar(500), i_value int, "
-                      + "s_changed " + TIMESTAMP + " not null, PRIMARY KEY (s_name) );");
+                     + "s_changed " + TIMESTAMP + " not null, PRIMARY KEY (s_name) );");
                 added_tab_settings = true;
 
                 // sqlite can't add multiple fields at once
@@ -2207,7 +2209,7 @@ public class SOCDBHelper
                 {
                     final String[] cols = {"player6", "score5", "score6", "duration_sec", "winner", "gameopts"};
                     if ((dbType == DBTYPE_SQLITE)
-                        || ! (runDDL_rollback("ALTER TABLE games DROP player5")
+                        || ! (runDDL_rollback("ALTER TABLE games DROP player5;")
                               && runDDL_dropCols("games", cols)))
                         couldRollback = false;
                 }
