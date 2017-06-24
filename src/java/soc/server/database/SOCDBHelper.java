@@ -290,11 +290,17 @@ public class SOCDBHelper
      */
     private static int schemaVersion;
 
-    /** Cached username used when reconnecting on error */
-    private static String userName;
+    /**
+     * Cached DB connection username, used when reconnecting on error.
+     * Before v1.2.00 this field was {@code userName}.
+     */
+    private static String dbcUserName;
 
-    /** Cached password used when reconnecting on error */
-    private static String password;
+    /**
+     * Cached DB connection password, used when reconnecting on error
+     * Before v1.2.00 this field was {@code password}.
+     */
+    private static String dbcPassword;
 
     /**
      * {@link #createAccountCommand} for schema older than {@link #SCHEMA_VERSION_1200}.
@@ -643,7 +649,7 @@ public class SOCDBHelper
         {
             try
             {
-                return (! errorCondition) || connect(userName, password, null);
+                return (! errorCondition) || connect(dbcUserName, dbcPassword, null);
             } catch (IOException ioe) {
                 // will not occur, connect script is null
                 return false;
@@ -684,8 +690,8 @@ public class SOCDBHelper
         }
 
         errorCondition = false;
-        userName = user;
-        password = pswd;
+        dbcUserName = user;
+        dbcPassword = pswd;
 
         if (setupScriptPath != null)
             runSetupScript(setupScriptPath);  // may throw IOException, SQLException
@@ -1759,7 +1765,7 @@ public class SOCDBHelper
             String otherOwner = upg_postgres_checkIsTableOwner();
             if (otherOwner != null)
                 throw new MissingResourceException
-                    ("Must change table owner to " + userName + " from " + otherOwner, "unused", "unused");
+                    ("Must change table owner to " + dbcUserName + " from " + otherOwner, "unused", "unused");
         }
         final Set<String> upg_1200_allUsers = new HashSet<String>();  // built during pre-check, used during upgrade
         if (schemaVersion < SCHEMA_VERSION_1200)
