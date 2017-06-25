@@ -1225,11 +1225,28 @@ public class SOCServer extends Server
          * Will run the requested tests and exit.
          */
         final boolean test_mode_with_db = getConfigBoolProperty(PROP_JSETTLERS_TEST_DB, false);
+
         final boolean validate_config_mode = getConfigBoolProperty(PROP_JSETTLERS_TEST_VALIDATE__CONFIG, false);
         final boolean wants_upg_schema = getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA, false);
+        boolean db_test_bcrypt_mode = false;
+        if (props != null)
+        {
+            final String val = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
+            if (val != null)
+            {
+                db_test_bcrypt_mode = (val.equalsIgnoreCase("test"));
+                if (! db_test_bcrypt_mode)
+                {
+                    throw new IllegalArgumentException
+                        ("Bad value for property " + SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR
+                         + ": " + val);
+                    // TODO soon: allow reasonable integer values
+                }
+            }
+        }
 
         // Set this flag as early as possible
-        hasUtilityModeProp = validate_config_mode || test_mode_with_db || wants_upg_schema ||
+        hasUtilityModeProp = validate_config_mode || test_mode_with_db || wants_upg_schema || db_test_bcrypt_mode ||
            ((props != null)
             && ((null != props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP))
                 || (null != props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET))));
@@ -1265,6 +1282,9 @@ public class SOCServer extends Server
 
         this.props = props;
         ((SOCMessageDispatcher) inboundMsgDispatcher).setServer(this, srvMsgHandler, gameList);
+
+        if (db_test_bcrypt_mode)
+            SOCDBHelper.testBCryptSpeed();
 
         if (allowDebugUser)
         {
@@ -2642,6 +2662,7 @@ public class SOCServer extends Server
      *<UL>
      * <LI> {@link #PROP_JSETTLERS_TEST_DB} flag property
      * <LI> {@link #PROP_JSETTLERS_TEST_VALIDATE__CONFIG} flag property
+     * <LI> <tt>{@link SOCDBHelper#PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}=test</tt> prop value
      * <LI> {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP} property
      * <LI> {@link SOCDBHelper#PROP_JSETTLERS_DB_UPGRADE__SCHEMA} flag property
      * <LI> {@code --pw-reset=username} argument

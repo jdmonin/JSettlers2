@@ -130,6 +130,16 @@ public class SOCDBHelper
      */
     public static final String PROP_JSETTLERS_DB_URL = "jsettlers.db.url";
 
+    /**
+     * Integer property <tt>jsettlers.db.bcrypt.work_factor</tt> to set or test the {@link BCrypt} work factor
+     * (password hashing round count's power of 2, see {@link BCrypt#gensalt(int)} for details).
+     * Used with {@link #PW_SCHEME_BCRYPT}.
+     *<P>
+     * If this prop's value is {@code "test"} instead of an integer, server calls {@link #testBCryptSpeed()}.
+     * @since 1.2.00
+     */
+    public static final String PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR = "jsettlers.db.bcrypt.work_factor";
+
     /** Property <tt>jsettlers.db.script.setup</tt> to run a SQL setup script
      * at server startup, then exit.  Used to create tables when setting up a server.
      * To activate this mode, set this to the SQL script's full path or relative path.
@@ -219,6 +229,8 @@ public class SOCDBHelper
      * Password encoding scheme #1: {@link BCrypt}.
      * Scheme is stored in {@code users.pw_scheme} database field,
      * encoded password stored in {@code users.pw_store}.
+     * Work Factor can be specified with {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}.
+     *<P>
      * The old field {@code users.password} is unused, ignored, and contains '!'
      * because the older schema specified NOT NULL and sqlite can't alter fields.
      *<P>
@@ -230,6 +242,7 @@ public class SOCDBHelper
 
     /**
      * Default work factor for {@link #PW_SCHEME_BCRYPT} encoding.
+     * @see #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR
      * @since 1.2.00
      */
     private static final int BCRYPT_DEFAULT_WORK_FACTOR = 12;
@@ -1732,6 +1745,66 @@ public class SOCDBHelper
 
         namesFromLC.clear();
         return (dupeMap.isEmpty()) ? null : dupeMap;
+    }
+
+    /**
+     * Run timing tests for {@link BCrypt} at various work factors, and print results to {@link System#err}.
+     * Called from {@code SOCServer} startup (Utility Mode) when
+     * {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} is {@code "test"}.
+     * @since 1.2.00
+     */
+    public static void testBCryptSpeed()
+    {
+        System.err.println("* Utility Mode: Testing BCrypt speeds for work factors:");
+
+        // TODO pick a WF to recommend, print it out, eventually return it as int
+
+        final int TOO_SLOW_MSEC = 1200;
+        float[] wfSpeedMSec = new float[BCRYPT_DEFAULT_WORK_FACTOR + 4];
+        SecureRandom sr = new SecureRandom();
+        // test from high to low WF, so progress gets faster not slower:
+        for (int wf = BCRYPT_DEFAULT_WORK_FACTOR + 3; wf >= BCRYPT_DEFAULT_WORK_FACTOR - 3; --wf)
+        {
+            System.err.print(wf);
+            System.err.print(' ');
+            System.err.flush();
+
+            // We're testing the time to hash or check passwords, not time to generate salt,
+            // so don't include that as part of our timing measurement
+            final String salt = BCrypt.gensalt(wf, sr);
+
+            final long start_ms = System.currentTimeMillis();
+            boolean tooSlow = false;
+            for (int i = 0; i < 7; ++i)
+            {
+                BCrypt.hashpw("testDBHelper", salt);
+                if ((i == 1) && (((System.currentTimeMillis() - start_ms) / 2) > TOO_SLOW_MSEC))
+                {
+                    tooSlow = true;
+                    break;
+                }
+            }
+            final long end_ms = System.currentTimeMillis();
+
+            wfSpeedMSec[wf] = (tooSlow) ? -1f : ((end_ms - start_ms) / 7.0f);
+        }
+
+        System.err.println();
+        System.err.println("WF:  BCrypt time (ms) per password:");
+        for (int wf = BCRYPT_DEFAULT_WORK_FACTOR - 3; wf <= BCRYPT_DEFAULT_WORK_FACTOR + 3; ++wf)
+        {
+            if (wf < 10)
+                System.err.print(' ');
+            System.err.print(wf);
+            System.err.print("   ");
+            if (wfSpeedMSec[wf] >= 0)
+                System.err.println(wfSpeedMSec[wf]);
+            else
+                System.err.println("> 1200.0");
+        }
+        System.err.println();
+
+        // TODO recommend one
     }
 
     /**
