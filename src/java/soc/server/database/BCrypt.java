@@ -63,8 +63,17 @@ import java.security.SecureRandom;
  */
 public class BCrypt {
 	// BCrypt parameters
+
+	/** Default log_rounds for {@link #gensalt(int)} */
 	private static final int GENSALT_DEFAULT_LOG2_ROUNDS = 10;
+
 	private static final int BCRYPT_SALT_LEN = 16;
+
+	/** Minimum valid log_rounds for {@link #gensalt(int)} */
+	public static final int GENSALT_MIN_LOG2_ROUNDS = 4;
+
+	/** Maximum valid log_rounds for {@link #gensalt(int)} */
+	public static final int GENSALT_MAX_LOG2_ROUNDS = 30;
 
 	// Blowfish parameters
 	private static final int BLOWFISH_NUM_ROUNDS = 16;
@@ -606,14 +615,17 @@ public class BCrypt {
 	 * of rounds of hashing to apply
 	 * @param cdata         the plaintext to encrypt
 	 * @return	an array containing the binary hashed password
+	 * @throws IllegalArgumentException if log_rounds not within valid range {@link #GENSALT_MIN_LOG2_ROUNDS}
+	 *     to {@link #GENSALT_MAX_LOG2_ROUNDS}, or salt.length != {@link #BCRYPT_SALT_LEN}
 	 */
 	public byte[] crypt_raw(byte password[], byte salt[], int log_rounds,
-	    int cdata[]) {
+	    int cdata[])
+	    throws IllegalArgumentException {
 		int rounds, i, j;
 		int clen = cdata.length;
 		byte ret[];
 
-		if (log_rounds < 4 || log_rounds > 30)
+		if (log_rounds < GENSALT_MIN_LOG2_ROUNDS || log_rounds > GENSALT_MAX_LOG2_ROUNDS)
 			throw new IllegalArgumentException ("Bad number of rounds");
 		rounds = 1 << log_rounds;
 		if (salt.length != BCRYPT_SALT_LEN)
@@ -645,10 +657,15 @@ public class BCrypt {
 	 * Hash a password using the OpenBSD bcrypt scheme
 	 * @param password	the password to hash
 	 * @param salt	the salt to hash with (perhaps generated
-	 * using BCrypt.gensalt)
+	 * using {@link #gensalt(int) BCrypt.gensalt})
 	 * @return	the hashed password
+	 * @throws IllegalArgumentException if log_rounds not within valid range {@link #GENSALT_MIN_LOG2_ROUNDS}
+	 *     to {@link #GENSALT_MAX_LOG2_ROUNDS}, or salt.length != {@link #BCRYPT_SALT_LEN},
+	 *     or salt is missing its version (2) or number of rounds or its optional revision != 'a';
+	 *     if round count is 13, salt should begin with $2$13$ or $2a$13$
 	 */
-	public static String hashpw(String password, String salt) {
+	public static String hashpw(String password, String salt)
+	    throws IllegalArgumentException {
 		BCrypt B;
 		String real_salt;
 		byte passwordb[], saltb[], hashed[];
@@ -691,9 +708,9 @@ public class BCrypt {
 		rs.append("$");
 		if (rounds < 10)
 			rs.append("0");
-		if (rounds > 30) {
+		if (rounds > GENSALT_MAX_LOG2_ROUNDS) {
 			throw new IllegalArgumentException(
-			    "rounds exceeds maximum (30)");
+			    "rounds exceeds maximum (" + GENSALT_MAX_LOG2_ROUNDS + ")");
 		}
 		rs.append(Integer.toString(rounds));
 		rs.append("$");
@@ -704,14 +721,18 @@ public class BCrypt {
 	}
 
 	/**
-	 * Generate a salt for use with the BCrypt.hashpw() method
+	 * Generate a salt for use with the {@link #hashpw(String, String) BCrypt.hashpw()} method
 	 * @param log_rounds	the log2 of the number of rounds of
 	 * hashing to apply - the work factor therefore increases as
 	 * 2**log_rounds.
-	 * @param random		an instance of SecureRandom to use
+	 * @param random		an instance of SecureRandom to use; not null
 	 * @return	an encoded salt value
+	 * @see #gensalt()
+	 * @see #gensalt(int)
+	 * @throws IllegalArgumentException if log_rounds &gt; {@link #GENSALT_MAX_LOG2_ROUNDS}
 	 */
-	public static String gensalt(int log_rounds, SecureRandom random) {
+	public static String gensalt(int log_rounds, SecureRandom random)
+	    throws IllegalArgumentException {
 		StringBuffer rs = new StringBuffer();
 		byte rnd[] = new byte[BCRYPT_SALT_LEN];
 
@@ -720,9 +741,9 @@ public class BCrypt {
 		rs.append("$2a$");
 		if (log_rounds < 10)
 			rs.append("0");
-		if (log_rounds > 30) {
+		if (log_rounds > GENSALT_MAX_LOG2_ROUNDS) {
 			throw new IllegalArgumentException(
-			    "log_rounds exceeds maximum (30)");
+			    "log_rounds exceeds maximum (" + GENSALT_MAX_LOG2_ROUNDS + ")");
 		}
 		rs.append(Integer.toString(log_rounds));
 		rs.append("$");
@@ -731,34 +752,46 @@ public class BCrypt {
 	}
 
 	/**
-	 * Generate a salt for use with the BCrypt.hashpw() method
+	 * Generate a salt for use with the {@link #hashpw(String, String) BCrypt.hashpw()} method
 	 * @param log_rounds	the log2 of the number of rounds of
 	 * hashing to apply - the work factor therefore increases as
 	 * 2**log_rounds.
 	 * @return	an encoded salt value
+	 * @see #gensalt()
+	 * @see #gensalt(int, SecureRandom)
+	 * @throws IllegalArgumentException if log_rounds &gt; {@link #GENSALT_MAX_LOG2_ROUNDS}
 	 */
-	public static String gensalt(int log_rounds) {
+	public static String gensalt(int log_rounds)
+	    throws IllegalArgumentException {
 		return gensalt(log_rounds, new SecureRandom());
 	}
 
 	/**
-	 * Generate a salt for use with the BCrypt.hashpw() method,
+	 * Generate a salt for use with the {@link #hashpw(String, String) BCrypt.hashpw()} method,
 	 * selecting a reasonable default for the number of hashing
 	 * rounds to apply
 	 * @return	an encoded salt value
+	 * @see #gensalt(int)
+	 * @see #gensalt(int, SecureRandom)
+	 * @throws IllegalArgumentException if log_rounds &gt; {@link #GENSALT_MAX_LOG2_ROUNDS}
 	 */
-	public static String gensalt() {
+	public static String gensalt()
+	    throws IllegalArgumentException {
 		return gensalt(GENSALT_DEFAULT_LOG2_ROUNDS);
 	}
 
 	/**
 	 * Check that a plaintext password matches a previously hashed
-	 * one
+	 * one. Calls {@link #hashpw(String, String)}.
 	 * @param plaintext	the plaintext password to verify
 	 * @param hashed	the previously-hashed password
 	 * @return	true if the passwords match, false otherwise
+	 * @throws IllegalArgumentException if hashed doesn't meet
+	 *     {@link #hashpw(String, String) hashpw(plaintext, hashed)}'s conditions;
+	 *     see that method for details
 	 */
-	public static boolean checkpw(String plaintext, String hashed) {
+	public static boolean checkpw(String plaintext, String hashed)
+	    throws IllegalArgumentException {
 		byte hashed_bytes[];
 		byte try_bytes[];
 		try {

@@ -578,6 +578,7 @@ See individual source files for the GPL version and other details.
 BCrypt.java is licensed under the "new BSD" license, and is copyright
 (C) 2006 Damien Miller; see BCrypt.java for details.  jBCrypt-0.4.tar.gz
 retrieved 2017-05-27 from http://www.mindrot.org/projects/jBCrypt/
+and some constants, javadocs, throws declarations added by Jeremy D Monin.
 
 org.fedorahosted.tennera.antgettext.StringUtil is licensed under the
 "Lesser GPL" (LGPL) license, and is from the JBoss Ant-Gettext utilities.
