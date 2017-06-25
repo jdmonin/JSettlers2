@@ -229,7 +229,8 @@ public class SOCDBHelper
      * Password encoding scheme #1: {@link BCrypt}.
      * Scheme is stored in {@code users.pw_scheme} database field,
      * encoded password stored in {@code users.pw_store}.
-     * Work Factor can be specified with {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}.
+     * Work Factor can be specified with {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}
+     * and tested with {@link #testBCryptSpeed()}.
      *<P>
      * The old field {@code users.password} is unused, ignored, and contains '!'
      * because the older schema specified NOT NULL and sqlite can't alter fields.
@@ -241,11 +242,14 @@ public class SOCDBHelper
     public static final int PW_SCHEME_BCRYPT = 1;
 
     /**
-     * Default work factor for {@link #PW_SCHEME_BCRYPT} encoding.
+     * Default Work Factor (12) for {@link #PW_SCHEME_BCRYPT} encoding:
+     * Password hashing round count's power of 2, see {@link BCrypt#gensalt(int)} for details.
+     * @see BCrypt#GENSALT_MAX_LOG2_ROUNDS
      * @see #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR
+     * @see #testBCryptSpeed()
      * @since 1.2.00
      */
-    private static final int BCRYPT_DEFAULT_WORK_FACTOR = 12;
+    public static final int BCRYPT_DEFAULT_WORK_FACTOR = 12;
 
     // Known DB types: These constants aren't used outside the class or stored anywhere,
     // so they can change between versions if needed. All @since 1.2.00.
@@ -1749,21 +1753,114 @@ public class SOCDBHelper
 
     /**
      * Run timing tests for {@link BCrypt} at various work factors, and print results to {@link System#err}.
+     * Look for an acceptable speed of about 270-620 milliseconds per BCrypt.
+     * Starting range is {@link #BCRYPT_DEFAULT_WORK_FACTOR} +/- 3. If all those work factors are
+     * too fast, the range is gradually increased up to {@link BCrypt#GENSALT_MAX_LOG2_ROUNDS}
+     * until an acceptable WF is found.
+     *<P>
      * Called from {@code SOCServer} startup (Utility Mode) when
      * {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} is {@code "test"}.
+     * @return  The fastest acceptable work factor (270-620 milliseconds per BCrypt),
+     *     or -1 if all tested WFs were too slow, or -2 if all WFs were too fast
      * @since 1.2.00
      */
-    public static void testBCryptSpeed()
+    public static int testBCryptSpeed()
     {
         System.err.println("* Utility Mode: Testing BCrypt speeds for work factors:");
 
-        // TODO pick a WF to recommend, print it out, eventually return it as int
+        int max = BCRYPT_DEFAULT_WORK_FACTOR + 3;
+        float[] wfSpeedMSec = new float[max + 1];
+        float[][] wfSpeedsRef = { wfSpeedMSec };
+
+        // test from high to low WF, so progress gets faster not slower:
+        int recc_wf = testBCryptSpeed_range
+            (wfSpeedsRef, max, BCRYPT_DEFAULT_WORK_FACTOR - 3);
+
+        while (recc_wf == -2)
+        {
+            // None are slow enough: call testBCryptSpeed_range with larger WFs
+
+            if (max >= BCrypt.GENSALT_MAX_LOG2_ROUNDS)
+            {
+                System.err.println("\n\n*** Maximum BCrypt work factor is still too fast");
+                break;
+            }
+            int mNew = max + 3;
+            if (mNew > BCrypt.GENSALT_MAX_LOG2_ROUNDS)
+                mNew = BCrypt.GENSALT_MAX_LOG2_ROUNDS;
+
+            recc_wf = testBCryptSpeed_range(wfSpeedsRef, max + 1, mNew);
+            wfSpeedMSec = wfSpeedsRef[0];
+            max = wfSpeedMSec.length - 1;
+        }
+
+        System.err.println();
+        System.err.println("WF:  BCrypt time (ms) per password:");
+        for (int wf = BCRYPT_DEFAULT_WORK_FACTOR - 3; wf <= max; ++wf)
+        {
+            if (wf < 10)
+                System.err.print(' ');
+            System.err.print(wf);
+            System.err.print("   ");
+            if (wf == recc_wf)
+                System.err.println(wfSpeedMSec[wf] + "  <--- Recommended Work Factor ---");
+            else if (wfSpeedMSec[wf] > 0)
+                System.err.println(wfSpeedMSec[wf]);
+            else
+                System.err.println("> 1200.0");
+        }
+        System.err.println();
+
+        return recc_wf;
+    }
+
+    /**
+     * Test speed of a range of Work Factors for {@link #testBCryptSpeed()}.
+     * Look for an acceptable speed of about 270-620 milliseconds per BCrypt.
+     *<P>
+     * {@code wfFrom} can be either higher or lower than {@code wfTo}.
+     * If a work factor's BCrypts take longer than 1200 millisec each,
+     * its loop will be stopped early and -1f will be stored instead of its speed.
+     * @param wfSpeedsRef  Reference to array of work factor speeds (millisec).
+     *     Work factor {@code wf}'s speed will be stored in {@code wfSpeedsRef[0][wf]}.
+     *     Passed by reference so the array can be grown if needed.
+     * @param wfFrom  Work Factor to start at; max is {@link BCrypt#GENSALT_MAX_LOG2_ROUNDS}
+     * @param wfTo    Work Factor to finish at; max is {@link BCrypt#GENSALT_MAX_LOG2_ROUNDS}
+     * @return  The fastest acceptable work factor (270-620 milliseconds per BCrypt),
+     *     or -1 if all WFs were too slow, or -2 if all WFs were too fast
+     * @since 1.2.00
+     */
+    private static int testBCryptSpeed_range(float[][] wfSpeedsRef, int wfFrom, int wfTo)
+    {
+        if (wfFrom > BCrypt.GENSALT_MAX_LOG2_ROUNDS)
+            wfFrom = BCrypt.GENSALT_MAX_LOG2_ROUNDS;
+        if (wfTo > BCrypt.GENSALT_MAX_LOG2_ROUNDS)
+            wfTo = BCrypt.GENSALT_MAX_LOG2_ROUNDS;
+
+        float[] wfSpeedMSec = wfSpeedsRef[0];
+        final int inc, max;
+        if (wfFrom < wfTo)
+        {
+            inc = 1;   max = wfTo;
+        } else {
+            inc = -1;  max = wfFrom;
+        }
+        // grow if needed
+        if (wfSpeedMSec.length <= max)
+        {
+            float[] wfs = new float[max + 1];
+            System.arraycopy(wfSpeedMSec, 0, wfs, 0, wfSpeedMSec.length);
+            wfSpeedMSec = wfs;
+            wfSpeedsRef[0] = wfs;
+        }
 
         final int TOO_SLOW_MSEC = 1200;
-        float[] wfSpeedMSec = new float[BCRYPT_DEFAULT_WORK_FACTOR + 4];
-        SecureRandom sr = new SecureRandom();
-        // test from high to low WF, so progress gets faster not slower:
-        for (int wf = BCRYPT_DEFAULT_WORK_FACTOR + 3; wf >= BCRYPT_DEFAULT_WORK_FACTOR - 3; --wf)
+        final SecureRandom sr = new SecureRandom();
+        boolean all_too_fast = true;
+        int fastest_wf = -1;
+        float fastest_msec = 9999;
+
+        for (int wf = wfFrom; ; wf += inc)
         {
             System.err.print(wf);
             System.err.print(' ');
@@ -1786,25 +1883,30 @@ public class SOCDBHelper
             }
             final long end_ms = System.currentTimeMillis();
 
-            wfSpeedMSec[wf] = (tooSlow) ? -1f : ((end_ms - start_ms) / 7.0f);
+            if (tooSlow)
+            {
+                wfSpeedMSec[wf] = -1f;
+                all_too_fast = false;
+            } else {
+                float speed = (end_ms - start_ms) / 7.0f;
+                wfSpeedMSec[wf] = speed;
+                if (speed >= 270)
+                {
+                    all_too_fast = false;
+                    if ((speed <= 620)
+                        && ((fastest_wf == -1) || (speed < fastest_msec)))
+                    {
+                        fastest_wf = wf;
+                        fastest_msec = speed;
+                    }
+                }
+            }
+
+            if (wf == wfTo)
+                break;
         }
 
-        System.err.println();
-        System.err.println("WF:  BCrypt time (ms) per password:");
-        for (int wf = BCRYPT_DEFAULT_WORK_FACTOR - 3; wf <= BCRYPT_DEFAULT_WORK_FACTOR + 3; ++wf)
-        {
-            if (wf < 10)
-                System.err.print(' ');
-            System.err.print(wf);
-            System.err.print("   ");
-            if (wfSpeedMSec[wf] >= 0)
-                System.err.println(wfSpeedMSec[wf]);
-            else
-                System.err.println("> 1200.0");
-        }
-        System.err.println();
-
-        // TODO recommend one
+        return (all_too_fast) ? -2 : fastest_wf;
     }
 
     /**
