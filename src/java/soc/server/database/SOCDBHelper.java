@@ -521,16 +521,22 @@ public class SOCDBHelper
      *       {@link #PROP_JSETTLERS_DB_URL}, and any other desired properties.
      *       Ignores {@link #PROP_JSETTLERS_DB_USER} and {@link #PROP_JSETTLERS_DB_PASS} if present,
      *       uses the {@code user} and {@code pswd} parameters instead.
+     * @throws IllegalArgumentException if there are problems with {@code props} contents:
+     *         <UL>
+     *           <LI> {@link #PROP_JSETTLERS_DB_URL} property doesn't use a recognized scheme
+     *               ({@code jdbc:mysql}, {@code :postgresql}, or {@code :sqlite})
+     *               but {@link #PROP_JSETTLERS_DB_DRIVER} isn't provided
+     *           <LI> {@link #PROP_JSETTLERS_DB_DRIVER} isn't recognized as mysql, postgres, or sqlite,
+     *               but {@link #PROP_JSETTLERS_DB_URL} isn't provided
+     *         </UL>
      * @throws SQLException if an SQL command fails, or the DB couldn't be initialized;
      *         or if the DB schema version couldn't be detected (if so, exception's
-     *         {@link Exception#getCause() .getCause()} will be an {@link IllegalStateException});
-     *         or if the {@link #PROP_JSETTLERS_DB_DRIVER} property is not mysql, not sqlite, not postgres,
-     *         but the {@link #PROP_JSETTLERS_DB_URL} property is not provided.
+     *         {@link Exception#getCause() .getCause()} will be an {@link IllegalStateException})
      * @throws IOException  if <tt>props</tt> includes {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP} but
      *         the SQL file wasn't found, or if any other IO error occurs reading the script
      */
     public static void initialize(final String user, final String pswd, Properties props)
-        throws SQLException, IOException
+        throws IllegalArgumentException, SQLException, IOException
     {
         initialized = false;
 
@@ -574,8 +580,9 @@ public class SOCDBHelper
     	        }
     	        else if (! prop_dbURL.startsWith("jdbc:mysql"))
     	        {
-    	            throw new SQLException("JDBC: URL property is set, but driver property is not: ("
-    	                + PROP_JSETTLERS_DB_URL + ", " + PROP_JSETTLERS_DB_DRIVER + ")");
+    	            throw new IllegalArgumentException
+    	                ("JDBC: URL property is set, but driver property is not ("
+    	                 + PROP_JSETTLERS_DB_URL + ", " + PROP_JSETTLERS_DB_DRIVER + ")");
     	        }
     	    } else {
     	        if (prop_driverclass != null)
@@ -597,8 +604,9 @@ public class SOCDBHelper
                 }
                 else if (! driverclass.contains("mysql"))
     	        {
-    	            throw new SQLException("JDBC: Driver property is set, but URL property is not: ("
-    	                + PROP_JSETTLERS_DB_DRIVER + ", " + PROP_JSETTLERS_DB_URL + ")");
+    	            throw new IllegalArgumentException
+    	                ("JDBC: Driver property is set, but URL property is not ("
+    	                 + PROP_JSETTLERS_DB_DRIVER + ", " + PROP_JSETTLERS_DB_URL + ")");
     	        }
     	    }
     	}

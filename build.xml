@@ -78,7 +78,7 @@
   <property name="docs.src"       value="xdocs" />
   <property name="bin.src"        value="src/bin" />
   <property name="java.src"       value="src/java" />
-  <property name="test.src"       value="test/test-src" />
+  <property name="test.src"       value="test/test-src" /> <!-- junit test cases -->
   <property name="web.src"        value="src/web" />
 
   <property name="test"           value="test" />

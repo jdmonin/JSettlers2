@@ -1090,7 +1090,12 @@ public class SOCServer extends Server
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now
      * @throws SQLException   If db setup script fails, or need db but can't connect,
-     *       or if required tests failed in {@link SOCDBHelper#testDBHelper()}
+     *       or if required tests failed in {@link SOCDBHelper#testDBHelper()},
+     *       or if other problems with DB-related contents of {@code props}
+     *       (exception's {@link Throwable#getCause()} will be an {@link IllegalArgumentException});
+     *       see {@link SOCDBHelper#initialize(String, String, Properties)} javadoc.
+     *       This constructor prints the SQLException details to {@link System#err},
+     *       caller doesn't need to extract the cause and print those same details.
      * @throws IllegalArgumentException  If {@code props} contains game options ({@code jsettlers.gameopt.*})
      *       with bad syntax. See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for expected syntax.
      *       See {@link #parseCmdline_DashedArgs(String[])} for how game option properties are checked.
@@ -1168,7 +1173,10 @@ public class SOCServer extends Server
      * If we can't connect to a database, but it looks like we need one (because
      * {@link SOCDBHelper#PROP_JSETTLERS_DB_URL}, {@link SOCDBHelper#PROP_JSETTLERS_DB_DRIVER}
      * or {@link SOCDBHelper#PROP_JSETTLERS_DB_JAR} is specified in {@code props}),
-     * this method will throw {@link SQLException}.
+     * or there are other problems with DB-related contents of {@code props}
+     * (see {@link SOCDBHelper#initialize(String, String, Properties)}; exception's {@link Throwable#getCause()}
+     * will be an {@link IllegalArgumentException}) this method will print details to {@link System#err} and
+     * throw {@link SQLException}.
      *
      *<H5>Utility Mode</H5>
      * If a db setup script runs successfully, or {@code props} contains the password reset parameter
@@ -1471,6 +1479,13 @@ public class SOCServer extends Server
 
             SQLException sqle = new SQLException("Error running DB setup script");
             sqle.initCause(iox);
+            throw sqle;
+        }
+        catch (IllegalArgumentException iax)
+        {
+            System.err.println("\n* Error in specified database properties: " + iax.getMessage());
+            SQLException sqle = new SQLException("Error with DB props");
+            sqle.initCause(iax);
             throw sqle;
         }
 
