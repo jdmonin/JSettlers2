@@ -242,7 +242,14 @@ public class SOCDBHelper
     public static final int PW_SCHEME_BCRYPT = 1;
 
     /**
-     * Default Work Factor (12) for {@link #PW_SCHEME_BCRYPT} encoding:
+     * Minimum Work Factor (9) allowed for {@link #PW_SCHEME_BCRYPT} encoding in JSettlers:
+     * see {@link #BCRYPT_DEFAULT_WORK_FACTOR} for details. Anything below 9 is too fast.
+     * @since 1.2.00
+     */
+    public static final int BCRYPT_MIN_WORK_FACTOR = 9;
+
+    /**
+     * Default Work Factor (12) for {@link #PW_SCHEME_BCRYPT} encoding in JSettlers:
      * Password hashing round count's power of 2, see {@link BCrypt#gensalt(int)} for details.
      * @see BCrypt#GENSALT_MAX_LOG2_ROUNDS
      * @see #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR
@@ -349,6 +356,14 @@ public class SOCDBHelper
      * @since 1.2.00
      */
     private static int schemaVersion;
+
+    /**
+     * Work Factor for encrypting user passwords with {@link #PW_SCHEME_BCRYPT}.
+     * Default value is {@link #BCRYPT_DEFAULT_WORK_FACTOR}; see that constant's javadoc
+     * for details and related methods/fields.
+     * @since 1.2.00
+     */
+    private static int bcryptWorkFactor = BCRYPT_DEFAULT_WORK_FACTOR;
 
     /**
      * If not 0, the version from which a recent schema upgrade must perform background tasks to complete
@@ -528,6 +543,8 @@ public class SOCDBHelper
      *               but {@link #PROP_JSETTLERS_DB_DRIVER} isn't provided
      *           <LI> {@link #PROP_JSETTLERS_DB_DRIVER} isn't recognized as mysql, postgres, or sqlite,
      *               but {@link #PROP_JSETTLERS_DB_URL} isn't provided
+     *           <LI> {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} is out of range
+     *               (9 to {@link BCrypt#GENSALT_MAX_LOG2_ROUNDS}) or can't be parsed as an integer
      *         </UL>
      * @throws SQLException if an SQL command fails, or the DB couldn't be initialized;
      *         or if the DB schema version couldn't be detected (if so, exception's
@@ -608,6 +625,28 @@ public class SOCDBHelper
     	                ("JDBC: Driver property is set, but URL property is not ("
     	                 + PROP_JSETTLERS_DB_DRIVER + ", " + PROP_JSETTLERS_DB_URL + ")");
     	        }
+    	    }
+
+    	    String prop_bcryptWF = props.getProperty(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
+    	    if (prop_bcryptWF != null)
+    	    {
+    	        String errMsg = null;
+
+    	        try
+    	        {
+    	            int wf = Integer.parseInt(prop_bcryptWF);
+    	            if ((wf >= BCRYPT_MIN_WORK_FACTOR) && (wf <= BCrypt.GENSALT_MAX_LOG2_ROUNDS))
+    	                bcryptWorkFactor = wf;
+    	            else
+    	                errMsg = "Out of range (" + BCRYPT_MIN_WORK_FACTOR + '-' + BCrypt.GENSALT_MAX_LOG2_ROUNDS + ")";
+    	        } catch (NumberFormatException e) {
+    	            errMsg = "Bad format, integer is required";
+    	        }
+
+    	        if (errMsg != null)
+    	            throw new IllegalArgumentException
+    	                ("DB: BCrypt work factor param: " + errMsg + " ("
+	                 + PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR + ")");
     	    }
     	}
 
@@ -1180,9 +1219,8 @@ public class SOCDBHelper
                     createAccountCommand.setInt(6, PW_SCHEME_BCRYPT);
                     try
                     {
-                        String pw_store = BCrypt.hashpw(password, BCrypt.gensalt(BCRYPT_DEFAULT_WORK_FACTOR));
+                        String pw_store = BCrypt.hashpw(password, BCrypt.gensalt(bcryptWorkFactor));
                             // hashpw may throw IllegalArgumentException
-                            // TODO parameterize bcrypt work factor
                         createAccountCommand.setString(7, pw_store);
                     } catch (RuntimeException e) {
                         SQLException sqlE = new SQLException("BCrypt exception");
@@ -1321,9 +1359,8 @@ public class SOCDBHelper
                 passwordUpdateCommand.setInt(1, PW_SCHEME_BCRYPT);
                 try
                 {
-                    String pw_store = BCrypt.hashpw(newPassword, BCrypt.gensalt(BCRYPT_DEFAULT_WORK_FACTOR));
+                    String pw_store = BCrypt.hashpw(newPassword, BCrypt.gensalt(bcryptWorkFactor));
                         // hashpw may throw IllegalArgumentException
-                        // TODO parameterize bcrypt work factor
                     passwordUpdateCommand.setString(2, pw_store);
                 } catch (RuntimeException e) {
                     SQLException sqlE = new SQLException("BCrypt exception");
@@ -2552,9 +2589,8 @@ public class SOCDBHelper
             if (dbPassword != null)
                 try
                 {
-                    String pwStore = BCrypt.hashpw(dbPassword, BCrypt.gensalt(BCRYPT_DEFAULT_WORK_FACTOR));
+                    String pwStore = BCrypt.hashpw(dbPassword, BCrypt.gensalt(bcryptWorkFactor));
                         // hashpw may throw IllegalArgumentException
-                        // TODO parameterize bcrypt work factor
                     userConvPW.put(dbUserName, pwStore);
                 } catch (RuntimeException e) {
                     SQLException sqlE = new SQLException("BCrypt exception");

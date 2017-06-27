@@ -25,6 +25,7 @@ import java.util.Properties;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import soc.server.database.BCrypt;
 import soc.server.database.SOCDBHelper;
 
 /**
@@ -64,6 +65,37 @@ public class TestProps
         Properties props = new Properties();
         props.put(SOCDBHelper.PROP_JSETTLERS_DB_DRIVER, "com.example.othertype");
         SOCDBHelper.initialize("u", "p", props);  // should throw IllegalArgumentException
+    }
+
+    /** Test {@link SOCDBHelper#PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} not an integer */
+    @Test(expected=IllegalArgumentException.class)
+    public final void testBCryptFmt()
+        throws Exception
+    {
+        Properties props = new Properties();
+        props.put(SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR, "12.5");
+        SOCDBHelper.initialize("u", "p", props);
+    }
+
+    /** Test {@link SOCDBHelper#PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} below range */
+    @Test(expected=IllegalArgumentException.class)
+    public final void testBCryptWFMin()
+        throws Exception
+    {
+        Properties props = new Properties();
+        props.put(SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR, "8");  // from BCRYPT_MIN_WORK_FACTOR
+        SOCDBHelper.initialize("u", "p", props);
+    }
+
+    /** Test {@link SOCDBHelper#PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} above range */
+    @Test(expected=IllegalArgumentException.class)
+    public final void testBCryptWFMax()
+        throws Exception
+    {
+        Properties props = new Properties();
+        props.put
+            (SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR, Integer.toString(1 + BCrypt.GENSALT_MAX_LOG2_ROUNDS));
+        SOCDBHelper.initialize("u", "p", props);
     }
 
     public static void main(String[] args)
