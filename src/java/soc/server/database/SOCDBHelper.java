@@ -135,6 +135,8 @@ public class SOCDBHelper
      * (password hashing round count's power of 2, see {@link BCrypt#gensalt(int)} for details).
      * Used with {@link #PW_SCHEME_BCRYPT}.
      *<P>
+     * This property overrides {@link #SETTING_BCRYPT_WORK__FACTOR}'s value.
+     *<P>
      * If this prop's value is {@code "test"} instead of an integer, server calls {@link #testBCryptSpeed()}.
      * @since 1.2.00
      */
@@ -253,10 +255,22 @@ public class SOCDBHelper
      * Password hashing round count's power of 2, see {@link BCrypt#gensalt(int)} for details.
      * @see BCrypt#GENSALT_MAX_LOG2_ROUNDS
      * @see #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR
+     * @see #SETTING_BCRYPT_WORK__FACTOR
      * @see #testBCryptSpeed()
      * @since 1.2.00
      */
     public static final int BCRYPT_DEFAULT_WORK_FACTOR = 12;
+
+    // Keys for settings table (schema v1200+)
+
+    /**
+     * {@code Settings} table key for the {@link #PW_SCHEME_BCRYPT} Work Factor.
+     * If present, {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} overrides this setting's value;
+     * see its javadoc for details on the Work Factor.
+     * @see #BCRYPT_DEFAULT_WORK_FACTOR
+     * @since 1.2.00
+     */
+    public static final String SETTING_BCRYPT_WORK__FACTOR = "BCRYPT.WORK_FACTOR";
 
     // Known DB types: These constants aren't used outside the class or stored anywhere,
     // so they can change between versions if needed. All @since 1.2.00.
@@ -361,6 +375,9 @@ public class SOCDBHelper
      * Work Factor for encrypting user passwords with {@link #PW_SCHEME_BCRYPT}.
      * Default value is {@link #BCRYPT_DEFAULT_WORK_FACTOR}; see that constant's javadoc
      * for details and related methods/fields.
+     *<P>
+     * Set from {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} in {@link #initialize(String, String, Properties)}
+     * if present, or from {@link #SETTING_BCRYPT_WORK__FACTOR} in {@link #connect(String, String, String)}.
      * @since 1.2.00
      */
     private static int bcryptWorkFactor = BCRYPT_DEFAULT_WORK_FACTOR;
@@ -400,6 +417,14 @@ public class SOCDBHelper
      * Before v1.2.00 this field was {@code password}.
      */
     private static String dbcPassword;
+
+    /**
+     * Properties containing {@link #PROP_JSETTLERS_DB_DRIVER}, {@link #PROP_JSETTLERS_DB_URL},
+     * and any other desired properties given to {@link #initialize(String, String, Properties)},
+     * or {@code null}.
+     * @since 1.2.00
+     */
+    private static Properties props;
 
     /**
      * {@link #createAccountCommand} for schema older than {@link #SCHEMA_VERSION_1200}.
@@ -563,6 +588,7 @@ public class SOCDBHelper
         driverclass = "com.mysql.jdbc.Driver";
         dbType = DBTYPE_MYSQL;
     	dbURL = "jdbc:mysql://localhost/socdata";
+    	SOCDBHelper.props = props;
 
     	if (props != null)
     	{
@@ -704,7 +730,8 @@ public class SOCDBHelper
     	    if ((prop_dbSetupScript != null) && (prop_dbSetupScript.length() == 0))
     	        prop_dbSetupScript = null;
 
-            // Connect and prepare table queries; run the setup script, if any, first
+            // Connect, detect schemaVersion, and prepare table queries;
+    	    // runs setup script, if any, first
             connect(user, pswd, prop_dbSetupScript);
         }
     	catch (IOException iox)
@@ -885,7 +912,7 @@ public class SOCDBHelper
         if (setupScriptPath != null)
             runSetupScript(setupScriptPath);  // may throw IOException, SQLException
 
-        detectSchemaVersion();
+        detectSchemaVersion();  // might also get bcryptWorkFactor from settings
         prepareStatements();
 
         return true;
@@ -893,6 +920,9 @@ public class SOCDBHelper
 
     /**
      * Detect connected DB's {@link #schemaVersion} and check its upgrade status.
+     *<P>
+     * Also sets {@link #bcryptWorkFactor} from {@code Settings}({@link #SETTING_BCRYPT_WORK__FACTOR})
+     * unless {@link #props} contains {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}.
      * @throws SQLException if any unexpected problem occurs
      * @throws IllegalStateException if schema version can't be determined,
      *     or DB upgrade was started but is incomplete ({@code db_version.ddl_done} field is null)
@@ -951,19 +981,38 @@ public class SOCDBHelper
                 schemaUpgBGTasks_fromVersion = from_vers;
                 System.err.println("* Warning: DB schema upgrade BG tasks are incomplete per db_version table");
             }
+        } else {
+            /* fallback schema-version detection: look for added fields */
+            if (doesTableColumnExist("users", "nickname_lc"))
+                schemaVersion = SCHEMA_VERSION_1200;
+            else
+                schemaVersion = SCHEMA_VERSION_ORIGINAL;
 
-            return;  // <--- schema version is known ---
+            if (schemaVersion > SCHEMA_VERSION_ORIGINAL)
+                System.err.println
+                    ("* Warning: DB schema version appears to be " + schemaVersion + ", but missing from db_version table");
         }
 
-        /* fallback schema-version detection: look for added fields */
-        if (doesTableColumnExist("users", "nickname_lc"))
-            schemaVersion = SCHEMA_VERSION_1200;
-        else
-            schemaVersion = SCHEMA_VERSION_ORIGINAL;
+        // Look for bcryptWorkFactor
+        if ((schemaVersion >= SCHEMA_VERSION_1200) && ! props.containsKey(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR))
+        {
+            int bc = 0;
+            Statement s = connection.createStatement();
+            ResultSet rs = s.executeQuery
+                ("SELECT i_value FROM settings WHERE s_name='" + SETTING_BCRYPT_WORK__FACTOR + "';");
+            if (rs.next())
+                bc = rs.getInt(1);
+            rs.close();
 
-        if (schemaVersion > SCHEMA_VERSION_ORIGINAL)
-            System.err.println
-                ("* Warning: DB schema version appears to be " + schemaVersion + ", but missing from db_version table");
+            if (bc != 0)
+            {
+                if ((bc >= BCRYPT_MIN_WORK_FACTOR) && (bc <= BCrypt.GENSALT_MAX_LOG2_ROUNDS))
+                    bcryptWorkFactor = bc;
+                else
+                    System.err.println
+                        ("* Warning: Ignoring DB setting for " + SETTING_BCRYPT_WORK__FACTOR + ": Out of range");
+            }
+        }
     }
 
     /**
