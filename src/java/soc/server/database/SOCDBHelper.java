@@ -733,6 +733,8 @@ public class SOCDBHelper
             // Connect, detect schemaVersion, and prepare table queries;
     	    // runs setup script, if any, first
             connect(user, pswd, prop_dbSetupScript);
+
+            checkSettings();
         }
     	catch (IOException iox)
     	{
@@ -912,7 +914,7 @@ public class SOCDBHelper
         if (setupScriptPath != null)
             runSetupScript(setupScriptPath);  // may throw IOException, SQLException
 
-        detectSchemaVersion();  // might also get bcryptWorkFactor from settings
+        detectSchemaVersion();
         prepareStatements();
 
         return true;
@@ -920,9 +922,6 @@ public class SOCDBHelper
 
     /**
      * Detect connected DB's {@link #schemaVersion} and check its upgrade status.
-     *<P>
-     * Also sets {@link #bcryptWorkFactor} from {@code Settings}({@link #SETTING_BCRYPT_WORK__FACTOR})
-     * unless {@link #props} contains {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}.
      * @throws SQLException if any unexpected problem occurs
      * @throws IllegalStateException if schema version can't be determined,
      *     or DB upgrade was started but is incomplete ({@code db_version.ddl_done} field is null)
@@ -992,27 +991,6 @@ public class SOCDBHelper
                 System.err.println
                     ("* Warning: DB schema version appears to be " + schemaVersion + ", but missing from db_version table");
         }
-
-        // Look for bcryptWorkFactor
-        if ((schemaVersion >= SCHEMA_VERSION_1200) && ! props.containsKey(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR))
-        {
-            int bc = 0;
-            Statement s = connection.createStatement();
-            ResultSet rs = s.executeQuery
-                ("SELECT i_value FROM settings WHERE s_name='" + SETTING_BCRYPT_WORK__FACTOR + "';");
-            if (rs.next())
-                bc = rs.getInt(1);
-            rs.close();
-
-            if (bc != 0)
-            {
-                if ((bc >= BCRYPT_MIN_WORK_FACTOR) && (bc <= BCrypt.GENSALT_MAX_LOG2_ROUNDS))
-                    bcryptWorkFactor = bc;
-                else
-                    System.err.println
-                        ("* Warning: Ignoring DB setting for " + SETTING_BCRYPT_WORK__FACTOR + ": Out of range");
-            }
-        }
     }
 
     /**
@@ -1038,6 +1016,40 @@ public class SOCDBHelper
             ((schemaVersion >= SCHEMA_VERSION_1200) ? SAVE_GAME_COMMAND_1200 : SAVE_GAME_COMMAND_1000);
         robotParamsQuery = connection.prepareStatement(ROBOT_PARAMS_QUERY);
         userCountQuery = connection.prepareStatement(USER_COUNT_QUERY);
+    }
+
+    /**
+     * Check the {@code settings} table for optional db-related properties and their static fields:
+     *<UL>
+     * <LI> Set {@link #bcryptWorkFactor} from {@code settings}({@link #SETTING_BCRYPT_WORK__FACTOR})
+     *      unless {@link #props} contains {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}.
+     *</UL>
+     * Called from {@link #initialize(String, String, Properties)} when {@link #schemaVersion} is known.
+     * @since 1.2.00
+     */
+    private static void checkSettings()
+        throws SQLException
+    {
+        // Look for bcryptWorkFactor
+        if ((schemaVersion >= SCHEMA_VERSION_1200) && ! props.containsKey(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR))
+        {
+            int bc = 0;
+            Statement s = connection.createStatement();
+            ResultSet rs = s.executeQuery
+                ("SELECT i_value FROM settings WHERE s_name='" + SETTING_BCRYPT_WORK__FACTOR + "';");
+            if (rs.next())
+                bc = rs.getInt(1);
+            rs.close();
+
+            if (bc != 0)
+            {
+                if ((bc >= BCRYPT_MIN_WORK_FACTOR) && (bc <= BCrypt.GENSALT_MAX_LOG2_ROUNDS))
+                    bcryptWorkFactor = bc;
+                else
+                    System.err.println
+                        ("* Warning: Ignoring DB setting for " + SETTING_BCRYPT_WORK__FACTOR + ": Out of range");
+            }
+        }
     }
 
     /****************************************
