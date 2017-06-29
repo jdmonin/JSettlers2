@@ -1030,7 +1030,7 @@ public class SOCDBHelper
     private static void checkSettings()
         throws SQLException
     {
-        // Look for bcryptWorkFactor
+        // bcryptWorkFactor
         if ((schemaVersion >= SCHEMA_VERSION_1200) && ! props.containsKey(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR))
         {
             int bc = 0;
@@ -1872,7 +1872,9 @@ public class SOCDBHelper
      */
     public static int testBCryptSpeed()
     {
-        System.err.println("* Utility Mode: Testing BCrypt speeds for work factors:");
+        System.err.println
+            ((props.containsKey(PROP_JSETTLERS_DB_UPGRADE__SCHEMA) ? "" : "* Utility Mode: ")
+             + "Testing BCrypt speeds for work factors:");
 
         int max = BCRYPT_DEFAULT_WORK_FACTOR + 3;
         float[] wfSpeedMSec = new float[max + 1];
@@ -2280,6 +2282,8 @@ public class SOCDBHelper
      * further tasks or conversions in a background thread. See that method's javadoc for how to start the thread.
      *<P>
      * Pre-checks include {@link #queryUsersDuplicateLCase(Set)}.
+     * If upgrading from {@link #SCHEMA_VERSION_ORIGINAL} and {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}
+     * is not set, pre-check calls {@link #testBCryptSpeed()} to set the Work Factor.
      *
      *<H3>Security note:</H3>
      * To upgrade the schema, the DB connect username must have authorization grants to
@@ -2322,6 +2326,7 @@ public class SOCDBHelper
         if (schemaVersion < SCHEMA_VERSION_1200)
         {
             /* pre-checks */
+
             final Map<String, List<String>> dupes = queryUsersDuplicateLCase(upg_1200_allUsers);
             if (dupes != null)
             {
@@ -2347,6 +2352,16 @@ public class SOCDBHelper
                     );
 
                 throw new MissingResourceException(sb.toString(), "unused", "unused");
+            }
+
+            if (! props.containsKey(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR))
+            {
+                int wf = testBCryptSpeed();
+                if (wf < BCRYPT_MIN_WORK_FACTOR)
+                    throw new MissingResourceException
+                        ("Must re-run with " + PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR + " property", "unused", "unused");
+
+                bcryptWorkFactor = wf;
             }
         }
 
@@ -2484,6 +2499,22 @@ public class SOCDBHelper
 
                 // create unique index
                 runDDL("CREATE UNIQUE INDEX users__l ON users(nickname_lc);");
+
+                // save bcryptWorkFactor to settings
+                try
+                {
+                    PreparedStatement ps = connection.prepareStatement
+                        ("INSERT INTO settings(s_name, i_value, s_changed) values('"
+                         + SETTING_BCRYPT_WORK__FACTOR + "', ?, ?);");
+                    ps.setInt(1, bcryptWorkFactor);
+                    ps.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
+                    ps.executeUpdate();
+                    ps.close();
+                } catch (SQLException e) {
+                    // shouldn't happen without other earlier or later problems
+                    System.err.println
+                        ("* Could not set " + SETTING_BCRYPT_WORK__FACTOR + " in settings table: " + e);
+                }
 
                 if (userAdmins != null)
                     upgradeSchema_1200_encodeUserPasswords
