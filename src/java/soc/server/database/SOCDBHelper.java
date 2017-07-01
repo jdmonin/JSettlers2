@@ -232,6 +232,7 @@ public class SOCDBHelper
      * Scheme is stored in {@code users.pw_scheme} database field,
      * encoded password stored in {@code users.pw_store}.
      * Work Factor can be specified with {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}
+     * or <tt>settings({@link #SETTING_BCRYPT_WORK__FACTOR})</tt>,
      * and tested with {@link #testBCryptSpeed()}.
      *<P>
      * The old field {@code users.password} is unused, ignored, and contains '!'
