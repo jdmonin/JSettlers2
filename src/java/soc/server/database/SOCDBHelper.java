@@ -224,6 +224,7 @@ public class SOCDBHelper
      * Used in versions before {@link #SCHEMA_VERSION_1200}.
      * @since 1.2.00
      * @see #PW_SCHEME_BCRYPT
+     * @see #PW_MAX_LEN_SCHEME_NONE
      */
     public static final int PW_SCHEME_NONE = 0;
 
@@ -241,6 +242,7 @@ public class SOCDBHelper
      * Used with {@link #SCHEMA_VERSION_1200} and higher.
      * @since 1.2.00
      * @see #PW_SCHEME_NONE
+     * @see #PW_MAX_LEN_SCHEME_BCRYPT
      */
     public static final int PW_SCHEME_BCRYPT = 1;
 
@@ -261,6 +263,25 @@ public class SOCDBHelper
      * @since 1.2.00
      */
     public static final int BCRYPT_DEFAULT_WORK_FACTOR = 12;
+
+    // Password max lengths for various pw_schemes
+
+    /**
+     * Original max length for a JSettlers account password when using {@link #PW_SCHEME_NONE}.
+     * @see #getMaxPasswordLength()
+     * @since 1.2.00
+     */
+    public static final int PW_MAX_LEN_SCHEME_NONE = 20;
+
+    /**
+     * Max length for a JSettlers account password when using {@link #PW_SCHEME_BCRYPT}. {@link BCrypt} encrypts
+     * the password's bytes as encoded in UTF-8; check against that length, not {@link String#length()}.
+     * Higher lengths (72) were tested successfully in {@link soctest.db.TestBCryptMisc} with ASCII characters,
+     * this max value is lower for compatibility with other BCrypt implementations.
+     * @see #getMaxPasswordLength()
+     * @since 1.2.00
+     */
+    public static final int PW_MAX_LEN_SCHEME_BCRYPT = 50;
 
     // Keys for settings table (schema v1200+)
 
@@ -777,6 +798,7 @@ public class SOCDBHelper
      * @return Schema version, such as {@link #SCHEMA_VERSION_ORIGINAL} or {@link #SCHEMA_VERSION_1200}
      * @see #SCHEMA_VERSION_LATEST
      * @see #isSchemaLatestVersion()
+     * @see #getMaxPasswordLength()
      */
     public static int getSchemaVersion()
     {
@@ -1243,6 +1265,7 @@ public class SOCDBHelper
      * @param userName  New user name (nickname) to create
      * @param host  Client hostname or IP requesting new account
      * @param password  New user's initial password
+     *     (length can be 1 to {@link #getMaxPasswordLength()} which depends on {@link #getSchemaVersion()})
      * @param email  Optional email address to contact this user
      * @param time  Created-at time, same format as {@link System#currentTimeMillis()}
      *            and {@link java.sql.Date#Date(long)}
@@ -1250,14 +1273,18 @@ public class SOCDBHelper
      * @return true if the DB connection is open and the account was created,
      *     false if no database is currently connected
      *
+     * @throws IllegalArgumentException  If password is null or too short or too long
      * @throws SQLException if any unexpected database problem occurs
      */
     public static boolean createAccount
         (String userName, String host, String password, String email, long time)
-        throws SQLException
+        throws IllegalArgumentException, SQLException
     {
         // When the password encoding or max length changes in jsettlers-tables-tmpl.sql,
         // be sure to update this method and updateUserPassword.
+
+        if ((password == null) || (password.length() == 0) || (password.length() > getMaxPasswordLength()))
+            throw new IllegalArgumentException("password");
 
         if (checkConnection())
         {
@@ -1387,7 +1414,8 @@ public class SOCDBHelper
      * If schema &gt;= {@link #SCHEMA_VERSION_1200}, the password will be encoded with {@link #PW_SCHEME_BCRYPT}.
      * @param userName  Username to update.  Does not validate this user exists: Call {@link #getUser(String)}
      *     first to do so.  If schema &gt;= {@link #SCHEMA_VERSION_1200}, {@code userName} is case-insensitive.
-     * @param newPassword  New password (length can be 1 to 20)
+     * @param newPassword  New password (length can be 1 to {@link #getMaxPasswordLength()} which depends on
+     *     {@link #getSchemaVersion()})
      * @return  True if the update command succeeded, false if can't connect to db.
      *     <BR><B>Note:</B> If there is no user with {@code userName}, will nonetheless return true.
      * @throws IllegalArgumentException  If user or password are null, or password is too short or too long
@@ -1400,7 +1428,7 @@ public class SOCDBHelper
     {
         if (userName == null)
             throw new IllegalArgumentException("userName");
-        if ((newPassword == null) || (newPassword.length() == 0) || (newPassword.length() > 20))
+        if ((newPassword == null) || (newPassword.length() == 0) || (newPassword.length() > getMaxPasswordLength()))
             throw new IllegalArgumentException("newPassword");
 
         // When the password encoding or max length changes in jsettlers-tables-tmpl.sql,
@@ -1442,6 +1470,21 @@ public class SOCDBHelper
 
             throw sqlE;
         }
+    }
+
+    /**
+     * Get the maximum password length, given the current schema version's encoding scheme
+     * ({@link #PW_SCHEME_BCRYPT} or {@link #PW_SCHEME_NONE}).
+     * @return  Maximum allowed password length for current password scheme
+     *     ({@link #PW_MAX_LEN_SCHEME_BCRYPT} or {@link #PW_MAX_LEN_SCHEME_NONE})
+     * @since 1.2.00
+     */
+    public static final int getMaxPasswordLength()
+    {
+        if (schemaVersion >= SCHEMA_VERSION_1200)
+            return PW_MAX_LEN_SCHEME_BCRYPT;
+        else
+            return PW_MAX_LEN_SCHEME_NONE;
     }
 
     /**
