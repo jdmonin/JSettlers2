@@ -1602,7 +1602,7 @@ public class SOCServer extends Server
             if (port > 0)
                 System.err.print(" Listening on port " + port);
 
-            if (SOCDBHelper.doesSchemaUpgradeNeedBGTasks())
+            if (SOCDBHelper.isInitialized() && SOCDBHelper.doesSchemaUpgradeNeedBGTasks())
                 SOCDBHelper.startSchemaUpgradeBGTasks();  // includes 5-second sleep before conversions begin
         }
 
@@ -8276,7 +8276,7 @@ public class SOCServer extends Server
 
         if (Version.versionNumber() == 0)
         {
-            System.err.println("*** Packaging Error in server JAR: Cannot determine JSettlers version. Exiting now.");
+            System.err.println("\n*** Packaging Error in server JAR: Cannot determine JSettlers version. Exiting now.");
                 // I18N: Can't localize this, the i18n files are provided by the same packaging steps
                 // which would create /resources/version.info
             System.exit(1);
@@ -8359,13 +8359,13 @@ public class SOCServer extends Server
             }
             catch (IllegalArgumentException e)
             {
-                System.err.println(e.getMessage());
+                System.err.println("\n" + e.getMessage());
                 System.err.println("\n* Error in game options properties: Exiting now.\n");
                 System.exit(1);
             }
             catch (IllegalStateException e)
             {
-                System.err.println(e.getMessage());
+                System.err.println("\n" + e.getMessage());
                 System.err.println("\n* Packaging Error in server JAR: Exiting now.\n");
                 System.exit(1);
             }
