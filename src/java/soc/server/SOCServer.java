@@ -1601,12 +1601,12 @@ public class SOCServer extends Server
             System.err.print("The server is ready.");
             if (port > 0)
                 System.err.print(" Listening on port " + port);
+            System.err.println();
 
             if (SOCDBHelper.isInitialized() && SOCDBHelper.doesSchemaUpgradeNeedBGTasks())
                 SOCDBHelper.startSchemaUpgradeBGTasks();  // includes 5-second sleep before conversions begin
         }
 
-        System.err.println();
         System.err.println();
     }
 
@@ -8359,14 +8359,16 @@ public class SOCServer extends Server
             }
             catch (IllegalArgumentException e)
             {
-                System.err.println("\n" + e.getMessage());
-                System.err.println("\n* Error in game options properties: Exiting now.\n");
+                System.err.println
+                    ("\n" + e.getMessage()
+                     + "\n* Error in game options properties: Exiting now.\n");
                 System.exit(1);
             }
             catch (IllegalStateException e)
             {
-                System.err.println("\n" + e.getMessage());
-                System.err.println("\n* Packaging Error in server JAR: Exiting now.\n");
+                System.err.println
+                    ("\n" + e.getMessage()
+                     + "\n* Packaging Error in server JAR: Exiting now.\n");
                 System.exit(1);
             }
         }
