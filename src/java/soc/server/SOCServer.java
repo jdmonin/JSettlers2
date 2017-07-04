@@ -4578,6 +4578,7 @@ public class SOCServer extends Server
         {
         "*WHO* gameName   show players and observers of gameName",
         "*WHO* *  show all connected clients",
+        "*DBSETTINGS*  show current database settings, if any",  // processed in SOCServerMessageHandler
         };
 
     /**
@@ -4793,6 +4794,7 @@ public class SOCServer extends Server
      * @param c  Client sending the {@code *STATS*} command
      * @param ga  Game in which the message is sent
      * @since 2.0.00
+     * @see SOCServerMessageHandler#processDebugCommand_dbSettings(StringConnection, SOCGame)
      */
     final void processDebugCommand_serverStats(final StringConnection c, final SOCGame ga)
     {
