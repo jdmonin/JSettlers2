@@ -75,6 +75,14 @@ public class SOCAuthRequest extends SOCMessage
     public static final int SCHEME_CLIENT_PLAINTEXT = 1;
 
     /**
+     * Final maximum password length, in case future versions support longer passwords than the
+     * current version. Server max password length is currently much shorter than this value.
+     * Longer passwords should be rejected by the client, never truncated or sent to server.
+     * @since 1.2.00
+     */
+    public static final int PASSWORD_LEN_MAX = 256;
+
+    /**
      * Role that requester connected to server for, such as {@link #ROLE_GAME_PLAYER}
      * or {@link #ROLE_USER_ADMIN}.
      *<P>

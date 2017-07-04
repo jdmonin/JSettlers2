@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.SecureRandom;
@@ -221,6 +222,8 @@ public class SOCDBHelper
      * No password encoding scheme: plain text.
      * This scheme is {@code null} in {@code users.pw_scheme} database field,
      * password is stored in {@code users.password}.
+     * Maximum length is {@link #PW_MAX_LEN_SCHEME_NONE}; clients before v1.2.00
+     * truncated longer passwords before sending them to the server.
      *<P>
      * Used in versions before {@link #SCHEMA_VERSION_1200}.
      * @since 1.2.00
@@ -236,6 +239,7 @@ public class SOCDBHelper
      * Work Factor can be specified with {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}
      * or <tt>settings({@link #SETTING_BCRYPT_WORK__FACTOR})</tt>,
      * and tested with {@link #testBCryptSpeed()}.
+     * Maximum password length is {@link #PW_MAX_LEN_SCHEME_BCRYPT}.
      *<P>
      * The old field {@code users.password} is unused, ignored, and contains '!'
      * because the older schema specified NOT NULL and sqlite can't alter fields.
@@ -243,7 +247,6 @@ public class SOCDBHelper
      * Used with {@link #SCHEMA_VERSION_1200} and higher.
      * @since 1.2.00
      * @see #PW_SCHEME_NONE
-     * @see #PW_MAX_LEN_SCHEME_BCRYPT
      */
     public static final int PW_SCHEME_BCRYPT = 1;
 
@@ -1130,7 +1133,11 @@ public class SOCDBHelper
      * This method replaces {@code getUserPassword(..)} used before v1.2.00.
      *
      * @param sUserName Username needing password authentication
-     * @param sPassword  Password being tried, or "" if none
+     * @param sPassword  Password being tried, or "" if none.
+     *     Different password schemes have different maximum password lengths.
+     *     Passwords longer than 256 characters are always rejected here before checking {@code PW_SCHEME}.
+     *     If this user has {@link #PW_SCHEME_NONE}, for backwards compatibility {@code sPassword} is
+     *     truncated to 20 characters ({@link #PW_MAX_LEN_SCHEME_NONE}).
      *
      * @return user's nickname if password is correct;
      *     {@code sUserName} if password is "" but user doesn't exist in db
@@ -1142,9 +1149,13 @@ public class SOCDBHelper
      * @see #getUser(String)
      * @since 1.2.00
      */
-    public static String authenticateUserPassword(final String sUserName, final String sPassword)
+    public static String authenticateUserPassword(final String sUserName, String sPassword)
         throws SQLException
     {
+        final int L = sPassword.length();
+        if (L > 256)
+            return null;
+
         String dbUserName = sUserName;
         String dbPassword = null;  // encoded value, unless user has PW_SCHEME_NONE
         int pwScheme = PW_SCHEME_NONE;
@@ -1196,10 +1207,17 @@ public class SOCDBHelper
                 switch (pwScheme)
                 {
                 case PW_SCHEME_NONE:
+                    if (L > PW_MAX_LEN_SCHEME_NONE)
+                        sPassword = sPassword.substring(0, PW_MAX_LEN_SCHEME_NONE);
                     ok = dbPassword.equals(sPassword);
                     break;
                 case PW_SCHEME_BCRYPT:
-                    ok = BCrypt.checkpw(sPassword, dbPassword);  // may throw IllegalArgumentException
+                    try
+                    {
+                        if (sPassword.getBytes("utf-8").length <= PW_MAX_LEN_SCHEME_BCRYPT)
+                            ok = BCrypt.checkpw(sPassword, dbPassword);  // may throw IllegalArgumentException
+                    }
+                    catch (UnsupportedEncodingException e) {}
                     break;
                 default:
                     // pw_scheme not recognized.  TODO print or log something?

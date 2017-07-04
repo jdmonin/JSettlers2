@@ -4995,7 +4995,7 @@ public class SOCServer extends Server
          * check if a nickname is okay, and, if they're already logged in,
          * whether a new replacement connection can "take over" the existing one.
          */
-        final int nameTimeout = checkNickname(msgUser, c, (msgPass != null) && (msgPass.trim().length() > 0));
+        final int nameTimeout = checkNickname(msgUser, c, (msgPass != null) && (msgPass.length() > 0));
         System.err.println
             ("L4910 past checkNickname at " + System.currentTimeMillis()
              + (((nameTimeout == 0) || (nameTimeout == -1))
@@ -5111,22 +5111,25 @@ public class SOCServer extends Server
     {
         String dbUserName = null;
 
-        try
+        if (password.length() <= SOCAuthRequest.PASSWORD_LEN_MAX)
         {
-            dbUserName = SOCDBHelper.authenticateUserPassword(userName, password);
-        }
-        catch (SQLException sqle)
-        {
-            c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_PROBLEM_WITH_DB, c.getVersion(),
-                    "Problem connecting to database, please try again later."));
-            return null;
+            try
+            {
+                dbUserName = SOCDBHelper.authenticateUserPassword(userName, password);
+            }
+            catch (SQLException sqle)
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_PROBLEM_WITH_DB, c.getVersion(),
+                         "Problem connecting to database, please try again later."));
+                return null;
+            }
         }
 
         int replySV = 0;
         if (dbUserName == null)
         {
-            // User found in database, incorrect password
+            // User found in database, password incorrect or too long
 
             replySV = SOCStatusMessage.SV_PW_WRONG;
         }
@@ -6515,11 +6518,15 @@ public class SOCServer extends Server
         //
         // create the account
         //
-        boolean success = false;
+        boolean success = false, pwTooLong = false;
 
         try
         {
             success = SOCDBHelper.createAccount(userName, c.host(), pw, em, currentTime.getTime());
+        }
+        catch (IllegalArgumentException e)
+        {
+            pwTooLong = true;
         }
         catch (SQLException sqle)
         {
@@ -6542,9 +6549,12 @@ public class SOCServer extends Server
         }
         else
         {
+            String errText = c.getLocalized
+                ((pwTooLong)
+                 ? "account.common.password_too_long"  // "That password is too long."
+                 : "account.create.error");  // "Account not created due to error."
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_ACCT_NOT_CREATED_ERR, cliVers,
-                     c.getLocalized("account.create.error")));  // "Account not created due to error."
+                    (SOCStatusMessage.SV_ACCT_NOT_CREATED_ERR, cliVers, errText));
         }
     }
 
