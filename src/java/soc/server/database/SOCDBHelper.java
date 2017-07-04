@@ -1917,7 +1917,7 @@ public class SOCDBHelper
     public static int testBCryptSpeed()
     {
         System.err.println
-            ((props.containsKey(PROP_JSETTLERS_DB_UPGRADE__SCHEMA) ? "" : "* Utility Mode: ")
+            ((((props != null) && props.containsKey(PROP_JSETTLERS_DB_UPGRADE__SCHEMA)) ? "" : "* Utility Mode: ")
              + "Testing BCrypt speeds for work factors:");
 
         int max = BCRYPT_DEFAULT_WORK_FACTOR + 3;

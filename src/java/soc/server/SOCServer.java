@@ -1289,9 +1289,6 @@ public class SOCServer extends Server
         this.props = props;
         ((SOCMessageDispatcher) inboundMsgDispatcher).setServer(this, srvMsgHandler, gameList);
 
-        if (db_test_bcrypt_mode)
-            SOCDBHelper.testBCryptSpeed();
-
         if (allowDebugUser)
         {
             System.err.println("Warning: Remote debug commands are allowed.");
@@ -1488,6 +1485,9 @@ public class SOCServer extends Server
         }
 
         // No errors; continue normal startup.
+
+        if (db_test_bcrypt_mode)
+            SOCDBHelper.testBCryptSpeed();
 
         if (hasUtilityModeProp && ! (test_mode_with_db || validate_config_mode))
         {
