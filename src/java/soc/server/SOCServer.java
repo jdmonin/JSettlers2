@@ -8372,6 +8372,14 @@ public class SOCServer extends Server
                 System.exit(1);
             }
         }
+        catch (RuntimeException e)
+        {
+            System.err.println
+                ("\n" + e.getMessage()
+                 + "\n* Internal error during startup: Exiting now.\n");
+            e.printStackTrace();
+            System.exit(1);
+        }
         catch (Throwable e)
         {
             printUsage(false);
