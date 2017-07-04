@@ -228,13 +228,13 @@ public class SOCPlayerClient
     protected String nickname = null;
 
     /**
-     * the password for {@link #nickname}. If the server's authenticated this password,
-     * the {@link #gotPassword} flag is set.
+     * the password for {@link #nickname}, or {@code null} if no valid password yet. May be empty ("").
+     * If server has authenticated this password, the {@link #gotPassword} flag is set.
      */
     protected String password = null;
 
     /**
-     * true if we've stored the password and the server's replied that it's correct
+     * true if we've stored the {@link #password} and the server's replied that it's correct
      * @see #isNGOFWaitingForAuthStatus
      */
     protected boolean gotPassword;
@@ -1475,10 +1475,13 @@ public class SOCPlayerClient
             if (client.nickname == null)
                return false;  // not filled in yet
 
-            if (!client.gotPassword)
+            if (! client.gotPassword)
             {
                 client.password = getPassword();  // may be 0-length
+                if (client.password == null)
+                    return false;  // invalid or too long
             }
+
             return true;
         }
 
@@ -1652,8 +1655,12 @@ public class SOCPlayerClient
                     if (client.nickname == null)
                         return true;  // not filled in yet
 
-                    if (!client.gotPassword)
+                    if (! client.gotPassword)
+                    {
                         client.password = getPassword();  // may be 0-length
+                        if (client.password == null)  // invalid or too long
+                            return true;
+                    }
                 }
 
                 int endOfName = gm.indexOf(STATSPREFEX);
@@ -1721,6 +1728,7 @@ public class SOCPlayerClient
                         ((client.sFeatures.isActive(SOCServerFeatures.FEAT_CHANNELS))
                          ? NEED_NICKNAME_BEFORE_JOIN
                          : NEED_NICKNAME_BEFORE_JOIN_G );
+
                 return null;
             }
 
@@ -1733,16 +1741,21 @@ public class SOCPlayerClient
                 status.setText(SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED);
                 return null;
             }
+
             nick.setText(n);
             if (! precheckOnly)
                 client.nickname = n;
+
             return n;
         }
 
         /**
-         * Validate and return the password textfield contents; may be 0-length.
-         * Also set {@link #password} field.
+         * Validate and return the password textfield contents; may be 0-length, or {@code null} if invalid.
+         * Also set {@link #password} field to the value returned from this method.
          * If {@link #gotPassword} already, return current password without checking textfield.
+         * If text is too long, sets status text and sets focus to password textfield.
+         * @return  The trimmed password field text (may be ""), or {@code null} if invalid or too long
+         * @see #readValidNicknameAndPassword()
          * @since 1.1.07
          */
         protected String getPassword()
@@ -1752,9 +1765,12 @@ public class SOCPlayerClient
 
             String p = pass.getText().trim();
 
-            if (p.length() > 20)
+            if (p.length() > SOCAuthRequest.PASSWORD_LEN_MAX)
             {
-                p = p.substring(0, 20);
+                status.setText
+                    (client.strings.get("account.common.password_too_long"));  // "That password is too long."
+                pass.requestFocus();
+                p = null;
             }
 
             client.password = p;
