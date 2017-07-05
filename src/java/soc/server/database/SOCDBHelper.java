@@ -272,17 +272,18 @@ public class SOCDBHelper
 
     /**
      * Original max length for a JSettlers account password when using {@link #PW_SCHEME_NONE}.
-     * @see #getMaxPasswordLength()
+     * @see #isPasswordLengthOK(String)
      * @since 1.2.00
      */
     public static final int PW_MAX_LEN_SCHEME_NONE = 20;
 
     /**
      * Max length for a JSettlers account password when using {@link #PW_SCHEME_BCRYPT}. {@link BCrypt} encrypts
-     * the password's bytes as encoded in UTF-8; check against that length, not {@link String#length()}.
+     * the password's bytes as encoded in UTF-8. Check against that length, not {@link String#length()};
+     * {@link #isPasswordLengthOK(String)} does so.
+     *<P>
      * Higher lengths (72) were tested successfully in {@link soctest.db.TestBCryptMisc} with ASCII characters,
      * this max value is lower for compatibility with other BCrypt implementations.
-     * @see #getMaxPasswordLength()
      * @since 1.2.00
      */
     public static final int PW_MAX_LEN_SCHEME_BCRYPT = 50;
@@ -802,7 +803,7 @@ public class SOCDBHelper
      * @return Schema version, such as {@link #SCHEMA_VERSION_ORIGINAL} or {@link #SCHEMA_VERSION_1200}
      * @see #SCHEMA_VERSION_LATEST
      * @see #isSchemaLatestVersion()
-     * @see #getMaxPasswordLength()
+     * @see #isPasswordLengthOK(String)
      */
     public static int getSchemaVersion()
     {
@@ -1134,7 +1135,8 @@ public class SOCDBHelper
      *
      * @param sUserName Username needing password authentication
      * @param sPassword  Password being tried, or "" if none.
-     *     Different password schemes have different maximum password lengths.
+     *     Different password schemes have different maximum password lengths;
+     *     see {@link #isPasswordLengthOK(String)}.
      *     Passwords longer than 256 characters are always rejected here before checking {@code PW_SCHEME}.
      *     If this user has {@link #PW_SCHEME_NONE}, for backwards compatibility {@code sPassword} is
      *     truncated to 20 characters ({@link #PW_MAX_LEN_SCHEME_NONE}).
@@ -1214,7 +1216,8 @@ public class SOCDBHelper
                 case PW_SCHEME_BCRYPT:
                     try
                     {
-                        if (sPassword.getBytes("utf-8").length <= PW_MAX_LEN_SCHEME_BCRYPT)
+                        if ((L <= PW_MAX_LEN_SCHEME_BCRYPT)
+                            && (sPassword.getBytes("utf-8").length <= PW_MAX_LEN_SCHEME_BCRYPT))
                             ok = BCrypt.checkpw(sPassword, dbPassword);  // may throw IllegalArgumentException
                     }
                     catch (UnsupportedEncodingException e) {}
@@ -1283,8 +1286,8 @@ public class SOCDBHelper
      *
      * @param userName  New user name (nickname) to create
      * @param host  Client hostname or IP requesting new account
-     * @param password  New user's initial password
-     *     (length can be 1 to {@link #getMaxPasswordLength()} which depends on {@link #getSchemaVersion()})
+     * @param password  New user's initial password. Can't be null or "", and must pass
+     *     {@link #isPasswordLengthOK(String)} which depends on {@link #getSchemaVersion()}.
      * @param email  Optional email address to contact this user
      * @param time  Created-at time, same format as {@link System#currentTimeMillis()}
      *            and {@link java.sql.Date#Date(long)}
@@ -1302,7 +1305,7 @@ public class SOCDBHelper
         // When the password encoding or max length changes in jsettlers-tables-tmpl.sql,
         // be sure to update this method and updateUserPassword.
 
-        if ((password == null) || (password.length() == 0) || (password.length() > getMaxPasswordLength()))
+        if (! isPasswordLengthOK(password))
             throw new IllegalArgumentException("password");
 
         if (checkConnection())
@@ -1433,8 +1436,8 @@ public class SOCDBHelper
      * If schema &gt;= {@link #SCHEMA_VERSION_1200}, the password will be encoded with {@link #PW_SCHEME_BCRYPT}.
      * @param userName  Username to update.  Does not validate this user exists: Call {@link #getUser(String)}
      *     first to do so.  If schema &gt;= {@link #SCHEMA_VERSION_1200}, {@code userName} is case-insensitive.
-     * @param newPassword  New password (length can be 1 to {@link #getMaxPasswordLength()} which depends on
-     *     {@link #getSchemaVersion()})
+     * @param newPassword  New password. Can't be null or "", and must pass
+     *     {@link #isPasswordLengthOK(String)} which depends on {@link #getSchemaVersion()}.
      * @return  True if the update command succeeded, false if can't connect to db.
      *     <BR><B>Note:</B> If there is no user with {@code userName}, will nonetheless return true.
      * @throws IllegalArgumentException  If user or password are null, or password is too short or too long
@@ -1447,7 +1450,7 @@ public class SOCDBHelper
     {
         if (userName == null)
             throw new IllegalArgumentException("userName");
-        if ((newPassword == null) || (newPassword.length() == 0) || (newPassword.length() > getMaxPasswordLength()))
+        if (! isPasswordLengthOK(newPassword))
             throw new IllegalArgumentException("newPassword");
 
         // When the password encoding or max length changes in jsettlers-tables-tmpl.sql,
@@ -1494,16 +1497,51 @@ public class SOCDBHelper
     /**
      * Get the maximum password length, given the current schema version's encoding scheme
      * ({@link #PW_SCHEME_BCRYPT} or {@link #PW_SCHEME_NONE}).
+     * To check a specific password's length, call {@link #isPasswordLengthOK(String)} instead.
      * @return  Maximum allowed password length for current password scheme
      *     ({@link #PW_MAX_LEN_SCHEME_BCRYPT} or {@link #PW_MAX_LEN_SCHEME_NONE})
      * @since 1.2.00
      */
     public static final int getMaxPasswordLength()
     {
-        if (schemaVersion >= SCHEMA_VERSION_1200)
-            return PW_MAX_LEN_SCHEME_BCRYPT;
-        else
-            return PW_MAX_LEN_SCHEME_NONE;
+        return (schemaVersion >= SCHEMA_VERSION_1200)
+            ? PW_MAX_LEN_SCHEME_BCRYPT
+            : PW_MAX_LEN_SCHEME_NONE;
+    }
+
+    /**
+     * Is this password's nonzero length less than or equal to the current maximum, given the current schema version's
+     * password encoding scheme ({@link #PW_SCHEME_BCRYPT} or {@link #PW_SCHEME_NONE})?
+     * For {@link #PW_SCHEME_BCRYPT}, checks length of its {@code UTF-8} bytes.
+     * @param password Password being tried
+     * @return True if password isn't null or "", and isn't longer than the current maximum
+     * @see #getMaxPasswordLength()
+     * @since 1.2.00
+     */
+    public static final boolean isPasswordLengthOK(final String password)
+    {
+        if (password == null)
+            return false;
+
+        int L = password.length();
+        if (L == 0)
+            return false;
+
+        if (schemaVersion < SCHEMA_VERSION_1200)
+        {
+            return (L <= PW_MAX_LEN_SCHEME_NONE);
+        } else {
+            try
+            {
+                // check L first to skip UTF-8 encoding if overly long;
+                // utf-8 length won't be less than java string length
+                if ((L <= PW_MAX_LEN_SCHEME_BCRYPT)
+                    && (password.getBytes("utf-8").length <= PW_MAX_LEN_SCHEME_BCRYPT))
+                    return true;
+            }
+            catch (UnsupportedEncodingException e) {}
+            return false;
+        }
     }
 
     /**

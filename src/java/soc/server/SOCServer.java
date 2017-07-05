@@ -7975,7 +7975,7 @@ public class SOCServer extends Server
                 System.out.println("Passwords do not match; try again.");
 
             pw1 = readPassword("Enter the new password:");
-            if (pw1 == null)
+            if ((pw1 == null) || (pw1.length() == 0))
                 break;
 
             StringBuilder pw2 = readPassword("Confirm new password:  ");
@@ -8020,6 +8020,8 @@ public class SOCServer extends Server
             SOCDBHelper.updateUserPassword(dbUname, pw1.toString());
             clearBuffer(pw1);
             utilityModeMessage = "The password was changed";
+        } catch (IllegalArgumentException e) {
+            System.err.println("Password was too long, max length is " + SOCDBHelper.getMaxPasswordLength());
         } catch (SQLException e) {
             System.err.println("Error while resetting password: " + e.getMessage());
         }
