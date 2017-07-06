@@ -99,7 +99,7 @@ public class TestBoardLayouts
      * @see soc.server.SOCGameListAtServer#createGame(String, String, String, Map, soc.server.GameHandler)
      * @see soc.server.SOCBoardLargeAtServer#makeNewBoard(Map)
      */
-    @Test
+    @Test(timeout=20000)
     public void testLayouts()
     {
         final int[] PL = {2, 3, 4, 6};
