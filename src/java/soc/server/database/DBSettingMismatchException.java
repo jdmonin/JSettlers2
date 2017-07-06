@@ -27,6 +27,7 @@ package soc.server.database;
  * this Exception doesn't contain all info. Its {@link #getMessage()} is the first
  * mismatched setting name which was found.
  *
+ * @see SOCDBHelper#PROP_JSETTLERS_DB_SETTINGS
  * @since 1.2.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
@@ -40,7 +41,7 @@ public class DBSettingMismatchException extends RuntimeException
      * @param settingKey  Key name of a mismatched setting, such as {@link SOCDBHelper#SETTING_BCRYPT_WORK__FACTOR}.
      *     If multiple settings are mismatched, provide only one of them.
      */
-    public DBSettingMismatchException(String settingKey)
+    public DBSettingMismatchException(final String settingKey)
     {
         super(settingKey);
     }

@@ -97,6 +97,17 @@ public class TestProps
         SOCDBHelper.initialize("u", "p", props);
     }
 
+    /** Test {@link SOCDBHelper#PROP_JSETTLERS_DB_SETTINGS} != "write" */
+    @Test(expected=IllegalArgumentException.class)
+    public final void testSettingsNotWrite()
+        throws Exception
+    {
+        Properties props = new Properties();
+        props.put
+            (SOCDBHelper.PROP_JSETTLERS_DB_SETTINGS, "xyz");
+        SOCDBHelper.initialize("u", "p", props);
+    }
+
     public static void main(String[] args)
     {
         org.junit.runner.JUnitCore.main("soctest.db.TestProps");
