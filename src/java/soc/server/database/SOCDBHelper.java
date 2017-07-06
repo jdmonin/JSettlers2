@@ -598,6 +598,9 @@ public class SOCDBHelper
      *           <LI> {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} is out of range
      *               (9 to {@link BCrypt#GENSALT_MAX_LOG2_ROUNDS}) or can't be parsed as an integer
      *         </UL>
+     * @throws DBSettingMismatchException if {@code props} contains one or more properties which are
+     *         also in the {@code settings} table but with different values;
+     *         this method will print details to {@link System#err} before throwing the exception
      * @throws SQLException if an SQL command fails, or the DB couldn't be initialized;
      *         or if the DB schema version couldn't be detected (if so, exception's
      *         {@link Exception#getCause() .getCause()} will be an {@link IllegalStateException})
@@ -605,7 +608,7 @@ public class SOCDBHelper
      *         the SQL file wasn't found, or if any other IO error occurs reading the script
      */
     public static void initialize(final String user, final String pswd, Properties props)
-        throws IllegalArgumentException, SQLException, IOException
+        throws IllegalArgumentException, DBSettingMismatchException, SQLException, IOException
     {
         initialized = false;
 
@@ -761,8 +764,14 @@ public class SOCDBHelper
     	    // runs setup script, if any, first
             connect(user, pswd, prop_dbSetupScript);
 
+            // Check settings table vs props; if any value mismatches found,
+            // prints differences and throws DBSettingMismatchException
             checkSettings();
         }
+    	catch (DBSettingMismatchException dx)
+    	{
+    	    throw dx;
+    	}
     	catch (IOException iox)
     	{
     	    throw iox;  // Let the caller deal with DB setup script IO errors
@@ -1052,14 +1061,22 @@ public class SOCDBHelper
      * <LI> Set {@link #bcryptWorkFactor} from {@code settings}({@link #SETTING_BCRYPT_WORK__FACTOR})
      *      unless {@link #props} contains {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}.
      *</UL>
-     * Called from {@link #initialize(String, String, Properties)} when {@link #schemaVersion} is known.
+     * If any settings are in the table and also in {@link #props}, but with different values,
+     * print differences to {@link System#err} and throw {@link DBSettingMismatchException}.
+     *<P>
+     * Called from {@link #initialize(String, String, Properties)}, after {@link #schemaVersion} is determined
+     * and any settings fields like {@link #bcryptWorkFactor} have been initialized from {@link #props}.
+     * @throws SQLException  if any unexpected error occurs
+     * @throws DBSettingMismatchException  if any value mismatches found in settings table versus props
      * @since 1.2.00
      */
     private static void checkSettings()
-        throws SQLException
+        throws SQLException, DBSettingMismatchException
     {
+        final ArrayList<String> mm = new ArrayList<String>();  // keyname, db value, props value
+
         // bcryptWorkFactor
-        if ((schemaVersion >= SCHEMA_VERSION_1200) && ! props.containsKey(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR))
+        if (schemaVersion >= SCHEMA_VERSION_1200)
         {
             int bc = 0;
             Statement s = connection.createStatement();
@@ -1072,11 +1089,36 @@ public class SOCDBHelper
             if (bc != 0)
             {
                 if ((bc >= BCRYPT_MIN_WORK_FACTOR) && (bc <= BCrypt.GENSALT_MAX_LOG2_ROUNDS))
+                {
+                    if (props.containsKey(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR)
+                        && (bc != bcryptWorkFactor))
+                    {
+                        mm.add(SETTING_BCRYPT_WORK__FACTOR);
+                        mm.add(Integer.toString(bc));
+                        mm.add(Integer.toString(bcryptWorkFactor));
+                    }
+
                     bcryptWorkFactor = bc;
-                else
+                } else {
                     System.err.println
                         ("* Warning: Ignoring DB setting for " + SETTING_BCRYPT_WORK__FACTOR + ": Out of range");
+                }
             }
+        }
+
+        if (! mm.isEmpty())
+        {
+            System.err.println("\n* These DB settings differ from values specified in properties:");
+            System.err.println("Setting key\t\tDB\tProperty");
+            final int L = mm.size();
+            for (int i = 0; i < L; ++i)
+            {
+                System.err.print(mm.get(i));
+                System.err.print(((i % 3) == 2) ? '\n' : '\t');
+            }
+            System.err.println();
+
+            throw new DBSettingMismatchException(mm.get(0));
         }
     }
 

@@ -28,6 +28,7 @@ import soc.game.*;
 import soc.message.*;
 
 import soc.robot.SOCRobotClient;
+import soc.server.database.DBSettingMismatchException;
 import soc.server.database.SOCDBHelper;
 
 import soc.server.genericServer.LocalStringConnection;
@@ -1094,8 +1095,8 @@ public class SOCServer extends Server
      * @throws SQLException   If db setup script fails, or need db but can't connect,
      *       or if required tests failed in {@link SOCDBHelper#testDBHelper()},
      *       or if other problems with DB-related contents of {@code props}
-     *       (exception's {@link Throwable#getCause()} will be an {@link IllegalArgumentException});
-     *       see {@link SOCDBHelper#initialize(String, String, Properties)} javadoc.
+     *       (exception's {@link Throwable#getCause()} will be an {@link IllegalArgumentException} or
+     *       {@link DBSettingMismatchException}); see {@link SOCDBHelper#initialize(String, String, Properties)} javadoc.
      *       This constructor prints the SQLException details to {@link System#err},
      *       caller doesn't need to extract the cause and print those same details.
      * @throws IllegalArgumentException  If {@code props} contains game options ({@code jsettlers.gameopt.*})
@@ -1177,8 +1178,8 @@ public class SOCServer extends Server
      * or {@link SOCDBHelper#PROP_JSETTLERS_DB_JAR} is specified in {@code props}),
      * or there are other problems with DB-related contents of {@code props}
      * (see {@link SOCDBHelper#initialize(String, String, Properties)}; exception's {@link Throwable#getCause()}
-     * will be an {@link IllegalArgumentException}) this method will print details to {@link System#err} and
-     * throw {@link SQLException}.
+     * will be an {@link IllegalArgumentException} or {@link DBSettingMismatchException}) this method will
+     * print details to {@link System#err} and throw {@link SQLException}.
      *
      *<H5>Utility Mode</H5>
      * If a db setup script runs successfully, or {@code props} contains the password reset parameter
@@ -1400,6 +1401,7 @@ public class SOCServer extends Server
             {
                 // the schema upgrade failed to complete; upgradeSchema() printed the exception.
                 // don't continue server startup with just a warning
+
                 throw sqle;
             }
 
@@ -1481,6 +1483,14 @@ public class SOCServer extends Server
             System.err.println("\n* Error in specified database properties: " + iax.getMessage());
             SQLException sqle = new SQLException("Error with DB props");
             sqle.initCause(iax);
+            throw sqle;
+        }
+        catch (DBSettingMismatchException dx)
+        {
+            // initialize(..) already printed details to System.err
+            System.err.println("\n* Mismatch between database settings and specified properties");
+            SQLException sqle = new SQLException("DB settings mismatch");
+            sqle.initCause(dx);
             throw sqle;
         }
 
@@ -8369,6 +8379,8 @@ public class SOCServer extends Server
                     System.err.println("\n* DB setup script failed. Exiting now.\n");
                 else if (argp.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA))
                     System.err.println("\n* DB schema upgrade failed. Exiting now.\n");
+                else
+                    System.err.println("\n* Exiting now.\n");
                 System.exit(1);
             }
             catch (IllegalArgumentException e)
