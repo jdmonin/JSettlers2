@@ -1524,6 +1524,12 @@ public class SOCServer extends Server
                         System.err.flush();
                         try
                         {
+                            // Before disconnect, do a final check for unexpected DB settings changes
+                            try
+                            {
+                                SOCDBHelper.checkSettings(true);
+                            } catch (Exception x) {}
+
                             SOCDBHelper.cleanup(true);
                         }
                         catch (SQLException x) { }

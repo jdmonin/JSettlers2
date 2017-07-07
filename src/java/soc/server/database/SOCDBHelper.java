@@ -588,7 +588,8 @@ public class SOCDBHelper
      * and initializes the prepared statements.
      * (If <tt>props</tt> includes {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP},
      * runs that script before the prepared statements.)
-     * Sets {@link #isInitialized()}.
+     * Sets {@link #isInitialized()} and {@link #getSchemaVersion()}. Calls
+     * {@link #checkSettings(boolean) checkSettings(false)} to look for inconsistent or missing {@code settings} entries.
      *<P>
      * The default URL is "jdbc:mysql://localhost/socdata".
      * The default driver is "com.mysql.jdbc.Driver".
@@ -615,8 +616,8 @@ public class SOCDBHelper
      *           <LI> {@link #PROP_JSETTLERS_DB_SETTINGS} is provided but isn't {@code "write"}
      *         </UL>
      * @throws DBSettingMismatchException if {@code props} contains one or more properties which are
-     *         also in the {@code settings} table but with different values;
-     *         this method will print details to {@link System#err} before throwing the exception.
+     *         also in the {@code settings} table but with different values; this method's call to
+     *         {@link #checkSettings(boolean)} will print details to {@link System#err} before throwing the exception.
      *         See {@link #PROP_JSETTLERS_DB_SETTINGS} to re-run and recover from this exception.
      * @throws SQLException if an SQL command fails, or the DB couldn't be initialized;
      *         or if the DB schema version couldn't be detected (if so, exception's
@@ -788,7 +789,7 @@ public class SOCDBHelper
 
             // Check settings table vs props; if any value mismatches found,
             // prints differences and throws DBSettingMismatchException
-            checkSettings();
+            checkSettings(false);
         }
     	catch (DBSettingMismatchException dx)
     	{
@@ -1092,14 +1093,17 @@ public class SOCDBHelper
      *<P>
      * Called from {@link #initialize(String, String, Properties)}, after {@link #schemaVersion} is determined
      * and any settings fields like {@link #bcryptWorkFactor} have been initialized from {@link #props}.
+     * @param checkAll  If true check all DB settings against their fields, not only those in {@code props},
+     *     and do not write any updates to the {@code settings} table.
      * @throws SQLException  if any unexpected error occurs
      * @throws DBSettingMismatchException  if any value mismatches found in settings table versus props
+     * @see #getSettingsFormatted()
      * @since 1.2.00
      */
-    private static void checkSettings()
+    public static final void checkSettings(final boolean checkAll)
         throws SQLException, DBSettingMismatchException
     {
-        final boolean withWrite = props.containsKey(PROP_JSETTLERS_DB_SETTINGS);
+        final boolean withWrite = (checkAll) ? false : props.containsKey(PROP_JSETTLERS_DB_SETTINGS);
 
         final ArrayList<String> mm = new ArrayList<String>();  // keyname, db value, props value
         boolean anyMissing = false;  // is table missing any expected params like SETTING_BCRYPT_WORK__FACTOR?
@@ -1113,7 +1117,7 @@ public class SOCDBHelper
             {
                 if ((bc >= BCRYPT_MIN_WORK_FACTOR) && (bc <= BCrypt.GENSALT_MAX_LOG2_ROUNDS))
                 {
-                    if (props.containsKey(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR))
+                    if (checkAll || props.containsKey(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR))
                     {
                         if (bc != bcryptWorkFactor)
                         {
@@ -1152,8 +1156,12 @@ public class SOCDBHelper
 
         if (! mm.isEmpty())
         {
-            System.err.println("\n* These DB settings differ from values specified in properties:");
-            System.err.println("Settings key\t\tDB\tProperty");
+            System.err.println
+                ((checkAll)
+                  ? "\n* These DB settings have changed from their current values set during startup:"
+                     + "\nSettings key\t\tDB\tCurrent value"
+                  : "\n* These DB settings differ from values specified in properties:"
+                     + "\nSettings key\t\tDB\tProperty");
             final int L = mm.size();
             for (int i = 0; i < L; ++i)
             {
@@ -1164,11 +1172,13 @@ public class SOCDBHelper
 
             if (withWrite)
             {
-                System.err.println("Updating settings table from properties values.");
+                System.err.println("Updating settings table from properties values.\n");
             } else {
                 System.err.println
-                    ("To update the settings table, run once with utility property -D"
-                     + PROP_JSETTLERS_DB_SETTINGS + "=write");
+                    ((checkAll)
+                     ? "The next startup will use the changed DB values instead of current values."
+                     : ("To update the settings table, run once with utility property -D"
+                        + PROP_JSETTLERS_DB_SETTINGS + "=write"));
 
                 throw new DBSettingMismatchException(mm.get(0));
             }
@@ -1998,6 +2008,7 @@ public class SOCDBHelper
      * @return Formatted list of DB settings. Always an even number of items, a name and then a value
      *     for each setting. Some values might be {@code null}.
      * @throws IllegalStateException  if not connected to DB (! {@link #isInitialized()})
+     * @see #checkSettings(boolean)
      * @since 1.2.00
      */
     public static List<String> getSettingsFormatted()
@@ -3180,7 +3191,7 @@ public class SOCDBHelper
      * @throws SQLException if {@code isAdd} but {@code settingKey} is already in the table,
      *     or if an unexpected error occurs
      * @see #getIntSetting(String, int)
-     * @see #checkSettings()
+     * @see #checkSettings(boolean)
      * @since 1.2.00
      */
     private static void updateSetting(final String settingKey, final int val, final boolean isAdd)
