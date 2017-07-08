@@ -989,12 +989,28 @@ public class SOCServer extends Server
 
         final boolean wants_upg_schema
             = init_getBoolProperty(props, SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA, false);
+        boolean db_test_bcrypt_mode = false;
+        if (props != null)
+        {
+            final String val = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
+            if (val != null)
+            {
+                db_test_bcrypt_mode = (val.equalsIgnoreCase("test"));
+                if (! db_test_bcrypt_mode)
+                {
+                    throw new IllegalArgumentException
+                        ("Bad value for property " + SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR
+                         + ": " + val);
+                    // TODO soon: allow reasonable integer values
+                }
+            }
+        }
 
         // Set this flag as early as possible
         hasUtilityModeProp = (props != null)
             && ((null != props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP))
                 || (null != props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET))
-                || wants_upg_schema);
+                || wants_upg_schema || db_test_bcrypt_mode);
 
         /* Check for problems during super setup (such as port already in use).
          * Ignore net errors if we're running a DB setup script and then exiting.
@@ -1020,6 +1036,9 @@ public class SOCServer extends Server
         }
 
         this.props = props;
+
+        if (db_test_bcrypt_mode)
+            SOCDBHelper.testBCryptSpeed();
 
         if (allowDebugUser)
         {
@@ -2656,6 +2675,7 @@ public class SOCServer extends Server
      *<P>
      * The current Utility Mode properties/arguments are:
      *<UL>
+     * <LI> <tt>{@link SOCDBHelper#PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}=test</tt> prop value
      * <LI> {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP} property
      * <LI> {@link SOCDBHelper#PROP_JSETTLERS_DB_UPGRADE__SCHEMA} flag property
      * <LI> <tt>--pw-reset=username</tt> argument
