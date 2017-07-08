@@ -11,7 +11,7 @@ opponents. Initially created as an AI research project.
 The client may be run as a Java application, or as an applet when
 accessed from a web site which also hosts a JSettlers server.
 
-The server may be configured to use a database to store account
+The server can optionally use a database to store player account
 information and game stats (details below).  A client applet to
 create user accounts is also provided.
 
@@ -32,7 +32,7 @@ Contents
   Requirements
   Server Setup and Testing
   Shutting down the server
-  Hosting a JSettlers Server
+  Installing a JSettlers Server
   Upgrading from an earlier version
   Database Setup
   Security and Admin Users
@@ -103,7 +103,8 @@ You can change those values and specify game option defaults; see details below.
 If MySQL or another database is not installed and running (See "Database Setup"),
 you will see a warning with the appropriate explanation:
 
-  Warning: failed to initialize database: ....
+  Warning: No user database available: ....
+  Users will not be authenticated.
 
 The database is not required: Without it, the server will function normally
 except that user accounts cannot be maintained.
@@ -123,7 +124,7 @@ you start the server.
 Command line example:
   java -jar JSettlersServer.jar -Djsettlers.startrobots=9 8880 50
 
-In this example the parameters are: start 9 bots; TCP port number 8880;
+In this example the parameters are: Start 9 bots; TCP port number 8880;
 max clients 50.
 
 The started robots count against your max simultaneous connections (50 in this
@@ -138,7 +139,7 @@ after the jar filename.
 
 To change a Game Option from its default, for example to activate the house rule
 "Robber can't return to the desert", use the "-o" switch with the game option's
-name and value, or equivalently -Djsettlers.gameopt. + the name and value:
+name and value, or equivalently "-Djsettlers.gameopt." + the name and value:
   -o RD=t
   -Djsettlers.gameopt.RD=t
 You could also set a default game scenario this way; for example if your server
@@ -228,49 +229,50 @@ If other people are in the game, they will be asked to vote on the reset; any pl
 reject it. If bots are in your game, and you want to reset with fewer or no bots, click
 the bot's Lock button before clicking Quit/Reset and it won't rejoin the reset game.
 
-If you want other people to access your server, tell them your server
-IP address and port number (in this case 8880).  They can run the
-JSettlers.jar file by itself, and it will bring up a window to enter your IP
-and port number.  Or, they can enter the following command:
+If you want other people to access your server, tell them your server address
+and port number (the default is 8880).  They can run the JSettlers.jar file by
+itself, and it will bring up a window to enter your server address (DNS name
+or IP) and port number.  Or, they can enter the following command:
 
-  java -jar JSettlers.jar <host> <port_number>
-
-Where host is the IP address and port_number is the port number.
+  java -jar JSettlers.jar <server_address> <port_number>
 
 If you would like to maintain accounts for your JSettlers server,
 start the database prior to starting the JSettlers Server. See the
 directions in "Database Setup".
 
 
-
 Shutting down the server
 ------------------------
 
-To shut down the server enter *STOP* in the chat area of a game
-window.  This will stop the server and all connected clients will be
-disconnected.  (Only debug users can shut down the server.
-See README.developer if you want that.)
+To shut down the server hit Ctrl-C in its console window, or connect as the
+optional debug user and enter *STOP* in the chat area of a game window.
+This will stop the server and all connected clients will be disconnected.
+(See README.developer if you want to set up a debug user.)
 
 
-Hosting a JSettlers server
---------------------------
+Installing a JSettlers server
+-----------------------------
+Checklist:
   - Start MySQL or PostgreSQL server
     (this database is optional; if you want a db, file-based sqlite also works)
+  - Copy and edit jsserver.properties (optional)
   - Start JSettlers Server
   - Start http server (optional)
   - Copy JSettlers.jar client JAR and web/*.html to an http-served directory (optional)
 
-To host a JSettlers server, start the server as described in "Server Setup
-and Testing". Remember that you can set server parameters and game option
-default values with a jsserver.properties file.
-
 To maintain user accounts, be sure to start the database first. (If you
-use a database, you can give users an account; everyone else
-can still log in and play, by leaving the password field blank.)
+use a database, you can give users an account; everyone else can still
+log in and play, by leaving the password field blank.)
 For details see the "Database Setup" section below.
 
+To install a JSettlers server, start the server as described in "Server Setup
+and Testing". Remember that you can set server parameters and game option
+default values with a jsserver.properties file: Copy the sample file
+bin/jsserver.properties.sample to the same directory as JSettlersServer.jar,
+rename it to jsserver.properties, and edit properties as needed.
+
 Remote users can simply start their clients as described there,
-and specify your server as host.
+and connect to your server's DNS name or IP address.
 
 To provide a web page from which users can run the applet, you will
 need to set up an http server such as Apache.  We assume you have
@@ -362,10 +364,10 @@ Database Setup
 
 If you want to maintain user accounts or save scores of all completed games,
 you will need to set up a MySQL, SQLite, or PostgreSQL database. This will
-eliminate the "Problem connecting to database" message seen when starting
+eliminate the "No user database available" message seen when starting
 the server.
 
-This section describes setting up the database and the JSettlers server's
+This section first describes setting up the database and the JSettlers server's
 connection to it, and then how to turn on optional features for Game Scores
 or User Accounts.
 
@@ -570,9 +572,10 @@ already exist, the whitelist is only a comma-separated list of names. This
 simplifies initial setup.
 
 In case an admin account password is lost, there's a rudimentary password-reset feature:
-Run JSettlersServer with the usual DB parameters and --pw-reset username, and you will be
-prompted for username's new password. This command can be run while the server is up.
-It will reset the password and exit, won't start a JSettlersServer.
+Run JSettlersServer with the usual DB parameters and add: --pw-reset username
+You will be prompted for username's new password. This command can be run while
+the server is up. It will reset the password and exit, and won't start a second
+JSettlersServer.
 
 
 Development and Building JSettlers
