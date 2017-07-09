@@ -4419,6 +4419,7 @@ public class SOCServer extends Server
         {
         "*WHO* gameName   show players and observers of gameName",
         "*WHO* *  show all connected clients",
+        "*DBSETTINGS*  show current database settings, if any",
         };
 
     /**
@@ -5519,6 +5520,10 @@ public class SOCServer extends Server
         {
             processDebugCommand_who(c, ga, cmdText);
         }
+        else if (cmdTxtUC.startsWith("*DBSETTINGS*"))
+        {
+            processDebugCommand_dbSettings(c, ga);
+        }
 
         //
         // check for admin/debugging commands
@@ -5582,6 +5587,37 @@ public class SOCServer extends Server
         }
 
         //saveCurrentGameEventRecord(gameTextMsgMes.getGame());
+    }
+
+    /**
+     * Process the {@code *DBSETTINGS*} privileged admin command:
+     * Check {@link #isUserDBUserAdmin(String, boolean)} and if OK and {@link SOCDBHelper#isInitialized()},
+     * send the client a formatted list of server DB settings from {@link SOCDBHelper#getSettingsFormatted()}.
+     * @param c  Client sending the admin command
+     * @param gaName  Game in which to reply
+     * @since 1.2.00
+     */
+    private void processDebugCommand_dbSettings(final StringConnection c, final SOCGame ga)
+    {
+        final String msgUser = c.getData();
+        if (! (isUserDBUserAdmin(msgUser, true)
+            || (allowDebugUser && msgUser.equals("debug"))))
+        {
+            return;
+        }
+
+        final String gaName = ga.getName();
+
+        if (! SOCDBHelper.isInitialized())
+        {
+            messageToPlayer(c, gaName, "Not using a database.");
+            return;
+        }
+
+        messageToPlayer(c, gaName, "Database settings:");
+        Iterator<String> it = SOCDBHelper.getSettingsFormatted().iterator();
+        while (it.hasNext())
+            messageToPlayer(c, gaName, "> " + it.next() + ": " + it.next());
     }
 
     /**

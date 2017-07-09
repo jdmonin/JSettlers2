@@ -34,6 +34,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.SecureRandom;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -210,6 +211,7 @@ public class SOCDBHelper
     public static final int SCHEMA_VERSION_LATEST = 1200;
 
     // Password encoding schemes, as seen in schema v1200's users.pw_scheme field
+    // If a scheme is added, do where-used on these constants to find places that might need an update
 
     /**
      * No password encoding scheme: plain text.
@@ -1802,6 +1804,54 @@ public class SOCDBHelper
             sqlE.printStackTrace();
             throw sqlE;
         }
+    }
+
+    /**
+     * Build a list of DB settings and related info like {@link #getSchemaVersion()} and the BCrypt work factor,
+     * formatted for printing for an admin user: friendly names and values, not technical name keys.
+     * Includes all known settings, such as {@link #SETTING_BCRYPT_WORK__FACTOR}.
+     * @return Formatted list of DB settings. Always an even number of items, a name and then a value
+     *     for each setting. Some values might be {@code null}.
+     * @throws IllegalStateException  if not connected to DB (! {@link #isInitialized()})
+     * @since 1.2.00
+     */
+    public static List<String> getSettingsFormatted()
+    {
+        if (! isInitialized())
+            throw new IllegalStateException();
+
+        List<String> li = new ArrayList<String>();
+
+        li.add("Schema version");
+        li.add
+            (Integer.toString(schemaVersion)
+             + ((schemaVersion == SCHEMA_VERSION_LATEST) ? " (is latest version)" : " (upgrade recommended)"));
+        li.add("Password encoding scheme");
+        if (schemaVersion < SCHEMA_VERSION_1200)
+        {
+            li.add("None (plain text)");
+        } else {
+            li.add("BCrypt");
+            li.add("BCrypt work factor");
+            li.add(Integer.toString(bcryptWorkFactor));
+        }
+
+        try
+        {
+            final DatabaseMetaData meta = connection.getMetaData();
+            li.add("DB server version");
+            li.add(meta.getDatabaseProductVersion());
+            li.add("JDBC driver");
+            li.add(driverclass
+                    + " v" + driverinstance.getMajorVersion() + '.' + driverinstance.getMinorVersion()
+                    + " (jdbc v" + meta.getJDBCMajorVersion() + '.' + meta.getJDBCMinorVersion()
+                    + ")");
+        } catch (SQLException e) {
+            li.add("Error retrieving DB version info");
+            li.add(e.getMessage());  // might be null
+        }
+
+        return li;
     }
 
     /****************************************
