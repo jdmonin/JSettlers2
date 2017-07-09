@@ -625,6 +625,13 @@ public class SOCAccountClient extends Applet
             return;
         }
 
+        if (pw.length() > SOCAuthRequest.PASSWORD_LEN_MAX)
+        {
+            conn_status.setText("That password is too long.");
+            conn_pass.requestFocus();
+            return;
+        }
+
         conn_sentAuth = true;
         put(SOCAuthRequest.toCmd
             (SOCAuthRequest.ROLE_USER_ADMIN, user, pw, SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, host));
@@ -674,28 +681,8 @@ public class SOCAccountClient extends Applet
                 return;  // Not a valid username
             }
 
-            String p1 = pass.getText().trim();
-
-            if (p1.length() > 20)
-            {
-                password = p1.substring(0, 20);
-            }
-            else
-            {
-                password = p1;
-            }
-
-            String p2 = pass2.getText().trim();
-
-            if (p2.length() > 20)
-            {
-                password2 = p2.substring(0, 20);
-            }
-            else
-            {
-                password2 = p2;
-            }
-
+            password = pass.getText().trim();
+            password2 = pass2.getText().trim();
             emailAddress = email.getText().trim();
 
             //
@@ -709,6 +696,11 @@ public class SOCAccountClient extends Applet
             else if (password.length() == 0)
             {
                 status.setText("You must enter a password.");
+                pass.requestFocus();
+            }
+            else if (password.length() > SOCAuthRequest.PASSWORD_LEN_MAX)
+            {
+                status.setText("That password is too long.");
                 pass.requestFocus();
             }
             else if (!password.equals(password2))
