@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -73,6 +73,14 @@ public class SOCAuthRequest extends SOCMessage
 
     /** Scheme #1, for client to connect using a plaintext password */
     public static final int SCHEME_CLIENT_PLAINTEXT = 1;
+
+    /**
+     * Final maximum password length, in case future versions support longer passwords than the
+     * current version. Server max password length is currently much shorter than this value.
+     * Longer passwords should be rejected by the client, never truncated or sent to server.
+     * @since 1.2.00
+     */
+    public static final int PASSWORD_LEN_MAX = 256;
 
     /** Token to indicate host is <tt>null</tt> or "", to avoid adjacent delimiters */
     private final static String NULLHOST = "\t";
