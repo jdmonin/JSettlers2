@@ -45,7 +45,8 @@ CREATE TABLE settings (
 	PRIMARY KEY (s_name)
 	);
 	-- Each setting uses s_value or i_value. Empty strings (s_values) are stored as null, not as empty string.
-	-- Important s_names may be listed here.
+	-- Important s_names may be listed here:
+	-- BCRYPT.WORK_FACTOR: Work Factor for BCrypt password encoding
 
 -- Users:
 -- When the password encoding scheme or max length changes,

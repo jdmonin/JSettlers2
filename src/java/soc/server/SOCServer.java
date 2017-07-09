@@ -1004,13 +1004,9 @@ public class SOCServer extends Server
             if (val != null)
             {
                 db_test_bcrypt_mode = (val.equalsIgnoreCase("test"));
-                if (! db_test_bcrypt_mode)
-                {
-                    throw new IllegalArgumentException
-                        ("Bad value for property " + SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR
-                         + ": " + val);
-                    // TODO soon: allow reasonable integer values
-                }
+                if (db_test_bcrypt_mode)
+                    // make sure DBH.initialize won't try to parse "test" as an integer
+                    props.remove(SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
             }
         }
 
