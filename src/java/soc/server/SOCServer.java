@@ -1043,9 +1043,6 @@ public class SOCServer extends Server
 
         this.props = props;
 
-        if (db_test_bcrypt_mode)
-            SOCDBHelper.testBCryptSpeed();
-
         if (allowDebugUser)
         {
             System.err.println("Warning: Remote debug commands are allowed.");
@@ -1243,6 +1240,9 @@ public class SOCServer extends Server
 
         // No errors; continue normal startup.
 
+        if (db_test_bcrypt_mode)
+            SOCDBHelper.testBCryptSpeed();
+
         if (hasUtilityModeProp)
         {
             return;  // <--- don't continue startup if Utility Mode ---
@@ -1312,11 +1312,11 @@ public class SOCServer extends Server
         System.err.print("The server is ready.");
         if (port > 0)
             System.err.print(" Listening on port " + port);
+        System.err.println();
 
-        if (SOCDBHelper.doesSchemaUpgradeNeedBGTasks())
+        if (SOCDBHelper.isInitialized() && SOCDBHelper.doesSchemaUpgradeNeedBGTasks())
             SOCDBHelper.startSchemaUpgradeBGTasks();  // includes 5-second sleep before conversions begin
 
-        System.err.println();
         System.err.println();
     }
 
@@ -11972,7 +11972,7 @@ public class SOCServer extends Server
 
         if (Version.versionNumber() == 0)
         {
-            System.err.println("*** Packaging Error in server JAR: Cannot determine JSettlers version. Exiting now.");
+            System.err.println("\n*** Packaging Error in server JAR: Cannot determine JSettlers version. Exiting now.");
             System.exit(1);
         }
 
@@ -12042,16 +12042,26 @@ public class SOCServer extends Server
             }
             catch (IllegalArgumentException e)
             {
-                System.err.println(e.getMessage());
-                System.err.println("\n* Error in game options properties: Exiting now.\n");
+                System.err.println
+                    ("\n" + e.getMessage()
+                     + "\n* Error in game options properties: Exiting now.\n");
                 System.exit(1);
             }
             catch (IllegalStateException e)
             {
-                System.err.println(e.getMessage());
-                System.err.println("\n* Packaging Error in server JAR: Exiting now.\n");
+                System.err.println
+                    ("\n" + e.getMessage()
+                     + "\n* Packaging Error in server JAR: Exiting now.\n");
                 System.exit(1);
             }
+        }
+        catch (RuntimeException e)
+        {
+            System.err.println
+                ("\n" + e.getMessage()
+                 + "\n* Internal error during startup: Exiting now.\n");
+            e.printStackTrace();
+            System.exit(1);
         }
         catch (Throwable e)
         {
