@@ -228,7 +228,7 @@ public class SOCDBHelper
     public static final int SCHEMA_VERSION_LATEST = 1200;
 
     // Password encoding schemes, as seen in schema v1200's users.pw_scheme field
-    // If a scheme is added, do where-used on these to find places that might need an update
+    // If a scheme is added, do where-used on these constants to find places that might need an update
 
     /**
      * No password encoding scheme: plain text.
@@ -240,7 +240,6 @@ public class SOCDBHelper
      * Used in versions before {@link #SCHEMA_VERSION_1200}.
      * @since 1.2.00
      * @see #PW_SCHEME_BCRYPT
-     * @see #PW_MAX_LEN_SCHEME_NONE
      */
     public static final int PW_SCHEME_NONE = 0;
 
@@ -415,8 +414,8 @@ public class SOCDBHelper
      * Default value is {@link #BCRYPT_DEFAULT_WORK_FACTOR}; see that constant's javadoc
      * for details and related methods/fields.
      *<P>
-     * Set from {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} in {@link #initialize(String, String, Properties)}
-     * if present, or from {@link #SETTING_BCRYPT_WORK__FACTOR} in {@link #connect(String, String, String)}.
+     * Set from {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} if present, or from
+     * {@link #SETTING_BCRYPT_WORK__FACTOR}, in {@link #initialize(String, String, Properties)}.
      * @since 1.2.00
      */
     private static int bcryptWorkFactor = BCRYPT_DEFAULT_WORK_FACTOR;
@@ -1252,12 +1251,10 @@ public class SOCDBHelper
      *     Passwords longer than 256 characters are always rejected here before checking {@code PW_SCHEME}.
      *     If this user has {@link #PW_SCHEME_NONE}, for backwards compatibility {@code sPassword} is
      *     truncated to 20 characters ({@link #PW_MAX_LEN_SCHEME_NONE}).
-     *
      * @return user's nickname if password is correct;
      *     {@code sUserName} if password is "" but user doesn't exist in db
      *     or if database is not currently connected;
      *     {@code null} if account exists in db and password is wrong.
-     *
      * @throws SQLException if any unexpected database problem
      * @see #updateUserPassword(String, String)
      * @see #getUser(String)

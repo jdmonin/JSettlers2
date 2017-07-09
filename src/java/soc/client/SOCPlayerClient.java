@@ -228,13 +228,13 @@ public class SOCPlayerClient
     protected String nickname = null;
 
     /**
-     * the password for {@link #nickname}, or {@code null} if no valid password yet. May be empty ("").
-     * If server has authenticated this password, the {@link #gotPassword} flag is set.
+     * the password for {@link #nickname} from {@link #pass}, or {@code null} if no valid password yet.
+     * May be empty (""). If server has authenticated this password, the {@link #gotPassword} flag is set.
      */
     protected String password = null;
 
     /**
-     * true if we've stored the {@link #password} and the server's replied that it's correct
+     * true if we've stored the {@link #password} and the server's replied that it's correct.
      * @see #isNGOFWaitingForAuthStatus
      */
     protected boolean gotPassword;
