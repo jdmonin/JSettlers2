@@ -1102,13 +1102,7 @@ public class SOCDBHelper
         // bcryptWorkFactor
         if (schemaVersion >= SCHEMA_VERSION_1200)
         {
-            int bc = 0;
-            Statement s = connection.createStatement();
-            ResultSet rs = s.executeQuery
-                ("SELECT i_value FROM settings WHERE s_name='" + SETTING_BCRYPT_WORK__FACTOR + "';");
-            if (rs.next())
-                bc = rs.getInt(1);
-            rs.close();
+            int bc = getIntSetting(SETTING_BCRYPT_WORK__FACTOR, 0);
 
             if (bc != 0)
             {
@@ -1992,8 +1986,20 @@ public class SOCDBHelper
             li.add("None (plain text)");
         } else {
             li.add("BCrypt");
+
+            String dbStat = "";
+            try
+            {
+                int dbWF = getIntSetting(SETTING_BCRYPT_WORK__FACTOR, 0);
+                if (dbWF == 0)
+                    dbStat = " (Missing from DB settings table)";
+                else if (dbWF != bcryptWorkFactor)
+                    dbStat = " (Mismatch: DB settings table has " + dbWF + ")";
+            } catch (SQLException e) {
+                dbStat = " (Error retrieving from DB: " + e.getMessage() + ")";
+            }
             li.add("BCrypt work factor");
-            li.add(Integer.toString(bcryptWorkFactor));
+            li.add(bcryptWorkFactor + dbStat);
         }
 
         try
@@ -3115,12 +3121,37 @@ public class SOCDBHelper
     }
 
     /**
+     * Get a DB setting from the {@code settings} table.
+     * @param settingKey  Setting's key name, such as {@link SOCDBHelper#SETTING_BCRYPT_WORK__FACTOR}.
+     * @param defaultVal  Value to return if not found
+     * @return  Setting's value, or {@code defaultVal} if not found
+     * @throws SQLException if an unexpected error occurs
+     * @see #updateSetting(String, int, boolean)
+     * @since 1.2.00
+     */
+    private static int getIntSetting(final String settingKey, final int defaultVal)
+        throws SQLException
+    {
+        int v = defaultVal;
+
+        Statement s = connection.createStatement();
+        ResultSet rs = s.executeQuery
+            ("SELECT i_value FROM settings WHERE s_name='" + settingKey + "';");
+        if (rs.next())
+            v = rs.getInt(1);
+        rs.close();
+
+        return v;
+    }
+
+    /**
      * Update or add a DB setting in the {@code settings} table.
      * @param settingKey  Setting's key name, such as {@link SOCDBHelper#SETTING_BCRYPT_WORK__FACTOR}.
      * @param val  New value to set
      * @param isAdd  True if adding (inserting), not updating, this setting
      * @throws SQLException if {@code isAdd} but {@code settingKey} is already in the table,
      *     or if an unexpected error occurs
+     * @see #getIntSetting(String, int)
      * @see #checkSettings()
      * @since 1.2.00
      */
