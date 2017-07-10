@@ -318,6 +318,7 @@ public class SOCServer extends Server
         SOCDBHelper.PROP_JSETTLERS_DB_URL,      "DB connection URL",
         SOCDBHelper.PROP_JSETTLERS_DB_JAR,      "DB driver jar filename",
         SOCDBHelper.PROP_JSETTLERS_DB_DRIVER,   "DB driver class name",
+        SOCDBHelper.PROP_JSETTLERS_DB_SETTINGS, "If set to \"write\", save DB settings properties values to the settings table and exit",
         SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP, "If set, full path or relative path to db setup sql script; will run and exit",
         SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA, "Flag: If set, server will upgrade the DB schema to latest version and exit (if 1 or Y)",
     };
@@ -1016,6 +1017,7 @@ public class SOCServer extends Server
         // Set this flag as early as possible
         hasUtilityModeProp = (props != null)
             && ((null != props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP))
+                || props.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_SETTINGS)
                 || (null != props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET))
                 || wants_upg_schema || db_test_bcrypt_mode);
 
@@ -1076,6 +1078,8 @@ public class SOCServer extends Server
 
         /**
          * Try to connect to the DB, if any.
+         * Running SOCDBHelper.initialize(..) will handle some Utility Mode properties
+         * like PROP_JSETTLERS_DB_SETTINGS if present.
          */
         boolean db_err_printed = false;
         try
@@ -2700,6 +2704,7 @@ public class SOCServer extends Server
      * <LI> <tt>{@link SOCDBHelper#PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}=test</tt> prop value
      * <LI> {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP} property
      * <LI> {@link SOCDBHelper#PROP_JSETTLERS_DB_UPGRADE__SCHEMA} flag property
+     * <LI> <tt>{@link SOCDBHelper#PROP_JSETTLERS_DB_SETTINGS}=write</tt> prop value
      * <LI> <tt>--pw-reset=username</tt> argument
      *</UL>
      *

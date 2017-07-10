@@ -128,6 +128,18 @@ public class SOCDBHelper
     public static final String PROP_JSETTLERS_DB_URL = "jsettlers.db.url";
 
     /**
+     * Utility property <tt>jsettlers.db.settings</tt> to write the values of settings properties
+     * like {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} to the {@code settings} table.
+     * Run SOCServer with this property to update the table after startup fails with
+     * a {@link DBSettingMismatchException}.
+     *<P>
+     * This property's only valid value is {@code "write"} (value does not include the double quote marks).
+     * Other values will be rejected during {@link #initialize(String, String, Properties)}.
+     * @since 1.2.00
+     */
+    public static final String PROP_JSETTLERS_DB_SETTINGS = "jsettlers.db.settings";
+
+    /**
      * Integer property <tt>jsettlers.db.bcrypt.work_factor</tt> to set or test the {@link BCrypt} work factor
      * (password hashing round count's power of 2, see {@link BCrypt#gensalt(int)} for details).
      * Used with {@link #PW_SCHEME_BCRYPT}.
@@ -581,6 +593,9 @@ public class SOCDBHelper
      * @param pswd  the password for the user
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_DB_USER},
      *       {@link #PROP_JSETTLERS_DB_URL}, and any other desired properties.
+     *       <P>
+     *       If {@code props} contains {@link #PROP_JSETTLERS_DB_SETTINGS} == "write"</tt>,
+     *       the {@code settings} table will be updated from props or default values as needed.
      * @throws IllegalArgumentException if there are problems with {@code props} contents:
      *         <UL>
      *           <LI> {@link #PROP_JSETTLERS_DB_URL} property doesn't use a recognized scheme
@@ -590,10 +605,12 @@ public class SOCDBHelper
      *               but {@link #PROP_JSETTLERS_DB_URL} isn't provided
      *           <LI> {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} is out of range
      *               (9 to {@link BCrypt#GENSALT_MAX_LOG2_ROUNDS}) or can't be parsed as an integer
+     *           <LI> {@link #PROP_JSETTLERS_DB_SETTINGS} is provided but isn't {@code "write"}
      *         </UL>
      * @throws DBSettingMismatchException if {@code props} contains one or more properties which are
      *         also in the {@code settings} table but with different values;
-     *         this method will print details to {@link System#err} before throwing the exception
+     *         this method will print details to {@link System#err} before throwing the exception.
+     *         See {@link #PROP_JSETTLERS_DB_SETTINGS} to re-run and recover from this exception.
      * @throws SQLException if an SQL command fails, or the db couldn't be initialized;
      *         or if the DB schema version couldn't be detected (if so, exception's
      *         {@link Exception#getCause() .getCause()} will be an {@link IllegalStateException})
@@ -697,6 +714,11 @@ public class SOCDBHelper
     	        throw new IllegalArgumentException
     	            ("DB: BCrypt work factor param: " + errMsg + " ("
 	             + PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR + ")");
+
+    	    String pval = props.getProperty(PROP_JSETTLERS_DB_SETTINGS);
+    	    if ((pval != null) && ! pval.equals("write"))
+    	        throw new IllegalArgumentException
+    	            ("DB: Utility property " + PROP_JSETTLERS_DB_SETTINGS + "'s value must be \"write\"");
     	}
 
     	if (dbType == DBTYPE_UNKNOWN)
@@ -1056,7 +1078,11 @@ public class SOCDBHelper
      * <LI> Set {@link #bcryptWorkFactor} from {@code settings}({@link #SETTING_BCRYPT_WORK__FACTOR})
      *      unless {@link #props} contains {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}.
      *</UL>
-     * If any settings are in the table and also in {@link #props}, but with different values,
+     * If <tt>{@link #PROP_JSETTLERS_DB_SETTINGS} == "write"</tt> and any settings are missing or
+     * have different values in {@link #props}, print differences and update the table from properties or
+     * default values as needed.
+     *<P>
+     * Otherwise if any settings are in the table and also in {@link #props} with different values,
      * print differences to {@link System#err} and throw {@link DBSettingMismatchException}.
      *<P>
      * Called from {@link #initialize(String, String, Properties)}, after {@link #schemaVersion} is determined
@@ -1068,7 +1094,10 @@ public class SOCDBHelper
     private static void checkSettings()
         throws SQLException
     {
+        final boolean withWrite = props.containsKey(PROP_JSETTLERS_DB_SETTINGS);
+
         final ArrayList<String> mm = new ArrayList<String>();  // keyname, db value, props value, keyname, db value, ...
+        boolean anyMissing = false;  // is table missing any expected params like SETTING_BCRYPT_WORK__FACTOR?
 
         // bcryptWorkFactor
         if (schemaVersion >= SCHEMA_VERSION_1200)
@@ -1085,18 +1114,37 @@ public class SOCDBHelper
             {
                 if ((bc >= BCRYPT_MIN_WORK_FACTOR) && (bc <= BCrypt.GENSALT_MAX_LOG2_ROUNDS))
                 {
-                    if (props.containsKey(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR)
-                        && (bc != bcryptWorkFactor))
+                    if (props.containsKey(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR))
                     {
-                        mm.add(SETTING_BCRYPT_WORK__FACTOR);
-                        mm.add(Integer.toString(bc));
-                        mm.add(Integer.toString(bcryptWorkFactor));
-                    }
+                        if (bc != bcryptWorkFactor)
+                        {
+                            if (withWrite)
+                                updateSetting(SETTING_BCRYPT_WORK__FACTOR, bcryptWorkFactor, false);
 
-                    bcryptWorkFactor = bc;
+                            mm.add(SETTING_BCRYPT_WORK__FACTOR);
+                            mm.add(Integer.toString(bc));
+                            mm.add(Integer.toString(bcryptWorkFactor));
+                        }
+                    } else {
+                        bcryptWorkFactor = bc;
+                    }
                 } else {
                     System.err.println
                         ("* Warning: Ignoring DB setting for " + SETTING_BCRYPT_WORK__FACTOR + ": Out of range");
+                }
+            } else {
+                if (withWrite)
+                {
+                    updateSetting(SETTING_BCRYPT_WORK__FACTOR, bcryptWorkFactor, true);
+
+                    mm.add(SETTING_BCRYPT_WORK__FACTOR);
+                    mm.add("-");
+                    mm.add(Integer.toString(bcryptWorkFactor));
+                } else {
+                    anyMissing = true;
+                    System.err.println
+                        ("* Warning: Missing DB setting for " + SETTING_BCRYPT_WORK__FACTOR
+                         + ", using " + bcryptWorkFactor);
                 }
             }
         }
@@ -1104,7 +1152,7 @@ public class SOCDBHelper
         if (! mm.isEmpty())
         {
             System.err.println("\n* These DB settings differ from values specified in properties:");
-            System.err.println("Setting key\t\tDB\tProperty");
+            System.err.println("Settings key\t\tDB\tProperty");
             final int L = mm.size();
             for (int i = 0; i < L; ++i)
             {
@@ -1113,8 +1161,24 @@ public class SOCDBHelper
             }
             System.err.println();
 
-            throw new DBSettingMismatchException(mm.get(0));
+            if (withWrite)
+            {
+                System.err.println("Updating settings table from properties values.");
+            } else {
+                System.err.println
+                    ("To update the settings table, run once with utility property -D"
+                     + PROP_JSETTLERS_DB_SETTINGS + "=write");
+
+                throw new DBSettingMismatchException(mm.get(0));
+            }
+        } else if (withWrite) {
+            System.err.println("Warning: Found no settings table updates from properties values.");
+        } else if (anyMissing) {
+            System.err.println
+                ("To update the settings table, run once with utility property -D"
+                 + PROP_JSETTLERS_DB_SETTINGS + "=write");
         }
+
     }
 
     /****************************************
@@ -2668,13 +2732,7 @@ public class SOCDBHelper
                 // save bcryptWorkFactor to settings
                 try
                 {
-                    PreparedStatement ps = connection.prepareStatement
-                        ("INSERT INTO settings(s_name, i_value, s_changed) values('"
-                         + SETTING_BCRYPT_WORK__FACTOR + "', ?, ?);");
-                    ps.setInt(1, bcryptWorkFactor);
-                    ps.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
-                    ps.executeUpdate();
-                    ps.close();
+                    updateSetting(SETTING_BCRYPT_WORK__FACTOR, bcryptWorkFactor, true);
                 } catch (SQLException e) {
                     // shouldn't happen without other earlier or later problems
                     System.err.println
@@ -3054,6 +3112,39 @@ public class SOCDBHelper
                 s.close();
             } catch (SQLException e) {}
         }
+    }
+
+    /**
+     * Update or add a DB setting in the {@code settings} table.
+     * @param settingKey  Setting's key name, such as {@link SOCDBHelper#SETTING_BCRYPT_WORK__FACTOR}.
+     * @param val  New value to set
+     * @param isAdd  True if adding (inserting), not updating, this setting
+     * @throws SQLException if {@code isAdd} but {@code settingKey} is already in the table,
+     *     or if an unexpected error occurs
+     * @see #checkSettings()
+     * @since 1.2.00
+     */
+    private static void updateSetting(final String settingKey, final int val, final boolean isAdd)
+        throws SQLException
+    {
+        PreparedStatement ps = connection.prepareStatement
+            (isAdd
+             ? "INSERT INTO settings(s_name, i_value, s_changed) values(?, ?, ?);"
+             : "UPDATE settings SET i_value=?, s_changed=? WHERE s_name=?;");
+        final Timestamp tsNow = new Timestamp(System.currentTimeMillis());
+        if (isAdd)
+        {
+            ps.setString(1, settingKey);
+            ps.setInt(2, val);
+            ps.setTimestamp(3, tsNow);
+        } else {
+            ps.setInt(1, val);
+            ps.setTimestamp(2, tsNow);
+            ps.setString(3, settingKey);
+        }
+
+        ps.executeUpdate();
+        ps.close();
     }
 
     //-------------------------------------------------------------------
