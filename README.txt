@@ -261,8 +261,8 @@ Checklist:
   - Copy JSettlers.jar client JAR and web/*.html to an http-served directory (optional)
 
 To maintain user accounts, be sure to start the database first. (If you
-use a database, you can give users an account; everyone else can still
-log in and play, by leaving the password field blank.)
+use a database, you can give some users accounts; everyone else can still
+log in and play by leaving the password field blank.)
 For details see the "Database Setup" section below.
 
 To install a JSettlers server, start the server as described in "Server Setup
@@ -368,7 +368,7 @@ Database Setup
 
 If you want to maintain user accounts or save scores of all completed games,
 you will need to set up a MySQL, SQLite, or PostgreSQL database. This will
-eliminate the "No user database available" message seen when starting
+eliminate the "No user database available" console message seen when starting
 the server.
 
 This section first describes setting up the database and the JSettlers server's

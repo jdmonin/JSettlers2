@@ -2698,7 +2698,7 @@ public class SOCServer extends Server
      * <LI> <tt>{@link SOCDBHelper#PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}=test</tt> prop value
      * <LI> {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP} property
      * <LI> {@link SOCDBHelper#PROP_JSETTLERS_DB_UPGRADE__SCHEMA} flag property
-     * <LI> <tt> {@link SOCDBHelper#PROP_JSETTLERS_DB_SETTINGS}=write</tt> prop value
+     * <LI> <tt>{@link SOCDBHelper#PROP_JSETTLERS_DB_SETTINGS}=write</tt> prop value
      * <LI> {@code --pw-reset=username} argument
      *</UL>
      *
@@ -8217,7 +8217,7 @@ public class SOCServer extends Server
      * Read a password from the console; currently used for password reset.
      * Blocks the calling thread while waiting for input.
      *<P>
-     * This rudimentary method exists for compatability: java 1.5 doesn't have
+     * This rudimentary method exists for compatibility: java 1.5 doesn't have
      * {@code System.console.readPassword()}, and the Eclipse console also
      * doesn't offer {@code System.console}.
      *<P>

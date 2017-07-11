@@ -588,7 +588,8 @@ public class SOCDBHelper
      * (If <tt>props</tt> includes {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP},
      * runs that script before the prepared statements.)
      * Sets {@link #isInitialized()} and {@link #getSchemaVersion()}. Calls
-     * {@link #checkSettings(boolean) checkSettings(false)} to look for inconsistent or missing {@code settings} entries.
+     * {@link #checkSettings(boolean) checkSettings(false)} to look for
+     * inconsistent or missing {@code settings} entries.
      *<P>
      * The default URL is "jdbc:mysql://localhost/socdata".
      * The default driver is "com.mysql.jdbc.Driver".
@@ -1104,7 +1105,7 @@ public class SOCDBHelper
     {
         final boolean withWrite = (checkAll) ? false : props.containsKey(PROP_JSETTLERS_DB_SETTINGS);
 
-        final ArrayList<String> mm = new ArrayList<String>();  // keyname, db value, props value
+        final ArrayList<String> mm = new ArrayList<String>();  // keyname, db value, props value, keyname, db value, ...
         boolean anyMissing = false;  // is table missing any expected params like SETTING_BCRYPT_WORK__FACTOR?
 
         // bcryptWorkFactor
@@ -1134,9 +1135,7 @@ public class SOCDBHelper
                     System.err.println
                         ("* Warning: Ignoring DB setting for " + SETTING_BCRYPT_WORK__FACTOR + ": Out of range");
                 }
-            }
-            else
-            {
+            } else {
                 if (withWrite)
                 {
                     updateSetting(SETTING_BCRYPT_WORK__FACTOR, bcryptWorkFactor, true);
