@@ -331,6 +331,10 @@ It's a simple process to upgrade to the latest version of JSettlers:
   The schema version and upgrade history is kept in the db_version table. The
   upgrade_schema flag is not used during day-to-day operation of the server.
 
+  Note: If you've been using jsettlers 1.1.20 or older, test bcrypt speed and
+  set the work_factor property before starting the upgrade process. For details
+  search for "Password Encryption (BCrypt)" in this file.
+
   Note: If you've been using jsettlers 1.1.20 or older with postgresql,
   the upgrade may tell you to change your tables' owner to socuser first:
 	* To begin schema upgrade, please fix and rerun:
@@ -508,21 +512,26 @@ When you first set up the database, there won't be any user accounts, so the
 server will allow anyone to create the first account.  Please be sure to
 create that first user account soon after you set up the database.
 
-Password Encryption:
+Password Encryption (BCrypt):
 
 Player account passwords are encrypted using BCrypt. For tuning, BCrypt includes
 a "Work Factor" parameter; the hashing algorithm runs for 2 ^ WorkFactor rounds,
 so a larger Work Factor is tougher to brute-force attack but runs slower on
-your server. The default Work Factor for JSettlers is 12. To use a different
-value set the jsettlers.db.bcrypt.work_factor property on the server command line
-or in jsserver.properties.
+your server.
+
+The default Work Factor for JSettlers is 12. To use a different value set the
+jsettlers.db.bcrypt.work_factor property on the server command line or in
+jsserver.properties. Each account's Work Factor is stored with its encrypted
+password; changing the Work Factor property affects future passwords but not
+already-encrypted ones.
 
 To test the speed of different work factors on your server, run JSettlersServer
 once with -Djsettlers.db.bcrypt.work_factor=test , which will try a range of
 work factors and print the timed results.
 
 If you're upgrading from a version before 1.2.00, you will need to upgrade your
-database schema in order to use BCrypt.
+database schema in order to use BCrypt. Test bcrypt speed and set the
+work_factor property before starting the upgrade process.
 
 
 Security and Admin Users

@@ -87,9 +87,20 @@
 # section "Security and Admin Users".
 # Reminder if using non-ascii characters in admin usernames: Remember that java
 # properties files are encoded in ISO-8859-1 not UTF-8 because of backwards
-# compatability; you may want to create a separate admin-only account with a
+# compatibility; you may want to create a separate admin-only account with a
 # simpler ascii-only name.
 # jsettlers.accounts.admins=...  # blank by default
+
+# Player account password encryption: BCrypt Work Factor
+# For tuning, BCrypt includes a "Work Factor" parameter; the hashing algorithm
+# runs for 2 ^ WorkFactor rounds, so a larger Work Factor is tougher to
+# brute-force attack but runs slower on your server.
+# Each account's Work Factor is stored with its encrypted password; changing the
+# Work Factor property affects future passwords but not already-encrypted ones.
+# To test the speed of different work factors on your server, run
+# JSettlersServer once with -Djsettlers.db.bcrypt.work_factor=test , which will
+# try a range of work factors and print the timed results.
+# jsettlers.db.bcrypt.work_factor=12
 
 # - DB connection:
 
