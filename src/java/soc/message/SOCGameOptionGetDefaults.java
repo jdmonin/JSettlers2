@@ -96,10 +96,10 @@ public class SOCGameOptionGetDefaults extends SOCMessage
      */
     public static String toCmd(String opts)
     {
-	if (opts != null)
-	    return GAMEOPTIONGETDEFAULTS + sep + opts;
-	else
-	    return Integer.toString(GAMEOPTIONGETDEFAULTS);
+        if (opts != null)
+            return GAMEOPTIONGETDEFAULTS + sep + opts;
+        else
+            return Integer.toString(GAMEOPTIONGETDEFAULTS);
     }
 
     /**
@@ -110,8 +110,8 @@ public class SOCGameOptionGetDefaults extends SOCMessage
      */
     public static SOCGameOptionGetDefaults parseDataStr(String s)
     {
-	if (s.length() == 0)
-	    s = null;
+        if (s.length() == 0)
+            s = null;
         return new SOCGameOptionGetDefaults(s);
     }
 

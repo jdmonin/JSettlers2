@@ -132,7 +132,7 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
     protected SOCPlayerStats(final String gameName, int[] pa)
         throws IllegalArgumentException
     {
-	super(PLAYERSTATS, gameName, pa);
+        super(PLAYERSTATS, gameName, pa);
     }
 
     /**

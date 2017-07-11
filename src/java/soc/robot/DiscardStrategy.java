@@ -39,9 +39,10 @@ import soc.util.SOCRobotParameters;
  * For details see javadoc for
  * {@link #discard(int, Stack, Random, SOCPlayer, SOCRobotParameters, SOCRobotDM, SOCRobotNegotiator)}.
  */
-public class DiscardStrategy {
+public class DiscardStrategy
+{
 
-	/** debug logging */
+    /** debug logging */
     // private transient Logger log = Logger.getLogger(this.getClass().getName());
 
     /**

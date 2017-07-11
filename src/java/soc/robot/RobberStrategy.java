@@ -33,9 +33,10 @@ import soc.game.SOCBoard;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 
-public class RobberStrategy {
+public class RobberStrategy
+{
 
-	/** debug logging */
+    /** debug logging */
     // private transient Logger log = Logger.getLogger(this.getClass().getName());
     private static transient D log = new D();
 

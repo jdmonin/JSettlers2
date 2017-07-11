@@ -1913,8 +1913,8 @@ public class SOCRobotBrain extends Thread
                          * If we haven't recently discarded...
                          */
 
-                        //	if (! ((expectPLACING_ROBBER || expectPLAY1) &&
-                        //	       (counter < 4000))) {
+                        //  if (! ((expectPLACING_ROBBER || expectPLAY1) && (counter < 4000)))
+                        //  {
                         if ((game.getCurrentDice() == 7) && ourTurn)
                         {
                             if (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
@@ -1932,7 +1932,7 @@ public class SOCRobotBrain extends Thread
                             (((SOCDiscardRequest) mes).getNumberOfDiscards(), buildingPlan, rand,
                               ourPlayerData, robotParameters, decisionMaker, negotiator));
 
-                        //	}
+                        //  }
                         break;
 
                     case SOCMessage.CHOOSEPLAYERREQUEST:

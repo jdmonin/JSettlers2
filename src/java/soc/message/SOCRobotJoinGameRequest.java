@@ -101,7 +101,7 @@ public class SOCRobotJoinGameRequest extends SOCMessage
      */
     public Map<String,SOCGameOption> getOptions()
     {
-	return opts;
+        return opts;
     }
 
     /**
@@ -145,7 +145,7 @@ public class SOCRobotJoinGameRequest extends SOCMessage
         {
             ga = st.nextToken();
             pn = Integer.parseInt(st.nextToken());
-	    optstr = st.nextToken(sep);  // NOT sep2: options may contain ","
+            optstr = st.nextToken(sep);  // NOT sep2: options may contain ","
         }
         catch (Exception e)
         {

@@ -440,8 +440,8 @@ public class SOCClientData
             if (! cliConn.isVersionKnown())
             {
                 srv.setClientVersSendGamesOrReject(cliConn, SOCServer.CLI_VERSION_ASSUMED_GUESS, null, false);
-		// will also send game list.
-		// if cli vers already known, it's already sent the list.
+                // will also send game list.
+                // if cli vers already known, it's already sent the list.
             }
         }
 

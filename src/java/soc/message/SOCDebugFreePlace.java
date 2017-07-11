@@ -95,7 +95,7 @@ public class SOCDebugFreePlace extends SOCMessage
      */
     public SOCDebugFreePlace(String na, int pn, boolean onOff)
     {
-	this(na, pn, 0, onOff ? 1 : 0);
+        this(na, pn, 0, onOff ? 1 : 0);
     }
 
     /**

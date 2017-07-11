@@ -553,7 +553,7 @@ public class SOCFaceButton extends Canvas
 
             if (game == null)
             {
-	        return;  // <--- Early return: further checks need game ---
+                return;  // <--- Early return: further checks need game ---
             }
 
             if (game.isDebugFreePlacement())
