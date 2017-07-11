@@ -64,7 +64,7 @@ class NotifyDialog extends AskDialog
         if (btnText == null)
             btnText = strings.get("base.ok");
         NotifyDialog nd = new NotifyDialog
-	    (cli, gamePI, promptText, btnText, hasDefault);
+            (cli, gamePI, promptText, btnText, hasDefault);
         EventQueue.invokeLater(nd);  // calls setVisible(true)
 
         return nd;
@@ -85,12 +85,12 @@ class NotifyDialog extends AskDialog
     protected NotifyDialog(GameAwtDisplay cli, Frame gamePI, String promptText, String btnText, boolean hasDefault)
     {
         super(cli,
-       	     ((gamePI != null)
-       	          ? gamePI
-       	          : getParentFrame(cli)),
-        	promptText, promptText,
-            (btnText != null) ? btnText : strings.get("base.ok"),
-            hasDefault);
+              ((gamePI != null)
+               ? gamePI
+               : getParentFrame(cli)),
+              promptText, promptText,
+              (btnText != null) ? btnText : strings.get("base.ok"),
+              hasDefault);
     }
 
     /**

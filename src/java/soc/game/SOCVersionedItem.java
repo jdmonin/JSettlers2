@@ -129,11 +129,11 @@ public abstract class SOCVersionedItem implements Cloneable
         if (! SOCMessage.isSingleLineAndSafe(desc))
             throw new IllegalArgumentException("desc fails isSingleLineAndSafe");
 
-	this.key = key;
-	minVersion = minVers;
-	lastModVersion = lastModVers;
-	this.isKnown = isKnown;
-	this.desc = desc;
+        this.key = key;
+        minVersion = minVers;
+        lastModVersion = lastModVers;
+        this.isKnown = isKnown;
+        this.desc = desc;
     }
 
     /**
@@ -303,19 +303,19 @@ public abstract class SOCVersionedItem implements Cloneable
      */
     public static int itemsMinimumVersion
         (final Map<?, ? extends SOCVersionedItem> items, final boolean calcMinVersionForUnchanged)
-	throws NullPointerException
+         throws NullPointerException
     {
-    	int minVers = -1;
-    	final Map<?, ? extends SOCVersionedItem> itemsChk = calcMinVersionForUnchanged ? items : null;
+        int minVers = -1;
+        final Map<?, ? extends SOCVersionedItem> itemsChk = calcMinVersionForUnchanged ? items : null;
 
-    	for (SOCVersionedItem itm : items.values())
-    	{
+        for (SOCVersionedItem itm : items.values())
+        {
             int itmMin = itm.getMinVersion(itemsChk);  // includes any item-value checking for minVers
-    	    if (itmMin > minVers)
-    	        minVers = itmMin;
-    	}
+            if (itmMin > minVers)
+                minVers = itmMin;
+        }
 
-    	return minVers;
+        return minVers;
     }
 
     /**

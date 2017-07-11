@@ -155,9 +155,9 @@ public class SOCGameOptionGetInfos extends SOCMessage
     @Override
     public String toCmd()
     {
-    	if (optkeys != null)
+        if (optkeys != null)
             return toCmd(optkeys, hasTokenGetI18nDescs);
-    	else
+        else
             return toCmd(null, hasTokenGetI18nDescs);
     }
 
@@ -174,8 +174,8 @@ public class SOCGameOptionGetInfos extends SOCMessage
      */
     public static String toCmd(final List<?> opts, final boolean withTokenI18nDescs)
     {
-    	StringBuffer cmd = new StringBuffer(Integer.toString(GAMEOPTIONGETINFOS));
-    	cmd.append(sep);
+        StringBuffer cmd = new StringBuffer(Integer.toString(GAMEOPTIONGETINFOS));
+        cmd.append(sep);
 
         if ((opts == null) || opts.isEmpty())
         {

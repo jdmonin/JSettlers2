@@ -402,7 +402,7 @@ public class SOCScenario
          final String desc, final String longDesc, final String opts)
         throws IllegalArgumentException
     {
-	this(true, key, minVers, lastModVers, desc, longDesc, opts);
+        this(true, key, minVers, lastModVers, desc, longDesc, opts);
     }
 
     /**
@@ -462,7 +462,7 @@ public class SOCScenario
             throw new IllegalArgumentException("opts empty");
 
         scOpts = opts;
-	scLongDesc = longDesc;
+        scLongDesc = longDesc;
     }
 
     /**
@@ -543,23 +543,23 @@ public class SOCScenario
      */
     public static Map<String, SOCScenario> cloneScenarios(final Map<String, SOCScenario> scens)
     {
-    	if (scens == null)
-    	    return null;
+        if (scens == null)
+            return null;
 
-    	Map<String, SOCScenario> scens2 = new HashMap<String, SOCScenario>();
-    	for (Map.Entry<String, SOCScenario> e : scens.entrySet())
-    	{
-    	    final SOCScenario sc = e.getValue();
+        Map<String, SOCScenario> scens2 = new HashMap<String, SOCScenario>();
+        for (Map.Entry<String, SOCScenario> e : scens.entrySet())
+        {
+            final SOCScenario sc = e.getValue();
 
-    	    try
-    	    {
+            try
+            {
                 scens2.put(sc.key, (SOCScenario) sc.clone());
-    	    } catch (CloneNotSupportedException ce) {
-    	        // required, but not expected to happen
-    	    }
-    	}
+            } catch (CloneNotSupportedException ce) {
+                // required, but not expected to happen
+            }
+        }
 
-    	return scens2;
+        return scens2;
     }
 
     /**
@@ -615,25 +615,25 @@ public class SOCScenario
     public static String packScenariosToString
         (Map<String, SOCScenario> scMap, final int cliVers)
     {
-    	if ((scMap == null) || scMap.size() == 0)
-    	    return "-";
+        if ((scMap == null) || scMap.size() == 0)
+            return "-";
 
-    	// Pack all non-unknown scenarios:
-    	StringBuilder sb = new StringBuilder();
-    	boolean hadAny = false;
-    	for (SOCScenario sc : scMap.values())
-    	{
-    	    if (! (sc.isKnown && (sc.minVersion <= cliVers)))
-    	        continue;
+        // Pack all non-unknown scenarios:
+        StringBuilder sb = new StringBuilder();
+        boolean hadAny = false;
+        for (SOCScenario sc : scMap.values())
+        {
+            if (! (sc.isKnown && (sc.minVersion <= cliVers)))
+                continue;
 
-    	    if (hadAny)
-    		sb.append(SOCMessage.sep2_char);
-    	    else
-    		hadAny = true;
+            if (hadAny)
+                sb.append(SOCMessage.sep2_char);
+            else
+                hadAny = true;
             sb.append(sc.key);
-    	}
+        }
 
-    	return sb.toString();
+        return sb.toString();
     }
 
     /**
@@ -698,16 +698,16 @@ public class SOCScenario
      *            </UL>
      */
     public static StringBuilder adjustScenariosToKnown
-        (Map<String, SOCScenario> newScens, Map<String, SOCScenario> knownScenarios,
-         final boolean doServerPreadjust)
+	(Map<String, SOCScenario> newScens, Map<String, SOCScenario> knownScenarios,
+	 final boolean doServerPreadjust)
     {
-        if (knownScenarios == null)
-            knownScenarios = allScenarios;
+	if (knownScenarios == null)
+	    knownScenarios = allScenarios;
 
-        StringBuilder scProblems = new StringBuilder();
+	StringBuilder scProblems = new StringBuilder();
 
-        // use Iterator in loop, so we can remove from the map if needed
-        boolean allKnown = true;
+	// use Iterator in loop, so we can remove from the map if needed
+	boolean allKnown = true;
 	for (Iterator<Map.Entry<String, SOCScenario>> ikv = newScens.entrySet().iterator();
 	     ikv.hasNext(); )
 	{
@@ -717,9 +717,9 @@ public class SOCScenario
 	    SOCScenario knownSc = knownScenarios.get(sc.key);
 	    if (knownSc == null)
 	    {
-                allKnown = false;
-                scProblems.append(sc.key);
-                scProblems.append(": unknown. ");
+		allKnown = false;
+		scProblems.append(sc.key);
+		scProblems.append(": unknown. ");
 	    } else {
 		if (knownSc.lastModVersion != sc.lastModVersion)
 		{
@@ -728,8 +728,8 @@ public class SOCScenario
 		    scProblems.append(": lastModVersion mismatch (");
 		    scProblems.append(knownSc.lastModVersion);
 		    scProblems.append(" != ");
-                    scProblems.append(sc.lastModVersion);
-                    scProblems.append("). ");
+		    scProblems.append(sc.lastModVersion);
+		    scProblems.append("). ");
 		}
 
 	    }

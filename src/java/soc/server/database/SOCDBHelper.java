@@ -634,49 +634,49 @@ public class SOCDBHelper
 
         driverclass = "com.mysql.jdbc.Driver";
         dbType = DBTYPE_MYSQL;
-    	dbURL = "jdbc:mysql://localhost/socdata";
-    	SOCDBHelper.props = props;
+        dbURL = "jdbc:mysql://localhost/socdata";
+        SOCDBHelper.props = props;
 
-    	if (props != null)
-    	{
-    	    String prop_dbURL = props.getProperty(PROP_JSETTLERS_DB_URL);
-    	    String prop_driverclass = props.getProperty(PROP_JSETTLERS_DB_DRIVER);
+        if (props != null)
+        {
+            String prop_dbURL = props.getProperty(PROP_JSETTLERS_DB_URL);
+            String prop_driverclass = props.getProperty(PROP_JSETTLERS_DB_DRIVER);
 
-    	    if (prop_dbURL != null)
-    	    {
-    	        dbURL = prop_dbURL;
+            if (prop_dbURL != null)
+            {
+                dbURL = prop_dbURL;
 
-    	        if (prop_driverclass != null)
-    	        {
-    	            driverclass = prop_driverclass;
+                if (prop_driverclass != null)
+                {
+                    driverclass = prop_driverclass;
 
-    	            // dbType detection from driver string:
-    	            if (driverclass.contains("postgresql"))
-    	                dbType = DBTYPE_POSTGRESQL;
+                    // dbType detection from driver string:
+                    if (driverclass.contains("postgresql"))
+                        dbType = DBTYPE_POSTGRESQL;
                     else if (driverclass.contains("sqlite"))
                         dbType = DBTYPE_SQLITE;
                     else if (! driverclass.contains("mysql"))
                         dbType = DBTYPE_UNKNOWN;
-    	        }
-    	        else if (prop_dbURL.startsWith("jdbc:postgresql"))
-    	        {
-    	            driverclass = "org.postgresql.Driver";
-    	            dbType = DBTYPE_POSTGRESQL;
-    	        }
-    	        else if (prop_dbURL.startsWith("jdbc:sqlite:"))
-    	        {
-    	            driverclass = "org.sqlite.JDBC";
-    	            dbType = DBTYPE_SQLITE;
-    	        }
-    	        else if (! prop_dbURL.startsWith("jdbc:mysql"))
-    	        {
-    	            throw new IllegalArgumentException
-    	                ("JDBC: URL property is set, but driver property is not ("
-    	                 + PROP_JSETTLERS_DB_URL + ", " + PROP_JSETTLERS_DB_DRIVER + ")");
-    	        }
-    	    } else {
-    	        if (prop_driverclass != null)
-    	            driverclass = prop_driverclass;
+                }
+                else if (prop_dbURL.startsWith("jdbc:postgresql"))
+                {
+                    driverclass = "org.postgresql.Driver";
+                    dbType = DBTYPE_POSTGRESQL;
+                }
+                else if (prop_dbURL.startsWith("jdbc:sqlite:"))
+                {
+                    driverclass = "org.sqlite.JDBC";
+                    dbType = DBTYPE_SQLITE;
+                }
+                else if (! prop_dbURL.startsWith("jdbc:mysql"))
+                {
+                    throw new IllegalArgumentException
+                        ("JDBC: URL property is set, but driver property is not ("
+                         + PROP_JSETTLERS_DB_URL + ", " + PROP_JSETTLERS_DB_DRIVER + ")");
+                }
+            } else {
+                if (prop_driverclass != null)
+                    driverclass = prop_driverclass;
 
                 // if it's mysql, use the mysql default url above.
                 // if it's postgres or sqlite, use that.
@@ -693,56 +693,56 @@ public class SOCDBHelper
                     dbType = DBTYPE_SQLITE;
                 }
                 else if (! driverclass.contains("mysql"))
-    	        {
-    	            throw new IllegalArgumentException
-    	                ("JDBC: Driver property is set, but URL property is not ("
-    	                 + PROP_JSETTLERS_DB_DRIVER + ", " + PROP_JSETTLERS_DB_URL + ")");
-    	        }
-    	    }
+                {
+                    throw new IllegalArgumentException
+                        ("JDBC: Driver property is set, but URL property is not ("
+                         + PROP_JSETTLERS_DB_DRIVER + ", " + PROP_JSETTLERS_DB_URL + ")");
+                }
+            }
 
-    	    String prop_bcryptWF = props.getProperty(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
-    	    if (prop_bcryptWF != null)
-    	    {
-    	        String errMsg = null;
+            String prop_bcryptWF = props.getProperty(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
+            if (prop_bcryptWF != null)
+            {
+                String errMsg = null;
 
-    	        try
-    	        {
-    	            int wf = Integer.parseInt(prop_bcryptWF);
-    	            if ((wf >= BCRYPT_MIN_WORK_FACTOR) && (wf <= BCrypt.GENSALT_MAX_LOG2_ROUNDS))
-    	                bcryptWorkFactor = wf;
-    	            else
-    	                errMsg = "Out of range (" + BCRYPT_MIN_WORK_FACTOR + '-' + BCrypt.GENSALT_MAX_LOG2_ROUNDS + ")";
-    	        } catch (NumberFormatException e) {
-    	            errMsg = "Bad format, integer is required";
-    	        }
+                try
+                {
+                    int wf = Integer.parseInt(prop_bcryptWF);
+                    if ((wf >= BCRYPT_MIN_WORK_FACTOR) && (wf <= BCrypt.GENSALT_MAX_LOG2_ROUNDS))
+                        bcryptWorkFactor = wf;
+                    else
+                        errMsg = "Out of range (" + BCRYPT_MIN_WORK_FACTOR + '-' + BCrypt.GENSALT_MAX_LOG2_ROUNDS + ")";
+                } catch (NumberFormatException e) {
+                    errMsg = "Bad format, integer is required";
+                }
 
-    	        if (errMsg != null)
-    	            throw new IllegalArgumentException
-    	                ("DB: BCrypt work factor param: " + errMsg + " ("
-	                 + PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR + ")");
-    	    }
+                if (errMsg != null)
+                    throw new IllegalArgumentException
+                        ("DB: BCrypt work factor param: " + errMsg + " ("
+                         + PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR + ")");
+            }
 
-    	    String pval = props.getProperty(PROP_JSETTLERS_DB_SETTINGS);
-    	    if ((pval != null) && ! pval.equals("write"))
-    	        throw new IllegalArgumentException
-    	            ("DB: Utility property " + PROP_JSETTLERS_DB_SETTINGS + "'s value must be \"write\"");
-    	}
+            String pval = props.getProperty(PROP_JSETTLERS_DB_SETTINGS);
+            if ((pval != null) && ! pval.equals("write"))
+                throw new IllegalArgumentException
+                    ("DB: Utility property " + PROP_JSETTLERS_DB_SETTINGS + "'s value must be \"write\"");
+        }
 
-    	if (dbType == DBTYPE_UNKNOWN)
-    	{
-    	    // try to detect unsupported/semi-known types from driver
+        if (dbType == DBTYPE_UNKNOWN)
+        {
+            // try to detect unsupported/semi-known types from driver
 
-    	    if (driverclass.toLowerCase().contains("oracle"))
+            if (driverclass.toLowerCase().contains("oracle"))
                 dbType = DBTYPE_ORA;
-    	}
+        }
 
-    	driverinstance = null;
-    	boolean driverNewInstanceFailed = false;
-    	try
+        driverinstance = null;
+        boolean driverNewInstanceFailed = false;
+        try
         {
             // Load the JDBC driver
-    	    try
-    	    {
+            try
+            {
                 String prop_jarname = props.getProperty(PROP_JSETTLERS_DB_JAR);
                 if ((prop_jarname != null) && (prop_jarname.length() == 0))
                     prop_jarname = null;
@@ -765,39 +765,39 @@ public class SOCDBHelper
                     // JDBC driver class must already be loaded.
                     driverinstance = (Driver) (Class.forName(driverclass).newInstance());
                 }
-    	    }
-    	    catch (Throwable x)
-    	    {
+            }
+            catch (Throwable x)
+            {
                 // InstantiationException, IllegalAccessException, ClassNotFoundException
                 // (seen for org.gjt.mm.mysql.Driver)
-    	        driverNewInstanceFailed = true;
-    	        SQLException sx =
-    	            new SQLException("JDBC driver is unavailable: " + driverclass + ": " + x);
-    	        sx.initCause(x);
-    	        throw sx;
-    	    }
+                driverNewInstanceFailed = true;
+                SQLException sx =
+                    new SQLException("JDBC driver is unavailable: " + driverclass + ": " + x);
+                sx.initCause(x);
+                throw sx;
+            }
 
-    	    // Do we have a setup script to run?
-    	    String prop_dbSetupScript = props.getProperty(PROP_JSETTLERS_DB_SCRIPT_SETUP);
-    	    if ((prop_dbSetupScript != null) && (prop_dbSetupScript.length() == 0))
-    	        prop_dbSetupScript = null;
+            // Do we have a setup script to run?
+            String prop_dbSetupScript = props.getProperty(PROP_JSETTLERS_DB_SCRIPT_SETUP);
+            if ((prop_dbSetupScript != null) && (prop_dbSetupScript.length() == 0))
+                prop_dbSetupScript = null;
 
             // Connect, detect schemaVersion, and prepare table queries;
-    	    // runs setup script, if any, first
+            // runs setup script, if any, first
             connect(user, pswd, prop_dbSetupScript);
 
             // Check settings table vs props; if any value mismatches found,
             // prints differences and throws DBSettingMismatchException
             checkSettings(false);
         }
-    	catch (DBSettingMismatchException dx)
-    	{
-    	    throw dx;
-    	}
-    	catch (IOException iox)
-    	{
-    	    throw iox;  // Let the caller deal with DB setup script IO errors
-    	}
+        catch (DBSettingMismatchException dx)
+        {
+            throw dx;
+        }
+        catch (IOException iox)
+        {
+            throw iox;  // Let the caller deal with DB setup script IO errors
+        }
         catch (Throwable x) // everything else
         {
             if (driverNewInstanceFailed && (x instanceof SQLException))
