@@ -1163,7 +1163,7 @@ public class SOCServer extends Server
                 throw sqle;
             }
 
-            System.err.println("No user database available: " + sqle.getMessage());
+            System.err.println("Warning: No user database available: " + sqle.getMessage());
             Throwable cause = sqle.getCause();
             while ((cause != null) && ! (cause instanceof ClassNotFoundException))
             {
@@ -1276,6 +1276,12 @@ public class SOCServer extends Server
                         System.err.flush();
                         try
                         {
+                            // Before disconnect, do a final check for unexpected DB settings changes
+                            try
+                            {
+                                SOCDBHelper.checkSettings(true);
+                            } catch (Exception x) {}
+
                             SOCDBHelper.cleanup(true);
                         }
                         catch (SQLException x) { }
