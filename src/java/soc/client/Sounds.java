@@ -25,35 +25,48 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
 /**
- * Utility class for basic sounds.
+ * Utility class for basic sounds, using {@code javax.sound.sampled}.
  *
  * @since 1.2.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
 public class Sounds
 {
-    // Based on https://stackoverflow.com/questions/23096533/how-to-play-a-sound-with-a-given-sample-rate-in-java
+    /** Sampling rate */
+    private static final float SAMPLE_RATE_HZ = 22050f;
 
-    public static float SAMPLE_RATE = 8000f;
+    private static final double PI_X_2 = 2.0 * Math.PI;
 
-    public static void tone(int hz, int msecs, double vol)
+    /**
+     * Generate and play a constant tone.
+     * Based on https://stackoverflow.com/questions/23096533/how-to-play-a-sound-with-a-given-sample-rate-in-java:
+     * optimized, decoupled from 8000Hz fixed sampling rate.
+     * @param hz  Tone in Hertz
+     * @param msec  Duration in milliseconds
+     * @param vol  Volume (max is 1.0)
+     * @throws LineUnavailableException
+     */
+    public static void tone(int hz, int msec, double vol)
         throws LineUnavailableException
     {
+        final double vol_x_127 = 127.0 * vol;
+
         byte[] buf = new byte[1];
-        AudioFormat af =
-            new AudioFormat(
-                SAMPLE_RATE, // sampleRate
-                8,           // sampleSizeInBits
-                1,           // channels
-                true,        // signed
-                false);      // bigEndian
+        AudioFormat af = new AudioFormat
+            (SAMPLE_RATE_HZ, // sampleRate
+             8,           // sampleSizeInBits
+             1,           // channels
+             true,        // signed
+             false);      // bigEndian
         SourceDataLine sdl = AudioSystem.getSourceDataLine(af);
         sdl.open(af);
         sdl.start();
-        for (int i=0; i < msecs*8; i++) {
-          double angle = i / (SAMPLE_RATE / hz) * 2.0 * Math.PI;
-          buf[0] = (byte)(Math.sin(angle) * 127.0 * vol);
-          sdl.write(buf,0,1);
+        final int imax = (int) ((msec * SAMPLE_RATE_HZ) / 1000);
+        for (int i=0; i < imax; i++)
+        {
+            double angle = i / (SAMPLE_RATE_HZ / hz) * PI_X_2;
+            buf[0] = (byte)(Math.sin(angle) * vol_x_127);
+            sdl.write(buf,0,1);
         }
         sdl.drain();
         sdl.stop();
@@ -62,17 +75,24 @@ public class Sounds
 
     /** Main, for testing */
     public static final void main(final String[] args)
-        throws Exception
     {
-        tone(1000,100, 1.0);
-        Thread.sleep(1000);
-        tone(100,1000, 1.0);
-        Thread.sleep(1000);
-        tone(5000,100, 1.0);
-        Thread.sleep(1000);
-        tone(400,500, 1.0);
-        Thread.sleep(1000);
-        tone(400,500, 0.2);
+        try
+        {
+            tone(1000,100, 1.0);
+            Thread.sleep(1000);
+            tone(100,1000, 1.0);
+            Thread.sleep(1000);
+            tone(5000,100, 1.0);
+            Thread.sleep(1000);
+            tone(400,500, 1.0);
+            Thread.sleep(1000);
+            tone(400,500, 0.2);
+
+        } catch (Exception e) {
+            // LineUnavailableException, InterruptedException
+            System.err.println("Exception: " + e);
+            e.printStackTrace();
+        }
     }
 
 }
