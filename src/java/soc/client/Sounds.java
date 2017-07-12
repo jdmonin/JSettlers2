@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2014 Réal Gagnon <real@rgagnon.com>
- * (tone method, which has a BSD-like license: "There is no restriction to use
+ * (genTone method, which has a BSD-like license: "There is no restriction to use
  *  individual How-To in a development (compiled/source) but a mention is appreciated.")
  *
  * This program is free software; you can redistribute it and/or
@@ -35,84 +35,124 @@ import javax.sound.sampled.SourceDataLine;
  */
 public class Sounds
 {
-    /** Sampling rate */
-    private static final float SAMPLE_RATE_HZ = 22050f;
+    /** Sampling rate: 22050 Hz */
+    public static final float SAMPLE_RATE_HZ = 22050f;
 
     /** Major-scale "A" */
     private static final int CHIME_A_HZ = 2 * 880;
 
     private static final double PI_X_2 = 2.0 * Math.PI;
 
+    /** Audio format for PCM-encoded signed 8-bit mono at {@link #SAMPLE_RATE_HZ} */
+    private static final AudioFormat AFMT_PCM_8_AT_SAMPLE_RATE = new AudioFormat
+        (SAMPLE_RATE_HZ,
+         8,           // sampleSizeInBits
+         1,           // channels
+         true,        // signed
+         false);      // bigEndian
+
     // plan: generate CHIME_A_HZ, amplitude 0.8-0.9 for .01sec, then .9 to 0 for .18sec.
+
+    /**
+     * Generate a chime, with volume fading out to 0.
+     * @param hz  Tone in Hertz
+     * @param msec  Duration in milliseconds (max is 1000)
+     * @param vol  Volume (max is 1.0)
+     * @throws IllegalArgumentException if {@code msec} > 1000
+     */
+    public static byte[] genChime(int hz, int msec, double vol)
+        throws IllegalArgumentException
+    {
+        if (msec > 1000)
+            throw new IllegalArgumentException("msec");
+
+        // TODO 2 parts: attack for first 10msec, then release for rest of msec
+
+        final int imax = (int) ((msec * SAMPLE_RATE_HZ) / 1000);
+        byte[] buf = new byte[imax];
+        for (int i = 0, j = imax; j > 0; ++i, --j)
+        {
+            double angle = j / (SAMPLE_RATE_HZ / hz) * PI_X_2;
+            buf[i] = (byte)(Math.sin(angle) * ((127.0 * vol * j) / imax));
+        }
+
+        return buf;
+    }
 
     /**
      * Generate and play a chime, with volume fading out to 0.
      * @param hz  Tone in Hertz
-     * @param msec  Duration in milliseconds
+     * @param msec  Duration in milliseconds (max is 1000)
      * @param vol  Volume (max is 1.0)
-     * @throws LineUnavailableException
+     * @throws IllegalArgumentException if {@code msec} > 1000
+     * @throws LineUnavailableException if the line resource can't be opened
      */
     public static void chime(int hz, int msec, double vol)
-        throws LineUnavailableException
+        throws IllegalArgumentException, LineUnavailableException
     {
-        // TODO 2 parts: attack for first 10msec, then release for rest of msec
+        playPCMBytes(genChime(hz, msec, vol));
+    }
 
-        byte[] buf = new byte[1];
-        AudioFormat af = new AudioFormat
-            (SAMPLE_RATE_HZ, // sampleRate
-             8,           // sampleSizeInBits
-             1,           // channels
-             true,        // signed
-             false);      // bigEndian
-        SourceDataLine sdl = AudioSystem.getSourceDataLine(af);
-        sdl.open(af);
-        sdl.start();
+    /**
+     * Generate a constant tone.
+     *<P>
+     * Based on https://stackoverflow.com/questions/23096533/how-to-play-a-sound-with-a-given-sample-rate-in-java
+     * from Réal Gagnon's code at http://www.rgagnon.com/javadetails/java-0499.html:
+     * optimized, decoupled from 8000Hz fixed sampling rate, separated generation from playback.
+     *
+     * @param hz  Tone in Hertz
+     * @param msec  Duration in milliseconds (max is 1000)
+     * @param vol  Volume (max is 1.0)
+     * @return  A sound byte buffer, suitable for {@link #playPCMBytes(byte[])}
+     * @throws IllegalArgumentException if {@code msec} > 1000
+     */
+    public static byte[] genTone(int hz, int msec, double vol)
+        throws IllegalArgumentException
+    {
+        if (msec > 1000)
+            throw new IllegalArgumentException("msec");
+
+        final double vol_x_127 = 127.0 * vol;
+
         final int imax = (int) ((msec * SAMPLE_RATE_HZ) / 1000);
-        for (int i = imax; i > 0; --i)
+        byte[] buf = new byte[imax];
+        for (int i=0; i < imax; i++)
         {
             double angle = i / (SAMPLE_RATE_HZ / hz) * PI_X_2;
-            buf[0] = (byte)(Math.sin(angle) * ((127.0 * vol * i) / imax));
-            sdl.write(buf,0,1);
+            buf[i] = (byte)(Math.sin(angle) * vol_x_127);
         }
-        sdl.drain();
-        sdl.stop();
-        sdl.close();
 
+        return buf;
     }
 
     /**
      * Generate and play a constant tone.
-     *<P>
-     * Based on https://stackoverflow.com/questions/23096533/how-to-play-a-sound-with-a-given-sample-rate-in-java
-     * from Réal Gagnon's code at http://www.rgagnon.com/javadetails/java-0499.html:
-     * optimized, decoupled from 8000Hz fixed sampling rate.
      * @param hz  Tone in Hertz
-     * @param msec  Duration in milliseconds
+     * @param msec  Duration in milliseconds (max is 1000)
      * @param vol  Volume (max is 1.0)
-     * @throws LineUnavailableException
+     * @throws IllegalArgumentException if {@code msec} > 1000
+     * @throws LineUnavailableException if the line resource can't be opened
      */
     public static void tone(int hz, int msec, double vol)
+        throws IllegalArgumentException, LineUnavailableException
+    {
+        playPCMBytes(genTone(hz, msec, vol));
+    }
+
+    /**
+     * Play a sound byte buffer, such as that generated by
+     * {@link #genTone(int, int, double)} or {@link #genChime(int, int, double)}.
+     * @param buf  Buffer to play; PCM mono 8-bit signed, at {@link #SAMPLE_RATE_HZ}
+     * @throws LineUnavailableException if the line resource can't be opened
+     */
+    public static void playPCMBytes(final byte[] buf)
         throws LineUnavailableException
     {
-        final double vol_x_127 = 127.0 * vol;
-
-        byte[] buf = new byte[1];
-        AudioFormat af = new AudioFormat
-            (SAMPLE_RATE_HZ, // sampleRate
-             8,           // sampleSizeInBits
-             1,           // channels
-             true,        // signed
-             false);      // bigEndian
-        SourceDataLine sdl = AudioSystem.getSourceDataLine(af);
-        sdl.open(af);
+        SourceDataLine sdl = AudioSystem.getSourceDataLine(AFMT_PCM_8_AT_SAMPLE_RATE);
+        sdl.open(AFMT_PCM_8_AT_SAMPLE_RATE);
         sdl.start();
-        final int imax = (int) ((msec * SAMPLE_RATE_HZ) / 1000);
-        for (int i=0; i < imax; i++)
-        {
-            double angle = i / (SAMPLE_RATE_HZ / hz) * PI_X_2;
-            buf[0] = (byte)(Math.sin(angle) * vol_x_127);
-            sdl.write(buf,0,1);
-        }
+        for (int i=0; i < buf.length; ++i)
+            sdl.write(buf, i, 1);
         sdl.drain();
         sdl.stop();
         sdl.close();
@@ -126,6 +166,8 @@ public class Sounds
             tone(CHIME_A_HZ, 180, .9);
             Thread.sleep(60);
             chime(CHIME_A_HZ, 180, .9);
+            Thread.sleep(60);
+            chime(CHIME_A_HZ / 2, 180 + 90, .9);
 
         } catch (Exception e) {
             // LineUnavailableException, InterruptedException
