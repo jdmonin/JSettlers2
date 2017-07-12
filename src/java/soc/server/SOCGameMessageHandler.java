@@ -2699,11 +2699,14 @@ public class SOCGameMessageHandler
                     final int rsrc = mes.getResource();
                     final int[] monoPicks = ga.doMonopolyAction(rsrc);
                     final String monoPlayerName = c.getData();
+                    int monoTotal = 0;
+                    for (int i = 0; i < ga.maxPlayers; ++i)
+                        monoTotal += monoPicks[i];
 
                     srv.gameList.takeMonitorForGame(gaName);
                     srv.messageToGameKeyedSpecialExcept
-                        (ga, false, c, "action.mono.monopolized", monoPlayerName, -2, rsrc);
-                        // "{0} monopolized {1,rsrcs}" -> "Joe monopolized Sheep."
+                        (ga, false, c, "action.mono.monopolized", monoPlayerName, monoTotal, rsrc);
+                        // "{0} monopolized {1,rsrcs}" -> "Joe monopolized 5 Sheep."
 
                     /**
                      * just send all the player's resource counts for the
@@ -2723,13 +2726,11 @@ public class SOCGameMessageHandler
                      * victim(s) of resource amounts taken,
                      * and tell the player how many they won.
                      */
-                    int monoTotal = 0;
                     for (int i = 0; i < ga.maxPlayers; i++)
                     {
                         int picked = monoPicks[i];
                         if (picked == 0)
                             continue;
-                        monoTotal += picked;
                         String viName = ga.getPlayer(i).getName();
                         StringConnection viCon = srv.getConnection(viName);
                         if (viCon != null)
