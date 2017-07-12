@@ -1,6 +1,9 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014 Réal Gagnon <real@rgagnon.com>
+ * (tone method, which has a BSD-like license: "There is no restriction to use
+ *  individual How-To in a development (compiled/source) but a mention is appreciated.")
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -79,7 +82,9 @@ public class Sounds
 
     /**
      * Generate and play a constant tone.
-     * Based on https://stackoverflow.com/questions/23096533/how-to-play-a-sound-with-a-given-sample-rate-in-java:
+     *<P>
+     * Based on https://stackoverflow.com/questions/23096533/how-to-play-a-sound-with-a-given-sample-rate-in-java
+     * from Réal Gagnon's code at http://www.rgagnon.com/javadetails/java-0499.html:
      * optimized, decoupled from 8000Hz fixed sampling rate.
      * @param hz  Tone in Hertz
      * @param msec  Duration in milliseconds
@@ -118,21 +123,9 @@ public class Sounds
     {
         try
         {
+            tone(CHIME_A_HZ, 180, .9);
+            Thread.sleep(60);
             chime(CHIME_A_HZ, 180, .9);
-
-            /*
-            // from stack overflow example:
-
-            tone(1000,100, 1.0);
-            Thread.sleep(1000);
-            tone(100,1000, 1.0);
-            Thread.sleep(1000);
-            tone(5000,100, 1.0);
-            Thread.sleep(1000);
-            tone(400,500, 1.0);
-            Thread.sleep(1000);
-            tone(400,500, 0.2);
-            */
 
         } catch (Exception e) {
             // LineUnavailableException, InterruptedException
