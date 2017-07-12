@@ -29,6 +29,14 @@ import javax.sound.sampled.SourceDataLine;
 
 /**
  * Utility class for basic sounds, using {@code javax.sound.sampled}.
+ *<H3>Usage:</H3>
+ * Either generate and play a tone using {@link #chime(int, int, double)}
+ * or {@link #tone(int, int, double)}, or generate one using
+ * {@link #genChime(int, int, double)} or {@link #genTone(int, int, double)}
+ * to be played later with {@link #playPCMBytes(byte[])}.
+ *<P>
+ * Generating tones ahead of time can help with latency, instead of
+ * allocating a buffer each time a sound is played.
  *
  * @since 1.2.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -55,7 +63,7 @@ public class Sounds
 
     /**
      * Generate a chime, with volume fading out to 0.
-     * @param hz  Tone in Hertz
+     * @param hz  Tone in Hertz (recommended max is half of {@link #SAMPLE_RATE_HZ})
      * @param msec  Duration in milliseconds (max is 1000)
      * @param vol  Volume (max is 1.0)
      * @throws IllegalArgumentException if {@code msec} > 1000
@@ -81,7 +89,7 @@ public class Sounds
 
     /**
      * Generate and play a chime, with volume fading out to 0.
-     * @param hz  Tone in Hertz
+     * @param hz  Tone in Hertz (recommended max is half of {@link #SAMPLE_RATE_HZ})
      * @param msec  Duration in milliseconds (max is 1000)
      * @param vol  Volume (max is 1.0)
      * @throws IllegalArgumentException if {@code msec} > 1000
@@ -100,7 +108,7 @@ public class Sounds
      * from Réal Gagnon's code at http://www.rgagnon.com/javadetails/java-0499.html:
      * optimized, decoupled from 8000Hz fixed sampling rate, separated generation from playback.
      *
-     * @param hz  Tone in Hertz
+     * @param hz  Tone in Hertz (recommended max is half of {@link #SAMPLE_RATE_HZ})
      * @param msec  Duration in milliseconds (max is 1000)
      * @param vol  Volume (max is 1.0)
      * @return  A sound byte buffer, suitable for {@link #playPCMBytes(byte[])}
@@ -127,7 +135,7 @@ public class Sounds
 
     /**
      * Generate and play a constant tone.
-     * @param hz  Tone in Hertz
+     * @param hz  Tone in Hertz (recommended max is half of {@link #SAMPLE_RATE_HZ})
      * @param msec  Duration in milliseconds (max is 1000)
      * @param vol  Volume (max is 1.0)
      * @throws IllegalArgumentException if {@code msec} > 1000
@@ -151,8 +159,7 @@ public class Sounds
         SourceDataLine sdl = AudioSystem.getSourceDataLine(AFMT_PCM_8_AT_SAMPLE_RATE);
         sdl.open(AFMT_PCM_8_AT_SAMPLE_RATE);
         sdl.start();
-        for (int i=0; i < buf.length; ++i)
-            sdl.write(buf, i, 1);
+        sdl.write(buf, 0, buf.length);
         sdl.drain();
         sdl.stop();
         sdl.close();
