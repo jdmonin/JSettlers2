@@ -51,8 +51,8 @@ import javax.sound.sampled.SourceDataLine;
  */
 public class Sounds
 {
-    /** Sampling rate: 22050 Hz */
-    public static final float SAMPLE_RATE_HZ = 22050f;
+    /** Sampling rate: 44100 Hz. Can also use 22050, but that adds more white noise. */
+    public static final float SAMPLE_RATE_HZ = 44100f;
 
     /** Musical note C4, 262 Hz */
     public static final int NOTE_C4_HZ = 262;
