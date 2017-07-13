@@ -2320,6 +2320,23 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * The robber or pirate has been moved onto a hex. Repaints board.
+     * If the new robber/pirate location affects client player, plays a sound.
+     * @param newHex  The new robber/pirate hex coordinate, or 0 to take the pirate off the board
+     * @param isPirate  True if the pirate, not the robber, was moved
+     * @see SOCGame#doesRobberLocationAffectPlayer(int, boolean)
+     * @since 1.2.00
+     */
+    public void updateAtRobberMoved(final int newHex, final boolean isPirate)
+    {
+        getBoardPanel().repaint();
+
+        if ((clientHandPlayerNum != -1)
+            && game.doesRobberLocationAffectPlayer(clientHandPlayerNum, isPirate))
+            playSound(SOUND_ROBBER_OR_LOST_RSRC);
+    }
+
+    /**
      * Listener callback for scenario events on the large sea board which affect the game or board,
      * not a specific player. For example, a hex might be revealed from fog.
      *<P>
@@ -3683,9 +3700,9 @@ public class SOCPlayerInterface extends Frame
             }
         }
 
-        public void robberMoved()
+        public void robberMoved(final int newHex, final boolean isPirate)
         {
-            pi.getBoardPanel().repaint();
+            pi.updateAtRobberMoved(newHex, isPirate);
         }
 
         public void devCardDeckUpdated()

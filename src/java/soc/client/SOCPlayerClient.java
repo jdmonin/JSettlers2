@@ -4489,14 +4489,18 @@ public class SOCPlayerClient
              * functions to do the stealing.  We just want to say where
              * the robber moved without seeing if something was stolen.
              */
-            final int newHex = mes.getCoordinates();
-            if (newHex > 0)
+            int newHex = mes.getCoordinates();
+            final boolean isPirate = (newHex <= 0);
+            if (! isPirate)
+            {
                 ga.getBoard().setRobberHex(newHex, true);
-            else
-                ((SOCBoardLarge) ga.getBoard()).setPirateHex(-newHex, true);
+            } else {
+                newHex = -newHex;
+                ((SOCBoardLarge) ga.getBoard()).setPirateHex(newHex, true);
+            }
 
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            pcl.robberMoved();
+            pcl.robberMoved(newHex, isPirate);
         }
     }
 

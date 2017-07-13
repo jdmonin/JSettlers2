@@ -274,7 +274,14 @@ public interface PlayerClientListener
     void boardResetVoteRequested(SOCPlayer requestor);
     void boardResetVoteCast(SOCPlayer voter, boolean vote);
     void boardResetVoteRejected();
-    void robberMoved();
+
+    /**
+     * The robber or pirate was moved onto a hex.
+     * @param newHex  The new robber/pirate hex coordinate, or 0 to take the pirate off the board
+     * @param isPirate  True if the pirate, not the robber, was moved
+     */
+    void robberMoved(int newHex, boolean isPirate);
+
     void devCardDeckUpdated();
     void seatLockUpdated();
 
