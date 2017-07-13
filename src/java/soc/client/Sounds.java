@@ -35,8 +35,16 @@ import javax.sound.sampled.SourceDataLine;
  * {@link #genChime(int, int, double)} or {@link #genTone(int, int, double)}
  * to be played later with {@link #playPCMBytes(byte[])}.
  *<P>
+ * To concatenate sequentially generated tones or chimes in a single buffer,
+ * make a buffer of length {@link #bufferLen(int)} and then call
+ * {@link #genChime(int, int, double, byte[], int)} and/or
+ * {@link #genTone(int, int, double, byte[], int)} to fill it.
+ *<P>
  * Generating tones ahead of time can help with latency, instead of
  * allocating a buffer each time a sound is played.
+ *<P>
+ * Some Java versions on some platforms may have trouble reliably playing
+ * a sample longer than 1000ms.
  *
  * @since 1.2.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -60,11 +68,75 @@ public class Sounds
          false);      // bigEndian
 
     /**
+     * Calculate the length of a mono 8-bit PCM byte buffer,
+     * at {@link #SAMPLE_RATE_HZ}, to store {@code msec} milliseconds.
+     * @param msec  Duration in milliseconds
+     * @return  Buffer length required to store {@code msec} milliseconds; is also the number of samples
+     */
+    public static final int bufferLen(final int msec)
+    {
+        return (msec * (int) SAMPLE_RATE_HZ) / 1000;
+    }
+
+    /**
+     * Generate a chime, with volume fading out to 0, into an existing buffer.
+     * @param hz  Tone in Hertz (recommended max is half of {@link #SAMPLE_RATE_HZ})
+     * @param msec  Duration in milliseconds
+     * @param vol  Volume (max is 1.0)
+     * @param buf An existing mono 8-bit PCM buffer into which to generate the chime.
+     *    Use {@link #bufferLen(int)} to calculate the required length.
+     * @param i0  Starting position (index) to use within {@code buf}
+     * @return  1 past the ending position (index) used within {@code buf};
+     *     the next generate call can use this value for its {@code i0}
+     * @throws IllegalArgumentException if {@code buf} isn't long enough,
+     *     given {@code msec} and {@code i0}
+     * @throws NullPointerException if {@code buf} is null
+     * @see #genChime(int, int, double)
+     */
+    public static int genChime(int hz, int msec, double vol, final byte[] buf, final int i0)
+        throws IllegalArgumentException, NullPointerException
+    {
+        final int imax = bufferLen(msec);
+        if (buf.length < i0 + imax)
+            throw new IllegalArgumentException("buf too short");
+
+        // 2 parts if >= 40ms: attack for first 10msec (amplitude 0.8 * vol to vol),
+        // then release for rest of msec (fading amplitude: vol to 0)
+
+        int ib = i0;
+        final int amax;
+        if (msec >= 40)
+        {
+            amax = (10 * (int) SAMPLE_RATE_HZ) / 1000;
+            final double vol0 = 0.8 * vol,
+                         dVol = vol - vol0;
+            for (int i = 0; i < amax; ++i, ++ib)
+            {
+                double angle = (ib / (SAMPLE_RATE_HZ / hz)) * PI_X_2;
+                buf[ib] = (byte) (Math.sin(angle) * 127.0 * (vol0 + ((dVol * i) / amax)));
+            }
+        } else {
+            amax = 0;
+        }
+
+        final int rmax = imax - amax;
+        for (int i = rmax; i > 0; --i, ++ib)
+        {
+            double angle = (ib / (SAMPLE_RATE_HZ / hz)) * PI_X_2;
+            buf[ib] = (byte) (Math.sin(angle) * ((127.0 * vol * i) / rmax));
+        }
+
+        return ib;
+    }
+
+    /**
      * Generate a chime, with volume fading out to 0.
      * @param hz  Tone in Hertz (recommended max is half of {@link #SAMPLE_RATE_HZ})
      * @param msec  Duration in milliseconds (max is 1000)
      * @param vol  Volume (max is 1.0)
+     * @return a PCM buffer containing the generated chime, suitable for {@link #playPCMBytes(byte[])}
      * @throws IllegalArgumentException if {@code msec} > 1000
+     * @see #genChime(int, int, double, byte[], int)
      */
     public static byte[] genChime(int hz, int msec, double vol)
         throws IllegalArgumentException
@@ -72,34 +144,8 @@ public class Sounds
         if (msec > 1000)
             throw new IllegalArgumentException("msec");
 
-        final int imax = (int) ((msec * SAMPLE_RATE_HZ) / 1000);
-        byte[] buf = new byte[imax];
-
-        // 2 parts if >= 40ms: attack for first 10msec (amplitude 0.8 * vol to vol),
-        // then release for rest of msec (fading amplitude: vol to 0)
-
-        final int amax;
-        if (msec >= 40)
-        {
-            amax = (int) ((10 * SAMPLE_RATE_HZ) / 1000);
-            final double vol0 = 0.8 * vol,
-                         dVol = vol - vol0;
-            for (int i = 0; i < amax; ++i)
-            {
-                double angle = i / (SAMPLE_RATE_HZ / hz) * PI_X_2;
-                buf[i] = (byte)(Math.sin(angle) * 127.0 * (vol0 + ((dVol * i) / amax)));
-            }
-        } else {
-            amax = 0;
-        }
-
-        final int rmax = imax - amax;
-        for (int i = amax, j = rmax; j > 0; ++i, --j)
-        {
-            double angle = i / (SAMPLE_RATE_HZ / hz) * PI_X_2;
-            buf[i] = (byte)(Math.sin(angle) * ((127.0 * vol * j) / rmax));
-        }
-
+        byte[] buf = new byte[bufferLen(msec)];
+        genChime(hz, msec, vol, buf, 0);
         return buf;
     }
 
@@ -108,6 +154,7 @@ public class Sounds
      * @param hz  Tone in Hertz (recommended max is half of {@link #SAMPLE_RATE_HZ})
      * @param msec  Duration in milliseconds (max is 1000)
      * @param vol  Volume (max is 1.0)
+     * @return a PCM buffer containing the generated chime, suitable for {@link #playPCMBytes(byte[])}
      * @throws IllegalArgumentException if {@code msec} > 1000
      * @throws LineUnavailableException if the line resource can't be opened
      */
@@ -118,17 +165,53 @@ public class Sounds
     }
 
     /**
-     * Generate a constant tone.
+     * Generate a constant tone into an existing buffer.
      *<P>
      * Based on https://stackoverflow.com/questions/23096533/how-to-play-a-sound-with-a-given-sample-rate-in-java
      * from Réal Gagnon's code at http://www.rgagnon.com/javadetails/java-0499.html:
-     * optimized, decoupled from 8000Hz fixed sampling rate, separated generation from playback.
+     * optimized, decoupled from 8000Hz fixed sampling rate, separated generation from playback,
+     * implement generation into existing buffer.
+     *
+     * @param hz  Tone in Hertz (recommended max is half of {@link #SAMPLE_RATE_HZ})
+     * @param msec  Duration in milliseconds
+     * @param vol  Volume (max is 1.0)
+     * @param buf An existing mono 8-bit PCM buffer into which to generate the tone.
+     *    Use {@link #bufferLen(int)} to calculate the required length.
+     * @param i0  Starting position (index) to use within {@code buf}
+     * @return  1 past the ending position (index) used within {@code buf};
+     *     the next generate call can use this value for its {@code i0}
+     * @throws IllegalArgumentException if {@code buf} isn't long enough,
+     *     given {@code msec} and {@code i0}
+     * @throws NullPointerException if {@code buf} is null
+     * @see #genTone(int, int, double)
+     */
+    public static int genTone(int hz, int msec, double vol, final byte[] buf, final int i0)
+        throws IllegalArgumentException, NullPointerException
+    {
+        final int imax = bufferLen(msec);
+        if (buf.length < i0 + imax)
+            throw new IllegalArgumentException("buf too short");
+
+        final double vol_x_127 = 127.0 * vol;
+        int ib = i0;
+        for (int i = 0; i < imax; ++i, ++ib)
+        {
+            double angle = (ib / (SAMPLE_RATE_HZ / hz)) * PI_X_2;
+            buf[ib] = (byte) (Math.sin(angle) * vol_x_127);
+        }
+
+        return ib;
+    }
+
+    /**
+     * Generate a constant tone into a new PCM buffer.
      *
      * @param hz  Tone in Hertz (recommended max is half of {@link #SAMPLE_RATE_HZ})
      * @param msec  Duration in milliseconds (max is 1000)
      * @param vol  Volume (max is 1.0)
      * @return  A sound byte buffer, suitable for {@link #playPCMBytes(byte[])}
      * @throws IllegalArgumentException if {@code msec} > 1000
+     * @see #genTone(int, int, double, byte[], int)
      */
     public static byte[] genTone(int hz, int msec, double vol)
         throws IllegalArgumentException
@@ -136,16 +219,8 @@ public class Sounds
         if (msec > 1000)
             throw new IllegalArgumentException("msec");
 
-        final double vol_x_127 = 127.0 * vol;
-
-        final int imax = (int) ((msec * SAMPLE_RATE_HZ) / 1000);
-        byte[] buf = new byte[imax];
-        for (int i=0; i < imax; i++)
-        {
-            double angle = i / (SAMPLE_RATE_HZ / hz) * PI_X_2;
-            buf[i] = (byte)(Math.sin(angle) * vol_x_127);
-        }
-
+        byte[] buf = new byte[bufferLen(msec)];
+        genTone(hz, msec, vol, buf, 0);
         return buf;
     }
 
@@ -191,6 +266,12 @@ public class Sounds
             chime(CHIME_A_HZ, 180, .9);
             Thread.sleep(60);
             chime(CHIME_A_HZ / 2, 180 + 90, .9);
+            Thread.sleep(60);
+
+            byte[] buf = new byte[bufferLen(120 + 90)];
+            int i = genTone(330, 120, .9, buf, 0);  // E4
+            genTone(262, 90, .9, buf, i);  // C4
+            playPCMBytes(buf);
 
         } catch (Exception e) {
             // LineUnavailableException, InterruptedException
