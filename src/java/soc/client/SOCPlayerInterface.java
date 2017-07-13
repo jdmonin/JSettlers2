@@ -153,6 +153,18 @@ public class SOCPlayerInterface extends Frame
     private boolean layoutNotReadyYet;
 
     /**
+     * To avoid sound-effect spam while receiving board layout info
+     * when starting a game or joining a game in progress, track whether
+     * {@link #began(Vector)} has been called.
+     *<P>
+     * Reminder: When starting a new game, some PUTPIECE messages
+     * may be sent after {@code began(..)}, but these will all be sent
+     * while game state is &lt; {@link SOCGame#START1A}.
+     * @since 1.2.00
+     */
+    private boolean hasCalledBegan;
+
+    /**
      * True if we've already shown {@link #game}'s scenario's
      * descriptive text in a popup window when the client joined,
      * or if the game has no scenario.
@@ -1689,6 +1701,8 @@ public class SOCPlayerInterface extends Frame
         // the prompt text when user clicks (focuses) it, so
         // wait for user to do that.
 
+        hasCalledBegan = true;
+
         // Look for game observers, list in textDisplay
         if (members == null)
             return;
@@ -2296,7 +2310,8 @@ public class SOCPlayerInterface extends Frame
         if (game.isDebugFreePlacement() && game.isInitialPlacement())
             boardPanel.updateMode();  // update here, since gamestate doesn't change to trigger update
 
-        playSound(SOUND_PUT_PIECE);
+        if (hasCalledBegan && (game.getGameState() >= SOCGame.START1A))
+            playSound(SOUND_PUT_PIECE);
 
         /**
          * Check for and announce change in longest road; update all players' victory points.
