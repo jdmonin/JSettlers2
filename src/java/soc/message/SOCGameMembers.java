@@ -39,6 +39,12 @@ import java.util.Vector;
  * asked to sit from {@link SOCRobotJoinGameRequest ROBOTJOINGAMEREQUEST}.
  * In order for the robot to be certain it has all details about a game,
  * bots should take no action before receiving GAMEMEMBERS.
+ *<P>
+ * When forming a new game, clients will be sent the sequence as described above, and
+ * then will each choose a position and sit down. Any client can then send {@link SOCStartGame}
+ * to start the game. Server responds with the newly generated board layout and
+ * other game and board details, any scenario-specific {@link SOCPutPiece}s, then
+ * {@link SOCGameState}({@link soc.game.SOCGame#START1A START1A}), then finally {@link SOCStartGame}.
  *
  * @author Robert S Thomas
  * @see SOCChannelMembers

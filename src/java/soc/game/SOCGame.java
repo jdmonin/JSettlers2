@@ -110,11 +110,14 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * General assumptions for states and their numeric values:
      * <UL>
-     * <LI> Active game states are >= {@link #START1A} and < {@link #OVER}
+     * <LI> Any scenario-specific initial pieces, such as those in
+     *      {@link SOCScenario#K_SC_PIRI SC_PIRI}, are sent while
+     *      game state is still &lt; {@link #START1A}.
+     * <LI> Active game states are >= {@link #START1A} and &lt; {@link #OVER}
      * <LI> Initial placement ends after {@link #START2B} or {@link #START3B}, going directly to {@link #PLAY}
      * <LI> A Normal turn's "main phase" is {@link #PLAY1}, after dice-roll/card-play in {@link #PLAY}
      * <LI> When the game is waiting for a player to react to something,
-     *      state is > {@link #PLAY1}, < {@link #OVER}; state name starts with
+     *      state is > {@link #PLAY1}, &lt; {@link #OVER}; state name starts with
      *      PLACING_ or WAITING_
      * </UL>
      *<P>

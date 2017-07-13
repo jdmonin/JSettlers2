@@ -30,6 +30,13 @@ import java.util.StringTokenizer;
  *<P>
  * The messages similar but opposite to this one are {@link SOCCancelBuildRequest}
  * and the very-limited {@link SOCRemovePiece}.
+ *<P>
+ * Some scenarios like {@link soc.game.SOCScenario#K_SC_PIRI SC_PIRI} include some pieces
+ * as part of the initial board layout while the game is starting. These will all be sent to
+ * the clients while game state is &lt; {@link soc.game.SOCGame#START1A START1A} and before
+ * sending them {@link SOCStartGame}. Scenario {@link soc.game.SOCScenario#K_SC_CLVI SC_CLVI}
+ * sends its neutral villages before {@code START1A} but as part {@code "CV"} of the board layout
+ * message, not as {@code SOCPutPiece}s.
  *
  * @author Robert S Thomas
  */

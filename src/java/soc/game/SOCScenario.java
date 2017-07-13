@@ -266,6 +266,9 @@ public class SOCScenario
      * Scenario key {@code SC_CLVI} for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
      * Cloth Trade with neutral {@link SOCVillage villages}.
      * Main option is {@link SOCGameOption#K_SC_CLVI}.
+     *<P>
+     * While starting a new game, the neutral villages are placed and sent to clients as part {@code "CV"}
+     * of the board layout message while game state is still &lt; {@link SOCGame#START1A START1A}.
      */
     public static final String K_SC_CLVI = "SC_CLVI";
 
@@ -278,6 +281,9 @@ public class SOCScenario
      * the player must build ships directly to the Fortress with their color, and defeat it several
      * times using warships.  Also, ship routes can't branch in different directions in this scenario,
      * only extend from their ends.
+     *<P>
+     * Each player starts with an initial coastal settlement and ship. While starting a new game these
+     * are placed and sent to clients while game state is still &lt; {@link SOCGame#START1A START1A}.
      *<P>
      * The pirate fleet moves with every dice roll. When a 7 is rolled, the fleet moves and any
      * battle is resolved before the usual discards.
