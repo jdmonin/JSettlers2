@@ -454,6 +454,13 @@ public class SOCPlayerInterface extends Frame
     private static byte[] SOUND_BEGIN_TURN;
 
     /**
+     * Sound made when a piece is placed.
+     * Generated at first call to constructor.
+     * @since 1.2.00
+     */
+    private static byte[] SOUND_PUT_PIECE;
+
+    /**
      * Alert chime for when robber is moved to client player's hex or resources must be discarded/lost.
      * Generated at first call to constructor.
      * @since 1.2.00
@@ -591,9 +598,14 @@ public class SOCPlayerInterface extends Frame
                 {
                     SOUND_BEGIN_TURN = Sounds.genChime(Sounds.NOTE_A5_HZ, 160, .5);
 
-                    byte[] buf = new byte[Sounds.bufferLen(120 + 90)];
-                    int i = Sounds.genChime(Sounds.NOTE_E4_HZ, 120, .9, buf, 0);
-                    Sounds.genChime(Sounds.NOTE_C4_HZ, 90, .9, buf, i);
+                    byte[] buf = new byte[Sounds.bufferLen(33)];
+                    Sounds.genChime(110, 33, .2, buf, 0, false);
+                    Sounds.genChime(2 * 110, 27, .15, buf, 0, true);
+                    SOUND_PUT_PIECE = buf;
+
+                    buf = new byte[Sounds.bufferLen(120 + 90)];
+                    int i = Sounds.genChime(Sounds.NOTE_E4_HZ, 120, .9, buf, 0, false);
+                    Sounds.genChime(Sounds.NOTE_C4_HZ, 90, .9, buf, i, false);
                     SOUND_ROBBER_OR_LOST_RSRC = buf;
                 }
             });
@@ -2282,6 +2294,8 @@ public class SOCPlayerInterface extends Frame
         buildingPanel.updateButtonStatus();
         if (game.isDebugFreePlacement() && game.isInitialPlacement())
             boardPanel.updateMode();  // update here, since gamestate doesn't change to trigger update
+
+        playSound(SOUND_PUT_PIECE);
 
         /**
          * Check for and announce change in longest road; update all players' victory points.

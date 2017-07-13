@@ -37,7 +37,7 @@ import javax.sound.sampled.SourceDataLine;
  *<P>
  * To concatenate sequentially generated tones or chimes in a single buffer,
  * make a buffer of length {@link #bufferLen(int)} and then call
- * {@link #genChime(int, int, double, byte[], int)} and/or
+ * {@link #genChime(int, int, double, byte[], int, boolean)} and/or
  * {@link #genTone(int, int, double, byte[], int)} to fill it.
  *<P>
  * Generating tones ahead of time can help with latency, instead of
@@ -92,6 +92,8 @@ public class Sounds
      * @param buf An existing mono 8-bit PCM buffer into which to generate the chime.
      *    Use {@link #bufferLen(int)} to calculate the required length.
      * @param i0  Starting position (index) to use within {@code buf}
+     * @param overlay  If true, combine amplitude of the new chime with what's in the buffer.
+     *     Total volume is additive. Does not clip or check for overflow.
      * @return  1 past the ending position (index) used within {@code buf};
      *     the next generate call can use this value for its {@code i0}
      * @throws IllegalArgumentException if {@code buf} isn't long enough,
@@ -99,7 +101,8 @@ public class Sounds
      * @throws NullPointerException if {@code buf} is null
      * @see #genChime(int, int, double)
      */
-    public static int genChime(int hz, int msec, double vol, final byte[] buf, final int i0)
+    public static int genChime
+        (int hz, int msec, double vol, final byte[] buf, final int i0, final boolean overlay)
         throws IllegalArgumentException, NullPointerException
     {
         final int imax = bufferLen(msec);
@@ -119,7 +122,11 @@ public class Sounds
             for (int i = 0; i < amax; ++i, ++ib)
             {
                 double angle = (ib / (SAMPLE_RATE_HZ / hz)) * PI_X_2;
-                buf[ib] = (byte) (Math.sin(angle) * 127.0 * (vol0 + ((dVol * i) / amax)));
+                byte val = (byte) (Math.sin(angle) * 127.0 * (vol0 + ((dVol * i) / amax)));
+                if (overlay)
+                    buf[ib] += val;  // reminder: java bytes are always signed
+                else
+                    buf[ib] = val;
             }
         } else {
             amax = 0;
@@ -129,7 +136,11 @@ public class Sounds
         for (int i = rmax; i > 0; --i, ++ib)
         {
             double angle = (ib / (SAMPLE_RATE_HZ / hz)) * PI_X_2;
-            buf[ib] = (byte) (Math.sin(angle) * ((127.0 * vol * i) / rmax));
+            byte val = (byte) (Math.sin(angle) * ((127.0 * vol * i) / rmax));
+            if (overlay)
+                buf[ib] += val;
+            else
+                buf[ib] = val;
         }
 
         return ib;
@@ -142,7 +153,7 @@ public class Sounds
      * @param vol  Volume (max is 1.0)
      * @return a PCM buffer containing the generated chime, suitable for {@link #playPCMBytes(byte[])}
      * @throws IllegalArgumentException if {@code msec} > 1000
-     * @see #genChime(int, int, double, byte[], int)
+     * @see #genChime(int, int, double, byte[], int, boolean)
      */
     public static byte[] genChime(int hz, int msec, double vol)
         throws IllegalArgumentException
@@ -151,7 +162,7 @@ public class Sounds
             throw new IllegalArgumentException("msec");
 
         byte[] buf = new byte[bufferLen(msec)];
-        genChime(hz, msec, vol, buf, 0);
+        genChime(hz, msec, vol, buf, 0, false);
         return buf;
     }
 
@@ -274,9 +285,15 @@ public class Sounds
             chime(NOTE_A5_HZ / 2, 180 + 90, .9);
             Thread.sleep(60);
 
-            byte[] buf = new byte[bufferLen(120 + 90)];
-            int i = genChime(NOTE_E4_HZ, 120, .9, buf, 0);
-            genChime(NOTE_C4_HZ, 90, .9, buf, i);
+            byte[] buf = new byte[bufferLen(600)];
+            genChime(NOTE_A5_HZ, 600, .5, buf, 0, false);
+            genChime(NOTE_E4_HZ, 600, .5, buf, 0, true);
+            playPCMBytes(buf);
+            Thread.sleep(90);
+
+            buf = new byte[bufferLen(120 + 90)];
+            int i = genChime(NOTE_E4_HZ, 120, .9, buf, 0, false);
+            genChime(NOTE_C4_HZ, 90, .9, buf, i, false);
             playPCMBytes(buf);
 
         } catch (Exception e) {
