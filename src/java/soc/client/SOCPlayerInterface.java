@@ -598,9 +598,10 @@ public class SOCPlayerInterface extends Frame
                 {
                     SOUND_BEGIN_TURN = Sounds.genChime(Sounds.NOTE_A5_HZ, 160, .5);
 
-                    byte[] buf = new byte[Sounds.bufferLen(33)];
-                    Sounds.genChime(110, 33, .2, buf, 0, false);
-                    Sounds.genChime(2 * 110, 27, .15, buf, 0, true);
+                    byte[] buf = new byte[Sounds.bufferLen(60)];
+                    Sounds.genChime(140, 60, .15, buf, 0, false);
+                    Sounds.genChime(160, 50, .15, buf, 0, true);
+                    Sounds.genChime(240, 30, .2, buf, 0, true);
                     SOUND_PUT_PIECE = buf;
 
                     buf = new byte[Sounds.bufferLen(120 + 90)];
