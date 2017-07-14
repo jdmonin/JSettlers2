@@ -1101,7 +1101,8 @@ public class SOCDBHelper
     public static final void checkSettings(final boolean checkAll)
         throws SQLException, DBSettingMismatchException
     {
-        final boolean withWrite = (checkAll) ? false : props.containsKey(PROP_JSETTLERS_DB_SETTINGS);
+        final boolean withWrite =
+            (checkAll || (props == null)) ? false : props.containsKey(PROP_JSETTLERS_DB_SETTINGS);
 
         final ArrayList<String> mm = new ArrayList<String>();  // keyname, db value, props value, keyname, db value, ...
         boolean anyMissing = false;  // is table missing any expected params like SETTING_BCRYPT_WORK__FACTOR?
@@ -1115,7 +1116,7 @@ public class SOCDBHelper
             {
                 if ((bc >= BCRYPT_MIN_WORK_FACTOR) && (bc <= BCrypt.GENSALT_MAX_LOG2_ROUNDS))
                 {
-                    if (checkAll || props.containsKey(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR))
+                    if (checkAll || ((props != null) && props.containsKey(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR)))
                     {
                         if (bc != bcryptWorkFactor)
                         {
@@ -2603,7 +2604,7 @@ public class SOCDBHelper
                 throw new MissingResourceException(sb.toString(), "unused", "unused");
             }
 
-            if (! props.containsKey(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR))
+            if ((props != null) && ! props.containsKey(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR))
             {
                 int wf = testBCryptSpeed();
                 if (wf < BCRYPT_MIN_WORK_FACTOR)
