@@ -595,6 +595,8 @@ public class SOCDBHelper
      * @param pswd  the password for the user
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_DB_USER},
      *       {@link #PROP_JSETTLERS_DB_URL}, and any other desired properties.
+     *       Ignores {@link #PROP_JSETTLERS_DB_USER} and {@link #PROP_JSETTLERS_DB_PASS} if present,
+     *       uses the {@code user} and {@code pswd} parameters instead.
      *       <P>
      *       If {@code props} contains {@link #PROP_JSETTLERS_DB_SETTINGS} == "write"</tt>,
      *       the {@code settings} table will be updated from props or default values as needed.
@@ -613,7 +615,7 @@ public class SOCDBHelper
      *         also in the {@code settings} table but with different values; this method's call to
      *         {@link #checkSettings(boolean)} will print details to {@link System#err} before throwing the exception.
      *         See {@link #PROP_JSETTLERS_DB_SETTINGS} to re-run and recover from this exception.
-     * @throws SQLException if an SQL command fails, or the db couldn't be initialized;
+     * @throws SQLException if an SQL command fails, or the DB couldn't be initialized;
      *         or if the DB schema version couldn't be detected (if so, exception's
      *         {@link Exception#getCause() .getCause()} will be an {@link IllegalStateException})
      * @throws IOException  if <tt>props</tt> includes {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP} but
@@ -694,28 +696,28 @@ public class SOCDBHelper
     	                 + PROP_JSETTLERS_DB_DRIVER + ", " + PROP_JSETTLERS_DB_URL + ")");
     	        }
     	    }
-    	}
 
-    	String prop_bcryptWF = props.getProperty(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
-    	if (prop_bcryptWF != null)
-    	{
-    	    String errMsg = null;
-
-    	    try
+    	    String prop_bcryptWF = props.getProperty(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
+    	    if (prop_bcryptWF != null)
     	    {
-    	        int wf = Integer.parseInt(prop_bcryptWF);
-    	        if ((wf >= BCRYPT_MIN_WORK_FACTOR) && (wf <= BCrypt.GENSALT_MAX_LOG2_ROUNDS))
-    	            bcryptWorkFactor = wf;
-    	        else
-    	            errMsg = "Out of range (" + BCRYPT_MIN_WORK_FACTOR + '-' + BCrypt.GENSALT_MAX_LOG2_ROUNDS + ")";
-    	    } catch (NumberFormatException e) {
-    	        errMsg = "Bad format, integer is required";
-    	    }
+    	        String errMsg = null;
 
-    	    if (errMsg != null)
-    	        throw new IllegalArgumentException
-    	            ("DB: BCrypt work factor param: " + errMsg + " ("
-	             + PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR + ")");
+    	        try
+    	        {
+    	            int wf = Integer.parseInt(prop_bcryptWF);
+    	            if ((wf >= BCRYPT_MIN_WORK_FACTOR) && (wf <= BCrypt.GENSALT_MAX_LOG2_ROUNDS))
+    	                bcryptWorkFactor = wf;
+    	            else
+    	                errMsg = "Out of range (" + BCRYPT_MIN_WORK_FACTOR + '-' + BCrypt.GENSALT_MAX_LOG2_ROUNDS + ")";
+    	        } catch (NumberFormatException e) {
+    	            errMsg = "Bad format, integer is required";
+    	        }
+
+    	        if (errMsg != null)
+    	            throw new IllegalArgumentException
+    	                ("DB: BCrypt work factor param: " + errMsg + " ("
+	                 + PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR + ")");
+    	    }
 
     	    String pval = props.getProperty(PROP_JSETTLERS_DB_SETTINGS);
     	    if ((pval != null) && ! pval.equals("write"))
@@ -1387,12 +1389,13 @@ public class SOCDBHelper
      * The DB will throw an exception instead, especially at {@link #SCHEMA_VERSION_1200} or higher
      * which adds a column and unique index for case-insensitive nickname.
      *
-     * @param userName  Username (nickname) to create
-     * @param host  Hostname of client requesting the new user
+     * @param userName  New user name (nickname) to create
+     * @param host  Client hostname or IP requesting new account
      * @param password  New user's initial password. Can't be null or "", and must pass
      *     {@link #isPasswordLengthOK(String)} which depends on {@link #getSchemaVersion()}.
      * @param email  Optional email address to contact this user
-     * @param time  User creation timestamp, in same format as {@link java.sql.Date#Date(long)}
+     * @param time  Created-at time, same format as {@link System#currentTimeMillis()}
+     *            and {@link java.sql.Date#Date(long)}
      *
      * @return true if the DB connection is open and the account was created,
      *     false if no database is currently connected
@@ -2180,7 +2183,7 @@ public class SOCDBHelper
      * @return  The fastest acceptable work factor (270-620 milliseconds per BCrypt),
      *     or -1 if all WFs were too slow, or -2 if all WFs were too fast
      * @since 1.2.00
-     **/
+     */
     private static int testBCryptSpeed_range(float[][] wfSpeedsRef, int wfFrom, int wfTo)
     {
         if (wfFrom > BCrypt.GENSALT_MAX_LOG2_ROUNDS)
