@@ -29,6 +29,11 @@ import java.util.StringTokenizer;
  *<P>
  * Unless otherwise mentioned, any {@link #getElementType()} can be sent with
  * any action ({@link #SET}, {@link #GAIN}, {@link #LOSE}).
+ *<H3>Message Sequence:</H3>
+ * For a bank trade (server response to player's {@link SOCBankTrade}),
+ * all the {@link #LOSE} messages come before the {@link #GAIN}s. For trade between
+ * players ({@link SOCAcceptOffer}), the {@code LOSE}s and {@code GAIN}s are
+ * interspersed to simplify server code.
  *
  * @author Robert S Thomas
  */

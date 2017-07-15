@@ -27,7 +27,12 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that a player wants to trade with the bank or a port.
+ * This request to server means that a player wants to trade with the bank or a port.
+ *<P>
+ * If the trade is acceptable, server responds with {@link SOCPlayerElement}s:
+ * A {@link SOCPlayerElement#LOSE} for each resource type being traded in,
+ * then {@link SOCPlayerElement#GAIN} for those given to the player.
+ * Otherwise the server declines the trade by sending the client an explanatory {@link SOCGameServerText}.
  *<P>
  * To undo a bank trade in version 1.1.13 or higher, the player's client can
  * send another BANKTRADE message with the same resources but give/get swapped.

@@ -31,9 +31,9 @@ import java.util.StringTokenizer;
  * that robots can learn that news.
  *<UL>
  * <LI> Message to server is in response to a {@link SOCMakeOffer} sent earlier this turn to client.
- * <LI> Followed by (to all from server) {@link SOCPlayerElement}s, {@link SOCGameServerText}, {@link SOCClearOffer}s,
- *      and (for robots' benefit) the received ACCEPTOFFER is re-sent from
- *      server to all clients in the game.
+ * <LI> Server's response (broadcast to game) is {@link SOCPlayerElement}s, {@link SOCGameServerText},
+ *      {@link SOCClearOffer}s, then (for robots' benefit) the received ACCEPTOFFER is re-sent to
+ *      all clients in the game.
  *</UL>
  * @author Robert S. Thomas
  * @see SOCRejectOffer
