@@ -5806,7 +5806,6 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @see #getRobberyPirateFlag()
      * @see #getPossibleVictims()
-     * @see #doesRobberLocationAffectPlayer(int, boolean)
      * @see #canChooseRobClothOrResource(int)
      * @see #stealFromPlayer(int, boolean)
      */
@@ -6200,61 +6199,6 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Does the robber's current location affect this player's resource rolls, or does the
-     * pirate's location affect movement of this player's ships?
-     *<P>
-     * In scenario {@link SOCGameOption#K_SC_PIRI SC_PIRI}, when the pirate fleet moves
-     * the attacked player is the sole player with an adjacent coastal settlement or city.
-     * If multiple adjacent players, no one is attacked by the pirate fleet. The rule that
-     * ships can't be moved away from the pirate still applies.
-     *
-     * @param pn  the number of the player to check
-     * @param isPirate  True to check based on location of pirate ship (if any), not robber
-     * @return  True if {@code pn} is affected
-     * @see #getPossibleVictims()
-     * @since 1.2.00
-     */
-    public boolean doesRobberLocationAffectPlayer(final int pn, final boolean isPirate)
-    {
-        if ((isPirate && ! hasSeaBoard)
-            || (pn < 0) || (pn >= players.length))
-            return false;
-
-        final int hex;
-        if (isPirate) {
-            hex = ((SOCBoardLarge) board).getPirateHex();
-            if (hex == 0)
-                return false;
-        } else {
-            hex = board.getRobberHex();
-            if (hex < 0)
-                return false;
-        }
-
-        // Same evaluation as getPossibleVictims(); keep both methods in sync.
-
-        List<SOCPlayer> candidates;
-
-        final boolean is_SC_PIRI = isGameOptionSet(SOCGameOption.K_SC_PIRI);
-        if (isPirate && ! is_SC_PIRI)
-        {
-            candidates = getPlayersShipsOnHex(hex);
-        } else {
-            candidates = getPlayersOnHex(hex);
-            if (is_SC_PIRI && (candidates.size() > 1))
-                // No pirate attack; must check for ships which can't be moved
-                candidates = null;
-        }
-
-        final SOCPlayer pl = players[pn];
-        boolean ret = (candidates != null) && candidates.contains(pl);
-        if (isPirate && is_SC_PIRI && ! ret)
-            ret = getPlayersShipsOnHex(hex).contains(pl);
-
-        return ret;
-    }
-
-    /**
      * Does the current or most recent robbery use the pirate ship, not the robber?
      * If true, victims will be based on adjacent ships, not settlements/cities.
      * @return true for pirate ship, false for robber
@@ -6283,7 +6227,6 @@ public class SOCGame implements Serializable, Cloneable
      * @return a list of possible players to rob, or an empty Vector
      * @see #canChoosePlayer(int)
      * @see #choosePlayerForRobbery(int)
-     * @see #doesRobberLocationAffectPlayer(int, boolean)
      */
     public Vector<SOCPlayer> getPossibleVictims()
     {
@@ -6296,7 +6239,6 @@ public class SOCGame implements Serializable, Cloneable
 
         // victims wil be a subset of candidates:
         // has resources, ! isSeatVacant, ! currentPlayer.
-        // Same evaluation as doesRobberLocationAffectPlayer(..); keep both methods in sync.
 
         Vector<SOCPlayer> victims = new Vector<SOCPlayer>();
         Vector<SOCPlayer> candidates;
@@ -6369,7 +6311,6 @@ public class SOCGame implements Serializable, Cloneable
      * @return the type of resource that was stolen, as in {@link SOCResourceConstants},
      *         or {@link SOCResourceConstants#CLOTH_STOLEN_LOCAL} for cloth.
      * @see #stealFromPlayerPirateFleet(int, int)
-     * @see #doesRobberLocationAffectPlayer(int, boolean)
      */
     public int stealFromPlayer(final int pn, boolean choseCloth)
     {

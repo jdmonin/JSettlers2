@@ -473,11 +473,18 @@ public class SOCPlayerInterface extends Frame
     private static byte[] SOUND_PUT_PIECE;
 
     /**
-     * Alert chime for when robber is moved to client player's hex or resources must be discarded/lost.
+     * Alert chime for when resources have been stolen or player must choose which ones to discard.
      * Generated at first call to constructor.
      * @since 1.2.00
      */
-    static byte[] SOUND_ROBBER_OR_LOST_RSRC;
+    static byte[] SOUND_RSRC_LOST;
+
+    /**
+     * Alert chime for when free resources are gained from a gold hex or a scenario-specific event.
+     * Generated at first call to constructor.
+     * @since 1.2.00
+     */
+    static byte[] SOUND_RSRC_GAINED_FREE;
 
     private final ClientBridge clientListener;
 
@@ -619,7 +626,12 @@ public class SOCPlayerInterface extends Frame
                     buf = new byte[Sounds.bufferLen(120 + 90)];
                     int i = Sounds.genChime(Sounds.NOTE_E4_HZ, 120, .9, buf, 0, false);
                     Sounds.genChime(Sounds.NOTE_C4_HZ, 90, .9, buf, i, false);
-                    SOUND_ROBBER_OR_LOST_RSRC = buf;
+                    SOUND_RSRC_LOST = buf;
+
+                    buf = new byte[Sounds.bufferLen(120 + 90)];
+                    i = Sounds.genChime(Sounds.NOTE_C4_HZ, 120, .9, buf, 0, false);
+                    Sounds.genChime(Sounds.NOTE_E4_HZ, 90, .9, buf, i, false);
+                    SOUND_RSRC_GAINED_FREE = buf;
                 }
             });
 
@@ -2351,7 +2363,6 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * The robber or pirate has been moved onto a hex. Repaints board.
-     * If the new robber/pirate location affects client player, plays a sound.
      * @param newHex  The new robber/pirate hex coordinate, or 0 to take the pirate off the board
      * @param isPirate  True if the pirate, not the robber, was moved
      * @see SOCGame#doesRobberLocationAffectPlayer(int, boolean)
@@ -2360,10 +2371,6 @@ public class SOCPlayerInterface extends Frame
     public void updateAtRobberMoved(final int newHex, final boolean isPirate)
     {
         getBoardPanel().repaint();
-
-        if ((clientHandPlayerNum != -1)
-            && game.doesRobberLocationAffectPlayer(clientHandPlayerNum, isPirate))
-            playSound(SOUND_ROBBER_OR_LOST_RSRC);
     }
 
     /**
