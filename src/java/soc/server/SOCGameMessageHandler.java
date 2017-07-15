@@ -756,7 +756,10 @@ public class SOCGameMessageHandler
                 /**
                  * tell everyone else that the player discarded unknown resources
                  */
-                srv.messageToGameExcept(gn, c, new SOCPlayerElement(gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, mes.getResources().getTotal()), true);
+                srv.messageToGameExcept
+                    (gn, c, new SOCPlayerElement
+                        (gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, mes.getResources().getTotal(), true),
+                     true);
                 srv.messageToGameKeyed(ga, true, "action.discarded", c.getData(), mes.getResources().getTotal());
                     // "{0} discarded {1} resources."
 
@@ -2698,10 +2701,18 @@ public class SOCGameMessageHandler
                 {
                     final int rsrc = mes.getResource();
                     final int[] monoPicks = ga.doMonopolyAction(rsrc);
+                    final boolean[] isVictim = new boolean[ga.maxPlayers];
                     final String monoPlayerName = c.getData();
                     int monoTotal = 0;
-                    for (int i = 0; i < ga.maxPlayers; ++i)
-                        monoTotal += monoPicks[i];
+                    for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                    {
+                        final int n = monoPicks[pn];
+                        if (n > 0)
+                        {
+                            monoTotal += n;
+                            isVictim[pn] = true;
+                        }
+                    }
 
                     srv.gameList.takeMonitorForGame(gaName);
                     srv.messageToGameKeyedSpecialExcept
@@ -2709,15 +2720,18 @@ public class SOCGameMessageHandler
                         // "{0} monopolized {1,rsrcs}" -> "Joe monopolized 5 Sheep."
 
                     /**
-                     * just send all the player's resource counts for the
-                     * monopolized resource
+                     * just send all the player's resource counts for the monopolized resource;
+                     * set isBad flag for each victim player's count
                      */
-                    for (int i = 0; i < ga.maxPlayers; i++)
+                    for (int pn = 0; pn < ga.maxPlayers; ++pn)
                     {
                         /**
-                         * Note: This only works if SOCPlayerElement.CLAY == SOCResourceConstants.CLAY
+                         * Note: This works because SOCPlayerElement.CLAY == SOCResourceConstants.CLAY
                          */
-                        srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, rsrc, ga.getPlayer(i).getResources().getAmount(rsrc)));
+                        srv.messageToGameWithMon
+                            (gaName, new SOCPlayerElement
+                                (gaName, pn, SOCPlayerElement.SET,
+                                 rsrc, ga.getPlayer(pn).getResources().getAmount(rsrc), isVictim[pn]));
                     }
                     srv.gameList.releaseMonitorForGame(gaName);
 
@@ -2726,21 +2740,19 @@ public class SOCGameMessageHandler
                      * victim(s) of resource amounts taken,
                      * and tell the player how many they won.
                      */
-                    for (int i = 0; i < ga.maxPlayers; i++)
+                    for (int pn = 0; pn < ga.maxPlayers; ++pn)
                     {
-                        int picked = monoPicks[i];
-                        if (picked == 0)
+                        if (! isVictim[pn])
                             continue;
-                        String viName = ga.getPlayer(i).getName();
+                        int picked = monoPicks[pn];
+                        String viName = ga.getPlayer(pn).getName();
                         StringConnection viCon = srv.getConnection(viName);
                         if (viCon != null)
-                        {
                             srv.messageToPlayerKeyedSpecial
                                 (viCon, ga,
                                  ((picked == 1) ? "action.mono.took.your.1" : "action.mono.took.your.n"),
                                  monoPlayerName, picked, rsrc);
                                 // "Joe's Monopoly took your 3 sheep."
-                        }
                     }
 
                     srv.messageToPlayerKeyedSpecial(c, ga, "action.mono.you.monopolized", monoTotal, rsrc);

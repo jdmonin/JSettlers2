@@ -180,11 +180,13 @@ public interface PlayerClientListener
     void playerFaceChanged(SOCPlayer player, int faceId);
 
     /**
-     * Update one part of the player's status, such as their number of settlements remaining.
+     * Update one part of the player's status, such as their number of clay resources or settlements remaining.
      * @param player May be {@code null}
      * @param utype The type of element to update
+     * @param isBad True if this update is bad news from a message that the player has lost resources
+     *     or pieces (to the robber, monopoly, etc)
      */
-    void playerElementUpdated(SOCPlayer player, UpdateType utype);
+    void playerElementUpdated(SOCPlayer player, UpdateType utype, boolean isBad);
 
     /**
      * A player's total resource count has been updated.

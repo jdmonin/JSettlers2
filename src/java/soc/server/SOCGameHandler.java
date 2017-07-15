@@ -2294,7 +2294,7 @@ public class SOCGameHandler extends GameHandler
 
             srv.messageToGame(gaName,
                 new SOCPlayerElement(gaName, viPN, SOCPlayerElement.SET,
-                    SOCPlayerElement.SCENARIO_CLOTH_COUNT, vi.getCloth()));
+                    SOCPlayerElement.SCENARIO_CLOTH_COUNT, vi.getCloth(), true));
             srv.messageToGame(gaName,
                 new SOCPlayerElement(gaName, pePN, SOCPlayerElement.SET,
                     SOCPlayerElement.SCENARIO_CLOTH_COUNT, pe.getCloth()));
@@ -2310,7 +2310,7 @@ public class SOCGameHandler extends GameHandler
 
         // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP.
         gainRsrc = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, rsrc, 1);
-        loseRsrc = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, rsrc, 1);
+        loseRsrc = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, rsrc, 1, true);
 
         /**
          * send the game data messages

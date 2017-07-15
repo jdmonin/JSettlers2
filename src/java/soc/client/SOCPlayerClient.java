@@ -4321,11 +4321,8 @@ public class SOCPlayerClient
 
             }
 
-            if (pcl != null)
-            {
-                if (utype != null)
-                    pcl.playerElementUpdated(pl, utype);
-            }
+            if ((pcl != null) && (utype != null))
+                pcl.playerElementUpdated(pl, utype, mes.isBad());
         }
     }
 

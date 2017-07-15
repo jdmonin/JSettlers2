@@ -3235,7 +3235,8 @@ public class SOCPlayerInterface extends Frame
             hpan.updateValue(PlayerClientListener.UpdateType.Resources);
         }
 
-        public void playerElementUpdated(SOCPlayer player, PlayerClientListener.UpdateType utype)
+        public void playerElementUpdated
+            (final SOCPlayer player, final PlayerClientListener.UpdateType utype, final boolean isBad)
         {
             final SOCHandPanel hpan = (player == null) ? null : pi.getPlayerHandPanel(player.getPlayerNumber());  // null if no player
             int hpanUpdateRsrcType = 0;  // If not 0, update this type's amount display
@@ -3320,6 +3321,10 @@ public class SOCPlayerInterface extends Frame
                     // Because client player's available resources have changed,
                     // update any trade offers currently showing (show or hide Accept button)
                     pi.updateAtClientPlayerResources();
+
+                    // If bad news from lost resources or pieces, let the player know
+                    if (isBad)
+                        playSound(SOUND_RSRC_LOST);
                 }
                 else
                 {
