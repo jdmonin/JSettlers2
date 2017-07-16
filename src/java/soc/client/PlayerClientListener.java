@@ -183,10 +183,11 @@ public interface PlayerClientListener
      * Update one part of the player's status, such as their number of clay resources or settlements remaining.
      * @param player May be {@code null}
      * @param utype The type of element to update
-     * @param isBad True if this update is bad news from a message that the player has lost resources
+     * @param isGoodNews True if this update is an unexpected gain (resource from fog hex reveal, etc)
+     * @param isBadNews True if this update is bad news from a message that the player has lost resources
      *     or pieces (to the robber, monopoly, etc)
      */
-    void playerElementUpdated(SOCPlayer player, UpdateType utype, boolean isBad);
+    void playerElementUpdated(SOCPlayer player, UpdateType utype, boolean isGoodNews, boolean isBadNews);
 
     /**
      * A player's total resource count has been updated.

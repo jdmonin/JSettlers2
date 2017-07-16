@@ -38,8 +38,8 @@ import java.util.StringTokenizer;
  *<P>
  * Resource loss can be expected and good (buying pieces or trading with other players)
  * or unexpected and bad (monopoly, robber, discards). v1.2.00 and newer have sound effects
- * to announce unexpected bad losses; to help recognize this, this message type gets a
- * new flag field {@link #isBad()}. Versions older than v1.2.00 ignore the new field.
+ * to announce unexpected gains or losses; to help recognize this, this message type gets a
+ * new flag field {@link #isNews()}. Versions older than v1.2.00 ignore the new field.
  *
  * @author Robert S Thomas
  */
@@ -170,15 +170,23 @@ public class SOCPlayerElement extends SOCMessage
 
     /**
      * Convenience "value" for action, sent over network as {@link #SET}
-     * with {@link #isBad()} flag set. Flag is ignored by clients older
+     * with {@link #isNews()} flag set. Flag is ignored by clients older
      * than v1.2.00.
      * @since 1.2.00
      */
     public static final int SET_BAD = -100;
 
     /**
+     * Convenience "value" for action, sent over network as {@link #GAIN}
+     * with {@link #isNews()} flag set. Flag is ignored by clients older
+     * than v1.2.00.
+     * @since 1.2.00
+     */
+    public static final int GAIN_NEWS = -101;
+
+    /**
      * Convenience "value" for action, sent over network as {@link #LOSE}
-     * with {@link #isBad()} flag set. Flag is ignored by clients older
+     * with {@link #isNews()} flag set. Flag is ignored by clients older
      * than v1.2.00.
      * @since 1.2.00
      */
@@ -210,10 +218,10 @@ public class SOCPlayerElement extends SOCMessage
     private int value;
 
     /**
-     * Is this a bad/unexpected loss? See {@link #isBad()} for details.
+     * Is this a notable/unexpected gain or loss? See {@link #isNews()} for details.
      * @since 1.2.00
      */
-    private final boolean bad;
+    private final boolean news;
 
     /**
      * Create a PlayerElement message.
@@ -223,11 +231,11 @@ public class SOCPlayerElement extends SOCMessage
      *            Earlier client versions will throw an exception accessing player -1.
      *            If the element type allows -1, its constant's javadoc will mention that.
      * @param ac  the type of action: {@link #SET}, {@link #GAIN}, or {@link #LOSE}.
-     *            Do not use {@link #SET_BAD} or {@link #LOSE_BAD} here, call
+     *            Do not use {@link #GAIN_NEWS}, {@link #SET_BAD}, or {@link #LOSE_BAD} here, call
      *            {@link #SOCPlayerElement(String, int, int, int, int, boolean)} instead.
      * @param et  the type of element, such as {@link #SETTLEMENTS}
      * @param va  the value of the element
-     * @throws IllegalArgumentException if {@code ac} is {@link #SET_BAD} or {@link #LOSE_BAD}
+     * @throws IllegalArgumentException if {@code ac} is {@link #GAIN_NEWS}, {@link #SET_BAD}, or {@link #LOSE_BAD}
      * @see #SOCPlayerElement(String, int, int, int, int, boolean)
      */
     public SOCPlayerElement(String ga, int pn, int ac, int et, int va)
@@ -237,28 +245,27 @@ public class SOCPlayerElement extends SOCMessage
     }
 
     /**
-     * Create a PlayerElement message, optionally with the {@link #isBad()} flag set.
+     * Create a PlayerElement message, optionally with the {@link #isNews()} flag set.
      *
      * @param ga  name of the game
      * @param pn  the player number; v1.1.19 and newer allow -1 for some elements (applies to board or to all players).
      *            Earlier client versions will throw an exception accessing player -1.
      *            If the element type allows -1, its constant's javadoc will mention that.
      * @param ac  the type of action: {@link #SET}, {@link #GAIN}, or {@link #LOSE}.
-     *            Do not use {@link #SET_BAD} or {@link #LOSE_BAD} here, set {@code isBad} parameter instead.
+     *            Do not use {@link #GAIN_NEWS}, {@link #SET_BAD}, or {@link #LOSE_BAD} here,
+     *            instead set {@code isNews} parameter.
      * @param et  the type of element, such as {@link #SETTLEMENTS}
      * @param va  the value of the element
-     * @param isBad  Value to give the {@link #isBad()} flag. Set true only if {@code ac} == {@link #SET} or
-     *     {@link #LOSE}; any other {@code ac} won't throw an exception at server or client, but
-     *     {@link #toCmd()} won't render the flag.
+     * @param isNews  Value to give the {@link #isNews()} flag
      * @see #SOCPlayerElement(String, int, int, int, int)
-     * @throws IllegalArgumentException if {@code ac} is {@link #SET_BAD} or {@link #LOSE_BAD}
+     * @throws IllegalArgumentException if {@code ac} is {@link #GAIN_NEWS}, {@link #SET_BAD} or {@link #LOSE_BAD}
      * @since 1.2.00
      */
-    public SOCPlayerElement(String ga, int pn, int ac, int et, int va, boolean isBad)
+    public SOCPlayerElement(String ga, int pn, int ac, int et, int va, boolean isNews)
         throws IllegalArgumentException
     {
-        if ((ac == SET_BAD) || (ac == LOSE_BAD))
-            throw new IllegalArgumentException("use isBad instead");
+        if ((ac == GAIN_NEWS) || (ac == SET_BAD) || (ac == LOSE_BAD))
+            throw new IllegalArgumentException("use isNews instead");
 
         messageType = PLAYERELEMENT;
         game = ga;
@@ -266,7 +273,7 @@ public class SOCPlayerElement extends SOCMessage
         actionType = ac;
         elementType = et;
         value = va;
-        bad = isBad;
+        news = isNews;
     }
 
     /**
@@ -317,66 +324,74 @@ public class SOCPlayerElement extends SOCMessage
     }
 
     /**
-     * Is this element change a bad or unexpected loss? For example, resource lost to the robber or monopoly.
-     * Used only with {@link #SET} or {@link #LOSE} actions.
+     * Is this element change notably good or an unexpected bad change or loss?
+     * For example, resource lost to the robber or monopoly or gained from the fox hex.
+     *<P>
+     * If {@link #getAction()} == {@link #SET}, treat message as bad news.
      *<P>
      * This flag is ignored by clients older than v1.2.00.
-     * @return  True if marked "bad", false otherwise
+     * @return  True if marked "news", false otherwise
      * @since 1.2.00
      */
-    public boolean isBad()
+    public boolean isNews()
     {
-        return bad;
+        return news;
     }
 
     /**
      * PLAYERELEMENT sep game sep2 playerNumber sep2 actionType sep2 elementType sep2 value
-     * [sep2 isBad ("Y", or sep2 and field are omitted)]
+     * [sep2 isNews ("Y", or sep2 and field are omitted)]
      *
      * @return the command String
      */
     public String toCmd()
     {
         int ac = actionType;
-        if (bad)
-            if (ac == LOSE)
-                ac = LOSE_BAD;
-            else if (ac == SET)
-                ac = SET_BAD;
+        if (news)
+            switch (ac)
+            {
+            case GAIN:
+                ac = GAIN_NEWS;  break;
+            case LOSE:
+                ac = LOSE_BAD;  break;
+            case SET:
+                ac = SET_BAD;  break;
+            }
 
         return toCmd(game, playerNumber, ac, elementType, value);
     }
 
     /**
      * PLAYERELEMENT sep game sep2 playerNumber sep2 actionType sep2 elementType sep2 value
-     * [sep2 isBad ("Y", or sep2 and field are omitted)]
+     * [sep2 isNews ("Y", or sep2 and field are omitted)]
      *
      * @param ga  the game name
      * @param pn  the player number; v1.1.19 and newer allow -1 for some elements (applies to board or to all players).
      *            Earlier client versions will throw an exception accessing player -1.
      *            If the element type allows -1, its constant's javadoc will mention that.
      * @param ac  the type of action: {@link #SET}, {@link #GAIN}, or {@link #LOSE}.
-     *            Use {@link #SET_BAD} or {@link #LOSE_BAD} to set message's {@link #isBad()} flag.
+     *            Use {@link #GAIN_NEWS}, {@link #SET_BAD} or {@link #LOSE_BAD} to set message's {@link #isNews()} flag.
      * @param et  the type of element
      * @param va  the value of the element
      * @return    the command string
      */
     public static String toCmd(String ga, int pn, int ac, int et, int va)
     {
-        boolean isBad = false;
-        if (ac == SET_BAD)
+        boolean isNews = false;
+        switch (ac)
         {
-            isBad = true;
-            ac = SET;
-        }
-        else if (ac == LOSE_BAD)
-        {
-            isBad = true;
-            ac = LOSE;
+        case GAIN_NEWS:
+            isNews = true;  ac = GAIN;  break;
+        case SET_BAD:
+            isNews = true;  ac = SET;  break;
+        case LOSE_BAD:
+            isNews = true;  ac = LOSE;  break;
+        default:
+            // no ac change needed
         }
 
         return PLAYERELEMENT + sep + ga + sep2 + pn + sep2 + ac + sep2 + et + sep2 + va
-            + ((isBad) ? (sep2 + 'Y') : "");
+            + ((isNews) ? (sep2 + 'Y') : "");
     }
 
     /**
@@ -392,7 +407,7 @@ public class SOCPlayerElement extends SOCMessage
         int ac;
         int et;
         int va;
-        boolean isBad = false;
+        boolean isNews = false;
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -404,14 +419,14 @@ public class SOCPlayerElement extends SOCMessage
             et = Integer.parseInt(st.nextToken());
             va = Integer.parseInt(st.nextToken());
             if (st.hasMoreTokens())
-                isBad = st.nextToken().equals("Y");
+                isNews = st.nextToken().equals("Y");
         }
         catch (Exception e)
         {
             return null;
         }
 
-        return new SOCPlayerElement(ga, pn, ac, et, va, isBad);
+        return new SOCPlayerElement(ga, pn, ac, et, va, isNews);
     }
 
     /**
@@ -420,7 +435,7 @@ public class SOCPlayerElement extends SOCMessage
     public String toString()
     {
         String s = "SOCPlayerElement:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + actionType
-            + "|elementType=" + elementType + "|value=" + value + ((bad) ? "|bad=" + bad : "");
+            + "|elementType=" + elementType + "|value=" + value + ((news) ? "|news=Y" : "");
 
         return s;
     }

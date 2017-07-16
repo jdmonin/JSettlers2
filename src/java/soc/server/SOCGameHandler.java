@@ -3267,7 +3267,7 @@ public class SOCGameHandler extends GameHandler
                     if ((res >= SOCResourceConstants.CLAY) && (res <= SOCResourceConstants.WOOD))
                     {
                         ga.pendingMessagesOut.add
-                            (new SOCPlayerElement(gaName, cpn, SOCPlayerElement.GAIN, res, 1));
+                            (new SOCPlayerElement(gaName, cpn, SOCPlayerElement.GAIN, res, 1, true));
                         ga.pendingMessagesOut.add
                             (new UnlocalizedString
                                 (true, "event.fog.reveal",  // "{0} gets 1 {1,rsrcs} by revealing the fog hex."

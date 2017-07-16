@@ -3236,7 +3236,8 @@ public class SOCPlayerInterface extends Frame
         }
 
         public void playerElementUpdated
-            (final SOCPlayer player, final PlayerClientListener.UpdateType utype, final boolean isBad)
+            (final SOCPlayer player, final PlayerClientListener.UpdateType utype,
+             final boolean isGoodNews, final boolean isBadNews)
         {
             final SOCHandPanel hpan = (player == null) ? null : pi.getPlayerHandPanel(player.getPlayerNumber());  // null if no player
             int hpanUpdateRsrcType = 0;  // If not 0, update this type's amount display
@@ -3322,8 +3323,11 @@ public class SOCPlayerInterface extends Frame
                     // update any trade offers currently showing (show or hide Accept button)
                     pi.updateAtClientPlayerResources();
 
-                    // If bad news from lost resources or pieces, let the player know
-                    if (isBad)
+                    // If good or bad news from unexpectedly gained or lost
+                    // resources or pieces, let the player know
+                    if (isGoodNews)
+                        playSound(SOUND_RSRC_GAINED_FREE);
+                    else if (isBadNews)
                         playSound(SOUND_RSRC_LOST);
                 }
                 else

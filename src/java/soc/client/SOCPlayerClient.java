@@ -4322,7 +4322,14 @@ public class SOCPlayerClient
             }
 
             if ((pcl != null) && (utype != null))
-                pcl.playerElementUpdated(pl, utype, mes.isBad());
+            {
+                if (! mes.isNews())
+                    pcl.playerElementUpdated(pl, utype, false, false);
+                else if (mes.getAction() == SOCPlayerElement.GAIN)
+                    pcl.playerElementUpdated(pl, utype, true, false);
+                else
+                    pcl.playerElementUpdated(pl, utype, false, true);
+            }
         }
     }
 
@@ -5299,8 +5306,7 @@ public class SOCPlayerClient
         if (! ga.hasSeaBoard)
             return;  // should not happen
 
-        ga.revealFogHiddenHex
-            (mes.getParam1(), mes.getParam2(), mes.getParam3());
+        ga.revealFogHiddenHex(mes.getParam1(), mes.getParam2(), mes.getParam3());
 
         PlayerClientListener pcl = clientListeners.get(gaName);
         if (pcl == null)
