@@ -3725,6 +3725,10 @@ public class SOCPlayerInterface extends Frame
 
             if ((resultShipsLost == 0) || pi.clientIsCurrentPlayer())
             {
+                // alert sound if client player lost ships
+                if (resultShipsLost > 0)
+                    playSound(SOUND_RSRC_LOST);
+
                 // popup if player is our client, or if won or recaptured
 
                 StringBuffer sb = new StringBuffer(strings.get("game.sc_piri.attfort.results"));  // "Pirate Fortress attack results:"
