@@ -325,7 +325,11 @@ public class SOCPlayerElement extends SOCMessage
 
     /**
      * Is this element change notably good or an unexpected bad change or loss?
-     * For example, resource lost to the robber or monopoly or gained from the fox hex.
+     * For example, resource lost to the robber or monopoly or gained from the fog hex.
+     *<P>
+     * Do not set this flag if the player is expecting the gain or loss.
+     * For example, if this message is server's response to their chosen resources
+     * in a Gold Hex gain dialog.
      *<P>
      * If {@link #getAction()} == {@link #SET}, treat message as bad news.
      *<P>

@@ -670,15 +670,15 @@ public class SOCGameHandler extends GameHandler
                     || (endFromGameState == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
                 {
                     // Send SOCPlayerElement messages, "gains" text
-                    reportRsrcGainGold(ga, cp, cpn, resGainLoss, false);
+                    reportRsrcGainGold(ga, cp, cpn, resGainLoss, true, false);
                 } else {
                     // Send SOCPlayerElement messages
-                    reportRsrcGainLoss(gaName, resGainLoss, false, cpn, -1, null, null);
+                    reportRsrcGainLoss(gaName, resGainLoss, false, false, cpn, -1, null, null);
                 }
             } else {
                 StringConnection c = srv.getConnection(plName);
                 if ((c != null) && c.isConnected())
-                    reportRsrcGainLoss(gaName, resGainLoss, true, cpn, -1, null, c);
+                    reportRsrcGainLoss(gaName, resGainLoss, true, true, cpn, -1, null, c);
                 int totalRes = resGainLoss.getTotal();
                 srv.messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
                 srv.messageToGameKeyed(ga, true, "action.discarded", plName, totalRes);  //  "{0} discarded {1} resources."
@@ -2361,8 +2361,8 @@ public class SOCGameHandler extends GameHandler
         final SOCResourceSet giveSet = offer.getGiveSet(),
                              getSet  = offer.getGetSet();
 
-        reportRsrcGainLoss(gaName, giveSet, true, offering, accepting, null, null);
-        reportRsrcGainLoss(gaName, getSet, false, offering, accepting, null, null);
+        reportRsrcGainLoss(gaName, giveSet, true, false, offering, accepting, null, null);
+        reportRsrcGainLoss(gaName, getSet, false, false, offering, accepting, null, null);
         srv.messageToGameKeyedSpecial(ga, true, "trade.gave.rsrcs.for.from.player",
             ga.getPlayer(offering).getName(), giveSet, getSet, ga.getPlayer(accepting).getName());
             // "{0} gave {1,rsrcs} for {2,rsrcs} from {3}."
@@ -2383,8 +2383,8 @@ public class SOCGameHandler extends GameHandler
         final String gaName = ga.getName();
         final int    cpn    = ga.getCurrentPlayerNumber();
 
-        reportRsrcGainLoss(gaName, give, true, cpn, -1, null, null);
-        reportRsrcGainLoss(gaName, get, false, cpn, -1, null, null);
+        reportRsrcGainLoss(gaName, give, true, false, cpn, -1, null, null);
+        reportRsrcGainLoss(gaName, get, false, false, cpn, -1, null, null);
 
         // use total rsrc counts to determine bank or port
         final int giveTotal = give.getTotal(),
@@ -2419,6 +2419,10 @@ public class SOCGameHandler extends GameHandler
      *                {@link SOCResourceConstants#GOLD_LOCAL GOLD_LOCAL} is ignored.
      *                Only positive resource amounts are sent (negative is ignored).
      * @param isLoss  If true, "give" ({@link SOCPlayerElement#LOSE}), otherwise "get" ({@link SOCPlayerElement#GAIN})
+     * @param isNews  Is this element change notably good or an unexpected bad change or loss?
+     *                Sets the {@link SOCPlayerElement#isNews()} flag in messages sent by this method.
+     *                If there are multiple resource types, flag is set only for the first type sent
+     *                to avoid several alert sounds at client.
      * @param mainPlayer     Player number "giving" if isLose==true, otherwise "getting".
      *                For each nonzero resource involved, PLAYERELEMENT messages will be sent about this player.
      * @param tradingPlayer  Player number on other side of trade, or -1 if no second player is involved.
@@ -2431,14 +2435,14 @@ public class SOCGameHandler extends GameHandler
      *
      * @see #reportTrade(SOCGame, int, int)
      * @see #reportBankTrade(SOCGame, SOCResourceSet, SOCResourceSet)
-     * @see #reportRsrcGainGold(SOCGame, SOCPlayer, int, SOCResourceSet, boolean)
+     * @see #reportRsrcGainGold(SOCGame, SOCPlayer, int, SOCResourceSet, boolean, boolean)
      * @see SOCGameMessageHandler#handleDISCARD(SOCGame, StringConnection, SOCDiscard)
      * @see SOCGameMessageHandler#handlePICKRESOURCES(SOCGame, StringConnection, SOCPickResources)
      * @see SOCGameMessageHandler#handleROLLDICE(SOCGame, StringConnection, SOCRollDice)
      */
     void reportRsrcGainLoss
-        (final String gaName, final SOCResourceSet rset, final boolean isLoss, final int mainPlayer, final int tradingPlayer,
-         StringBuffer message, StringConnection playerConn)
+        (final String gaName, final SOCResourceSet rset, final boolean isLoss, boolean isNews,
+         final int mainPlayer, final int tradingPlayer, StringBuffer message, StringConnection playerConn)
     {
         final int losegain  = isLoss ? SOCPlayerElement.LOSE : SOCPlayerElement.GAIN;  // for pnA
         final int gainlose  = isLoss ? SOCPlayerElement.GAIN : SOCPlayerElement.LOSE;  // for pnB
@@ -2456,11 +2460,14 @@ public class SOCGameHandler extends GameHandler
                 continue;
 
             if (playerConn != null)
-                srv.messageToPlayer(playerConn, new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt));
+                srv.messageToPlayer(playerConn, new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt, isNews));
             else
-                srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt));
+                srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt, isNews));
             if (tradingPlayer != -1)
-                srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, tradingPlayer, gainlose, res, amt));
+                srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, tradingPlayer, gainlose, res, amt, isNews));
+            if (isNews)
+                isNews = false;
+
             if (message != null)
             {
                 if (needComma)
@@ -2483,17 +2490,21 @@ public class SOCGameHandler extends GameHandler
      * @param player  Player gaining
      * @param pn      <tt>player</tt>{@link SOCPlayer#getPlayerNumber() .getPlayerNumber()}
      * @param rsrcs   Resources picked
+     * @param isNews  Is this element change notably good or an unexpected bad change or loss?
+     *                Sets the {@link SOCPlayerElement#isNews()} flag in messages sent by this method.
+     *                If there are multiple resource types, flag is set only for the first type sent
+     *                to avoid several alert sounds at client.
      * @param includeGoldHexText  If true, text ends with "from the gold hex." after the resource name.
      * @since 2.0.00
      */
     void reportRsrcGainGold
         (final SOCGame ga, final SOCPlayer player, final int pn, final SOCResourceSet rsrcs,
-         final boolean includeGoldHexText)
+         final boolean isNews, final boolean includeGoldHexText)
     {
         final String gn = ga.getName();
 
         // Send SOCPlayerElement messages
-        reportRsrcGainLoss(gn, rsrcs, false, pn, -1, null, null);
+        reportRsrcGainLoss(gn, rsrcs, false, isNews, pn, -1, null, null);
         srv.messageToGameKeyedSpecial(ga, true,
             ((includeGoldHexText) ? "action.picked.rsrcs.goldhex" : "action.picked.rsrcs"),
             player.getName(), rsrcs);
@@ -3217,7 +3228,7 @@ public class SOCGameHandler extends GameHandler
         if (isDiscard)
         {
             if ((c != null) && c.isConnected())
-                reportRsrcGainLoss(gaName, rset, true, pn, -1, null, c);
+                reportRsrcGainLoss(gaName, rset, true, true, pn, -1, null, c);
 
             srv.messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
             srv.messageToGameKeyed(cg, true, "action.discarded", plName, totalRes);  // "{0} discarded {1} resources."
@@ -3225,7 +3236,7 @@ public class SOCGameHandler extends GameHandler
             System.err.println("Forced discard: " + totalRes + " from " + plName + " in game " + gaName);
         } else {
             // Send SOCPlayerElement messages, "gains" text
-            reportRsrcGainGold(cg, cg.getPlayer(pn), pn, rset, false);
+            reportRsrcGainGold(cg, cg.getPlayer(pn), pn, rset, true, false);
 
             System.err.println("Forced gold picks: " + totalRes + " to " + plName + " in game " + gaName);
         }
