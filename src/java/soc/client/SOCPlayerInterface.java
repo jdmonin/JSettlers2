@@ -1663,6 +1663,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Queue a sound to play soon but not in this thread.
      * Uses {@link PIPlaySound} to call {@link Sounds#playPCMBytes(byte[])}.
+     * No sound is played if preference {@link SOCPlayerClient.GameAwtDisplay#PREF_SOUND_ON} is false.
      *<P>
      * Playback uses a queuing thread executor, not the AWT {@link EventQueue}.
      *
@@ -4321,6 +4322,8 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Runnable class to try to play a queued sound using {@link Sounds#playPCMBytes(byte[])}.
+     * No sound is played if preference {@link SOCPlayerClient.GameAwtDisplay#PREF_SOUND_ON} is false.
+     *<P>
      * If playback throws {@link LineUnavailableException}, playback stops but the exception
      * has no further effect on this {@link SOCPlayerInterface}.
      * @see SOCPlayerInterface#playSound(byte[])
@@ -4346,6 +4349,10 @@ public class SOCPlayerInterface extends Frame
 
         public void run()
         {
+            if (! SOCPlayerClient.GameAwtDisplay.getUserPreference
+                     (SOCPlayerClient.GameAwtDisplay.PREF_SOUND_ON, true))
+                return;
+
             try
             {
                 Sounds.playPCMBytes(buf);
