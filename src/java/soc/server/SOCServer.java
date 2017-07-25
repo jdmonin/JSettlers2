@@ -8536,9 +8536,12 @@ public class SOCServer extends Server
                             int[] monoPicks = ga.doMonopolyAction(mes.getResource());
 
                             final String monoPlayerName = c.getData();
+                            int monoTotal = 0;
+                            for (int i = 0; i < ga.maxPlayers; i++)
+                                monoTotal += monoPicks[i];
                             final String resName
                                 = " " + SOCResourceConstants.resName(mes.getResource()) + ".";
-                            String message = monoPlayerName + " monopolized" + resName;
+                            String message = monoPlayerName + " monopolized " + monoTotal + resName;
 
                             gameList.takeMonitorForGame(gaName);
                             messageToGameExcept(gaName, c, new SOCGameTextMsg(gaName, SERVERNAME, message), false);
@@ -8561,13 +8564,11 @@ public class SOCServer extends Server
                              * victim(s) of resource amounts taken,
                              * and tell the player how many they won.
                              */
-                            int monoTotal = 0;
                             for (int i = 0; i < ga.maxPlayers; i++)
                             {
                                 int picked = monoPicks[i];
                                 if (picked == 0)
                                     continue;
-                                monoTotal += picked;
                                 String viName = ga.getPlayer(i).getName();
                                 StringConnection viCon = getConnection(viName);
                                 if (viCon != null)
