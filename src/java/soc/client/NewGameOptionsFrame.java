@@ -891,8 +891,11 @@ public class NewGameOptionsFrame extends Frame
             @Override
             public void mouseClicked(MouseEvent e)
             {
-                cb.setState(! cb.getState());
-                super.mouseClicked(e);
+                final boolean makeChecked = ! cb.getState();
+                cb.setState(makeChecked);
+                SOCPlayerClient.GameAwtDisplay.putUserPreference
+                    (SOCPlayerClient.GameAwtDisplay.PREF_SOUND_ON, makeChecked);
+                e.consume();
             }
         });
 
