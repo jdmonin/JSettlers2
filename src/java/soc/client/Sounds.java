@@ -46,8 +46,8 @@ public class Sounds
     /** Sampling rate: 22050 Hz */
     public static final float SAMPLE_RATE_HZ = 22050f;
 
-    /** Major-scale "A" */
-    private static final int CHIME_A_HZ = 2 * 880;
+    /** Major-scale "A" at 2 * 880 Hz */
+    public static final int CHIME_A_HZ = 2 * 880;
 
     private static final double PI_X_2 = 2.0 * Math.PI;
 
@@ -58,8 +58,6 @@ public class Sounds
          1,           // channels
          true,        // signed
          false);      // bigEndian
-
-    // plan: generate CHIME_A_HZ, amplitude 0.8-0.9 for .01sec, then .9 to 0 for .18sec.
 
     /**
      * Generate a chime, with volume fading out to 0.
@@ -74,14 +72,32 @@ public class Sounds
         if (msec > 1000)
             throw new IllegalArgumentException("msec");
 
-        // TODO 2 parts: attack for first 10msec, then release for rest of msec
-
         final int imax = (int) ((msec * SAMPLE_RATE_HZ) / 1000);
         byte[] buf = new byte[imax];
-        for (int i = 0, j = imax; j > 0; ++i, --j)
+
+        // 2 parts if >= 40ms: attack for first 10msec (amplitude 0.8 * vol to vol),
+        // then release for rest of msec (fading amplitude: vol to 0)
+
+        final int amax;
+        if (msec >= 40)
         {
-            double angle = j / (SAMPLE_RATE_HZ / hz) * PI_X_2;
-            buf[i] = (byte)(Math.sin(angle) * ((127.0 * vol * j) / imax));
+            amax = (int) ((10 * SAMPLE_RATE_HZ) / 1000);
+            final double vol0 = 0.8 * vol,
+                         dVol = vol - vol0;
+            for (int i = 0; i < amax; ++i)
+            {
+                double angle = i / (SAMPLE_RATE_HZ / hz) * PI_X_2;
+                buf[i] = (byte)(Math.sin(angle) * 127.0 * (vol0 + ((dVol * i) / amax)));
+            }
+        } else {
+            amax = 0;
+        }
+
+        final int rmax = imax - amax;
+        for (int i = amax, j = rmax; j > 0; ++i, --j)
+        {
+            double angle = i / (SAMPLE_RATE_HZ / hz) * PI_X_2;
+            buf[i] = (byte)(Math.sin(angle) * ((127.0 * vol * j) / rmax));
         }
 
         return buf;
@@ -153,7 +169,7 @@ public class Sounds
      * @param buf  Buffer to play; PCM mono 8-bit signed, at {@link #SAMPLE_RATE_HZ}
      * @throws LineUnavailableException if the line resource can't be opened
      */
-    public static void playPCMBytes(final byte[] buf)
+    public static final void playPCMBytes(final byte[] buf)
         throws LineUnavailableException
     {
         SourceDataLine sdl = AudioSystem.getSourceDataLine(AFMT_PCM_8_AT_SAMPLE_RATE);
