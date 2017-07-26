@@ -58,6 +58,8 @@ import java.util.Vector;
 import java.io.PrintWriter;  // For chatPrintStackTrace
 import java.io.StringWriter;
 
+import javax.sound.sampled.LineUnavailableException;
+
 /**
  * Window with interface for a player in one game of Settlers of Catan.
  * Contains {@link SOCBoardPanel board}, client's and other players' {@link SOCHandPanel hands},
@@ -409,6 +411,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     protected SOCMonopolyDialog monopolyDialog;
 
     /**
+     * Sound prompt at start of player's turn (roll or play card).
+     * Generated at first call to constructor.
+     * @since 1.2.00
+     */
+    private static byte[] SOUND_BEGIN_TURN;
+
+    /**
      * create a new player interface
      *
      * @param title  title for this interface - game name
@@ -498,6 +507,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             setVisible(true);
         }
         repaint();
+
+        if (SOUND_BEGIN_TURN == null)
+            SOUND_BEGIN_TURN = Sounds.genChime(Sounds.CHIME_A_HZ, 160, .5);
 
         /**
          * init is almost complete - when window appears and doLayout is called,
@@ -1613,7 +1625,14 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     public void updateAtRollPrompt()
     {
         if (clientIsCurrentPlayer())
+        {
             getClientHand().autoRollOrPromptPlayer();
+
+            if (SOUND_BEGIN_TURN != null)
+                try {
+                    Sounds.playPCMBytes(SOUND_BEGIN_TURN);
+                } catch (LineUnavailableException e) {}
+        }
     }
 
     /**
