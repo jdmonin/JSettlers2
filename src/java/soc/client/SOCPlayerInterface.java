@@ -524,14 +524,18 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         repaint();
 
         if (SOUND_BEGIN_TURN == null)
-        {
-            SOUND_BEGIN_TURN = Sounds.genChime(Sounds.NOTE_A5_HZ, 160, .5);
+            soundQueueThreader.submit(new Runnable()
+            {
+                public void run()
+                {
+                    SOUND_BEGIN_TURN = Sounds.genChime(Sounds.NOTE_A5_HZ, 160, .5);
 
-            byte[] buf = new byte[Sounds.bufferLen(120 + 90)];
-            int i = Sounds.genChime(Sounds.NOTE_E4_HZ, 120, .9, buf, 0);
-            Sounds.genChime(Sounds.NOTE_C4_HZ, 90, .9, buf, i);
-            SOUND_ROBBER_OR_LOST_RSRC = buf;
-        }
+                    byte[] buf = new byte[Sounds.bufferLen(120 + 90)];
+                    int i = Sounds.genChime(Sounds.NOTE_E4_HZ, 120, .9, buf, 0);
+                    Sounds.genChime(Sounds.NOTE_C4_HZ, 90, .9, buf, i);
+                    SOUND_ROBBER_OR_LOST_RSRC = buf;
+                }
+            });
 
         /**
          * init is almost complete - when window appears and doLayout is called,
@@ -1651,6 +1655,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         }
 
         buildingPanel.updateButtonStatus();
+
+        // play Begin Turn sound here, not updateAtRollPrompt() which
+        // isn't called for first player during initial placement
+        if (clientIsCurrentPlayer())
+            playSound(SOUND_BEGIN_TURN);
     }
 
     /**
@@ -1663,11 +1672,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     public void updateAtRollPrompt()
     {
         if (clientIsCurrentPlayer())
-        {
             getClientHand().autoRollOrPromptPlayer();
-
-            playSound(SOUND_BEGIN_TURN);
-        }
     }
 
     /**
