@@ -117,6 +117,14 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      */
     private boolean layoutNotReadyYet;
 
+    /**
+     * To avoid sound-effect spam while receiving board layout info
+     * when starting a game or joining a game in progress, track whether
+     * {@link #began(Vector)} has been called.
+     * @since 1.2.00
+     */
+    boolean hasCalledBegan;
+
     //========================================================
     /**
      * Text/chat fields begin here
@@ -1497,6 +1505,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         // Don't request focus for textInput; it should clear
         // the prompt text when user clicks (focuses) it, so
         // wait for user to do that.
+
+        hasCalledBegan = true;
 
         // Look for game observers, list in textDisplay
         if (members == null)

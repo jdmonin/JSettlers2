@@ -3612,7 +3612,8 @@ public class SOCPlayerClient extends Applet
             if (ga.isDebugFreePlacement() && ga.isInitialPlacement())
                 pi.getBoardPanel().updateMode();  // update here, since gamestate doesn't change
 
-            SOCPlayerInterface.playSound(SOCPlayerInterface.SOUND_PUT_PIECE);
+            if (pi.hasCalledBegan)
+                SOCPlayerInterface.playSound(SOCPlayerInterface.SOUND_PUT_PIECE);
 
             /**
              * Check for and announce change in longest road; update all players' victory points.
