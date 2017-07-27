@@ -54,8 +54,14 @@ public class Sounds
     /** Sampling rate: 22050 Hz */
     public static final float SAMPLE_RATE_HZ = 22050f;
 
-    /** Major-scale "A" at 2 * 880 Hz */
-    public static final int CHIME_A_HZ = 2 * 880;
+    /** Musical note C4, 262 Hz */
+    public static final int NOTE_C4_HZ = 262;
+
+    /** Musical note E4, 330 Hz */
+    public static final int NOTE_E4_HZ = 330;
+
+    /** Musical note A5, 880 Hz */
+    public static final int NOTE_A5_HZ = 880;
 
     private static final double PI_X_2 = 2.0 * Math.PI;
 
@@ -261,16 +267,16 @@ public class Sounds
     {
         try
         {
-            tone(CHIME_A_HZ, 180, .9);
+            tone(NOTE_A5_HZ, 180, .9);
             Thread.sleep(60);
-            chime(CHIME_A_HZ, 180, .9);
+            chime(NOTE_A5_HZ, 180, .9);
             Thread.sleep(60);
-            chime(CHIME_A_HZ / 2, 180 + 90, .9);
+            chime(NOTE_A5_HZ / 2, 180 + 90, .9);
             Thread.sleep(60);
 
             byte[] buf = new byte[bufferLen(120 + 90)];
-            int i = genTone(330, 120, .9, buf, 0);  // E4
-            genTone(262, 90, .9, buf, i);  // C4
+            int i = genChime(NOTE_E4_HZ, 120, .9, buf, 0);
+            genChime(NOTE_C4_HZ, 90, .9, buf, i);
             playPCMBytes(buf);
 
         } catch (Exception e) {
