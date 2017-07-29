@@ -740,7 +740,7 @@ public class SOCDBHelper
             // Load the JDBC driver
             try
             {
-                String prop_jarname = props.getProperty(PROP_JSETTLERS_DB_JAR);
+                String prop_jarname = (props != null) ? props.getProperty(PROP_JSETTLERS_DB_JAR) : null;
                 if ((prop_jarname != null) && (prop_jarname.length() == 0))
                     prop_jarname = null;
 
@@ -775,7 +775,7 @@ public class SOCDBHelper
             }
 
             // Do we have a setup script to run?
-            String prop_dbSetupScript = props.getProperty(PROP_JSETTLERS_DB_SCRIPT_SETUP);
+            String prop_dbSetupScript = (props != null) ? props.getProperty(PROP_JSETTLERS_DB_SCRIPT_SETUP) : null;
             if ((prop_dbSetupScript != null) && (prop_dbSetupScript.length() == 0))
                 prop_dbSetupScript = null;
 
