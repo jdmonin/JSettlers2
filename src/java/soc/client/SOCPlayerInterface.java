@@ -435,11 +435,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     static byte[] SOUND_PUT_PIECE;
 
     /**
-     * Alert chime for when robber is moved to client player's hex or resources must be discarded/lost.
+     * Alert chime for when resources have been stolen or player must choose which ones to discard.
      * Generated at first call to constructor.
      * @since 1.2.00
      */
-    static byte[] SOUND_ROBBER_OR_LOST_RSRC;
+    static byte[] SOUND_RSRC_LOST;
 
     /**
      * Thread executor to queue and play {@link #playSound(byte[])} using {@link PIPlaySound}s.
@@ -554,7 +554,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                     buf = new byte[Sounds.bufferLen(120 + 90)];
                     int i = Sounds.genChime(Sounds.NOTE_E4_HZ, 120, .9, buf, 0, false);
                     Sounds.genChime(Sounds.NOTE_C4_HZ, 90, .9, buf, i, false);
-                    SOUND_ROBBER_OR_LOST_RSRC = buf;
+                    SOUND_RSRC_LOST = buf;
                 }
             });
 

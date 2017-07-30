@@ -12,7 +12,7 @@ and backport minor new features until 2.0.00 is ready.
 
 
     > 1.2.00 (build OV20170xxx)
-- Simple sound effects for game events: Start of client player's turn, robber moved to player's hex, etc
+- Simple sound effects for game events: Start of client player's turn, resource stolen by robber, etc
 - Monopoly announces total number of resources stolen
 - New Game options: Popup if old versions can't play: Default to Create, not Change Options
 - To ensure everyone has initial settlements, don't allow new clients to sit after 1st settlements are all placed
