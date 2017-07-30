@@ -1703,9 +1703,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      *<P>
      * If any trade offers are currently showing, show or hide the offer Accept button
      * depending on the updated set of available resources.
+     * @param isLossNews  True if this resource change is bad news from a message that
+     *     the player has lost resources (to the robber, monopoly, etc)
      * @since 1.1.20
      */
-    public void updateAtClientPlayerResources()
+    public void updateAtClientPlayerResources(final boolean isLossNews)
     {
         for (int i = 0; i < hands.length; ++i)
         {
@@ -1714,6 +1716,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
             hands[i].updateCurrentOffer(true);
         }
+
+        // If bad news from unexpectedly lost resources, let the player know
+        if (isLossNews)
+            playSound(SOUND_RSRC_LOST);
     }
 
     /**

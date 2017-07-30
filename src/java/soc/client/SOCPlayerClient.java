@@ -3476,12 +3476,13 @@ public class SOCPlayerClient extends Applet
 
                     // Because client player's available resources have changed,
                     // update any trade offers currently showing (show or hide Accept button)
-                    pi.updateAtClientPlayerResources();
+                    pi.updateAtClientPlayerResources
+                        (mes.isNews() && (mes.getAction() != SOCPlayerElement.GAIN));
                 }
                 else
                 {
                     hpan.updateValue(SOCHandPanel.NUMRESOURCES);
-                }                
+                }
             }
 
             if (hpan.isClientPlayer() && (ga.getGameState() != SOCGame.NEW))

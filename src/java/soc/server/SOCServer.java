@@ -7306,7 +7306,10 @@ public class SOCServer extends Server
                         /**
                          * tell everyone else that the player discarded unknown resources
                          */
-                        messageToGameExcept(gn, c, new SOCPlayerElement(gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, mes.getResources().getTotal()), true);
+                        messageToGameExcept
+                            (gn, c, new SOCPlayerElement
+                                (gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, mes.getResources().getTotal(), true),
+                             true);
                         messageToGame(gn, c.getData() + " discarded " + mes.getResources().getTotal() + " resources.");
 
                         /**
@@ -8534,11 +8537,18 @@ public class SOCServer extends Server
                         if (ga.canDoMonopolyAction())
                         {
                             int[] monoPicks = ga.doMonopolyAction(mes.getResource());
-
+                            final boolean[] isVictim = new boolean[ga.maxPlayers];
                             final String monoPlayerName = c.getData();
                             int monoTotal = 0;
-                            for (int i = 0; i < ga.maxPlayers; i++)
-                                monoTotal += monoPicks[i];
+                            for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                            {
+                                final int n = monoPicks[pn];
+                                if (n > 0)
+                                {
+                                    monoTotal += n;
+                                    isVictim[pn] = true;
+                                }
+                            }
                             final String resName
                                 = " " + SOCResourceConstants.resName(mes.getResource()) + ".";
                             String message = monoPlayerName + " monopolized " + monoTotal + resName;
@@ -8547,15 +8557,18 @@ public class SOCServer extends Server
                             messageToGameExcept(gaName, c, new SOCGameTextMsg(gaName, SERVERNAME, message), false);
 
                             /**
-                             * just send all the player's resource counts for the
-                             * monopolized resource
+                             * just send all the player's resource counts for the monopolized resource;
+                             * set isBad flag for each victim player's count
                              */
-                            for (int i = 0; i < ga.maxPlayers; i++)
+                            for (int pn = 0; pn < ga.maxPlayers; ++pn)
                             {
                                 /**
-                                 * Note: This only works if SOCPlayerElement.CLAY == SOCResourceConstants.CLAY
+                                 * Note: This works because SOCPlayerElement.CLAY == SOCResourceConstants.CLAY
                                  */
-                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, mes.getResource(), ga.getPlayer(i).getResources().getAmount(mes.getResource())));
+                                messageToGameWithMon
+                                    (gaName, new SOCPlayerElement
+                                        (gaName, pn, SOCPlayerElement.SET,
+                                         mes.getResource(), ga.getPlayer(pn).getResources().getAmount(mes.getResource()), isVictim[pn]));
                             }
                             gameList.releaseMonitorForGame(gaName);
 
@@ -8564,12 +8577,12 @@ public class SOCServer extends Server
                              * victim(s) of resource amounts taken,
                              * and tell the player how many they won.
                              */
-                            for (int i = 0; i < ga.maxPlayers; i++)
+                            for (int pn = 0; pn < ga.maxPlayers; ++pn)
                             {
-                                int picked = monoPicks[i];
-                                if (picked == 0)
+                                if (! isVictim[pn])
                                     continue;
-                                String viName = ga.getPlayer(i).getName();
+                                int picked = monoPicks[pn];
+                                String viName = ga.getPlayer(pn).getName();
                                 StringConnection viCon = getConnection(viName);
                                 if (viCon != null)
                                     messageToPlayer(viCon, gaName,
@@ -9713,7 +9726,7 @@ public class SOCServer extends Server
 
             // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP.
             gainRsrc = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, rsrc, 1);
-            loseRsrc = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, rsrc, 1);
+            loseRsrc = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, rsrc, 1, true);
 
             mes.append(" resource from "); 
 
