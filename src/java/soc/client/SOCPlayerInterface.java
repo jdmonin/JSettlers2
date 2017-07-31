@@ -482,7 +482,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Alert chime for when free resources are gained from a gold hex or a scenario-specific event.
      * Generated at first call to constructor.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     static byte[] SOUND_RSRC_GAINED_FREE;
 

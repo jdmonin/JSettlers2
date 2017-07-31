@@ -174,7 +174,7 @@ public class SOCPlayerElement extends SOCMessage
      * than v1.2.00.
      * @since 1.2.00
      */
-    public static final int SET_BAD = -100;
+    public static final int SET_NEWS = -100;
 
     /**
      * Convenience "value" for action, sent over network as {@link #GAIN}
@@ -190,7 +190,7 @@ public class SOCPlayerElement extends SOCMessage
      * than v1.2.00.
      * @since 1.2.00
      */
-    public static final int LOSE_BAD = -102;
+    public static final int LOSE_NEWS = -102;
 
     /**
      * Name of game
@@ -231,11 +231,11 @@ public class SOCPlayerElement extends SOCMessage
      *            Earlier client versions will throw an exception accessing player -1.
      *            If the element type allows -1, its constant's javadoc will mention that.
      * @param ac  the type of action: {@link #SET}, {@link #GAIN}, or {@link #LOSE}.
-     *            Do not use {@link #GAIN_NEWS}, {@link #SET_BAD}, or {@link #LOSE_BAD} here, call
+     *            Do not use {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS} here, call
      *            {@link #SOCPlayerElement(String, int, int, int, int, boolean)} instead.
      * @param et  the type of element, such as {@link #SETTLEMENTS}
      * @param va  the value of the element
-     * @throws IllegalArgumentException if {@code ac} is {@link #GAIN_NEWS}, {@link #SET_BAD}, or {@link #LOSE_BAD}
+     * @throws IllegalArgumentException if {@code ac} is {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS}
      * @see #SOCPlayerElement(String, int, int, int, int, boolean)
      */
     public SOCPlayerElement(String ga, int pn, int ac, int et, int va)
@@ -252,19 +252,19 @@ public class SOCPlayerElement extends SOCMessage
      *            Earlier client versions will throw an exception accessing player -1.
      *            If the element type allows -1, its constant's javadoc will mention that.
      * @param ac  the type of action: {@link #SET}, {@link #GAIN}, or {@link #LOSE}.
-     *            Do not use {@link #GAIN_NEWS}, {@link #SET_BAD}, or {@link #LOSE_BAD} here,
+     *            Do not use {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS} here,
      *            instead set {@code isNews} parameter.
      * @param et  the type of element, such as {@link #SETTLEMENTS}
      * @param va  the value of the element
      * @param isNews  Value to give the {@link #isNews()} flag
      * @see #SOCPlayerElement(String, int, int, int, int)
-     * @throws IllegalArgumentException if {@code ac} is {@link #GAIN_NEWS}, {@link #SET_BAD} or {@link #LOSE_BAD}
+     * @throws IllegalArgumentException if {@code ac} is {@link #GAIN_NEWS}, {@link #SET_NEWS} or {@link #LOSE_NEWS}
      * @since 1.2.00
      */
     public SOCPlayerElement(String ga, int pn, int ac, int et, int va, boolean isNews)
         throws IllegalArgumentException
     {
-        if ((ac == GAIN_NEWS) || (ac == SET_BAD) || (ac == LOSE_BAD))
+        if ((ac == GAIN_NEWS) || (ac == SET_NEWS) || (ac == LOSE_NEWS))
             throw new IllegalArgumentException("use isNews instead");
 
         messageType = PLAYERELEMENT;
@@ -357,9 +357,9 @@ public class SOCPlayerElement extends SOCMessage
             case GAIN:
                 ac = GAIN_NEWS;  break;
             case LOSE:
-                ac = LOSE_BAD;  break;
+                ac = LOSE_NEWS;  break;
             case SET:
-                ac = SET_BAD;  break;
+                ac = SET_NEWS;  break;
             }
 
         return toCmd(game, playerNumber, ac, elementType, value);
@@ -374,7 +374,7 @@ public class SOCPlayerElement extends SOCMessage
      *            Earlier client versions will throw an exception accessing player -1.
      *            If the element type allows -1, its constant's javadoc will mention that.
      * @param ac  the type of action: {@link #SET}, {@link #GAIN}, or {@link #LOSE}.
-     *            Use {@link #GAIN_NEWS}, {@link #SET_BAD} or {@link #LOSE_BAD} to set message's {@link #isNews()} flag.
+     *            Use {@link #GAIN_NEWS}, {@link #SET_NEWS} or {@link #LOSE_NEWS} to set message's {@link #isNews()} flag.
      * @param et  the type of element
      * @param va  the value of the element
      * @return    the command string
@@ -386,9 +386,9 @@ public class SOCPlayerElement extends SOCMessage
         {
         case GAIN_NEWS:
             isNews = true;  ac = GAIN;  break;
-        case SET_BAD:
+        case SET_NEWS:
             isNews = true;  ac = SET;  break;
-        case LOSE_BAD:
+        case LOSE_NEWS:
             isNews = true;  ac = LOSE;  break;
         default:
             // no ac change needed
