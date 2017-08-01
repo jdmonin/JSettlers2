@@ -40,13 +40,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
-import javax.swing.JFrame;   // for GameStatisticsFrame
-
-
 /**
  * This class is a panel that shows how much it costs
  * to build things, and it allows the player to build.
  * Sits within a game's {@link SOCPlayerInterface} frame.
+ * @see NewGameOptionsFrame
+ * @see GameStatisticsFrame
  */
 @SuppressWarnings("serial")
 public class SOCBuildingPanel extends Panel
@@ -66,9 +65,22 @@ public class SOCBuildingPanel extends Panel
     Button settlementBut;
     Button cityBut;
     Button cardBut;
-    Button gameInfoBut;  // show SOCGameOptions; @since 1.1.07; 2.0.00 renamed from optsBut
+
+    /**
+     * Click to show {@link SOCGameOption}s in a {@link #ngof} frame.
+     * Before v2.0.00 this button was {@code optsBut}.
+     * @since 1.1.07
+     */
+    Button gameOptsBut;
+
+    /**
+     * Click to show game statistics in {@link #statsFrame}.
+     * @since 2.0.00
+     */
     Button statsBut;
-    JFrame statsFrame;
+
+    GameStatisticsFrame statsFrame;
+
     Label roadT;  // text
     Label roadC;  // cost
     ColorSquare roadWood;
@@ -148,7 +160,7 @@ public class SOCBuildingPanel extends Panel
     private int pieceButtonsState;
 
     /**
-     * "Game Info" window, from {@link #gameInfoBut} click, or null.
+     * "Game Info" window, from {@link #gameOptsBut} click, or null.
      * Tracked to prevent showing more than 1 at a time.
      * @since 1.1.18
      */
@@ -241,12 +253,12 @@ public class SOCBuildingPanel extends Panel
         cityBut.setActionCommand(CITY);
         cityBut.addActionListener(this);
 
-        gameInfoBut = new Button(strings.get("build.game.info"));  // "Game Info..." -- show game options
-        add(gameInfoBut);
-        gameInfoBut.addActionListener(this);
+        gameOptsBut = new Button(strings.get("build.game.options"));  // "Options..." -- show game options
+        add(gameOptsBut);
+        gameOptsBut.addActionListener(this);
 
         //TODO: disable until the game initialization is complete and the first roll is made
-        statsBut = new Button(strings.get("build.game.stats"));  // "Game Statistics..."
+        statsBut = new Button(strings.get("build.game.stats"));  // "Statistics..."
         add(statsBut);
         statsBut.addActionListener(this);
 
@@ -600,11 +612,11 @@ public class SOCBuildingPanel extends Panel
             curY -= (lineH + 5);
 
         curX = dim.width - (2 * butW) - margin;
-        gameInfoBut.setSize(butW * 2, lineH);
+        gameOptsBut.setSize(butW * 2, lineH);
         if ((maxPlayers <= 4) && ! hasLargeBoard)
-            gameInfoBut.setLocation(curX, 1 + (rowSpaceH + lineH)); // move up to row 2; row 3 will have VP to Win
+            gameOptsBut.setLocation(curX, 1 + (rowSpaceH + lineH)); // move up to row 2; row 3 will have VP to Win
         else
-            gameInfoBut.setLocation(curX, curY);
+            gameOptsBut.setLocation(curX, curY);
         statsBut.setSize(butW * 2, lineH);
         if (hasLargeBoard)
             statsBut.setLocation(curX, 1 + (2 * (rowSpaceH + lineH)));
@@ -675,7 +687,7 @@ public class SOCBuildingPanel extends Panel
         String target = e.getActionCommand();
         SOCGame game = pi.getGame();
 
-        if (e.getSource() == gameInfoBut)
+        if (e.getSource() == gameOptsBut)
         {
             if ((ngof != null) && ngof.isVisible())
             {
