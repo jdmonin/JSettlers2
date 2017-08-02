@@ -212,7 +212,7 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
 
             okBut.requestFocus();
 
-            SOCPlayerInterface.playSound
+            playerInterface.playSound
                 ((isDiscard) ? SOCPlayerInterface.SOUND_RSRC_LOST : SOCPlayerInterface.SOUND_RSRC_GAINED_FREE);
         }
 

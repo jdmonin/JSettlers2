@@ -694,7 +694,7 @@ public class SOCBuildingPanel extends Panel
                 ngof.setVisible(true);  // method override also requests topmost/focus
             } else {
                 ngof = NewGameOptionsFrame.createAndShow
-                    (pi.getGameDisplay(), game.getName(), game.getGameOptions(), false, true);
+                    (pi, pi.getGameDisplay(), game.getName(), game.getGameOptions(), false, true);
                 ngof.addWindowListener(this);  // drop ngof reference when window is closed
             }
 

@@ -627,6 +627,7 @@ public class SOCPlayerClient
          * Boolean persistent {@link Preferences} key for sound effects.
          * Default value is {@code true}.
          * @see #getUserPreference(String, boolean)
+         * @see SOCPlayerInterface#isSoundMuted()
          * @since 1.2.00
          */
         final static String PREF_SOUND_ON = "soundOn";
@@ -1610,7 +1611,8 @@ public class SOCPlayerClient
                 }
 
                 // don't overwrite newGameOptsFrame field; this popup is to show an existing game.
-                NewGameOptionsFrame.createAndShow(this, gm, opts, false, true);
+                NewGameOptionsFrame.createAndShow
+                    (playerInterfaces.get(gm), this, gm, opts, false, true);
                 return true;
             }
 
@@ -1935,7 +1937,7 @@ public class SOCPlayerClient
             {
                 // All done, present the options window frame
                 newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (this, null, opts.optionSet, forPracticeServer, false);
+                    (null, this, null, opts.optionSet, forPracticeServer, false);
                 return;  // <--- Early return: Show options to user ----
             }
 
@@ -2456,7 +2458,7 @@ public class SOCPlayerClient
         {
             gameOptionsCancelTimeoutTask();
             newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                (GameAwtDisplay.this, (String) null, opts.optionSet, isPractice, false);
+                (null, GameAwtDisplay.this, (String) null, opts.optionSet, isPractice, false);
         }
 
         public void optionsReceived(ServerGametypeInfo opts, boolean isPractice, boolean isDash, boolean hasAllNow)
@@ -2484,7 +2486,7 @@ public class SOCPlayerClient
                     if (! isPractice)
                         client.checkGameoptsForUnknownScenario(gameOpts);
                     newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                        (GameAwtDisplay.this, gameInfoWaiting, gameOpts, isPractice, true);
+                        (null, GameAwtDisplay.this, gameInfoWaiting, gameOpts, isPractice, true);
                 }
                 else if (newGameWaiting)
                 {
@@ -2493,7 +2495,7 @@ public class SOCPlayerClient
                         opts.newGameWaitingForOpts = false;
                     }
                     newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                        (GameAwtDisplay.this, (String) null, opts.optionSet, isPractice, false);
+                        (null, GameAwtDisplay.this, (String) null, opts.optionSet, isPractice, false);
                 }
             }
         }
