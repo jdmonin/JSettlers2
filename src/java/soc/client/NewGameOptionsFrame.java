@@ -73,12 +73,15 @@ import soc.util.Version;
 
 /**
  * This is the dialog for a game's name and options to set, along with the client's
- * user preferences such as {@link SOCPlayerClient.GameAwtDisplay#PREF_SOUND_ON}.
+ * user preferences such as {@link SOCPlayerClient.GameAwtDisplay#PREF_SOUND_ON}
+ * and per-game preferences such as {@link SOCPlayerInterface#PREF_SOUND_MUTE}.
+ * When "Create" button is clicked, validates fields and calls
+ * {@link SOCPlayerClient.GameAwtDisplay#askStartGameWithOptions(String, boolean, Map, Map)}.
  *<P>
  * Also used for showing a game's options (read-only) during game play.
  *<P>
- * Changing the {@code PREF_SOUND_ON} user pref checkbox takes effect immediately
- * so the user can mute sound effects with minimal frustration.
+ * Changes to the {@code PREF_SOUND_ON} or {@code PREF_SOUND_MUTE} checkboxes
+ * take effect immediately so the user can mute sound effects with minimal frustration.
  *<P>
  * If this window already exists and you'd like to make it topmost,
  * call {@link #setVisible(boolean)} instead of {@link #requestFocus()}.
@@ -112,6 +115,7 @@ public class NewGameOptionsFrame extends Frame
     /**
      * Game's interface if known, or {@code null} for a new game.
      * Used for updating settings like {@link SOCPlayerInterface#isSoundMuted()}.
+     * @see #forNewGame
      * @since 1.2.00
      */
     private final SOCPlayerInterface pi;
@@ -122,7 +126,15 @@ public class NewGameOptionsFrame extends Frame
     private final boolean forPractice;
 
     /**
+     * Map of local client preferences for a new game, or {@code null} if ! {@link #forNewGame}.
+     * Same keys and values as {@link SOCPlayerInterface} constructor's
+     * {@code localPrefs} parameter.
+     */
+    private final HashMap<String, Object> localPrefs;
+
+    /**
      * Is this NGOF used to set options for a new game, not to show them for an existing one?
+     * If true, {@link #pi} == {@code null}.
      * @since 2.0.00
      */
     private final boolean forNewGame;
@@ -248,6 +260,7 @@ public class NewGameOptionsFrame extends Frame
         SOCPlayerClient cli = gd.getClient();
         forNewGame = (gaName == null);
         this.opts = opts;
+        localPrefs = (forNewGame) ? new HashMap<String, Object>() : null;
         this.forPractice = forPractice;
         this.readOnly = readOnly;
         controlsOpts = new HashMap<Component, SOCGameOption>();
@@ -309,6 +322,7 @@ public class NewGameOptionsFrame extends Frame
     /**
      * Interface setup for constructor. Assumes frame is using BorderLayout.
      * Most elements are part of a sub-panel occupying most of this Frame, and using GridBagLayout.
+     * Fills {@link #localPrefs} if {@link #forNewGame}.
      */
     private void initInterfaceElements(final String gaName)
     {
@@ -363,7 +377,7 @@ public class NewGameOptionsFrame extends Frame
         bp.add(gameName);
 
         /**
-         * Interface setup: Options and user's client preferences
+         * Interface setup: Game Options, user's client preferences, per-game local preferences
          */
         initInterface_Options(bp, gbl, gbc);
 
@@ -407,7 +421,7 @@ public class NewGameOptionsFrame extends Frame
     private final static Color LABEL_TXT_COLOR = new Color(252, 251, 243); // off-white
 
     /**
-     * Interface setup: {@link SOCGameOption}s and user's client preferences.
+     * Interface setup: {@link SOCGameOption}s, user's client preferences, per-game local preferences.
      * One row per option, except for 3-letter options which group with 2-letter ones.
      * Boolean checkboxes go on the left edge; text and int/enum values are to right of checkboxes.
      *<P>
@@ -866,7 +880,9 @@ public class NewGameOptionsFrame extends Frame
     }
 
     /**
-     * Build UI for user preferences such as {@link SOCPlayerClient.GameAwtDisplay#PREF_SOUND_ON}.
+     * Build UI for user preferences such as {@link SOCPlayerClient.GameAwtDisplay#PREF_SOUND_ON}
+     * and {@link SOCPlayerInterface#PREF_SOUND_MUTE}. Fills {@link #localPrefs} if {@link #forNewGame}.
+     *<P>
      * Called from {@link #initInterface_Options(JPanel, GridBagLayout, GridBagConstraints)}.
      * @param bp  Add to this panel
      * @param gbl Use this layout
@@ -902,8 +918,9 @@ public class NewGameOptionsFrame extends Frame
         gbc.insets = insets_old;  // only the first pref needs that top indent
 
         // Per-PI sound pref:
-        // TODO field to track for new game (pi == null)
         boolean val = (pi != null) ? pi.isSoundMuted() : false;
+        if (localPrefs != null)
+            localPrefs.put(SOCPlayerInterface.PREF_SOUND_MUTE, Boolean.valueOf(val));
         initInterface_Pref1
             (bp, gbl, gbc,
              strings.get("game.options.sound.mute_this"),  // "Sound: Mute this game"
@@ -912,10 +929,10 @@ public class NewGameOptionsFrame extends Frame
              {
                  public void stateChanged(boolean check)
                  {
-                     // TODO also set a local field, for use in new-game setup
-
                      if (pi != null)
                          pi.setSoundMuted(check);
+                     else if (localPrefs != null)
+                         localPrefs.put(SOCPlayerInterface.PREF_SOUND_MUTE, Boolean.valueOf(check));
                  }
              });
     }
@@ -1054,7 +1071,7 @@ public class NewGameOptionsFrame extends Frame
 
     }
 
-    /** "Connect..." from connect setup; check fields, etc */
+    /** "Create" button or "Connect..." from connect setup; check fields, etc */
     private void clickCreate(final boolean checkOptionsMinVers)
     {
         String gmName = gameName.getText().trim();
@@ -1070,6 +1087,7 @@ public class NewGameOptionsFrame extends Frame
         }
 
         SOCPlayerClient cl = gameDisplay.getClient();
+
         /**
          * Is this game name already used?
          * Always check remote server for the requested game name.
@@ -1093,7 +1111,8 @@ public class NewGameOptionsFrame extends Frame
             if (readOptsValuesFromControls(checkOptionsMinVers))
             {
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // Immediate feedback in this frame
-                gameDisplay.askStartGameWithOptions(gmName, forPractice, opts);  // Also sets WAIT_CURSOR, in main client frame
+                gameDisplay.askStartGameWithOptions
+                    (gmName, forPractice, opts, localPrefs);  // sets WAIT_CURSOR in main client frame
             } else {
                 return;  // readOptsValues will put the err msg in dia's status line
             }

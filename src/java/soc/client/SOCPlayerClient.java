@@ -300,6 +300,18 @@ public class SOCPlayerClient
     private final Map<String, PlayerClientListener> clientListeners = new HashMap<String, PlayerClientListener>();
 
     /**
+     * For new-game requests, map of game names to per-game local preference maps to pass to
+     * that new game's {@link SOCPlayerInterface} constructor. The {@link HashMap} of game names permits
+     * a {@code null} value instead of a Map, but there is no guarantee that preference values can be {@code null}
+     * within a game's Map.
+     *<P>
+     * Preference name keys are {@link SOCPlayerInterface#PREF_SOUND_MUTE}, etc.
+     * Values for boolean prefs should be {@link Boolean#TRUE} or {@code .FALSE}.
+     * @since 1.2.00
+     */
+    private final HashMap<String, Map<String, Object>> gameReqLocalPrefs = new HashMap<String, Map<String, Object>>();
+
+    /**
      * the ignore list
      */
     protected Vector<String> ignoreList = new Vector<String>();
@@ -426,7 +438,7 @@ public class SOCPlayerClient
         void messageBroadcast(String message);
         void messageReceived(String channelName, String nickname, String message);
 
-        PlayerClientListener gameJoined(SOCGame game);
+        PlayerClientListener gameJoined(SOCGame game, Map<String, Object> localPrefs);
 
         /**
          * Want to start a new game, on a server which supports options.
@@ -628,6 +640,7 @@ public class SOCPlayerClient
          * Default value is {@code true}.
          * @see #getUserPreference(String, boolean)
          * @see SOCPlayerInterface#isSoundMuted()
+         * @see SOCPlayerInterface#PREF_SOUND_MUTE
          * @since 1.2.00
          */
         final static String PREF_SOUND_ON = "soundOn";
@@ -2012,12 +2025,16 @@ public class SOCPlayerClient
          * @param gmName Game name; for practice, null is allowed
          * @param forPracticeServer Is this for a new game on the practice (not tcp) server?
          * @param opts Set of {@link SOCGameOption game options} to use, or null
+         * @param localPrefs Set of per-game local preferences to pass to {@link SOCPlayerInterface} constructor, or null
          * @since 1.1.07
          * @see #readValidNicknameAndPassword()
          */
         public void askStartGameWithOptions
-            (final String gmName, final boolean forPracticeServer, final Map<String, SOCGameOption> opts)
+            (final String gmName, final boolean forPracticeServer,
+             final Map<String, SOCGameOption> opts, final Map<String, Object> localPrefs)
         {
+            client.gameReqLocalPrefs.put(gmName, localPrefs);
+
             if (forPracticeServer)
             {
                 client.startPracticeGame(gmName, opts, true);  // Also sets WAIT_CURSOR
@@ -2396,7 +2413,7 @@ public class SOCPlayerClient
             playerInterfaces.remove(game.getName());
         }
 
-        public PlayerClientListener gameJoined(SOCGame game)
+        public PlayerClientListener gameJoined(SOCGame game, final Map<String, Object> localPrefs)
         {
             nick.setEditable(false);
             pass.setEditable(false);
@@ -2412,7 +2429,7 @@ public class SOCPlayerClient
                 hasJoinedServer = true;
             }
 
-            SOCPlayerInterface pi = new SOCPlayerInterface(game.getName(), GameAwtDisplay.this, game);
+            SOCPlayerInterface pi = new SOCPlayerInterface(game.getName(), GameAwtDisplay.this, game, localPrefs);
             System.err.println("L2325 new pi at " + System.currentTimeMillis());
             pi.setVisible(true);
             System.err.println("L2328 visible at " + System.currentTimeMillis());
@@ -3937,7 +3954,7 @@ public class SOCPlayerClient
         if (ga != null)
         {
             ga.isPractice = isPractice;
-            PlayerClientListener clientListener = gameDisplay.gameJoined(ga);
+            PlayerClientListener clientListener = gameDisplay.gameJoined(ga, gameReqLocalPrefs.get(gaName));
             clientListeners.put(gaName, clientListener);
             games.put(gaName, ga);
         }
