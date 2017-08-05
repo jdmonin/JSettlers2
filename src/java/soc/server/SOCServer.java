@@ -2587,9 +2587,11 @@ public class SOCServer extends Server
         // Report resources lost; see also forceEndGameTurn for same reporting code.
         final String gaName = cg.getName();
         if ((c != null) && c.isConnected())
-            reportRsrcGainLoss(gaName, rset, true, pn, -1, null, c);
+            reportRsrcGainLoss(gaName, rset, true, true, pn, -1, null, c);
         int totalRes = rset.getTotal();
-        messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
+        messageToGameExcept
+            (gaName, c, new SOCPlayerElement
+                (gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes, true), true);
         messageToGame(gaName, plName + " discarded " + totalRes + " resources.");
 
         System.err.println("Forced discard: " + totalRes + " from " + plName + " in game " + gaName);
@@ -7182,7 +7184,7 @@ public class SOCServer extends Server
                                         gainsText.append(" gets ");
                                         // Send SOCPlayerElement messages,
                                         // build resource-text in gainsText.
-                                        reportRsrcGainLoss(gn, rsrcs, false, i, -1, gainsText, null);
+                                        reportRsrcGainLoss(gn, rsrcs, false, false, i, -1, gainsText, null);
                                         gainsText.append(".");
                                     }
 
@@ -7301,7 +7303,7 @@ public class SOCServer extends Server
                         /**
                          * tell the player client that the player discarded the resources
                          */
-                        reportRsrcGainLoss(gn, mes.getResources(), true, pn, -1, null, c);
+                        reportRsrcGainLoss(gn, mes.getResources(), true, false, pn, -1, null, c);
 
                         /**
                          * tell everyone else that the player discarded unknown resources
@@ -7550,14 +7552,16 @@ public class SOCServer extends Server
              * tell everyone else that the player discarded unknown resources.
              */
             if (! res.isLoss())
-                reportRsrcGainLoss(gaName, resGainLoss, false, cpn, -1, null, null);
+                reportRsrcGainLoss(gaName, resGainLoss, false, true, cpn, -1, null, null);
             else
             {
                 StringConnection c = getConnection(plName);
                 if ((c != null) && c.isConnected())
-                    reportRsrcGainLoss(gaName, resGainLoss, true, cpn, -1, null, c);
+                    reportRsrcGainLoss(gaName, resGainLoss, true, true, cpn, -1, null, c);
                 int totalRes = resGainLoss.getTotal();
-                messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
+                messageToGameExcept
+                    (gaName, c, new SOCPlayerElement
+                        (gaName, cpn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes, true), true);
                 messageToGame(gaName, plName + " discarded " + totalRes + " resources.");
             }
         }
@@ -8488,7 +8492,8 @@ public class SOCServer extends Server
 
                             StringBuffer message = new StringBuffer(c.getData());
                             message.append(" received ");
-                            reportRsrcGainLoss(gaName, mes.getResources(), false, player.getPlayerNumber(), -1, message, null);
+                            reportRsrcGainLoss
+                                (gaName, mes.getResources(), false, false, player.getPlayerNumber(), -1, message, null);
                             message.append(" from the bank.");
                             messageToGame(gaName, message.toString());
                             sendGameState(ga);
@@ -10211,9 +10216,9 @@ public class SOCServer extends Server
 
             StringBuffer message = new StringBuffer(ga.getPlayer(offering).getName());
             message.append(" traded ");
-            reportRsrcGainLoss(gaName, offer.getGiveSet(), true, offering, accepting, message, null);
+            reportRsrcGainLoss(gaName, offer.getGiveSet(), true, false, offering, accepting, message, null);
             message.append(" for ");
-            reportRsrcGainLoss(gaName, offer.getGetSet(), false, offering, accepting, message, null);
+            reportRsrcGainLoss(gaName, offer.getGetSet(), false, false, offering, accepting, message, null);
             message.append(" from ");
             message.append(ga.getPlayer(accepting).getName());
             message.append('.');
@@ -10239,9 +10244,9 @@ public class SOCServer extends Server
             final int    cpn    = ga.getCurrentPlayerNumber();
             StringBuffer message = new StringBuffer (ga.getPlayer(cpn).getName());
             message.append(" traded ");
-            reportRsrcGainLoss(gaName, give, true, cpn, -1, message, null);
+            reportRsrcGainLoss(gaName, give, true, false, cpn, -1, message, null);
             message.append(" for ");
-            reportRsrcGainLoss(gaName, get, false, cpn, -1, message, null);
+            reportRsrcGainLoss(gaName, get, false, false, cpn, -1, message, null);
 
             // use total rsrc counts to determine bank or port
             final int giveTotal = give.getTotal(),
@@ -10279,6 +10284,10 @@ public class SOCServer extends Server
      *                Resource type {@link SOCResourceConstants#UNKNOWN} is ignored.
      *                Only positive resource amounts are sent (negative is ignored).
      * @param isLoss  If true, "give" ({@link SOCPlayerElement#LOSE}), otherwise "get" ({@link SOCPlayerElement#GAIN})
+     * @param isNews  Is this element change notably good or an unexpected bad change or loss?
+     *                Sets the {@link SOCPlayerElement#isNews()} flag in messages sent by this method.
+     *                If there are multiple resource types, flag is set only for the first type sent
+     *                to avoid several alert sounds at client.
      * @param mainPlayer     Player number "giving" if isLose==true, otherwise "getting".
      *                For each nonzero resource involved, PLAYERELEMENT messages will be sent about this player.
      * @param tradingPlayer  Player number on other side of trade, or -1 if no second player is involved.
@@ -10296,8 +10305,8 @@ public class SOCServer extends Server
      * @see #handleROLLDICE(StringConnection, SOCRollDice)
      */
     private void reportRsrcGainLoss
-        (final String gaName, final SOCResourceSet rset, final boolean isLoss, final int mainPlayer, final int tradingPlayer,
-         StringBuffer message, StringConnection playerConn)
+        (final String gaName, final SOCResourceSet rset, final boolean isLoss, boolean isNews,
+         final int mainPlayer, final int tradingPlayer, StringBuffer message, StringConnection playerConn)
     {
         final int losegain  = isLoss ? SOCPlayerElement.LOSE : SOCPlayerElement.GAIN;  // for pnA
         final int gainlose  = isLoss ? SOCPlayerElement.GAIN : SOCPlayerElement.LOSE;  // for pnB
@@ -10313,12 +10322,16 @@ public class SOCServer extends Server
             final int amt = rset.getAmount(res);
             if (amt <= 0)
                 continue;
+
             if (playerConn != null)
-                messageToPlayer(playerConn, new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt));
+                messageToPlayer(playerConn, new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt, isNews));
             else
-                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt));
+                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt, isNews));
             if (tradingPlayer != -1)
-                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, tradingPlayer, gainlose, res, amt));
+                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, tradingPlayer, gainlose, res, amt, isNews));
+            if (isNews)
+                isNews = false;
+
             if (message != null)
             {
                 if (needComma)

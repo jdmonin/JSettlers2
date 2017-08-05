@@ -231,6 +231,10 @@ public class SOCPlayerElement extends SOCMessage
      * Is this element change notably good or an unexpected bad change or loss?
      * For example, resource lost to the robber or monopoly.
      *<P>
+     * Do not set this flag if the player is expecting the gain or loss.
+     * For example, if this message is server's response to their chosen resources
+     * in a Discovery or Monopoly gain dialog.
+     *<P>
      * If {@link #getAction()} == {@link #SET}, treat message as bad news.
      *<P>
      * This flag is ignored by clients older than v1.2.00.
