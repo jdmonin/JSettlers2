@@ -136,6 +136,16 @@ import soc.util.Version;
 public class SOCPlayerClient
 {
     /**
+     * Boolean persistent {@link Preferences} key for sound effects.
+     * Default value is {@code true}.
+     * @see #getUserPreference(String, boolean)
+     * @see SOCPlayerInterface#isSoundMuted()
+     * @see SOCPlayerInterface#PREF_SOUND_MUTE
+     * @since 1.2.00
+     */
+    final static String PREF_SOUND_ON = "soundOn";
+
+    /**
      * i18n text strings in our {@link #cliLocale}.
      * @since 2.0.00
      */
@@ -634,16 +644,6 @@ public class SOCPlayerClient
 
         /** Game statistics prefix */
         protected static final String STATSPREFEX = "  [";  // TODO I18N: must analyze
-
-        /**
-         * Boolean persistent {@link Preferences} key for sound effects.
-         * Default value is {@code true}.
-         * @see #getUserPreference(String, boolean)
-         * @see SOCPlayerInterface#isSoundMuted()
-         * @see SOCPlayerInterface#PREF_SOUND_MUTE
-         * @since 1.2.00
-         */
-        final static String PREF_SOUND_ON = "soundOn";
 
         /**
          * For practice games, reminder message for network problems.

@@ -73,7 +73,7 @@ import soc.util.Version;
 
 /**
  * This is the dialog for a game's name and options to set, along with the client's
- * user preferences such as {@link SOCPlayerClient.GameAwtDisplay#PREF_SOUND_ON}
+ * user preferences such as {@link SOCPlayerClient#PREF_SOUND_ON}
  * and per-game preferences such as {@link SOCPlayerInterface#PREF_SOUND_MUTE}.
  * When "Create" button is clicked, validates fields and calls
  * {@link SOCPlayerClient.GameAwtDisplay#askStartGameWithOptions(String, boolean, Map, Map)}.
@@ -880,7 +880,7 @@ public class NewGameOptionsFrame extends Frame
     }
 
     /**
-     * Build UI for user preferences such as {@link SOCPlayerClient.GameAwtDisplay#PREF_SOUND_ON}
+     * Build UI for user preferences such as {@link SOCPlayerClient#PREF_SOUND_ON}
      * and {@link SOCPlayerInterface#PREF_SOUND_MUTE}. Fills {@link #localPrefs} if {@link #forNewGame}.
      *<P>
      * Called from {@link #initInterface_Options(JPanel, GridBagLayout, GridBagConstraints)}.
@@ -910,13 +910,13 @@ public class NewGameOptionsFrame extends Frame
             (bp, gbl, gbc,
              strings.get("game.options.sound.all"),  // "Sound effects (All games)"
              SOCPlayerClient.GameAwtDisplay.getUserPreference
-                 (SOCPlayerClient.GameAwtDisplay.PREF_SOUND_ON, true),
+                 (SOCPlayerClient.PREF_SOUND_ON, true),
              new PrefCheckboxListener()
              {
                  public void stateChanged(boolean check)
                  {
                      SOCPlayerClient.GameAwtDisplay.putUserPreference
-                         (SOCPlayerClient.GameAwtDisplay.PREF_SOUND_ON, check);
+                         (SOCPlayerClient.PREF_SOUND_ON, check);
                  }
              });
 

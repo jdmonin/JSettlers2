@@ -108,7 +108,7 @@ import javax.sound.sampled.LineUnavailableException;
  * the {@link #SOCPlayerInterface(String, GameAwtDisplay, SOCGame, Map)} constructor javadoc.
  * The current game's prefs are shown and changed with {@link NewGameOptionsFrame}.
  * Local prefs are not saved persistently like client preferences
- * ({@link SOCPlayerClient.GameAwtDisplay#PREF_SOUND_ON} etc) are.
+ * ({@link SOCPlayerClient#PREF_SOUND_ON} etc) are.
  *<P>
  * A separate {@link SOCPlayerClient} window holds the list of current games and channels.
  *
@@ -123,7 +123,7 @@ public class SOCPlayerInterface extends Frame
      * Boolean per-game preference to mute all sound effects in this game.
      * For use with constructor's {@code localPrefs} parameter. Default value is {@code false}.
      * @see #isSoundMuted()
-     * @see SOCPlayerClient.GameAwtDisplay#PREF_SOUND_ON
+     * @see SOCPlayerClient#PREF_SOUND_ON
      * @since 1.2.00
      */
     public static final String PREF_SOUND_MUTE = "soundMute";
@@ -941,7 +941,7 @@ public class SOCPlayerInterface extends Frame
      * Default value is {@code false}.
      * @return True if muted
      * @see #PREF_SOUND_MUTE
-     * @see SOCPlayerClient.GameAwtDisplay#PREF_SOUND_ON
+     * @see SOCPlayerClient#PREF_SOUND_ON
      * @since 1.2.00
      */
     public boolean isSoundMuted()
@@ -1719,7 +1719,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Queue a sound to play soon but not in this thread.
      * Uses {@link PIPlaySound} to call {@link Sounds#playPCMBytes(byte[])}.
-     * No sound is played if preference {@link SOCPlayerClient.GameAwtDisplay#PREF_SOUND_ON} is false
+     * No sound is played if preference {@link SOCPlayerClient#PREF_SOUND_ON} is false
      * or if {@link #isSoundMuted()}.
      *<P>
      * Playback uses a queuing thread executor, not the AWT {@link EventQueue}.
@@ -4379,7 +4379,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Runnable class to try to play a queued sound using {@link Sounds#playPCMBytes(byte[])}.
-     * No sound is played if preference {@link SOCPlayerClient.GameAwtDisplay#PREF_SOUND_ON} is false
+     * No sound is played if preference {@link SOCPlayerClient#PREF_SOUND_ON} is false
      * or if {@link SOCPlayerInterface#isSoundMuted() pi.isSoundMuted()}.
      *<P>
      * If playback throws {@link LineUnavailableException}, playback stops but the exception
@@ -4409,7 +4409,7 @@ public class SOCPlayerInterface extends Frame
         {
             if (soundMuted
                 || ! SOCPlayerClient.GameAwtDisplay.getUserPreference
-                         (SOCPlayerClient.GameAwtDisplay.PREF_SOUND_ON, true))
+                         (SOCPlayerClient.PREF_SOUND_ON, true))
                 return;
 
             try
