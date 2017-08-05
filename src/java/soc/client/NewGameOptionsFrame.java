@@ -31,7 +31,6 @@ import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.Label;
 import java.awt.Panel;
 import java.awt.TextField;
@@ -59,6 +58,7 @@ import java.util.TreeSet;
 
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.border.EmptyBorder;
 
 import soc.client.SOCPlayerClient.GameAwtDisplay;
@@ -892,10 +892,12 @@ public class NewGameOptionsFrame extends Frame
     private void initInterface_UserPrefs
         (final JPanel bp, final GridBagLayout gbl, final GridBagConstraints gbc)
     {
-        // some margin/padding above prefs section
-        final Insets insets_old = gbc.insets;
-        gbc.insets = new Insets
-            (insets_old.top + 16, insets_old.left, insets_old.bottom, insets_old.right);
+        // thin <HR>-type spacer above prefs section
+
+        JSeparator spacer = new JSeparator();
+        spacer.setBackground(HEADER_LABEL_BG);
+        gbl.setConstraints(spacer, gbc);
+        bp.add(spacer);
 
         // reminder: same gbc widths/weights are used in initInterface_Opt1
 
@@ -914,8 +916,6 @@ public class NewGameOptionsFrame extends Frame
                          (SOCPlayerClient.GameAwtDisplay.PREF_SOUND_ON, check);
                  }
              });
-
-        gbc.insets = insets_old;  // only the first pref needs that top indent
 
         // Per-PI sound pref:
         boolean val = (pi != null) ? pi.isSoundMuted() : false;
