@@ -892,6 +892,9 @@ public class NewGameOptionsFrame extends Frame
     private void initInterface_UserPrefs
         (final JPanel bp, final GridBagLayout gbl, final GridBagConstraints gbc)
     {
+        // For current games we aren't playing in, don't show some prefs
+        final boolean withPerGamePrefs = forNewGame || (pi != null);
+
         // thin <HR>-type spacer above prefs section
 
         JSeparator spacer = new JSeparator();
@@ -918,23 +921,26 @@ public class NewGameOptionsFrame extends Frame
              });
 
         // Per-PI sound pref:
-        boolean val = (pi != null) ? pi.isSoundMuted() : false;
-        if (localPrefs != null)
-            localPrefs.put(SOCPlayerInterface.PREF_SOUND_MUTE, Boolean.valueOf(val));
-        initInterface_Pref1
-            (bp, gbl, gbc,
-             strings.get("game.options.sound.mute_this"),  // "Sound: Mute this game"
-             val,
-             new PrefCheckboxListener()
-             {
-                 public void stateChanged(boolean check)
+        if (withPerGamePrefs)
+        {
+            boolean val = (pi != null) ? pi.isSoundMuted() : false;
+            if (localPrefs != null)
+                localPrefs.put(SOCPlayerInterface.PREF_SOUND_MUTE, Boolean.valueOf(val));
+            initInterface_Pref1
+                (bp, gbl, gbc,
+                 strings.get("game.options.sound.mute_this"),  // "Sound: Mute this game"
+                 val,
+                 new PrefCheckboxListener()
                  {
-                     if (pi != null)
-                         pi.setSoundMuted(check);
-                     else if (localPrefs != null)
-                         localPrefs.put(SOCPlayerInterface.PREF_SOUND_MUTE, Boolean.valueOf(check));
-                 }
-             });
+                     public void stateChanged(boolean check)
+                     {
+                         if (pi != null)
+                             pi.setSoundMuted(check);
+                         else if (localPrefs != null)
+                             localPrefs.put(SOCPlayerInterface.PREF_SOUND_MUTE, Boolean.valueOf(check));
+                     }
+                 });
+        }
     }
 
     /**
