@@ -123,6 +123,7 @@ public class SOCPlayerClient extends Applet
      * Boolean persistent {@link Preferences} key for sound effects.
      * Default value is {@code true}.
      * @see #getUserPreference(String, boolean)
+     * @see SOCPlayerInterface#isSoundMuted()
      * @since 1.2.00
      */
     final static String PREF_SOUND_ON = "soundOn";
@@ -1433,7 +1434,8 @@ public class SOCPlayerClient extends Applet
             }
 
             // don't overwrite newGameOptsFrame field; this popup is to show an existing game.
-            NewGameOptionsFrame.createAndShow(this, gm, opts, false, true);
+            NewGameOptionsFrame.createAndShow
+                ((SOCPlayerInterface) playerInterfaces.get(gm), this, gm, opts, false, true);
             return true;
         }
 
@@ -1759,7 +1761,7 @@ public class SOCPlayerClient extends Applet
         {
             // All done, present the options window frame
             newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                (this, null, opts.optionSet, forPracticeServer, false);
+                (null, this, null, opts.optionSet, forPracticeServer, false);
             return;  // <--- Early return: Show options to user ----
         }
 
@@ -3638,7 +3640,7 @@ public class SOCPlayerClient extends Applet
                 pi.getBoardPanel().updateMode();  // update here, since gamestate doesn't change
 
             if (pi.hasCalledBegan)
-                SOCPlayerInterface.playSound(SOCPlayerInterface.SOUND_PUT_PIECE);
+                pi.playSound(SOCPlayerInterface.SOUND_PUT_PIECE);
 
             /**
              * Check for and announce change in longest road; update all players' victory points.
@@ -4178,7 +4180,7 @@ public class SOCPlayerClient extends Applet
                 gameOptsDefsTask = null;
             }
             newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                (this, (String) null, opts.optionSet, isPractice, false);
+                (null, this, (String) null, opts.optionSet, isPractice, false);
         }
     }
 
@@ -4223,7 +4225,8 @@ public class SOCPlayerClient extends Applet
                 }
                 Hashtable gameOpts = serverGames.parseGameOptions(gameInfoWaiting);
                 newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (this, gameInfoWaiting, gameOpts, isPractice, true);
+                    ((SOCPlayerInterface) playerInterfaces.get(gameInfoWaiting), this,
+                     gameInfoWaiting, gameOpts, isPractice, true);
             } else if (newGameWaiting)
             {
                 synchronized(opts)
@@ -4231,7 +4234,7 @@ public class SOCPlayerClient extends Applet
                     opts.newGameWaitingForOpts = false;
                 }
                 newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (this, (String) null, opts.optionSet, isPractice, false);
+                    (null, this, (String) null, opts.optionSet, isPractice, false);
             }
         }
     }

@@ -177,7 +177,7 @@ class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
 
             discardBut.requestFocus();
 
-            SOCPlayerInterface.playSound(SOCPlayerInterface.SOUND_RSRC_LOST);
+            playerInterface.playSound(SOCPlayerInterface.SOUND_RSRC_LOST);
         }
 
         super.setVisible(b);

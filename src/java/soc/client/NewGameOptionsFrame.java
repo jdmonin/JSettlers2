@@ -91,6 +91,13 @@ public class NewGameOptionsFrame extends Frame
     private static final String TXT_SERVER_TOO_OLD
         = "This server version does not support game options.";
 
+    /**
+     * Game's interface if known, or {@code null} for a new game.
+     * Used for updating settings like {@link SOCPlayerInterface#isSoundMuted()}.
+     * @since 1.2.00
+     */
+    private final SOCPlayerInterface pi;
+
     private SOCPlayerClient cl;
 
     /** should this be sent to the remote tcp server, or local practice server? */
@@ -146,7 +153,12 @@ public class NewGameOptionsFrame extends Frame
     /**
      * Creates a new NewGameOptionsFrame.
      * Once created, reset the mouse cursor from hourglass to normal, and clear main panel's status text.
+     *<P>
+     * See also convenience method
+     * {@link #createAndShow(SOCPlayerInterface, SOCPlayerClient, String, Hashtable, boolean, boolean)}.
      *
+     * @param pi  Interface of existing game, or {@code null} for a new game.
+     *     Used for updating settings like {@link SOCPlayerInterface#isSoundMuted()}.
      * @param cli      Player client interface
      * @param gaName   Requested name of game (can change in this frame),
      *                 or null for blank or (forPractice)
@@ -160,7 +172,8 @@ public class NewGameOptionsFrame extends Frame
      * @param readOnly    Is this display-only (for use during a game), or can it be changed (making a new game)?
      */
     public NewGameOptionsFrame
-        (SOCPlayerClient cli, String gaName, Hashtable opts, boolean forPractice, boolean readOnly)
+        (final SOCPlayerInterface pi, SOCPlayerClient cli, String gaName,
+         Hashtable opts, boolean forPractice, boolean readOnly)
     {
         super( readOnly
                 ? ("Current game options: " + gaName)
@@ -170,6 +183,7 @@ public class NewGameOptionsFrame extends Frame
 
         // Uses default BorderLayout, for simple stretching when frame is resized
 
+        this.pi = pi;
         this.cl = cli;
         this.opts = opts;
         this.forPractice = forPractice;
@@ -211,13 +225,15 @@ public class NewGameOptionsFrame extends Frame
     /**
      * Creates and shows a new NewGameOptionsFrame.
      * Once created, reset the mouse cursor from hourglass to normal, and clear main panel's status text.
-     * See constructor for parameters.
+     * See {@link #NewGameOptionsFrame(SOCPlayerInterface, SOCPlayerClient, String, Hashtable, boolean, boolean)}
+     * constructor for parameters.
      * @return the new frame
      */
     public static NewGameOptionsFrame createAndShow
-        (SOCPlayerClient cli, String gaName, Hashtable opts, boolean forPractice, boolean readOnly)
+        (SOCPlayerInterface pi, SOCPlayerClient cli, String gaName,
+         Hashtable opts, boolean forPractice, boolean readOnly)
     {
-        NewGameOptionsFrame ngof = new NewGameOptionsFrame(cli, gaName, opts, forPractice, readOnly);
+        NewGameOptionsFrame ngof = new NewGameOptionsFrame(pi, cli, gaName, opts, forPractice, readOnly);
         ngof.pack();
         ngof.show();
 
@@ -683,15 +699,63 @@ public class NewGameOptionsFrame extends Frame
 
         // PREF_SOUND_ON
 
+        initInterface_Pref1
+            (bp, gbl, gbc,
+             "Sound effects (All games)",
+             SOCPlayerClient.getUserPreference
+                (SOCPlayerClient.PREF_SOUND_ON, true),
+            new PrefCheckboxListener()
+            {
+                public void stateChanged(boolean check)
+                {
+                    SOCPlayerClient.putUserPreference
+                        (SOCPlayerClient.PREF_SOUND_ON, check);
+                }
+            });
+
+            gbc.insets = insets_old;  // only the first pref needs that top indent
+
+            // Per-PI sound pref:
+            // TODO field to track for new game (pi == null)
+            boolean val = (pi != null) ? pi.isSoundMuted() : false;
+            initInterface_Pref1
+                (bp, gbl, gbc,
+                 "Sound: Mute this game",
+                 val,
+                 new PrefCheckboxListener()
+                 {
+                     public void stateChanged(boolean check)
+                     {
+                         // TODO also set a local field, for use in new-game setup
+
+                         if (pi != null)
+                             pi.setSoundMuted(check);
+                     }
+                 });
+        }
+
+    /**
+     * Set up one preference checkbox for {@link #initInterface_UserPrefs(JPanel, GridBagLayout, GridBagConstraints)}.
+     * @param bp  Add to this panel
+     * @param gbl Use this layout
+     * @param gbc Use these constraints
+     * @param txt  Text for checkbox label
+     * @param initVal  Initial value
+     * @param pcl  Callback when checkbox is checked/unchecked by clicking the box or its label
+     * @since 1.2.00
+     */
+    private void initInterface_Pref1
+        (final JPanel bp, final GridBagLayout gbl, final GridBagConstraints gbc,
+         final String txt, final boolean initVal, final PrefCheckboxListener pcl)
+    {
         final Checkbox cb = new Checkbox();
-        cb.setState
-            (SOCPlayerClient.getUserPreference(SOCPlayerClient.PREF_SOUND_ON, true));
+        cb.setState(initVal);
         gbc.gridwidth = 1;
         gbc.weightx = 0;
         gbl.setConstraints(cb, gbc);
         bp.add(cb);
 
-        Label L = new Label("Sound effects (in all games)");
+        Label L = new Label(txt);
         L.setForeground(LABEL_TXT_COLOR);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbc.weightx = 1;
@@ -704,8 +768,7 @@ public class NewGameOptionsFrame extends Frame
             {
                 final boolean makeChecked = ! cb.getState();
                 cb.setState(makeChecked);
-                SOCPlayerClient.putUserPreference
-                    (SOCPlayerClient.PREF_SOUND_ON, makeChecked);
+                pcl.stateChanged(makeChecked);
                 e.consume();
             }
         });
@@ -714,12 +777,9 @@ public class NewGameOptionsFrame extends Frame
         {
             public void itemStateChanged(ItemEvent ie)
             {
-                SOCPlayerClient.putUserPreference
-                    (SOCPlayerClient.PREF_SOUND_ON, (ie.getStateChange() == ItemEvent.SELECTED));
+                pcl.stateChanged(ie.getStateChange() == ItemEvent.SELECTED);
             }
         });
-
-        gbc.insets = insets_old;
     }
 
     /**
@@ -1377,6 +1437,20 @@ public class NewGameOptionsFrame extends Frame
 
     }  // public inner class IntTextField
 
+    /**
+     * Callback for when a user preference checkbox is checked/unchecked by clicking that box or its label.
+     * @see NewGameOptionsFrame#initInterface_Pref1(JPanel, GridBagLayout, GridBagConstraints, String, boolean, PrefCheckboxListener)
+     * @since 1.2.00
+     */
+    private static interface PrefCheckboxListener
+    {
+        /**
+         * Callback for when checkbox becomes checked or unchecked.
+         * Also called when checkbox's label is clicked.
+         * @param check New value of checkbox: True if becoming checked
+         */
+        public void stateChanged(final boolean check);
+    }
 
     /**
      * This is the modal dialog to ask user if these options' required
