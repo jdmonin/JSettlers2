@@ -88,6 +88,8 @@ import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 
 /**
@@ -117,6 +119,14 @@ import java.util.Vector;
 public class SOCPlayerClient extends Applet
     implements Runnable, ActionListener, TextListener, ItemListener, MouseListener
 {
+    /**
+     * Boolean persistent {@link Preferences} key for sound effects.
+     * Default value is {@code true}.
+     * @see #getUserPreference(String, boolean)
+     * @since 1.2.00
+     */
+    final static String PREF_SOUND_ON = "soundOn";
+
     private static final long serialVersionUID = 1119L;  // Last structural change v1.1.19
 
     /** main panel, in cardlayout */
@@ -332,6 +342,20 @@ public class SOCPlayerClient extends Applet
      * @since 1.1.07
      */
     public NewGameOptionsFrame newGameOptsFrame = null;
+
+    /**
+     * Persistent user preferences like {@link #PREF_SOUND_ON}, or {@code null} if none could be loaded.
+     * @since 1.2.00
+     */
+    private static Preferences userPrefs;
+    static
+    {
+        try
+        {
+            userPrefs = Preferences.userNodeForPackage(SOCPlayerInterface.class);
+        }
+        catch (Exception e) {}
+    }
 
     // MainPanel GUI elements:
 
@@ -5446,6 +5470,62 @@ public class SOCPlayerClient extends Applet
 
         // Reset the cursor
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+    }
+
+    /**
+     * Get a boolean persistent user preference if available, or the default value.
+     * @param prefKey  Preference name key, such as {@link #PREF_SOUND_ON}
+     * @param dflt  Default value to get if no preference, or if {@code prefKey} is null
+     * @return  Preference value or {@code dflt}
+     * @see #putUserPreference(String, boolean)
+     * @since 1.2.00
+     */
+    public static boolean getUserPreference(final String prefKey, final boolean dflt)
+    {
+        if (userPrefs == null)
+            return dflt;
+
+        try
+        {
+            return userPrefs.getBoolean(prefKey, dflt);
+        } catch (RuntimeException e) {
+            return dflt;
+        }
+    }
+
+    /**
+     * Set a boolean persistent user preference, if available.
+     * Asynchronously calls {@link Preferences#flush()}.
+     * @param prefKey  Preference name key, such as {@link #PREF_SOUND_ON}
+     * @param val  Value to set
+     * @throws NullPointerException if {@code prefKey} is null
+     * @throws IllegalArgumentException if {@code prefKey} is longer than {@link Preferences#MAX_KEY_LENGTH}
+     * @see #getUserPreference(String, boolean)
+     * @since 1.2.00
+     */
+    public static void putUserPreference(final String prefKey, final boolean val)
+        throws NullPointerException, IllegalArgumentException
+    {
+        if (userPrefs == null)
+            return;
+
+        try
+        {
+            userPrefs.putBoolean(prefKey, val);
+        }
+        catch (IllegalStateException e) {}  // unlikely
+
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                try
+                {
+                    userPrefs.flush();
+                }
+                catch (BackingStoreException e) {}
+            }
+        });
     }
 
     /**

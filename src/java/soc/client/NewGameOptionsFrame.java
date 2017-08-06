@@ -30,6 +30,7 @@ import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Label;
 import java.awt.Panel;
 import java.awt.TextField;
@@ -39,6 +40,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.TextEvent;
@@ -59,10 +61,13 @@ import soc.message.SOCStatusMessage;
 import soc.util.Version;
 
 /**
- * This is the dialog for options to set in a new game.
- * Prompt for name and options.
+ * This is the dialog for a game's name and options to set, along with the client's
+ * user preferences such as {@link SOCPlayerClient#PREF_SOUND_ON}.
  *<P>
  * Also used for showing a game's options (read-only) during game play.
+ *<P>
+ * Changing the {@code PREF_SOUND_ON} user pref checkbox takes effect immediately
+ * so the user can mute sound effects with minimal frustration.
  *<P>
  * If this window already exists and you'd like to make it topmost,
  * call {@link #show()} or {@link #setVisible(boolean)} instead of {@link #requestFocus()}.
@@ -276,7 +281,7 @@ public class NewGameOptionsFrame extends Frame
         bp.add(gameName);
 
         /**
-         * Interface setup: Options
+         * Interface setup: Options and user's client preferences
          */
         initInterface_Options(bp, gbl, gbc);
 
@@ -321,11 +326,14 @@ public class NewGameOptionsFrame extends Frame
     private final static Color LABEL_TXT_COLOR = new Color(252, 251, 243); // off-white
 
     /**
-     * Interface setup: Options.
+     * Interface setup: {@link SOCGameOption}s and user's client preferences.
      * One row per option, except for 3-letter options which group with 2-letter ones.
      * Boolean checkboxes go on the left edge; text and int/enum values are to right of checkboxes.
      *<P>
      * If options are null, put a label with {@link #TXT_SERVER_TOO_OLD}.
+     *<P>
+     * Sets up local preferences for the client by calling
+     * {@link #initInterface_UserPrefs(JPanel, GridBagLayout, GridBagConstraints)}.
      */
     private void initInterface_Options(JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
@@ -338,6 +346,9 @@ public class NewGameOptionsFrame extends Frame
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             gbl.setConstraints(L, gbc);
             bp.add(L);
+
+            initInterface_UserPrefs(bp, gbl, gbc);
+
             return;  // <---- Early return: no options ----
         }
 
@@ -395,6 +406,8 @@ public class NewGameOptionsFrame extends Frame
             }
 
         }  // for(opts)
+
+        initInterface_UserPrefs(bp, gbl, gbc);
     }
 
     /**
@@ -485,6 +498,8 @@ public class NewGameOptionsFrame extends Frame
             JPanel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
         Label L;
+
+        // reminder: same gbc widths/weights are used in initInterface_UserPrefs
 
         gbc.gridwidth = 1;
         gbc.weightx = 0;
@@ -646,6 +661,65 @@ public class NewGameOptionsFrame extends Frame
             ch.select(defaultIdx);
         ch.addItemListener(this);  // for op.ChangeListener and userChanged
         return ch;
+    }
+
+    /**
+     * Build UI for user preferences such as {@link SOCPlayerClient.GameAwtDisplay#PREF_SOUND_ON}.
+     * Called from {@link #initInterface_Options(JPanel, GridBagLayout, GridBagConstraints)}.
+     * @param bp  Add to this panel
+     * @param gbl Use this layout
+     * @param gbc Use these constraints
+     * @since 1.2.00
+     */
+    private void initInterface_UserPrefs
+        (final JPanel bp, final GridBagLayout gbl, final GridBagConstraints gbc)
+    {
+        // some margin/padding above prefs section
+        final Insets insets_old = gbc.insets;
+        gbc.insets = new Insets
+            (insets_old.top + 16, insets_old.left, insets_old.bottom, insets_old.right);
+
+        // reminder: same gbc widths/weights are used in initInterface_Opt1
+
+        // PREF_SOUND_ON
+
+        final Checkbox cb = new Checkbox();
+        cb.setState
+            (SOCPlayerClient.getUserPreference(SOCPlayerClient.PREF_SOUND_ON, true));
+        gbc.gridwidth = 1;
+        gbc.weightx = 0;
+        gbl.setConstraints(cb, gbc);
+        bp.add(cb);
+
+        Label L = new Label("Sound effects (in all games)");
+        L.setForeground(LABEL_TXT_COLOR);
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.weightx = 1;
+        gbl.setConstraints(L, gbc);
+        bp.add(L);
+        L.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                final boolean makeChecked = ! cb.getState();
+                cb.setState(makeChecked);
+                SOCPlayerClient.putUserPreference
+                    (SOCPlayerClient.PREF_SOUND_ON, makeChecked);
+                e.consume();
+            }
+        });
+
+        cb.addItemListener(new ItemListener()
+        {
+            public void itemStateChanged(ItemEvent ie)
+            {
+                SOCPlayerClient.putUserPreference
+                    (SOCPlayerClient.PREF_SOUND_ON, (ie.getStateChange() == ItemEvent.SELECTED));
+            }
+        });
+
+        gbc.insets = insets_old;
     }
 
     /**
