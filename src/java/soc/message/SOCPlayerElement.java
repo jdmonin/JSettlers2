@@ -329,7 +329,7 @@ public class SOCPlayerElement extends SOCMessage
      *<P>
      * Do not set this flag if the player is expecting the gain or loss.
      * For example, if this message is server's response to their chosen resources
-     * in a Gold Hex gain dialog.
+     * in a Discovery, Monopoly, or Gold Hex gain dialog.
      *<P>
      * If {@link #getAction()} == {@link #SET}, treat message as bad news.
      *<P>

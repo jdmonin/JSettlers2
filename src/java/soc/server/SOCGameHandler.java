@@ -680,7 +680,10 @@ public class SOCGameHandler extends GameHandler
                 if ((c != null) && c.isConnected())
                     reportRsrcGainLoss(gaName, resGainLoss, true, true, cpn, -1, null, c);
                 int totalRes = resGainLoss.getTotal();
-                srv.messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
+                srv.messageToGameExcept
+                    (gaName, c, new SOCPlayerElement
+                        (gaName, cpn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes, true),
+                     true);
                 srv.messageToGameKeyed(ga, true, "action.discarded", plName, totalRes);  //  "{0} discarded {1} resources."
             }
         }
@@ -3230,7 +3233,10 @@ public class SOCGameHandler extends GameHandler
             if ((c != null) && c.isConnected())
                 reportRsrcGainLoss(gaName, rset, true, true, pn, -1, null, c);
 
-            srv.messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
+            srv.messageToGameExcept
+                (gaName, c, new SOCPlayerElement
+                    (gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes, true),
+                 true);
             srv.messageToGameKeyed(cg, true, "action.discarded", plName, totalRes);  // "{0} discarded {1} resources."
 
             System.err.println("Forced discard: " + totalRes + " from " + plName + " in game " + gaName);
