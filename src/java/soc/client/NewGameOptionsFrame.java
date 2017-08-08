@@ -707,6 +707,9 @@ public class NewGameOptionsFrame extends Frame
     private void initInterface_UserPrefs
         (final JPanel bp, final GridBagLayout gbl, final GridBagConstraints gbc)
     {
+        // For current games we aren't playing in, don't show some prefs
+        final boolean withPerGamePrefs = (pi != null) || ! readOnly;
+
         // thin <HR>-type spacer above prefs section
 
         JSeparator spacer = new JSeparator();
@@ -732,7 +735,9 @@ public class NewGameOptionsFrame extends Frame
                 }
             });
 
-            // Per-PI sound pref:
+        // Per-PI sound pref:
+        if (withPerGamePrefs)
+        {
             boolean val = (pi != null) ? pi.isSoundMuted() : false;
             if (localPrefs != null)
                 localPrefs.put(SOCPlayerInterface.PREF_SOUND_MUTE, Boolean.valueOf(val));
@@ -751,6 +756,7 @@ public class NewGameOptionsFrame extends Frame
                      }
                  });
         }
+    }
 
     /**
      * Set up one preference checkbox for {@link #initInterface_UserPrefs(JPanel, GridBagLayout, GridBagConstraints)}.
