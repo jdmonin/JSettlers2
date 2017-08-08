@@ -83,7 +83,9 @@ import java.net.ConnectException;
 import java.net.Socket;
 
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -124,6 +126,7 @@ public class SOCPlayerClient extends Applet
      * Default value is {@code true}.
      * @see #getUserPreference(String, boolean)
      * @see SOCPlayerInterface#isSoundMuted()
+     * @see SOCPlayerInterface#PREF_SOUND_MUTE
      * @since 1.2.00
      */
     final static String PREF_SOUND_ON = "soundOn";
@@ -525,6 +528,18 @@ public class SOCPlayerClient extends Applet
      * the player interfaces for the games
      */
     protected Hashtable playerInterfaces = new Hashtable();
+
+    /**
+     * For new-game requests, map of game names to per-game local preference maps to pass to
+     * that new game's {@link SOCPlayerInterface} constructor. The {@link HashMap} of game names permits
+     * a {@code null} value instead of a Map, but there is no guarantee that preference values can be {@code null}
+     * within a game's Map.
+     *<P>
+     * Preference name keys are {@link SOCPlayerInterface#PREF_SOUND_MUTE}, etc.
+     * Values for boolean prefs should be {@link Boolean#TRUE} or {@code .FALSE}.
+     * @since 1.2.00
+     */
+    private final HashMap<String, Map<String, Object>> gameReqLocalPrefs = new HashMap<String, Map<String, Object>>();
 
     /**
      * the ignore list
@@ -1800,12 +1815,15 @@ public class SOCPlayerClient extends Applet
      * @param gmName Game name; for practice, null is allowed
      * @param forPracticeServer Is this for a new game on the local-practice (not remote) server?
      * @param opts Set of {@link SOCGameOption game options} to use, or null
+     * @param localPrefs Set of per-game local preferences to pass to {@link SOCPlayerInterface} constructor, or null
      * @since 1.1.07
      * @see #readValidNicknameAndPassword()
      */
     public void askStartGameWithOptions
-        (final String gmName, final boolean forPracticeServer, Hashtable opts)
+        (final String gmName, final boolean forPracticeServer, Hashtable opts, final Map<String, Object> localPrefs)
     {
+        gameReqLocalPrefs.put(gmName, localPrefs);
+
         if (forPracticeServer)
         {
             startPracticeGame(gmName, opts, true);  // Also sets WAIT_CURSOR
@@ -2997,7 +3015,7 @@ public class SOCPlayerClient extends Applet
         if (ga != null)
         {
             ga.isPractice = isPractice;
-            SOCPlayerInterface pi = new SOCPlayerInterface(gaName, this, ga);
+            SOCPlayerInterface pi = new SOCPlayerInterface(gaName, this, ga, gameReqLocalPrefs.get(gaName));
             pi.setVisible(true);
             playerInterfaces.put(gaName, pi);
             games.put(gaName, ga);

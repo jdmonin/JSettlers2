@@ -50,6 +50,7 @@ import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -74,12 +75,28 @@ import javax.sound.sampled.LineUnavailableException;
  * {@link #addPlayer(String, int)}; when all this activity is complete, and the interface is
  * ready for interaction, the client calls {@link #began(Vector)}.
  *<P>
+ * <B>Local preferences:</B>
+ * For optional per-game preferences like {@link #PREF_SOUND_MUTE}, see {@code localPrefs} parameter in
+ * the {@link #SOCPlayerInterface(String, SOCPlayerClient, SOCGame, Map)} constructor javadoc.
+ * The current game's prefs are shown and changed with {@link NewGameOptionsFrame}.
+ * Local prefs are not saved persistently like client preferences
+ * ({@link SOCPlayerClient.GameAwtDisplay#PREF_SOUND_ON} etc) are.
+ *<P>
  * A separate {@link SOCPlayerClient} window holds the list of current games and channels.
  *
  * @author Robert S. Thomas
  */
 public class SOCPlayerInterface extends Frame implements ActionListener, MouseListener
 {
+    /**
+     * Boolean per-game preference to mute all sound effects in this game.
+     * For use with constructor's {@code localPrefs} parameter. Default value is {@code false}.
+     * @see #isSoundMuted()
+     * @see SOCPlayerClient#PREF_SOUND_ON
+     * @since 1.2.00
+     */
+    public static final String PREF_SOUND_MUTE = "soundMute";
+
     /**
      * System property os.name; For use by {@link #SOCPI_isPlatformWindows}.
      * @since 1.1.08
@@ -460,8 +477,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * @param title  title for this interface - game name
      * @param cl     the player client that spawned us
      * @param ga     the game associated with this interface
+     * @param localPrefs  optional map of per-game local preferences to use in this {@code SOCPlayerInterface},
+     *     or {@code null}. Preference name keys are {@link #PREF_SOUND_MUTE}, etc.
+     *     Values for boolean prefs should be {@link Boolean#TRUE} or {@code .FALSE}.
      */
-    public SOCPlayerInterface(String title, SOCPlayerClient cl, SOCGame ga)
+    public SOCPlayerInterface(String title, SOCPlayerClient cl, SOCGame ga, final Map<String, Object> localPrefs)
     {
         super(TITLEBAR_GAME + title +
               (ga.isPractice ? "" : " [" + cl.getNickname() + "]"));
@@ -475,6 +495,12 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         clientHand = null;
         clientHandPlayerNum = -1;
         is6player = (game.maxPlayers > 4);
+
+        if (localPrefs != null)
+        {
+            soundMuted = Boolean.TRUE.equals(localPrefs.get(PREF_SOUND_MUTE));
+        }
+        // else, soundMuted = false (its default)
 
         showingPlayerDiscards = false;
         showingPlayerDiscards_lock = new Object();
@@ -813,6 +839,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * Checked by {@link #playSound(byte[])}. Changed with {@link #setSoundMuted(boolean)}.
      * Default value is {@code false}.
      * @return True if muted
+     * @see #PREF_SOUND_MUTE
      * @see SOCPlayerClient#PREF_SOUND_ON
      * @since 1.2.00
      */
