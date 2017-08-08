@@ -67,7 +67,8 @@ public class SOCBuildingPanel extends Panel
     Button cardBut;
 
     /**
-     * Click to show {@link SOCGameOption}s in a {@link #ngof} frame.
+     * Click to show {@link SOCGameOption}s in an {@link #ngof} frame.
+     * Before v1.2.00, label was "Game Options...".
      * Before v2.0.00 this button was {@code optsBut}.
      * @since 1.1.07
      */
@@ -160,7 +161,7 @@ public class SOCBuildingPanel extends Panel
     private int pieceButtonsState;
 
     /**
-     * "Game Info" window, from {@link #gameOptsBut} click, or null.
+     * "Game Options" window, from {@link #gameOptsBut} click, or null.
      * Tracked to prevent showing more than 1 at a time.
      * @since 1.1.18
      */
@@ -605,9 +606,9 @@ public class SOCBuildingPanel extends Panel
         cardCountLab.setLocation(curX, curY);
         cardCountLab.setSize(cardCLabW + 2, lineH);
 
-        // Game Info button is bottom-right of panel.
+        // Options button is bottom-right of panel.
         // Game Statistics button is just above it on the classic board, top-right for large board.
-        // On 4-player classic board, Game Info is moved up to make room for the dev card count.
+        // On 4-player classic board, Options button is moved up to make room for the dev card count.
         if ((maxPlayers <= 4) && ! hasLargeBoard)
             curY -= (lineH + 5);
 
@@ -642,7 +643,7 @@ public class SOCBuildingPanel extends Panel
             } else {
                 if (maxPlayers <= 4)
                 {
-                    // 4-player: row 3, align from right, below Game Info;
+                    // 4-player: row 3, align from right, below Options;
                     // not enough room on row 1 with Game Stats button
                     curY = 1 + (2 * (rowSpaceH + lineH));
                     curX = dim.width - ColorSquare.WIDTH - margin;
@@ -1027,7 +1028,7 @@ public class SOCBuildingPanel extends Panel
     }
 
     /**
-     * If our "Game Info" window ({@link NewGameOptionsFrame}) is closed,
+     * If our "Game Options" window ({@link NewGameOptionsFrame}) is closed,
      * drop our reference to it so it can be gc'd.
      * @since 1.1.18
      */

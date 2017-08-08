@@ -115,6 +115,7 @@ public class NewGameOptionsFrame extends Frame
     /**
      * Game's interface if known, or {@code null} for a new game.
      * Used for updating settings like {@link SOCPlayerInterface#isSoundMuted()}.
+     * @see #localPrefs
      * @see #forNewGame
      * @since 1.2.00
      */
@@ -129,6 +130,7 @@ public class NewGameOptionsFrame extends Frame
      * Map of local client preferences for a new game, or {@code null} if ! {@link #forNewGame}.
      * Same keys and values as {@link SOCPlayerInterface} constructor's
      * {@code localPrefs} parameter.
+     * @since 1.2.00
      */
     private final HashMap<String, Object> localPrefs;
 
@@ -139,7 +141,7 @@ public class NewGameOptionsFrame extends Frame
      */
     private final boolean forNewGame;
 
-    /** is this for display only? */
+    /** is this for display only? True if shown for an existing game (not a new game). */
     private final boolean readOnly;
 
     /** Contains this game's {@link SOCGameOption}s, or null if none.
@@ -240,7 +242,7 @@ public class NewGameOptionsFrame extends Frame
      *                 Unknown options ({@link SOCGameOption#OTYPE_UNKNOWN}) will be removed.
      *                 If not <tt>readOnly</tt>, each option's {@link SOCGameOption#userChanged userChanged}
      *                 flag will be cleared, to reset status from any previously shown NewGameOptionsFrame.
-     * @param forPractice Will this game be on local practice server, vs remote tcp server?
+     * @param forPractice For making a new game: Will the game be on local practice server, vs remote tcp server?
      * @param readOnly    Is this display-only (for use during a game), or can it be changed (making a new game)?
      */
     public NewGameOptionsFrame
@@ -909,8 +911,7 @@ public class NewGameOptionsFrame extends Frame
         initInterface_Pref1
             (bp, gbl, gbc,
              strings.get("game.options.sound.all"),  // "Sound effects (All games)"
-             SOCPlayerClient.GameAwtDisplay.getUserPreference
-                 (SOCPlayerClient.PREF_SOUND_ON, true),
+             SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_SOUND_ON, true),
              new PrefCheckboxListener()
              {
                  public void stateChanged(boolean check)

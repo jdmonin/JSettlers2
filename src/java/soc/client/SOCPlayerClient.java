@@ -2503,7 +2503,8 @@ public class SOCPlayerClient
                     if (! isPractice)
                         client.checkGameoptsForUnknownScenario(gameOpts);
                     newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                        (null, GameAwtDisplay.this, gameInfoWaiting, gameOpts, isPractice, true);
+                        (playerInterfaces.get(gameInfoWaiting), GameAwtDisplay.this,
+                         gameInfoWaiting, gameOpts, isPractice, true);
                 }
                 else if (newGameWaiting)
                 {

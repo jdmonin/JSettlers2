@@ -4407,9 +4407,7 @@ public class SOCPlayerInterface extends Frame
 
         public void run()
         {
-            if (soundMuted
-                || ! SOCPlayerClient.GameAwtDisplay.getUserPreference
-                         (SOCPlayerClient.PREF_SOUND_ON, true))
+            if (soundMuted || ! SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_SOUND_ON, true))
                 return;
 
             try
