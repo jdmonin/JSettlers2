@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2012,2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2012,2016-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,6 +28,8 @@ import java.awt.Graphics;
 
 /**
  * This is a rectangular speech balloon shape for use in the hand panel.
+ * Both {@code SpeechBalloon} and {@link ShadowedBox} are used in {@link TradeOfferPanel}.
+ *<P>
  * By default, it shows a point near the left side of its top edge:<PRE>
  * __|\________________
  * |                  | </PRE>

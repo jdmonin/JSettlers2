@@ -143,7 +143,7 @@ public class SOCHandPanel extends Panel
     private static final String DEVCARD_NEW = strings.get("hpan.devcards.prefix.new");
     private static final String RESOURCES = strings.get("hpan.rsrc") + " ";  // for other players (! playerIsClient)
     private static final String RESOURCES_TOTAL = strings.get("hpan.rsrc.total") + " ";  // "Total: " for playerIsClient
-    protected static final String AUTOROLL_COUNTDOWN = strings.get("hpan.roll.autocountdown");  // "Auto-Roll in: {0}"
+    protected static final String AUTOROLL_COUNTDOWN = strings.get("hpan.roll.auto_countdown");  // "Auto-Roll in: {0}"
     protected static final String ROLL_OR_PLAY_CARD = strings.get("hpan.roll.rollorplaycard");  // "Roll or Play Card"
     private static final String OFFERBUTTIP_ENA = strings.get("hpan.trade.offer.tip.send");
         // "Send trade offer to other players"
@@ -1923,9 +1923,10 @@ public class SOCHandPanel extends Panel
         {
             /* This is another player's hand */
 
+            final boolean isRobot = player.isRobot();
             D.ebugPrintln("**** SOCHandPanel.addPlayer(name) ****");
             D.ebugPrintln("player.getPlayerNumber() = " + playerNumber);
-            D.ebugPrintln("player.isRobot() = " + player.isRobot());
+            D.ebugPrintln("player.isRobot() = " + isRobot);
             D.ebugPrintln("player.getSeatLock(" + playerNumber + ") = " + game.getSeatLock(playerNumber));
             D.ebugPrintln("game.getPlayer(client.getNickname()) = " + game.getPlayer(client.getNickname()));
 
@@ -1936,13 +1937,15 @@ public class SOCHandPanel extends Panel
             // because it may not have been set at this point.
             // Use game.getPlayer(client.getNickname()) instead:
 
-            if (player.isRobot() && (game.getPlayer(client.getNickname()) == null)
+            final boolean clientIsASeatedPlayer = (game.getPlayer(client.getNickname()) != null);
+
+            if (isRobot && (! clientIsASeatedPlayer)
                 && (game.getSeatLock(playerNumber) != SOCGame.SeatLockState.LOCKED))
             {
                 addTakeOverBut();
             }
 
-            if (player.isRobot() && (game.getPlayer(client.getNickname()) != null))
+            if (isRobot && clientIsASeatedPlayer)
             {
                 addSittingRobotLockBut();
             }
@@ -1950,6 +1953,8 @@ public class SOCHandPanel extends Panel
             {
                 removeSittingRobotLockBut();
             }
+
+            offer.addPlayer();
 
             vpLab.setVisible(true);
             vpSq.setVisible(true);
