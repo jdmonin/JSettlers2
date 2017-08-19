@@ -199,14 +199,10 @@ public class SOCBoardLayout2 extends SOCMessage
         for (int i = hl.length - 1; i >= 0; --i)
         {
             int h = hl[i];
-            switch (h)
-            {
-            case SOCBoard.WATER_HEX:
-                h = SENTLAND_WATER;   break;
-            case SOCBoard.DESERT_HEX:
-                h = SENTLAND_DESERT;  break;
-            default:
-                // leave unchanged
+            if (h == SOCBoard.WATER_HEX) {
+                h = SENTLAND_WATER;
+            } else if (h == SOCBoard.DESERT_HEX) {
+                h = SENTLAND_DESERT;
             }
             hexLayout[i] = h;
         }

@@ -17,7 +17,7 @@
  *
  * The maintainer of this program can be reached at jsettlers@nand.net
  **/
-package soctest.db;
+package src.soctest.db;
 
 import java.security.SecureRandom;
 
@@ -167,7 +167,7 @@ public class TestBCryptMisc
 
     public static void main(String[] args)
     {
-        org.junit.runner.JUnitCore.main("soctest.db.TestBCryptMisc");
+        org.junit.runner.JUnitCore.main("TestBCryptMisc");
     }
 
 }
