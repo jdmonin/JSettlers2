@@ -127,7 +127,7 @@ public class NewGameOptionsFrame extends Frame
     private final boolean forPractice;
 
     /**
-     * Map of local client preferences for a new game, or {@code null} if ! {@link #forNewGame}.
+     * Map of local client preferences for a new or current game.
      * Same keys and values as {@link SOCPlayerInterface} constructor's
      * {@code localPrefs} parameter.
      * @since 1.2.00
@@ -262,7 +262,7 @@ public class NewGameOptionsFrame extends Frame
         SOCPlayerClient cli = gd.getClient();
         forNewGame = (gaName == null);
         this.opts = opts;
-        localPrefs = (forNewGame) ? new HashMap<String, Object>() : null;
+        localPrefs = new HashMap<String, Object>();
         this.forPractice = forPractice;
         this.readOnly = readOnly;
         controlsOpts = new HashMap<Component, SOCGameOption>();
@@ -324,7 +324,7 @@ public class NewGameOptionsFrame extends Frame
     /**
      * Interface setup for constructor. Assumes frame is using BorderLayout.
      * Most elements are part of a sub-panel occupying most of this Frame, and using GridBagLayout.
-     * Fills {@link #localPrefs} if {@link #forNewGame}.
+     * Fills {@link #localPrefs}.
      */
     private void initInterfaceElements(final String gaName)
     {
@@ -875,7 +875,7 @@ public class NewGameOptionsFrame extends Frame
 
     /**
      * Build UI for user preferences such as {@link SOCPlayerClient#PREF_SOUND_ON}
-     * and {@link SOCPlayerInterface#PREF_SOUND_MUTE}. Fills {@link #localPrefs} if {@link #forNewGame}.
+     * and {@link SOCPlayerInterface#PREF_SOUND_MUTE}. Fills {@link #localPrefs}.
      *<P>
      * Called from {@link #initInterface_Options(JPanel, GridBagLayout, GridBagConstraints)}.
      * @param bp  Add to this panel
@@ -917,8 +917,7 @@ public class NewGameOptionsFrame extends Frame
         if (withPerGamePrefs)
         {
             boolean val = (pi != null) ? pi.isSoundMuted() : false;
-            if (localPrefs != null)
-                localPrefs.put(SOCPlayerInterface.PREF_SOUND_MUTE, Boolean.valueOf(val));
+            localPrefs.put(SOCPlayerInterface.PREF_SOUND_MUTE, Boolean.valueOf(val));
             initInterface_Pref1
                 (bp, gbl, gbc,
                  strings.get("game.options.sound.mute_this"),  // "Sound: Mute this game"
@@ -929,7 +928,7 @@ public class NewGameOptionsFrame extends Frame
                      {
                          if (pi != null)
                              pi.setSoundMuted(check);
-                         else if (localPrefs != null)
+                         else
                              localPrefs.put(SOCPlayerInterface.PREF_SOUND_MUTE, Boolean.valueOf(check));
                      }
                  });
