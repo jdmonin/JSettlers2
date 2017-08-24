@@ -712,7 +712,7 @@ public class NewGameOptionsFrame extends Frame
     {
         Label L;
 
-        // reminder: same gbc widths/weights are used in initInterface_UserPrefs
+        // reminder: same gbc widths/weights are used in initInterface_UserPrefs/initInterface_Pref1
 
         gbc.gridwidth = 1;
         gbc.weightx = 0;
@@ -754,7 +754,7 @@ public class NewGameOptionsFrame extends Frame
         // Any text to the left of placeholder in op.desc?
         if (placeholderIdx > 0)
         {
-            L = new Label(opDesc.substring(0, placeholderIdx - 1));
+            L = new Label(opDesc.substring(0, placeholderIdx));
             L.setForeground(LABEL_TXT_COLOR);
             optp.add(L);
             if (hasCB && ! readOnly)
@@ -901,9 +901,10 @@ public class NewGameOptionsFrame extends Frame
         // PREF_SOUND_ON
 
         initInterface_Pref1
-            (bp, gbl, gbc,
+            (bp, gbl, gbc, null,
              strings.get("game.options.sound.all"),  // "Sound effects (All games)"
-             SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_SOUND_ON, true),
+             true, false,
+             SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_SOUND_ON, true), 0,
              new PrefCheckboxListener()
              {
                  public void stateChanged(boolean check)
@@ -913,15 +914,17 @@ public class NewGameOptionsFrame extends Frame
                  }
              });
 
-        // Per-PI sound pref:
+        // Per-PI prefs:
         if (withPerGamePrefs)
         {
-            boolean val = (pi != null) ? pi.isSoundMuted() : false;
-            localPrefs.put(SOCPlayerInterface.PREF_SOUND_MUTE, Boolean.valueOf(val));
+            // PREF_SOUND_MUTE
+
+            boolean bval = (pi != null) ? pi.isSoundMuted() : false;
+            localPrefs.put(SOCPlayerInterface.PREF_SOUND_MUTE, Boolean.valueOf(bval));
             initInterface_Pref1
-                (bp, gbl, gbc,
+                (bp, gbl, gbc, null,
                  strings.get("game.options.sound.mute_this"),  // "Sound: Mute this game"
-                 val,
+                 true, false, bval, 0,
                  new PrefCheckboxListener()
                  {
                      public void stateChanged(boolean check)
@@ -932,55 +935,207 @@ public class NewGameOptionsFrame extends Frame
                              localPrefs.put(SOCPlayerInterface.PREF_SOUND_MUTE, Boolean.valueOf(check));
                      }
                  });
+
+            // PREF_BOT_TRADE_REJECT_SEC
+
+            int ival = (pi != null)
+                ? pi.getBotTradeRejectSec()
+                : - SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, 5);
+            localPrefs.put(SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, Integer.valueOf(ival));
+            bval = (ival > 0);
+            if (! bval)
+                ival = -ival;
+            initInterface_Pref1
+                (bp, gbl, gbc, SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC,
+                 "auto-reject bot trades after # seconds",  // TODO I18N
+                 true, true, bval, ival, null);
         }
     }
 
     /**
-     * Set up one preference checkbox for {@link #initInterface_UserPrefs(JPanel, GridBagLayout, GridBagConstraints)}.
+     * Set up one preference row (desc label, checkbox and/or input box)
+     * for {@link #initInterface_UserPrefs(JPanel, GridBagLayout, GridBagConstraints)}.
      * @param bp  Add to this panel
      * @param gbl Use this layout
      * @param gbc Use these constraints
-     * @param txt  Text for checkbox label
-     * @param initVal  Initial value
-     * @param pcl  Callback when checkbox is checked/unchecked by clicking the box or its label
+     * @param key Pref key name to update in {@link #localPrefs} when changed,
+     *     such as {@link SOCPlayerClient#PREF_BOT_TRADE_REJECT_SEC}, or {@code null}.
+     *     If {@code hasBool} but not {@code hasInt}, will store {@link Boolean#TRUE} or {@code .FALSE} as key's value.
+     *     If {@code hasInt} and can't parse text field contents, stores {@link Integer} 0 as key's value.
+     *     If both bool and int, will store an {@code Integer} which is negative if checkbox is unchecked.
+     * @param desc  Preference description text to show. If {@code hasInt}, must contain {@code "#"} placeholder.
+     * @param hasBool  True if preference has a boolean value
+     * @param hasInt   True if preference has an integer value
+     * @param initBoolVal  Pref's initial boolean value, for checkbox; ignored unless {@code hasBool}
+     * @param initIntVal   Pref's initial integer value, for input box; ignored unless {@code hasInt}
+     * @param pcl  Callback when checkbox is checked/unchecked by clicking the box or its label, or {@code null}
+     * @throws IllegalArgumentException if {@code hasInt} but {@code desc} doesn't contain {@code "#"},
+     *     or if both {@code key} and {@code pcl} are {@code null}
      * @since 1.2.00
      */
     private void initInterface_Pref1
         (final JPanel bp, final GridBagLayout gbl, final GridBagConstraints gbc,
-         final String txt, final boolean initVal, final PrefCheckboxListener pcl)
+         final String key, final String desc, final boolean hasBool, final boolean hasInt,
+         final boolean initBoolVal, final int initIntVal, final PrefCheckboxListener pcl)
+        throws IllegalArgumentException
     {
-        final Checkbox cb = new Checkbox();
-        cb.setState(initVal);
-        gbc.gridwidth = 1;
-        gbc.weightx = 0;
-        gbl.setConstraints(cb, gbc);
-        bp.add(cb);
+        if ((key == null) && (pcl == null))
+            throw new IllegalArgumentException("null key, pcl");
 
-        Label L = new Label(txt);
-        L.setForeground(LABEL_TXT_COLOR);
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.weightx = 1;
-        gbl.setConstraints(L, gbc);
-        bp.add(L);
-        L.addMouseListener(new MouseAdapter()
-        {
-            @Override
-            public void mouseClicked(MouseEvent e)
-            {
-                final boolean makeChecked = ! cb.getState();
-                cb.setState(makeChecked);
-                pcl.stateChanged(makeChecked);
-                e.consume();
-            }
-        });
+        // reminder: same gbc widths/weights are used in initInterface_Opt1
 
-        cb.addItemListener(new ItemListener()
+        final Checkbox cb;
+        final IntTextField itf = (hasInt) ? new IntTextField(initIntVal, 3) : null;
+        final MouseListener ml;
+        if (hasBool)
         {
-            public void itemStateChanged(ItemEvent ie)
+            cb = new Checkbox();
+            cb.setState(initBoolVal);
+            gbc.gridwidth = 1;
+            gbc.weightx = 0;
+            gbl.setConstraints(cb, gbc);
+            bp.add(cb);
+
+            ml = new MouseAdapter()
             {
-                pcl.stateChanged(ie.getStateChange() == ItemEvent.SELECTED);
+                @Override
+                public void mouseClicked(MouseEvent e)
+                {
+                    final boolean makeChecked = ! cb.getState();
+                    cb.setState(makeChecked);
+                    if (pcl != null)
+                        pcl.stateChanged(makeChecked);
+                    if (key != null)
+                    {
+                        if (hasInt)
+                        {
+                            int iv = 0;
+                            try
+                            {
+                                iv = Integer.parseInt(itf.getText().trim());
+                                if (! makeChecked)
+                                    iv = -iv;
+                            } catch (NumberFormatException nfe) {}
+
+                            localPrefs.put(key, Integer.valueOf(iv));
+                        } else {
+                            localPrefs.put(key, (makeChecked) ? Boolean.TRUE : Boolean.FALSE);
+                        }
+                    }
+                    e.consume();
+                }
+            };
+        } else {
+            cb = null;
+            ml = null;
+        }
+
+        final int placeholderIdx;
+        final Panel prefp;  // null or holds label with start of desc, int input field, label with rest of desc
+        if (hasInt)
+        {
+            placeholderIdx = desc.indexOf('#');
+            if (placeholderIdx == -1)
+                throw new IllegalArgumentException("missing '#'");
+
+            prefp = new Panel();  // with FlowLayout
+            try
+            {
+                FlowLayout fl = (FlowLayout) (prefp.getLayout());
+                fl.setAlignment(FlowLayout.LEFT);
+                fl.setVgap(0);
+                fl.setHgap(0);
             }
-        });
+            catch (Exception fle) {}
+
+        } else {
+            placeholderIdx = -1;
+            prefp = null;
+        }
+
+        // Any text to the left of placeholder in desc?
+        if (placeholderIdx > 0)
+        {
+            Label L = new Label(desc.substring(0, placeholderIdx));
+            L.setForeground(LABEL_TXT_COLOR);
+            prefp.add(L);
+            L.addMouseListener(ml);
+        }
+
+        if (hasInt)
+        {
+            prefp.add(itf);
+
+            itf.addKeyListener(this);   // for ESC/ENTER
+
+            if ((cb != null) || (key != null))
+                itf.addTextListener(new TextListener()  // for value store or enable/disable
+                {
+                    public void textValueChanged(TextEvent arg0)
+                    {
+                        final String newText = itf.getText().trim();
+                        final boolean notEmpty = (newText.length() > 0);
+
+                        if (cb != null)
+                        {
+                            if (notEmpty != cb.getState())
+                            {
+                                cb.setState(notEmpty);
+                                if (pcl != null)
+                                    pcl.stateChanged(notEmpty);
+                            }
+                        }
+
+                        if (key != null)
+                        {
+                            int iv = 0;
+                            try
+                            {
+                                iv = Integer.parseInt(newText);
+                                if ((cb != null) && ! cb.getState())
+                                    iv = -iv;
+                            } catch (NumberFormatException nfe) {}
+
+                            localPrefs.put(key, Integer.valueOf(iv));
+                        }
+                    }
+                });
+        }
+
+        // Any text to the right of placeholder?  Also creates
+        // the text label if there is no placeholder.
+        if (placeholderIdx + 1 < desc.length())
+        {
+            Label L = new Label(desc.substring(placeholderIdx + 1));
+            L.setForeground(LABEL_TXT_COLOR);
+            if (prefp != null)
+            {
+                prefp.add(L);
+            } else {
+                gbc.gridwidth = GridBagConstraints.REMAINDER;
+                gbc.weightx = 1;
+                gbl.setConstraints(L, gbc);
+                bp.add(L);
+            }
+            L.addMouseListener(ml);
+        }
+
+        if (prefp != null)
+        {
+            gbc.gridwidth = GridBagConstraints.REMAINDER;
+            gbc.weightx = 1;
+            gbl.setConstraints(prefp, gbc);
+            bp.add(prefp);
+        }
+
+        if (cb != null)
+            cb.addItemListener(new ItemListener()
+            {
+                public void itemStateChanged(ItemEvent ie)
+                {
+                    pcl.stateChanged(ie.getStateChange() == ItemEvent.SELECTED);
+                }
+            });
     }
 
     /**
@@ -1004,7 +1159,12 @@ public class NewGameOptionsFrame extends Frame
         }
     }
 
-    /** React to button clicks */
+    /**
+     * React to button clicks.
+     *<P>
+     * Even in read-only mode for a current game, the "OK" button saves (persists)
+     * this dialog's local preferences for use in future games.
+     */
     public void actionPerformed(ActionEvent ae)
     {
         try
@@ -1017,6 +1177,9 @@ public class NewGameOptionsFrame extends Frame
             }
             else if (src == cancel)
             {
+                if (readOnly && (pi != null))
+                    persistLocalPrefs();
+
                 clickCancel();
             }
             else if (src == scenInfo)
@@ -1069,7 +1232,10 @@ public class NewGameOptionsFrame extends Frame
 
     }
 
-    /** "Create" button or "Connect..." from connect setup; check fields, etc */
+    /**
+     * The "Create" button was clicked; check fields, etc.
+     * If creating new game, also calls {@link #persistLocalPrefs()}.
+     */
     private void clickCreate(final boolean checkOptionsMinVers)
     {
         String gmName = gameName.getText().trim();
@@ -1108,7 +1274,9 @@ public class NewGameOptionsFrame extends Frame
         {
             if (readOptsValuesFromControls(checkOptionsMinVers))
             {
+                // All fields OK, ready to create a new game.
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // Immediate feedback in this frame
+                persistLocalPrefs();
                 gameDisplay.askStartGameWithOptions
                     (gmName, forPractice, opts, localPrefs);  // sets WAIT_CURSOR in main client frame
             } else {
@@ -1126,7 +1294,10 @@ public class NewGameOptionsFrame extends Frame
         dispose();
     }
 
-    /** Dismiss the frame */
+    /**
+     * The "Cancel" button or window's close button was clicked, or ESC was pressed; dismiss the frame.
+     * Note: Button text is "OK" in read-only mode ({@link #readOnly}) for a current game.
+     */
     private void clickCancel()
     {
         dispose();
@@ -1182,6 +1353,29 @@ public class NewGameOptionsFrame extends Frame
             gameDisplay.newGameOptsFrame = null;
 
         super.dispose();
+    }
+
+    /**
+     * When frame is closing, store any updated persistent local preferences
+     * like {@link SOCPlayerClient#PREF_BOT_TRADE_REJECT_SEC}.
+     * If {@link #pi} != null, update its settings too.
+     *<P>
+     * Prefs which update immediately when clicked, like {@link SOCPlayerClient#PREF_SOUND_ON},
+     * aren't updated here.
+     * @since 1.2.00
+     */
+    private void persistLocalPrefs()
+    {
+        String k = SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC;
+        Object v = localPrefs.get(k);
+        if ((v != null) && (v instanceof Integer))
+        {
+            int iv = ((Integer) v).intValue();
+            if (pi != null)
+                pi.setBotTradeRejectSec(iv);
+            if (iv > 0)
+                SOCPlayerClient.GameAwtDisplay.putUserPreference(k, iv);
+        }
     }
 
     /**
@@ -1865,7 +2059,7 @@ public class NewGameOptionsFrame extends Frame
 
     /**
      * Callback for when a user preference checkbox is checked/unchecked by clicking that box or its label.
-     * @see NewGameOptionsFrame#initInterface_Pref1(JPanel, GridBagLayout, GridBagConstraints, String, boolean, PrefCheckboxListener)
+     * @see NewGameOptionsFrame#initInterface_Pref1(JPanel, GridBagLayout, GridBagConstraints, String, String, boolean, boolean, boolean, int, PrefCheckboxListener)
      * @since 1.2.00
      */
     private static interface PrefCheckboxListener

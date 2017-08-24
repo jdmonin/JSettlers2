@@ -465,6 +465,17 @@ public class SOCPlayerInterface extends Frame
     private boolean soundMuted;
 
     /**
+     * Starting value of the countdown to auto-reject bot trades.
+     * For more details see {@link #getBotTradeRejectSec()}.
+     *<P>
+     * Default value -5 is negative because the countdown is disabled by default.
+     * Another value can be specified in our constructor's {@code localPrefs} param.
+     * @since 1.2.00
+     */
+    private int botTradeRejectSec = - SOCPlayerClient.GameAwtDisplay.getUserPreference
+        (SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, 5);
+
+    /**
      * The dialog for getting what resources the player wants to discard or gain.
      */
     protected SOCDiscardOrGainResDialog discardOrGainDialog;
@@ -546,6 +557,10 @@ public class SOCPlayerInterface extends Frame
      * @param localPrefs  optional map of per-game local preferences to use in this {@code SOCPlayerInterface},
      *     or {@code null}. Preference name keys are {@link #PREF_SOUND_MUTE}, etc.
      *     Values for boolean prefs should be {@link Boolean#TRUE} or {@code .FALSE}.
+     *     If provided in the Map, value for {@link SOCPlayerClient#PREF_BOT_TRADE_REJECT_SEC}
+     *     (positive or negative) is used to call {@link #setBotTradeRejectSec(int)}.
+     * @throws IllegalArgumentException if a {@code localPrefs} value isn't the expected type
+     *     ({@link Integer} or {@link Boolean}) based on its key's javadoc.
      */
     public SOCPlayerInterface(String title, GameAwtDisplay gd, SOCGame ga, final Map<String, Object> localPrefs)
     {
@@ -570,8 +585,18 @@ public class SOCPlayerInterface extends Frame
         if (localPrefs != null)
         {
             soundMuted = Boolean.TRUE.equals(localPrefs.get(PREF_SOUND_MUTE));
+
+            String k = SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC;
+            Object v = localPrefs.get(k);
+            if (v != null)
+            {
+                if (v instanceof Integer)
+                    botTradeRejectSec = ((Integer) v).intValue();
+                else
+                    throw new IllegalArgumentException("value not Integer: " + k);
+            }
         }
-        // else, soundMuted = false (its default)
+        // else, soundMuted = false, botTradeRejectSec = its default (see declaration/initializer)
 
         showingPlayerDiscardOrPick = false;
         showingPlayerDiscardOrPick_lock = new Object();
@@ -957,6 +982,32 @@ public class SOCPlayerInterface extends Frame
     public void setSoundMuted(boolean mute)
     {
         soundMuted = mute;
+    }
+
+    /**
+     * Get this game interface's current setting for the starting value of the countdown to auto-reject bot trades,
+     * from {@link SOCPlayerClient#PREF_BOT_TRADE_REJECT_SEC}.
+     * If &gt; 0, {@link TradeOfferPanel} will start the countdown when any robot offers a trade.
+     * Negative values or 0 turn off the auto-reject countdown feature, to keep the setting's
+     * value for its "Options" dialog without also having a separate enabled/disabled flag.
+     * @return This game interface's current setting, positive or negative, in seconds
+     * @since 1.2.00
+     */
+    public int getBotTradeRejectSec()
+    {
+        return botTradeRejectSec;
+    }
+
+    /**
+     * Set this game interface's current setting for the starting value of the countdown to auto-reject bot trades,
+     * See {@link #getBotTradeRejectSec()} for details.
+     * Does not update value of persistent preference {@link SOCPlayerClient#PREF_BOT_TRADE_REJECT_SEC}.
+     * @param sec  New value, positive or negative, in seconds
+     * @since 1.2.00
+     */
+    public void setBotTradeRejectSec(final int sec)
+    {
+        botTradeRejectSec = sec;
     }
 
     /**
