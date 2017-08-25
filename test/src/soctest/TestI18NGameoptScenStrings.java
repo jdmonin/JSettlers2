@@ -17,7 +17,7 @@
  *
  * The maintainer of this program can be reached at jsettlers@nand.net
  **/
-package soctest;
+package src.soctest;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -320,7 +320,7 @@ public class TestI18NGameoptScenStrings
 
     public static void main(String[] args)
     {
-        org.junit.runner.JUnitCore.main("soctest.TestI18NGameoptScenStrings");
+        org.junit.runner.JUnitCore.main("TestI18NGameoptScenStrings");
     }
 
 }

@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import soc.game.hex.Fog;
+import soc.game.hex.Goldmine;
 import soc.util.IntPair;
 
 /**
@@ -247,7 +249,7 @@ public class SOCBoardLarge extends SOCBoard
      * as long as callers of {@link #getHexTypeFromCoord(int)}
      * check the board encoding format.
      */
-    public static final int GOLD_HEX = 7;
+    public static final int GOLD_HEX = Goldmine.TYPE.typeId();
 
     /**
      * Hex type for the Fog Hex, with actual type revealed when roads or ships are placed.
@@ -266,7 +268,7 @@ public class SOCBoardLarge extends SOCBoard
      * @see #revealFogHiddenHexPrep(int)
      * @see #revealFogHiddenHex(int, int, int)
      */
-    public static final int FOG_HEX = 8;
+    public static final int FOG_HEX = Fog.TYPE.typeId();
 
     /**
      * Maximum land hex type (== {@link #FOG_HEX}) for this encoding.

@@ -6809,44 +6809,29 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     public final Color hexColor(int hexType)
     {
-        Color hexColor;
-        switch (hexType)
+        if (hexType == SOCBoard.DESERT_HEX) return ColorSquare.DESERT;
+        if (hexType == SOCBoard.CLAY_HEX) return ColorSquare.CLAY;
+        if (hexType == SOCBoard.ORE_HEX) return ColorSquare.ORE;
+        if (hexType == SOCBoard.SHEEP_HEX) return ColorSquare.SHEEP;
+        if (hexType == SOCBoard.WHEAT_HEX) return ColorSquare.WHEAT;
+        if (hexType == SOCBoard.WOOD_HEX) return ColorSquare.WOOD;
+        if (hexType == SOCBoardLarge.GOLD_HEX)
         {
-        case SOCBoard.DESERT_HEX:
-            hexColor = ColorSquare.DESERT;
-            break;
-        case SOCBoard.CLAY_HEX:
-            hexColor = ColorSquare.CLAY;
-            break;
-        case SOCBoard.ORE_HEX:
-            hexColor = ColorSquare.ORE;
-            break;
-        case SOCBoard.SHEEP_HEX:
-            hexColor = ColorSquare.SHEEP;
-            break;
-        case SOCBoard.WHEAT_HEX:
-            hexColor = ColorSquare.WHEAT;
-            break;
-        case SOCBoard.WOOD_HEX:
-            hexColor = ColorSquare.WOOD;
-            break;
-        case SOCBoardLarge.GOLD_HEX:
             if (isLargeBoard)
-                hexColor = ColorSquare.GOLD;
+                return ColorSquare.GOLD;
             else
-                hexColor = ColorSquare.WATER;  // for MISC_PORT_HEX
-            break;
-        case SOCBoardLarge.FOG_HEX:
-            if (isLargeBoard)
-                hexColor = ColorSquare.FOG;
-            else
-                hexColor = ColorSquare.WATER;  // for CLAY_PORT_HEX
-            break;
-
-        default:  // WATER_HEX
-            hexColor = ColorSquare.WATER;
+                return ColorSquare.WATER;  // for MISC_PORT_HEX
         }
-        return hexColor;
+        if (hexType == SOCBoardLarge.FOG_HEX)
+        {
+            if (isLargeBoard)
+                return ColorSquare.FOG;
+            else
+                return ColorSquare.WATER;  // for CLAY_PORT_HEX
+        }
+
+        // Assume it is a WATER_HEX
+        return ColorSquare.WATER;
     }
 
     /**
@@ -7739,33 +7724,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hoverID = id;
 
                 {
-                    final int htype = board.getHexTypeFromCoord(id);
+                    final int hexType = board.getHexTypeFromCoord(id);
                     final int dicenum = board.getNumberOnHexFromCoord(id);
 
                     StringBuffer key = new StringBuffer("game.hex.hoverformat");
                     String hname = "";
                     String addinfo = "";
-                    int hid = htype;
+                    int hid = hexType;
                     boolean showDice = false;
 
-                    switch (htype)
+                    if (hexType == SOCBoard.DESERT_HEX) hname = "board.hex.desert";
+                    else if (hexType == SOCBoard.CLAY_HEX) hname = "resources.clay";
+                    else if (hexType == SOCBoard.ORE_HEX) hname = "resources.ore";
+                    else if (hexType == SOCBoard.SHEEP_HEX) hname = "resources.sheep";
+                    else if (hexType == SOCBoard.WHEAT_HEX) hname = "resources.wheat";
+                    else if (hexType == SOCBoard.WOOD_HEX) hname = "resources.wood";
+                    else if (hexType == SOCBoard.WATER_HEX) hname = "board.hex.water";
+                    else if (hexType == SOCBoardLarge.GOLD_HEX)
                     {
-                    case SOCBoard.DESERT_HEX:
-                        hname = "board.hex.desert";  break;
-                    case SOCBoard.CLAY_HEX:
-                        hname = "resources.clay";    break;
-                    case SOCBoard.ORE_HEX:
-                        hname = "resources.ore";     break;
-                    case SOCBoard.SHEEP_HEX:
-                        hname = "resources.sheep";   break;
-                    case SOCBoard.WHEAT_HEX:
-                        hname = "resources.wheat";   break;
-                    case SOCBoard.WOOD_HEX:
-                        hname = "resources.wood";    break;
-                    case SOCBoard.WATER_HEX:
-                        hname = "board.hex.water";   break;
-
-                    case SOCBoardLarge.GOLD_HEX:
                         if (isLargeBoard)
                         {
                             hname = "board.hex.gold";
@@ -7774,9 +7750,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             hid = SOCBoard.MISC_PORT;
                             hname = SOCBoard.getPortDescForType(hid, false);
                         }
-                        break;
-
-                    case SOCBoardLarge.FOG_HEX:
+                    }
+                    else if (hexType == SOCBoardLarge.FOG_HEX)
+                    {
                         if (isLargeBoard)
                         {
                             if (game.isInitialPlacement())
@@ -7788,28 +7764,25 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             hid = SOCBoard.CLAY_PORT;
                             hname = SOCBoard.getPortDescForType(hid, false);
                         }
-                        break;
-
-                    default:
-                        {
-                            // Check for a port at this hex.
-                            // (May already have checked above for the node, using portDescAtNode;
-                            //  only the original board layout encodes ports into the hex types.)
-                            String portDesc = null;
-                            if ((htype >= SOCBoard.MISC_PORT_HEX) && (htype <= SOCBoard.WOOD_PORT_HEX))
-                            {
-                                hid = htype - (SOCBoard.MISC_PORT_HEX - SOCBoard.MISC_PORT);
-                                portDesc = SOCBoard.getPortDescForType(hid, false);
-                            }
-                            if (portDesc != null)
-                            {
-                                hname = portDesc;
-                            } else {
-                                hid = htype;
-                                hname = "board.hex.generic";
-                            }
+                    }
+                    else
+                    {
+                        // Check for a port at this hex.
+                        // (May already have checked above for the node, using portDescAtNode;
+                        //  only the original board layout encodes ports into the hex types.)
+                        String portDesc = null;
+                        if ((hexType >= SOCBoard.MISC_PORT_HEX) && (hexType <= SOCBoard.WOOD_PORT_HEX)) {
+                            hid = hexType - (SOCBoard.MISC_PORT_HEX - SOCBoard.MISC_PORT);
+                            portDesc = SOCBoard.getPortDescForType(hid, false);
+                        }
+                        if (portDesc != null) {
+                            hname = portDesc;
+                        } else {
+                            hid = hexType;
+                            hname = "board.hex.generic";
                         }
                     }
+
                     if (board.getRobberHex() == id)
                     {
                         showDice = (dicenum > 0);

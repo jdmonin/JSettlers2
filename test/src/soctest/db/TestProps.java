@@ -17,7 +17,7 @@
  *
  * The maintainer of this program can be reached at jsettlers@nand.net
  **/
-package soctest.db;
+package src.soctest.db;
 
 import java.sql.SQLException;
 import java.util.Properties;
@@ -110,7 +110,7 @@ public class TestProps
 
     public static void main(String[] args)
     {
-        org.junit.runner.JUnitCore.main("soctest.db.TestProps");
+        org.junit.runner.JUnitCore.main("TestProps");
     }
 
 }

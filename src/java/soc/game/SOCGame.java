@@ -3141,32 +3141,15 @@ public class SOCGame implements Serializable, Cloneable
                 for (Integer hex : hexes)
                 {
                     final int hexCoord = hex.intValue();
+                    final int hexType = board.getHexTypeFromCoord(hexCoord);
 
-                    switch (board.getHexTypeFromCoord(hexCoord))
-                    {
-                    case SOCBoard.CLAY_HEX:
-                        resources.add(1, SOCResourceConstants.CLAY);
-                        break;
-
-                    case SOCBoard.ORE_HEX:
-                        resources.add(1, SOCResourceConstants.ORE);
-                        break;
-
-                    case SOCBoard.SHEEP_HEX:
-                        resources.add(1, SOCResourceConstants.SHEEP);
-                        break;
-
-                    case SOCBoard.WHEAT_HEX:
-                        resources.add(1, SOCResourceConstants.WHEAT);
-                        break;
-
-                    case SOCBoard.WOOD_HEX:
-                        resources.add(1, SOCResourceConstants.WOOD);
-                        break;
-
-                    case SOCBoardLarge.GOLD_HEX:
-                        if (hasSeaBoard)
-                            ++goldHexAdjacent;
+                    if (hexType == SOCBoard.CLAY_HEX) resources.add(1, SOCResourceConstants.CLAY);
+                    else if (hexType == SOCBoard.ORE_HEX) resources.add(1, SOCResourceConstants.ORE);
+                    else if(hexType == SOCBoard.SHEEP_HEX) resources.add(1, SOCResourceConstants.SHEEP);
+                    else if(hexType == SOCBoard.WHEAT_HEX) resources.add(1, SOCResourceConstants.WHEAT);
+                    else if(hexType == SOCBoard.WOOD_HEX) resources.add(1, SOCResourceConstants.WOOD);
+                    else if(hexType == SOCBoardLarge.GOLD_HEX) {
+                        if (hasSeaBoard) ++goldHexAdjacent;
                     }
                 }
 
@@ -5205,33 +5188,15 @@ public class SOCGame implements Serializable, Cloneable
                 SOCResourceSet rset = hexCoord != robberHex ? resources : missedResources;
                 if (board.getNumberOnHexFromCoord(hexCoord) == roll)
                 {
-                    switch (board.getHexTypeFromCoord(hexCoord))
-                    {
-                    case SOCBoard.CLAY_HEX:
-                        rset.add(incr, SOCResourceConstants.CLAY);
-                        break;
-
-                    case SOCBoard.ORE_HEX:
-                        rset.add(incr, SOCResourceConstants.ORE);
-                        break;
-
-                    case SOCBoard.SHEEP_HEX:
-                        rset.add(incr, SOCResourceConstants.SHEEP);
-                        break;
-
-                    case SOCBoard.WHEAT_HEX:
-                        rset.add(incr, SOCResourceConstants.WHEAT);
-                        break;
-
-                    case SOCBoard.WOOD_HEX:
-                        rset.add(incr, SOCResourceConstants.WOOD);
-                        break;
-
-                    case SOCBoardLarge.GOLD_HEX:  // if not hasSeaBoard, == SOCBoard.MISC_PORT_HEX
+                    final int hexType = board.getHexTypeFromCoord(hexCoord);
+                    if (hexType == SOCBoard.CLAY_HEX) rset.add(incr, SOCResourceConstants.CLAY);
+                    else if (hexType == SOCBoard.ORE_HEX) rset.add(incr, SOCResourceConstants.ORE);
+                    else if (hexType == SOCBoard.SHEEP_HEX) rset.add(incr, SOCResourceConstants.SHEEP);
+                    else if (hexType == SOCBoard.WHEAT_HEX) rset.add(incr, SOCResourceConstants.WHEAT);
+                    else if (hexType == SOCBoard.WOOD_HEX) rset.add(incr, SOCResourceConstants.WOOD);
+                    else if (hexType == SOCBoardLarge.GOLD_HEX){
                         if (hasSeaBoard)
                             rset.add(incr, SOCResourceConstants.GOLD_LOCAL);
-                        break;
-
                     }
                 }
             }
@@ -5538,29 +5503,30 @@ public class SOCGame implements Serializable, Cloneable
                 return false;
         }
 
-        switch (board.getHexTypeFromCoord(co))
+        final int hexType = board.getHexTypeFromCoord(co);
+        if (hexType == SOCBoard.DESERT_HEX)
         {
-        case SOCBoard.DESERT_HEX:
-            return ! isGameOptionSet("RD");  // Only if it can return to the desert
-
-        case SOCBoard.CLAY_HEX:
-        case SOCBoard.ORE_HEX:
-        case SOCBoard.SHEEP_HEX:
-        case SOCBoard.WHEAT_HEX:
-        case SOCBoard.WOOD_HEX:
-            return true;
-
-        case SOCBoardLarge.GOLD_HEX:
+            return !isGameOptionSet("RD");  // Only if it can return to the desert
+        }
+        else if (hexType == SOCBoardLarge.GOLD_HEX)
+        {
             // Must check these because the original board has port types (water hexes)
             // with the same numeric values as GOLD_HEX and FOG_HEX.
             return (board instanceof SOCBoardLarge);
+        }
+        else if (hexType == SOCBoard.CLAY_HEX ||
+            hexType == SOCBoard.ORE_HEX ||
+            hexType == SOCBoard.SHEEP_HEX ||
+            hexType == SOCBoard.WHEAT_HEX ||
+            hexType == SOCBoard.WOOD_HEX)
+        {
+            return true;
+        }
 
         // case SOCBoardLarge.FOG_HEX:
             // Fall through to default, can't place on fog. Might be water.
 
-        default:
-            return false;  // Land hexes only (Could check board.max_robber_hex, if we didn't special-case desert,gold,fog)
-        }
+        return false;  // Land hexes only (Could check board.max_robber_hex, if we didn't special-case desert,gold,fog)
     }
 
     /**
