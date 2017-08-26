@@ -498,5 +498,265 @@ Further development is based on 1.1.04.
 - First release. See the README file for how to setup a server and
   robot clients.
 
-## For older version information:
-- see src/docs/old-updates-rsthomas.html for 5/3/00 through 03/15/04.
+## Older versions
+This chapter contains the contents of the old `old-updates-rsthomas.html` file written by Robert S. Thomas. It's kept here for historical reference. The contents are preserved as much as possible, the formatting has been adapted to Markdown format where possible.
+
+### 2004-04-15
+
+I have recently created a SourceForge project called [http://sourceforge.net/projects/jsettlers/](jsettlers) to maintain the Java Settlers code base. There you can access a copy of my dissertation which describes how the system as well as the bots work. Also, you can download the Java Settlers class files as well as brief instructions on how to run your own server. In addition, I have made the source code available under the Gnu Public License. You can access it using CVS at cvs.sf.net/cvsroot/jsettlers. If you are interested in being part of a development team to continue improving Java Settlers, please let me know. 
+
+### 2002-11-21
+In order to fight the problem of the server getting clogged with dead games, I've implemented a time limit system for all games. When a game is created it has a lifetime of 90 minutes. Anyone in the game can check how much time is remaining by typing `CHECKTIME`. When the game only has 5 minutes left a warning will be issued to the people in that game. To extend a game, simply type `ADDTIME` to add another 30 minutes. This can be done at any time. Hopefully this will result in a more stable server with less lag.
+
+### 2002-10-17
+
+I've had a number of requests recently for a solution to the problem of how to deal with obnoxious players. As a quick fix, I've added a way to ignore the chat messages from other players. Here's how it works:
+
+- To ignore another player, type `\ignore <nickname>`
+Where `<nickname>` is the name of the person you want to ignore.
+This will add their name to the list of people you're ignoring.
+- To stop ignoring a player, type `\unignore <nickname>`
+This will remove their name from your list.
+
+These commands work in both game and channel windows and the list will be maintained as long as you are connected to the server. If the commands aren't working, it's probably because you're not using the most recent version of the client. To get the most recent version, simply close your web browser and then run it again to load the Java Settlers page. The latest version of the client should automatically be downloaded to your computer.
+
+If you're having trouble loading the client (you only see a grey box when you load the page), you need to update your java plug-in by going here. After doing that, restart your computer and you should be able to access the site again.
+
+### 2002-04-13
+
+I'm trying out some variations of the robot decision making algorithms. The 'bots have strange suffixes added to their names so I know which algorithms each one is running. 
+
+### 2002-02-15 
+
+I figured out a way to make scroll bars work correctly on both Mac and PC, so now the interface has them. I also modified how the face button works. If you click on the right side of the face, it will advance to the next one. If you click on the left side, it will go back. And I added some new faces, so check 'em out! 
+
+### 2001-08-31 
+
+I've added an account system to the site. It is completely optional. If you go to the account creation page and make a new account, you will need to enter you password when you use the system. The benefit of creating an account is that no one will be able to use your nickname without the password. 
+
+### 2001-08-03
+
+I've set up some scripts to restart the server every day at 4:00am CST. This is a temporary fix for any bugs that take more than a day to manifest. 
+
+### 2001-07-18
+
+Fixed a couple bugs in the 'bot strategy code. 
+
+### 2001-07-16
+
+Now the server will list any victory point cards that the winner has when he or she wins. 
+
+### 2001-07-02
+
+I made the seat lock button smaller so that it doesn't cover the counter offer buttons. 
+
+### 2001-07-01
+
+Fixed some more bugs and I've added a new feature. Now when you sit at a game you will see a button in the other players' panels labled "Lock This Seat" or "Unlock This Seat". This button will only show for players that are 'bots. If you lock a seat, that prevents other people from booting the 'bot and sitting down. I added this because people were requesting a function that would make games private, and also for a way to boot people. I don't really like the idea of booting people, so this is a compromise. Let me know what you think. 
+
+### 2001-06-28
+
+Still working on some bugs in the networking code, but I think it's getting better. I also added a cancel button on the counter offer box. 
+
+### 2001-06-27
+Joseph Landry (jal) read my FAQ about the randomness of the numbers and sent me an improved formula to get a better distribution. I thought I would put his email here just in case anyone else has made the same mistake I did:
+Your FAQ page says that your random number generator is
+
+``` java
+int die1 = (int)(Math.round(Math.random() * 5.0) + 1);
+int die2 = (int)(Math.round(Math.random() * 5.0) + 1);
+int currentDice = die1 + die2;
+```
+
+`Math.random()` produces a number between `0` and `0.999` correct?
+(I'm only printing to 3 decimal places for all this)
+ 
+Then the resultant numbers passed to Math.round() that range from `0 to 4.999`
+
+    0.000 - 0.499 -> 0 + 1 = 1
+    0.500 - 1.499 -> 1 + 1 = 2
+    1.500 - 2.499 -> 2 + 1 = 3
+    2.500 - 3.499 -> 3 + 1 = 4
+    3.500 - 4.499 -> 4 + 1 = 5
+    4.500 - 4.999 -> 5 + 1 = 6
+ 
+As you can see from this chart, the 1 and 6 are only half as likely to
+get rolled as 2,3,4,and 5.
+ 
+Shouldn't your formulas be...
+
+``` java
+int die1 = (int)(Math.round(Math.random() * 6.0 + 0.5) ;
+int die2 = (int)(Math.round(Math.random() * 6.0 + 0.5) ;
+int currentDice = die1 + die2;
+```
+
+This produces numbers passed to `Math.round()` that range from `0.5` to `6.499`
+ 
+    0.500 - 1.499 -> 1
+    1.500 - 2.499 -> 2
+    2.500 - 3.499 -> 3
+    3.500 - 4.499 -> 4
+    4.500 - 5.499 -> 5
+    5.500 - 6.499 -> 6
+ 
+Now all numbers are evenly distributed.
+Thanks for the help Joe!
+
+### 2001-06-26
+
+Fixed some more bugs so that the server is more stable. I also added a FAQ list. There is a link to it on the front page. You might have noticed that some new faces have been added to the interface. I didn't create these, actually someone who uses the site sent them to me, and I think they're great! If you would like to add more faces to the collection, all you need to do is make a 40 by 40 pixel gif with a transparent background and email it to me. Then you'll be able to choose the face that you created when you play, and other players will get to appreciate your skill as an artist. ;) 
+
+### 2001-06-21
+
+As promised, I've updated the negotiation code for the 'bots. They will now only make offers that they think another player will take. This cuts down the number of offers they make, and their offers make a bit more sense. Also, they will only try to make offers to players that they think have what they want. Sometimes they will make an offer to you even if you don't have what they're asking for. This is because they will loose track of what you have if you discard cards, or get robbed. One more thing, just because a 'bot rejects your first offer that doesn't necessarily mean that they don't have what you want. Try making the deal better and they might take it. 
+
+### 2001-06-17
+
+I need to fix some timing bugs that only showed up when I had a bunch of people using the system. In the mean time I'll run the old faster 'bots. 
+I'm trying out a new addition to the interface. Now when an offer is presented, you will have three options: Accept, Reject, and Counter. The Counter button allows you to easily make a counter offer. If you have any comments either good or bad about the new button, please let me know.
+Note: I'm still running the old 'bot code which doesn't react to counter offers, so I would NOT recommend making counter offers to 'bots. Very soon I will have new 'bots that will make and consider counter offers. 
+
+### 2001-06-13
+
+Modified the trading algorithm so that robots will make counter offers rather than just saying "That deal isn't good for me.". The result is that the robots reach an agreement or an impass faster with fewer offers made. Also, the experiment is over and all robots are using the same code now. 
+
+### 2001-05-31
+
+Ok, this is a big update. I fixed a bunch of bugs and I changed the trading algorithm in a major way. Now the 'bots will make multiple offers if it thinks that you want them. The way you signal to the 'bots that you're willing to sell but are waiting for a better deal is to say something like, "Gimme a better deal." before you hit the Reject button. Actually, you can say anything as long as it has the word "deal" in it, and you'll have conveyed the message. If the 'bot has other deals in mind, it will put them up. You can also make counter offers to the 'bots for a similar effect. Another addition is that the 'bots will give some feedback as to why they rejected an offer. This may get annoying, so I might change it in the future. Now on the to-do list is to have some way to communicate better with the 'bots so that they don't just rattle off a series of offers. Oh, I'm also doing an experiment, so some of the bots have the new trading stuff, and other's do not. It should be obvious which is which when you play against them. 
+
+
+### 2001-05-08
+
+Fixed some bugs. 
+
+### 2001-05-06
+
+I've updated the strategy component for the 'bots one last time. I think they play better than they did before, but because their trading algorithm is so dumb, it's hard to tell. Next step is to improve the trading algorithm. Then after that, I'll write my dissertation and be in the home stretch. 
+
+### 2001-04-25
+
+Changed the strategy for the bots again, but now they play worse. I'll fix it as soon as I get some time to program again. Also, still haven't figured out what is causing the bots to stop 
+
+### 2001-04-06
+
+Changed the strategy for the robots in a major way. It's not quite finished yet, but I thought I would let it loose on the public anyway because it plays very differently. I also added some code to bring back dead robots, so there should be fewer times when you can't get a robot to play. 
+
+### 2001-03-21
+
+Did some minor cosmetic stuff. The robber is drawn a little to the right, so you can read the number on the hex. Also the server will tell you what dice were rolled instead of just the sum. 
+
+### 2001-03-11
+
+I fixed a bunch of bugs including (hopefully) the longest road bug. Big thanks to all the people who sent me bug reports! 
+
+### 2001-03-06
+Trying something new in the networking code. Removed the game status code for now. 
+
+### 2001-03-05
+
+I've cleaned up some of the code that the 'bots use to decide where to build. This should make them hang less often. Also, I'm looking for a bug in the code that calculates Longest Road. If you are playing a game and the wrong player has longest road, please open your Java Console, clip 10 to 20 lines from the output and email it to me along with a description of what happened in the game just before the bug happend. If you can send a screen shot too that would be helpful. I know there's a bug somewhere, but I haven't been able to reproduce it, so maybe I can find it with your help. Thanks! I've also put the game status code back in to see if it will crash the server again. I'm thinking that it will, but it will also help me find any stray deadlock problems that are left in the network code. 
+
+### 2001-02-21
+
+Wow, traffic on the server is increasing and therefore it's crashing more often. I'm trying an experiment by removing the game status feature that was next to the name of the game. I think this might help because I was broadcasting the game info across all of the connections a lot, and by removing it I hope to cut the ammount of message traffic that the server has to deal with. I really like that feature though, so I might work on a way to get the same functionality without using broadcast. Hopefuly this change will allow the server to stay up longer because I can't see where the problem is. It's not running out of memory, and I can't find any deadlock conditions. Hmm... 
+
+### 2001-02-19
+
+Ok, I just fixed a bug where if a game was started and a player sat and then left, no one could sit in that spot. The game server has been running for over 5 hours now without locking up, so I'm taking that as a good sign. 
+I'm still trying to fix the latest major bug in the server, and therefore the server will be going down a lot. Thank you for your patience during this rough period. 
+
+### 2001-02-16
+
+Hello Settlers playin' folks! I'm sorry the server has been down for a bit. I found a nasty deadlock condition and needed a day to work out the problem. I think I got it, but the real test is running it for a day with lots of people connecting, so here we go (cross your fingers). 
+
+### 2001-02-21
+
+In response to your feedback, I've modified the game list to display whether or not robots are playing in a particular game. A '#' next to a score means that a robot is in that seat. A 'o' next to a number means a person is in that seat.
+
+Another change I've made is with how the robots trade. Now thay will only make offers to players that they think can actually give them what they want. So now you won't see robots offering to trade with players that have no resources. For those that are curious about how much information the robots have, they rely on the exact same information that human players use. They watch the dice and can see the resources being handed out. They can't see things like what resources were discarded after a roll of a 7, or what resource was stolen from another player. So they may not offer to trade with you even though you have what they want. If this happens, try making a counter offer. They'll probably take it as long as they don't think you're about to win.
+
+One more thing. I've made it so that you can't boot a robot in the middle of its turn. This should cut down on the number of hung games. 
+
+### 2001-02-09
+
+Added a new feature to the game list. Next to each game you will see something like this: [2 2 3 4]. This is a list of the scores for the players in that game. If you see a "-", that means that a seat is open. I'm hoping this will help poeple find games with empty seats easier. Also you can see how far a game has progressed in case you want to join a game that has just started. 
+
+### 2001-02-07
+
+Fixed some bugs and modified the robots to have a stronger end-game strategy.
+
+### 2001-01-29
+
+The computer players can now trade. The algorithm they use to decide what offers to make and accept isn't very sophisticated at all. I just wanted to make sure that the trading mechanism worked first before making it "smart". If the 'bots reject your offer, it's because either they don't have what you want, they don't want to give up what you want, or they think you're winning. You can tell when they think you're winning when they stop offering trades to you. Also, all of the code for the game server and computer players is running on new faster hardware. In the queue is improving the players end-game strategy, improving the initial settlement placement, adding the ability to boot human players, and of course improving the trading algorithms.
+
+### 2001-01-16
+
+Fixed some more bugs and improved the algorithm that trades with the bank.
+
+### 2001-01-12
+Whew! It's been a long time since the last update. This update is just bug fixes. The 'bot's should be a little faster and smarter, but not much. Next I'll be improving the 'bot strategy and adding trading.
+
+### 2000-09-21
+
+Mostly new code for the bots. Features include:
+
+- Threat detection
+- Ability to estimate how close a player is to winning
+- Faster execution
+- A simple notion of longest road potential
+- Seperate strategies for the beginning, middle, and end game.
+- Right now, the end game strategy isn't implemented, so the bot's may give up near the end. Also, things like the - initial settlement placement and robber code haven't been updated to use the new code, so the bot's play may be a little strange.
+
+Things to do:
+
+- End game strategy
+- Use new information to make better decisions on initial placement
+- Add code to watch the lead player and look for ways to slow him down
+- Do a first pass at negotiation
+- Maybe have it make comments
+
+### 2000-08-04
+
+Computer doesn't discard at random anymore. Now it throws away resources it can't use right away, and after that, resources that are easier for it to get. 
+
+Here is current to-do list for the computer players:
+
+- Have them trade with other players. This includes:
+	- Initiating as well as taking offers
+	- Evaluating the worth of the trade (is it as good for me as it is for the other guy)
+	- Using the chat window as well as the trading tool
+- More sophisticated planning:
+	- Evaluate moves that are multipurpose, like building a road that gives you longest road and sets you up for a good settlement
+	- Pay attention to where there is a "race" with another player
+	- Consider building extra roads or knights to secure longest road or largest army
+	- Do things to thwart or delay other player's plans
+- Use the chat window:
+	- Trash talking
+	- Commentary
+	- Convincing players to do things like cut off a longest road, etc
+
+### 2000-08-02
+
+The computer players can now use Development cards. Also, they play a little slower because I expanded their planning code, so please be patient. 
+
+### 2000-06-12
+
+The computer uses some strategy when moving the robber, rather than just moving it randomly.
+
+### 2000-06-08
+
+- The computer does a better job of deciding where to build.
+- Added a seperate window for chat messages.
+- Fixed a scrolling problem with Netscape browsers.
+- Fixed a problem where people watching the game couldn't see trade offers.
+- You can now access the server multiple times from the same computer. You're on your honor not to abuse this for cheating. 
+
+### 2000-05-15
+The computer players will now trade with the bank and any ports that they might be on. Also sped up the algorithm that determines who has the longest road. 
+
+### 2000-05-10
+Computer players do a better job of building. Still working on getting the computer to trade with the bank and ports. 
+
+### 2000-05-03
+Now the computer players can build. It's not great, but its a start. I'm currently working on better algorithms for where to build, and getting the computer to trade with the bank and ports.  
