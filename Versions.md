@@ -1,0 +1,502 @@
+# Versions
+
+Unless otherwise indicated, JARs for JSettlers versions are
+hosted at [http://nand.net/jsettlers/devel/](http://nand.net/jsettlers/devel/) and (for recent
+versions) [https://github.com/jdmonin/JSettlers2/releases](https://github.com/jdmonin/JSettlers2/releases);
+project home and source history at [https://github.com/jdmonin/JSettlers2](https://github.com/jdmonin/JSettlers2)
+
+From `1.0` up through `1.1.13`, there was a single line of development.
+Right after `1.1.13` the main development branch became `2.0.00`, with a
+stable branch for further `1.x.xx` version releases to bring out bugfixes
+and backport minor new features until `2.0.00` is ready.
+
+## `2.0.00` (build JM20170xxx)
+- Large board (sea board) support
+- Game Scenario and special-rules support
+- "House rules" dev card types (New game option `DH`)
+- Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard's dialog)
+- To avoid disruptions by game observers, only players can chat after initial placement
+- More efficient game-setup messages over network
+- I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
+- Client sends server its locale, to support i18n localization
+- Applet class is now `soc.client.SOCApplet`
+- Server Config Validation mode: Test the current config and exit, with new startup option:
+	`-t` or `--test-config`
+- Game option key names can now be longer (8 characters)
+- Some game options are meant to be set by the server during game creation, not requested by the client.
+  Their option keynames all start with '_' and are hidden in the New Game options window.
+- Player's inventory can hold more than just development cards
+- For AI/Robot development:
+     The server can run bot-only games with new startup option:
+	- `Djsettlers.bots.botgames.total=7`
+     Those bot-only games begin at server startup, or can be delayed with startup option:
+	- `Djsettlers.bots.botgames.wait_sec=30`
+	(this example uses 30 seconds) to give bot clients more time to connect first.
+     The server can use third-party bots as a certain percentage of the bots in each game
+	with new startup option: (this example uses 50%)
+	- `Djsettlers.bots.percent3p=50`
+     Third-party bots can have more time to plan their turn with new server startup option:
+	(this example uses 18 seconds)
+	- `Djsettlers.bots.timeout.turn=18`
+     New debug command `STARTBOTGAME [maxBots]` to begin current game as bots-only
+     Example `soc.robot.sample3p.Sample3PBrain extending SOCRobotBrain`, `Sample3PClient extending SOCRobotClient`
+     Standalone bot clients shut down properly if they can't reconnect to server after 3 retries
+- Java 5 features, including parametrized types (thank you Paul Bilnoski)
+- Major client refactoring (separate UI from network interface) thanks to Paul Bilnoski;
+    - Paul's UI split preserves the spirit and flow of the code, with a more logical layered structure.
+- Server inbound message handling refactored in collaboration with Alessandro D'Ottavio
+- Robot client's inbound-message treat method calls super.treat in the default case,
+    so `SOCDisplaylessClient.treat()` handles all messages which don't need robot-specific handling.
+- Text messages to channels can be sent only by members
+- Minor refactoring
+- Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
+
+## `1.2.00` (build OV20170xxx)
+- Simple sound effects for game events: Start of client player's turn, resource stolen by robber, etc
+- Monopoly announces total number of resources stolen
+- New Game options: Popup if old versions can't play: Default to Create, not Change Options
+- To ensure everyone has initial settlements, don't allow new clients to sit after 1st settlements are all placed
+- Client: Persistent preferences and per-game options for settings like sound effects
+- Network: Send keepalive messages to idle games to keep clients connected
+- Game window during debug: Reset "current player" indicator when exiting *FREEPLACE* debug mode
+- Client initial Connect dialog: If username given, ensure New Game button is enabled
+- Client debug, bot debug: Print network message contents if system property jsettlers.debug.traffic is set
+- Database:
+     Optional Schema Upgrade process with `-Djsettlers.db.upgrade_schema=Y` startup option
+     Schema `v1.2.00` adds:
+       - games table: winner, options, duration, player 5 and 6 names and scores
+       - users table: case-insensitive unique usernames/nicknames; password encodings (BCrypt)
+       - db_version table with upgrade history (if any)
+       - settings table
+     If using mysql: Newly created DBs now have unicode text encoding (UTF-8).
+       (The postgresql and sqlite DB scripts have always created the DB as unicode.)
+     If using postgresql: Tables are created by socuser, not postgres system user
+     New admin command *DBSETTINGS*: Show schema version, DB server version, settings entries
+- Startup: Show error if can't read own JSettlers version info
+
+
+## `1.1.20` (build OV20161024)
+- Board hex graphics updated for smoother look and scaling
+- Game window board panel resize:
+     - Much better performance and reliability by using good-quality synchronous Graphics2D.drawImage
+     - Use smooth vectors, not scaled-up images, for ports
+- Game window:
+     - Guidance for new users: After initial placement, if user tries left-clicking the board to build,
+        popup a hint message to use right-click (or control-click on OSX) instead
+     - Trade offers from other players: Show/hide Accept button whenever resources gained/lost/traded
+     - Print message in chat area when player leaves, to balance message when a player joins
+     - For visibility use black text for Longest Road, Largest Army labels
+- New Game options dialog:
+     - When "Use 6-player board" option becomes set, increase max players to 6 unless already changed by user
+     - For int/intbool options use 0 if blank, intbool don't set int value if checkbox is unchecked
+- `ADDTIME` command: Don't add time if more than 90 minutes still remaining
+- `HELP` command recognized from all players, not only debug user
+- Server startup options:
+     - New optional jsserver.properties file, read before command line
+     - Command line: db user and password now optional when specifying port and max connections
+     - Unknown options no longer ignored: Prints each one and a short help message, will not continue startup
+     - Default max connections increased from 30 to 40
+- Game option defaults can be properties in that file or command line: `jsettlers.gameopt.RD=y`
+- Game option boolean default values more strictly parsed
+- Robots:
+     - When a 7 is rolled during other players' turns and bot must discard:
+        If bot is inactive after several seconds, force random resource discard
+     - To keep idle practice games alive, don't leave an inactive game during other players' turns
+- Server stats (`STATS` command): Increase "games finished" when game ends, not later when it's destroyed
+- `WHO` command: User admins or debug user can list any game's members, or * or ALL to list all connected users
+- Game or channel name "*" no longer permitted, to avoid conflicts with admin command enhancements
+- Server console traces:
+     - "joined the game"/"left the game" include current time
+     - Remove redundant joined/left debug prints
+- Debug commands dev: and rsrcs: also accept player number instead of name, for long or complex names
+- Client startup: Always print version on console, even to print usage and exit
+- Deactivate client debug prints of network message contents
+- Optional user accounts:
+     - Warn if database is empty when config requires accounts or names the account admins
+     - DB setup script: Correct grant commands for postgresql 8 (for CentOS 6/RHEL 6)
+- User account admin:
+     - New server parameter `--pw-reset` username can be used if an account password is lost
+     - `WHO` user-admin command available when only certain users can create accounts (`jsettlers.accounts.admins=...`)
+- User account admin client:
+     - After creating new user, clear password fields in form
+     - Auto-authenticate when creating first admin account in new db
+     - Minimum server version `1.1.19`; for older servers, please download and use the older version's account client
+     - Server requires minimum client version `1.1.19`, to authenticate before creating users
+- User account DB schema: For new installs, require user passwords (existing DBs don't need to make this change).
+     Passwords were already required in earlier versions; this only formalizes it in the database.
+- For bots in server jar, move `SOCDisplaylessPlayerClient` out of `soc.client` package
+- First version to include an automated functional test script
+
+## `1.1.19` (build OV20141127)
+- New game option "N7C" for house rule: Roll no 7s until a city is built
+- Bugfix when new client sits during first initial-settlement placement round
+- Bugfix: potential roads now allowed next to opponent's newly placed settlement, if player already has a road touching the potential road
+- Trading port/harbor graphics updated for directional clarity and scaling
+- Reset board during initial placement: Pick randomly-selected robots, instead of keeping same robots
+- Reset board: If only 1 human player, don't reset if all bots are locked
+- On server startup, start some bots by default (previous versions required `-Djsettlers.startrobots`)
+     To run a server without built-in bots, use `-Djsettlers.startrobots=0` when starting the server.
+- Player chat text: At server, don't ignore messages which start with '*'
+- For player consistency, don't allow seat lock changes during board reset vote
+- New Game Options window: If server is too old for game options, show the game name field and no options here
+- Client Connect to Server, Start Server screens: If port number field is empty, use default 8880
+- Check client password when "New game" is clicked, not later after filling out game options
+- Security: Reply with "incorrect password" when username doesn't exist in server's database
+- Account Creation/Security when using the optional user account database:
+     - By default, open registration is now disabled: Only existing users can create new accounts.
+     - To permit open registration of accounts, use `-Djsettlers.accounts.open=y` when starting the server.
+     - To require that all players have accounts and passwords, start the server with: `-Djsettlers.accounts.required=y`
+     - To permit only certain users to create accounts, use `-Djsettlers.accounts.admins=bob,joe,lily`
+     (comma-separated username list) when starting the server.
+     - Once the client has successfully joined or created a game or channel, it won't send a password again.
+- Database: Add instructions and db-create scripts for postgresql, sqlite
+- When saving 6-player completed game results to a database table with only 4 player fields,
+     rearranges positions to ensure human player 5 and/or 6 are recorded, especially if they won
+- When client connects, server sends list of its active optional features.
+     - If server does not use chat channels, the channel list is hidden from the main panel.
+- Bugfix at game start: To fix occasional forced end turn for robot first player, update lastActionTime
+- Bugfix in version tracking when player joins and replaces only bot in a game in progress
+- Bots connecting require a security cookie, randomly generated at server startup.
+     - The built-in bots started automatically by SOCServer will know the cookie value.
+     - To set the cookie to a given value, set the jsettlers.bots.cookie parameter.
+     - To print the cookie value in order to connect other bots, use `-Djsettlers.bots.showcookie=Y` when starting the server.
+- Server stats include client versions seen since startup
+- Server command line game option settings: Also allow y or Y for boolean options
+- Server command line: Exit if any `-D` or `-o` parameter appears more than once
+- On server startup, exit if a database URL is given but SOCServer can't connect to the database.
+- Account creation: Check that the optional user-accounts server feature is active when connecting from account client
+- Account creation: Check that requested username contains no reserved characters at server and client
+- If new game options require a certain version, don't warn unless the required version
+     is newer than `1.1.17` (released November 2012).
+
+## `1.1.18` (build OV20130402)
+- Reset board: Keep player chat text; Confirm before restarting after end of a practice game
+- Chat text field: Word-wrap long lines
+- Don't limit the number of simultaneous practice games
+- 6-player board: Focus cursor on input field when the chat window expands; scroll chat/game text to bottom when it shrinks
+- If saving completed games to db, save if any human players, even if some have left/rejoined
+- Bugfix: Client creating a game on a server newer than itself might show a second New Game Options window
+- In-game "Game Options" button: If an info window's already visible, show it instead of making another one
+- Server `--help` message: Sort game option keynames alphabetically
+- If new game options require a certain version, don't warn unless the required version
+     is newer than `1.1.13` (released November 2011).
+
+## `1.1.17` (build OV20121212)
+- Road Building: Player may skip (cancel) placing second free road, if they want to use just one road piece
+- Road Building: While placing first free road, don't enable Cancel in popup menu
+- If jar client can't connect to server, returns to first panel, with buttons to connect or practice
+- If try to start server in JSettlers.jar, but port already in use, show message instead of exiting immediately
+- If server's debug commands are on, warn at connect
+- Get Practice Game options from practice server, not from most recently started game
+- If join a server after a practice game, re-enable name and password fields
+- Chat text field: If a long line is truncated, keep the rest of it in the textfield
+- Debug commands: dev cards: Send card type numbers with help message
+- If server rejects bot's dev card play, bot sees that and tries a different move
+- When player leaves game, don't send hostname to all players
+- Server DB setup script: Ignore net errors when running script and exiting
+- If server DB is empty, use default parameters for all bots
+- Server constructors: throw exceptions instead of System.exit
+
+## `1.1.16` (build OV20121027)
+- Bugfix: `1.1.15` can't start practice games
+- If jar client loses server connection, returns to first panel, with buttons
+  to connect to a server or practice
+
+## `1.1.15` (build OV20121021)
+- Bugfix: Occasional hangs creating new game, when old game isn't yet cleared
+- Bugfix: Hangs on mac osx 10.7, 10.8 after a few minutes (SnippingTextArea) - thanks olivierdeckers
+- Server command line simplified: port number, max conns, db info now optional
+- Can save all completed game results in database, with new option:
+	`-Djsettlers.db.save.games=Y`
+- Server db property for jdbc driver jar file: `-Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar`
+- Server db easy setup script options:
+	`-Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite`
+	`-Djsettlers.db.script.setup=../src/bin/sql/jsettlers-tables.sql`
+- Server db sqlite driver URLs updated in readme
+
+## `1.1.14` (build OV20120930)
+- Game can require more than 10 Victory Points to win (new game option "VP")
+- Don't force-end bot turn if waiting for human discard
+- Discard dialog has "Clear" button (sourceforge bug# 3443414)
+- Show 'Server is ready' message at end of initialization
+- At server shutdown, try to disconnect from database (helpful for sqlite)
+- Debug commands are off by default, except practice games; you can enable them with:
+	`-Djsettlers.allow.debug=Y`
+- Split out sql from README, add indexes (Chad McHenry mchenryc in 2005 cvs)
+
+## `1.1.13` (build JM20111101)
+- Game name maximum length is 30, was 20 previously
+- Allow player to undo their last bank trade, if the undo is the very next thing they do,
+     by trading the same resources back. For example, give back 1 brick to get back 3 sheep.
+- Dice number layout is now clockwise or counterclockwise from 1 of
+     several corners; previously always the same corner same direction.
+- Show your player's total resource count (Rowan idea)
+- 6-player board: New game option "PLB" allows using this board with 2-4 players
+- 6-player board: Chat ease of use: Focus on text input field when any text area is clicked;
+     to put the cursor in the text areas instead of the input field, click there again.
+- Remember the player checkboxes chosen in previous trade offer
+- If new game options require a certain version, don't warn unless the required version
+     is newer than `1.1.08` (released January 2010).
+- Warn on server startup if robots take up most of maxConnections
+- On server startup, show each property's description
+- If the graphical PlayerClient starts a server, the "server is running" text on-screen
+     now also says "Click for info" (D Sawyer idea)
+- New debug command for robots:  `botname:print-vars`
+- If server forces a robot to end its turn, will print the bot's brain status
+      variables and last two turns' received messages before it forces the end.
+- If game is in progress, joining/leaving people also announced in chat area (less clutter there)
+- Don't echo info commands like `STATS` to all players
+- Add current total connection count to `STATS` (including connections not yet named)
+- When clients arrive or depart, show both the named & total current connection count
+      on console "(7,9)"; previously showed only named connections "(7)"
+- Bugfix: If observer closes the game window, shouldn't ask them if want to keep playing
+- Bugfix: Show "(cannot join)" in client's game list for unjoinable games sent when client connects
+- Bugfix: Truncating player name, don't drop the first character
+- New game option backwards-compatibility framework: allows use of some new game options (like PLB)
+      with older clients, by changing related option values (like PL) sent to those old clients.
+- Rename `SOCGame.isLocal` field to .isPractice
+- License upgrade to GPL v3
+
+## `1.1.12` (build JM20110122)
+- Don't show hovering road/settlement/city if player has no more pieces
+- Feedback if 'Road Building' clicked but 0 roads left
+- Lock/unlock button for robot seats: add tooltip, fix label when first shown
+- Bugfix: Robot 'No thanks' displays after bank trade
+- When 6-player board's window loses focus, un-expand the chat area
+- Clearer indication of when client is running a TCP server;
+     can click the new "Server is Running" label for a popup with details.
+- If game has observers, list them when client joins
+- For debugging, new "Free Placement" mode; see README.developer
+- Further encapsulate board coordinate encoding
+- Javadocs and other explanations of board coordinate encoding
+
+## `1.1.11` (build JM20101231)
+- Popup to confirm before you move the robber onto your own hex
+- Show robber's previous position on the board
+- Robots: Force robot turns to end after several seconds of inactivity
+- Bugfix: "Restart" button wasn't enabled if game ends after special build
+- Bugfix: Couldn't place initial road on 6-player board's northernmost edge
+- Fix infinite loop when robot leaves during game setup
+- Game last-action time tracked, to detect idle games
+- Debug commands now case-insensitive
+- Per-game messages indicated by new interface SOCMessageForGame
+
+## `1.1.10` (build JM20100613)
+- Game owner tracked at server
+- Security: Limit the maximum simultaneous games/chat channels created per client:
+	Once a game/channel is removed (all members leave), they can create another.
+	Defaults are 5 games, 2 channels.  Use these properties to change the default:
+	jsettlers.client.maxcreategames
+	jsettlers.client.maxcreatechannels
+
+## `1.1.09` (build JM20100417)
+- 4-player board: crisper graphics (images from 6-player board)
+- Practice games don't expire (Rowan H idea)
+- Show rounds remaining for "roll no 7s during first n turns" (Rowan H idea)
+- When moving robber and choosing a victim, popup shows their # VPs
+- 6-player board: Always allow to request special build, even if no resources.
+     Also allowed at start of own turn, only if not rolled or played card yet,
+     and not when you are the first player taking your first turn.
+- 6-player: During Special Building Phase, a player can ask to Special Build after
+     the phase has begun, even if this means we temporarily go
+     backwards in turn order.  (Normal turn order resumes at the
+     end of the SBP.)  The board game does not allow this out-of-order building.
+- 6-player robots: Slow down a little: Pause 75% of 4-player's pause duration, not 50%
+- At end of game, hilight winner with yellow arrow
+- At end of game, show number of rounds, along with time elapsed and your resources rolled
+- Game options: Change of wording in minimum-version warning: ("friendly" format)
+	from: Client version 1107 or higher is required for these game options.
+	to :  Client version 1.1.07 or newer is required for these game options.
+- Double-clicking your face icon, or many rapid clicks, brings up the Face Chooser
+- Allow 3rd-party Robot AIs, via new rbclass param in IMAROBOT message, SOCClientData.isBuiltInRobot
+	Print robot type on connect (built-in, or rbclass name)
+- Fix: Ask 2nd practice game options, when 1st is over but its window still showing
+- Fix: robots: Handle CANCELBUILDREQUEST cleanly during states PLAY1 or SPECIAL_BUILDING
+- Fix: For game's 1st client, set game.clientVersionLowest (was always 0 before now)
+- 6-player window: Before expanding chat area when mouse enters it,
+	wait 200 ms (not 100 ms) in case mouse is just passing through.
+- Database: Hints on setup and usage of other db types in README.txt
+- Database: default jdbc driver changed to com.mysql.jdbc.Driver,
+	allow other db types via java properties (see README.txt)
+- Database: troubleshooting: print error message details when the driver is
+	available, but the database couldn't be accessed or loaded.
+- When running local server: Main panel: Show version, buildnum in tooltip
+- Command line: Error if dashed arguments appear after port/maxconns/db params
+- Command line: Allow -Djsettlers.option=value syntax (mchenryc)
+- Command line: Auto-start robots when the server starts, with this parameter:
+	-Djsettlers.startrobots=7
+- Debug assist: SOCBoardLayout2 prints array contents
+- Debug assist: Connection, LocalStringConnection +toString()
+- README.developer: Coding Style section
+
+## `1.1.08` (build JM20100112)
+- 6-player board, with Special Building Phase rule
+- Can now sometimes reconnect after connection to server is lost,
+     when message "A player with that nickname is already logged in" appears.
+- Smaller, cleaner building panel
+- Rotated-board mode, to make it easier to fit a larger board
+- Re-word counter offer text to: Give Them / You Get
+- Cleaner scaled graphics: Draw hex dice-number circles on hex, instead of GIFs.
+- Chat text prompt ("type here to chat") cleared when clicked (D Campbell idea)
+- Fix button redraw for Discard, Year of Plenty popups on OSX
+- Fix new-game options bg color on OSX Firefox 3.5+
+- BoardPanel faster redraw: cache image of board without pieces
+- BoardPanel javadocs explain nodeMap and initNodeMapAux
+- SOCRobotBrain refactor some message-handlers out of run() (C McNeil idea)
+- Old version history (pre-sourceforge): Added file src/docs/old-updates-rsthomas.html found on web at http://jrh-xp.byu.edu/settlers/updates.htm
+
+## `1.1.07` (build JM20091031)
+- Per-game options framework, including these options:
+	- PL  Maximum # players (2-4)
+	- RD  Robber can't return to the desert
+	- N7  Roll no 7s during first # rounds
+	- BC  Break up clumps of # or more same-type ports/hexes
+	- NT  No trading allowed
+- Re-word counter offer text
+- Hide trade offer after rejecting counteroffer (John F idea)
+- Allow debug commands in practice games
+- New applet parameter "nickname" for use with dynamic html (Rick Jones idea)
+- Framework for parsing "-" / "--" options at server commandline
+- Refactor per-turn resets from many places to new game.updateAtTurn()
+- GameList kept at server/client
+- Bugfix: Could sit down at 2 positions due to network lag
+- Rescaled board hex graphics now fall back to polygons if problem occurs
+- Removed unused hex graphics from soc/client/images (clay0-5.gif, misc0-5.gif, ore0-5, sheep0-5, wheat0-5, wood0-5)
+- Fewer disconnect-reconnect debug messages from robots during idle hours
+- Don't cover board with 'choose player' popup (Rowan H idea)
+- AskDialog supports multiple lines with "\n"
+
+## `1.1.06` (build JM20090601)
+- Based on 1.1.04's code
+- Monopoly reports (privately) number of resources stolen to each victim
+- Reset practice game, at end of game: New randomly-selected robots, instead of same robots each time
+- STATUSMESSAGE can now carry an integer status value
+- Track and understand client version starting from connect time, not just from joingame time.
+- Can deny entry to individual games based on client's version (ex. client too old to understand a recent game feature, like 6 players)
+- Fewer debug messages from robots during idle hours
+- Many javadocs added
+- Bugfix: Hangs on mac osx 10.5 after a few minutes (SnippingTextArea)
+- Bugfix: After disconnect/rejoin, trade offer panel overlays your controls
+- Bugfix: "Start a local server" ignored port-number textfield, was always default port
+- Bugfix: harmless NullPointerException in SOCBoardPanel.setHoverText for getFontMetrics
+
+## `1.1.05` (backed out)
+JSettlers 1.1.05 had been under development (build 2008-09-13) but its direction is being re-considered.
+Further development is based on 1.1.04.
+- Use Log4j 1.2, vs previous homegrown soc.debug/disableDebug
+
+## `1.1.04` (build JM20080906)
+- Bugfix: Cancelling 2nd initial settlement, other players lost resources (SOCPlayer)
+- Bugfix: Don't disable "play card" button after buying or playing a card (SOCHandPanel)
+- Bugfix: Sometimes, "hovering" road or settlement wouldn't show during initial placement (SOCBoardPanel)
+- Give player's win/loss count at end of game, unless first game (new class SOCClientData)
+- Add StringConnection.appData, to support SOCClientData
+- Javadoc adds/updates
+
+## `1.1.03` (build 2008-08-26)
+- Reset board: Bugfix: Practice games server version-check
+- Don't show hovering road/settlement/city unless player has the resources
+- "Play card" button: Disable after playing a card; Enable only at start of turn, not after buying a card
+- Bugfix: At end of game, client sometimes incorrectly showed player 0 (Blue) as winner
+- Javadocs clarify SOCPlayerClient local TCP vs practice server
+- Add minor items to TODO in README.developer
+
+## `1.1.02` (build 2008-08-17)  http://nand.net/jsettlers/devel/
+- Reset board: If human leaves game before reset, lock their seat against robots
+- Bugfix: Robot disconnect/reconnect version reporting
+- Add minor items to TODO in README.developer
+
+## `1.1.01` (build 2008-08-12)  http://nand.net/jsettlers/devel/
+- Bugfix: If player loses connection while voting for board reset, the vote never completes
+- Bugfix: Reset vote message format (from recent refactoring)
+- Version number dynamic from properties file, not hardcoded in soc.util.Version
+- Utility method SOCMessage.getClassNameShort for cleaner debug-output in template classes' toString
+
+## `1.1.00`(build 2008-08-09)  http://nand.net/jsettlers/devel/
+- Development at new site, sourceforge project appeared abandoned in 2005
+- Much more visually responsive to game state
+- User-friendly
+	- Can right-click on board to build, right-click ports or resource squares to trade  [sf patch 1905791]
+	- Can right-click face to choose a new face [sf patch 1860920]
+	- Popup dialog buttons wrap if window too narrow
+	- Robber doesn't disappear when must be moved, it just "ghosts" [sf patch 1812912]
+	- Other minor improvements
+- Local "practice-game" mode, if network connection or server is unavailable
+- Play with 2-4 players, no longer requires 4
+- Larger graphics on board, resizeable for higher-resolution screens [sf patch 1929452, based on images and code of rbrooks9's sf patch 1398331]
+- Ability to reset board, during or after game  [sf feature req. 1110481]
+- Can cancel and re-place initial settlement, if you haven't yet placed the road  [sf patch 1824441]
+- More robust handling if client's connection to server is lost, even if current player
+- Automatic dice roll after 5 seconds, if you have no playable card  [sf patch 1812254]
+- At end of game, show hidden VP cards for all players  [sf patch 1812497]
+- At end of game, give game duration and total connection time
+- Announce when longest road/largest army is stolen
+- Road-building allowed with 1 road [sf patch 1905080]
+- Can win only on your own turn; if not your turn, must wait
+- Less clutter in scrolling message area
+- Confirm quit before closing window
+- Show pieces when rejoining after lost connection
+- Attempt to end turn, if current player leaves the game
+- Client,server versioning; also add BUILDNUM property
+- Can double-click jar for local server hosting (or run w. no arguments); player GUI will ask for IP and port#
+- Robot bugfix, now will re-try if makes a bad piece placement
+- More advance warning when game will soon expire
+- Hilight who won when game is over
+- Reminder to place 2 roads with road-building card
+- Reminder to only play 1 card per turn
+- Reminder when VP cards are played
+- Trade offer's checkboxes track current player
+- New graphics: images/robot1.gif; Removed obsolete: images/arrowL.gif, arrowR.gif
+- Other sourceforge patches applied:
+	- 1816668 jdmonin AWT debug help
+	- 1816605 jdmonin Patch for #997263 cannot place road during game start
+	- 1816581 jdmonin Fix server treater startup race
+	- 1812257 jdmonin Debug help, minor comments
+	- N/A     sfhonza (John Vicherek) "Swinging" number of resources, http://john.vicherek.com/jsettlers-1.0.6.swing_resources.patch
+	- 1088775 drichardson (Douglas Ryan Richardson) [1039250] Auto-rejecting impossible offers; Make accept button invisible when user cannot accept offer
+
+## `1.0.6` (build 2004-11-17)  http://sourceforge.net/projects/jsettlers
+- Fixed the same PORT property error in the Account client
+- Fixed bug which could allow modified clients to invoke admin
+  commands (*STOP*, *KILLCHANNEL*, etc) (Lasse Vartiainen)
+- Fixed 920375, 1022157: mysql-connector-3.x fails: version 2.x works
+  (Mezryn)
+- Fixed 1060651: Bots crash if database backend is used (Jack Twilley)
+- Moved more SQL error handling and reconnecting from SOCServer to
+  SOCDBHelper correcting potential errors like 1060651
+
+## `1.0.5` (build 2004-06-12)  http://sourceforge.net/projects/jsettlers
+- Fixed an error introduced into the applet initialization which kept
+  the PORT property from being read properly
+
+## `1.0.4` (build 2004-06-10)  http://sourceforge.net/projects/jsettlers
+- build.xml file added for Ant builds
+- soc.util.Version class added so both build files and source code get
+  version and copyright info from build.xml. Clients and server updated
+- Build process creates two jar files: one for client, one for server
+- README updated for jar file invocation, with additional sections for
+  intro, requirements, hosting a server, and development
+- Fix for inconsistent game state when players leave a game.
+- Divider in chat window cannot be moved off-screen
+- Text of game chat now correctly scrolls to bottom of text.
+- Rewrite of much of the display code to address continuing display
+  issues. Methods which directly manipulate GUI components can cause
+  race conditions, and are now never called from main networking
+  thread.
+- Removed calls to deprecated methods
+- Images can now be loaded from files (on server or not) or from
+  within jar.
+
+## `1.0.3` (build 2004-03-29)
+- Continuing to fix the display bug in the SOCPlayerClient
+
+## `1.0.2` (build 2004-03-26)
+- Fixed display bug (again) in the SOCPlayerClient when run as a stand
+  alone.
+
+## `1.0` (build 2004-03-14)
+- First release. See the README file for how to setup a server and
+  robot clients.
+
+## For older version information:
+- see src/docs/old-updates-rsthomas.html for 5/3/00 through 03/15/04.
