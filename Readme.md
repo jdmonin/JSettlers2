@@ -1,6 +1,7 @@
 # Java Settlers
 A web-based client-server version of Settlers of Catan
 
+
 ## Introduction
 
 JSettlers is a web-based version of the board game Settlers of Catan
@@ -23,7 +24,8 @@ project is hosted at https://github.com/jdmonin/JSettlers2/ and
 at http://nand.net/jsettlers/devel/ .  Questions, bugs, patches,
 and pull requests can be posted at the github page.
 
-The JSettlers Development Team
+\- The JSettlers Development Team
+
 
 ## Contents
 
@@ -37,6 +39,7 @@ The JSettlers Development Team
 -  Security and Admin Users
 -  Development and Building JSettlers
 
+
 ## Documentation
 
 User documentation for game play is available as .html pages located
@@ -47,6 +50,7 @@ Currently, this README is the only technical documentation for running
 the client or server, setup and other issues. Over time, more docs
 will be written. If you are interested in helping write documentation
 please contact the development team from our github page.
+
 
 ## Requirements
 
@@ -69,6 +73,7 @@ To build JSettlers from source, you will need Java JDK 1.5 or newer and Apache A
 available from http://ant.apache.org, or an IDE such as Eclipse which understands
 Ant's format. See README.developer for details.
 
+
 ## Server Setup and Testing
 
 From the command line, make sure you are in the JSettlers distribution
@@ -79,7 +84,7 @@ look in the src/target directory for these files.)
 If you have downloaded `jsettlers-2.x.xx-full.jar` or `jsettlers-2.x.xx-server.jar`
 instead of the full tar.gz, use that filename on the command lines shown below.
 
-### Startup
+### Server Startup
 
 Start the server with the following command
 (server requires Java 5 or higher, or JDK 1.5 or higher):
@@ -107,7 +112,7 @@ leaving the password field blank, as long as they aren't using a nickname
 which has a password in the database.  Optionally game results can also be
 stored in the database, see next section; results are not stored by default.
 
-Parameters and game option defaults:
+### Parameters and game option defaults:
 
 JSettlers options, parameters, and game option defaults can be specified on the
 command line, or in a `jsserver.properties` file in the current directory when
@@ -161,7 +166,7 @@ numeric value. To change the default winning victory points to 12 for example:
 
     -o VP=t12
 
-    jsserver.properties:
+### jsserver.properties:
 
 Instead of a long command line, any option can be added to `jsserver.properties`
 which is read at startup if it exists in the current directory.  Any option
@@ -187,8 +192,8 @@ near the start of the console output:
     Reading startup properties from jsserver.properties
 
 To check the syntax and values of a `jsserver.properties file`, use the `-t` or
+`--test-config` command line parameter for Config Validation Mode:
 
-    --test-config command line parameter for Config Validation Mode:
     java -jar JSettlersServer.jar --test-config
 
 This will test and print all configured values and then exit with return code 0
@@ -256,7 +261,7 @@ optional debug user and enter `*STOP*` in the chat area of a game window.
 This will stop the server and all connected clients will be disconnected.
 (See README.developer if you want to set up a debug user.)
 
-### Install a JSettlers server
+### Installing a JSettlers server
 
 Checklist:
 
@@ -331,7 +336,7 @@ It's a simple process to upgrade to the latest version of JSettlers:
 - Copy the new JSettlers.jar and JSettlersServer.jar into place
 - Start the new server, including any new options you wanted from VERSIONS.txt
 - If the new server's startup messages include this line:
-	* Database schema upgrade is recommended: To upgrade, use `-Djsettlers.db.upgrade_schema=Y` command line flag.
+	* Database schema upgrade is recommended: To upgrade, use -Djsettlers.db.upgrade_schema=Y command line flag.
   Then do so now if convenient. The schema upgrade is not required immediately,
   to give you more flexibility, but may be required for some new features.
   When you run JSettlersServer with that upgrade flag plus your usual parameters
@@ -450,7 +455,8 @@ from https://github.com/jdmonin/JSettlers2/tree/master/src/bin/sql .
 To get each script needed for your DB type: Click the SQL file to view it;
 click Raw; save to the folder containing your JSettlers JAR.
 
-For mysql:
+##### For mysql:
+
 Run these commands, which will ask for the mysql root password:
 
     $ mysql -u root -p -e "SOURCE jsettlers-create-mysql.sql"
@@ -471,11 +477,12 @@ To validate, you can list tables with this command:
 	| users             |
 	+-------------------+
 
-If mysql gives the error: Unknown character set: 'utf8mb4'
+If mysql gives the error: `Unknown character set: 'utf8mb4'`
 you will need to make a small change to jsettlers-create-mysql.sql
 and re-run the commands; see comments at the top of that script.
 
-For Postgresql:
+##### For Postgresql:
+
 Run these commands as the postgres system user:
 
     $ psql --file jsettlers-create-postgres.sql
@@ -484,8 +491,8 @@ Run these commands as the postgres system user:
     Password for user socuser: socpass
 
 If the scripts run without any errors, they will produce very terse output
-such as `CREATE DATABASE`, `CREATE TABLE`, and `NOTICE`:
-CREATE TABLE / PRIMARY KEY will create implicit index".
+such as `CREATE DATABASE`, `CREATE TABLE`, and
+`NOTICE: CREATE TABLE / PRIMARY KEY will create implicit index`.
 You can validate by listing the newly created tables with this command:
 
     $ psql -d socdata -c '\dt'
@@ -500,11 +507,14 @@ You can validate by listing the newly created tables with this command:
 	 public | users       | table | socuser
 
 When you start your JSettlers server, remember to specify the postgres DB using:
-  `-Djsettlers.db.url=jdbc:postgresql://localhost/socdata`
+
+  -Djsettlers.db.url=jdbc:postgresql://localhost/socdata
+
 You may also need to specify a `jsettlers.db.jar` value as noted in the
 "JDBC driver" section.
 
-For sqlite:
+##### For sqlite:
+
 Copy `jsettlers-tables-sqlite.sql` to the same directory as `JSettlersServer.jar`
 and `sqlite-jdbc-3.7.2.jar` and run this command (sqlite jar filename may
 vary, update the jsettlers.db.jar parameter to match it):
@@ -516,6 +526,7 @@ You should see this message:
 	DB setup script was successful. Exiting now.
 
 This will create a `jsettlers.sqlite` file containing the empty tables.
+
 This script will fail if the file and tables already exist.
 Later when you start your JSettlers server, remember to specify the sqlite DB
 using the same `-Djsettlers.db.url` and `-Djsettlers.db.jar` values.
@@ -532,7 +543,7 @@ Or, in your server's jsserver.properties file, add the line:
 
 	jsettlers.db.save.games=Y
 
-Optional: Creating JSettlers Player Accounts in the DB:
+### Creating JSettlers Player Accounts in the DB (optional)
 
 To create player accounts, run the simple account creation client with the
 following command:
