@@ -71,7 +71,7 @@ because you know everyone will have the same version.
 
 To build JSettlers from source, you will need Java JDK 1.5 or newer and Apache Ant,
 available from http://ant.apache.org, or an IDE such as Eclipse which understands
-Ant's format. See README.developer for details.
+Ant's format. See `Readme.developer.md` for details.
 
 
 ## Server Setup and Testing
@@ -175,7 +175,9 @@ Comment lines start with # .  See src/bin/jsserver.properties.sample for full
 descriptions of all available properties.
 
 This example command line
+
   java -jar JSettlersServer.jar -Djsettlers.startrobots=9 -o RD=t 8880 50 socuser socpass
+
 is the same as jsserver.properties with these contents:
 
     jsettlers.startrobots=9
@@ -259,7 +261,7 @@ directions in "Database Setup".
 To shut down the server hit `Ctrl-C` in its console window, or connect as the
 optional debug user and enter `*STOP*` in the chat area of a game window.
 This will stop the server and all connected clients will be disconnected.
-(See README.developer if you want to set up a debug user.)
+(See `Readme.developer.md` if you want to set up a debug user.)
 
 ### Installing a JSettlers server
 
@@ -336,13 +338,16 @@ It's a simple process to upgrade to the latest version of JSettlers:
 - Copy the new JSettlers.jar and JSettlersServer.jar into place
 - Start the new server, including any new options you wanted from VERSIONS.txt
 - If the new server's startup messages include this line:
-	* Database schema upgrade is recommended: To upgrade, use -Djsettlers.db.upgrade_schema=Y command line flag.
+
+        * Database schema upgrade is recommended: To upgrade, use -Djsettlers.db.upgrade_schema=Y command line flag.
+
   Then do so now if convenient. The schema upgrade is not required immediately,
   to give you more flexibility, but may be required for some new features.
   When you run JSettlersServer with that upgrade flag plus your usual parameters
   it will check necessary conditions; upgrade the database; report success or
   any problems found; then exit immediately. You should see:
-	DB schema upgrade was successful. Exiting now.
+
+        DB schema upgrade was successful. Exiting now.
 
   The schema version and upgrade history is kept in the db_version table. The
   upgrade_schema flag is not used during day-to-day operation of the server.
@@ -353,13 +358,15 @@ It's a simple process to upgrade to the latest version of JSettlers:
 
   Note: If you've been using jsettlers 1.1.20 or older with postgresql,
   the upgrade may tell you to change your tables' owner to socuser first:
-	* To begin schema upgrade, please fix and rerun:
-	  Must change table owner to socuser from postgres
+
+        * To begin schema upgrade, please fix and rerun:
+        Must change table owner to socuser from postgres
+
   JSettlers comes with the script jsettlers-upg-prep-postgres-owner.sql
   to do so, in the same directory as the scripts mentioned in the
   Database Creation section of this README. As the postgres system user, run:
 
-    psql -d socdata --file jsettlers-upg-prep-postgres-owner.sql -v to=socuser
+        psql -d socdata --file jsettlers-upg-prep-postgres-owner.sql -v to=socuser
 	
   Then, run the schema upgrade command.
 - Test that you can connect and start games as usual, with and without bots.
@@ -508,7 +515,7 @@ You can validate by listing the newly created tables with this command:
 
 When you start your JSettlers server, remember to specify the postgres DB using:
 
-  -Djsettlers.db.url=jdbc:postgresql://localhost/socdata
+    -Djsettlers.db.url=jdbc:postgresql://localhost/socdata
 
 You may also need to specify a `jsettlers.db.jar` value as noted in the
 "JDBC driver" section.
@@ -625,7 +632,7 @@ already exist, the whitelist is only a comma-separated list of names. This
 simplifies initial setup.
 
 In case an admin account password is lost, there's a rudimentary password-reset feature:
-Run JSettlersServer with the usual DB parameters and add: --pw-reset username
+Run JSettlersServer with the usual DB parameters and add: `--pw-reset username`  
 You will be prompted for username's new password. This command can be run while
 the server is up. It will reset the password and exit, and won't start a second
 JSettlersServer.
@@ -638,8 +645,8 @@ source code is hosted at https://github.com/jdmonin/JSettlers2/ and
 the project website is http://nand.net/jsettlers/devel/ .  Questions,
 bugs, patches, and pull requests can be posted at the github page.
 
-For more information on building or developing JSettlers, see README.developer.
-That readme also has information about translating jsettlers to other languages,
+For more information on building or developing JSettlers, see `Readme.developer.md`.
+That readme also has information about translating jsettlers to other languages;
 see the "I18N" section.
 
 JSettlers is licensed under the GNU General Public License.  Each source file

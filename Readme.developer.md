@@ -168,7 +168,7 @@ If you want the robots to play a few games without any humans, set this
 property on the command line when starting the server:
 `-Djsettlers.bots.botgames.total=5`. As each game finishes, a new bot-only
 game will be started until 5 have been played. You can optionally use the client
-to observe a bot-only game. Also if `jsettlers.bots.botgames.total != 0`, at any
+to observe a bot-only game. Also if `jsettlers.bots.botgames.total` != 0, at any
 time the client can create a new game and start it as bots-only using the debug
 command `*STARTBOTGAME* [maxBots]`. See the "Robots (AI)" section for more
 details on bot testing.
@@ -207,7 +207,7 @@ There are several build targets, here are the most useful ones:
 - `build`: create project jar files. (default)
 - `clean`: clean the project of all generated files
 - `dist-src`: create a tarball of the source tree (jsettlers-2.x.xx-src.tar.gz)
-- `dist-full`: `build` & `dist-src` and a tarball of the source + built JARs (`jsettlers-2.x.xx-full.tar.gz`)
+- `dist-full`: `build` & `dist-src` and a tarball of the source + built JARs (jsettlers-2.x.xx-full.tar.gz)
 - `javadoc`: create JavaDoc files in "target/docs/api"
 - `build-i18neditor`: create `PTE.jar` for maintaining i18n translations (not built by default)
 
@@ -577,7 +577,7 @@ all their declarations the same way for easier comparison.
 Some methods return in the middle of their body, depending on conditions.
 That kind of early return should be marked with a prominent comment such as:
 
-	return;   // <--- Early return: Temporary piece ---
+    return;   // <--- Early return: Temporary piece ---
 
 If an i18n string lookup's english text isn't obvious from the key, add it as a
 comment to make searching the source for strings easier:
@@ -620,8 +620,9 @@ In emacs, you can place this in your .emacs file to use spaces instead of tabs:
 ``` emacs
 (setq-default c-basic-offset 4)
 (setq indent-tabs-mode nil)
-    [ courtesy http://www.jwz.org/doc/tabs-vs-spaces.html, which also mentions vi ]
 ```
+
+(courtesy http://www.jwz.org/doc/tabs-vs-spaces.html, which also mentions vi)
 
 You will also want this to have this, which disables auto-reindenting:
 `(setq-default c-electric-flag nil)`
