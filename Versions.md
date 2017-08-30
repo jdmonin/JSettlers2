@@ -1,16 +1,17 @@
-# Versions
+# Released Versions of JSettlers
 
-Unless otherwise indicated, JARs for JSettlers versions are
-hosted at [http://nand.net/jsettlers/devel/](http://nand.net/jsettlers/devel/) and (for recent
-versions) [https://github.com/jdmonin/JSettlers2/releases](https://github.com/jdmonin/JSettlers2/releases);
-project home and source history at [https://github.com/jdmonin/JSettlers2](https://github.com/jdmonin/JSettlers2)
+Project home and source history are at [https://github.com/jdmonin/JSettlers2](https://github.com/jdmonin/JSettlers2)
+
+Unless otherwise indicated, JARs for JSettlers versions are hosted at
+[https://github.com/jdmonin/JSettlers2/releases](https://github.com/jdmonin/JSettlers2/releases)
+and (for older versions) [http://nand.net/jsettlers/devel/](http://nand.net/jsettlers/devel/) .
 
 From `1.0` up through `1.1.13`, there was a single line of development.
 Right after `1.1.13` the main development branch became `2.0.00`, with a
 stable branch for further `1.x.xx` version releases to bring out bugfixes
 and backport minor new features until `2.0.00` is ready.
 
-## `2.0.00` (build JM20170xxx)
+## `2.0.00` (build JM2017xxxx)
 - Large board (sea board) support
 - Game Scenario and special-rules support
 - "House rules" dev card types (New game option `DH`)
@@ -27,23 +28,23 @@ and backport minor new features until `2.0.00` is ready.
   Their option keynames all start with '_' and are hidden in the New Game options window.
 - Player's inventory can hold more than just development cards
 - For AI/Robot development:
-     The server can run bot-only games with new startup option:
-	- `Djsettlers.bots.botgames.total=7`
-     Those bot-only games begin at server startup, or can be delayed with startup option:
-	- `Djsettlers.bots.botgames.wait_sec=30`
-	(this example uses 30 seconds) to give bot clients more time to connect first.
-     The server can use third-party bots as a certain percentage of the bots in each game
-	with new startup option: (this example uses 50%)
-	- `Djsettlers.bots.percent3p=50`
-     Third-party bots can have more time to plan their turn with new server startup option:
-	(this example uses 18 seconds)
-	- `Djsettlers.bots.timeout.turn=18`
-     New debug command `STARTBOTGAME [maxBots]` to begin current game as bots-only
-     Example `soc.robot.sample3p.Sample3PBrain extending SOCRobotBrain`, `Sample3PClient extending SOCRobotClient`
-     Standalone bot clients shut down properly if they can't reconnect to server after 3 retries
-- Java 5 features, including parametrized types (thank you Paul Bilnoski)
+	- The server can run bot-only games with new startup option:  
+	  `-Djsettlers.bots.botgames.total=7`
+	- Those bot-only games begin at server startup, or can be delayed with startup option:  
+	  `-Djsettlers.bots.botgames.wait_sec=30`
+	  (this example uses 30 seconds) to give bot clients more time to connect first.
+	- Server can use third-party bots as a certain percentage of the bots in each game
+	  with new startup option: (this example uses 50%)  
+	  `-Djsettlers.bots.percent3p=50`
+	- Third-party bots can have more time to plan their turn with new server startup option:
+	  (this example uses 18 seconds)  
+	  `-Djsettlers.bots.timeout.turn=18`
+	- New debug command `*STARTBOTGAME* [maxBots]` to begin current game as bots-only
+	- Example `soc.robot.sample3p.Sample3PBrain extending SOCRobotBrain`, `Sample3PClient extending SOCRobotClient`
+	- Standalone bot clients shut down properly if they can't reconnect to server after 3 retries
+- Java 5 features, including parameterized types (thank you Paul Bilnoski)
 - Major client refactoring (separate UI from network interface) thanks to Paul Bilnoski;
-    - Paul's UI split preserves the spirit and flow of the code, with a more logical layered structure.
+    Paul's UI split preserves the spirit and flow of the code, with a more logical layered structure.
 - Server inbound message handling refactored in collaboration with Alessandro D'Ottavio
 - Robot client's inbound-message treat method calls super.treat in the default case,
     so `SOCDisplaylessClient.treat()` handles all messages which don't need robot-specific handling.
@@ -52,27 +53,29 @@ and backport minor new features until `2.0.00` is ready.
 - Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 - READMEs and VERSIONS.txt converted to Markdown (thank you Ruud Poutsma)
 
+
 ## `1.2.00` (build OV20170xxx)
 - Simple sound effects for game events: Start of client player's turn, resource stolen by robber, etc
 - Monopoly announces total number of resources stolen
 - New Game options: Popup if old versions can't play: Default to Create, not Change Options
 - To ensure everyone has initial settlements, don't allow new clients to sit after 1st settlements are all placed
-- Client: Persistent preferences and per-game options for settings like sound effects
+- Client: Persistent and per-game preferences for settings like sound effects
+- Client: Per-game preference to auto-reject bot trades after a multi-second countdown
 - Network: Send keepalive messages to idle games to keep clients connected
-- Game window during debug: Reset "current player" indicator when exiting *FREEPLACE* debug mode
+- Game window during debug: Reset "current player" indicator when exiting `*FREEPLACE*` debug mode
 - Client initial Connect dialog: If username given, ensure New Game button is enabled
 - Client debug, bot debug: Print network message contents if system property jsettlers.debug.traffic is set
 - Database:
-     Optional Schema Upgrade process with `-Djsettlers.db.upgrade_schema=Y` startup option
-     Schema `v1.2.00` adds:
-       - games table: winner, options, duration, player 5 and 6 names and scores
-       - users table: case-insensitive unique usernames/nicknames; password encodings (BCrypt)
-       - db_version table with upgrade history (if any)
-       - settings table
-     If using mysql: Newly created DBs now have unicode text encoding (UTF-8).
+     - Optional Schema Upgrade process with `-Djsettlers.db.upgrade_schema=Y` startup option
+     - Schema `v1.2.00` adds:
+         - games table: winner, options, duration, player 5 and 6 names and scores
+         - users table: case-insensitive unique usernames/nicknames; password encodings (BCrypt)
+         - db_version table with upgrade history (if any)
+         - settings table
+     - If using mysql: Newly created DBs now have unicode text encoding (UTF-8).
        (The postgresql and sqlite DB scripts have always created the DB as unicode.)
-     If using postgresql: Tables are created by socuser, not postgres system user
-     New admin command *DBSETTINGS*: Show schema version, DB server version, settings entries
+     - If using postgresql: Tables are created by socuser, not postgres system user
+     - New admin command `*DBSETTINGS*`: Show schema version, DB server version, settings entries
 - Startup: Show error if can't read own JSettlers version info
 
 
@@ -83,15 +86,15 @@ and backport minor new features until `2.0.00` is ready.
      - Use smooth vectors, not scaled-up images, for ports
 - Game window:
      - Guidance for new users: After initial placement, if user tries left-clicking the board to build,
-        popup a hint message to use right-click (or control-click on OSX) instead
+       pop up a hint message to use right-click (or control-click on OSX) instead
      - Trade offers from other players: Show/hide Accept button whenever resources gained/lost/traded
      - Print message in chat area when player leaves, to balance message when a player joins
      - For visibility use black text for Longest Road, Largest Army labels
 - New Game options dialog:
      - When "Use 6-player board" option becomes set, increase max players to 6 unless already changed by user
      - For int/intbool options use 0 if blank, intbool don't set int value if checkbox is unchecked
-- `ADDTIME` command: Don't add time if more than 90 minutes still remaining
-- `HELP` command recognized from all players, not only debug user
+- `*ADDTIME*` command: Don't add time if more than 90 minutes still remaining
+- `*HELP*` command recognized from all players, not only debug user
 - Server startup options:
      - New optional jsserver.properties file, read before command line
      - Command line: db user and password now optional when specifying port and max connections
@@ -101,11 +104,11 @@ and backport minor new features until `2.0.00` is ready.
 - Game option boolean default values more strictly parsed
 - Robots:
      - When a 7 is rolled during other players' turns and bot must discard:
-        If bot is inactive after several seconds, force random resource discard
+       If bot is inactive after several seconds, force random resource discard
      - To keep idle practice games alive, don't leave an inactive game during other players' turns
-- Server stats (`STATS` command): Increase "games finished" when game ends, not later when it's destroyed
-- `WHO` command: User admins or debug user can list any game's members, or * or ALL to list all connected users
-- Game or channel name "*" no longer permitted, to avoid conflicts with admin command enhancements
+- Server stats (`*STATS*` command): Increase "games finished" when game ends, not later when it's destroyed
+- `*WHO*` command: User admins or debug user can list any game's members, or `*` or `ALL` to list all connected users
+- Game or channel name `"*"` no longer permitted, to avoid conflicts with admin command enhancements
 - Server console traces:
      - "joined the game"/"left the game" include current time
      - Remove redundant joined/left debug prints
@@ -117,27 +120,29 @@ and backport minor new features until `2.0.00` is ready.
      - DB setup script: Correct grant commands for postgresql 8 (for CentOS 6/RHEL 6)
 - User account admin:
      - New server parameter `--pw-reset` username can be used if an account password is lost
-     - `WHO` user-admin command available when only certain users can create accounts (`jsettlers.accounts.admins=...`)
+     - `*WHO*` user-admin command available when only certain users can create accounts (`jsettlers.accounts.admins=...`)
 - User account admin client:
      - After creating new user, clear password fields in form
      - Auto-authenticate when creating first admin account in new db
      - Minimum server version `1.1.19`; for older servers, please download and use the older version's account client
      - Server requires minimum client version `1.1.19`, to authenticate before creating users
 - User account DB schema: For new installs, require user passwords (existing DBs don't need to make this change).
-     Passwords were already required in earlier versions; this only formalizes it in the database.
+  Passwords were already required in earlier versions; this only formalizes it in the database.
 - For bots in server jar, move `SOCDisplaylessPlayerClient` out of `soc.client` package
 - First version to include an automated functional test script
+
 
 ## `1.1.19` (build OV20141127)
 - New game option "N7C" for house rule: Roll no 7s until a city is built
 - Bugfix when new client sits during first initial-settlement placement round
-- Bugfix: potential roads now allowed next to opponent's newly placed settlement, if player already has a road touching the potential road
+- Bugfix: potential roads now allowed next to opponent's newly placed settlement,
+  if player already has a road touching the potential road
 - Trading port/harbor graphics updated for directional clarity and scaling
 - Reset board during initial placement: Pick randomly-selected robots, instead of keeping same robots
 - Reset board: If only 1 human player, don't reset if all bots are locked
-- On server startup, start some bots by default (previous versions required `-Djsettlers.startrobots`)
-     To run a server without built-in bots, use `-Djsettlers.startrobots=0` when starting the server.
-- Player chat text: At server, don't ignore messages which start with '*'
+- On server startup, start some bots by default (previous versions required `-Djsettlers.startrobots`).
+  To run a server without built-in bots, use `-Djsettlers.startrobots=0` when starting the server.
+- Player chat text: At server, don't ignore messages which start with `'*'`
 - For player consistency, don't allow seat lock changes during board reset vote
 - New Game Options window: If server is too old for game options, show the game name field and no options here
 - Client Connect to Server, Start Server screens: If port number field is empty, use default 8880
@@ -148,7 +153,7 @@ and backport minor new features until `2.0.00` is ready.
      - To permit open registration of accounts, use `-Djsettlers.accounts.open=y` when starting the server.
      - To require that all players have accounts and passwords, start the server with: `-Djsettlers.accounts.required=y`
      - To permit only certain users to create accounts, use `-Djsettlers.accounts.admins=bob,joe,lily`
-     (comma-separated username list) when starting the server.
+       (comma-separated username list) when starting the server.
      - Once the client has successfully joined or created a game or channel, it won't send a password again.
 - Database: Add instructions and db-create scripts for postgresql, sqlite
 - When saving 6-player completed game results to a database table with only 4 player fields,
@@ -168,7 +173,8 @@ and backport minor new features until `2.0.00` is ready.
 - Account creation: Check that the optional user-accounts server feature is active when connecting from account client
 - Account creation: Check that requested username contains no reserved characters at server and client
 - If new game options require a certain version, don't warn unless the required version
-     is newer than `1.1.17` (released November 2012).
+  is newer than `1.1.17` (released November 2012).
+
 
 ## `1.1.18` (build OV20130402)
 - Reset board: Keep player chat text; Confirm before restarting after end of a practice game
@@ -180,7 +186,8 @@ and backport minor new features until `2.0.00` is ready.
 - In-game "Game Options" button: If an info window's already visible, show it instead of making another one
 - Server `--help` message: Sort game option keynames alphabetically
 - If new game options require a certain version, don't warn unless the required version
-     is newer than `1.1.13` (released November 2011).
+  is newer than `1.1.13` (released November 2011).
+
 
 ## `1.1.17` (build OV20121212)
 - Road Building: Player may skip (cancel) placing second free road, if they want to use just one road piece
@@ -198,10 +205,12 @@ and backport minor new features until `2.0.00` is ready.
 - If server DB is empty, use default parameters for all bots
 - Server constructors: throw exceptions instead of System.exit
 
+
 ## `1.1.16` (build OV20121027)
 - Bugfix: `1.1.15` can't start practice games
 - If jar client loses server connection, returns to first panel, with buttons
   to connect to a server or practice
+
 
 ## `1.1.15` (build OV20121021)
 - Bugfix: Occasional hangs creating new game, when old game isn't yet cleared
@@ -211,9 +220,10 @@ and backport minor new features until `2.0.00` is ready.
 	`-Djsettlers.db.save.games=Y`
 - Server db property for jdbc driver jar file: `-Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar`
 - Server db easy setup script options:
-	`-Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite`
+	`-Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite`  
 	`-Djsettlers.db.script.setup=../src/bin/sql/jsettlers-tables.sql`
 - Server db sqlite driver URLs updated in readme
+
 
 ## `1.1.14` (build OV20120930)
 - Game can require more than 10 Victory Points to win (new game option "VP")
@@ -221,9 +231,10 @@ and backport minor new features until `2.0.00` is ready.
 - Discard dialog has "Clear" button (sourceforge bug# 3443414)
 - Show 'Server is ready' message at end of initialization
 - At server shutdown, try to disconnect from database (helpful for sqlite)
-- Debug commands are off by default, except practice games; you can enable them with:
+- Debug commands are off by default, except practice games; you can enable them with:  
 	`-Djsettlers.allow.debug=Y`
 - Split out sql from README, add indexes (Chad McHenry mchenryc in 2005 cvs)
+
 
 ## `1.1.13` (build JM20111101)
 - Game name maximum length is 30, was 20 previously
@@ -246,8 +257,8 @@ and backport minor new features until `2.0.00` is ready.
 - If server forces a robot to end its turn, will print the bot's brain status
       variables and last two turns' received messages before it forces the end.
 - If game is in progress, joining/leaving people also announced in chat area (less clutter there)
-- Don't echo info commands like `STATS` to all players
-- Add current total connection count to `STATS` (including connections not yet named)
+- Don't echo info commands like `*STATS*` to all players
+- Add current total connection count to `*STATS*` (including connections not yet named)
 - When clients arrive or depart, show both the named & total current connection count
       on console "(7,9)"; previously showed only named connections "(7)"
 - Bugfix: If observer closes the game window, shouldn't ask them if want to keep playing
@@ -255,8 +266,9 @@ and backport minor new features until `2.0.00` is ready.
 - Bugfix: Truncating player name, don't drop the first character
 - New game option backwards-compatibility framework: allows use of some new game options (like PLB)
       with older clients, by changing related option values (like PL) sent to those old clients.
-- Rename `SOCGame.isLocal` field to .isPractice
+- Rename `SOCGame.isLocal` field to `.isPractice`
 - License upgrade to GPL v3
+
 
 ## `1.1.12` (build JM20110122)
 - Don't show hovering road/settlement/city if player has no more pieces
@@ -271,6 +283,7 @@ and backport minor new features until `2.0.00` is ready.
 - Further encapsulate board coordinate encoding
 - Javadocs and other explanations of board coordinate encoding
 
+
 ## `1.1.11` (build JM20101231)
 - Popup to confirm before you move the robber onto your own hex
 - Show robber's previous position on the board
@@ -282,13 +295,15 @@ and backport minor new features until `2.0.00` is ready.
 - Debug commands now case-insensitive
 - Per-game messages indicated by new interface SOCMessageForGame
 
+
 ## `1.1.10` (build JM20100613)
 - Game owner tracked at server
 - Security: Limit the maximum simultaneous games/chat channels created per client:
-	Once a game/channel is removed (all members leave), they can create another.
-	Defaults are 5 games, 2 channels.  Use these properties to change the default:
-	jsettlers.client.maxcreategames
-	jsettlers.client.maxcreatechannels
+	- Once a game/channel is removed (all members leave), they can create another.
+	- Defaults are 5 games, 2 channels.  Use these properties to change the default:    
+	`jsettlers.client.maxcreategames`  
+	`jsettlers.client.maxcreatechannels`
+
 
 ## `1.1.09` (build JM20100417)
 - 4-player board: crisper graphics (images from 6-player board)
@@ -305,8 +320,8 @@ and backport minor new features until `2.0.00` is ready.
 - 6-player robots: Slow down a little: Pause 75% of 4-player's pause duration, not 50%
 - At end of game, hilight winner with yellow arrow
 - At end of game, show number of rounds, along with time elapsed and your resources rolled
-- Game options: Change of wording in minimum-version warning: ("friendly" format)
-	from: Client version 1107 or higher is required for these game options.
+- Game options: Change of wording in minimum-version warning: ("friendly" format)  
+	from: Client version 1107 or higher is required for these game options.  
 	to :  Client version 1.1.07 or newer is required for these game options.
 - Double-clicking your face icon, or many rapid clicks, brings up the Face Chooser
 - Allow 3rd-party Robot AIs, via new rbclass param in IMAROBOT message, SOCClientData.isBuiltInRobot
@@ -324,11 +339,12 @@ and backport minor new features until `2.0.00` is ready.
 - When running local server: Main panel: Show version, buildnum in tooltip
 - Command line: Error if dashed arguments appear after port/maxconns/db params
 - Command line: Allow -Djsettlers.option=value syntax (mchenryc)
-- Command line: Auto-start robots when the server starts, with this parameter:
-	-Djsettlers.startrobots=7
+- Command line: Auto-start robots when the server starts, with this parameter:  
+	`-Djsettlers.startrobots=7`
 - Debug assist: SOCBoardLayout2 prints array contents
 - Debug assist: Connection, LocalStringConnection +toString()
 - README.developer: Coding Style section
+
 
 ## `1.1.08` (build JM20100112)
 - 6-player board, with Special Building Phase rule
@@ -345,6 +361,7 @@ and backport minor new features until `2.0.00` is ready.
 - BoardPanel javadocs explain nodeMap and initNodeMapAux
 - SOCRobotBrain refactor some message-handlers out of run() (C McNeil idea)
 - Old version history (pre-sourceforge): Added file src/docs/old-updates-rsthomas.html found on web at http://jrh-xp.byu.edu/settlers/updates.htm
+
 
 ## `1.1.07` (build JM20091031)
 - Per-game options framework, including these options:
@@ -367,6 +384,7 @@ and backport minor new features until `2.0.00` is ready.
 - Don't cover board with 'choose player' popup (Rowan H idea)
 - AskDialog supports multiple lines with "\n"
 
+
 ## `1.1.06` (build JM20090601)
 - Based on 1.1.04's code
 - Monopoly reports (privately) number of resources stolen to each victim
@@ -381,10 +399,12 @@ and backport minor new features until `2.0.00` is ready.
 - Bugfix: "Start a local server" ignored port-number textfield, was always default port
 - Bugfix: harmless NullPointerException in SOCBoardPanel.setHoverText for getFontMetrics
 
-## `1.1.05` (backed out)
+
+## `1.1.05` (reverted before `1.1.06`)
 JSettlers 1.1.05 had been under development (build 2008-09-13) but its direction is being re-considered.
 Further development is based on 1.1.04.
 - Use Log4j 1.2, vs previous homegrown soc.debug/disableDebug
+
 
 ## `1.1.04` (build JM20080906)
 - Bugfix: Cancelling 2nd initial settlement, other players lost resources (SOCPlayer)
@@ -394,6 +414,7 @@ Further development is based on 1.1.04.
 - Add StringConnection.appData, to support SOCClientData
 - Javadoc adds/updates
 
+
 ## `1.1.03` (build 2008-08-26)
 - Reset board: Bugfix: Practice games server version-check
 - Don't show hovering road/settlement/city unless player has the resources
@@ -402,16 +423,19 @@ Further development is based on 1.1.04.
 - Javadocs clarify SOCPlayerClient local TCP vs practice server
 - Add minor items to TODO in README.developer
 
+
 ## `1.1.02` (build 2008-08-17)  http://nand.net/jsettlers/devel/
 - Reset board: If human leaves game before reset, lock their seat against robots
 - Bugfix: Robot disconnect/reconnect version reporting
 - Add minor items to TODO in README.developer
+
 
 ## `1.1.01` (build 2008-08-12)  http://nand.net/jsettlers/devel/
 - Bugfix: If player loses connection while voting for board reset, the vote never completes
 - Bugfix: Reset vote message format (from recent refactoring)
 - Version number dynamic from properties file, not hardcoded in soc.util.Version
 - Utility method SOCMessage.getClassNameShort for cleaner debug-output in template classes' toString
+
 
 ## `1.1.00`(build 2008-08-09)  http://nand.net/jsettlers/devel/
 - Development at new site, sourceforge project appeared abandoned in 2005
@@ -456,19 +480,22 @@ Further development is based on 1.1.04.
 	- N/A     sfhonza (John Vicherek) "Swinging" number of resources, http://john.vicherek.com/jsettlers-1.0.6.swing_resources.patch
 	- 1088775 drichardson (Douglas Ryan Richardson) [1039250] Auto-rejecting impossible offers; Make accept button invisible when user cannot accept offer
 
+
 ## `1.0.6` (build 2004-11-17)  http://sourceforge.net/projects/jsettlers
 - Fixed the same PORT property error in the Account client
 - Fixed bug which could allow modified clients to invoke admin
-  commands (*STOP*, *KILLCHANNEL*, etc) (Lasse Vartiainen)
+  commands (`*STOP*`, `*KILLCHANNEL*`, etc) (Lasse Vartiainen)
 - Fixed 920375, 1022157: mysql-connector-3.x fails: version 2.x works
   (Mezryn)
 - Fixed 1060651: Bots crash if database backend is used (Jack Twilley)
 - Moved more SQL error handling and reconnecting from SOCServer to
   SOCDBHelper correcting potential errors like 1060651
 
+
 ## `1.0.5` (build 2004-06-12)  http://sourceforge.net/projects/jsettlers
 - Fixed an error introduced into the applet initialization which kept
   the PORT property from being read properly
+
 
 ## `1.0.4` (build 2004-06-10)  http://sourceforge.net/projects/jsettlers
 - build.xml file added for Ant builds
@@ -488,30 +515,57 @@ Further development is based on 1.1.04.
 - Images can now be loaded from files (on server or not) or from
   within jar.
 
+
 ## `1.0.3` (build 2004-03-29)
 - Continuing to fix the display bug in the SOCPlayerClient
+
 
 ## `1.0.2` (build 2004-03-26)
 - Fixed display bug (again) in the SOCPlayerClient when run as a stand
   alone.
 
+
 ## `1.0` (build 2004-03-14)
 - First release. See the README file for how to setup a server and
   robot clients.
 
+
 ## Older versions
-This chapter contains the contents of the old `old-updates-rsthomas.html` file written by Robert S. Thomas. It's kept here for historical reference. The contents are preserved as much as possible, the formatting has been adapted to Markdown format where possible.
 
-### 2004-04-15
+This chapter contains the contents of the old `old-updates-rsthomas.html` file
+written by Robert S. Thomas. It's kept here for historical reference. The
+contents are preserved as much as possible, the formatting has been adapted
+to Markdown format where possible.
 
-I have recently created a SourceForge project called [http://sourceforge.net/projects/jsettlers/](jsettlers) to maintain the Java Settlers code base. There you can access a copy of my dissertation which describes how the system as well as the bots work. Also, you can download the Java Settlers class files as well as brief instructions on how to run your own server. In addition, I have made the source code available under the Gnu Public License. You can access it using CVS at cvs.sf.net/cvsroot/jsettlers. If you are interested in being part of a development team to continue improving Java Settlers, please let me know. 
+### 2004-03-15
+
+I have recently created a SourceForge project called
+[jsettlers](http://sourceforge.net/projects/jsettlers/) to
+maintain the Java Settlers code base. There you can access a copy of my
+dissertation which describes how the system as well as the bots work.
+Also, you can download the Java Settlers class files as well as brief
+instructions on how to run your own server. In addition, I have made the
+source code available under the [Gnu Public License](http://www.gnu.org/copyleft/gpl.html). You
+can access it using CVS at cvs.sf.net/cvsroot/jsettlers. If you are
+interested in being part of a development team to continue improving Java
+Settlers, please let me know.
 
 ### 2002-11-21
-In order to fight the problem of the server getting clogged with dead games, I've implemented a time limit system for all games. When a game is created it has a lifetime of 90 minutes. Anyone in the game can check how much time is remaining by typing `CHECKTIME`. When the game only has 5 minutes left a warning will be issued to the people in that game. To extend a game, simply type `ADDTIME` to add another 30 minutes. This can be done at any time. Hopefully this will result in a more stable server with less lag.
+
+In order to fight the problem of the server
+getting clogged with dead games, I've implemented a time limit system for
+all games. When a game is created it has a lifetime of 90 minutes. Anyone
+in the game can check how much time is remaining by typing `*CHECKTIME*`.
+When the game only has 5 minutes left a warning will be issued to the
+people in that game. To extend a game, simply type `*ADDTIME*` to add
+another 30 minutes. This can be done at any time. Hopefully this will
+result in a more stable server with less lag.
 
 ### 2002-10-17
 
-I've had a number of requests recently for a solution to the problem of how to deal with obnoxious players. As a quick fix, I've added a way to ignore the chat messages from other players. Here's how it works:
+I've had a number of requests recently for a
+solution to the problem of how to deal with obnoxious players. As a quick
+fix, I've added a way to ignore the chat messages from other players. Here's how it works:
 
 - To ignore another player, type `\ignore <nickname>`
 Where `<nickname>` is the name of the person you want to ignore.
@@ -525,19 +579,28 @@ If you're having trouble loading the client (you only see a grey box when you lo
 
 ### 2002-04-13
 
-I'm trying out some variations of the robot decision making algorithms. The 'bots have strange suffixes added to their names so I know which algorithms each one is running. 
+I'm trying out some variations of the robot decision making algorithms. The 'bots have strange suffixes
+added to their names so I know which algorithms each one is running.
 
 ### 2002-02-15 
 
-I figured out a way to make scroll bars work correctly on both Mac and PC, so now the interface has them. I also modified how the face button works. If you click on the right side of the face, it will advance to the next one. If you click on the left side, it will go back. And I added some new faces, so check 'em out! 
+I figured out a way to make scroll bars work correctly on both Mac and PC, so now the interface has
+them. I also modified how the face button works. If you click on the right
+side of the face, it will advance to the next one. If you click on the
+left side, it will go back. And I added some new faces, so check 'em out!
 
-### 2001-08-31 
+### 2001-08-30
 
-I've added an account system to the site. It is completely optional. If you go to the account creation page and make a new account, you will need to enter you password when you use the system. The benefit of creating an account is that no one will be able to use your nickname without the password. 
+I've added an account system to the site. *It is completely optional.* If you go to the
+[account creation page](http://settlers.cs.northwestern.edu/account.html)
+and make a new account, you will need to enter you
+password when you use the system. The benefit of creating an account is
+that no one will be able to use your nickname without the password.
 
 ### 2001-08-03
 
-I've set up some scripts to restart the server every day at 4:00am CST. This is a temporary fix for any bugs that take more than a day to manifest. 
+I've set up some scripts to restart the server every day at 4:00am CST. This is a temporary fix for
+any bugs that take more than a day to manifest.
 
 ### 2001-07-18
 
@@ -553,14 +616,23 @@ I made the seat lock button smaller so that it doesn't cover the counter offer b
 
 ### 2001-07-01
 
-Fixed some more bugs and I've added a new feature. Now when you sit at a game you will see a button in the other players' panels labled "Lock This Seat" or "Unlock This Seat". This button will only show for players that are 'bots. If you lock a seat, that prevents other people from booting the 'bot and sitting down. I added this because people were requesting a function that would make games private, and also for a way to boot people. I don't really like the idea of booting people, so this is a compromise. Let me know what you think. 
+Fixed some more bugs and I've added a new feature. Now when you sit at a game you will see a button in
+the other players' panels labled "Lock This Seat" or "Unlock This Seat".
+This button will only show for players that are 'bots. If you lock a seat,
+that prevents other people from booting the 'bot and sitting down. I added
+this because people were requesting a function that would make games
+private, and also for a way to boot people. I don't really like the idea
+of booting people, so this is a compromise. Let me know what you think.
 
 ### 2001-06-28
 
 Still working on some bugs in the networking code, but I think it's getting better. I also added a cancel button on the counter offer box. 
 
 ### 2001-06-27
-Joseph Landry (jal) read my FAQ about the randomness of the numbers and sent me an improved formula to get a better distribution. I thought I would put his email here just in case anyone else has made the same mistake I did:
+
+Joseph Landry (jal) read my FAQ about the randomness of the numbers and sent me an improved formula to get a better
+distribution. I thought I would put his email here just in case anyone else has made the same mistake I did:
+
 Your FAQ page says that your random number generator is
 
 ``` java
@@ -602,21 +674,45 @@ This produces numbers passed to `Math.round()` that range from `0.5` to `6.499`
     5.500 - 6.499 -> 6
  
 Now all numbers are evenly distributed.
+
 Thanks for the help Joe!
 
 ### 2001-06-26
 
-Fixed some more bugs so that the server is more stable. I also added a FAQ list. There is a link to it on the front page. You might have noticed that some new faces have been added to the interface. I didn't create these, actually someone who uses the site sent them to me, and I think they're great! If you would like to add more faces to the collection, all you need to do is make a 40 by 40 pixel gif with a transparent background and email it to me. Then you'll be able to choose the face that you created when you play, and other players will get to appreciate your skill as an artist. ;) 
+Fixed some more bugs so that the server is more
+stable. I also added a FAQ list. There is a link to it on the front page.
+You might have noticed that some new faces have been added to the
+interface. I didn't create these, actually someone who uses the site sent
+them to me, and I think they're great! If you would like to add more faces
+to the collection, all you need to do is make a 40 by 40 pixel gif with a
+transparent background and email it to me. Then you'll be able to choose
+the face that you created when you play, and other players will get to
+appreciate your skill as an artist. ;)
 
 ### 2001-06-21
 
-As promised, I've updated the negotiation code for the 'bots. They will now only make offers that they think another player will take. This cuts down the number of offers they make, and their offers make a bit more sense. Also, they will only try to make offers to players that they think have what they want. Sometimes they will make an offer to you even if you don't have what they're asking for. This is because they will loose track of what you have if you discard cards, or get robbed. One more thing, just because a 'bot rejects your first offer that doesn't necessarily mean that they don't have what you want. Try making the deal better and they might take it. 
+As promised, I've updated the negotiation code
+for the 'bots. They will now only make offers that they think another
+player will take. This cuts down the number of offers they make, and their
+offers make a bit more sense. Also, they will only try to make offers to
+players that they think have what they want. Sometimes they will make an
+offer to you even if you don't have what they're asking for. This is
+because they will loose track of what you have if you discard cards, or
+get robbed. One more thing, just because a 'bot rejects your first offer
+that doesn't necessarily mean that they don't have what you want. Try
+making the deal better and they might take it.
 
 ### 2001-06-17
 
-I need to fix some timing bugs that only showed up when I had a bunch of people using the system. In the mean time I'll run the old faster 'bots. 
 I'm trying out a new addition to the interface. Now when an offer is presented, you will have three options: Accept, Reject, and Counter. The Counter button allows you to easily make a counter offer. If you have any comments either good or bad about the new button, please let me know.
+
 Note: I'm still running the old 'bot code which doesn't react to counter offers, so I would NOT recommend making counter offers to 'bots. Very soon I will have new 'bots that will make and consider counter offers. 
+
+### 2001-06-13 (later that day)
+
+I need to fix some timing bugs that only showed up when I
+had a bunch of people using the system. In the mean time I'll run the old
+faster 'bots.
 
 ### 2001-06-13
 
@@ -641,7 +737,10 @@ Changed the strategy for the bots again, but now they play worse. I'll fix it as
 
 ### 2001-04-06
 
-Changed the strategy for the robots in a major way. It's not quite finished yet, but I thought I would let it loose on the public anyway because it plays very differently. I also added some code to bring back dead robots, so there should be fewer times when you can't get a robot to play. 
+Changed the strategy for the robots in a major way. It's not quite finished yet, but I thought I would
+let it loose on the public anyway because it plays very differently. I
+also added some code to bring back dead robots, so there should be fewer
+times when you can't get a robot to play.
 
 ### 2001-03-21
 
@@ -656,22 +755,44 @@ Trying something new in the networking code. Removed the game status code for no
 
 ### 2001-03-05
 
-I've cleaned up some of the code that the 'bots use to decide where to build. This should make them hang less often. Also, I'm looking for a bug in the code that calculates Longest Road. If you are playing a game and the wrong player has longest road, please open your Java Console, clip 10 to 20 lines from the output and email it to me along with a description of what happened in the game just before the bug happend. If you can send a screen shot too that would be helpful. I know there's a bug somewhere, but I haven't been able to reproduce it, so maybe I can find it with your help. Thanks! I've also put the game status code back in to see if it will crash the server again. I'm thinking that it will, but it will also help me find any stray deadlock problems that are left in the network code. 
+I've cleaned up some of the code that the 'bots use to decide where to build. This should make them hang less often. Also,
+I'm looking for a bug in the code that calculates Longest Road. If you are
+playing a game and the wrong player has longest road, please open your
+Java Console, clip 10 to 20 lines from the output and email it to me along
+with a description of what happened in the game just before the bug
+happend. If you can send a screen shot too that would be helpful. I know
+there's a bug somewhere, but I haven't been able to reproduce it, so maybe
+I can find it with your help. Thanks! I've also put the game status code
+back in to see if it will crash the server again. I'm thinking that it
+will, but it will also help me find any stray deadlock problems that are
+left in the network code.
 
 ### 2001-02-21
 
-Wow, traffic on the server is increasing and therefore it's crashing more often. I'm trying an experiment by removing the game status feature that was next to the name of the game. I think this might help because I was broadcasting the game info across all of the connections a lot, and by removing it I hope to cut the ammount of message traffic that the server has to deal with. I really like that feature though, so I might work on a way to get the same functionality without using broadcast. Hopefuly this change will allow the server to stay up longer because I can't see where the problem is. It's not running out of memory, and I can't find any deadlock conditions. Hmm... 
+Wow, traffic on the server is increasing and therefore it's crashing more
+often. I'm trying an experiment by removing the game status feature that
+was next to the name of the game. I think this might help because I was
+broadcasting the game info across all of the connections a lot, and by
+removing it I hope to cut the ammount of message traffic that the server
+has to deal with. I really like that feature though, so I might work on a
+way to get the same functionality without using broadcast. Hopefuly this
+change will allow the server to stay up longer because I can't see where
+the problem is. It's not running out of memory, and I can't find any
+deadlock conditions. Hmm...
+
+### 2001-02-19 (later that day)
+
+Ok, I just fixed a bug where if a game was started and a player sat and then left, no one could sit in that spot. The game server has been running for over 5 hours now without locking up, so I'm taking that as a good sign. 
 
 ### 2001-02-19
 
-Ok, I just fixed a bug where if a game was started and a player sat and then left, no one could sit in that spot. The game server has been running for over 5 hours now without locking up, so I'm taking that as a good sign. 
 I'm still trying to fix the latest major bug in the server, and therefore the server will be going down a lot. Thank you for your patience during this rough period. 
 
 ### 2001-02-16
 
 Hello Settlers playin' folks! I'm sorry the server has been down for a bit. I found a nasty deadlock condition and needed a day to work out the problem. I think I got it, but the real test is running it for a day with lots of people connecting, so here we go (cross your fingers). 
 
-### 2001-02-21
+### 2001-02-12
 
 In response to your feedback, I've modified the game list to display whether or not robots are playing in a particular game. A '#' next to a score means that a robot is in that seat. A 'o' next to a number means a person is in that seat.
 
@@ -689,7 +810,16 @@ Fixed some bugs and modified the robots to have a stronger end-game strategy.
 
 ### 2001-01-29
 
-The computer players can now trade. The algorithm they use to decide what offers to make and accept isn't very sophisticated at all. I just wanted to make sure that the trading mechanism worked first before making it "smart". If the 'bots reject your offer, it's because either they don't have what you want, they don't want to give up what you want, or they think you're winning. You can tell when they think you're winning when they stop offering trades to you. Also, all of the code for the game server and computer players is running on new faster hardware. In the queue is improving the players end-game strategy, improving the initial settlement placement, adding the ability to boot human players, and of course improving the trading algorithms.
+The computer players can now trade. The algorithm they use to decide what offers to make and accept isn't very
+sophisticated at all. I just wanted to make sure that the trading
+mechanism worked first before making it "smart". If the 'bots reject your
+offer, it's because either they don't have what you want, they don't want
+to give up what you want, or they think you're winning. You can tell when
+they think you're winning when they stop offering trades to you. Also, all
+of the code for the game server and computer players is running on new
+faster hardware. In the queue is improving the players end-game strategy,
+improving the initial settlement placement, adding the ability to boot
+human players, and of course improving the trading algorithms.
 
 ### 2001-01-16
 
@@ -707,7 +837,8 @@ Mostly new code for the bots. Features include:
 - Faster execution
 - A simple notion of longest road potential
 - Seperate strategies for the beginning, middle, and end game.
-- Right now, the end game strategy isn't implemented, so the bot's may give up near the end. Also, things like the - initial settlement placement and robber code haven't been updated to use the new code, so the bot's play may be a little strange.
+
+Right now, the end game strategy isn't implemented, so the bot's may give up near the end. Also, things like the initial settlement placement and robber code haven't been updated to use the new code, so the bot's play may be a little strange.
 
 Things to do:
 
@@ -739,7 +870,8 @@ Here is current to-do list for the computer players:
 
 ### 2000-08-02
 
-The computer players can now use Development cards. Also, they play a little slower because I expanded their planning code, so please be patient. 
+The computer players can now use Development cards. Also, they play a little slower because I
+expanded their planning code, so please be patient.
 
 ### 2000-06-12
 
@@ -751,7 +883,8 @@ The computer uses some strategy when moving the robber, rather than just moving 
 - Added a seperate window for chat messages.
 - Fixed a scrolling problem with Netscape browsers.
 - Fixed a problem where people watching the game couldn't see trade offers.
-- You can now access the server multiple times from the same computer. You're on your honor not to abuse this for cheating. 
+- You can now access the server multiple times from the same computer.
+  You're on your honor not to abuse this for cheating.
 
 ### 2000-05-15
 The computer players will now trade with the bank and any ports that they might be on. Also sped up the algorithm that determines who has the longest road. 
