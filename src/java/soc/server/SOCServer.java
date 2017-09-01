@@ -687,7 +687,7 @@ public class SOCServer extends Server
      *<P>
      * The first successful account creation will clear this flag.
      *<P>
-     * {@link #handleCREATEACCOUNT(StringConnection, SOCCreateAccount)} does call {@code countUsers()}
+     * {@link #createAccount(String, String, String, StringConnection)} does call {@code countUsers()}
      * and requires auth if any account exists, even if this flag is set.
      * @since 1.1.19
      */
@@ -997,7 +997,7 @@ public class SOCServer extends Server
     /**
      * User admins whitelist, from {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS}, or {@code null} if disabled.
      * If not null, only usernames on this list can create user accounts in
-     * {@link #handleCREATEACCOUNT(StringConnection, SOCCreateAccount)}.
+     * {@link #createAccount(String, String, String, StringConnection)}.
      * If DB schema &gt;= {@link SOCDBHelper#SCHEMA_VERSION_1200}, this whitelist is
      * made lowercase for case-insensitive checks in {@link #isUserDBUserAdmin(String, boolean)}.
      * @since 1.1.19
@@ -5192,7 +5192,7 @@ public class SOCServer extends Server
         if (uname == null)
             return false;
 
-        // Check if we're using a user admin whitelist, and if uname's on it; this check is also in handleCREATEACCOUNT.
+        // Check if we're using a user admin whitelist, and if uname's on it; this check is also in createAccount.
 
         if (databaseUserAdmins == null)
         {
