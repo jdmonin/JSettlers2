@@ -264,7 +264,7 @@ server configuration arguments, and create these Java application configs:
         arguments: localhost 8880 robot2 r2 cook
 
 For automated functional testing, the project also includes the script
-`test/main/bin/test_func_srv_startup_params.py`; run and update this script if
+`src/test/bin/test_func_srv_startup_params.py`; run and update this script if
 you are developing anything related to game options or jsettlers properties.
 
 

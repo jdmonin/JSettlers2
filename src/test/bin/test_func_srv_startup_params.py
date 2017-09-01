@@ -25,7 +25,7 @@ import os, re, socket, subprocess, sys, time
 from threading import Thread
 
 FNAME_JSSERVER_JAR = "JSettlersServer.jar"
-REL_PATH_JS_SERVER_JAR = "../../target/" + FNAME_JSSERVER_JAR
+REL_PATH_JS_SERVER_JAR = "../../../target/" + FNAME_JSSERVER_JAR
 REL_PATH_TEMPDIR = "../tmp"
 FNAME_JSSERVER_PROPS = "jsserver.properties"
 MAX_TIMEOUT_SEC = 20
