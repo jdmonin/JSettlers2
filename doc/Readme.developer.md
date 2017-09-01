@@ -188,11 +188,13 @@ details on bot testing.
 
 Written for Eclipse 3.6, should be applicable to other versions with minor changes.
 
-- choose File -> New -> Project... -> Java Project from Existing Ant Buildfile.
+- Choose File -> New -> Project... -> Java -> Java Project from Existing Ant Buildfile.
 - Browse to jsettlers-2.x.xx-src/build.xml, select the "javac" task in target "compile".
-- Check "Link to the buildfile in the file system", hit Finish.
-- Project -> Properties: Resource: Text file encoding: UTF-8
-- You'll need to build once before you run it, to create `version.info` from `resources/version.info.in`.
+- Check the box "Link to the buildfile in the file system"
+- Hit Finish.
+- Project -> Properties: Resource: Text file encoding: UTF-8 -> OK
+- You'll need to run the `build` target once before you run JSettlers,
+  to create `version.info` from `resources/version.info.in`.
 
 Continue reading to see how to set up the builds and the coding style in Eclipse.
 
@@ -208,9 +210,10 @@ file-based local database.
 This package was designed to build with eclipse, or with the ANT tool available
 from [http://ant.apache.org/](http://ant.apache.org/).
 
-Check the `build.properties` file. There may be build variables you
-may want to change locally. These can also be changed from the command
-line if calling ant that way, by passing a `-Dname=value` parameter to ant.
+If not using an IDE like eclipse, check the `build.xml` file. There may be
+build variables you may want to change locally. These can be changed by
+creating a `build.properties` file, or from the ant command line by passing
+a `-Dname=value` parameter.
 
 There are several build targets, here are the most useful ones:
 
