@@ -23,6 +23,10 @@
  along with this program.  If not, see http://www.gnu.org/licenses/ .
  -->
 
+  <!-- Project Layout: This project uses ant (or IDEs) to build. For developer familiarity, the
+       project uses the directory structure/layout of a maven project. Future versions may use
+       maven to build. Stable versions 1.x.xx used ant to build; 2.0.00 is transitional. -->
+
   <!-- Reminder for tar tasks: ant 1.7+ assumed; uses ant's internal tar implementation
        and not the system tar, which means on OSX it won't include junk ._* files -->
 
@@ -76,12 +80,12 @@
   <property name="src"            value="src" />
   <property name="lib"            value="lib" /> <!-- 3rd party libs -->
   <property name="docs.src"       value="xdocs" />
-  <property name="bin.src"        value="src/bin" />
-  <property name="java.src"       value="src/java" />
-  <property name="test.src"       value="test/test-src" /> <!-- junit test cases -->
-  <property name="web.src"        value="src/web" />
+  <property name="bin.src"        value="src/main/bin" />
+  <property name="java.src"       value="src/main/java" />
+  <property name="test.src"       value="src/test/java" /> <!-- junit test cases -->
+  <property name="web.src"        value="src/site" />
 
-  <property name="test"           value="test" />
+  <property name="test"           value="src/test" />
 
   <property name="target"         location="target" />
   <property name="classes"        location="${target}/classes" />
@@ -92,7 +96,7 @@
   <property name="docs.generated" location="${target}/generated-xdocs" />
   <property name="docs.target"    location="${target}/docs" />
   <property name="api.target"     location="${docs.target}/api" />
-  <property name="dist"           location="dist" />
+  <property name="dist"           location="target/dist" />
 
   <!-- version file basename relative to ${classes} and ${java.src} -->
   <property name="version.info" value="resources/version.info" />
@@ -518,7 +522,7 @@ pte.version = ${i18neditor.version}
           <include name="build.xml" />
           <include name="build.properties" />
           <include name="${src}/" />
-          <include name="${test}/src/" /> <!-- might not exist -->
+          <include name="${test}/java/" /> <!-- might not exist -->
           <include name="${test}/bin/" />
           <include name="${test}/tmp/.gitignore" />
           <include name="target/lib/.gitignore" /><!-- target/lib/ prevents eclipse ant import error; v1.1.16+ -->
@@ -585,7 +589,7 @@ pte.version = ${i18neditor.version}
   <target name="docs.users">
       <!-- No munging, simply copy -->
       <copy todir="${docs.target}">
-        <fileset dir="${src}/docs" />
+        <fileset dir="${web.src}/users" />
       </copy>
   </target>
 
@@ -622,7 +626,6 @@ pte.version = ${i18neditor.version}
           description="Cleans the project of all generated files">
       <delete quiet="true" includeEmptyDirs="true">
         <fileset dir="${target}/" defaultExcludes="no" />
-        <fileset dir="${dist}/" defaultExcludes="no" />
       </delete>
   </target>
 

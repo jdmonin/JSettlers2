@@ -2,7 +2,6 @@
 # ant target, which runs:
 #     git ls-files --other --exclude-standard --directory --no-empty-directory
 #
-/dist
 # don't ignore target dir, but ignore most things within it.
 # git clone should create target/lib/ (and target/lib/.gitignore)
 # to prevent eclipse ant import error at project creation.
@@ -10,5 +9,7 @@
 /target/*.sqlite
 /target/java.policy.applet
 /target/classes/*
+/target/dist/*
+/target/docs/*
 /target/lib/*
 /target/test-classes/*

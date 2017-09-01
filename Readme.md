@@ -17,7 +17,7 @@ information and game stats (details below).  A client applet to
 create user accounts is also provided.
 
 If you're upgrading from an earlier version of JSettlers, check
-VERSIONS.txt for new features, bug fixes, and config changes.
+`doc/Versions.md` for new features, bug fixes, and config changes.
 
 JSettlers is an open-source project licensed under the GPL. The
 project is hosted at https://github.com/jdmonin/JSettlers2/ and
@@ -43,7 +43,7 @@ and pull requests can be posted at the github page.
 ## Documentation
 
 User documentation for game play is available as .html pages located
-in "docs/users" directory. These can be put on a JSettlers server for
+in the `src/site/users` directory. These can be put on a JSettlers server for
 its users using the applet.
 
 Currently, this README is the only technical documentation for running
@@ -71,7 +71,7 @@ because you know everyone will have the same version.
 
 To build JSettlers from source, you will need Java JDK 1.5 or newer and Apache Ant,
 available from http://ant.apache.org, or an IDE such as Eclipse which understands
-Ant's format. See `Readme.developer.md` for details.
+Ant's format. See `doc/Readme.developer.md` for details.
 
 
 ## Server Setup and Testing
@@ -171,7 +171,7 @@ numeric value. To change the default winning victory points to 12 for example:
 Instead of a long command line, any option can be added to `jsserver.properties`
 which is read at startup if it exists in the current directory.  Any option
 given on the command line overrides the same option in the properties file.
-Comment lines start with # .  See src/bin/jsserver.properties.sample for full
+Comment lines start with # .  See `src/main/bin/jsserver.properties.sample` for full
 descriptions of all available properties.
 
 This example command line
@@ -261,7 +261,7 @@ directions in "Database Setup".
 To shut down the server hit `Ctrl-C` in its console window, or connect as the
 optional debug user and enter `*STOP*` in the chat area of a game window.
 This will stop the server and all connected clients will be disconnected.
-(See `Readme.developer.md` if you want to set up a debug user.)
+(See `doc/Readme.developer.md` if you want to set up a debug user.)
 
 ### Installing a JSettlers server
 
@@ -272,7 +272,7 @@ Checklist:
 - Copy and edit `jsserver.properties` (optional)
 - Start JSettlers Server
 - Start http server (optional)
-- Copy `JSettlers.jar` client JAR and `web/*.html` to an http-served directory (optional)
+- Copy `JSettlers.jar` client JAR and `src/site/*.html` to an http-served directory (optional)
 
 To maintain user accounts, be sure to start the database first. (If you
 use a database, you can give some users accounts; everyone else can still
@@ -282,7 +282,7 @@ For details see the "Database Setup" section below.
 To install a JSettlers server, start the server as described in "Server Setup
 and Testing". Remember that you can set server parameters and game option
 default values with a `jsserver.properties` file: Copy the sample file
-`bin/jsserver.properties.sample` to the same directory as `JSettlersServer.jar`,
+`src/main/bin/jsserver.properties.sample` to the same directory as `JSettlersServer.jar`,
 rename it to `jsserver.properties`, and edit properties as needed.
 
 Remote users can simply start their clients as described there,
@@ -293,7 +293,7 @@ need to set up an http server such as Apache.  We assume you have
 installed it already, and will refer to `${docroot}` as a directory
 to place files to be served by your web server.
 
-Copy `index.html` from `src/web/` to `${docroot}`.  If you're going to use an
+Copy `index.html` from `src/site/` to `${docroot}`.  If you're going to use an
 accounts database and anyone can register their own account (this is not
 the default setting), also copy `accounts.html`.
 
@@ -322,7 +322,7 @@ already been running JSettlers, skip this section.
 
 It's a simple process to upgrade to the latest version of JSettlers:
 
-- Read VERSIONS.txt for new features, bug fixes, and config changes
+- Read `doc/Versions.md` for new features, bug fixes, and config changes
   made from your version to the latest version.  Occasionally defaults
   change and you'll need to add a server config option to keep the
   same behavior, so read carefully.
@@ -336,7 +336,7 @@ It's a simple process to upgrade to the latest version of JSettlers:
   which has schema changes, which are recommended but optional (see below).
 - Stop the old server
 - Copy the new JSettlers.jar and JSettlersServer.jar into place
-- Start the new server, including any new options you wanted from VERSIONS.txt
+- Start the new server, including any new options you wanted from `doc/Versions.md`
 - If the new server's startup messages include this line:
 
         * Database schema upgrade is recommended: To upgrade, use -Djsettlers.db.upgrade_schema=Y command line flag.
@@ -451,14 +451,14 @@ location as JSettlersServer.jar, and specify on the jsettlers command line:
 #### Database Creation
 
 To create the jsettlers database and its db user `('socuser')` and security,
-execute the SQL db scripts located in `src/bin/sql/`
+execute the SQL db scripts located in `src/main/bin/sql/`
 (included in `jsettlers-2.x.xx-full.tar.gz`): Change to that directory
 and follow the instructions here for your database type. Afterwards,
 see above for instructions on starting the JSettlers server and connecting
 to the database.
 
 If you downloaded the JAR and not the full tar.gz, you can get the SQL scripts
-from https://github.com/jdmonin/JSettlers2/tree/master/src/bin/sql .
+from https://github.com/jdmonin/JSettlers2/tree/master/src/main/bin/sql .
 To get each script needed for your DB type: Click the SQL file to view it;
 click Raw; save to the folder containing your JSettlers JAR.
 
@@ -645,7 +645,7 @@ source code is hosted at https://github.com/jdmonin/JSettlers2/ and
 the project website is http://nand.net/jsettlers/devel/ .  Questions,
 bugs, patches, and pull requests can be posted at the github page.
 
-For more information on building or developing JSettlers, see `Readme.developer.md`.
+For more information on building or developing JSettlers, see `doc/Readme.developer.md`.
 That readme also has information about translating jsettlers to other languages;
 see the "I18N" section.
 

@@ -22,6 +22,16 @@
 
 ## Overall structure of the code and project
 
+### Project layout
+
+This project uses ant (or IDEs) to build. For developer familiarity, the project
+uses the directory structure/layout of a maven project. Future versions may use
+maven to build. Stable versions 1.x.xx used ant to build; 2.0.00 is transitional.
+
+Also see the "Build Setup and Results" section.
+
+### Packages and notable classes
+
 The most important major classes have several paragraphs of class javadocs
 describing their structure and interactions. If something is unclear after
 reading those docs and this README section, please file an issue at github
@@ -213,7 +223,7 @@ There are several build targets, here are the most useful ones:
 
 All files created by building are in the `target` directory, including
 JARs, Java .class files, and JavaDoc files. Distribution tarballs, zip
-files, and installation files are placed in "dist". If you run dist-src or
+files, and installation files are placed in `target/dist`. If you run dist-src or
 dist-full, run the `dist-tar-clean` target afterwards to remove temp files.
 
 Note: Even if you're in an IDE running SOCServer or SOCPlayerClient as Java apps,
@@ -251,7 +261,7 @@ server configuration arguments, and create these Java application configs:
         arguments: localhost 8880 robot2 r2 cook
 
 For automated functional testing, the project also includes the script
-`test/bin/test_func_srv_startup_params.py`; run and update this script if
+`test/main/bin/test_func_srv_startup_params.py`; run and update this script if
 you are developing anything related to game options or jsettlers properties.
 
 

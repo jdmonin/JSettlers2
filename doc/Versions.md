@@ -51,6 +51,7 @@ and backport minor new features until `2.0.00` is ready.
 - Text messages to channels can be sent only by members
 - Minor refactoring
 - Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
+- Project dir structure converted to maven layout
 - READMEs and VERSIONS.txt converted to Markdown (thank you Ruud Poutsma)
 
 
