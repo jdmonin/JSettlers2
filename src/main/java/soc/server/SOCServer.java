@@ -7275,7 +7275,8 @@ public class SOCServer extends Server
         // text here, also update the same text in init_propsSetGameopts's javadoc.
 
         Properties argp = new Properties();  // returned props, from "jsserver.properties" file and args[]
-        boolean hasUnknowns = false;  // warn about each during parsing, instead of returning after first one
+        boolean hasArgProblems = false;  // warn about each during parsing, instead of returning after first one
+        boolean doPrintOptions = false;  // if true, call printGameOptions() at end of method
 
         // Check against options which are on command line twice: Can't just check argp keys because
         // argp is loaded from jsserver.properties, then command-line properties can override
@@ -7411,10 +7412,12 @@ public class SOCServer extends Server
                 if (argValue == null)
                 {
                     if (! printedMsg)
+                    {
                         System.err.println("Missing required option name/value after " + arg);
-                    System.err.println();
-                    printGameOptions();
-                    return null;
+                        System.err.println();
+                    }
+                    hasArgProblems = true;
+                    doPrintOptions = true;
                 }
             } else if (arg.startsWith("-D"))  // java-style props defines
             {
@@ -7484,15 +7487,12 @@ public class SOCServer extends Server
                         } catch (IllegalArgumentException e) {
                             ok = false;
                             System.err.println(e.getMessage());
-                            System.err.println();
-                            printGameOptions();
+                            doPrintOptions = true;
                         }
                     }
 
                     if (! ok)
-                    {
-                        return null;
-                    }
+                    	hasArgProblems = true;
                 }
             }
             else if (arg.equals("-t") || arg.equalsIgnoreCase("--test-config"))
@@ -7528,7 +7528,7 @@ public class SOCServer extends Server
 
             } else {
                 System.err.println("Unknown argument: " + arg);
-                hasUnknowns = true;
+                hasArgProblems = true;
             }
 
             ++aidx;
@@ -7635,7 +7635,10 @@ public class SOCServer extends Server
             return null;
         }
 
-        if (hasUnknowns)
+        if (doPrintOptions)
+        	printGameOptions();
+
+        if (hasArgProblems)
             return null;
 
         // Done parsing.

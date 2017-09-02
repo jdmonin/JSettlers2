@@ -214,8 +214,10 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
             Each list item is written as a line to the file.
             Use ascii characters only, to avoid problems with java's expected iso-8859-1
             vs utf-8 or other encodings.
-        expected_output_incl (str): String to search for in server output, case-sensitive,
-            or None to not look in output for any particular string
+        expected_output_incl (str or list): String to search for in server output, case-sensitive,
+            or None to not look in output for any particular string.
+            If list, strings which should all be complete lines in the output in any order;
+            duplicates in this list are ignored.
             Note: All or some output may be lost (buffering) when timeout kills the process.
             So if should_startup==True, it's unreliable to also use expected_output_incl.
 
@@ -233,6 +235,10 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
 
     if should_startup and (expected_output_incl is not None):
         raise ValueError("Can't use should_startup with expected_output_incl")
+
+    expected_output_set = None
+    if (expected_output_incl is not None) and isinstance(expected_output_incl, list):
+        expected_output_set = set(expected_output_incl)
 
     args = ["-jar", REL_PATH_JS_SERVER_JAR]
     if len(cmdline_params):
@@ -265,7 +271,14 @@ def arg_test(should_startup, cmdline_params="", propsfile_contents=None, expecte
     if should_startup != did_startup:
         ret = False
     if (expected_output_incl is not None) and not did_startup:
-        if expected_output_incl not in (stdout + " " + stderr):
+        if expected_output_set is None:
+            output_ok = (expected_output_incl in (stdout + " " + stderr))
+        else:
+            for outline in (stdout + "\n" + stderr).split("\n"):
+                if outline in expected_output_set:
+                    expected_output_set.remove(outline)
+            output_ok = (0 == len(expected_output_set))
+        if not output_ok:
             ret = False
             prn_startup += " -- missing expected output"
 
@@ -347,6 +360,8 @@ def all_tests():
         "Unknown game option: XYZ\nUnknown game option: ZZZ")
     arg_test(False, "", ["jsettlers.gameopt.XYZ=t", "jsettlers.gameopt.ZZZ=t"],
         "Unknown game option: XYZ\nUnknown game option: ZZZ")
+    arg_test(False, "", ["jsettlers.gameopt.VP=NaN", "jsettlers.gameopt.BC=zzz"],
+        ["Unknown or malformed game option: VP=NaN", "Unknown or malformed game option: BC=zzz"])
 
     # empty game option name after prefix
     arg_test(False, "-Djsettlers.gameopt.=n", None,
