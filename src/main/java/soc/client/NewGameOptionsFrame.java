@@ -947,7 +947,7 @@ public class NewGameOptionsFrame extends Frame
                 ival = -ival;
             initInterface_Pref1
                 (bp, gbl, gbc, SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC,
-                 "auto-reject bot trades after # seconds",  // TODO I18N
+                 strings.get("game.options.bot.auto_reject"),  // "Auto-reject bot trades after # seconds"
                  true, true, bval, ival, null);
         }
     }
