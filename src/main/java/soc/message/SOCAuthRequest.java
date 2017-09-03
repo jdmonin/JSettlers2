@@ -115,6 +115,21 @@ public class SOCAuthRequest extends SOCMessage
      */
     public final String host;
 
+    /*
+     * jsettlers_message: AUTHREQUEST {
+     *   string role;
+     *   string nickname;
+     *   int authScheme;
+     *   string host [empty = '\t'];
+     *   string password [rest_of_message];  // pw may contain delimiter characters
+     * }
+     * constructor_fields(role, nickname, password, authScheme, host);
+     * testcase ("UA", "myname", "mypw", 1, null)
+     *   = "UA,myname,1,\t,mypw";
+     * testcase ("P", "myname", "", 1, "myhost")
+     *   = "P,myname,1,myhost,";
+     */
+
     /**
      * Create an AuthRequest message.
      *
