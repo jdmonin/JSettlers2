@@ -127,7 +127,10 @@ public class ParsedMessageSpec
      */
     public List<MsgField> fields;
 
-    /** Constructor field-order list, if differs from list of fields, or {@code null} */
+    /**
+     * Constructor field-order list, if differs from list of fields
+     * ({@code constructor_fields} keyword), or {@code null}
+     */
     public final String[] construcFields;
 
     /** Map of field names to details */

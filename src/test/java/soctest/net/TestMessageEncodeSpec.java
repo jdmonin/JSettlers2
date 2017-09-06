@@ -21,6 +21,8 @@
 package soctest.net;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -178,11 +180,12 @@ public class TestMessageEncodeSpec
         StringBuilder sb = new StringBuilder();
         for (File f : msgs)
         {
+            final String fn = f.getName();
+            int i = fn.lastIndexOf(".java");
+            final String clsName = (i > 0) ? fn.substring(0, i) : fn;
+
             try
             {
-                final String fn = f.getName();
-                int i = fn.lastIndexOf(".java");
-                final String clsName = (i > 0) ? fn.substring(0, i) : fn;
 
                 // - try to parse spec
                 ParsedMessageSpec ps = new ParsedMessageSpec(clsName, FileUtils.readUTF8File(f));
@@ -193,57 +196,25 @@ public class TestMessageEncodeSpec
                 if (sb.length() != 0)
                     sb.delete(0, sb.length());  // clear previous contents
 
-                Class<?> msgC = null;
-                try
+                String err = runMessageTests(ps, sb);  // <--- run test cases: encode, decode ---
+
+                if ((err != null) && (sb.length() != 0))
                 {
-                    msgC = Class.forName("soc.message." + clsName);
-                } catch (ClassNotFoundException e) {
-                    failMsgs.put(clsName, "Could not load class");
-                    continue;
+                    sb.insert(0, '\n');
+                    sb.insert(0, err);
                 }
-
-                // - find constructor
-                final Class<?>[] fldTypes = ps.getConstructorFieldTypes();
-                Constructor co = null;
-                for (Constructor c : msgC.getDeclaredConstructors())
-                {
-                    if (Arrays.equals(fldTypes, c.getParameterTypes()))
-                    {
-                        co = c;
-                        break;
-                    }
-                }
-                if (co == null)
-                {
-                    failMsgs.put(clsName, "Could not find constructor for " + Arrays.toString(fldTypes));
-                    continue;
-                }
-
-                // - TODO granular exception checks while running each test case (encode + decode)
-                int ti = 0;
-                for (ParsedMessageSpec.TestCase tc : ps.testCases)
-                {
-                    ++ti;
-
-                    SOCMessage msg = (SOCMessage) co.newInstance(tc.args);
-                    final String cmd = msg.toCmd();
-                    if (! cmd.equals(tc.cmdStr))
-                        sb.append
-                            ("testcase " + ti + ": Expected \"" + tc.cmdStr + "\", toCmd() got \"" + cmd + "\"");
-
-                    // TODO decode tc.cmdStr and check field contents through reflection
-                }
-
                 if (sb.length() != 0)
                     failMsgs.put(clsName, sb.toString());
+                else if (err != null)
+                    failMsgs.put(clsName, err);
             } catch (IOException e) {
                 failMsgs.put(f.getName(), "Could not read: " + e);
             } catch (SecurityException e) {
-                failMsgs.put(f.getName(), "Could not read: " + e);
+                failMsgs.put(f.getName(), "Could not read, access denied: " + e);
             } catch (ParseException e) {
-                failMsgs.put(f.getName(), "Parse failed: " + e.getMessage());
+                failMsgs.put(clsName, "Parse failed: " + e.getMessage());
             } catch (Exception e) {
-                failMsgs.put(f.getName(), "Exception: " + e);
+                failMsgs.put(clsName, "Exception: " + e);
             }
         }
 
@@ -271,6 +242,188 @@ public class TestMessageEncodeSpec
             fail("Some classes failed: " + names);
         }
 
+    }
+
+    /**
+     * Run message spec tests for a parsed message type:
+     * Encode each one with message's {@link SOCMessage#toCmd()},
+     * decode from {@link SOCMessage#toMsg(String)}.
+     * @param ps  Message type spec
+     * @param failsSB  Stringbuilder to add any failures or errors to
+     * @return {@code} null if all OK, otherwise error message
+     *    (can use this instead of {@code failsSB} to report a single error)
+     */
+    private static String runMessageTests
+        (final ParsedMessageSpec ps, final StringBuilder failsSB)
+    {
+        Class<?> msgC = null;
+        try
+        {
+            msgC = Class.forName("soc.message." + ps.className);
+        } catch (ClassNotFoundException e) {
+            return "Could not load class: " + e;
+        } catch (LinkageError e) {
+            return "Could not load and link class: " + e;
+        }
+
+        // - find constructor
+        final Class<?>[] fldTypes = ps.getConstructorFieldTypes();
+        Constructor co = null;
+        try
+        {
+            for (Constructor c : msgC.getDeclaredConstructors())
+            {
+                if (Arrays.equals(fldTypes, c.getParameterTypes()))
+                {
+                    co = c;
+                    break;
+                }
+            }
+        } catch (SecurityException e) {
+            return "Could not get constructors: " + e;
+        }
+        if (co == null)
+        {
+            return "Could not find constructor for " + Arrays.toString(fldTypes);
+        }
+
+        // - run each test case: encode, decode
+        int ti = 0;
+        for (ParsedMessageSpec.TestCase tc : ps.testCases)
+        {
+            ++ti;
+
+            try
+            {
+                SOCMessage msg = (SOCMessage) co.newInstance(tc.args);
+                final String cmd = msg.toCmd();
+                if (! cmd.equals(tc.cmdStr))
+                {
+                    if (failsSB.length() != 0)
+                        failsSB.append("\n");
+                    failsSB.append
+                        ("testcase " + ti + ": Expected \"" + tc.cmdStr + "\", toCmd() got \"" + cmd + "\"");
+                }
+            } catch (Throwable e) {
+                if (failsSB.length() != 0)
+                    failsSB.append("\n");
+                failsSB.append
+                    ("testcase " + ti + " run failed: " + e);
+            }
+
+            String err = runMessageTestDecode(ps, tc, ti, msgC, failsSB);
+            if (err != null)
+            {
+                if (failsSB.length() != 0)
+                    failsSB.append("\n");
+                failsSB.append(err);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * For one test case, decode tc.cmdStr and check field contents through reflection.
+     * Compares {@code tc.cmdStr} to message object constructed from {@link SOCMessage#toMsg(String)}.
+     * @param ps  Message type spec
+     * @param tc  Test case
+     * @param ti  Test case id (1 .. n) within spec
+     * @param msgC  Message type's class
+     * @param failsSB  Stringbuilder to add any failures or errors to
+     * @return {@code} null if all OK, otherwise error message
+     *    (can use this instead of {@code failsSB} to report a single error)
+     */
+    private static String runMessageTestDecode
+        (final ParsedMessageSpec ps, final ParsedMessageSpec.TestCase tc, final int ti,
+         final Class<?> msgC, final StringBuilder failsSB)
+    {
+        try
+        {
+            SOCMessage msg = SOCMessage.toMsg(tc.cmdStr);
+            if (msg == null)
+                return "testcase " + ti + " decode failed, got null from SOCMessage.toMsg(\""
+                    + tc.cmdStr + "\")";
+
+            if (! msg.getClass().equals(msgC))
+                return "testcase " + ti + " expected class " + ps.className
+                    + ", SOCMessage.toMsg returned " + msg.getClass();
+
+            if (ps.construcFields != null)
+            {
+                for (int i = 0; i < ps.construcFields.length; ++i)
+                    runMessageTestDecode_checkField
+                        (msgC, msg, ps.fieldMap.get(ps.construcFields[i]), tc.args[i], failsSB);
+            } else {
+                int i = 0;
+                for (final ParsedMessageSpec.MsgField fld : ps.fields)
+                {
+                    runMessageTestDecode_checkField(msgC, msg, fld, tc.args[i], failsSB);
+                    ++i;
+                }
+            }
+
+        } catch (Throwable e) {
+            if (failsSB.length() != 0)
+                failsSB.append("\n");
+            failsSB.append
+                ("testcase " + ti + " decode failed: " + e);
+        }
+
+        return null;
+    }
+
+    /**
+     * Check one field's value for {@link #runMessageTestDecode},
+     * or its getter method's return value.
+     * @throws Throwable if an unexpected problem occurs during field/method lookup
+     */
+    private static void runMessageTestDecode_checkField
+        (final Class<?> msgC, final SOCMessage msg, final ParsedMessageSpec.MsgField fld,
+         Object tstFldValue, final StringBuilder failsSB)
+        throws Throwable
+    {
+        final String fname = fld.fname;
+        final Class ftype = fld.ftype;
+        Object objV = null, testV = null;
+        String err = null;
+
+        try
+        {
+            final Field clsFld = msgC.getField(fname);  // reminder: finds only if public
+            if (ftype.equals(Integer.TYPE))
+                objV = Integer.valueOf(clsFld.getInt(msg));
+            else
+                objV = clsFld.get(msg);
+        } catch (NoSuchFieldException fe) {
+            try
+            {
+                // "fieldname" -> "getFieldname()"
+                final Method getter = msgC.getMethod
+                    ("get" + Character.toUpperCase(fname.charAt(0)) + fname.substring(1));
+                objV = getter.invoke(msg);
+            } catch (NoSuchMethodException me) {
+                err = "Field " + fname + ": found no field or getter method";
+            }
+        }
+
+        if (err == null)
+        {
+            if (tstFldValue == null)
+            {
+                if (objV != null)
+                    err = "expected null, got " + objV;
+            } else if (! tstFldValue.equals(objV)) {
+                err = "expected " + tstFldValue + ", got " + objV;
+            }
+        }
+
+        if (err != null)
+        {
+            if (failsSB.length() != 0)
+                failsSB.append('\n');
+            failsSB.append("Field " + fname + ": " + err);
+        }
     }
 
     public static void main(String[] args)

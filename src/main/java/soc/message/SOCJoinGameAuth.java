@@ -46,6 +46,13 @@ public class SOCJoinGameAuth extends SOCMessage
      */
     private String game;
 
+    /*
+     * jsettlers_message: JOINGAMEAUTH {
+     *   string game;
+     * }
+     * testcase ("mygame") = "mygame";
+     */
+
     /**
      * Create a JoinGameAuth message.
      *
