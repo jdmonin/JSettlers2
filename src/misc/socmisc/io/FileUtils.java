@@ -22,6 +22,7 @@ package socmisc.io;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
@@ -68,14 +69,14 @@ public abstract class FileUtils
         File dir = new File(".").getCanonicalFile();
         do
         {
-            boolean sawTopDir = false;
+            File topDir = null;  // set if seen in dir
             Set<String> thisDirAlsoRemaining = null;
 
             for (File f : dir.listFiles())
             {
                 String fn = f.getName();
                 if (fn.equals(topDirName) && f.isDirectory())
-                    sawTopDir = true;
+                    topDir = f;
                 else if ((topDirAlso != null) && topDirAlso.contains(fn))
                 {
                     if (thisDirAlsoRemaining == null)
@@ -83,9 +84,9 @@ public abstract class FileUtils
                     thisDirAlsoRemaining.remove(fn);
                 }
             }
-            if (sawTopDir && ((topDirAlso == null) || thisDirAlsoRemaining.isEmpty()))
+            if ((topDir != null) && ((topDirAlso == null) || thisDirAlsoRemaining.isEmpty()))
             {
-                File subd = findNearbyDir_subdir(dir, pathDirs, 1);
+                File subd = findNearbyDir_subdir(topDir, pathDirs, 1);
                 if (subd != null)
                     return subd;   // <--- recursion found dir at end of full pathSpec ---
             }
@@ -119,6 +120,46 @@ public abstract class FileUtils
             return dmatch[0];
         else
             return findNearbyDir_subdir(dmatch[0], pathDirs, pathOffset + 1);
+    }
+
+    /**
+     * Read a UTF-8 text file into a String.
+     * Assumes the file is sized in kilobytes not gigabytes and will fit into memory.
+     * @param f  File to read; will call {@link File#length()} method to get size.
+     *    If {@code f} doesn't exist, {@code length()} returns 0 and this method returns {@code ""}
+     *    instead of throwing an exception.
+     * @throws IOException if an error occurs opening or reading the file
+     * @throws SecurityException if access is denied reading the file
+     */
+    public static String readUTF8File(final File f)
+        throws IOException, SecurityException
+    {
+        final int L = (int) f.length();
+        if (L <= 0)
+            return "";
+
+        byte[] buf = new byte[L];
+        FileInputStream fis = null;
+        try
+        {
+            fis = new FileInputStream(f);
+            int offset = 0, n = 0;
+            int block = (L > 8192) ? 8192 : L;  // avoids IndexOutOfBoundsException near end of file
+            while (-1 != (n = fis.read(buf, offset, block)))
+            {
+                offset += n;
+                int remain = L - offset;
+                if (remain == 0)
+                    break;
+                else if (remain < block)
+                    block = remain;
+            }
+        } finally {
+            if (fis != null)
+                fis.close();
+        }
+
+        return new String(buf, "UTF-8");
     }
 
 }
