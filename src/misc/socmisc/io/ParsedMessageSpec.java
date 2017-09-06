@@ -23,7 +23,9 @@ package socmisc.io;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -128,16 +130,19 @@ public class ParsedMessageSpec
     /** Constructor field-order list, if differs from list of fields, or {@code null} */
     public final String[] construcFields;
 
+    /** Map of field names to details */
+    public final Map<String, MsgField> fieldMap;
+
     /**
      * 1 or more {@link ParsedMessageSpec.TestCase} specs (constructor arg values, expected output string),
      * or {@code null} if no spec token found in file
      */
-    public List<ParsedMessageSpec.TestCase> testCases;
+    public List<TestCase> testCases;
 
     /**
-     ...
-     If source doesn't contain the {@code jsettlers_message:} spec token,
-     all fields except {@code className} will be {@code null}.
+     * Parse a message specification from this message class java source.
+     * If source doesn't contain the {@code jsettlers_message:} spec token,
+     * all fields except {@code className} will be {@code null}.
      *<P>
      * See {@code ParsedMessageSpec class javadoc} for spec format details.
      * @param className  Message class name within {@code soc.message}
@@ -159,6 +164,7 @@ public class ParsedMessageSpec
                      + className, i);
 
             construcFields = null;
+            fieldMap = null;
             return;
         }
 
@@ -198,6 +204,25 @@ public class ParsedMessageSpec
             : null;
         fields = parseMsgFields(rawFieldList, className, specBeginPos);
         testCases = parseTestCases(rawMatch, className, msgtypeConstValue, specBeginPos);
+
+        fieldMap = new HashMap<String, MsgField>();
+        final int fieldCount = fields.size();
+        for (int i = 0; i < fieldCount; ++i)
+        {
+            final MsgField f = fields.get(i);
+            fieldMap.put(f.fname, f);
+        }
+
+        if (construcFields != null)
+        {
+            for (int i = 0; i < construcFields.length; ++i)
+                if (! fieldMap.containsKey(construcFields[i]))
+                    throw new ParseException
+                        ("constructor_fields has undeclared field " + construcFields[i], specBeginPos);
+            if (construcFields.length != fieldCount)
+                throw new ParseException
+                    ("constructor_fields must include all declared fields", specBeginPos);
+        }
     }
 
     private static List<MsgField> parseMsgFields
@@ -214,7 +239,7 @@ public class ParsedMessageSpec
             final String ft = m.group(1), fname = m.group(2);
             final Class ftype;
             if (ft.equals("int"))
-                ftype = Integer.class;
+                ftype = Integer.TYPE;
             else if (ft.equals("string"))
                 ftype = String.class;
             else
@@ -271,19 +296,19 @@ public class ParsedMessageSpec
         if (! m.find())
             throw new ParseException("Could not parse testcases: " + className, specBeginPos);
 
-        final List<TestCase> testCases = new ArrayList<ParsedMessageSpec.TestCase>();
+        final List<TestCase> testCases = new ArrayList<TestCase>();
         final String pfx = Integer.toString(msgtype) + '|';
         do
         {
-            List<Object> args = new ArrayList<Object>();
             // args may be quoted strings; won't contain commas because comma is the encoded field delimiter
             String[] argsRaw = m.group(2).split("\\s*,\\s*");
+            Object[] args = new Object[argsRaw.length];
             for (int i = 0; i < argsRaw.length; ++i)
             {
                 String arg = argsRaw[i];
                 if (arg.equals("null"))
                 {
-                    args.add(null);
+                    args[i] = null;
                 }
                 else if (arg.charAt(0) == '"')
                 {
@@ -292,11 +317,11 @@ public class ParsedMessageSpec
                         throw new ParseException
                             ("Could not parse testcase quoted-string argument: " + arg + ": "
                              + className, specBeginPos + m.start(2));
-                    args.add(arg.substring(1, L - 1));
+                    args[i] = arg.substring(1, L - 1);
                 } else {
                     try
                     {
-                        args.add(Integer.valueOf(Integer.parseInt(arg)));
+                        args[i] = Integer.valueOf(Integer.parseInt(arg));
                     } catch (NumberFormatException e) {
                         throw new ParseException
                             ("Could not parse testcase int argument: " + arg + ": " + className,
@@ -314,7 +339,7 @@ public class ParsedMessageSpec
                 throw new ParseException
                     ("testcase contained unknown escape \\" + outp.charAt(i), i);
             }
-            testCases.add(new ParsedMessageSpec.TestCase(args, pfx + outp));
+            testCases.add(new TestCase(args, pfx + outp));
 
         } while (m.find());
 
@@ -394,12 +419,33 @@ public class ParsedMessageSpec
         throw new ParseException("Char literal is too long", 0);
     }
 
+    /**
+     * Get the message class's field parameter types ({@link String}.class, {@link Integer#TYPE}).
+     * If {@link #construcFields} is used, field types are returned in that order,
+     * otherwise in the order {@link #fields} were declared in the spec.
+     * Generic <tt>&lt;?&gt;</tt> is to match java reflection constructor.getParameterTypes().
+     */
+    public Class<?>[] getConstructorFieldTypes()
+    {
+        final int n = fields.size();
+        Class<?>[] typ = new Class<?>[n];
+
+        if (construcFields == null)
+            for (int i = 0; i < n; ++i)
+                typ[i] = fields.get(i).ftype;
+        else
+            for (int i = 0; i < construcFields.length; ++i)
+                typ[i] = fieldMap.get(construcFields[i]).ftype;
+
+        return typ;
+    }
+
     public static class MsgField
     {
         /** field name, for getter introspection */
         public final String fname;
 
-        /** field type: {@link String}, {@link Integer} */
+        /** field type: {@link String}.class, {@link Integer#TYPE} */
         public final Class ftype;
 
         /** if not 0, placeholder character (like {@code '\t'})
@@ -433,7 +479,7 @@ public class ParsedMessageSpec
     public static class TestCase
     {
         /** Each String or Integer argument to constructor */
-        public final List<Object> args;
+        public final Object[] args;
 
         /**
          * Expected result of calling MessageType.toCmd(),
@@ -442,7 +488,7 @@ public class ParsedMessageSpec
          */
         public final String cmdStr;
 
-        public TestCase(final List<Object> args, final String cmdStr)
+        public TestCase(final Object[] args, final String cmdStr)
         {
             this.args = args;
             this.cmdStr = cmdStr;
@@ -454,7 +500,7 @@ public class ParsedMessageSpec
                 return false;
             return
                 (o instanceof TestCase)
-                ? cmdStr.equals(((TestCase) o).cmdStr) && args.equals(((TestCase) o).args)
+                ? cmdStr.equals(((TestCase) o).cmdStr) && Arrays.equals(args, ((TestCase) o).args)
                 : super.equals(o);
         }
     }
