@@ -1,0 +1,42 @@
+apply plugin: 'java'
+apply plugin: 'com.google.protobuf'
+apply plugin: 'application'
+apply plugin: 'idea'
+
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url "http://google-diff-match-patch.googlecode.com/svn/trunk/maven" }
+    }
+    dependencies {
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.3'
+    }
+}
+
+mainClassName = "soc.client.SOCPlayerClient"
+
+protobuf {
+    generatedFilesBaseDir = "${projectDir}/src"
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.0.0'
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "forge"
+        url = "http://files.minecraftforge.net/maven"
+    }
+}
+//
+//jar {
+//    into 'resources', {
+//        from 'resources'
+//    }
+//}
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+    compile 'com.google.protobuf:protobuf-java:3.0.0'
+}
