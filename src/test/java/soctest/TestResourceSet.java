@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
+ * Portions of this file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,7 +39,7 @@ public class TestResourceSet
     public void removeOneResource_removesOneResource()
     {
         SOCResourceSet rs = new SOCResourceSet(1,1,1,1,1,0);
-        rs.subtract(SOCResourceConstants.CLAY, 1);
+        rs.subtract(1, SOCResourceConstants.CLAY);
         assertEquals(4, rs.getTotal());
     }
 
@@ -46,6 +47,9 @@ public class TestResourceSet
     public void removeTwoResources_doesNotThrowException()
     {
         SOCResourceSet rs = new SOCResourceSet(1,1,1,1,1,0);
-        rs.subtract(SOCResourceConstants.CLAY, 2);
+        rs.subtract(2, SOCResourceConstants.CLAY);
+        assertEquals(3, rs.getTotal());
+        assertEquals(0, rs.getAmount(SOCResourceConstants.CLAY));
+        assertEquals(-1, rs.getAmount(SOCResourceConstants.UNKNOWN));
     }
 }
