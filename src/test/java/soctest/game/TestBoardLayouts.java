@@ -17,7 +17,7 @@
  *
  * The maintainer of this program can be reached at jsettlers@nand.net
  **/
-package soctest;
+package soctest.game;
 
 import java.util.Map;
 import java.util.TreeSet;
@@ -123,7 +123,7 @@ public class TestBoardLayouts
 
     public static void main(String[] args)
     {
-        org.junit.runner.JUnitCore.main("soctest.TestBoardLayouts");
+        org.junit.runner.JUnitCore.main("soctest.game.TestBoardLayouts");
     }
 
 }

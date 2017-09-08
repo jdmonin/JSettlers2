@@ -19,7 +19,7 @@
  * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 
-package soctest;
+package soctest.game;
 
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
@@ -39,7 +39,7 @@ public class TestResourceSet
     public void removeOneResource_removesOneResource()
     {
         SOCResourceSet rs = new SOCResourceSet(1,1,1,1,1,0);
-        rs.subtract(1, SOCResourceConstants.CLAY);
+        rs.subtract(1, SOCResourceConstants.ORE);
         assertEquals(4, rs.getTotal());
     }
 
