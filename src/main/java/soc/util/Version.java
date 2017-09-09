@@ -62,8 +62,7 @@ public class Version {
     versionInfo.put(BUILDNUM, "-unknown-");
     // JRE_MIN_VERSION default is built later
     try {
-      String resource = "/resources/version.info";
-      InputStream in = Version.class.getResourceAsStream (resource);
+      InputStream in = Version.class.getResourceAsStream ("/version.info.in");
       versionInfo.load (in);
       in.close ();
 
