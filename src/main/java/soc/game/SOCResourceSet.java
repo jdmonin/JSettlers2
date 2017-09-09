@@ -23,7 +23,6 @@ package soc.game;
 import java.io.Serializable;
 import java.util.Arrays;
 
-
 /**
  * This represents a collection of
  * clay, ore, sheep, wheat, and wood resources.
@@ -34,8 +33,7 @@ import java.util.Arrays;
  * @see SOCPlayingPiece#getResourcesToBuild(int)
  */
 @SuppressWarnings("serial")
-public class SOCResourceSet implements Serializable, Cloneable
-{
+public class SOCResourceSet implements Serializable, Cloneable, ResourceSet {
     /** Resource set with zero of each resource type */
     public static final SOCResourceSet EMPTY_SET = new SOCResourceSet();
 
@@ -96,6 +94,23 @@ public class SOCResourceSet implements Serializable, Cloneable
     }
 
     /**
+     * Construct a new resource set from an immutable resource set (copy constructor)
+     * @param other instance to copy contents from
+     *
+     * @implNote This constructor does not support {@link SOCResourceConstants#UNKNOWN}
+     */
+    public SOCResourceSet(ResourceSet other)
+    {
+        this();
+        resources[SOCResourceConstants.CLAY] = other.getAmount(SOCResourceConstants.CLAY);
+        resources[SOCResourceConstants.ORE] = other.getAmount(SOCResourceConstants.ORE);
+        resources[SOCResourceConstants.SHEEP] = other.getAmount(SOCResourceConstants.SHEEP);
+        resources[SOCResourceConstants.WHEAT] = other.getAmount(SOCResourceConstants.WHEAT);
+        resources[SOCResourceConstants.WOOD] = other.getAmount(SOCResourceConstants.WOOD);
+        resources[SOCResourceConstants.UNKNOWN] = other.getAmount(SOCResourceConstants.UNKNOWN);
+    }
+
+    /**
      * set the number of resources to zero
      */
     public void clear()
@@ -105,29 +120,31 @@ public class SOCResourceSet implements Serializable, Cloneable
 
     /**
      * Does the set contain any resources of this type?
-     * @param rtype  the type of resource, like {@link SOCResourceConstants#CLAY}
+     * @param resourceType  the type of resource, like {@link SOCResourceConstants#CLAY}
      * @return true if the set's amount of this resource &gt; 0
      * @since 2.0.00
      * @see #getAmount(int)
-     * @see #contains(SOCResourceSet)
+     * @see #contains(ResourceSet)
      */
-    public boolean contains(final int rtype)
+    @Override
+    public boolean contains(final int resourceType)
     {
-        if (rtype >= resources.length)
+        if (resourceType >= resources.length)
             return false;
-        return (resources[rtype] > 0);
+        return (resources[resourceType] > 0);
     }
 
     /**
      * How many resources of this type are contained in the set?
      * @return the number of a kind of resource
      *
-     * @param rtype  the type of resource, like {@link SOCResourceConstants#CLAY}
+     * @param resourceType  the type of resource, like {@link SOCResourceConstants#CLAY}
      * @see #contains(int)
      */
-    public int getAmount(int rtype)
+    @Override
+    public int getAmount(int resourceType)
     {
-        return resources[rtype];
+        return resources[resourceType];
     }
 
     /**
@@ -136,6 +153,7 @@ public class SOCResourceSet implements Serializable, Cloneable
      * @see #getKnownTotal()
      * @see #getKnownTypesCount()
      */
+    @Override
     public int getTotal()
     {
         int sum = 0;
@@ -195,7 +213,7 @@ public class SOCResourceSet implements Serializable, Cloneable
     /**
      * Set the amount of a resource.
      * To set all resources from another set, use {@link #add(SOCResourceSet)},
-     * {@link #subtract(SOCResourceSet)} or {@link #setAmounts(SOCResourceSet)}.
+     * {@link #subtract(ResourceSet)} or {@link #setAmounts(SOCResourceSet)}.
      *
      * @param rtype the type of resource, like {@link SOCResourceConstants#CLAY}
      * @param amt   the amount
@@ -273,7 +291,7 @@ public class SOCResourceSet implements Serializable, Cloneable
      *
      * @param rs  the resource set
      */
-    public void subtract(SOCResourceSet rs)
+    public void subtract(ResourceSet rs)
     {
         resources[SOCResourceConstants.CLAY] -= rs.getAmount(SOCResourceConstants.CLAY);
 
@@ -342,7 +360,7 @@ public class SOCResourceSet implements Serializable, Cloneable
      * @param a   set A, cannot be {@code null}
      * @param b   set B, can be {@code null} for an empty resource set
      */
-    static public boolean gte(SOCResourceSet a, SOCResourceSet b)
+    static public boolean gte(ResourceSet a, ResourceSet b)
     {
         if (b == null)
             return true;
@@ -362,7 +380,7 @@ public class SOCResourceSet implements Serializable, Cloneable
      * @param a   set A, cannot be {@code null}
      * @param b   set B, cannot be {@code null}
      */
-    static public boolean lte(SOCResourceSet a, SOCResourceSet b)
+    static public boolean lte(ResourceSet a, ResourceSet b)
     {
         return (   (a.getAmount(SOCResourceConstants.CLAY)    <= b.getAmount(SOCResourceConstants.CLAY))
                 && (a.getAmount(SOCResourceConstants.ORE)     <= b.getAmount(SOCResourceConstants.ORE))
@@ -453,15 +471,11 @@ public class SOCResourceSet implements Serializable, Cloneable
         return needComma;  // Did we append anything?
     }
 
-    /**
-     * @return true if sub is in this set
-     *
-     * @param sub  the sub set, can be {@code null} for an empty resource subset
-     * @see #contains(int)
-     */
-    public boolean contains(SOCResourceSet sub)
+    /** {@inheritDoc} */
+    @Override
+    public boolean contains(ResourceSet other)
     {
-        return gte(this, sub);
+        return gte(this, other);
     }
 
     /**

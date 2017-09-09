@@ -23,12 +23,7 @@ package soc.robot;
 
 import soc.disableDebug.D;
 
-import soc.game.SOCBoard;
-import soc.game.SOCGame;
-import soc.game.SOCPlayer;
-import soc.game.SOCPlayerNumbers;
-import soc.game.SOCResourceConstants;
-import soc.game.SOCResourceSet;
+import soc.game.*;
 
 import soc.util.CutoffExceededException;
 
@@ -461,7 +456,7 @@ public class SOCBuildingSpeedEstimate
      * a starting set.
      *<P>
      * This method does the same calculation as
-     * {@link #calculateRollsAndRsrcFast(SOCResourceSet, SOCResourceSet, int, boolean[])}
+     * {@link #calculateRollsAndRsrcFast(ResourceSet, SOCResourceSet, int, boolean[])}
      * with a simpler return type and no thrown exception.
      *
      * @param startingResources   the starting resources
@@ -475,7 +470,7 @@ public class SOCBuildingSpeedEstimate
      * @since 2.0.00
      */
     protected final int calculateRollsFast
-        (final SOCResourceSet startingResources, final SOCResourceSet targetResources, final int cutoff, final boolean[] ports)
+        (final ResourceSet startingResources, final SOCResourceSet targetResources, final int cutoff, final boolean[] ports)
     {
         try
         {
@@ -507,13 +502,13 @@ public class SOCBuildingSpeedEstimate
      * @see #calculateRollsFast(SOCResourceSet, SOCResourceSet, int, boolean[])
      */
     protected SOCResSetBuildTimePair calculateRollsAndRsrcFast
-        (final SOCResourceSet startingResources, final SOCResourceSet targetResources, final int cutoff, final boolean[] ports)
+        (final ResourceSet startingResources, final SOCResourceSet targetResources, final int cutoff, final boolean[] ports)
         throws CutoffExceededException
     {
         //D.ebugPrintln("calculateRolls");
         //D.ebugPrintln("  start: "+startingResources);
         //D.ebugPrintln("  target: "+targetResources);
-        SOCResourceSet ourResources = startingResources.copy();
+        SOCResourceSet ourResources = new SOCResourceSet(startingResources);
         int rolls = 0;
 
         if (!ourResources.contains(targetResources))
