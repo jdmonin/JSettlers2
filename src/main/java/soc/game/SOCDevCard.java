@@ -43,14 +43,14 @@ public class SOCDevCard
 
     /**
      * Is this card type a Victory Point card?
-     * @param ctype  A constant such as {@link SOCDevCardConstants#TOW}
+     * @param devCardType  A constant such as {@link SOCDevCardConstants#TOW}
      *               or {@link SOCDevCardConstants#ROADS}
      * @return  True for VP types, false otherwise
      * @see #isVPItem()
      */
-    public static boolean isVPCard(final int ctype)
+    public static boolean isVPCard(final int devCardType)
     {
-        return (ctype >= SOCDevCardConstants.CAP) && (ctype <= SOCDevCardConstants.TOW);
+        return (devCardType >= SOCDevCardConstants.CAP) && (devCardType <= SOCDevCardConstants.TOW);
     }
 
     /**
@@ -72,7 +72,7 @@ public class SOCDevCard
 
     /**
      * Get a card type's name key.
-     * @param ctype  A constant such as {@link SOCDevCardConstants#TOW}
+     * @param devCardType  A constant such as {@link SOCDevCardConstants#TOW}
      *               or {@link SOCDevCardConstants#ROADS}
      * @param game  Game data, or {@code null}; some game options might change a card name.
      *              For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
@@ -81,21 +81,21 @@ public class SOCDevCard
      * @see #getCardTypeName(int, SOCGame, boolean, SOCStringManager)
      */
     public static String getCardTypeNameKey
-        (final int ctype, final SOCGame game, final boolean withArticle)
+        (final int devCardType, final SOCGame game, final boolean withArticle)
     {
         // i18n: These names are also currently hardcoded in SOCServer.DEBUG_COMMANDS_HELP and .DEBUG_COMMANDS_HELP_DEV_TYPES
 
         final String ctname;
 
-        if ((ctype == SOCDevCardConstants.KNIGHT) && (game != null) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        if ((devCardType == SOCDevCardConstants.KNIGHT) && (game != null) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
         {
             return (withArticle) ? "spec.dcards.aknightsoldier.warship" : "spec.dcards.knightsoldier.warship";
         }
 
         final String[] keyArr = GETCARDTYPENAME_KEYS[(withArticle) ? 1 : 0];
-        if ((ctype >= 0) && (ctype < keyArr.length))
+        if ((devCardType >= 0) && (devCardType < keyArr.length))
         {
-            ctname = keyArr[ctype];
+            ctname = keyArr[devCardType];
         } else {
             ctname = keyArr[SOCDevCardConstants.UNKNOWN];
         }
@@ -105,7 +105,7 @@ public class SOCDevCard
 
     /**
      * Get a card type's name.
-     * @param ctype  A constant such as {@link SOCDevCardConstants#TOW}
+     * @param devCardType  A constant such as {@link SOCDevCardConstants#TOW}
      *               or {@link SOCDevCardConstants#ROADS}
      * @param game  Game data, or {@code null}; some game options might change a card name.
      *              For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
@@ -116,15 +116,15 @@ public class SOCDevCard
      * @see #getCardTypeNameKey(int, SOCGame, boolean)
      */
     public static String getCardTypeName
-        (final int ctype, final SOCGame game, final boolean withArticle, final SOCStringManager strings)
+        (final int devCardType, final SOCGame game, final boolean withArticle, final SOCStringManager strings)
     {
         final String ctname;
 
-        if ((ctype >= 0) && (ctype < GETCARDTYPENAME_KEYS[0].length))
+        if ((devCardType >= 0) && (devCardType < GETCARDTYPENAME_KEYS[0].length))
         {
-            ctname = strings.get(getCardTypeNameKey(ctype, game, withArticle));
+            ctname = strings.get(getCardTypeNameKey(devCardType, game, withArticle));
         } else {
-            ctname = "Unknown card type " + ctype;  // don't bother I18N, should not occur
+            ctname = "Unknown card type " + devCardType;  // don't bother I18N, should not occur
         }
 
         return ctname;

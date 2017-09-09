@@ -52,15 +52,15 @@ public class SOCFortress extends SOCPlayingPiece
     /**
      * Make a new fortress, with strength {@link #STARTING_STRENGTH}.
      *
-     * @param pl  Player who will own the fortress
+     * @param player  Player who will own the fortress
      * @param node  node coordinate of fortress
      * @param board  board
      * @throws IllegalArgumentException  if board null
      */
-    public SOCFortress(SOCPlayer pl, final int node, SOCBoard board)
+    public SOCFortress(SOCPlayer player, final int node, SOCBoard board)
         throws IllegalArgumentException
     {
-        super(SOCPlayingPiece.FORTRESS, pl, node, board);
+        super(SOCPlayingPiece.FORTRESS, player, node, board);
         strength = STARTING_STRENGTH;
     }
 

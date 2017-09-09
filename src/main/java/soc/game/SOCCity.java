@@ -39,15 +39,15 @@ public class SOCCity extends SOCPlayingPiece
     /**
      * Make a new city
      *
-     * @param pl  player who owns the city
+     * @param player  player who owns the city
      * @param co  coordinates
      * @param board  board if known; otherwise will extract from <tt>pl</tt>
      * @throws IllegalArgumentException  if <tt>pl</tt> null, or board null and <tt>pl.board</tt> also null
      */
-    public SOCCity(SOCPlayer pl, int co, SOCBoard board)
+    public SOCCity(SOCPlayer player, int co, SOCBoard board)
         throws IllegalArgumentException
     {
-        super(SOCPlayingPiece.CITY, pl, co, board);
+        super(SOCPlayingPiece.CITY, player, co, board);
     }
 
     /**
