@@ -688,28 +688,28 @@ public class SOCPlayerInterface extends Frame
         height_base = piHeight;
 
         if (is6player || game.hasSeaBoard)
-        	piWidth = (2*SOCHandPanel.WIDTH_MIN) + 16 + boardPanel.getMinimumSize().width;
+            piWidth = (2*SOCHandPanel.WIDTH_MIN) + 16 + boardPanel.getMinimumSize().width;
         else
-        	piWidth = WIDTH_MIN_4PL;
+            piWidth = WIDTH_MIN_4PL;
         width_base = piWidth;
 
         // check window frame size preference if set
         {
-	        int prefWidth = SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_PI__WIDTH, -1);
-	        int prefHeight = (prefWidth != -1)
-        		? SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_PI__HEIGHT, HEIGHT_MIN_4PL)
-				: 0;
-	        if (prefWidth != -1)
-	        {
-	        	if ((width_base != WIDTH_MIN_4PL) || (height_base != HEIGHT_MIN_4PL))
-	        	{
-	        		piWidth = (prefWidth * width_base) / WIDTH_MIN_4PL;
-	        		piHeight = (prefHeight * height_base) / HEIGHT_MIN_4PL;
-	        	} else {
-	        		piWidth = prefWidth;
-	        		piHeight = prefHeight;
-	        	}
-	        }
+            int prefWidth = SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_PI__WIDTH, -1);
+            int prefHeight = (prefWidth != -1)
+                ? SOCPlayerClient.GameAwtDisplay.getUserPreference(SOCPlayerClient.PREF_PI__HEIGHT, HEIGHT_MIN_4PL)
+                : 0;
+            if (prefWidth != -1)
+            {
+                if ((width_base != WIDTH_MIN_4PL) || (height_base != HEIGHT_MIN_4PL))
+                {
+                    piWidth = (prefWidth * width_base) / WIDTH_MIN_4PL;
+                    piHeight = (prefHeight * height_base) / HEIGHT_MIN_4PL;
+                } else {
+                    piWidth = prefWidth;
+                    piHeight = prefHeight;
+                }
+            }
         }
         // TODO chk vs max size for screen
 
@@ -724,16 +724,16 @@ public class SOCPlayerInterface extends Frame
 
         addComponentListener(new ComponentAdapter()
         {
-        	@Override
-        	public void componentResized(final ComponentEvent e)
-        	{
-        		if (layoutNotReadyYet || (e.getComponent() != SOCPlayerInterface.this))
-        			return;
-        		// TODO timer reset here, in case of rapid fire; wait for that to be done
-        		if (isVisible())
-        			frameResizeDone();
-        	}
-		});
+            @Override
+            public void componentResized(final ComponentEvent e)
+            {
+                if (layoutNotReadyYet || (e.getComponent() != SOCPlayerInterface.this))
+                    return;
+                // TODO timer reset here, in case of rapid fire; wait for that to be done
+                if (isVisible())
+                    frameResizeDone();
+            }
+        });
 
         if (SOUND_BEGIN_TURN == null)
             soundQueueThreader.submit(new Runnable()
@@ -1143,15 +1143,15 @@ public class SOCPlayerInterface extends Frame
      */
     private void frameResizeDone()
     {
-    	final Dimension siz = getSize();
-		if ((width_base != WIDTH_MIN_4PL) || (height_base != HEIGHT_MIN_4PL))
-		{
-			siz.width = (siz.width * WIDTH_MIN_4PL) / width_base;
-			siz.height = (siz.height * HEIGHT_MIN_4PL) / height_base;
-		}
+        final Dimension siz = getSize();
+        if ((width_base != WIDTH_MIN_4PL) || (height_base != HEIGHT_MIN_4PL))
+        {
+            siz.width = (siz.width * WIDTH_MIN_4PL) / width_base;
+            siz.height = (siz.height * HEIGHT_MIN_4PL) / height_base;
+        }
 
-		SOCPlayerClient.GameAwtDisplay.putUserPreference(SOCPlayerClient.PREF_PI__WIDTH, siz.width);
-		SOCPlayerClient.GameAwtDisplay.putUserPreference(SOCPlayerClient.PREF_PI__HEIGHT, siz.height);
+        SOCPlayerClient.GameAwtDisplay.putUserPreference(SOCPlayerClient.PREF_PI__WIDTH, siz.width);
+        SOCPlayerClient.GameAwtDisplay.putUserPreference(SOCPlayerClient.PREF_PI__HEIGHT, siz.height);
     }
 
     /**
