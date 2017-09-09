@@ -31,6 +31,12 @@ import java.util.Vector;
 public class SOCSettlement extends SOCPlayingPiece
 {
     /**
+     * the set of resources a player needs to build a {@link SOCSettlement settlement}
+     * @see SOCPlayingPiece#getResourcesToBuild(int)
+     */
+    public static final SOCResourceSet COST = new SOCResourceSet(1, 0, 1, 1, 1, 0);
+
+    /**
      * Make a new settlement
      *
      * @param pl  player who owns the settlement

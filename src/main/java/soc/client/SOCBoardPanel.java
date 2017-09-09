@@ -7389,7 +7389,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                          && (p.getType() == SOCPlayingPiece.SETTLEMENT)
                          && (player.isPotentialCity(id))
                          && (player.getNumPieces(SOCPlayingPiece.CITY) > 0)
-                         && (debugPP || player.getResources().contains(SOCGame.CITY_SET)))
+                         && (debugPP || player.getResources().contains(SOCCity.COST)))
                     {
                         hoverCityID = id;
                     } else {
@@ -7427,7 +7427,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         hoverCityID = 0;
                         if (modeAllowsHoverPieces
                             && (player.getNumPieces(SOCPlayingPiece.SETTLEMENT) > 0)
-                            && (debugPP || player.getResources().contains(SOCGame.SETTLEMENT_SET)))
+                            && (debugPP || player.getResources().contains(SOCSettlement.COST)))
                         {
                             if (player.canPlaceSettlement(id))
                             {
@@ -7638,13 +7638,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         if ((! isShip)
                             && player.isPotentialRoad(id)
                             && (player.getNumPieces(SOCPlayingPiece.ROAD) > 0)
-                            && (debugPP || player.getResources().contains(SOCGame.ROAD_SET)))
+                            && (debugPP || player.getResources().contains(SOCRoad.ROAD_SET)))
                         {
                             hoverRoadID = id;
                         }
                         else if (canPlaceShip  // checks isPotentialShip, pirate ship
                             && (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
-                            && (debugPP || player.getResources().contains(SOCGame.SHIP_SET)))
+                            && (debugPP || player.getResources().contains(SOCShip.COST)))
                         {
                             hoverShipID = id;
                         }

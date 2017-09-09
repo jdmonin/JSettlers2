@@ -2464,7 +2464,7 @@ public class SOCPlayerTracker
 
         final int roadETA;
         SOCBuildingSpeedEstimate bse = new SOCBuildingSpeedEstimate(player.getNumbers());
-        roadETA = bse.calculateRollsFast(SOCGame.EMPTY_RESOURCES, SOCGame.ROAD_SET, 500, player.getPortFlags());
+        roadETA = bse.calculateRollsFast(SOCGame.EMPTY_RESOURCES, SOCRoad.ROAD_SET, 500, player.getPortFlags());
 
         roadsToGo = 500;
         longestRoadETA = 500;

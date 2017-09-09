@@ -166,11 +166,11 @@ public class SOCBuildingSpeedEstimate
 
             try
             {
-                estimatesFromNothing[ROAD] = calculateRollsAccurate(emptySet, SOCGame.ROAD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[SETTLEMENT] = calculateRollsAccurate(emptySet, SOCGame.SETTLEMENT_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[CITY] = calculateRollsAccurate(emptySet, SOCGame.CITY_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[ROAD] = calculateRollsAccurate(emptySet, SOCRoad.ROAD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[SETTLEMENT] = calculateRollsAccurate(emptySet, SOCSettlement.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[CITY] = calculateRollsAccurate(emptySet, SOCCity.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
                 estimatesFromNothing[CARD] = calculateRollsAccurate(emptySet, SOCGame.CARD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[SHIP] = calculateRollsAccurate(emptySet, SOCGame.SHIP_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[SHIP] = calculateRollsAccurate(emptySet, SOCShip.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
             }
             catch (CutoffExceededException e)
             {
@@ -200,11 +200,11 @@ public class SOCBuildingSpeedEstimate
 
             try
             {
-                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast(emptySet, SOCGame.ROAD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[SETTLEMENT] = calculateRollsAndRsrcFast(emptySet, SOCGame.SETTLEMENT_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[CITY] = calculateRollsAndRsrcFast(emptySet, SOCGame.CITY_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast(emptySet, SOCRoad.ROAD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[SETTLEMENT] = calculateRollsAndRsrcFast(emptySet, SOCSettlement.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[CITY] = calculateRollsAndRsrcFast(emptySet, SOCCity.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
                 estimatesFromNothing[CARD] = calculateRollsAndRsrcFast(emptySet, SOCGame.CARD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[SHIP] = calculateRollsAndRsrcFast(emptySet, SOCGame.SHIP_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[SHIP] = calculateRollsAndRsrcFast(emptySet, SOCShip.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
             }
             catch (CutoffExceededException e)
             {
@@ -234,11 +234,11 @@ public class SOCBuildingSpeedEstimate
 
             try
             {
-                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast(emptySet, SOCGame.ROAD_SET, limit, ports).getRolls();
-                estimatesFromNothing[SETTLEMENT] = calculateRollsAndRsrcFast(emptySet, SOCGame.SETTLEMENT_SET, limit, ports).getRolls();
-                estimatesFromNothing[CITY] = calculateRollsAndRsrcFast(emptySet, SOCGame.CITY_SET, limit, ports).getRolls();
+                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast(emptySet, SOCRoad.ROAD_SET, limit, ports).getRolls();
+                estimatesFromNothing[SETTLEMENT] = calculateRollsAndRsrcFast(emptySet, SOCSettlement.COST, limit, ports).getRolls();
+                estimatesFromNothing[CITY] = calculateRollsAndRsrcFast(emptySet, SOCCity.COST, limit, ports).getRolls();
                 estimatesFromNothing[CARD] = calculateRollsAndRsrcFast(emptySet, SOCGame.CARD_SET, limit, ports).getRolls();
-                estimatesFromNothing[SHIP] = calculateRollsAndRsrcFast(emptySet, SOCGame.SHIP_SET, limit, ports).getRolls();
+                estimatesFromNothing[SHIP] = calculateRollsAndRsrcFast(emptySet, SOCShip.COST, limit, ports).getRolls();
             }
             catch (CutoffExceededException e)
             {
@@ -265,11 +265,11 @@ public class SOCBuildingSpeedEstimate
 
         try
         {
-            estimatesFromNow[ROAD] = calculateRollsAccurate(resources, SOCGame.ROAD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-            estimatesFromNow[SETTLEMENT] = calculateRollsAccurate(resources, SOCGame.SETTLEMENT_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-            estimatesFromNow[CITY] = calculateRollsAccurate(resources, SOCGame.CITY_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+            estimatesFromNow[ROAD] = calculateRollsAccurate(resources, SOCRoad.ROAD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+            estimatesFromNow[SETTLEMENT] = calculateRollsAccurate(resources, SOCSettlement.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+            estimatesFromNow[CITY] = calculateRollsAccurate(resources, SOCCity.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
             estimatesFromNow[CARD] = calculateRollsAccurate(resources, SOCGame.CARD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-            estimatesFromNow[SHIP] = calculateRollsAccurate(resources, SOCGame.SHIP_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+            estimatesFromNow[SHIP] = calculateRollsAccurate(resources, SOCShip.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
         }
         catch (CutoffExceededException e)
         {
@@ -295,11 +295,11 @@ public class SOCBuildingSpeedEstimate
 
         try
         {
-            estimatesFromNow[ROAD] = calculateRollsAndRsrcFast(resources, SOCGame.ROAD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-            estimatesFromNow[SETTLEMENT] = calculateRollsAndRsrcFast(resources, SOCGame.SETTLEMENT_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-            estimatesFromNow[CITY] = calculateRollsAndRsrcFast(resources, SOCGame.CITY_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+            estimatesFromNow[ROAD] = calculateRollsAndRsrcFast(resources, SOCRoad.ROAD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+            estimatesFromNow[SETTLEMENT] = calculateRollsAndRsrcFast(resources, SOCSettlement.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+            estimatesFromNow[CITY] = calculateRollsAndRsrcFast(resources, SOCCity.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
             estimatesFromNow[CARD] = calculateRollsAndRsrcFast(resources, SOCGame.CARD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
-            estimatesFromNow[SHIP] = calculateRollsAndRsrcFast(resources, SOCGame.SHIP_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+            estimatesFromNow[SHIP] = calculateRollsAndRsrcFast(resources, SOCShip.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
         }
         catch (CutoffExceededException e)
         {

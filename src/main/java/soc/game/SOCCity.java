@@ -31,6 +31,12 @@ import java.util.Vector;
 public class SOCCity extends SOCPlayingPiece
 {
     /**
+     * the set of resources a player needs to build a {@link SOCCity city}
+     * @see SOCPlayingPiece#getResourcesToBuild(int)
+     */
+    public static final SOCResourceSet COST = new SOCResourceSet(0, 3, 0, 2, 0, 0);
+
+    /**
      * Make a new city
      *
      * @param pl  player who owns the city

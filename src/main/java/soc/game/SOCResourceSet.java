@@ -151,7 +151,7 @@ public class SOCResourceSet implements Serializable, Cloneable, ResourceSet {
      * Get the total number of resources in this set, including unknown types.
      * @return the total number of resources
      * @see #getKnownTotal()
-     * @see #getKnownTypesCount()
+     * @see #resourceTypeCount()
      */
     @Override
     public int getTotal()
@@ -176,7 +176,8 @@ public class SOCResourceSet implements Serializable, Cloneable, ResourceSet {
      * @return  The number of resource types in this set with nonzero resource counts.
      * @since 2.0.00
      */
-    public int getKnownTypesCount()
+    @Override
+    public int resourceTypeCount()
     {
         int typ = 0;
 
@@ -274,61 +275,60 @@ public class SOCResourceSet implements Serializable, Cloneable, ResourceSet {
     /**
      * add an entire resource set's amounts into this set.
      *
-     * @param rs  the resource set
+     * @param toAdd  the resource set
      */
-    public void add(SOCResourceSet rs)
+    public void add(SOCResourceSet toAdd)
     {
-        resources[SOCResourceConstants.CLAY]    += rs.getAmount(SOCResourceConstants.CLAY);
-        resources[SOCResourceConstants.ORE]     += rs.getAmount(SOCResourceConstants.ORE);
-        resources[SOCResourceConstants.SHEEP]   += rs.getAmount(SOCResourceConstants.SHEEP);
-        resources[SOCResourceConstants.WHEAT]   += rs.getAmount(SOCResourceConstants.WHEAT);
-        resources[SOCResourceConstants.WOOD]    += rs.getAmount(SOCResourceConstants.WOOD);
-        resources[SOCResourceConstants.UNKNOWN] += rs.getAmount(SOCResourceConstants.UNKNOWN);
+        resources[SOCResourceConstants.CLAY]    += toAdd.getAmount(SOCResourceConstants.CLAY);
+        resources[SOCResourceConstants.ORE]     += toAdd.getAmount(SOCResourceConstants.ORE);
+        resources[SOCResourceConstants.SHEEP]   += toAdd.getAmount(SOCResourceConstants.SHEEP);
+        resources[SOCResourceConstants.WHEAT]   += toAdd.getAmount(SOCResourceConstants.WHEAT);
+        resources[SOCResourceConstants.WOOD]    += toAdd.getAmount(SOCResourceConstants.WOOD);
+        resources[SOCResourceConstants.UNKNOWN] += toAdd.getAmount(SOCResourceConstants.UNKNOWN);
     }
 
     /**
      * subtract an entire resource set. If any type's amount would go below 0, set it to 0.
      *
-     * @param rs  the resource set
      */
-    public void subtract(ResourceSet rs)
+    public void subtract(ResourceSet toReduce)
     {
-        resources[SOCResourceConstants.CLAY] -= rs.getAmount(SOCResourceConstants.CLAY);
+        resources[SOCResourceConstants.CLAY] -= toReduce.getAmount(SOCResourceConstants.CLAY);
 
         if (resources[SOCResourceConstants.CLAY] < 0)
         {
             resources[SOCResourceConstants.CLAY] = 0;
         }
 
-        resources[SOCResourceConstants.ORE] -= rs.getAmount(SOCResourceConstants.ORE);
+        resources[SOCResourceConstants.ORE] -= toReduce.getAmount(SOCResourceConstants.ORE);
 
         if (resources[SOCResourceConstants.ORE] < 0)
         {
             resources[SOCResourceConstants.ORE] = 0;
         }
 
-        resources[SOCResourceConstants.SHEEP] -= rs.getAmount(SOCResourceConstants.SHEEP);
+        resources[SOCResourceConstants.SHEEP] -= toReduce.getAmount(SOCResourceConstants.SHEEP);
 
         if (resources[SOCResourceConstants.SHEEP] < 0)
         {
             resources[SOCResourceConstants.SHEEP] = 0;
         }
 
-        resources[SOCResourceConstants.WHEAT] -= rs.getAmount(SOCResourceConstants.WHEAT);
+        resources[SOCResourceConstants.WHEAT] -= toReduce.getAmount(SOCResourceConstants.WHEAT);
 
         if (resources[SOCResourceConstants.WHEAT] < 0)
         {
             resources[SOCResourceConstants.WHEAT] = 0;
         }
 
-        resources[SOCResourceConstants.WOOD] -= rs.getAmount(SOCResourceConstants.WOOD);
+        resources[SOCResourceConstants.WOOD] -= toReduce.getAmount(SOCResourceConstants.WOOD);
 
         if (resources[SOCResourceConstants.WOOD] < 0)
         {
             resources[SOCResourceConstants.WOOD] = 0;
         }
 
-        resources[SOCResourceConstants.UNKNOWN] -= rs.getAmount(SOCResourceConstants.UNKNOWN);
+        resources[SOCResourceConstants.UNKNOWN] -= toReduce.getAmount(SOCResourceConstants.UNKNOWN);
 
         if (resources[SOCResourceConstants.UNKNOWN] < 0)
         {

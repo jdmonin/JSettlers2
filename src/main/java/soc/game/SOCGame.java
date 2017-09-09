@@ -576,34 +576,9 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * an empty set of resources.
-     * @see #SETTLEMENT_SET
+     * @see SOCSettlement#COST
      */
     public static final ResourceSet EMPTY_RESOURCES = new SOCResourceSet();
-
-    /**
-     * the set of resources a player needs to build a {@link SOCSettlement settlement}
-     * @see SOCPlayingPiece#getResourcesToBuild(int)
-     */
-    public static final SOCResourceSet SETTLEMENT_SET = new SOCResourceSet(1, 0, 1, 1, 1, 0);
-
-    /**
-     * the set of resources a player needs to build a {@link SOCRoad road}
-     * @see SOCPlayingPiece#getResourcesToBuild(int)
-     */
-    public static final SOCResourceSet ROAD_SET = new SOCResourceSet(1, 0, 0, 0, 1, 0);
-
-    /**
-     * the set of resources a player needs to build a {@link SOCCity city}
-     * @see SOCPlayingPiece#getResourcesToBuild(int)
-     */
-    public static final SOCResourceSet CITY_SET = new SOCResourceSet(0, 3, 0, 2, 0, 0);
-
-    /**
-     * the set of resources a player needs to build a {@link SOCShip ship}
-     * @see SOCPlayingPiece#getResourcesToBuild(int)
-     * @since 2.0.00
-     */
-    public static final SOCResourceSet SHIP_SET = new SOCResourceSet(0, 0, 1, 0, 1, 0);
 
     /**
      * the set of resources a player needs to buy a development card
@@ -4466,24 +4441,24 @@ public class SOCGame implements Serializable, Cloneable
             {
                 final boolean rets = cancelBuildRoad(currentPlayerNumber);
                 return new SOCForceEndTurnResult
-                    (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, rets ? ROAD_SET : null);
+                    (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, rets ? SOCRoad.ROAD_SET : null);
             }
 
         case PLACING_SETTLEMENT:
             cancelBuildSettlement(currentPlayerNumber);
             return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, SETTLEMENT_SET);
+                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, SOCSettlement.COST);
 
         case PLACING_CITY:
             cancelBuildCity(currentPlayerNumber);
             return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, CITY_SET);
+                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, SOCCity.COST);
 
         case PLACING_SHIP:
             {
                 final boolean rets = cancelBuildShip(currentPlayerNumber);
                 return new SOCForceEndTurnResult
-                    (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, rets ? SHIP_SET : null);
+                    (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, rets ? SOCShip.COST : null);
             }
 
         case PLACING_INV_ITEM:
@@ -6479,7 +6454,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param offering  the number of the player making the offer
      * @param accepting the number of the player accepting the offer
-     * @see #canMakeBankTrade(SOCResourceSet, SOCResourceSet)
+     * @see #canMakeBankTrade(ResourceSet, ResourceSet)
      */
     public boolean canMakeTrade(final int offering, final int accepting)
     {

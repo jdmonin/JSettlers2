@@ -31,6 +31,12 @@ package soc.game;
 public class SOCRoad extends SOCPlayingPiece
 {
     /**
+     * the set of resources a player needs to build a {@link SOCRoad road}
+     * @see SOCPlayingPiece#getResourcesToBuild(int)
+     */
+    public static final SOCResourceSet ROAD_SET = new SOCResourceSet(1, 0, 0, 0, 1, 0);
+
+    /**
      * Make a new road
      *
      * @param pl  player who owns the road

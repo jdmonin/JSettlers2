@@ -679,7 +679,7 @@ public class SOCRobotDM
               D.ebugPrintln("Number of roads: "+bestLRPath.size());
               SOCResourceSet targetResources = new SOCResourceSet();
               for (int i = 0; i < bestLRPath.size(); i++) {
-                  targetResources.add(SOCGame.ROAD_SET);
+                  targetResources.add(SOCRoad.ROAD_SET);
               }
               lrETA = ourBSE.calculateRollsFast
                   (ourPlayerData.getResources(), targetResources, 100, ourPlayerData.getPortFlags());
@@ -947,7 +947,7 @@ public class SOCRobotDM
               posSet.setETA(500);
           } else {
               SOCResourceSet targetResources = new SOCResourceSet();
-              targetResources.add(SOCGame.SETTLEMENT_SET);
+              targetResources.add(SOCSettlement.COST);
               Stack<SOCPossibleRoad> path = posSet.getRoadPath();
               if (path != null)
               {
@@ -956,8 +956,8 @@ public class SOCRobotDM
                   SOCResourceSet rtype =
                       ((pathFirst != null) && (pathFirst instanceof SOCPossibleShip)
                        && ! ((SOCPossibleShip) pathFirst).isCoastalRoadAndShip)  // TODO better coastal ETA scoring
-                      ? SOCGame.SHIP_SET
-                      : SOCGame.ROAD_SET;
+                      ? SOCShip.COST
+                      : SOCRoad.ROAD_SET;
                   for (int i = 0; i < pathLength; i++)
                       targetResources.add(rtype);
               }
@@ -2017,7 +2017,7 @@ public class SOCRobotDM
         // Calculate ETA to buy and build another ship
         mightBuildShip = true;
         shipETA = ourBSE.calculateRollsFast
-          (ourPlayerData.getResources(), SOCGame.SHIP_SET, 100, ourPlayerData.getPortFlags());
+          (ourPlayerData.getResources(), SOCShip.COST, 100, ourPlayerData.getPortFlags());
         if (! isScoreNotETA)
         {
             shipScoreOrETA = shipETA;
@@ -2563,7 +2563,7 @@ public class SOCRobotDM
     // Building road or ship?  TODO Better ETA calc for coastal road/ship
     final boolean isShip = (posRoad instanceof SOCPossibleShip)
         && ! ((SOCPossibleShip) posRoad).isCoastalRoadAndShip;
-    final SOCResourceSet rsrcs = (isShip ? SOCGame.SHIP_SET : SOCGame.ROAD_SET);
+    final SOCResourceSet rsrcs = (isShip ? SOCShip.COST : SOCRoad.ROAD_SET);
 
     D.ebugPrintln("--- before [start] ---");
     SOCResourceSet originalResources = ourPlayerData.getResources().copy();

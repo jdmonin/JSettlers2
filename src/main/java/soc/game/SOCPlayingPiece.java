@@ -292,7 +292,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * @param pieceType The type of this playing piece, in range {@link #MIN} to ({@link #MAXPLUSONE} - 1).
      *           {@link #ROAD}, {@link #CITY}, etc.
      *           For convenience, can also pass -2 or {@link #MAXPLUSONE} for {@link SOCGame#CARD_SET}.
-     * @return the set, such as {@link SOCGame#SETTLEMENT_SET}
+     * @return the set, such as {@link SOCSettlement#COST}
      * @throws IllegalArgumentException if <tt>pieceType</tt> is out of range, or can never be built by players
      * @since 1.1.08
      */
@@ -302,13 +302,13 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
         switch (pieceType)
         {
         case ROAD:
-            return SOCGame.ROAD_SET;
+            return SOCRoad.ROAD_SET;
         case SETTLEMENT:
-            return SOCGame.SETTLEMENT_SET;
+            return SOCSettlement.COST;
         case CITY:
-            return SOCGame.CITY_SET;
+            return SOCCity.COST;
         case SHIP:
-            return SOCGame.SHIP_SET;
+            return SOCShip.COST;
         case -2:  // == SOCPossiblePiece.CARD (robots)
             // fall through
         case SOCPlayingPiece.MAXPLUSONE:

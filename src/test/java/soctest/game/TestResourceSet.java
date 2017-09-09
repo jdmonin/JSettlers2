@@ -113,7 +113,7 @@ public class TestResourceSet
     public void onePerType_typesAreKnown()
     {
         SOCResourceSet rs = onePerType();
-        assertEquals(5, rs.getKnownTypesCount());
+        assertEquals(5, rs.resourceTypeCount());
     }
 
     @Test
