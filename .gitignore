@@ -13,3 +13,7 @@
 /target/docs/*
 /target/lib/*
 /target/test-classes/*
+/build
+/.gradle
+/src/.gradle
+/.idea
