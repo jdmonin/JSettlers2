@@ -57,10 +57,11 @@ and backport minor new features until `2.0.00` is ready.
 
 ## `1.2.00` (build OV20170xxx)
 - Simple sound effects for game events: Start of client player's turn, resource stolen by robber, etc
+- Game windows have same size as previous game if resized, not small default size
 - Monopoly announces total number of resources stolen
 - New Game options: Popup if old versions can't play: Default to Create, not Change Options
 - To ensure everyone has initial settlements, don't allow new clients to sit after 1st settlements are all placed
-- Client: Persistent and per-game preferences for settings like sound effects
+- Client: Persistent and per-game preferences for settings like sound effects and game window size
 - Client: Per-game preference to auto-reject bot trades after a multi-second countdown
 - Network: Send keepalive messages to idle games to keep clients connected
 - Game window during debug: Reset "current player" indicator when exiting `*FREEPLACE*` debug mode

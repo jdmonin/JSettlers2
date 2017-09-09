@@ -135,6 +135,23 @@ import soc.util.Version;
 @SuppressWarnings("serial")
 public class SOCPlayerClient
 {
+	/**
+	 * Integer persistent {@link Preferences} key for width of a {@link SOCPlayerInterface} window frame,
+	 * based on most recent resizing by user. Used with {@link #PREF_PI__HEIGHT}.
+	 *<P>
+	 * For games with 6 players and/or the sea board, a scaling factor is applied to this preference
+	 * to keep consistent window sizes and width/height ratios.
+	 * @since 1.2.00
+	 */
+	final static String PREF_PI__WIDTH = "PI_width";
+
+	/**
+	 * Integer persistent {@link Preferences} key for height of a {@link SOCPlayerInterface} window frame;
+	 * see {@link #PREF_PI__WIDTH} for details.
+	 * @since 1.2.00
+	 */
+	final static String PREF_PI__HEIGHT = "PI_height";
+
     /**
      * Boolean persistent {@link Preferences} key for sound effects.
      * Default value is {@code true}.
