@@ -707,8 +707,8 @@ public class SOCBuildingPanel extends Panel
                 statsFrame.dispose();
             GameStatisticsFrame f = new GameStatisticsFrame(pi);
             f.register(pi.getGameStats());
-            f.setVisible(true);
             f.setLocation(this.getLocationOnScreen());
+            f.setVisible(true);
             statsFrame = f;
 
             return;
