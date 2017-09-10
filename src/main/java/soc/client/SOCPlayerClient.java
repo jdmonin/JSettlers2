@@ -6525,6 +6525,7 @@ public class SOCPlayerClient
         gameDisplay.initVisualElements(); // after the background is set
 
         frame.add(gameDisplay, BorderLayout.CENTER);
+        frame.setLocationByPlatform(true);
         frame.setSize(620, 400);
         frame.setVisible(true);
 

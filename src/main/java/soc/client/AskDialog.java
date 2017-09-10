@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007-2010,2013-2014,2016 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007-2010,2013-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -401,7 +401,7 @@ public abstract class AskDialog extends Dialog
             // to be adjusted in windowOpened()
             setSize(wantW + 6, wantH + 20);
         }
-        setLocation(150, 100);
+        setLocationRelativeTo(parentFr);
 
         pBtns = new JPanel();
         pBtns.setOpaque(true);

@@ -282,6 +282,7 @@ public class NewGameOptionsFrame extends Frame
         // same Frame setup as in SOCPlayerClient.main
         setBackground(NGOF_BG);
         setForeground(Color.black);
+        setLocationByPlatform(true);
 
         addKeyListener(this);
 

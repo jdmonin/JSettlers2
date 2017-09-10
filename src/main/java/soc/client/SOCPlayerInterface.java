@@ -611,6 +611,7 @@ public class SOCPlayerInterface extends Frame
 
         layoutNotReadyYet = true;  // will set to false at end of doLayout
         setResizable(true);
+        setLocationByPlatform(true);  // cascade, not all same hard-coded position as in v1.1.xx
 
         this.gameDisplay = gd;
         client = gd.getClient();
@@ -691,12 +692,7 @@ public class SOCPlayerInterface extends Frame
          */
         int piHeight = HEIGHT_MIN_4PL, piWidth;
         if ((is6player || game.hasSeaBoard) && SOCPI_isPlatformWindows)
-        {
-            setLocation(50, 40);
             piHeight += 25;
-        } else {
-            setLocation(50, 50);
-        }
         height_base = piHeight;
 
         if (is6player || game.hasSeaBoard)
