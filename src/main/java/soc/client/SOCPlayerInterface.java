@@ -81,7 +81,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.StringTokenizer;
-import java.util.Timer;
+import java.util.Timer;  // also uses restartable javax.swing.Timer
 import java.util.TimerTask;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
@@ -464,6 +464,17 @@ public class SOCPlayerInterface extends Frame
     private SOCPIDiscardOrPickMsgTask showingPlayerDiscardOrPick_task;
 
     /**
+     * For frame resize, a restarting timer to call {@link #frameResizeDone()}
+     * once instead of repeatedly as the user drags the frame edges.
+     * Usually {@code null} when not in the middle of resizing.
+     *<P>
+     * This field is only read and set/cleared from AWT/swing threads,
+     * but is volatile just in case.
+     * @since 1.2.00
+     */
+    private volatile javax.swing.Timer frameResizeDoneTimer;
+
+    /**
      * number of columns in the text output area
      */
     protected int ncols;
@@ -727,11 +738,27 @@ public class SOCPlayerInterface extends Frame
             @Override
             public void componentResized(final ComponentEvent e)
             {
-                if (layoutNotReadyYet || (e.getComponent() != SOCPlayerInterface.this))
+                if (layoutNotReadyYet || (e.getComponent() != SOCPlayerInterface.this) || ! isVisible())
                     return;
-                // TODO timer reset here, in case of rapid fire; wait for that to be done
-                if (isVisible())
-                    frameResizeDone();
+
+                // use restartable timer in case of rapid fire during resize
+                javax.swing.Timer t = frameResizeDoneTimer;
+                if (t != null)
+                {
+                    t.restart();
+                } else {
+                    t = new javax.swing.Timer(300, new ActionListener()
+                    {
+                        public void actionPerformed(ActionEvent arg0)
+                        {
+                            frameResizeDoneTimer = null;
+                            frameResizeDone();
+                        }
+                    });
+                    t.setRepeats(false);
+                    frameResizeDoneTimer = t;
+                    t.start();
+                }
             }
         });
 
@@ -1144,14 +1171,18 @@ public class SOCPlayerInterface extends Frame
     private void frameResizeDone()
     {
         final Dimension siz = getSize();
+        int w = siz.width, h = siz.height;
         if ((width_base != WIDTH_MIN_4PL) || (height_base != HEIGHT_MIN_4PL))
         {
-            siz.width = (siz.width * WIDTH_MIN_4PL) / width_base;
-            siz.height = (siz.height * HEIGHT_MIN_4PL) / height_base;
+            w = (w * WIDTH_MIN_4PL) / width_base;
+            h = (h * HEIGHT_MIN_4PL) / height_base;
         }
 
-        SOCPlayerClient.GameAwtDisplay.putUserPreference(SOCPlayerClient.PREF_PI__WIDTH, siz.width);
-        SOCPlayerClient.GameAwtDisplay.putUserPreference(SOCPlayerClient.PREF_PI__HEIGHT, siz.height);
+        if ((w < 100) || (h < 100))
+            return;  // sanity check
+
+        SOCPlayerClient.GameAwtDisplay.putUserPreference(SOCPlayerClient.PREF_PI__WIDTH, w);
+        SOCPlayerClient.GameAwtDisplay.putUserPreference(SOCPlayerClient.PREF_PI__HEIGHT, h);
     }
 
     /**
