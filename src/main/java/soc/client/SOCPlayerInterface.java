@@ -51,6 +51,7 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.DisplayMode;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -81,7 +82,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.StringTokenizer;
-import java.util.Timer;  // also uses restartable javax.swing.Timer
+import java.util.Timer;  // SOCPlayerInterface also uses restartable javax.swing.Timer
 import java.util.TimerTask;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
@@ -720,9 +721,42 @@ public class SOCPlayerInterface extends Frame
                     piWidth = prefWidth;
                     piHeight = prefHeight;
                 }
+
+                // Check vs max size for current screen
+                try
+                {
+                    final DisplayMode mode = getGraphicsConfiguration().getDevice().getDisplayMode();
+                    final int scWidth = mode.getWidth(), scHeight = mode.getHeight();
+                    if (piWidth > scWidth)
+                    {
+                        if (piHeight > scHeight)
+                        {
+                            // Might be from resolution change: Keep ratio
+                            final float scrnRatio = scWidth / scHeight, piRatio = piWidth / piHeight;
+                            if (scrnRatio < piRatio)
+                            {
+                                // frame is wide, not tall: maximize width
+                                piWidth = scWidth - 20;
+                                piHeight = (int) (piWidth / piRatio);
+                            } else {
+                                // maximize height
+                                piHeight = scHeight - 20;
+                                piWidth = (int) (piHeight * piRatio);
+                            }
+                        } else {
+                            // height is ok
+                            piWidth = scWidth - 20;
+                        }
+                    }
+                    else if (piHeight > scHeight)
+                    {
+                        // width is ok
+                        piHeight = scHeight - 20;
+                    }
+                } catch (NullPointerException e) {}
+
             }
         }
-        // TODO chk vs max size for screen
 
         setSize(piWidth, piHeight);
         validate();
