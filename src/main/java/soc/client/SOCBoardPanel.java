@@ -137,7 +137,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * The images are loaded into the {@link #hexes}, {@link #rotatHexes},
      * {@link #scaledHexes}, and {@link #scaledPorts} arrays.
      */
-    private static String IMAGEDIR = "/soc/client/images";
+    private static String IMAGEDIR = "/images";
 
     /**
      * size of the whole panel, internal-pixels "scale".

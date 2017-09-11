@@ -56,7 +56,7 @@ public class SOCFaceButton extends Canvas
 {
     public static final int DEFAULT_FACE = 1;  // Human face # 1 (face1.gif)
 
-    private static final String IMAGEDIR = "/soc/client/images";
+    private static final String IMAGEDIR = "/images";
 
     /**
      * number of /numbered/ face images, /plus 1/ for indexing.
