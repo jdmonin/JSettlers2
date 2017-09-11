@@ -7492,7 +7492,7 @@ public class SOCServer extends Server
                     }
 
                     if (! ok)
-                    	hasArgProblems = true;
+                        hasArgProblems = true;
                 }
             }
             else if (arg.equals("-t") || arg.equalsIgnoreCase("--test-config"))
@@ -7636,7 +7636,7 @@ public class SOCServer extends Server
         }
 
         if (doPrintOptions)
-        	printGameOptions();
+            printGameOptions();
 
         if (hasArgProblems)
             return null;
