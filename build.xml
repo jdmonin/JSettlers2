@@ -53,15 +53,6 @@
 
   <property name="name"      value="jsettlers" />
   <property name="Name"      value="JSettlers" />
-  <!-- version under development, e.g. 1.1, 1.2-RC2, 2.0-SNAPSHOT -->
-  <property name="version"   value="2.0.00" />
-  <property name="versionnum" value="2000" />
-  <!-- maximum recent version number to not warn during new game creation; -->
-  <!-- should be a version released more than a year ago. -->
-  <!-- Special case: New major version v2.0.00 has itself as this "no-warn" version -->
-  <!-- to avoid unnecessary warning dialogs. -->
-  <property name="versionnumMaxNoWarn" value="2000" />
-  <property name="copyright" value="2001-2004 Robb Thomas, portions (C) 2007-2017 Jeremy D Monin and contributors" />
   <property name="url"       value="http://nand.net/jsettlers/devel/" />
   <!-- version string for the PTE i18n editor; written to net/nand/util/i18n/gui/pteversion.properties during build-i18neditor -->
   <property name="i18neditor.version" value="1.0.0" />
@@ -244,21 +235,11 @@ pte.version = ${i18neditor.version}
        because everything is in java.src -->
   <target name="compile" depends="init-libs,resources,resources-i18neditor"
           description="Compile class files into 'classes'.">
-      <!-- version updates when info build.xml changes -->
+      <!-- ensure latest /resources/version.info for version, build number -->
       <dependset>
         <srcfilelist dir="${basedir}" files="build.xml" />
         <targetfilelist dir="${classes}" files="${version.info}" />
       </dependset>
-      <copy file="${main.src}/resources/${version.info}.in"
-            tofile="${classes}/${version.info}">
-        <filterset>
-          <filter token="VERSION" value="${version}" />
-          <filter token="VERSIONNUM" value="${versionnum}" />
-          <filter token="VERSIONNUMMAXNOWARN" value="${versionnumMaxNoWarn}" />
-          <filter token="COPYRIGHT" value="${copyright}" />
-        </filterset>
-      </copy>
-
       <javac srcdir="${java.src}"
              destdir="${classes}"
              classpathref="classpath"

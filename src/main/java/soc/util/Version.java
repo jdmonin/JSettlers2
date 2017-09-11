@@ -9,12 +9,8 @@ import java.util.Properties;
 
 
 /**
- * Package level version file used to keep packaging and codebase in sync. The
- * file Version.java.in is filtered to create Version.java when Callisto is
- * built using <a href="http://ant.apache.org">ant</a>.  If you are not using
- * ant to build Callisto you can do this manually by copying Version.java.in
- * to Version.java, replacing "@ VERSION @" with the "version" property value
- * in the file build.xml.
+ * Parses the package-level version file {@code resources/version.info}
+ * used to keep Jar packaging and codebase in sync.
  *<P>
  * If the version file cannot be found, or version number can't be parsed,
  * {@link #versionNumber()} returns 0.
@@ -29,7 +25,6 @@ public class Version {
   /**
    * For minimum version required; warn in NewGameOptionsFrame only
    * if game options require newer than this version number.
-   * Property name {@code versionnumMaxNoWarn} in {@code build.xml}.
    * @see #versionNumberMaximumNoWarn()
    * @since 1.1.13
    */

@@ -194,7 +194,7 @@ Written for Eclipse 3.6, should be applicable to other versions with minor chang
 - Hit Finish.
 - Project -> Properties: Resource: Text file encoding: UTF-8 -> OK
 - You'll need to run the `build` target once before you run JSettlers,
-  to create `version.info` from `resources/version.info.in`.
+  to copy resources into `target` from `src/main/resources/`.
 
 Continue reading to see how to set up the builds and the coding style in Eclipse.
 
@@ -230,8 +230,9 @@ files, and installation files are placed in `target/dist`. If you run dist-src o
 dist-full, run the `dist-tar-clean` target afterwards to remove temp files.
 
 Note: Even if you're in an IDE running SOCServer or SOCPlayerClient as Java apps,
-first build either the `build` or `compile` target to create `resources/version.info`;
-otherwise startup will fail with this error:
+first build either the `build` or `compile` target to copy resources into
+`target/classes/resources/` from `src/main/resources`; otherwise startup will
+fail with this error:
 
     Packaging error: Cannot determine JSettlers version
 
@@ -287,7 +288,8 @@ running inside eclipse.
   - select SQLite JDBC Driver
   - `jar list -> edit (or add,if empty) -> navigate to sqlite-jdbc-3.7.2.jar -> OK`
 - Project build path: libraries: include `sqlite-jdbc-3.7.2.jar` here too
-- Build the project (from `build.xml`; creates `target/classes/resources/version.info`)
+- Build the project (from `build.xml`; copies `target/classes/resources/version.info`
+  and other resources from `src/main/resources`)
 
 - Run socserver once to create the db file and exit cleanly:
   - run configurations
@@ -736,9 +738,6 @@ Each release's files are tagged for the release ("release-1.1.14").
 The last commit for the release updates VERSIONS.txt with the final build number,
 with a commit message like: Version 1.1.14 is build OV20120930
 Then: git tag -a release-1.1.14 -m 'Version 1.1.14 is build OV20120930'
-
-You can also see an overview of commit comments in the git log
-histories of src/java/resources/version.info.in and VERSIONS.txt.
 
 The github repo includes the full JSettlers2 CVS history formerly hosted at
 http://sourceforge.net/projects/jsettlers2/ through 2012-09-28.
