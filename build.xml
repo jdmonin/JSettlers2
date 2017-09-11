@@ -80,6 +80,7 @@
   <property name="src"            value="src" />
   <property name="lib"            value="lib" /> <!-- 3rd party libs -->
   <property name="docs.src"       value="xdocs" />
+  <property name="main.src"       value="src/main" />
   <property name="bin.src"        value="src/main/bin" />
   <property name="java.src"       value="src/main/java" />
   <property name="test.src"       value="src/test/java" /> <!-- junit test cases -->
@@ -98,7 +99,7 @@
   <property name="api.target"     location="${docs.target}/api" />
   <property name="dist"           location="target/dist" />
 
-  <!-- version file basename relative to ${classes} and ${java.src} -->
+  <!-- version file basename relative to ${classes} and ${main.src}/resources -->
   <property name="version.info" value="resources/version.info" />
 
   <!-- packaging -->
@@ -128,13 +129,14 @@
 
   <!-- jar file packages -->
   <patternset id="server.files">
-    <include name="resources/" />   <!-- for version file -->
+    <include name="resources/" />   <!-- for version file and i18n strings -->
+    <exclude name="resources/images/" />  <!-- ...except images -->
     <include name="soc/" />         <!-- everything... -->
     <exclude name="soc/client/" />  <!-- ...except these -->
     <include name="net/nand/util/i18n/mgr/" />         <!-- i18n string manager -->
   </patternset>
   <patternset id="client.files">
-    <include name="resources/" />   <!-- client may run local server -->
+    <include name="resources/" />   <!-- images, strings, client may run local server -->
     <include name="soc/" />         <!-- thus, everything -->
     <include name="net/nand/util/i18n/mgr/" />         <!-- i18n string manager -->
   </patternset>
@@ -192,8 +194,7 @@
   <target name="resources"
           description="Copy resources to classes directory">
       <copy toDir="${classes}">
-        <fileset dir="${java.src}" includes="soc/**/*.gif" />
-        <fileset dir="${java.src}" includes="soc/**/*.properties" />
+        <fileset dir="${main.src}/resources" includes="resources/**/*" />
       </copy>
   </target>
 
@@ -248,7 +249,7 @@ pte.version = ${i18neditor.version}
         <srcfilelist dir="${basedir}" files="build.xml" />
         <targetfilelist dir="${classes}" files="${version.info}" />
       </dependset>
-      <copy file="${java.src}/${version.info}.in"
+      <copy file="${main.src}/resources/${version.info}.in"
             tofile="${classes}/${version.info}">
         <filterset>
           <filter token="VERSION" value="${version}" />

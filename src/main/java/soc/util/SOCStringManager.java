@@ -67,7 +67,7 @@ public class SOCStringManager extends StringManager
     /**
      * Path and prefix of {@link #getServerManagerForClient(Locale)} properties files.
      */
-    public static final String PROPS_PATH_SERVER_FOR_CLIENT = "toClient";
+    public static final String PROPS_PATH_SERVER_FOR_CLIENT = "resources/strings/server/toClient";
 
     /**
      * Manager for all client strings. Static is okay because the client is seen by 1 person with 1 locale.
@@ -362,7 +362,7 @@ public class SOCStringManager extends StringManager
     public static SOCStringManager getClientManager()
     {
         if(clientManager == null)
-            clientManager = new SOCStringManager("soc/client/strings/data");
+            clientManager = new SOCStringManager("resources/strings/client/data");
 
         return clientManager;
     }
@@ -378,7 +378,7 @@ public class SOCStringManager extends StringManager
     public static SOCStringManager getClientManager(Locale loc)
     {
         if (clientManager == null)
-            clientManager = new SOCStringManager("data", loc);
+            clientManager = new SOCStringManager("resources/strings/client/data", loc);
 
         return clientManager;
     }
