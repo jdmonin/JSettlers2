@@ -2921,6 +2921,7 @@ public class SOCPlayerClient
          * @param dflt  Default value to get if no preference, or if {@code prefKey} is null
          * @return  Preference value or {@code dflt}
          * @see #putUserPreference(String, boolean)
+         * @see #getUserPreference(String, int)
          * @since 1.2.00
          */
         public static boolean getUserPreference(final String prefKey, final boolean dflt)
@@ -2937,6 +2938,28 @@ public class SOCPlayerClient
         }
 
         /**
+         * Get an int persistent user preference if available, or the default value.
+         * @param prefKey  Preference name key, such as {@link #PREF_BOT_TRADE_REJECT_SEC}
+         * @param dflt  Default value to get if no preference, or if {@code prefKey} is null
+         * @return  Preference value or {@code dflt}
+         * @see #putUserPreference(String, int)
+         * @see #getUserPreference(String, boolean)
+         * @since 1.2.00
+         */
+        public static int getUserPreference(final String prefKey, final int dflt)
+        {
+            if (userPrefs == null)
+                return dflt;
+
+            try
+            {
+                return userPrefs.getInt(prefKey, dflt);
+            } catch (RuntimeException e) {
+                return dflt;
+            }
+        }
+
+        /**
          * Set a boolean persistent user preference, if available.
          * Asynchronously calls {@link Preferences#flush()}.
          * @param prefKey  Preference name key, such as {@link #PREF_SOUND_ON}
@@ -2944,6 +2967,7 @@ public class SOCPlayerClient
          * @throws NullPointerException if {@code prefKey} is null
          * @throws IllegalArgumentException if {@code prefKey} is longer than {@link Preferences#MAX_KEY_LENGTH}
          * @see #getUserPreference(String, boolean)
+         * @see #putUserPreference(String, int)
          * @since 1.2.00
          */
         public static void putUserPreference(final String prefKey, final boolean val)
@@ -2972,34 +2996,14 @@ public class SOCPlayerClient
         }
 
         /**
-         * Get an int persistent user preference if available, or the default value.
-         * @param prefKey  Preference name key, such as {@link #PREF_BOT_TRADE_REJECT_SEC}
-         * @param dflt  Default value to get if no preference, or if {@code prefKey} is null
-         * @return  Preference value or {@code dflt}
-         * @see #putUserPreference(String, boolean)
-         * @since 1.2.00
-         */
-        public static int getUserPreference(final String prefKey, final int dflt)
-        {
-            if (userPrefs == null)
-                return dflt;
-
-            try
-            {
-                return userPrefs.getInt(prefKey, dflt);
-            } catch (RuntimeException e) {
-                return dflt;
-            }
-        }
-
-        /**
          * Set an int persistent user preference, if available.
          * Asynchronously calls {@link Preferences#flush()}.
          * @param prefKey  Preference name key, such as {@link #PREF_BOT_TRADE_REJECT_SEC}
          * @param val  Value to set
          * @throws NullPointerException if {@code prefKey} is null
          * @throws IllegalArgumentException if {@code prefKey} is longer than {@link Preferences#MAX_KEY_LENGTH}
-         * @see #getUserPreference(String, boolean)
+         * @see #getUserPreference(String, int)
+         * @see #putUserPreference(String, boolean)
          * @since 1.2.00
          */
         public static void putUserPreference(final String prefKey, final int val)

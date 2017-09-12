@@ -605,6 +605,7 @@ public class SOCPlayerInterface extends Frame
      *     ({@link Integer} or {@link Boolean}) based on its key's javadoc.
      */
     public SOCPlayerInterface(String title, GameAwtDisplay gd, SOCGame ga, final Map<String, Object> localPrefs)
+        throws IllegalArgumentException
     {
         super(strings.get("interface.title.game", title) + (ga.isPractice ? "" : " [" + gd.getNickname() + "]"));
             // "Settlers of Catan Game: {0}"
@@ -696,7 +697,7 @@ public class SOCPlayerInterface extends Frame
         height_base = piHeight;
 
         if (is6player || game.hasSeaBoard)
-            piWidth = (2*SOCHandPanel.WIDTH_MIN) + 16 + boardPanel.getMinimumSize().width;
+            piWidth = (2 * SOCHandPanel.WIDTH_MIN) + 16 + boardPanel.getMinimumSize().width;
         else
             piWidth = WIDTH_MIN_4PL;
         width_base = piWidth;
@@ -779,7 +780,7 @@ public class SOCPlayerInterface extends Frame
                 } else {
                     t = new javax.swing.Timer(300, new ActionListener()
                     {
-                        public void actionPerformed(ActionEvent arg0)
+                        public void actionPerformed(ActionEvent ae)
                         {
                             frameResizeDoneTimer = null;
                             frameResizeDone();
