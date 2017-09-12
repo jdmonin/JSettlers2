@@ -1,9 +1,10 @@
-[ The list of the different public versions of JSettlers ]
+Released versions of JSettlers
+
+Project home and source history are at https://github.com/jdmonin/JSettlers2
 
 Unless otherwise indicated, JARs for JSettlers versions are
-hosted at http://nand.net/jsettlers/devel/ and (for recent
-versions) https://github.com/jdmonin/JSettlers2/releases ;
-project home and source history at https://github.com/jdmonin/JSettlers2
+hosted at https://github.com/jdmonin/JSettlers2/releases
+and (for older versions) http://nand.net/jsettlers/devel/
 
 From 1.0 up through 1.1.13, there was a single line of development.
 Right after 1.1.13 the main development branch became 2.0.00, with a
