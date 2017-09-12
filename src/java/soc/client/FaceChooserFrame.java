@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2007,2014 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007,2014,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,7 +31,9 @@ import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Label;
+import java.awt.MouseInfo;
 import java.awt.Panel;
+import java.awt.Point;
 import java.awt.Scrollbar;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -140,7 +142,14 @@ public class FaceChooserFrame extends Frame implements ActionListener, WindowLis
         fcl = new FaceChooserList(this, faceID);
         add(fcl, BorderLayout.CENTER);
 
-        setLocation(150, 100);
+        try
+        {
+            Point mloc = MouseInfo.getPointerInfo().getLocation();
+            setLocation(mloc.x + 20, mloc.y + 10);
+        } catch (RuntimeException e) {
+            // in case of SecurityException, etc
+            setLocationRelativeTo(gamePI);
+        }
 
         Panel pBtns = new Panel();
         pBtns.setLayout(new FlowLayout(FlowLayout.CENTER));

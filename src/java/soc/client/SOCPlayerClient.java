@@ -5847,6 +5847,7 @@ public class SOCPlayerClient extends Applet
         client.initVisualElements(); // after the background is set
         
         frame.add(client, BorderLayout.CENTER);
+        frame.setLocationByPlatform(true);
         frame.setSize(620, 400);
         frame.setVisible(true);
 
