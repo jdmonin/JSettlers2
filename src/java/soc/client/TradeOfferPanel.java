@@ -577,9 +577,13 @@ public class TradeOfferPanel extends Panel
                 rejCountdownLab.setVisible(wantVis);
                 if (wantVis)
                 {
-                    rejTimerTask = new AutoRejectTask();
-                    pi.getEventTimer().scheduleAtFixedRate(rejTimerTask, 300 /* ms */, 1000 /* ms */ );
-                        // initial 300ms delay, so OfferPanel should be visible at first AutoRejectTask.run()
+                    final int sec = pi.getBotTradeRejectSec();
+                    if (sec > 0)
+                    {
+                        rejTimerTask = new AutoRejectTask(sec);
+                        pi.getEventTimer().scheduleAtFixedRate(rejTimerTask, 300 /* ms */, 1000 /* ms */ );
+                            // initial 300ms delay, so OfferPanel should be visible at first AutoRejectTask.run()
+                    }
                 }
             }
 
@@ -927,7 +931,8 @@ public class TradeOfferPanel extends Panel
 
         /**
          * Event timer task to display the countdown and then reject bot's offer.
-         * Started from {@link TradeOfferPanel#setOffer(SOCTradeOffer)}.
+         * Started from {@link TradeOfferPanel#setOffer(SOCTradeOffer)}
+         * if {@link SOCPlayerInterface#getBotTradeRejectSec()} &gt; 0.
          * Event timer calls {@link #run()} once per second.
          * Cancels itself after reaching 0, or if OfferPanel or
          * {@link TradeOfferPanel.OfferPanel#rejCountdownLab rejCountdownLab} is hidden.
@@ -939,7 +944,15 @@ public class TradeOfferPanel extends Panel
          */
         private class AutoRejectTask extends TimerTask
         {
-            public int secRemain = 5;  // TODO make configurable
+            public int secRemain;
+
+            /**
+             * @param sec  Initial value (seconds); should be &gt; 0
+             */
+            public AutoRejectTask(final int sec)
+            {
+                secRemain = sec;
+            }
 
             public void run()
             {

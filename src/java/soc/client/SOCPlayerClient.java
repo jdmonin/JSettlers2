@@ -124,12 +124,28 @@ public class SOCPlayerClient extends Applet
     /**
      * Boolean persistent {@link Preferences} key for sound effects.
      * Default value is {@code true}.
+     *<P>
+     * To set this value for a new {@link SOCPlayerInterface}, use
+     * {@link SOCPlayerInterface#PREF_SOUND_MUTE} as the key within
+     * its {@code localPrefs} map.
      * @see #getUserPreference(String, boolean)
      * @see SOCPlayerInterface#isSoundMuted()
-     * @see SOCPlayerInterface#PREF_SOUND_MUTE
      * @since 1.2.00
      */
     final static String PREF_SOUND_ON = "soundOn";
+
+    /**
+     * Integer persistent {@link Preferences} key for starting value of the countdown to auto-reject bot trades,
+     * in seconds. Default value is 5. Persistent value is never negative.
+     *<P>
+     * This key name can be used with the {@link SOCPlayerInterface} constructor's {@code localPrefs} map
+     * during game setup. If negative there, auto-reject will be disabled until turned on from that {@code PI}'s
+     * "Options" button.
+     * @see #getUserPreference(String, int)
+     * @see SOCPlayerInterface#getBotTradeRejectSec()
+     * @since 1.2.00
+     */
+    final static String PREF_BOT_TRADE_REJECT_SEC = "botTradeRejectSec";
 
     private static final long serialVersionUID = 1119L;  // Last structural change v1.1.19
 
@@ -5499,6 +5515,7 @@ public class SOCPlayerClient extends Applet
      * @param dflt  Default value to get if no preference, or if {@code prefKey} is null
      * @return  Preference value or {@code dflt}
      * @see #putUserPreference(String, boolean)
+     * @see #getUserPreference(String, int)
      * @since 1.2.00
      */
     public static boolean getUserPreference(final String prefKey, final boolean dflt)
@@ -5515,6 +5532,28 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
+     * Get an int persistent user preference if available, or the default value.
+     * @param prefKey  Preference name key, such as {@link #PREF_BOT_TRADE_REJECT_SEC}
+     * @param dflt  Default value to get if no preference, or if {@code prefKey} is null
+     * @return  Preference value or {@code dflt}
+     * @see #putUserPreference(String, int)
+     * @see #getUserPreference(String, boolean)
+     * @since 1.2.00
+     */
+    public static int getUserPreference(final String prefKey, final int dflt)
+    {
+        if (userPrefs == null)
+            return dflt;
+
+        try
+        {
+            return userPrefs.getInt(prefKey, dflt);
+        } catch (RuntimeException e) {
+            return dflt;
+        }
+    }
+
+    /**
      * Set a boolean persistent user preference, if available.
      * Asynchronously calls {@link Preferences#flush()}.
      * @param prefKey  Preference name key, such as {@link #PREF_SOUND_ON}
@@ -5522,6 +5561,7 @@ public class SOCPlayerClient extends Applet
      * @throws NullPointerException if {@code prefKey} is null
      * @throws IllegalArgumentException if {@code prefKey} is longer than {@link Preferences#MAX_KEY_LENGTH}
      * @see #getUserPreference(String, boolean)
+     * @see #putUserPreference(String, int)
      * @since 1.2.00
      */
     public static void putUserPreference(final String prefKey, final boolean val)
@@ -5533,6 +5573,42 @@ public class SOCPlayerClient extends Applet
         try
         {
             userPrefs.putBoolean(prefKey, val);
+        }
+        catch (IllegalStateException e) {}  // unlikely
+
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                try
+                {
+                    userPrefs.flush();
+                }
+                catch (BackingStoreException e) {}
+            }
+        });
+    }
+
+    /**
+     * Set an int persistent user preference, if available.
+     * Asynchronously calls {@link Preferences#flush()}.
+     * @param prefKey  Preference name key, such as {@link #PREF_BOT_TRADE_REJECT_SEC}
+     * @param val  Value to set
+     * @throws NullPointerException if {@code prefKey} is null
+     * @throws IllegalArgumentException if {@code prefKey} is longer than {@link Preferences#MAX_KEY_LENGTH}
+     * @see #getUserPreference(String, int)
+     * @see #putUserPreference(String, boolean)
+     * @since 1.2.00
+     */
+    public static void putUserPreference(final String prefKey, final int val)
+        throws NullPointerException, IllegalArgumentException
+    {
+        if (userPrefs == null)
+            return;
+
+        try
+        {
+            userPrefs.putInt(prefKey, val);
         }
         catch (IllegalStateException e) {}  // unlikely
 
