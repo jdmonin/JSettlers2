@@ -1513,9 +1513,10 @@ public class SOCHandPanel extends Panel implements ActionListener
         {
             /* This is another player's hand */
 
+            final boolean isRobot = player.isRobot();
             D.ebugPrintln("**** SOCHandPanel.addPlayer(name) ****");
             D.ebugPrintln("player.getPlayerNumber() = " + playerNumber);
-            D.ebugPrintln("player.isRobot() = " + player.isRobot());
+            D.ebugPrintln("player.isRobot() = " + isRobot);
             D.ebugPrintln("game.isSeatLocked(" + playerNumber + ") = " + game.isSeatLocked(playerNumber));
             D.ebugPrintln("game.getPlayer(client.getNickname()) = " + game.getPlayer(client.getNickname()));
 
@@ -1526,12 +1527,14 @@ public class SOCHandPanel extends Panel implements ActionListener
             // because it may not have been set at this point.
             // Use game.getPlayer(client.getNickname()) instead:
 
-            if (player.isRobot() && (game.getPlayer(client.getNickname()) == null) && (!game.isSeatLocked(playerNumber)))
+            final boolean clientIsASeatedPlayer = (game.getPlayer(client.getNickname()) != null);
+
+            if (isRobot && (! clientIsASeatedPlayer) && (! game.isSeatLocked(playerNumber)))
             {
                 addTakeOverBut();
             }
 
-            if (player.isRobot() && (game.getPlayer(client.getNickname()) != null))
+            if (isRobot && clientIsASeatedPlayer)
             {
                 addSittingRobotLockBut();
             }
@@ -1539,6 +1542,8 @@ public class SOCHandPanel extends Panel implements ActionListener
             {
                 removeSittingRobotLockBut();
             }
+
+            offer.addPlayer();
 
             vpLab.setVisible(true);
             vpSq.setVisible(true);

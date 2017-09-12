@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2011,2012,2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2011,2012,2015,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,6 +35,7 @@ import java.awt.Label;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.TimerTask;
 
 
 /**
@@ -57,8 +58,8 @@ import java.awt.event.ActionListener;
  */
 public class TradeOfferPanel extends Panel
 {
-    public static final String OFFER_MODE = "offer";
-    public static final String MESSAGE_MODE = "message";
+    public static final String OFFER_MODE = "offer";  // shows OfferPanel
+    public static final String MESSAGE_MODE = "message";  // shows MessagePanel
 
     /**
      * Typical height of offer panel, when visible. (Includes
@@ -108,9 +109,21 @@ public class TradeOfferPanel extends Panel
     static final String CLEAR = "clear";
     static final String CANCEL = "cancel";
     static final Color insideBGColor = new Color(255, 230, 162);
-    int from;
-    SOCHandPanel hp;
-    SOCPlayerInterface pi;
+
+    /** This panel's player number */
+    private final int from;
+
+    /**
+     * True if {@link #from} is a robot player.
+     * @since 1.2.00
+     */
+    private boolean isFromRobot;
+
+    /** This TradeOfferPanel's parent hand panel, for action callbacks from buttons */
+    private final SOCHandPanel hp;
+
+    /** {@link #hp}'s parent player interface */
+    private final SOCPlayerInterface pi;
 
     String mode;
     CardLayout cardLayout;
@@ -136,6 +149,8 @@ public class TradeOfferPanel extends Panel
 
     /**
      * Creates a new TradeOfferPanel object.
+     * @param hp  New TradeOfferPanel's parent hand panel, for action callbacks from trade buttons
+     * @param from  {@code hp}'s player number
      */
     public TradeOfferPanel(SOCHandPanel hp, int from)
     {
@@ -155,6 +170,8 @@ public class TradeOfferPanel extends Panel
         add(messagePanel, MESSAGE_MODE); // first added = first shown
         add(offerPanel, OFFER_MODE);
         mode = MESSAGE_MODE;
+
+        addPlayer();  // set isFromRobot, etc
 
         counterCompactMode = false;
         counterHidesBalloonPoint = false;
@@ -279,7 +296,11 @@ public class TradeOfferPanel extends Panel
     /** Contains both offer and counter-offer; see {@link #setCounterOfferVisible(boolean)} */
     private class OfferPanel extends Panel implements ActionListener
     {
-        /** Balloon to hold offer received */
+        /**
+         * Balloon to hold offer received visually, not as a layout container.
+         * Fill color is {@link TradeOfferPanel#insideBGColor}.
+         * @see #offerBox
+         */
         SpeechBalloon balloon;
 
         /** "Offered To" line 1 */
@@ -293,13 +314,18 @@ public class TradeOfferPanel extends Panel
 
         /** Offer's resources */
         SquaresPanel squares;
+
         /** send button for counter-offer */
         Button offerBut;
         Button acceptBut;
         Button rejectBut;
 
-        /** Counter-offer to send */
+        /**
+         * Counter-offer to send; groups counter-offer elements visually, not as a layout container.
+         * @see #balloon
+         */
         ShadowedBox offerBox;
+
         Label counterOfferToWhom;
         boolean counterOffer_playerInit = false;
         SquaresPanel offerSquares;
@@ -310,6 +336,27 @@ public class TradeOfferPanel extends Panel
         Button cancelBut;
         /** True if the current offer's "offered to" includes the client player. */
         boolean offered;
+
+        /**
+         * Auto-reject countdown timer text below offer panel, or {@code null}.
+         * Used for bots only. Visible only if {@link #offered} and
+         * {@link TradeOfferPanel#isFromRobot}.
+         * Visibility is updated in {@link #update(SOCTradeOffer)}.
+         * If counter-offer panel is shown, this label is hidden and the countdown
+         * is canceled because client player might take action on the offer.
+         * @see #rejTimerTask
+         * @since 1.2.00
+         */
+        private Label rejCountdownLab;
+
+        /**
+         * Countdown timer to auto-reject offers from bots. Uses {@link #rejCountdownLab}.
+         * Created when countdown needed in {@link #update(SOCTradeOffer)}.
+         * See {@link AutoRejectTask} javadoc for details.
+         * @since 1.2.00
+         */
+        private AutoRejectTask rejTimerTask;
+
         SOCResourceSet give;
         SOCResourceSet get;
         int[] giveInt = new int[5];
@@ -319,8 +366,8 @@ public class TradeOfferPanel extends Panel
         boolean counterOfferMode = false;
 
         /**
-         * Creates a new OfferPanel object.
-         * The counter-offer is initially hidden.
+         * Creates a new OfferPanel. Shows an opponent's offer (not the client player's)
+         * and any counter-offer. The counter-offer is initially hidden.
          */
         public OfferPanel()
         {
@@ -368,6 +415,9 @@ public class TradeOfferPanel extends Panel
             offerBut.setActionCommand(OFFER);
             offerBut.addActionListener(this);
             add(offerBut);
+
+            // Skip rejCountdownLab setup for now, because isFromRobot is false when constructed.
+            // TradeOfferPanel constructor will soon call addPlayer() to set it up if needed.
 
             /** Counter-offer to send */
 
@@ -517,9 +567,47 @@ public class TradeOfferPanel extends Panel
             }
             squares.setValues(giveInt, getInt);
 
+            if (rejCountdownLab != null)
+            {
+                if (rejTimerTask != null)
+                    rejTimerTask.cancel();  // cancel any previous
+
+                final boolean wantVis = offered && ! counterOfferMode;
+                rejCountdownLab.setText("");  // clear any previous
+                rejCountdownLab.setVisible(wantVis);
+                if (wantVis)
+                {
+                    rejTimerTask = new AutoRejectTask();
+                    pi.getEventTimer().scheduleAtFixedRate(rejTimerTask, 300 /* ms */, 1000 /* ms */ );
+                        // initial 300ms delay, so OfferPanel should be visible at first AutoRejectTask.run()
+                }
+            }
+
             // enables accept,reject,offer Buttons if 'offered' is true
             setCounterOfferVisible(counterOfferMode);
+
             validate();
+        }
+
+        /**
+         * Update fields when a human or robot player sits down in our {@link SOCHandPanel}'s position.
+         * Must update {@link TradeOfferPanel#isFromRobot} before calling this method.
+         * @since 1.2.00
+         */
+        void addPlayer()
+        {
+            if (isFromRobot)
+            {
+                if (rejCountdownLab == null)
+                {
+                    rejCountdownLab = new Label("");  // rejTimerTask.run() will set countdown text
+                    rejCountdownLab.setBackground(insideBGColor);
+                    add(rejCountdownLab, null, 0);  // add at index 0 to paint in front of balloon (z-order)
+                }
+            }
+
+            if (rejCountdownLab != null)
+                rejCountdownLab.setVisible(false);
         }
 
         /**
@@ -532,10 +620,15 @@ public class TradeOfferPanel extends Panel
             final int buttonW = 48;
             final int buttonH = 18;
             int inset = 10;
+            final int countdownLabHeight =
+                (offered && (! counterOfferMode) && (rejCountdownLab != null) && rejCountdownLab.isVisible())
+                ? 14 : 0;
+                // If shown, use same height (14) as toWhom1, toWhom2;
+                // layout already gives extra padding above/below, so no more is needed in this calc.
 
             // At initial call to doLayout: dim.width, .height == 0.
             int w = Math.min((2*(inset+5) + 3*buttonW), dim.width);
-            int h = Math.min(92 + 2 * ColorSquareLarger.HEIGHT_L, dim.height);
+            int h = Math.min(92 + 2 * ColorSquareLarger.HEIGHT_L + countdownLabHeight, dim.height);
             int top = (h / (int)(.5 * ColorSquareLarger.HEIGHT_L)) + 5;
 
             if (counterOfferMode)
@@ -627,6 +720,9 @@ public class TradeOfferPanel extends Panel
                     acceptBut.setBounds(inset, buttonY, buttonW, buttonH);
                     rejectBut.setBounds(inset + 5 + buttonW, buttonY, buttonW, buttonH);
                     offerBut.setBounds(inset + (2 * (5 + buttonW)), buttonY, buttonW, buttonH);
+
+                    if ((rejCountdownLab != null) && rejCountdownLab.isVisible())
+                        rejCountdownLab.setBounds(inset, buttonY + buttonH + 5, w - 2 * inset, 14);
                 }
 
                 balloon.setBounds(0, 0, w, h);
@@ -657,6 +753,8 @@ public class TradeOfferPanel extends Panel
             }
             else if (target == SEND)
             {
+                cancelRejectCountdown();
+
                 SOCGame game = hp.getGame();
                 SOCPlayer player = game.getPlayer(pi.getClient().getNickname());
 
@@ -711,8 +809,7 @@ public class TradeOfferPanel extends Panel
 
             if (target == REJECT)
             {
-                setVisible(false);
-                hp.rejectOfferAtClient();
+                clickRejectButton();
             }
 
             if (target == ACCEPT)
@@ -720,12 +817,25 @@ public class TradeOfferPanel extends Panel
                 //int[] tempGive = new int[5];
                 //int[] tempGet = new int[5];
                 //squares.getValues(tempGive, tempGet);
+                cancelRejectCountdown();
                 hp.getClient().acceptOffer(hp.getGame(), from);
                 hp.disableBankUndoButton();
             }
             } catch (Throwable th) {
                 pi.chatPrintStackTrace(th);
             }            
+        }
+
+        /**
+         * Handle a click of the Reject button ({@link #rejectBut}):
+         * Hide this panel, call {@link SOCHandPanel#rejectOfferAtClient()}.
+         * @since 1.2.00
+         */
+        private void clickRejectButton()
+        {
+            setVisible(false);
+            cancelRejectCountdown();
+            hp.rejectOfferAtClient();
         }
 
         /**
@@ -789,10 +899,78 @@ public class TradeOfferPanel extends Panel
             rejectBut.setVisible(offered && ! visible);
             offerBut.setVisible(offered && ! visible);
 
+            if (rejCountdownLab != null)
+            {
+                if (offered && ! visible)
+                    rejCountdownLab.setVisible(true);
+                else
+                    cancelRejectCountdown();
+            }
+
             counterOfferMode = visible;
             hp.offerCounterOfferVisibleChanged(visible);
             validate();
         }
+
+        /**
+         * If showing, hide {@link #rejCountdownLab}.
+         * If running, cancel {@link #rejTimerTask}.
+         * @since 1.2.00
+         */
+        private void cancelRejectCountdown()
+        {
+            if (rejCountdownLab != null)
+                rejCountdownLab.setVisible(false);
+            if (rejTimerTask != null)
+                rejTimerTask.cancel();
+        }
+
+        /**
+         * Event timer task to display the countdown and then reject bot's offer.
+         * Started from {@link TradeOfferPanel#setOffer(SOCTradeOffer)}.
+         * Event timer calls {@link #run()} once per second.
+         * Cancels itself after reaching 0, or if OfferPanel or
+         * {@link TradeOfferPanel.OfferPanel#rejCountdownLab rejCountdownLab} is hidden.
+         *<P>
+         * Instead of calling {@link TimerTask#cancel()}, most places
+         * should call {@link TradeOfferPanel.OfferPanel#cancelRejectCountdown()}.
+         * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+         * @since 1.2.00
+         */
+        private class AutoRejectTask extends TimerTask
+        {
+            public int secRemain = 5;  // TODO make configurable
+
+            public void run()
+            {
+                if ((mode != OFFER_MODE)
+                    || ! (rejCountdownLab.isVisible() && TradeOfferPanel.OfferPanel.this.isVisible()))
+                {
+                    cancel();
+                    return;
+                }
+
+                if (secRemain > 0)
+                {
+                    rejCountdownLab.setText
+                        ("Auto-Reject in: " + secRemain);
+                    --secRemain;
+                } else {
+                    clickRejectButton();
+                    cancel();  // End of countdown for this timer
+                }
+            }
+        }
+    }
+
+    /**
+     * Update offer panel fields when a new player (human or robot) sits down in our {@link SOCHandPanel}'s position.
+     * @since 1.2.00
+     */
+    public void addPlayer()
+    {
+        isFromRobot = pi.getGame().getPlayer(from).isRobot();
+        offerPanel.addPlayer();
     }
 
     /**
