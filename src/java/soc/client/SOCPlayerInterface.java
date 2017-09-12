@@ -29,6 +29,7 @@ import soc.message.SOCSimpleAction;  // for action type constants
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.DisplayMode;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -54,7 +55,7 @@ import java.awt.event.WindowEvent;
 
 import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.Timer;
+import java.util.Timer;  // SOCPlayerInterface also uses restartable javax.swing.Timer
 import java.util.TimerTask;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
@@ -410,6 +411,17 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     private SOCPIDiscardMsgTask showingPlayerDiscardsTask;
 
     /**
+     * For frame resize, a restarting timer to call {@link #frameResizeDone()}
+     * once instead of repeatedly as the user drags the frame edges.
+     * Usually {@code null} when not in the middle of resizing.
+     *<P>
+     * This field is only read and set/cleared from AWT/swing threads,
+     * but is volatile just in case.
+     * @since 1.2.00
+     */
+    private volatile javax.swing.Timer frameResizeDoneTimer;
+
+    /**
      * number of columns in the text output area
      */
     protected int ncols;
@@ -619,7 +631,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         height_base = piHeight;
 
         if (is6player)
-            piWidth = (2*SOCHandPanel.WIDTH_MIN) + 16 + boardPanel.getMinimumSize().width;
+            piWidth = (2 * SOCHandPanel.WIDTH_MIN) + 16 + boardPanel.getMinimumSize().width;
         else
             piWidth = WIDTH_MIN_4PL;
         width_base = piWidth;
@@ -642,7 +654,39 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                 }
             }
         }
-        // TODO chk vs max size for screen
+
+        // Check vs max size for current screen
+        try
+        {
+            final DisplayMode mode = getGraphicsConfiguration().getDevice().getDisplayMode();
+            final int scWidth = mode.getWidth(), scHeight = mode.getHeight();
+            if (piWidth > scWidth)
+            {
+                if (piHeight > scHeight)
+                {
+                    // Might be from resolution change: Keep ratio
+                    final float scrnRatio = scWidth / scHeight, piRatio = piWidth / piHeight;
+                    if (scrnRatio < piRatio)
+                    {
+                        // frame is wide, not tall: maximize width
+                        piWidth = scWidth - 20;
+                        piHeight = (int) (piWidth / piRatio);
+                    } else {
+                        // maximize height
+                        piHeight = scHeight - 20;
+                        piWidth = (int) (piHeight * piRatio);
+                    }
+                } else {
+                    // height is ok
+                    piWidth = scWidth - 20;
+                }
+            }
+            else if (piHeight > scHeight)
+            {
+                // width is ok
+                piHeight = scHeight - 20;
+            }
+        } catch (NullPointerException e) {}
 
         setSize(piWidth, piHeight);
         validate();
@@ -658,11 +702,27 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             @Override
             public void componentResized(final ComponentEvent e)
             {
-                if (layoutNotReadyYet || (e.getComponent() != SOCPlayerInterface.this))
+                if (layoutNotReadyYet || (e.getComponent() != SOCPlayerInterface.this) || ! isVisible())
                     return;
-                // TODO timer reset here, in case of rapid fire; wait for that to be done
-                if (isVisible())
-                    frameResizeDone();
+
+                // use restartable timer in case of rapid fire during resize
+                javax.swing.Timer t = frameResizeDoneTimer;
+                if (t != null)
+                {
+                    t.restart();
+                } else {
+                    t = new javax.swing.Timer(300, new ActionListener()
+                    {
+                        public void actionPerformed(ActionEvent ae)
+                        {
+                            frameResizeDoneTimer = null;
+                            frameResizeDone();
+                        }
+                    });
+                    t.setRepeats(false);
+                    frameResizeDoneTimer = t;
+                    t.start();
+                }
             }
         });
 
@@ -1079,14 +1139,17 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     private void frameResizeDone()
     {
         final Dimension siz = getSize();
+        int w = siz.width, h = siz.height;
         if ((width_base != WIDTH_MIN_4PL) || (height_base != HEIGHT_MIN_4PL))
         {
-            siz.width = (siz.width * WIDTH_MIN_4PL) / width_base;
-            siz.height = (siz.height * HEIGHT_MIN_4PL) / height_base;
+            w = (w * WIDTH_MIN_4PL) / width_base;
+            h = (h * HEIGHT_MIN_4PL) / height_base;
         }
+        if ((w < 100) || (h < 100))
+            return;  // sanity check
 
-        SOCPlayerClient.putUserPreference(SOCPlayerClient.PREF_PI__WIDTH, siz.width);
-        SOCPlayerClient.putUserPreference(SOCPlayerClient.PREF_PI__HEIGHT, siz.height);
+        SOCPlayerClient.putUserPreference(SOCPlayerClient.PREF_PI__WIDTH, w);
+        SOCPlayerClient.putUserPreference(SOCPlayerClient.PREF_PI__HEIGHT, h);
     }
 
     /**
