@@ -39,6 +39,8 @@ import java.awt.TextArea;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
@@ -98,6 +100,20 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     public static final String PREF_SOUND_MUTE = "soundMute";
 
     /**
+     * Basic minimum frame width for a 4-player game.
+     * Used for {@link #width_base} and user preference {@link SOCPlayerClient#PREF_PI__WIDTH}.
+     * @since 1.2.00
+     */
+    private static final int WIDTH_MIN_4PL = 830;
+
+    /**
+     * Basic minimum frame height for a 4-player game.
+     * Used for {@link #height_base} and user preference {@link SOCPlayerClient#PREF_PI__HEIGHT}.
+     * @since 1.2.00
+     */
+    private static final int HEIGHT_MIN_4PL = 650;
+
+    /**
      * System property os.name; For use by {@link #SOCPI_isPlatformWindows}.
      * @since 1.1.08
      */
@@ -108,6 +124,20 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * @since 1.1.08
      */
     private final static boolean SOCPI_isPlatformWindows = (SOCPI_osName != null) && (SOCPI_osName.toLowerCase().indexOf("windows") != -1);
+
+    /**
+     * Minimum frame width calculated in constructor from this game's player count and board,
+     * based on {@link #WIDTH_MIN_4PL}.
+     * @since 1.2.00
+     */
+    private final int width_base;
+
+    /**
+     * Minimum frame height calculated in constructor from this game's player count and board,
+     * based on {@link #HEIGHT_MIN_4PL}.
+     * @since 1.2.00
+     */
+    private final int height_base;
 
     /**
      * the board display
@@ -501,8 +531,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     {
         super(TITLEBAR_GAME + title +
               (ga.isPractice ? "" : " [" + cl.getNickname() + "]"));
-        setResizable(true);
+
         layoutNotReadyYet = true;  // will set to false at end of doLayout
+        setResizable(true);
 
         client = cl;
         game = ga;
@@ -577,7 +608,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         /**
          * more initialization stuff
          */
-        int piHeight = 650;
+        int piHeight = HEIGHT_MIN_4PL, piWidth;
         if (is6player && SOCPI_isPlatformWindows)
         {
             setLocation(50, 40);
@@ -585,10 +616,35 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         } else {
             setLocation(50, 50);
         }
+        height_base = piHeight;
+
         if (is6player)
-            setSize((2*SOCHandPanel.WIDTH_MIN) + 16 + boardPanel.getMinimumSize().width, piHeight);
+            piWidth = (2*SOCHandPanel.WIDTH_MIN) + 16 + boardPanel.getMinimumSize().width;
         else
-            setSize(830, piHeight);
+            piWidth = WIDTH_MIN_4PL;
+        width_base = piWidth;
+
+        // check window frame size preference if set
+        {
+            int prefWidth = SOCPlayerClient.getUserPreference(SOCPlayerClient.PREF_PI__WIDTH, -1);
+            int prefHeight = (prefWidth != -1)
+                ? SOCPlayerClient.getUserPreference(SOCPlayerClient.PREF_PI__HEIGHT, HEIGHT_MIN_4PL)
+                : 0;
+            if (prefWidth != -1)
+            {
+                if ((width_base != WIDTH_MIN_4PL) || (height_base != HEIGHT_MIN_4PL))
+                {
+                    piWidth = (prefWidth * width_base) / WIDTH_MIN_4PL;
+                    piHeight = (prefHeight * height_base) / HEIGHT_MIN_4PL;
+                } else {
+                    piWidth = prefWidth;
+                    piHeight = prefHeight;
+                }
+            }
+        }
+        // TODO chk vs max size for screen
+
+        setSize(piWidth, piHeight);
         validate();
 
         if (didHideTemp)
@@ -596,6 +652,19 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             setVisible(true);
         }
         repaint();
+
+        addComponentListener(new ComponentAdapter()
+        {
+            @Override
+            public void componentResized(final ComponentEvent e)
+            {
+                if (layoutNotReadyYet || (e.getComponent() != SOCPlayerInterface.this))
+                    return;
+                // TODO timer reset here, in case of rapid fire; wait for that to be done
+                if (isVisible())
+                    frameResizeDone();
+            }
+        });
 
         if (SOUND_BEGIN_TURN == null)
             soundQueueThreader.submit(new Runnable()
@@ -998,6 +1067,26 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
          // default: ignore unknown action types
         }
+    }
+
+    /**
+     * Callback for saving PI size preference when user is done resizing this window.
+     * Uses current size, with scaling factor for 6-player games.
+     *<P>
+     * Call only if {@link #isVisible()} and ! {@link #layoutNotReadyYet}.
+     * @since 1.2.00
+     */
+    private void frameResizeDone()
+    {
+        final Dimension siz = getSize();
+        if ((width_base != WIDTH_MIN_4PL) || (height_base != HEIGHT_MIN_4PL))
+        {
+            siz.width = (siz.width * WIDTH_MIN_4PL) / width_base;
+            siz.height = (siz.height * HEIGHT_MIN_4PL) / height_base;
+        }
+
+        SOCPlayerClient.putUserPreference(SOCPlayerClient.PREF_PI__WIDTH, siz.width);
+        SOCPlayerClient.putUserPreference(SOCPlayerClient.PREF_PI__HEIGHT, siz.height);
     }
 
     /**
