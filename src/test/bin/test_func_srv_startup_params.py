@@ -359,7 +359,7 @@ def all_tests():
     arg_test(False, "-oXYZ=t -oZZZ=t", None,
         "Unknown game option: XYZ\nUnknown game option: ZZZ")
     arg_test(False, "", ["jsettlers.gameopt.XYZ=t", "jsettlers.gameopt.ZZZ=t"],
-        "Unknown game option: XYZ\nUnknown game option: ZZZ")
+        ["Unknown game option: XYZ", "Unknown game option: ZZZ"])
     arg_test(False, "", ["jsettlers.gameopt.VP=NaN", "jsettlers.gameopt.BC=zzz"],
         ["Unknown or malformed game option: VP=NaN", "Unknown or malformed game option: BC=zzz"])
 
