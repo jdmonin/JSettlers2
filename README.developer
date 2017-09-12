@@ -112,11 +112,14 @@ Setup instructions for JSettlers as an Eclipse project
 ------------------------------------------------------
   (written for Eclipse 3.6, should be applicable to other versions with minor changes)
 
-- choose File -> New -> Project... -> Java Project from Existing Ant Buildfile.
-- Browse to jsettlers-1.x.xx-src/build.xml, select the "javac" task in target "compile".
-- Project -> Properties: Resource: Text file encoding: UTF-8
-- You'll need to build once before you run it, to create version.info from resources/version.info.in.
-  This is true even if you're running SOCServer or SOCPlayerClient as Java apps within Eclipse,
+- Choose File -> New -> Project... -> Java -> Java Project from Existing Ant Buildfile
+- Browse to jsettlers-1.x.xx-src/build.xml, select the "javac" task in target "compile"
+- Check the box "Link to the buildfile in the file system"
+- Hit Finish.
+- Project -> Properties: Resource: Text file encoding: UTF-8 -> OK
+- You'll need to run the "build" target once before you run JSettlers, to create
+  version.info from resources/version.info.in. This is true even if you're running
+  SOCServer or SOCPlayerClient as Java apps within Eclipse,
   otherwise startup will fail with this error:
 	Packaging error: Cannot determine JSettlers version
 
@@ -160,9 +163,10 @@ installed and configured, or the sqlite jdbc driver for a file-based local datab
 This package was designed to build with eclipse, or with the ANT tool available
 from http://ant.apache.org/ .
 
-Check the "build.properties" file. There may be build variables you
-may want to change locally. These can also be changed from the command
-line if calling ant that way, by passing a "-Dname=value" parameter to ant.
+If not using an IDE like eclipse, check the build.xml file. There may be
+build variables you may want to change locally. These can be changed by
+creating a build.properties file, or from the ant command line by passing
+a -Dname=value parameter.
 
 There are several build targets, here are the most useful ones:
 
