@@ -29,7 +29,6 @@ import java.awt.Graphics;
 /**
  * This is a shadowed box for use in the hand panel.
  * Both {@code ShadowedBox} and {@link SpeechBalloon} are used in {@link TradeOfferPanel}.
- *<P>
  *
  * @author Robert S. Thomas
  */
