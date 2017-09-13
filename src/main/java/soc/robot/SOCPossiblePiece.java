@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2011-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2011-2015,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -372,7 +372,7 @@ public abstract class SOCPossiblePiece
         switch (pieceType)
         {
         case ROAD:
-            return SOCRoad.ROAD_SET;
+            return SOCRoad.COST;
 
         case SETTLEMENT:
             return SOCSettlement.COST;

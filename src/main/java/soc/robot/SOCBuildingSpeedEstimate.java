@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2012-2013,2015-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2012-2013,2015-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -167,7 +167,7 @@ public class SOCBuildingSpeedEstimate
 
             try
             {
-                estimatesFromNothing[ROAD] = calculateRollsAccurate(emptySet, SOCRoad.ROAD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[ROAD] = calculateRollsAccurate(emptySet, SOCRoad.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
                 estimatesFromNothing[SETTLEMENT] = calculateRollsAccurate(emptySet, SOCSettlement.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
                 estimatesFromNothing[CITY] = calculateRollsAccurate(emptySet, SOCCity.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
                 estimatesFromNothing[CARD] = calculateRollsAccurate(emptySet, SOCGame.CARD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
@@ -201,7 +201,7 @@ public class SOCBuildingSpeedEstimate
 
             try
             {
-                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast(emptySet, SOCRoad.ROAD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast(emptySet, SOCRoad.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
                 estimatesFromNothing[SETTLEMENT] = calculateRollsAndRsrcFast(emptySet, SOCSettlement.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
                 estimatesFromNothing[CITY] = calculateRollsAndRsrcFast(emptySet, SOCCity.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
                 estimatesFromNothing[CARD] = calculateRollsAndRsrcFast(emptySet, SOCGame.CARD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
@@ -235,7 +235,7 @@ public class SOCBuildingSpeedEstimate
 
             try
             {
-                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast(emptySet, SOCRoad.ROAD_SET, limit, ports).getRolls();
+                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast(emptySet, SOCRoad.COST, limit, ports).getRolls();
                 estimatesFromNothing[SETTLEMENT] = calculateRollsAndRsrcFast(emptySet, SOCSettlement.COST, limit, ports).getRolls();
                 estimatesFromNothing[CITY] = calculateRollsAndRsrcFast(emptySet, SOCCity.COST, limit, ports).getRolls();
                 estimatesFromNothing[CARD] = calculateRollsAndRsrcFast(emptySet, SOCGame.CARD_SET, limit, ports).getRolls();
@@ -266,7 +266,7 @@ public class SOCBuildingSpeedEstimate
 
         try
         {
-            estimatesFromNow[ROAD] = calculateRollsAccurate(resources, SOCRoad.ROAD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+            estimatesFromNow[ROAD] = calculateRollsAccurate(resources, SOCRoad.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
             estimatesFromNow[SETTLEMENT] = calculateRollsAccurate(resources, SOCSettlement.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
             estimatesFromNow[CITY] = calculateRollsAccurate(resources, SOCCity.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
             estimatesFromNow[CARD] = calculateRollsAccurate(resources, SOCGame.CARD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
@@ -296,7 +296,7 @@ public class SOCBuildingSpeedEstimate
 
         try
         {
-            estimatesFromNow[ROAD] = calculateRollsAndRsrcFast(resources, SOCRoad.ROAD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();
+            estimatesFromNow[ROAD] = calculateRollsAndRsrcFast(resources, SOCRoad.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
             estimatesFromNow[SETTLEMENT] = calculateRollsAndRsrcFast(resources, SOCSettlement.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
             estimatesFromNow[CITY] = calculateRollsAndRsrcFast(resources, SOCCity.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
             estimatesFromNow[CARD] = calculateRollsAndRsrcFast(resources, SOCGame.CARD_SET, DEFAULT_ROLL_LIMIT, ports).getRolls();

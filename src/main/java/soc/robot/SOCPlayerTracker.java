@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -2465,7 +2465,7 @@ public class SOCPlayerTracker
 
         final int roadETA;
         SOCBuildingSpeedEstimate bse = new SOCBuildingSpeedEstimate(player.getNumbers());
-        roadETA = bse.calculateRollsFast(SOCGame.EMPTY_RESOURCES, SOCRoad.ROAD_SET, 500, player.getPortFlags());
+        roadETA = bse.calculateRollsFast(SOCGame.EMPTY_RESOURCES, SOCRoad.COST, 500, player.getPortFlags());
 
         roadsToGo = 500;
         longestRoadETA = 500;

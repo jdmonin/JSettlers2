@@ -4442,7 +4442,7 @@ public class SOCGame implements Serializable, Cloneable
             {
                 final boolean rets = cancelBuildRoad(currentPlayerNumber);
                 return new SOCForceEndTurnResult
-                    (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, rets ? SOCRoad.ROAD_SET : null);
+                    (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, rets ? SOCRoad.COST : null);
             }
 
         case PLACING_SETTLEMENT:

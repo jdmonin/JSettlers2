@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2011,2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011,2014,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -32,8 +32,11 @@ import java.util.Vector;
 public class SOCSettlement extends SOCPlayingPiece
 {
     /**
-     * the set of resources a player needs to build a {@link SOCSettlement settlement}
+     * The set of resources a player needs to build a {@link SOCSettlement settlement}.
+     *<P>
+     * Before v2.0.00, this field was {@code SOCGame.SETTLEMENT_SET}.
      * @see SOCPlayingPiece#getResourcesToBuild(int)
+     * @since 2.0.00
      */
     public static final SOCResourceSet COST = new SOCResourceSet(1, 0, 1, 1, 1, 0);
 

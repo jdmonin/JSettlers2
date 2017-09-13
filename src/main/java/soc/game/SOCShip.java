@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2013,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -39,11 +39,12 @@ package soc.game;
 public class SOCShip extends SOCRoad
 {
     /**
-     * the set of resources a player needs to build a {@link SOCShip ship}
+     * The set of resources a player needs to build a {@link SOCShip ship}.
      * @see SOCPlayingPiece#getResourcesToBuild(int)
      * @since 2.0.00
      */
     public static final SOCResourceSet COST = new SOCResourceSet(0, 0, 1, 0, 1, 0);
+
     private static final long serialVersionUID = 2000L;
 
     /**

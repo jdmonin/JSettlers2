@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -680,7 +680,7 @@ public class SOCRobotDM
               D.ebugPrintln("Number of roads: "+bestLRPath.size());
               SOCResourceSet targetResources = new SOCResourceSet();
               for (int i = 0; i < bestLRPath.size(); i++) {
-                  targetResources.add(SOCRoad.ROAD_SET);
+                  targetResources.add(SOCRoad.COST);
               }
               lrETA = ourBSE.calculateRollsFast
                   (ourPlayerData.getResources(), targetResources, 100, ourPlayerData.getPortFlags());
@@ -958,7 +958,7 @@ public class SOCRobotDM
                       ((pathFirst != null) && (pathFirst instanceof SOCPossibleShip)
                        && ! ((SOCPossibleShip) pathFirst).isCoastalRoadAndShip)  // TODO better coastal ETA scoring
                       ? SOCShip.COST
-                      : SOCRoad.ROAD_SET;
+                      : SOCRoad.COST;
                   for (int i = 0; i < pathLength; i++)
                       targetResources.add(rtype);
               }
@@ -2564,7 +2564,7 @@ public class SOCRobotDM
     // Building road or ship?  TODO Better ETA calc for coastal road/ship
     final boolean isShip = (posRoad instanceof SOCPossibleShip)
         && ! ((SOCPossibleShip) posRoad).isCoastalRoadAndShip;
-    final SOCResourceSet rsrcs = (isShip ? SOCShip.COST : SOCRoad.ROAD_SET);
+    final SOCResourceSet rsrcs = (isShip ? SOCShip.COST : SOCRoad.COST);
 
     D.ebugPrintln("--- before [start] ---");
     SOCResourceSet originalResources = ourPlayerData.getResources().copy();

@@ -4752,10 +4752,10 @@ public class SOCRobotBrain extends Thread
 
         if ((ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 1) && (ourPlayerData.hasPotentialRoad()))
         {
-            while (tempTO.contains(SOCRoad.ROAD_SET))
+            while (tempTO.contains(SOCRoad.COST))
             {
                 score += 1;
-                tempTO.subtract(SOCRoad.ROAD_SET);
+                tempTO.subtract(SOCRoad.COST);
             }
         }
 

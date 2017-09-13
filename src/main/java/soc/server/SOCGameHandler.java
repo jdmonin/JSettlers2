@@ -2433,20 +2433,20 @@ public class SOCGameHandler extends GameHandler
 
         srv.gameList.takeMonitorForGame(gaName);
 
-        for (int resourceType = SOCResourceConstants.CLAY; resourceType <= SOCResourceConstants.WOOD; ++resourceType)
+        for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
         {
             // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP.
 
-            final int amt = resourceSet.getAmount(resourceType);
+            final int amt = resourceSet.getAmount(res);
             if (amt <= 0)
                 continue;
 
             if (playerConn != null)
-                srv.messageToPlayer(playerConn, new SOCPlayerElement(gaName, mainPlayer, losegain, resourceType, amt, isNews));
+                srv.messageToPlayer(playerConn, new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt, isNews));
             else
-                srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, mainPlayer, losegain, resourceType, amt, isNews));
+                srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt, isNews));
             if (tradingPlayer != -1)
-                srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, tradingPlayer, gainlose, resourceType, amt, isNews));
+                srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, tradingPlayer, gainlose, res, amt, isNews));
             if (isNews)
                 isNews = false;
 
@@ -2455,7 +2455,7 @@ public class SOCGameHandler extends GameHandler
                 if (needComma)
                     message.append(", ");
                 message.append
-                    (MessageFormat.format( /*I*/"{0,number} {1}"/*18N*/, amt, SOCResourceConstants.resName(resourceType))); // "3 clay"
+                    (MessageFormat.format( /*I*/"{0,number} {1}"/*18N*/, amt, SOCResourceConstants.resName(res))); // "3 clay"
                 needComma = true;
             }
         }

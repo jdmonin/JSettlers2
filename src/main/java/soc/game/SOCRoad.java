@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2011-2012,2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2012,2014,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -32,10 +32,13 @@ package soc.game;
 public class SOCRoad extends SOCPlayingPiece
 {
     /**
-     * the set of resources a player needs to build a {@link SOCRoad road}
+     * The set of resources a player needs to build a {@link SOCRoad road}.
+     *<P>
+     * Before v2.0.00, this field was {@code SOCGame.ROAD_SET}.
      * @see SOCPlayingPiece#getResourcesToBuild(int)
+     * @since 2.0.00
      */
-    public static final SOCResourceSet ROAD_SET = new SOCResourceSet(1, 0, 0, 0, 1, 0);
+    public static final SOCResourceSet COST = new SOCResourceSet(1, 0, 0, 0, 1, 0);
 
     /**
      * Make a new road

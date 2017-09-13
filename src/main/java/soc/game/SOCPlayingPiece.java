@@ -303,7 +303,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
         switch (pieceType)
         {
         case ROAD:
-            return SOCRoad.ROAD_SET;
+            return SOCRoad.COST;
         case SETTLEMENT:
             return SOCSettlement.COST;
         case CITY:

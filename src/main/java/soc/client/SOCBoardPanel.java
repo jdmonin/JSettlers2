@@ -7639,7 +7639,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         if ((! isShip)
                             && player.isPotentialRoad(id)
                             && (player.getNumPieces(SOCPlayingPiece.ROAD) > 0)
-                            && (debugPP || player.getResources().contains(SOCRoad.ROAD_SET)))
+                            && (debugPP || player.getResources().contains(SOCRoad.COST)))
                         {
                             hoverRoadID = id;
                         }
