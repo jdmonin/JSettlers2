@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
+ * Portions of this file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,10 +31,10 @@ public interface ResourceSet
 {
     /**
      * How many resources of this type are contained in the set?
-     * @return the number of a kind of resource
-     *
      * @param resourceType  the type of resource, like {@link SOCResourceConstants#CLAY}
+     * @return the number of a kind of resource
      * @see #contains(int)
+     * @see #getTotal()
      */
     int getAmount(int resourceType);
 
@@ -54,11 +55,12 @@ public interface ResourceSet
      * that same set after adding wood and sheep returns 3, etc.
      * @return  The number of resource types in this set with nonzero resource counts.
      */
-    int resourceTypeCount();
+    int getResourceTypeCount();
 
     /**
      * Get the total number of resources in this set
      * @return the total number of resources
+     * @see #getAmount(int)
      */
     int getTotal();
 

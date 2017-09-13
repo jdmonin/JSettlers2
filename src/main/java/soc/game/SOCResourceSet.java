@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2009,2012-2015 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2009,2012-2015,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,8 @@ import java.util.Arrays;
  * @see SOCPlayingPiece#getResourcesToBuild(int)
  */
 @SuppressWarnings("serial")
-public class SOCResourceSet implements Serializable, Cloneable, ResourceSet {
+public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
+{
     /** Resource set with zero of each resource type */
     public static final SOCResourceSet EMPTY_SET = new SOCResourceSet();
 
@@ -127,7 +128,6 @@ public class SOCResourceSet implements Serializable, Cloneable, ResourceSet {
      * @see #getAmount(int)
      * @see #contains(ResourceSet)
      */
-    @Override
     public boolean contains(final int resourceType)
     {
         if (resourceType >= resources.length)
@@ -137,12 +137,11 @@ public class SOCResourceSet implements Serializable, Cloneable, ResourceSet {
 
     /**
      * How many resources of this type are contained in the set?
-     * @return the number of a kind of resource
-     *
      * @param resourceType  the type of resource, like {@link SOCResourceConstants#CLAY}
+     * @return the number of a kind of resource
      * @see #contains(int)
+     * @see #getTotal()
      */
-    @Override
     public int getAmount(int resourceType)
     {
         return resources[resourceType];
@@ -152,9 +151,9 @@ public class SOCResourceSet implements Serializable, Cloneable, ResourceSet {
      * Get the total number of resources in this set, including unknown types.
      * @return the total number of resources
      * @see #getKnownTotal()
-     * @see #resourceTypeCount()
+     * @see #getAmount(int)
+     * @see #getResourceTypeCount()
      */
-    @Override
     public int getTotal()
     {
         int sum = 0;
@@ -177,8 +176,7 @@ public class SOCResourceSet implements Serializable, Cloneable, ResourceSet {
      * @return  The number of resource types in this set with nonzero resource counts.
      * @since 2.0.00
      */
-    @Override
-    public int resourceTypeCount()
+    public int getResourceTypeCount()
     {
         int typ = 0;
 
@@ -290,7 +288,7 @@ public class SOCResourceSet implements Serializable, Cloneable, ResourceSet {
 
     /**
      * subtract an entire resource set. If any type's amount would go below 0, set it to 0.
-     *
+     * @param toReduce  the resource set to subtract
      */
     public void subtract(ResourceSet toReduce)
     {
@@ -473,7 +471,6 @@ public class SOCResourceSet implements Serializable, Cloneable, ResourceSet {
     }
 
     /** {@inheritDoc} */
-    @Override
     public boolean contains(ResourceSet other)
     {
         return gte(this, other);
