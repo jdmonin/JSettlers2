@@ -145,7 +145,7 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
 
         int len = (2 * n) - 1;  // for each player, player number and the 0 separating their rset from the next player
         for (SOCResourceSet rs : rsrc)
-            len += 2 * (rs.getKnownTypesCount());  // for each rtype, amount and type number
+            len += 2 * (rs.resourceTypeCount());  // for each rtype, amount and type number
 
         int[] pa = new int[len];
         int i = 0;  // write next value to pa[i]

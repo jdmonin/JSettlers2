@@ -39,29 +39,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import soc.debug.D;
-import soc.game.SOCBoard;
-import soc.game.SOCBoardLarge;
-import soc.game.SOCDevCard;
-import soc.game.SOCDevCardConstants;
-import soc.game.SOCForceEndTurnResult;
-import soc.game.SOCFortress;
-import soc.game.SOCGame;
-import soc.game.SOCGameOption;
-import soc.game.SOCInventory;
-import soc.game.SOCInventoryItem;
-import soc.game.SOCPlayer;
-import soc.game.SOCPlayingPiece;
-import soc.game.SOCResourceConstants;
-import soc.game.SOCResourceSet;
-import soc.game.SOCRoad;
-import soc.game.SOCScenario;
-import soc.game.SOCScenarioEventListener;
-import soc.game.SOCScenarioGameEvent;
-import soc.game.SOCScenarioPlayerEvent;
-import soc.game.SOCSettlement;
-import soc.game.SOCSpecialItem;
-import soc.game.SOCTradeOffer;
-import soc.game.SOCVillage;
+import soc.game.*;
 import soc.message.SOCBoardLayout;
 import soc.message.SOCBoardLayout2;
 import soc.message.SOCCancelBuildRequest;
@@ -2417,7 +2395,7 @@ public class SOCGameHandler extends GameHandler
      * Also used to report the "give" or "get" half of a resource trade.
      *
      * @param gaName  Game name
-     * @param rset    Resource set (from a roll, or the "give" or "get" side of a trade).
+     * @param resourceSet    Resource set (from a roll, or the "give" or "get" side of a trade).
      *                Resource type {@link SOCResourceConstants#UNKNOWN UNKNOWN} or
      *                {@link SOCResourceConstants#GOLD_LOCAL GOLD_LOCAL} is ignored.
      *                Only positive resource amounts are sent (negative is ignored).
@@ -2444,7 +2422,7 @@ public class SOCGameHandler extends GameHandler
      * @see SOCGameMessageHandler#handleROLLDICE(SOCGame, StringConnection, SOCRollDice)
      */
     void reportRsrcGainLoss
-        (final String gaName, final SOCResourceSet rset, final boolean isLoss, boolean isNews,
+        (final String gaName, final ResourceSet resourceSet, final boolean isLoss, boolean isNews,
          final int mainPlayer, final int tradingPlayer, StringBuffer message, StringConnection playerConn)
     {
         final int losegain  = isLoss ? SOCPlayerElement.LOSE : SOCPlayerElement.GAIN;  // for pnA
@@ -2454,20 +2432,20 @@ public class SOCGameHandler extends GameHandler
 
         srv.gameList.takeMonitorForGame(gaName);
 
-        for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+        for (int resourceType = SOCResourceConstants.CLAY; resourceType <= SOCResourceConstants.WOOD; ++resourceType)
         {
             // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP.
 
-            final int amt = rset.getAmount(res);
+            final int amt = resourceSet.getAmount(resourceType);
             if (amt <= 0)
                 continue;
 
             if (playerConn != null)
-                srv.messageToPlayer(playerConn, new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt, isNews));
+                srv.messageToPlayer(playerConn, new SOCPlayerElement(gaName, mainPlayer, losegain, resourceType, amt, isNews));
             else
-                srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt, isNews));
+                srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, mainPlayer, losegain, resourceType, amt, isNews));
             if (tradingPlayer != -1)
-                srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, tradingPlayer, gainlose, res, amt, isNews));
+                srv.messageToGameWithMon(gaName, new SOCPlayerElement(gaName, tradingPlayer, gainlose, resourceType, amt, isNews));
             if (isNews)
                 isNews = false;
 
@@ -2476,7 +2454,7 @@ public class SOCGameHandler extends GameHandler
                 if (needComma)
                     message.append(", ");
                 message.append
-                    (MessageFormat.format( /*I*/"{0,number} {1}"/*18N*/, amt, SOCResourceConstants.resName(res))); // "3 clay"
+                    (MessageFormat.format( /*I*/"{0,number} {1}"/*18N*/, amt, SOCResourceConstants.resName(resourceType))); // "3 clay"
                 needComma = true;
             }
         }

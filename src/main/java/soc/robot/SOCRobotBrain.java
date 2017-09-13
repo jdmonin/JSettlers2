@@ -4742,28 +4742,28 @@ public class SOCRobotBrain extends Thread
 
         if ((ourPlayerData.getNumPieces(SOCPlayingPiece.SETTLEMENT) >= 1) && (ourPlayerData.hasPotentialSettlement()))
         {
-            while (tempTO.contains(SOCGame.SETTLEMENT_SET))
+            while (tempTO.contains(SOCSettlement.COST))
             {
                 score += 2;
-                tempTO.subtract(SOCGame.SETTLEMENT_SET);
+                tempTO.subtract(SOCSettlement.COST);
             }
         }
 
         if ((ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 1) && (ourPlayerData.hasPotentialRoad()))
         {
-            while (tempTO.contains(SOCGame.ROAD_SET))
+            while (tempTO.contains(SOCRoad.ROAD_SET))
             {
                 score += 1;
-                tempTO.subtract(SOCGame.ROAD_SET);
+                tempTO.subtract(SOCRoad.ROAD_SET);
             }
         }
 
         if ((ourPlayerData.getNumPieces(SOCPlayingPiece.CITY) >= 1) && (ourPlayerData.hasPotentialCity()))
         {
-            while (tempTO.contains(SOCGame.CITY_SET))
+            while (tempTO.contains(SOCCity.COST))
             {
                 score += 2;
-                tempTO.subtract(SOCGame.CITY_SET);
+                tempTO.subtract(SOCCity.COST);
             }
         }
 

@@ -21,10 +21,7 @@
  **/
 package soc.robot;
 
-import soc.game.SOCGame;
-import soc.game.SOCPlayer;
-import soc.game.SOCPlayingPiece;
-import soc.game.SOCResourceSet;
+import soc.game.*;
 import soc.message.SOCSetSpecialItem;  // strictly for javadocs
 
 import java.util.Vector;
@@ -374,16 +371,16 @@ public abstract class SOCPossiblePiece
         switch (pieceType)
         {
         case ROAD:
-            return SOCGame.ROAD_SET;
+            return SOCRoad.ROAD_SET;
 
         case SETTLEMENT:
-            return SOCGame.SETTLEMENT_SET;
+            return SOCSettlement.COST;
 
         case CITY:
-            return SOCGame.CITY_SET;
+            return SOCCity.COST;
 
         case SHIP:
-            return SOCGame.SHIP_SET;
+            return SOCShip.COST;
 
         case SOCPlayingPiece.MAXPLUSONE:
             // fall through

@@ -363,7 +363,7 @@ public class SOCGame implements Serializable, Cloneable
      * ({@link #WAITING_FOR_ROB_CHOOSE_PLAYER}) after any discards.
      * If there are no possible victims, next state is {@link #PLAY1}.
      *
-     * @see #discard(int, SOCResourceSet)
+     * @see #discard(int, ResourceSet)
      */
     public static final int WAITING_FOR_DISCARDS = 50;
 
@@ -576,34 +576,9 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * an empty set of resources.
-     * @see #SETTLEMENT_SET
+     * @see SOCSettlement#COST
      */
-    public static final SOCResourceSet EMPTY_RESOURCES = new SOCResourceSet();
-
-    /**
-     * the set of resources a player needs to build a {@link SOCSettlement settlement}
-     * @see SOCPlayingPiece#getResourcesToBuild(int)
-     */
-    public static final SOCResourceSet SETTLEMENT_SET = new SOCResourceSet(1, 0, 1, 1, 1, 0);
-
-    /**
-     * the set of resources a player needs to build a {@link SOCRoad road}
-     * @see SOCPlayingPiece#getResourcesToBuild(int)
-     */
-    public static final SOCResourceSet ROAD_SET = new SOCResourceSet(1, 0, 0, 0, 1, 0);
-
-    /**
-     * the set of resources a player needs to build a {@link SOCCity city}
-     * @see SOCPlayingPiece#getResourcesToBuild(int)
-     */
-    public static final SOCResourceSet CITY_SET = new SOCResourceSet(0, 3, 0, 2, 0, 0);
-
-    /**
-     * the set of resources a player needs to build a {@link SOCShip ship}
-     * @see SOCPlayingPiece#getResourcesToBuild(int)
-     * @since 2.0.00
-     */
-    public static final SOCResourceSet SHIP_SET = new SOCResourceSet(0, 0, 1, 0, 1, 0);
+    public static final ResourceSet EMPTY_RESOURCES = new SOCResourceSet();
 
     /**
      * the set of resources a player needs to buy a development card
@@ -2134,7 +2109,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, if true and
-     * {@link #canPickGoldHexResources(int, SOCResourceSet)} in state {@link #WAITING_FOR_PICK_GOLD_RESOURCE},
+     * {@link #canPickGoldHexResources(int, ResourceSet)} in state {@link #WAITING_FOR_PICK_GOLD_RESOURCE},
      * this player's "gold hex" free resources include victory over a pirate fleet attack at a dice roll.
      * @param pn  Player number
      * @since 2.0.00
@@ -4466,24 +4441,24 @@ public class SOCGame implements Serializable, Cloneable
             {
                 final boolean rets = cancelBuildRoad(currentPlayerNumber);
                 return new SOCForceEndTurnResult
-                    (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, rets ? ROAD_SET : null);
+                    (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, rets ? SOCRoad.ROAD_SET : null);
             }
 
         case PLACING_SETTLEMENT:
             cancelBuildSettlement(currentPlayerNumber);
             return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, SETTLEMENT_SET);
+                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, SOCSettlement.COST);
 
         case PLACING_CITY:
             cancelBuildCity(currentPlayerNumber);
             return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, CITY_SET);
+                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, SOCCity.COST);
 
         case PLACING_SHIP:
             {
                 final boolean rets = cancelBuildShip(currentPlayerNumber);
                 return new SOCForceEndTurnResult
-                    (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, rets ? SHIP_SET : null);
+                    (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, rets ? SOCShip.COST : null);
             }
 
         case PLACING_INV_ITEM:
@@ -4706,7 +4681,7 @@ public class SOCGame implements Serializable, Cloneable
      * When called, assumes {@link #isForcingEndTurn()} flag is already set.
      *<P>
      * If {@code isDiscard}, pick random resources from the player's hand
-     * and call {@link #discard(int, SOCResourceSet)},
+     * and call {@link #discard(int, ResourceSet)},
      * Otherwise gain random resources by calling {@link #pickGoldHexResources(int, SOCResourceSet)}.
      * Then look at other players' hand size. If no one else must discard or pick,
      * ready to end turn, set state {@link #PLAY1}.
@@ -5240,12 +5215,12 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * @return true if the player can discard these resources
-     * @see #discard(int, SOCResourceSet)
+     * @see #discard(int, ResourceSet)
      *
      * @param pn  the number of the player that is discarding
      * @param rs  the resources that the player is discarding
      */
-    public boolean canDiscard(final int pn, SOCResourceSet rs)
+    public boolean canDiscard(final int pn, ResourceSet rs)
     {
         if (gameState != WAITING_FOR_DISCARDS)
         {
@@ -5278,7 +5253,7 @@ public class SOCGame implements Serializable, Cloneable
      * or {@link #WAITING_FOR_ROBBER_OR_PIRATE}
      * or {@link #PLACING_ROBBER} accordingly.
      *<P>
-     * Assumes {@link #canDiscard(int, SOCResourceSet)} already called to validate.
+     * Assumes {@link #canDiscard(int, ResourceSet)} already called to validate.
      *<P>
      * In scenario option <tt>_SC_PIRI</tt>, there is no robber
      * to move, but the player will choose their robbery victim
@@ -5294,7 +5269,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pn   the number of the player
      * @param rs   the resources that are being discarded
      */
-    public void discard(final int pn, SOCResourceSet rs)
+    public void discard(final int pn, ResourceSet rs)
     {
         players[pn].getResources().subtract(rs);
         players[pn].setNeedToDiscard(false);
@@ -5361,7 +5336,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #pickGoldHexResources(int, SOCResourceSet)
      * @since 2.0.00
      */
-    public boolean canPickGoldHexResources(final int pn, final SOCResourceSet rs)
+    public boolean canPickGoldHexResources(final int pn, final ResourceSet rs)
     {
         if ((gameState != WAITING_FOR_PICK_GOLD_RESOURCE)
             && (gameState != STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
@@ -5380,7 +5355,7 @@ public class SOCGame implements Serializable, Cloneable
      * (Or, during initial placement, usually {@link #START2B} or {@link #START3B}, after initial settlement at gold.)
      * During normal play, the oldGameState might sometimes be {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
      *<P>
-     * Assumes {@link #canPickGoldHexResources(int, SOCResourceSet)} already called to validate.
+     * Assumes {@link #canPickGoldHexResources(int, ResourceSet)} already called to validate.
      *<P>
      * During initial placement from {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE},
      * calls {@link #advanceTurnStateAfterPutPiece()}.
@@ -6479,7 +6454,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param offering  the number of the player making the offer
      * @param accepting the number of the player accepting the offer
-     * @see #canMakeBankTrade(SOCResourceSet, SOCResourceSet)
+     * @see #canMakeBankTrade(ResourceSet, ResourceSet)
      */
     public boolean canMakeTrade(final int offering, final int accepting)
     {
@@ -6568,7 +6543,7 @@ public class SOCGame implements Serializable, Cloneable
      * Can we undo this bank trade?
      * True only if the last action this turn was a bank trade with the same resources.
      *<P>
-     * To undo the bank trade, call {@link #canMakeBankTrade(SOCResourceSet, SOCResourceSet)}
+     * To undo the bank trade, call {@link #canMakeBankTrade(ResourceSet, ResourceSet)}
      * with give/get swapped from the original call, then call
      * {@link #makeBankTrade(SOCResourceSet, SOCResourceSet)} the same way.
      *
@@ -6577,7 +6552,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return  true if the current player can undo a bank trade of these resources
      * @since 1.1.13
      */
-    public boolean canUndoBankTrade(SOCResourceSet undo_gave, SOCResourceSet undo_got)
+    public boolean canUndoBankTrade(ResourceSet undo_gave, ResourceSet undo_got)
     {
         if (! lastActionWasBankTrade)
             return false;
@@ -6593,9 +6568,9 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param  give  what the player will give to the bank
      * @param  get   what the player wants from the bank
-     * @see #canUndoBankTrade(SOCResourceSet, SOCResourceSet)
+     * @see #canUndoBankTrade(ResourceSet, ResourceSet)
      */
-    public boolean canMakeBankTrade(SOCResourceSet give, SOCResourceSet get)
+    public boolean canMakeBankTrade(ResourceSet give, ResourceSet get)
     {
         if (gameState != PLAY1)
         {
@@ -6719,11 +6694,11 @@ public class SOCGame implements Serializable, Cloneable
      * perform a bank trade, or undo the last bank trade.
      *<P>
      * This method does not validate against game rules, so call
-     * {@link #canMakeBankTrade(SOCResourceSet, SOCResourceSet)} first.
+     * {@link #canMakeBankTrade(ResourceSet, ResourceSet)} first.
      *<P>
      * Undo was added in version 1.1.13; if the player's previous action
      * this turn was a bank trade, it can be undone by calling
-     * {@link #canUndoBankTrade(SOCResourceSet, SOCResourceSet)},
+     * {@link #canUndoBankTrade(ResourceSet, ResourceSet)},
      * then calling {@link #makeBankTrade(SOCResourceSet, SOCResourceSet)} with
      * the give/get swapped.  This is the only time the resource count
      * of <tt>give</tt> is less than <tt>get</tt> here (for example,
@@ -7472,7 +7447,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pick  the resources that the player wants
      */
-    public boolean canDoDiscoveryAction(SOCResourceSet pick)
+    public boolean canDoDiscoveryAction(ResourceSet pick)
     {
         if (gameState != WAITING_FOR_DISCOVERY)
         {

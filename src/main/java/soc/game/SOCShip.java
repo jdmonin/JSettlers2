@@ -37,6 +37,12 @@ package soc.game;
  */
 public class SOCShip extends SOCRoad
 {
+    /**
+     * the set of resources a player needs to build a {@link SOCShip ship}
+     * @see SOCPlayingPiece#getResourcesToBuild(int)
+     * @since 2.0.00
+     */
+    public static final SOCResourceSet COST = new SOCResourceSet(0, 0, 1, 0, 1, 0);
     private static final long serialVersionUID = 2000L;
 
     /**
