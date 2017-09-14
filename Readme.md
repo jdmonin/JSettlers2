@@ -327,18 +327,18 @@ It's a simple process to upgrade to the latest version of JSettlers:
   change and you'll need to add a server config option to keep the
   same behavior, so read carefully.
 - If you're using the optional database for user accounts or game scores:
-      - Make a backup or export its contents. JSettlers 1.2.00 is the first
-        version which has schema changes, which are recommended but optional
-        (see below). Technical problems during the upgrade are very unlikely;
-        having the backup gives you more flexibility if a problem comes up.
-      - If you're upgrading from JSettlers 1.1.20 or earlier, to create more
-        users you must have an account admin list configured
-        (`jsettlers.accounts.admins` property, in the `jsserver.properties`
-        file or command line) unless your server is in "open registration" mode.
-      - If you're upgrading from JSettlers 1.1.18 or earlier, for security
-        reasons newer versions by default disallow user account
-        self-registration. If you still want to use that option, search this
-        Readme for "open registration".
+     - Make a backup or export its contents. JSettlers 1.2.00 is the first
+       version which has schema changes, which are recommended but optional
+       (see below). Technical problems during the upgrade are very unlikely;
+       having the backup gives you more flexibility if a problem comes up.
+     - If you're upgrading from JSettlers 1.1.20 or earlier, to create more
+       users you must have an account admin list configured
+       (`jsettlers.accounts.admins` property, in the `jsserver.properties`
+       file or command line) unless your server is in "open registration" mode.
+     - If you're upgrading from JSettlers 1.1.18 or earlier, for security
+       reasons newer versions by default disallow user account
+       self-registration. If you still want to use that option, search this
+       Readme for "open registration".
 - Save a backup copy of your current JSettlers.jar and JSettlersServer.jar,
   in case you want to run the old version for any reason.
 - Stop the old server
@@ -616,13 +616,12 @@ this option when you start your server:
 
 	-Djsettlers.accounts.required=y
 
-To permit only certain users to create new accounts, instead of all users,
-list them when you start your server:
+To specify the Account Admin Users who can create new accounts, list them when you start your server:
 
 	-Djsettlers.accounts.admins=bob,joe,lily
-	
-This creates a whitelist of Account Admin Users. Account admins can create
-accounts and run user-related commands, such as listing all users in a game with
+
+The account admins on that whitelist can create accounts and run user-related commands,
+such as listing all users in a game with
 
 	*WHO* gamename
 	
@@ -638,10 +637,10 @@ into the chat window of any game while connected as an admin user.
 
 Note:
 The server doesn't require or check at startup that the named accounts all
-already exist, the whitelist is only a comma-separated list of names. This
-simplifies initial setup.
+already exist; the whitelist is only a comma-separated list of names, to
+simplify initial setup.
 
-In case an admin account password is lost, there's a rudimentary password-reset feature:
+In case an admin account password is lost, there's a rudimentary **password-reset** feature:  
 Run JSettlersServer with the usual DB parameters and add: `--pw-reset username`  
 You will be prompted for username's new password. This command can be run while
 the server is up. It will reset the password and exit, and won't start a second
