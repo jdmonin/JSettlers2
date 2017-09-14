@@ -201,6 +201,19 @@ public class SOCPlayerClient
      */
     public static final boolean isJavaOnOSX =
         System.getProperty("os.name").toLowerCase().startsWith("mac os x");
+    static
+    {
+        if (isJavaOnOSX)
+        {
+            // Must set "OSX look and feel" items before calling any AWT code
+            // or setting a platform look and feel.
+
+            System.setProperty("apple.awt.application.name", "JSettlers");
+                // Required on OSX 10.7 or so and newer; works for java 6
+            System.setProperty("com.apple.mrj.application.apple.menu.about.name", "JSettlers");
+                // Works for earlier OSX versions
+        }
+    }
 
     /**
      * Locale for i18n message lookups used for {@link #strings}.  Also sent to server while connecting.
