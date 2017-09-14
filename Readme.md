@@ -393,7 +393,7 @@ or User Accounts.
 
 For these instructions we'll assume you already installed the PostgreSQL or
 MySQL software, or will download a SQLite JAR to avoid database server setup.
-JSettlers is tested with sqlite 3.7, mysql 5.5, and postgresql 8.4 and 9.5.
+JSettlers is tested with sqlite 3.15.1, mysql 5.5, and postgresql 8.4 and 9.5.
 
 You will need a JDBC driver JAR file in your classpath or the same directory as
 the JSettlers JAR, see below for details. Besides PostgreSQL, MySQL, or SQLite
@@ -450,7 +450,7 @@ In some cases, adding to the classpath won't work because of JVM restrictions
 about JAR files.  If you find that's the case, place the JDBC jar in the same
 location as JSettlersServer.jar, and specify on the jsettlers command line:
 
-	-Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar
+	-Djsettlers.db.jar=sqlite-jdbc-3.xx.y.jar
 
 (sqlite jar filename may vary, update the parameter to match it).
 
@@ -530,10 +530,10 @@ You may also need to specify a `jsettlers.db.jar` value as noted in the
 ##### For sqlite:
 
 Copy `jsettlers-tables-sqlite.sql` to the same directory as `JSettlersServer.jar`
-and `sqlite-jdbc-3.7.2.jar` and run this command (sqlite jar filename may
+and `sqlite-jdbc.jar` and run this command (sqlite jar filename may
 vary, update the jsettlers.db.jar parameter to match it):
 
-    $ java -jar JSettlersServer.jar -Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar  -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=jsettlers-tables-sqlite.sql
+    $ java -jar JSettlersServer.jar -Djsettlers.db.jar=sqlite-jdbc.jar  -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=jsettlers-tables-sqlite.sql
 
 You should see this message:
 
