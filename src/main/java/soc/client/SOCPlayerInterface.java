@@ -510,12 +510,12 @@ public class SOCPlayerInterface extends Frame
      * Starting value of the countdown to auto-reject bot trades.
      * For more details see {@link #getBotTradeRejectSec()}.
      *<P>
-     * Default value -5 is negative because the countdown is disabled by default.
+     * Default value -8 is negative because the countdown is disabled by default.
      * Another value can be specified in our constructor's {@code localPrefs} param.
      * @since 1.2.00
      */
-    private int botTradeRejectSec = - SOCPlayerClient.GameAwtDisplay.getUserPreference
-        (SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, 5);
+    private int botTradeRejectSec = SOCPlayerClient.GameAwtDisplay.getUserPreference
+        (SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, -8);
 
     /**
      * The dialog for getting what resources the player wants to discard or gain.
