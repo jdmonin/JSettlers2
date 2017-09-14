@@ -333,7 +333,7 @@ public class SOCServerMessageHandler
      *
      * @param c  the connection that sent the message
      * @param mes  the message
-     * @see #isUserDBUserAdmin(String, boolean)
+     * @see #isUserDBUserAdmin(String)
      * @since 1.1.19
      */
     private void handleAUTHREQUEST(StringConnection c, final SOCAuthRequest mes)
@@ -376,8 +376,7 @@ public class SOCServerMessageHandler
             {
                 if (mes.role.equals(SOCAuthRequest.ROLE_USER_ADMIN))
                 {
-                    // Check if we're using a user admin whitelist
-                    if (! srv.isUserDBUserAdmin(mesUser, false))
+                    if (! srv.isUserDBUserAdmin(mesUser))
                     {
                         c.put(SOCStatusMessage.toCmd
                                 (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVersion,
@@ -1085,7 +1084,7 @@ public class SOCServerMessageHandler
                     srv.messageToPlayer(c, gaName, SOCServer.GENERAL_COMMANDS_HELP[i]);
 
                 if ((userIsDebug && ! (c instanceof LocalStringConnection))  // no user admins in practice games
-                    || srv.isUserDBUserAdmin(plName, true))
+                    || srv.isUserDBUserAdmin(plName))
                 {
                     srv.messageToPlayer(c, gaName, SOCServer.ADMIN_COMMANDS_HEADING);
                     for (int i = 0; i < SOCServer.ADMIN_USER_COMMANDS_HELP.length; ++i)
@@ -1124,7 +1123,7 @@ public class SOCServerMessageHandler
 
     /**
      * Process the {@code *DBSETTINGS*} privileged admin command:
-     * Check {@link SOCServer#isUserDBUserAdmin(String, boolean)} and if OK and {@link SOCDBHelper#isInitialized()},
+     * Check {@link SOCServer#isUserDBUserAdmin(String)} and if OK and {@link SOCDBHelper#isInitialized()},
      * send the client a formatted list of server DB settings from {@link SOCDBHelper#getSettingsFormatted()}.
      * @param c  Client sending the admin command
      * @param gaName  Game in which to reply
@@ -1134,7 +1133,7 @@ public class SOCServerMessageHandler
     private void processDebugCommand_dbSettings(final StringConnection c, final SOCGame ga)
     {
         final String msgUser = c.getData();
-        if (! (srv.isUserDBUserAdmin(msgUser, true)
+        if (! (srv.isUserDBUserAdmin(msgUser)
                || (srv.isDebugUserEnabled() && msgUser.equals("debug"))))
         {
             return;
@@ -1234,7 +1233,7 @@ public class SOCServerMessageHandler
                 // Check if using user admins; if not, if using debug user
 
                 final String uname = c.getData();
-                boolean isAdmin = srv.isUserDBUserAdmin(uname, true);
+                boolean isAdmin = srv.isUserDBUserAdmin(uname);
                 if (! isAdmin)
                     isAdmin = (srv.isDebugUserEnabled() && uname.equals("debug"));
                 if (! isAdmin)

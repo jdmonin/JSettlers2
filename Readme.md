@@ -326,14 +326,21 @@ It's a simple process to upgrade to the latest version of JSettlers:
   made from your version to the latest version.  Occasionally defaults
   change and you'll need to add a server config option to keep the
   same behavior, so read carefully.
-- If you're upgrading from JSettlers 1.1.18 or earlier, for security reasons
-  newer versions by default disallow user account self-registration. If you
-  still want to use that option, search this README for "open registration".
+- If you're using the optional database for user accounts or game scores:
+      - Make a backup or export its contents. JSettlers 1.2.00 is the first
+        version which has schema changes, which are recommended but optional
+        (see below). Technical problems during the upgrade are very unlikely;
+        having the backup gives you more flexibility if a problem comes up.
+      - If you're upgrading from JSettlers 1.1.20 or earlier, to create more
+        users you must have an account admin list configured
+        (`jsettlers.accounts.admins` property, in the `jsserver.properties`
+        file or command line) unless your server is in "open registration" mode.
+      - If you're upgrading from JSettlers 1.1.18 or earlier, for security
+        reasons newer versions by default disallow user account
+        self-registration. If you still want to use that option, search this
+        Readme for "open registration".
 - Save a backup copy of your current JSettlers.jar and JSettlersServer.jar,
   in case you want to run the old version for any reason.
-- If you're using the optional database for user accounts and game scores,
-  make a backup or export its contents.  JSettlers 1.2.00 is the first version
-  which has schema changes, which are recommended but optional (see below).
 - Stop the old server
 - Copy the new JSettlers.jar and JSettlersServer.jar into place
 - Start the new server, including any new options you wanted from `doc/Versions.md`
@@ -552,18 +559,20 @@ Or, in your server's jsserver.properties file, add the line:
 
 ### Creating JSettlers Player Accounts in the DB (optional)
 
-To create player accounts, run the simple account creation client with the
-following command:
-
-	java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880
-
 Users with accounts must type their password to log into the server to play.
 People without accounts can still connect by leaving the password field blank,
 as long as they aren't using a nickname which has a password in the database.
 
-For security we recommend that you set the jsettlers.accounts.admins property,
-otherwise any user account can create others. See below for more details on
-listing admin usernames in that property.
+To create player accounts, for security you must set the account admins list
+property (`jsettlers.accounts.admins`) unless your server is in "open
+registration" mode where anyone can create accounts. Set the property in your
+`jsserver.properties` file or the server startup command line. See below for
+more details on listing admin usernames in that property.
+
+To create player accounts, run the simple account creation client with the
+following command:
+
+	java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880
 
 In versions before 1.1.19, anyone could create their own user accounts
 (open registration). In 1.1.19 this default was changed to improve security:
@@ -575,7 +584,8 @@ you start your server:
 
 When you first set up the database, there won't be any user accounts, so the
 server will allow anyone to create the first account.  Please be sure to
-create that first user account soon after you set up the database.
+create that first user account soon after you set up the database. The first
+account created must be on the account admins list.
 
 ### Password Encryption (BCrypt)
 
