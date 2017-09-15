@@ -245,6 +245,20 @@ public class SOCStatusMessage extends SOCMessage
     public static final int SV_ACCT_CREATED_OK_FIRST_ONE = 18;
 
     /**
+     * Client's authentication failed because requested nickname is not allowed or is reserved:
+     * {@code "Server"}, bot names like {@code "robot 7"}, or {@code "debug"} when not in debug mode.
+     *<P>
+     * This code would also be sent if the nickname fails {@link SOCMessage#isSingleLineAndSafe(String)},
+     * but a {@link SOCMessage} with that would be malformed and not parsed at the server.
+     *<P>
+     * Server versions earlier than v1.2.00 would instead respond with {@link #SV_NAME_IN_USE};
+     * this status is more specific. Clients older than v1.2.00 won't recognize this status value;
+     * they will be sent {@link #SV_NOT_OK_GENERIC} instead.
+     * @since 1.2.00
+     */
+    public static final int SV_NAME_NOT_ALLOWED = 19;
+
+    /**
      * Client has authenticated successfully, but their case-insensitive username differs from
      * their exact case-sensitive name in the database. To join and create games and channels,
      * the client must update its internal nickname field.
@@ -259,7 +273,7 @@ public class SOCStatusMessage extends SOCMessage
      * {@code SOCDisplaylessPlayerClient}, will need to handle this status value.
      * @since 1.2.00
      */
-    public static final int SV_OK_SET_NICKNAME = 19;
+    public static final int SV_OK_SET_NICKNAME = 20;
 
     /**
      * Client has connected successfully ({@link #SV_OK}) and the server's Debug Mode is on.
@@ -267,7 +281,7 @@ public class SOCStatusMessage extends SOCMessage
      * see {@link #toCmd(int, int, String)}.
      * @since 2.0.00
      */
-    public static final int SV_OK_DEBUG_MODE_ON = 20;
+    public static final int SV_OK_DEBUG_MODE_ON = 21;
 
     // IF YOU ADD A STATUS VALUE:
     // Do not change or remove the numeric values of earlier ones.

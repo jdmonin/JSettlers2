@@ -68,6 +68,7 @@ and backport minor new features until `2.0.00` is ready.
      - Per-game preference to auto-reject bot trades after a multi-second countdown
      - Initial Connect dialog: If username given, ensure New Game button is enabled
      - On OSX, set app name to JSettlers in menu bar
+- Users can't use the robot nickname prefixes "droid " or "robot ", or "debug" except in debug mode
 - Network: Send keepalive messages to idle games to keep clients connected
 - Game window during debug: Reset "current player" indicator when exiting `*FREEPLACE*` debug mode
 - Client debug, bot debug: Print network message contents if system property jsettlers.debug.traffic is set
