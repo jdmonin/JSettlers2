@@ -40,8 +40,9 @@ and backport minor new features until `2.0.00` is ready.
 	  (this example uses 18 seconds)  
 	  `-Djsettlers.bots.timeout.turn=18`
 	- New debug command `*STARTBOTGAME* [maxBots]` to begin current game as bots-only
-	- Example `soc.robot.sample3p.Sample3PBrain extending SOCRobotBrain`, `Sample3PClient extending SOCRobotClient`
 	- Standalone bot clients shut down properly if they can't reconnect to server after 3 retries
+	- Example `soc.robot.sample3p.Sample3PBrain extending SOCRobotBrain`, `Sample3PClient extending SOCRobotClient`
+	- Some private SOCRobotClient fields made protected for use by bot developer 3rd-party subclasses
 - Java 5 features, including parameterized types (thank you Paul Bilnoski)
 - Major client refactoring (separate UI from network interface) thanks to Paul Bilnoski;
     Paul's UI split preserves the spirit and flow of the code, with a more logical layered structure.

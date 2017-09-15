@@ -182,18 +182,18 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     /**
      * the current robot parameters for robot brains
      */
-    private SOCRobotParameters currentRobotParameters;
+    protected SOCRobotParameters currentRobotParameters;
 
     /**
      * the robot's "brains", 1 for each game this robot is currently playing.
      * @see SOCDisplaylessPlayerClient#games
      */
-    private Hashtable<String, SOCRobotBrain> robotBrains = new Hashtable<String, SOCRobotBrain>();
+    protected Hashtable<String, SOCRobotBrain> robotBrains = new Hashtable<String, SOCRobotBrain>();
 
     /**
      * the message queues for the different brains
      */
-    private Hashtable<String, CappedQueue<SOCMessage>> brainQs = new Hashtable<String, CappedQueue<SOCMessage>>();
+    protected Hashtable<String, CappedQueue<SOCMessage>> brainQs = new Hashtable<String, CappedQueue<SOCMessage>>();
 
     /**
      * a table of requests from the server to sit at games
@@ -209,7 +209,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * Since the robot and server are the same version, the
      * set of "known options" will always be in sync.
      */
-    private Hashtable<String, Map<String, SOCGameOption>> gameOptions = new Hashtable<String, Map<String, SOCGameOption>>();
+    protected Hashtable<String, Map<String, SOCGameOption>> gameOptions
+        = new Hashtable<String, Map<String, SOCGameOption>>();
 
     /**
      * number of games this bot has played
@@ -234,7 +235,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     /**
      * start time
      */
-    protected long startTime;
+    protected final long startTime;
 
     /**
      * used to maintain connection
