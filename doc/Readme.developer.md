@@ -74,7 +74,7 @@ For more information about the AI, please see the "Robots (AI)" section
 and Robert S Thomas' dissertation.
 
 For more information about the board coordinates, see the dissertation appendix A,
-or javadocs in `soc.game.SOCBoard`, and `src/docs/hexcoord.gif` and `hexcoord-6player.gif`.
+or javadocs in `soc.game.SOCBoard`, and `/docs/hexcoord.gif` and `hexcoord-6player.gif`.
 To show piece coordinates in the board's tooltips, in the game window chat box type:
 `=*= showcoords`  To no longer show those coordinates, type: `=*= hidecoords`
 
@@ -356,7 +356,7 @@ ideas.
 - Control the speed of robots in practice games
   - Adjust `SOCRobotBrain.pause`, `ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS`, etc
 - Sound effects
-- Add more functional and unit tests, in `test/bin/` and `test/test-src/` directories and `build.xml`
+- Add more functional and unit tests, in `src/test/bin/` and `src/test/test/java/` directories and `build.xml`
 - Possible: Auto-add robots when needed as server runs, with server active-game count
     - Only do so if `jsettlers.startrobots` property is set
 - refactor: `ga.getPlayer(ga.getCurrentPlayer())` or `getClient().getClientManager()`
@@ -448,7 +448,7 @@ range, directly or with the `native2ascii` utility:
 You can use the included editor `net.nand.util.i18n.gui.PTEMain` to edit
 localized strings for two locales side by side; this editor has unicode
 support and color hilighting, and will convert to `ISO-8859-1` (with unicode
-escapes) automatically when saving. See `src/java/net/nand/util/i18n/README.txt`
+escapes) automatically when saving. See `src/main/java/net/nand/util/i18n/README.txt`
 for more details.
 
 Before running PTEMain for the first time, you must build the JSettlers build

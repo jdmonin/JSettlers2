@@ -53,7 +53,8 @@ and backport minor new features until `2.0.00` is ready.
 - Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 - Project dir structure converted to maven layout
 - To simplify build process, move version and copyright info from `build.xml` to `version.info`
-- READMEs and VERSIONS.txt converted to Markdown (thank you Ruud Poutsma)
+- READMEs and VERSIONS.txt converted to Markdown (thank you Ruud Poutsma),
+    merged old-updates-rsthomas.html into Versions.md
 
 
 ## `1.2.00` (build OV20170xxx)

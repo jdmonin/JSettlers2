@@ -79,7 +79,7 @@ Ant's format. See `doc/Readme.developer.md` for details.
 From the command line, make sure you are in the JSettlers distribution
 directory which contains both `JSettlers.jar`, `JsettlersServer.jar` and the
 `lib` directory.  (If you have downloaded `jsettlers-2.x.xx-full.tar.gz`,
-look in the src/target directory for these files.)
+look in the /target directory for these files.)
 
 If you have downloaded `jsettlers-2.x.xx-full.jar` or `jsettlers-2.x.xx-server.jar`
 instead of the full tar.gz, use that filename on the command lines shown below.
