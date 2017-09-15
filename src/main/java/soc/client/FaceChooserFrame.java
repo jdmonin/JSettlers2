@@ -48,19 +48,18 @@ import soc.game.SOCGame;
 
 
 /**
- * Popup window for the user to browse and choose a face icon.
+ * A popup dialog with all available {@link SOCFaceButton} icons
+ * for the user to browse and change to.
  *<P>
- * To adjust size, set FaceChooserList.rowFacesWidth and .faceRowsHeight:
- *
- * @see soc.client.FaceChooserFrame.FaceChooserList#rowFacesWidth
- * @see soc.client.FaceChooserFrame.FaceChooserList#faceRowsHeight
- * @see soc.client.SOCFaceButton
+ * To adjust the grid's size in rows and columns, set {@link FaceChooserList#rowFacesWidth}
+ * and {@link FaceChooserList#faceRowsHeight}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.00
  */
 @SuppressWarnings("serial")
-public class FaceChooserFrame extends Frame implements ActionListener, WindowListener, KeyListener
+public class FaceChooserFrame
+    extends Frame implements ActionListener, WindowListener, KeyListener
 {
     /** Face button that launched us. Passed to constructor, not null. */
     protected SOCFaceButton fb;
@@ -77,7 +76,7 @@ public class FaceChooserFrame extends Frame implements ActionListener, WindowLis
     /** Width,height of one face, in pixels. Assumes icon is square. */
     protected int faceWidthPx;
 
-    /** Scrolling choice of faces */
+    /** Scrolling choice of faces; takes up most of the Frame */
     protected FaceChooserList fcl;
 
     /** Button for confirm change */
@@ -89,8 +88,8 @@ public class FaceChooserFrame extends Frame implements ActionListener, WindowLis
     /** Label to prompt to choose a new face */
     protected Label promptLbl;
 
-    /** Is this still visible and interactive? (vs already dismissed)
-     *
+    /**
+     * Is this still visible and interactive? (vs already dismissed)
      * @see #isStillAvailable()
      */
     private boolean stillAvailable;
@@ -176,6 +175,21 @@ public class FaceChooserFrame extends Frame implements ActionListener, WindowLis
     }
 
     /**
+     * Show or hide this Frame.
+     * If {@code vis} is true, requests keyboard focus on {@link FaceChooserList}
+     * for arrow key controls / Enter / Escape; this is especially helpful on OSX.
+     * @param vis True to make visible, false to hide
+     * @since 1.2.00
+     */
+    @Override
+    public void setVisible(boolean vis)
+    {
+        super.setVisible(vis);
+        if (vis)
+            fcl.requestFocusInWindow();
+    }
+
+    /**
      * Face selected (clicked) by user.  If already-selected, and player has chosen
      * a new face in this window, treat as double-click: change face and close window.
      *
@@ -205,6 +219,7 @@ public class FaceChooserFrame extends Frame implements ActionListener, WindowLis
      * Is this chooser still visible and interactive?
      *
      * @return True if still interactive (vs already dismissed).
+     * @see #isVisible()
      */
     public boolean isStillAvailable()
     {
@@ -212,7 +227,7 @@ public class FaceChooserFrame extends Frame implements ActionListener, WindowLis
     }
 
     /**
-     * Dispose of this window. Overrides to clear stillAvailable flag,
+     * Dispose of this window. Overrides to clear stillAvailable flag
      * and call faceButton.clearFacePopupPreviousChooser.
      */
     public void dispose()
