@@ -572,18 +572,15 @@ public class TradeOfferPanel extends Panel
                 if (rejTimerTask != null)
                     rejTimerTask.cancel();  // cancel any previous
 
-                final boolean wantVis = offered && ! counterOfferMode;
+                final int sec = pi.getBotTradeRejectSec();
+                final boolean wantVis = (sec > 0) && offered && isFromRobot && ! counterOfferMode;
                 rejCountdownLab.setText("");  // clear any previous
                 rejCountdownLab.setVisible(wantVis);
                 if (wantVis)
                 {
-                    final int sec = pi.getBotTradeRejectSec();
-                    if (sec > 0)
-                    {
-                        rejTimerTask = new AutoRejectTask(sec);
-                        pi.getEventTimer().scheduleAtFixedRate(rejTimerTask, 300 /* ms */, 1000 /* ms */ );
-                            // initial 300ms delay, so OfferPanel should be visible at first AutoRejectTask.run()
-                    }
+                    rejTimerTask = new AutoRejectTask(sec);
+                    pi.getEventTimer().scheduleAtFixedRate(rejTimerTask, 300 /* ms */, 1000 /* ms */ );
+                        // initial 300ms delay, so OfferPanel should be visible at first AutoRejectTask.run()
                 }
             }
 
@@ -749,6 +746,7 @@ public class TradeOfferPanel extends Panel
 
             if (target == OFFER)
             {
+                cancelRejectCountdown();
                 setCounterOfferVisible(true);
             }
             else if (target == CLEAR)
@@ -905,7 +903,7 @@ public class TradeOfferPanel extends Panel
 
             if (rejCountdownLab != null)
             {
-                if (offered && ! visible)
+                if (offered && isFromRobot && (! visible) && (pi.getBotTradeRejectSec() > 0))
                     rejCountdownLab.setVisible(true);
                 else
                     cancelRejectCountdown();
@@ -924,7 +922,11 @@ public class TradeOfferPanel extends Panel
         private void cancelRejectCountdown()
         {
             if (rejCountdownLab != null)
+            {
                 rejCountdownLab.setVisible(false);
+                rejCountdownLab.setText("");
+            }
+
             if (rejTimerTask != null)
                 rejTimerTask.cancel();
         }
