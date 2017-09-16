@@ -193,10 +193,17 @@ Written for Eclipse 3.6, should be applicable to other versions with minor chang
 - Check the box "Link to the buildfile in the file system"
 - Hit Finish.
 - Project -> Properties: Resource: Text file encoding: UTF-8 -> OK
-- To add the `resources` directory: In the Package Explorer tree right-click
-  the project name -> New -> Folder. In that dialog click Advanced, select the
-  radio button "Link to alternate location (Linked Folder)", then Browse to
-  `src/main/resources/resources`, click Finish.
+- To add the `resources` directory:
+     - In the Package Explorer tree right-click the project name -> New ->
+       Folder. In that dialog click Advanced, select the radio button
+       "Link to alternate location (Linked Folder)", then Browse to
+       `src/main/resources/resources`, click Finish.
+- To add the `test` directory and JUnit tests:
+     - In the Package Explorer tree right-click the project name -> New ->
+       Folder. Click Advanced, select "Link to alternate location (Linked
+       Folder)", Browse to `src/test`, click Finish.
+     - In Package Explorer expand the `test` folder and right-click `java` ->
+       Build Path -> Use as Source Folder.
 - You'll need to run the `build` target once before you run JSettlers,
   to copy resources into `target` from `src/main/resources/`.
 
