@@ -755,7 +755,7 @@ public class NewGameOptionsFrame extends Frame
 
             int ival = (pi != null)
                 ? pi.getBotTradeRejectSec()
-                : - SOCPlayerClient.getUserPreference(SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, 5);
+                : SOCPlayerClient.getUserPreference(SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, -8);
             localPrefs.put(SOCPlayerClient.PREF_BOT_TRADE_REJECT_SEC, Integer.valueOf(ival));
             bval = (ival > 0);
             if (! bval)
@@ -1113,7 +1113,7 @@ public class NewGameOptionsFrame extends Frame
             int iv = ((Integer) v).intValue();
             if (pi != null)
                 pi.setBotTradeRejectSec(iv);
-            if (iv > 0)
+            if (iv != 0)
                 SOCPlayerClient.putUserPreference(k, iv);
         }
     }

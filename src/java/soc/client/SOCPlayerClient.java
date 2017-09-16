@@ -153,7 +153,10 @@ public class SOCPlayerClient extends Applet
 
     /**
      * Integer persistent {@link Preferences} key for starting value of the countdown to auto-reject bot trades,
-     * in seconds. Default value is 5. Persistent value is never negative.
+     * in seconds. Negative if auto-reject is disabled, to keep the setting's value for {@link NewGameOptionsFrame}
+     * and "Options" dialogs without also having a separate enabled/disabled flag.
+     *<P>
+     * Default value is -8. Do not store 0.
      *<P>
      * This key name can be used with the {@link SOCPlayerInterface} constructor's {@code localPrefs} map
      * during game setup. If negative there, auto-reject will be disabled until turned on from that {@code PI}'s
