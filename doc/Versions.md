@@ -20,6 +20,7 @@ and backport minor new features until `2.0.00` is ready.
 - More efficient game-setup messages over network
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
 - Client sends server its locale, to support i18n localization
+- Client: On OSX, set app name to JSettlers in menu bar
 - Applet class is now `soc.client.SOCApplet`
 - Server Config Validation mode: Test the current config and exit, with new startup option:
 	`-t` or `--test-config`
@@ -69,7 +70,6 @@ and backport minor new features until `2.0.00` is ready.
      - Persistent and per-game preferences for settings like sound effects and game window size
      - Per-game preference to auto-reject bot trades after a multi-second countdown
      - Initial Connect dialog: If username given, ensure New Game button is enabled
-     - On OSX, set app name to JSettlers in menu bar
 - Users can't use the robot nickname prefixes "droid " or "robot ", or "debug" except in debug mode
 - Network: Send keepalive messages to idle games to keep clients connected
 - Game window during debug: Reset "current player" indicator when exiting `*FREEPLACE*` debug mode
