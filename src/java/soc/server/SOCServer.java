@@ -672,7 +672,7 @@ public class SOCServer extends Server
      * Number of seconds before a connection is considered disconnected, and
      * its nickname can be "taken over" by a new connection with the right password.
      * Used only when a password is given by the new connection.
-     * @see #checkNickname(String, StringConnection, boolean)
+     * @see #checkNickname(String, StringConnection, boolean, boolean)
      * @since 1.1.08
      */
     public static final int NICKNAME_TAKEOVER_SECONDS_SAME_PASSWORD = 15;
@@ -681,7 +681,7 @@ public class SOCServer extends Server
      * Number of seconds before a connection is considered disconnected, and
      * its nickname can be "taken over" by a new connection from the same IP.
      * Used when no password is given by the new connection.
-     * @see #checkNickname(String, StringConnection, boolean)
+     * @see #checkNickname(String, StringConnection, boolean, boolean)
      * @since 1.1.08
      */
     public static final int NICKNAME_TAKEOVER_SECONDS_SAME_IP = 30;
@@ -690,7 +690,7 @@ public class SOCServer extends Server
      * Number of seconds before a connection is considered disconnected, and
      * its nickname can be "taken over" by a new connection from a different IP.
      * Used when no password is given by the new connection.
-     * @see #checkNickname(String, StringConnection, boolean)
+     * @see #checkNickname(String, StringConnection, boolean, boolean)
      * @since 1.1.08
      */
     public static final int NICKNAME_TAKEOVER_SECONDS_DIFFERENT_IP = 150;
@@ -2517,6 +2517,9 @@ public class SOCServer extends Server
      * <tt>FAST</tt> or <tt>SMART</tt> strategy params in {@link #handleIMAROBOT(StringConnection, SOCImARobot)}
      * based on their name prefixes ("droid " or "robot " respectively).
      *<P>
+     * In v1.2.00 and newer, human players can't use names with bot prefixes "droid " or "robot ":
+     * see {@link #checkNickname(String, StringConnection, boolean, boolean)}.
+     *<P>
      * Before 1.1.09, this method was part of SOCPlayerClient.
      *
      * @param numFast number of fast robots, with {@link soc.robot.SOCRobotDM#FAST_STRATEGY FAST_STRATEGY}
@@ -3745,15 +3748,19 @@ public class SOCServer extends Server
      * @param n  the name
      * @param newc  A new incoming connection, asking for this name
      * @param withPassword  Did the connection supply a password?
+     * @param isBot  True if authenticating as robot, false if human
      * @return   0 if the name is okay; <BR>
      *          -1 if OK <strong>and you are taking over a connection;</strong> <BR>
-     *          -2 if not OK by rules (fails isSingleLineAndSafe); <BR>
+     *          -2 if not OK by rules (fails isSingleLineAndSafe,
+     *             named "debug" or {@link #SERVERNAME},
+     *             human with bot name prefix, etc); <BR>
      *          -vers if not OK by version (for takeover; will be -1000 lower); <BR>
      *          or, the number of seconds after which <tt>newc</tt> can
      *             take over this name's games.
      * @see #checkNickname_getRetryText(int)
      */
-    private int checkNickname(String n, StringConnection newc, final boolean withPassword)
+    private int checkNickname
+        (String n, StringConnection newc, final boolean withPassword, final boolean isBot)
     {
         if (n.equals(SERVERNAME))
         {
@@ -3761,6 +3768,15 @@ public class SOCServer extends Server
         }
 
         if (! SOCMessage.isSingleLineAndSafe(n))
+        {
+            return -2;
+        }
+
+        // check "debug" and bot name prefixes used in setupLocalRobots
+        final String nLower = n.toLowerCase(Locale.US);
+        if ((nLower.equals("debug") && ! allowDebugUser)
+            || ((! isBot)
+                && (nLower.startsWith("droid ") || nLower.startsWith("robot "))))
         {
             return -2;
         }
@@ -3778,6 +3794,7 @@ public class SOCServer extends Server
         {
             return -2;  // Shouldn't happen; name and SCD are assigned at same time
         }
+
         final int timeoutNeeded;
         if (withPassword)
             timeoutNeeded = NICKNAME_TAKEOVER_SECONDS_SAME_PASSWORD;
@@ -3826,6 +3843,7 @@ public class SOCServer extends Server
             // If not, consider them disconnected.
             oldc.put(SOCServerPing.toCmd(timeoutNeeded));
         }
+
         return timeoutNeeded;
     }
 
@@ -4672,14 +4690,15 @@ public class SOCServer extends Server
 
     /**
      * Check that the username and password (if any) is okay: Length versus {@link #PLAYER_NAME_MAX_LENGTH}, name
-     * in use but not timed out versus takeover, etc. Calls {@link #checkNickname(String, StringConnection, boolean)}
+     * in use but not timed out versus takeover, etc. Calls
+     * {@link #checkNickname(String, StringConnection, boolean, boolean)}
      * and {@link #authenticateUser(StringConnection, String, String)}.
      *<P>
      * If not okay, sends client a {@link SOCStatusMessage} with an appropriate status code.
      *<P>
      * If this user is already logged into another connection, checks here whether this new
      * replacement connection can "take over" the existing one according to a timeout calculation
-     * in {@link #checkNickname(String, StringConnection, boolean)}.
+     * in {@link #checkNickname(String, StringConnection, boolean, boolean)}.
      *<P>
      * If this connection isn't already logged on and named ({@link StringConnection#getData() c.getData()}
      * == <tt>null</tt>) and all checks pass: Unless <tt>doNameConnection</tt> is false, calls
@@ -4765,7 +4784,7 @@ public class SOCServer extends Server
          * check if a nickname is okay, and, if they're already logged in,
          * whether a new replacement connection can "take over" the existing one.
          */
-        final int nameTimeout = checkNickname(msgUser, c, (msgPass != null) && (msgPass.length() > 0));
+        final int nameTimeout = checkNickname(msgUser, c, (msgPass != null) && (msgPass.length() > 0), false);
         System.err.println
             ("L4910 past checkNickname at " + System.currentTimeMillis()
              + (((nameTimeout == 0) || (nameTimeout == -1))
@@ -4786,8 +4805,8 @@ public class SOCServer extends Server
         } else if (nameTimeout == -2)
         {
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                     MSG_NICKNAME_ALREADY_IN_USE));
+                    (SOCStatusMessage.SV_NAME_NOT_ALLOWED, cliVers,
+                     "This nickname is not allowed."));
             return AUTH_OR_REJECT__FAILED;
         } else if (nameTimeout <= -1000)
         {
@@ -5340,14 +5359,15 @@ public class SOCServer extends Server
             /**
              * Check that the nickname is ok
              */
-            if (0 != checkNickname(botName, c, false))
+            if (0 != checkNickname(botName, c, false, true))
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                          MSG_NICKNAME_ALREADY_IN_USE));
                 SOCRejectConnection rcCommand = new SOCRejectConnection(MSG_NICKNAME_ALREADY_IN_USE);
                 c.put(rcCommand.toCmd());
-                System.err.println("Robot login attempt, name already in use: " + botName);
+                printAuditMessage
+                    (null, "Robot login attempt, name already in use or bad", botName, null, c.host());
                 // c.disconnect();
                 c.disconnectSoft();
 
