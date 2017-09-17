@@ -373,7 +373,7 @@ or User Accounts.
 
 For these instructions we'll assume you already installed the PostgreSQL or
 MySQL software, or will download a SQLite JAR to avoid database server setup.
-JSettlers is tested with sqlite 3.7, mysql 5.5, and postgresql 8.4 and 9.5.
+JSettlers is tested with sqlite 3.15.1, mysql 5.5, and postgresql 8.4 and 9.5.
 
 You will need a JDBC driver JAR file in your classpath or the same directory as
 the JSettlers JAR, see below for details. Besides PostgreSQL, MySQL, or SQLite
@@ -415,7 +415,7 @@ Your database system's JDBC drivers can be downloaded at these locations:
 In some cases, adding to the classpath won't work because of JVM restrictions
 about JAR files.  If you find that's the case, place the JDBC jar in the same
 location as JSettlersServer.jar, and specify on the jsettlers command line:
-	-Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar
+	-Djsettlers.db.jar=sqlite-jdbc-3.xx.y.jar
 (sqlite jar filename may vary, update the parameter to match it).
 
 
@@ -477,9 +477,9 @@ You can validate by listing the newly created tables with this command:
 
 For sqlite:
 Copy jsettlers-tables-sqlite.sql to the same directory as JSettlersServer.jar
-and sqlite-jdbc-3.7.2.jar and run this command (sqlite jar filename may
+and sqlite-jdbc.jar and run this command (sqlite jar filename may
 vary, update the jsettlers.db.jar parameter to match it):
-  $ java -jar JSettlersServer.jar -Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar  -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=jsettlers-tables-sqlite.sql
+  $ java -jar JSettlersServer.jar -Djsettlers.db.jar=sqlite-jdbc.jar  -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=jsettlers-tables-sqlite.sql
 You should see this message:
 	DB setup script was successful. Exiting now.
 This will create a jsettlers.sqlite file containing the empty tables.
@@ -554,11 +554,11 @@ If you want to require that all players have accounts and passwords, include
 this option when you start your server:
 	-Djsettlers.accounts.required=y
 
-To permit only certain users to create new accounts, instead of all users,
-list them when you start your server:
+To specify the Account Admin Users who can create new accounts, list them when
+you start your server:
 	-Djsettlers.accounts.admins=bob,joe,lily
-This creates a whitelist of Account Admin Users. Account admins can create
-accounts and run user-related commands, such as listing all users in a game with
+The account admins on that whitelist can create accounts and run user-related
+commands, such as listing all users in a game with
 	*WHO* gamename
 or listing all users connected to the server with
 	*WHO* *
@@ -568,8 +568,8 @@ into the chat window of any game while connected as an admin user.
 
 Note:
 The server doesn't require or check at startup that the named accounts all
-already exist, the whitelist is only a comma-separated list of names. This
-simplifies initial setup.
+already exist; the whitelist is only a comma-separated list of names, to
+simplify initial setup.
 
 In case an admin account password is lost, there's a rudimentary password-reset feature:
 Run JSettlersServer with the usual DB parameters and add: --pw-reset username
