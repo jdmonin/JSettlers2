@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2007-2011,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,12 +41,11 @@ import java.net.URL;
 /**
  * This is a component that can display a face.
  * When you click on the face, it changes to another face.
+ * Double-click or right-click to bring up the {@link FaceChooserFrame} dialog.
  *<P>
  * There are two modes: Standard (with associated player ID) for use in HandPanel;
  * and Bordered (with associated FaceChooserFrame) for choosing a new face icon.
  * The two constructors correspond to the two modes.
- *
- * @see soc.client.FaceChooserFrame
  *
  * @author Robert S. Thomas
  */
@@ -612,7 +611,8 @@ public class SOCFaceButton extends Canvas
     /**
      * Menu for right-click on face icon to choose a new face (Player's hand only).
      *
-     * @author Jeremy D Monin <jeremy@nand.net>
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 1.1.00
      */
     protected static class FaceButtonPopupMenu extends PopupMenu
         implements java.awt.event.ActionListener
@@ -665,7 +665,7 @@ public class SOCFaceButton extends Canvas
                     (fb, fb.pi.getClient(), fb.pi, fb.pNumber, fb.getFace(), fb.getSize().width);
                 fsf.pack();
             }
-            fsf.show();
+            fsf.setVisible(true);
         }
 
         /**
