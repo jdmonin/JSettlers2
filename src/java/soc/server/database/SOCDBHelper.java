@@ -1169,12 +1169,12 @@ public class SOCDBHelper
 
             if (withWrite)
             {
-                System.err.println("Updating settings table from properties values.\n");
+                System.err.println("Saving to settings table from properties values.\n");
             } else {
                 System.err.println
                     ((checkAll)
                      ? "The next startup will use the changed DB values instead of current values."
-                     : ("To update the settings table, run once with utility property -D"
+                     : ("To save to the settings table, run once with utility property -D"
                         + PROP_JSETTLERS_DB_SETTINGS + "=write"));
 
                 throw new DBSettingMismatchException(mm.get(0));
@@ -1183,7 +1183,7 @@ public class SOCDBHelper
             System.err.println("Warning: Found no settings table updates from properties values.");
         } else if (anyMissing) {
             System.err.println
-                ("To update the settings table, run once with utility property -D"
+                ("To save to the settings table, run once with utility property -D"
                  + PROP_JSETTLERS_DB_SETTINGS + "=write");
         }
 
