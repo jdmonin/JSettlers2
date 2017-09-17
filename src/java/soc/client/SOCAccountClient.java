@@ -65,9 +65,15 @@ import java.net.Socket;
 /**
  * Applet/Standalone client for connecting to the SOCServer and
  * making user accounts.
- * If you want another connection port, you have to specify it as the "port"
- * argument in the html source. If you run this as a stand-alone, you have to
- * specify the server's hostname and port on the command line.
+ *<P>
+ * This account-management client will connect to server version v1.1.19 and higher
+ * ({@link #SRV_VERSION_MIN}). The required minimum version simplifies logic and
+ * assumptions about available {@link SOCServerFeatures}. If needed to manage older servers,
+ * older client JARs can be downloaded or built from git release tags.
+ *<P>
+ * To connect the applet to a non-default server port, you must specify it as the
+ * {@code port} parameter in the html applet tag. If you run {@code SOCAccountClient}
+ * as a stand-alone app, specify the server's hostname and port on the command line.
  *
  * @author Robert S Thomas
  */
@@ -77,10 +83,8 @@ public class SOCAccountClient extends Applet
     private static final long serialVersionUID = 1120L;  // Last structural change v1.1.20
 
     /**
-     * Minimum server version (v1.1.19) to which this account-management client will connect.
-     * The required minimum version simplifies logic and assumptions about available
-     * {@link SOCServerFeatures}. Older clients can be downloaded or built from git release tags
-     * to work with older servers.
+     * Minimum server version (v1.1.19) to which this account-management client will connect;
+     * see class javadoc.
      *<P>
      * Same format as {@link soc.util.Version#versionNumber()}.
      * Same value as {@link SOCServerFeatures#VERSION_FOR_SERVERFEATURES}.
