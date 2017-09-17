@@ -111,6 +111,7 @@ public class SOCStatusMessage extends SOCMessage
      * reconnect when a client loses connection, and server doesn't realize it.
      * A new connection can "take over" the name after a minute's timeout.
      * For actual timeouts, see SOCServer.checkNickname.
+     * @see #SV_NAME_NOT_ALLOWED
      * @since 1.1.06
      */
     public static final int SV_NAME_IN_USE = 4;

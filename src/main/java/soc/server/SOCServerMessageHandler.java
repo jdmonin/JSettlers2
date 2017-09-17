@@ -333,7 +333,7 @@ public class SOCServerMessageHandler
      *
      * @param c  the connection that sent the message
      * @param mes  the message
-     * @see #isUserDBUserAdmin(String)
+     * @see SOCServer#isUserDBUserAdmin(String)
      * @since 1.1.19
      */
     private void handleAUTHREQUEST(StringConnection c, final SOCAuthRequest mes)
