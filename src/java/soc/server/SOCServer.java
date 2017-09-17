@@ -780,11 +780,15 @@ public class SOCServer extends Server
     String databasePassword;
 
     /**
-     * User admins whitelist, from {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS}, or <tt>null</tt> if disabled:
-     * a set of Strings.  If not null, only usernames on this list can create user accounts in
-     * {@link #handleCREATEACCOUNT(StringConnection, SOCCreateAccount)}.
+     * User admins whitelist, from {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS}, or {@code null} if not specified.
+     * Unless {@link SOCServerFeatures#FEAT_OPEN_REG} is active, only usernames on this list
+     * can create user accounts in {@link #handleCREATEACCOUNT(StringConnection, SOCCreateAccount)}.
+     *<P>
      * If DB schema &gt;= {@link SOCDBHelper#SCHEMA_VERSION_1200}, this whitelist is
-     * made lowercase for case-insensitive checks in {@link #isUserDBUserAdmin(String, boolean)}.
+     * made lowercase for case-insensitive checks in {@link #isUserDBUserAdmin(String)}.
+     *<P>
+     * Before v1.2.00, if this was {@code null} any authenticated user could create other accounts.
+     *
      * @since 1.1.19
      */
     private Set<String> databaseUserAdmins;
@@ -1408,15 +1412,14 @@ public class SOCServer extends Server
             }
 
             System.err.println("User account administrators limited to: " + userAdmins);
-            if (acctsNotOpenRegButNoUsers)
-                System.err.println("** User database is currently empty: Run SOCAccountClient to create the user admin account(s) named above.");
+            if (acctsNotOpenRegButNoUsers && ! wantsUpgSchema)
+                System.err.println
+                    ("** User database is currently empty: Run SOCAccountClient to create the user admin account(s) named above.");
         }
-        else if (acctsNotOpenRegButNoUsers)
+        else if (acctsNotOpenRegButNoUsers && ! wantsUpgSchema)
         {
-            if (accountsRequired)
-                System.err.println("** User database is currently empty. You must run SOCAccountClient to create users.");
-            else
-                System.err.println("User database is currently empty. You can run SOCAccountClient to create users.");
+            System.err.println
+                ("** To create users, you must list admin names in property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + ".");
         }
     }
 
@@ -4431,7 +4434,7 @@ public class SOCServer extends Server
      * {@link #GENERAL_COMMANDS_HELP} and {@link #DEBUG_COMMANDS_HELP}, used by
      * {@link #processDebugCommand(StringConnection, String, String)}
      * when <tt>*HELP*</tt> is requested by a debug/admin user who passes
-     * {@link #isUserDBUserAdmin(String, boolean) isUserDBUserAdmin(username, true)}.
+     * {@link #isUserDBUserAdmin(String) isUserDBUserAdmin(username)}.
      * Preceded by {@link #ADMIN_COMMANDS_HEADING}.
      * @since 1.1.20
      * @see #GENERAL_COMMANDS_HELP
@@ -4921,29 +4924,23 @@ public class SOCServer extends Server
     }
 
     /**
-     * Is this username on the {@link #databaseUserAdmins} whitelist, if that whitelist is being used?
+     * Is this username on the {@link #databaseUserAdmins} whitelist?
      * @param uname  Username to check; if null, returns false.
      *     If supported by DB schema version, this check is case-insensitive.
-     * @param requireList  If true, the whitelist cannot be null.
-     *     If false, this function returns true for any user when we aren't using the whitelist and its field is null.
-     * @return  True only if the user is on the whitelist, or there is no list and <tt>requireList</tt> is false
+     * @return  True only if whitelist != {@code null} and the user is on the whitelist
      * @since 1.1.20
      */
-    private boolean isUserDBUserAdmin(String uname, final boolean requireList)
+    private boolean isUserDBUserAdmin(String uname)
     {
-        if (uname == null)
+        if ((uname == null) || (databaseUserAdmins == null))
             return false;
 
-        // Check if we're using a user admin whitelist, and if uname's on it; this check is also in handleCREATEACCOUNT.
+        // Check if uname's on the user admin whitelist; this check is also in handleCREATEACCOUNT.
 
-        if (databaseUserAdmins == null)
-        {
-            return ! requireList;
-        } else {
-            if (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200)
-                uname = uname.toLowerCase(Locale.US);
-            return databaseUserAdmins.contains(uname);
-        }
+        if (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200)
+            uname = uname.toLowerCase(Locale.US);
+
+        return databaseUserAdmins.contains(uname);
     }
 
     /**
@@ -5567,7 +5564,7 @@ public class SOCServer extends Server
                     messageToPlayer(c, gaName, GENERAL_COMMANDS_HELP[i]);
 
                 if ((userIsDebug && ! (c instanceof LocalStringConnection))  // no user admins in practice games
-                    || isUserDBUserAdmin(plName, true))
+                    || isUserDBUserAdmin(plName))
                 {
                     messageToPlayer(c, gaName, ADMIN_COMMANDS_HEADING);
                     for (int i = 0; i < ADMIN_USER_COMMANDS_HELP.length; ++i)
@@ -5614,7 +5611,7 @@ public class SOCServer extends Server
 
     /**
      * Process the {@code *DBSETTINGS*} privileged admin command:
-     * Check {@link #isUserDBUserAdmin(String, boolean)} and if OK and {@link SOCDBHelper#isInitialized()},
+     * Check {@link #isUserDBUserAdmin(String)} and if OK and {@link SOCDBHelper#isInitialized()},
      * send the client a formatted list of server DB settings from {@link SOCDBHelper#getSettingsFormatted()}.
      * @param c  Client sending the admin command
      * @param gaName  Game in which to reply
@@ -5623,8 +5620,8 @@ public class SOCServer extends Server
     private void processDebugCommand_dbSettings(final StringConnection c, final SOCGame ga)
     {
         final String msgUser = c.getData();
-        if (! (isUserDBUserAdmin(msgUser, true)
-            || (allowDebugUser && msgUser.equals("debug"))))
+        if (! (isUserDBUserAdmin(msgUser)
+               || (allowDebugUser && msgUser.equals("debug"))))
         {
             return;
         }
@@ -5821,7 +5818,7 @@ public class SOCServer extends Server
                 // Then: look for game name or */all
 
                 final String uname = c.getData();
-                boolean isAdmin = isUserDBUserAdmin(uname, true);
+                boolean isAdmin = isUserDBUserAdmin(uname);
                 if (! isAdmin)
                     isAdmin = (allowDebugUser && uname.equals("debug"));
                 if (! isAdmin)
@@ -5947,7 +5944,7 @@ public class SOCServer extends Server
      *
      * @param c  the connection that sent the message
      * @param mes  the message
-     * @see #isUserDBUserAdmin(String, boolean)
+     * @see #isUserDBUserAdmin(String)
      * @since 1.1.19
      */
     private void handleAUTHREQUEST(StringConnection c, final SOCAuthRequest mes)
@@ -5989,8 +5986,7 @@ public class SOCServer extends Server
             {
                 if (mes.role.equals(SOCAuthRequest.ROLE_USER_ADMIN))
                 {
-                    // Check if we're using a user admin whitelist
-                    if (! isUserDBUserAdmin(mesUser, false))
+                    if (! isUserDBUserAdmin(mesUser))
                     {
                         c.put(SOCStatusMessage.toCmd
                                 (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVersion,
@@ -9142,12 +9138,28 @@ public class SOCServer extends Server
 
         final String requester = c.getData();  // null if client isn't authenticated
         final Date currentTime = new Date();
+        final boolean isOpenReg = features.isActive(SOCServerFeatures.FEAT_OPEN_REG);
+
+        if ((databaseUserAdmins == null) && ! isOpenReg)
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVers,
+                     "Your account is not authorized to create accounts."));
+
+            printAuditMessage
+                (requester,
+                 "Requested jsettlers account creation, but no account admin whitelist",
+                 null, currentTime, c.host());
+
+            return;
+        }
+
         boolean isDBCountedEmpty = false;  // with null requester, did we query and find the users table is empty?
             // Not set if FEAT_OPEN_REG is active.
 
         // If client is not authenticated, does this server have open registration
         // or is an account required to create user accounts?
-        if ((requester == null) && ! features.isActive(SOCServerFeatures.FEAT_OPEN_REG))
+        if ((requester == null) && ! isOpenReg)
         {
             // SOCAccountClients older than v1.1.19 (VERSION_FOR_AUTHREQUEST, VERSION_FOR_SERVERFEATURES)
             // can't authenticate; all their user creation requests are anonymous (FEAT_OPEN_REG).
@@ -9210,7 +9222,7 @@ public class SOCServer extends Server
         }
 
         //
-        // Check if we're using a user admin whitelist; this check is also in isUserDBUserAdmin.
+        // Check if requester is on the user admin whitelist; this check is also in isUserDBUserAdmin.
         //
         // If databaseUserAdmins != null, then requester != null because FEAT_OPEN_REG can't also be active.
         // If requester is null because db is empty, check new userName instead of requester name:
