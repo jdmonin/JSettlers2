@@ -183,6 +183,16 @@ time the client can create a new game and start it as bots-only using the debug
 command `*STARTBOTGAME* [maxBots]`. See the "Robots (AI)" section for more
 details on bot testing.
 
+### JSettlers client properties for debugging and testing
+
+To use any of these, specify them in the IDE or java command line as JVM
+parameters (before the SOCPlayerClient class name, not after):
+
+- `-Djsettlers.locale=es_MX` - Use a different locale
+- `-Djsettlers.debug.traffic=Y` - Print network traffic; see above for details
+- `-Djsettlers.debug.clear_prefs=PI_width,PI_height` - Remove these persistent
+  preferences at startup. See SOCPlayerClient PREF_* fields for all name keys.
+
 
 ## Setup instructions for JSettlers as an Eclipse project
 

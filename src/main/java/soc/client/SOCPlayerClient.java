@@ -136,6 +136,17 @@ import soc.util.Version;
 public class SOCPlayerClient
 {
     /**
+     * String property {@code jsettlers.debug.clear_prefs} to support testing and debugging:
+     * When present, at startup this list of persistent client {@link Preferences} keys will be removed:
+     * The {@code SOCPlayerClient} constructor will call {@link GameAwtDisplay#clearUserPreferences(String)}.
+     *<P>
+     * Format: String of comma-separated preference key names: {@link #PREF_PI__WIDTH}, {@link #PREF_SOUND_ON},
+     * {@link #PREF_BOT_TRADE_REJECT_SEC}, etc.
+     * @since 1.2.00
+     */
+    public static final String PROP_JSETTLERS_DEBUG_CLEAR__PREFS = "jsettlers.debug.clear_prefs";
+
+    /**
      * Integer persistent {@link Preferences} key for width of a {@link SOCPlayerInterface} window frame,
      * based on most recent resizing by user. Used with {@link #PREF_PI__HEIGHT}.
      *<P>
@@ -143,14 +154,14 @@ public class SOCPlayerClient
      * to keep consistent window sizes and width/height ratios.
      * @since 1.2.00
      */
-    final static String PREF_PI__WIDTH = "PI_width";
+    public static final String PREF_PI__WIDTH = "PI_width";
 
     /**
      * Integer persistent {@link Preferences} key for height of a {@link SOCPlayerInterface} window frame;
      * see {@link #PREF_PI__WIDTH} for details.
      * @since 1.2.00
      */
-    final static String PREF_PI__HEIGHT = "PI_height";
+    public static final String PREF_PI__HEIGHT = "PI_height";
 
     /**
      * Boolean persistent {@link Preferences} key for sound effects.
@@ -163,7 +174,7 @@ public class SOCPlayerClient
      * @see SOCPlayerInterface#isSoundMuted()
      * @since 1.2.00
      */
-    final static String PREF_SOUND_ON = "soundOn";
+    public static final String PREF_SOUND_ON = "soundOn";
 
     /**
      * Integer persistent {@link Preferences} key for starting value of the countdown to auto-reject bot trades,
@@ -179,7 +190,7 @@ public class SOCPlayerClient
      * @see SOCPlayerInterface#getBotTradeRejectSec()
      * @since 1.2.00
      */
-    final static String PREF_BOT_TRADE_REJECT_SEC = "botTradeRejectSec";
+    public static final String PREF_BOT_TRADE_REJECT_SEC = "botTradeRejectSec";
 
     /**
      * i18n text strings in our {@link #cliLocale}.
@@ -620,6 +631,10 @@ public class SOCPlayerClient
 
         strings = soc.util.SOCStringManager.getClientManager(cliLocale);
         DEFAULT_PRACTICE_GAMENAME = strings.get("default.name.practice.game");
+
+        String debug_clearPrefs = System.getProperty(PROP_JSETTLERS_DEBUG_CLEAR__PREFS);
+        if (debug_clearPrefs != null)
+            GameAwtDisplay.clearUserPreferences(debug_clearPrefs);
 
         net = new ClientNetwork(this);
         gameManager = new GameManager(this);
@@ -2984,6 +2999,7 @@ public class SOCPlayerClient
          * @throws IllegalArgumentException if {@code prefKey} is longer than {@link Preferences#MAX_KEY_LENGTH}
          * @see #getUserPreference(String, boolean)
          * @see #putUserPreference(String, int)
+         * @see #clearUserPreferences(String)
          * @since 1.2.00
          */
         public static void putUserPreference(final String prefKey, final boolean val)
@@ -3020,6 +3036,7 @@ public class SOCPlayerClient
          * @throws IllegalArgumentException if {@code prefKey} is longer than {@link Preferences#MAX_KEY_LENGTH}
          * @see #getUserPreference(String, int)
          * @see #putUserPreference(String, boolean)
+         * @see #clearUserPreferences(String)
          * @since 1.2.00
          */
         public static void putUserPreference(final String prefKey, final int val)
@@ -3045,6 +3062,40 @@ public class SOCPlayerClient
                     catch (BackingStoreException e) {}
                 }
             });
+        }
+
+        /**
+         * Clear some user preferences by removing the value stored for their key(s).
+         * (Calls {@link Preferences#remove(String)}, not {@link Preferences#clear()}).
+         * Calls {@link Preferences#flush()} afterwards. Prints a "Cleared" message
+         * to {@link System#err} with {@code prefKeyList}.
+         * @param prefKeyList  Preference name key(s) to clear, same format
+         *     as {@link SOCPlayerClient#PROP_JSETTLERS_DEBUG_CLEAR__PREFS}.
+         *     Does nothing if {@code null} or "". Keys on this list do not
+         *     all have to exist with a value; key name typos will not throw
+         *     an exception.
+         * @since 1.2.00
+         */
+        public static final void clearUserPreferences(final String prefKeyList)
+        {
+            if ((prefKeyList == null) || (prefKeyList.length() == 0) || (userPrefs == null))
+                return;
+
+            for (String key : prefKeyList.split(","))
+            {
+                try
+                {
+                    userPrefs.remove(key);
+                } catch (IllegalStateException e) {}
+            }
+
+            try
+            {
+                userPrefs.flush();
+            }
+            catch (BackingStoreException e) {}
+
+            System.err.println("Cleared user preferences: " + prefKeyList);
         }
 
     }
