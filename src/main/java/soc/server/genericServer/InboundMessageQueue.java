@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2015-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2015-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
  * This program is free software; you can redistribute it and/or
@@ -36,10 +36,16 @@ import soc.message.SOCMessage;
  * {@link Server.InboundMessageDispatcher#dispatch(String, StringConnection)}
  * for each inbound message.
  *<P>
+ * Some dispatched message handlers may want to do work in other Threads without tying up the Treater thread,
+ * but then finish handling that message in the Treater to simplify locking of other objects.
+ * For this, call {@link #post(Runnable)}: Same concept as {@link java.awt.EventQueue#invokeLater(Runnable)}.
+ *
+ *<H3>Startup:</H3>
  * This queue's constructor only sets up the InboundMessageQueue to receive messages. Afterwards when the
  * {@link Server} is ready to process inbound messages, you must call {@link #startMessageProcessing()}
  * to start this queue's thread to forward messages into the dispatcher.
- *<P>
+ *
+ *<H3>Shutdown:</H3>
  * At server shutdown time, {@code InboundMessageQueue} can be stopped by calling {@link #stopMessageProcessing()}
  * which will stop its {@link Treater} thread.
  *
@@ -104,7 +110,7 @@ public class InboundMessageQueue
 
     /**
      * Append an element to the end of the inbound queue.
-     *<BR>
+     *<P>
      *<B>Threads:</B>
      * This method notifies the {@link Treater}, waking that thread if it
      * was {@link Object#wait()}ing because the queue was empty.
@@ -113,12 +119,36 @@ public class InboundMessageQueue
      *
      * @param receivedMessage from the connection; will never be {@code null}
      * @param clientConnection that send the message; will never be {@code null}
+     * @see #post(Runnable)
      */
     public void push(String receivedMessage, StringConnection clientConnection)
     {
+        final MessageData md = new MessageData(receivedMessage, clientConnection);
         synchronized (inQueue)
         {
-            inQueue.addElement(new MessageData(receivedMessage, clientConnection));
+            inQueue.addElement(md);
+            inQueue.notify();
+        }
+    }
+
+    /**
+     * Post some Runnable code to be queued and then run on the Treater thread.
+     *<P>
+     *<B>Threads:</B>
+     * This method notifies the {@link Treater}, waking that thread if it
+     * was {@link Object#wait()}ing because the queue was empty.
+     * Although {@code post(..)} isn't declared {@code synchronized},
+     * it's thread-safe because it synchronizes on the internal queue object.
+     * @param run  Runnable code
+     * @see #push(String, StringConnection)
+     * @since 1.2.00
+     */
+    public void post(Runnable run)
+    {
+        final MessageData md = new MessageData(run);
+        synchronized (inQueue)
+        {
+            inQueue.addElement(md);
             inQueue.notify();
         }
     }
@@ -182,7 +212,12 @@ public class InboundMessageQueue
                 try
                 {
                     if (messageData != null)
-                        dispatcher.dispatch(messageData.stringMessage, messageData.clientSender);
+                    {
+                        if (messageData.run != null)
+                            messageData.run.run();
+                        else
+                            dispatcher.dispatch(messageData.stringMessage, messageData.clientSender);
+                    }
                 }
                 catch (Exception e)  // for anything thrown by bugs in server or game code called from dispatch
                 {
@@ -215,6 +250,9 @@ public class InboundMessageQueue
     /**
      * Nested class to store a message's contents and sender.
      * For simplicity and quick access, final fields are used instead of getters.
+     *<P>
+     * Before v2.0.00 this class was {@code soc.server.genericServer.Server.Command},
+     * with fields {@code str} and {@code con}.
      */
     private static class MessageData
     {
@@ -224,10 +262,24 @@ public class InboundMessageQueue
         /** Client which sent this message */
         public final StringConnection clientSender;
 
+        /**
+         * Or, some code to run on our Treater thread
+         * @since 1.2.00
+         */
+        public final Runnable run;
+
         public MessageData(final String stringMessage, final StringConnection clientSender)
         {
             this.stringMessage = stringMessage;
             this.clientSender = clientSender;
+            this.run = null;
+        }
+
+        public MessageData(final Runnable run)
+        {
+            this.run = run;
+            this.stringMessage = null;
+            this.clientSender = null;
         }
 
     }

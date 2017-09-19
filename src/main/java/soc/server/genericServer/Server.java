@@ -1167,6 +1167,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
          * Called from the single 'treater' thread of {@link InboundMessageQueue}.
          *<P>
          * <em>Do not block or sleep</em> because this is single-threaded.
+         * Any slow or lengthy work for a message should be done on other threads.
+         * If the result of that work needs to be handled on the 'treater' thread,
+         * use {@link InboundMessageQueue#post(Runnable)}.
+         *<P>
          * {@code dispatch(..)} must catch any exception thrown by conditions or
          * bugs in server or game code it calls.
          *<P>
