@@ -341,11 +341,15 @@ public class SOCServerMessageHandler
         if (c == null)
             return;
 
-        int authResult = -1;
+        final String mesUser = mes.nickname.trim();  // trim before db query calls
+        final String mesRole = mes.role;
+        final boolean isPlayerRole = mesRole.equals(SOCAuthRequest.ROLE_GAME_PLAYER);
+        final int cliVersion = c.getVersion();
 
-        if (c.getData() == null)
+        if (c.getData() != null)
         {
-            final int cliVersion = c.getVersion();
+            handleAUTHREQUEST_postAuth(c, mesUser, mesRole, isPlayerRole, cliVersion, SOCServer.AUTH_OR_REJECT__OK);
+        } else {
             if (cliVersion <= 0)
             {
                 // unlikely: AUTHREQUEST was added in 1.1.19, version message timing was stable years earlier
@@ -364,17 +368,32 @@ public class SOCServerMessageHandler
 
             // Check user authentication.  Don't call setData or nameConnection yet if there
             // are role-specific things to check and reject during this initial connection.
-            final boolean isPlayerRole = mes.role.equals(SOCAuthRequest.ROLE_GAME_PLAYER);
-            final String mesUser = mes.nickname.trim();  // trim before db query calls
-            authResult = srv.authOrRejectClientUser
-                (c, mesUser, mes.password, cliVersion, isPlayerRole, false);
+            srv.authOrRejectClientUser
+                (c, mesUser, mes.password, cliVersion, isPlayerRole, false,
+                 new SOCServer.AuthSuccessRunnable()
+                 {
+                    public void success(final StringConnection c, final int authResult)
+                    {
+                        handleAUTHREQUEST_postAuth(c, mesUser, mesRole, isPlayerRole, cliVersion, authResult);
+                    }
+                 });
+        }
+    }
 
-            if (authResult == SOCServer.AUTH_OR_REJECT__FAILED)
-                return;  // <---- Early return; authOrRejectClientUser sent the status message ----
-
+    /**
+     * After successful client user auth, take care of the rest of
+     * {@link #handleAUTHREQUEST(StringConnection, SOCAuthRequest)}.
+     * @since 1.2.00
+     */
+    private void handleAUTHREQUEST_postAuth
+        (final StringConnection c, final String mesUser, final String mesRole, final boolean isPlayerRole,
+         final int cliVersion, int authResult)
+    {
+        if (c.getData() == null)
+        {
             if (! isPlayerRole)
             {
-                if (mes.role.equals(SOCAuthRequest.ROLE_USER_ADMIN))
+                if (mesRole.equals(SOCAuthRequest.ROLE_USER_ADMIN))
                 {
                     if (! srv.isUserDBUserAdmin(mesUser))
                     {
@@ -1341,8 +1360,8 @@ public class SOCServerMessageHandler
             D.ebugPrintln("handleJOINCHANNEL: " + mes);
 
         int cliVers = c.getVersion();
-        String msgUser = mes.getNickname().trim();  // trim before db query calls
-        String msgPass = mes.getPassword();
+        final String msgUser = mes.getNickname().trim();  // trim before db query calls
+        final String msgPass = mes.getPassword();
 
         /**
          * Check the reported version; if none, assume 1000 (1.0.00)
@@ -1355,13 +1374,35 @@ public class SOCServerMessageHandler
             cliVers = c.getVersion();
         }
 
-        /**
-         * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
-         */
-        final int authResult = srv.authOrRejectClientUser(c, msgUser, msgPass, cliVers, true, false);
-        if (authResult == SOCServer.AUTH_OR_REJECT__FAILED)
-            return;  // <---- Early return ----
+        final String chName = mes.getChannel().trim();
+        if (c.getData() != null)
+        {
+            handleJOINCHANNEL_postAuth(c, msgUser, chName, cliVers, SOCServer.AUTH_OR_REJECT__OK);
+        } else {
+            /**
+             * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
+             */
+            final int cv = cliVers;
+            srv.authOrRejectClientUser
+                (c, msgUser, msgPass, cliVers, true, false,
+                 new SOCServer.AuthSuccessRunnable()
+                 {
+                    public void success(final StringConnection c, final int authResult)
+                    {
+                        handleJOINCHANNEL_postAuth(c, msgUser, chName, cv, authResult);
+                    }
+                 });
+        }
+    }
 
+    /**
+     * After successful client user auth, take care of the rest of
+     * {@link #handleJOINCHANNEL(StringConnection, SOCJoinChannel)}.
+     * @since 1.2.00
+     */
+    private void handleJOINCHANNEL_postAuth
+        (final StringConnection c, String msgUser, final String ch, final int cliVers, final int authResult)
+    {
         final boolean mustSetUsername = (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME));
         if (mustSetUsername)
             msgUser = c.getData();  // set to original case, from db case-insensitive search
@@ -1375,7 +1416,6 @@ public class SOCServerMessageHandler
            return;
            }
          */
-        final String ch = mes.getChannel().trim();
         if ( (! SOCMessage.isSingleLineAndSafe(ch))
              || "*".equals(ch))
         {

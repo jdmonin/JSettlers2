@@ -567,7 +567,7 @@ public class SOCServer extends Server
      */
     public static String PRACTICE_STRINGPORT = "SOCPRACTICE";
 
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
+    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean, AuthSuccessRunnable) authOrRejectClientUser(....)}
      *  result 0: No successful flag bits set: Failed authentication, failed name validation,
      *  or name is already logged in and that connection hasn't timed out yet.
      *  @see #AUTH_OR_REJECT__OK
@@ -575,7 +575,7 @@ public class SOCServer extends Server
      */
     static final int AUTH_OR_REJECT__FAILED = 0;
 
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
+    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean, AuthSuccessRunnable) authOrRejectClientUser(....)}
      *  result flag bit: Authentication succeeded.
      *  @see #AUTH_OR_REJECT__FAILED
      *  @see #AUTH_OR_REJECT__SET_USERNAME
@@ -584,14 +584,14 @@ public class SOCServer extends Server
      */
     static final int AUTH_OR_REJECT__OK = 0x1;
 
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
+    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean, AuthSuccessRunnable) authOrRejectClientUser(....)}
      *  result flag bit: Authentication succeeded, is taking over another connection
      *  @see #AUTH_OR_REJECT__OK
      *  @since 1.1.19
      */
     static final int AUTH_OR_REJECT__TAKING_OVER = 0x2;
 
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
+    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean, AuthSuccessRunnable) authOrRejectClientUser(....)}
      *  result flag bit: Authentication succeeded, but nickname is not an exact case-sensitive match to DB username;
      *  client must be sent a status message with its exact nickname. See {@code authOrRejectClientUser(..)} javadoc.
      *  @see #AUTH_OR_REJECT__OK
@@ -5001,6 +5001,9 @@ public class SOCServer extends Server
      * @param allowTakeover  True if the new connection can "take over" an older connection in response to the
      *     message it sent.  If true, the caller must be prepared to send all game info/channel info that the
      *     old connection had joined, so the new connection has full info to participate in them.
+     * @param authCallback  Optional callback to make if authentication succeeds, or if {@code c}
+     *     was already authenticated.  If not {@code null}, {@code authCallback} is called just before
+     *     returning from this method.
      * @return  Result of the auth check: {@link #AUTH_OR_REJECT__FAILED}, or an int with the
      *     {@link #AUTH_OR_REJECT__OK} flag bit set and possibly also {@link #AUTH_OR_REJECT__SET_USERNAME}
      *     and/or (only if {@code allowTakeover}) {@link #AUTH_OR_REJECT__TAKING_OVER}
@@ -5009,10 +5012,14 @@ public class SOCServer extends Server
      */
     int authOrRejectClientUser
         (StringConnection c, String msgUser, String msgPass, final int cliVers,
-         final boolean doNameConnection, final boolean allowTakeover)
+         final boolean doNameConnection, final boolean allowTakeover,
+         final AuthSuccessRunnable authCallback)
     {
         if (c.getData() != null)
         {
+            if (authCallback != null)
+                authCallback.success(c, AUTH_OR_REJECT__OK);
+
             return AUTH_OR_REJECT__OK;  // <---- Early return: Already authenticated ----
         }
 
@@ -5124,6 +5131,9 @@ public class SOCServer extends Server
             ret |= AUTH_OR_REJECT__TAKING_OVER;
         if (mustSetUsername)
             ret |= AUTH_OR_REJECT__SET_USERNAME;
+
+        if (authCallback != null)
+            authCallback.success(c, ret);
 
         return ret;
     }
@@ -5390,7 +5400,7 @@ public class SOCServer extends Server
      * @return {@code null} for successful authorization, or a failure string. See this method's
      *     javadocs for required messages to send to client on auth success or failure.
      * @throws NullPointerException if {@code c} is {@code null}
-     * @see #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean)
+     * @see #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean, AuthSuccessRunnable)
      * @since 2.0.00
      */
     final String authOrRejectClientRobot
@@ -5554,7 +5564,7 @@ public class SOCServer extends Server
      */
     void createOrJoinGameIfUserOK
         (StringConnection c, String msgUser, String msgPass,
-         String gameName, Map<String, SOCGameOption> gameOpts)
+         String gameName, final Map<String, SOCGameOption> gameOpts)
     {
         System.err.println("L4885 createOrJoinGameIfUserOK at " + System.currentTimeMillis());
         if (msgUser != null)
@@ -5565,13 +5575,35 @@ public class SOCServer extends Server
             gameName = gameName.trim();
         final int cliVers = c.getVersion();
 
-        /**
-         * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
-         */
-        final int authResult = authOrRejectClientUser(c, msgUser, msgPass, cliVers, true, true);
-        if (authResult == AUTH_OR_REJECT__FAILED)
-            return;  // <---- Early return ----
+        if (c.getData() != null)
+        {
+            createOrJoinGameIfUserOK_postAuth(c, cliVers, gameName, gameOpts, AUTH_OR_REJECT__OK);
+        } else {
+            /**
+             * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
+             */
+            final String gName = gameName;
+            authOrRejectClientUser
+                (c, msgUser, msgPass, cliVers, true, true,
+                 new AuthSuccessRunnable()
+                 {
+                    public void success(StringConnection c, int authResult)
+                    {
+                        createOrJoinGameIfUserOK_postAuth(c, cliVers, gName, gameOpts, authResult);
+                    }
+                 });
+        }
+    }
 
+    /**
+     * After successful client user auth, take care of the rest of
+     * {@link #createOrJoinGameIfUserOK(StringConnection, String, String, String, Map)}.
+     * @since 1.2.00
+     */
+    private void createOrJoinGameIfUserOK_postAuth
+        (final StringConnection c, final int cliVers, final String gameName,
+         final Map<String, SOCGameOption> gameOpts, final int authResult)
+    {
         final boolean isTakingOver = (0 != (authResult & AUTH_OR_REJECT__TAKING_OVER));
 
         /**
@@ -8457,5 +8489,25 @@ public class SOCServer extends Server
         }
 
     }  // main
+
+    /**
+     * Interface for asynchronous callbacks from
+     * {@link SOCServer#authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean)}.
+     * If auth succeeds, calls {@link #success(StringConnection, int)}.
+     * If auth fails, {@code authOrRejectClientUser(..)} sends the client a failure message
+     * and no callback is made.
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 1.2.00
+     */
+    public interface AuthSuccessRunnable
+    {
+        /**
+         * Called on successful client authentication, or if user was already authenticated.
+         * @param c  Client connection which was authenticated
+         * @param authResult  Auth check result flags; same values as the return codes of
+         *     {@link SOCServer#authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean)}.
+         */
+        void success(final StringConnection c, final int authResult);
+    }
 
 }  // public class SOCServer
