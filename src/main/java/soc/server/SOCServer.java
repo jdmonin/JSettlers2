@@ -4941,23 +4941,29 @@ public class SOCServer extends Server
 
     /**
      * Check that the username and password (if any) is okay: Length versus {@link #PLAYER_NAME_MAX_LENGTH}, name
-     * in use but not timed out versus takeover, etc. Calls
-     * {@link #checkNickname(String, StringConnection, boolean, boolean)}
-     * and {@link #authenticateUser(StringConnection, String, String)}.
+     * in use but not timed out versus takeover, etc. Checks password if using the optional database.
+     * Calls {@link #checkNickname(String, StringConnection, boolean, boolean)} and
+     * {@link SOCDBHelper#authenticateUserPassword(String, String)}.
      *<P>
      * If not okay, sends client a {@link SOCStatusMessage} with an appropriate status code.
      *<P>
-     * If this user is already logged into another connection, checks here whether this new
-     * replacement connection can "take over" the existing one according to a timeout calculation
-     * in {@link #checkNickname(String, StringConnection, boolean, boolean)}.
+     * If this connection is already logged on and named ({@link StringConnection#getData() c.getData()} != {@code null}),
+     * does nothing: Won't check username or password, just returns {@link #AUTH_OR_REJECT__OK}.
      *<P>
-     * If this connection isn't already logged on and named ({@link StringConnection#getData() c.getData()}
-     * == {@code null}) and all checks pass: Unless {@code doNameConnection} is false, calls
-     * {@link StringConnection#setData(String) c.setData(nickname)} and
-     * {@link #nameConnection(StringConnection, boolean) nameConnection(c, isTakingOver)} before
-     * returning the {@link #AUTH_OR_REJECT__OK} flag, and possibly also the {@link #AUTH_OR_REJECT__SET_USERNAME}
+     * Otherwise:
+     *<UL>
+     * <LI> If this user is already logged into another connection, checks whether this new
+     *     replacement connection can "take over" the existing one according to a timeout calculation
+     *     in {@link #checkNickname(String, StringConnection, boolean, boolean)}.
+     * <LI> Check username format, password if using DB, etc. If any check fails,
+     *     send client a rejection {@code SOCStatusMessage} and return.
+     * <LI> If {@code doNameConnection}, calls {@link StringConnection#setData(String) c.setData(nickname)} and
+     *     {@link #nameConnection(StringConnection, boolean) nameConnection(c, isTakingOver)}.
+     *     If username was found in the optional database, those calls use the exact-case name found by
+     *     querying there case-insensitively (see below).
+     * <LI> Return the {@link #AUTH_OR_REJECT__OK} flag, and possibly also the {@link #AUTH_OR_REJECT__SET_USERNAME}
      * and/or {@link #AUTH_OR_REJECT__TAKING_OVER} flags.
-     *<P>
+     *</UL>
      * If the password is correct but the username is only a case-insensitive match with the database,
      * the client must update its internal nickname field to the exact-case username:
      *<UL>
@@ -4971,18 +4977,17 @@ public class SOCServer extends Server
      *     and returns {@link #AUTH_OR_REJECT__FAILED}.
      *</UL>
      *<P>
-     * If this connection is already logged on and named ({@link StringConnection#getData() c.getData()} != {@code null}),
-     * does nothing.  Won't check username or password, just returns {@link #AUTH_OR_REJECT__OK}.
-     *<P>
      * Before v1.2.00, this method had fewer possible status combinations and returned a single result instead
-     * of a set of flag bits.
+     * of a set of flag bits. v1.2.00 also inlines {@code authenticateUser(..)} into this method, its only caller.
      *
      * @param c  Client's connection
      * @param msgUser  Client username (nickname) to validate and authenticate; will be {@link String#trim() trim()med}.
      *     Ignored if connection is already authenticated
      *     ({@link StringConnection#getData() c.getData()} != {@code null}).
-     * @param msgPass  Password to supply to {@link #authenticateUser(StringConnection, String, String)},
-     *     or ""; will be {@link String#trim() trim()med}.
+     * @param msgPass  Password to supply to {@code SOCDBHelper.authenticateUserPassword(..), or "";
+     *     will be {@link String#trim() trim()med}. If {@code msgUser} is in the optional DB, the trimmed
+     *     {@code msgPass} must match their password there. If {@code msgPass != ""} but {@code msgUser} isn't found
+     *     in the DB or there is no DB, rejects authentication.
      * @param cliVers  Client version, from {@link StringConnection#getVersion()}
      * @param doNameConnection  True if successful auth of an unnamed connection should have this method call
      *     {@link StringConnection#setData(String) c.setData(nickname)} and
@@ -5101,11 +5106,39 @@ public class SOCServer extends Server
         /**
          * password check new connection from optional database, if not done already and if possible
          */
-        String authUsername = authenticateUser(c, msgUser, msgPass);
+        String authUsername = null;
+
+        if (msgPass.length() <= SOCAuthRequest.PASSWORD_LEN_MAX)
+        {
+            try
+            {
+                authUsername = SOCDBHelper.authenticateUserPassword(msgUser, msgPass);
+                    // If no DB: If msgPass is "" returns msgUser, else returns null
+                    // TODO needs a callback
+            }
+            catch (SQLException sqle)
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_PROBLEM_WITH_DB, c.getVersion(),
+                         "Problem connecting to database, please try again later."));
+
+                return AUTH_OR_REJECT__FAILED;  // <---- Early return: DB problem ----
+            }
+        }
+
+        int replySV = 0;
         if (authUsername == null)
         {
+            // Password too long, or user found in database but password incorrect
+
+            replySV = SOCStatusMessage.SV_PW_WRONG;
+            final String txt  // I18N TODO: Check client; might already substitute text based on SV value
+                = /*I*/"Incorrect password for '" + msgUser + "'." /*18N*/;
+            c.put(SOCStatusMessage.toCmd(replySV, c.getVersion(), txt));
+
             return AUTH_OR_REJECT__FAILED;  // <---- Early return: Password auth failed ----
         }
+
         final boolean mustSetUsername = ! authUsername.equals(msgUser);
         if (mustSetUsername && (cliVers < 1200))
         {
@@ -5136,76 +5169,6 @@ public class SOCServer extends Server
             authCallback.success(c, ret);
 
         return ret;
-    }
-
-    /**
-     * authenticate the user:
-     * see if the user is in the db, if so then check the password.
-     * if they're not in the db, but they supplied a password,
-     * then send a message (not OK).
-     * if they're not in the db, and no password, then ok.
-     *<P>
-     * Nickname search in the database is case-insensitive if supported by
-     * db schema version; see {@link SOCDBHelper#authenticateUserPassword(String, String)}.
-     * To give the originally-cased name from that search, if found this method
-     * returns their nickname as stored in the database.
-     *
-     * @param c         the user's connection
-     * @param userName  the user's nickname; trim before calling.
-     *     Case-insensitive if supported by db schema version.
-     * @param password  the user's password; trim before calling
-     * @return nickname from DB if the user has been authenticated;
-     *     {@code userName} if doesn't exist in database or not using the optional db at all;
-     *     {@code null} if user is in the db but password is wrong.
-     */
-    private String authenticateUser(StringConnection c, final String userName, final String password)
-    {
-        String dbUserName = null;
-
-        if (password.length() <= SOCAuthRequest.PASSWORD_LEN_MAX)
-        {
-            try
-            {
-                dbUserName = SOCDBHelper.authenticateUserPassword(userName, password);
-            }
-            catch (SQLException sqle)
-            {
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_PROBLEM_WITH_DB, c.getVersion(),
-                         "Problem connecting to database, please try again later."));
-                return null;
-            }
-        }
-
-        int replySV = 0;
-        if (dbUserName == null)
-        {
-            // User found in database, password incorrect or too long
-
-            replySV = SOCStatusMessage.SV_PW_WRONG;
-        }
-
-        if (replySV != 0)
-        {
-            final String txt  // I18N TODO: Check client; might already substitute text based on SV value
-                = /*I*/"Incorrect password for '" + userName + "'." /*18N*/;
-
-            c.put(SOCStatusMessage.toCmd(replySV, c.getVersion(), txt));
-            return null;
-        }
-
-        //
-        // Update the last login time
-        //
-        //Date currentTime = new Date();
-
-        //SOCDBHelper.updateLastlogin(userName, currentTime.getTime());
-        //
-        // Record the login info for this user
-        //
-        //SOCDBHelper.recordLogin(userName, c.host(), currentTime.getTime());
-
-        return dbUserName;
     }
 
     /**
