@@ -797,9 +797,15 @@ public class SOCHandPanel extends Panel
 
         giveLab = new Label(GIVE);
         add(giveLab);
+        if (interactive)
+            new AWTToolTip(strings.get("hpan.trade.igive.tip"), giveLab);
+                // "Resources to give to other players or the bank"
 
         getLab = new Label(GET);
         add(getLab);
+        if (interactive)
+            new AWTToolTip(strings.get("hpan.trade.iget.tip"), getLab);
+                // "Resources to get from other players or the bank"
 
         sqPanel = new SquaresPanel(interactive, this);
         add(sqPanel);
@@ -828,6 +834,9 @@ public class SOCHandPanel extends Panel
         bankBut.addActionListener(this);
         bankBut.setEnabled(interactive);
         add(bankBut);
+        if (interactive)
+            new AWTToolTip(strings.get("hpan.trade.bankport.tip"), bankBut);
+                // "Trade these resources with the bank or a port"
 
         bankUndoBut = new Button(BANK_UNDO);
         bankUndoBut.addActionListener(this);
