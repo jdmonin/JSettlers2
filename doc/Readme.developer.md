@@ -342,8 +342,10 @@ running inside eclipse.
 
 - Robot AI:
   - Refine ship planning/modeling, especially along coastal edges
+  - AI in SC_FOG may want more work to react to reveals and encourage exploration
 - Game/scenario framework:
   - Review scenarios' description text
+  - Further board generation testing; possibly automate that
   - Other expansions should be possible to add later within the framework
     released with 2.0.00
 - Network message system:
@@ -351,7 +353,7 @@ running inside eclipse.
   - Consider a common handler/constant for EMPTYSTR token
   - Send client legal/potential nodes/edges if joins or rejoins a game in progress
 - Server:
-  - DB schema additions and upgrade method
+  - DB schema additions
 
 
 ## Current partially-done work
@@ -378,16 +380,16 @@ ideas.
 - Control the speed of robots in practice games
   - Adjust `SOCRobotBrain.pause`, `ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS`, etc
 - Sound effects
-- Add more functional and unit tests, in `src/test/bin/` and `src/test/test/java/` directories and `build.xml`
+- Add more functional and unit tests, in `src/test/bin/` and `src/test/java/` directories and `build.xml`
 - Possible: Auto-add robots when needed as server runs, with server active-game count
     - Only do so if `jsettlers.startrobots` property is set
 - refactor: `ga.getPlayer(ga.getCurrentPlayer())` or `getClient().getClientManager()`
 - Refactor `SOCRobotClient`: Move simple handle-methods which don't put the
-  message into brainQ, but only update game fields/ methods, into
+  message into brainQ, but only update game fields/methods, into
   SOCDisplayless if possible.
 - Refactor: `SOCGameOption` static methods to check and change values within a set
 - Refactor: name of dev-cards consolidate
-- Fefactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
+- Refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
     - Currently in 2 places: `SOCResourceConstants.CLAY` vs `SOCPlayerElement.CLAY`
 - Refactor: combine the `cli/displayless/robot` endturn-like methods. For example,
   search for `ga.setCurrentDice(0)`, or `newToOld`, or `ga.resetVoteClear`
@@ -436,7 +438,7 @@ welcomes contributions. Please keep these things in mind:
 - For test runs inside Eclipse, add the JDBC driver to the project's build path -> Libraries -> Add External JAR,
   or add it to the classpath tab of SOCServer's eclipse Run Configuration; that option is
   useful when testing against multiple database types.
-- See also the "If you want to configure a sqlite database for testing" section of this readme.
+- See also the "To configure a sqlite database for testing" section of this readme.
 
 
 ## Internationalization (I18N)
