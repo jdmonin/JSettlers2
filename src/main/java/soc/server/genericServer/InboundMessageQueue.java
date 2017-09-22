@@ -141,6 +141,7 @@ public class InboundMessageQueue
      * it's thread-safe because it synchronizes on the internal queue object.
      * @param run  Runnable code
      * @see #push(String, StringConnection)
+     * @see #isCurrentThreadTreater()
      * @since 1.2.00
      */
     public void post(Runnable run)
@@ -171,6 +172,15 @@ public class InboundMessageQueue
         return null;
     }
 
+    /**
+     * Is our Treater the currently executing thread?
+     * If not, you can use {@link #post(Runnable)} to do work on that thread.
+     * @return true if {@link Thread#currentThread()} is this queue's Treater
+     */
+    public final boolean isCurrentThreadTreater()
+    {
+        return (Thread.currentThread() == treater);
+    }
 
     /**
      * {@link InboundMessageQueue}'s internal single-threaded reader to de-queue each message

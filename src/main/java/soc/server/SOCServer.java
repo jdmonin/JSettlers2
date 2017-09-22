@@ -31,6 +31,7 @@ import soc.robot.SOCRobotClient;
 import soc.server.database.DBSettingMismatchException;
 import soc.server.database.SOCDBHelper;
 
+import soc.server.genericServer.InboundMessageQueue;
 import soc.server.genericServer.LocalStringConnection;
 import soc.server.genericServer.Server;
 import soc.server.genericServer.StringConnection;
@@ -4934,7 +4935,7 @@ public class SOCServer extends Server
      * Check that the username and password (if any) is okay: Length versus {@link #PLAYER_NAME_MAX_LENGTH}, name
      * in use but not timed out versus takeover, etc. Checks password if using the optional database.
      * Calls {@link #checkNickname(String, StringConnection, boolean, boolean)} and
-     * {@link SOCDBHelper#authenticateUserPassword(String, String)}.
+     * {@link SOCDBHelper#authenticateUserPassword(String, String, soc.server.database.SOCDBHelper.AuthPasswordRunnable)}.
      *<P>
      * If not okay, sends client a {@link SOCStatusMessage} with an appropriate status code.
      *<P>
@@ -4985,8 +4986,8 @@ public class SOCServer extends Server
      *     {@link StringConnection#setData(String) c.setData(nickname)} and
      *     {@link #nameConnection(StringConnection, boolean) nameConnection(c, isTakingOver)}.
      *     <P>
-     *     If using the optional user DB, {@code nickname} is queried from the database by case-insensitive
-     *     search; see {@link SOCDBHelper#authenticateUserPassword(String, String)}.
+     *     If using the optional user DB, {@code nickname} is queried from the database by case-insensitive search; see
+     *     {@link SOCDBHelper#authenticateUserPassword(String, String, soc.server.database.SOCDBHelper.AuthPasswordRunnable)}.
      *     Otherwise {@code nickname} is {@code msgUser}.
      *     <P>
      *     For the usual connect sequence, callers will want {@code true}.  Some callers might want to check
@@ -5002,12 +5003,14 @@ public class SOCServer extends Server
      *     Calls {@link AuthSuccessRunnable#success(StringConnection, int)} with the {@link #AUTH_OR_REJECT__OK}
      *     flag bit set, and possibly also {@link #AUTH_OR_REJECT__SET_USERNAME} and/or (only if
      *     {@code allowTakeover}) {@link #AUTH_OR_REJECT__TAKING_OVER}.
+     *     <BR>
+     *     <B>Threads:</B> This callback will always run on the {@link InboundMessageQueue}'s Treater thread.
      * @throws IllegalArgumentException if {@code authCallback} is null
      * @see #authOrRejectClientRobot(StringConnection, String, String, String)
      * @since 1.1.19
      */
     void authOrRejectClientUser
-        (StringConnection c, String msgUser, String msgPass, final int cliVers,
+        (final StringConnection c, String msgUser, String msgPass, final int cliVers,
          final boolean doNameConnection, final boolean allowTakeover,
          final AuthSuccessRunnable authCallback)
         throws IllegalArgumentException
@@ -5097,38 +5100,74 @@ public class SOCServer extends Server
             // authenticateUser queries db and requires an account there when msgPass is not "".
         }
 
+        if (msgPass.length() > SOCAuthRequest.PASSWORD_LEN_MAX)
+        {
+            final String txt  // I18N TODO: Check client; might already substitute text based on SV value
+                = /*I*/"Incorrect password for '" + msgUser + "'." /*18N*/;
+            c.put(SOCStatusMessage.toCmd(SOCStatusMessage.SV_PW_WRONG, c.getVersion(), txt));
+            return;
+        }
+
         /**
          * password check new connection from optional database, if not done already and if possible
          */
-        String authUsername = null;
-
-        if (msgPass.length() <= SOCAuthRequest.PASSWORD_LEN_MAX)
+        try
         {
-            try
-            {
-                authUsername = SOCDBHelper.authenticateUserPassword(msgUser, msgPass);
-                    // If no DB: If msgPass is "" returns msgUser, else returns null
-                    // TODO needs a callback
-            }
-            catch (SQLException sqle)
-            {
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_PROBLEM_WITH_DB, c.getVersion(),
-                         "Problem connecting to database, please try again later."));
+            final String msgUserName = msgUser;
+            final boolean takingOver = isTakingOver;
+            SOCDBHelper.authenticateUserPassword
+                (msgUser, msgPass, new SOCDBHelper.AuthPasswordRunnable()
+                {
+                    public void authResult(final String dbUserName)
+                    {
+                        // If no DB: If msgPass is "" then dbUserName is msgUser, else is null
 
-                return;  // <---- Early return: DB problem ----
-            }
+                        if (inQueue.isCurrentThreadTreater())
+                            authOrRejectClientUser_postDBAuth
+                                (c, msgUserName, dbUserName, cliVers,
+                                 doNameConnection, takingOver, authCallback);
+                        else
+                            inQueue.post(new Runnable()
+                            {
+                                public void run()
+                                {
+                                    authOrRejectClientUser_postDBAuth
+                                        (c, msgUserName, dbUserName, cliVers,
+                                         doNameConnection, takingOver, authCallback);
+                                }
+                            });
+                    }
+                });;
         }
+        catch (SQLException sqle)
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_PROBLEM_WITH_DB, c.getVersion(),
+                     "Problem connecting to database, please try again later."));
 
-        int replySV = 0;
+            return;  // <---- Early return: DB problem ----
+        }
+    }
+
+    /**
+     * After successful client user/password auth, take care of the rest of
+     * {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean, AuthSuccessRunnable)}.
+     * That method also ensures this method and {@code authCallback} run in the Treater thread; see
+     * {@link Server#inQueue inQueue}.{@link InboundMessageQueue#isCurrentThreadTreater() isCurrentThreadTreater()}.
+     * @since 1.2.00
+     */
+    private void authOrRejectClientUser_postDBAuth
+        (final StringConnection c, final String msgUser, final String authUsername,
+         final int cliVers, final boolean doNameConnection, final boolean isTakingOver,
+         final AuthSuccessRunnable authCallback)
+    {
         if (authUsername == null)
         {
             // Password too long, or user found in database but password incorrect
 
-            replySV = SOCStatusMessage.SV_PW_WRONG;
             final String txt  // I18N TODO: Check client; might already substitute text based on SV value
                 = /*I*/"Incorrect password for '" + msgUser + "'." /*18N*/;
-            c.put(SOCStatusMessage.toCmd(replySV, c.getVersion(), txt));
+            c.put(SOCStatusMessage.toCmd(SOCStatusMessage.SV_PW_WRONG, c.getVersion(), txt));
 
             return;  // <---- Early return: Password auth failed ----
         }
