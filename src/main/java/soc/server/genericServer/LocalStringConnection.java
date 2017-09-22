@@ -196,6 +196,8 @@ public class LocalStringConnection
     /**
      * Send data over the connection.  Does not block.
      * Ignored if setEOF() has been called.
+     *<P>
+     * <B>Threads:</B> Safe to call from any thread; synchronizes on internal {@code out} queue.
      *
      * @param dat Data to send
      *
