@@ -267,22 +267,25 @@ In my Eclipse project, I've created these debug/run configurations:
         parameters: PORT = 8880
 
     Java applications:
-        cli-noargs soc.client.SOCPlayerClient
-        socserver soc.server.SOCServer
-        arguments: -o N7=t7 -o RD=y -Djsettlers.startrobots=7
+        cli-noargs: soc.client.SOCPlayerClient
+
+        socserver: soc.server.SOCServer
+            arguments: -o N7=t7 -o RD=y -Djsettlers.startrobots=7
                 -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
 
-    socserver-sqlite  soc.server.SOCServer
-        arguments: -o N7=t7 -o RD=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
-                -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
+        socserver-sqlite (_optional_): soc.server.SOCServer
+            arguments: -o N7=t7 -o RD=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
+                -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y
+                -Djsettlers.accounts.admins=adm 8880 20 dbuser dbpass
+            working directory: filesystem: JSettlers2/target
 
   The server will start 7 bots with the above configuration.  If you need to
 stop and start your own bots, then add `-Djsettlers.bots.cookie=cook` to the
 server configuration arguments, and create these Java application configs:
 
-    robot1      soc.robot.SOCRobotClient
+    robot1: soc.robot.SOCRobotClient
         arguments: localhost 8880 robot1 r1 cook
-    robot2      soc.robot.SOCRobotClient
+    robot2: soc.robot.SOCRobotClient
         arguments: localhost 8880 robot2 r2 cook
 
 For automated functional testing, the project also includes the script
@@ -299,28 +302,27 @@ Readme.md mentions a command-line option `-Djsettlers.db.jar=driverfile.jar`;
 that's needed only while running the jsettlers JAR from the command line, not
 running inside eclipse.
 
-- See the `socserver-sqlite` line just above for the server command line; this
-  is an eclipse `Run Configuration` for a jsettlers server which includes the
-  sqlite database you're about to configure.
-- Download the driver from https://bitbucket.org/xerial/sqlite-jdbc
-- `Eclipse menu -> prefs -> data mgmt -> connectivity -> driver definitions -> add`
-  (this menu path will be available only under eclipse j2ee, not the basic
-  eclipse)
-  - select SQLite JDBC Driver
-  - `jar list -> edit (or add,if empty) -> navigate to sqlite-jdbc-3.7.2.jar -> OK`
-- Project build path: libraries: include `sqlite-jdbc-3.7.2.jar` here too
-- Build the project (from `build.xml`; copies `target/classes/resources/version.info`
-  and other resources from `src/main/resources`)
+- See the `socserver-sqlite` eclipse Run Configuration in the previous section;
+  this config includes the sqlite database you're about to configure.
+- Download the driver from https://bitbucket.org/xerial/sqlite-jdbc.
+  The downloaded JAR might have a name like `sqlite-jdbc-3.15.1.jar`.
+  These instructions use a generic name `sqlite-jdbc-3.xx.y`.
+- Project properties -> Java build path -> Libraries -> Add External JARs ->
+     Browse to `sqlite-jdbc-3.xx.y.jar`
+- If using eclipse j2ee instead of basic Eclipse:
+  - Eclipse menu -> prefs -> data mgmt -> connectivity -> driver definitions -> Add
+  - Select `SQLite JDBC Driver`
+  - Jar list -> edit (or add, if empty) -> navigate to `sqlite-jdbc-3.xx.y.jar` -> OK
+- Build the project from `build.xml`, to copy `target/classes/resources/version.info`
+  and other resources from `src/main/resources`
 
-- Run socserver once to create the db file and exit cleanly:
-  - run configurations
-    - main class: soc.server.SOCServer
-    - program arguments: `-Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite -Djsettlers.db.script.setup=../src/bin/sql/jsettlers-tables.sql`
-  - working directory: filesystem: `JSettlers2/target`
-  - If sqlite crashes on launch, retry with `-Dsqlite.purejava=true`.
+- Create and initialize the db file:
+  - in Run Configurations dialog:
+    - duplicate `socserver-sqlite` -> `socserver-sqlite-setup`
+        - program arguments: add at beginning of args: `-Djsettlers.db.script.setup=../src/main/bin/sql/jsettlers-tables-sqlite.sql`
+  - Run the `socserver-sqlite-setup` configuration
   - This line should appear in the console: `Setup script was successful. Exiting now.`
-- Add the database to eclipse j2ee, so you can add tables and query it
-  (skip this if your eclipse is not j2ee):
+- If using eclipse j2ee, add the database so you can add tables and query it:
   - `Window -> show view -> other... -> data mgmt -> data source explorer`
   - Right-click Database Connections, choose New
     - Type: SQLite ; give a description and click Next
@@ -328,13 +330,12 @@ running inside eclipse.
       server's working directory)
   - Click "Test Connection"
   - Click Finish
-- Run the "socserver-sqlite" configuration
-  - main class: soc.server.SOCServer
-  - program arguments: `-Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite 8880 20 dbs dbp`
-  - working directory: filesystem: JSettlers2/target
+- Run the `socserver-sqlite` configuration
   - This line should appear in the console: `User database initialized.`
 - The database is now ready for use, development, and debugging.
-  To create player users, see `Readme.md` and use `SOCAccountClient`.
+- To create player users, see `Readme.md` and use `SOCAccountClient`.
+  The first account you create should be `adm` (named in property
+  `-Djsettlers.accounts.admins=adm`) which can then create others.
 
 
 ## Current work to complete for v2.0.00 release
