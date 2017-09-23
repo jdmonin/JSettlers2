@@ -5,7 +5,8 @@
 --      Postgres: $ psql -d socdata --file jsettlers-tables.sql
 -- See bottom of file for copyright and license information (GPLv3+).
 
--- When changing the schema, update template/jsettlers-tables-tmpl.sql and not db-specific files.
+-- Developers: Do not directly edit: Rendered from template jsettlers-tables-tmpl.sql
+-- When changing the schema, update template/jsettlers-tables-tmpl.sql and not these db-specific files.
 -- Always use lowercase for table names and field names.  0-9 and underscore (_) are also safe.
 -- Don't create "mytable_name" if that name without underscores ("mytablename") is already a table.
 -- Remember that the sql must be valid for mysql, postgresql, sqlite, and oracle.

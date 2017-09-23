@@ -29,6 +29,8 @@ infile = None
 outfile = None
 compfile = None  # for comparison mode, against rendered template
 
+TOKENS = {}  # init in setup_tokens() to include DB_TOKENS[dbtype] and tokens based on command-line params
+
 DB_TOKENS = {
     'mysql': {
         'now': 'now()',
@@ -100,11 +102,18 @@ def parse_cmdline():
         print_usage()
         sys.exit(2)
 
+def setup_tokens():
+    """Set up TOKENS from dynamic tokens and DB_TOKENS[dbtype]"""
+    if infile != '-':
+        TOKENS['render_src'] = infile
+    else:
+        TOKENS['render_src'] = '(standard input)'
+    TOKENS.update(DB_TOKENS[dbtype])
+
 def render(in_str):
-    """Given an input string which may contain template tokens, return a rendered output string. If an unknown {{token}} is found, raises KeyError."""
-    tokens = DB_TOKENS[dbtype]
-    for tok in tokens:
-        in_str = in_str.replace("{{" + tok + "}}", tokens[tok])
+    """Given an input string which may contain template TOKENS, return a rendered output string. If an unknown {{token}} is found, raises KeyError."""
+    for tok in TOKENS:
+        in_str = in_str.replace("{{" + tok + "}}", TOKENS[tok])
     if "{{" in in_str:
         s = re.search("{{.+?}}", in_str, re.DOTALL)
         if s:
@@ -114,6 +123,7 @@ def render(in_str):
 # main:
 
 parse_cmdline()  # exits if problems found
+setup_tokens()
 
 sys_exit = 0  # to set sys.exit's value within try-except
 try:
