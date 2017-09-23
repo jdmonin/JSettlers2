@@ -107,6 +107,15 @@ Run/Debug -> Console, and either un-check "Limit console output", or set it to
 a size larger than the default 80000 characters.  Robots and network messages
 can create a lot of output, so can javadoc generation.
 
+JSettlers client properties for debugging and testing:
+
+To use any of these, specify them in the IDE or java command line as JVM
+parameters (before the SOCPlayerClient class name, not after):
+
+- -Djsettlers.debug.traffic=Y - Print network traffic; see above for details
+- -Djsettlers.debug.clear_prefs=PI_width,PI_height - Remove these persistent
+  preferences at startup. See SOCPlayerClient PREF_* fields for all name keys.
+
 
 Setup instructions for JSettlers as an Eclipse project
 ------------------------------------------------------
