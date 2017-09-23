@@ -22,6 +22,7 @@ and backport minor new features until 2.0.00 is ready.
 - Client:
      - Persistent and per-game preferences for settings like sound effects and game window size
      - Per-game preference to auto-reject bot trades after a multi-second countdown
+     - Re-worded other players' trade offer displays to: Gives You / They Get
      - Initial Connect dialog: If username given, ensure New Game button is enabled
 - Users can't use the robot nickname prefixes "droid " or "robot ", or "debug" except in debug mode
 - Network: Send keepalive messages to idle games to keep clients connected
