@@ -65,6 +65,10 @@ import java.util.Vector;
  *<P>
  *  To handle inbound messages from the clients, the server-wide "treater" thread
  *  will call {@link #processCommand(String, StringConnection)} for each message.
+ * <P>
+ *  Some message handlers may want to do work in other Threads without tying up the Treater thread,
+ *  but then finish handling that message in the Treater to simplify locking of other objects.
+ *  For this, call {@link #postToTreater(Runnable)}: Same concept as {@link java.awt.EventQueue#invokeLater(Runnable)}.
  *<P>
  *  The first processed message over the connection will be from the server to the client,
  *  in {@link #newConnection1(StringConnection)} or {@link #newConnection2(StringConnection)}.
@@ -146,7 +150,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     private HashMap<String, String> connNames = new HashMap<String, String>();
 
-    /** clients in process of connecting */
+    /** Inbound messages from all clients, and/or code to be ran in the Treater thread */
     public Vector inQueue = new Vector();
 
     /**
@@ -434,13 +438,39 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         }
     }
 
-    /** treat a request from the given connection, by adding to {@link #inQueue} */
+    /**
+     * Treat a request from the given connection, by adding to {@link #inQueue}.
+     * @see #postToTreater(Runnable)
+     */
     public void treat(String s, StringConnection c)
     {
         // D.ebugPrintln("IN got: " + s);
+        final Command cmd = new Command(s, c);
         synchronized (inQueue)
         {
-            inQueue.addElement(new Command(s, c));
+            inQueue.addElement(cmd);
+            inQueue.notify();
+        }
+    }
+
+    /**
+     * Post some Runnable code to be queued and then run on the Treater thread.
+     *<P>
+     *<B>Threads:</B>
+     * This method notifies the {@link Treater}, waking that thread if it
+     * was {@link Object#wait()}ing because the queue was empty.
+     * Although {@code postToTreater(..)} isn't declared {@code synchronized},
+     * it's thread-safe because it synchronizes on the internal queue object.
+     * @param run  Runnable code
+     * @see #treat(String, StringConnection)
+     * @since 1.2.00
+     */
+    public void postToTreater(Runnable run)
+    {
+        final Command cmd = new Command(run);
+        synchronized (inQueue)
+        {
+            inQueue.addElement(cmd);
             inQueue.notify();
         }
     }
@@ -448,7 +478,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * Remove a queued incoming message from a client, and treat it.
      * Called from the single 'treater' thread.
+     *<P>
      * <em>Do not block or sleep</em> because this is single-threaded.
+     * Any slow or lengthy work for a message should be done on other threads.
+     * If the result of that work needs to be handled on the 'treater' thread,
+     * use {@link #postToTreater(Runnable)}.
      *
      * @param str Contents of message from the client
      * @param con Connection (client) sending this message
@@ -1111,18 +1145,39 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
 
     /**
-     * Holds one message from client, for {@link Server#inQueue}.
+     * Holds one message from client for {@link Server#inQueue},
+     * or code which must run in the Treater thread.
+     *<P>
+     * For simplicity and quick access, final fields are used instead of getters.
      */
     static class Command
     {
-        public String str;
-        public StringConnection con;
+        /** Message data contents in text format */
+        public final String str;
+
+        /** Client which sent this message */
+        public final StringConnection con;
+
+        /**
+         * Or, some code to run on our Treater thread
+         * @since 1.2.00
+         */
+        public final Runnable run;
 
         public Command(String s, StringConnection c)
         {
             str = s;
             con = c;
+            run = null;
         }
+
+        public Command(final Runnable run)
+        {
+            this.run = run;
+            str = null;
+            con = null;
+        }
+
     }  // Command
 
     /**
@@ -1156,7 +1211,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 {
                     if (c != null)
                     {
-                        processCommand(c.str, c.con);
+                        if (c.run != null)
+                            c.run.run();
+                        else
+                            processCommand(c.str, c.con);
                     }
                 }
                 catch (Exception e)
