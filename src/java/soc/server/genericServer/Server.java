@@ -57,7 +57,7 @@ import java.util.Vector;
  *  called from that thread.  If the client's connection is accepted in
  *  {@link #newConnection1(StringConnection)},
  *  the per-client thread enters a while-loop and calls {@link #treat(String, StringConnection)}
- *  to handle messages from the client.  Treat places them in a server-wide {@link #inQueue},
+ *  to handle messages from the client.  Treat places them in a server-wide {@code inQueue},
  *  which is processed in a server-wide single thread called the "treater".
  *<P>
  *  Alternately, it could be rejected in <tt>newConnection1</tt> for any reason,
@@ -151,7 +151,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     private HashMap<String, String> connNames = new HashMap<String, String>();
 
     /** Inbound messages from all clients, and/or code to be ran in the Treater thread */
-    public Vector inQueue = new Vector();
+    private final Vector<Command> inQueue = new Vector<Command>();
 
     /**
      * Versions of currently connected clients, according to
@@ -439,7 +439,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     }
 
     /**
-     * Treat a request from the given connection, by adding to {@link #inQueue}.
+     * Treat a request from the given connection, by adding to {@code inQueue}.
      * @see #postToTreater(Runnable)
      */
     public void treat(String s, StringConnection c)
@@ -1146,7 +1146,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * Holds one message from client for {@link Server#inQueue},
-     * or code which must run in the Treater thread.
+     * or code which must run in the {@link Treater} thread.
      *<P>
      * For simplicity and quick access, final fields are used instead of getters.
      */
@@ -1200,11 +1200,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 synchronized (inQueue)
                 {
                     if (inQueue.size() > 0)
-                    {
                         //D.ebugPrintln("treater getting command");
-                        c = (Command) inQueue.elementAt(0);
-                        inQueue.removeElementAt(0);
-                    }
+                        c = inQueue.remove(0);
                 }
 
                 try
