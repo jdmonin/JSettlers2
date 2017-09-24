@@ -457,33 +457,26 @@ public class SOCServer extends Server
      */
     public static String PRACTICE_STRINGPORT = "SOCPRACTICE"; 
 
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
-     *  result 0: No successful flag bits set: Failed authentication, failed name validation,
-     *  or name is already logged in and that connection hasn't timed out yet.
-     *  @see #AUTH_OR_REJECT__OK
-     *  @since 1.1.19
-     */
-    private static final int AUTH_OR_REJECT__FAILED = 0;
-
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
+    /** {@link AuthSuccessRunnable#success(StringConnection, int)}
      *  result flag bit: Authentication succeeded.
-     *  @see #AUTH_OR_REJECT__FAILED
      *  @see #AUTH_OR_REJECT__SET_USERNAME
      *  @see #AUTH_OR_REJECT__TAKING_OVER
      *  @since 1.1.19
      */
     private static final int AUTH_OR_REJECT__OK = 0x1;
 
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
+    /** {@link AuthSuccessRunnable#success(StringConnection, int)}
      *  result flag bit: Authentication succeeded, is taking over another connection.
      *  @see #AUTH_OR_REJECT__OK
      *  @since 1.1.19
      */
     private static final int AUTH_OR_REJECT__TAKING_OVER = 0x2;
 
-    /** {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean) authOrRejectClientUser(....)}
+    /** {@link AuthSuccessRunnable#success(StringConnection, int)}
      *  result flag bit: Authentication succeeded, but nickname is not an exact case-sensitive match to DB username;
-     *  client must be sent a status message with its exact nickname. See {@code authOrRejectClientUser(..)} javadoc.
+     *  client must be sent a status message with its exact nickname. See
+     *  {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean, AuthSuccessRunnable)}
+     *  javadoc.
      *  @see #AUTH_OR_REJECT__OK
      *  @since 1.2.00
      */
@@ -4704,27 +4697,27 @@ public class SOCServer extends Server
      * == <tt>null</tt>) and all checks pass: Unless <tt>doNameConnection</tt> is false, calls
      * {@link StringConnection#setData(String) c.setData(nickname)} and
      * {@link #nameConnection(StringConnection, boolean) nameConnection(c, isTakingOver)} before
-     * returning the {@link #AUTH_OR_REJECT__OK} flag, and possibly also the {@link #AUTH_OR_REJECT__SET_USERNAME}
-     * and/or {@link #AUTH_OR_REJECT__TAKING_OVER} flags.
+     * calling {@code authCallback} with the {@link #AUTH_OR_REJECT__OK} flag, and possibly also the
+     * {@link #AUTH_OR_REJECT__SET_USERNAME} and/or {@link #AUTH_OR_REJECT__TAKING_OVER} flags.
      *<P>
      * If the password is correct but the username is only a case-insensitive match with the database,
      * the client must update its internal nickname field to the exact-case username:
      *<UL>
-     * <LI> If client's version is new enough to do that (v1.2.00+), caller must send
+     * <LI> If client's version is new enough to do that (v1.2.00+), caller's {@code authCallback} must send
      *     {@link SOCStatusMessage}({@link SOCStatusMessage#SV_OK_SET_NICKNAME SV_OK_SET_NICKNAME}):
-     *     Returns {@link #AUTH_OR_REJECT__OK} | {@link #AUTH_OR_REJECT__SET_USERNAME}. If {@code doNameConnection},
-     *     caller can get the exact-case username from {@link StringConnection#getData()};
+     *     Calls {@code authCallback} with {@link #AUTH_OR_REJECT__OK} | {@link #AUTH_OR_REJECT__SET_USERNAME}.
+     *     If {@code doNameConnection}, caller can get the exact-case username from {@link StringConnection#getData()};
      *     otherwise {@link SOCDBHelper#getUser(String)} must be called.
      * <LI> If client is too old, this method sends
      *     {@link SOCStatusMessage}({@link SOCStatusMessage#SV_NAME_NOT_FOUND SV_NAME_NOT_FOUND})
-     *     and returns {@link #AUTH_OR_REJECT__FAILED}.
+     *     and does not call {@code authCallback}.
      *</UL>
      *<P>
      * If this connection is already logged on and named ({@link StringConnection#getData() c.getData()} != <tt>null</tt>),
-     * does nothing.  Won't check username or password, just returns {@link #AUTH_OR_REJECT__OK}.
+     * does nothing: Won't check username or password, just calls {@code authCallback} with {@link #AUTH_OR_REJECT__OK}.
      *<P>
      * Before v1.2.00, this method had fewer possible status combinations and returned a single result instead
-     * of a set of flag bits.
+     * of passing a set of flag bits into {@code authCallback}.
      *
      * @param c  Client's connection
      * @param msgUser  Client username (nickname) to validate and authenticate; will be {@link String#trim() trim()med}.
@@ -4750,18 +4743,27 @@ public class SOCServer extends Server
      * @param allowTakeover  True if the new connection can "take over" an older connection in response to the
      *     message it sent.  If true, the caller must be prepared to send all game info/channel info that the
      *     old connection had joined, so the new connection has full info to participate in them.
-     * @return  Result of the auth check: {@link #AUTH_OR_REJECT__FAILED}, or an int with the
-     *     {@link #AUTH_OR_REJECT__OK} flag bit set and possibly also {@link #AUTH_OR_REJECT__SET_USERNAME}
-     *     and/or (only if {@code allowTakeover}) {@link #AUTH_OR_REJECT__TAKING_OVER}
+     * @param authCallback  Callback to make if authentication succeeds, or if {@code c} was already authenticated.
+     *     Calls {@link AuthSuccessRunnable#success(StringConnection, int)} with the {@link #AUTH_OR_REJECT__OK}
+     *     flag bit set, and possibly also {@link #AUTH_OR_REJECT__SET_USERNAME} and/or (only if
+     *     {@code allowTakeover}) {@link #AUTH_OR_REJECT__TAKING_OVER}.
+     * @throws IllegalArgumentException if {@code authCallback} is null
      * @since 1.1.19
      */
-    private int authOrRejectClientUser
-        (StringConnection c, String msgUser, String msgPass, final int cliVers,
-         final boolean doNameConnection, final boolean allowTakeover)
+    private void authOrRejectClientUser
+        (final StringConnection c, String msgUser, String msgPass, final int cliVers,
+         final boolean doNameConnection, final boolean allowTakeover,
+         final AuthSuccessRunnable authCallback)
+        throws IllegalArgumentException
     {
+        if (authCallback == null)
+            throw new IllegalArgumentException("authCallback");
+
         if (c.getData() != null)
         {
-            return AUTH_OR_REJECT__OK;  // <---- Early return: Already authenticated ----
+            authCallback.success(c, AUTH_OR_REJECT__OK);
+
+            return;  // <---- Early return: Already authenticated ----
         }
 
         boolean isTakingOver = false;  // will set true if a human player is replacing another player in the game
@@ -4777,7 +4779,7 @@ public class SOCServer extends Server
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
                      SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));
-            return AUTH_OR_REJECT__FAILED;
+            return;
         }
 
         /**
@@ -4800,26 +4802,26 @@ public class SOCServer extends Server
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                          MSG_NICKNAME_ALREADY_IN_USE));
-                return AUTH_OR_REJECT__FAILED;
+                return;
             }
         } else if (nameTimeout == -2)
         {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NAME_NOT_ALLOWED, cliVers,
                      "This nickname is not allowed."));
-            return AUTH_OR_REJECT__FAILED;
+            return;
         } else if (nameTimeout <= -1000)
         {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                      checkNickname_getVersionText(-nameTimeout)));
-            return AUTH_OR_REJECT__FAILED;
+            return;
         } else if (nameTimeout > 0)
         {
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                      (allowTakeover) ? checkNickname_getRetryText(nameTimeout) : MSG_NICKNAME_ALREADY_IN_USE));
-            return AUTH_OR_REJECT__FAILED;
+            return;
         }
 
         /**
@@ -4832,7 +4834,7 @@ public class SOCServer extends Server
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_PW_REQUIRED, cliVers,
                          "This server requires user accounts and passwords."));
-                return AUTH_OR_REJECT__FAILED;
+                return;
             }
 
             // Assert: msgPass isn't "".
@@ -4845,7 +4847,7 @@ public class SOCServer extends Server
         String authUsername = authenticateUser(c, msgUser, msgPass);
         if (authUsername == null)
         {
-            return AUTH_OR_REJECT__FAILED;  // <---- Early return: Password auth failed ----
+            return;  // <---- Early return: Password auth failed ----
         }
         final boolean mustSetUsername = ! authUsername.equals(msgUser);
         if (mustSetUsername && (cliVers < 1200))
@@ -4854,7 +4856,7 @@ public class SOCServer extends Server
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NAME_NOT_FOUND, cliVers,
                      "Nickname is case-sensitive: Use " + authUsername));
-            return AUTH_OR_REJECT__FAILED;
+            return;
         }
 
         /**
@@ -4873,7 +4875,7 @@ public class SOCServer extends Server
         if (mustSetUsername)
             ret |= AUTH_OR_REJECT__SET_USERNAME;
 
-        return ret;
+        authCallback.success(c, ret);
     }
 
     /**
@@ -5114,8 +5116,9 @@ public class SOCServer extends Server
             D.ebugPrintln("handleJOIN: " + mes);
 
             int cliVers = c.getVersion();
-            String msgUser = mes.getNickname().trim();  // trim before db query calls
-            String msgPass = mes.getPassword();
+            final String chName = mes.getChannel().trim();
+            final String msgUser = mes.getNickname().trim();  // trim before db query calls
+            final String msgPass = mes.getPassword();
 
             /**
              * Check the reported version; if none, assume 1000 (1.0.00)
@@ -5127,124 +5130,144 @@ public class SOCServer extends Server
                 cliVers = c.getVersion();
             }
 
-            /**
-             * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
-             */
-            final int authResult = authOrRejectClientUser(c, msgUser, msgPass, cliVers, true, false);
-            if (authResult == AUTH_OR_REJECT__FAILED)
-                return;  // <---- Early return ----
-
-            final boolean mustSetUsername = (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME));
-            if (mustSetUsername)
-                msgUser = c.getData();  // set to original case, from db case-insensitive search
-
-            /**
-             * Check that the channel name is ok
-             */
-
-            /*
-               if (!checkChannelName(mes.getChannel())) {
-               return;
-               }
-             */
-            final String ch = mes.getChannel().trim();
-            if ( (! SOCMessage.isSingleLineAndSafe(ch))
-                 || "*".equals(ch))
+            if (c.getData() != null)
             {
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
-                  // "This game name is not permitted, please choose a different name."
-
-                  return;  // <---- Early return ----
-            }
-
-            /**
-             * If creating a new channel, ensure they are below their max channel count.
-             */
-            if ((! channelList.isChannel(ch))
-                && (CLIENT_MAX_CREATE_CHANNELS >= 0)
-                && (CLIENT_MAX_CREATE_CHANNELS <= ((SOCClientData) c.getAppData()).getcurrentCreatedChannels()))
-            {
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NEWCHANNEL_TOO_MANY_CREATED, cliVers,
-                         SOCStatusMessage.MSG_SV_NEWCHANNEL_TOO_MANY_CREATED + Integer.toString(CLIENT_MAX_CREATE_CHANNELS)));
-                // Too many of your chat channels still active; maximum: 2
-
-                return;  // <---- Early return ----            
-            }
-
-            /**
-             * Tell the client that everything is good to go
-             */
-            c.put(SOCJoinAuth.toCmd(msgUser, ch));
-            final String txt = "Welcome to Java Settlers of Catan!";
-            if (! mustSetUsername)
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_OK, txt));
-            else
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_OK_SET_NICKNAME, c.getData() + SOCMessage.sep2_char + txt));
-
-            /**
-             * Add the StringConnection to the channel
-             */
-
-            if (channelList.takeMonitorForChannel(ch))
-            {
-                try
-                {
-                    connectToChannel(c, ch);
-                }
-                catch (Exception e)
-                {
-                    D.ebugPrintStackTrace(e, "Exception in handleJOIN (connectToChannel)");
-                }
-
-                channelList.releaseMonitorForChannel(ch);
-            }
-            else
-            {
+                handleJOIN_postAuth(c, msgUser, chName, cliVers, AUTH_OR_REJECT__OK);
+            } else {
                 /**
-                 * the channel did not exist, create it
+                 * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
                  */
-                channelList.takeMonitor();
+                final int cv = cliVers;
+                authOrRejectClientUser
+                    (c, msgUser, msgPass, cv, true, false,
+                     new AuthSuccessRunnable()
+                     {
+                         public void success(final StringConnection c, final int authResult)
+                         {
+                             handleJOIN_postAuth(c, msgUser, chName, cv, authResult);
+                         }
+                     });
+            }
+        }
+    }
 
-                try
-                {
-                    channelList.createChannel(ch, c.getData());
-                    ((SOCClientData) c.getAppData()).createdChannel();
-                }
-                catch (Exception e)
-                {
-                    D.ebugPrintStackTrace(e, "Exception in handleJOIN (createChannel)");
-                }
+    /**
+     * After successful client user auth, take care of the rest of
+     * {@link #handleJOIN(StringConnection, SOCJoin)}.
+     * @since 1.2.00
+     */
+    private void handleJOIN_postAuth
+        (final StringConnection c, String msgUser, final String ch, final int cliVers, final int authResult)
+    {
+        final boolean mustSetUsername = (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME));
+        if (mustSetUsername)
+            msgUser = c.getData();  // set to original case, from db case-insensitive search
 
-                channelList.releaseMonitor();
-                broadcast(SOCNewChannel.toCmd(ch));
-                c.put(SOCMembers.toCmd(ch, channelList.getMembers(ch)));
-                if (D.ebugOn)
-                    D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch + " at "
-                        + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
-                channelList.takeMonitorForChannel(ch);
+        /**
+         * Check that the channel name is ok
+         */
 
-                try
-                {
-                    channelList.addMember(c, ch);
-                }
-                catch (Exception e)
-                {
-                    D.ebugPrintStackTrace(e, "Exception in handleJOIN (addMember)");
-                }
+        /*
+           if (!checkChannelName(mes.getChannel())) {
+           return;
+           }
+         */
+        if ( (! SOCMessage.isSingleLineAndSafe(ch))
+             || "*".equals(ch))
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
+              // "This game name is not permitted, please choose a different name."
 
-                channelList.releaseMonitorForChannel(ch);
+              return;  // <---- Early return ----
+        }
+
+        /**
+         * If creating a new channel, ensure they are below their max channel count.
+         */
+        if ((! channelList.isChannel(ch))
+            && (CLIENT_MAX_CREATE_CHANNELS >= 0)
+            && (CLIENT_MAX_CREATE_CHANNELS <= ((SOCClientData) c.getAppData()).getcurrentCreatedChannels()))
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NEWCHANNEL_TOO_MANY_CREATED, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWCHANNEL_TOO_MANY_CREATED + Integer.toString(CLIENT_MAX_CREATE_CHANNELS)));
+            // Too many of your chat channels still active; maximum: 2
+
+            return;  // <---- Early return ----
+        }
+
+        /**
+         * Tell the client that everything is good to go
+         */
+        c.put(SOCJoinAuth.toCmd(msgUser, ch));
+        final String txt = "Welcome to Java Settlers of Catan!";
+        if (! mustSetUsername)
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_OK, txt));
+        else
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_OK_SET_NICKNAME, c.getData() + SOCMessage.sep2_char + txt));
+
+        /**
+         * Add the StringConnection to the channel
+         */
+
+        if (channelList.takeMonitorForChannel(ch))
+        {
+            try
+            {
+                connectToChannel(c, ch);
+            }
+            catch (Exception e)
+            {
+                D.ebugPrintStackTrace(e, "Exception in handleJOIN (connectToChannel)");
             }
 
-            /**
-             * let everyone know about the change
-             */
-            messageToChannel(ch, new SOCJoin(msgUser, "", "dummyhost", ch));
+            channelList.releaseMonitorForChannel(ch);
         }
+        else
+        {
+            /**
+             * the channel did not exist, create it
+             */
+            channelList.takeMonitor();
+
+            try
+            {
+                channelList.createChannel(ch, c.getData());
+                ((SOCClientData) c.getAppData()).createdChannel();
+            }
+            catch (Exception e)
+            {
+                D.ebugPrintStackTrace(e, "Exception in handleJOIN (createChannel)");
+            }
+
+            channelList.releaseMonitor();
+            broadcast(SOCNewChannel.toCmd(ch));
+            c.put(SOCMembers.toCmd(ch, channelList.getMembers(ch)));
+            if (D.ebugOn)
+                D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch + " at "
+                    + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
+            channelList.takeMonitorForChannel(ch);
+
+            try
+            {
+                channelList.addMember(c, ch);
+            }
+            catch (Exception e)
+            {
+                D.ebugPrintStackTrace(e, "Exception in handleJOIN (addMember)");
+            }
+
+            channelList.releaseMonitorForChannel(ch);
+        }
+
+        /**
+         * let everyone know about the change
+         */
+        messageToChannel(ch, new SOCJoin(msgUser, "", "dummyhost", ch));
     }
 
     /**
@@ -5972,11 +5995,15 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
-        int authResult = -1;
+        final String mesUser = mes.nickname.trim();  // trim before db query calls
+        final String mesRole = mes.role;
+        final boolean isPlayerRole = mesRole.equals(SOCAuthRequest.ROLE_GAME_PLAYER);
+        final int cliVersion = c.getVersion();
 
-        if (c.getData() == null)
+        if (c.getData() != null)
         {
-            final int cliVersion = c.getVersion();
+            handleAUTHREQUEST_postAuth(c, mesUser, mesRole, isPlayerRole, cliVersion, SOCServer.AUTH_OR_REJECT__OK);
+        } else {
             if (cliVersion <= 0)
             {
                 // unlikely: AUTHREQUEST was added in 1.1.19, version message timing was stable years earlier
@@ -5994,17 +6021,32 @@ public class SOCServer extends Server
 
             // Check user authentication.  Don't call setData or nameConnection yet if there
             // are role-specific things to check and reject during this initial connection.
-            final boolean isPlayerRole = mes.role.equals(SOCAuthRequest.ROLE_GAME_PLAYER);
-            final String mesUser = mes.nickname.trim();  // trim before db query calls
-            authResult = authOrRejectClientUser
-                (c, mesUser, mes.password, cliVersion, isPlayerRole, false);
+            authOrRejectClientUser
+                (c, mesUser, mes.password, cliVersion, isPlayerRole, false,
+                 new SOCServer.AuthSuccessRunnable()
+                 {
+                    public void success(final StringConnection c, final int authResult)
+                    {
+                        handleAUTHREQUEST_postAuth(c, mesUser, mesRole, isPlayerRole, cliVersion, authResult);
+                    }
+                 });
+        }
+    }
 
-            if (authResult == AUTH_OR_REJECT__FAILED)
-                return;  // <---- Early return; authOrRejectClientUser sent the status message ----
-
+    /**
+     * After successful client user auth, take care of the rest of
+     * {@link #handleAUTHREQUEST(StringConnection, SOCAuthRequest)}.
+     * @since 1.2.00
+     */
+    private void handleAUTHREQUEST_postAuth
+        (final StringConnection c, final String mesUser, final String mesRole, final boolean isPlayerRole,
+         final int cliVersion, int authResult)
+    {
+        if (c.getData() == null)
+        {
             if (! isPlayerRole)
             {
-                if (mes.role.equals(SOCAuthRequest.ROLE_USER_ADMIN))
+                if (mesRole.equals(SOCAuthRequest.ROLE_USER_ADMIN))
                 {
                     if (! isUserDBUserAdmin(mesUser))
                     {
@@ -6129,7 +6171,7 @@ public class SOCServer extends Server
      * @since 1.1.07
      */
     private void createOrJoinGameIfUserOK
-        (StringConnection c, String msgUser, String msgPass, String gameName, Hashtable gameOpts)
+        (StringConnection c, String msgUser, String msgPass, String gameName, final Hashtable gameOpts)
     {
         if (msgUser != null)
             msgUser = msgUser.trim();
@@ -6139,13 +6181,35 @@ public class SOCServer extends Server
             gameName = gameName.trim();
         final int cliVers = c.getVersion();
 
-        /**
-         * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
-         */
-        final int authResult = authOrRejectClientUser(c, msgUser, msgPass, cliVers, true, true);
-        if (authResult == AUTH_OR_REJECT__FAILED)
-            return;  // <---- Early return ----
+        if (c.getData() != null)
+        {
+            createOrJoinGameIfUserOK_postAuth(c, cliVers, gameName, gameOpts, AUTH_OR_REJECT__OK);
+        } else {
+            /**
+             * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
+             */
+            final String gName = gameName;
+            authOrRejectClientUser
+                (c, msgUser, msgPass, cliVers, true, true,
+                 new AuthSuccessRunnable()
+                 {
+                    public void success(StringConnection c, int authResult)
+                    {
+                        createOrJoinGameIfUserOK_postAuth(c, cliVers, gName, gameOpts, authResult);
+                    }
+                 });
+        }
+    }
 
+    /**
+     * After successful client user auth, take care of the rest of
+     * {@link #createOrJoinGameIfUserOK(StringConnection, String, String, String, Hashtable)}.
+     * @since 1.2.00
+     */
+    private void createOrJoinGameIfUserOK_postAuth
+        (final StringConnection c, final int cliVers, final String gameName,
+         final Hashtable gameOpts, final int authResult)
+    {
         final boolean isTakingOver = (0 != (authResult & AUTH_OR_REJECT__TAKING_OVER));
 
         /**
@@ -12341,5 +12405,32 @@ public class SOCServer extends Server
         }
 
     }  // inner class ForceEndTurnThread
+
+    /**
+     * Interface for asynchronous callbacks from
+     * {@link SOCServer#authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean, AuthSuccessRunnable)}
+     * for better multithreading granularity.
+     * If auth succeeds, calls {@link #success(StringConnection, int)}.
+     * If auth fails, {@code authOrRejectClientUser(..)} sends the client a failure message
+     * and no callback is made.
+     *<P>
+     * Before v1.2.00, {@code authOrRejectClientUser(..)} returned status flags like
+     * {@link SOCServer#AUTH_OR_REJECT__OK AUTH_OR_REJECT__OK} directly instead of using a callback.
+     *
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 1.2.00
+     */
+    public interface AuthSuccessRunnable
+    {
+        /**
+         * Called on successful client authentication, or if user was already authenticated.
+         * @param c  Client connection which was authenticated
+         * @param authResult  Auth check result flags; {@link SOCServer#AUTH_OR_REJECT__OK AUTH_OR_REJECT__OK},
+         *     {@link SOCServer#AUTH_OR_REJECT__SET_USERNAME AUTH_OR_REJECT__SET_USERNAME}, etc.
+         *     See {@link SOCServer#authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean, AuthSuccessRunnable)}
+         *     for details.
+         */
+        void success(final StringConnection c, final int authResult);
+    }
 
 }  // public class SOCServer
