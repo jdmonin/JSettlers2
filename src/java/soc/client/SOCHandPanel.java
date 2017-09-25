@@ -634,9 +634,13 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         giveLab = new Label(GIVE);
         add(giveLab);
+        if (interactive)
+            new AWTToolTip("Resources to give to other players or the bank", giveLab);
 
         getLab = new Label(GET);
         add(getLab);
+        if (interactive)
+            new AWTToolTip("Resources to get from other players or the bank", getLab);
 
         sqPanel = new SquaresPanel(interactive, this);
         add(sqPanel);
@@ -665,6 +669,8 @@ public class SOCHandPanel extends Panel implements ActionListener
         bankBut.addActionListener(this);
         bankBut.setEnabled(interactive);
         add(bankBut);
+        if (interactive)
+            new AWTToolTip("Trade these resources with the bank or a port", bankBut);
 
         bankUndoBut = new Button(BANK_UNDO);
         bankUndoBut.addActionListener(this);
