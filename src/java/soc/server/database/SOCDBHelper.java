@@ -57,6 +57,8 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 /**
@@ -439,6 +441,8 @@ public class SOCDBHelper
      * @since 1.2.00
      */
     private static volatile UpgradeBGTasksThread schemaUpgBGTasksThread;
+
+    private final static ExecutorService bcryptQueueThreader = Executors.newSingleThreadExecutor();
 
     /**
      * Cached DB connection username, used when reconnecting on error.
@@ -1205,7 +1209,7 @@ public class SOCDBHelper
      * @throws IllegalArgumentException if {@code userName} is {@code null}
      * @throws SQLException if any unexpected database problem
      * @since 1.2.00
-     * @see #authenticateUserPassword(String, String)
+     * @see #authenticateUserPassword(String, String, AuthPasswordRunnable)
      */
     public static String getUser(String userName)
         throws IllegalArgumentException, SQLException
@@ -1249,16 +1253,24 @@ public class SOCDBHelper
      *     Passwords longer than 256 characters are always rejected here before checking {@code PW_SCHEME}.
      *     If this user has {@link #PW_SCHEME_NONE}, for backwards compatibility {@code sPassword} is
      *     truncated to 20 characters ({@link #PW_MAX_LEN_SCHEME_NONE}).
+     * @param authCallback  Optional callback to make after authentication lookups and hashing succeed or fail.
+     *     This is useful because {@link BCrypt} password hashing is slow by design, and so is done in another
+     *     thread.  If not {@code null}, {@code authCallback} is called at the end of this method,
+     *     either in the caller's thread or in a thread dedicated to {@code BCrypt} calls.
      * @return user's nickname if password is correct;
      *     {@code sUserName} if password is "" but user doesn't exist in db
      *     or if database is not currently connected;
      *     {@code null} if account exists in db and password is wrong.
-     * @throws SQLException if any unexpected database problem
+     * @throws SQLException if any unexpected database problem.
+     *     <P>
+     *     Only the {@code BCrypt} call will be done in a separate thread; all DB activity happens in this method
+     *     in the caller's thread, so SQLExceptions will be thrown to the caller and not lost or ignored.
      * @see #updateUserPassword(String, String)
      * @see #getUser(String)
      * @since 1.2.00
      */
-    public static String authenticateUserPassword(final String sUserName, String sPassword)
+    public static String authenticateUserPassword
+        (final String sUserName, String sPassword, final AuthPasswordRunnable authCallback)
         throws SQLException
     {
         final int L = sPassword.length();
@@ -1269,6 +1281,8 @@ public class SOCDBHelper
         String dbPassword = null;  // encoded value, unless user has PW_SCHEME_NONE
         int pwScheme = PW_SCHEME_NONE;
         boolean dbUserFound = false;
+        boolean ranBCryptTask = false;  // true if used a task on bcryptQueueThreader,
+            // which will call authCallback when done
 
         if (checkConnection())
         {
@@ -1325,7 +1339,28 @@ public class SOCDBHelper
                     {
                         if ((L <= PW_MAX_LEN_SCHEME_BCRYPT)
                             && (sPassword.getBytes("utf-8").length <= PW_MAX_LEN_SCHEME_BCRYPT))
-                            ok = BCrypt.checkpw(sPassword, dbPassword);  // may throw IllegalArgumentException
+                        {
+                            if (authCallback == null)
+                            {
+                                ok = BCrypt.checkpw(sPassword, dbPassword);  // may throw IllegalArgumentException
+                            } else {
+                                ranBCryptTask = true;
+
+                                final String sPass = sPassword, dbUser = dbUserName, dbPass = dbPassword;
+                                bcryptQueueThreader.execute(new Runnable()
+                                {
+                                    public void run()
+                                    {
+                                        try
+                                        {
+                                            boolean ok = BCrypt.checkpw(sPass, dbPass);
+                                                // may throw IllegalArgumentException
+                                            authCallback.authResult((ok) ? dbUser: null);  // <--- Callback ---
+                                        } catch (RuntimeException e) {}
+                                    }
+                                });
+                            }
+                        }
                     }
                     catch (UnsupportedEncodingException e) {}
                     break;
@@ -1337,7 +1372,10 @@ public class SOCDBHelper
             ok = "".equals(sPassword);
         }
 
-        return (ok) ? dbUserName: null;
+        final String ret = (ok) ? dbUserName: null;
+        if ((authCallback != null) && ! ranBCryptTask)
+            authCallback.authResult(ret);  // <--- Callback ---
+        return ret;
     }
 
     /**
@@ -1548,7 +1586,7 @@ public class SOCDBHelper
      *     <BR><B>Note:</B> If there is no user with {@code userName}, will nonetheless return true.
      * @throws IllegalArgumentException  If user or password are null, or password is too short or too long
      * @throws SQLException if an error occurs
-     * @see #authenticateUserPassword(String, String)
+     * @see #authenticateUserPassword(String, String, AuthPasswordRunnable)
      * @since 1.1.20
      */
     public static boolean updateUserPassword(String userName, final String newPassword)
@@ -3234,6 +3272,25 @@ public class SOCDBHelper
 
             more = rs.next();
         }
+    }
+
+    /**
+     * Interface for callbacks from {@link SOCDBHelper#authenticateUserPassword(String, String, AuthPasswordRunnable)}.
+     * See {@link #authResult(String)} for callback details.
+     *
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 1.2.00
+     */
+    public static interface AuthPasswordRunnable
+    {
+        /**
+         * Called after user and password are authenticated or rejected, which may be a slow process which runs in
+         * its own Thread. So, this callback will occur in the caller's Thread or in a Thread dedicated to
+         * {@link BCrypt} calls.
+         * @param dbUserName  Username if auth was successful, or {@code null}; same meaning as the String
+         *     returned from {@link SOCDBHelper#authenticateUserPassword(String, String, AuthPasswordRunnable)}.
+         */
+        public void authResult(String dbUserName);
     }
 
     /**

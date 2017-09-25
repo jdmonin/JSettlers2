@@ -154,6 +154,12 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     private final Vector<Command> inQueue = new Vector<Command>();
 
     /**
+     * {@link #inQueue}'s Treater.
+     * @since 1.2.00
+     */
+    private volatile Treater treater;
+
+    /**
      * Versions of currently connected clients, according to
      * {@link StringConnection#getVersion()}.
      * Key = Integer(version). Value = ConnVersionCounter.
@@ -376,16 +382,17 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     public void run()
     {
-        Treater treater = new Treater();  // inner class - constructor is given "this" server
+        Treater treat = new Treater();  // inner class - constructor is given "this" server
 
         if (error != null)
         {
             return;
         }
 
+        treater = treat;
         up = true;
 
-        treater.start();  // Set "up" before starting treater (race condition)
+        treat.start();  // Set "up" before starting treater (race condition)
 
         serverUp();  // Any processing for child class to do after serversocket is bound, before the main loop begins
 
@@ -463,6 +470,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * it's thread-safe because it synchronizes on the internal queue object.
      * @param run  Runnable code
      * @see #treat(String, StringConnection)
+     * @see #isCurrentThreadTreater()
      * @since 1.2.00
      */
     public void postToTreater(Runnable run)
@@ -473,6 +481,17 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             inQueue.addElement(cmd);
             inQueue.notify();
         }
+    }
+
+    /**
+     * Is our Treater the currently executing thread?
+     * If not, you can use {@link #postToTreater(Runnable)} to do work on that thread.
+     * @return true if {@link Thread#currentThread()} is this queue's Treater
+     * @since 1.2.00
+     */
+    public final boolean isCurrentThreadTreater()
+    {
+        return (Thread.currentThread() == treater);
     }
 
     /**
