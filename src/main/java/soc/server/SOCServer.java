@@ -585,7 +585,9 @@ public class SOCServer extends Server
 
     /** {@link AuthSuccessRunnable#success(StringConnection, int)}
      *  result flag bit: Authentication succeeded, but nickname is not an exact case-sensitive match to DB username;
-     *  client must be sent a status message with its exact nickname. See {@code authOrRejectClientUser(..)} javadoc.
+     *  client must be sent a status message with its exact nickname. See
+     *  {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean, AuthSuccessRunnable)}
+     *  javadoc.
      *  @see #AUTH_OR_REJECT__OK
      *  @since 1.2.00
      */
@@ -5097,7 +5099,7 @@ public class SOCServer extends Server
             }
 
             // Assert: msgPass isn't "".
-            // authenticateUser queries db and requires an account there when msgPass is not "".
+            // authenticateUserPassword queries db and requires an account there when msgPass is not "".
         }
 
         if (msgPass.length() > SOCAuthRequest.PASSWORD_LEN_MAX)
@@ -5150,7 +5152,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * After successful client user/password auth, take care of the rest of
+     * After client user/password auth succeeds or fails, take care of the rest of
      * {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean, AuthSuccessRunnable)}.
      * That method also ensures this method and {@code authCallback} run in the Treater thread; see
      * {@link Server#inQueue inQueue}.{@link InboundMessageQueue#isCurrentThreadTreater() isCurrentThreadTreater()}.
@@ -8503,8 +8505,8 @@ public class SOCServer extends Server
          * Called on successful client authentication, or if user was already authenticated.
          * @param c  Client connection which was authenticated
          * @param authResult  Auth check result flags: {@link SOCServer#AUTH_OR_REJECT__OK AUTH_OR_REJECT__OK},
-         *     {@link SOCServer#AUTH_OR_REJECT__SET_USERNAME AUTH_OR_REJECT__SET_USERNAME}, etc.
-         *     See {@link SOCServer#authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean)}
+         *     {@link SOCServer#AUTH_OR_REJECT__SET_USERNAME AUTH_OR_REJECT__SET_USERNAME}, etc. See
+         *     {@link SOCServer#authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean, AuthSuccessRunnable)}
          *     for details.
          */
         void success(final StringConnection c, final int authResult);

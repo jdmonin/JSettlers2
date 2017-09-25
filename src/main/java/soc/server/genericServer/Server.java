@@ -153,9 +153,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     private HashMap<String, String> connNames = new HashMap<String, String>();
 
     /**
-     * The queue of messages received from all clients. This queue class also includes the Treater thread
-     * which calls {@link Server.InboundMessageDispatcher#dispatch(String, StringConnection)} for each
-     * inbound message.
+     * The queue of messages received from all clients to dispatch, and/or Runnable tasks to run, in the
+     * {@code Treater} thread which calls {@link Server.InboundMessageDispatcher#dispatch(String, StringConnection)}.
      *<P>
      * Before v2.0.00, this was a {@link Vector}.
      */

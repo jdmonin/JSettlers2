@@ -65,7 +65,8 @@ public class InboundMessageQueue
 {
 
     /**
-     * Internal queue to used to store all clients' {@link MessageData}.
+     * Internal queue to used to store all clients' {@link MessageData}
+     * and/or code to be ran in the {@link Treater} thread.
      */
     private Vector<MessageData> inQueue;
 
@@ -176,6 +177,7 @@ public class InboundMessageQueue
      * Is our Treater the currently executing thread?
      * If not, you can use {@link #post(Runnable)} to do work on that thread.
      * @return true if {@link Thread#currentThread()} is this queue's Treater
+     * @since 1.2.00
      */
     public final boolean isCurrentThreadTreater()
     {
@@ -258,7 +260,8 @@ public class InboundMessageQueue
 
 
     /**
-     * Nested class to store a message's contents and sender.
+     * Nested class to store a message's contents and sender, and
+     * Runnable tasks which must run in the {@link Treater} thread.
      * For simplicity and quick access, final fields are used instead of getters.
      *<P>
      * Before v2.0.00 this class was {@code soc.server.genericServer.Server.Command},

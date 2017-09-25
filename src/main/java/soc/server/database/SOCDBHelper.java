@@ -3675,10 +3675,11 @@ public class SOCDBHelper
     public static interface AuthPasswordRunnable
     {
         /**
-         * Called after user and password are authenticated, which may be a slow process which runs in its own Thread.
-         * So, this callback will occur in the caller's Thread or in a Thread dedicated to {@link BCrypt} calls.
+         * Called after user and password are authenticated or rejected, which may be a slow process which runs in
+         * its own Thread. So, this callback will occur in the caller's Thread or in a Thread dedicated to
+         * {@link BCrypt} calls.
          * @param dbUserName  Username if auth was successful, or {@code null}; same meaning as the String
-         * returned from {@link SOCDBHelper#authenticateUserPassword(String, String, AuthPasswordRunnable)}.
+         *     returned from {@link SOCDBHelper#authenticateUserPassword(String, String, AuthPasswordRunnable)}.
          */
         public void authResult(String dbUserName);
     }
