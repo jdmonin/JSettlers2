@@ -51,6 +51,9 @@ public interface StringConnection
 
     /**
      * Send data over the connection.
+     *<P>
+     * <B>Threads:</B> Each implementation must be safe to call from any thread,
+     * and synchronize itself on an appropriate object or field.
      *
      * @param str Data to send
      *

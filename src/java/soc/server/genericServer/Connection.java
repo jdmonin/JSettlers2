@@ -248,6 +248,8 @@ public final class Connection
     /**
      * Send this data over the connection.  Adds it to the {@link #outQueue}
      * to be sent by the Putter thread.
+     *<P>
+     * <B>Threads:</B> Safe to call from any thread; synchronizes on internal {@code outQueue}.
      *
      * @param str Data to send
      */
