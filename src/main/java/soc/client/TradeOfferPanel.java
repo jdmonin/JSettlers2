@@ -703,7 +703,7 @@ public class TradeOfferPanel extends Panel
                 }
 
                 final int giveW =    // +6 for padding before ColorSquares
-                    Math.max(fm.stringWidth(theyGetLab2.getText()), fm.stringWidth(givesYouLab2.getText())) + 6;
+                    Math.max(fm.stringWidth(theyGetLab.getText()), fm.stringWidth(givesYouLab.getText())) + 6;
 
                 toWhom1.setBounds(inset, top, w - 20, 14);
                 toWhom2.setBounds(inset, top + 14, w - 20, 14);
