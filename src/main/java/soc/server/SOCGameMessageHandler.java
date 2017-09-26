@@ -1219,7 +1219,7 @@ public class SOCGameMessageHandler
 
                     srv.messageToGameKeyedSpecial(ga, true, "trade.offered.rsrcs.for",
                         player.getName(), offGive, offGet);
-                        // "{0} made a trade offer to give {1,rsrcs} for {2,rsrcs}."
+                        // "{0} offered to give {1,rsrcs} for {2,rsrcs}."
                 }
 
                 SOCMakeOffer makeOfferMessage = new SOCMakeOffer(gaName, remadeOffer);
