@@ -404,7 +404,7 @@ public class SOCServerMessageHandler
 
                         srv.printAuditMessage
                             (mesUser,
-                             "Requested jsettlers account creation, this requester not on account admin whitelist",
+                             "Requested jsettlers account creation, this requester not on account admins list",
                              null, null, c.host());
 
                         return;

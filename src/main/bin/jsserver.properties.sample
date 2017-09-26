@@ -91,14 +91,15 @@
 # in the database.
 # jsettlers.accounts.required=N
 
-# Flag to permit open self-registration of new user accounts. By default, this
-# is not set and clients can't anonymously create accounts: Must log in first.
+# Open Registration Mode flag to permit open self-registration of new user
+# accounts. By default, this is not set and clients can't anonymously create
+# accounts, instead must log in first as an Account Admin User.
 # jsettlers.accounts.open=N
 
-# If not blank, permit only these usernames to create accounts (comma-separated
-# list of usernames). By default any user account can log in to create others.
-# Also, only Account Admin Users can run user-related commands; see README.txt
-# section "Security and Admin Users".
+# List of Account Admin Users permitted to create accounts and run user-
+# related commands; a comma-separated list of usernames. See Readme section
+# "Security and Admin Users". No other users can create accounts, unless
+# Open Registration Mode is active.
 # Reminder if using non-ascii characters in admin usernames: Remember that java
 # properties files are encoded in ISO-8859-1 not UTF-8 because of backwards
 # compatibility; you may want to create a separate admin-only account with a

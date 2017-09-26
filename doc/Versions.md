@@ -76,7 +76,7 @@ and backport minor new features until `2.0.00` is ready.
 - Game window during debug: Reset "current player" indicator when exiting `*FREEPLACE*` debug mode
 - Client debug, bot debug: Print network message contents if system property jsettlers.debug.traffic is set
 - Database:
-     - To create users, an account admin list is required (`jsettlers.accounts.admins` property)
+     - To create users, an Account Admins list is required (`jsettlers.accounts.admins` property)
        unless using Open Registration mode
      - Optional Schema Upgrade process with `-Djsettlers.db.upgrade_schema=Y` startup option
      - Schema `v1.2.00` adds:
