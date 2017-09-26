@@ -74,7 +74,7 @@ import java.util.concurrent.Executors;
  * These can be changed by supplying properties to {@link #initialize(String, String, Properties)}
  * for {@link #PROP_JSETTLERS_DB_URL} and {@link #PROP_JSETTLERS_DB_DRIVER}.
  *<P>
- * For database schema, see {@code src/bin/sql/template/jsettlers-tables-tmpl.sql}.
+ * For database schema, see {@code src/main/bin/sql/template/jsettlers-tables-tmpl.sql}.
  *
  *<H3>Schema Upgrades:</H3>
  * Sometimes a new JSettlers version adds to the DB schema. When starting the JSettlers server, call

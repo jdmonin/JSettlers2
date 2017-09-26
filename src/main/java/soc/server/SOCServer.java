@@ -178,7 +178,7 @@ public class SOCServer extends Server
     public static final String SOC_SERVER_PROPS_FILENAME = "jsserver.properties";
 
     // If a new property is added, please add a PROP_JSETTLERS_ constant,
-    // add it to PROPS_LIST, and update /src/bin/jsserver.properties.sample.
+    // add it to PROPS_LIST, and update /src/main/bin/jsserver.properties.sample.
     // If a new robot property, consider mentioning it in soc.robot.sample3p.Sample3PClient javadocs.
 
     /** Property <tt>jsettlers.port</tt> to specify the port the server binds to and listens on.
@@ -403,7 +403,7 @@ public class SOCServer extends Server
      * [0] is a property, [1] is its description, [2] is the next property, etc.
      * (This was added in 1.1.13 for {@link #printUsage(boolean)}).
      *<P>
-     * When you add or update any property, please also update {@code /src/bin/jsserver.properties.sample}.
+     * When you add or update any property, please also update {@code /src/main/bin/jsserver.properties.sample}.
      * @since 1.1.09
      */
     public static final String[] PROPS_LIST =
@@ -521,7 +521,7 @@ public class SOCServer extends Server
      */
     public static int ROBOT_FORCE_ENDTURN_SECONDS = 8;
         // If this value is changed, also update the jsettlers.bots.timeout.turn
-        // comments in /src/bin/jsserver.properties.sample.
+        // comments in /src/main/bin/jsserver.properties.sample.
 
     /**
      * Maximum permitted game name length, default 30 characters.

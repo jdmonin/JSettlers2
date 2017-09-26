@@ -43,7 +43,7 @@ import soc.util.SOCRobotParameters;
  *</UL>
  *
  *<H5>Other Useful Server Properties:</H5>
- * See {@code /src/bin/jsserver.properties.sample} comments for more details on any parameter.
+ * See {@code /src/main/bin/jsserver.properties.sample} comments for more details on any parameter.
  *<BR>
  * All server properties can be specified in a {@code jsserver.properties} file,
  * or on the command line as {@code -Dpropertyname=propertyvalue}.
