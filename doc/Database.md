@@ -11,8 +11,9 @@ also provided.
 ## Contents
 
 -  Database Setup (Installing a JSettlers DB)
--  Security and Admin Users
+-  Security, Admin Users, Admin Commands
 -  Upgrading from an earlier version
+-  Settings Table and Checking Info about the DB
 
 
 ## Database Setup (Installing a JSettlers DB)
@@ -244,7 +245,7 @@ database schema in order to use BCrypt. Test bcrypt speed and set that
 `work_factor` property before starting the upgrade process.
 
 
-## Security and Admin Users
+## Security, Admin Users, Admin Commands
 
 If you want to require that all players have accounts and passwords, include
 this option when you start your server:
@@ -254,6 +255,13 @@ this option when you start your server:
 To specify the Account Admin Users who can create new accounts, list them when you start your server:
 
 	-Djsettlers.accounts.admins=bob,joe,lily
+
+Note:
+The server doesn't require or check at startup that the named accounts all
+already exist; the User Account Admins list is only a comma-separated list
+of names, to simplify initial setup.
+
+### Account Admin Commands
 
 Only the account admins on that list can create accounts and run user-related commands,
 such as listing all users in a game with
@@ -270,14 +278,12 @@ For a list of all available commands, type
 	
 into the chat window of any game while connected as an admin user.
 
-Note:
-The server doesn't require or check at startup that the named accounts all
-already exist; the User Account Admins list is only a comma-separated list
-of names, to simplify initial setup.
 
-In case an admin account password is lost, there's a rudimentary **password-reset** feature:  
+### Password Reset
+
+In case any account's password is lost, there's a rudimentary **password-reset** feature:  
 Run JSettlersServer with the usual DB parameters and add: `--pw-reset username`  
-You will be prompted for username's new password. This command can be run while
+You will be prompted for `username`'s new password. This command can be run while
 the server is up. It will reset the password and exit, and won't start a second
 JSettlersServer.
 
@@ -337,3 +343,41 @@ Before starting the upgrade, read this section and also the
         psql -d socdata --file jsettlers-upg-prep-postgres-owner.sql -v to=socuser
 	
   Then, run the schema upgrade command.
+
+
+## Settings Table and Checking Info about the DB
+
+In schema version **1.1.20** and newer, the database has a `settings` table
+of DB tuning setting names and values. Currently the only setting name is
+`BCRYPT.WORK_FACTOR`.
+
+If `BCRYPT.WORK_FACTOR` is missing from `settings` at server startup, the BCrypt
+work factor will be chosen by testing the speed of a range of factors, and you
+will see this warning:
+
+	* Warning: Missing DB setting for BCRYPT.WORK_FACTOR, using 13
+	To save to the settings table, run once with utility property -Djsettlers.db.settings=write
+
+To view info about the database, list current settings, and check that they match
+what's saved in the `settings` table, Account Admins can type this admin command
+into the chat window of any JSettlers game:
+
+	*DBSETTINGS*
+
+This shows details about the database type, server version, schema version,
+and all current DB settings:
+
+	Database settings:
+	> Schema version: 1200 (is latest version)
+	> Password encoding scheme: BCrypt
+	> BCrypt work factor: 13
+	> DB server version: 3.15.1
+	> JDBC driver: org.sqlite.JDBC v3.15 (jdbc v2.1)
+
+If there is a mismatch or missing setting, you will see a message like these:
+
+	> BCrypt work factor: 13 (Missing from DB settings table)
+	> BCrypt work factor: 11 (Mismatch: DB settings table has 13)
+
+(A mismatch could occur from old command-line parameters or
+`jsserver.properties` contents.)
