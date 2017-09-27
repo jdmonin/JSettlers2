@@ -89,6 +89,11 @@ import java.util.concurrent.Executors;
  *<H3>Testing:</H3>
  * For unit tests, call {@link #testDBHelper()} on a temporary copy of a database.
  *
+ *<H3>Threads:</H3>
+ * Remember that some JDBC drivers may not cleanly handle multi-threaded access
+ * (some versions of the SQLite driver, for example). Use {@link SOCServer}'s
+ * Treater thread when accessing the DB, especially updates or inserts.
+ *
  * @author Robert S. Thomas
  */
 public class SOCDBHelper
