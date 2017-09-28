@@ -65,23 +65,32 @@ public class Sounds
 
     private static final double PI_X_2 = 2.0 * Math.PI;
 
-    /** Audio format for PCM-encoded signed 8-bit mono at {@link #SAMPLE_RATE_HZ} */
+    /** Audio format for PCM-encoded signed 8-bit mono at {@link #SAMPLE_RATE_HZ}
     private static final AudioFormat AFMT_PCM_8_AT_SAMPLE_RATE = new AudioFormat
         (SAMPLE_RATE_HZ,
          8,           // sampleSizeInBits
          1,           // channels
          true,        // signed
          false);      // bigEndian
+      */
+
+    /** Audio format for PCM-encoded little-endian signed 16-bit mono at {@link #SAMPLE_RATE_HZ} */
+    private static final AudioFormat AFMT_PCM_16_AT_SAMPLE_RATE = new AudioFormat
+        (SAMPLE_RATE_HZ,
+         16,          // sampleSizeInBits
+         1,           // channels
+         true,        // signed
+         false);      // bigEndian
 
     /**
-     * Calculate the length of a mono 8-bit PCM byte buffer,
+     * Calculate the length of a mono 16-bit PCM byte buffer,
      * at {@link #SAMPLE_RATE_HZ}, to store {@code msec} milliseconds.
      * @param msec  Duration in milliseconds
      * @return  Buffer length required to store {@code msec} milliseconds; is also the number of samples
      */
     public static final int bufferLen(final int msec)
     {
-        return (msec * (int) SAMPLE_RATE_HZ) / 1000;
+        return (2 * msec * (int) SAMPLE_RATE_HZ) / 1000;
     }
 
     /**
@@ -89,7 +98,7 @@ public class Sounds
      * @param hz  Tone in Hertz (recommended max is half of {@link #SAMPLE_RATE_HZ})
      * @param msec  Duration in milliseconds
      * @param vol  Volume (max is 1.0)
-     * @param buf An existing mono 8-bit PCM buffer into which to generate the chime.
+     * @param buf An existing little-endian mono 16-bit PCM buffer into which to generate the chime.
      *    Use {@link #bufferLen(int)} to calculate the required length.
      * @param i0  Starting position (index) to use within {@code buf}
      * @param overlay  If true, combine amplitude of the new chime with what's in the buffer.
@@ -105,42 +114,54 @@ public class Sounds
         (int hz, int msec, double vol, final byte[] buf, final int i0, final boolean overlay)
         throws IllegalArgumentException, NullPointerException
     {
-        final int imax = bufferLen(msec);
-        if (buf.length < i0 + imax)
+        final int imax = bufferLen(msec) / 2;  // max number of 16-bit samples
+        if (buf.length < i0 + (2 * imax))
             throw new IllegalArgumentException("buf too short");
 
         // 2 parts if >= 40ms: attack for first 10msec (amplitude 0.8 * vol to vol),
         // then release for rest of msec (fading amplitude: vol to 0)
 
-        int ib = i0;
+        int ib = i0;  // byte position
+        int iSa = ib / 2;  // for angle calc: samples, not bytes
         final int amax;
         if (msec >= 40)
         {
             amax = (10 * (int) SAMPLE_RATE_HZ) / 1000;
             final double vol0 = 0.8 * vol,
                          dVol = vol - vol0;
-            for (int i = 0; i < amax; ++i, ++ib)
+            for (int i = 0; i < amax; ++i, ++iSa)
             {
-                double angle = (ib / (SAMPLE_RATE_HZ / hz)) * PI_X_2;
-                byte val = (byte) (Math.sin(angle) * 127.0 * (vol0 + ((dVol * i) / amax)));
+                double angle = (iSa / (SAMPLE_RATE_HZ / hz)) * PI_X_2;
+                short val = (short) (Math.sin(angle) * 32767.0 * (vol0 + ((dVol * i) / amax)));
                 if (overlay)
-                    buf[ib] += val;  // reminder: java bytes are always signed
-                else
-                    buf[ib] = val;
+                {
+                    int vWith = (short) ( (buf[ib] & 0xFF) | (buf[ib + 1] << 8) );
+                    val += vWith;  // reminder: java shorts are always signed
+                }
+                // little endian
+                buf[ib] = (byte) (val & 0xFF);
+                ++ib;
+                buf[ib] = (byte) ((val >> 8) & 0xFF);
+                ++ib;
             }
         } else {
             amax = 0;
         }
 
         final int rmax = imax - amax;
-        for (int i = rmax; i > 0; --i, ++ib)
+        for (int i = rmax; i > 0; --i, ++iSa)
         {
-            double angle = (ib / (SAMPLE_RATE_HZ / hz)) * PI_X_2;
-            byte val = (byte) (Math.sin(angle) * ((127.0 * vol * i) / rmax));
+            double angle = (iSa / (SAMPLE_RATE_HZ / hz)) * PI_X_2;
+            short val = (short) (Math.sin(angle) * ((32767.0 * vol * i) / rmax));
             if (overlay)
-                buf[ib] += val;
-            else
-                buf[ib] = val;
+            {
+                int vWith = (short) ( (buf[ib] & 0xFF) | (buf[ib + 1] << 8) );
+                val += vWith;  // reminder: java shorts are always signed
+            }
+            buf[ib] = (byte) (val & 0xFF);
+            ++ib;
+            buf[ib] = (byte) ((val >> 8) & 0xFF);
+            ++ib;
         }
 
         return ib;
@@ -148,6 +169,7 @@ public class Sounds
 
     /**
      * Generate a chime, with volume fading out to 0.
+     * For buffer format details see {@link #genChime(int, int, double, byte[], int, boolean)}.
      * @param hz  Tone in Hertz (recommended max is half of {@link #SAMPLE_RATE_HZ})
      * @param msec  Duration in milliseconds (max is 1000)
      * @param vol  Volume (max is 1.0)
@@ -171,7 +193,6 @@ public class Sounds
      * @param hz  Tone in Hertz (recommended max is half of {@link #SAMPLE_RATE_HZ})
      * @param msec  Duration in milliseconds (max is 1000)
      * @param vol  Volume (max is 1.0)
-     * @return a PCM buffer containing the generated chime, suitable for {@link #playPCMBytes(byte[])}
      * @throws IllegalArgumentException if {@code msec} > 1000
      * @throws LineUnavailableException if the line resource can't be opened
      */
@@ -187,12 +208,12 @@ public class Sounds
      * Based on https://stackoverflow.com/questions/23096533/how-to-play-a-sound-with-a-given-sample-rate-in-java
      * from Réal Gagnon's code at http://www.rgagnon.com/javadetails/java-0499.html:
      * optimized, decoupled from 8000Hz fixed sampling rate, separated generation from playback,
-     * implement generation into existing buffer.
+     * used 16 bits, implement generation into existing buffer.
      *
      * @param hz  Tone in Hertz (recommended max is half of {@link #SAMPLE_RATE_HZ})
      * @param msec  Duration in milliseconds
      * @param vol  Volume (max is 1.0)
-     * @param buf An existing mono 8-bit PCM buffer into which to generate the tone.
+     * @param buf An existing little-endian mono 16-bit PCM buffer into which to generate the tone.
      *    Use {@link #bufferLen(int)} to calculate the required length.
      * @param i0  Starting position (index) to use within {@code buf}
      * @return  1 past the ending position (index) used within {@code buf};
@@ -205,16 +226,21 @@ public class Sounds
     public static int genTone(int hz, int msec, double vol, final byte[] buf, final int i0)
         throws IllegalArgumentException, NullPointerException
     {
-        final int imax = bufferLen(msec);
-        if (buf.length < i0 + imax)
+        final int imax = bufferLen(msec) / 2;  // max number of 16-bit samples
+        if (buf.length < i0 + (2 * imax))
             throw new IllegalArgumentException("buf too short");
 
-        final double vol_x_127 = 127.0 * vol;
-        int ib = i0;
-        for (int i = 0; i < imax; ++i, ++ib)
+        final double vol_x_32767 = 32767.0 * vol;
+        int ib = i0;  // byte position
+        int iSa = ib / 2;  // for angle calc: samples, not bytes
+        for (int i = 0; i < imax; ++i, ++iSa)
         {
-            double angle = (ib / (SAMPLE_RATE_HZ / hz)) * PI_X_2;
-            buf[ib] = (byte) (Math.sin(angle) * vol_x_127);
+            double angle = (iSa / (SAMPLE_RATE_HZ / hz)) * PI_X_2;
+            short val = (short) (Math.sin(angle) * vol_x_32767);
+            buf[ib] = (byte) (val & 0xFF);
+            ++ib;
+            buf[ib] = (byte) ((val >> 8) & 0xFF);
+            ++ib;
         }
 
         return ib;
@@ -222,6 +248,7 @@ public class Sounds
 
     /**
      * Generate a constant tone into a new PCM buffer.
+     * For buffer format details see {@link #genTone(int, int, double, byte[], int)}.
      *
      * @param hz  Tone in Hertz (recommended max is half of {@link #SAMPLE_RATE_HZ})
      * @param msec  Duration in milliseconds (max is 1000)
@@ -255,17 +282,24 @@ public class Sounds
         playPCMBytes(genTone(hz, msec, vol));
     }
 
+    private static boolean didDebugPrnL277 = false;
+
     /**
      * Play a sound byte buffer, such as that generated by
      * {@link #genTone(int, int, double)} or {@link #genChime(int, int, double)}.
-     * @param buf  Buffer to play; PCM mono 8-bit signed, at {@link #SAMPLE_RATE_HZ}
+     * @param buf  Buffer to play; PCM little-endian mono 16-bit signed, at {@link #SAMPLE_RATE_HZ}
      * @throws LineUnavailableException if the line resource can't be opened
      */
     public static final void playPCMBytes(final byte[] buf)
         throws LineUnavailableException
     {
-        SourceDataLine sdl = AudioSystem.getSourceDataLine(AFMT_PCM_8_AT_SAMPLE_RATE);
-        sdl.open(AFMT_PCM_8_AT_SAMPLE_RATE);
+        SourceDataLine sdl = AudioSystem.getSourceDataLine(AFMT_PCM_16_AT_SAMPLE_RATE);
+        sdl.open(AFMT_PCM_16_AT_SAMPLE_RATE);
+        if (! didDebugPrnL277)
+        {
+            System.err.println("L277 playPCMBytes: buffer size: " + sdl.getBufferSize());
+            didDebugPrnL277 = true;
+        }
         sdl.start();
         sdl.write(buf, 0, buf.length);
         sdl.drain();
