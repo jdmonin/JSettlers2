@@ -42,8 +42,7 @@ import soc.util.SOCStringManager;
  *                       setVersionTracking, isInputAvailable,
  *                       wantsHideTimeoutMessage, setHideTimeoutMessage
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed; remove unused import EOFException
- *  1.2.0 - 2017-06-03 - StringConnection is now a superclass, not an interface.
- *                       {@link #setData(String)} now takes a String, not Object.
+ *  1.2.0 - 2017-06-03 - {@link #setData(String)} now takes a String, not Object.
  *  2.0.0 - 2017-06-16 - StringConnection is now a superclass, not an interface.
  *                       For I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and
  *                       {@link #getLocalized(String)}.
