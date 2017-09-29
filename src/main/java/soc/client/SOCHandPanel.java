@@ -3604,11 +3604,13 @@ public class SOCHandPanel extends Panel
 
                 if (player.isRobot())
                 {
+                    int lowerY = dim.height - ((4 * (lineH + space)) + inset);
+
                     if (game.getPlayer(client.getNickname()) == null)
                     {
                         // If client not seated at this game, show "Take Over" button
                         // just above the lower-left, lower-right columns of item counts
-                        int yb = (inset + balloonH) - 10;
+                        int yb = lowerY - 10;
                         if (game.hasSeaBoard)
                             yb -= (lineH + space);
                         takeOverBut.setBounds(10, yb, dim.width - 20, 20);
@@ -3618,7 +3620,7 @@ public class SOCHandPanel extends Panel
                         //seatLockBut.setBounds(10, inset+balloonH-10, dim.width-20, 20);
                         // Lock button during play: Bottom of panel, between the 2 columns of item counts
                         sittingRobotLockBut.setBounds
-                            (inset + dcardsW + space + ColorSquare.WIDTH + space, inset + balloonH + (lineH + space) + (lineH / 2),
+                            (inset + dcardsW + space + ColorSquare.WIDTH + space, lowerY + (lineH + space) + (lineH / 2),
                              (dim.width - (2 * (inset + ColorSquare.WIDTH + (2 * space))) - stlmtsW - dcardsW), 2 * (lineH + space));
                     }
                 }
