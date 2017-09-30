@@ -1683,7 +1683,7 @@ public class SOCServer extends Server
             {
                 errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + " cannot be an empty string.";
             } else if (features.isActive(SOCServerFeatures.FEAT_OPEN_REG)) {
-                errmsg = "* Cannot use Open Registration with User Accounts Admin List.";
+                errmsg = "* Cannot use Open Registration with User Account Admins List.";
             } else {
                 final boolean downcase = (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200);
                 databaseUserAdmins = new HashSet<String>();
