@@ -557,7 +557,7 @@ this option when you start your server:
 To specify the Account Admin Users who can create new accounts, list them when
 you start your server:
 	-Djsettlers.accounts.admins=bob,joe,lily
-The account admins on that whitelist can create accounts and run user-related
+Only the account admins on that list can create accounts and run user-related
 commands, such as listing all users in a game with
 	*WHO* gamename
 or listing all users connected to the server with
@@ -568,8 +568,8 @@ into the chat window of any game while connected as an admin user.
 
 Note:
 The server doesn't require or check at startup that the named accounts all
-already exist; the whitelist is only a comma-separated list of names, to
-simplify initial setup.
+already exist; the User Account Admins list is only a comma-separated list
+of names, to simplify initial setup.
 
 In case an admin account password is lost, there's a rudimentary password-reset feature:
 Run JSettlersServer with the usual DB parameters and add: --pw-reset username

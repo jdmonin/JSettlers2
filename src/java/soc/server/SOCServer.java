@@ -196,13 +196,13 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_STARTROBOTS = "jsettlers.startrobots";
 
     /**
-     * Boolean property <tt>jsettlers.accounts.open</tt> to permit open registration.
-     * If this property is Y, anyone can create their own user accounts.
-     * Otherwise only existing users can create new accounts after the first account.
+     * Open Registration Mode boolean property {@code jsettlers.accounts.open}.
+     * If this property is Y, anyone can self-register to create their own user accounts.
+     * Otherwise only users in {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS} can
+     * create new accounts after the first account.
      *<P>
      * The default is N in version 1.1.19 and newer; previously was Y by default.
      * To require that all players have accounts in the database, see {@link #PROP_JSETTLERS_ACCOUNTS_REQUIRED}.
-     * To restrict which users can create accounts, see {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS}.
      *<P>
      * If this field is Y when the server is initialized, the server calls
      * {@link SOCServerFeatures#add(String) features.add}({@link SOCServerFeatures#FEAT_OPEN_REG}).
@@ -226,9 +226,11 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_ACCOUNTS_REQUIRED = "jsettlers.accounts.required";
 
     /**
-     * Property <tt>jsettlers.accounts.admins</tt> to restrict which usernames can create accounts.
-     * If this property is set, it is a comma-separated list of usernames (nicknames), and
-     * a user must authenticate and be on this whitelist to create user accounts.
+     * Property {@code jsettlers.accounts.admins} to specify the Account Admin usernames
+     * which can create accounts and run user-related commands. If this property is set,
+     * it is a comma-separated list of usernames (nicknames), and a user must authenticate
+     * and be on this list to create user accounts. If not set, no new accounts can be created
+     * unless {@link #PROP_JSETTLERS_ACCOUNTS_OPEN} is true.
      *<P>
      * If any other user requests account creation, the server will reply with
      * {@link SOCStatusMessage#SV_ACCT_NOT_CREATED_DENIED}.
@@ -238,6 +240,10 @@ public class SOCServer extends Server
      *<P>
      * This property can't be set at the same time as {@link #PROP_JSETTLERS_ACCOUNTS_OPEN},
      * they ask for opposing security policies.
+     *<P>
+     * Before v1.2.00, any authenticated user could create accounts.
+     *
+     * @see #isUserDBUserAdmin(String)
      * @since 1.1.19
      */
     public static final String PROP_JSETTLERS_ACCOUNTS_ADMINS = "jsettlers.accounts.admins";
@@ -773,11 +779,11 @@ public class SOCServer extends Server
     String databasePassword;
 
     /**
-     * User admins whitelist, from {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS}, or {@code null} if not specified.
+     * User admins list, from {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS}, or {@code null} if not specified.
      * Unless {@link SOCServerFeatures#FEAT_OPEN_REG} is active, only usernames on this list
      * can create user accounts in {@link #handleCREATEACCOUNT(StringConnection, SOCCreateAccount)}.
      *<P>
-     * If DB schema &gt;= {@link SOCDBHelper#SCHEMA_VERSION_1200}, this whitelist is
+     * If DB schema &gt;= {@link SOCDBHelper#SCHEMA_VERSION_1200}, this list is
      * made lowercase for case-insensitive checks in {@link #isUserDBUserAdmin(String)}.
      *<P>
      * Before v1.2.00, if this was {@code null} any authenticated user could create other accounts.
@@ -1379,7 +1385,7 @@ public class SOCServer extends Server
             } else if (userAdmins.length() == 0) {
                 errmsg = "* Property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + " cannot be an empty string.";
             } else if (features.isActive(SOCServerFeatures.FEAT_OPEN_REG)) {
-                errmsg = "* Cannot use Open Registration with User Accounts Admin List.";
+                errmsg = "* Cannot use Open Registration with User Account Admins List.";
             } else {
                 final boolean downcase = (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200);
                 databaseUserAdmins = new HashSet<String>();
@@ -4919,8 +4925,8 @@ public class SOCServer extends Server
             int replySV = SOCStatusMessage.SV_PW_WRONG;
             final String txt = "Incorrect password for '" + msgUser + "'.";
             c.put(SOCStatusMessage.toCmd(replySV, c.getVersion(), txt));
-            return;  // <---- Early return: Password auth failed ----
 
+            return;  // <---- Early return: Password auth failed ----
         }
 
         final boolean mustSetUsername = ! authUsername.equals(msgUser);
@@ -4953,10 +4959,10 @@ public class SOCServer extends Server
     }
 
     /**
-     * Is this username on the {@link #databaseUserAdmins} whitelist?
+     * Is this username on the {@link #databaseUserAdmins} list?
      * @param uname  Username to check; if null, returns false.
      *     If supported by DB schema version, this check is case-insensitive.
-     * @return  True only if whitelist != {@code null} and the user is on the whitelist
+     * @return  True only if list != {@code null} and the user is on the list
      * @since 1.1.20
      */
     private boolean isUserDBUserAdmin(String uname)
@@ -4964,7 +4970,7 @@ public class SOCServer extends Server
         if ((uname == null) || (databaseUserAdmins == null))
             return false;
 
-        // Check if uname's on the user admin whitelist; this check is also in handleCREATEACCOUNT.
+        // Check if uname's on the user admins list; this check is also in handleCREATEACCOUNT.
 
         if (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200)
             uname = uname.toLowerCase(Locale.US);
@@ -6064,7 +6070,7 @@ public class SOCServer extends Server
 
                         printAuditMessage
                             (mesUser,
-                             "Requested jsettlers account creation, this requester not on account admin whitelist",
+                             "Requested jsettlers account creation, this requester not on account admins list",
                              null, null, c.host());
 
                         return;
@@ -9240,7 +9246,7 @@ public class SOCServer extends Server
 
             printAuditMessage
                 (requester,
-                 "Requested jsettlers account creation, but no account admin whitelist",
+                 "Requested jsettlers account creation, but no account admins list",
                  null, currentTime, c.host());
 
             return;
@@ -9314,11 +9320,11 @@ public class SOCServer extends Server
         }
 
         //
-        // Check if requester is on the user admin whitelist; this check is also in isUserDBUserAdmin.
+        // Check if requester is on the user admins list; this check is also in isUserDBUserAdmin.
         //
         // If databaseUserAdmins != null, then requester != null because FEAT_OPEN_REG can't also be active.
         // If requester is null because db is empty, check new userName instead of requester name:
-        // The first account created must be on the whitelist in order to create further accounts.
+        // The first account created must be on the list in order to create further accounts.
         // If the db is empty when account client connects, server sends it FEAT_OPEN_REG so it won't require
         // user/password auth to create that first account; then requester == null, covered by isDBCountedEmpty.
         //
@@ -9330,7 +9336,7 @@ public class SOCServer extends Server
 
             if ((chkName == null) || ! databaseUserAdmins.contains(chkName))
             {
-                // Requester not on user-admin whitelist.
+                // Requester not on user-admins list.
 
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVers,
@@ -9339,12 +9345,13 @@ public class SOCServer extends Server
                 printAuditMessage
                     (requester,
                      (isDBCountedEmpty)
-                     ? "Requested jsettlers account creation, database is empty - first, create a user named in account admin whitelist"
-                     : "Requested jsettlers account creation, this requester not on account admin whitelist",
+                     ? "Requested jsettlers account creation, database is empty - first, create a user named in account admins list"
+                     : "Requested jsettlers account creation, this requester not on account admins list",
                      null, currentTime, c.host());
 
                 if (isDBCountedEmpty)
-                    System.err.println("User requested new account but database is currently empty: Run SOCAccountClient to create admin account(s) named in the whitelist.");
+                    System.err.println
+                        ("User requested new account but database is currently empty: Run SOCAccountClient to create account(s) named in the admins list.");
 
                 return;
             }
@@ -11922,7 +11929,7 @@ public class SOCServer extends Server
      *   Audit: Requested jsettlers account creation, already exists: '<tt>obj</tt>'
      *      by '<tt>req</tt>' from <tt>reqHost</tt> at <tt>at</tt>
      *<H5>Example without object:</H5>
-     *   Audit: Requested jsettlers account creation, this requester not on account admin whitelist:
+     *   Audit: Requested jsettlers account creation, this requester not on account admins list:
      *      '<tt>req</tt>' from <tt>reqHost</tt> at <tt>at</tt>
      *
      * @param req  Requesting user, or <tt>null</tt> if unknown
