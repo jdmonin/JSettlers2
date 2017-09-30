@@ -203,7 +203,7 @@ public class Sounds
      * Based on https://stackoverflow.com/questions/23096533/how-to-play-a-sound-with-a-given-sample-rate-in-java
      * from Réal Gagnon's code at http://www.rgagnon.com/javadetails/java-0499.html:
      * optimized, decoupled from 8000Hz fixed sampling rate, separated generation from playback,
-     * used 16 bits, implement generation into existing buffer.
+     * used 16 bits, implemented generation into existing buffer.
      *
      * @param hz  Tone in Hertz (recommended max is half of {@link #SAMPLE_RATE_HZ})
      * @param msec  Duration in milliseconds
