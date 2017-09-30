@@ -727,7 +727,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             {
                 public void run()
                 {
-                    SOUND_BEGIN_TURN = Sounds.genChime(Sounds.NOTE_A5_HZ, 160, .5);
+                    SOUND_BEGIN_TURN = Sounds.genChime(Sounds.NOTE_A5_HZ, 160, .38);
 
                     byte[] buf = new byte[Sounds.bufferLen(60)];
                     Sounds.genChime(140, 60, .15, buf, 0, false);
