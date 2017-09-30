@@ -66,6 +66,8 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 
 /**
@@ -764,6 +766,13 @@ public class SOCServer extends Server
      * @since 1.1.19
      */
     protected HashMap clientPastVersionStats;
+
+    /**
+     * Timer for delaying auth replies for consistency with {@code BCrypt} timing. Used when
+     * {@code ! hadDelay} in {@link SOCDBHelper.AuthPasswordRunnable#authResult(String, boolean)} callbacks.
+     * @since 1.2.00
+     */
+    private Timer replyAuthTimer = new Timer(true);  // use daemon thread
 
     /**
      * server robot pinger
@@ -4875,14 +4884,14 @@ public class SOCServer extends Server
             SOCDBHelper.authenticateUserPassword
                 (msgUser, msgPass, new SOCDBHelper.AuthPasswordRunnable()
                 {
-                    public void authResult(final String dbUserName)
+                    public void authResult(final String dbUserName, final boolean hadDelay)
                     {
                         // If no DB: If msgPass is "" returns msgUser, else returns null
 
                         if (isCurrentThreadTreater())
                             authOrRejectClientUser_postDBAuth
                                 (c, msgUserName, dbUserName, cliVers,
-                                 doNameConnection, takingOver, authCallback);
+                                 doNameConnection, takingOver, authCallback, hadDelay);
                         else
                             postToTreater(new Runnable()
                             {
@@ -4890,7 +4899,7 @@ public class SOCServer extends Server
                                 {
                                     authOrRejectClientUser_postDBAuth
                                         (c, msgUserName, dbUserName, cliVers,
-                                         doNameConnection, takingOver, authCallback);
+                                         doNameConnection, takingOver, authCallback, hadDelay);
                                 }
                             });
                     }
@@ -4909,14 +4918,19 @@ public class SOCServer extends Server
     /**
      * After client user/password auth succeeds or fails, take care of the rest of
      * {@link #authOrRejectClientUser(StringConnection, String, String, int, boolean, boolean, AuthSuccessRunnable)}.
+     * See that method's javadoc for most parameters.
+     *<P>
      * That method also ensures this method and {@code authCallback} run in the Treater thread; see
      * {@link Server#isCurrentThreadTreater() isCurrentThreadTreater()}.
+     *
+     * @param hadDelay  If true, this callback has been delayed by {@code BCrypt} calculations;
+     *     otherwise it's an immediate callback (user not found, password didn't use BCrypt hashing)
      * @since 1.2.00
      */
     private void authOrRejectClientUser_postDBAuth
         (final StringConnection c, final String msgUser, final String authUsername,
          final int cliVers, final boolean doNameConnection, final boolean isTakingOver,
-         final AuthSuccessRunnable authCallback)
+         final AuthSuccessRunnable authCallback, final boolean hadDelay)
     {
         if (authUsername == null)
         {
@@ -4924,7 +4938,16 @@ public class SOCServer extends Server
 
             int replySV = SOCStatusMessage.SV_PW_WRONG;
             final String txt = "Incorrect password for '" + msgUser + "'.";
-            c.put(SOCStatusMessage.toCmd(replySV, c.getVersion(), txt));
+            final String msg = SOCStatusMessage.toCmd(replySV, c.getVersion(), txt);
+            if (hadDelay)
+                c.put(msg);
+            else
+                // TODO consider timing actual delay of BCrypt calcs & use that
+                replyAuthTimer.schedule
+                    (new TimerTask()
+                     {
+                        public void run() { c.put(msg); }
+                     }, 350 + rand.nextInt(250));  // roughly same range as DBH.testBCryptSpeed
 
             return;  // <---- Early return: Password auth failed ----
         }
@@ -4933,10 +4956,19 @@ public class SOCServer extends Server
         if (mustSetUsername && (cliVers < 1200))
         {
             // Case differs: must reject if client too old for SOCStatusMessage.SV_OK_SET_NICKNAME
-            c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NAME_NOT_FOUND, cliVers,
-                     "Nickname is case-sensitive: Use " + authUsername));
-            return;
+            final String msg = SOCStatusMessage.toCmd
+                (SOCStatusMessage.SV_NAME_NOT_FOUND, cliVers,
+                 "Nickname is case-sensitive: Use " + authUsername);
+            if (hadDelay)
+                c.put(msg);
+            else
+                replyAuthTimer.schedule
+                    (new TimerTask()
+                     {
+                        public void run() { c.put(msg); }
+                     }, 350 + rand.nextInt(250));
+
+            return;  // <---- Early return: Client can't change nickname case ----
         }
 
         /**

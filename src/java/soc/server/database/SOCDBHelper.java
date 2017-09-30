@@ -1355,7 +1355,7 @@ public class SOCDBHelper
                                         {
                                             boolean ok = BCrypt.checkpw(sPass, dbPass);
                                                 // may throw IllegalArgumentException
-                                            authCallback.authResult((ok) ? dbUser: null);  // <--- Callback ---
+                                            authCallback.authResult((ok) ? dbUser: null, true);  // <--- Callback ---
                                         } catch (RuntimeException e) {}
                                     }
                                 });
@@ -1374,7 +1374,7 @@ public class SOCDBHelper
 
         final String ret = (ok) ? dbUserName: null;
         if ((authCallback != null) && ! ranBCryptTask)
-            authCallback.authResult(ret);  // <--- Callback ---
+            authCallback.authResult(ret, false);  // <--- Callback ---
         return ret;
     }
 
@@ -3276,7 +3276,7 @@ public class SOCDBHelper
 
     /**
      * Interface for callbacks from {@link SOCDBHelper#authenticateUserPassword(String, String, AuthPasswordRunnable)}.
-     * See {@link #authResult(String)} for callback details.
+     * See {@link #authResult(String, boolean)} for callback details.
      *
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 1.2.00
@@ -3289,8 +3289,11 @@ public class SOCDBHelper
          * {@link BCrypt} calls.
          * @param dbUserName  Username if auth was successful, or {@code null}; same meaning as the String
          *     returned from {@link SOCDBHelper#authenticateUserPassword(String, String, AuthPasswordRunnable)}.
+         * @param hadDelay  If true, this callback has been delayed by {@code BCrypt} calculations;
+         *     otherwise it's an immediate callback (user not found, password didn't use BCrypt hashing)
+         *     and for consistency you might want to delay replying to the client.
          */
-        public void authResult(String dbUserName);
+        public void authResult(final String dbUserName, final boolean hadDelay);
     }
 
     /**
