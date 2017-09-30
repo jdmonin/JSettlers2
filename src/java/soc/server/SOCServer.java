@@ -7796,7 +7796,7 @@ public class SOCServer extends Server
                             remadeOffer = new SOCTradeOffer(gaName, player.getPlayerNumber(), offer.getTo(), offGive, offGet);
                             player.setCurrentOffer(remadeOffer);
                             StringBuffer offMsgText = new StringBuffer(c.getData());
-                            offMsgText.append(" made an offer to trade ");
+                            offMsgText.append(" offered to give ");
                             offGive.toFriendlyString(offMsgText);
                             offMsgText.append(" for ");
                             offGet.toFriendlyString(offMsgText);
