@@ -2903,7 +2903,7 @@ public class SOCHandPanel extends Panel implements ActionListener
 
                 // Top has name, VP count, largest army, longest road
                 // Trade offers appear in center when a trade is active
-                // Bottom has columns of item counts on left, right:
+                // Bottom has columns of item counts on left, right, having 3 rows:
                 //   Soldiers, Res, Dev Cards to left;
                 //   Ships, Roads, Settlements, Cities to right
                 //   Robot lock button (during play) in bottom center
@@ -2913,17 +2913,19 @@ public class SOCHandPanel extends Panel implements ActionListener
 
                 if (player.isRobot())
                 {
+                    int lowerY = dim.height - ((4 * (lineH + space)) + inset);
+
                     if (game.getPlayer(client.getNickname()) == null)
                     {
                         // If client not seated at this game, show "Take Over" button
-                        takeOverBut.setBounds(10, (inset + balloonH) - 10, dim.width - 20, 20);
+                        takeOverBut.setBounds(10, lowerY - 10, dim.width - 20, 20);
                     }
                     else if (sittingRobotLockBut.isVisible())
                     {
                         //seatLockBut.setBounds(10, inset+balloonH-10, dim.width-20, 20);
                         // Lock button during play: Bottom of panel, between the 2 columns of item counts
                         sittingRobotLockBut.setBounds
-                            (inset + dcardsW + space + ColorSquare.WIDTH + space, inset + balloonH + (lineH + space) + (lineH / 2),
+                            (inset + dcardsW + space + ColorSquare.WIDTH + space, lowerY + (lineH + space) + (lineH / 2),
                              (dim.width - (2 * (inset + ColorSquare.WIDTH + (2 * space))) - stlmtsW - dcardsW), 2 * (lineH + space));
                     }
                 }
@@ -2956,23 +2958,25 @@ public class SOCHandPanel extends Panel implements ActionListener
                 }
                 offer.doLayout();
 
+                final int lowerY = dim.height - ((4 * (lineH + space)) + inset);
+
                 // Lower-left: Column of item counts:
                 // Soldiers, Resources, Dev Cards
-                resourceLab.setBounds(inset, inset + balloonH + (2 * (lineH + space)), dcardsW, lineH);
-                resourceSq.setBounds(inset + dcardsW + space, inset + balloonH + (2 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                developmentLab.setBounds(inset, inset + balloonH + (3 * (lineH + space)), dcardsW, lineH);
-                developmentSq.setBounds(inset + dcardsW + space, inset + balloonH + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                knightsLab.setBounds(inset, inset + balloonH + (lineH + space), dcardsW, lineH);
-                knightsSq.setBounds(inset + dcardsW + space, inset + balloonH + (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                resourceLab.setBounds(inset, lowerY + (2 * (lineH + space)), dcardsW, lineH);
+                resourceSq.setBounds(inset + dcardsW + space, lowerY + (2 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                developmentLab.setBounds(inset, lowerY + (3 * (lineH + space)), dcardsW, lineH);
+                developmentSq.setBounds(inset + dcardsW + space, lowerY + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                knightsLab.setBounds(inset, lowerY + (lineH + space), dcardsW, lineH);
+                knightsSq.setBounds(inset + dcardsW + space, lowerY + (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
 
                 // Lower-right: Column of piece counts:
                 // Roads, Settlements, Cities
-                roadLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, inset + balloonH + (lineH + space), stlmtsW, lineH);
-                roadSq.setBounds(dim.width - inset - ColorSquare.WIDTH, inset + balloonH + (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                settlementLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, inset + balloonH + (2 * (lineH + space)), stlmtsW, lineH);
-                settlementSq.setBounds(dim.width - inset - ColorSquare.WIDTH, inset + balloonH + (2 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                cityLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, inset + balloonH + (3 * (lineH + space)), stlmtsW, lineH);
-                citySq.setBounds(dim.width - inset - ColorSquare.WIDTH, inset + balloonH + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                roadLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, lowerY + (lineH + space), stlmtsW, lineH);
+                roadSq.setBounds(dim.width - inset - ColorSquare.WIDTH, lowerY + (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                settlementLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, lowerY + (2 * (lineH + space)), stlmtsW, lineH);
+                settlementSq.setBounds(dim.width - inset - ColorSquare.WIDTH, lowerY + (2 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                cityLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, lowerY + (3 * (lineH + space)), stlmtsW, lineH);
+                citySq.setBounds(dim.width - inset - ColorSquare.WIDTH, lowerY + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
             }
         }
     }
