@@ -395,6 +395,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      * Does not apply to client's hand panel.
      *
      * @see #hideTradeMsgShowOthers(boolean)
+     * @see #offerCounterHidingFace
      * @since 1.1.08
      */
     private boolean offerHidesControls, offerCounterHidesFace;
@@ -402,6 +403,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     /**
      * When handpanel isn't tall enough, are we currently in the situation described
      * at {@link #offerHidesControls} or {@link #offerCounterHidesFace}?
+     * @see #hideTradeMsgShowOthers(boolean)
      * @since 1.1.08
      */
     private boolean offerHidingControls, offerCounterHidingFace;
@@ -2908,7 +2910,9 @@ public class SOCHandPanel extends Panel implements ActionListener
                 //   Ships, Roads, Settlements, Cities to right
                 //   Robot lock button (during play) in bottom center
 
-                final int balloonH = dim.height - (inset + (4 * (lineH + space)) + inset);  // offer-message panel
+                int balloonH = dim.height - (inset + (4 * (lineH + space)) + inset);  // offer-message panel
+                if (offer.offerPanel.wantsRejectCountdown())
+                    balloonH += TradeOfferPanel.LABEL_LINE_HEIGHT;
                 final int dcardsW = fm.stringWidth("Dev._Cards:_");  //Bug in stringWidth does not give correct size for ' '
 
                 if (player.isRobot())
@@ -2932,18 +2936,23 @@ public class SOCHandPanel extends Panel implements ActionListener
 
                 // Are we tall enough for room, after the offer, for other controls?
                 // If not, they will be hid when offer is visible.
-                offerHidesControls = (dim.height - (inset + faceW + space + balloonH))
-                    < (3 * (lineH + space));
+                int offerMinHeight =
+                    TradeOfferPanel.OFFER_HEIGHT + TradeOfferPanel.OFFER_COUNTER_HEIGHT
+                    - TradeOfferPanel.OFFER_BUTTONS_HEIGHT;
+                if (offer.offerPanel.wantsRejectCountdown())
+                    offerMinHeight += TradeOfferPanel.LABEL_LINE_HEIGHT;
+                offerHidesControls =
+                    (dim.height - (inset + faceW + space) - (4 * (lineH + space))) < offerMinHeight;
                 if (offerHidesControls)
                 {
-                    // This field is calculated based on height.
+                    // This flag is set here based on newly calculated layout,
+                    // for use later when changing offerCounterHidingFace
                     offerCounterHidesFace =
-                        ((dim.height - TradeOfferPanel.OFFER_HEIGHT - TradeOfferPanel.OFFER_COUNTER_HEIGHT + TradeOfferPanel.OFFER_BUTTONS_HEIGHT)
-                        < faceW);
+                        (dim.height - offerMinHeight) < faceW;
 
                     // This is a dynamic flag, set by hideTradeMsgShowOthers
                     // when the user clicks button to show/hide the counter-offer.
-                    // If true, hideTradeMsgShowOthers has already hid faceImg,
+                    // If true now, hideTradeMsgShowOthers has already hid faceImg,
                     // pname, vpLab and vpSq, to make room for it.
                     if (offerCounterHidingFace)
                     {

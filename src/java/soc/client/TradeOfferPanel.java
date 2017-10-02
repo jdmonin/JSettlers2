@@ -62,8 +62,8 @@ public class TradeOfferPanel extends Panel
     public static final String MESSAGE_MODE = "message";  // shows MessagePanel
 
     /**
-     * Typical height of offer panel, when visible. (Includes
-     * {@link #OFFER_BUTTONS_HEIGHT}, but not {@link #OFFER_COUNTER_HEIGHT}.)
+     * Typical height of offer panel, when visible. (Includes {@link #OFFER_BUTTONS_HEIGHT}
+     * and speech balloon's protruding point, but not {@link #OFFER_COUNTER_HEIGHT}.)
      * For convenience of other classes' layout calculations.
      * Actual height (buttons' y-positions + height) is set dynamically in OfferPanel.doLayout.
      * @since 1.1.08
@@ -71,6 +71,8 @@ public class TradeOfferPanel extends Panel
     public static final int OFFER_HEIGHT
         = (5 + 32 + (SquaresPanel.HEIGHT + 8)) + 18 + 10;
         // As calculated in OfferPanel.doLayout():
+        //    18 = balloon tip height (OfferPanel.balloon's h / 8) for 4-player game
+        //       (15 if 6-player on same side of window as client)
         //    top = between 5 and 18: = (h / (int)(.5 * ColorSquareLarger.HEIGHT_L)) + 5
         //    squaresHeight = squares.getBounds().height + 8
         //    buttonY = top + 32 + squaresHeight
@@ -100,6 +102,15 @@ public class TradeOfferPanel extends Panel
         //   squaresHeight = squares.getBounds().height + 24
         //   lineH = ColorSquareLarger.HEIGHT_L
         //   HEIGHT = squaresHeight + 16 + lineH
+
+    /**
+     * Height of a single-line text label in pixels,
+     * including the auto-reject timer countdown when visible.
+     * For convenience of other classes' layout calculations.
+     * @see OfferPanel#wantsRejectCountdown()
+     * @since 1.2.00
+     */
+    public static final int LABEL_LINE_HEIGHT = 14;
 
     protected static final int[] zero = { 0, 0, 0, 0, 0 };
     static final String OFFER = "counter";
@@ -294,7 +305,7 @@ public class TradeOfferPanel extends Panel
     }
 
     /** Contains both offer and counter-offer; see {@link #setCounterOfferVisible(boolean)} */
-    private class OfferPanel extends Panel implements ActionListener
+    class OfferPanel extends Panel implements ActionListener
     {
         /**
          * Balloon to hold offer received visually, not as a layout container.
@@ -367,6 +378,7 @@ public class TradeOfferPanel extends Panel
          * Visibility is updated in {@link #update(SOCTradeOffer)}.
          * If counter-offer panel is shown, this label is hidden and the countdown
          * is canceled because client player might take action on the offer.
+         * When canceling the timer and hiding this label, should also call setText("").
          * @see #rejTimerTask
          * @since 1.2.00
          */
@@ -596,14 +608,15 @@ public class TradeOfferPanel extends Panel
                     rejTimerTask.cancel();  // cancel any previous
 
                 final int sec = pi.getBotTradeRejectSec();
-                final boolean wantVis = (sec > 0) && offered && isFromRobot && ! counterOfferMode;
-                rejCountdownLab.setText("");  // clear any previous
-                rejCountdownLab.setVisible(wantVis);
-                if (wantVis)
+                if ((sec > 0) && offered && isFromRobot && ! counterOfferMode)
                 {
+                    rejCountdownLab.setText(" ");  // clear any previous; not entirely blank, for other status checks
+                    rejCountdownLab.setVisible(true);
                     rejTimerTask = new AutoRejectTask(sec);
                     pi.getEventTimer().scheduleAtFixedRate(rejTimerTask, 300 /* ms */, 1000 /* ms */ );
                         // initial 300ms delay, so OfferPanel should be visible at first AutoRejectTask.run()
+                } else {
+                    rejCountdownLab.setVisible(false);
                 }
             }
 
@@ -644,10 +657,12 @@ public class TradeOfferPanel extends Panel
             final int buttonW = 48;
             final int buttonH = 18;
             int inset = 10;
+            final boolean isUsingRejCountdownLab =
+                offered && (! counterOfferMode) && (rejCountdownLab != null)
+                && (rejCountdownLab.getText().length() != 0);
             final int countdownLabHeight =
-                (offered && (! counterOfferMode) && (rejCountdownLab != null) && rejCountdownLab.isVisible())
-                ? 14 : 0;
-                // If shown, use same height (14) as toWhom1, toWhom2;
+                (isUsingRejCountdownLab) ? LABEL_LINE_HEIGHT : 0;
+                // If shown, use same height as toWhom1, toWhom2;
                 // layout already gives extra padding above/below, so no more is needed in this calc.
 
             // At initial call to doLayout: dim.width, .height == 0.
@@ -675,8 +690,8 @@ public class TradeOfferPanel extends Panel
 
                 final int giveW = fm.stringWidth(givesYouLab2.getText()) + 1;  // padding before colorSquares
 
-                toWhom1.setBounds(inset, top, w - 20, 14);
-                toWhom2.setBounds(inset, top + 14, w - 20, 14);
+                toWhom1.setBounds(inset, top, w - 20, LABEL_LINE_HEIGHT);
+                toWhom2.setBounds(inset, top + LABEL_LINE_HEIGHT, w - 20, LABEL_LINE_HEIGHT);
 
                 givesYouLab.setBounds(inset, top + 32, giveW, lineH);
                 theyGetLab.setBounds(inset, top + 32 + lineH, giveW, lineH);
@@ -722,10 +737,35 @@ public class TradeOfferPanel extends Panel
                 offerBox.setBounds(0, top + 18 + squaresHeight, w, squaresHeight + 16 + lineH);
 
                 // If offerBox height calculation changes, please update OFFER_COUNTER_HEIGHT.
+
+                if (rejCountdownLab != null)
+                    rejCountdownLab.setVisible(false);
             }
             else
             {
-                balloon.setBalloonPoint(true);
+                // if need auto-reject countdown label but balloon is not tall enough,
+                // don't waste space showing its point (happens in 6-player mode
+                // on same side of window as client player)
+                int balloonTop = 0;
+                int buttonY = (offered) ? top + 32 + SquaresPanel.HEIGHT + 8 : 0;
+                if (isUsingRejCountdownLab)
+                {
+                    int htWithLab = buttonY + buttonH + 5 + LABEL_LINE_HEIGHT + 3 + SpeechBalloon.SHADOW_SIZE;
+                    boolean tooTall = isUsingRejCountdownLab && (h < htWithLab);
+                    if (tooTall)
+                    {
+                        final int dh = h / 8;
+                        top -= dh;
+                        balloonTop -= (dh + 2);
+                        buttonY -= dh;
+                        h = htWithLab;
+                    }
+                    balloon.setBalloonPoint(! tooTall);
+                } else {
+                    balloon.setBalloonPoint(true);
+                    if (rejCountdownLab != null)
+                        rejCountdownLab.setVisible(false);  // needed after a counter-offer canceled
+                }
 
                 int lineH = ColorSquareLarger.HEIGHT_L;
                 int giveW = fm.stringWidth(givesYouLab.getText()) + 2;  // padding before colorSquares
@@ -739,20 +779,18 @@ public class TradeOfferPanel extends Panel
 
                 if (offered)
                 {
-                    int squaresHeight = squares.getBounds().height + 8;
-                    int buttonY = top + 32 + squaresHeight;
                     acceptBut.setBounds(inset, buttonY, buttonW, buttonH);
                     rejectBut.setBounds(inset + 5 + buttonW, buttonY, buttonW, buttonH);
                     offerBut.setBounds(inset + (2 * (5 + buttonW)), buttonY, buttonW, buttonH);
 
-                    if ((rejCountdownLab != null) && rejCountdownLab.isVisible())
-                        rejCountdownLab.setBounds(inset, buttonY + buttonH + 5, w - 2 * inset, 14);
+                    if (isUsingRejCountdownLab)
+                        rejCountdownLab.setBounds(inset, buttonY + buttonH + 5, w - 2 * inset, LABEL_LINE_HEIGHT);
                 }
 
-                balloon.setBounds(0, 0, w, h);
+                balloon.setBounds(0, balloonTop, w, h);
 
                 // If rejectBut height calculation changes, please update OFFER_HEIGHT.
-                // If change in the height dfference of "offered" buttons showing/not showing,
+                // If change in the height difference of "offered" buttons showing/not showing,
                 // please update OFFER_BUTTONS_HEIGHT.
             }
         }
@@ -938,20 +976,37 @@ public class TradeOfferPanel extends Panel
         }
 
         /**
-         * If showing, hide {@link #rejCountdownLab}.
+         * Will the Auto-Reject Countdown timer text be shown for this bot's offer?
+         * (Is {@link SOCPlayerInterface#getBotTradeRejectSec()} &gt; 0?)
+         *<P>
+         * If visible, this countdown's height is {@link #LABEL_LINE_HEIGHT}.
+         * Even when returns true, the label may not yet be visible but space should be reserved
+         * for it in {@link #doLayout()}.
+         * @return True if the current offer is from a bot, is offered to client player,
+         *     is not counter-offer mode, and the Auto-Reject Countdown Timer label contains text.
+         * @since 1.2.00
+         * @return
+         */
+        public boolean wantsRejectCountdown()
+        {
+            return isFromRobot && (pi.getBotTradeRejectSec() > 0);
+        }
+
+        /**
          * If running, cancel {@link #rejTimerTask}.
+         * If showing, hide {@link #rejCountdownLab}.
          * @since 1.2.00
          */
         private void cancelRejectCountdown()
         {
+            if (rejTimerTask != null)
+                rejTimerTask.cancel();
+
             if (rejCountdownLab != null)
             {
                 rejCountdownLab.setVisible(false);
                 rejCountdownLab.setText("");
             }
-
-            if (rejTimerTask != null)
-                rejTimerTask.cancel();
         }
 
         /**
@@ -984,6 +1039,7 @@ public class TradeOfferPanel extends Panel
                 if ((mode != OFFER_MODE)
                     || ! (rejCountdownLab.isVisible() && TradeOfferPanel.OfferPanel.this.isVisible()))
                 {
+                    rejCountdownLab.setText("");
                     cancel();
                     return;
                 }
