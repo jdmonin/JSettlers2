@@ -86,6 +86,11 @@ import java.util.concurrent.Executors;
  * These can run while the server is operating normally (running games, bots, and channels).
  * See {@link #doesSchemaUpgradeNeedBGTasks()}.
  *
+ * <H3>Threads:</H3>
+ * Remember that some JDBC drivers may not cleanly handle multi-threaded access
+ * (some versions of the SQLite driver, for example). Use {@link soc.server.SOCServer}'s
+ * Treater thread when accessing the DB, especially for updates or inserts.
+ *
  * @author Robert S. Thomas
  */
 public class SOCDBHelper
