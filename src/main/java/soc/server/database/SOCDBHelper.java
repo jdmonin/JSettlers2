@@ -92,7 +92,7 @@ import java.util.concurrent.Executors;
  *<H3>Threads:</H3>
  * Remember that some JDBC drivers may not cleanly handle multi-threaded access
  * (some versions of the SQLite driver, for example). Use {@link SOCServer}'s
- * Treater thread when accessing the DB, especially updates or inserts.
+ * Treater thread when accessing the DB, especially for updates or inserts.
  *
  * @author Robert S. Thomas
  */
