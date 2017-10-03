@@ -638,15 +638,16 @@ public class TradeOfferPanel extends Panel
                     rejTimerTask.cancel();  // cancel any previous
 
                 final int sec = pi.getBotTradeRejectSec();
-                final boolean wantVis = (sec > 0) && offered && isFromRobot && ! counterOfferMode;
-                rejCountdownLab.setText("");  // clear any previous
-                rejCountdownLab.setVisible(wantVis);
-                if (wantVis)
+                if ((sec > 0) && offered && isFromRobot && ! counterOfferMode)
                 {
-                    rejCountdownLab.setText(" ");  // not entirely blank, for other status checks
+                    rejCountdownLab.setText(" ");  // clear any previous; not entirely blank, for other status checks
+                    rejCountdownLab.setVisible(true);
                     rejTimerTask = new AutoRejectTask(sec);
                     pi.getEventTimer().scheduleAtFixedRate(rejTimerTask, 300 /* ms */, 1000 /* ms */ );
                         // initial 300ms delay, so OfferPanel should be visible at first AutoRejectTask.run()
+                } else {
+                    rejCountdownLab.setVisible(false);
+                    rejCountdownLab.setText("");
                 }
             }
 
@@ -776,7 +777,7 @@ public class TradeOfferPanel extends Panel
             else
             {
                 // if need auto-reject countdown label but balloon is not tall enough,
-                // don't waste space showing its point (only happens in 6-player mode
+                // don't waste space showing its point (happens in 6-player mode
                 // on same side of window as client player)
                 int balloonTop = 0;
                 int buttonY = (offered) ? top + 32 + SquaresPanel.HEIGHT + 8 : 0;
@@ -792,7 +793,6 @@ public class TradeOfferPanel extends Panel
                         buttonY -= dh;
                         h = htWithLab;
                     }
-
                     balloon.setBalloonPoint(! tooTall);
                 } else {
                     balloon.setBalloonPoint(true);

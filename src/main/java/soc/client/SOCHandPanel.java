@@ -517,6 +517,7 @@ public class SOCHandPanel extends Panel
     /**
      * When handpanel isn't tall enough, are we currently in the situation described
      * at {@link #offerHidesControls} or {@link #offerCounterHidesFace}?
+     * @see #hideTradeMsgShowOthers(boolean)
      * @since 1.1.08
      */
     private boolean offerHidingControls, offerCounterHidingFace;
@@ -3639,13 +3640,14 @@ public class SOCHandPanel extends Panel
                     (dim.height - (inset + faceW + space) - (4 * (lineH + space))) < offerMinHeight;
                 if (offerHidesControls)
                 {
-                    // This field is calculated based on height.
+                    // This flag is set here based on newly calculated layout,
+                    // for use later when changing offerCounterHidingFace
                     offerCounterHidesFace =
                         (dim.height - offerMinHeight) < faceW;
 
                     // This is a dynamic flag, set by hideTradeMsgShowOthers
                     // when the user clicks button to show/hide the counter-offer.
-                    // If true, hideTradeMsgShowOthers has already hid faceImg,
+                    // If true now, hideTradeMsgShowOthers has already hid faceImg,
                     // pname, vpLab and vpSq, to make room for it.
                     if (offerCounterHidingFace)
                     {
