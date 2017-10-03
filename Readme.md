@@ -113,8 +113,8 @@ except that user accounts cannot be maintained.
 If you do use the database, you can give users a nickname and password to use
 when they log in and play.  People without accounts can still connect, by
 leaving the password field blank, as long as they aren't using a nickname
-which has a password in the database.  Optionally game results can also be
-stored in the database, see next section; results are not stored by default.
+which has a password in the database.  Optionally game results and stats can
+also be saved in the database, see next section; those aren't saved by default.
 
 ### Parameters and game option defaults:
 
@@ -156,7 +156,7 @@ If the scenario's game options conflict with any other game options given (VP,
 etc), a warning will be printed during startup.  In general, servers shouldn't
 set a default scenario; users can choose a scenario on their own if they want.
 
-To have all completed games' results stored in the database, use this option:
+To have all completed games' results saved in the database, use this option:
 
     -Djsettlers.db.save.games=Y
 
@@ -258,7 +258,7 @@ or IP) and port number.  Or, they can enter the following command:
 
 If you would like to maintain accounts for your JSettlers server,
 start the database prior to starting the JSettlers Server. See the
-directions in "Database Setup".
+"Database Setup" section of `doc/Database.md` for directions.
 
 ### Server shutdown
 
@@ -333,9 +333,9 @@ It's a simple process to upgrade to the latest version of JSettlers:
   made from your version to the latest version.  Occasionally defaults
   change and you'll need to add a server config option to keep the
   same behavior, so read carefully.
-- If you're using the optional database for user accounts and game scores,
-  back up the database and see the "Upgrading from an earlier version" section
-  of `doc/Database.md` for parameter changes and other actions to take.
+- If you're using the optional database, backup the database and see
+  the "Upgrading from an earlier version" section of `doc/Database.md`
+  for parameter changes and other actions to take.
 - Save a backup copy of your current JSettlers.jar and JSettlersServer.jar,
   in case you want to run the old version for any reason.
 - Stop the old server
