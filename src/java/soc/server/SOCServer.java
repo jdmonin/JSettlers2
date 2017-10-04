@@ -4020,49 +4020,10 @@ public class SOCServer extends Server
                     break;
 
                 /**
-                 * text message
+                 * text message to a channel
                  */
                 case SOCMessage.TEXTMSG:
-
-                    SOCTextMsg textMsgMes = (SOCTextMsg) mes;
-
-                    if (allowDebugUser && c.getData().equals("debug"))
-                    {
-                        if (textMsgMes.getText().startsWith("*KILLCHANNEL*"))
-                        {
-                            messageToChannel(textMsgMes.getChannel(), new SOCTextMsg
-                                (textMsgMes.getChannel(), SERVERNAME,
-                                 "********** " + c.getData() + " KILLED THE CHANNEL **********"));
-                            channelList.takeMonitor();
-
-                            try
-                            {
-                                destroyChannel(textMsgMes.getChannel());
-                            }
-                            catch (Exception e)
-                            {
-                                D.ebugPrintStackTrace(e, "Exception in KILLCHANNEL");
-                            }
-
-                            channelList.releaseMonitor();
-                            broadcast(SOCDeleteChannel.toCmd(textMsgMes.getChannel()));
-                        }
-                        else
-                        {
-                            /**
-                             * Send the message to the members of the channel
-                             */
-                            messageToChannel(textMsgMes.getChannel(), mes);
-                        }
-                    }
-                    else
-                    {
-                        /**
-                         * Send the message to the members of the channel
-                         */
-                        messageToChannel(textMsgMes.getChannel(), mes);
-                    }
-
+                    handleTEXTMSG(c, (SOCTextMsg) mes);
                     break;
 
                 /**
@@ -5499,6 +5460,52 @@ public class SOCServer extends Server
                 scd.robot3rdPartyBrainClass = rbc;
             super.nameConnection(c, false);
         }
+    }
+
+    /**
+     * Handle text message to a channel, including {@code *KILLCHANNEL*} channel debug command.
+     * Was part of {@code processCommand(..)} before 1.2.00.
+     *
+     * @param c  the connection
+     * @param mes  the message
+     * @since 1.2.00
+     */
+    private void handleTEXTMSG(final StringConnection c, final SOCTextMsg mes)
+    {
+        final String chName = mes.getChannel();
+
+        if (allowDebugUser && c.getData().equals("debug"))
+        {
+            if (textMsgMes.getText().startsWith("*KILLCHANNEL*"))
+            {
+                messageToChannel(chName, new SOCTextMsg
+                    (chName, SERVERNAME,
+                     "********** " + c.getData() + " KILLED THE CHANNEL **********"));
+
+                channelList.takeMonitor();
+                try
+                {
+                    destroyChannel(chName);
+                }
+                catch (Exception e)
+                {
+                    D.ebugPrintStackTrace(e, "Exception in KILLCHANNEL");
+                }
+                finally
+                {
+                    channelList.releaseMonitor();
+                }
+
+                broadcast(SOCDeleteChannel.toCmd(chName));
+
+                return;
+            }
+        }
+
+        /**
+         * Send the message to the members of the channel
+         */
+        messageToChannel(chName, mes);
     }
 
     /**
