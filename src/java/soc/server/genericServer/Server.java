@@ -150,7 +150,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     private HashMap<String, String> connNames = new HashMap<String, String>();
 
-    /** Inbound messages from all clients, and/or code to be ran in the Treater thread */
+    /** Inbound messages from all clients, and/or Runnable tasks to run, in the {@link Treater} thread */
     private final Vector<Command> inQueue = new Vector<Command>();
 
     /**
