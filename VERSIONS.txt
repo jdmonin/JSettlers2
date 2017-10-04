@@ -26,7 +26,9 @@ and backport minor new features until 2.0.00 is ready.
      - Re-worded other players' trade offer displays to: Gives You / They Get
      - Initial Connect dialog: If username given, ensure New Game button is enabled
 - Users can't use the robot nickname prefixes "droid " or "robot ", or "debug" except in debug mode
-- Network: Send keepalive messages to idle games to keep clients connected
+- Network:
+     - Send keepalive messages to idle games to keep clients connected
+     - Text messages to games or channels can be sent only by members
 - Game window during debug: Reset "current player" indicator when exiting *FREEPLACE* debug mode
 - Client debug, bot debug: Print network message contents if system property jsettlers.debug.traffic is set
 - Database:

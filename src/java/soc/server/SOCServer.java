@@ -5476,7 +5476,7 @@ public class SOCServer extends Server
 
         if (allowDebugUser && c.getData().equals("debug"))
         {
-            if (textMsgMes.getText().startsWith("*KILLCHANNEL*"))
+            if (mes.getText().startsWith("*KILLCHANNEL*"))
             {
                 messageToChannel(chName, new SOCTextMsg
                     (chName, SERVERNAME,
@@ -5505,7 +5505,8 @@ public class SOCServer extends Server
         /**
          * Send the message to the members of the channel
          */
-        messageToChannel(chName, mes);
+        if (channelList.isMember(c, chName))
+            messageToChannel(chName, mes);
     }
 
     /**
@@ -5524,7 +5525,12 @@ public class SOCServer extends Server
         if (ga == null)
             return;  // <---- early return: no game by that name ----
 
+        final String plName = c.getData();
+        if (null == ga.getPlayer(plName))
+            return;  // <---- early return: player isn't in that game ----
+
         //currentGameEventRecord.setSnapshot(ga);
+
         ///
         /// command to add time to a game
         /// If the command text changes from '*ADDTIME*' to something else,
@@ -5649,7 +5655,6 @@ public class SOCServer extends Server
         //
         else
         {
-            final String plName = c.getData();
             final boolean userIsDebug =
                 (allowDebugUser && plName.equals("debug"))
                 || (c instanceof LocalStringConnection);

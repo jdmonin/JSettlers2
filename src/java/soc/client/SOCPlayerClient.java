@@ -4727,6 +4727,7 @@ public class SOCPlayerClient extends Applet
      *
      * @param ch   the name of the channel
      * @param mes  the message
+     * @see #sendText(SOCGame, String)
      */
     public void chSend(String ch, String mes)
     {
@@ -4838,6 +4839,7 @@ public class SOCPlayerClient extends Applet
      *
      * @param ga   the game
      * @param me   the message
+     * @see #chSend(String, String)
      */
     public void sendText(SOCGame ga, String me)
     {
