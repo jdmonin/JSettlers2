@@ -5527,7 +5527,19 @@ public class SOCServer extends Server
 
         final String plName = c.getData();
         if (null == ga.getPlayer(plName))
-            return;  // <---- early return: player isn't in that game ----
+        {
+            // c isn't a seated player in that game; have they joined it?
+            // To avoid disruptions by game observers, only players can chat after initial placement.
+            // To help form the game, non-seated members can also participate in the chat until then.
+
+            final boolean canChat = (ga.getGameState() < SOCGame.PLAY) && gameList.isMember(c, gaName);
+            if (! canChat)
+            {
+                messageToPlayer(c, gaName, "Observers can't chat during the game.");
+
+                return;  // <---- early return: not a player in that game ----
+            }
+        }
 
         //currentGameEventRecord.setSnapshot(ga);
 
