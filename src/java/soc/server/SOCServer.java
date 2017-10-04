@@ -1279,7 +1279,7 @@ public class SOCServer extends Server
                 System.err.println("User database accounts are required for all players.");
 
             // Note: This hook is not triggered under eclipse debugging.
-            //    https://bugs.eclipse.org/bugs/show_bug.cgi?id=38016  "WONTFIX/README"
+            //    https://bugs.eclipse.org/bugs/show_bug.cgi?id=38016  "WONTFIX/README" since 2007-07-18
             try
             {
                 Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -1291,7 +1291,7 @@ public class SOCServer extends Server
                             // Before disconnect, do a final check for unexpected DB settings changes
                             try
                             {
-                                SOCDBHelper.checkSettings(true);
+                                SOCDBHelper.checkSettings(true, false);
                             } catch (Exception x) {}
 
                             SOCDBHelper.cleanup(true);
