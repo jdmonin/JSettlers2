@@ -146,6 +146,7 @@ public class TradeOfferPanel extends Panel
      * because the panel's height is too short for the normal arrangement.
      * Calculated using {@link #OFFER_HEIGHT} + {@link #OFFER_COUNTER_HEIGHT}
      *     - {@link #OFFER_BUTTONS_HEIGHT}.
+     * Ignored unless {@link OfferPanel#counterOfferMode}.
      * @since 1.1.08
      */
     private boolean counterCompactMode;
@@ -397,7 +398,10 @@ public class TradeOfferPanel extends Panel
         int[] giveInt = new int[5];
         int[] getInt = new int[5];
 
-        /** is the counter-offer showing? use {@link #setCounterOfferVisible(boolean)} to change. */
+        /**
+         * Is the counter-offer showing? use {@link #setCounterOfferVisible(boolean)} to change.
+         * @see TradeOfferPanel#counterCompactMode
+         */
         boolean counterOfferMode = false;
 
         /**
@@ -617,6 +621,7 @@ public class TradeOfferPanel extends Panel
                         // initial 300ms delay, so OfferPanel should be visible at first AutoRejectTask.run()
                 } else {
                     rejCountdownLab.setVisible(false);
+                    rejCountdownLab.setText("");
                 }
             }
 
@@ -676,7 +681,8 @@ public class TradeOfferPanel extends Panel
 
                 final int lineH = ColorSquareLarger.HEIGHT_L;
                 h = Math.min(60 + 2 * ColorSquareLarger.HEIGHT_L, h);
-                top = (h / (int)(.5 * ColorSquareLarger.HEIGHT_L)) + 10;
+                top = (h / (int)(.5 * ColorSquareLarger.HEIGHT_L)) + 10
+                    - (OFFER_BUTTONS_HEIGHT / 8);  // balloon and its point are shorter, since no Offer buttons
 
                 if (counterCompactMode)
                 {
@@ -695,13 +701,13 @@ public class TradeOfferPanel extends Panel
 
                 givesYouLab.setBounds(inset, top + 32, giveW, lineH);
                 theyGetLab.setBounds(inset, top + 32 + lineH, giveW, lineH);
-                squares.setLocation(inset + giveW, top + 32);
+                squares.setLocation(inset + giveW, top + 30);
 
                 int squaresHeight = squares.getBounds().height + 24;
-                counterOfferToWhom.setBounds(inset + 7, top + 28 + squaresHeight, w - 33, 12);
-                theyGetLab2.setBounds(inset, top + 28 + lineH + squaresHeight, giveW, lineH);
-                givesYouLab2.setBounds(inset, top + 28 + 2*lineH + squaresHeight, giveW, lineH);
-                offerSquares.setLocation(inset + giveW, top + 28 + lineH + squaresHeight);
+                counterOfferToWhom.setBounds(inset, top + 23 + squaresHeight, w - 33, 12);
+                theyGetLab2.setBounds(inset, top + 26 + lineH + squaresHeight, giveW, lineH);
+                givesYouLab2.setBounds(inset, top + 26 + 2*lineH + squaresHeight, giveW, lineH);
+                offerSquares.setLocation(inset + giveW, top + 24 + lineH + squaresHeight);
                 offerSquares.doLayout();
 
                 if (counterCompactMode)
@@ -719,8 +725,8 @@ public class TradeOfferPanel extends Panel
                     if (w < (buttonX + buttonW + ShadowedBox.SHADOW_SIZE + 2))
                         w = buttonX + buttonW + ShadowedBox.SHADOW_SIZE + 2;
                 } else {
-                    // Buttons below theyGetLab2, offerSquares
-                    final int buttonY = top + 8 + (2 * squaresHeight) + lineH;
+                    // Buttons below givesYouLab2, counterOfferSquares
+                    final int buttonY = top + 6 + (2 * squaresHeight) + lineH;
 
                     sendBut.setBounds(inset, buttonY, buttonW, buttonH);
                     clearBut.setBounds(inset + 5 + buttonW, buttonY, buttonW, buttonH);
@@ -1197,8 +1203,15 @@ public class TradeOfferPanel extends Panel
     public void setBounds(final int x, final int y, final int width, final int height)
     {
         super.setBounds(x, y, width, height);
+        final int hpHeight = hp.getHeight();
+        int counterBottomY = offerPanel.offerBox.getHeight();
+        if (counterBottomY > 0)
+            counterBottomY += offerPanel.offerBox.getY() + y + 3;
         counterCompactMode =
-            (height < (OFFER_HEIGHT + OFFER_COUNTER_HEIGHT - OFFER_BUTTONS_HEIGHT));
+            (height < (OFFER_HEIGHT + OFFER_COUNTER_HEIGHT - OFFER_BUTTONS_HEIGHT))
+            || ((hpHeight > 0) &&
+                (((y + height + 3 > hpHeight))
+                 || ((counterBottomY > 0) && (counterBottomY >= hpHeight))));
     }
 
 }  // TradeOfferPanel
