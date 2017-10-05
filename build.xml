@@ -45,7 +45,7 @@
       * To override system's default encoding, specify UTF-8 for *.java
       -->
   <presetdef name="javac">
-    <javac encoding="UTF-8" includeantruntime="false" />
+    <javac encoding="UTF-8" includeantruntime="false" source="1.5" target="1.5" />
   </presetdef>
   <presetdef name="javadoc">
     <javadoc encoding="UTF-8" />
