@@ -16,7 +16,6 @@ and backport minor new features until `2.0.00` is ready.
 - Game Scenario and special-rules support
 - "House rules" dev card types (New game option `DH`)
 - Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard's dialog)
-- To avoid disruptions by game observers, only players can chat after initial placement
 - More efficient game-setup messages over network
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
 - Client sends server its locale, to support i18n localization
@@ -50,7 +49,6 @@ and backport minor new features until `2.0.00` is ready.
 - Server inbound message handling refactored in collaboration with Alessandro D'Ottavio
 - Robot client's inbound-message treat method calls super.treat in the default case,
     so `SOCDisplaylessClient.treat()` handles all messages which don't need robot-specific handling.
-- Text messages to channels can be sent only by members
 - Minor refactoring
 - Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 - Project dir structure converted to maven layout
@@ -67,13 +65,16 @@ and backport minor new features until `2.0.00` is ready.
 - Monopoly announces total number of resources stolen
 - New Game options: Popup if old versions can't play: Default to Create, not Change Options
 - To ensure everyone has initial settlements, don't allow new clients to sit after 1st settlements are all placed
+- To avoid disruptions by game observers, only players can chat after initial placement
 - Client:
      - Persistent and per-game preferences for settings like sound effects and game window size
      - Per-game preference to auto-reject bot trades after a multi-second countdown
      - Re-worded other players' trade offer displays to: Gives You / They Get
      - Initial Connect dialog: If username given, ensure New Game button is enabled
 - Users can't use the robot nickname prefixes "droid " or "robot ", or "debug" except in debug mode
-- Network: Send keepalive messages to idle games to keep clients connected
+- Network:
+     - Send keepalive messages to idle games to keep clients connected
+     - Text messages to channels can be sent only by members
 - Game window during debug: Reset "current player" indicator when exiting `*FREEPLACE*` debug mode
 - Client debug, bot debug: Print network message contents if system property jsettlers.debug.traffic is set
 - Database:

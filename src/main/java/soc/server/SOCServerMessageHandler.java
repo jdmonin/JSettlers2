@@ -926,11 +926,11 @@ public class SOCServerMessageHandler
 
     /**
      * Handle text message to a channel, including {@code *KILLCHANNEL*} channel debug command.
-     * Was part of {@code SOCServer.processCommand} before 2.0.00.
+     * Was part of {@code SOCServer.processCommand(..)} before v1.2.00.
      *
      * @param c  the connection
      * @param mes  the message
-     * @since 2.0.00
+     * @since 1.2.00
      */
     void handleTEXTMSG(final StringConnection c, final SOCTextMsg mes)
     {
@@ -943,8 +943,8 @@ public class SOCServerMessageHandler
                 srv.messageToChannel(chName, new SOCTextMsg
                     (chName, SOCServer.SERVERNAME,
                      "********** " + c.getData() + " KILLED THE CHANNEL **********"));
-                channelList.takeMonitor();
 
+                channelList.takeMonitor();
                 try
                 {
                     srv.destroyChannel(chName);
@@ -953,8 +953,11 @@ public class SOCServerMessageHandler
                 {
                     D.ebugPrintStackTrace(e, "Exception in KILLCHANNEL");
                 }
+                finally
+                {
+                    channelList.releaseMonitor();
+                }
 
-                channelList.releaseMonitor();
                 srv.broadcast(SOCDeleteChannel.toCmd(chName));
 
                 return;
@@ -1004,7 +1007,7 @@ public class SOCServerMessageHandler
             // To avoid disruptions by game observers, only players can chat after initial placement.
             // To help form the game, non-seated members can also participate in the chat until then.
 
-            final boolean canChat = gameList.isMember(c, gaName) && (ga.getGameState() < SOCGame.PLAY);
+            final boolean canChat = (ga.getGameState() < SOCGame.PLAY) && gameList.isMember(c, gaName);
             if (! canChat)
             {
                 srv.messageToPlayerKeyed(c, gaName, "member.chat.not_observers");  // "Observers can't chat during the game."
