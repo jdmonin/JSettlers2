@@ -78,6 +78,11 @@ public class Sounds
          false);      // not bigEndian
 
     /**
+     * To reduce latency in {@link #playPCMBytes(byte[])}, a cached SourceDataLine to try to reopen.
+     */
+    private static SourceDataLine playPCM_sdl;
+
+    /**
      * Calculate the length of a mono 16-bit PCM byte buffer,
      * at {@link #SAMPLE_RATE_HZ}, to store {@code msec} milliseconds.
      * @param msec  Duration in milliseconds
@@ -286,8 +291,23 @@ public class Sounds
     public static final void playPCMBytes(final byte[] buf)
         throws LineUnavailableException
     {
-        SourceDataLine sdl = AudioSystem.getSourceDataLine(AFMT_PCM_16_AT_SAMPLE_RATE);
-        sdl.open(AFMT_PCM_16_AT_SAMPLE_RATE);
+        SourceDataLine sdl = playPCM_sdl;
+        if (sdl != null)
+        {
+            try
+            {
+                sdl.open(AFMT_PCM_16_AT_SAMPLE_RATE);
+            } catch (Exception e) {
+                // LineUnavailableException, IllegalStateException, etc
+                sdl = null;
+            }
+        }
+        if (sdl == null)
+        {
+            sdl = AudioSystem.getSourceDataLine(AFMT_PCM_16_AT_SAMPLE_RATE);
+            playPCM_sdl = sdl;
+            sdl.open(AFMT_PCM_16_AT_SAMPLE_RATE);
+        }
         sdl.start();
         sdl.write(buf, 0, buf.length);
         sdl.drain();
