@@ -432,7 +432,10 @@ public class TradeOfferPanel extends Panel
         int[] giveInt = new int[5];
         int[] getInt = new int[5];
 
-        /** is the counter-offer showing? use {@link #setCounterOfferVisible(boolean)} to change. */
+        /**
+         * Is the counter-offer showing? use {@link #setCounterOfferVisible(boolean)} to change.
+         * @see TradeOfferPanel#counterCompactMode
+         */
         boolean counterOfferMode = false;
 
         /**
