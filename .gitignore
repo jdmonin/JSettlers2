@@ -17,3 +17,8 @@
 /.gradle
 /src/.gradle
 /.idea
+
+# IntelliJ stuff
+*.iml
+*.iws
+*.ipr
