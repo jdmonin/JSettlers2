@@ -1,0 +1,61 @@
+script(scriptModel, script) ::= <<
+/*
+package syntax;
+
+import org.junit.Test;
+
+public class <scriptModel.name>Test
+    SOCGame game;
+    SOCServer server;
+
+<[script.game.players:{p|
+    SOCPlayer player<i>;
+}]>
+<[script.game.players:{p|
+    SOCPlayer serverPlayer<i>;
+}]>
+<[script.game.players:{p|
+    SOCPlayer clientPlayer<i>;
+}]>
+    public void setupGame() {
+        game  = new SOCGame();
+        server = new SOCServer(game);
+    }
+
+<turns(script.turns)>
+
+}
+*/
+>>
+
+turns(turns) ::= <<
+<[turns.turn:{turn|
+    @Test
+    public void test<turn><turn.NUMBER>() {
+        <turn(turn)>
+    \}
+}]>
+>>
+
+turn(turns) ::= <<
+<[turns:{t|
+<actions(t.action)>
+}]>
+>>
+
+actions(actions) ::= <<
+<[actions:{a|
+<buildRoad(a.buildRoad)>
+}]>
+>>
+
+buildRoad(buildRoad) ::= <<
+<if(buildRoad)>
+SOCBuildRequest buildRoad = new SOCBuildRequest("game", SOCPlayingPiece.ROAD);
+<endif>
+>>
+
+buildCity() ::= <<
+cityyy
+>>
+

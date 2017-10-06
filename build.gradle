@@ -2,6 +2,7 @@ apply plugin: 'java'
 apply plugin: 'com.google.protobuf'
 apply plugin: 'application'
 apply plugin: 'idea'
+apply plugin: 'antlr'
 
 buildscript {
     repositories {
@@ -21,7 +22,11 @@ protobuf {
         artifact = 'com.google.protobuf:protoc:3.0.0'
     }
 }
-
+sourceSets {
+    generated {
+        java.srcDir "${buildDir}/generated-src/main/antlr"
+    }
+}
 repositories {
     mavenCentral()
     maven {
@@ -29,14 +34,17 @@ repositories {
         url = "http://files.minecraftforge.net/maven"
     }
 }
-//
-//jar {
-//    into 'resources', {
-//        from 'resources'
-//    }
-//}
 
 dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.google.protobuf:protobuf-java:3.0.0'
+    antlr 'org.antlr:antlr4:4.7'
 }
+
+/*
+task generateJavascript(type:JavaExec) {
+    main = 'org.antlr.v4.Tool'
+    classpath = sourceSets.main.runtimeClasspath
+    args = ['-Dlanguage=JavaScript', 'src/antlr/JSettlers.g4', '-o', 'src/main/webapp/js']
+}
+*/

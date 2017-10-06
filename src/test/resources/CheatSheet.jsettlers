@@ -1,0 +1,129 @@
+game
+    options
+        roads: 15
+        cities: 4
+        settlements: 5
+        pirate at 1
+        robber at 17
+
+    board
+        system2D: pointy even
+        hexes
+            . . S S S S
+             . S F D F S
+            . S M R P F S
+             S D R P F P S
+            . S M F P M S
+             . S F D F S
+            . . S S S S
+
+        locationIds
+            ..  ..  1   2   3   4
+              ..  5   6   7   8   9
+            ..  10  11  12  13  14  15
+              16  17  18  19  20  21  22
+            ..  23  24  25  26  27  28
+              ..  29  30  31  32  33
+            ..  ..  34  35  36  37
+
+        chits
+            ..  ..  ..  ..  ..  ..
+              ..  ..  8   5   9   ..
+            ..  ..  9   10  4   8   ..
+              ..  ..  4   6   3   11  ..
+            ..  ..  11  3   11  12  ..
+              ..  ..  10  2   5   ..
+            ..  ..  ..  ..  ..  ..
+
+        ports
+            ⚓3:1 at 1|6
+            ⚓3:1 at 4|8
+            ⚓3:1 at 14|15
+            ⚓3:1 at 10|11
+            ⚓🌲 at 30|34
+            ⚓⛰ at 31|36
+            ⚓🐑 at 32|33
+            ⚓🌾 at 29|24
+            ⚓⚌ at 21|22
+
+
+    player1
+        hand [🐑 🌲 🌾 ⛰ ⚌]
+        stock [🏠 ⛪ 🛣 ⛵]
+        devCards [s m yop rb vp]
+        ports [⚓4:1 ⚓3:1 ⚓🌲 ⚓⛰ ⚓🐑 ⚓🌾 ⚓⚌]
+
+    player2
+        hand [sheep timber wheat ore brick]
+        stock [settlement city road ship]
+        devCards [soldier monopoly roadBuilding victoryPoint yearOfPlenty]
+        ports [port41 port31 brickPort timberPort wheatPort orePort sheepPort]
+
+    player3
+        hand []
+        stock [🏠🏠🏠🏠🏠 ⛪⛪⛪⛪ 🛣🛣🛣🛣🛣 🛣🛣🛣🛣🛣 🛣🛣🛣🛣🛣 ⛵⛵⛵⛵⛵ ⛵⛵⛵⛵⛵ ⛵⛵⛵⛵⛵]
+        devCards []
+        ports [port41]
+
+    player4
+        hand []
+        stock []
+        devCards []
+        ports []
+
+placement
+    p1 🔨🏠 0*1*2
+    p1 🔨🛣 0|1
+    p2 🔨🏠 0*1*2
+    p2 🔨🛣 0|1
+    p3 🔨🏠 0*1*2
+    p3 🔨🛣 0|1
+    p4 🔨🏠 0*1*2
+    p4 🔨🛣 0|1
+    p4 🔨🏠 0*1*2 and gains [🌾⛰🌲]
+    p4 🔨🛣 0|1
+    p3 🔨🏠 0*1*2 and gains [s b o]
+    p3 🔨🛣 0|1
+    p2 🔨🏠 0*1*2 and gains [brick ore timber]
+    p2 🔨🛣 0|1
+    p1 🔨🏠 0*1*2 and gains [wheat wheat timber]
+    p1 🔨🛣 0|1
+turns
+    turn 1
+        player1 builds road at 0,0,0|1,1,-2
+        ✔ player1 has 14 roads in stock
+        ✔ player1 has road at 0,0,0|1,1,-2
+        player1 builds road at 0,0,0|1,1,-2
+        ✔ player1 is on turn
+        v/ player1 is on turn
+        check player1 is on turn
+        ✔ player2 is not on turn
+        ✔ player1 has [🌾🌾⚌⚌⛰⛰]
+        player1 moves robber to 0,0,0
+        player1 moves robber to 0,0
+        player1 moves robber to 0
+        player1 builds settlement at 0*0*0
+        player1 builds settlement at 0,0*0,0*0,0
+        player1 builds settlement at -1,-2,-3*0,0,0*0,0,0
+        player1 builds city at 0,0,0*0,0,0*0,0,0
+        player1 🔨⛪ 6•11•12
+        player1 🔨🏠 7•8•13
+        player1 🔨🛣 1|6
+        p1 🔨⛵ @ 1|5
+
+    turn 2
+        player2 builds ship at -2,-2,4|3,3,-6
+        player2 ends turn
+        v/ player1 is not on turn
+        check player1 is not on turn
+        player2 discards [🌾🐑🌲]
+        player2 moves ship from 0|0 to 0,0,0|1,1,1
+        player1 accepts offer from player2
+
+    turn 3
+        player2 rolls 8 [player1 [🌾⚌]]
+        player2 🎲8 [player1 [🌾⚌]]
+        player2 🎲8 []
+
+    turn 4
+

@@ -23,6 +23,7 @@ package soc.game;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import soc.syntax.JSettlersParser;
 
 /**
  * This represents a collection of
@@ -57,6 +58,19 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     {
         resources = new int[SOCResourceConstants.MAXPLUSONE];
         clear();
+    }
+
+    public SOCResourceSet(JSettlersParser.ResourceSetContext ctx)
+    {
+        this();
+        for (JSettlersParser.ResourceContext r : ctx.resource()) {
+            if (r.sheep() != null) resources[SOCResourceConstants.SHEEP]++;
+            if (r.timber() != null) resources[SOCResourceConstants.WOOD]++;
+            if (r.brick() != null) resources[SOCResourceConstants.CLAY]++;
+            if (r.ore() != null) resources[SOCResourceConstants.ORE]++;
+            if (r.wheat() != null) resources[SOCResourceConstants.WHEAT]++;
+            if (r.unknown() != null) resources[SOCResourceConstants.UNKNOWN]++;
+        }
     }
 
     /**
@@ -276,7 +290,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      *
      * @param toAdd  the resource set
      */
-    public void add(SOCResourceSet toAdd)
+    public void add(ResourceSet toAdd)
     {
         resources[SOCResourceConstants.CLAY]    += toAdd.getAmount(SOCResourceConstants.CLAY);
         resources[SOCResourceConstants.ORE]     += toAdd.getAmount(SOCResourceConstants.ORE);

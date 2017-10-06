@@ -1,0 +1,99 @@
+game
+    options
+        roads: 15
+        cities: 4
+        settlements: 5
+        robber at 17
+
+    board
+        system2D: pointy even
+        hexes
+            . . S S S S
+             . S F F F S
+            . S F O O O S
+             S D T T T T S
+            . S R R R P S
+             . S P P P S
+            . . S S S S
+
+        locationIds
+            ..  ..  17  39  5B  7D
+              ..  15  37  59  7B  9D
+            ..  13  35  57  79  9B  BD
+              11  33  55  77  99  BB  DD
+            ..  31  53  75  97  B9  DB
+              ..  51  73  95  B7  D9
+            ..  ..  71  93  B5  D7
+
+        chits
+            ..  ..  ..  ..  ..  ..
+              ..  ..  8   5   9   ..
+            ..  ..  9   10  4   8   ..
+              ..  ..  4   6   3   11  ..
+            ..  ..  6   3   11  12  ..
+              ..  ..  10  2   5   ..
+            ..  ..  ..  ..  ..  ..
+
+        ports
+            ⚓3:1 at 1|6
+            ⚓3:1 at 4|8
+            ⚓3:1 at 14|15
+            ⚓3:1 at 10|11
+            ⚓🌲 at 30|34
+            ⚓⛰ at 31|36
+            ⚓🐑 at 32|33
+            ⚓🌾 at 29|24
+            ⚓⚌ at 21|22
+
+
+    player1
+        hand []
+        stock [🏠🏠🏠🏠🏠 ⛪⛪⛪⛪ 🛣🛣🛣🛣🛣 🛣🛣🛣🛣🛣 🛣🛣🛣🛣🛣]
+        devCards []
+        ports [⚓4:1]
+
+    player2
+        hand []
+        stock [🏠🏠🏠🏠🏠 ⛪⛪⛪⛪ 🛣🛣🛣🛣🛣 🛣🛣🛣🛣🛣 🛣🛣🛣🛣🛣]
+        devCards []
+        ports [⚓4:1]
+
+    player3
+        hand []
+        stock [🏠🏠🏠🏠🏠 ⛪⛪⛪⛪ 🛣🛣🛣🛣🛣 🛣🛣🛣🛣🛣 🛣🛣🛣🛣🛣]
+        devCards []
+        ports [⚓4:1]
+
+    player4
+        hand []
+        stock [🏠🏠🏠🏠🏠 ⛪⛪⛪⛪ 🛣🛣🛣🛣🛣 🛣🛣🛣🛣🛣 🛣🛣🛣🛣🛣]
+        devCards []
+        ports [⚓4:1]
+placement
+    p1 🔨🏠 35*37*57
+    v/ p1 has settlement at 35*37*57
+
+turns
+    turn 1
+        p1 🎲8 [p1 []]
+        v/ p1 is on turn
+        v/ p2 is not on turn
+        v/ p3 is not on turn
+        v/ p4 is not on turn
+
+    turn 2
+        player2 builds ship at -2,-2,4|3,3,-6
+        player2 ends turn
+        v/ player1 is not on turn
+        check player1 is not on turn
+        player2 discards [🌾🐑🌲]
+        player2 moves ship from 0|0 to 0,0,0|1,1,1
+        player1 accepts offer from player2
+
+    turn 3
+        player2 rolls 8 [player1 [🌾⚌]]
+        player2 🎲8 [player1 [🌾⚌]]
+        player2 🎲8 []
+
+    turn 4
+
