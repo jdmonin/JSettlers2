@@ -20,6 +20,7 @@ CONTENTS
 - Current TODO list -> See README.developer in the master branch (2.0.00).
 - Developing with a database (JDBC)
 - Coding Style
+- Release Testing
 - github usage
 
 
@@ -396,6 +397,84 @@ Eclipse preferences -> general -> editors -> text editors -> [x] Show whitespace
 Find/Replace: Regular expressions: Find [\t ]+$
 
 The rotated 3:1 port hexes' font is Optima Bold, 21 pt.
+
+
+Release Testing
+---------------
+When preparing to release a new version, testing should include:
+
+- Message Traffic debug prints during all tests, to help debugging if needed:  
+  Run server and clients with JVM property -Djsettlers.debug.traffic=Y
+- Basic functional tests
+    - Game setup, join, and reset:
+        - Create and start playing a practice game with 1 locked space & 2 bots, past initial placement into normal play (roll dice, etc) with default options
+        - Create and start playing a practice game on the 6-player board (5 bots), with options like Roll No 7s for first 7 turns
+        - JSettlersServer.jar: Start a dedicated server on another ("remote") machine's text-only console
+        - Join that remote server & play a full game, then reset board and start another game
+	    - *STATS* command should include the finished game
+            - Bots should rejoin and play
+        - JSettlers.jar: Start a local server and a game, start another client, join and start playing game (will have 2 human clients & 2 bots)
+	- Ensure the 2 clients can talk to each other in the game's chat area
+        - Client leaves game (not on their turn): bot should join to replace them & then plays their turn (not unresponsive)
+        - New client joins and replaces bot; verify all of player info is sent
+	- On own turn, leave again, bot takes over
+        - Lock 1 bot seat and reset game: that seat should remain empty, no bot
+    - Game play: (as debug user or in practice game)
+        - Get and play all non-VP dev card types, and give 1 VP card, with debug commands
+		dev: 0 playername
+		...
+		dev: 4 playername
+	- Road Building with 1 road left, after resource debug command to build the others
+		rsrcs: 10 0 0 0 10 playername
+		dev: 1 playername
+		Should see "You may place your 1 remaining road." & be able to do other actions afterwards
+	- 6-player board: On server game with a player and observer, request and use Special Building Phase
+    - Basic GUI functions: Board resizes with window, sound works
+    - 2 clients: While both connected to a server, start and join a chat channel and talk to each other there
+- Automated tests in build.xml "test" target
+- New features in this version from VERSIONS.txt
+- Regression testing
+    - Start a remote server on a console (linux, etc), should stay up for several days including activity (bot games)
+        - v2.0.00+: Run several bot games (jsettlers.bots.botgames.total=5); join one as observer to make sure the pause is shorter than normal games
+    - New features in previous 2 versions from VERSIONS.txt
+    - All game options
+    - Basic rules and game play
+        - Trade offer, rejection, counter-offer accept/rejection
+        - Can play dev card before dice roll
+        - Can win only on your own turn
+    - Version compat testing
+        - Other versions to use: 1.1.06 before Game Options; 1.1.11 with 6-player board and client bugfixes; latest 1.x.xx; latest 2.0.xx
+        - New client, old server
+        - New server, old client
+    - Command line and jsserver.properties
+        - Server and client: -h / --help / -?, --version
+	- Start cli w/ no args, start client with host & port on command line
+	- Game options on command line, in jsserver.properties: VP=t11, N7=t5, RD=y
+	- Server prop for no chat channels (jsettlers.client.maxcreatechannels=0): Client main panel should not see channel create/join/list controls
+    - Database setup, including -Djsettlers.accounts.admins=
+        - Test with supported DB types: sqlite first, then mysql and postgres
+            - Basics: account setup, password validation
+            - Try login to account client with a name on, and not on, -Djsettlers.accounts.admins=adm,name2,etc
+            - Test server parameter --pw-reset username , login afterwards with new password and start a game
+            - (v2.0.00+) After setup, run automated DB tests with -Djsettlers.test.db=y
+	- Set up a new DB, including (for any 1 DB type) running jsettlers.db.bcrypt.work_factor=test and then specifying jsettlers.db.bcrypt.work_factor during setup-script run
+        - Create those admin accounts, some non-admin accounts
+	- SOCAccountClient should allow only admin accounts to log in
+	- SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning status from server, as if they existed with wrong pw
+	- prop to require accounts (jsettlers.accounts.required=y)
+	- prop (jsettlers.db.save.games=Y) for games saved in db: play a complete game, check for results there
+- Platform-specific: Recent and less-recent OSX and Windows; oldest JRE (1.5) and new JRE
+    - Keyboard shortcuts including game-reset dialog's esc/enter keys, FaceChooserFrame arrow keys
+    - Sound, including 2 clients in same game for overlapping piece-place sound
+    - Start or join networked game
+    - Graphics, including scaling and antialiasing after window resize
+    - Persistent user prefs (sound, auto-reject bot offer, window size)  
+      Then, re-run to check default size with -Djsettlers.debug.clear_prefs=PI_width,PI_height
+    - SQLite database setup, from instructions in src/docs/database.txt
+- Instructions and Setup
+    - README.txt, README.developer: validate all URLs, including JDBC driver downloads
+    - Follow server setup instructions in README.txt
+    - Set up a sqlite DB: Covered above in "Platform-specific"
 
 
 github
