@@ -377,3 +377,4 @@ Creative Commons Attribution Share Alike (cc-by-sa 3.0 US) or Creative
 Commons Attribution (CC-BY 3.0 US); see each image's gif comments for details.
 goldHex.gif is based on a 2010-12-21 CC-BY 2.0 image by Xuan Che, available at
 http://www.flickr.com/photos/rosemania/5431942688/ , of ancient Greek coins.
+doc/Logo.svg is (C) 2017 Ruud Poutsma.
