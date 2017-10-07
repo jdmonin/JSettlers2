@@ -32,18 +32,7 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.Vector;
 
-import soc.game.SOCBoard;
-import soc.game.SOCBoardLarge;
-import soc.game.SOCDevCardConstants;
-import soc.game.SOCFortress;
-import soc.game.SOCGame;
-import soc.game.SOCGameOption;
-import soc.game.SOCPlayer;
-import soc.game.SOCScenario;
-import soc.game.SOCSettlement;
-import soc.game.SOCShip;
-import soc.game.SOCVillage;
-import soc.game.SOCBoard.BoardFactory;
+import soc.game.*;
 import soc.util.IntPair;
 import soc.util.IntTriple;
 
@@ -55,7 +44,7 @@ import soc.util.IntTriple;
  *<P>
  * Sea board layout: A representation of a larger (up to 127 x 127 hexes) JSettlers board,
  * with an arbitrary mix of land and water tiles.
- * Implements {@link SOCBoard#BOARD_ENCODING_LARGE}.
+ * Implements {@link SOCBoardLarge#BOARD_ENCODING_LARGE}.
  * Activated with {@link SOCGameOption} {@code "SBL"}.
  *<P>
  * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering
@@ -586,9 +575,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
             // - Mainland:
             makeNewBoard_placeHexes
-                ((maxPl > 4) ? makeNewBoard_landHexTypes_v2 : makeNewBoard_landHexTypes_v1,
+                ((maxPl > 4) ? Standard6p.makeNewBoard_landHexTypes_v2 : Standard4p.makeNewBoard_landHexTypes_v1,
                  (maxPl > 4) ? LANDHEX_DICEPATH_MAINLAND_6PL : LANDHEX_DICEPATH_MAINLAND_4PL,
-                 (maxPl > 4) ? makeNewBoard_diceNums_v2 : makeNewBoard_diceNums_v1,
+                 (maxPl > 4) ? Standard6p.makeNewBoard_diceNums_v2 : Standard4p.makeNewBoard_diceNums_v1,
                  false, true, 1, false, maxPl, opt_breakClumps, scen);
 
             // - Outlying islands:
@@ -600,7 +589,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                  (maxPl > 4) ? LANDHEX_LANDAREA_RANGES_ISLANDS_6PL : LANDHEX_LANDAREA_RANGES_ISLANDS_4PL,
                  false, maxPl, null, scen);
 
-            PORTS_TYPES_MAINLAND = (maxPl > 4) ? PORTS_TYPE_V2 : PORTS_TYPE_V1;
+            PORTS_TYPES_MAINLAND = (maxPl > 4) ? Standard6p.PORTS_TYPE_V2 : Standard4p.PORTS_TYPE_V1;
             PORTS_TYPES_ISLANDS = (maxPl > 4) ? PORT_TYPE_ISLANDS_6PL : PORT_TYPE_ISLANDS_4PL;
             PORT_LOC_FACING_MAINLAND = (maxPl > 4) ? PORT_EDGE_FACING_MAINLAND_6PL : PORT_EDGE_FACING_MAINLAND_4PL;
             PORT_LOC_FACING_ISLANDS = (maxPl > 4) ? PORT_EDGE_FACING_ISLANDS_6PL : PORT_EDGE_FACING_ISLANDS_4PL;
@@ -2572,7 +2561,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * Port types for the 4 outlying-island ports on the 4-player fallback board.
-     * For the mainland's port types, use {@link SOCBoard#PORTS_TYPE_V1}.
+     * For the mainland's port types, use {@link Standard4p#PORTS_TYPE_V1}.
      */
     private static final int PORT_TYPE_ISLANDS_4PL[] =
     {
@@ -2583,7 +2572,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Fallback board layout for 4 players: Dice-number path (hex coordinates)
      * on the main island, spiraling inward from the shore.
      * The outlying islands have no dice path.
-     * For the mainland's dice numbers, see {@link SOCBoard#makeNewBoard_diceNums_v1}.
+     * For the mainland's dice numbers, see {@link Standard4p#makeNewBoard_diceNums_v1}.
      * @see #LANDHEX_COORD_MAINLAND
      */
     private static final int LANDHEX_DICEPATH_MAINLAND_4PL[] =
@@ -2652,7 +2641,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * Fallback board layout, 4 players: Land hex types for the 3 small islands,
-     * to be used with (for the main island) {@link #makeNewBoard_landHexTypes_v1}[].
+     * to be used with (for the main island) {@link Standard4p#makeNewBoard_landHexTypes_v1}[].
      */
     private static final int LANDHEX_TYPE_ISLANDS_4PL[] =
     {
@@ -2678,7 +2667,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Fallback board layout for 6 players: Dice-number path (hex coordinates)
      * on the main island, spiraling inward from the shore.
      * The outlying islands have no dice path.
-     * For the mainland's dice numbers, see {@link SOCBoard#makeNewBoard_diceNums_v2}.
+     * For the mainland's dice numbers, see {@link Standard6p#makeNewBoard_diceNums_v2}.
      */
     private static final int LANDHEX_DICEPATH_MAINLAND_6PL[] =
     {
@@ -2738,7 +2727,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * Fallback board layout, 6 players: Land hex types for the 3 small islands,
-     * to be used with (for the main island) {@link #makeNewBoard_landHexTypes_v2}[].
+     * to be used with (for the main island) {@link Standard6p#makeNewBoard_landHexTypes_v2}[].
      */
     private static final int LANDHEX_TYPE_ISLANDS_6PL[] =
     {
@@ -2774,7 +2763,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * Port types for the 4 outlying-island ports on the 6-player fallback board.
-     * For the mainland's port types, use {@link SOCBoard#PORTS_TYPE_V2}.
+     * For the mainland's port types, use {@link Standard6p#PORTS_TYPE_V2}.
      */
     private static final int PORT_TYPE_ISLANDS_6PL[] =
     {
@@ -2813,8 +2802,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
             WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX
         },
-        SOCBoard.makeNewBoard_landHexTypes_v1,  // 4 players
-        SOCBoard.makeNewBoard_landHexTypes_v2   // 6 players
+        Standard4p.makeNewBoard_landHexTypes_v1,  // 4 players
+        Standard6p.makeNewBoard_landHexTypes_v2   // 6 players
     };
 
     /**
@@ -2852,8 +2841,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int NSHO_DICENUM_MAIN[][] =
     {
         { 2, 3, 4, 5, 5, 6, 6, 8, 8, 9, 10, 10, 11, 11 },  // 3 players
-        SOCBoard.makeNewBoard_diceNums_v1,  // 4 players
-        SOCBoard.makeNewBoard_diceNums_v2   // 6 players
+        Standard4p.makeNewBoard_diceNums_v1,  // 4 players
+        Standard6p.makeNewBoard_diceNums_v2   // 6 players
     };
 
     /**
@@ -2885,8 +2874,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final int NSHO_PORT_TYPE[][] =
     {
         { 0, 0, 0, CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT },  // 3 players
-        SOCBoard.PORTS_TYPE_V1,  // 4 players
-        SOCBoard.PORTS_TYPE_V2   // 6 players
+        Standard4p.PORTS_TYPE_V1,  // 4 players
+        Standard6p.PORTS_TYPE_V2   // 6 players
     };
 
     /** New Shores: Land hex types on the several small islands. Shuffled. */
@@ -4687,7 +4676,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         {
             if (! largeBoard)
             {
-                return SOCBoard.DefaultBoardFactory.staticCreateBoard(gameOpts, false, maxPlayers);
+                DefaultBoardFactory factory = new DefaultBoardFactory();
+                return factory.createBoard(gameOpts, false, maxPlayers);
             } else {
                 // Check board size, set _BHW if not default.
                 final int boardHeightWidth = getBoardSize(gameOpts, maxPlayers);
