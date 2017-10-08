@@ -59,11 +59,9 @@ and backport minor new features until `2.0.00` is ready.
 
 ## `1.2.00` (build OV20170xxx)
 - Simple sound effects for game events: Start of client player's turn, resource stolen by robber, etc
-- More natural window positioning (follow OS standard, was previously always in upper-left corner)
 - Game windows have same size as previous game if resized, not small default size
 - Re-word trade offer announcements to clarify who would give which resources
 - Monopoly announces total number of resources stolen
-- New Game options: Popup if old versions can't play: Default to Create, not Change Options
 - To ensure everyone has initial settlements, don't allow new clients to sit after 1st settlements are all placed
 - To avoid disruptions by game observers, only players can chat after initial placement
 - Client:
@@ -71,6 +69,8 @@ and backport minor new features until `2.0.00` is ready.
      - Per-game preference to auto-reject bot trades after a multi-second countdown
      - Re-worded other players' trade offer displays to: Gives You / They Get
      - Initial Connect dialog: If username given, ensure New Game button is enabled
+     - New Game options: Popup if old versions can't play: Default to Create, not Change Options
+     - More natural window positioning (follow OS standard, was previously always in upper-left corner)
 - Users can't use the robot nickname prefixes "droid " or "robot ", or "debug" except in debug mode
 - Network:
      - Send keepalive messages to idle games to keep clients connected
@@ -120,7 +120,7 @@ and backport minor new features until `2.0.00` is ready.
      - When a 7 is rolled during other players' turns and bot must discard:
        If bot is inactive after several seconds, force random resource discard
      - To keep idle practice games alive, don't leave an inactive game during other players' turns
-- Server stats (`*STATS*` command): Increase "games finished" when game ends, not later when it's destroyed
+- Server stats (`*STATS*` command): Increase "games finished" when game is won, not later when it's destroyed
 - `*WHO*` command: User admins or debug user can list any game's members, or `*` or `ALL` to list all connected users
 - Game or channel name `"*"` no longer permitted, to avoid conflicts with admin command enhancements
 - Server console traces:
@@ -153,7 +153,7 @@ and backport minor new features until `2.0.00` is ready.
   if player already has a road touching the potential road
 - Trading port/harbor graphics updated for directional clarity and scaling
 - Reset board during initial placement: Pick randomly-selected robots, instead of keeping same robots
-- Reset board: If only 1 human player, don't reset if all bots are locked
+- Reset board: If only 1 human player, don't reset if all bot seats are locked and would be empty after reset
 - On server startup, start some bots by default (previous versions required `-Djsettlers.startrobots`).
   To run a server without built-in bots, use `-Djsettlers.startrobots=0` when starting the server.
 - Player chat text: At server, don't ignore messages which start with `'*'`
@@ -171,7 +171,7 @@ and backport minor new features until `2.0.00` is ready.
      - Once the client has successfully joined or created a game or channel, it won't send a password again.
 - Database: Add instructions and db-create scripts for postgresql, sqlite
 - When saving 6-player completed game results to a database table with only 4 player fields,
-     rearranges positions to ensure human player 5 and/or 6 are recorded, especially if they won
+     rearrange positions to ensure human player in seat# 5 and/or 6 are recorded, especially if they won
 - When client connects, server sends list of its active optional features.
      - If server does not use chat channels, the channel list is hidden from the main panel.
 - Bugfix at game start: To fix occasional forced end turn for robot first player, update lastActionTime
