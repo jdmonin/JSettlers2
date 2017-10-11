@@ -825,6 +825,18 @@ When preparing to release a new version, testing should include:
         - SOCPlayerClient: login as non-admin user, create game: `*who*` works (not an admin command) works, `*who* testgame` and `*who* *` shouldn't ; `*help*` shouldn't show any admin commands
         - prop to require accounts (`jsettlers.accounts.required=Y`)
         - prop for games saved in DB (`jsettlers.db.save.games=Y`): Play a complete game, check for results there
+        - Test creating as old schema (before v1.2.00) and upgrading
+            - Get the old schema SQL files you'll need from the git repo by using any pre-1.2.00 release tag, for example:
+
+                  git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > tmp/jsettlers-tables.sql
+
+            - Files for mysql: jsettlers-create-mysql.sql, jsettlers-tables.sql
+            - For postgres: jsettlers-create-postgres.sql, jsettlers-tables.sql, jsettlers-sec-postgres.sql
+            - For sqlite: Only jsettlers-tables.sql
+	    - Run DB setup scripts with instructions from `Database.md` and beginning-of-file comments in jsettlers-create-mysql.sql or -postgres.sql
+	    - Run SOCServer with the old schema; startup should print `Database schema upgrade is recommended`
+	    - Run DB upgrade by running SOCServer with `-Djsettlers.db.upgrade_schema=Y` property
+	    - Run SOCServer as usual; startup should print `User database initialized`
     - Other misc testing:
         - "Replace/Take Over" on lost connection:
             - Start a game at server with player client
