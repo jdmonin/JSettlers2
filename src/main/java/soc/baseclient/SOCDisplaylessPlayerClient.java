@@ -23,25 +23,7 @@ package soc.baseclient;
 
 import soc.disableDebug.D;
 
-import soc.game.SOCBoard;
-import soc.game.SOCBoardLarge;
-import soc.game.SOCCity;
-import soc.game.SOCDevCardConstants;
-import soc.game.SOCFortress;
-import soc.game.SOCGame;
-import soc.game.SOCGameOption;
-import soc.game.SOCInventory;
-import soc.game.SOCInventoryItem;
-import soc.game.SOCPlayer;
-import soc.game.SOCPlayingPiece;
-import soc.game.SOCResourceConstants;
-import soc.game.SOCResourceSet;
-import soc.game.SOCRoad;
-import soc.game.SOCSettlement;
-import soc.game.SOCShip;
-import soc.game.SOCSpecialItem;
-import soc.game.SOCTradeOffer;
-import soc.game.SOCVillage;
+import soc.game.*;
 
 import soc.message.*;
 
@@ -1139,8 +1121,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         SOCBoard bd = ga.getBoard();
         final int bef = mes.getBoardEncodingFormat();
-        bd.setBoardEncodingFormat(bef);
-        if (bef == SOCBoard.BOARD_ENCODING_LARGE)
+        if (bef == SOCBoardLarge.BOARD_ENCODING_LARGE)
         {
             // v3
             ((SOCBoardLarge) bd).setLandHexLayout(mes.getIntArrayPart("LH"));
@@ -1171,7 +1152,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if (others != null)
                 ((SOCBoardLarge) bd).setAddedLayoutParts(others);
         }
-        else if (bef <= SOCBoard.BOARD_ENCODING_6PLAYER)
+        else if (bef <= Standard6p.BOARD_ENCODING_6PLAYER)
         {
             // v1 or v2
             bd.setHexLayout(mes.getIntArrayPart("HL"));

@@ -25,9 +25,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import soc.game.SOCBoard;
-import soc.game.SOCBoardLarge;  // for javadocs
-import soc.game.SOCScenario;    // for javadocs
+import soc.game.*;
 
 
 /**
@@ -176,7 +174,7 @@ public class SOCBoardLayout2 extends SOCMessage
 
     /**
      * Create a SOCBoardLayout2 message for encoding format v1 or v2; see class javadoc for parameters' meanings.
-     * ({@link SOCBoard#BOARD_ENCODING_ORIGINAL} or {@link SOCBoard#BOARD_ENCODING_6PLAYER}.)
+     * ({@link Standard4p#BOARD_ENCODING_ORIGINAL} or {@link Standard6p#BOARD_ENCODING_6PLAYER}.)
      *
      * @param ga   the name of the game
      * @param bef  the board encoding format number, from {@link SOCBoard#getBoardEncodingFormat()}
@@ -220,7 +218,7 @@ public class SOCBoardLayout2 extends SOCMessage
 
     /**
      * Create a SOCBoardLayout2 message for encoding format v3.
-     * ({@link SOCBoardLarge}, {@link SOCBoard#BOARD_ENCODING_LARGE}.)
+     * ({@link SOCBoardLarge}, {@link SOCBoardLarge#BOARD_ENCODING_LARGE}.)
      *
      * @param ga   the name of the game
      * @param bef  the board encoding format number, from {@link SOCBoard#getBoardEncodingFormat()}

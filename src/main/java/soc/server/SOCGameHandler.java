@@ -2708,9 +2708,9 @@ public class SOCGameHandler extends GameHandler
 
         board = ga.getBoard();
         final int bef = board.getBoardEncodingFormat();
-        if (bef <= SOCBoard.BOARD_ENCODING_6PLAYER)
+        if (bef == Standard6p.BOARD_ENCODING_6PLAYER ||
+            bef == Standard4p.BOARD_ENCODING_ORIGINAL)
         {
-            // v1 or v2
             hexes = board.getHexLayout();
             numbers = board.getNumberLayout();
         } else {
@@ -2726,12 +2726,12 @@ public class SOCGameHandler extends GameHandler
         }
         switch (bef)
         {
-        case SOCBoard.BOARD_ENCODING_ORIGINAL: // v1
+        case Standard4p.BOARD_ENCODING_ORIGINAL: // v1
             // fall through to v2
-        case SOCBoard.BOARD_ENCODING_6PLAYER:  // v2
+        case Standard6p.BOARD_ENCODING_6PLAYER:  // v2
             return new SOCBoardLayout2(ga.getName(), bef, hexes, numbers, board.getPortsLayout(), robber);
 
-        case SOCBoard.BOARD_ENCODING_LARGE:  // v3
+        case SOCBoardLarge.BOARD_ENCODING_LARGE:  // v3
             final SOCBoardLarge bl = (SOCBoardLarge) board;
             return new SOCBoardLayout2
                 (ga.getName(), bef, bl.getLandHexLayout(), board.getPortsLayout(),
