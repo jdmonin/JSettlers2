@@ -1,4 +1,4 @@
-# ![logo](doc/logo32.png) Java Settlers
+# ![logo](https://github.com/generateui/JSettlers2/blob/logo-bitmaps/doc/Logo32.png?raw=true) Java Settlers
 
 A web-based client-server version of Settlers of Catan
 
