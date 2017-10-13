@@ -1,4 +1,5 @@
-# Java Settlers
+# ![logo](doc/logo32.png) Java Settlers
+
 A web-based client-server version of Settlers of Catan
 
 
