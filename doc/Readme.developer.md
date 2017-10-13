@@ -601,6 +601,10 @@ between them, and comment each one's closing brace with the class name. If you
 have a long method whose work can be divided into "sections", preface each
 section with a `/** javadoc-style */` multi-line comment.
 
+Import individual classes, not entire packages like `soc.game.*`. Some classes
+deliberately don't import some others for better separation, especially across
+packages, or will import a few specific classes for javadocs only.
+
 If a declaration line is getting too long (about 120 characters), break it and
 indent it slightly from the first line, not aligned with the method name. `throws`
 declarations are also always indented on the next line:
@@ -626,11 +630,13 @@ comment to make searching the source for strings easier:
     setTooltipText(strings.get("hpan.points.total.yours"));  // "Your victory point total"
 ```
 
-Use parentheses around all boolean expressions, to make them easier to see as such:
+Use parentheses around all boolean expressions and their parts, to make them
+easier to see as such:
 
 ``` java
     flagvalue = (state == xyz);
     somevar = (testflag) ? a : b;
+    somecondition = ((state == xyz) || (players < 4));
 ```
 
 Some methods end with this style of code:
@@ -667,7 +673,7 @@ In emacs, you can place this in your .emacs file to use spaces instead of tabs:
 You will also want this to have this, which disables auto-reindenting:
 `(setq-default c-electric-flag nil)`
 
-Here's how to set up the coding style in Eclipse:
+### Eclipse coding style setup and tips:
 
     preferences -> general -> editors -> text editors:
     [x] insert spaces for tabs
@@ -735,6 +741,8 @@ To manually clean up trailing whitespace:
 
 - Eclipse preferences -> general -> editors -> text editors -> `[x] Show whitespace characters`
 - Find/Replace: Regular expressions: `Find [\t ]+$`
+
+### Style notes for graphics
 
 The rotated 3:1 port hexes' font is Optima Bold, 21 pt.
 
@@ -854,7 +862,7 @@ When preparing to release a new version, testing should include:
       Then, re-run to check default size with `-Djsettlers.debug.clear_prefs=PI_width,PI_height`
     - SQLite database setup, from instructions in `doc/Database.md`
 - Instructions and Setup
-    - `Readme.md`, `Readme.developer`: validate all URLs, including JDBC driver downloads
+    - `Readme.md`, `Readme.developer`, `Database.md`: validate all URLs, including JDBC driver downloads
     - Follow server setup instructions in `Readme.md`
     - Set up a new DB: Covered above in "Platform-specific"
 
