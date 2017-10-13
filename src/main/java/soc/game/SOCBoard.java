@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 
+import static soc.game.Standard6p.BOARD_ENCODING_6PLAYER;
+
 
 /**
  * This is a representation of the board in Settlers of Catan.
@@ -663,7 +665,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      */
     private void initNodesOnLand()
     {
-        final boolean is6player = getBoardEncodingFormat() == Standard6p.BOARD_ENCODING_6PLAYER;
+        final boolean is6player = getBoardEncodingFormat() == BOARD_ENCODING_6PLAYER;
 
         nodesOnLand = new HashSet<Integer>();
 
@@ -743,7 +745,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      */
     public void makeNewBoard(final Map<String, SOCGameOption> opts)
     {
-        final boolean is6player = (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
+        final boolean is6player = (getBoardEncodingFormat() == BOARD_ENCODING_6PLAYER);
 
         final SOCGameOption opt_breakClumps = (opts != null ? opts.get("BC") : null);
 
@@ -1214,7 +1216,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
         // 6-player starts land 1 extra hex (2 edges) west of standard board,
         // and has an extra row of land hexes at north and south end.
         final boolean is6player =
-                getBoardEncodingFormat() == Standard6p.BOARD_ENCODING_6PLAYER;
+                getBoardEncodingFormat() == BOARD_ENCODING_6PLAYER;
         final int westAdj = (is6player) ? 0x22 : 0x00;
 
         HashSet<Integer> legalRoads = new HashSet<Integer>(97);  // 4-pl board 72 roads; load factor 0.75
