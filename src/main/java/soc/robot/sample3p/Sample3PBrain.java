@@ -19,6 +19,7 @@
  */
 package soc.robot.sample3p;
 
+import soc.Data;
 import soc.game.SOCGame;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
@@ -86,7 +87,7 @@ public class Sample3PBrain extends SOCRobotBrain
         }
 
         final SOCResourceSet res = offer.getGiveSet();
-        if (! (res.contains(SOCResourceConstants.CLAY) || res.contains(SOCResourceConstants.SHEEP)))
+        if (! (res.contains(Data.ResourceType.CLAY_VALUE) || res.contains(Data.ResourceType.SHEEP_VALUE)))
         {
             return SOCRobotNegotiator.REJECT_OFFER;
         }

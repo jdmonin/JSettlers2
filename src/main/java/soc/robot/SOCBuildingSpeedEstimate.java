@@ -22,6 +22,7 @@
  **/
 package soc.robot;
 
+import soc.Data;
 import soc.disableDebug.D;
 
 import soc.game.*;
@@ -55,8 +56,8 @@ public class SOCBuildingSpeedEstimate
     int[] estimatesFromNow;
 
     /**
-     * Number of rolls to gain each resource type ({@link SOCResourceConstants#CLAY}
-     * to {@link SOCResourceConstants#WOOD}).
+     * Number of rolls to gain each resource type ({@link Data.ResourceType#CLAY}
+     * to {@link Data.ResourceType#WOOD}).
      * Index 0 is unused.
      *<P>
      * Does not contain {@link soc.game.SOCBoardLarge#GOLD_HEX GOLD_HEX}
@@ -88,7 +89,7 @@ public class SOCBuildingSpeedEstimate
     {
         estimatesFromNothing = new int[MAXPLUSONE];
         estimatesFromNow = new int[MAXPLUSONE];
-        rollsPerResource = new int[SOCResourceConstants.WOOD + 1];
+        rollsPerResource = new int[Data.ResourceType.WOOD_VALUE + 1];
         recalculateRollsPerResource(numbers, -1);
         resourcesForRoll = new SOCResourceSet[13];
         recalculateResourcesForRoll(numbers, -1);
@@ -103,7 +104,7 @@ public class SOCBuildingSpeedEstimate
     {
         estimatesFromNothing = new int[MAXPLUSONE];
         estimatesFromNow = new int[MAXPLUSONE];
-        rollsPerResource = new int[SOCResourceConstants.WOOD + 1];
+        rollsPerResource = new int[Data.ResourceType.WOOD_VALUE + 1];
         resourcesForRoll = new SOCResourceSet[13];
     }
 
@@ -115,8 +116,8 @@ public class SOCBuildingSpeedEstimate
      * @param pl  Player to check numbers
      * @return  Resource order, sorted by rolls per resource descending;
      *        a 5-element array containing
-     *        {@link SOCResourceConstants#CLAY},
-     *        {@link SOCResourceConstants#WHEAT}, etc,
+     *        {@link Data.ResourceType#CLAY},
+     *        {@link Data.ResourceType#WHEAT}, etc,
      *        where the resource in [0] has the highest rolls per resource.
      * @since 2.0.00
      */
@@ -126,9 +127,9 @@ public class SOCBuildingSpeedEstimate
         final int[] rollsPerResource = estimate.getRollsPerResource();
         int[] resourceOrder =
         {
-            SOCResourceConstants.CLAY, SOCResourceConstants.ORE,
-            SOCResourceConstants.SHEEP, SOCResourceConstants.WHEAT,
-            SOCResourceConstants.WOOD
+            Data.ResourceType.CLAY_VALUE, Data.ResourceType.ORE_VALUE,
+            Data.ResourceType.SHEEP_VALUE, Data.ResourceType.WHEAT_VALUE,
+            Data.ResourceType.WOOD_VALUE
         };
 
         // Sort descending; resourceOrder[0] will have the highest rollsPerResource.
@@ -353,8 +354,8 @@ public class SOCBuildingSpeedEstimate
         /**
          * figure out how many resources we get per roll
          */
-        for (int resource = SOCResourceConstants.CLAY;
-                resource <= SOCResourceConstants.WOOD; resource++)
+        for (int resource = Data.ResourceType.CLAY_VALUE;
+                resource <= Data.ResourceType.WOOD_VALUE; resource++)
         {
             //D.ebugPrintln("resource: " + resource);
 
@@ -436,8 +437,8 @@ public class SOCBuildingSpeedEstimate
     }
 
     /**
-     * Get the number of rolls to gain each resource type ({@link SOCResourceConstants#CLAY}
-     * to {@link SOCResourceConstants#WOOD}).
+     * Get the number of rolls to gain each resource type ({@link Data.ResourceType#CLAY}
+     * to {@link Data.ResourceType#WOOD}).
      *<P>
      * Does not contain {@link soc.game.SOCBoardLarge#GOLD_HEX GOLD_HEX}
      * or {@link SOCResourceConstants#GOLD_LOCAL},
@@ -517,8 +518,8 @@ public class SOCBuildingSpeedEstimate
             /**
              * do any possible trading with the bank/ports
              */
-            for (int giveResource = SOCResourceConstants.CLAY;
-                    giveResource <= SOCResourceConstants.WOOD;
+            for (int giveResource = Data.ResourceType.CLAY_VALUE;
+                    giveResource <= Data.ResourceType.WOOD_VALUE;
                     giveResource++)
             {
                 /**
@@ -559,8 +560,8 @@ public class SOCBuildingSpeedEstimate
                      */
                     int mostNeededResource = -1;
 
-                    for (int resource = SOCResourceConstants.CLAY;
-                            resource <= SOCResourceConstants.WOOD;
+                    for (int resource = Data.ResourceType.CLAY_VALUE;
+                            resource <= Data.ResourceType.WOOD_VALUE;
                             resource++)
                     {
                         if (ourResources.getAmount(resource) < targetResources.getAmount(resource))
@@ -627,8 +628,8 @@ public class SOCBuildingSpeedEstimate
                 throw new CutoffExceededException();
             }
 
-            for (int resource = SOCResourceConstants.CLAY;
-                    resource <= SOCResourceConstants.WOOD; resource++)
+            for (int resource = Data.ResourceType.CLAY_VALUE;
+                    resource <= Data.ResourceType.WOOD_VALUE; resource++)
             {
                 //D.ebugPrintln("resource: "+resource);
                 //D.ebugPrintln("rollsPerResource: "+rollsPerResource[resource]);
@@ -647,8 +648,8 @@ public class SOCBuildingSpeedEstimate
                 /**
                  * do any possible trading with the bank/ports
                  */
-                for (int giveResource = SOCResourceConstants.CLAY;
-                        giveResource <= SOCResourceConstants.WOOD;
+                for (int giveResource = Data.ResourceType.CLAY_VALUE;
+                        giveResource <= Data.ResourceType.WOOD_VALUE;
                         giveResource++)
                 {
                     /**
@@ -689,8 +690,8 @@ public class SOCBuildingSpeedEstimate
                          */
                         int mostNeededResource = -1;
 
-                        for (int resource = SOCResourceConstants.CLAY;
-                                resource <= SOCResourceConstants.WOOD;
+                        for (int resource = Data.ResourceType.CLAY_VALUE;
+                                resource <= Data.ResourceType.WOOD_VALUE;
                                 resource++)
                         {
                             if (ourResources.getAmount(resource) < targetResources.getAmount(resource))
@@ -848,8 +849,8 @@ public class SOCBuildingSpeedEstimate
                         //
                         // do any possible trading with the bank/ports
                         //
-                        for (int giveResource = SOCResourceConstants.CLAY;
-                                giveResource <= SOCResourceConstants.WOOD;
+                        for (int giveResource = Data.ResourceType.CLAY_VALUE;
+                                giveResource <= Data.ResourceType.WOOD_VALUE;
                                 giveResource++)
                         {
                             if ((newResources.getAmount(giveResource) - targetResources.getAmount(giveResource)) > 1)
@@ -893,8 +894,8 @@ public class SOCBuildingSpeedEstimate
                                     //
                                     int mostNeededResource = -1;
 
-                                    for (int resource = SOCResourceConstants.CLAY;
-                                            resource <= SOCResourceConstants.WOOD;
+                                    for (int resource = Data.ResourceType.CLAY_VALUE;
+                                            resource <= Data.ResourceType.WOOD_VALUE;
                                             resource++)
                                     {
                                         if (newResources.getAmount(resource) < targetResources.getAmount(resource))

@@ -21,9 +21,11 @@
 
 package soctest.game;
 
+import org.junit.Test;
+import soc.Data;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
-import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 public class TestResourceSet
@@ -44,7 +46,7 @@ public class TestResourceSet
     public void removeOneResource_removesOneResource()
     {
         SOCResourceSet rs = onePerType();
-        rs.subtract(1, SOCResourceConstants.ORE);
+        rs.subtract(1, Data.ResourceType.ORE_VALUE);
         assertEquals(4, rs.getTotal());
     }
 
@@ -52,21 +54,21 @@ public class TestResourceSet
     public void removeTwoResources_doesNotThrowException()
     {
         SOCResourceSet rs = onePerType();
-        rs.subtract(2, SOCResourceConstants.CLAY);
+        rs.subtract(2, Data.ResourceType.CLAY_VALUE);
         assertEquals(3, rs.getTotal());
-        assertEquals(0, rs.getAmount(SOCResourceConstants.CLAY));
-        assertEquals(-1, rs.getAmount(SOCResourceConstants.UNKNOWN));
+        assertEquals(0, rs.getAmount(Data.ResourceType.CLAY_VALUE));
+        assertEquals(-1, rs.getAmount(Data.ResourceType.UNKNOWN_VALUE));
     }
 
     @Test
     public void removeAll_yieldsEmptyResourceSet()
     {
         SOCResourceSet rs = onePerType();
-        rs.subtract(1, SOCResourceConstants.CLAY);
-        rs.subtract(1, SOCResourceConstants.WHEAT);
-        rs.subtract(1, SOCResourceConstants.WOOD);
-        rs.subtract(1, SOCResourceConstants.ORE);
-        rs.subtract(1, SOCResourceConstants.SHEEP);
+        rs.subtract(1, Data.ResourceType.CLAY_VALUE);
+        rs.subtract(1, Data.ResourceType.WHEAT_VALUE);
+        rs.subtract(1, Data.ResourceType.WOOD_VALUE);
+        rs.subtract(1, Data.ResourceType.ORE_VALUE);
+        rs.subtract(1, Data.ResourceType.SHEEP_VALUE);
         assertEquals(0, rs.getTotal());
     }
 
@@ -91,22 +93,22 @@ public class TestResourceSet
     public void onePerType_hasOnePerType()
     {
         SOCResourceSet rs = onePerType();
-        assertTrue(rs.contains(SOCResourceConstants.CLAY));
-        assertTrue(rs.contains(SOCResourceConstants.WHEAT));
-        assertTrue(rs.contains(SOCResourceConstants.WOOD));
-        assertTrue(rs.contains(SOCResourceConstants.ORE));
-        assertTrue(rs.contains(SOCResourceConstants.SHEEP));
+        assertTrue(rs.contains(Data.ResourceType.CLAY_VALUE));
+        assertTrue(rs.contains(Data.ResourceType.WHEAT_VALUE));
+        assertTrue(rs.contains(Data.ResourceType.WOOD_VALUE));
+        assertTrue(rs.contains(Data.ResourceType.ORE_VALUE));
+        assertTrue(rs.contains(Data.ResourceType.SHEEP_VALUE));
     }
 
     @Test
     public void onePerType_hasOnePerType2()
     {
         SOCResourceSet rs = onePerType();
-        assertEquals(1, rs.getAmount(SOCResourceConstants.CLAY));
-        assertEquals(1, rs.getAmount(SOCResourceConstants.ORE));
-        assertEquals(1, rs.getAmount(SOCResourceConstants.SHEEP));
-        assertEquals(1, rs.getAmount(SOCResourceConstants.WOOD));
-        assertEquals(1, rs.getAmount(SOCResourceConstants.WHEAT));
+        assertEquals(1, rs.getAmount(Data.ResourceType.CLAY_VALUE));
+        assertEquals(1, rs.getAmount(Data.ResourceType.ORE_VALUE));
+        assertEquals(1, rs.getAmount(Data.ResourceType.SHEEP_VALUE));
+        assertEquals(1, rs.getAmount(Data.ResourceType.WOOD_VALUE));
+        assertEquals(1, rs.getAmount(Data.ResourceType.WHEAT_VALUE));
     }
 
     @Test
@@ -122,12 +124,12 @@ public class TestResourceSet
         SOCResourceSet rs1 = onePerType();
         SOCResourceSet rs2 = onePerType();
         rs1.add(rs2);
-        assertEquals(2, rs1.getAmount(SOCResourceConstants.CLAY));
-        assertEquals(2, rs1.getAmount(SOCResourceConstants.WHEAT));
-        assertEquals(2, rs1.getAmount(SOCResourceConstants.ORE));
-        assertEquals(2, rs1.getAmount(SOCResourceConstants.WOOD));
-        assertEquals(2, rs1.getAmount(SOCResourceConstants.SHEEP));
-        assertTrue(rs1.contains(SOCResourceConstants.WHEAT));
+        assertEquals(2, rs1.getAmount(Data.ResourceType.CLAY_VALUE));
+        assertEquals(2, rs1.getAmount(Data.ResourceType.WHEAT_VALUE));
+        assertEquals(2, rs1.getAmount(Data.ResourceType.ORE_VALUE));
+        assertEquals(2, rs1.getAmount(Data.ResourceType.WOOD_VALUE));
+        assertEquals(2, rs1.getAmount(Data.ResourceType.SHEEP_VALUE));
+        assertTrue(rs1.contains(Data.ResourceType.WHEAT_VALUE));
     }
     @Test
     public void clone_isContained()
@@ -142,7 +144,7 @@ public class TestResourceSet
     {
         SOCResourceSet rs1 = onePerType();
         SOCResourceSet rs2 = onePerType();
-        rs2.subtract(1, SOCResourceConstants.CLAY);
+        rs2.subtract(1, Data.ResourceType.CLAY_VALUE);
         assertTrue(rs1.contains(rs2));
         assertFalse(rs2.contains(rs1));
     }

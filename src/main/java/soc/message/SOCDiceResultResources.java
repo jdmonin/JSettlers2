@@ -21,6 +21,7 @@ package soc.message;
 import java.util.ArrayList;
 import java.util.List;
 
+import soc.Data;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 
@@ -155,7 +156,7 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
             pa[i] = pnum.get(p);  ++i;
 
             final SOCResourceSet rs = rsrc.get(p);
-            for (int rtype = SOCResourceConstants.MIN; rtype <= SOCResourceConstants.WOOD; ++rtype)
+            for (int rtype = SOCResourceConstants.MIN; rtype <= Data.ResourceType.WOOD_VALUE; ++rtype)
             {
                 int amt = rs.getAmount(rtype);
                 if (amt != 0)

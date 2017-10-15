@@ -21,6 +21,7 @@
  **/
 package soc.robot;
 
+import soc.Data;
 import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
@@ -182,8 +183,8 @@ public class SOCRobotNegotiator
     {
         D.ebugPrintln("*** resetIsSelling (true for every resource the player has) ***");
 
-        for (int rsrcType = SOCResourceConstants.CLAY;
-                rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
+        for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                rsrcType <= Data.ResourceType.WOOD_VALUE; rsrcType++)
         {
             for (int pn = 0; pn < game.maxPlayers; pn++)
             {
@@ -203,8 +204,8 @@ public class SOCRobotNegotiator
     {
         D.ebugPrintln("*** resetWantsAnotherOffer (all false) ***");
 
-        for (int rsrcType = SOCResourceConstants.CLAY;
-                rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
+        for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                rsrcType <= Data.ResourceType.WOOD_VALUE; rsrcType++)
         {
             for (int pn = 0; pn < game.maxPlayers; pn++)
             {
@@ -340,8 +341,8 @@ public class SOCRobotNegotiator
         int neededRsrcCount = 0;
         int notNeededRsrcCount = 0;
 
-        for (int rsrcType = SOCResourceConstants.CLAY;
-                rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
+        for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                rsrcType <= Data.ResourceType.WOOD_VALUE; rsrcType++)
         {
             if (targetResources.contains(rsrcType))
             {
@@ -408,8 +409,8 @@ public class SOCRobotNegotiator
         ///
         boolean[] someoneIsSellingResource = new boolean[SOCResourceConstants.MAXPLUSONE];
 
-        for (int rsrcType = SOCResourceConstants.CLAY;
-                rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
+        for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                rsrcType <= Data.ResourceType.WOOD_VALUE; rsrcType++)
         {
             someoneIsSellingResource[rsrcType] = false;
 
@@ -1615,8 +1616,8 @@ public class SOCRobotNegotiator
         int neededRsrcCount = 0;
         int notNeededRsrcCount = 0;
 
-        for (int rsrcType = SOCResourceConstants.CLAY;
-                rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
+        for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                rsrcType <= Data.ResourceType.WOOD_VALUE; rsrcType++)
         {
             if (targetResources.contains(rsrcType))
             {
@@ -2252,8 +2253,8 @@ public class SOCRobotNegotiator
         int neededRsrcCount = 0;
         int notNeededRsrcCount = 0;
 
-        for (int rsrcType = SOCResourceConstants.CLAY;
-                rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
+        for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+             rsrcType <= Data.ResourceType.WOOD_VALUE; rsrcType++)
         {
             if (targetResources.contains(rsrcType))
             {

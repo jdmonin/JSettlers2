@@ -21,6 +21,7 @@
  **/
 package soc.robot;
 
+import soc.Data;
 import soc.game.SOCBoard;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
@@ -38,8 +39,8 @@ public class MonopolyStrategy
     /**
      * The resource we want to monopolize,
      * chosen by {@link #decidePlayMonopoly()},
-     * such as {@link SOCResourceConstants#CLAY}
-     * or {@link SOCResourceConstants#SHEEP}
+     * such as {@link Data.ResourceType#CLAY}
+     * or {@link Data.ResourceType#SHEEP}
      */
     protected int monopolyChoice;
 
@@ -54,15 +55,15 @@ public class MonopolyStrategy
             throw new IllegalArgumentException();
         game = ga;
         ourPlayerData = pl;
-        monopolyChoice = SOCResourceConstants.SHEEP;
+        monopolyChoice = Data.ResourceType.SHEEP_VALUE;
     }
 
     /**
      * Get our monopoly choice; valid only after
      * {@link #decidePlayMonopoly()} returns true.
      * @return  Resource type to monopolize,
-     *    such as {@link SOCResourceConstants#CLAY}
-     *    or {@link SOCResourceConstants#SHEEP}
+     *    such as {@link Data.ResourceType#CLAY}
+     *    or {@link Data.ResourceType#SHEEP}
      */
     public int getMonopolyChoice()
     {
@@ -79,8 +80,8 @@ public class MonopolyStrategy
         int bestResourceCount = 0;
         int bestResource = 0;
 
-        for (int resource = SOCResourceConstants.CLAY;
-                 resource <= SOCResourceConstants.WOOD; resource++)
+        for (int resource = Data.ResourceType.CLAY_VALUE;
+             resource <= Data.ResourceType.WOOD_VALUE; resource++)
         {
             //log.debug("$$ resource="+resource);
             int freeResourceCount = 0;

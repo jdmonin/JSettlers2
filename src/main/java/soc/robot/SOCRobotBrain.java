@@ -22,6 +22,7 @@
  **/
 package soc.robot;
 
+import soc.Data;
 import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.disableDebug.D;
 
@@ -719,7 +720,7 @@ public class SOCRobotBrain extends Thread
 
         buildingPlan = new Stack<SOCPossiblePiece>();
         resourceChoices = new SOCResourceSet();
-        resourceChoices.add(2, SOCResourceConstants.CLAY);
+        resourceChoices.add(2, Data.ResourceType.CLAY_VALUE);
         pinger = new SOCRobotPinger(gameEventQ, game.getName(), client.getNickname() + "-" + game.getName());
         dRecorder = new DebugRecorder[2];
         dRecorder[0] = new DebugRecorder();
@@ -2185,8 +2186,8 @@ public class SOCRobotBrain extends Thread
             boolean[] offeredTo = ourCurrentOffer.getTo();
             SOCResourceSet getSet = ourCurrentOffer.getGetSet();
 
-            for (int rsrcType = SOCResourceConstants.CLAY;
-                    rsrcType <= SOCResourceConstants.WOOD;
+            for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                    rsrcType <= Data.ResourceType.WOOD_VALUE;
                     rsrcType++)
             {
                 if (getSet.contains(rsrcType))
@@ -3074,8 +3075,8 @@ public class SOCRobotBrain extends Thread
         ///
         SOCResourceSet giveSet = offer.getGiveSet();
 
-        for (int rsrcType = SOCResourceConstants.CLAY;
-                rsrcType <= SOCResourceConstants.WOOD;
+        for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                rsrcType <= Data.ResourceType.WOOD_VALUE;
                 rsrcType++)
         {
             if (giveSet.contains(rsrcType))
@@ -3091,8 +3092,8 @@ public class SOCRobotBrain extends Thread
         ///
         SOCResourceSet getSet = offer.getGetSet();
 
-        for (int rsrcType = SOCResourceConstants.CLAY;
-                rsrcType <= SOCResourceConstants.WOOD;
+        for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                rsrcType <= Data.ResourceType.WOOD_VALUE;
                 rsrcType++)
         {
             if (getSet.contains(rsrcType))
@@ -3200,8 +3201,8 @@ public class SOCRobotBrain extends Thread
             ///
             SOCResourceSet getSet = ourPlayerData.getCurrentOffer().getGetSet();
 
-            for (int rsrcType = SOCResourceConstants.CLAY;
-                    rsrcType <= SOCResourceConstants.WOOD;
+            for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                    rsrcType <= Data.ResourceType.WOOD_VALUE;
                     rsrcType++)
             {
                 if (getSet.contains(rsrcType) && ! negotiator.wantsAnotherOffer(rejector, rsrcType))
@@ -3255,8 +3256,8 @@ public class SOCRobotBrain extends Thread
                         //
                         SOCResourceSet getSet = offer.getGetSet();
 
-                        for (int rsrcType = SOCResourceConstants.CLAY;
-                                rsrcType <= SOCResourceConstants.WOOD;
+                        for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                                rsrcType <= Data.ResourceType.WOOD_VALUE;
                                 rsrcType++)
                         {
                             if (getSet.contains(rsrcType) && ! negotiator.wantsAnotherOffer(rejector, rsrcType))
@@ -3631,31 +3632,31 @@ public class SOCRobotBrain extends Thread
         case SOCPlayerElement.CLAY:
 
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, SOCResourceConstants.CLAY, "CLAY");
+                (mes, pl, Data.ResourceType.CLAY_VALUE, "CLAY");
             break;
 
         case SOCPlayerElement.ORE:
 
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, SOCResourceConstants.ORE, "ORE");
+                (mes, pl, Data.ResourceType.ORE_VALUE, "ORE");
             break;
 
         case SOCPlayerElement.SHEEP:
 
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, SOCResourceConstants.SHEEP, "SHEEP");
+                (mes, pl, Data.ResourceType.SHEEP_VALUE, "SHEEP");
             break;
 
         case SOCPlayerElement.WHEAT:
 
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, SOCResourceConstants.WHEAT, "WHEAT");
+                (mes, pl, Data.ResourceType.WHEAT_VALUE, "WHEAT");
             break;
 
         case SOCPlayerElement.WOOD:
 
             handlePLAYERELEMENT_numRsrc
-                (mes, pl, SOCResourceConstants.WOOD, "WOOD");
+                (mes, pl, Data.ResourceType.WOOD_VALUE, "WOOD");
             break;
 
         case SOCPlayerElement.UNKNOWN:
@@ -3717,7 +3718,7 @@ public class SOCRobotBrain extends Thread
      *
      * @param mes      Message with amount and action (SET/GAIN/LOSE)
      * @param pl       Player to update
-     * @param rtype    Type of resource, like {@link SOCResourceConstants#CLAY}
+     * @param rtype    Type of resource, like {@link Data.ResourceType#CLAY}
      * @param rtypeStr Resource type name, for debugging
      */
     @SuppressWarnings("unused")  // unnecessary dead-code warning "if (D.ebugOn)"
@@ -4620,8 +4621,8 @@ public class SOCRobotBrain extends Thread
             /**
              * get rid of the negative numbers
              */
-            for (int rt = SOCResourceConstants.CLAY;
-                    rt <= SOCResourceConstants.WOOD; rt++)
+            for (int rt = Data.ResourceType.CLAY_VALUE;
+                    rt <= Data.ResourceType.WOOD_VALUE; rt++)
             {
                 if (give.getAmount(rt) < 0)
                 {
@@ -4660,8 +4661,8 @@ public class SOCRobotBrain extends Thread
          * go through the resources one by one, and generate all possible
          * resource sets that result from trading that type of resource
          */
-        for (int giveResource = SOCResourceConstants.CLAY;
-                giveResource <= SOCResourceConstants.WOOD; giveResource++)
+        for (int giveResource = Data.ResourceType.CLAY_VALUE;
+                giveResource <= Data.ResourceType.WOOD_VALUE; giveResource++)
         {
             /**
              * find the ratio at which we can trade
@@ -4690,8 +4691,8 @@ public class SOCRobotBrain extends Thread
                  * trade the resource that we're looking at for one
                  * of every other resource
                  */
-                for (int getResource = SOCResourceConstants.CLAY;
-                        getResource <= SOCResourceConstants.WOOD;
+                for (int getResource = Data.ResourceType.CLAY_VALUE;
+                        getResource <= Data.ResourceType.WOOD_VALUE;
                         getResource++)
                 {
                     if (getResource != giveResource)
@@ -4952,8 +4953,8 @@ public class SOCRobotBrain extends Thread
         {
             int mostNeededResource = -1;
 
-            for (int resource = SOCResourceConstants.CLAY;
-                    resource <= SOCResourceConstants.WOOD; resource++)
+            for (int resource = Data.ResourceType.CLAY_VALUE;
+                 resource <= Data.ResourceType.WOOD_VALUE; resource++)
             {
                 if (rsCopy.getAmount(resource) < targetResources.getAmount(resource))
                 {
@@ -5024,8 +5025,8 @@ public class SOCRobotBrain extends Thread
             if (targetResources == null)  // can be null from SOCPossiblePickSpecialItem.cost
                 break;
 
-            for (int resource = SOCResourceConstants.CLAY;
-                    resource <= SOCResourceConstants.WOOD;
+            for (int resource = Data.ResourceType.CLAY_VALUE;
+                    resource <= Data.ResourceType.WOOD_VALUE;
                     resource++)
             {
                 final int diff = targetResources.getAmount(resource) - ourResources.getAmount(resource);
@@ -5183,12 +5184,12 @@ public class SOCRobotBrain extends Thread
             {
                 SOCResourceSet rsrcs = game.getPlayer(i).getResources();
                 String resourceMessage = "PLAYER " + i + " RESOURCES: ";
-                resourceMessage += (rsrcs.getAmount(SOCResourceConstants.CLAY) + " ");
-                resourceMessage += (rsrcs.getAmount(SOCResourceConstants.ORE) + " ");
-                resourceMessage += (rsrcs.getAmount(SOCResourceConstants.SHEEP) + " ");
-                resourceMessage += (rsrcs.getAmount(SOCResourceConstants.WHEAT) + " ");
-                resourceMessage += (rsrcs.getAmount(SOCResourceConstants.WOOD) + " ");
-                resourceMessage += (rsrcs.getAmount(SOCResourceConstants.UNKNOWN) + " ");
+                resourceMessage += (rsrcs.getAmount(Data.ResourceType.CLAY_VALUE) + " ");
+                resourceMessage += (rsrcs.getAmount(Data.ResourceType.ORE_VALUE) + " ");
+                resourceMessage += (rsrcs.getAmount(Data.ResourceType.SHEEP_VALUE) + " ");
+                resourceMessage += (rsrcs.getAmount(Data.ResourceType.WHEAT_VALUE) + " ");
+                resourceMessage += (rsrcs.getAmount(Data.ResourceType.WOOD_VALUE) + " ");
+                resourceMessage += (rsrcs.getAmount(Data.ResourceType.UNKNOWN_VALUE) + " ");
                 client.sendText(game, resourceMessage);
                 D.ebugPrintln(resourceMessage);
             }

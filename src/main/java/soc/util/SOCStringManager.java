@@ -30,6 +30,7 @@ import java.util.ResourceBundle;
 
 import net.nand.util.i18n.mgr.StringManager;
 
+import soc.Data;
 import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
@@ -114,7 +115,7 @@ public class SOCStringManager extends StringManager
 
     /**
      * Resource type-and-count text keys for {@link #getSpecial(SOCGame, String, Object...)}.
-     * Each subarray's indexes are the same values as {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
+     * Each subarray's indexes are the same values as {@link Data.ResourceType#CLAY} to {@link Data.ResourceType#WOOD}.
      * The string key at index 0 is used for resources out of range (unknown types).
      * @see #getSOCResourceCount(int, Integer)
      */
@@ -133,7 +134,7 @@ public class SOCStringManager extends StringManager
 
     /**
      * Get a resource count, such as "5 sheep"; used by {@link #getSpecial(SOCGame, String, Object...)}.
-     * @param rtype  Type of resource, in the range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
+     * @param rtype  Type of resource, in the range {@link Data.ResourceType#CLAY} to {@link Data.ResourceType#WOOD}
      * @param rcountObj  Resource count; uses the Integer object passed into {@code getSpecial}.
      *          As a special case, -1 will localize with the indefinite article, such as "a sheep" or "an ore".
      *          -2 will localize to the plural resource name without a count, as in "clay" or "la lana".
@@ -161,7 +162,7 @@ public class SOCStringManager extends StringManager
         }
 
         final String resText;
-        if ((rtype >= SOCResourceConstants.CLAY) && (rtype <= SOCResourceConstants.WOOD))
+        if ((rtype >= Data.ResourceType.CLAY_VALUE) && (rtype <= Data.ResourceType.WOOD_VALUE))
         {
             if ((rcount == 1) || (rcount == -1))
                 resText = bundle.getString(rkeyArray[rtype]);
@@ -186,7 +187,7 @@ public class SOCStringManager extends StringManager
      *<LI> <tt>{0,rsrcs}</tt> for a resource name or resource set.
      *     A resource set is passed as a {@link SOCResourceSet} in {@code arguments}.
      *     Resource names ("5 sheep") take 2 argument slots: an Integer for the count, and a
-     *     resource type Integer in the range {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD}.
+     *     resource type Integer in the range {@link Data.ResourceType#CLAY} - {@link Data.ResourceType#WOOD}.
      *     Special case: A count of -1 will localize with "a/an", such as "a sheep" or "an ore".
      *     A count of -2 will localize to the plural resource name without a number, for uses such as "Joe monopolized clay".
      *<LI> <tt>{0,dcards}</tt> for a Development Card or list of dev cards.
@@ -238,7 +239,7 @@ public class SOCStringManager extends StringManager
             {
                 final SOCResourceSet rset = (SOCResourceSet) (arg);
                 ArrayList<String> resList = new ArrayList<String>();
-                for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+                for (int rtype = Data.ResourceType.CLAY_VALUE; rtype <= Data.ResourceType.WOOD_VALUE; ++rtype)
                 {
                     int n = rset.getAmount(rtype);
                     if (n > 0)

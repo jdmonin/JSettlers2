@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option java_package = "soc";
+
+/* Structs here are suffixed "Data" since we eventually want them used in the java code. Many struct names will then get
+the same name as its OO counterparts. As in Java OO is central, I choose to suffix the data.
+*/
+enum ResourceType {
+    // For now, we're still tied to the integer values. Therefore I want the values to be the same as we currently use
+    // them until the integer dependencies are refactored out.
+    NOT_YET_USED = 0;
+    CLAY = 1;
+    ORE = 2;
+    SHEEP = 3;
+    WHEAT = 4;
+    WOOD = 5;
+    UNKNOWN = 6; // TODO: shares a slot with GOLD in some instances
+}

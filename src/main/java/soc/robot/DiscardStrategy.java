@@ -28,6 +28,7 @@ import java.util.Stack;
 
 // import org.apache.log4j.Logger;
 
+import soc.Data;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
@@ -89,8 +90,8 @@ public class DiscardStrategy
             SOCResourceSet leftOvers = ourPlayerData.getResources().copy();
 
             if (targetResources != null)
-                for (int rsrc = SOCResourceConstants.CLAY;
-                         rsrc <= SOCResourceConstants.WOOD; rsrc++)
+                for (int rsrc = Data.ResourceType.CLAY_VALUE;
+                     rsrc <= Data.ResourceType.WOOD_VALUE; rsrc++)
                     if (leftOvers.getAmount(rsrc) > targetResources.getAmount(rsrc))
                         leftOvers.subtract(targetResources.getAmount(rsrc), rsrc);
                     else

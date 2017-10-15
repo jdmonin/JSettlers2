@@ -19,6 +19,7 @@ package soc.message;
 
 import java.util.List;
 
+import soc.Data;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
 
@@ -104,7 +105,7 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
         {
         case STYPE_RES_ROLL:
             final int[] rstats = pl.getResourceRollStats();  // rstats[0] is unused
-            for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; ++i)
+            for (int i = Data.ResourceType.CLAY_VALUE; i <= Data.ResourceType.WOOD_VALUE; ++i)
                 pa[i] = rstats[i];
             if (pa.length > SOCResourceConstants.GOLD_LOCAL)
                 pa[SOCResourceConstants.GOLD_LOCAL] = rstats[SOCResourceConstants.GOLD_LOCAL];

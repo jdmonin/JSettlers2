@@ -21,6 +21,7 @@
  **/
 package soc.client;
 
+import soc.Data;
 import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
@@ -289,7 +290,7 @@ public class SOCHandPanel extends Panel
     /**
      * For right-click resource to trade - If playerIsClient, track cost
      * of bank/port trade per resource. Index 0 unused; index 1 is
-     * {@link SOCResourceConstants#CLAY}, etc. Highest index is 5.
+     * {@link Data.ResourceType#CLAY}, etc. Highest index is 5.
      * Null, unless playerIsClient and addPlayer has been called.
      */
     protected int[] resourceTradeCost;
@@ -297,7 +298,7 @@ public class SOCHandPanel extends Panel
     /**
      * For right-click resource to trade - If playerIsClient, popup menus
      * to bank/port trade resources. Index 0 unused; index 1 is
-     * {@link SOCResourceConstants#CLAY}, etc. Highest index is 5.
+     * {@link Data.ResourceType#CLAY}, etc. Highest index is 5.
      * Null, unless playerIsClient and addPlayer has been called.
      */
     protected ResourceTradeTypeMenu[] resourceTradeMenu;
@@ -3020,27 +3021,27 @@ public class SOCHandPanel extends Panel
             break;
 
         case Clay:
-            claySq.setIntValue(player.getResources().getAmount(SOCResourceConstants.CLAY));
+            claySq.setIntValue(player.getResources().getAmount(Data.ResourceType.CLAY_VALUE));
             updateTotalResCount = true;
             break;
 
         case Ore:
-            oreSq.setIntValue(player.getResources().getAmount(SOCResourceConstants.ORE));
+            oreSq.setIntValue(player.getResources().getAmount(Data.ResourceType.ORE_VALUE));
             updateTotalResCount = true;
             break;
 
         case Sheep:
-            sheepSq.setIntValue(player.getResources().getAmount(SOCResourceConstants.SHEEP));
+            sheepSq.setIntValue(player.getResources().getAmount(Data.ResourceType.SHEEP_VALUE));
             updateTotalResCount = true;
             break;
 
         case Wheat:
-            wheatSq.setIntValue(player.getResources().getAmount(SOCResourceConstants.WHEAT));
+            wheatSq.setIntValue(player.getResources().getAmount(Data.ResourceType.WHEAT_VALUE));
             updateTotalResCount = true;
             break;
 
         case Wood:
-            woodSq.setIntValue(player.getResources().getAmount(SOCResourceConstants.WOOD));
+            woodSq.setIntValue(player.getResources().getAmount(Data.ResourceType.WOOD_VALUE));
             updateTotalResCount = true;
             break;
 
@@ -3049,11 +3050,11 @@ public class SOCHandPanel extends Panel
             {
                 // Update the 5 individual ones too, not just the total count
                 final SOCResourceSet rsrc = player.getResources();
-                claySq.setIntValue (rsrc.getAmount(SOCResourceConstants.CLAY));
-                oreSq.setIntValue  (rsrc.getAmount(SOCResourceConstants.ORE));
-                sheepSq.setIntValue(rsrc.getAmount(SOCResourceConstants.SHEEP));
-                wheatSq.setIntValue(rsrc.getAmount(SOCResourceConstants.WHEAT));
-                woodSq.setIntValue (rsrc.getAmount(SOCResourceConstants.WOOD));
+                claySq.setIntValue (rsrc.getAmount(Data.ResourceType.CLAY_VALUE));
+                oreSq.setIntValue  (rsrc.getAmount(Data.ResourceType.ORE_VALUE));
+                sheepSq.setIntValue(rsrc.getAmount(Data.ResourceType.SHEEP_VALUE));
+                wheatSq.setIntValue(rsrc.getAmount(Data.ResourceType.WHEAT_VALUE));
+                woodSq.setIntValue (rsrc.getAmount(Data.ResourceType.WOOD_VALUE));
             }
             // fall through to case Resources
 
@@ -3197,8 +3198,8 @@ public class SOCHandPanel extends Panel
     {
         boolean has3Port = player.getPortFlag(SOCBoard.MISC_PORT);
 
-        for (int i = SOCResourceConstants.CLAY;
-                i <= SOCResourceConstants.WOOD; ++i)
+        for (int i = Data.ResourceType.CLAY_VALUE;
+             i <= Data.ResourceType.WOOD_VALUE; ++i)
         {
             int oldCost = resourceTradeCost[i];
             int newCost;
@@ -3225,15 +3226,15 @@ public class SOCHandPanel extends Panel
                     ColorSquare resSq;
                     switch (i)
                     {
-                    case SOCResourceConstants.CLAY:
+                    case Data.ResourceType.CLAY_VALUE:
                         resSq = claySq;  break;
-                    case SOCResourceConstants.ORE:
+                    case Data.ResourceType.ORE_VALUE:
                         resSq = oreSq;   break;
-                    case SOCResourceConstants.SHEEP:
+                    case Data.ResourceType.SHEEP_VALUE:
                         resSq = sheepSq; break;
-                    case SOCResourceConstants.WHEAT:
+                    case Data.ResourceType.WHEAT_VALUE:
                         resSq = wheatSq; break;
-                    case SOCResourceConstants.WOOD:
+                    case Data.ResourceType.WOOD_VALUE:
                         resSq = woodSq;  break;
                     default:
                         // Should not happen
