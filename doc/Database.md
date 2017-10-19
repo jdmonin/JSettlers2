@@ -291,9 +291,9 @@ JSettlersServer.
 ## Upgrading from an earlier version
 
 If you're upgrading from an earlier version of JSettlers, check
-`doc/Versions.md` for new features, bug fixes, and config changes.
+[Versions.md](Versions.md) for new features, bug fixes, and config changes.
 Before starting the upgrade, read this section and also the
-"Upgrading from an earlier version" section of `Readme.md`.
+"Upgrading from an earlier version" section of [Readme.md](../Readme.md).
 
 ### Before starting the upgrade:
 - Make a DB backup or export its contents. JSettlers **1.2.00** is the first

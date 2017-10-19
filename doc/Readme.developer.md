@@ -96,8 +96,8 @@ To help with security and prevent cheats, by default debug commands are disabled
 except for practice games.  If you need to use debug commands on a multi-player
 server, start that server with `-Djsettlers.allow.debug=Y` and connect with username `debug`.
 For security, please use sqlite or another database and make a "debug" account with
-a password (see `Readme.md` section "Database Setup").  Except for practice games,
-no other username can use debug commands.
+a password (see [Readme.md](../Readme.md) section "Database Setup").  Except for
+practice games, no other username can use debug commands.
 
 To print the contents of messages sent between the server and client, start the
 client with vm argument `-Djsettlers.debug.traffic=Y` (this goes before `-jar` if using
@@ -299,9 +299,9 @@ you are developing anything related to game options or jsettlers properties.
 These instructions are written for Eclipse 3.6. See also the "Developing with a
 database (JDBC)" section of this readme. JSettlers+sqlite works with standard
 Eclipse; the j2ee eclipse also has a convenient data browser. Note that
-Readme.md mentions a command-line option `-Djsettlers.db.jar=driverfile.jar`;
-that's needed only while running the jsettlers JAR from the command line, not
-running inside eclipse.
+[Readme.md](../Readme.md) mentions a command-line option
+`-Djsettlers.db.jar=driverfile.jar`; that's needed only while running the
+jsettlers JAR from the command line, not running inside eclipse.
 
 - See the `socserver-sqlite` eclipse Run Configuration in the previous section;
   this config includes the sqlite database you're about to configure.
@@ -334,7 +334,7 @@ running inside eclipse.
 - Run the `socserver-sqlite` configuration
   - This line should appear in the console: `User database initialized.`
 - The database is now ready for use, development, and debugging.
-- To create player users, see `Readme.md` and use `SOCAccountClient`.
+- To create player users, see [Readme.md](../Readme.md) and use `SOCAccountClient`.
   The first account you create should be `adm` (named in property
   `-Djsettlers.accounts.admins=adm`) which can then create others.
 
@@ -435,9 +435,11 @@ welcomes contributions. Please keep these things in mind:
 - The DB is an optional part of jsettlers, other functions can't rely on it.
 - DB code should be vendor-neutral and run on mysql, postgres, sqlite, oracle, etc.
   Please test against sqlite and at least one other db type before sending a pull request.
-- See Readme.md for JDBC driver download sites, URL syntax, and server command-line arguments.
-- For test runs inside Eclipse, add the JDBC driver to the project's build path -> Libraries -> Add External JAR,
-  or add it to the classpath tab of SOCServer's eclipse Run Configuration; that option is
+- See [Readme.md](../Readme.md) for JDBC driver download sites, URL syntax,
+  and server command-line arguments.
+- For test runs inside Eclipse, add the JDBC driver to the project's
+  build path -> Libraries -> Add External JAR, or add it to the classpath tab of
+  SOCServer's eclipse Run Configuration; that option is
   useful when testing against multiple database types.
 - See also the "To configure a sqlite database for testing" section of this readme.
 
@@ -757,13 +759,15 @@ When preparing to release a new version, testing should include:
   Run server and clients with JVM property `-Djsettlers.debug.traffic=Y`
 - Basic functional tests
     - Game setup, join, and reset:
-        - Create and start playing a practice game with 1 locked space & 2 bots, past initial placement into normal play (roll dice, etc) with default options
+        - Create and start playing a practice game with 1 locked space & 2 bots, past initial placement
+          into normal play (roll dice, etc) with default options
         - Create and start playing a practice game on the 6-player board (5 bots), with options like Roll No 7s for First 7 Turns
         - JSettlersServer.jar: Start a dedicated server on another ("remote") machine's text-only console
         - Join that remote server & play a full game, then reset board and start another game
             - `*STATS*` command should include the finished game
             - Bots should rejoin and play
-        - JSettlers.jar: Start a local server and a game, start another client, join and start playing game (will have 2 human clients & 2 bots)
+        - JSettlers.jar: Start a local server and a game, start another client, join and start playing game
+          (will have 2 human clients & 2 bots)
         - Ensure the 2 clients can talk to each other in the game's chat area
         - Client leaves game (not on their turn): bot should join to replace them & then plays their turn (not unresponsive)
         - New client joins and replaces bot; verify all of player info is sent
@@ -788,11 +792,12 @@ When preparing to release a new version, testing should include:
         - Bots' face icons match their name (Robots smarter than Droids)
     - 2 clients: While both connected to a server, start and join a chat channel and talk to each other there
 - Automated tests in build.xml `test` target
-- New features in this version from `Versions.md`
+- New features in this version from [Versions.md](Versions.md)
 - Regression testing
     - Start a remote server on a console (linux, etc), should stay up for several days including activity (bot games)
-        - v2.0.00+: Run several bot games (`jsettlers.bots.botgames.total=5`); join one as observer to make sure the pause is shorter than normal games
-    - New features in previous 2 versions from `Versions.md`
+        - v2.0.00+: Run several bot games (`jsettlers.bots.botgames.total=5`);
+          join one as observer to make sure the pause is shorter than normal games
+    - New features in previous 2 versions from [Versions.md](Versions.md)
     - Each available game option
     - Basic rules and game play
         - Can build pieces by right-clicking board or with the Build Panel
@@ -800,9 +805,11 @@ When preparing to release a new version, testing should include:
         - Trade offer, rejection, counter-offer accept/rejection
         - Can play dev card before dice roll
         - Can win only on your own turn
-    - Game reset voting, with: 1 human 2 bots, 2 humans 1 bot, 2 humans 0 bots: Humans can vote No to reject bots auto-vote Yes; test No and Yes
+    - Game reset voting, with: 1 human 2 bots, 2 humans 1 bot, 2 humans 0 bots:
+      Humans can vote No to reject bots auto-vote Yes; test No and Yes
     - Version compat testing
-        - Other versions to use: 1.1.06 before Game Options; 1.1.11 with 6-player board and client bugfixes; latest 1.x.xx; latest 2.0.xx
+        - Other versions to use: **1.1.06** before Game Options; **1.1.11** with 6-player board and client bugfixes;
+          latest **1.x.xx**; latest **2.0.xx**
         - New client, old server
         - New server, old client
         - Some specific things to look for:
@@ -810,14 +817,16 @@ When preparing to release a new version, testing should include:
             - Create a 4-player game, a 6-player game; allow trading in one of them
             - Create a 4-player game with no options (this uses a different message type)
             - Lock a bot seat and game reset; make sure that works (seatlockstate changes between 1.x.xx and 2.0.xx)
-            - On a 2.0.xx server, have 2.0.xx client create game with a scenario (1.x.xx can't join), 1.x.xx client should see it in gamelist with "(cannot join)" prefix
+            - On a 2.0.xx server, have 2.0.xx client create game with a scenario (1.x.xx can't join),
+              1.x.xx client should see it in gamelist with "(cannot join)" prefix
             - Have the 1.x.xx client quit & rejoin, should see in list with that same prefix
     - Command line and jsserver.properties
         - Server and client: `-h` / `--help` / `-?`, `--version`
         - Server: Unknown args `-x -z` should print both, then not continue startup
         - Start client w/ no args, start client with host & port on command line
         - Game option defaults on command line, in `jsserver.properties`: `-oVP=t11 -oN7=t5 -oRD=y`
-        - Server prop for no chat channels (`jsettlers.client.maxcreatechannels=0`): Client main panel should not see channel create/join/list controls
+        - Server prop for no chat channels (`jsettlers.client.maxcreatechannels=0`):
+          Client main panel should not see channel create/join/list controls
     - Database setup, including Account Admins list `-Djsettlers.accounts.admins=adm,name2,etc`
         - SOCAccountClient with a server not using a DB: At connect, should see a message like "This server does not use accounts"
         - Test with supported DB types: sqlite first, then mysql and postgres
@@ -826,11 +835,14 @@ When preparing to release a new version, testing should include:
             - With a new or upgraded db, verify account are searched case-insensitive
             - Test server parameter `--pw-reset username` , login afterwards with new password and start a game
             - (v2.0.00+) After setup, run automated DB tests with `-Djsettlers.test.db=y`
-        - Set up a new DB, including (for any 1 DB type) running `-Djsettlers.db.bcrypt.work_factor=test` and then specifying a non-default `jsettlers.db.bcrypt.work_factor` during sql setup script run
+        - Set up a new DB, including (for any 1 DB type) running `-Djsettlers.db.bcrypt.work_factor=test`
+          and then specifying a non-default `jsettlers.db.bcrypt.work_factor` during sql setup script run
         - Create those admin accounts, some non-admin accounts
         - SOCAccountClient should allow only admin accounts to log in
-        - SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning status from server, as if they existed with wrong pw
-        - SOCPlayerClient: login as non-admin user, create game: `*who*` works (not an admin command) works, `*who* testgame` and `*who* *` shouldn't ; `*help*` shouldn't show any admin commands
+        - SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning
+          status from server, as if they existed with wrong pw
+        - SOCPlayerClient: login as non-admin user, create game: `*who*` works (not an admin command) works,
+          `*who* testgame` and `*who* *` shouldn't ; `*help*` shouldn't show any admin commands
         - prop to require accounts (`jsettlers.accounts.required=Y`)
         - prop for games saved in DB (`jsettlers.db.save.games=Y`): Play a complete game, check for results there
         - Test creating as old schema (before v1.2.00) and upgrading
@@ -841,7 +853,8 @@ When preparing to release a new version, testing should include:
             - Files for mysql: jsettlers-create-mysql.sql, jsettlers-tables.sql
             - For postgres: jsettlers-create-postgres.sql, jsettlers-tables.sql, jsettlers-sec-postgres.sql
             - For sqlite: Only jsettlers-tables.sql
-	    - Run DB setup scripts with instructions from `Database.md` and beginning-of-file comments in jsettlers-create-mysql.sql or -postgres.sql
+	    - Run DB setup scripts with instructions from [Database.md](Database.md)
+	      and beginning-of-file comments in jsettlers-create-mysql.sql or -postgres.sql
 	    - Run SOCServer with the old schema; startup should print `Database schema upgrade is recommended`
 	    - Run DB upgrade by running SOCServer with `-Djsettlers.db.upgrade_schema=Y` property
 	    - Run SOCServer as usual; startup should print `User database initialized`
@@ -860,10 +873,11 @@ When preparing to release a new version, testing should include:
     - Graphics, including scaling and antialiasing after window resize
     - Persistent user prefs (sound, auto-reject bot offer, window size)  
       Then, re-run to check default size with `-Djsettlers.debug.clear_prefs=PI_width,PI_height`
-    - SQLite database setup, from instructions in `doc/Database.md`
+    - SQLite database setup, from instructions in [Database.md](Database.md)
 - Instructions and Setup
-    - `Readme.md`, `Readme.developer`, `Database.md`: validate all URLs, including JDBC driver downloads
-    - Follow server setup instructions in `Readme.md`
+    - [Readme.md](../Readme.md), `Readme.developer.md`, [Database.md](Database.md):
+      validate all URLs, including JDBC driver downloads
+    - Follow server setup instructions in [Readme.md](../Readme.md)
     - Set up a new DB: Covered above in "Platform-specific"
 
 
