@@ -1,4 +1,4 @@
-# ![logo](https://github.com/jdmonin/JSettlers2/blob/master/doc/graf/Logo32.png?raw=true) Java Settlers
+# ![logo](doc/graf/Logo32.png?raw=true) Java Settlers
 
 A web-based client-server version of Settlers of Catan
 
@@ -18,7 +18,7 @@ information and game stats (details below).  A client java app to
 create user accounts is also provided.
 
 If you're upgrading from an earlier version of JSettlers, check
-`doc/Versions.md` for new features, bug fixes, and config changes
+[doc/Versions.md](doc/Versions.md) for new features, bug fixes, and config changes
 and see **Upgrading from an earlier version** section below.
 
 JSettlers is an open-source project licensed under the GPL. The
@@ -76,7 +76,7 @@ because you know everyone will have the same version.
 
 To build JSettlers from source, you will need Java JDK 1.5 or newer and Apache Ant,
 available from http://ant.apache.org, or an IDE such as Eclipse which understands
-Ant's format. See `doc/Readme.developer.md` for details.
+Ant's format. See [doc/Readme.developer.md](doc/Readme.developer.md) for details.
 
 
 ## Server Setup and Testing
@@ -103,7 +103,8 @@ will continue even if there is no DB or the DB connect doesn't work.
 You can change those values and specify game option defaults; see details below.
 
 If MySQL or another database is not installed and running (See "Database Setup"
-in `doc/Database.md`), you will see a warning with the appropriate explanation:
+in [doc/Database.md](doc/Database.md)), you will see a warning with the
+appropriate explanation:
 
     Warning: No user database available: ....
     Users will not be authenticated.
@@ -257,16 +258,17 @@ or IP) and port number.  Or, they can enter the following command:
 
     java -jar JSettlers.jar <server_address> <port_number>
 
-If you would like to maintain accounts for your JSettlers server,
-start the database prior to starting the JSettlers Server. See the
-"Database Setup" section of `doc/Database.md` for directions.
+If you would like to maintain accounts for your JSettlers server, start the
+database prior to starting the JSettlers Server. See the "Database Setup"
+section of [doc/Database.md](doc/Database.md) for directions.
 
 ### Server shutdown
 
 To shut down the server hit `Ctrl-C` in its console window, or connect as the
 optional debug user and enter `*STOP*` in the chat area of a game window.
 This will stop the server and all connected clients will be disconnected.
-(See `doc/Readme.developer.md` if you want to set up a debug user.)
+(See [doc/Readme.developer.md](doc/Readme.developer.md) if you want to set up
+a debug user.)
 
 ### Installing a JSettlers server
 
@@ -285,7 +287,7 @@ If you want to maintain user accounts or save scores of all completed games,
 you will need to set up a MySQL, SQLite, or PostgreSQL database. This database
 is optional. If you will use a MySQL or PostgreSQL database, be sure to start
 the database server software before installing JSettlers. For DB setup details
-see the "Database Setup" section of `doc/Database.md`.
+see the "Database Setup" section of [doc/Database.md](doc/Database.md).
 
 To install a JSettlers server, start the server as described in "Server Setup
 and Testing". Remember that you can set server parameters and game option
@@ -330,20 +332,20 @@ already been running JSettlers, skip this section.
 
 It's a simple process to upgrade to the latest version of JSettlers:
 
-- Read `doc/Versions.md` for new features, bug fixes, and config changes
-  made from your version to the latest version.  Occasionally defaults
-  change and you'll need to add a server config option to keep the
+- Read [doc/Versions.md](doc/Versions.md) for new features, bug fixes, and
+  config changes made from your version to the latest version.  Occasionally
+  defaults change and you'll need to add a server config option to keep the
   same behavior, so read carefully.
 - If you're using the optional database, backup the database and see
-  the "Upgrading from an earlier version" section of `doc/Database.md`
+  the "Upgrading from an earlier version" section of [doc/Database.md](doc/Database.md)
   for parameter changes and other actions to take.
 - Save a backup copy of your current JSettlers.jar and JSettlersServer.jar,
   in case you want to run the old version for any reason.
 - Stop the old server
 - Copy the new JSettlers.jar and JSettlersServer.jar into place
-- Start the new server, including any new options you wanted from `doc/Versions.md`
+- Start the new server, including any new options you wanted from [doc/Versions.md](doc/Versions.md)
 - If the new server's startup messages include a line about database schema
-  upgrade, see the "Upgrading" section of `doc/Database.md`.
+  upgrade, see the "Upgrading" section of [doc/Database.md](doc/Database.md).
 - Test that you can connect and start games as usual, with and without bots.
   When you connect make sure the version number shown in the left side of
   the client window is the new JSettlers version.
@@ -356,9 +358,10 @@ source code is hosted at https://github.com/jdmonin/JSettlers2/ and
 the project website is http://nand.net/jsettlers/devel/ .  Questions,
 bugs, patches, and pull requests can be posted at the github page.
 
-For more information on building or developing JSettlers, see `doc/Readme.developer.md`.
-That readme also has information about translating jsettlers to other languages;
-see the "I18N" section.
+For more information on building or developing JSettlers, see
+[doc/Readme.developer.md](doc/Readme.developer.md). That readme also has
+information about translating jsettlers to other languages; see the
+"I18N" section.
 
 JSettlers is licensed under the GNU General Public License.  Each source file
 lists contributors by year.  A copyright year range (for example, 2007-2011)
