@@ -12,7 +12,7 @@ also provided.
 
 -  Database Setup (Installing a JSettlers DB)
 -  Security, Admin Users, Admin Commands
--  Upgrading from an earlier version
+-  Upgrading from an earlier version of JSettlers
 -  Settings Table and Checking Info about the DB
 
 
@@ -93,7 +93,7 @@ location as JSettlersServer.jar, and specify on the jsettlers command line:
 
 ### Database Creation
 
-To create the jsettlers database and its db user `('socuser')` and security,
+To create the jsettlers database and its db user (`'socuser'`) and security,
 execute the SQL db scripts located in `src/main/bin/sql/`
 (included in `jsettlers-2.x.xx-full.tar.gz`): Change to that directory
 and follow the instructions here for your database type. Afterwards,
@@ -288,7 +288,7 @@ the server is up. It will reset the password and exit, and won't start a second
 JSettlersServer.
 
 
-## Upgrading from an earlier version
+## Upgrading from an earlier version of JSettlers
 
 If you're upgrading from an earlier version of JSettlers, check
 [Versions.md](Versions.md) for new features, bug fixes, and config changes.
@@ -311,7 +311,7 @@ Before starting the upgrade, read this section and also the
 
 ### When starting up the server using the new version:
 
-- If the new server's startup messages include this line:
+- If the new version's server startup messages include this line:
 
         * Database schema upgrade is recommended: To upgrade, use -Djsettlers.db.upgrade_schema=Y command line flag.
 

@@ -835,8 +835,9 @@ When preparing to release a new version, testing should include:
             - With a new or upgraded db, verify account are searched case-insensitive
             - Test server parameter `--pw-reset username` , login afterwards with new password and start a game
             - (v2.0.00+) After setup, run automated DB tests with `-Djsettlers.test.db=y`
-        - Set up a new DB, including (for any 1 DB type) running `-Djsettlers.db.bcrypt.work_factor=test`
-          and then specifying a non-default `jsettlers.db.bcrypt.work_factor` during sql setup script run
+        - Set up a new DB with instructions from the "Database Creation" section of [Database.md](Database.md),
+          including (for any 1 DB type) running `-Djsettlers.db.bcrypt.work_factor=test`
+          and then specifying a non-default `jsettlers.db.bcrypt.work_factor` when running the SQL setup script
         - Create those admin accounts, some non-admin accounts
         - SOCAccountClient should allow only admin accounts to log in
         - SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning
@@ -848,16 +849,20 @@ When preparing to release a new version, testing should include:
         - Test creating as old schema (before v1.2.00) and upgrading
             - Get the old schema SQL files you'll need from the git repo by using any pre-1.2.00 release tag, for example:
 
-                  git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > tmp/jsettlers-tables.sql
+                  git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1200.sql
 
             - Files for mysql: jsettlers-create-mysql.sql, jsettlers-tables.sql
             - For postgres: jsettlers-create-postgres.sql, jsettlers-tables.sql, jsettlers-sec-postgres.sql
             - For sqlite: Only jsettlers-tables.sql
-	    - Run DB setup scripts with instructions from [Database.md](Database.md)
+	    - Run DB setup scripts with instructions from the "Database Creation" section of [Database.md](Database.md)
 	      and beginning-of-file comments in jsettlers-create-mysql.sql or -postgres.sql
-	    - Run SOCServer with the old schema; startup should print `Database schema upgrade is recommended`
+	    - Run SOCServer with the old schema and property `-Djsettlers.accounts.admins=adm`;
+	      startup should print `Database schema upgrade is recommended`
+	    - Create an admin user named `adm` using: `java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880`
 	    - Run DB upgrade by running SOCServer with `-Djsettlers.db.upgrade_schema=Y` property
 	    - Run SOCServer as usual; startup should print `User database initialized`
+	    - Run JSettlers.jar; log in as the `adm` user and make sure you can create a game,
+	      to test password encoding conversion
     - Other misc testing:
         - "Replace/Take Over" on lost connection:
             - Start a game at server with player client
