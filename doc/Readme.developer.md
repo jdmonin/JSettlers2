@@ -861,8 +861,9 @@ When preparing to release a new version, testing should include:
 	    - Create an admin user named `adm` using: `java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880`
 	    - Run DB upgrade by running SOCServer with `-Djsettlers.db.upgrade_schema=Y` property
 	    - Run SOCServer as usual; startup should print `User database initialized`
-	    - Run JSettlers.jar; log in as the `adm` user and make sure you can create a game,
-	      to test password encoding conversion
+	    - Run JSettlers.jar; log in as `Adm` to test case-insensitive nicknames.  
+	      Make sure you can create a game, to test password encoding conversion.  
+	      Run the `*DBSETTINGS*` admin command to verify BCrypt password encoding is being used.
     - Other misc testing:
         - "Replace/Take Over" on lost connection:
             - Start a game at server with player client
@@ -870,7 +871,7 @@ When preparing to release a new version, testing should include:
             - Start game, go through initial placement and into normal game play
             - In Eclipse, pause the debugged client to simulate network connection loss
             - Start a new client and connect as that same username; should allow after appropriate number of seconds
-        - Leave a practice game idle for hours; bots should not time out or leave game
+        - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
 - Platform-specific: Recent and less-recent OSX and Windows; oldest JRE (1.5) and new JRE
     - Keyboard shortcuts including game-reset dialog's esc/enter keys, FaceChooserFrame arrow keys
     - Sound, including 2 clients in same game for overlapping piece-place sound
