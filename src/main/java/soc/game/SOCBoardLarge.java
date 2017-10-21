@@ -36,7 +36,7 @@ import soc.util.IntPair;
 /**
  * Sea board layout: A representation of a larger (up to 127 x 127 hexes) JSettlers board,
  * with an arbitrary mix of land and water tiles.
- * Implements {@link SOCBoard#BOARD_ENCODING_LARGE}.
+ * Implements {@link SOCBoardLarge#BOARD_ENCODING_LARGE}.
  * Activated with {@link SOCGameOption} {@code "SBL"}.
  * For the board layout geometry, see the "Coordinate System" section here.
  *<P>
@@ -228,7 +228,19 @@ public class SOCBoardLarge extends SOCBoard
     private static final long serialVersionUID = 2000L;
 
     /**
-     * This board encoding {@link SOCBoard#BOARD_ENCODING_LARGE}
+     * Sea board format (v3) used with {@link SOCBoardLarge} for {@link #getBoardEncodingFormat()}:
+     * Allows up to 127 x 127 board with an arbitrary mix of land and water tiles.
+     * Land, water, and port locations/facings are no longer hardcoded.
+     * Use {@link #getPortsCount()} to get the number of ports.
+     * For other port information, use the same methods as in {@link Standard6p#BOARD_ENCODING_6PLAYER}.
+     *<P>
+     * Activated with {@link SOCGameOption} {@code "SBL"}.
+     * @since 2.0.00
+     */
+    public static final int BOARD_ENCODING_LARGE = 3;
+
+    /**
+     * This board encoding {@link SOCBoardLarge#BOARD_ENCODING_LARGE}
      * was introduced in version 2.0.00 (2000)
      */
     public static final int VERSION_FOR_ENCODING_LARGE = 2000;
@@ -651,7 +663,6 @@ public class SOCBoardLarge extends SOCBoard
      * for how the board is filled when the game begins.
      * Board height and width will be the default, {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE}.
      *<P>
-     * Only the client uses this constructor.
      * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
@@ -676,12 +687,15 @@ public class SOCBoardLarge extends SOCBoard
         (final Map<String,SOCGameOption> gameOpts, final int maxPlayers, final IntPair boardHeightWidth)
         throws IllegalArgumentException
     {
-        super(BOARD_ENCODING_LARGE, MAX_LAND_HEX_LG);
-        if ((maxPlayers != 4) && (maxPlayers != 6))
+        if (maxPlayers != 4 && maxPlayers != 6)
             throw new IllegalArgumentException("maxPlayers: " + maxPlayers);
+
         if (boardHeightWidth == null)
             throw new IllegalArgumentException("boardHeightWidth null");
+
         this.maxPlayers = maxPlayers;
+
+        initializePorts();
 
         final int bH = boardHeightWidth.a, bW = boardHeightWidth.b;
         setBoardBounds(bH, bW);
@@ -708,6 +722,12 @@ public class SOCBoardLarge extends SOCBoard
         portsCount = 0;
         pirateHex = 0;
         prevPirateHex = 0;
+    }
+
+    @Override
+    public int getBoardEncodingFormat()
+    {
+        return BOARD_ENCODING_LARGE;
     }
 
     /**
@@ -2306,7 +2326,7 @@ public class SOCBoardLarge extends SOCBoard
      * @since 1.1.12
      */
     @Override
-    HashSet<Integer> initPlayerLegalRoads()
+    public HashSet<Integer> initPlayerLegalRoads()
     {
         return new HashSet<Integer>(legalRoadEdges);
     }

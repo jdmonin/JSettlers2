@@ -63,7 +63,7 @@ import java.util.Vector;
  * segments, will another potential settlement location be set.
  *<P>
  * If the board layout changes from game to game, as with {@link SOCBoardLarge} /
- * {@link SOCBoard#BOARD_ENCODING_LARGE}, use these methods to update the player's board data
+ * {@link SOCBoardLarge#BOARD_ENCODING_LARGE}, use these methods to update the player's board data
  * after {@link SOCBoard#makeNewBoard(Map)}, in this order:
  *<UL>
  * <LI> {@link #getPlayerNumber()}.{@link SOCPlayerNumbers#setLandHexCoordinates(int[]) setLandHexCoordinates(int[])}

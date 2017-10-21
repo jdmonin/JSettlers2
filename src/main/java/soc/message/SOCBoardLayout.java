@@ -23,6 +23,7 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCBoard;
+import soc.game.Standard4p;
 
 
 /**
@@ -31,7 +32,7 @@ import soc.game.SOCBoard;
  * about any player's pieces on the board (see {@link SOCPutPiece PUTPIECE}).
  *<P>
  * This message sends the standard board layout for the original
- * 4-player game, {@link soc.game.SOCBoard#BOARD_ENCODING_ORIGINAL}.
+ * 4-player game, {@link Standard4p#BOARD_ENCODING_ORIGINAL}.
  * As of version 1.1.08 there are newer board layouts for game expansions
  * and 6-player extensions: See {@link SOCBoardLayout2 BOARDLAYOUT2}.
  *<P>

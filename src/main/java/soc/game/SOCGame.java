@@ -883,7 +883,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Is this game played on the {@link SOCBoardLarge} large board / sea board?
      * If true, our board's {@link SOCBoard#getBoardEncodingFormat()}
-     * must be {@link SOCBoard#BOARD_ENCODING_LARGE}.
+     * must be {@link SOCBoardLarge#BOARD_ENCODING_LARGE}.
      * When {@code hasSeaBoard}, {@link #getBoard()} can always be cast to {@link SOCBoardLarge}.
      *<P>
      * The 6-player extensions ({@link #maxPlayers} == 6) are orthogonal to {@code hasSeaBoard}
@@ -2404,7 +2404,7 @@ public class SOCGame implements Serializable, Cloneable
         throws IllegalStateException
     {
         final int bef = board.getBoardEncodingFormat();
-        if (bef < SOCBoard.BOARD_ENCODING_LARGE)
+        if (bef != SOCBoardLarge.BOARD_ENCODING_LARGE)
             throw new IllegalStateException("board encoding: " + bef);
 
         final int[] landHex = board.getLandHexCoords();
