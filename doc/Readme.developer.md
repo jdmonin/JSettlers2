@@ -807,19 +807,21 @@ When preparing to release a new version, testing should include:
         - Can win only on your own turn
     - Game reset voting, with: 1 human 2 bots, 2 humans 1 bot, 2 humans 0 bots:
       Humans can vote No to reject bots auto-vote Yes; test No and Yes
-    - Version compat testing
+    - Version compatibility testing
         - Other versions to use: **1.1.06** before Game Options; **1.1.11** with 6-player board and client bugfixes;
           latest **1.x.xx**; latest **2.0.xx**
         - New client, old server
         - New server, old client
-        - Some specific things to look for:
-            - (v1.x.xx) New-game options seen connecting to a 2.0.xx server should be same as a 1.x.xx server (adapts to client version)
-            - Create a 4-player game, a 6-player game; allow trading in one of them
-            - Create a 4-player game with no options (this uses a different message type)
-            - Lock a bot seat and game reset; make sure that works (seatlockstate changes between 1.x.xx and 2.0.xx)
+        - Test these specific things for each version:
+            - With a 1.x.xx client connected to a 2.0.xx server, available new-game options
+              should be the same as a 1.x.xx server (adapts to older client version)
+            - Create and start playing a 4-player game, and a 6-player game; allow trading in one of them
+            - In the 6-player game, request and use the Special Building Phase
+            - Create and start playing a 4-player game with no options (this uses a different message type)
+            - In any of those games, lock a bot seat and game reset; make sure that works (seatlockstate changes between 1.x.xx and 2.0.xx)
             - On a 2.0.xx server, have 2.0.xx client create game with a scenario (1.x.xx can't join),
-              1.x.xx client should see it in gamelist with "(cannot join)" prefix
-            - Have the 1.x.xx client quit & rejoin, should see in list with that same prefix
+              1.x.xx client should see it in gamelist with "(cannot join)" prefix.
+              Start another 1.x.xx client and connect, should see in list with that same prefix
     - Command line and jsserver.properties
         - Server and client: `-h` / `--help` / `-?`, `--version`
         - Server: Unknown args `-x -z` should print both, then not continue startup
