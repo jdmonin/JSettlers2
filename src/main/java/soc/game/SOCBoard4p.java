@@ -29,7 +29,7 @@ import java.util.Map;
  * concentric way
  * @since 3.0.00
  */
-public class Standard4p extends SOCBoard
+public class SOCBoard4p extends SOCBoard
 {
     private static final long serialVersionUID = 3000L;  // last structural change v3.0.00
 
@@ -62,7 +62,8 @@ public class Standard4p extends SOCBoard
             WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
             WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX };
     /**
-     * Dice numbers in the original 4-player board layout, in order along {@code numPath} ({@link Standard4p#makeNewBoard_numPaths_v1}).
+     * Dice numbers in the original 4-player board layout, in order along {@code numPath}
+     * ({@link SOCBoard4p#makeNewBoard_numPaths_v1}).
      * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
      * @since 2.0.00
      */
@@ -72,7 +73,7 @@ public class Standard4p extends SOCBoard
     /**
      * largest coordinate value for an edge, in the v1 encoding.
      * Named <tt>MAXEDGE</tt> before v1.1.11 ; the name change is a
-     * reminder that {@link Standard6p#MAXEDGE_V2} represents a different encoding.
+     * reminder that {@link SOCBoard6p#MAXEDGE_V2} represents a different encoding.
      * @since 1.1.11
      */
     protected static final int MAXEDGE_V1 = 0xCC;
@@ -80,7 +81,7 @@ public class Standard4p extends SOCBoard
     /**
      * smallest coordinate value for an edge, in the v1 encoding.
      * Named <tt>MINEDGE</tt> before v1.1.11 ; the name change is a
-     * reminder that {@link Standard6p#MINEDGE_V2} has a different value.
+     * reminder that {@link SOCBoard6p#MINEDGE_V2} has a different value.
      * @since 1.1.11
      */
     protected static final int MINEDGE_V1 = 0x22;
@@ -88,7 +89,7 @@ public class Standard4p extends SOCBoard
     /**
      * smallest coordinate value for a node on land, in the v1 encoding.
      * Named <tt>MINNODE</tt> before v1.1.11 ; the name change is a
-     * reminder that {@link Standard6p#MINNODE_V2} has a different value.
+     * reminder that {@link SOCBoard6p#MINNODE_V2} has a different value.
      * @since 1.1.11
      */
     protected static final int MINNODE_V1 = 0x23;
@@ -116,7 +117,7 @@ public class Standard4p extends SOCBoard
 
     /**
      * Each port's 2 node coordinates on standard board.
-     * Same order as {@link Standard4p#PORTS_FACING_V1}:
+     * Same order as {@link SOCBoard4p#PORTS_FACING_V1}:
      * Clockwise from upper-left (hex coordinate 0x17).
      * @since 1.1.08
      */
@@ -181,7 +182,7 @@ public class Standard4p extends SOCBoard
         }
     };
 
-    public Standard4p(final Map<String, SOCGameOption> gameOpts)
+    public SOCBoard4p(final Map<String, SOCGameOption> gameOpts)
     {
         super(gameOpts, 4, BOARD_ENCODING_ORIGINAL);
 
@@ -193,25 +194,25 @@ public class Standard4p extends SOCBoard
     @Override
     public int[] getPortsFacing()
     {
-        return Standard4p.PORTS_FACING_V1;
+        return SOCBoard4p.PORTS_FACING_V1;
     }
 
     @Override
     public int[] getPortsEdges()
     {
-        return Standard4p.PORTS_EDGE_V1;
+        return SOCBoard4p.PORTS_EDGE_V1;
     }
 
     @Override
     public int[] getLandHexCoords()
     {
-        return Standard4p.HEXCOORDS_LAND_V1;
+        return SOCBoard4p.HEXCOORDS_LAND_V1;
     }
 
     @Override
     public int getPortsCount()
     {
-        return Standard4p.PORTS_FACING_V1.length;
+        return SOCBoard4p.PORTS_FACING_V1.length;
     }
 
 }

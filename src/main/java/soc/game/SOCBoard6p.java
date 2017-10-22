@@ -28,7 +28,7 @@ import java.util.Map;
  * The standard (non-sea) board layout for the 6-player extension.
  * @since 3.0.00
  */
-public class Standard6p extends SOCBoard
+public class SOCBoard6p extends SOCBoard
 {
     private static final long serialVersionUID = 3000L;  // last structural change v3.0.00
 
@@ -53,6 +53,7 @@ public class Standard6p extends SOCBoard
         0x93, 0x95, 0x97, 0x99, 0x9B,
         0xB5, 0xB7, 0xB9, 0xBB       // Last diagonal row (NE from 0xB5)
     };
+
     /**
      * Land hex types on the 6-player board layout (v2).
      * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
@@ -67,8 +68,10 @@ public class Standard6p extends SOCBoard
             SOCBoard.DESERT_HEX, SOCBoard.CLAY_HEX, SOCBoard.CLAY_HEX, SOCBoard.ORE_HEX, SOCBoard.ORE_HEX, SOCBoard.SHEEP_HEX, SOCBoard.SHEEP_HEX,
             SOCBoard.WHEAT_HEX, SOCBoard.WHEAT_HEX, SOCBoard.WOOD_HEX, SOCBoard.WOOD_HEX
         };
+
     /**
-     * Dice numbers in the 6-player board layout, in order along {@code numPath} ({@link Standard6p#makeNewBoard_numPaths_v2}).
+     * Dice numbers in the 6-player board layout, in order along {@code numPath}
+     * ({@link SOCBoard6p#makeNewBoard_numPaths_v2}).
      * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
      * @since 2.0.00
      */
@@ -116,7 +119,7 @@ public class Standard6p extends SOCBoard
     /**
      * Each port's edge coordinate on the 6-player board.
      * This is the edge whose 2 end nodes can be used to build port settlements/cities.
-     * Same order as {@link Standard6p#PORTS_FACING_V2}:
+     * Same order as {@link SOCBoard6p#PORTS_FACING_V2}:
      * Clockwise from upper-left (hex coordinate 0x17, which is land in the V2 layout).
      * @since 1.1.08
      */
@@ -176,7 +179,7 @@ public class Standard6p extends SOCBoard
         }
     };
 
-    public Standard6p(final Map<String, SOCGameOption> gameOpts)
+    public SOCBoard6p(final Map<String, SOCGameOption> gameOpts)
         throws IllegalArgumentException
     {
         super(gameOpts, 6, BOARD_ENCODING_6PLAYER);
@@ -189,24 +192,24 @@ public class Standard6p extends SOCBoard
     @Override
     public int[] getPortsFacing()
     {
-        return Standard6p.PORTS_FACING_V2;
+        return SOCBoard6p.PORTS_FACING_V2;
     }
 
     @Override
     public int[] getPortsEdges()
     {
-        return Standard6p.PORTS_EDGE_V2;
+        return SOCBoard6p.PORTS_EDGE_V2;
     }
 
     @Override
     public int[] getLandHexCoords()
     {
-        return Standard6p.HEXCOORDS_LAND_V2;
+        return SOCBoard6p.HEXCOORDS_LAND_V2;
     }
 
     @Override
     public int getPortsCount()
     {
-        return Standard6p.PORTS_FACING_V2.length;
+        return SOCBoard6p.PORTS_FACING_V2.length;
     }
 }

@@ -289,7 +289,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     //   to look for other places you may need to check for the new constant
 
     /**
-     * 4-player original format (v1) used with {@link Standard4p} for {@link #getBoardEncodingFormat()}:
+     * 4-player original format (v1) used with {@link SOCBoard4p} for {@link #getBoardEncodingFormat()}:
      * Hexadecimal 0x00 to 0xFF along 2 diagonal axes.
      * Coordinate range on each axis is 0 to 15 decimal.<BR>
      * The two axes' ranges in hex:<pre>
@@ -303,7 +303,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     public static final int BOARD_ENCODING_ORIGINAL = 1;
 
     /**
-     * 6-player format (v2) used with {@link Standard6p} for {@link #getBoardEncodingFormat()}:
+     * 6-player format (v2) used with {@link SOCBoard6p} for {@link #getBoardEncodingFormat()}:
      * Land hexes are same encoding as {@link #BOARD_ENCODING_ORIGINAL}.
      * Land starts 1 extra hex west of standard board,
      * and has an extra row of land at north and south end.
@@ -553,8 +553,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *
      * @see #hexIDtoNum
      * @see #nodesOnLand
-     * @see Standard4p#HEXCOORDS_LAND_V1
-     * @see Standard6p#HEXCOORDS_LAND_V2
+     * @see SOCBoard4p#HEXCOORDS_LAND_V1
+     * @see SOCBoard6p#HEXCOORDS_LAND_V2
      * @see #getLandHexCoords()
      */
     private int[] numToHexID =
@@ -864,15 +864,15 @@ public abstract class SOCBoard implements Serializable, Cloneable
         // sets robberHex, contents of hexLayout[] and numberLayout[].
         // Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
         {
-            final int[] landHex = is6player ? Standard6p.makeNewBoard_landHexTypes_v2 : Standard4p.makeNewBoard_landHexTypes_v1;
-            final int[][] numPaths = is6player ? Standard6p.makeNewBoard_numPaths_v2 : Standard4p.makeNewBoard_numPaths_v1;
+            final int[] landHex = is6player ? SOCBoard6p.makeNewBoard_landHexTypes_v2 : SOCBoard4p.makeNewBoard_landHexTypes_v1;
+            final int[][] numPaths = is6player ? SOCBoard6p.makeNewBoard_numPaths_v2 : SOCBoard4p.makeNewBoard_numPaths_v1;
             final int[] numPath = numPaths[ Math.abs(rand.nextInt() % numPaths.length) ];
-            final int[] numbers = is6player ? Standard6p.makeNewBoard_diceNums_v2 : Standard4p.makeNewBoard_diceNums_v1;
+            final int[] numbers = is6player ? SOCBoard6p.makeNewBoard_diceNums_v2 : SOCBoard4p.makeNewBoard_diceNums_v1;
             makeNewBoard_placeHexes(landHex, numPath, numbers, opt_breakClumps);
         }
 
         // copy and shuffle the ports, and check vs game option BC
-        final int[] portTypes = (is6player) ? Standard6p.PORTS_TYPE_V2 : Standard4p.PORTS_TYPE_V1;
+        final int[] portTypes = (is6player) ? SOCBoard6p.PORTS_TYPE_V2 : SOCBoard4p.PORTS_TYPE_V1;
         int[] portHex = new int[portTypes.length];
         System.arraycopy(portTypes, 0, portHex, 0, portTypes.length);
         makeNewBoard_shufflePorts(portHex, opt_breakClumps);
@@ -884,18 +884,18 @@ public abstract class SOCBoard implements Serializable, Cloneable
         nodeIDtoPortType = new HashMap<Integer,Integer>();
         if (is6player)
         {
-            for (int i = 0; i < Standard6p.PORTS_FACING_V2.length; ++i)
+            for (int i = 0; i < SOCBoard6p.PORTS_FACING_V2.length; ++i)
             {
                 final int ptype = portHex[i];
-                final int[] nodes = getAdjacentNodesToEdge_arr(Standard6p.PORTS_EDGE_V2[i]);
-                placePort(ptype, -1, Standard6p.PORTS_FACING_V2[i], nodes[0], nodes[1]);
+                final int[] nodes = getAdjacentNodesToEdge_arr(SOCBoard6p.PORTS_EDGE_V2[i]);
+                placePort(ptype, -1, SOCBoard6p.PORTS_FACING_V2[i], nodes[0], nodes[1]);
             }
         } else {
-            for (int i = 0; i < Standard4p.PORTS_FACING_V1.length; ++i)
+            for (int i = 0; i < SOCBoard4p.PORTS_FACING_V1.length; ++i)
             {
                 final int ptype = portHex[i];
-                final int[] nodes = getAdjacentNodesToEdge_arr(Standard4p.PORTS_EDGE_V1[i]);
-                placePort(ptype, Standard4p.PORTS_HEXNUM_V1[i], Standard4p.PORTS_FACING_V1[i], nodes[0], nodes[1]);
+                final int[] nodes = getAdjacentNodesToEdge_arr(SOCBoard4p.PORTS_EDGE_V1[i]);
+                placePort(ptype, SOCBoard4p.PORTS_HEXNUM_V1[i], SOCBoard4p.PORTS_FACING_V1[i], nodes[0], nodes[1]);
             }
         }
 
@@ -1594,11 +1594,11 @@ public abstract class SOCBoard implements Serializable, Cloneable
         else
             nodeIDtoPortType.clear();
 
-        for (int i = 0; i < Standard4p.PORTS_FACING_V1.length; ++i)
+        for (int i = 0; i < SOCBoard4p.PORTS_FACING_V1.length; ++i)
         {
-            final int hexnum = Standard4p.PORTS_HEXNUM_V1[i];
+            final int hexnum = SOCBoard4p.PORTS_HEXNUM_V1[i];
             final int ptype = getPortTypeFromHexType(hexLayout[hexnum]);
-            final int[] nodes = getAdjacentNodesToEdge_arr(Standard4p.PORTS_EDGE_V1[i]);
+            final int[] nodes = getAdjacentNodesToEdge_arr(SOCBoard4p.PORTS_EDGE_V1[i]);
             placePort(ptype, -1, -1, nodes[0], nodes[1]);
         }
     }
@@ -1606,7 +1606,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * On the 6-player (v2 layout) board, each port's type, such as {@link #SHEEP_PORT}.
      * (In the standard board (v1), these are part of {@link #hexLayout} instead.)
-     * Same order as {@link Standard6p#PORTS_FACING_V2}: Clockwise from upper-left.
+     * Same order as {@link SOCBoard6p#PORTS_FACING_V2}: Clockwise from upper-left.
      *<P>
      * <b>Note:</b> The v3 layout ({@link #BOARD_ENCODING_LARGE}) stores more information
      * within the port layout array.  If you call this method, be sure
@@ -1629,11 +1629,11 @@ public abstract class SOCBoard implements Serializable, Cloneable
             ports[i].removeAllElements();
 
         // Place the new ports
-        for (int i = 0; i < Standard6p.PORTS_FACING_V2.length; ++i)
+        for (int i = 0; i < SOCBoard6p.PORTS_FACING_V2.length; ++i)
         {
             final int ptype = portTypes[i];
-            final int[] nodes = getAdjacentNodesToEdge_arr(Standard6p.PORTS_EDGE_V2[i]);
-            placePort(ptype, -1, Standard6p.PORTS_FACING_V2[i], nodes[0], nodes[1]);
+            final int[] nodes = getAdjacentNodesToEdge_arr(SOCBoard6p.PORTS_EDGE_V2[i]);
+            placePort(ptype, -1, SOCBoard6p.PORTS_FACING_V2[i], nodes[0], nodes[1]);
         }
 
         // The v3 layout overrides this method in SOCBoardLarge.
@@ -2074,8 +2074,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * Adjacent node coordinates to an edge, within valid range to be on the board.
      *<P>
-     * For v1 and v2 encoding, this range is {@link Standard4p#MINNODE_V1} to {@link #MAXNODE},
-     *   or {@link Standard6p#MINNODE_V2} to {@link #MAXNODE}.
+     * For v1 and v2 encoding, this range is {@link SOCBoard4p#MINNODE_V1} to {@link #MAXNODE},
+     *   or {@link SOCBoard6p#MINNODE_V2} to {@link #MAXNODE}.
      * For v3 encoding, nodes are around all valid land or water hexes,
      *   and the board size is {@link #getBoardHeight()} x {@link #getBoardHeight()}.
      * @return the nodes that touch this edge, as a Vector of Integer coordinates
@@ -2094,7 +2094,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
     /**
      * Adjacent node coordinates to an edge.
-     * Does not check against range {@link Standard4p#MINNODE_V1} to {@link #MAXNODE},
+     * Does not check against range {@link SOCBoard4p#MINNODE_V1} to {@link #MAXNODE},
      * so nodes in the water (off the land board) may be returned.
      * @param coord  Edge coordinate; not checked for validity
      * @return the nodes that touch this edge, as an array of 2 integer coordinates
@@ -3243,9 +3243,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
             if (! largeBoard)
             {
                 if (maxPlayers == 6)
-                    return new Standard6p(gameOpts);
+                    return new SOCBoard6p(gameOpts);
                 else
-                    return new Standard4p(gameOpts);
+                    return new SOCBoard4p(gameOpts);
             } else {
                 return new SOCBoardLarge(gameOpts, maxPlayers);
             }

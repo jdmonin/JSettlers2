@@ -77,7 +77,7 @@ public class SOCPlayerNumbers
     private Hashtable<Integer, Vector<IntPair>> numberAndResourceForHex;
 
     /**
-     * Reference to either {@link Standard4p#HEXCOORDS_LAND_V1} or {@link Standard6p#HEXCOORDS_LAND_V2}.
+     * Reference to either {@link SOCBoard4p#HEXCOORDS_LAND_V1} or {@link SOCBoard6p#HEXCOORDS_LAND_V2}.
      * Hex coordinates for each land hex on the board, via {@link SOCBoard#getLandHexCoords()}.
      * In {@link SOCBoard#BOARD_ENCODING_LARGE}, if the game hasn't yet called
      * {@link SOCBoard#makeNewBoard(Map)}, this may be {@code null}.
