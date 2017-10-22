@@ -903,9 +903,11 @@ new stable versions.  Most work on 1.x.xx is backported from 2.0; changeset
 comments often mention a hash from a master commit.  Version 2.0.00 was
 split off right after releasing version 1.1.13.
 
-Once 2.0.00 is out, we'll follow the usual jsettlers model:
-There are no branches, because jsettlers2 is mature at this point.
-Each minor release is a stable release, there is no experimental branch.
+v3 is the experimental branch with major architectural changes.
+
+Once 2.0.00 is out, we'll follow the usual jsettlers model: Because
+jsettlers2.x.xx is mature at this point, Each minor release is a
+stable release.
 
 Each release's files are tagged for the release ("release-1.1.14").
 The last commit for the release updates VERSIONS.txt with the final build number,
