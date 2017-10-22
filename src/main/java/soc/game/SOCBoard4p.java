@@ -34,14 +34,6 @@ public class SOCBoard4p extends SOCBoard
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
-     * Each port's type, such as {@link #SHEEP_PORT}, on standard board.
-     * Same order as {@link #PORTS_FACING_V1}. {@link #MISC_PORT} is 0.
-     * @since 1.1.08
-     */
-    public final static int[] PORTS_TYPE_V1 = {
-        0, 0, 0, 0, CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT };
-
-    /**
      * Land-hex coordinates in standard board ({@link #BOARD_ENCODING_ORIGINAL}).
      * @since 1.1.08
      */
@@ -50,6 +42,7 @@ public class SOCBoard4p extends SOCBoard
         0x33, 0x35, 0x37, 0x53, 0x55, 0x57, 0x59, 0x73, 0x75, 0x77, 0x79, 0x7B,
         0x95, 0x97, 0x99, 0x9B, 0xB7, 0xB9, 0xBB
     };
+
     /**
      * Land hex types on the original 4-player board layout (v1).
      * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
@@ -61,9 +54,10 @@ public class SOCBoard4p extends SOCBoard
             SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
             WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
             WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX };
+
     /**
      * Dice numbers in the original 4-player board layout, in order along {@code numPath}
-     * ({@link SOCBoard4p#makeNewBoard_numPaths_v1}).
+     * ({@link #makeNewBoard_numPaths_v1}).
      * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
      * @since 2.0.00
      */
@@ -95,6 +89,14 @@ public class SOCBoard4p extends SOCBoard
     protected static final int MINNODE_V1 = 0x23;
 
     /**
+     * Each port's type, such as {@link #SHEEP_PORT}, on standard board.
+     * Same order as {@link #PORTS_FACING_V1}. {@link #MISC_PORT} is 0.
+     * @since 1.1.08
+     */
+    public final static int[] PORTS_TYPE_V1 =
+        { 0, 0, 0, 0, CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT };
+
+    /**
      * Each port's hex number within {@link #hexLayout} on standard board.
      * Same order as {@link #PORTS_FACING_V1}:
      * Clockwise from upper-left (hex coordinate 0x17).
@@ -117,7 +119,7 @@ public class SOCBoard4p extends SOCBoard
 
     /**
      * Each port's 2 node coordinates on standard board.
-     * Same order as {@link SOCBoard4p#PORTS_FACING_V1}:
+     * Same order as {@link #PORTS_FACING_V1}:
      * Clockwise from upper-left (hex coordinate 0x17).
      * @since 1.1.08
      */
