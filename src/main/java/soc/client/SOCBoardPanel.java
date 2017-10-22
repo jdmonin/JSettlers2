@@ -35,7 +35,6 @@ import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCVillage;
-import soc.game.Standard6p;
 import soc.message.SOCSimpleRequest;  // to request simple things from the server without defining a lot of methods
 import soc.util.SOCStringManager;
 
@@ -688,7 +687,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * The board is configured for 6-player layout (and is {@link #isRotated});
      * set in constructor by checking {@link SOCBoard#getBoardEncodingFormat()}
-     * &lt;= {@link Standard6p#BOARD_ENCODING_6PLAYER} and {@link SOCGame#maxPlayers} &gt; 4.
+     * &lt;= {@link SOCBoard#BOARD_ENCODING_6PLAYER} and {@link SOCGame#maxPlayers} &gt; 4.
      *<P>
      * The entire coordinate system is land, except the rightmost hexes are unused
      * (7D-DD-D7 row).
@@ -1386,13 +1385,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         board = game.getBoard();
         isScaled = false;
         scaledMissedImage = false;
-        if (board.getBoardEncodingFormat() == SOCBoardLarge.BOARD_ENCODING_LARGE)
+        final int bef = board.getBoardEncodingFormat();
+        if (bef == SOCBoard.BOARD_ENCODING_LARGE)
         {
             is6player = false;
             isLargeBoard = true;
             isRotated = isScaledOrRotated = false;
         } else {
-            is6player = (board.getBoardEncodingFormat() == Standard6p.BOARD_ENCODING_6PLAYER)
+            is6player = (bef == SOCBoard.BOARD_ENCODING_6PLAYER)
                 || (game.maxPlayers > 4);
             isLargeBoard = false;
             isRotated = isScaledOrRotated = is6player;
@@ -6688,7 +6688,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * because {@link #hexes} is static for all boards and all game options.
      * @param c  Our component, to load image resource files with getToolkit and getResource
      * @param wantsRotated  True for the 6-player non-sea board
-     *          (v2 encoding {@link Standard6p#BOARD_ENCODING_6PLAYER}), false otherwise.
+     *          (v2 encoding {@link SOCBoard#BOARD_ENCODING_6PLAYER}), false otherwise.
      *          The large board (v3 encoding)'s fog-hex and gold-hex images have no rotated version,
      *          because that board layout is never rotated.
      */

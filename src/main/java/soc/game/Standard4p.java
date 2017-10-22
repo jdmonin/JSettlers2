@@ -42,18 +42,6 @@ public class Standard4p extends SOCBoard
         0, 0, 0, 0, CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT };
 
     /**
-     * 4-player original format (v1) for {@link #getBoardEncodingFormat()}:
-     * Hexadecimal 0x00 to 0xFF along 2 diagonal axes.
-     * Coordinate range on each axis is 0 to 15 decimal. In hex:<pre>
-     *   Hexes: 11 to DD
-     *   Nodes: 01 or 10, to FE or EF
-     *   Edges: 00 to EE </pre>
-     *<P>
-     * See the Dissertation PDF for details.
-     * @since 1.1.06
-     */
-    public static final int BOARD_ENCODING_ORIGINAL = 1;
-    /**
      * Land-hex coordinates in standard board ({@link #BOARD_ENCODING_ORIGINAL}).
      * @since 1.1.08
      */
@@ -195,16 +183,11 @@ public class Standard4p extends SOCBoard
 
     public Standard4p(final Map<String, SOCGameOption> gameOpts)
     {
-        super(gameOpts, 4);
+        super(gameOpts, 4, BOARD_ENCODING_ORIGINAL);
+
         minEdge = MINEDGE_V1;
         maxEdge = MAXEDGE_V1;
         minNode = MINNODE_V1;
-    }
-
-    @Override
-    public int getBoardEncodingFormat()
-    {
-        return BOARD_ENCODING_ORIGINAL;
     }
 
     @Override

@@ -57,7 +57,7 @@ import soc.util.IntTriple;
  *<P>
  * Sea board layout: A representation of a larger (up to 127 x 127 hexes) JSettlers board,
  * with an arbitrary mix of land and water tiles.
- * Implements {@link SOCBoardLarge#BOARD_ENCODING_LARGE}.
+ * Implements {@link SOCBoard#BOARD_ENCODING_LARGE}.
  * Activated with {@link SOCGameOption} {@code "SBL"}.
  *<P>
  * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering

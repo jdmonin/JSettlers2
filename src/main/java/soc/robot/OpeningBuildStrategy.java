@@ -904,8 +904,8 @@ public class OpeningBuildStrategy {
 
             // look at each hex
             final int bef = board.getBoardEncodingFormat();
-            if (bef == Standard6p.BOARD_ENCODING_6PLAYER ||
-                bef == Standard4p.BOARD_ENCODING_ORIGINAL)
+            if (bef == SOCBoard.BOARD_ENCODING_6PLAYER ||
+                bef == SOCBoard.BOARD_ENCODING_ORIGINAL)
             {
                 // v1 or v2 encoding
                 final int L = board.getNumberLayout().length;

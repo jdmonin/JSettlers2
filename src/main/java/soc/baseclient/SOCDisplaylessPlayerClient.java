@@ -42,7 +42,6 @@ import soc.game.SOCShip;
 import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
-import soc.game.Standard6p;
 
 import soc.message.*;
 
@@ -1140,7 +1139,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         SOCBoard bd = ga.getBoard();
         final int bef = mes.getBoardEncodingFormat();
-        if (bef == SOCBoardLarge.BOARD_ENCODING_LARGE)
+        if (bef == SOCBoard.BOARD_ENCODING_LARGE)
         {
             // v3
             ((SOCBoardLarge) bd).setLandHexLayout(mes.getIntArrayPart("LH"));
@@ -1171,7 +1170,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if (others != null)
                 ((SOCBoardLarge) bd).setAddedLayoutParts(others);
         }
-        else if (bef <= Standard6p.BOARD_ENCODING_6PLAYER)
+        else if (bef <= SOCBoard.BOARD_ENCODING_6PLAYER)
         {
             // v1 or v2
             bd.setHexLayout(mes.getIntArrayPart("HL"));

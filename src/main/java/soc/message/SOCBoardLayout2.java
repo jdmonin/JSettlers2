@@ -28,8 +28,6 @@ import java.util.StringTokenizer;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;  // for javadocs
 import soc.game.SOCScenario;    // for javadocs
-import soc.game.Standard4p;     // for javadocs
-import soc.game.Standard6p;     // for javadocs
 
 
 /**
@@ -178,12 +176,12 @@ public class SOCBoardLayout2 extends SOCMessage
 
     /**
      * Create a SOCBoardLayout2 message for encoding format v1 or v2; see class javadoc for parameters' meanings.
-     * ({@link Standard4p#BOARD_ENCODING_ORIGINAL} or {@link Standard6p#BOARD_ENCODING_6PLAYER}.)
+     * ({@link SOCBoard#BOARD_ENCODING_ORIGINAL} or {@link SOCBoard#BOARD_ENCODING_6PLAYER}.)
      *
      * @param ga   the name of the game
      * @param bef  the board encoding format number, from {@link SOCBoard#getBoardEncodingFormat()}
      * @param hl   the hex layout; not mapped yet, so the constructor will map it from the
-     *               {@link soc.game.SOCBoard#getHexLayout()} value range
+     *               {@link SOCBoard#getHexLayout()} value range
      *               to the BOARDLAYOUT2 message's value range.
      * @param nl   the number layout
      * @param pl   the port layout, or null
@@ -222,7 +220,7 @@ public class SOCBoardLayout2 extends SOCMessage
 
     /**
      * Create a SOCBoardLayout2 message for encoding format v3.
-     * ({@link SOCBoardLarge}, {@link SOCBoardLarge#BOARD_ENCODING_LARGE}.)
+     * ({@link SOCBoardLarge}, {@link SOCBoard#BOARD_ENCODING_LARGE}.)
      *
      * @param ga   the name of the game
      * @param bef  the board encoding format number, from {@link SOCBoard#getBoardEncodingFormat()}

@@ -41,21 +41,6 @@ public class Standard6p extends SOCBoard
         { 0, 0, 0, 0, SOCBoard.CLAY_PORT, SOCBoard.ORE_PORT, SOCBoard.SHEEP_PORT, SOCBoard.WHEAT_PORT, SOCBoard.WOOD_PORT, SOCBoard.MISC_PORT, SOCBoard.SHEEP_PORT };
 
     /**
-     * 6-player format (v2) for {@link #getBoardEncodingFormat()}:
-     * Land hexes are same encoding as {@link Standard4p#BOARD_ENCODING_ORIGINAL}.
-     * Land starts 1 extra hex west of standard board,
-     * and has an extra row of land at north and south end.
-     *<P>
-     * Ports are not part of {@link #hexLayout} because their
-     * coordinates wouldn't fit within 2 hex digits.
-     * Instead, see {@link #getPortTypeFromNodeCoord(int)},
-     *   {@link #getPortsEdges()}, {@link #getPortsFacing()},
-     *   {@link #getPortCoordinates(int)} or {@link #getPortsLayout()}.
-     * @since 1.1.08
-     */
-    public static final int BOARD_ENCODING_6PLAYER = 2;
-
-    /**
      * Land-hex coordinates in 6-player board ({@link #BOARD_ENCODING_6PLAYER}).
      * @since 1.1.08.
      */
@@ -191,19 +176,14 @@ public class Standard6p extends SOCBoard
         }
     };
 
-    protected Standard6p(final Map<String, SOCGameOption> gameOpts)
+    public Standard6p(final Map<String, SOCGameOption> gameOpts)
         throws IllegalArgumentException
     {
-        super(gameOpts, 6);
+        super(gameOpts, 6, BOARD_ENCODING_6PLAYER);
+
         minEdge = MINEDGE_V2;
         maxEdge = MAXEDGE_V2;
         minNode = MINNODE_V2;
-    }
-
-    @Override
-    public int getBoardEncodingFormat()
-    {
-        return BOARD_ENCODING_6PLAYER;
     }
 
     @Override

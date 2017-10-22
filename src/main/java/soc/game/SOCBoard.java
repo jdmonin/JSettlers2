@@ -30,8 +30,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 
-import static soc.game.Standard6p.BOARD_ENCODING_6PLAYER;
-
 
 /**
  * This is a representation of the board in Settlers of Catan.
@@ -139,8 +137,8 @@ import static soc.game.Standard6p.BOARD_ENCODING_6PLAYER;
  * share the same grid of coordinates.
  * Each hex is 2 units wide, in a 2-D coordinate system.
  *<P>
- * Current coordinate encodings: v1 ({@link Standard4p#BOARD_ENCODING_ORIGINAL}),
- *   v2 ({@link Standard6p#BOARD_ENCODING_6PLAYER}), v3 ({@link SOCBoardLarge#BOARD_ENCODING_LARGE}).
+ * Current coordinate encodings: v1 ({@link #BOARD_ENCODING_ORIGINAL}),
+ *   v2 ({@link #BOARD_ENCODING_6PLAYER}), v3 ({@link #BOARD_ENCODING_LARGE}).
  *<P>
  * <b>On the 4-player board:</b> See <tt>src/docs/hexcoord.gif</tt><br>
  * Coordinates start with hex (1,1) on the far west, and go to (D,D) on the east.
@@ -161,7 +159,7 @@ import static soc.game.Standard6p.BOARD_ENCODING_6PLAYER;
  * hex (B,B) is the southernmost land hex.  The ring of water hexes are outside
  * this coordinate grid.
  *<P>
- * For the large sea board (encoding v3: {@link SOCBoardLarge#BOARD_ENCODING_LARGE}), see subclass {@link SOCBoardLarge}.
+ * For the large sea board (encoding v3: {@link #BOARD_ENCODING_LARGE}), see subclass {@link SOCBoardLarge}.
  * Remember that ship pieces extend the {@link SOCRoad} class.
  * Most methods of {@link SOCBoard}, {@link SOCGame} and {@link SOCPlayer} differentiate them
  * ({@link SOCPlayer#hasPotentialRoad()} vs {@link SOCPlayer#hasPotentialShip()}),
@@ -291,8 +289,54 @@ public abstract class SOCBoard implements Serializable, Cloneable
     //   to look for other places you may need to check for the new constant
 
     /**
+     * 4-player original format (v1) used with {@link Standard4p} for {@link #getBoardEncodingFormat()}:
+     * Hexadecimal 0x00 to 0xFF along 2 diagonal axes.
+     * Coordinate range on each axis is 0 to 15 decimal; in hex:<pre>
+     *   Hexes: 11 to DD
+     *   Nodes: 01 or 10, to FE or EF
+     *   Edges: 00 to EE </pre>
+     *<P>
+     * See the Dissertation PDF for details.
+     * @since 1.1.06
+     */
+    public static final int BOARD_ENCODING_ORIGINAL = 1;
+
+    /**
+     * 6-player format (v2) used with {@link Standard6p} for {@link #getBoardEncodingFormat()}:
+     * Land hexes are same encoding as {@link #BOARD_ENCODING_ORIGINAL}.
+     * Land starts 1 extra hex west of standard board,
+     * and has an extra row of land at north and south end.
+     *<P>
+     * Ports are not part of {@link #hexLayout} because their
+     * coordinates wouldn't fit within 2 hex digits.
+     * Instead, see {@link #getPortTypeFromNodeCoord(int)},
+     *   {@link #getPortsEdges()}, {@link #getPortsFacing()},
+     *   {@link #getPortCoordinates(int)} or {@link #getPortsLayout()}.
+     * @since 1.1.08
+     */
+    public static final int BOARD_ENCODING_6PLAYER = 2;
+
+    /**
+     * Sea board format (v3) used with {@link SOCBoardLarge} for {@link #getBoardEncodingFormat()}:
+     * Allows up to 127 x 127 board with an arbitrary mix of land and water tiles.
+     * Land, water, and port locations/facings are no longer hardcoded.
+     * Use {@link #getPortsCount()} to get the number of ports.
+     * For other port information, use the same methods as in {@link #BOARD_ENCODING_6PLAYER}.
+     *<P>
+     * Activated with {@link SOCGameOption} {@code "SBL"}.
+     * @since 2.0.00
+     */
+    public static final int BOARD_ENCODING_LARGE = 3;
+
+    /**
+     * Largest value of {@link #getBoardEncodingFormat()} supported in this version.
+     * @since 1.1.08
+     */
+    public static final int MAX_BOARD_ENCODING = 3;
+
+    /**
      * Maximum valid coordinate value; size of board in coordinates (not in number of hexes across).
-     * Default size per BOARD_ENCODING_ORIGINAL is: <pre>
+     * Default size per {@link #BOARD_ENCODING_ORIGINAL} is: <pre>
      *   Hexes: 11 to DD
      *   Nodes: 01 or 10, to FE or EF
      *   Edges: 00 to EE </pre>
@@ -304,10 +348,38 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * Minimum and maximum edge and node coordinates in this board's encoding.
      * ({@link #MAXNODE} is the same in the v1 and v2 current encodings.)
-     * Not used in v3 ({@link SOCBoardLarge#BOARD_ENCODING_LARGE}).
+     * Not used in v3 ({@link #BOARD_ENCODING_LARGE}).
      * @since 1.1.08
      */
     protected int minNode, minEdge, maxEdge;
+
+    /**
+     * The encoding format of board coordinates,
+     * or {@link #BOARD_ENCODING_ORIGINAL} (default, original).
+     * The board size determines the required encoding format.
+     *<UL>
+     *<LI> 1 - Original format: hexadecimal 0x00 to 0xFF.
+     *       Coordinate range is 0 to 15 (in decimal).
+     *       Port types and facings encoded within {@link #hexLayout}.
+     *<LI> 2 - 6-player board, variant of original format: hexadecimal 0x00 to 0xFF.
+     *       Coordinate range is 0 to 15 (in decimal).
+     *       Port types stored in {@link #portsLayout}.
+     *       Added in 1.1.08.
+     *<LI> 3 - Large board ({@link #BOARD_ENCODING_LARGE}).
+     *       Coordinate range for rows,columns is each 0 to 255 decimal,
+     *       or altogether 0x0000 to 0xFFFF hex.
+     *       Arbitrary mix of land and water tiles.
+     *       Added in 2.0.00, implemented in {@link SOCBoardLarge}.
+     *       Activated with {@link SOCGameOption} <tt>"SBL"</tt>.
+     *</UL>
+     * @since 1.1.06
+     */
+    protected final int boardEncodingFormat;
+
+    /**
+     * Board Encoding fields end here
+     * ------------------------------------------------------------------------------------
+     */
 
     /**
      * largest coordinate value for a hex, in the current encoding.
@@ -334,9 +406,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *<P>
      * <b>Key to the hexLayout[] values:</b>
      *<br>
-     * Note that hexLayout contains ports only for the v1 encoding ({@link Standard4p#BOARD_ENCODING_ORIGINAL});
+     * Note that hexLayout contains ports only for the v1 encoding ({@link #BOARD_ENCODING_ORIGINAL});
      * v2 and v3 use {@link #portsLayout} instead, and hexLayout contains only water and the land
-     * hex types.  The v3 encoding ({@link SOCBoardLarge#BOARD_ENCODING_LARGE}) doesn't use {@code hexLayout} at all,
+     * hex types.  The v3 encoding ({@link #BOARD_ENCODING_LARGE}) doesn't use {@code hexLayout} at all,
      * instead it has a 2-dimensional {@code hexLayoutLg} structure.
        <pre>
        0 : water   {@link #WATER_HEX} (was 6 before v2.0.00)
@@ -378,8 +450,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
             /\/\
       4 &lt;--.    .--> 3  </pre>
      *<P>
-     *  For board encoding formats {@link Standard4p#BOARD_ENCODING_ORIGINAL} and
-     *  {@link Standard6p#BOARD_ENCODING_6PLAYER}, hexLayout indexes are arranged
+     *  For board encoding formats {@link #BOARD_ENCODING_ORIGINAL} and
+     *  {@link #BOARD_ENCODING_6PLAYER}, hexLayout indexes are arranged
      *  this way per {@link #numToHexID}: <pre>
        0   1   2   3
 
@@ -423,9 +495,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *
      *<LI> v2: On the 6-player (v2 layout) board, each port's type.
      * Same value range as in {@link #hexLayout}.
-     * 1 element per port. Same ordering as {@link Standard6p#PORTS_FACING_V2}.
+     * 1 element per port. Same ordering as {@link #PORTS_FACING_V2}.
      *
-     *<LI> v3: {@link SOCBoardLarge#BOARD_ENCODING_LARGE} stores more information
+     *<LI> v3: {@link #BOARD_ENCODING_LARGE} stores more information
      * within the port layout array.  <em>n</em> = {@link #getPortsCount()}.
      * The port types are stored at the beginning, from index 0 to <em>n</em> - 1.
      * The next <em>n</em> indexes store each port's edge coordinate.
@@ -456,7 +528,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *  The robber hex is 0.  Water hexes are -1.
      *<P>
      *  Used in the v1 and v2 encodings (ORIGINAL, 6PLAYER).
-     *  The v3 encoding ({@link SOCBoardLarge#BOARD_ENCODING_LARGE}) doesn't use this array,
+     *  The v3 encoding ({@link #BOARD_ENCODING_LARGE}) doesn't use this array,
      *  instead it uses {@link SOCBoardLarge#numberLayoutLg}.
      */
     private int[] numberLayout =
@@ -469,11 +541,11 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /** Hex coordinates ("IDs") of each hex number ("hex number" means index within
      *  {@link #hexLayout}).
      *<UL>
-     *<LI> {@link Standard4p#BOARD_ENCODING_ORIGINAL}:  The hexes in here are the board's land hexes and also
+     *<LI> {@link #BOARD_ENCODING_ORIGINAL}:  The hexes in here are the board's land hexes and also
      *     the surrounding ring of water/port hexes.
-     *<LI> {@link Standard6p#BOARD_ENCODING_6PLAYER}:  The hexes in here are the board's land hexes and also
+     *<LI> {@link #BOARD_ENCODING_6PLAYER}:  The hexes in here are the board's land hexes and also
      *     the unused hexes (rightmost column: 7D - DD - D7).
-     *<LI> {@link SOCBoardLarge#BOARD_ENCODING_LARGE}: Does not use numToHexID or hexLayout; hex coordinate == hex number.
+     *<LI> {@link #BOARD_ENCODING_LARGE}: Does not use numToHexID or hexLayout; hex coordinate == hex number.
      *</UL>
      *
      * The hex coordinate layout given here can also be seen in RST's dissertation figure A.1.
@@ -620,15 +692,26 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *<P>
      * Most likely you should also call {@link #setBoardBounds(int, int)}.
      *
+     * @param boardEncodingFmt  A format constant in the currently valid range:
+     *         Must be >= {@link #BOARD_ENCODING_ORIGINAL} and &lt;= {@link #MAX_BOARD_ENCODING}.
      * @since 2.0.00
      * @throws IllegalArgumentException if <tt>boardEncodingFmt</tt> is out of range
      */
     @SuppressWarnings("unchecked")
-    protected SOCBoard()
+    protected SOCBoard(final int boardEncodingFmt)
+        throws IllegalArgumentException
     {
+        if ((boardEncodingFmt < 1) || (boardEncodingFmt > MAX_BOARD_ENCODING))
+            throw new IllegalArgumentException(Integer.toString(boardEncodingFmt));
+
+        boardEncodingFormat = boardEncodingFmt;
+
         // Reminder: Most field initialization is done at its declaration
         // (robberHex, prevRobberHex, roads, settlements, cities)
 
+        /**
+         * initialize the port vector array
+         */
         ports[MISC_PORT] = new Vector<Integer>(8);
         for (int i = CLAY_PORT; i <= WOOD_PORT; i++)
             ports[i] = new Vector<Integer>(2);
@@ -639,13 +722,15 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * (For the v3 encoding, instead use a {@link SOCBoardLarge} constructor.)
      * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6. (Added in 1.1.08)
+     * @param boardEncodingFmt  A format constant in the currently valid range:
+     *         Must be >= {@link #BOARD_ENCODING_ORIGINAL} and &lt;= {@link #MAX_BOARD_ENCODING}.
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
      * @see BoardFactory#createBoard(Map, boolean, int)
      */
-    protected SOCBoard(Map<String, SOCGameOption> gameOpts, final int maxPlayers)
+    protected SOCBoard(Map<String, SOCGameOption> gameOpts, final int maxPlayers, final int boardEncodingFmt)
         throws IllegalArgumentException
     {
-        this();
+        this(boardEncodingFmt);
 
         if ((maxPlayers != 4) && (maxPlayers != 6))
             throw new IllegalArgumentException("maxPlayers: " + maxPlayers);
@@ -685,7 +770,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      */
     private void initNodesOnLand()
     {
-        final boolean is6player = (getBoardEncodingFormat() == BOARD_ENCODING_6PLAYER);
+        final boolean is6player = (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
 
         nodesOnLand = new HashSet<Integer>();
 
@@ -765,7 +850,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      */
     public void makeNewBoard(final Map<String, SOCGameOption> opts)
     {
-        final boolean is6player = (getBoardEncodingFormat() == BOARD_ENCODING_6PLAYER);
+        final boolean is6player = (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
 
         final SOCGameOption opt_breakClumps = (opts != null ? opts.get("BC") : null);
 
@@ -1183,7 +1268,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * Adds the 2 nodes to {@link #ports}<tt>[ptype]</tt>.
      * @param ptype Port type; in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
      * @param hex  Hex number (index) within {@link #hexLayout}, or -1 if
-     *           {@link Standard6p#BOARD_ENCODING_6PLAYER} or if you don't want to change
+     *           {@link #BOARD_ENCODING_6PLAYER} or if you don't want to change
      *           <tt>hexLayout[hex]</tt>'s value.
      * @param face Facing of port towards land; 1 to 6 ({@link #FACING_NE} to {@link #FACING_NW}).
      *           Ignored if <tt>hex == -1</tt>.
@@ -1236,7 +1321,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
         // 6-player starts land 1 extra hex (2 edges) west of standard board,
         // and has an extra row of land hexes at north and south end.
         final boolean is6player =
-            (getBoardEncodingFormat() == BOARD_ENCODING_6PLAYER);
+            (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
         final int westAdj = (is6player) ? 0x22 : 0x00;
 
         HashSet<Integer> legalRoads = new HashSet<Integer>(97);  // 4-pl board 72 roads; load factor 0.75
@@ -1325,7 +1410,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *     Please treat the returned array as read-only.
      * @see #getLandHexCoords()
      * @throws UnsupportedOperationException if the board encoding doesn't support this method;
-     *     the v1 and v2 encodings do, but v3 ({@link SOCBoardLarge#BOARD_ENCODING_LARGE}) does not.
+     *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      */
     public int[] getHexLayout()
         throws UnsupportedOperationException
@@ -1377,12 +1462,12 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
     /**
      * The dice-number layout of dice rolls at each hex number.
-     * Valid for the v1 and v2 encodings, not v3 ({@link SOCBoardLarge#BOARD_ENCODING_LARGE}).
+     * Valid for the v1 and v2 encodings, not v3 ({@link #BOARD_ENCODING_LARGE}).
      * For v3, call {@link #getLandHexCoords()} and {@link #getNumberOnHexFromCoord(int)} instead.
      * @return the number layout; each element is valued 2-12.
      *     The robber hex is 0.  Water hexes are -1.
      * @throws UnsupportedOperationException if the board encoding doesn't support this method;
-     *     the v1 and v2 encodings do, but v3 ({@link SOCBoardLarge#BOARD_ENCODING_LARGE}) does not.
+     *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      */
     public int[] getNumberLayout()
         throws UnsupportedOperationException
@@ -1397,7 +1482,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * Same order as {@link #getPortsFacing()}: Clockwise from upper-left.
      * The number of ports is {@link #getPortsCount()}.
      *<P>
-     * <b>Note:</b> The v3 layout ({@link SOCBoardLarge#BOARD_ENCODING_LARGE}) stores more information
+     * <b>Note:</b> The v3 layout ({@link #BOARD_ENCODING_LARGE}) stores more information
      * within the port layout array.  The port types are stored at the beginning, from index
      * 0 to {@link #getPortsCount()}-1.  If you call {@link #setPortsLayout(int[])}, be sure
      * to give it the entire array returned from here.
@@ -1474,10 +1559,10 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * set the hexLayout.
      *
      * @param hl  the hex layout.
-     *   For {@link Standard4p#BOARD_ENCODING_ORIGINAL}: if <tt>hl[0]</tt> is {@link #WATER_HEX},
+     *   For {@link #BOARD_ENCODING_ORIGINAL}: if <tt>hl[0]</tt> is {@link #WATER_HEX},
      *    the board is assumed empty and ports arrays won't be filled.
      * @throws UnsupportedOperationException if the board encoding doesn't support this method;
-     *     the v1 and v2 encodings do, but v3 ({@link SOCBoardLarge#BOARD_ENCODING_LARGE}) does not.
+     *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      */
     public void setHexLayout(int[] hl)
         throws UnsupportedOperationException
@@ -1495,7 +1580,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
         /**
          * fill in the port node information, if it's part of the hex layout
          */
-        if (getBoardEncodingFormat() != Standard4p.BOARD_ENCODING_ORIGINAL)
+        if (boardEncodingFormat != BOARD_ENCODING_ORIGINAL)
             return;  // <---- port nodes are outside the hex layout ----
 
         if (nodeIDtoPortType == null)
@@ -1517,7 +1602,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * (In the standard board (v1), these are part of {@link #hexLayout} instead.)
      * Same order as {@link Standard6p#PORTS_FACING_V2}: Clockwise from upper-left.
      *<P>
-     * <b>Note:</b> The v3 layout ({@link SOCBoardLarge#BOARD_ENCODING_LARGE}) stores more information
+     * <b>Note:</b> The v3 layout ({@link #BOARD_ENCODING_LARGE}) stores more information
      * within the port layout array.  If you call this method, be sure
      * you are giving all information returned by {@link #getPortsLayout()}, not just the
      * port types.
@@ -1550,7 +1635,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
     /**
      * Given a hex type, return the port type.
-     * Used in {@link Standard4p#BOARD_ENCODING_ORIGINAL}
+     * Used in {@link #BOARD_ENCODING_ORIGINAL}
      * to set up port info in {@link #setHexLayout(int[])}.
      * @return the type of port given a hex type;
      *         in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
@@ -1578,12 +1663,12 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
     /**
      * Set the number layout.
-     * Valid for the v1 and v2 encodings, not v3 ({@link SOCBoardLarge#BOARD_ENCODING_LARGE}).
+     * Valid for the v1 and v2 encodings, not v3 ({@link #BOARD_ENCODING_LARGE}).
      * For v3, call {@link SOCBoardLarge#setLandHexLayout(int[])} instead.
      *
      * @param nl  the number layout, from {@link #getNumberLayout()}
      * @throws UnsupportedOperationException if the board encoding doesn't support this method;
-     *     the v1 and v2 encodings do, but v3 ({@link SOCBoardLarge#BOARD_ENCODING_LARGE}) does not.
+     *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      */
     public void setNumberLayout(int[] nl)
         throws UnsupportedOperationException
@@ -1616,7 +1701,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * Get the number of ports on this board.  The original and 6-player
      * board layouts each have a constant number of ports.  The v3 layout
-     * ({@link SOCBoardLarge#BOARD_ENCODING_LARGE}) has a varying amount of ports,
+     * ({@link #BOARD_ENCODING_LARGE}) has a varying amount of ports,
      * set during {@link #makeNewBoard(Map)}.
      *
      * @return the number of ports on this board; might be 0 if
@@ -1744,7 +1829,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @see #getHexTypeFromCoord(int)
      * @since 1.1.08
      * @throws UnsupportedOperationException if the board encoding doesn't support this method;
-     *     the v1 and v2 encodings do, but v3 ({@link SOCBoardLarge#BOARD_ENCODING_LARGE}) does not.
+     *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      */
     public int getHexNumFromCoord(final int hexCoord)
         throws UnsupportedOperationException
@@ -1915,7 +2000,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * Width of this board in coordinates (not in number of hexes across.)
      * The maximum column coordinate.
-     * For the default size, see {@link Standard4p#BOARD_ENCODING_ORIGINAL}.
+     * For the default size, see {@link #BOARD_ENCODING_ORIGINAL}.
      * @since 1.1.06
      */
     public int getBoardWidth()
@@ -1926,7 +2011,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * Height of this board in coordinates (not in number of hexes across.)
      * The maximum row coordinate.
-     * For the default size, see {@link Standard4p#BOARD_ENCODING_ORIGINAL}.
+     * For the default size, see {@link #BOARD_ENCODING_ORIGINAL}.
      * @since 1.1.06
      */
     public int getBoardHeight()
@@ -1951,22 +2036,24 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * Get the encoding format of this board (for coordinates, etc).
      * The board size determines the required encoding format.
+     *<P>
+     * See the encoding constants' javadocs for more documentation:
      *<UL>
      * <LI> v1 - Original format: hexadecimal 0x00 to 0xFF.
-     *       {@link Standard4p#BOARD_ENCODING_ORIGINAL}
+     *       {@link #BOARD_ENCODING_ORIGINAL}<BR>
      *       Coordinate range is 0 to 15 (in decimal).
      *       Port types and facings encoded within {@link #hexLayout}.
      * <LI> v2 - 6-player board, variant of original format: hexadecimal 0x00 to 0xFF.
-     *       {@link Standard6p#BOARD_ENCODING_6PLAYER}
+     *       {@link #BOARD_ENCODING_6PLAYER}<BR>
      *       Coordinate range is 0 to 15 (in decimal).
-     *       Port types stored in {@link #portsLayout}.
+     *       Port types stored in {@link #portsLayout}.<BR>
      *       Added in 1.1.08.
-     * <LI> v3 - Large board ({@link SOCBoardLarge#BOARD_ENCODING_LARGE}).
-     *       {@link SOCBoardLarge#BOARD_ENCODING_LARGE}
+     * <LI> v3 - Large sea board ({@link SOCBoardLarge}).
+     *       {@link #BOARD_ENCODING_LARGE}<BR>
      *       Coordinate range for rows,columns is each 0 to 255 decimal,
      *       or altogether 0x0000 to 0xFFFF hex.
-     *       Arbitrary mix of land and water tiles.
-     *       Added in 2.0.00, implemented in {@link SOCBoardLarge}.
+     *       Arbitrary mix of land and water tiles.<BR>
+     *       Added in 2.0.00.
      *       Activated with {@link SOCGameOption} <tt>"SBL"</tt>.
      *</UL>
      * @return board coordinate-encoding format, from the list above
@@ -1975,7 +2062,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      */
     public int getBoardEncodingFormat()
     {
-        throw new UnsupportedOperationException(); // implemented in derived classes
+        return boardEncodingFormat;
     }
 
     /**
@@ -3116,7 +3203,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
          * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
          * @param gameOpts  game's options if any, otherwise null
          * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding
-         *     {@link SOCBoardLarge#BOARD_ENCODING_LARGE BOARD_ENCODING_LARGE})
+         *     {@link SOCBoard#BOARD_ENCODING_LARGE BOARD_ENCODING_LARGE})
          * @param maxPlayers Maximum players; must be 4 or 6.
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */

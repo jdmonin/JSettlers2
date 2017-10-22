@@ -36,7 +36,7 @@ import soc.util.IntPair;
 /**
  * Sea board layout: A representation of a larger (up to 127 x 127 hexes) JSettlers board,
  * with an arbitrary mix of land and water tiles.
- * Implements {@link SOCBoardLarge#BOARD_ENCODING_LARGE}.
+ * Implements {@link SOCBoard#BOARD_ENCODING_LARGE}.
  * Activated with {@link SOCGameOption} {@code "SBL"}.
  * For the board layout geometry, see the "Coordinate System" section here.
  *<P>
@@ -226,24 +226,6 @@ public class SOCBoardLarge extends SOCBoard
 {
     /** SOCBoardLarge serial, to suppress warning. SOCBoardLarge isn't sent over the network as a serialized object. */
     private static final long serialVersionUID = 3000L;
-
-    /**
-     * Sea board format (v3) used with {@link SOCBoardLarge} for {@link #getBoardEncodingFormat()}:
-     * Allows up to 127 x 127 board with an arbitrary mix of land and water tiles.
-     * Land, water, and port locations/facings are no longer hardcoded.
-     * Use {@link #getPortsCount()} to get the number of ports.
-     * For other port information, use the same methods as in {@link Standard6p#BOARD_ENCODING_6PLAYER}.
-     *<P>
-     * Activated with {@link SOCGameOption} {@code "SBL"}.
-     * @since 2.0.00
-     */
-    public static final int BOARD_ENCODING_LARGE = 3;
-
-    /**
-     * This board encoding {@link SOCBoardLarge#BOARD_ENCODING_LARGE}
-     * was introduced in version 2.0.00 (2000)
-     */
-    public static final int VERSION_FOR_ENCODING_LARGE = 2000;
 
     /**
      * Hex type for the Gold Hex, where the adjacent players
@@ -687,7 +669,7 @@ public class SOCBoardLarge extends SOCBoard
         (final Map<String,SOCGameOption> gameOpts, final int maxPlayers, final IntPair boardHeightWidth)
         throws IllegalArgumentException
     {
-        super();
+        super(BOARD_ENCODING_LARGE);
 
         if ((maxPlayers != 4) && (maxPlayers != 6))
             throw new IllegalArgumentException("maxPlayers: " + maxPlayers);
