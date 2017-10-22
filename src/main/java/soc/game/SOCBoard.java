@@ -1340,10 +1340,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @return land hex coordinates, in no particular order, or null if none (all water).
      * @since 1.1.08
      */
-    public int[] getLandHexCoords()
-    {
-        throw new UnsupportedOperationException(); // implemented in derived classes
-    }
+    public abstract int[] getLandHexCoords();
 
     /**
      * Is this the coordinate of a land hex (not water)?
@@ -1427,10 +1424,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @see #getPortsEdges()
      * @since 1.1.08
      */
-    public int[] getPortsFacing()
-    {
-        throw new UnsupportedOperationException(); // implemented in derived classes
-    }
+    public abstract int[] getPortsFacing();
 
     /**
      * Each port's edge coordinate.
@@ -1450,10 +1444,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @see #getPortCoordinates(int)
      * @since 1.1.08
      */
-    public int[] getPortsEdges()
-    {
-        throw new UnsupportedOperationException(); // implemented in derived classes
-    }
+    public abstract int[] getPortsEdges();
 
     /**
      * @return coordinate where the robber is, or -1 if not on the board
@@ -1631,10 +1622,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *   {@link #makeNewBoard(Map)} hasn't been called yet.
      * @since 2.0.00
      */
-    public int getPortsCount()
-    {
-        throw new UnsupportedOperationException(); // implemented in derived classes
-    }
+    public abstract int getPortsCount();
 
     /**
      * @return the list of node coordinates for a type of port;
