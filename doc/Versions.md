@@ -11,6 +11,10 @@ Right after `1.1.13` the main development branch became `2.0.00`, with a
 stable branch for further `1.x.xx` version releases to bring out bugfixes
 and backport minor new features until `2.0.00` is ready.
 
+## `3.0.00` (build JX201xxxxx)
+- Experimental features: protobuf
+- Major refactoring: Board layouts, game data types, etc, thanks to Ruud Poutsma
+
 ## `2.0.00` (build JM2017xxxx)
 - Large board (sea board) support
 - Game Scenario and special-rules support
