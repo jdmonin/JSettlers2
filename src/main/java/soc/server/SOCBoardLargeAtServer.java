@@ -4689,8 +4689,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         {
             if (! largeBoard)
             {
-                DefaultBoardFactory factory = new DefaultBoardFactory();
-                return factory.createBoard(gameOpts, false, maxPlayers);
+                return DefaultBoardFactory.staticCreateBoard(gameOpts, false, maxPlayers);
             } else {
                 // Check board size, set _BHW if not default.
                 final int boardHeightWidth = getBoardSize(gameOpts, maxPlayers);

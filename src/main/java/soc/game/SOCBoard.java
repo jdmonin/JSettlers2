@@ -3135,6 +3135,30 @@ public abstract class SOCBoard implements Serializable, Cloneable
     {
         /**
          * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
+         * Static for fallback access from other factory implementations.
+         *
+         * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
+         * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
+         * @param maxPlayers Maximum players; must be 4 or 6.
+         * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
+         */
+        public static SOCBoard staticCreateBoard
+            (final Map<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
+            throws IllegalArgumentException
+        {
+            if (! largeBoard)
+            {
+                if (maxPlayers == 6)
+                    return new Standard6p(gameOpts);
+                else
+                    return new Standard4p(gameOpts);
+            } else {
+                return new SOCBoardLarge(gameOpts, maxPlayers);
+            }
+        }
+
+        /**
+         * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
          *<P>
          * From v1.1.11 through all 1.x.xx, this was SOCBoard.createBoard.  Moved to new factory class in 2.0.00.
          *
@@ -3147,16 +3171,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
             (final Map<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
             throws IllegalArgumentException
         {
-            if (!largeBoard) {
-                if (maxPlayers == 6) {
-                    return new Standard6p(gameOpts);
-                } else {
-                    return new Standard4p(gameOpts);
-                }
-            }
-            else {
-                return new SOCBoardLarge(gameOpts, maxPlayers);
-            }
+            return staticCreateBoard(gameOpts, largeBoard, maxPlayers);
         }
 
     }  // nested class DefaultBoardFactory
