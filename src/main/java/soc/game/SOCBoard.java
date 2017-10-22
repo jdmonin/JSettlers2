@@ -291,7 +291,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * 4-player original format (v1) used with {@link Standard4p} for {@link #getBoardEncodingFormat()}:
      * Hexadecimal 0x00 to 0xFF along 2 diagonal axes.
-     * Coordinate range on each axis is 0 to 15 decimal; in hex:<pre>
+     * Coordinate range on each axis is 0 to 15 decimal.<BR>
+     * The two axes' ranges in hex:<pre>
      *   Hexes: 11 to DD
      *   Nodes: 01 or 10, to FE or EF
      *   Edges: 00 to EE </pre>
@@ -630,12 +631,14 @@ public abstract class SOCBoard implements Serializable, Cloneable
     private int prevRobberHex = -1;
 
     /**
-     * Maximum hex type value for the robber; can be used for array sizing.
+     * Maximum land hex type value for the robber; can be used for array sizing.
      * Same value range as {@link #getHexTypeFromCoord(int)} for the current board encoding.
+     * ({@link #BOARD_ENCODING_LARGE adds values {@link SOCBoardLarge#GOLD_HEX}
+     * and {@link SOCBoardLarge#FOG_HEX}, for example.)
      * @see SOCGame#canMoveRobber(int, int)
      * @since 2.0.00
      */
-    public final int max_robber_hextype = MAX_LAND_HEX;
+    public final int max_robber_hextype;
 
     /**
      * where the ports of each type are; coordinates per port type.
@@ -647,7 +650,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @see #getPortsEdges()
      */
     @SuppressWarnings("unchecked")
-    protected Vector<Integer>[] ports = new Vector[6];  // 1 per resource type, MISC_PORT to WOOD_PORT;
+    protected Vector<Integer>[] ports = new Vector[6];  // 1 per resource type, MISC_PORT to WOOD_PORT
 
     /**
      * roads on the board; Vector of SOCPlayingPiece.
@@ -694,17 +697,20 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *
      * @param boardEncodingFmt  A format constant in the currently valid range:
      *         Must be >= {@link #BOARD_ENCODING_ORIGINAL} and &lt;= {@link #MAX_BOARD_ENCODING}.
+     * @param maxRobberHextype  Maximum land hextype value, or maximum hex type
+     *         the robber can be placed at.  Same value range as {@link #max_robber_hextype}
+     *         and as your subclass's {@link #getHexTypeFromCoord(int)} method.
      * @since 2.0.00
      * @throws IllegalArgumentException if <tt>boardEncodingFmt</tt> is out of range
      */
-    @SuppressWarnings("unchecked")
-    protected SOCBoard(final int boardEncodingFmt)
+    protected SOCBoard(final int boardEncodingFmt, final int maxRobberHextype)
         throws IllegalArgumentException
     {
         if ((boardEncodingFmt < 1) || (boardEncodingFmt > MAX_BOARD_ENCODING))
             throw new IllegalArgumentException(Integer.toString(boardEncodingFmt));
 
         boardEncodingFormat = boardEncodingFmt;
+        max_robber_hextype = maxRobberHextype;
 
         // Reminder: Most field initialization is done at its declaration
         // (robberHex, prevRobberHex, roads, settlements, cities)
@@ -730,7 +736,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     protected SOCBoard(Map<String, SOCGameOption> gameOpts, final int maxPlayers, final int boardEncodingFmt)
         throws IllegalArgumentException
     {
-        this(boardEncodingFmt);
+        this(boardEncodingFmt, MAX_LAND_HEX);
 
         if ((maxPlayers != 4) && (maxPlayers != 6))
             throw new IllegalArgumentException("maxPlayers: " + maxPlayers);

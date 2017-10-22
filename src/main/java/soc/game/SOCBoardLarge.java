@@ -246,7 +246,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Hex type for the Fog Hex, with actual type revealed when roads or ships are placed.
      * Used with some scenarios (see {@link SOCGameOption#K_SC_FOG}).
-     * Bots should treat this as {@link SOCBoard#DESERT_HEX DESERT_HEX} until revealed.
+     * Bots can treat this as {@link SOCBoard#DESERT_HEX DESERT_HEX} until revealed.
      *<P>
      * To simplify the bot, client, and network, hexes can be hidden only at the server during
      * {@link #makeNewBoard(Map)} before the board layout is finished and sent to the client.
@@ -669,7 +669,7 @@ public class SOCBoardLarge extends SOCBoard
         (final Map<String,SOCGameOption> gameOpts, final int maxPlayers, final IntPair boardHeightWidth)
         throws IllegalArgumentException
     {
-        super(BOARD_ENCODING_LARGE);
+        super(BOARD_ENCODING_LARGE, MAX_LAND_HEX_LG);
 
         if ((maxPlayers != 4) && (maxPlayers != 6))
             throw new IllegalArgumentException("maxPlayers: " + maxPlayers);

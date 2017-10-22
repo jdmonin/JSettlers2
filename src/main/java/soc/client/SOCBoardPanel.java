@@ -1360,7 +1360,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *  Values are determined the first time the
      *  robber is ghosted on that type of tile.
      *
-     *  Index ranges from 0 to SOCBoard.MAX_ROBBER_HEX.
+     *  Index ranges from 0 to {@link SOCBoard#max_robber_hextype}.
      *
      *  @see soc.client.ColorSquare
      *  @see #drawRobber(Graphics, int, boolean, boolean)
