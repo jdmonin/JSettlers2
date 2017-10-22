@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2011-2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2014,2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -149,7 +149,13 @@ public class SOCPlayerNumbers
         throws IllegalArgumentException
     {
         final int boardEncodingFormat = board.getBoardEncodingFormat();
-        hasSeaBoard = boardEncodingFormat == SOCBoardLarge.BOARD_ENCODING_LARGE;
+        if ((boardEncodingFormat < Standard4p.BOARD_ENCODING_ORIGINAL)
+            || (boardEncodingFormat > SOCBoardLarge.BOARD_ENCODING_LARGE))
+        {
+            throw new IllegalArgumentException("boardEncodingFormat: " + boardEncodingFormat);
+        }
+
+        hasSeaBoard = (boardEncodingFormat == SOCBoardLarge.BOARD_ENCODING_LARGE);
         landHexCoords = board.getLandHexCoords();
         //   landHexCoords might be null for BOARD_ENCODING_LARGE
         //   if the layout isn't yet created in SOCBoardLarge.makeNewBoard.

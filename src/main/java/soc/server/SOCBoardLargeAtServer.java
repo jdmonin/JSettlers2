@@ -32,7 +32,20 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.Vector;
 
-import soc.game.*;
+import soc.game.SOCBoard;
+import soc.game.SOCBoardLarge;
+import soc.game.SOCDevCardConstants;
+import soc.game.SOCFortress;
+import soc.game.SOCGame;
+import soc.game.SOCGameOption;
+import soc.game.SOCPlayer;
+import soc.game.SOCScenario;
+import soc.game.SOCSettlement;
+import soc.game.SOCShip;
+import soc.game.SOCVillage;
+import soc.game.SOCBoard.BoardFactory;
+import soc.game.Standard4p;
+import soc.game.Standard6p;
 import soc.util.IntPair;
 import soc.util.IntTriple;
 

@@ -25,7 +25,11 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import soc.game.*;
+import soc.game.SOCBoard;
+import soc.game.SOCBoardLarge;  // for javadocs
+import soc.game.SOCScenario;    // for javadocs
+import soc.game.Standard4p;     // for javadocs
+import soc.game.Standard6p;     // for javadocs
 
 
 /**

@@ -23,7 +23,26 @@ package soc.baseclient;
 
 import soc.disableDebug.D;
 
-import soc.game.*;
+import soc.game.SOCBoard;
+import soc.game.SOCBoardLarge;
+import soc.game.SOCCity;
+import soc.game.SOCDevCardConstants;
+import soc.game.SOCFortress;
+import soc.game.SOCGame;
+import soc.game.SOCGameOption;
+import soc.game.SOCInventory;
+import soc.game.SOCInventoryItem;
+import soc.game.SOCPlayer;
+import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceConstants;
+import soc.game.SOCResourceSet;
+import soc.game.SOCRoad;
+import soc.game.SOCSettlement;
+import soc.game.SOCShip;
+import soc.game.SOCSpecialItem;
+import soc.game.SOCTradeOffer;
+import soc.game.SOCVillage;
+import soc.game.Standard6p;
 
 import soc.message.*;
 

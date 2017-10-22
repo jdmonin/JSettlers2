@@ -2398,7 +2398,7 @@ public class SOCGame implements Serializable, Cloneable
      * {@link SOCPlayerNumbers} knows them already.
      *
      * @since 2.0.00
-     * @throws IllegalStateException if the board has the v1 or v2 encoding
+     * @throws IllegalStateException if the board doesn't have the v3 encoding
      */
     public void setPlayersLandHexCoordinates()
         throws IllegalStateException

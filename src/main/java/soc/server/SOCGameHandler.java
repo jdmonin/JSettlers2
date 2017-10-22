@@ -2711,6 +2711,7 @@ public class SOCGameHandler extends GameHandler
         if (bef == Standard6p.BOARD_ENCODING_6PLAYER ||
             bef == Standard4p.BOARD_ENCODING_ORIGINAL)
         {
+            // v1 or v2
             hexes = board.getHexLayout();
             numbers = board.getNumberLayout();
         } else {

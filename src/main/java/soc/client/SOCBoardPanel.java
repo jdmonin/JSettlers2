@@ -22,7 +22,20 @@
  **/
 package soc.client;
 
-import soc.game.*;
+import soc.game.SOCBoard;
+import soc.game.SOCBoardLarge;
+import soc.game.SOCCity;
+import soc.game.SOCFortress;
+import soc.game.SOCGame;
+import soc.game.SOCGameOption;
+import soc.game.SOCInventoryItem;
+import soc.game.SOCPlayer;
+import soc.game.SOCPlayingPiece;
+import soc.game.SOCRoad;
+import soc.game.SOCSettlement;
+import soc.game.SOCShip;
+import soc.game.SOCVillage;
+import soc.game.Standard6p;
 import soc.message.SOCSimpleRequest;  // to request simple things from the server without defining a lot of methods
 import soc.util.SOCStringManager;
 
