@@ -77,9 +77,9 @@ public class SOCPlayerNumbers
     private Hashtable<Integer, Vector<IntPair>> numberAndResourceForHex;
 
     /**
-     * Reference to either {@link SOCBoard#HEXCOORDS_LAND_V1} or {@link SOCBoard#HEXCOORDS_LAND_V2}.
+     * Reference to either {@link Standard4p#HEXCOORDS_LAND_V1} or {@link Standard6p#HEXCOORDS_LAND_V2}.
      * Hex coordinates for each land hex on the board, via {@link SOCBoard#getLandHexCoords()}.
-     * In {@link SOCBoard#BOARD_ENCODING_LARGE}, if the game hasn't yet called
+     * In {@link SOCBoardLarge#BOARD_ENCODING_LARGE}, if the game hasn't yet called
      * {@link SOCBoard#makeNewBoard(Map)}, this may be {@code null}.
      * @since 1.1.08
      */
@@ -88,7 +88,7 @@ public class SOCPlayerNumbers
     /**
      * Is this game played on the {@link SOCBoardLarge} large board / sea board?
      * If true, the board's {@link SOCBoard#getBoardEncodingFormat()}
-     * must be {@link SOCBoard#BOARD_ENCODING_LARGE}.
+     * must be {@link SOCBoardLarge#BOARD_ENCODING_LARGE}.
      *<P>
      * When <tt>hasSeaBoard</tt>, {@link SOCBoardLarge#GOLD_HEX} is tracked.
      * When false, it's ignored because the same numeric value in the previous
@@ -134,7 +134,7 @@ public class SOCPlayerNumbers
     /**
      * the constructor for a player's dice-resource numbers.
      *<P>
-     * If using {@link SOCBoard#BOARD_ENCODING_LARGE}, and this is the start of
+     * If using {@link SOCBoardLarge#BOARD_ENCODING_LARGE}, and this is the start of
      * a game that hasn't yet created the layout:  The land hex coordinates
      * will need to be updated later when the board layout is created and sent;
      * call {@link #setLandHexCoordinates(int[])} at that time.
@@ -149,13 +149,7 @@ public class SOCPlayerNumbers
         throws IllegalArgumentException
     {
         final int boardEncodingFormat = board.getBoardEncodingFormat();
-        if ((boardEncodingFormat < SOCBoard.BOARD_ENCODING_ORIGINAL)
-            || (boardEncodingFormat > SOCBoard.BOARD_ENCODING_LARGE))
-        {
-            throw new IllegalArgumentException("boardEncodingFormat: " + boardEncodingFormat);
-        }
-
-        hasSeaBoard = (boardEncodingFormat == SOCBoard.BOARD_ENCODING_LARGE);
+        hasSeaBoard = boardEncodingFormat == SOCBoardLarge.BOARD_ENCODING_LARGE;
         landHexCoords = board.getLandHexCoords();
         //   landHexCoords might be null for BOARD_ENCODING_LARGE
         //   if the layout isn't yet created in SOCBoardLarge.makeNewBoard.
