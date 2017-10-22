@@ -225,7 +225,7 @@ import soc.util.IntPair;
 public class SOCBoardLarge extends SOCBoard
 {
     /** SOCBoardLarge serial, to suppress warning. SOCBoardLarge isn't sent over the network as a serialized object. */
-    private static final long serialVersionUID = 2000L;
+    private static final long serialVersionUID = 3000L;
 
     /**
      * Sea board format (v3) used with {@link SOCBoardLarge} for {@link #getBoardEncodingFormat()}:

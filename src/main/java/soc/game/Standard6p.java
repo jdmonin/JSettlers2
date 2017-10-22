@@ -1,8 +1,36 @@
+/**
+ * Java Settlers - An online multiplayer version of the game Settlers of Catan
+ * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
+ * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * The maintainer of this program can be reached at jsettlers@nand.net
+ **/
+
 package soc.game;
 
 import java.util.Map;
 
-public class Standard6p extends SOCBoard {
+/**
+ * The standard (non-sea) board layout for the 6-player extension.
+ * @since 3.0.00
+ */
+public class Standard6p extends SOCBoard
+{
+    private static final long serialVersionUID = 3000L;  // last structural change v3.0.00
 
     /**
      * Each port's type, such as {@link #SHEEP_PORT}, on 6-player board.
@@ -163,7 +191,9 @@ public class Standard6p extends SOCBoard {
         }
     };
 
-    protected Standard6p(Map<String, SOCGameOption> gameOpts) throws IllegalArgumentException {
+    protected Standard6p(final Map<String, SOCGameOption> gameOpts)
+        throws IllegalArgumentException
+    {
         super(gameOpts, 6);
         minEdge = MINEDGE_V2;
         maxEdge = MAXEDGE_V2;

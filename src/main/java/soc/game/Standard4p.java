@@ -1,3 +1,25 @@
+/**
+ * Java Settlers - An online multiplayer version of the game Settlers of Catan
+ * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
+ * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * The maintainer of this program can be reached at jsettlers@nand.net
+ **/
+
 package soc.game;
 
 import java.util.Map;
@@ -5,8 +27,11 @@ import java.util.Map;
 /**
  * A standard 4p board with 19 land hexes and 18 sea hexes layed out in a
  * concentric way
+ * @since 3.0.00
  */
-public class Standard4p extends SOCBoard {
+public class Standard4p extends SOCBoard
+{
+    private static final long serialVersionUID = 3000L;  // last structural change v3.0.00
 
     /**
      * Each port's type, such as {@link #SHEEP_PORT}, on standard board.
@@ -168,7 +193,8 @@ public class Standard4p extends SOCBoard {
         }
     };
 
-    public Standard4p(Map<String, SOCGameOption> gameOpts) {
+    public Standard4p(final Map<String, SOCGameOption> gameOpts)
+    {
         super(gameOpts, 4);
         minEdge = MINEDGE_V1;
         maxEdge = MAXEDGE_V1;
