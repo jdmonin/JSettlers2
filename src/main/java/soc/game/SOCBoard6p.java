@@ -26,11 +26,11 @@ import java.util.Map;
 
 /**
  * The standard (non-sea) board layout for the 6-player extension.
- * @since 3.0.00
+ * @since 2.0.00
  */
 public class SOCBoard6p extends SOCBoard
 {
-    private static final long serialVersionUID = 3000L;  // last structural change v3.0.00
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
      * Each port's type, such as {@link #SHEEP_PORT}, on 6-player board.

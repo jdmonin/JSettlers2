@@ -27,11 +27,11 @@ import java.util.Map;
 /**
  * A standard 4p board with 19 land hexes and 18 sea hexes layed out in a
  * concentric way
- * @since 3.0.00
+ * @since 2.0.00
  */
 public class SOCBoard4p extends SOCBoard
 {
-    private static final long serialVersionUID = 3000L;  // last structural change v3.0.00
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
      * Each port's type, such as {@link #SHEEP_PORT}, on standard board.

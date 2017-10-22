@@ -176,7 +176,7 @@ import java.util.Vector;
  */
 public abstract class SOCBoard implements Serializable, Cloneable
 {
-    private static final long serialVersionUID = 3000L;  // last structural change v3.0.00
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     //
     // Hex types
@@ -621,7 +621,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * the hex coordinate that the robber is in, or -1; placed on desert in {@link #makeNewBoard(Map)}.
      * Once the robber is placed on the board, it cannot be removed (cannot become -1 again).
      */
-    private int robberHex = -1;  // Soon placed on desert, when makeNewBoard is called;
+    private int robberHex = -1;  // Soon placed on desert, when makeNewBoard is called
 
     /**
      * the previous hex coordinate that the robber is in; -1 unless
