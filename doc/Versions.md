@@ -13,9 +13,9 @@ and backport minor new features until `2.0.00` is ready.
 
 ## `3.0.00` (build JX201xxxxx)
 - Experimental features: protobuf
-- Major refactoring: Board layouts, game data types, etc, thanks to Ruud Poutsma
+- Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
-## `2.0.00` (build JM2017xxxx)
+## `2.0.00` (build JM2018xxxx)
 - Large board (sea board) support
 - Game Scenario and special-rules support
 - "House rules" dev card types (New game option `DH`)
@@ -48,6 +48,7 @@ and backport minor new features until `2.0.00` is ready.
 	- Example `soc.robot.sample3p.Sample3PBrain extending SOCRobotBrain`, `Sample3PClient extending SOCRobotClient`
 	- Some private SOCRobotClient fields made protected for use by bot developer 3rd-party subclasses
 - Java 5 features, including parameterized types (thank you Paul Bilnoski)
+- SOCBoard refactoring thanks to Ruud Poutsma
 - Major client refactoring (separate UI from network interface) thanks to Paul Bilnoski;
     Paul's UI split preserves the spirit and flow of the code, with a more logical layered structure.
 - Server inbound message handling refactored in collaboration with Alessandro D'Ottavio
