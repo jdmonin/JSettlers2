@@ -687,14 +687,14 @@ public class SOCBoardLarge extends SOCBoard
         (final Map<String,SOCGameOption> gameOpts, final int maxPlayers, final IntPair boardHeightWidth)
         throws IllegalArgumentException
     {
+        super();
+
         if ((maxPlayers != 4) && (maxPlayers != 6))
             throw new IllegalArgumentException("maxPlayers: " + maxPlayers);
         if (boardHeightWidth == null)
             throw new IllegalArgumentException("boardHeightWidth null");
 
         this.maxPlayers = maxPlayers;
-
-        initializePorts();
 
         final int bH = boardHeightWidth.a, bW = boardHeightWidth.b;
         setBoardBounds(bH, bW);

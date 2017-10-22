@@ -39,7 +39,7 @@ import static soc.game.Standard6p.BOARD_ENCODING_6PLAYER;
  * has some internal comments on structures, coordinates, layout and values.
  *<P>
  * Because some game variants may need different board layouts or features,
- * you may need a subclass of SOCBoard: Use
+ * you will need a subclass of SOCBoard: Use
  * {@link SOCBoard.BoardFactory#createBoard(Map, boolean, int)}
  * whenever you need to construct a new SOCBoard.
  *<P>
@@ -615,6 +615,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
     /**
      * Minimal super constructor for subclasses.
+     * Initializes common fields like {@link #ports} as empty structures,
+     * but does not set up layout-specific fields like {@link #portsLayout}.
      *<P>
      * Most likely you should also call {@link #setBoardBounds(int, int)}.
      *
@@ -624,10 +626,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
     @SuppressWarnings("unchecked")
     protected SOCBoard()
     {
-        initializePorts();
-    }
+        // Reminder: Most field initialization is done at its declaration
+        // (robberHex, prevRobberHex, roads, settlements, cities)
 
-    protected void initializePorts() {
         ports[MISC_PORT] = new Vector<Integer>(8);
         for (int i = CLAY_PORT; i <= WOOD_PORT; i++)
             ports[i] = new Vector<Integer>(2);
@@ -644,7 +645,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     protected SOCBoard(Map<String, SOCGameOption> gameOpts, final int maxPlayers)
         throws IllegalArgumentException
     {
-        initializePorts();
+        this();
 
         if ((maxPlayers != 4) && (maxPlayers != 6))
             throw new IllegalArgumentException("maxPlayers: " + maxPlayers);
