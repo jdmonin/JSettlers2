@@ -818,7 +818,8 @@ When preparing to release a new version, testing should include:
             - Create and start playing a 4-player game, and a 6-player game; allow trading in one of them
             - In the 6-player game, request and use the Special Building Phase
             - Create and start playing a 4-player game with no options (this uses a different message type)
-            - In any of those games, lock a bot seat and game reset; make sure that works (seatlockstate changes between 1.x.xx and 2.0.xx)
+            - In any of those games, lock a bot seat and game reset; make sure that works
+              (seatlockstate changes between 1.x.xx and 2.0.xx)
             - On a 2.0.xx server, have 2.0.xx client create game with a scenario (1.x.xx can't join),
               1.x.xx client should see it in gamelist with "(cannot join)" prefix.
               Start another 1.x.xx client and connect, should see in list with that same prefix
@@ -851,21 +852,21 @@ When preparing to release a new version, testing should include:
         - Test creating as old schema (before v1.2.00) and upgrading
             - Get the old schema SQL files you'll need from the git repo by using any pre-1.2.00 release tag, for example:
 
-                  git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1200.sql
+                  git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1120.sql
 
-            - Files for mysql: jsettlers-create-mysql.sql, jsettlers-tables.sql
-            - For postgres: jsettlers-create-postgres.sql, jsettlers-tables.sql, jsettlers-sec-postgres.sql
-            - For sqlite: Only jsettlers-tables.sql
-	    - Run DB setup scripts with instructions from the "Database Creation" section of [Database.md](Database.md)
-	      and beginning-of-file comments in jsettlers-create-mysql.sql or -postgres.sql
-	    - Run SOCServer with the old schema and property `-Djsettlers.accounts.admins=adm`;
-	      startup should print `Database schema upgrade is recommended`
-	    - Create an admin user named `adm` using: `java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880`
-	    - Run DB upgrade by running SOCServer with `-Djsettlers.db.upgrade_schema=Y` property
-	    - Run SOCServer as usual; startup should print `User database initialized`
-	    - Run JSettlers.jar; log in as `Adm` to test case-insensitive nicknames.  
-	      Make sure you can create a game, to test password encoding conversion.  
-	      Run the `*DBSETTINGS*` admin command to verify BCrypt password encoding is being used.
+              - Files for mysql: jsettlers-create-mysql.sql, jsettlers-tables.sql
+              - For postgres: jsettlers-create-postgres.sql, jsettlers-tables.sql, jsettlers-sec-postgres.sql
+              - For sqlite: Only jsettlers-tables.sql
+            - Run DB setup scripts with instructions from the "Database Creation" section of [Database.md](Database.md)
+              and beginning-of-file comments in jsettlers-create-mysql.sql or -postgres.sql
+            - Run SOCServer with the old schema and property `-Djsettlers.accounts.admins=adm`;
+              startup should print `Database schema upgrade is recommended`
+            - Create an admin user named `adm` using: `java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880`
+            - Run DB upgrade by running SOCServer with `-Djsettlers.db.upgrade_schema=Y` property
+            - Run SOCServer as usual; startup should print `User database initialized`
+            - Run JSettlers.jar; log in as `Adm` to test case-insensitive nicknames.  
+              Make sure you can create a game, to test password encoding conversion.  
+              Run the `*DBSETTINGS*` admin command to verify BCrypt password encoding is being used.
     - Other misc testing:
         - "Replace/Take Over" on lost connection:
             - Start a game at server with player client
@@ -884,7 +885,7 @@ When preparing to release a new version, testing should include:
     - SQLite database setup, from instructions in [Database.md](Database.md)
 - Instructions and Setup
     - [Readme.md](../Readme.md), `Readme.developer.md`, [Database.md](Database.md):
-      validate all URLs, including JDBC driver downloads
+      Validate all URLs, including JDBC driver downloads
     - Follow server setup instructions in [Readme.md](../Readme.md)
     - Set up a new DB: Covered above in "Platform-specific"
 
