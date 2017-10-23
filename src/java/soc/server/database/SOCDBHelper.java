@@ -64,6 +64,8 @@ import java.util.concurrent.Executors;
 /**
  * This class contains methods for connecting to a database
  * and for manipulating the data stored there.
+ * See {@code /README.txt} for more info on how JSettlers uses this optional database,
+ * and {@code /README.developer} for developing and testing with it.
  *<P>
  * Originally based on jdbc code found at www.javaworld.com
  *<P>
@@ -90,6 +92,19 @@ import java.util.concurrent.Executors;
  * Remember that some JDBC drivers may not cleanly handle multi-threaded access
  * (some versions of the SQLite driver, for example). Use {@link soc.server.SOCServer}'s
  * Treater thread when accessing the DB, especially for updates or inserts.
+ *
+ * <H3>Settings:</H3>
+ * When using {@link #SCHEMA_VERSION_1200} and above, the DB has a {@code settings} table to
+ * store things like {@link #SETTING_BCRYPT_WORK__FACTOR}. See {@link #checkSettings(boolean, boolean)},
+ * {@link #getSettingsFormatted()}, and {@link #PROP_JSETTLERS_DB_SETTINGS}.
+ *
+ *<H3>Password Hashing:</H3>
+ * When using {@link #SCHEMA_VERSION_1200} and above, user account passwords are hashed
+ * with {@link BCrypt}. See {@link #PW_SCHEME_BCRYPT} for more details.
+ * Password hashing details are encapsulated here: SOCServer itself only needs to optionally
+ * determine a Work Factor once, pass it to {@link #initialize(String, String, Properties)}
+ * using {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}, and save it to the settings table
+ * using {@link #checkSettings(boolean, boolean) checkSettings(true, true)}.
  *
  * @author Robert S. Thomas
  */
@@ -154,6 +169,9 @@ public class SOCDBHelper
      * This property overrides {@link #SETTING_BCRYPT_WORK__FACTOR}'s value.
      *<P>
      * If this prop's value is {@code "test"} instead of an integer, server calls {@link #testBCryptSpeed()}.
+     *<P>
+     * During initial DB setup or schema upgrade from {@link #SCHEMA_VERSION_ORIGINAL}, the work factor
+     * is saved to the {@code settings} table.
      * @since 1.2.00
      */
     public static final String PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR = "jsettlers.db.bcrypt.work_factor";
