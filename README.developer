@@ -454,36 +454,40 @@ When preparing to release a new version, testing should include:
         - Can win only on your own turn
     - Game reset voting, with: 1 human 2 bots, 2 humans 1 bot, 2 humans 0 bots:
       Humans can vote No to reject bots auto-vote Yes; test No and Yes
-    - Version compat testing
+    - Version compatibility testing
         - Other versions to use: 1.1.06 before Game Options; 1.1.11 with 6-player board and client bugfixes;
           latest 1.x.xx; latest 2.0.xx
         - New client, old server
         - New server, old client
-        - Some specific things to look for:
-            - (v1.x.xx) New-game options seen connecting to a 2.0.xx server should be same as a 1.x.xx server (adapts to client version)
-            - Create a 4-player game, a 6-player game; allow trading in one of them
-            - Create a 4-player game with no options (this uses a different message type)
-            - Lock a bot seat and game reset; make sure that works (seatlockstate changes between 1.x.xx and 2.0.xx)
-            - On a 2.0.xx server, have 2.0.xx client create game with a scen (1.x.xx can't join),
-              1.x.xx client should see it in gamelist with "(cannot join)" prefix
-            - Have the 1.x.xx client quit & rejoin, should see in list with that same prefix
+        - Test these specific things for each version:
+            - With a 1.x.xx client connected to a 2.0.xx server, available new-game options
+              should be the same as a 1.x.xx server (adapts to older client version)
+            - Create and start playing a 4-player game, and a 6-player game; allow trading in one of them
+            - In the 6-player game, request and use the Special Building Phase
+            - Create and start playing a 4-player game with no options (this uses a different message type)
+            - In any of those games, lock a bot seat and game reset; make sure that works
+              (seatlockstate changes between 1.x.xx and 2.0.xx)
+            - On a 2.0.xx server, have 2.0.xx client create game with a scenario (1.x.xx can't join),
+              1.x.xx client should see it in gamelist with "(cannot join)" prefix.
+              Start another 1.x.xx client and connect, should see in list with that same prefix
     - Command line and jsserver.properties
         - Server and client: -h / --help / -?, --version
         - Server: Unknown args -x -z should print both, then not continue startup
-        - Start cli w/ no args, start client with host & port on command line
+        - Start client w/ no args, start client with host & port on command line
         - Game option defaults on command line, in jsserver.properties: -oVP=t11 -oN7=t5 -oRD=y
         - Server prop for no chat channels (jsettlers.client.maxcreatechannels=0):
           Client main panel should not see channel create/join/list controls
-    - Database setup, including -Djsettlers.accounts.admins=
+    - Database setup, including Account Admins list -Djsettlers.accounts.admins=adm,name2,etc
         - SOCAccountClient with a server not using a DB: At connect, should see a message like "This server does not use accounts"
         - Test with supported DB types: sqlite first, then mysql and postgres
             - Basics: account setup, password validation
-            - Try login to account client with a name on, and not on, -Djsettlers.accounts.admins=adm,name2,etc
+            - Try login to account client with a name on, and not on, Account Admins list
             - With a new or upgraded db, verify account are searched case-insensitive
             - Test server parameter --pw-reset username , login afterwards with new password and start a game
             - (v2.0.00+) After setup, run automated DB tests with -Djsettlers.test.db=y
-        - Set up a new DB, including (for any 1 DB type) running -Djsettlers.db.bcrypt.work_factor=test
-          and then specifying a non-default jsettlers.db.bcrypt.work_factor during sql setup script run
+        - Set up a new DB with instructions from the "Database Creation" section of database.txt,
+          including (for any 1 DB type) running -Djsettlers.db.bcrypt.work_factor=test
+          and then specifying a non-default jsettlers.db.bcrypt.work_factor when running the SQL setup script
         - Create those admin accounts, some non-admin accounts
         - SOCAccountClient should allow only admin accounts to log in
         - SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning
@@ -491,20 +495,26 @@ When preparing to release a new version, testing should include:
         - SOCPlayerClient: login as non-admin user, create game: *who* works (not an admin command) works,
           *who* testgame  and *who* * shouldn't ; *help* shouldn't show any admin commands
         - prop to require accounts (jsettlers.accounts.required=y)
-        - prop (jsettlers.db.save.games=Y) for games saved in db: play a complete game, check for results there
+        - prop for games saved in db (jsettlers.db.save.games=Y): Play a complete game, check for results there
         - Test creating as old schema (before v1.2.00) and upgrading
             - Get the old schema SQL files you'll need from the git repo by using any pre-1.2.00 release tag, for example:
 
-                  git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > tmp/jsettlers-tables.sql
+                  git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1120.sql
 
                   - Files for mysql: jsettlers-create-mysql.sql, jsettlers-tables.sql
                   - For postgres: jsettlers-create-postgres.sql, jsettlers-tables.sql, jsettlers-sec-postgres.sql
                   - For sqlite: Only jsettlers-tables.sql
-            - Run DB setup scripts with instructions from Database.md and
+            - Run DB setup scripts with instructions from the "Database Creation" section of database.txt and
               beginning-of-file comments in jsettlers-create-mysql.sql or -postgres.sql
-            - Run SOCServer with the old schema; startup should print "Database schema upgrade is recommended"
+            - Run SOCServer with the old schema and property -Djsettlers.accounts.admins=adm ;
+              startup should print "Database schema upgrade is recommended"
+            - Create an admin user named "adm" using:
+                  java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880
             - Run DB upgrade by running SOCServer with -Djsettlers.db.upgrade_schema=Y property
             - Run SOCServer as usual; startup should print "User database initialized"
+            - Run JSettlers.jar; log in as "Adm" to test case-insensitive nicknames.
+              Make sure you can create a game, to test password encoding conversion.
+              Run the *DBSETTINGS* admin command to verify BCrypt password encoding is being used.
     - Other misc testing:
         - "Replace/Take Over" on lost connection:
             - Start a game at server with player client
@@ -512,7 +522,7 @@ When preparing to release a new version, testing should include:
             - Start game, go through initial placement and into normal game play
             - In Eclipse, pause the debugged client to simulate network connection loss
             - Start a new client and connect as that same username; should allow after appropriate number of seconds
-        - Leave a practice game idle for hours; bots should not time out or leave game
+        - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
 - Platform-specific: Recent and less-recent OSX and Windows; oldest JRE (1.5) and new JRE
     - Keyboard shortcuts including game-reset dialog's esc/enter keys, FaceChooserFrame arrow keys
     - Sound, including 2 clients in same game for overlapping piece-place sound

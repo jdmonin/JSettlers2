@@ -16,7 +16,7 @@ Contents
 
 -  Database Setup (Installing a JSettlers DB)
 -  Security, Admin Users, Admin Commands
--  Upgrading from an earlier version
+-  Upgrading from an earlier version of JSettlers
 -  Settings Table and Checking Info about the DB
 
 
@@ -274,8 +274,8 @@ the server is up. It will reset the password and exit, and won't start a second
 JSettlersServer.
 
 
-Upgrading from an earlier version
----------------------------------
+Upgrading from an earlier version of JSettlers
+----------------------------------------------
 
 If you're upgrading from an earlier version of JSettlers, check
 VERSIONS.txt for new features, bug fixes, and config changes.
@@ -299,7 +299,7 @@ Before starting the upgrade:
 
 When starting up the server using the new version:
 
-- If the new server's startup messages include this line:
+- If the new version's server startup messages include this line:
 
         * Database schema upgrade is recommended: To upgrade, use -Djsettlers.db.upgrade_schema=Y command line flag.
 
