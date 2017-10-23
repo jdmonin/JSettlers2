@@ -409,13 +409,15 @@ When preparing to release a new version, testing should include:
   Run server and clients with JVM property -Djsettlers.debug.traffic=Y
 - Basic functional tests
     - Game setup, join, and reset:
-        - Create and start playing a practice game with 1 locked space & 2 bots, past initial placement into normal play (roll dice, etc) with default options
+        - Create and start playing a practice game with 1 locked space & 2 bots, past initial placement
+          into normal play (roll dice, etc) with default options
         - Create and start playing a practice game on the 6-player board (5 bots), with options like Roll No 7s for first 7 turns
         - JSettlersServer.jar: Start a dedicated server on another ("remote") machine's text-only console
         - Join that remote server & play a full game, then reset board and start another game
             - *STATS* command should include the finished game
             - Bots should rejoin and play
-        - JSettlers.jar: Start a local server and a game, start another client, join and start playing game (will have 2 human clients & 2 bots)
+        - JSettlers.jar: Start a local server and a game, start another client, join and start playing game
+          (will have 2 human clients & 2 bots)
         - Ensure the 2 clients can talk to each other in the game's chat area
         - Client leaves game (not on their turn): bot should join to replace them & then plays their turn (not unresponsive)
         - New client joins and replaces bot; verify all of player info is sent
@@ -440,7 +442,8 @@ When preparing to release a new version, testing should include:
 - New features in this version from VERSIONS.txt
 - Regression testing
     - Start a remote server on a console (linux, etc), should stay up for several days including activity (bot games)
-        - v2.0.00+: Run several bot games (jsettlers.bots.botgames.total=5); join one as observer to make sure the pause is shorter than normal games
+        - v2.0.00+: Run several bot games (jsettlers.bots.botgames.total=5);
+          join one as observer to make sure the pause is shorter than normal games
     - New features in previous 2 versions from VERSIONS.txt
     - Each available game option
     - Basic rules and game play
@@ -449,9 +452,11 @@ When preparing to release a new version, testing should include:
         - Trade offer, rejection, counter-offer accept/rejection
         - Can play dev card before dice roll
         - Can win only on your own turn
-    - Game reset voting, with: 1 human 2 bots, 2 humans 1 bot, 2 humans 0 bots: Humans can vote No to reject bots auto-vote Yes; test No and Yes
+    - Game reset voting, with: 1 human 2 bots, 2 humans 1 bot, 2 humans 0 bots:
+      Humans can vote No to reject bots auto-vote Yes; test No and Yes
     - Version compat testing
-        - Other versions to use: 1.1.06 before Game Options; 1.1.11 with 6-player board and client bugfixes; latest 1.x.xx; latest 2.0.xx
+        - Other versions to use: 1.1.06 before Game Options; 1.1.11 with 6-player board and client bugfixes;
+          latest 1.x.xx; latest 2.0.xx
         - New client, old server
         - New server, old client
         - Some specific things to look for:
@@ -459,14 +464,16 @@ When preparing to release a new version, testing should include:
             - Create a 4-player game, a 6-player game; allow trading in one of them
             - Create a 4-player game with no options (this uses a different message type)
             - Lock a bot seat and game reset; make sure that works (seatlockstate changes between 1.x.xx and 2.0.xx)
-            - On a 2.0.xx server, have 2.0.xx client create game with a scen (1.x.xx can't join), 1.x.xx client should see it in gamelist with "(cannot join)" prefix
+            - On a 2.0.xx server, have 2.0.xx client create game with a scen (1.x.xx can't join),
+              1.x.xx client should see it in gamelist with "(cannot join)" prefix
             - Have the 1.x.xx client quit & rejoin, should see in list with that same prefix
     - Command line and jsserver.properties
         - Server and client: -h / --help / -?, --version
         - Server: Unknown args -x -z should print both, then not continue startup
         - Start cli w/ no args, start client with host & port on command line
-        - Game options on command line, in jsserver.properties: VP=t11, N7=t5, RD=y
-        - Server prop for no chat channels (jsettlers.client.maxcreatechannels=0): Client main panel should not see channel create/join/list controls
+        - Game option defaults on command line, in jsserver.properties: -oVP=t11 -oN7=t5 -oRD=y
+        - Server prop for no chat channels (jsettlers.client.maxcreatechannels=0):
+          Client main panel should not see channel create/join/list controls
     - Database setup, including -Djsettlers.accounts.admins=
         - SOCAccountClient with a server not using a DB: At connect, should see a message like "This server does not use accounts"
         - Test with supported DB types: sqlite first, then mysql and postgres
@@ -475,13 +482,29 @@ When preparing to release a new version, testing should include:
             - With a new or upgraded db, verify account are searched case-insensitive
             - Test server parameter --pw-reset username , login afterwards with new password and start a game
             - (v2.0.00+) After setup, run automated DB tests with -Djsettlers.test.db=y
-        - Set up a new DB, including (for any 1 DB type) running -Djsettlers.db.bcrypt.work_factor=test and then specifying a non-default jsettlers.db.bcrypt.work_factor during sql setup script run
+        - Set up a new DB, including (for any 1 DB type) running -Djsettlers.db.bcrypt.work_factor=test
+          and then specifying a non-default jsettlers.db.bcrypt.work_factor during sql setup script run
         - Create those admin accounts, some non-admin accounts
         - SOCAccountClient should allow only admin accounts to log in
-        - SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning status from server, as if they existed with wrong pw
-        - SOCPlayerClient: login as non-admin user, create game: *who* works (not an admin command) works, *who* testgame  and *who* * shouldn't ; *help* shouldn't show any admin commands
+        - SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning
+          status from server, as if they existed with wrong pw
+        - SOCPlayerClient: login as non-admin user, create game: *who* works (not an admin command) works,
+          *who* testgame  and *who* * shouldn't ; *help* shouldn't show any admin commands
         - prop to require accounts (jsettlers.accounts.required=y)
         - prop (jsettlers.db.save.games=Y) for games saved in db: play a complete game, check for results there
+        - Test creating as old schema (before v1.2.00) and upgrading
+            - Get the old schema SQL files you'll need from the git repo by using any pre-1.2.00 release tag, for example:
+
+                  git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > tmp/jsettlers-tables.sql
+
+                  - Files for mysql: jsettlers-create-mysql.sql, jsettlers-tables.sql
+                  - For postgres: jsettlers-create-postgres.sql, jsettlers-tables.sql, jsettlers-sec-postgres.sql
+                  - For sqlite: Only jsettlers-tables.sql
+            - Run DB setup scripts with instructions from Database.md and
+              beginning-of-file comments in jsettlers-create-mysql.sql or -postgres.sql
+            - Run SOCServer with the old schema; startup should print "Database schema upgrade is recommended"
+            - Run DB upgrade by running SOCServer with -Djsettlers.db.upgrade_schema=Y property
+            - Run SOCServer as usual; startup should print "User database initialized"
     - Other misc testing:
         - "Replace/Take Over" on lost connection:
             - Start a game at server with player client
@@ -499,7 +522,7 @@ When preparing to release a new version, testing should include:
       Then, re-run to check default size with -Djsettlers.debug.clear_prefs=PI_width,PI_height
     - SQLite database setup, from instructions in src/docs/database.txt
 - Instructions and Setup
-    - README.txt, README.developer: validate all URLs, including JDBC driver downloads
+    - README.txt, README.developer, database.txt: Validate all URLs, including JDBC driver downloads
     - Follow server setup instructions in README.txt
     - Set up a sqlite DB: Covered above in "Platform-specific"
 
