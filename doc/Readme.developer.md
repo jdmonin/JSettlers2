@@ -830,24 +830,25 @@ When preparing to release a new version, testing should include:
         - Game option defaults on command line, in `jsserver.properties`: `-oVP=t11 -oN7=t5 -oRD=y`
         - Server prop for no chat channels (`jsettlers.client.maxcreatechannels=0`):
           Client main panel should not see channel create/join/list controls
-    - Database setup, including Account Admins list `-Djsettlers.accounts.admins=adm,name2,etc`
+    - Database setup and Account Admins list
         - SOCAccountClient with a server not using a DB: At connect, should see a message like "This server does not use accounts"
             - To launch SOCAccountClient, use: `java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880`
-        - Test with supported DB types: sqlite first, then mysql and postgres
-            - Basics: account setup, password validation
-            - Try login to account client with a name on, and not on, Account Admins list
-            - With a new or upgraded db, verify account nicknames are searched case-insensitive
-            - Test server parameter `--pw-reset username` , login afterwards with new password and start a game
-            - (v2.0.00+) After setup, run automated DB tests with `-Djsettlers.test.db=y`
+        - **Test all of the following** with supported DB types: sqlite first, then mysql and postgres
+            - See [Database.md](Database.md) for versions to test ("JSettlers is tested with...")
         - Set up a new DB with instructions from the "Database Creation" section of [Database.md](Database.md),
           including (for any 1 DB type) running `-Djsettlers.db.bcrypt.work_factor=test`
           and then specifying a non-default `jsettlers.db.bcrypt.work_factor` when running the SQL setup script
-        - Create those admin accounts, some non-admin accounts
-        - SOCAccountClient should allow only admin accounts to log in
+        - (v2.0.00+) After setup, run SOCServer automated DB tests with `-Djsettlers.test.db=y`
+        - Start up SOCServer with DB parameters and `-Djsettlers.accounts.admins=adm,name2,etc`
+        - Run SOCAccountClient to create those admin accounts, some non-admin accounts
+        - Run SOCAccountClient again: Should allow only admin accounts to log in: Try a non-admin, should fail
+        - Run SOCPlayerClient and log in with a case-insensitive account nickname (use all-caps or all-lowercase)
         - SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning
           status from server, as if they were found but password was wrong
         - SOCPlayerClient: login as non-admin user, create game: `*who*` works (not an admin command) works,
           `*who* testgame` and `*who* *` shouldn't ; `*help*` shouldn't show any admin commands
+        - Test SOCServer parameter `--pw-reset username`  
+          SOCPlayerClient log in afterwards with new password and start a game
         - prop to require accounts (`jsettlers.accounts.required=Y`)
         - prop for games saved in DB (`jsettlers.db.save.games=Y`): Play a complete game, check for results there
         - Test creating as old schema (before v1.2.00) and upgrading
