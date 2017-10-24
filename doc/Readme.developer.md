@@ -832,10 +832,11 @@ When preparing to release a new version, testing should include:
           Client main panel should not see channel create/join/list controls
     - Database setup, including Account Admins list `-Djsettlers.accounts.admins=adm,name2,etc`
         - SOCAccountClient with a server not using a DB: At connect, should see a message like "This server does not use accounts"
+            - To launch SOCAccountClient, use: `java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880`
         - Test with supported DB types: sqlite first, then mysql and postgres
             - Basics: account setup, password validation
             - Try login to account client with a name on, and not on, Account Admins list
-            - With a new or upgraded db, verify account are searched case-insensitive
+            - With a new or upgraded db, verify account nicknames are searched case-insensitive
             - Test server parameter `--pw-reset username` , login afterwards with new password and start a game
             - (v2.0.00+) After setup, run automated DB tests with `-Djsettlers.test.db=y`
         - Set up a new DB with instructions from the "Database Creation" section of [Database.md](Database.md),
@@ -844,7 +845,7 @@ When preparing to release a new version, testing should include:
         - Create those admin accounts, some non-admin accounts
         - SOCAccountClient should allow only admin accounts to log in
         - SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning
-          status from server, as if they existed with wrong pw
+          status from server, as if they were found but password was wrong
         - SOCPlayerClient: login as non-admin user, create game: `*who*` works (not an admin command) works,
           `*who* testgame` and `*who* *` shouldn't ; `*help*` shouldn't show any admin commands
         - prop to require accounts (`jsettlers.accounts.required=Y`)
@@ -861,7 +862,7 @@ When preparing to release a new version, testing should include:
               and beginning-of-file comments in jsettlers-create-mysql.sql or -postgres.sql
             - Run SOCServer with the old schema and property `-Djsettlers.accounts.admins=adm`;
               startup should print `Database schema upgrade is recommended`
-            - Create an admin user named `adm` using: `java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880`
+            - Create an admin user named `adm` using SOCAccountClient
             - Run DB upgrade by running SOCServer with `-Djsettlers.db.upgrade_schema=Y` property
             - Run SOCServer as usual; startup should print `User database initialized`
             - Run JSettlers.jar; log in as `Adm` to test case-insensitive nicknames.  
