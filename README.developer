@@ -411,7 +411,7 @@ When preparing to release a new version, testing should include:
     - Game setup, join, and reset:
         - Create and start playing a practice game with 1 locked space & 2 bots, past initial placement
           into normal play (roll dice, etc) with default options
-        - Create and start playing a practice game on the 6-player board (5 bots), with options like Roll No 7s for first 7 turns
+        - Create and start playing a practice game on the 6-player board (5 bots), with options like Roll No 7s for First 7 Turns
         - JSettlersServer.jar: Start a dedicated server on another ("remote") machine's text-only console
         - Join that remote server & play a full game, then reset board and start another game
             - *STATS* command should include the finished game
@@ -477,52 +477,55 @@ When preparing to release a new version, testing should include:
         - Game option defaults on command line, in jsserver.properties: -oVP=t11 -oN7=t5 -oRD=y
         - Server prop for no chat channels (jsettlers.client.maxcreatechannels=0):
           Client main panel should not see channel create/join/list controls
-    - Database setup, including Account Admins list -Djsettlers.accounts.admins=adm,name2,etc
-        - SOCAccountClient with a server not using a DB: At connect, should see a message like "This server does not use accounts"
-        - Test with supported DB types: sqlite first, then mysql and postgres
-            - Basics: account setup, password validation
-            - Try login to account client with a name on, and not on, Account Admins list
-            - With a new or upgraded db, verify account are searched case-insensitive
-            - Test server parameter --pw-reset username , login afterwards with new password and start a game
-            - (v2.0.00+) After setup, run automated DB tests with -Djsettlers.test.db=y
-        - Set up a new DB with instructions from the "Database Creation" section of database.txt,
-          including (for any 1 DB type) running -Djsettlers.db.bcrypt.work_factor=test
-          and then specifying a non-default jsettlers.db.bcrypt.work_factor when running the SQL setup script
-        - Create those admin accounts, some non-admin accounts
-        - SOCAccountClient should allow only admin accounts to log in
-        - SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning
-          status from server, as if they existed with wrong pw
-        - SOCPlayerClient: login as non-admin user, create game: *who* works (not an admin command) works,
-          *who* testgame  and *who* * shouldn't ; *help* shouldn't show any admin commands
-        - prop to require accounts (jsettlers.accounts.required=y)
-        - prop for games saved in db (jsettlers.db.save.games=Y): Play a complete game, check for results there
-        - Test creating as old schema (before v1.2.00) and upgrading
-            - Get the old schema SQL files you'll need from the git repo by using any pre-1.2.00 release tag, for example:
+- Database setup and Account Admins list
+    - SOCAccountClient with a server not using a DB: At connect, should see a message like "This server does not use accounts"
+        - To launch SOCAccountClient, use: java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880
+    - Test all of the following with supported DB types: sqlite first, mysql, postgres
+        - See src/docs/database.txt for versions to test ("JSettlers is tested with...")
+    - Set up a new DB with instructions from the "Database Creation" section of database.txt,
+      including (for any 1 DB type) running -Djsettlers.db.bcrypt.work_factor=test
+      and then specifying a non-default jsettlers.db.bcrypt.work_factor when running the SQL setup script
+    - (v2.0.00+) After setup, run SOCServer automated DB tests with -Djsettlers.test.db=y
+    - Start up SOCServer with DB parameters and -Djsettlers.accounts.admins=adm,name2,etc
+    - Run SOCAccountClient to create those admin accounts, some non-admin accounts
+    - Run SOCAccountClient again: Should allow only admin accounts to log in: Try a non-admin, should fail
+    - Run SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning
+      status from server, as if they were found but password was wrong
+    - SOCPlayerClient: Log in with a case-insensitive account nickname (use all-caps or all-lowercase)
+    - SOCPlayerClient: Log in as non-admin user, create game: *who* works (not an admin command) works,
+      *who* testgame  and *who* *  shouldn't ; *help* shouldn't show any admin commands
+    - Test SOCServer parameter --pw-reset username
+      SOCPlayerClient: Log in afterwards with new password and start a game
+    - Server prop to require accounts (jsettlers.accounts.required=Y):
+      Should not allow login as nonexistent user with no password
+    - Server prop for games saved in DB (jsettlers.db.save.games=Y):
+      Play a complete game, check for results there: select * from games;
+    - Test creating as old schema (before v1.2.00) and upgrading
+        - Get the old schema SQL files you'll need from the git repo by using any pre-1.2.00 release tag, for example:
 
-                  git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1120.sql
+              git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1120.sql
 
-                  - Files for mysql: jsettlers-create-mysql.sql, jsettlers-tables.sql
-                  - For postgres: jsettlers-create-postgres.sql, jsettlers-tables.sql, jsettlers-sec-postgres.sql
-                  - For sqlite: Only jsettlers-tables.sql
-            - Run DB setup scripts with instructions from the "Database Creation" section of database.txt and
-              beginning-of-file comments in jsettlers-create-mysql.sql or -postgres.sql
-            - Run SOCServer with the old schema and property -Djsettlers.accounts.admins=adm ;
-              startup should print "Database schema upgrade is recommended"
-            - Create an admin user named "adm" using:
-                  java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880
-            - Run DB upgrade by running SOCServer with -Djsettlers.db.upgrade_schema=Y property
-            - Run SOCServer as usual; startup should print "User database initialized"
-            - Run JSettlers.jar; log in as "Adm" to test case-insensitive nicknames.
-              Make sure you can create a game, to test password encoding conversion.
-              Run the *DBSETTINGS* admin command to verify BCrypt password encoding is being used.
-    - Other misc testing:
-        - "Replace/Take Over" on lost connection:
-            - Start a game at server with player client
-            - Start a second client under Eclipse debugger & join that game
-            - Start game, go through initial placement and into normal game play
-            - In Eclipse, pause the debugged client to simulate network connection loss
-            - Start a new client and connect as that same username; should allow after appropriate number of seconds
-        - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
+              - Files for mysql: jsettlers-create-mysql.sql, jsettlers-tables.sql
+              - For postgres: jsettlers-create-postgres.sql, jsettlers-tables.sql, jsettlers-sec-postgres.sql
+              - For sqlite: Only jsettlers-tables.sql
+        - Run DB setup scripts with instructions from the "Database Creation" section of database.txt and
+          beginning-of-file comments in jsettlers-create-mysql.sql or -postgres.sql
+        - Run SOCServer with the old schema and property -Djsettlers.accounts.admins=adm ;
+          startup should print "Database schema upgrade is recommended"
+        - Create an admin user named "adm" using SOCAccountClient
+        - Run DB upgrade by running SOCServer with -Djsettlers.db.upgrade_schema=Y property
+        - Run SOCServer as usual; startup should print "User database initialized"
+        - Run JSettlers.jar; log in as "Adm" to test case-insensitive nicknames.
+          Make sure you can create a game, to test password encoding conversion.
+          Run the *DBSETTINGS* admin command to verify BCrypt password encoding is being used.
+- Other misc testing
+    - "Replace/Take Over" on lost connection:
+        - Start a game at server with player client
+        - Start a second client under Eclipse debugger & join that game
+        - Start game, go through initial placement and into normal game play
+        - In Eclipse, pause the debugged client to simulate network connection loss
+        - Start a new client and connect as that same username; should allow after appropriate number of seconds
+    - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
 - Platform-specific: Recent and less-recent OSX and Windows; oldest JRE (1.5) and new JRE
     - Keyboard shortcuts including game-reset dialog's esc/enter keys, FaceChooserFrame arrow keys
     - Sound, including 2 clients in same game for overlapping piece-place sound
@@ -534,7 +537,7 @@ When preparing to release a new version, testing should include:
 - Instructions and Setup
     - README.txt, README.developer, database.txt: Validate all URLs, including JDBC driver downloads
     - Follow server setup instructions in README.txt
-    - Set up a sqlite DB: Covered above in "Platform-specific"
+    - Set up a new DB: Covered above in "Platform-specific"
 
 
 github
