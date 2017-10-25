@@ -198,6 +198,8 @@ parameters (before the SOCPlayerClient class name, not after):
 ## Setup instructions for JSettlers as an Eclipse project
 
 Written for Eclipse 3.6, should be applicable to other versions with minor changes.
+These instructions can be adapted to import JSettlers and its `build.xml` into
+other IDEs.
 
 - Choose File -> New -> Project... -> Java -> Java Project from Existing Ant Buildfile.
 - Browse to jsettlers-2.x.xx-src/build.xml, select the "javac" task in target "compile".
@@ -229,7 +231,7 @@ If you simply want to run the client or server, you only need the Java Runtime
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a
 file-based local database.
 
-This package was designed to build with eclipse, or with the ANT tool available
+This project was designed to build with eclipse, or with the Ant tool available
 from [http://ant.apache.org/](http://ant.apache.org/).
 
 If not using an IDE like eclipse, check the `build.xml` file. There may be
@@ -261,7 +263,7 @@ fail with this error:
 
 ## Recommended debug/run configurations for testing
 
-In my Eclipse project, I've created these debug/run configurations:
+In my IDE's JSettlers project, I've created these debug/run configurations:
 
     Java applet: soc.client.SOCApplet
         width 700, height 500
@@ -301,9 +303,9 @@ database (JDBC)" section of this readme. JSettlers+sqlite works with standard
 Eclipse; the j2ee eclipse also has a convenient data browser. Note that
 [Readme.md](../Readme.md) mentions a command-line option
 `-Djsettlers.db.jar=driverfile.jar`; that's needed only while running the
-jsettlers JAR from the command line, not running inside eclipse.
+jsettlers JAR from the command line, not running inside the IDE.
 
-- See the `socserver-sqlite` eclipse Run Configuration in the previous section;
+- See the `socserver-sqlite` IDE Run Configuration in the previous section;
   this config includes the sqlite database you're about to configure.
 - Download the driver from https://bitbucket.org/xerial/sqlite-jdbc.
   The downloaded JAR might have a name like `sqlite-jdbc-3.15.1.jar`.
@@ -479,8 +481,8 @@ escapes) automatically when saving. See `src/main/java/net/nand/util/i18n/README
 for more details.
 
 Before running PTEMain for the first time, you must build the JSettlers build
-target (using ant or eclipse) so that the editor's own externalized strings
-will be available.
+target (using Ant or with `build.xml` imported into your IDE) so that the
+PTEMain editor's own externalized strings will be available.
 
 When starting the editor this message is harmless, because preferences are stored per-user:
 
@@ -872,9 +874,9 @@ When preparing to release a new version, testing should include:
 - Other misc testing
     - "Replace/Take Over" on lost connection:
         - Start a game at server with player client
-        - Start a second client under Eclipse debugger & join that game
+        - Start a second client under your IDE's debugger & join that game
         - Start game, go through initial placement and into normal game play
-        - In Eclipse, pause the debugged client to simulate network connection loss
+        - In your IDE, pause the debugged client to simulate network connection loss
         - Start a new client and connect as that same username; should allow after appropriate number of seconds
     - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
 - Platform-specific: Recent and less-recent OSX and Windows; oldest JRE (1.5) and new JRE
