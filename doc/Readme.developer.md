@@ -844,15 +844,17 @@ When preparing to release a new version, testing should include:
     - Start up SOCServer with DB parameters and `-Djsettlers.accounts.admins=adm,name2,etc`
     - Run SOCAccountClient to create those admin accounts, some non-admin accounts
     - Run SOCAccountClient again: Should allow only admin accounts to log in: Try a non-admin, should fail
-    - Run SOCPlayerClient and log in with a case-insensitive account nickname (use all-caps or all-lowercase)
-    - SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning
+    - Run SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning
       status from server, as if they were found but password was wrong
-    - SOCPlayerClient: login as non-admin user, create game: `*who*` works (not an admin command) works,
+    - SOCPlayerClient: Log in with a case-insensitive account nickname (use all-caps or all-lowercase)
+    - SOCPlayerClient: Log in as non-admin user, create game: `*who*` works (not an admin command) works,
       `*who* testgame` and `*who* *` shouldn't ; `*help*` shouldn't show any admin commands
     - Test SOCServer parameter `--pw-reset username`  
-      SOCPlayerClient log in afterwards with new password and start a game
-    - prop to require accounts (`jsettlers.accounts.required=Y`)
-    - prop for games saved in DB (`jsettlers.db.save.games=Y`): Play a complete game, check for results there
+      SOCPlayerClient: Log in afterwards with new password and start a game
+    - Server prop to require accounts (`jsettlers.accounts.required=Y`):  
+      Should not allow login as nonexistent user with no password
+    - Server prop for games saved in DB (`jsettlers.db.save.games=Y`):  
+      Play a complete game, check for results there: `select * from games;`
     - Test creating as old schema (before v1.2.00) and upgrading
         - Get the old schema SQL files you'll need from the git repo by using any pre-1.2.00 release tag, for example:
 
