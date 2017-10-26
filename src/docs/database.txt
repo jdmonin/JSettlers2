@@ -88,7 +88,7 @@ location as JSettlersServer.jar, and specify on the jsettlers command line:
 Database Creation:
 
 To create the jsettlers database and its db user ('socuser') and security,
-execute the SQL db scripts located in src/main/bin/sql/
+execute the SQL db scripts located in src/bin/sql/
 (included in jsettlers-1.x.xx-full.tar.gz): Change to that directory
 and follow the instructions here for your database type. Afterwards,
 see above for instructions on starting the JSettlers server and connecting
@@ -154,7 +154,7 @@ When you start your JSettlers server, remember to specify the postgres DB using:
 
     -Djsettlers.db.url=jdbc:postgresql://localhost/socdata
 
-You may also need to specify a jsettlers.db.jar value as noted in the
+You may also need to specify a jsettlers.db.jar prop value as noted in the
 "JDBC driver" section.
 
 - For sqlite:
@@ -175,6 +175,20 @@ This script will fail if the file and tables already exist.
 
 Later when you start your JSettlers server, remember to specify the sqlite DB
 using the same -Djsettlers.db.url and -Djsettlers.db.jar values.
+
+JSettlers Server startup after DB Creation:
+
+When you start JSettlersServer and connect to the new database, you should see:
+	User database initialized.
+
+You may also see a warning that some tuning settings are missing:
+	* Warning: Missing DB setting for BCRYPT.WORK_FACTOR, using 13
+	To save to the settings table, run once with utility property -Djsettlers.db.settings=write
+
+To do so, start the server one time with that property. For more information
+see section "Settings Table and Checking Info about the DB" below. For security
+you should also read section "Password Encryption (BCrypt)", which includes
+timing tests to find the right Work Factor for your server.
 
 Storing Game Scores in the DB (optional):
 
@@ -229,7 +243,9 @@ already-encrypted ones.
 
 To test the speed of different work factors on your server, run JSettlersServer
 once with -Djsettlers.db.bcrypt.work_factor=test , which will try a range of
-work factors and print the timed results.
+work factors and print the timed results. Then, (using 14 as an example) run
+the server once with:
+	-Djsettlers.db.bcrypt.work_factor=14 -Djsettlers.db.settings=write
 
 If you're upgrading from a version before 1.2.00, you will need to upgrade your
 database schema in order to use BCrypt. Test bcrypt speed and set that
