@@ -121,6 +121,8 @@ parameters (before the SOCPlayerClient class name, not after):
 Setup instructions for JSettlers as an Eclipse project
 ------------------------------------------------------
   (written for Eclipse 3.6, should be applicable to other versions with minor changes)
+  These instructions can be adapted to import JSettlers and its build.xml into
+  other IDEs.
 
 - Choose File -> New -> Project... -> Java -> Java Project from Existing Ant Buildfile
 - Browse to jsettlers-1.x.xx-src/build.xml, select the "javac" task in target "compile"
@@ -138,7 +140,7 @@ Continue reading to see how to set up the builds and the coding style in Eclipse
 
 Recommended debug/run configurations for testing
 ------------------------------------------------
-In my Eclipse project, I've created these debug/run configurations for testing:
+In my IDE's JSettlers project, I've created these debug/run configurations for testing:
 
 Java applet: soc.client.SOCPlayerClient
    width 600, height 340
@@ -170,7 +172,7 @@ If you simply want to run the client or server, you only need the Java Runtime (
 If you wish to maintain a user database for your server, you need MySQL or PostgreSQL
 installed and configured, or the sqlite jdbc driver for a file-based local database.
 
-This package was designed to build with eclipse, or with the ANT tool available
+This project was designed to build with eclipse, or with the Ant tool available
 from http://ant.apache.org/ .
 
 If not using an IDE like eclipse, check the build.xml file. There may be
@@ -202,10 +204,10 @@ If you want to configure a sqlite database for testing
   See also the "Developing with a database (JDBC)" section of this readme.
   JSettlers+sqlite works with standard Eclipse; the j2ee eclipse also has a convenient data browser.
   Note that README.txt mentions a command-line option -Djsettlers.db.jar=driverfile.jar ; that's
-  needed only while running the jsettlers JAR from the command line, not running inside eclipse.
+  needed only while running the jsettlers JAR from the command line, not running inside the IDE.
 
   - See the "socserver-sqlite" line just above for the server command line;
-	this is an eclipse Run Configuration for a jsettlers server which
+	this is an IDE Run Configuration for a jsettlers server which
 	includes the sqlite database you're about to configure.
 
   - Download the driver from https://bitbucket.org/xerial/sqlite-jdbc
@@ -521,9 +523,9 @@ When preparing to release a new version, testing should include:
 - Other misc testing
     - "Replace/Take Over" on lost connection:
         - Start a game at server with player client
-        - Start a second client under Eclipse debugger & join that game
+        - Start a second client under your IDE's debugger & join that game
         - Start game, go through initial placement and into normal game play
-        - In Eclipse, pause the debugged client to simulate network connection loss
+        - In your IDE, pause the debugged client to simulate network connection loss
         - Start a new client and connect as that same username; should allow after appropriate number of seconds
     - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
 - Platform-specific: Recent and less-recent OSX and Windows; oldest JRE (1.5) and new JRE
