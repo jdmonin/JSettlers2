@@ -65,7 +65,7 @@ and backport minor new features until `2.0.00` is ready.
 ## `1.2.00` (build OV20171005)
 - Simple sound effects for game events: Start of client player's turn, resource stolen by robber, etc
 - Game windows have same size as previous game if resized, not small default size
-- Re-word trade offer announcements to clarify who gave which resources
+- Re-word trade offer announcements to clarify who would give which resources
 - Monopoly announces total number of resources stolen
 - To ensure everyone has initial settlements, don't allow new clients to sit after 1st settlements are all placed
 - To avoid disruptions by game observers, only players can chat after initial placement

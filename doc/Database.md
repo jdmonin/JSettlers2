@@ -160,7 +160,7 @@ When you start your JSettlers server, remember to specify the postgres DB using:
 
     -Djsettlers.db.url=jdbc:postgresql://localhost/socdata
 
-You may also need to specify a `jsettlers.db.jar` value as noted in the
+You may also need to specify a `jsettlers.db.jar` prop value as noted in the
 "JDBC driver" section.
 
 #### For sqlite:
@@ -178,6 +178,7 @@ You should see this message:
 This will create a `jsettlers.sqlite` file containing the empty tables.
 
 This script will fail if the file and tables already exist.
+
 Later when you start your JSettlers server, remember to specify the sqlite DB
 using the same `-Djsettlers.db.url` and `-Djsettlers.db.jar` values.
 
