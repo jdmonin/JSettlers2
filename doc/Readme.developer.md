@@ -199,11 +199,16 @@ parameters (before the SOCPlayerClient class name, not after):
 
 Written for Eclipse 3.6, should be applicable to other versions with minor changes.
 
+- For protobuf download `protobuf-java-3.0.0.jar` from google's protobuf site or
+  https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.0.0/
+  into the project's top-level `lib` directory
 - Choose File -> New -> Project... -> Java -> Java Project from Existing Ant Buildfile.
 - Browse to jsettlers-2.x.xx-src/build.xml, select the "javac" task in target "compile".
 - Check the box "Link to the buildfile in the file system"
 - Hit Finish.
 - Project -> Properties: Resource: Text file encoding: UTF-8 -> OK
+- Project properties -> Java build path -> Libraries -> Add External JARs
+  -> Browse to `lib/protobuf-java-3.0.0.jar`
 - To add the `resources` directory:
      - In the Package Explorer tree right-click the project name -> New ->
        Folder. In that dialog click Advanced, select the radio button

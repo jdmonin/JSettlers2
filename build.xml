@@ -75,6 +75,7 @@
   <property name="bin.src"        value="src/main/bin" />
   <property name="java.src"       value="src/main/java" />
   <property name="test.src"       value="src/test/java" /> <!-- junit test cases -->
+  <property name="java.proto.gen.src" value="build/generated/source/proto/main/java" /> <!-- from protoc (gradle) -->
   <property name="web.src"        value="src/site" />
 
   <property name="test"           value="src/test" />
@@ -141,6 +142,7 @@
 
   <!-- class paths -->
   <path id="classpath">
+    <fileset dir="${lib}" includes="*.jar" />
     <pathelement location="${classes}" />
     <fileset dir="${lib.target}" includes="*.jar" />
   </path>
@@ -240,6 +242,12 @@ pte.version = ${i18neditor.version}
         <srcfilelist dir="${basedir}" files="build.xml" />
         <targetfilelist dir="${classes}" files="${version.info}" />
       </dependset>
+      <javac srcdir="${java.proto.gen.src}"
+             destdir="${classes}"
+             classpathref="classpath"
+             debug="${debug}"
+             optimize="${optimize}"
+             deprecation="${deprecation}" />
       <javac srcdir="${java.src}"
              destdir="${classes}"
              classpathref="classpath"

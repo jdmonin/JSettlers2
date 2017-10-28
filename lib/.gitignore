@@ -1,0 +1,2 @@
+# eclipse and ant want protobuf-java-3.0.0.jar here, maven should ignore the /lib dir.
+*.jar
