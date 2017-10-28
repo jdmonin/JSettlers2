@@ -21,9 +21,9 @@ package soc.message;
 import java.util.ArrayList;
 import java.util.List;
 
-import soc.Data;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
+import soc.proto.Data;
 
 /**
  * All resources gained by players from a dice roll.

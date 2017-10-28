@@ -19,9 +19,9 @@ package soc.message;
 
 import java.util.List;
 
-import soc.Data;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
+import soc.proto.Data;
 
 /**
  * Statistics of one type for one player.

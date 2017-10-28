@@ -30,13 +30,13 @@ import java.util.ResourceBundle;
 
 import net.nand.util.i18n.mgr.StringManager;
 
-import soc.Data;
 import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCInventoryItem;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
+import soc.proto.Data;
 
 /**
  * String Manager for retrieving I18N localized text from {@code .properties} bundle files

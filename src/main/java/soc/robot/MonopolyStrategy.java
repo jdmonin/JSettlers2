@@ -21,11 +21,11 @@
  **/
 package soc.robot;
 
-import soc.Data;
 import soc.game.SOCBoard;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
+import soc.proto.Data;
 
 public class MonopolyStrategy
 {

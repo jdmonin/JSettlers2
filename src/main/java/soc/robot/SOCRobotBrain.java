@@ -22,7 +22,6 @@
  **/
 package soc.robot;
 
-import soc.Data;
 import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.disableDebug.D;
 
@@ -72,6 +71,8 @@ import soc.message.SOCSimpleRequest;
 import soc.message.SOCSitDown;  // for javadoc
 import soc.message.SOCTimingPing;  // for javadoc
 import soc.message.SOCTurn;
+
+import soc.proto.Data;
 
 import soc.util.CappedQueue;
 import soc.util.DebugRecorder;

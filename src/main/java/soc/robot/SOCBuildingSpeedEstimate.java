@@ -22,11 +22,10 @@
  **/
 package soc.robot;
 
-import soc.Data;
 import soc.disableDebug.D;
 
 import soc.game.*;
-
+import soc.proto.Data;
 import soc.util.CutoffExceededException;
 
 import java.util.Enumeration;

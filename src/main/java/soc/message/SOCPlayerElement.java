@@ -20,7 +20,7 @@
  **/
 package soc.message;
 
-import soc.Data;
+import soc.proto.Data;
 
 import java.util.StringTokenizer;
 

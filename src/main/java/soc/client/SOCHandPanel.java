@@ -21,7 +21,6 @@
  **/
 package soc.client;
 
-import soc.Data;
 import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
@@ -38,6 +37,7 @@ import soc.game.SOCResourceSet;
 import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 import soc.message.SOCCancelBuildRequest;  // for INV_ITEM_PLACE_CANCEL constant
+import soc.proto.Data;
 import soc.util.SOCStringManager;
 
 import java.awt.Button;

@@ -21,7 +21,6 @@
  **/
 package soc.robot;
 
-import soc.Data;
 import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
@@ -30,6 +29,7 @@ import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
+import soc.proto.Data;
 
 import java.util.Collection;
 import java.util.HashMap;

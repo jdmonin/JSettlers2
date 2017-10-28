@@ -71,7 +71,6 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import soc.baseclient.SOCDisplaylessPlayerClient;
-import soc.Data;
 import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
@@ -93,6 +92,8 @@ import soc.game.SOCVersionedItem;
 import soc.game.SOCVillage;
 
 import soc.message.*;
+
+import soc.proto.Data;
 
 import soc.server.SOCServer;
 import soc.server.genericServer.LocalStringConnection;

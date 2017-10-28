@@ -21,7 +21,7 @@
  **/
 package soc.game;
 
-import soc.Data;
+import soc.proto.Data;
 import soc.util.IntPair;
 
 import java.util.Enumeration;

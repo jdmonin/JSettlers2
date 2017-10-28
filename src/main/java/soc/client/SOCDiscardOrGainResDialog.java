@@ -21,10 +21,10 @@
  **/
 package soc.client;
 
-import soc.Data;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
+import soc.proto.Data;
 
 import java.awt.Button;
 import java.awt.Color;

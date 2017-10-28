@@ -21,7 +21,7 @@
 package soc.game;
 
 
-import soc.Data;
+import soc.proto.Data;
 
 /**
  * This is a list of constants for representing

@@ -20,10 +20,10 @@
  **/
 package soc.message;
 
-import soc.Data;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
+import soc.proto.Data;
 
 import java.util.StringTokenizer;
 

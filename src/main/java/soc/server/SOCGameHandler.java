@@ -39,7 +39,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import soc.Data;
 import soc.debug.D;
 import soc.game.*;
 import soc.message.SOCBoardLayout;
@@ -93,6 +92,7 @@ import soc.message.SOCSitDown;
 import soc.message.SOCStartGame;
 import soc.message.SOCStatusMessage;
 import soc.message.SOCTurn;
+import soc.proto.Data;
 import soc.server.genericServer.StringConnection;
 import soc.util.IntPair;
 import soc.util.SOCGameList;

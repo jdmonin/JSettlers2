@@ -22,9 +22,9 @@
 package soctest.game;
 
 import org.junit.Test;
-import soc.Data;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
+import soc.proto.Data;
 
 import static org.junit.Assert.*;
 

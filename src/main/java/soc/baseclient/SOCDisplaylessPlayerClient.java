@@ -21,7 +21,6 @@
  **/
 package soc.baseclient;
 
-import soc.Data;
 import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
@@ -45,6 +44,8 @@ import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 
 import soc.message.*;
+
+import soc.proto.Data;
 
 import soc.robot.SOCRobotClient;
 import soc.server.genericServer.LocalStringConnection;

@@ -28,11 +28,11 @@ import java.util.Stack;
 
 // import org.apache.log4j.Logger;
 
-import soc.Data;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
+import soc.proto.Data;
 import soc.util.SOCRobotParameters;
 
 /**

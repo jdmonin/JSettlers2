@@ -23,10 +23,10 @@
  **/
 package soc.game;
 
-import soc.Data;
 import soc.disableDebug.D;
 
 import soc.message.SOCMessage;  // For static calls only; SOCGame does not interact with network messages
+import soc.proto.Data;
 import soc.util.IntPair;
 import soc.util.SOCGameBoardReset;
 

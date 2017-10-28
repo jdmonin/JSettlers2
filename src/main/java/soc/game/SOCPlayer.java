@@ -21,10 +21,10 @@
  **/
 package soc.game;
 
-import soc.Data;
 import soc.disableDebug.D;
 
 import soc.message.SOCMessage;
+import soc.proto.Data;
 import soc.util.IntPair;
 import soc.util.NodeLenVis;
 

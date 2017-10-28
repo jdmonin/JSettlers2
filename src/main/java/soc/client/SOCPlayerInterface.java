@@ -24,7 +24,6 @@ package soc.client;
 
 import soc.client.SOCPlayerClient.GameAwtDisplay;
 import soc.client.stats.SOCGameStatistics;
-import soc.Data;
 import soc.debug.D;  // JM
 
 import soc.game.SOCCity;
@@ -46,6 +45,7 @@ import soc.game.SOCSpecialItem;
 import soc.game.SOCVillage;
 import soc.message.SOCSimpleAction;  // for action type constants
 import soc.message.SOCSimpleRequest;  // for request type constants
+import soc.proto.Data;
 import soc.util.SOCStringManager;
 
 import java.awt.Color;

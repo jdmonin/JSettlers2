@@ -19,12 +19,12 @@
  */
 package soc.robot.sample3p;
 
-import soc.Data;
 import soc.game.SOCGame;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
 import soc.message.SOCMessage;
+import soc.proto.Data;
 import soc.robot.SOCRobotBrain;
 import soc.robot.SOCRobotClient;
 import soc.robot.SOCRobotNegotiator;

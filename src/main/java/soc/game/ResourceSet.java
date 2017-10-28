@@ -21,7 +21,7 @@
 
 package soc.game;
 
-import soc.Data;
+import soc.proto.Data;
 
 /**
  * Represents an immutable set of resources

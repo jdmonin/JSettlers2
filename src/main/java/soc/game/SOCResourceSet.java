@@ -21,7 +21,7 @@
  **/
 package soc.game;
 
-import soc.Data;
+import soc.proto.Data;
 
 import java.io.Serializable;
 import java.util.Arrays;
