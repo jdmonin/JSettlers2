@@ -21,7 +21,6 @@
 package soc.message;
 
 import soc.game.SOCGame;  // for javadocs only
-import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.proto.Data;
 

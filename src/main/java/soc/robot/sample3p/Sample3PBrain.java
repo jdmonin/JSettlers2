@@ -20,7 +20,6 @@
 package soc.robot.sample3p;
 
 import soc.game.SOCGame;
-import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
 import soc.message.SOCMessage;
