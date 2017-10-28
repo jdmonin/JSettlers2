@@ -8,7 +8,6 @@
 - Build Setup and Results
 - Recommended debug/run configurations for testing
 - To configure a sqlite database for testing
-- Current work to complete for v2.0.00 release
 - Current partially-done work
 - To do: The current TODO list
 - Developing with a database (JDBC)
@@ -26,8 +25,8 @@
 ### Project layout
 
 This project uses ant (or IDEs) to build. For developer familiarity, the project
-uses the directory structure/layout of a maven project. Future versions may use
-maven to build. Stable versions 1.x.xx used ant to build; 2.0.00 is transitional.
+uses the directory structure/layout of a maven/gradle project. v2 and later
+versions use gradle to build. Stable versions 1.x.xx used ant.
 
 Also see the "Build Setup and Results" section.
 
@@ -203,7 +202,7 @@ Written for Eclipse 3.6, should be applicable to other versions with minor chang
   https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.0.0/
   into the project's top-level `lib` directory
 - Choose File -> New -> Project... -> Java -> Java Project from Existing Ant Buildfile.
-- Browse to jsettlers-2.x.xx-src/build.xml, select the "javac" task in target "compile".
+- Browse to the cloned repo's `build.xml`, select the "javac" task in target "compile"
 - Check the box "Link to the buildfile in the file system"
 - Hit Finish.
 - Project -> Properties: Resource: Text file encoding: UTF-8 -> OK
@@ -251,8 +250,8 @@ There are several build targets, here are the most useful ones:
 
 - `build`: create project jar files. (default)
 - `clean`: clean the project of all generated files
-- `dist-src`: create a tarball of the source tree (jsettlers-2.x.xx-src.tar.gz)
-- `dist-full`: `build` & `dist-src` and a tarball of the source + built JARs (jsettlers-2.x.xx-full.tar.gz)
+- `dist-src`: create a tarball of the source tree (jsettlers-3.x.xx-src.tar.gz)
+- `dist-full`: `build` & `dist-src` and a tarball of the source + built JARs (jsettlers-3.x.xx-full.tar.gz)
 - `javadoc`: create JavaDoc files in "target/docs/api"
 - `build-i18neditor`: create `PTE.jar` for maintaining i18n translations (not built by default)
 
@@ -349,24 +348,6 @@ jsettlers JAR from the command line, not running inside eclipse.
   `-Djsettlers.accounts.admins=adm`) which can then create others.
 
 
-## Current work to complete for v2.0.00 release
-
-- Robot AI:
-  - Refine ship planning/modeling, especially along coastal edges
-  - AI in SC_FOG may want more work to react to reveals and encourage exploration
-- Game/scenario framework:
-  - Review scenarios' description text
-  - Further board generation testing; possibly automate that
-  - Other expansions should be possible to add later within the framework
-    released with 2.0.00
-- Network message system:
-  - Scenario negotiation across versions, like SOCGameOption negotation
-  - Consider a common handler/constant for EMPTYSTR token
-  - Send client legal/potential nodes/edges if joins or rejoins a game in progress
-- Server:
-  - DB schema additions
-
-
 ## Current partially-done work
 
 - Refactor SOCMessage classes to use templates
@@ -456,9 +437,8 @@ welcomes contributions. Please keep these things in mind:
 
 ## Internationalization (I18N)
 
-An internationalization framework has just been put into place for v2.0.00,
-and not yet fully used, so you won't see it used in every server and client
-class. Some work in progress is surrounded by marker comments:
+An internationalization framework was put into place for v2.0.00.
+Temporary work in progress is surrounded by marker comments:
 `/*I*/"{0} has won the game with {1} points."/*18N*/`
 
 When building strings that the user will see, don't use + to build the strings;

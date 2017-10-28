@@ -14,6 +14,7 @@ and backport minor new features until `2.0.00` is ready.
 ## `3.0.00` (build JX201xxxxx)
 - Experimental features: protobuf
 - Major refactoring: Board layouts, game data types, etc, thanks to Ruud Poutsma
+- Build requires Java 7 or newer
 
 ## `2.0.00` (build JM2017xxxx)
 - Large board (sea board) support
