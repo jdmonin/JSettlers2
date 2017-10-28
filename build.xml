@@ -45,7 +45,7 @@
       * To override system's default encoding, specify UTF-8 for *.java
       -->
   <presetdef name="javac">
-    <javac encoding="UTF-8" includeantruntime="false" source="1.5" target="1.5" />
+    <javac encoding="UTF-8" includeantruntime="false" source="1.7" target="1.7" />
   </presetdef>
   <presetdef name="javadoc">
     <javadoc encoding="UTF-8" />
@@ -588,7 +588,7 @@ pte.version = ${i18neditor.version}
                doctitle="${Name} ${version} API"
                windowtitle="${Name} ${version} API - javadocs"
                access="package"
-               source="1.5"
+               source="1.7"
                splitindex="false"
                use="true"
                breakiterator="yes"

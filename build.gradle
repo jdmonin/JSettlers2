@@ -15,6 +15,11 @@ buildscript {
 
 mainClassName = "soc.client.SOCPlayerClient"
 
+compileJava {
+  sourceCompatibility = '1.7'
+  targetCompatibility = '1.7'
+}
+
 protobuf {
     protoc {
         artifact = 'com.google.protobuf:protoc:3.0.0'

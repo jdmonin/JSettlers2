@@ -58,12 +58,12 @@ see initAllOptions javadoc for a list. Options have flags for their properties
 game option keynames start with `_SC_`, and provide special rules for the
 scenario.
 
-Coding is done in Java 5, but should compile cleanly in newer JDKs. (Before
-v1.2.00, we restricted ourselves to java 1.4 for backwards compatibility.)
-The build system is Ant, which is natively understood by Eclipse. Use any IDE
-you want, including vi.  Use spaces, not tabs.  Please try to keep the other
-conventions of the code already there (see "Coding Style" below for more
-details.).
+Coding is done in Java 7, but should compile cleanly in newer JDKs. (v1.2 and
+v2.0 used java 5 for backwards compatibility; earlier versions used java 1.4.)
+The build system is Ant, which is natively understood by Eclipse, or Gradle.
+Use any IDE you want, including vi.  Use spaces, not tabs.  Please try to keep
+the other conventions of the code already there (see "Coding Style" below for
+more details.).
 
 When adding new methods or fields, describe them in javadoc, including the
 `@since` marker and the one-sentence summary (even though some old methods
@@ -223,7 +223,7 @@ Continue reading to see how to set up the builds and the coding style in Eclipse
 
 ## Build Setup and Results
 
-Before building, make sure you have the Java Development Kit version 5 or later.
+Before building, make sure you have the Java Development Kit version 7 or later.
 If you simply want to run the client or server, you only need the Java Runtime
 (JRE). If you wish to maintain a user database for your server, you need MySQL
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a
@@ -686,7 +686,7 @@ You will also want this to have this, which disables auto-reindenting:
         configure visibility -> trailing space, trailing ideographic space, trailing tab
 
     project properties -> java compiler -> configure workspace settings
-        compiler compliance level: 1.5
+        compiler compliance level: 1.7
 
     prefs -> java -> code style -> formatter
         Click "Enable Project Specific Settings", then New
@@ -872,7 +872,7 @@ When preparing to release a new version, testing should include:
             - In Eclipse, pause the debugged client to simulate network connection loss
             - Start a new client and connect as that same username; should allow after appropriate number of seconds
         - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
-- Platform-specific: Recent and less-recent OSX and Windows; oldest JRE (1.5) and new JRE
+- Platform-specific: Recent and less-recent OSX and Windows; oldest JRE (1.7) and new JRE
     - Keyboard shortcuts including game-reset dialog's esc/enter keys, FaceChooserFrame arrow keys
     - Sound, including 2 clients in same game for overlapping piece-place sound
     - Start or join networked game

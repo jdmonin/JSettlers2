@@ -5,11 +5,11 @@ project.version=3.0.00
 project.versionnum=3000
 # maximum recent version number to not warn during new game creation;
 # should be a version released more than a year ago.
-# Special case: New major version v2.0.00 has itself as this
+# Special case: Major version v2.0.00 has itself as this
 # "no-warn" version to avoid unnecessary warning dialogs.
 project.versionnumMaxNoWarn=2000
 project.copyright=2001-2004 Robb Thomas, portions (C) 2007-2017 Jeremy D Monin and contributors
-project.buildnum=JX20171022
+project.buildnum=JX20171027
 project.jre.min.major=1
-project.jre.min.minor=5
+project.jre.min.minor=7
 project.jre.min.edit=0
