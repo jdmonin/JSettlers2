@@ -554,6 +554,11 @@ robot players, you could start the server with:
 games run at a quick pace, about 2 minutes for a 4-player game. You can use the
 jsettlers client to observe a bot game as it plays.
 
+To speed up or slow down robot-only games, start the server with this tuning
+option to set the length of SOCRobotBrain pauses during bot-only games: For
+example `-Djsettlers.bots.fast_pause_percent=10` will pause for only 10% as long
+as in normal games.
+
 If `jsettlers.bots.botgames.total` != 0 (including < 0), at any time the client
 can create a new game, join but not sit down at a seat, and start that game as
 bots-only using the debug command `*STARTBOTGAME* [maxBots]` to test the bots

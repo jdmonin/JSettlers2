@@ -43,6 +43,9 @@ and backport minor new features until `2.0.00` is ready.
 	- Third-party bots can have more time to plan their turn with new server startup option:
 	  (this example uses 18 seconds)  
 	  `-Djsettlers.bots.timeout.turn=18`
+	- Tuning for length of SOCRobotBrain pauses during bot-only games:
+	  To pause only 10% as long as in normal games, use  
+	  `-Djsettlers.bots.fast_pause_percent=10`
 	- New debug command `*STARTBOTGAME* [maxBots]` to begin current game as bots-only
 	- Standalone bot clients shut down properly if they can't reconnect to server after 3 retries
 	- Example `soc.robot.sample3p.Sample3PBrain extending SOCRobotBrain`, `Sample3PClient extending SOCRobotClient`

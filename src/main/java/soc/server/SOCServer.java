@@ -27,6 +27,7 @@ import soc.debug.D;  // JM
 import soc.game.*;
 import soc.message.*;
 
+import soc.robot.SOCRobotBrain;
 import soc.robot.SOCRobotClient;
 import soc.server.database.DBSettingMismatchException;
 import soc.server.database.SOCDBHelper;
@@ -241,6 +242,15 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_BOTS_TIMEOUT_TURN = "jsettlers.bots.timeout.turn";
 
     /**
+     * Integer property <tt>jsettlers.bots.fast_pause_percent</tt> to set
+     * the speed-up factor for bots' pause times between actions when {@link SOCGame#isBotsOnly}
+     * {@link soc.robot.SOCRobotBrain#BOTS_ONLY_FAST_PAUSE_FACTOR} (default is 25, for 25%
+     * of normal pauses).
+     * @since 2.0.00
+     */
+    public static final String PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT = "jsettlers.bots.fast_pause_percent";
+
+    /**
      * Integer property <tt>jsettlers.bots.botgames.total</tt> will start robot-only games,
      * a few at a time, until this many have been played. (The default is 0.)
      * As the first few games end, the server will start new games until the total is reached.
@@ -426,6 +436,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC, "Wait at startup before starting robot-only games (default 1.6 seconds)",
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
+        PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT, "Pause at percent of normal pause time (0 to 100) for robot-only games (default 25)",
         PROP_JSETTLERS_BOTS_PERCENT3P,          "Percent of bots which should be third-party (0 to 100) if available",
         PROP_JSETTLERS_BOTS_TIMEOUT_TURN,       "Robot turn timeout (seconds) for third-party bots",
         PROP_JSETTLERS_TEST_VALIDATE__CONFIG,   "Flag to validate server and DB config, then exit (same as -t command-line option)",
@@ -1299,6 +1310,16 @@ public class SOCServer extends Server
             // If problems found, throws IllegalArgumentException with details.
             // Ignores unknown scenario ("SC"), see init_checkScenarioOpts for that.
             init_propsSetGameopts(props);
+
+            int v = getConfigIntProperty(PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT, -1);
+            if (v != -1)
+            {
+                if ((v >= 0) && (v <= 100))
+                    SOCRobotBrain.BOTS_ONLY_FAST_PAUSE_FACTOR = .01f * v;
+                else
+                    throw new IllegalArgumentException
+                        ("Error: Property out of range (0 to 100): " + PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT);
+            }
         }
 
         this.props = props;
