@@ -114,8 +114,9 @@ public class SOCStringManager extends StringManager
 
     /**
      * Resource type-and-count text keys for {@link #getSpecial(SOCGame, String, Object...)}.
-     * Each subarray's indexes are the same values as {@link Data.ResourceType#CLAY_VALUE} to {@link Data.ResourceType#WOOD_VALUE}.
-     * The string key at index 0 is used for resources out of range (unknown types).
+     * Each subarray's indexes are the same values as {@link Data.ResourceType#CLAY_VALUE}
+     * to {@link Data.ResourceType#WOOD_VALUE}. The string key at index 0 is used for
+     * resources out of range (unknown types).
      * @see #getSOCResourceCount(int, Integer)
      */
     private static final String[][] GETSPECIAL_RSRC_KEYS =
@@ -133,7 +134,8 @@ public class SOCStringManager extends StringManager
 
     /**
      * Get a resource count, such as "5 sheep"; used by {@link #getSpecial(SOCGame, String, Object...)}.
-     * @param rtype  Type of resource, in the range {@link Data.ResourceType#CLAY_VALUE} to {@link Data.ResourceType#WOOD_VALUE}
+     * @param rtype  Type of resource, in the range {@link Data.ResourceType#CLAY_VALUE}
+     *     to {@link Data.ResourceType#WOOD_VALUE}
      * @param rcountObj  Resource count; uses the Integer object passed into {@code getSpecial}.
      *          As a special case, -1 will localize with the indefinite article, such as "a sheep" or "an ore".
      *          -2 will localize to the plural resource name without a count, as in "clay" or "la lana".
@@ -203,7 +205,8 @@ public class SOCStringManager extends StringManager
      *            see above for the expected object types.
      * @return the localized formatted string from the manager's bundle or one of its parents
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
-     * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
+     * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without
+     *     opening '{' brace, etc)
      * @see #getSOCResourceCount(int, Integer)
      */
     public String getSpecial(final SOCGame game, final String key, Object ... arguments)

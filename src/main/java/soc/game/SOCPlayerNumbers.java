@@ -331,7 +331,8 @@ public class SOCPlayerNumbers
      *
      * @return the numbers for a resource, as {@link Integer}s
      *
-     * @param resource  the resource, in range {@link Data.ResourceType#CLAY_VALUE} to {@link Data.ResourceType#WOOD_VALUE}
+     * @param resource  the resource, in range
+     *     {@link Data.ResourceType#CLAY_VALUE} to {@link Data.ResourceType#WOOD_VALUE}
      * @see #getNumbersForResource(int, int)
      */
     public Vector<Integer> getNumbersForResource(int resource)
@@ -382,7 +383,8 @@ public class SOCPlayerNumbers
      *     if this resource is on two 8s (for example), there will be two {@link Integer}(8) in the
      *     returned vector.
      *
-     * @param resource  the resource, in range {@link Data.ResourceType#CLAY_VALUE} to {@link Data.ResourceType#WOOD_VALUE}
+     * @param resource  the resource, in range
+     *     {@link Data.ResourceType#CLAY_VALUE} to {@link Data.ResourceType#WOOD_VALUE}
      * @param robberHex the robber hex
      * @see #getNumbersForResource(int)
      */
@@ -472,8 +474,8 @@ public class SOCPlayerNumbers
      * add a number to the list of dice numbers for a resource
      *
      * @param diceNum    the dice-roll number
-     * @param resource  the resource, in range {@link Data.ResourceType#CLAY_VALUE} to {@link Data.ResourceType#WOOD_VALUE};
-     *                   resources outside this range are ignored.
+     * @param resource  the resource, in range {@link Data.ResourceType#CLAY_VALUE} to
+     *                   {@link Data.ResourceType#WOOD_VALUE}; resources outside this range are ignored.
      *                   If {@link #hasSeaBoard}, can be {@link SOCBoardLarge#GOLD_HEX}
      *                   as returned from {@link SOCBoardLarge#getHexTypeFromCoord(int)}.
      * @param hex       the hex coordinate ID
@@ -558,8 +560,8 @@ public class SOCPlayerNumbers
      * do this when you take back a piece
      *
      * @param number    the dice-roll number
-     * @param resource  the resource, in range {@link Data.ResourceType#CLAY_VALUE} to {@link Data.ResourceType#WOOD_VALUE},
-     *                    from {@link SOCBoard#getHexTypeFromCoord(int)}.
+     * @param resource  the resource, in range {@link Data.ResourceType#CLAY_VALUE}
+     *                    to {@link Data.ResourceType#WOOD_VALUE}, from {@link SOCBoard#getHexTypeFromCoord(int)}.
      *                    If {@link #hasSeaBoard}, can be {@link SOCBoardLarge#GOLD_HEX}.
      * @param hex       the hex coordinate ID
      */
