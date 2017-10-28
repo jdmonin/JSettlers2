@@ -38,8 +38,8 @@ public class MonopolyStrategy
     /**
      * The resource we want to monopolize,
      * chosen by {@link #decidePlayMonopoly()},
-     * such as {@link Data.ResourceType#CLAY}
-     * or {@link Data.ResourceType#SHEEP}
+     * such as {@link Data.ResourceType#CLAY_VALUE}
+     * or {@link Data.ResourceType#SHEEP_VALUE}
      */
     protected int monopolyChoice;
 
@@ -61,8 +61,8 @@ public class MonopolyStrategy
      * Get our monopoly choice; valid only after
      * {@link #decidePlayMonopoly()} returns true.
      * @return  Resource type to monopolize,
-     *    such as {@link Data.ResourceType#CLAY}
-     *    or {@link Data.ResourceType#SHEEP}
+     *    such as {@link Data.ResourceType#CLAY_VALUE}
+     *    or {@link Data.ResourceType#SHEEP_VALUE}
      */
     public int getMonopolyChoice()
     {

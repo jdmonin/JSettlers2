@@ -52,7 +52,7 @@ public class SOCPlayerElement extends SOCMessage
 
     /**
      * player element types.  CLAY has same value
-     * as {@link Data.ResourceType#CLAY};
+     * as {@link Data.ResourceType#CLAY_VALUE};
      * ORE, SHEEP, WHEAT and WOOD also match SOCResourceConstants.
      */
     public static final int CLAY = 1;

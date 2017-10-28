@@ -290,7 +290,7 @@ public class SOCHandPanel extends Panel
     /**
      * For right-click resource to trade - If playerIsClient, track cost
      * of bank/port trade per resource. Index 0 unused; index 1 is
-     * {@link Data.ResourceType#CLAY}, etc. Highest index is 5.
+     * {@link Data.ResourceType#CLAY_VALUE}, etc. Highest index is 5.
      * Null, unless playerIsClient and addPlayer has been called.
      */
     protected int[] resourceTradeCost;
@@ -298,7 +298,7 @@ public class SOCHandPanel extends Panel
     /**
      * For right-click resource to trade - If playerIsClient, popup menus
      * to bank/port trade resources. Index 0 unused; index 1 is
-     * {@link Data.ResourceType#CLAY}, etc. Highest index is 5.
+     * {@link Data.ResourceType#CLAY_VALUE}, etc. Highest index is 5.
      * Null, unless playerIsClient and addPlayer has been called.
      */
     protected ResourceTradeTypeMenu[] resourceTradeMenu;

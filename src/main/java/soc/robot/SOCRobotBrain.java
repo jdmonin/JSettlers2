@@ -3719,7 +3719,7 @@ public class SOCRobotBrain extends Thread
      *
      * @param mes      Message with amount and action (SET/GAIN/LOSE)
      * @param pl       Player to update
-     * @param rtype    Type of resource, like {@link Data.ResourceType#CLAY}
+     * @param rtype    Type of resource, like {@link Data.ResourceType#CLAY_VALUE}
      * @param rtypeStr Resource type name, for debugging
      */
     @SuppressWarnings("unused")  // unnecessary dead-code warning "if (D.ebugOn)"

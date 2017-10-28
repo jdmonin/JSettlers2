@@ -1516,7 +1516,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *
      * @param mes    Message with amount and action (SET/GAIN/LOSE)
      * @param pl     Player to update
-     * @param rtype  Type of resource, like {@link Data.ResourceType#CLAY}
+     * @param rtype  Type of resource, like {@link Data.ResourceType#CLAY_VALUE}
      */
     public static void handlePLAYERELEMENT_numRsrc
         (SOCPlayerElement mes, final SOCPlayer pl, int rtype)

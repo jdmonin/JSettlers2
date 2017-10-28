@@ -44,11 +44,11 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     /**
      * the number of each resource type.
      * Indexes 1 to n are used:
-     * 1 == {@link Data.ResourceType#CLAY},
-     * 2 == {@link Data.ResourceType#ORE},
+     * 1 == {@link Data.ResourceType#CLAY_VALUE},
+     * 2 == {@link Data.ResourceType#ORE_VALUE},
      * ...
-     * 5 = {@link Data.ResourceType#WHEAT},
-     * 6 = {@link Data.ResourceType#UNKNOWN}.
+     * 5 = {@link Data.ResourceType#WHEAT_VALUE},
+     * 6 = {@link Data.ResourceType#UNKNOWN_VALUE}.
      */
     private int[] resources;
 
@@ -124,7 +124,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
 
     /**
      * Does the set contain any resources of this type?
-     * @param resourceType  the type of resource, like {@link Data.ResourceType#CLAY}
+     * @param resourceType  the type of resource, like {@link Data.ResourceType#CLAY_VALUE}
      * @return true if the set's amount of this resource &gt; 0
      * @since 2.0.00
      * @see #getAmount(int)
@@ -139,7 +139,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
 
     /**
      * How many resources of this type are contained in the set?
-     * @param resourceType  the type of resource, like {@link Data.ResourceType#CLAY}
+     * @param resourceType  the type of resource, like {@link Data.ResourceType#CLAY_VALUE}
      * @return the number of a kind of resource
      * @see #contains(int)
      * @see #getTotal()
@@ -171,7 +171,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
 
     /**
      * Get the number of known resource types contained in this set:
-     * {@link Data.ResourceType#CLAY} to {@link Data.ResourceType#WOOD},
+     * {@link Data.ResourceType#CLAY_VALUE} to {@link Data.ResourceType#WOOD_VALUE},
      * excluding {@link Data.ResourceType#UNKNOWN} or {@link SOCResourceConstants#GOLD_LOCAL}.
      * An empty set returns 0, a set containing only wheat returns 1,
      * that same set after adding wood and sheep returns 3, etc.
@@ -194,7 +194,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
 
     /**
      * Get the total amount of resources of known types:
-     * {@link Data.ResourceType#CLAY} to {@link Data.ResourceType#WOOD},
+     * {@link Data.ResourceType#CLAY_VALUE} to {@link Data.ResourceType#WOOD_VALUE},
      * excluding {@link Data.ResourceType#UNKNOWN} or {@link SOCResourceConstants#GOLD_LOCAL}.
      * @return the total number of known-type resources
      * @since 1.1.14
@@ -217,7 +217,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * To set all resources from another set, use {@link #add(SOCResourceSet)},
      * {@link #subtract(ResourceSet)} or {@link #setAmounts(SOCResourceSet)}.
      *
-     * @param rtype the type of resource, like {@link Data.ResourceType#CLAY}
+     * @param rtype the type of resource, like {@link Data.ResourceType#CLAY_VALUE}
      * @param amt   the amount
      */
     public void setAmount(int amt, int rtype)
@@ -228,7 +228,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     /**
      * add an amount to a resource
      *
-     * @param rtype the type of resource, like {@link Data.ResourceType#CLAY}
+     * @param rtype the type of resource, like {@link Data.ResourceType#CLAY_VALUE}
      * @param amt   the amount; if below 0 (thus subtracting resources),
      *              the subtraction occurs and no special action is taken.
      *              {@link #subtract(int, int)} takes special action in some cases.
@@ -245,7 +245,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * {@link SOCResourceConstants#UNKNOWN} resources.
      * As a result, UNKNOWN may be less than zero afterwards.
      *
-     * @param rtype the type of resource, like {@link Data.ResourceType#CLAY}
+     * @param rtype the type of resource, like {@link Data.ResourceType#CLAY_VALUE}
      * @param amt   the amount; unlike in {@link #add(int, int)}, any amount that
      *              takes the resource below 0 is treated specially.
      */

@@ -45,7 +45,7 @@ public class SOCResourceConstants
     /**
      * Warning: Don't mess with these constants, other pieces
      *          of code depend on these numbers staying like this.
-     *          {@link #CLAY} is first (1), {@link Data.ResourceType#WOOD} is last (5), {@link #UNKNOWN} is after wood.
+     *          {@link #CLAY} is first (1), {@link Data.ResourceType#WOOD_VALUE} is last (5), {@link #UNKNOWN} is after wood.
      *<P>
      *          Some code also takes advantage that {@link #CLAY} == {@link SOCBoard#CLAY_HEX},
      *          {@link #SHEEP} == {@link SOCBoard#SHEEP_HEX}, etc.
@@ -111,7 +111,7 @@ public class SOCResourceConstants
      * Get the resource type name for this resource type number,
      * such as "clay" or "ore".
      *
-     * @param rtype Resource type, such as {@link Data.ResourceType#CLAY} or {@link Data.ResourceType#WOOD}.
+     * @param rtype Resource type, such as {@link Data.ResourceType#CLAY_VALUE} or {@link Data.ResourceType#WOOD_VALUE}.
      *     {@link Data.ResourceType#UNKNOWN} / {@link #GOLD_LOCAL} is out of range.
      * @return Lowercase resource name, or null if rtype is out of range.
      * @since 1.1.08
@@ -142,9 +142,9 @@ public class SOCResourceConstants
      * Get the indefinite article of the resource type name for this number,
      * such as "a clay" or "an ore".
      *
-     * @param rtype Resource type, such as {@link Data.ResourceType#CLAY} or {@link Data.ResourceType#SHEEP}.
+     * @param rtype Resource type, such as {@link Data.ResourceType#CLAY_VALUE} or {@link Data.ResourceType#SHEEP_VALUE}.
      * @return Lowercase resource name, or {@code null} if rtype is out of range
-     *              ({@link Data.ResourceType#CLAY} - {@link Data.ResourceType#WOOD})
+     *              ({@link Data.ResourceType#CLAY_VALUE} - {@link Data.ResourceType#WOOD_VALUE})
      * @since 1.1.08
      */
     public static String aResName(final int rtype)

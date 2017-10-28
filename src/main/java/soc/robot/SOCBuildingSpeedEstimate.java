@@ -55,8 +55,8 @@ public class SOCBuildingSpeedEstimate
     int[] estimatesFromNow;
 
     /**
-     * Number of rolls to gain each resource type ({@link Data.ResourceType#CLAY}
-     * to {@link Data.ResourceType#WOOD}).
+     * Number of rolls to gain each resource type ({@link Data.ResourceType#CLAY_VALUE}
+     * to {@link Data.ResourceType#WOOD_VALUE}).
      * Index 0 is unused.
      *<P>
      * Does not contain {@link soc.game.SOCBoardLarge#GOLD_HEX GOLD_HEX}
@@ -115,8 +115,8 @@ public class SOCBuildingSpeedEstimate
      * @param pl  Player to check numbers
      * @return  Resource order, sorted by rolls per resource descending;
      *        a 5-element array containing
-     *        {@link Data.ResourceType#CLAY},
-     *        {@link Data.ResourceType#WHEAT}, etc,
+     *        {@link Data.ResourceType#CLAY_VALUE},
+     *        {@link Data.ResourceType#WHEAT_VALUE}, etc,
      *        where the resource in [0] has the highest rolls per resource.
      * @since 2.0.00
      */
@@ -436,8 +436,8 @@ public class SOCBuildingSpeedEstimate
     }
 
     /**
-     * Get the number of rolls to gain each resource type ({@link Data.ResourceType#CLAY}
-     * to {@link Data.ResourceType#WOOD}).
+     * Get the number of rolls to gain each resource type ({@link Data.ResourceType#CLAY_VALUE}
+     * to {@link Data.ResourceType#WOOD_VALUE}).
      *<P>
      * Does not contain {@link soc.game.SOCBoardLarge#GOLD_HEX GOLD_HEX}
      * or {@link SOCResourceConstants#GOLD_LOCAL},

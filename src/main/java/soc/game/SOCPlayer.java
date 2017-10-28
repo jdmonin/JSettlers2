@@ -218,7 +218,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * server-only total count of how many of each known resource the player has received this game
      * from dice rolls.
-     * The used indexes are {@link Data.ResourceType#CLAY} - {@link Data.ResourceType#WOOD},
+     * The used indexes are {@link Data.ResourceType#CLAY_VALUE} - {@link Data.ResourceType#WOOD_VALUE},
      * and also (in v2.0.00+) {@link SOCResourceConstants#GOLD_LOCAL}.
      * See {@link #getResourceRollStats()} for details.
      * @since 1.1.09
@@ -1971,7 +1971,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Not currently tracked at client.
      *
      * @return array of resource counts from dice rolls;
-     *   the used indexes are {@link Data.ResourceType#CLAY} - {@link Data.ResourceType#WOOD}.
+     *   the used indexes are {@link Data.ResourceType#CLAY_VALUE} - {@link Data.ResourceType#WOOD_VALUE}.
      *   Index 0 is unused.
      *   In v2.0.00 and newer, index {@link SOCResourceConstants#GOLD_LOCAL} tracks how many
      *   resource picks the player has received from gold hexes.
