@@ -21,6 +21,7 @@ compileJava {
 }
 
 protobuf {
+    generatedFilesBaseDir = "${projectDir}/generated/src/proto"
     protoc {
         artifact = 'com.google.protobuf:protoc:3.0.0'
     }

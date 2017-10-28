@@ -75,7 +75,7 @@
   <property name="bin.src"        value="src/main/bin" />
   <property name="java.src"       value="src/main/java" />
   <property name="test.src"       value="src/test/java" /> <!-- junit test cases -->
-  <property name="java.proto.gen.src" value="build/generated/source/proto/main/java" /> <!-- from protoc (gradle) -->
+  <property name="java.proto.gen.src" value="generated/src/proto/main/java" /> <!-- from protoc (gradle) -->
   <property name="web.src"        value="src/site" />
 
   <property name="test"           value="src/test" />
