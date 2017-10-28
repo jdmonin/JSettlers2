@@ -23,6 +23,7 @@
  **/
 package soc.game;
 
+import soc.Data;
 import soc.disableDebug.D;
 
 import soc.message.SOCMessage;  // For static calls only; SOCGame does not interact with network messages
@@ -3121,23 +3122,23 @@ public class SOCGame implements Serializable, Cloneable
                     switch (board.getHexTypeFromCoord(hexCoord))
                     {
                     case SOCBoard.CLAY_HEX:
-                        resources.add(1, SOCResourceConstants.CLAY);
+                        resources.add(1, Data.ResourceType.CLAY_VALUE);
                         break;
 
                     case SOCBoard.ORE_HEX:
-                        resources.add(1, SOCResourceConstants.ORE);
+                        resources.add(1, Data.ResourceType.ORE_VALUE);
                         break;
 
                     case SOCBoard.SHEEP_HEX:
-                        resources.add(1, SOCResourceConstants.SHEEP);
+                        resources.add(1, Data.ResourceType.SHEEP_VALUE);
                         break;
 
                     case SOCBoard.WHEAT_HEX:
-                        resources.add(1, SOCResourceConstants.WHEAT);
+                        resources.add(1, Data.ResourceType.WHEAT_VALUE);
                         break;
 
                     case SOCBoard.WOOD_HEX:
-                        resources.add(1, SOCResourceConstants.WOOD);
+                        resources.add(1, Data.ResourceType.WOOD_VALUE);
                         break;
 
                     case SOCBoardLarge.GOLD_HEX:
@@ -3287,7 +3288,7 @@ public class SOCGame implements Serializable, Cloneable
                 revealFogHiddenHex(hexCoord, hexType, diceNum);
                 if (currentPlayerNumber != -1)
                 {
-                    if ((hexType >= SOCResourceConstants.CLAY) && (hexType <= SOCResourceConstants.WOOD))
+                    if ((hexType >= Data.ResourceType.CLAY_VALUE) && (hexType <= Data.ResourceType.WOOD_VALUE))
                         players[currentPlayerNumber].getResources().add(1, hexType);
                     else if (hexType == SOCBoardLarge.GOLD_HEX)
                         ++goldHexes;
@@ -4755,8 +4756,8 @@ public class SOCGame implements Serializable, Cloneable
 
             // Add everything in fromHand.
             // System.err.println("resources="+ourPlayerData.getResources());
-            for (int rsrcType = SOCResourceConstants.CLAY;
-                    rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
+            for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                    rsrcType <= Data.ResourceType.WOOD_VALUE; rsrcType++)
             {
                 for (int i = fromHand.getAmount(rsrcType);
                         i != 0; i--)
@@ -4768,9 +4769,9 @@ public class SOCGame implements Serializable, Cloneable
         } else {
 
             // First, determine the res type(s) with lowest amount in hand
-            int lowestNum = fromHand.getAmount(SOCResourceConstants.CLAY);
-            for (int rsrcType = SOCResourceConstants.ORE;
-                     rsrcType <= SOCResourceConstants.WOOD; ++rsrcType)
+            int lowestNum = fromHand.getAmount(Data.ResourceType.CLAY_VALUE);
+            for (int rsrcType = Data.ResourceType.ORE_VALUE;
+                     rsrcType <= Data.ResourceType.WOOD_VALUE; ++rsrcType)
             {
                 final int num = fromHand.getAmount(rsrcType);
                 if (num < lowestNum)
@@ -4783,8 +4784,8 @@ public class SOCGame implements Serializable, Cloneable
             Vector<Integer> alreadyPicked = new Vector<Integer>();
             do
             {
-                for (int rsrcType = SOCResourceConstants.CLAY;
-                         rsrcType <= SOCResourceConstants.WOOD; ++rsrcType)
+                for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                         rsrcType <= Data.ResourceType.WOOD_VALUE; ++rsrcType)
                 {
                     final int num = fromHand.getAmount(rsrcType);
                     if (num == lowestNum)
@@ -5184,23 +5185,23 @@ public class SOCGame implements Serializable, Cloneable
                     switch (board.getHexTypeFromCoord(hexCoord))
                     {
                     case SOCBoard.CLAY_HEX:
-                        rset.add(incr, SOCResourceConstants.CLAY);
+                        rset.add(incr, Data.ResourceType.CLAY_VALUE);
                         break;
 
                     case SOCBoard.ORE_HEX:
-                        rset.add(incr, SOCResourceConstants.ORE);
+                        rset.add(incr, Data.ResourceType.ORE_VALUE);
                         break;
 
                     case SOCBoard.SHEEP_HEX:
-                        rset.add(incr, SOCResourceConstants.SHEEP);
+                        rset.add(incr, Data.ResourceType.SHEEP_VALUE);
                         break;
 
                     case SOCBoard.WHEAT_HEX:
-                        rset.add(incr, SOCResourceConstants.WHEAT);
+                        rset.add(incr, Data.ResourceType.WHEAT_VALUE);
                         break;
 
                     case SOCBoard.WOOD_HEX:
-                        rset.add(incr, SOCResourceConstants.WOOD);
+                        rset.add(incr, Data.ResourceType.WOOD_VALUE);
                         break;
 
                     case SOCBoardLarge.GOLD_HEX:  // if not hasSeaBoard, == SOCBoard.MISC_PORT_HEX
@@ -5394,7 +5395,7 @@ public class SOCGame implements Serializable, Cloneable
             //     Note: PLAY1 is also the case for building a road/ship
             //     that revealed gold from a fog hex
             int[] resourceStats = players[pn].getResourceRollStats();
-            for (int rtype = SOCResourceConstants.CLAY; rtype < resourceStats.length; ++rtype)
+            for (int rtype = Data.ResourceType.CLAY_VALUE; rtype < resourceStats.length; ++rtype)
                 resourceStats[rtype] += rs.getAmount(rtype);
         }
 
@@ -6312,7 +6313,7 @@ public class SOCGame implements Serializable, Cloneable
             int[] rsrcs = new int[nRsrcs];  // 1 element per resource card held by victim
             int cnt = 0;
 
-            for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD;
+            for (int i = Data.ResourceType.CLAY_VALUE; i <= Data.ResourceType.WOOD_VALUE;
                     i++)
             {
                 for (int j = 0; j < victim.getResources().getAmount(i); j++)
@@ -6396,7 +6397,7 @@ public class SOCGame implements Serializable, Cloneable
 
         int[] rsrcs = new int[nRsrcs];  // 1 element per resource card held by victim
         int cnt = 0;
-        for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; ++i)
+        for (int i = Data.ResourceType.CLAY_VALUE; i <= Data.ResourceType.WOOD_VALUE; ++i)
         {
             for (int j = victim.getResources().getAmount(i); j > 0; --j)
             {
@@ -6606,8 +6607,8 @@ public class SOCGame implements Serializable, Cloneable
             /**
              * check for groups of 4
              */
-            for (int i = SOCResourceConstants.CLAY;
-                    i <= SOCResourceConstants.WOOD; i++)
+            for (int i = Data.ResourceType.CLAY_VALUE;
+                    i <= Data.ResourceType.WOOD_VALUE; i++)
             {
                 if ((give.getAmount(i) % 4) == 0)
                 {
@@ -6629,8 +6630,8 @@ public class SOCGame implements Serializable, Cloneable
             /**
              * check for groups of 3
              */
-            for (int i = SOCResourceConstants.CLAY;
-                    i <= SOCResourceConstants.WOOD; i++)
+            for (int i = Data.ResourceType.CLAY_VALUE;
+                    i <= Data.ResourceType.WOOD_VALUE; i++)
             {
                 if ((give.getAmount(i) % 3) == 0)
                 {
@@ -6663,8 +6664,8 @@ public class SOCGame implements Serializable, Cloneable
             /**
              * Note: this only works if SOCResourceConstants.CLAY == 1
              */
-            for (int i = SOCResourceConstants.CLAY;
-                    i <= SOCResourceConstants.WOOD; i++)
+            for (int i = Data.ResourceType.CLAY_VALUE;
+                    i <= Data.ResourceType.WOOD_VALUE; i++)
             {
                 final int giveAmt = give.getAmount(i);
                 if (giveAmt > 0)
@@ -6745,7 +6746,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         SOCResourceSet resources = players[pn].getResources();
 
-        return ((resources.getAmount(SOCResourceConstants.CLAY) >= 1) && (resources.getAmount(SOCResourceConstants.WOOD) >= 1) && (players[pn].getNumPieces(SOCPlayingPiece.ROAD) >= 1) && (players[pn].hasPotentialRoad()));
+        return ((resources.getAmount(Data.ResourceType.CLAY_VALUE) >= 1) && (resources.getAmount(Data.ResourceType.WOOD_VALUE) >= 1) && (players[pn].getNumPieces(SOCPlayingPiece.ROAD) >= 1) && (players[pn].hasPotentialRoad()));
     }
 
     /**
@@ -6759,7 +6760,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         SOCResourceSet resources = players[pn].getResources();
 
-        return ((resources.getAmount(SOCResourceConstants.CLAY) >= 1) && (resources.getAmount(SOCResourceConstants.SHEEP) >= 1) && (resources.getAmount(SOCResourceConstants.WHEAT) >= 1) && (resources.getAmount(SOCResourceConstants.WOOD) >= 1) && (players[pn].getNumPieces(SOCPlayingPiece.SETTLEMENT) >= 1) && (players[pn].hasPotentialSettlement()));
+        return ((resources.getAmount(Data.ResourceType.CLAY_VALUE) >= 1) && (resources.getAmount(Data.ResourceType.SHEEP_VALUE) >= 1) && (resources.getAmount(Data.ResourceType.WHEAT_VALUE) >= 1) && (resources.getAmount(Data.ResourceType.WOOD_VALUE) >= 1) && (players[pn].getNumPieces(SOCPlayingPiece.SETTLEMENT) >= 1) && (players[pn].hasPotentialSettlement()));
     }
 
     /**
@@ -6772,7 +6773,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         SOCResourceSet resources = players[pn].getResources();
 
-        return ((resources.getAmount(SOCResourceConstants.ORE) >= 3) && (resources.getAmount(SOCResourceConstants.WHEAT) >= 2) && (players[pn].getNumPieces(SOCPlayingPiece.CITY) >= 1) && (players[pn].hasPotentialCity()));
+        return ((resources.getAmount(Data.ResourceType.ORE_VALUE) >= 3) && (resources.getAmount(Data.ResourceType.WHEAT_VALUE) >= 2) && (players[pn].getNumPieces(SOCPlayingPiece.CITY) >= 1) && (players[pn].hasPotentialCity()));
     }
 
     /**
@@ -6787,7 +6788,8 @@ public class SOCGame implements Serializable, Cloneable
     {
         SOCResourceSet resources = players[pn].getResources();
 
-        return ((resources.getAmount(SOCResourceConstants.SHEEP) >= 1) && (resources.getAmount(SOCResourceConstants.ORE) >= 1) && (resources.getAmount(SOCResourceConstants.WHEAT) >= 1) && (numDevCards > 0));
+        // TODO: use DevCardCost
+        return ((resources.getAmount(Data.ResourceType.SHEEP_VALUE) >= 1) && (resources.getAmount(Data.ResourceType.ORE_VALUE) >= 1) && (resources.getAmount(Data.ResourceType.WHEAT_VALUE) >= 1) && (numDevCards > 0));
     }
 
     /**
@@ -6803,7 +6805,8 @@ public class SOCGame implements Serializable, Cloneable
     {
         SOCResourceSet resources = players[pn].getResources();
 
-        return ((resources.getAmount(SOCResourceConstants.SHEEP) >= 1) && (resources.getAmount(SOCResourceConstants.WOOD) >= 1) && (players[pn].getNumPieces(SOCPlayingPiece.SHIP) >= 1) && (players[pn].hasPotentialShip()));
+        // TODO: use ShipCost
+        return ((resources.getAmount(Data.ResourceType.SHEEP_VALUE) >= 1) && (resources.getAmount(Data.ResourceType.WOOD_VALUE) >= 1) && (players[pn].getNumPieces(SOCPlayingPiece.SHIP) >= 1) && (players[pn].hasPotentialShip()));
     }
 
     /**
@@ -6817,8 +6820,8 @@ public class SOCGame implements Serializable, Cloneable
     public void buyRoad(final int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
-        resources.subtract(1, SOCResourceConstants.CLAY);
-        resources.subtract(1, SOCResourceConstants.WOOD);
+        resources.subtract(1, Data.ResourceType.CLAY_VALUE);
+        resources.subtract(1, Data.ResourceType.WOOD_VALUE);
         oldGameState = gameState;  // PLAY1 or SPECIAL_BUILDING
         gameState = PLACING_ROAD;
     }
@@ -6834,10 +6837,10 @@ public class SOCGame implements Serializable, Cloneable
     public void buySettlement(final int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
-        resources.subtract(1, SOCResourceConstants.CLAY);
-        resources.subtract(1, SOCResourceConstants.SHEEP);
-        resources.subtract(1, SOCResourceConstants.WHEAT);
-        resources.subtract(1, SOCResourceConstants.WOOD);
+        resources.subtract(1, Data.ResourceType.CLAY_VALUE);
+        resources.subtract(1, Data.ResourceType.SHEEP_VALUE);
+        resources.subtract(1, Data.ResourceType.WHEAT_VALUE);
+        resources.subtract(1, Data.ResourceType.WOOD_VALUE);
         oldGameState = gameState;  // PLAY1 or SPECIAL_BUILDING
         gameState = PLACING_SETTLEMENT;
     }
@@ -6853,8 +6856,8 @@ public class SOCGame implements Serializable, Cloneable
     public void buyCity(final int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
-        resources.subtract(3, SOCResourceConstants.ORE);
-        resources.subtract(2, SOCResourceConstants.WHEAT);
+        resources.subtract(3, Data.ResourceType.ORE_VALUE);
+        resources.subtract(2, Data.ResourceType.WHEAT_VALUE);
         oldGameState = gameState;  // PLAY1 or SPECIAL_BUILDING
         gameState = PLACING_CITY;
     }
@@ -6871,8 +6874,8 @@ public class SOCGame implements Serializable, Cloneable
     public void buyShip(final int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
-        resources.subtract(1, SOCResourceConstants.SHEEP);
-        resources.subtract(1, SOCResourceConstants.WOOD);
+        resources.subtract(1, Data.ResourceType.SHEEP_VALUE);
+        resources.subtract(1, Data.ResourceType.WOOD_VALUE);
         oldGameState = gameState;  // PLAY1 or SPECIAL_BUILDING
         gameState = PLACING_SHIP;
     }
@@ -6931,8 +6934,8 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         SOCResourceSet resources = players[pn].getResources();
-        resources.add(1, SOCResourceConstants.CLAY);
-        resources.add(1, SOCResourceConstants.WOOD);
+        resources.add(1, Data.ResourceType.CLAY_VALUE);
+        resources.add(1, Data.ResourceType.WOOD_VALUE);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else
@@ -6951,10 +6954,10 @@ public class SOCGame implements Serializable, Cloneable
     public void cancelBuildSettlement(int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
-        resources.add(1, SOCResourceConstants.CLAY);
-        resources.add(1, SOCResourceConstants.SHEEP);
-        resources.add(1, SOCResourceConstants.WHEAT);
-        resources.add(1, SOCResourceConstants.WOOD);
+        resources.add(1, Data.ResourceType.CLAY_VALUE);
+        resources.add(1, Data.ResourceType.SHEEP_VALUE);
+        resources.add(1, Data.ResourceType.WHEAT_VALUE);
+        resources.add(1, Data.ResourceType.WOOD_VALUE);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else
@@ -6970,8 +6973,8 @@ public class SOCGame implements Serializable, Cloneable
     public void cancelBuildCity(final int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
-        resources.add(3, SOCResourceConstants.ORE);
-        resources.add(2, SOCResourceConstants.WHEAT);
+        resources.add(3, Data.ResourceType.ORE_VALUE);
+        resources.add(2, Data.ResourceType.WHEAT_VALUE);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else
@@ -6999,8 +7002,8 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         SOCResourceSet resources = players[pn].getResources();
-        resources.add(1, SOCResourceConstants.SHEEP);
-        resources.add(1, SOCResourceConstants.WOOD);
+        resources.add(1, Data.ResourceType.SHEEP_VALUE);
+        resources.add(1, Data.ResourceType.WOOD_VALUE);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else
@@ -7105,9 +7108,9 @@ public class SOCGame implements Serializable, Cloneable
         if (currentPlayerNumber != -1)
         {
             SOCResourceSet resources = players[currentPlayerNumber].getResources();
-            resources.subtract(1, SOCResourceConstants.ORE);
-            resources.subtract(1, SOCResourceConstants.SHEEP);
-            resources.subtract(1, SOCResourceConstants.WHEAT);
+            resources.subtract(1, Data.ResourceType.ORE_VALUE);
+            resources.subtract(1, Data.ResourceType.SHEEP_VALUE);
+            resources.subtract(1, Data.ResourceType.WHEAT_VALUE);
             players[currentPlayerNumber].getInventory().addDevCard(1, SOCInventory.NEW, card);
             lastActionTime = System.currentTimeMillis();
             lastActionWasBankTrade = false;
@@ -7482,7 +7485,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void doDiscoveryAction(SOCResourceSet pick)
     {
-        for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD;
+        for (int i = Data.ResourceType.CLAY_VALUE; i <= Data.ResourceType.WOOD_VALUE;
                 i++)
         {
             players[currentPlayerNumber].getResources().add(pick.getAmount(i), i);

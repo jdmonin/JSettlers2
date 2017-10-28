@@ -21,6 +21,8 @@
 package soc.game;
 
 
+import soc.Data;
+
 /**
  * This is a list of constants for representing
  * types of resources in Settlers of Catan.
@@ -43,10 +45,19 @@ public class SOCResourceConstants
     /**
      * Warning: Don't mess with these constants, other pieces
      *          of code depend on these numbers staying like this.
-     *          {@link #CLAY} is first (1), {@link #WOOD} is last (5), {@link #UNKNOWN} is after wood.
+     *          {@link #CLAY} is first (1), {@link Data.ResourceType#WOOD} is last (5), {@link #UNKNOWN} is after wood.
      *<P>
      *          Some code also takes advantage that {@link #CLAY} == {@link SOCBoard#CLAY_HEX},
      *          {@link #SHEEP} == {@link SOCBoard#SHEEP_HEX}, etc.
+     *
+     * Data.ResourceType has replaced these constants. Do not use these
+     * constants, but use Data.ResourceType.$RESOURCE_VALUE instead.
+     * Currently many occurrences exist where for-i iteration loops are done
+     * where CLAY is minimum, and WOOD is maximum. These loops must be replaced
+     * by foreach-loops. This should be done carefully because it's not always
+     * clear *what* they are looping over. These can be e.g. "all available
+     * resource types", "all available resource types of the current expansion",
+     * "all basic resource types (5)", etc.
      * @see #MIN
      */
     public static final int CLAY = 1;
@@ -100,8 +111,8 @@ public class SOCResourceConstants
      * Get the resource type name for this resource type number,
      * such as "clay" or "ore".
      *
-     * @param rtype Resource type, such as {@link #CLAY} or {@link #WOOD}.
-     *     {@link #UNKNOWN} / {@link #GOLD_LOCAL} is out of range.
+     * @param rtype Resource type, such as {@link Data.ResourceType#CLAY} or {@link Data.ResourceType#WOOD}.
+     *     {@link Data.ResourceType#UNKNOWN} / {@link #GOLD_LOCAL} is out of range.
      * @return Lowercase resource name, or null if rtype is out of range.
      * @since 1.1.08
      */
@@ -110,15 +121,15 @@ public class SOCResourceConstants
         String tname;
         switch (rtype)
         {
-        case CLAY:
+        case Data.ResourceType.CLAY_VALUE:
             tname = "clay";  break;
-        case ORE:
+        case Data.ResourceType.ORE_VALUE:
             tname = "ore";   break;
-        case SHEEP:
+        case Data.ResourceType.SHEEP_VALUE:
             tname = "sheep"; break;
-        case WHEAT:
+        case Data.ResourceType.WHEAT_VALUE:
             tname = "wheat"; break;
-        case WOOD:
+        case Data.ResourceType.WOOD_VALUE:
             tname = "wood";  break;
         default:
             // Should not happen
@@ -131,9 +142,9 @@ public class SOCResourceConstants
      * Get the indefinite article of the resource type name for this number,
      * such as "a clay" or "an ore".
      *
-     * @param rtype Resource type, such as {@link #CLAY} or {@link #SHEEP}.
+     * @param rtype Resource type, such as {@link Data.ResourceType#CLAY} or {@link Data.ResourceType#SHEEP}.
      * @return Lowercase resource name, or {@code null} if rtype is out of range
-     *              ({@link #CLAY} - {@link #WOOD})
+     *              ({@link Data.ResourceType#CLAY} - {@link Data.ResourceType#WOOD})
      * @since 1.1.08
      */
     public static String aResName(final int rtype)
@@ -141,15 +152,15 @@ public class SOCResourceConstants
         String tname;
         switch (rtype)
         {
-        case CLAY:
+        case Data.ResourceType.CLAY_VALUE:
             tname = /*I*/"a clay"/*18N*/;  break;
-        case ORE:
+        case Data.ResourceType.ORE_VALUE:
             tname = /*I*/"an ore"/*18N*/;  break;
-        case SHEEP:
+        case Data.ResourceType.SHEEP_VALUE:
             tname = /*I*/"a sheep"/*18N*/; break;
-        case WHEAT:
+        case Data.ResourceType.WHEAT_VALUE:
             tname = /*I*/"a wheat"/*18N*/; break;
-        case WOOD:
+        case Data.ResourceType.WOOD_VALUE:
             tname = /*I*/"a wood"/*18N*/;  break;
         default:
             // Should not happen

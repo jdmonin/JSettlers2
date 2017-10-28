@@ -21,6 +21,8 @@
  **/
 package soc.game;
 
+import soc.Data;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -42,11 +44,11 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     /**
      * the number of each resource type.
      * Indexes 1 to n are used:
-     * 1 == {@link SOCResourceConstants#CLAY},
-     * 2 == {@link SOCResourceConstants#ORE},
+     * 1 == {@link Data.ResourceType#CLAY},
+     * 2 == {@link Data.ResourceType#ORE},
      * ...
-     * 5 = {@link SOCResourceConstants#WHEAT},
-     * 6 = {@link SOCResourceConstants#UNKNOWN}.
+     * 5 = {@link Data.ResourceType#WHEAT},
+     * 6 = {@link Data.ResourceType#UNKNOWN}.
      */
     private int[] resources;
 
@@ -73,12 +75,12 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     {
         resources = new int[SOCResourceConstants.MAXPLUSONE];
 
-        resources[SOCResourceConstants.CLAY]    = cl;
-        resources[SOCResourceConstants.ORE]     = or;
-        resources[SOCResourceConstants.SHEEP]   = sh;
-        resources[SOCResourceConstants.WHEAT]   = wh;
-        resources[SOCResourceConstants.WOOD]    = wo;
-        resources[SOCResourceConstants.UNKNOWN] = uk;
+        resources[Data.ResourceType.CLAY_VALUE]    = cl;
+        resources[Data.ResourceType.ORE_VALUE]     = or;
+        resources[Data.ResourceType.SHEEP_VALUE]   = sh;
+        resources[Data.ResourceType.WHEAT_VALUE]   = wh;
+        resources[Data.ResourceType.WOOD_VALUE]    = wo;
+        resources[Data.ResourceType.UNKNOWN_VALUE] = uk;
     }
 
     /**
@@ -104,12 +106,12 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     public SOCResourceSet(ResourceSet other)
     {
         this();
-        resources[SOCResourceConstants.CLAY] = other.getAmount(SOCResourceConstants.CLAY);
-        resources[SOCResourceConstants.ORE] = other.getAmount(SOCResourceConstants.ORE);
-        resources[SOCResourceConstants.SHEEP] = other.getAmount(SOCResourceConstants.SHEEP);
-        resources[SOCResourceConstants.WHEAT] = other.getAmount(SOCResourceConstants.WHEAT);
-        resources[SOCResourceConstants.WOOD] = other.getAmount(SOCResourceConstants.WOOD);
-        resources[SOCResourceConstants.UNKNOWN] = other.getAmount(SOCResourceConstants.UNKNOWN);
+        resources[Data.ResourceType.CLAY_VALUE] = other.getAmount(Data.ResourceType.CLAY_VALUE);
+        resources[Data.ResourceType.ORE_VALUE] = other.getAmount(Data.ResourceType.ORE_VALUE);
+        resources[Data.ResourceType.SHEEP_VALUE] = other.getAmount(Data.ResourceType.SHEEP_VALUE);
+        resources[Data.ResourceType.WHEAT_VALUE] = other.getAmount(Data.ResourceType.WHEAT_VALUE);
+        resources[Data.ResourceType.WOOD_VALUE] = other.getAmount(Data.ResourceType.WOOD_VALUE);
+        resources[Data.ResourceType.UNKNOWN_VALUE] = other.getAmount(Data.ResourceType.UNKNOWN_VALUE);
     }
 
     /**
@@ -122,7 +124,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
 
     /**
      * Does the set contain any resources of this type?
-     * @param resourceType  the type of resource, like {@link SOCResourceConstants#CLAY}
+     * @param resourceType  the type of resource, like {@link Data.ResourceType#CLAY}
      * @return true if the set's amount of this resource &gt; 0
      * @since 2.0.00
      * @see #getAmount(int)
@@ -137,7 +139,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
 
     /**
      * How many resources of this type are contained in the set?
-     * @param resourceType  the type of resource, like {@link SOCResourceConstants#CLAY}
+     * @param resourceType  the type of resource, like {@link Data.ResourceType#CLAY}
      * @return the number of a kind of resource
      * @see #contains(int)
      * @see #getTotal()
@@ -169,8 +171,8 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
 
     /**
      * Get the number of known resource types contained in this set:
-     * {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD},
-     * excluding {@link SOCResourceConstants#UNKNOWN} or {@link SOCResourceConstants#GOLD_LOCAL}.
+     * {@link Data.ResourceType#CLAY} to {@link Data.ResourceType#WOOD},
+     * excluding {@link Data.ResourceType#UNKNOWN} or {@link SOCResourceConstants#GOLD_LOCAL}.
      * An empty set returns 0, a set containing only wheat returns 1,
      * that same set after adding wood and sheep returns 3, etc.
      * @return  The number of resource types in this set with nonzero resource counts.
@@ -181,7 +183,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
         int typ = 0;
 
         for (int i = SOCResourceConstants.MIN;
-                 i <= SOCResourceConstants.WOOD; ++i)
+                 i <= Data.ResourceType.WOOD_VALUE; ++i)
         {
             if (resources[i] != 0)
                 ++typ;
@@ -192,8 +194,8 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
 
     /**
      * Get the total amount of resources of known types:
-     * {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD},
-     * excluding {@link SOCResourceConstants#UNKNOWN} or {@link SOCResourceConstants#GOLD_LOCAL}.
+     * {@link Data.ResourceType#CLAY} to {@link Data.ResourceType#WOOD},
+     * excluding {@link Data.ResourceType#UNKNOWN} or {@link SOCResourceConstants#GOLD_LOCAL}.
      * @return the total number of known-type resources
      * @since 1.1.14
      */
@@ -202,7 +204,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
         int sum = 0;
 
         for (int i = SOCResourceConstants.MIN;
-                 i <= SOCResourceConstants.WOOD; i++)
+                 i <= Data.ResourceType.WOOD_VALUE; i++)
         {
             sum += resources[i];
         }
@@ -215,7 +217,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * To set all resources from another set, use {@link #add(SOCResourceSet)},
      * {@link #subtract(ResourceSet)} or {@link #setAmounts(SOCResourceSet)}.
      *
-     * @param rtype the type of resource, like {@link SOCResourceConstants#CLAY}
+     * @param rtype the type of resource, like {@link Data.ResourceType#CLAY}
      * @param amt   the amount
      */
     public void setAmount(int amt, int rtype)
@@ -226,7 +228,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     /**
      * add an amount to a resource
      *
-     * @param rtype the type of resource, like {@link SOCResourceConstants#CLAY}
+     * @param rtype the type of resource, like {@link Data.ResourceType#CLAY}
      * @param amt   the amount; if below 0 (thus subtracting resources),
      *              the subtraction occurs and no special action is taken.
      *              {@link #subtract(int, int)} takes special action in some cases.
@@ -243,7 +245,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * {@link SOCResourceConstants#UNKNOWN} resources.
      * As a result, UNKNOWN may be less than zero afterwards.
      *
-     * @param rtype the type of resource, like {@link SOCResourceConstants#CLAY}
+     * @param rtype the type of resource, like {@link Data.ResourceType#CLAY}
      * @param amt   the amount; unlike in {@link #add(int, int)}, any amount that
      *              takes the resource below 0 is treated specially.
      */
@@ -278,12 +280,12 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      */
     public void add(SOCResourceSet toAdd)
     {
-        resources[SOCResourceConstants.CLAY]    += toAdd.getAmount(SOCResourceConstants.CLAY);
-        resources[SOCResourceConstants.ORE]     += toAdd.getAmount(SOCResourceConstants.ORE);
-        resources[SOCResourceConstants.SHEEP]   += toAdd.getAmount(SOCResourceConstants.SHEEP);
-        resources[SOCResourceConstants.WHEAT]   += toAdd.getAmount(SOCResourceConstants.WHEAT);
-        resources[SOCResourceConstants.WOOD]    += toAdd.getAmount(SOCResourceConstants.WOOD);
-        resources[SOCResourceConstants.UNKNOWN] += toAdd.getAmount(SOCResourceConstants.UNKNOWN);
+        resources[Data.ResourceType.CLAY_VALUE]    += toAdd.getAmount(Data.ResourceType.CLAY_VALUE);
+        resources[Data.ResourceType.ORE_VALUE]     += toAdd.getAmount(Data.ResourceType.ORE_VALUE);
+        resources[Data.ResourceType.SHEEP_VALUE]   += toAdd.getAmount(Data.ResourceType.SHEEP_VALUE);
+        resources[Data.ResourceType.WHEAT_VALUE]   += toAdd.getAmount(Data.ResourceType.WHEAT_VALUE);
+        resources[Data.ResourceType.WOOD_VALUE]    += toAdd.getAmount(Data.ResourceType.WOOD_VALUE);
+        resources[Data.ResourceType.UNKNOWN_VALUE] += toAdd.getAmount(Data.ResourceType.UNKNOWN_VALUE);
     }
 
     /**
@@ -292,46 +294,46 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      */
     public void subtract(ResourceSet toReduce)
     {
-        resources[SOCResourceConstants.CLAY] -= toReduce.getAmount(SOCResourceConstants.CLAY);
+        resources[Data.ResourceType.CLAY_VALUE] -= toReduce.getAmount(Data.ResourceType.CLAY_VALUE);
 
-        if (resources[SOCResourceConstants.CLAY] < 0)
+        if (resources[Data.ResourceType.CLAY_VALUE] < 0)
         {
-            resources[SOCResourceConstants.CLAY] = 0;
+            resources[Data.ResourceType.CLAY_VALUE] = 0;
         }
 
-        resources[SOCResourceConstants.ORE] -= toReduce.getAmount(SOCResourceConstants.ORE);
+        resources[Data.ResourceType.ORE_VALUE] -= toReduce.getAmount(Data.ResourceType.ORE_VALUE);
 
-        if (resources[SOCResourceConstants.ORE] < 0)
+        if (resources[Data.ResourceType.ORE_VALUE] < 0)
         {
-            resources[SOCResourceConstants.ORE] = 0;
+            resources[Data.ResourceType.ORE_VALUE] = 0;
         }
 
-        resources[SOCResourceConstants.SHEEP] -= toReduce.getAmount(SOCResourceConstants.SHEEP);
+        resources[Data.ResourceType.SHEEP_VALUE] -= toReduce.getAmount(Data.ResourceType.SHEEP_VALUE);
 
-        if (resources[SOCResourceConstants.SHEEP] < 0)
+        if (resources[Data.ResourceType.SHEEP_VALUE] < 0)
         {
-            resources[SOCResourceConstants.SHEEP] = 0;
+            resources[Data.ResourceType.SHEEP_VALUE] = 0;
         }
 
-        resources[SOCResourceConstants.WHEAT] -= toReduce.getAmount(SOCResourceConstants.WHEAT);
+        resources[Data.ResourceType.WHEAT_VALUE] -= toReduce.getAmount(Data.ResourceType.WHEAT_VALUE);
 
-        if (resources[SOCResourceConstants.WHEAT] < 0)
+        if (resources[Data.ResourceType.WHEAT_VALUE] < 0)
         {
-            resources[SOCResourceConstants.WHEAT] = 0;
+            resources[Data.ResourceType.WHEAT_VALUE] = 0;
         }
 
-        resources[SOCResourceConstants.WOOD] -= toReduce.getAmount(SOCResourceConstants.WOOD);
+        resources[Data.ResourceType.WOOD_VALUE] -= toReduce.getAmount(Data.ResourceType.WOOD_VALUE);
 
-        if (resources[SOCResourceConstants.WOOD] < 0)
+        if (resources[Data.ResourceType.WOOD_VALUE] < 0)
         {
-            resources[SOCResourceConstants.WOOD] = 0;
+            resources[Data.ResourceType.WOOD_VALUE] = 0;
         }
 
-        resources[SOCResourceConstants.UNKNOWN] -= toReduce.getAmount(SOCResourceConstants.UNKNOWN);
+        resources[Data.ResourceType.UNKNOWN_VALUE] -= toReduce.getAmount(Data.ResourceType.UNKNOWN_VALUE);
 
-        if (resources[SOCResourceConstants.UNKNOWN] < 0)
+        if (resources[Data.ResourceType.UNKNOWN_VALUE] < 0)
         {
-            resources[SOCResourceConstants.UNKNOWN] = 0;
+            resources[Data.ResourceType.UNKNOWN_VALUE] = 0;
         }
     }
 
@@ -364,12 +366,12 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
         if (b == null)
             return true;
 
-        return (   (a.getAmount(SOCResourceConstants.CLAY)    >= b.getAmount(SOCResourceConstants.CLAY))
-                && (a.getAmount(SOCResourceConstants.ORE)     >= b.getAmount(SOCResourceConstants.ORE))
-                && (a.getAmount(SOCResourceConstants.SHEEP)   >= b.getAmount(SOCResourceConstants.SHEEP))
-                && (a.getAmount(SOCResourceConstants.WHEAT)   >= b.getAmount(SOCResourceConstants.WHEAT))
-                && (a.getAmount(SOCResourceConstants.WOOD)    >= b.getAmount(SOCResourceConstants.WOOD))
-                && (a.getAmount(SOCResourceConstants.UNKNOWN) >= b.getAmount(SOCResourceConstants.UNKNOWN)));
+        return (   (a.getAmount(Data.ResourceType.CLAY_VALUE)    >= b.getAmount(Data.ResourceType.CLAY_VALUE)
+                && (a.getAmount(Data.ResourceType.ORE_VALUE)     >= b.getAmount(Data.ResourceType.ORE_VALUE))
+                && (a.getAmount(Data.ResourceType.SHEEP_VALUE)   >= b.getAmount(Data.ResourceType.SHEEP_VALUE))
+                && (a.getAmount(Data.ResourceType.WHEAT_VALUE)   >= b.getAmount(Data.ResourceType.WHEAT_VALUE))
+                && (a.getAmount(Data.ResourceType.WOOD_VALUE)    >= b.getAmount(Data.ResourceType.WOOD_VALUE))
+                && (a.getAmount(Data.ResourceType.UNKNOWN_VALUE) >= b.getAmount(Data.ResourceType.UNKNOWN_VALUE))));
     }
 
     /**
@@ -381,12 +383,12 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      */
     static public boolean lte(ResourceSet a, ResourceSet b)
     {
-        return (   (a.getAmount(SOCResourceConstants.CLAY)    <= b.getAmount(SOCResourceConstants.CLAY))
-                && (a.getAmount(SOCResourceConstants.ORE)     <= b.getAmount(SOCResourceConstants.ORE))
-                && (a.getAmount(SOCResourceConstants.SHEEP)   <= b.getAmount(SOCResourceConstants.SHEEP))
-                && (a.getAmount(SOCResourceConstants.WHEAT)   <= b.getAmount(SOCResourceConstants.WHEAT))
-                && (a.getAmount(SOCResourceConstants.WOOD)    <= b.getAmount(SOCResourceConstants.WOOD))
-                && (a.getAmount(SOCResourceConstants.UNKNOWN) <= b.getAmount(SOCResourceConstants.UNKNOWN)));
+        return (   (a.getAmount(Data.ResourceType.CLAY_VALUE)    <= b.getAmount(Data.ResourceType.CLAY_VALUE))
+                && (a.getAmount(Data.ResourceType.ORE_VALUE)     <= b.getAmount(Data.ResourceType.ORE_VALUE))
+                && (a.getAmount(Data.ResourceType.SHEEP_VALUE)   <= b.getAmount(Data.ResourceType.SHEEP_VALUE))
+                && (a.getAmount(Data.ResourceType.WHEAT_VALUE)   <= b.getAmount(Data.ResourceType.WHEAT_VALUE))
+                && (a.getAmount(Data.ResourceType.WOOD_VALUE)    <= b.getAmount(Data.ResourceType.WOOD_VALUE))
+                && (a.getAmount(Data.ResourceType.UNKNOWN_VALUE) <= b.getAmount(Data.ResourceType.UNKNOWN_VALUE)));
     }
 
     /**
@@ -397,12 +399,12 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      */
     public String toString()
     {
-        String s = "clay=" + resources[SOCResourceConstants.CLAY]
-            + "|ore=" + resources[SOCResourceConstants.ORE]
-            + "|sheep=" + resources[SOCResourceConstants.SHEEP]
-            + "|wheat=" + resources[SOCResourceConstants.WHEAT]
-            + "|wood=" + resources[SOCResourceConstants.WOOD]
-            + "|unknown=" + resources[SOCResourceConstants.UNKNOWN];
+        String s = "clay=" + resources[Data.ResourceType.CLAY_VALUE]
+            + "|ore=" + resources[Data.ResourceType.ORE_VALUE]
+            + "|sheep=" + resources[Data.ResourceType.SHEEP_VALUE]
+            + "|wheat=" + resources[Data.ResourceType.WHEAT_VALUE]
+            + "|wood=" + resources[Data.ResourceType.WOOD_VALUE]
+            + "|unknown=" + resources[Data.ResourceType.UNKNOWN_VALUE];
 
         return s;
     }
@@ -415,12 +417,12 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      */
     public String toShortString()
     {
-        String s = "Resources: " + resources[SOCResourceConstants.CLAY] + " "
-            + resources[SOCResourceConstants.ORE] + " "
-            + resources[SOCResourceConstants.SHEEP] + " "
-            + resources[SOCResourceConstants.WHEAT] + " "
-            + resources[SOCResourceConstants.WOOD] + " "
-            + resources[SOCResourceConstants.UNKNOWN];
+        String s = "Resources: " + resources[Data.ResourceType.CLAY_VALUE] + " "
+            + resources[Data.ResourceType.ORE_VALUE] + " "
+            + resources[Data.ResourceType.SHEEP_VALUE] + " "
+            + resources[Data.ResourceType.WHEAT_VALUE] + " "
+            + resources[Data.ResourceType.WOOD_VALUE] + " "
+            + resources[Data.ResourceType.UNKNOWN_VALUE];
 
         return s;
     }
@@ -453,7 +455,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
         boolean needComma = false;  // Has a resource already been appended to sb?
         int amt;
 
-        for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+        for (int res = Data.ResourceType.CLAY_VALUE; res <= Data.ResourceType.WOOD_VALUE; ++res)
         {
             amt = resources[res];
             if (amt == 0)
@@ -484,12 +486,12 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     public boolean equals(Object anObject)
     {
         if ((anObject instanceof SOCResourceSet)
-                && (((SOCResourceSet) anObject).getAmount(SOCResourceConstants.CLAY)    == resources[SOCResourceConstants.CLAY])
-                && (((SOCResourceSet) anObject).getAmount(SOCResourceConstants.ORE)     == resources[SOCResourceConstants.ORE])
-                && (((SOCResourceSet) anObject).getAmount(SOCResourceConstants.SHEEP)   == resources[SOCResourceConstants.SHEEP])
-                && (((SOCResourceSet) anObject).getAmount(SOCResourceConstants.WHEAT)   == resources[SOCResourceConstants.WHEAT])
-                && (((SOCResourceSet) anObject).getAmount(SOCResourceConstants.WOOD)    == resources[SOCResourceConstants.WOOD])
-                && (((SOCResourceSet) anObject).getAmount(SOCResourceConstants.UNKNOWN) == resources[SOCResourceConstants.UNKNOWN]))
+                && (((SOCResourceSet) anObject).getAmount(Data.ResourceType.CLAY_VALUE)    == resources[Data.ResourceType.CLAY_VALUE])
+                && (((SOCResourceSet) anObject).getAmount(Data.ResourceType.ORE_VALUE)     == resources[Data.ResourceType.ORE_VALUE])
+                && (((SOCResourceSet) anObject).getAmount(Data.ResourceType.SHEEP_VALUE)   == resources[Data.ResourceType.SHEEP_VALUE])
+                && (((SOCResourceSet) anObject).getAmount(Data.ResourceType.WHEAT_VALUE)   == resources[Data.ResourceType.WHEAT_VALUE])
+                && (((SOCResourceSet) anObject).getAmount(Data.ResourceType.WOOD_VALUE)    == resources[Data.ResourceType.WOOD_VALUE])
+                && (((SOCResourceSet) anObject).getAmount(Data.ResourceType.UNKNOWN_VALUE) == resources[Data.ResourceType.UNKNOWN_VALUE]))
         {
             return true;
         }

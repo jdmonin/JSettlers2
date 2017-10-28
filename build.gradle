@@ -16,7 +16,6 @@ buildscript {
 mainClassName = "soc.client.SOCPlayerClient"
 
 protobuf {
-    generatedFilesBaseDir = "${projectDir}/src"
     protoc {
         artifact = 'com.google.protobuf:protoc:3.0.0'
     }

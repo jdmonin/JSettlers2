@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import soc.Data;
 import soc.debug.D;
 import soc.game.*;
 import soc.message.SOCBoardLayout;
@@ -2254,7 +2255,7 @@ public class SOCGameHandler extends GameHandler
      * @param ga  the game
      * @param pe  the perpetrator
      * @param vi  the the victim
-     * @param rsrc  type of resource stolen, as in {@link SOCResourceConstants#SHEEP},
+     * @param rsrc  type of resource stolen, as in {@link Data.ResourceType#SHEEP},
      *              or {@link SOCResourceConstants#CLOTH_STOLEN_LOCAL} for cloth
      *              (scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}).
      */
@@ -2433,7 +2434,7 @@ public class SOCGameHandler extends GameHandler
 
         srv.gameList.takeMonitorForGame(gaName);
 
-        for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+        for (int res = Data.ResourceType.CLAY_VALUE; res <= Data.ResourceType.WOOD_VALUE; ++res)
         {
             // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP.
 
@@ -2751,14 +2752,14 @@ public class SOCGameHandler extends GameHandler
     private final void debugGiveResources(StringConnection c, String mes, SOCGame game)
     {
         StringTokenizer st = new StringTokenizer(mes.substring(6));
-        int[] resources = new int[SOCResourceConstants.WOOD + 1];
-        int resourceType = SOCResourceConstants.CLAY;
+        int[] resources = new int[Data.ResourceType.WOOD_VALUE + 1];
+        int resourceType = Data.ResourceType.CLAY_VALUE;
         String name = "";
         boolean parseError = false;
 
         while (st.hasMoreTokens())
         {
-            if (resourceType <= SOCResourceConstants.WOOD)
+            if (resourceType <= Data.ResourceType.WOOD_VALUE)
             {
                 String token = st.nextToken();
                 try
@@ -2801,8 +2802,8 @@ public class SOCGameHandler extends GameHandler
         int pnum = pl.getPlayerNumber();
         String outMes = "### " + pl.getName() + " gets";
 
-        for (resourceType = SOCResourceConstants.CLAY;
-                resourceType <= SOCResourceConstants.WOOD; resourceType++)
+        for (resourceType = Data.ResourceType.CLAY_VALUE;
+                resourceType <= Data.ResourceType.WOOD_VALUE; resourceType++)
         {
             rset.add(resources[resourceType], resourceType);
             outMes += (" " + resources[resourceType]);
@@ -3261,7 +3262,7 @@ public class SOCGameHandler extends GameHandler
                 if (cpn != -1)
                 {
                     final int res = board.getHexTypeFromNumber(hexCoord);
-                    if ((res >= SOCResourceConstants.CLAY) && (res <= SOCResourceConstants.WOOD))
+                    if ((res >= Data.ResourceType.CLAY_VALUE) && (res <= Data.ResourceType.WOOD_VALUE))
                     {
                         ga.pendingMessagesOut.add
                             (new SOCPlayerElement(gaName, cpn, SOCPlayerElement.GAIN, res, 1, true));

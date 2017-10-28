@@ -24,6 +24,7 @@ package soc.client;
 
 import soc.client.SOCPlayerClient.GameAwtDisplay;
 import soc.client.stats.SOCGameStatistics;
+import soc.Data;
 import soc.debug.D;  // JM
 
 import soc.game.SOCCity;
@@ -3513,23 +3514,23 @@ public class SOCPlayerInterface extends Frame
                 break;
 
             case Clay:
-                hpanUpdateRsrcType = SOCResourceConstants.CLAY;
+                hpanUpdateRsrcType = Data.ResourceType.CLAY_VALUE;
                 break;
 
             case Ore:
-                hpanUpdateRsrcType = SOCResourceConstants.ORE;
+                hpanUpdateRsrcType = Data.ResourceType.ORE_VALUE;
                 break;
 
             case Sheep:
-                hpanUpdateRsrcType = SOCResourceConstants.SHEEP;
+                hpanUpdateRsrcType = Data.ResourceType.SHEEP_VALUE;
                 break;
 
             case Wheat:
-                hpanUpdateRsrcType = SOCResourceConstants.WHEAT;
+                hpanUpdateRsrcType = Data.ResourceType.WHEAT_VALUE;
                 break;
 
             case Wood:
-                hpanUpdateRsrcType = SOCResourceConstants.WOOD;
+                hpanUpdateRsrcType = Data.ResourceType.WOOD_VALUE;
                 break;
 
             case Unknown:

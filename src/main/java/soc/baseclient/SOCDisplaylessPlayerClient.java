@@ -21,6 +21,7 @@
  **/
 package soc.baseclient;
 
+import soc.Data;
 import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
@@ -1313,27 +1314,27 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
             case SOCPlayerElement.CLAY:
 
-                handlePLAYERELEMENT_numRsrc(mes, pl, SOCResourceConstants.CLAY);
+                handlePLAYERELEMENT_numRsrc(mes, pl, Data.ResourceType.CLAY_VALUE);
                 break;
 
             case SOCPlayerElement.ORE:
 
-                handlePLAYERELEMENT_numRsrc(mes, pl, SOCResourceConstants.ORE);
+                handlePLAYERELEMENT_numRsrc(mes, pl, Data.ResourceType.ORE_VALUE);
                 break;
 
             case SOCPlayerElement.SHEEP:
 
-                handlePLAYERELEMENT_numRsrc(mes, pl, SOCResourceConstants.SHEEP);
+                handlePLAYERELEMENT_numRsrc(mes, pl, Data.ResourceType.SHEEP_VALUE);
                 break;
 
             case SOCPlayerElement.WHEAT:
 
-                handlePLAYERELEMENT_numRsrc(mes, pl, SOCResourceConstants.WHEAT);
+                handlePLAYERELEMENT_numRsrc(mes, pl, Data.ResourceType.WHEAT_VALUE);
                 break;
 
             case SOCPlayerElement.WOOD:
 
-                handlePLAYERELEMENT_numRsrc(mes, pl, SOCResourceConstants.WOOD);
+                handlePLAYERELEMENT_numRsrc(mes, pl, Data.ResourceType.WOOD_VALUE);
                 break;
 
             case SOCPlayerElement.UNKNOWN:
@@ -1343,7 +1344,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                  * convert player's known resources to unknown resources,
                  * then remove mes's unknown resources from player.
                  */
-                handlePLAYERELEMENT_numRsrc(mes, pl, SOCResourceConstants.UNKNOWN);
+                handlePLAYERELEMENT_numRsrc(mes, pl, Data.ResourceType.UNKNOWN_VALUE);
                 break;
 
             default:
@@ -1514,7 +1515,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *
      * @param mes    Message with amount and action (SET/GAIN/LOSE)
      * @param pl     Player to update
-     * @param rtype  Type of resource, like {@link SOCResourceConstants#CLAY}
+     * @param rtype  Type of resource, like {@link Data.ResourceType#CLAY}
      */
     public static void handlePLAYERELEMENT_numRsrc
         (SOCPlayerElement mes, final SOCPlayer pl, int rtype)

@@ -20,6 +20,7 @@
  **/
 package soc.message;
 
+import soc.Data;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 
@@ -119,13 +120,13 @@ public class SOCBankTrade extends SOCMessage
     {
         String cmd = BANKTRADE + sep + ga;
 
-        for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD;
-                i++)
+        for (int i = Data.ResourceType.CLAY_VALUE; i <= Data.ResourceType.WOOD_VALUE;
+             i++)
         {
             cmd += (sep2 + give.getAmount(i));
         }
 
-        for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD;
+        for (int i = Data.ResourceType.CLAY_VALUE; i <= Data.ResourceType.WOOD_VALUE;
                 i++)
         {
             cmd += (sep2 + get.getAmount(i));
@@ -158,12 +159,12 @@ public class SOCBankTrade extends SOCMessage
             /**
              * Note: this only works if SOCResourceConstants.CLAY == 1
              */
-            for (int i = 1; i <= SOCResourceConstants.WOOD; i++)
+            for (int i = 1; i <= Data.ResourceType.WOOD_VALUE; i++)
             {
                 give.setAmount(Integer.parseInt(st.nextToken()), i);
             }
 
-            for (int i = 1; i <= SOCResourceConstants.WOOD; i++)
+            for (int i = 1; i <= Data.ResourceType.WOOD_VALUE; i++)
             {
                 get.setAmount(Integer.parseInt(st.nextToken()), i);
             }

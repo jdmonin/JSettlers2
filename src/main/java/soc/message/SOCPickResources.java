@@ -20,6 +20,7 @@
  **/
 package soc.message;
 
+import soc.Data;
 import soc.game.SOCGame;  // for javadocs only
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
@@ -135,8 +136,8 @@ public class SOCPickResources extends SOCMessage
     {
         String cmd = PICKRESOURCES + sep + ga;
 
-        for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD;
-                i++)
+        for (int i = Data.ResourceType.CLAY_VALUE; i <= Data.ResourceType.WOOD_VALUE;
+             i++)
         {
             cmd += (sep2 + rs.getAmount(i));
         }

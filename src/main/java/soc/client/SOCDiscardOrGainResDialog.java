@@ -21,6 +21,7 @@
  **/
 package soc.client;
 
+import soc.Data;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
@@ -204,11 +205,11 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
              */
             SOCPlayer player = playerInterface.getGame().getPlayer(playerInterface.getClient().getNickname());
             SOCResourceSet resources = player.getResources();
-            keep[0].setIntValue(resources.getAmount(SOCResourceConstants.CLAY));
-            keep[1].setIntValue(resources.getAmount(SOCResourceConstants.ORE));
-            keep[2].setIntValue(resources.getAmount(SOCResourceConstants.SHEEP));
-            keep[3].setIntValue(resources.getAmount(SOCResourceConstants.WHEAT));
-            keep[4].setIntValue(resources.getAmount(SOCResourceConstants.WOOD));
+            keep[0].setIntValue(resources.getAmount(Data.ResourceType.CLAY_VALUE));
+            keep[1].setIntValue(resources.getAmount(Data.ResourceType.ORE_VALUE));
+            keep[2].setIntValue(resources.getAmount(Data.ResourceType.SHEEP_VALUE));
+            keep[3].setIntValue(resources.getAmount(Data.ResourceType.WHEAT_VALUE));
+            keep[4].setIntValue(resources.getAmount(Data.ResourceType.WOOD_VALUE));
 
             okBut.requestFocus();
 

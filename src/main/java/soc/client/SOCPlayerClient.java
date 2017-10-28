@@ -71,6 +71,7 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import soc.baseclient.SOCDisplaylessPlayerClient;
+import soc.Data;
 import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
@@ -4504,31 +4505,31 @@ public class SOCPlayerClient
 
             case SOCPlayerElement.CLAY:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (mes, pl, SOCResourceConstants.CLAY);
+                    (mes, pl, Data.ResourceType.CLAY_VALUE);
                 utype = PlayerClientListener.UpdateType.Clay;
                 break;
 
             case SOCPlayerElement.ORE:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (mes, pl, SOCResourceConstants.ORE);
+                    (mes, pl, Data.ResourceType.ORE_VALUE);
                 utype = PlayerClientListener.UpdateType.Ore;
                 break;
 
             case SOCPlayerElement.SHEEP:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (mes, pl, SOCResourceConstants.SHEEP);
+                    (mes, pl, Data.ResourceType.SHEEP_VALUE);
                 utype = PlayerClientListener.UpdateType.Sheep;
                 break;
 
             case SOCPlayerElement.WHEAT:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (mes, pl, SOCResourceConstants.WHEAT);
+                    (mes, pl, Data.ResourceType.WHEAT_VALUE);
                 utype = PlayerClientListener.UpdateType.Wheat;
                 break;
 
             case SOCPlayerElement.WOOD:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-                    (mes, pl, SOCResourceConstants.WOOD);
+                    (mes, pl, Data.ResourceType.WOOD_VALUE);
                 utype = PlayerClientListener.UpdateType.Wood;
                 break;
 
@@ -5407,11 +5408,11 @@ public class SOCPlayerClient
 
         EnumMap<PlayerClientListener.UpdateType, Integer> stats
             = new EnumMap<PlayerClientListener.UpdateType, Integer>(PlayerClientListener.UpdateType.class);
-        stats.put(PlayerClientListener.UpdateType.Clay, Integer.valueOf(rstat[SOCResourceConstants.CLAY]));
-        stats.put(PlayerClientListener.UpdateType.Ore, Integer.valueOf(rstat[SOCResourceConstants.ORE]));
-        stats.put(PlayerClientListener.UpdateType.Sheep, Integer.valueOf(rstat[SOCResourceConstants.SHEEP]));
-        stats.put(PlayerClientListener.UpdateType.Wheat, Integer.valueOf(rstat[SOCResourceConstants.WHEAT]));
-        stats.put(PlayerClientListener.UpdateType.Wood, Integer.valueOf(rstat[SOCResourceConstants.WOOD]));
+        stats.put(PlayerClientListener.UpdateType.Clay, Integer.valueOf(rstat[Data.ResourceType.CLAY_VALUE]));
+        stats.put(PlayerClientListener.UpdateType.Ore, Integer.valueOf(rstat[Data.ResourceType.ORE_VALUE]));
+        stats.put(PlayerClientListener.UpdateType.Sheep, Integer.valueOf(rstat[Data.ResourceType.SHEEP_VALUE]));
+        stats.put(PlayerClientListener.UpdateType.Wheat, Integer.valueOf(rstat[Data.ResourceType.WHEAT_VALUE]));
+        stats.put(PlayerClientListener.UpdateType.Wood, Integer.valueOf(rstat[Data.ResourceType.WOOD_VALUE]));
         if (rstat.length > SOCResourceConstants.GOLD_LOCAL)
         {
             final int n = rstat[SOCResourceConstants.GOLD_LOCAL];

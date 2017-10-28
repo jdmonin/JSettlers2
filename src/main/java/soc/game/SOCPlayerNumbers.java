@@ -21,6 +21,7 @@
  **/
 package soc.game;
 
+import soc.Data;
 import soc.util.IntPair;
 
 import java.util.Enumeration;
@@ -43,7 +44,7 @@ public class SOCPlayerNumbers
 {
     /**
      * Dice roll numbers which yield this resource.
-     * Uses indexes in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
+     * Uses indexes in range {@link Data.ResourceType#CLAY} to {@link Data.ResourceType#WOOD}.
      * Each element contains {@link Integer}s for the dice numbers.
      *<P>
      * {@link SOCBoardLarge#GOLD_HEX} is handled by adding the dice number to
@@ -54,7 +55,7 @@ public class SOCPlayerNumbers
     /**
      * Resources on dice roll numbers; uses indexes 2-12.
      * Each element contains {@link Integer}s for the resource(s),
-     * in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
+     * in range {@link Data.ResourceType#CLAY} to {@link Data.ResourceType#WOOD}.
      * If the number yields more than one of that resource type
      * (a city, or multiple pieces on the hex), there will be
      * more than one Integer here with that resource type.
@@ -110,7 +111,7 @@ public class SOCPlayerNumbers
 
         numbersForResource = new Vector[SOCResourceConstants.MAXPLUSONE - 1];
 
-        for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; i++)
+        for (int i = Data.ResourceType.CLAY_VALUE; i <= Data.ResourceType.WOOD_VALUE; i++)
         {
             numbersForResource[i] = new Vector<Integer>(numbers.numbersForResource[i]);
         }
@@ -162,7 +163,7 @@ public class SOCPlayerNumbers
 
         numbersForResource = new Vector[SOCResourceConstants.MAXPLUSONE - 1];
 
-        for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD;
+        for (int i = Data.ResourceType.CLAY_VALUE; i <= Data.ResourceType.WOOD_VALUE;
                 i++)
         {
             numbersForResource[i] = new Vector<Integer>();
@@ -190,7 +191,7 @@ public class SOCPlayerNumbers
      */
     public void clear()
     {
-        for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; i++)
+        for (int i = Data.ResourceType.CLAY_VALUE; i <= Data.ResourceType.WOOD_VALUE; i++)
         {
             numbersForResource[i].removeAllElements();
         }
@@ -311,7 +312,7 @@ public class SOCPlayerNumbers
      *
      * @param diceNum  the dice number, 2-12
      * @return the resources for a number; contains {@link Integer}s for the resource(s),
-     * in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
+     * in range {@link Data.ResourceType#CLAY} to {@link Data.ResourceType#WOOD}.
      *   If the number yields more than one of that resource type
      *   (a city, or multiple pieces on the hex), there will be
      *   more than one Integer here with that resource type.
@@ -330,7 +331,7 @@ public class SOCPlayerNumbers
      *
      * @return the numbers for a resource, as {@link Integer}s
      *
-     * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
+     * @param resource  the resource, in range {@link Data.ResourceType#CLAY} to {@link Data.ResourceType#WOOD}
      * @see #getNumbersForResource(int, int)
      */
     public Vector<Integer> getNumbersForResource(int resource)
@@ -381,7 +382,7 @@ public class SOCPlayerNumbers
      *     if this resource is on two 8s (for example), there will be two {@link Integer}(8) in the
      *     returned vector.
      *
-     * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
+     * @param resource  the resource, in range {@link Data.ResourceType#CLAY} to {@link Data.ResourceType#WOOD}
      * @param robberHex the robber hex
      * @see #getNumbersForResource(int)
      */
@@ -423,7 +424,7 @@ public class SOCPlayerNumbers
      * (10 for cities on gold).
      *
      * @return the resources for a dice number, taking the robber into account;
-     *   Integers in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
+     *   Integers in range {@link Data.ResourceType#CLAY} to {@link Data.ResourceType#WOOD}.
      *   If the number yields more than one of that resource type
      *   (a city, or multiple pieces on the hex), there will be
      *   more than one Integer here with that resource type.
@@ -455,7 +456,7 @@ public class SOCPlayerNumbers
                     final int res = pair.getB();
                     if (hasSeaBoard && (res == SOCBoardLarge.GOLD_HEX))
                     {
-                        for (int r = SOCResourceConstants.CLAY; r <= SOCResourceConstants.WOOD; ++r)
+                        for (int r = Data.ResourceType.CLAY_VALUE; r <= Data.ResourceType.WOOD_VALUE; ++r)
                             resources.addElement(new Integer(r));
                     } else {
                         resources.addElement(new Integer(res));
@@ -471,7 +472,7 @@ public class SOCPlayerNumbers
      * add a number to the list of dice numbers for a resource
      *
      * @param diceNum    the dice-roll number
-     * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD};
+     * @param resource  the resource, in range {@link Data.ResourceType#CLAY} to {@link Data.ResourceType#WOOD};
      *                   resources outside this range are ignored.
      *                   If {@link #hasSeaBoard}, can be {@link SOCBoardLarge#GOLD_HEX}
      *                   as returned from {@link SOCBoardLarge#getHexTypeFromCoord(int)}.
@@ -479,7 +480,7 @@ public class SOCPlayerNumbers
      */
     public void addNumberForResource(final int diceNum, final int resource, final int hex)
     {
-        if ((resource >= SOCResourceConstants.CLAY) && (resource <= SOCResourceConstants.WOOD))
+        if ((resource >= Data.ResourceType.CLAY_VALUE) && (resource <= Data.ResourceType.WOOD_VALUE))
         {
             numbersForResource[resource].addElement(new Integer(diceNum));
 
@@ -499,7 +500,7 @@ public class SOCPlayerNumbers
 
             // GOLD_HEX: Add all 5 resource types
             final Integer diceNumInt = new Integer(diceNum);
-            for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+            for (int res = Data.ResourceType.CLAY_VALUE; res <= Data.ResourceType.WOOD_VALUE; ++res)
             {
                 numbersForResource[res].addElement(diceNumInt);
                 resourcesForNumber[diceNum].addElement(new Integer(res));
@@ -557,14 +558,14 @@ public class SOCPlayerNumbers
      * do this when you take back a piece
      *
      * @param number    the dice-roll number
-     * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD},
+     * @param resource  the resource, in range {@link Data.ResourceType#CLAY} to {@link Data.ResourceType#WOOD},
      *                    from {@link SOCBoard#getHexTypeFromCoord(int)}.
      *                    If {@link #hasSeaBoard}, can be {@link SOCBoardLarge#GOLD_HEX}.
      * @param hex       the hex coordinate ID
      */
     public void undoAddNumberForResource(int number, int resource, int hex)
     {
-        if ((resource >= SOCResourceConstants.CLAY) && (resource <= SOCResourceConstants.WOOD))
+        if ((resource >= Data.ResourceType.CLAY_VALUE) && (resource <= Data.ResourceType.WOOD_VALUE))
         {
             for (Integer num : numbersForResource[resource])
             {
@@ -594,7 +595,7 @@ public class SOCPlayerNumbers
             // GOLD_HEX: Remove all 5 resource types.
             // To simplify multiple removal, use Iterator not Enumeration.
 
-            for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+            for (int res = Data.ResourceType.CLAY_VALUE; res <= Data.ResourceType.WOOD_VALUE; ++res)
             {
                 Iterator<Integer> numIter = numbersForResource[res].iterator();
                 while (numIter.hasNext())
@@ -656,7 +657,7 @@ public class SOCPlayerNumbers
     {
         String str = "SOCPN:";
 
-        for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD;
+        for (int i = Data.ResourceType.CLAY_VALUE; i <= Data.ResourceType.WOOD_VALUE;
                 i++)
         {
             str += (i + ":");

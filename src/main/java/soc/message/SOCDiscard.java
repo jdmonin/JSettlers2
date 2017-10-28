@@ -20,6 +20,7 @@
  **/
 package soc.message;
 
+import soc.Data;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 
@@ -106,9 +107,9 @@ public class SOCDiscard extends SOCMessage
     public String toCmd()
     {
         return toCmd
-            (game, resources.getAmount(SOCResourceConstants.CLAY), resources.getAmount(SOCResourceConstants.ORE),
-             resources.getAmount(SOCResourceConstants.SHEEP), resources.getAmount(SOCResourceConstants.WHEAT),
-             resources.getAmount(SOCResourceConstants.WOOD), resources.getAmount(SOCResourceConstants.UNKNOWN));
+            (game, resources.getAmount(Data.ResourceType.CLAY_VALUE), resources.getAmount(Data.ResourceType.ORE_VALUE),
+             resources.getAmount(Data.ResourceType.SHEEP_VALUE), resources.getAmount(Data.ResourceType.WHEAT_VALUE),
+             resources.getAmount(Data.ResourceType.WOOD_VALUE), resources.getAmount(Data.ResourceType.UNKNOWN_VALUE));
     }
 
     /**
@@ -122,9 +123,9 @@ public class SOCDiscard extends SOCMessage
     public static String toCmd(String ga, SOCResourceSet rs)
     {
         return toCmd
-            (ga, rs.getAmount(SOCResourceConstants.CLAY), rs.getAmount(SOCResourceConstants.ORE),
-             rs.getAmount(SOCResourceConstants.SHEEP), rs.getAmount(SOCResourceConstants.WHEAT),
-             rs.getAmount(SOCResourceConstants.WOOD), rs.getAmount(SOCResourceConstants.UNKNOWN));
+            (ga, rs.getAmount(Data.ResourceType.CLAY_VALUE), rs.getAmount(Data.ResourceType.ORE_VALUE),
+             rs.getAmount(Data.ResourceType.SHEEP_VALUE), rs.getAmount(Data.ResourceType.WHEAT_VALUE),
+             rs.getAmount(Data.ResourceType.WOOD_VALUE), rs.getAmount(Data.ResourceType.UNKNOWN_VALUE));
     }
 
     /**
