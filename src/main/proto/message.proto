@@ -1,0 +1,558 @@
+/**
+ * Java Settlers - An online multiplayer version of the game Settlers of Catan
+ * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * The maintainer of this program can be reached at jsettlers@nand.net
+ */
+
+syntax = "proto3";
+
+option java_package = "soc.proto";
+option optimize_for = LITE_RUNTIME;  // omit unused features, produce smaller/cleaner generated code
+
+import public "data.proto";
+
+
+//
+// Nicknames / User Authentication and Connection Lifecycle
+//
+
+
+/* VERSION is the first message sent from client to server.
+ * The server also sends its version to the client early, not in response to client's VERSION message.
+ */
+message Version {
+    uint32 vers_num = 1;    // version number, as in {@link soc.util.Version#versionNumber()}
+    string vers_str = 2;    // version display string, as in {@link soc.util.Version#version()}
+    string vers_build = 3;  // version build, as in {@link soc.util.Version#buildnum()}
+    string cli_locale = 4;  // client's locale to server, from {@link java.util.Locale#toString()}
+    string srv_feats = 5;   // server's feats (active optional features) to client, from {@link SOCServerFeatures#getEncodedList()}
+}
+
+message ImARobot {
+    string nickname = 1;  // Nickname of the robot
+    string cookie = 2;    // The security cookie value expected by the server. It isn't sent encrypted and is a weak "shared secret".
+    string rb_class = 3;   // The robot's brain class, to show 3rd-party robots. Built-in robot is {@link soc.robot.SOCRobotBrain#RBCLASS_BUILTIN} ("soc.robot.SOCRobotBrain").
+}
+
+/* Authentication request, to connect and check password before creating or joining a game or channel.
+ *<P>
+ * Before v1.1.19, the client needed to request joining or creating a game or channel in order to send
+ * a username and password.  Games have a game option dialog before creation; if the password was wrong
+ * those older versions wouldn't reject the client until after they had filled out that dialog, which is
+ * less than ideal.
+ *<P>
+ * The server responds to this message from the client with a {@link StatusMessage}:
+ *<UL>
+ * <LI> {@link ServerStatusText.StatusValue#OK} if the username and password were authenticated
+ * <LI> {@link ServerStatusText.StatusValue#NOT_OK_GENERIC} if the auth scheme number is unknown
+ *      or if the client hasn't already sent {@link Version} to the server
+ * <LI> {@link ServerStatusText.StatusValue#PW_REQUIRED} if server settings require a password but none was given
+ * <LI> {@link ServerStatusText.StatusValue#PW_WRONG} if the username and password are not a valid combination:
+ *      The password is wrong, or if the nickname is unknown at the server.
+ *      The server never replies to this message with {@link ServerStatusText.StatusValue#NAME_NOT_FOUND}.
+ * <LI> {@link ServerStatusText.StatusValue#ACCT_NOT_CREATED_DENIED} if the auth request is for
+ *      {@link AuthRequest.AuthRole#USER_ADMIN} but the requesting user isn't authorized to do that
+ *</UL>
+ *<P>
+ * Bots don't need or use this message, they authenticate to the server with {@link ImARobot}.
+ *<P>
+ * This message includes an {@link #authScheme} number field for future expansion.
+ * The only currently implemented auth scheme number is:
+ *<OL>
+ * <LI> {@link AuthRequest.AuthScheme#CLIENT_PLAINTEXT}
+ *</OL>
+ * @since 1.1.19
+ */
+message AuthRequest {
+    enum AuthRole {
+        UNSENT_DEFAULT = 0;  // Required for enum but not sent
+        GAME_PLAYER = 1;  // Play or watch games, join chat channels; "P" before v3.0.00
+        USER_ADMIN = 2;   // Create users; "UA" before v3.0.00
+    }
+    enum AuthScheme {
+        UNUSED_DEFAULT = 0;    // Required for enum but not sent
+        CLIENT_PLAINTEXT = 1;  // For client to connect using a plaintext password
+    }
+
+    AuthRole role = 1;
+    string nickname = 2;
+    string password = 3;
+    AuthScheme auth_scheme = 4;
+}
+
+/* Server text message that shows in a status box on the client.
+ * Used for "welcome" message at initial connect to game (follows
+ * {@link JoinChannel} or {@link JoinGame}),
+ * or rejection if client can't join that game (or channel).
+ * Also used in {@link soc.client.SOCAccountClient SOCAccountClient}
+ * to tell the admin user if their change was made successfully.
+ *<P>
+ * Sent in response to any message type used by clients to request authentication
+ * and create or connect to a game or channel: {@link JoinGame}, {@link JoinChannel},
+ * {@link ImARobot}, {@link AuthRequest}, {@link NewGame}.
+ *<P>
+ * Before v3.0.00 this was {@code SOCStatusMessage}.
+ */
+message ServerStatusText {
+    enum StatusValue {
+
+        /* Welcome, OK to give a username and optional password.
+         * @see #SV_NOT_OK_GENERIC
+         * @see #SV_OK_DEBUG_MODE_ON
+         * @since 1.1.06
+         */
+        OK = 0;
+
+        /* Generic "not OK" status value.
+         * This is given to the client if a more specific value does not apply,
+         * or if the client's version is older than the version where the more specific
+         * value was introduced.
+         * @see #OK
+         * @since 1.1.06
+         */
+        NOT_OK_GENERIC = 1;
+
+        // Other specific status value constants are given here.
+        // When adding new ones, see "IF YOU ADD A STATUS VALUE" comment below.
+
+        /* Name not found in server's accounts.
+         * Server version 1.1.19 and 1.1.20 never replies with this to any authentication
+         * request message type; {@link #PW_WRONG} is sent even if the name doesn't exist.
+         * Server v1.2.00 and higher will send this reply to any older clients which
+         * can't recognize {@link #OK_SET_NICKNAME}.
+         * @since 1.1.06
+         */
+        NAME_NOT_FOUND = 2;
+
+        /* Incorrect password.
+         * Also used in v1.1.19 and higher for authentication replies when the
+         * account name is not found, instead of {@link #NAME_NOT_FOUND}.
+         *<P>
+         * If no password was given but the server requires passwords (a config option in
+         * server v1.1.19 and higher), it will reply with {@link #PW_REQUIRED} if the
+         * client is v1.1.19 or higher, {@link #PW_WRONG} if lower.
+         * @since 1.1.06
+         */
+        PW_WRONG = 3;
+
+        /* This name is already logged in.
+         * In version 1.1.08 and higher, a "take over" option is used for
+         * reconnect when a client loses connection, and server doesn't realize it.
+         * A new connection can "take over" the name after a minute's timeout.
+         * For actual timeouts, see SOCServer.checkNickname.
+         * @see #NAME_NOT_ALLOWED
+         * @since 1.1.06
+         */
+        NAME_IN_USE = 4;
+
+        /* This game version is too new for your client's version to join.
+         *<P>
+         * Server v1.1.20 and newer also send this value to {@code SOCAccountClient}
+         * if client is too old to create accounts at the server's version
+         * because of a required logon auth or other message added since that client's version.
+         *
+         * @since 1.1.06
+         */
+        CANT_JOIN_GAME_VERSION = 5;
+
+        /* Cannot log in or create account due to a temporary database problem.
+         * @since 1.1.06
+         */
+        PROBLEM_WITH_DB = 6;
+
+        /* For account creation, new account was created successfully.
+         * @see #ACCT_CREATED_OK_FIRST_ONE
+         * @since 1.1.06
+         */
+        ACCT_CREATED_OK = 7;
+
+        /* For account creation, an error prevented the account from
+         * being created, or server doesn't use accounts.
+         *<P>
+         * To see whether a server v1.1.19 or newer uses accounts and passwords, check
+         * whether {@link soc.server.SOCServerFeatures#FEAT_ACCTS} is sent when the client connects.
+         * @since 1.1.06
+         * @see #ACCT_NOT_CREATED_DENIED
+         */
+        ACCT_NOT_CREATED_ERR = 8;
+
+        /* New game requested with game options, but some are not
+         * recognized by the server.
+         * @see soc.server.SOCServerMessageHandler#handleNEWGAMEWITHOPTIONSREQUEST
+         * @since 1.1.07
+         */
+        NEWGAME_OPTION_UNKNOWN = 9;
+
+        /* New game requested with game options, but this option or value
+         * is too new for the client to handle.
+         *<P>
+         * This message's {@code details} string list contains:
+         * - game name
+         * - option keyname with problem
+         * - option keyname with problem (if more than one)
+         * - ...
+         * @see soc.server.SOCServerMessageHandler#handleNEWGAMEWITHOPTIONSREQUEST
+         * @since 1.1.07
+         */
+        NEWGAME_OPTION_VALUE_TOONEW = 10;
+
+        /* New game requested, but this game already exists.
+         * @see soc.server.SOCServerMessageHandler#handleNEWGAMEWITHOPTIONSREQUEST
+         * @since 1.1.07
+         */
+        NEWGAME_ALREADY_EXISTS = 11;
+
+        /* New game requested, but name of game or player does not meet standards.
+         * @see soc.server.SOCServer#createOrJoinGameIfUserOK
+         * @since 1.1.07
+         */
+        NEWGAME_NAME_REJECTED = 12;
+
+        /* New game requested, but name of game or player is too long.
+         * The text returned with this status shall indicate the max permitted length.
+         * @see soc.server.SOCServer#createOrJoinGameIfUserOK
+         * @since 1.1.07
+         */
+        NEWGAME_NAME_TOO_LONG = 13;
+
+        /* New game requested, but client already has created too many active games.
+         * The text returned with this status shall indicate the max number.
+         * @see soc.server.SOCServer#createOrJoinGameIfUserOK
+         * @since 1.1.10
+         */
+        NEWGAME_TOO_MANY_CREATED = 14;
+
+        /* New chat channel requested, but client already has created too many active channels.
+         * The text returned with this status shall indicate the max number.
+         * @since 1.1.10
+         */
+        NEWCHANNEL_TOO_MANY_CREATED = 15;
+
+        /* Password required but missing.
+         * Used if server config settings require all players to have user accounts and passwords.
+         * @since 1.1.19
+         */
+        PW_REQUIRED = 16;
+
+        /* For account creation, the requesting user's account is not authorized to create accounts.
+         * @since 1.1.19
+         * @see #ACCT_NOT_CREATED_ERR
+         */
+        ACCT_NOT_CREATED_DENIED = 17;
+
+        /* For account creation, new account was created successfully and was the server's first account.
+         * Normally (when not the first account) the status code returned is {@link #ACCT_CREATED_OK}.
+         * This separate code is provided to let the client know they
+         * must authenticate before creating any other accounts.
+         *<P>
+         * This status is not sent if the server is in Open Registration mode ({@link soc.server.SOCServerFeatures#FEAT_OPEN_REG}),
+         * because in that mode there's nothing special about the first account and no need to authenticate
+         * before creating others.
+         * @since 1.1.20
+         */
+        ACCT_CREATED_OK_FIRST_ONE = 18;
+
+        /* Client's authentication failed because requested nickname is not allowed or is reserved:
+         * {@code "Server"}, bot names like {@code "robot 7"}, or {@code "debug"} when not in debug mode.
+         *<P>
+         * This code would also be sent if the nickname fails {@link SOCMessage#isSingleLineAndSafe(String)},
+         * but that reply would never happen in versions before v3.0.00: A client's {@link SOCMessage} with
+         * that failing nickname would be malformed and not parsed at the server.
+         *<P>
+         * Server versions earlier than v1.2.00 would instead respond with {@link #NAME_IN_USE};
+         * this status is more specific.
+         * @since 1.2.00
+         */
+        NAME_NOT_ALLOWED = 19;
+
+        /* Client has authenticated successfully, but their case-insensitive username differs from
+         * their exact case-sensitive name in the database. To join and create games and channels,
+         * the client must update its internal nickname field.
+         *<P>
+         * {@code detail} field contains the exact-case username to use.
+         *<P>
+         * <B>Bots:</B> Server and client code assume that only human player clients, not bots or
+         * {@code SOCDisplaylessPlayerClient}, will need to handle this status value.
+         * @since 1.2.00
+         */
+        OK_SET_NICKNAME = 20;
+
+        /* Client has connected successfully ({@link #OK}) and the server's Debug Mode is on.
+         * @since 2.0.00
+         */
+        OK_DEBUG_MODE_ON = 21;
+
+        // IF YOU ADD A STATUS VALUE:
+        // Do not change or remove the numeric values of earlier ones.
+        // Be sure to update server's statusValidAtVersion().
+
+    }
+
+    string text = 1;
+    StatusValue sv = 2;
+    repeated string details = 3;  // currently used only by sv NEWGAME_OPTION_VALUE_TOONEW and OK_SET_NICKNAME
+}
+
+/* A text message for everyone connected to all games, all channels.
+ * @see GameServerText
+ * @see ChannelText
+ */
+message BroadcastText {
+    string text = 1;
+}
+
+
+//
+// Channel Lifecycle
+//
+
+
+/* This message lists all the chat channels on a server.
+ * It's one of the first messages sent from the server after {@link Version}
+ * when connecting. {@code Channels} is sent even if the server isn't using
+ * {@link soc.util.SOCServerFeatures#FEAT_CHANNELS} because clients see it as a
+ * signal the connection is complete, and display their main user interface panel.
+ *<P>
+ * Robots ignore {@code Channels}. They don't need to wait for "connection complete"
+ * because their actions are initiated by the server.
+ * @see ChannelMembers
+ */
+message Channels {
+    repeated string ch_names = 1;
+}
+
+/* A new chat channel has been created. */
+message NewChannel {
+    string ch_name = 1;
+}
+
+/* Client's request to join or create a chat channel, or server's authorization for that client to join.
+ *<P>
+ * If server authorizes a client, the server sends {@code JoinChannel} to all members of that channel
+ * including the requesting member/client. If authorization is declined, server instead replies to that
+ * client with a {@code ServerStatusText}.
+ *<P>
+ * Before v3.0.00 this message was handled by {@code SOCJoinChannelRequest} and {@code SOCJoinChannelAuth}.
+ * Before v2.0.00 this message was {@code SOCJoinAuth}.
+ * @see JoinGame
+ */
+message JoinChannel {
+    string ch_name = 1;      // Name of channel being joined
+    string member_name = 2;  // Nickname of the joining member
+}
+
+/* The members of a single chat channel.
+ * <P>
+ * Before v3.0.00 this message was named {@code SOCChannelMembers}.
+ * Before v2.0.00 this message was {@code SOCMembers}.
+ * @see GameMembers
+ * @see Channels
+ */
+message ChannelMembers {
+    string ch_name = 1;
+    repeated string members = 2;
+}
+
+/* A text message sent to a chat channel.
+ *<P>
+ * @see GameText
+ *<P>
+ * Before v3.0.00 this message was {@code SOCTextMsg}.
+ */
+message ChannelText {
+    string ch_name = 1;   // channel name
+    string nickname = 2;  // channel member nickname
+    string text = 3;
+}
+
+/* A chat channel has been destroyed. */
+message DeleteChannel {
+    string ch_name = 1;
+}
+
+
+//
+// Game Lifecycle
+//
+
+
+/* Used in Games and NewGame */
+message _GameWithOptions {
+    string ga_name = 1;
+    string opts = 2;      // From {@link SOCGameOption#packOptionsToString(Map, boolean)}
+    bool unjoinable = 3;  // True if client is too old or is too limited to be able to play that game
+}
+
+/* List of all games currently on the server, including
+ * their {@link soc.game.SOCGameOption game options}.
+ * It's constructed and sent for each connecting client.
+ *<P>
+ * Robot clients don't need to know about or handle this message type,
+ * because they don't create games.
+ *<P>
+ * Before v3.0.00 this message was SOCGamesWithOptions.
+ */
+message Games {
+    repeated _GameWithOptions game = 1;
+}
+
+/* Client's request to create a game, or server's announcement that a game has been created.
+ * Before v3.0.00 this message was {@code SOCNewGameWithOptions} from the server,
+ * and {@code SOCNewGameWithOptionsRequest} from the client with an optional password.
+ */
+message NewGame {
+    _GameWithOptions game = 1;
+}
+
+/* Server request to this robot client to join a game.
+ * The bot should respond with {@link JoinGame},
+ * the message sent by human players to request joining a game.
+ *<P>
+ * Before 2.0.00, this class was called {@code SOCJoinGameRequest};
+ * renamed to clarify versus {@link SOCJoinGame}.
+ */
+message RobotJoinGameRequest {
+    string ga_name = 1;      // Name of game
+    uint32 seat_number = 2;  // Where the robot should sit
+}
+
+/* Client's request to join an existing game, or server's authorization for that client to join.
+ *<P>
+ * If server authorizes a client, the server sends {@code JoinGame} and further messages to
+ * all members of that game (players and observers) including the requesting client, then
+ * further messages to the requesting client (see below). The newly joined client may be an observer;
+ * if they are a player, {@link SitDown} will be sent too.
+ *<P>
+ * If authorization is declined, server instead replies to that
+ * client with a {@link ServerStatusText}.
+ *<P>
+ * If the join request is successful, requesting client is sent a specific sequence
+ * of messages with details about the game; see {@link GameMembers}.
+ * In order for robot clients to be certain they have all details about a game
+ * (board layout, player scores, piece counts, etc), they should take no action
+ * before receiving {@link GameMembers} about that game.
+ *<P>
+ * Although this is a game-specific message, it's about the game lifecycle
+ * so it's handled by {@code SOCServer} instead of a {@code GameHandler}.
+ *<P>
+ * Before v3.0.00 this message was handled by {@code SOCJoinGameRequest} and {@code SOCJoinGameAuth}.
+ * Before v2.0.00 this message was {@code SOCJoinAuth}.
+ * @see JoinChannel
+ * @see RobotJoinGameRequest
+ */
+message JoinGame {
+    string ga_name = 1;      // Name of game being joined
+    string member_name = 2;  // Nickname of the joining member
+}
+
+/* This message lists all the members of a game: Players and observers.
+ *<P>
+ * In response to a client's {@link JoinGame}, the joining player is sent a specific
+ * sequence of messages with details about the game: Board layout, player scores,
+ * piece counts, etc. This sequence ends with GAMEMEMBERS, SETTURN and GAMESTATE.
+ * GAMEMEMBERS thus tells the client that the server is ready for its input.
+ *<P>
+ * Robots use GAMEMEMBERS as their cue to sit down at the game, if they've been
+ * asked to sit from {@link RobotJoinGameRequest}. In order for the robot to be certain
+ * it has all details about a game, bots should take no action before receiving GAMEMEMBERS.
+ *<P>
+ * When forming a new game, clients will be sent the sequence as described above, and
+ * then will each choose a position and sit down. Any client can then send {@link StartGame}
+ * to start the game. Server responds with the newly generated board layout and
+ * other game and board details, any scenario-specific {@link PutPiece}s, then
+ * {@link GameState}({@link soc.game.SOCGame#START1A START1A}), then finally {@link StartGame}.
+ *
+ * @see Games
+ * @see ChannelMembers
+ */
+message GameMembers {
+    string ga_name = 1;
+    repeated string members = 2;
+}
+
+/* A game member client's request wants to sit down to play at a specific seat,
+ * or server's announcement to all game members that a player has sat.
+ *<P>
+ * Although it's a game-specific message, it's handled by {@code SOCServer} instead of a {@code GameHandler}.
+ */
+message SitDown {
+    string ga_name = 1;  // Name of game being sat at
+    string pl_name = 2;  // Nickname of the sitting player
+    uint32 seat_number = 3;  // Where the player wants to sit (from client) / has sat (from server)
+    bool is_robot = 4;   // True if this player is a robot
+}
+
+/* This message contains a text message or announcement from the server
+ * for a SoC game.  Sent by {@link soc.server.SOCServer server}.
+ * Player chat text is sent as {@link GameText} instead.
+ *<P>
+ * Robots ignore this message type so they won't be dependent on brittle
+ * text parsing. For the benefit of robots and to help client responsiveness,
+ * the server often sends this message type preceded by data-only messages
+ * such as {@link AcceptOffer}.
+ *<P>
+ * Occasionally, game text is sent with additional information
+ * via {@link SVPTextMessage}, instead of using this message type.
+ * Some simple actions are sent by the server with {@link SimpleAction}
+ * or {@link SimpleRequest} instead of text.
+ *<P>
+ * This class was introduced in version 2.0.00; earlier versions of the server
+ * and client used {@code SOCGameTextMsg} for server announcements and messages.
+ *
+ * @see BroadcastText
+ */
+message GameServerText {
+    string ga_name = 1;
+    string text = 2;
+}
+
+/* A text message sent to a game.
+ * Seen by {@link soc.server.SOCServer server} or on-screen
+ * by human players, occasionally parsed by robots
+ * if they're expecting a debug message.
+ *<P>
+ * Text announcements from the server are instead sent as {@link GameServerText}.
+ * See that message's javadoc for what game information is sent as text and what's
+ * sent as other message types.
+ *<P>
+ * Text messages from clients in chat channels (not in games)
+ * use {@link ChannelText} instead.
+ *<P>
+ * Before v3.0.00 this message was {@code SOCGameTextMsg}.
+ * @see GameServerText
+ */
+message GameText {
+    string ga_name = 1;
+    string nickname = 2;  // sent from this game member
+    string text = 3;
+}
+
+/* A game has been destroyed. */
+message DeleteGame {
+    string ga_name = 1;
+}
+
+
+//
+// Game data messages during play
+//
+
+
+// TODO StartGame
+
+// TODO GameState
+

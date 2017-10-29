@@ -3,6 +3,12 @@ syntax = "proto3";
 option java_package = "soc.proto";
 option optimize_for = LITE_RUNTIME;  // omit unused features, produce smaller/cleaner generated code
 
+// Protobuf Data structures. For messages see message.proto
+
+//
+// Game Data
+//
+
 /* Structs here are suffixed "Data" since we eventually want them used in the java code. Many struct names will then get
 the same name as its OO counterparts. As in Java OO is central, I choose to suffix the data.
 */

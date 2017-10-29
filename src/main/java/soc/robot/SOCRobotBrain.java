@@ -137,6 +137,22 @@ import java.util.Vector;
 public class SOCRobotBrain extends Thread
 {
     /**
+     * Name of built-in robot brain class.
+     * This robot is the original robot, distributed with the JSettlers server,
+     * which permits some optimized communications.
+     * Other (3rd-party) robots must use a different class in their IMAROBOT messages.
+     *<P>
+     * In 1.1.09 and later, 3rd-party robots can connect and be treated as robots.
+     * (For example, games where all humans leave, but robots remain, are stopped.)
+     * The 3rd-party robots can report any version, just like human player clients.
+     *<P>
+     * Before v3.0.00, this field was in {@code soc.message.SOCImARobot}.
+     *
+     * @since 1.1.09
+     */
+    public static final String RBCLASS_BUILTIN = "soc.robot.SOCRobotBrain";
+
+    /**
      * Bot pause speed-up factor when {@link SOCGame#isBotsOnly} in {@link #pause(int)}.
      * Default 0.25 (25% of normal pause time: 4x speed-up).
      * @since 2.0.00
