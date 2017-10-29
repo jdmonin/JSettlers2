@@ -13,10 +13,11 @@ and backport minor new features until `2.0.00` is ready.
 
 ## `3.0.00` (build JX201xxxxx)
 - Experimental features: protobuf
-- Major refactoring: Board layouts, game data types, etc, thanks to Ruud Poutsma
+- Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 - Build requires Java 7 or newer
 
-## `2.0.00` (build JM2017xxxx)
+
+## `2.0.00` (build JM2018xxxx)
 - Large board (sea board) support
 - Game Scenario and special-rules support
 - "House rules" dev card types (New game option `DH`)
@@ -44,11 +45,15 @@ and backport minor new features until `2.0.00` is ready.
 	- Third-party bots can have more time to plan their turn with new server startup option:
 	  (this example uses 18 seconds)  
 	  `-Djsettlers.bots.timeout.turn=18`
+	- Tuning for length of SOCRobotBrain pauses during bot-only games:
+	  To pause only 10% as long as in normal games, use  
+	  `-Djsettlers.bots.fast_pause_percent=10`
 	- New debug command `*STARTBOTGAME* [maxBots]` to begin current game as bots-only
 	- Standalone bot clients shut down properly if they can't reconnect to server after 3 retries
 	- Example `soc.robot.sample3p.Sample3PBrain extending SOCRobotBrain`, `Sample3PClient extending SOCRobotClient`
 	- Some private SOCRobotClient fields made protected for use by bot developer 3rd-party subclasses
 - Java 5 features, including parameterized types (thank you Paul Bilnoski)
+- SOCBoard refactoring thanks to Ruud Poutsma
 - Major client refactoring (separate UI from network interface) thanks to Paul Bilnoski;
     Paul's UI split preserves the spirit and flow of the code, with a more logical layered structure.
 - Server inbound message handling refactored in collaboration with Alessandro D'Ottavio
@@ -62,7 +67,7 @@ and backport minor new features until `2.0.00` is ready.
     merged old-updates-rsthomas.html into Versions.md
 
 
-## `1.2.00` (build OV20170xxx)
+## `1.2.00` (build OV20171005)
 - Simple sound effects for game events: Start of client player's turn, resource stolen by robber, etc
 - Game windows have same size as previous game if resized, not small default size
 - Re-word trade offer announcements to clarify who would give which resources
@@ -73,28 +78,28 @@ and backport minor new features until `2.0.00` is ready.
      - Persistent and per-game preferences for settings like sound effects and game window size
      - Per-game preference to auto-reject bot trades after a multi-second countdown
      - Re-worded other players' trade offer displays to: Gives You / They Get
+     - More natural window positioning (follow OS standard, was previously always in upper-left corner)
      - Initial Connect dialog: If username given, ensure New Game button is enabled
      - New Game options: Popup if old versions can't play: Default to Create, not Change Options
-     - More natural window positioning (follow OS standard, was previously always in upper-left corner)
 - Users can't use the robot nickname prefixes "droid " or "robot ", or "debug" except in debug mode
 - Network:
      - Send keepalive messages to idle games to keep clients connected
      - Text messages to channels can be sent only by members
-- Game window during debug: Reset "current player" indicator when exiting `*FREEPLACE*` debug mode
-- Client debug, bot debug: Print network message contents if system property jsettlers.debug.traffic is set
 - Database:
      - To create users, an Account Admins list is required (`jsettlers.accounts.admins` property)
        unless using Open Registration mode
      - Optional Schema Upgrade process with `-Djsettlers.db.upgrade_schema=Y` startup option
-     - Schema `v1.2.00` adds:
+     - Upgraded Schema `v1.2.00` adds:
          - games table: winner, options, duration, player 5 and 6 names and scores
          - users table: case-insensitive unique usernames/nicknames; password encodings (BCrypt)
-         - db_version table with upgrade history (if any)
+         - db_version table, with upgrade history if any
          - settings table
+     - New admin command `*DBSETTINGS*`: Show schema version, DB server version, settings entries
      - If using mysql: Newly created DBs now have unicode text encoding (UTF-8).
        (The postgresql and sqlite DB scripts have always created the DB as unicode.)
      - If using postgresql: Tables are created by socuser, not postgres system user
-     - New admin command `*DBSETTINGS*`: Show schema version, DB server version, settings entries
+- Game window during debug: Reset "current player" indicator when exiting `*FREEPLACE*` debug mode
+- Client debug, bot debug: Print network message contents if system property jsettlers.debug.traffic is set
 - Startup: Show error if can't read own JSettlers version info
 
 

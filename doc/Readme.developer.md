@@ -197,6 +197,8 @@ parameters (before the SOCPlayerClient class name, not after):
 ## Setup instructions for JSettlers as an Eclipse project
 
 Written for Eclipse 3.6, should be applicable to other versions with minor changes.
+These instructions can be adapted to import JSettlers and its `build.xml` into
+other IDEs.
 
 - For protobuf:
      - Locate `protobuf-lite-3.0.1.jar` by
@@ -240,7 +242,7 @@ If you simply want to run the client or server, you only need the Java Runtime
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a
 file-based local database.
 
-This package was designed to build with eclipse, or with the ANT tool available
+This project was designed to build with eclipse, or with the Ant tool available
 from [http://ant.apache.org/](http://ant.apache.org/).
 
 If not using an IDE like eclipse, check the `build.xml` file. There may be
@@ -272,7 +274,7 @@ fail with this error:
 
 ## Recommended debug/run configurations for testing
 
-In my Eclipse project, I've created these debug/run configurations:
+In my IDE's JSettlers project, I've created these debug/run configurations:
 
     Java applet: soc.client.SOCApplet
         width 700, height 500
@@ -312,9 +314,9 @@ database (JDBC)" section of this readme. JSettlers+sqlite works with standard
 Eclipse; the j2ee eclipse also has a convenient data browser. Note that
 [Readme.md](../Readme.md) mentions a command-line option
 `-Djsettlers.db.jar=driverfile.jar`; that's needed only while running the
-jsettlers JAR from the command line, not running inside eclipse.
+jsettlers JAR from the command line, not running inside the IDE.
 
-- See the `socserver-sqlite` eclipse Run Configuration in the previous section;
+- See the `socserver-sqlite` IDE Run Configuration in the previous section;
   this config includes the sqlite database you're about to configure.
 - Download the driver from https://bitbucket.org/xerial/sqlite-jdbc.
   The downloaded JAR might have a name like `sqlite-jdbc-3.15.1.jar`.
@@ -471,8 +473,8 @@ escapes) automatically when saving. See `src/main/java/net/nand/util/i18n/README
 for more details.
 
 Before running PTEMain for the first time, you must build the JSettlers build
-target (using ant or eclipse) so that the editor's own externalized strings
-will be available.
+target (using Ant or with `build.xml` imported into your IDE) so that the
+PTEMain editor's own externalized strings will be available.
 
 When starting the editor this message is harmless, because preferences are stored per-user:
 
@@ -543,6 +545,11 @@ robot players, you could start the server with:
 `-Djsettlers.startrobots=10 -Djsettlers.bots.botgames.total=7`. The robot-only
 games run at a quick pace, about 2 minutes for a 4-player game. You can use the
 jsettlers client to observe a bot game as it plays.
+
+To speed up or slow down robot-only games, start the server with this tuning
+option to set the length of SOCRobotBrain pauses during bot-only games: For
+example `-Djsettlers.bots.fast_pause_percent=10` will pause for only 10% as long
+as in normal games.
 
 If `jsettlers.bots.botgames.total` != 0 (including < 0), at any time the client
 can create a new game, join but not sit down at a seat, and start that game as
@@ -799,19 +806,22 @@ When preparing to release a new version, testing should include:
         - Can win only on your own turn
     - Game reset voting, with: 1 human 2 bots, 2 humans 1 bot, 2 humans 0 bots:
       Humans can vote No to reject bots auto-vote Yes; test No and Yes
-    - Version compat testing
+    - Version compatibility testing
         - Other versions to use: **1.1.06** before Game Options; **1.1.11** with 6-player board and client bugfixes;
           latest **1.x.xx**; latest **2.0.xx**
         - New client, old server
         - New server, old client
-        - Some specific things to look for:
-            - (v1.x.xx) New-game options seen connecting to a 2.0.xx server should be same as a 1.x.xx server (adapts to client version)
-            - Create a 4-player game, a 6-player game; allow trading in one of them
-            - Create a 4-player game with no options (this uses a different message type)
-            - Lock a bot seat and game reset; make sure that works (seatlockstate changes between 1.x.xx and 2.0.xx)
+        - Test these specific things for each version:
+            - With a 1.x.xx client connected to a 2.0.xx server, available new-game options
+              should be the same as a 1.x.xx server (adapts to older client version)
+            - Create and start playing a 4-player game, and a 6-player game; allow trading in one of them
+            - In the 6-player game, request and use the Special Building Phase
+            - Create and start playing a 4-player game with no options (this uses a different message type)
+            - In any of those games, lock a bot seat and game reset; make sure that works
+              (seatlockstate changes between 1.x.xx and 2.0.xx)
             - On a 2.0.xx server, have 2.0.xx client create game with a scenario (1.x.xx can't join),
-              1.x.xx client should see it in gamelist with "(cannot join)" prefix
-            - Have the 1.x.xx client quit & rejoin, should see in list with that same prefix
+              1.x.xx client should see it in gamelist with "(cannot join)" prefix.
+              Start another 1.x.xx client and connect, should see in list with that same prefix
     - Command line and jsserver.properties
         - Server and client: `-h` / `--help` / `-?`, `--version`
         - Server: Unknown args `-x -z` should print both, then not continue startup
@@ -874,7 +884,7 @@ When preparing to release a new version, testing should include:
     - SQLite database setup, from instructions in [Database.md](Database.md)
 - Instructions and Setup
     - [Readme.md](../Readme.md), `Readme.developer.md`, [Database.md](Database.md):
-      validate all URLs, including JDBC driver downloads
+      Validate all URLs, including JDBC driver downloads
     - Follow server setup instructions in [Readme.md](../Readme.md)
     - Set up a new DB: Covered above in "Platform-specific"
 

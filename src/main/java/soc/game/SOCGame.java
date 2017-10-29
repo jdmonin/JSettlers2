@@ -726,6 +726,7 @@ public class SOCGame implements Serializable, Cloneable
      * This flag should be set by the server when creating the game.  If a human observer exits
      * a game with this flag, the game should continue play unless its state is {@link #OVER}.
      * @since 2.0.00
+     * @see soc.robot.SOCRobotBrain#BOTS_ONLY_FAST_PAUSE_FACTOR
      */
     public boolean isBotsOnly;
 

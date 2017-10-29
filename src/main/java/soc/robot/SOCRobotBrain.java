@@ -137,6 +137,21 @@ import java.util.Vector;
 public class SOCRobotBrain extends Thread
 {
     /**
+     * Bot pause speed-up factor when {@link SOCGame#isBotsOnly} in {@link #pause(int)}.
+     * Default 0.25 (25% of normal pause time: 4x speed-up).
+     * @since 2.0.00
+     */
+    public static float BOTS_ONLY_FAST_PAUSE_FACTOR = .25f;
+
+    /**
+     * If, during a turn, we make this many illegal build
+     * requests that the server denies, stop trying.
+     *
+     * @see #failedBuildingAttempts
+     */
+    public static int MAX_DENIED_BUILDING_PER_TURN = 3;
+
+    /**
      * The robot parameters
      */
     SOCRobotParameters robotParameters;
@@ -292,14 +307,6 @@ public class SOCRobotBrain extends Thread
      * @see #MAX_DENIED_BUILDING_PER_TURN
      */
     protected int failedBuildingAttempts;
-
-    /**
-     * If, during a turn, we make this many illegal build
-     * requests that the server denies, stop trying.
-     *
-     * @see #failedBuildingAttempts
-     */
-    public static int MAX_DENIED_BUILDING_PER_TURN = 3;
 
     /**
      * these are the two resources that we want
@@ -4366,6 +4373,7 @@ public class SOCRobotBrain extends Thread
      *<P>
      * When {@link SOCGame#isBotsOnly}, pause only 25% as long, to quicken the simulation
      * but not make it too fast to allow a person to observe.
+     * Can change {@link #BOTS_ONLY_FAST_PAUSE_FACTOR} to adjust that percentage.
      *<P>
      * In a 6-player game, pause only 75% as long, to shorten the overall game delay,
      * except if {@link #waitingForTradeResponse}.
@@ -4376,14 +4384,15 @@ public class SOCRobotBrain extends Thread
     public void pause(int msec)
     {
         if (game.isBotsOnly)
-            msec = msec / 4;
+            msec = (int) (msec * BOTS_ONLY_FAST_PAUSE_FACTOR);
         else if (pauseFaster && ! waitingForTradeResponse)
             msec = (msec / 2) + (msec / 4);
 
         try
         {
             yield();
-            sleep(msec);
+            if (msec > 2)  // skip very short sleeps from small BOTS_ONLY_FAST_PAUSE_FACTOR
+                sleep(msec);
         }
         catch (InterruptedException exc) {}
     }

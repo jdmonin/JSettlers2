@@ -382,6 +382,11 @@ def all_tests():
     # missing value for property
     arg_test(False, "-Djsettlers.xyz", None, "Missing value for property jsettlers.xyz")
 
+    # int property jsettlers.bots.fast_pause_percent
+    arg_test(False, "-Djsettlers.bots.fast_pause_percent=-2", None, "Error: Property out of range (0 to 100): jsettlers.bots.fast_pause_percent")
+    arg_test(False, "-Djsettlers.bots.fast_pause_percent=101", None, "Error: Property out of range (0 to 100): jsettlers.bots.fast_pause_percent")
+    arg_test(True, "-Djsettlers.bots.fast_pause_percent=3", None, None)
+
     # unknown scenario name
     gameopt_tests_cmdline_propsfile(False, "SC=ZZZ", "default scenario ZZZ is unknown")
     gameopt_tests_cmdline_propsfile(False, "sc=ZZZ", "default scenario ZZZ is unknown")  # non-uppercase opt name

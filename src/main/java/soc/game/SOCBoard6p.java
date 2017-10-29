@@ -26,19 +26,11 @@ import java.util.Map;
 
 /**
  * The standard (non-sea) board layout for the 6-player extension.
- * @since 3.0.00
+ * @since 2.0.00
  */
 public class SOCBoard6p extends SOCBoard
 {
-    private static final long serialVersionUID = 3000L;  // last structural change v3.0.00
-
-    /**
-     * Each port's type, such as {@link #SHEEP_PORT}, on 6-player board.
-     * Same order as {@link #PORTS_FACING_V2}. {@link #MISC_PORT} is 0.
-     * @since 1.1.08
-     */
-    public final static int[] PORTS_TYPE_V2 =
-        { 0, 0, 0, 0, SOCBoard.CLAY_PORT, SOCBoard.ORE_PORT, SOCBoard.SHEEP_PORT, SOCBoard.WHEAT_PORT, SOCBoard.WOOD_PORT, SOCBoard.MISC_PORT, SOCBoard.SHEEP_PORT };
+    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
      * Land-hex coordinates in 6-player board ({@link #BOARD_ENCODING_6PLAYER}).
@@ -61,17 +53,17 @@ public class SOCBoard6p extends SOCBoard
      */
     public static final int[] makeNewBoard_landHexTypes_v2 =
         {
-            SOCBoard.DESERT_HEX, SOCBoard.CLAY_HEX, SOCBoard.CLAY_HEX, SOCBoard.CLAY_HEX, SOCBoard.ORE_HEX, SOCBoard.ORE_HEX, SOCBoard.ORE_HEX,
-            SOCBoard.SHEEP_HEX, SOCBoard.SHEEP_HEX, SOCBoard.SHEEP_HEX, SOCBoard.SHEEP_HEX,
-            SOCBoard.WHEAT_HEX, SOCBoard.WHEAT_HEX, SOCBoard.WHEAT_HEX, SOCBoard.WHEAT_HEX,
-            SOCBoard.WOOD_HEX, SOCBoard.WOOD_HEX, SOCBoard.WOOD_HEX, SOCBoard.WOOD_HEX,   // last line of v1's hexes
-            SOCBoard.DESERT_HEX, SOCBoard.CLAY_HEX, SOCBoard.CLAY_HEX, SOCBoard.ORE_HEX, SOCBoard.ORE_HEX, SOCBoard.SHEEP_HEX, SOCBoard.SHEEP_HEX,
-            SOCBoard.WHEAT_HEX, SOCBoard.WHEAT_HEX, SOCBoard.WOOD_HEX, SOCBoard.WOOD_HEX
+            DESERT_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
+            SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+            WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+            WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX,   // last line of v1's hexes
+            DESERT_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, SHEEP_HEX, SHEEP_HEX,
+            WHEAT_HEX, WHEAT_HEX, WOOD_HEX, WOOD_HEX
         };
 
     /**
      * Dice numbers in the 6-player board layout, in order along {@code numPath}
-     * ({@link SOCBoard6p#makeNewBoard_numPaths_v2}).
+     * ({@link #makeNewBoard_numPaths_v2}).
      * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
      * @since 2.0.00
      */
@@ -84,6 +76,7 @@ public class SOCBoard6p extends SOCBoard
             4,   9,  5,  9, 12, // U-Y
             3,   2,  6          // Za-Zc
         };
+
     /**
      * largest coordinate value for an edge, in the v2 encoding
      * @since 1.1.08
@@ -103,8 +96,16 @@ public class SOCBoard6p extends SOCBoard
     protected static final int MINNODE_V2 = 0x01;
 
     /**
+     * Each port's type, such as {@link #SHEEP_PORT}, on 6-player board.
+     * Same order as {@link #PORTS_FACING_V2}. {@link #MISC_PORT} is 0.
+     * @since 1.1.08
+     */
+    public final static int PORTS_TYPE_V2[] =
+        { 0, 0, 0, 0, CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT, MISC_PORT, SHEEP_PORT };
+
+    /**
      * Each port's <em>facing,</em> on 6-player board.
-     * Ordered clockwise from upper-left (hex coordinate 0x17, which is land in the V2 layout).
+     * Ordered clockwise from upper-left (hex coordinate 0x17, which is land in the v2 layout).
      * Port Facing is the direction from the port hex/edge, to the land hex touching it
      * which will have 2 nodes where a port settlement/city can be built.
      * Within the board orientation (not the rotated visual orientation),
@@ -113,14 +114,15 @@ public class SOCBoard6p extends SOCBoard
      */
     final static int[] PORTS_FACING_V2 =
     {
-        SOCBoard.FACING_SE, SOCBoard.FACING_SW, SOCBoard.FACING_SW, SOCBoard.FACING_W, SOCBoard.FACING_W, SOCBoard.FACING_NW,
-        SOCBoard.FACING_NW, SOCBoard.FACING_NE, SOCBoard.FACING_NE, SOCBoard.FACING_E, SOCBoard.FACING_SE
+        FACING_SE, FACING_SW, FACING_SW, FACING_W, FACING_W, FACING_NW,
+        FACING_NW, FACING_NE, FACING_NE, FACING_E, FACING_SE
     };
+
     /**
      * Each port's edge coordinate on the 6-player board.
      * This is the edge whose 2 end nodes can be used to build port settlements/cities.
-     * Same order as {@link SOCBoard6p#PORTS_FACING_V2}:
-     * Clockwise from upper-left (hex coordinate 0x17, which is land in the V2 layout).
+     * Same order as {@link #PORTS_FACING_V2}:
+     * Clockwise from upper-left (hex coordinate 0x17, which is land in the v2 layout).
      * @since 1.1.08
      */
     final static int[] PORTS_EDGE_V2 =
@@ -137,6 +139,7 @@ public class SOCBoard6p extends SOCBoard
         0x00,  // Leftmost hex of middle row, E
         0x03   // Touches leftmost land hex of row above middle, SE
     };
+
     /**
      * Possible number paths for 6-player board.
      * {@link #makeNewBoard(Map)} randomly chooses one path (one 1-dimensional array)

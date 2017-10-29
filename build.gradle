@@ -19,6 +19,10 @@ compileJava {
   sourceCompatibility = '1.7'
   targetCompatibility = '1.7'
 }
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'  // override the system's default encoding
+        // To test that this has an effect, use 'Cp1252' instead here and expect "unmappable character" errors in StringUtil.java
+}
 
 // see https://github.com/google/protobuf-gradle-plugin
 protobuf {
@@ -49,10 +53,6 @@ protobuf {
 
 repositories {
     mavenCentral()
-    maven {
-        name = "forge"
-        url = "http://files.minecraftforge.net/maven"
-    }
 }
 //
 //jar {
