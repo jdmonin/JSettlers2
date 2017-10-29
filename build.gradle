@@ -22,10 +22,6 @@ tasks.withType(JavaCompile) {
 
 repositories {
     mavenCentral()
-    maven {
-        name = "forge"
-        url = "http://files.minecraftforge.net/maven"
-    }
 }
 //
 //jar {
