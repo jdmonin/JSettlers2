@@ -1,5 +1,4 @@
 apply plugin: 'java'
-apply plugin: 'com.google.protobuf'
 apply plugin: 'application'
 apply plugin: 'idea'
 
@@ -8,18 +7,17 @@ buildscript {
         mavenCentral()
         maven { url "http://google-diff-match-patch.googlecode.com/svn/trunk/maven" }
     }
-    dependencies {
-        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.3'
-    }
 }
 
 mainClassName = "soc.client.SOCPlayerClient"
 
-protobuf {
-    generatedFilesBaseDir = "${projectDir}/src"
-    protoc {
-        artifact = 'com.google.protobuf:protoc:3.0.0'
-    }
+compileJava {
+    sourceCompatibility = '1.5'
+    targetCompatibility = '1.5'
+}
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'  // override the system's default encoding
+        // To test that this has an effect, use 'Cp1252' instead here and expect "unmappable character" errors in StringUtil.java
 }
 
 repositories {
@@ -38,5 +36,4 @@ repositories {
 
 dependencies {
     testCompile 'junit:junit:4.12'
-    compile 'com.google.protobuf:protobuf-java:3.0.0'
 }
