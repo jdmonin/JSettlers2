@@ -4930,7 +4930,7 @@ public final class Message {
 
     /**
      * <pre>
-     * Nickname of the joining member
+     * Nickname of the joining member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string member_name = 2;</code>
@@ -4938,7 +4938,7 @@ public final class Message {
     java.lang.String getMemberName();
     /**
      * <pre>
-     * Nickname of the joining member
+     * Nickname of the joining member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string member_name = 2;</code>
@@ -5040,7 +5040,7 @@ public final class Message {
     private java.lang.String memberName_;
     /**
      * <pre>
-     * Nickname of the joining member
+     * Nickname of the joining member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string member_name = 2;</code>
@@ -5050,7 +5050,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * Nickname of the joining member
+     * Nickname of the joining member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string member_name = 2;</code>
@@ -5061,7 +5061,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * Nickname of the joining member
+     * Nickname of the joining member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string member_name = 2;</code>
@@ -5076,7 +5076,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * Nickname of the joining member
+     * Nickname of the joining member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string member_name = 2;</code>
@@ -5087,7 +5087,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * Nickname of the joining member
+     * Nickname of the joining member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string member_name = 2;</code>
@@ -5285,7 +5285,7 @@ public final class Message {
 
       /**
        * <pre>
-       * Nickname of the joining member
+       * Nickname of the joining member (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string member_name = 2;</code>
@@ -5295,7 +5295,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * Nickname of the joining member
+       * Nickname of the joining member (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string member_name = 2;</code>
@@ -5306,7 +5306,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * Nickname of the joining member
+       * Nickname of the joining member (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string member_name = 2;</code>
@@ -5319,7 +5319,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * Nickname of the joining member
+       * Nickname of the joining member (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string member_name = 2;</code>
@@ -5331,7 +5331,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * Nickname of the joining member
+       * Nickname of the joining member (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string member_name = 2;</code>
@@ -6005,7 +6005,7 @@ public final class Message {
 
     /**
      * <pre>
-     * channel member nickname
+     * channel member nickname (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string nickname = 2;</code>
@@ -6013,7 +6013,7 @@ public final class Message {
     java.lang.String getNickname();
     /**
      * <pre>
-     * channel member nickname
+     * channel member nickname (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string nickname = 2;</code>
@@ -6122,7 +6122,7 @@ public final class Message {
     private java.lang.String nickname_;
     /**
      * <pre>
-     * channel member nickname
+     * channel member nickname (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string nickname = 2;</code>
@@ -6132,7 +6132,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * channel member nickname
+     * channel member nickname (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string nickname = 2;</code>
@@ -6143,7 +6143,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * channel member nickname
+     * channel member nickname (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string nickname = 2;</code>
@@ -6158,7 +6158,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * channel member nickname
+     * channel member nickname (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string nickname = 2;</code>
@@ -6169,7 +6169,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * channel member nickname
+     * channel member nickname (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string nickname = 2;</code>
@@ -6416,7 +6416,7 @@ public final class Message {
 
       /**
        * <pre>
-       * channel member nickname
+       * channel member nickname (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string nickname = 2;</code>
@@ -6426,7 +6426,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * channel member nickname
+       * channel member nickname (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string nickname = 2;</code>
@@ -6437,7 +6437,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * channel member nickname
+       * channel member nickname (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string nickname = 2;</code>
@@ -6450,7 +6450,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * channel member nickname
+       * channel member nickname (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string nickname = 2;</code>
@@ -6462,7 +6462,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * channel member nickname
+       * channel member nickname (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string nickname = 2;</code>
@@ -8828,7 +8828,7 @@ public final class Message {
 
     /**
      * <pre>
-     * Nickname of the joining member
+     * Nickname of the joining member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string member_name = 2;</code>
@@ -8836,7 +8836,7 @@ public final class Message {
     java.lang.String getMemberName();
     /**
      * <pre>
-     * Nickname of the joining member
+     * Nickname of the joining member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string member_name = 2;</code>
@@ -8952,7 +8952,7 @@ public final class Message {
     private java.lang.String memberName_;
     /**
      * <pre>
-     * Nickname of the joining member
+     * Nickname of the joining member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string member_name = 2;</code>
@@ -8962,7 +8962,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * Nickname of the joining member
+     * Nickname of the joining member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string member_name = 2;</code>
@@ -8973,7 +8973,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * Nickname of the joining member
+     * Nickname of the joining member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string member_name = 2;</code>
@@ -8988,7 +8988,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * Nickname of the joining member
+     * Nickname of the joining member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string member_name = 2;</code>
@@ -8999,7 +8999,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * Nickname of the joining member
+     * Nickname of the joining member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string member_name = 2;</code>
@@ -9211,7 +9211,7 @@ public final class Message {
 
       /**
        * <pre>
-       * Nickname of the joining member
+       * Nickname of the joining member (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string member_name = 2;</code>
@@ -9221,7 +9221,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * Nickname of the joining member
+       * Nickname of the joining member (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string member_name = 2;</code>
@@ -9232,7 +9232,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * Nickname of the joining member
+       * Nickname of the joining member (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string member_name = 2;</code>
@@ -9245,7 +9245,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * Nickname of the joining member
+       * Nickname of the joining member (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string member_name = 2;</code>
@@ -9257,7 +9257,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * Nickname of the joining member
+       * Nickname of the joining member (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string member_name = 2;</code>
@@ -11131,7 +11131,7 @@ public final class Message {
 
     /**
      * <pre>
-     * sent from this game member
+     * sent from this game member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string nickname = 2;</code>
@@ -11139,7 +11139,7 @@ public final class Message {
     java.lang.String getNickname();
     /**
      * <pre>
-     * sent from this game member
+     * sent from this game member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string nickname = 2;</code>
@@ -11237,7 +11237,7 @@ public final class Message {
     private java.lang.String nickname_;
     /**
      * <pre>
-     * sent from this game member
+     * sent from this game member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string nickname = 2;</code>
@@ -11247,7 +11247,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * sent from this game member
+     * sent from this game member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string nickname = 2;</code>
@@ -11258,7 +11258,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * sent from this game member
+     * sent from this game member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string nickname = 2;</code>
@@ -11273,7 +11273,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * sent from this game member
+     * sent from this game member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string nickname = 2;</code>
@@ -11284,7 +11284,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * sent from this game member
+     * sent from this game member (should be "" for client -&gt; server)
      * </pre>
      *
      * <code>optional string nickname = 2;</code>
@@ -11520,7 +11520,7 @@ public final class Message {
 
       /**
        * <pre>
-       * sent from this game member
+       * sent from this game member (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string nickname = 2;</code>
@@ -11530,7 +11530,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * sent from this game member
+       * sent from this game member (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string nickname = 2;</code>
@@ -11541,7 +11541,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * sent from this game member
+       * sent from this game member (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string nickname = 2;</code>
@@ -11554,7 +11554,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * sent from this game member
+       * sent from this game member (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string nickname = 2;</code>
@@ -11566,7 +11566,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * sent from this game member
+       * sent from this game member (should be "" for client -&gt; server)
        * </pre>
        *
        * <code>optional string nickname = 2;</code>
