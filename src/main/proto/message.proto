@@ -27,6 +27,12 @@ import public "data.proto";
 
 
 //
+// Messages are grouped by category. See the bottom of this file
+// for FromServer and FromClient, which use OneOf union groups.
+//
+
+
+//
 // Nicknames / User Authentication and Connection Lifecycle
 //
 
@@ -556,3 +562,57 @@ message DeleteGame {
 
 // TODO GameState
 
+
+//
+// FromServer, FromClient: For encode/decode, Message type containing all other message types.
+// OneOf is used to group categories and then individual messages,
+// for structure and to avoid having dozens of sequential field numbers.
+//
+
+
+message FromServer {
+    oneof msg {
+        // auth
+        Version vers = 1;
+        ServerStatusText status_text = 2;
+        BroadcastText broadcast_text = 3;
+
+        // channels
+        Channels channels = 4;
+        NewChannel ch_new = 5;
+        JoinChannel ch_join = 6;
+        ChannelMembers ch_members = 7;
+        ChannelText ch_text = 8;
+        DeleteChannel ch_delete = 9;
+
+        // games
+        Games games = 10;
+        NewGame ga_new = 11;
+        JoinGame ga_join = 12;
+        GameMembers ga_members = 13;
+        SitDown sit_down = 14;
+        GameServerText server_text = 15;
+        GameText ga_text = 16;
+        DeleteGame ga_delete = 17;
+    }
+}
+
+message FromClient {
+    oneof msg {
+        // auth
+        Version vers = 1;
+        AuthRequest auth_req = 2;
+        ImARobot im_a_robot = 3;
+
+        // channels
+       JoinChannel ch_join = 4;
+       ChannelText ch_text = 5;
+
+        // games
+        NewGame ga_new = 6;
+        RobotJoinGameRequest robot_join_req = 7;
+        JoinGame ga_join = 8;
+        SitDown sit_down = 9;
+        GameText ga_text = 10;
+    }
+}
