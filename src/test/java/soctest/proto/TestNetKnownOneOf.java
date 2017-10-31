@@ -23,22 +23,22 @@ package soctest.proto;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 import soc.proto.Message;
-import soc.util.Version;
 
 /**
  * Test protobuf network sending and receiving a few known {@link Message.FromClient} message types:
  * {@link Message.Version}, an empty {@link Message.FromClient},
  * {@link Message.ImARobot}, {@link Message.JoinGame}.
+ * The server then sends the client some important {@link Message.FromServer} messages:
+ * {@link Message.Version}, {@link Message.ServerStatusText}, {@link Message.Games}.
  *<P>
  * Extends and uses server and client from {@link TestNetImARobot}.
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -50,7 +50,11 @@ public class TestNetKnownOneOf
         FLD_RBCLASS = soc.robot.SOCRobotBrain.RBCLASS_BUILTIN,
         FLD_VERS_BUILD = "JX20171031",  // hardcode so soc.util.Version doesn't need version.info in place
         FLD_GAMENAME = "dummy game";
-    public static final int FLD_VERS_NUM = 3000;  // hardcode like FLD_VERS_BUILD
+    public static final String FLD_SRV_STATUS_TEXT = "Welcome to JSettlers Test!";
+    public static final String FLD_SRV_GAMENAME_1 = "testGame #1", FLD_SRV_GAMENAME_2 = "testGame #2",
+        FLD_SRV_GAME1_OPTS = "VP=t13";
+    public static final int FLD_VERS_NUM = 3000,  // hardcode like FLD_VERS_BUILD
+        FLD_SRV_STATUS_VALUE = Message.ServerStatusText.StatusValue.OK_DEBUG_MODE_ON_VALUE;
 
     /** Localhost as IP "127.0.0.1" for client connection */
     public static final String LOCALHOST_IP = "127.0.0.1";
@@ -77,7 +81,8 @@ public class TestNetKnownOneOf
 
     /**
      * Server which receives specific protobuf {@code Any} test messages
-     * from a {@link ProtoAnyClient} in its own thread.
+     * from a {@link ProtoAnyClient} in its own thread. This test also
+     * sends a few important messages to the client.
      *<P>
      * {@inheritDoc}
      */
@@ -88,7 +93,6 @@ public class TestNetKnownOneOf
         {
             super(sb);
         }
-
 
         /**
          * Called from {@link #run()}, receives and decodes protobuf messages from a client connection socket.
@@ -121,6 +125,9 @@ public class TestNetKnownOneOf
 
             if (! msg2.getMsgCase().equals(Message.FromClient.MsgCase.MSG_NOT_SET))
                 sb.append("receiveAndDecode: msg 2: expected MSG_NOT_SET, saw " + msg2.getMsgCase());
+            typ = msg2.getMsgCase().getNumber();
+            if (typ != 0)
+                sb.append("receiveAndDecode: msg 2: expected type number 0, saw " + typ);
 
             if (msg3.getMsgCase().getClass().equals(Message.ImARobot.class))
             {
@@ -141,12 +148,43 @@ public class TestNetKnownOneOf
                 if (! FLD_NICKNAME.equals(msg.getMemberName()))
                     sb.append("receiveAndDecode: msg 4 memberName");
             }
+
+            // Send a few messages to the client
+
+            final OutputStream os = s.getOutputStream();
+
+            Message.FromServer smsg1 = Message.FromServer.newBuilder()
+                .setVers(Message.Version.newBuilder()
+                    .setVersNum(FLD_VERS_NUM).setVersBuild(FLD_VERS_BUILD)).build();
+            Message.FromServer smsg2 = Message.FromServer.newBuilder()
+                .setStatusText(Message.ServerStatusText.newBuilder()
+                    .setText(FLD_SRV_STATUS_TEXT)
+                    .setSv(Message.ServerStatusText.StatusValue.OK_DEBUG_MODE_ON)  // set from enum, cli will test value
+                    ).build();
+            List<Message._GameWithOptions> gaList = new ArrayList<>();
+            {
+                Message._GameWithOptions ga1 = Message._GameWithOptions.newBuilder()
+                    .setGaName(FLD_SRV_GAMENAME_1).setOpts(FLD_SRV_GAME1_OPTS).build();
+                Message._GameWithOptions ga2 = Message._GameWithOptions.newBuilder(ga1)
+                    .setGaName(FLD_SRV_GAMENAME_2).clearOpts().build();
+                gaList.add(ga1);
+                gaList.add(ga2);
+            }
+            Message.FromServer smsg3 = Message.FromServer.newBuilder()
+                .setGames(Message.Games.newBuilder()
+                    .addAllGame(gaList)).build();
+
+            smsg1.writeDelimitedTo(os);
+            smsg2.writeDelimitedTo(os);
+            smsg3.writeDelimitedTo(os);
+            os.flush();
         }
     }
 
     /**
      * Client which connects to a {@link ProtoAnyServer} and sends
      * specific protobuf {@code Any} test messages in its own thread.
+     * This test also receives and decodes test messages from the server.
      *<P>
      * {@inheritDoc}
      */
@@ -183,6 +221,62 @@ public class TestNetKnownOneOf
             msg3.writeDelimitedTo(os);
             msg4.writeDelimitedTo(os);
             os.flush();
+
+            // A few messages from the server
+
+            final InputStream is = s.getInputStream();
+
+            Message.FromServer smsg1 = Message.FromServer.parseDelimitedFrom(is),
+                smsg2 = Message.FromServer.parseDelimitedFrom(is),
+                smsg3 = Message.FromServer.parseDelimitedFrom(is);
+
+            int typ = smsg1.getMsgCase().getNumber();
+            if (typ == Message.FromServer.VERS_FIELD_NUMBER)
+            {
+                Message.Version msg = smsg1.getVers();
+                if (FLD_VERS_NUM != msg.getVersNum())
+                    sb.append("encodeAndSend: srv msg 1 versNum");
+                if (! FLD_VERS_BUILD.equals(msg.getVersBuild()))
+                    sb.append("encodeAndSend: srv msg 1 versBuild");
+            } else {
+                sb.append("encodeAndSend: srv msg 1: expected VERS_FIELD_NUMBER, saw " + typ);
+            }
+
+            typ = smsg2.getMsgCase().getNumber();
+            if (typ == Message.FromServer.STATUS_TEXT_FIELD_NUMBER)
+            {
+                Message.ServerStatusText msg = smsg2.getStatusText();
+                if (FLD_SRV_STATUS_VALUE != msg.getSvValue())  // server sent from enum, test here as numeric value
+                    sb.append("encodeAndSend: srv msg 2 svValue");
+                if (! FLD_SRV_STATUS_TEXT.equals(msg.getText()))
+                    sb.append("encodeAndSend: srv msg 2 text");
+            } else {
+                sb.append("encodeAndSend: srv msg 2: expected STATUS_TEXT_FIELD_NUMBER, saw " + typ);
+            }
+
+            typ = smsg3.getMsgCase().getNumber();
+            if (typ == Message.FromServer.GAMES_FIELD_NUMBER)
+            {
+                Message.Games msg = smsg3.getGames();
+                int n = msg.getGameCount();
+                if (2 != n)
+                {
+                    sb.append("encodeAndSend: srv msg 3: expected 2 games, saw " + n);
+                } else {
+                    Message._GameWithOptions ga1 = msg.getGame(0);
+                    Message._GameWithOptions ga2 = msg.getGame(1);
+                    if (! FLD_SRV_GAMENAME_1.equals(ga1.getGaName()))
+                        sb.append("encodeAndSend: srv msg 3 game 1 name");
+                    if (! FLD_SRV_GAME1_OPTS.equals(ga1.getOpts()))
+                        sb.append("encodeAndSend: srv msg 3 game 1 options");
+                    if (! FLD_SRV_GAMENAME_2.equals(ga2.getGaName()))
+                        sb.append("encodeAndSend: srv msg 3 game 2 name");
+                    if (! "".equals(ga2.getOpts()))
+                        sb.append("encodeAndSend: srv msg 3 game 2 options not empty");
+                }
+            } else {
+                sb.append("encodeAndSend: srv msg 3: expected GAMES_FIELD_NUMBER, saw " + typ);
+            }
         }
     }
 
