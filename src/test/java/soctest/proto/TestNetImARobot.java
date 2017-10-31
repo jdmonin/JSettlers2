@@ -118,10 +118,11 @@ public class TestNetImARobot
                 oper = "receiveAndDecode";
                 receiveAndDecode(s);
 
+                s.close();
                 ss.close();
             } catch (Throwable th) {
                 sb.append
-                    ("ProtoServer: Exception during " + oper + " on port " + port + ":" + th.toString() + "\n");
+                    ("ProtoServer: Exception during " + oper + " on port " + port + ": " + th.toString() + "\n");
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
                 th.printStackTrace(pw);
@@ -207,7 +208,7 @@ public class TestNetImARobot
                 s.close();
             } catch (Throwable th) {
                 sb.append
-                    ("ProtoClient: Exception during encodeAndSend() on port " + srvPort + ":" + th.toString() + "\n");
+                    ("ProtoClient: Exception during encodeAndSend() to port " + srvPort + ": " + th.toString() + "\n");
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
                 th.printStackTrace(pw);
