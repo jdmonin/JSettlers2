@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,7 @@ package soc.message;
 
 
 /**
- * This message means that a client isn't allowed to connect
+ * This reply from server means this client currently isn't allowed to connect.
  *
  * @author Robert S Thomas
  */
