@@ -175,8 +175,7 @@ public class SOCStatusMessage extends SOCMessage
     public static final int SV_NEWGAME_OPTION_VALUE_TOONEW = 10;
 
     /**
-     * New game requested with game options, but this game
-     * already exists = 11
+     * New game requested, but this game already exists = 11
      * @see soc.server.SOCServerMessageHandler#handleNEWGAMEWITHOPTIONSREQUEST
      * @since 1.1.07
      */
@@ -230,7 +229,7 @@ public class SOCStatusMessage extends SOCMessage
     public static final int SV_ACCT_NOT_CREATED_DENIED = 17;
 
     /**
-     * For account creation, new account was created successfully and was the first account = 18.
+     * For account creation, new account was created successfully and was the server's first account = 18.
      * Normally (when not the first account) the status code returned is {@link #SV_ACCT_CREATED_OK}.
      * This separate code is provided to let the client know they
      * must authenticate before creating any other accounts.
@@ -250,7 +249,8 @@ public class SOCStatusMessage extends SOCMessage
      * {@code "Server"}, bot names like {@code "robot 7"}, or {@code "debug"} when not in debug mode.
      *<P>
      * This code would also be sent if the nickname fails {@link SOCMessage#isSingleLineAndSafe(String)},
-     * but a {@link SOCMessage} with that would be malformed and not parsed at the server.
+     * but a client's {@link SOCMessage} with that failing nickname would be malformed and not parsed at
+     * the server, so it wouldn't see a message to reply to.
      *<P>
      * Server versions earlier than v1.2.00 would instead respond with {@link #SV_NAME_IN_USE};
      * this status is more specific. Clients older than v1.2.00 won't recognize this status value;

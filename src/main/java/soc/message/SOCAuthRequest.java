@@ -23,7 +23,7 @@ package soc.message;
 import java.util.StringTokenizer;
 
 /**
- * Authentication request, to connect and check password without creating or joining a game or channel.
+ * Authentication request, to connect and check password before creating or joining a game or channel.
  *<P>
  * Before v1.1.19, the client needed to request joining or creating a game or channel in order to send
  * a username and password.  Games have a game option dialog before creation; if the password was wrong
