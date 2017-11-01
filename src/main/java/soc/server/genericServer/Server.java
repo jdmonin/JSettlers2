@@ -49,7 +49,7 @@ import soc.server.SOCServer;
  *  to a {@link LocalStringServerSocket}.
  *<P>
  *  Newly connecting clients arrive in {@link #run()},
- *  start a thread for the server side of their {@link NetStringConnection} or {@link LocalStringConnection},
+ *  start a thread for the server side of their {@link NetConnection} or {@link LocalStringConnection},
  *  and are integrated into server data via {@link #addConnection(StringConnection)}
  *  called from that thread.  If the client's connection is accepted in
  *  {@link #newConnection1(StringConnection)}, the per-client thread enters a while-loop and
@@ -249,7 +249,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
         try
         {
-            ss = new NetStringServerSocket(port, this);
+            ss = new NetServerSocket(port, this);
         }
         catch (IOException e)
         {
@@ -427,7 +427,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     StringConnection connection = ss.accept();
                     if (port != -1)
                     {
-                        new Thread((NetStringConnection) connection).start();
+                        new Thread((NetConnection) connection).start();
                     }
                     else
                     {
@@ -453,7 +453,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             {
                 ss.close();
                 if (strSocketName == null)
-                    ss = new NetStringServerSocket(port, this);
+                    ss = new NetServerSocket(port, this);
                 else
                     ss = new LocalStringServerSocket(strSocketName);
             }

@@ -51,7 +51,7 @@ import java.util.Vector;
  * Before JSettlers v2.0.00, this class was called {@code Connection}.
  */
 @SuppressWarnings("serial")
-public final class NetStringConnection
+public final class NetConnection
     extends StringConnection implements Runnable, Serializable, Cloneable
 {
     static int putters = 0;
@@ -71,7 +71,7 @@ public final class NetStringConnection
     private Vector<String> outQueue = new Vector<String>();
 
     /** initialize the connection data */
-    NetStringConnection(Socket so, Server sve)
+    NetConnection(Socket so, Server sve)
     {
         hst = so.getInetAddress().getHostName();
         ourServer = sve;
@@ -383,7 +383,7 @@ public final class NetStringConnection
         return sb.toString();
     }
 
-    /** Connection inner class thread to send {@link NetStringConnection#outQueue} messages to the net. */
+    /** Connection inner class thread to send {@link NetConnection#outQueue} messages to the net. */
     class Putter extends Thread
     {
         //public boolean putting = true;
