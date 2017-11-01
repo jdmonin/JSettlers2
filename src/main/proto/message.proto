@@ -321,13 +321,22 @@ message BroadcastText {
     string text = 1;
 }
 
+/* This client is leaving all the games and channels they're connected to.
+ * Client is about to disconnect and actively close its connection to the server.
+ *<P>
+ * Server replies by notifying remaining members of those games and channels
+ * and deleting newly empty ones.
+ */
+message LeaveAll {
+    // no detail fields are needed
+}
 
 //
 // Channel Lifecycle
 //
 
 
-/* This message lists all the chat channels on a server.
+/* This message lists names of all the chat channels on a server.
  * It's one of the first messages sent from the server after {@link Version}
  * when connecting. {@code Channels} is sent even if the server isn't using
  * {@link soc.util.SOCServerFeatures#FEAT_CHANNELS} because clients see it as a
@@ -338,7 +347,7 @@ message BroadcastText {
  * @see ChannelMembers
  */
 message Channels {
-    repeated string ch_names = 1;
+    repeated string names = 1;
 }
 
 /* A new chat channel has been created. */
@@ -385,6 +394,14 @@ message ChannelText {
     string text = 3;
 }
 
+/* From client: Notifying server that the client is leaving this channel.
+ * From server: Notifying other members of that.
+ */
+message LeaveChannel {
+    string ch_name = 1;   // channel name
+    string nickname = 2;  // channel member nickname (should be "" for client -> server)
+}
+
 /* A chat channel has been destroyed. */
 message DeleteChannel {
     string ch_name = 1;
@@ -396,7 +413,7 @@ message DeleteChannel {
 //
 
 
-/* Used in Games and NewGame */
+/* For use in Games and NewGame; not sent as a standalone message type */
 message _GameWithOptions {
     string ga_name = 1;
     string opts = 2;      // From {@link SOCGameOption#packOptionsToString(Map, boolean)}
@@ -519,6 +536,7 @@ message SitDown {
  * This class was introduced in version 2.0.00; earlier versions of the server
  * and client used {@code SOCGameTextMsg} for server announcements and messages.
  *
+ * @see GamePlayerText
  * @see BroadcastText
  */
 message GameServerText {
@@ -526,7 +544,7 @@ message GameServerText {
     string text = 2;
 }
 
-/* A text message sent to a game.
+/* A text message sent by a player to a game.
  * Seen by {@link soc.server.SOCServer server} or on-screen
  * by human players, occasionally parsed by robots
  * if they're expecting a debug message.
@@ -541,10 +559,18 @@ message GameServerText {
  * Before v3.0.00 this message was {@code SOCGameTextMsg}.
  * @see GameServerText
  */
-message GameText {
+message GamePlayerText {
     string ga_name = 1;
     string nickname = 2;  // sent from this game member (should be "" for client -> server)
     string text = 3;
+}
+
+/* From client: Notifying server that the client is leaving this game.
+ * From server: Notifying other members of that.
+ */
+message LeaveGame {
+    string ga_name = 1;
+    string nickname = 2;  // this game member is leaving (should be "" for client -> server)
 }
 
 /* A game has been destroyed. */
@@ -583,17 +609,19 @@ message FromServer {
         JoinChannel ch_join = 6;
         ChannelMembers ch_members = 7;
         ChannelText ch_text = 8;
-        DeleteChannel ch_delete = 9;
+        LeaveChannel ch_leave = 9;
+        DeleteChannel ch_delete = 10;
 
         // games
-        Games games = 10;
-        NewGame ga_new = 11;
-        JoinGame ga_join = 12;
-        GameMembers ga_members = 13;
-        SitDown sit_down = 14;
-        GameServerText server_text = 15;
-        GameText ga_text = 16;
-        DeleteGame ga_delete = 17;
+        Games games = 11;
+        NewGame ga_new = 12;
+        JoinGame ga_join = 13;
+        GameMembers ga_members = 14;
+        SitDown sit_down = 15;
+        GameServerText server_text = 16;
+        GamePlayerText player_text = 17;
+        LeaveGame ga_leave = 18;
+        DeleteGame ga_delete = 19;
     }
 }
 
@@ -603,16 +631,19 @@ message FromClient {
         Version vers = 1;
         AuthRequest auth_req = 2;
         ImARobot im_a_robot = 3;
+        LeaveAll leave_all = 4;
 
         // channels
-       JoinChannel ch_join = 4;
-       ChannelText ch_text = 5;
+        JoinChannel ch_join = 5;
+        ChannelText ch_text = 6;
+        LeaveChannel ch_leave = 7;
 
         // games
-        NewGame ga_new = 6;
-        RobotJoinGameRequest robot_join_req = 7;
-        JoinGame ga_join = 8;
-        SitDown sit_down = 9;
-        GameText ga_text = 10;
+        NewGame ga_new = 8;
+        RobotJoinGameRequest robot_join_req = 9;
+        JoinGame ga_join = 10;
+        SitDown sit_down = 11;
+        GamePlayerText player_text = 12;
+        LeaveGame ga_leave = 13;
     }
 }
