@@ -100,6 +100,11 @@ message AuthRequest {
     AuthScheme auth_scheme = 4;
 }
 
+/* This client currently isn't allowed to connect. */
+message RejectConnection {
+    string reason_text = 1;
+}
+
 /* Server text message that shows in a status box on the client.
  * Used for "welcome" message at initial connect to game (follows
  * {@link JoinChannel} or {@link JoinGame}),
@@ -330,6 +335,49 @@ message BroadcastText {
 message LeaveAll {
     // no detail fields are needed
 }
+
+/* A ping message from the server, or its reply from the client.
+ *<P>
+ * In version 1.1.08 and higher, the client echoes the ping back to the server.  Server can use
+ * this to ensure the client is still connected. If another client attempts to connect with the same name,
+ * same host (IP address), the first client will be pinged. If the client does not respond within a minute or so,
+ * it is replaced in all games by the newly connecting client. Server attempts to send a final ServerPing to
+ * the old client with sleepTime -1 to let it know it's no longer connected.
+ */
+message ServerPing {
+    /* For human clients, the value to echo (send back to the server),
+     * or -1 if server is telling a client it's being disconnected
+     * because a new client is replacing it. For bots (informational)
+     * the amount of time server will sleep waiting to send the next ping.
+     */
+    int32 sleep_time = 1;
+}
+
+/* From server, the robot client should update its
+ * {@link soc.robot.SOCRobotParameters} to these values.
+ *<P>
+ * Before v3.0.00 this message was {@code SOCUpdateRobotParams}.
+ */
+message BotUpdateParams {
+    uint32 max_game_length = 1;
+    uint32 max_eta = 2;
+    float eta_bonus_factor = 3;
+    float adversarial_factor = 4;
+    float leader_adversarial_factor = 5;
+    float dev_card_multiplier = 6;
+    float threat_multiplier = 7;
+    uint32 strategy_type = 8;  // {@link soc.robot.SOCRobotDM#FAST_STRATEGY} or {@link soc.robot.SOCRobotDM#SMART_STRATEGY}
+    bool trade_flag = 9;  // Does this robot make/accept trades with players?
+}
+
+/* Used by the admin to reset a robot client remotely; bot will disconnect and reconnect.
+ *<P>
+ * Before v3.0.00 this message was {@code SOCAdminReset}.
+ */
+message BotAdminReset {
+    // no detail fields are needed
+}
+
 
 //
 // Channel Lifecycle
@@ -565,6 +613,31 @@ message GamePlayerText {
     string text = 3;
 }
 
+/* Timing ping sent by the server to each robot, once each second.
+ * Used by SOCRobotBrain for timing.
+ *<P>
+ * Before v3.0.00 this message was {@code SOCTimingPing}.
+ */
+message BotTimingPing {
+    string ga_name = 1;
+}
+
+/* Used by the admin to test if a robot is connected to a game and running.
+ *<P>
+ * Before v3.0.00 this message was {@code SOCAdminPing}.
+ */
+message BotAdminPing {
+    string ga_name = 1;
+}
+
+/* Server wants the robot client to leave a game.
+ *<P>
+ * Before v3.0.00 this message was {@code SOCRobotDismiss}.
+ */
+message BotDismiss {
+    string ga_name = 1;
+}
+
 /* From client: Notifying server that the client is leaving this game.
  * From server: Notifying other members of that.
  */
@@ -584,6 +657,11 @@ message DeleteGame {
 //
 
 
+// TODO consider placing these in another include file (game_message.proto?)
+//    - for namespacing
+//    - for maintainability
+//    - so generated .class file isn't huge
+
 // TODO StartGame
 
 // TODO GameState
@@ -600,28 +678,35 @@ message FromServer {
     oneof msg {
         // auth
         Version vers = 1;
-        ServerStatusText status_text = 2;
-        BroadcastText broadcast_text = 3;
+        RejectConnection reject_connection = 2;
+        ServerStatusText status_text = 3;
+        BroadcastText broadcast_text = 4;
+        ServerPing server_ping = 5;
+        BotUpdateParams bot_update_params = 6;
+        BotAdminReset bot_admin_reset = 7;
 
         // channels
-        Channels channels = 4;
-        NewChannel ch_new = 5;
-        JoinChannel ch_join = 6;
-        ChannelMembers ch_members = 7;
-        ChannelText ch_text = 8;
-        LeaveChannel ch_leave = 9;
-        DeleteChannel ch_delete = 10;
+        Channels channels = 8;
+        NewChannel ch_new = 9;
+        JoinChannel ch_join = 10;
+        ChannelMembers ch_members = 11;
+        ChannelText ch_text = 12;
+        LeaveChannel ch_leave = 13;
+        DeleteChannel ch_delete = 14;
 
         // games
-        Games games = 11;
-        NewGame ga_new = 12;
-        JoinGame ga_join = 13;
-        GameMembers ga_members = 14;
-        SitDown sit_down = 15;
-        GameServerText server_text = 16;
-        GamePlayerText player_text = 17;
-        LeaveGame ga_leave = 18;
-        DeleteGame ga_delete = 19;
+        Games games = 15;
+        NewGame ga_new = 16;
+        JoinGame ga_join = 17;
+        GameMembers ga_members = 18;
+        SitDown sit_down = 19;
+        GameServerText server_text = 20;
+        GamePlayerText player_text = 21;
+        BotTimingPing bot_timing_ping = 22;
+        BotAdminPing bot_admin_ping = 23;
+        BotDismiss bot_dismiss = 24;
+        LeaveGame ga_leave = 25;
+        DeleteGame ga_delete = 26;
     }
 }
 
@@ -631,19 +716,20 @@ message FromClient {
         Version vers = 1;
         AuthRequest auth_req = 2;
         ImARobot im_a_robot = 3;
-        LeaveAll leave_all = 4;
+        ServerPing server_ping = 4;
+        LeaveAll leave_all = 5;
 
         // channels
-        JoinChannel ch_join = 5;
-        ChannelText ch_text = 6;
-        LeaveChannel ch_leave = 7;
+        JoinChannel ch_join = 6;
+        ChannelText ch_text = 7;
+        LeaveChannel ch_leave = 8;
 
         // games
-        NewGame ga_new = 8;
-        RobotJoinGameRequest robot_join_req = 9;
-        JoinGame ga_join = 10;
-        SitDown sit_down = 11;
-        GamePlayerText player_text = 12;
-        LeaveGame ga_leave = 13;
+        NewGame ga_new = 9;
+        RobotJoinGameRequest robot_join_req = 10;
+        JoinGame ga_join = 11;
+        SitDown sit_down = 12;
+        GamePlayerText player_text = 13;
+        LeaveGame ga_leave = 14;
     }
 }
