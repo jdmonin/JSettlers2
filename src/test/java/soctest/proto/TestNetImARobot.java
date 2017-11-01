@@ -43,11 +43,11 @@ import soc.proto.Message;
  */
 public class TestNetImARobot
 {
-    public static final String FLD_NICKNAME_1 = "testbot1", FLD_NICKNAME_2 = "testbot2",
-        FLD_COOKIE = "abc", FLD_RBCLASS = soc.robot.SOCRobotBrain.RBCLASS_BUILTIN;
+    private static final String FIELD_NICKNAME_1 = "testbot1", FIELD_NICKNAME_2 = "testbot2",
+        FIELD_COOKIE = "abc", FIELD_RBCLASS = soc.robot.SOCRobotBrain.RBCLASS_BUILTIN;
 
     /** Localhost as IP "127.0.0.1" for client connection */
-    public static final String LOCALHOST_IP = "127.0.0.1";
+    private static final String LOCALHOST_IP = "127.0.0.1";
 
     @Test(timeout=10000)
     public void testMsgsClientToServer()
@@ -154,14 +154,14 @@ public class TestNetImARobot
                     sb.append("receiveAndDecode: msg " + (i+1) + " null");
                     continue;
                 }
-                if (! FLD_COOKIE.equals(msg.getCookie()))
+                if (! FIELD_COOKIE.equals(msg.getCookie()))
                     sb.append("receiveAndDecode: msg " + (i+1) + " cookie");
-                if (! FLD_RBCLASS.equals(msg.getRbClass()))
+                if (! FIELD_RBCLASS.equals(msg.getRbClass()))
                     sb.append("receiveAndDecode: msg " + (i+1) + " rbclass");
             }
-            if (! FLD_NICKNAME_1.equals(msgs[0].getNickname()))
+            if (! FIELD_NICKNAME_1.equals(msgs[0].getNickname()))
                 sb.append("receiveAndDecode: msg 1 nickname");
-            if (! FLD_NICKNAME_2.equals(msgs[1].getNickname()))
+            if (! FIELD_NICKNAME_2.equals(msgs[1].getNickname()))
                 sb.append("receiveAndDecode: msg 2 nickname");
         }
     }
@@ -227,9 +227,9 @@ public class TestNetImARobot
             throws Exception
         {
             Message.ImARobot msg1 = Message.ImARobot.newBuilder()
-                .setNickname(FLD_NICKNAME_1).setCookie(FLD_COOKIE).setRbClass(FLD_RBCLASS).build();
+                .setNickname(FIELD_NICKNAME_1).setCookie(FIELD_COOKIE).setRbClass(FIELD_RBCLASS).build();
             Message.ImARobot msg2 = Message.ImARobot.newBuilder()
-                .setNickname(FLD_NICKNAME_2).setCookie(FLD_COOKIE).setRbClass(FLD_RBCLASS).build();
+                .setNickname(FIELD_NICKNAME_2).setCookie(FIELD_COOKIE).setRbClass(FIELD_RBCLASS).build();
 
             final OutputStream os = s.getOutputStream();
             msg1.writeDelimitedTo(os);

@@ -46,18 +46,15 @@ import soc.proto.Message;
  */
 public class TestNetKnownOneOf
 {
-    public static final String FLD_NICKNAME = "testbot", FLD_COOKIE = "abc",
-        FLD_RBCLASS = soc.robot.SOCRobotBrain.RBCLASS_BUILTIN,
-        FLD_VERS_BUILD = "JX20171031",  // hardcode so soc.util.Version doesn't need version.info in place
-        FLD_GAMENAME = "dummy game";
-    public static final String FLD_SRV_STATUS_TEXT = "Welcome to JSettlers Test!";
-    public static final String FLD_SRV_GAMENAME_1 = "testGame #1", FLD_SRV_GAMENAME_2 = "testGame #2",
-        FLD_SRV_GAME1_OPTS = "VP=t13";
-    public static final int FLD_VERS_NUM = 3000,  // hardcode like FLD_VERS_BUILD
-        FLD_SRV_STATUS_VALUE = Message.ServerStatusText.StatusValue.OK_DEBUG_MODE_ON_VALUE;
-
-    /** Localhost as IP "127.0.0.1" for client connection */
-    public static final String LOCALHOST_IP = "127.0.0.1";
+    private static final String FIELD_NICKNAME = "testbot", FIELD_COOKIE = "abc",
+        FIELD_RBCLASS = soc.robot.SOCRobotBrain.RBCLASS_BUILTIN,
+        FIELD_VERS_BUILD = "JX20171031",  // hardcode so soc.util.Version doesn't need version.info in place
+        FIELD_GAMENAME = "dummy game";
+    private static final String FIELD_SERVER_STATUS_TEXT = "Welcome to JSettlers Test!";
+    private static final String FIELD_SERVER_GAMENAME_1 = "testGame #1", FIELD_SERVER_GAMENAME_2 = "testGame #2",
+        FIELD_SERVER_GAME1_OPTS = "VP=t13";
+    private static final int FIELD_VERS_NUM = 3000,  // hardcode like FIELD_VERS_BUILD
+        FIELD_SERVER_STATUS_VALUE = Message.ServerStatusText.StatusValue.OK_DEBUG_MODE_ON_VALUE;
 
     @Test(timeout=10000)
     public void testMsgsClientToServer()
@@ -115,9 +112,9 @@ public class TestNetKnownOneOf
             if (typ == Message.FromClient.VERS_FIELD_NUMBER)
             {
                 Message.Version msg = msg1.getVers();
-                if (FLD_VERS_NUM != msg.getVersNum())
+                if (FIELD_VERS_NUM != msg.getVersNum())
                     sb.append("receiveAndDecode: msg 1 versNum");
-                if (! FLD_VERS_BUILD.equals(msg.getVersBuild()))
+                if (! FIELD_VERS_BUILD.equals(msg.getVersBuild()))
                     sb.append("receiveAndDecode: msg 1 versBuild");
             } else {
                 sb.append("receiveAndDecode: msg 1: expected VERS_FIELD_NUMBER, saw " + typ);
@@ -132,20 +129,20 @@ public class TestNetKnownOneOf
             if (msg3.getMsgCase().getClass().equals(Message.ImARobot.class))
             {
                 Message.ImARobot msg = msg3.getImARobot();
-                if (! FLD_NICKNAME.equals(msg.getNickname()))
+                if (! FIELD_NICKNAME.equals(msg.getNickname()))
                     sb.append("receiveAndDecode: msg 3 nickname");
-                if (! FLD_COOKIE.equals(msg.getCookie()))
+                if (! FIELD_COOKIE.equals(msg.getCookie()))
                     sb.append("receiveAndDecode: msg 3 cookie");
-                if (! FLD_RBCLASS.equals(msg.getRbClass()))
+                if (! FIELD_RBCLASS.equals(msg.getRbClass()))
                     sb.append("receiveAndDecode: msg 3 rbclass");
             }
 
             if (msg4.getMsgCase().equals(Message.FromClient.MsgCase.GA_JOIN))
             {
                 Message.JoinGame msg = msg4.getGaJoin();
-                if (! FLD_GAMENAME.equals(msg.getGaName()))
+                if (! FIELD_GAMENAME.equals(msg.getGaName()))
                     sb.append("receiveAndDecode: msg 4 gameName");
-                if (! FLD_NICKNAME.equals(msg.getMemberName()))
+                if (! FIELD_NICKNAME.equals(msg.getMemberName()))
                     sb.append("receiveAndDecode: msg 4 memberName");
             }
 
@@ -155,18 +152,18 @@ public class TestNetKnownOneOf
 
             Message.FromServer smsg1 = Message.FromServer.newBuilder()
                 .setVers(Message.Version.newBuilder()
-                    .setVersNum(FLD_VERS_NUM).setVersBuild(FLD_VERS_BUILD)).build();
+                    .setVersNum(FIELD_VERS_NUM).setVersBuild(FIELD_VERS_BUILD)).build();
             Message.FromServer smsg2 = Message.FromServer.newBuilder()
                 .setStatusText(Message.ServerStatusText.newBuilder()
-                    .setText(FLD_SRV_STATUS_TEXT)
+                    .setText(FIELD_SERVER_STATUS_TEXT)
                     .setSv(Message.ServerStatusText.StatusValue.OK_DEBUG_MODE_ON)  // set from enum, cli will test value
                     ).build();
             List<Message._GameWithOptions> gaList = new ArrayList<>();
             {
                 Message._GameWithOptions ga1 = Message._GameWithOptions.newBuilder()
-                    .setGaName(FLD_SRV_GAMENAME_1).setOpts(FLD_SRV_GAME1_OPTS).build();
+                    .setGaName(FIELD_SERVER_GAMENAME_1).setOpts(FIELD_SERVER_GAME1_OPTS).build();
                 Message._GameWithOptions ga2 = Message._GameWithOptions.newBuilder(ga1)
-                    .setGaName(FLD_SRV_GAMENAME_2).clearOpts().build();
+                    .setGaName(FIELD_SERVER_GAMENAME_2).clearOpts().build();
                 gaList.add(ga1);
                 gaList.add(ga2);
             }
@@ -206,14 +203,14 @@ public class TestNetKnownOneOf
         {
             Message.FromClient msg1 = Message.FromClient.newBuilder()
                 .setVers(Message.Version.newBuilder()
-                    .setVersNum(FLD_VERS_NUM).setVersBuild(FLD_VERS_BUILD)).build();
+                    .setVersNum(FIELD_VERS_NUM).setVersBuild(FIELD_VERS_BUILD)).build();
             Message.FromClient msg2 = Message.FromClient.newBuilder().build();  // deliberately empty
             Message.FromClient msg3 = Message.FromClient.newBuilder()
                 .setImARobot(Message.ImARobot.newBuilder()
-                    .setNickname(FLD_NICKNAME).setCookie(FLD_COOKIE).setRbClass(FLD_RBCLASS)).build();
+                    .setNickname(FIELD_NICKNAME).setCookie(FIELD_COOKIE).setRbClass(FIELD_RBCLASS)).build();
             Message.FromClient msg4 = Message.FromClient.newBuilder()
                 .setGaJoin(Message.JoinGame.newBuilder()
-                    .setGaName(FLD_GAMENAME).setMemberName(FLD_NICKNAME)).build();
+                    .setGaName(FIELD_GAMENAME).setMemberName(FIELD_NICKNAME)).build();
 
             final OutputStream os = s.getOutputStream();
             msg1.writeDelimitedTo(os);
@@ -234,9 +231,9 @@ public class TestNetKnownOneOf
             if (typ == Message.FromServer.VERS_FIELD_NUMBER)
             {
                 Message.Version msg = smsg1.getVers();
-                if (FLD_VERS_NUM != msg.getVersNum())
+                if (FIELD_VERS_NUM != msg.getVersNum())
                     sb.append("encodeAndSend: srv msg 1 versNum");
-                if (! FLD_VERS_BUILD.equals(msg.getVersBuild()))
+                if (! FIELD_VERS_BUILD.equals(msg.getVersBuild()))
                     sb.append("encodeAndSend: srv msg 1 versBuild");
             } else {
                 sb.append("encodeAndSend: srv msg 1: expected VERS_FIELD_NUMBER, saw " + typ);
@@ -246,9 +243,9 @@ public class TestNetKnownOneOf
             if (typ == Message.FromServer.STATUS_TEXT_FIELD_NUMBER)
             {
                 Message.ServerStatusText msg = smsg2.getStatusText();
-                if (FLD_SRV_STATUS_VALUE != msg.getSvValue())  // server sent from enum, test here as numeric value
+                if (FIELD_SERVER_STATUS_VALUE != msg.getSvValue())  // server sent from enum, test here as numeric value
                     sb.append("encodeAndSend: srv msg 2 svValue");
-                if (! FLD_SRV_STATUS_TEXT.equals(msg.getText()))
+                if (! FIELD_SERVER_STATUS_TEXT.equals(msg.getText()))
                     sb.append("encodeAndSend: srv msg 2 text");
             } else {
                 sb.append("encodeAndSend: srv msg 2: expected STATUS_TEXT_FIELD_NUMBER, saw " + typ);
@@ -265,11 +262,11 @@ public class TestNetKnownOneOf
                 } else {
                     Message._GameWithOptions ga1 = msg.getGame(0);
                     Message._GameWithOptions ga2 = msg.getGame(1);
-                    if (! FLD_SRV_GAMENAME_1.equals(ga1.getGaName()))
+                    if (! FIELD_SERVER_GAMENAME_1.equals(ga1.getGaName()))
                         sb.append("encodeAndSend: srv msg 3 game 1 name");
-                    if (! FLD_SRV_GAME1_OPTS.equals(ga1.getOpts()))
+                    if (! FIELD_SERVER_GAME1_OPTS.equals(ga1.getOpts()))
                         sb.append("encodeAndSend: srv msg 3 game 1 options");
-                    if (! FLD_SRV_GAMENAME_2.equals(ga2.getGaName()))
+                    if (! FIELD_SERVER_GAMENAME_2.equals(ga2.getGaName()))
                         sb.append("encodeAndSend: srv msg 3 game 2 name");
                     if (! "".equals(ga2.getOpts()))
                         sb.append("encodeAndSend: srv msg 3 game 2 options not empty");

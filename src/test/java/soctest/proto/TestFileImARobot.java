@@ -40,8 +40,8 @@ import soc.proto.Message;
  */
 public class TestFileImARobot
 {
-    public static final String FLD_NICKNAME = "testbot1", FLD_COOKIE = "abc",
-        FLD_RBCLASS = soc.robot.SOCRobotBrain.RBCLASS_BUILTIN;
+    private static final String FIELD_NICKNAME = "testbot1", FIELD_COOKIE = "abc",
+        FIELD_RBCLASS = soc.robot.SOCRobotBrain.RBCLASS_BUILTIN;
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -50,7 +50,7 @@ public class TestFileImARobot
         throws IOException
     {
         Message.ImARobot msg = Message.ImARobot.newBuilder()
-            .setNickname(FLD_NICKNAME).setCookie(FLD_COOKIE).setRbClass(FLD_RBCLASS).build();
+            .setNickname(FIELD_NICKNAME).setCookie(FIELD_COOKIE).setRbClass(FIELD_RBCLASS).build();
 
         FileOutputStream fos = new FileOutputStream(f);
         msg.writeDelimitedTo(fos);
@@ -75,9 +75,9 @@ public class TestFileImARobot
         writeMsg(tmpf);
         Message.ImARobot msg = readMsg(tmpf);
         assertNotNull("Read message from file", msg);
-        assertEquals("nickname", FLD_NICKNAME, msg.getNickname());
-        assertEquals("cookie", FLD_COOKIE, msg.getCookie());
-        assertEquals("rbclass", FLD_RBCLASS, msg.getRbClass());
+        assertEquals("nickname", FIELD_NICKNAME, msg.getNickname());
+        assertEquals("cookie", FIELD_COOKIE, msg.getCookie());
+        assertEquals("rbclass", FIELD_RBCLASS, msg.getRbClass());
     }
 
     public static void main(String[] args)
