@@ -6712,7 +6712,7 @@ public class SOCPlayerClient
          *<P>
          * Last message is in {@link #lastMessage_P}; any error is in {@link #ex_P}.
          */
-        protected Connection prCli = null;
+        protected StringConnection prCli = null;
 
         public ClientNetwork(SOCPlayerClient c)
         {
@@ -6769,7 +6769,7 @@ public class SOCPlayerClient
                 try
                 {
                     prCli = StringServerSocket.connectTo(SOCServer.PRACTICE_STRINGPORT);
-                    new SOCPlayerLocalStringReader((StringConnection) prCli);
+                    new SOCPlayerLocalStringReader(prCli);
                     // Reader will start its own thread.
                     // Send VERSION right away (1.1.06 and later)
                     putPractice(SOCVersion.toCmd
@@ -7072,7 +7072,7 @@ public class SOCPlayerClient
 
             lastMessage_P = s;
 
-            if ((ex_P != null) || !prCli.isConnected())
+            if ((ex_P != null) || ! prCli.isConnected())
             {
                 return false;
             }
