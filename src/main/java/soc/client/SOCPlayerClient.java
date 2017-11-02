@@ -94,9 +94,9 @@ import soc.game.SOCVillage;
 import soc.message.*;
 
 import soc.server.SOCServer;
+import soc.server.genericServer.Connection;
 import soc.server.genericServer.StringConnection;
 import soc.server.genericServer.StringServerSocket;
-import soc.server.genericServer.Connection;
 
 import soc.util.I18n;
 import soc.util.SOCGameList;

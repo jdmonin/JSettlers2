@@ -23,8 +23,8 @@ import soc.debug.D;
 import soc.game.SOCGame;
 import soc.message.SOCMessage;
 import soc.message.SOCMessageForGame;
-import soc.server.genericServer.Server;
 import soc.server.genericServer.Connection;
+import soc.server.genericServer.Server;
 
 /**
  * Server class to dispatch all inbound messages.

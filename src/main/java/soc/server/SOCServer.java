@@ -32,10 +32,10 @@ import soc.robot.SOCRobotClient;
 import soc.server.database.DBSettingMismatchException;
 import soc.server.database.SOCDBHelper;
 
-import soc.server.genericServer.InboundMessageQueue;
-import soc.server.genericServer.StringConnection;
-import soc.server.genericServer.Server;
 import soc.server.genericServer.Connection;
+import soc.server.genericServer.InboundMessageQueue;
+import soc.server.genericServer.Server;
+import soc.server.genericServer.StringConnection;
 
 import soc.util.I18n;
 import soc.util.SOCGameBoardReset;
