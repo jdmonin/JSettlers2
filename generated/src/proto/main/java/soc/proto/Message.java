@@ -4724,6 +4724,10 @@ public final class Message {
    * same host (IP address), the first client will be pinged. If the client does not respond within a minute or so,
    * it is replaced in all games by the newly connecting client. Server attempts to send a final ServerPing to
    * the old client with sleepTime -1 to let it know it's no longer connected.
+   *&lt;P&gt;
+   * The server sends bot clients {&#64;code ServerPing} about once every 2 minutes,
+   * and those clients also locally generate and send themselves
+   * one {&#64;link TimingPing} per second in their active games.
    * </pre>
    *
    * Protobuf type {@code ServerPing}
@@ -4876,6 +4880,10 @@ public final class Message {
      * same host (IP address), the first client will be pinged. If the client does not respond within a minute or so,
      * it is replaced in all games by the newly connecting client. Server attempts to send a final ServerPing to
      * the old client with sleepTime -1 to let it know it's no longer connected.
+     *&lt;P&gt;
+     * The server sends bot clients {&#64;code ServerPing} about once every 2 minutes,
+     * and those clients also locally generate and send themselves
+     * one {&#64;link TimingPing} per second in their active games.
      * </pre>
      *
      * Protobuf type {@code ServerPing}
@@ -14218,10 +14226,11 @@ public final class Message {
   }
   /**
    * <pre>
-   * Timing ping sent by the server to each robot, once each second.
-   * Used by SOCRobotBrain for timing.
+   * Timing ping timing ping that the bot client sends locally to its active games'
+   * inbound message queues, once each second. Used by {&#64;code SOCRobotBrain} for timing.
    *&lt;P&gt;
    * Before v3.0.00 this message was {&#64;code SOCTimingPing}.
+   * &#64;see SOCServerPing
    * </pre>
    *
    * Protobuf type {@code BotTimingPing}
@@ -14370,10 +14379,11 @@ public final class Message {
 
     /**
      * <pre>
-     * Timing ping sent by the server to each robot, once each second.
-     * Used by SOCRobotBrain for timing.
+     * Timing ping timing ping that the bot client sends locally to its active games'
+     * inbound message queues, once each second. Used by {&#64;code SOCRobotBrain} for timing.
      *&lt;P&gt;
      * Before v3.0.00 this message was {&#64;code SOCTimingPing}.
+     * &#64;see SOCServerPing
      * </pre>
      *
      * Protobuf type {@code BotTimingPing}

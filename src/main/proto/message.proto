@@ -343,6 +343,10 @@ message LeaveAll {
  * same host (IP address), the first client will be pinged. If the client does not respond within a minute or so,
  * it is replaced in all games by the newly connecting client. Server attempts to send a final ServerPing to
  * the old client with sleepTime -1 to let it know it's no longer connected.
+ *<P>
+ * The server sends bot clients {@code ServerPing} about once every 2 minutes,
+ * and those clients also locally generate and send themselves
+ * one {@link TimingPing} per second in their active games.
  */
 message ServerPing {
     /* For human clients, the value to echo (send back to the server),
@@ -613,10 +617,11 @@ message GamePlayerText {
     string text = 3;
 }
 
-/* Timing ping sent by the server to each robot, once each second.
- * Used by SOCRobotBrain for timing.
+/* Timing ping timing ping that the bot client sends locally to its active games'
+ * inbound message queues, once each second. Used by {@code SOCRobotBrain} for timing.
  *<P>
  * Before v3.0.00 this message was {@code SOCTimingPing}.
+ * @see SOCServerPing
  */
 message BotTimingPing {
     string ga_name = 1;
