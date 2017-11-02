@@ -621,7 +621,7 @@ message GamePlayerText {
  * inbound message queues, once each second. Used by {@code SOCRobotBrain} for timing.
  *<P>
  * Before v3.0.00 this message was {@code SOCTimingPing}.
- * @see SOCServerPing
+ * @see ServerPing
  */
 message BotTimingPing {
     string ga_name = 1;
@@ -662,10 +662,12 @@ message DeleteGame {
 //
 
 
-// TODO consider placing these in another include file (game_message.proto?)
+// These should be placed in another include file (game_message.proto?)
 //    - for namespacing
+//    - for dispatching to a GameHandler, not SOCServer
 //    - for maintainability
 //    - so generated .class file isn't huge
+//    - to possibly support multiple game types later
 
 // TODO StartGame
 

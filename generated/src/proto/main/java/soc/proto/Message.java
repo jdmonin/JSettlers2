@@ -14230,7 +14230,7 @@ public final class Message {
    * inbound message queues, once each second. Used by {&#64;code SOCRobotBrain} for timing.
    *&lt;P&gt;
    * Before v3.0.00 this message was {&#64;code SOCTimingPing}.
-   * &#64;see SOCServerPing
+   * &#64;see ServerPing
    * </pre>
    *
    * Protobuf type {@code BotTimingPing}
@@ -14383,7 +14383,7 @@ public final class Message {
      * inbound message queues, once each second. Used by {&#64;code SOCRobotBrain} for timing.
      *&lt;P&gt;
      * Before v3.0.00 this message was {&#64;code SOCTimingPing}.
-     * &#64;see SOCServerPing
+     * &#64;see ServerPing
      * </pre>
      *
      * Protobuf type {@code BotTimingPing}
