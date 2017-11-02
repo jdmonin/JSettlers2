@@ -40,7 +40,7 @@ import java.util.Vector;
  *  1.0.5 - 2009-05-31 - no change in this file
  *  1.0.5.1- 2009-10-26- no change in this file
  *  2.0.0 - 2017-11-01 - Rename StringServerSocket -> SOCServerSocket, NetStringServerSocket -> NetServerSocket,
- *                       LocalStringServerSocket -> StringServerSocket
+ *                       LocalStringServerSocket -> StringServerSocket. Remove unused broadcast(..).
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -285,30 +285,6 @@ public class StringServerSocket implements SOCServerSocket
     public Enumeration<StringConnection> allClients()
     {
         return allConnected.elements();
-    }
-
-    /**
-     * Send to all connected clients.
-     *
-     * @param msg String to send
-     *
-     * @see #allClients()
-     * @throws IllegalArgumentException if {@code m} is {@code null}
-     */
-    public void broadcast(String msg)
-        throws IllegalArgumentException
-    {
-        if (msg == null)
-            throw new IllegalArgumentException("null");
-
-        synchronized (allConnected)
-        {
-            for (int i = allConnected.size() - 1; i >= 0; --i)
-            {
-                StringConnection c = allConnected.elementAt(i);
-                c.put(msg);
-            }
-        }
     }
 
     /**

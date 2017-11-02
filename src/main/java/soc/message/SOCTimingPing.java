@@ -20,13 +20,14 @@ package soc.message;
 
 
 /**
- * This message contains a timing ping sent by the server to
- * each robot, once each second. Used by SOCRobotBrain for timing.
+ * This message contains a timing ping that the bot client sends locally to its active games'
+ * inbound message queues, once each second. Used by {@code SOCRobotBrain} for timing.
  *<P>
  * Before v1.1.13, the timing ping was {@link SOCGameTextMsg}({@code "*PING*"}).
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @see SOCGameServerText
+ * @see SOCServerPing
  * @since 1.1.13
  */
 public class SOCTimingPing extends SOCMessage

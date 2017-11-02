@@ -31,7 +31,7 @@ import soc.server.genericServer.Connection;
 
 /**
  * Pings the robots so they know they're connected to an active server.
- * Sends a {@link SOCServerPing} to each bot every 30 seconds or so.
+ * Sends a {@link SOCServerPing} to each bot every 2 minutes or so.
  *
  * @author Robert S Thomas
  */
