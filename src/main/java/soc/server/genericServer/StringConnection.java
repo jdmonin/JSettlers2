@@ -63,7 +63,7 @@ import soc.disableDebug.D;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @version 2.0.0
  */
-public class LocalStringConnection
+public class StringConnection
     extends Connection implements Runnable
 {
     /** Unique end-of-file marker object.  Always compare against this with == not string.equals. */
@@ -75,10 +75,10 @@ public class LocalStringConnection
     protected boolean out_setEOF;
     /** Active connection, server has called accept, and not disconnected yet */
     protected boolean accepted;
-    private LocalStringConnection ourPeer;
+    private StringConnection ourPeer;
 
     /**
-     * Create a new, unused LocalStringConnection.
+     * Create a new, unused StringConnection.
      *<P>
      * After construction, call {@link #connect(String)} to use this object.
      * When using this class from the server (not client)
@@ -88,7 +88,7 @@ public class LocalStringConnection
      * This class has a run method, but you must start the thread yourself.
      * Constructors will not create or start a thread.
      */
-    public LocalStringConnection()
+    public StringConnection()
     {
         in = new Vector<String>();
         out = new Vector<String>();
@@ -110,7 +110,7 @@ public class LocalStringConnection
      * @throws IllegalArgumentException if peer is null, or already
      *   has a peer.
      */
-    public LocalStringConnection(LocalStringConnection peer) throws EOFException
+    public StringConnection(StringConnection peer) throws EOFException
     {
         if (peer == null)
             throw new IllegalArgumentException("peer null");
@@ -287,7 +287,7 @@ public class LocalStringConnection
         if (accepted)
             throw new IllegalStateException("Already accepted by a server");
 
-        LocalStringServerSocket.connectTo(serverSocketName, this);
+        StringServerSocket.connectTo(serverSocketName, this);
         connectTime = new Date();
 
         // ** connectTo will Thread.wait until accepted by server.
@@ -300,7 +300,7 @@ public class LocalStringConnection
      *
      * @return Returns our peer, or null if not yet connected.
      */
-    public LocalStringConnection getPeer()
+    public StringConnection getPeer()
     {
         return ourPeer;
     }
@@ -476,7 +476,7 @@ public class LocalStringConnection
         }
         catch (IOException e)
         {
-            D.ebugPrintln("IOException in LocalStringConnection.run - " + e);
+            D.ebugPrintln("IOException in StringConnection.run - " + e);
 
             if (D.ebugOn)
             {
@@ -500,7 +500,7 @@ public class LocalStringConnection
     @Override
     public String toString()
     {
-        StringBuffer sb = new StringBuffer("LocalStringConnection[");
+        StringBuffer sb = new StringBuffer("StringConnection[");
         if (data != null)
             sb.append(data);
         else

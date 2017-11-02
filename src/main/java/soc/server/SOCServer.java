@@ -33,7 +33,7 @@ import soc.server.database.DBSettingMismatchException;
 import soc.server.database.SOCDBHelper;
 
 import soc.server.genericServer.InboundMessageQueue;
-import soc.server.genericServer.LocalStringConnection;
+import soc.server.genericServer.StringConnection;
 import soc.server.genericServer.Server;
 import soc.server.genericServer.Connection;
 
@@ -583,7 +583,7 @@ public class SOCServer extends Server
      * For local practice games (pipes, not TCP), the name of the pipe.
      * Used to distinguish practice vs "real" games.
      *
-     * @see soc.server.genericServer.LocalStringConnection
+     * @see StringConnection
      */
     public static String PRACTICE_STRINGPORT = "SOCPRACTICE";
 
@@ -630,7 +630,7 @@ public class SOCServer extends Server
      *<P>
      * Note that all practice games are debug mode, for ease of debugging;
      * to determine this, {@link SOCServerMessageHandler#handleGAMETEXTMSG(Connection, SOCGameTextMsg)}
-     * checks if the client is using {@link LocalStringConnection} to talk to the server.
+     * checks if the client is using {@link StringConnection} to talk to the server.
      *<P>
      * Publicly visible via {@link #isDebugUserEnabled()}.
      *

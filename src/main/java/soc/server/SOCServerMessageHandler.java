@@ -44,7 +44,7 @@ import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
 import soc.message.*;
 import soc.server.database.SOCDBHelper;
-import soc.server.genericServer.LocalStringConnection;
+import soc.server.genericServer.StringConnection;
 import soc.server.genericServer.Connection;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
@@ -1098,14 +1098,14 @@ public class SOCServerMessageHandler
         {
             final boolean userIsDebug =
                 ((srv.isDebugUserEnabled() && plName.equals("debug"))
-                || (c instanceof LocalStringConnection));
+                || (c instanceof StringConnection));
 
             if (cmdTxtUC.startsWith("*HELP"))
             {
                 for (int i = 0; i < SOCServer.GENERAL_COMMANDS_HELP.length; ++i)
                     srv.messageToPlayer(c, gaName, SOCServer.GENERAL_COMMANDS_HELP[i]);
 
-                if ((userIsDebug && ! (c instanceof LocalStringConnection))  // no user admins in practice games
+                if ((userIsDebug && ! (c instanceof StringConnection))  // no user admins in practice games
                     || srv.isUserDBUserAdmin(plName))
                 {
                     srv.messageToPlayer(c, gaName, SOCServer.ADMIN_COMMANDS_HEADING);

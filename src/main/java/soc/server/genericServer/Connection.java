@@ -61,7 +61,7 @@ public abstract class Connection
      * (which is not Java's internal string encoding).
      *<P>
      * This limitation is mentioned here for writing code which may send messages over either type of
-     * {@code Connection}. {@link LocalStringConnection} is limited only by java's {@code String} max length.
+     * {@code Connection}. {@link StringConnection} is limited only by java's {@code String} max length.
      *<P>
      * You can check a string's {@code UTF-8} length with {@link String#getBytes(String) str.getBytes("utf-8")}.length.
      * Because of its cost, that's probably best done within the test cases, not production code.

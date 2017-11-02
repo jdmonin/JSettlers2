@@ -94,8 +94,8 @@ import soc.game.SOCVillage;
 import soc.message.*;
 
 import soc.server.SOCServer;
-import soc.server.genericServer.LocalStringConnection;
-import soc.server.genericServer.LocalStringServerSocket;
+import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.StringServerSocket;
 import soc.server.genericServer.Connection;
 
 import soc.util.I18n;
@@ -6768,8 +6768,8 @@ public class SOCPlayerClient
             {
                 try
                 {
-                    prCli = LocalStringServerSocket.connectTo(SOCServer.PRACTICE_STRINGPORT);
-                    new SOCPlayerLocalStringReader((LocalStringConnection) prCli);
+                    prCli = StringServerSocket.connectTo(SOCServer.PRACTICE_STRINGPORT);
+                    new SOCPlayerLocalStringReader((StringConnection) prCli);
                     // Reader will start its own thread.
                     // Send VERSION right away (1.1.06 and later)
                     putPractice(SOCVersion.toCmd
@@ -7182,14 +7182,14 @@ public class SOCPlayerClient
          */
         class SOCPlayerLocalStringReader implements Runnable
         {
-            LocalStringConnection locl;
+            StringConnection locl;
 
             /**
              * Start a new thread and listen to practice server.
              *
              * @param prConn Active connection to practice server
              */
-            protected SOCPlayerLocalStringReader (LocalStringConnection prConn)
+            protected SOCPlayerLocalStringReader (StringConnection prConn)
             {
                 locl = prConn;
 

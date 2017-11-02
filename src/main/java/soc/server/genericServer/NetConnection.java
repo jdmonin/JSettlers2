@@ -41,7 +41,7 @@ import java.util.Vector;
  * Constructors will not create or start a thread.
  *<P>
  * As used within JSettlers, the structure of this class has much in common
- * with {@link LocalStringConnection}, as they both subclass {@link Connection}.
+ * with {@link StringConnection}, as they both subclass {@link Connection}.
  * If you add something to one class, you should probably add it to the other, or to the superclass instead.
  *<P>
  * Refactored in v2.0.0 to extend {@link Connection} instead of Thread.

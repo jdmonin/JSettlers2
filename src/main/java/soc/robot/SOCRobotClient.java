@@ -31,7 +31,7 @@ import soc.game.SOCPlayer;
 
 import soc.message.*;
 
-import soc.server.genericServer.LocalStringServerSocket;
+import soc.server.genericServer.StringServerSocket;
 
 import soc.util.CappedQueue;
 import soc.util.CutoffExceededException;
@@ -304,7 +304,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             else
             {
-                sLocal = LocalStringServerSocket.connectTo(strSocketName);
+                sLocal = StringServerSocket.connectTo(strSocketName);
             }
             connected = true;
             readerRobot = new Thread(this);
@@ -347,7 +347,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 else
                 {
                     sLocal.disconnect();
-                    sLocal = LocalStringServerSocket.connectTo(strSocketName);
+                    sLocal = StringServerSocket.connectTo(strSocketName);
                 }
                 connected = true;
                 readerRobot = new Thread(this);

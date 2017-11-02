@@ -46,10 +46,10 @@ import java.util.Vector;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @version 2.0.0
  */
-public class LocalStringServerSocket implements SOCServerSocket
+public class StringServerSocket implements SOCServerSocket
 {
-    protected static Hashtable<String, LocalStringServerSocket> allSockets
-        = new Hashtable<String, LocalStringServerSocket>();
+    protected static Hashtable<String, StringServerSocket> allSockets
+        = new Hashtable<String, StringServerSocket>();
 
     /**
      * Length of queue for accepting new connections; default 100.
@@ -59,21 +59,21 @@ public class LocalStringServerSocket implements SOCServerSocket
     public static int ACCEPT_QUEUELENGTH = 100;
 
     /** Server-peer sides of connected clients; Added by accept method */
-    protected Vector<LocalStringConnection> allConnected;
+    protected Vector<StringConnection> allConnected;
 
     /** Waiting client connections (client-peer sides); Added by connectClient, removed by accept method */
-    protected Vector<LocalStringConnection> acceptQueue;
+    protected Vector<StringConnection> acceptQueue;
 
     private String socketName;
     boolean out_setEOF;
 
     private Object sync_out_setEOF;  // For synchronized methods, so we don't sync on "this".
 
-    public LocalStringServerSocket(String name)
+    public StringServerSocket(String name)
     {
         socketName = name;
-        allConnected = new Vector<LocalStringConnection>();
-        acceptQueue = new Vector<LocalStringConnection>();
+        allConnected = new Vector<StringConnection>();
+        acceptQueue = new Vector<StringConnection>();
         out_setEOF = false;
         sync_out_setEOF = new Object();
         allSockets.put(name, this);
@@ -91,10 +91,10 @@ public class LocalStringServerSocket implements SOCServerSocket
      *                          or if its connect/accept queue is full.
      * @throws IllegalArgumentException If name is null
      */
-    public static LocalStringConnection connectTo(String name)
+    public static StringConnection connectTo(String name)
         throws ConnectException, IllegalArgumentException
     {
-        return connectTo (name, new LocalStringConnection());
+        return connectTo (name, new StringConnection());
     }
 
     /**
@@ -112,7 +112,7 @@ public class LocalStringServerSocket implements SOCServerSocket
      *
      * @return client parameter object, connected to a LocalStringServer
      */
-    public static LocalStringConnection connectTo(String name, LocalStringConnection client)
+    public static StringConnection connectTo(String name, StringConnection client)
         throws ConnectException, IllegalArgumentException
     {
         if (name == null)
@@ -123,13 +123,13 @@ public class LocalStringServerSocket implements SOCServerSocket
             throw new IllegalArgumentException("client already peered");
 
         if (! allSockets.containsKey(name))
-            throw new ConnectException("LocalStringServerSocket name not found: " + name);
+            throw new ConnectException("StringServerSocket name not found: " + name);
 
-        LocalStringServerSocket ss = allSockets.get(name);
+        StringServerSocket ss = allSockets.get(name);
         if (ss.isOutEOF())
-            throw new ConnectException("LocalStringServerSocket name is EOF: " + name);
+            throw new ConnectException("StringServerSocket name is EOF: " + name);
 
-        LocalStringConnection servSidePeer;
+        StringConnection servSidePeer;
         try
         {
             servSidePeer = ss.queueAcceptClient(client);
@@ -189,7 +189,7 @@ public class LocalStringServerSocket implements SOCServerSocket
      * @see #accept()
      * @see #ACCEPT_QUEUELENGTH
      */
-    protected LocalStringConnection queueAcceptClient(LocalStringConnection client)
+    protected StringConnection queueAcceptClient(StringConnection client)
         throws IllegalStateException, IllegalArgumentException, ConnectException, EOFException
     {
         if (isOutEOF())
@@ -205,7 +205,7 @@ public class LocalStringServerSocket implements SOCServerSocket
         // created peer object to prevent possible contention with other
         // objects; we know this new object won't have any locks on it.
 
-        LocalStringConnection serverPeer = new LocalStringConnection(client);
+        StringConnection serverPeer = new StringConnection(client);
         synchronized (acceptQueue)
         {
             if (acceptQueue.size() > ACCEPT_QUEUELENGTH)
@@ -231,7 +231,7 @@ public class LocalStringServerSocket implements SOCServerSocket
         if (out_setEOF)
             throw new SocketException("Server socket already at EOF");
 
-        LocalStringConnection cliPeer;
+        StringConnection cliPeer;
 
         synchronized (acceptQueue)
         {
@@ -252,7 +252,7 @@ public class LocalStringServerSocket implements SOCServerSocket
             acceptQueue.removeElementAt(0);
         }
 
-        LocalStringConnection servPeer = cliPeer.getPeer();
+        StringConnection servPeer = cliPeer.getPeer();
         cliPeer.setAccepted();
 
         if (out_setEOF)
@@ -280,9 +280,9 @@ public class LocalStringServerSocket implements SOCServerSocket
     }
 
     /**
-     * @return Server-peer sides of all currently connected clients (LocalStringConnections)
+     * @return Server-peer sides of all currently connected clients (StringConnections)
      */
-    public Enumeration<LocalStringConnection> allClients()
+    public Enumeration<StringConnection> allClients()
     {
         return allConnected.elements();
     }
@@ -305,7 +305,7 @@ public class LocalStringServerSocket implements SOCServerSocket
         {
             for (int i = allConnected.size() - 1; i >= 0; --i)
             {
-                LocalStringConnection c = allConnected.elementAt(i);
+                StringConnection c = allConnected.elementAt(i);
                 c.put(msg);
             }
         }
@@ -318,7 +318,7 @@ public class LocalStringServerSocket implements SOCServerSocket
      */
     public void disconnectEOFClients()
     {
-        LocalStringConnection servPeer;
+        StringConnection servPeer;
 
         synchronized (allConnected)
         {
@@ -364,8 +364,8 @@ public class LocalStringServerSocket implements SOCServerSocket
      * @param forceDisconnect Call disconnect on clients, or just send them an EOF marker?
      *
      * @see #close()
-     * @see LocalStringConnection#disconnect()
-     * @see LocalStringConnection#setEOF()
+     * @see StringConnection#disconnect()
+     * @see StringConnection#setEOF()
      */
     protected void setEOF(boolean forceDisconnect)
     {
@@ -374,7 +374,7 @@ public class LocalStringServerSocket implements SOCServerSocket
             out_setEOF = true;
         }
 
-        Enumeration<LocalStringConnection> connected = allConnected.elements();
+        Enumeration<StringConnection> connected = allConnected.elements();
         while (connected.hasMoreElements())
         {
             if (forceDisconnect)
@@ -415,7 +415,7 @@ public class LocalStringServerSocket implements SOCServerSocket
         // Notify any threads waiting for accept.
         // In those threads, our connectTo method will see
         // the EOF and throw SocketException.
-        for (LocalStringConnection cliPeer : acceptQueue)
+        for (StringConnection cliPeer : acceptQueue)
         {
             cliPeer.disconnect();
             synchronized (cliPeer)

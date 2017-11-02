@@ -46,10 +46,10 @@ import soc.server.SOCServer;
  *  This is the real stuff. Server subclasses won't have to care about
  *  reading/writing on the net, data consistency among threads, etc.
  *  The Server listens on either a TCP {@link #port}, or for practice mode,
- *  to a {@link LocalStringServerSocket}.
+ *  to a {@link StringServerSocket}.
  *<P>
  *  Newly connecting clients arrive in {@link #run()},
- *  start a thread for the server side of their {@link NetConnection} or {@link LocalStringConnection},
+ *  start a thread for the server side of their {@link NetConnection} or {@link StringConnection},
  *  and are integrated into server data via {@link #addConnection(Connection)}
  *  called from that thread.  If the client's connection is accepted in
  *  {@link #newConnection1(Connection)}, the per-client thread enters a while-loop and
@@ -97,11 +97,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * TCP port number for {@link NetServerSocket}, or -1 for
-     * local/practice mode ({@link LocalStringServerSocket}).
+     * local/practice mode ({@link StringServerSocket}).
      */
     protected int port;
 
-    /** {@link LocalStringServerSocket} name, or {@code null} for network mode. */
+    /** {@link StringServerSocket} name, or {@code null} for network mode. */
     protected String strSocketName;
 
     /**
@@ -281,7 +281,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         this.inboundMsgDispatcher = imd;
         this.inQueue = new InboundMessageQueue(imd);
 
-        ss = new LocalStringServerSocket(stringSocketName);
+        ss = new StringServerSocket(stringSocketName);
         setName("server-localstring-" + stringSocketName);  // Thread name for debugging
 
         initMisc();
@@ -434,7 +434,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     }
                     else
                     {
-                        LocalStringConnection localConnection = (LocalStringConnection) connection;
+                        StringConnection localConnection = (StringConnection) connection;
                         localConnection.setServer(this);
 
                         new Thread(localConnection).start();
@@ -458,7 +458,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 if (strSocketName == null)
                     ss = new NetServerSocket(port, this);
                 else
-                    ss = new LocalStringServerSocket(strSocketName);
+                    ss = new StringServerSocket(strSocketName);
             }
             catch (IOException e)
             {

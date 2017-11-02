@@ -708,7 +708,7 @@ public class SOCGame implements Serializable, Cloneable
      * true if the game's network is local for practice.  Used by
      * client to route messages to appropriate connection.
      * NOT CURRENTLY SET AT SERVER.  Instead check if server's strSocketName != null,
-     * or if connection instanceof LocalStringConnection.
+     * or if connection instanceof {@link StringConnection}.
      *<P>
      * Since 1.1.09: This flag is set at the server, only if the server is a local practice
      * server whose stringport name is <tt>SOCServer.PRACTICE_STRINGPORT</tt>.
