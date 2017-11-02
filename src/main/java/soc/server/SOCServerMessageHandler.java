@@ -45,7 +45,7 @@ import soc.game.SOCVersionedItem;
 import soc.message.*;
 import soc.server.database.SOCDBHelper;
 import soc.server.genericServer.LocalStringConnection;
-import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.Connection;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
 import soc.util.SOCRobotParameters;
@@ -59,7 +59,7 @@ import soc.util.Version;
  * {@link SOCJoinGame} and {@link SOCSitDown}.
  *<P>
  * Before v2.0.00, these methods and fields were part of {@link SOCServer}
- * {@code .processCommand(String, StringConnection)} and related methods.
+ * {@code .processCommand(String, Connection)} and related methods.
  * So, some may have {@code @since} javadoc labels with versions older than 2.0.00.
  *
  * @see SOCGameMessageHandler
@@ -92,7 +92,7 @@ public class SOCServerMessageHandler
      * Process any inbound message which isn't handled by {@link SOCGameMessageHandler}:
      * Coming from a client, not for a specific game.
      *<P>
-     * This method is called from {@link SOCMessageDispatcher#dispatch(String, StringConnection)}.
+     * This method is called from {@link SOCMessageDispatcher#dispatch(String, Connection)}.
      * Caller of this method will catch any thrown Exceptions.
      *<P>
      *<B>Note:</B> When there is a choice, always use local information
@@ -108,7 +108,7 @@ public class SOCServerMessageHandler
      * @throws Exception  Caller must catch any exceptions thrown because of
      *    conditions or bugs in any server methods called from here.
      */
-    final void dispatch(final SOCMessage mes, final StringConnection c)
+    final void dispatch(final SOCMessage mes, final Connection c)
         throws NullPointerException, Exception
     {
         switch (mes.getType())
@@ -316,7 +316,7 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.1.00
      */
-    void handleVERSION(StringConnection c, SOCVersion mes)
+    void handleVERSION(Connection c, SOCVersion mes)
     {
         if (c == null)
             return;
@@ -328,7 +328,7 @@ public class SOCServerMessageHandler
      * Handle the optional {@link SOCAuthRequest "authentication request"} message.
      * Sent by clients since v1.1.19 before creating a game or when connecting using {@code SOCAccountClient}.
      *<P>
-     * If {@link StringConnection#getData() c.getData()} != {@code null}, the client already authenticated and
+     * If {@link Connection#getData() c.getData()} != {@code null}, the client already authenticated and
      * this method replies with {@link SOCStatusMessage#SV_OK} without checking the password in this message.
      *
      * @param c  the connection that sent the message
@@ -336,7 +336,7 @@ public class SOCServerMessageHandler
      * @see SOCServer#isUserDBUserAdmin(String)
      * @since 1.1.19
      */
-    private void handleAUTHREQUEST(StringConnection c, final SOCAuthRequest mes)
+    private void handleAUTHREQUEST(Connection c, final SOCAuthRequest mes)
     {
         if (c == null)
             return;
@@ -372,7 +372,7 @@ public class SOCServerMessageHandler
                 (c, mesUser, mes.password, cliVersion, isPlayerRole, false,
                  new SOCServer.AuthSuccessRunnable()
                  {
-                    public void success(final StringConnection c, final int authResult)
+                    public void success(final Connection c, final int authResult)
                     {
                         handleAUTHREQUEST_postAuth(c, mesUser, mesRole, isPlayerRole, cliVersion, authResult);
                     }
@@ -382,11 +382,11 @@ public class SOCServerMessageHandler
 
     /**
      * After successful client user auth, take care of the rest of
-     * {@link #handleAUTHREQUEST(StringConnection, SOCAuthRequest)}.
+     * {@link #handleAUTHREQUEST(Connection, SOCAuthRequest)}.
      * @since 1.2.00
      */
     private void handleAUTHREQUEST_postAuth
-        (final StringConnection c, final String mesUser, final String mesRole, final boolean isPlayerRole,
+        (final Connection c, final String mesUser, final String mesRole, final boolean isPlayerRole,
          final int cliVersion, int authResult)
     {
         if (c.getData() == null)
@@ -445,7 +445,7 @@ public class SOCServerMessageHandler
      * Bot tuning parameters are sent here to the bot, from
      * {@link SOCDBHelper#retrieveRobotParams(String, boolean) SOCDBHelper.retrieveRobotParams(botName, true)}.
      * See that method for default bot params.
-     * See {@link SOCServer#authOrRejectClientRobot(StringConnection, String, String, String)}
+     * See {@link SOCServer#authOrRejectClientRobot(Connection, String, String, String)}
      * for {@link SOCClientData} flags and fields set for the bot's connection
      * and for other misc work done, such as {@link Server#cliConnDisconPrintsPending} updates.
      *<P>
@@ -455,7 +455,7 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleIMAROBOT(final StringConnection c, final SOCImARobot mes)
+    private void handleIMAROBOT(final Connection c, final SOCImARobot mes)
     {
         if (c == null)
             return;
@@ -509,7 +509,7 @@ public class SOCServerMessageHandler
      * to indicate client is actively responsive to server.
      * @since 1.1.08
      */
-    private void handleSERVERPING(StringConnection c, SOCServerPing mes)
+    private void handleSERVERPING(Connection c, SOCServerPing mes)
     {
         SOCClientData cd = (SOCClientData) c.getAppData();
         if (cd == null)
@@ -523,7 +523,7 @@ public class SOCServerMessageHandler
      * Handle client request for localized i18n strings for game items.
      * Added 2015-01-14 for v2.0.00.
      */
-    private void handleLOCALIZEDSTRINGS(final StringConnection c, final SOCLocalizedStrings mes)
+    private void handleLOCALIZEDSTRINGS(final Connection c, final SOCLocalizedStrings mes)
     {
         final List<String> str = mes.getParams();
         final String type = str.get(0);
@@ -578,7 +578,7 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.1.07
      */
-    private void handleGAMEOPTIONGETDEFAULTS(StringConnection c, SOCGameOptionGetDefaults mes)
+    private void handleGAMEOPTIONGETDEFAULTS(Connection c, SOCGameOptionGetDefaults mes)
     {
         if (c == null)
             return;
@@ -607,7 +607,7 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.1.07
      */
-    private void handleGAMEOPTIONGETINFOS(StringConnection c, SOCGameOptionGetInfos mes)
+    private void handleGAMEOPTIONGETINFOS(Connection c, SOCGameOptionGetInfos mes)
     {
         if (c == null)
             return;
@@ -754,7 +754,7 @@ public class SOCServerMessageHandler
      * Process client request for updated {@link SOCScenario} info.
      * Added 2015-09-21 for v2.0.00.
      */
-    private void handleSCENARIOINFO(final StringConnection c, final SOCScenarioInfo mes)
+    private void handleSCENARIOINFO(final Connection c, final SOCScenarioInfo mes)
     {
         if (c == null)
             return;
@@ -869,7 +869,7 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleCHANGEFACE(StringConnection c, final SOCChangeFace mes)
+    private void handleCHANGEFACE(Connection c, final SOCChangeFace mes)
     {
         final String gaName = mes.getGame();
         final SOCGame ga = gameList.getGameData(gaName);
@@ -893,7 +893,7 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleSETSEATLOCK(StringConnection c, final SOCSetSeatLock mes)
+    private void handleSETSEATLOCK(Connection c, final SOCSetSeatLock mes)
     {
         final SOCGame.SeatLockState sl = mes.getLockState();
         final String gaName = mes.getGame();
@@ -932,7 +932,7 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.2.00
      */
-    void handleTEXTMSG(final StringConnection c, final SOCTextMsg mes)
+    void handleTEXTMSG(final Connection c, final SOCTextMsg mes)
     {
         final String chName = mes.getChannel();
 
@@ -985,11 +985,11 @@ public class SOCServerMessageHandler
      *</UL>
      * These commands are processed in this method.
      * Others can be run only by certain users or when certain server flags are set.
-     * Those are processed in {@link SOCServer#processDebugCommand(StringConnection, String, String, String)}.
+     * Those are processed in {@link SOCServer#processDebugCommand(Connection, String, String, String)}.
      *
      * @since 1.1.07
      */
-    void handleGAMETEXTMSG(StringConnection c, SOCGameTextMsg gameTextMsgMes)
+    void handleGAMETEXTMSG(Connection c, SOCGameTextMsg gameTextMsgMes)
     {
         //createNewGameEventRecord();
         //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
@@ -1150,9 +1150,9 @@ public class SOCServerMessageHandler
      * @param c  Client sending the admin command
      * @param gaName  Game in which to reply
      * @since 1.2.00
-     * @see SOCServer#processDebugCommand_serverStats(StringConnection, SOCGame)
+     * @see SOCServer#processDebugCommand_serverStats(Connection, SOCGame)
      */
-    private void processDebugCommand_dbSettings(final StringConnection c, final SOCGame ga)
+    private void processDebugCommand_dbSettings(final Connection c, final SOCGame ga)
     {
         final String msgUser = c.getData();
         if (! (srv.isUserDBUserAdmin(msgUser)
@@ -1189,7 +1189,7 @@ public class SOCServerMessageHandler
      * @since 1.1.07
      */
     void processDebugCommand_gameStats
-        (StringConnection c, final String gaName, SOCGame gameData, final boolean isCheckTime)
+        (Connection c, final String gaName, SOCGame gameData, final boolean isCheckTime)
     {
         if (gameData == null)
             return;
@@ -1238,7 +1238,7 @@ public class SOCServerMessageHandler
      * @since 1.1.20
      */
     private void processDebugCommand_who
-        (final StringConnection c, final SOCGame ga, final String cmdText)
+        (final Connection c, final SOCGame ga, final String cmdText)
     {
         final String gaName = ga.getName();  // name of game where c is connected and sent *WHO* command
         String gaNameWho = gaName;  // name of game to find members; if sendToCli, not equal to gaName
@@ -1302,7 +1302,7 @@ public class SOCServerMessageHandler
             }
         }
 
-        Vector<StringConnection> gameMembers = null;
+        Vector<Connection> gameMembers = null;
 
         gameList.takeMonitorForGame(gaNameWho);
         try
@@ -1325,10 +1325,10 @@ public class SOCServerMessageHandler
         if (sendToCli)
             srv.messageToPlayerKeyed(c, gaName, "reply.game_members.of", gaNameWho);  // "Members of game {0}:"
 
-        Enumeration<StringConnection> membersEnum = gameMembers.elements();
+        Enumeration<Connection> membersEnum = gameMembers.elements();
         while (membersEnum.hasMoreElements())
         {
-            StringConnection conn = membersEnum.nextElement();
+            Connection conn = membersEnum.nextElement();
             String mNameStr = "> " + conn.getData();
 
             if (sendToCli)
@@ -1354,7 +1354,7 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleJOINCHANNEL(StringConnection c, SOCJoinChannel mes)
+    private void handleJOINCHANNEL(Connection c, SOCJoinChannel mes)
     {
         if (c == null)
             return;
@@ -1390,7 +1390,7 @@ public class SOCServerMessageHandler
                 (c, msgUser, msgPass, cliVers, true, false,
                  new SOCServer.AuthSuccessRunnable()
                  {
-                    public void success(final StringConnection c, final int authResult)
+                    public void success(final Connection c, final int authResult)
                     {
                         handleJOINCHANNEL_postAuth(c, msgUser, chName, cv, authResult);
                     }
@@ -1400,11 +1400,11 @@ public class SOCServerMessageHandler
 
     /**
      * After successful client user auth, take care of the rest of
-     * {@link #handleJOINCHANNEL(StringConnection, SOCJoinChannel)}.
+     * {@link #handleJOINCHANNEL(Connection, SOCJoinChannel)}.
      * @since 1.2.00
      */
     private void handleJOINCHANNEL_postAuth
-        (final StringConnection c, String msgUser, final String ch, final int cliVers, final int authResult)
+        (final Connection c, String msgUser, final String ch, final int cliVers, final int authResult)
     {
         final boolean mustSetUsername = (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME));
         if (mustSetUsername)
@@ -1459,7 +1459,7 @@ public class SOCServerMessageHandler
                 (SOCStatusMessage.SV_OK_SET_NICKNAME, c.getData() + SOCMessage.sep2_char + txt));
 
         /**
-         * Add the StringConnection to the channel
+         * Add the Connection to the channel
          */
 
         if (channelList.takeMonitorForChannel(ch))
@@ -1525,7 +1525,7 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleLEAVECHANNEL(StringConnection c, SOCLeaveChannel mes)
+    private void handleLEAVECHANNEL(Connection c, SOCLeaveChannel mes)
     {
         if (D.ebugIsEnabled())
             D.ebugPrintln("handleLEAVECHANNEL: " + mes);
@@ -1560,7 +1560,7 @@ public class SOCServerMessageHandler
     /**
      * process the "new game with options request" message.
      * For messages sent, and other details,
-     * see {@link #createOrJoinGameIfUserOK(StringConnection, String, String, String, Map)}.
+     * see {@link #createOrJoinGameIfUserOK(Connection, String, String, String, Map)}.
      * <P>
      * Because this message is sent only by clients newer than 1.1.06, we definitely know that
      * the client has already sent its version information.
@@ -1569,7 +1569,7 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.1.07
      */
-    private void handleNEWGAMEWITHOPTIONSREQUEST(StringConnection c, SOCNewGameWithOptionsRequest mes)
+    private void handleNEWGAMEWITHOPTIONSREQUEST(Connection c, SOCNewGameWithOptionsRequest mes)
     {
         if (c == null)
             return;
@@ -1591,7 +1591,7 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleJOINGAME(StringConnection c, SOCJoinGame mes)
+    private void handleJOINGAME(Connection c, SOCJoinGame mes)
     {
         if (c == null)
             return;
@@ -1618,7 +1618,7 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleLEAVEGAME(StringConnection c, SOCLeaveGame mes)
+    private void handleLEAVEGAME(Connection c, SOCLeaveGame mes)
     {
         if (c == null)
             return;
@@ -1659,10 +1659,10 @@ public class SOCServerMessageHandler
 
     /**
      * Handle a member leaving the game, from
-     * {@link #handleLEAVEGAME(StringConnection, SOCLeaveGame)}.
+     * {@link #handleLEAVEGAME(Connection, SOCLeaveGame)}.
      * @since 1.1.07
      */
-    private void handleLEAVEGAME_member(StringConnection c, final String gaName)
+    private void handleLEAVEGAME_member(Connection c, final String gaName)
     {
         boolean gameDestroyed = false;
         if (! gameList.takeMonitorForGame(gaName))
@@ -1736,7 +1736,7 @@ public class SOCServerMessageHandler
 
     /**
      * Handle an unattached robot saying it is leaving the game,
-     * from {@link #handleLEAVEGAME(StringConnection, SOCLeaveGame)}.
+     * from {@link #handleLEAVEGAME(Connection, SOCLeaveGame)}.
      * Ignore the robot (since it's not a member of the game) unless
      * gamestate is {@link SOCGame#READY_RESET_WAIT_ROBOT_DISMISS}.
      *
@@ -1770,7 +1770,7 @@ public class SOCServerMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleSITDOWN(StringConnection c, SOCSitDown mes)
+    private void handleSITDOWN(Connection c, SOCSitDown mes)
     {
         if (c == null)
             return;
@@ -1801,7 +1801,7 @@ public class SOCServerMessageHandler
          */
         boolean isBotJoinRequest = false;
         {
-            Vector<StringConnection> joinRequests = srv.robotJoinRequests.get(gaName);
+            Vector<Connection> joinRequests = srv.robotJoinRequests.get(gaName);
             if (joinRequests != null)
                 isBotJoinRequest = joinRequests.removeElement(c);
         }
@@ -1839,7 +1839,7 @@ public class SOCServerMessageHandler
                     /**
                      * boot the robot out of the game
                      */
-                    StringConnection robotCon = srv.getConnection(seatedPlayer.getName());
+                    Connection robotCon = srv.getConnection(seatedPlayer.getName());
                     robotCon.put(SOCRobotDismiss.toCmd(gaName));
 
                     /**
@@ -1897,7 +1897,7 @@ public class SOCServerMessageHandler
 
     /**
      * handle "start game" message.  Game state must be NEW, or this message is ignored.
-     * {@link SOCServer#readyGameAskRobotsJoin(SOCGame, StringConnection[], int) Ask some robots} to fill
+     * {@link SOCServer#readyGameAskRobotsJoin(SOCGame, Connection[], int) Ask some robots} to fill
      * empty seats, or {@link GameHandler#startGame(SOCGame) begin the game} if no robots needed.
      *<P>
      * Called when clients have sat at a new game and a client asks to start it,
@@ -1916,7 +1916,7 @@ public class SOCServerMessageHandler
      * @since 1.0.0
      */
     void handleSTARTGAME
-        (StringConnection c, final SOCStartGame mes, final int botsOnly_maxBots)
+        (Connection c, final SOCStartGame mes, final int botsOnly_maxBots)
     {
         final String gn = mes.getGame();
         SOCGame ga = gameList.getGameData(gn);
@@ -2033,7 +2033,7 @@ public class SOCServerMessageHandler
 
                             /**
                              * Fill all the unlocked empty seats with robots.
-                             * Build a Vector of StringConnections of robots asked
+                             * Build a Vector of Connections of robots asked
                              * to join, and add it to the robotJoinRequests table.
                              */
                             try
@@ -2097,10 +2097,10 @@ public class SOCServerMessageHandler
      *
      * @param c  the connection
      * @param mes  the message
-     * @see #handleRESETBOARDVOTE(StringConnection, SOCResetBoardVote)
+     * @see #handleRESETBOARDVOTE(Connection, SOCResetBoardVote)
      * @since 1.1.00
      */
-    private void handleRESETBOARDREQUEST(StringConnection c, final SOCResetBoardRequest mes)
+    private void handleRESETBOARDREQUEST(Connection c, final SOCResetBoardRequest mes)
     {
         final String gaName = mes.getGame();
         SOCGame ga = gameList.getGameData(gaName);
@@ -2127,8 +2127,8 @@ public class SOCServerMessageHandler
          * Is there more than one human player?
          * Grab connection information for humans and robots.
          */
-        StringConnection[] humanConns = new StringConnection[ga.maxPlayers];
-        StringConnection[] robotConns = new StringConnection[ga.maxPlayers];
+        Connection[] humanConns = new Connection[ga.maxPlayers];
+        Connection[] robotConns = new Connection[ga.maxPlayers];
         final int numHuman = SOCGameBoardReset.sortPlayerConnections
             (ga, null, gameList.getMembers(gaName), humanConns, robotConns);
 
@@ -2171,7 +2171,7 @@ public class SOCServerMessageHandler
             {
                 if ((i != reqPN) && ! ga.isSeatVacant(i))
                 {
-                    StringConnection pc = srv.getConnection(ga.getPlayer(i).getName());
+                    Connection pc = srv.getConnection(ga.getPlayer(i).getName());
                     if ((pc != null) && pc.isConnected() && (pc.getVersion() >= 1100))
                          ++votingPlayers;
                 }
@@ -2216,11 +2216,11 @@ public class SOCServerMessageHandler
      *
      * @param c  the connection
      * @param mes  the message
-     * @see #handleRESETBOARDREQUEST(StringConnection, SOCResetBoardRequest)
+     * @see #handleRESETBOARDREQUEST(Connection, SOCResetBoardRequest)
      * @see SOCServer#resetBoardAndNotify(String, int)
      * @since 1.1.00
      */
-    private void handleRESETBOARDVOTE(StringConnection c, final SOCResetBoardVote mes)
+    private void handleRESETBOARDVOTE(Connection c, final SOCResetBoardVote mes)
     {
         final String gaName = mes.getGame();
         SOCGame ga = gameList.getGameData(gaName);

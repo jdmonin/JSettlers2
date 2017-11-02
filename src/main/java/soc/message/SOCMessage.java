@@ -56,7 +56,7 @@ import java.util.StringTokenizer;
  *<P>
  * The client receives messages in {@link soc.client.SOCPlayerClient.MessageTreater#treat(SOCMessage, boolean)}.
  * The server receives messages in
- * {@link soc.server.SOCMessageDispatcher#dispatch(String, soc.server.genericServer.StringConnection)}.
+ * {@link soc.server.SOCMessageDispatcher#dispatch(String, soc.server.genericServer.Connection)}.
  *
  *<H3>To create and add a new message type:</H3>
  *<UL>

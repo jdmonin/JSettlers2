@@ -33,9 +33,7 @@ import java.util.Date;
 import java.util.Vector;
 
 
-/** A client's connection at a server.
- *  @version 2.0.0
- *  @author <A HREF="http://www.nada.kth.se/~cristi">Cristian Bogdan</A>
+/** A TCP client's connection at a server.
  *  Reads from the net, writes atomically to the net and
  *  holds the connection data
  *<P>
@@ -43,16 +41,19 @@ import java.util.Vector;
  * Constructors will not create or start a thread.
  *<P>
  * As used within JSettlers, the structure of this class has much in common
- * with {@link LocalStringConnection}, as they both subclass {@link StringConnection}.
+ * with {@link LocalStringConnection}, as they both subclass {@link Connection}.
  * If you add something to one class, you should probably add it to the other, or to the superclass instead.
  *<P>
- * Refactored in v2.0.0 to extend {@link StringConnection} instead of Thread.
+ * Refactored in v2.0.0 to extend {@link Connection} instead of Thread.
  *<P>
  * Before JSettlers v2.0.00, this class was called {@code Connection}.
+ *
+ * @version 2.0.0
+ * @author <A HREF="http://www.nada.kth.se/~cristi">Cristian Bogdan</A>
  */
 @SuppressWarnings("serial")
 public final class NetConnection
-    extends StringConnection implements Runnable, Serializable, Cloneable
+    extends Connection implements Runnable, Serializable, Cloneable
 {
     static int putters = 0;
     static Object puttersMonitor = new Object();
@@ -216,7 +217,7 @@ public final class NetConnection
      *<P>
      * Because the connection protocol uses {@link DataOutputStream#writeUTF(String)},
      * {@code str} must be no longer than 65535 bytes when encoded into {@code UTF-8}
-     * (which is not Java's internal string encoding): See {@link StringConnection#MAX_MESSAGE_SIZE_UTF8}.
+     * (which is not Java's internal string encoding): See {@link Connection#MAX_MESSAGE_SIZE_UTF8}.
      *<P>
      * <B>Threads:</B> Safe to call from any thread; synchronizes on internal {@code outQueue}.
      *

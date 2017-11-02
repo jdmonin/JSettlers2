@@ -27,13 +27,13 @@ import java.net.Socket;
 import java.net.SocketException;
 
 /**
- * Uses {@link ServerSocket} to implement {@link StringServerSocket} over a network.
+ * Uses {@link ServerSocket} to implement {@link SOCServerSocket} over a network.
  *<P>
  * Before version 2.0.00 this class was an inner class {@code NetStringServerSocket} in {@link Server}.
  *
  * @since 2.0.00
  */
-public class NetServerSocket implements StringServerSocket
+public class NetServerSocket implements SOCServerSocket
 {
     private final ServerSocket implServSocket;
     private final Server server;
@@ -45,7 +45,7 @@ public class NetServerSocket implements StringServerSocket
         this.server = server;
     }
 
-    public StringConnection accept()
+    public Connection accept()
         throws SocketException, IOException
     {
         Socket s = implServSocket.accept();

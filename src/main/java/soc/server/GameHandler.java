@@ -21,7 +21,7 @@ package soc.server;
 
 import soc.game.SOCGame;
 import soc.message.SOCMessageForGame;
-import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.Connection;
 import soc.util.SOCGameList;
 
 /**
@@ -50,11 +50,11 @@ import soc.util.SOCGameList;
  *      requests, and ending a player's turn, is taken care of within the {@code GameHandler} and {@link SOCGame}.
  *      Game reset details are handled by {@link SOCGame#resetAsCopy()}.
  * <LI> Actions and requests from players arrive here via
- *      {@link GameMessageHandler#dispatch(SOCGame, SOCMessageForGame, StringConnection)},
+ *      {@link GameMessageHandler#dispatch(SOCGame, SOCMessageForGame, Connection)},
  *      called for each {@link SOCMessageForGame} sent to the server about this handler's game.
  * <LI> Communication to game members is done by handler methods calling server methods
  *      such as {@link SOCServer#messageToGame(String, soc.message.SOCMessage)}
- *      or {@link SOCServer#messageToPlayer(StringConnection, soc.message.SOCMessage)}.
+ *      or {@link SOCServer#messageToPlayer(Connection, soc.message.SOCMessage)}.
  *</UL>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -79,7 +79,7 @@ public abstract class GameHandler
      * If game debug is on, called for every game text message (chat message) received from that player.
      *<P>
      * Server-wide debug commands are processed before gametype-specific debug commands;
-     * see {@link SOCServer#processDebugCommand(StringConnection, String, String, String)}.
+     * see {@link SOCServer#processDebugCommand(Connection, String, String, String)}.
      *
      * @param debugCli  Client sending the potential debug command
      * @param gaName  Game in which the message is sent
@@ -88,11 +88,11 @@ public abstract class GameHandler
      * @return true if {@code dcmd} is a recognized debug command, false otherwise
      * @see #getDebugCommandsHelp()
      */
-    public abstract boolean processDebugCommand(StringConnection debugCli, final String gaName, final String dcmd, final String dcmdU);
+    public abstract boolean processDebugCommand(Connection debugCli, final String gaName, final String dcmd, final String dcmdU);
 
     /**
      * Get the debug commands for this game type, if any, used with
-     * {@link #processDebugCommand(StringConnection, String, String, String)}.
+     * {@link #processDebugCommand(Connection, String, String, String)}.
      * If client types the {@code *help*} debug command, the server will
      * send them all the general debug command help, and these strings.
      * @return  a set of lines of help text to send to a client after sending {@link SOCServer#DEBUG_COMMANDS_HELP},
@@ -124,10 +124,10 @@ public abstract class GameHandler
      *                      is defunct because of a network problem.
      *                      If <tt>isTakingOver</tt>, don't send anything to other players.
      *
-     * @see SOCServer#connectToGame(StringConnection, String, java.util.Map)
-     * @see SOCServer#createOrJoinGameIfUserOK(StringConnection, String, String, String, java.util.Map)
+     * @see SOCServer#connectToGame(Connection, String, java.util.Map)
+     * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, java.util.Map)
      */
-    public abstract void joinGame(SOCGame gameData, StringConnection c, boolean isReset, boolean isTakingOver);
+    public abstract void joinGame(SOCGame gameData, Connection c, boolean isReset, boolean isTakingOver);
 
     /**
      * When player has just sat down at a seat, send them all the private information.
@@ -135,7 +135,7 @@ public abstract class GameHandler
      * Because they've just sat and become an active player, send the gameState, and prompt them if
      * the game is waiting on any decision by their player number (discard, pick a free resource, etc).
      *<P>
-     * Called from {@link SOCServer#sitDown(SOCGame, StringConnection, int, boolean, boolean)}.
+     * Called from {@link SOCServer#sitDown(SOCGame, Connection, int, boolean, boolean)}.
      *<P>
      * <b>Locks:</b> Assumes ga.takeMonitor() is held, and should remain held.
      *
@@ -144,7 +144,7 @@ public abstract class GameHandler
      * @param pn     which seat the player is taking
      * @since 1.1.08
      */
-    public abstract void sitDown_sendPrivateInfo(SOCGame ga, StringConnection c, final int pn);
+    public abstract void sitDown_sendPrivateInfo(SOCGame ga, Connection c, final int pn);
 
     /**
      * Do the things you need to do to start a game and send its data to the clients.
@@ -194,12 +194,12 @@ public abstract class GameHandler
      * @param c  The member connection which left.
      *           The server has already removed {@code c} from the list of game members.
      *           If {@code c} is being dropped because of an error,
-     *           {@link StringConnection#disconnect()} has already been called.
+     *           {@link Connection#disconnect()} has already been called.
      *           Don't exclude {@code c} from any communication about leaving the game,
      *           in case they are still connected and in other games.
      * @return true if the game should be ended and deleted (does not have other observers or non-robot players,
      *           and game's {@code isBotsOnly} flag is false)
      */
-    public abstract boolean leaveGame(SOCGame ga, StringConnection c);
+    public abstract boolean leaveGame(SOCGame ga, Connection c);
 
 }

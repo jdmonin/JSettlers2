@@ -26,11 +26,11 @@ package soc.server;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.robot.SOCRobotClient;
-import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.Connection;
 
 /**
  * Force this robot's turn to end, by calling
- * {@link SOCGameHandler#endGameTurnOrForce(SOCGame, int, String, StringConnection, boolean)}.
+ * {@link SOCGameHandler#endGameTurnOrForce(SOCGame, int, String, Connection, boolean)}.
  * Done in a separate thread in case of deadlocks; see {@link #run()} for more details.
  * Created from {@link SOCGameHandler#endTurnIfInactive(SOCGame, long)}
  * when that's called from {@link SOCGameTimeoutChecker#run()}.
@@ -61,7 +61,7 @@ class SOCForceEndTurnThread extends Thread
      * If our targeted robot player is still the current player, force-end their turn.
      * If not current player but game is waiting for them to discard or pick free resources,
      * choose randomly so the game can continue.
-     * Calls {@link SOCGameHandler#endGameTurnOrForce(SOCGame, int, String, StringConnection, boolean)}.
+     * Calls {@link SOCGameHandler#endGameTurnOrForce(SOCGame, int, String, Connection, boolean)}.
      */
     @Override
     public void run()
@@ -81,7 +81,7 @@ class SOCForceEndTurnThread extends Thread
             return;
         }
 
-        StringConnection rconn = srv.getConnection(rname);
+        Connection rconn = srv.getConnection(rname);
         System.err.println
             ("For robot " + rname
              + ((notCurrentPlayer) ? ": force discard/pick" : ": force end turn")

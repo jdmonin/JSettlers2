@@ -39,7 +39,7 @@ import soc.disableDebug.D;
  * Constructors will not create or start a thread.
  *<P>
  * As used within JSettlers, the structure of this class has much in common
- * with {@link LocalStringConnection}, as they both subclass {@link StringConnection}.
+ * with {@link NetConnection}, as they both subclass {@link Connection}.
  * If you add something to one class, you should probably add it to the other, or to the superclass instead.
  *
  *<PRE>
@@ -55,14 +55,16 @@ import soc.disableDebug.D;
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed
  *  1.0.5.2- 2010-04-05- add toString for debugging
  *  1.2.0 - 2017-06-03 - {@link #setData(String)} now takes a String, not Object.
- *  2.0.0 - 2017-06-16 - StringConnection is now a superclass, not an interface.
+ *  2.0.0 - 2017-11-01 - Rename StringConnection -> Connection, NetStringConnection -> NetConnection,
+ *                       LocalStringConnection -> StringConnection.
+ *                       Connection is now a superclass, not an interface.
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @version 2.0.0
  */
 public class LocalStringConnection
-    extends StringConnection implements Runnable
+    extends Connection implements Runnable
 {
     /** Unique end-of-file marker object.  Always compare against this with == not string.equals. */
     protected static String EOF_MARKER = "__EOF_MARKER__" + '\004';
@@ -401,7 +403,7 @@ public class LocalStringConnection
     /**
      * Hostname of the remote side of the connection -
      * Always returns localhost; this method required for
-     * StringConnection interface.
+     * the Connection interface.
      */
     public String host()
     {
@@ -414,7 +416,7 @@ public class LocalStringConnection
      *
      * @see #connect(String)
      *
-     * @return Whether we've connected and been accepted by a StringServerSocket.
+     * @return Whether we've connected and been accepted by a SOCServerSocket.
      */
     public boolean connect()
     {

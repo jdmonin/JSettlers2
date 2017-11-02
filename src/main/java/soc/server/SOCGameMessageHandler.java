@@ -47,7 +47,7 @@ import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.*;
-import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.Connection;
 
 /**
  * Game message handler for {@link SOCGameHandler}: Dispatches all messages received from the
@@ -57,17 +57,17 @@ import soc.server.genericServer.StringConnection;
  *
  *<H4>Message Flow:</H4>
  *<UL>
- * <LI> Inbound game messages arrive here from {@link SOCMessageDispatcher#dispatch(String, StringConnection)}.
+ * <LI> Inbound game messages arrive here from {@link SOCMessageDispatcher#dispatch(String, Connection)}.
  * <LI> Each specific message class is identified in
- *      {@link #dispatch(SOCGame, SOCMessageForGame, StringConnection) dispatch(..)}
- *      which calls handler methods such as {@link #handleBANKTRADE(SOCGame, StringConnection, SOCBankTrade)}.
+ *      {@link #dispatch(SOCGame, SOCMessageForGame, Connection) dispatch(..)}
+ *      which calls handler methods such as {@link #handleBANKTRADE(SOCGame, Connection, SOCBankTrade)}.
  *      See {@code dispatch(..)} method's javadoc for more details on per-message handling.
  * <LI> Most handler methods call into {@link SOCGameHandler} for the game's "business logic"
  *      abstracted from inbound message processing, and then {@link SOCServer} to send
  *      result messages to all players and observers in the game.
  *</UL>
  *
- * Before v2.0.00 this class was {@link SOCServer}{@code .processCommand(String, StringConnection)} and related
+ * Before v2.0.00 this class was {@link SOCServer}{@code .processCommand(String, Connection)} and related
  * handler methods, all part of {@link SOCServer}. So, some may have {@code @since} javadoc labels with
  * versions older than 2.0.00. Refactoring for 2.0.00 in 2013 moved the handler methods from
  * {@link SOCServer} to {@link SOCGameHandler}, and in 2016 to this class.
@@ -93,7 +93,7 @@ public class SOCGameMessageHandler
 
     /**
      * Dispatch any request or event coming from a client player for a specific game.
-     * This method is called from {@link SOCMessageDispatcher#dispatch(String, StringConnection)} when the message is
+     * This method is called from {@link SOCMessageDispatcher#dispatch(String, Connection)} when the message is
      * recognized as a game-related request, command, or event.
      *<P>
      * Some game messages (such as player sits down, or board reset voting) are handled the same for all game types.
@@ -109,7 +109,7 @@ public class SOCGameMessageHandler
      * @return true if processed, false if ignored or unknown message type
      */
     public boolean dispatch
-        (SOCGame game, SOCMessageForGame message, StringConnection connection)
+        (SOCGame game, SOCMessageForGame message, Connection connection)
         throws Exception
     {
         switch (message.getType())
@@ -369,7 +369,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleROLLDICE(SOCGame ga, StringConnection c, final SOCRollDice mes)
+    private void handleROLLDICE(SOCGame ga, Connection c, final SOCRollDice mes)
     {
         final String gn = ga.getName();
 
@@ -427,7 +427,7 @@ public class SOCGameMessageHandler
                             final boolean won = (loot.contains(SOCResourceConstants.GOLD_LOCAL));
                             SOCPlayer vic = roll.sc_piri_fleetAttackVictim;
                             final String vicName = vic.getName();
-                            final StringConnection vCon = srv.getConnection(vicName);
+                            final Connection vCon = srv.getConnection(vicName);
                             final int vpn = vic.getPlayerNumber();
                             final int strength = (roll.diceA < roll.diceB) ? roll.diceA : roll.diceB;
 
@@ -575,7 +575,7 @@ public class SOCGameMessageHandler
                                 continue;  // skip if player didn't gain; before v2.0.00, each player in game got these
 
                             final SOCPlayer pp = ga.getPlayer(pn);
-                            StringConnection playerCon = srv.getConnection(pp.getName());
+                            Connection playerCon = srv.getConnection(pp.getName());
                             if (playerCon == null)
                                 continue;
 
@@ -674,7 +674,7 @@ public class SOCGameMessageHandler
                             if (( ! ga.isSeatVacant(pn)) && pp.getNeedToDiscard())
                             {
                                 // Request to discard half (round down)
-                                StringConnection con = srv.getConnection(pp.getName());
+                                Connection con = srv.getConnection(pp.getName());
                                 if (con != null)
                                     con.put(SOCDiscardRequest.toCmd(gn, pp.getResources().getTotal() / 2));
                             }
@@ -689,7 +689,7 @@ public class SOCGameMessageHandler
                             final int numPick = pp.getNeedToPickGoldHexResources();
                             if (( ! ga.isSeatVacant(pn)) && (numPick > 0))
                             {
-                                StringConnection con = srv.getConnection(pp.getName());
+                                Connection con = srv.getConnection(pp.getName());
                                 if (con != null)
                                 {
                                     srv.messageToGame(gn, new SOCPlayerElement
@@ -723,7 +723,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleDISCARD(SOCGame ga, StringConnection c, final SOCDiscard mes)
+    private void handleDISCARD(SOCGame ga, Connection c, final SOCDiscard mes)
     {
         final String gn = ga.getName();
         final SOCPlayer player = ga.getPlayer(c.getData());
@@ -801,7 +801,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleMOVEROBBER(SOCGame ga, StringConnection c, SOCMoveRobber mes)
+    private void handleMOVEROBBER(SOCGame ga, Connection c, SOCMoveRobber mes)
     {
         ga.takeMonitor();
 
@@ -913,7 +913,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleCHOOSEPLAYER(SOCGame ga, StringConnection c, final SOCChoosePlayer mes)
+    private void handleCHOOSEPLAYER(SOCGame ga, Connection c, final SOCChoosePlayer mes)
     {
         ga.takeMonitor();
 
@@ -1011,7 +1011,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleENDTURN(SOCGame ga, StringConnection c, final SOCEndTurn mes)
+    private void handleENDTURN(SOCGame ga, Connection c, final SOCEndTurn mes)
     {
         final String gname = ga.getName();
 
@@ -1070,7 +1070,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.1.18
      */
-    private void handleSIMPLEREQUEST(SOCGame ga, StringConnection c, final SOCSimpleRequest mes)
+    private void handleSIMPLEREQUEST(SOCGame ga, Connection c, final SOCSimpleRequest mes)
     {
         final String gaName = ga.getName();
         SOCPlayer clientPl = ga.getPlayer(c.getData());
@@ -1184,7 +1184,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleMAKEOFFER(SOCGame ga, StringConnection c, final SOCMakeOffer mes)
+    private void handleMAKEOFFER(SOCGame ga, Connection c, final SOCMakeOffer mes)
     {
         final String gaName = ga.getName();
         if (ga.isGameOptionSet("NT"))
@@ -1256,7 +1256,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleCLEAROFFER(SOCGame ga, StringConnection c, final SOCClearOffer mes)
+    private void handleCLEAROFFER(SOCGame ga, Connection c, final SOCClearOffer mes)
     {
         ga.takeMonitor();
 
@@ -1295,7 +1295,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleREJECTOFFER(SOCGame ga, StringConnection c, final SOCRejectOffer mes)
+    private void handleREJECTOFFER(SOCGame ga, Connection c, final SOCRejectOffer mes)
     {
         SOCPlayer player = ga.getPlayer(c.getData());
         if (player == null)
@@ -1315,7 +1315,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleACCEPTOFFER(SOCGame ga, StringConnection c, final SOCAcceptOffer mes)
+    private void handleACCEPTOFFER(SOCGame ga, Connection c, final SOCAcceptOffer mes)
     {
         ga.takeMonitor();
 
@@ -1379,7 +1379,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleBANKTRADE(SOCGame ga, StringConnection c, final SOCBankTrade mes)
+    private void handleBANKTRADE(SOCGame ga, Connection c, final SOCBankTrade mes)
     {
         final String gaName = ga.getName();
         final SOCResourceSet give = mes.getGiveSet(),
@@ -1437,7 +1437,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleBUILDREQUEST(SOCGame ga, StringConnection c, final SOCBuildRequest mes)
+    private void handleBUILDREQUEST(SOCGame ga, Connection c, final SOCBuildRequest mes)
     {
         final String gaName = ga.getName();
         ga.takeMonitor();
@@ -1590,7 +1590,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleCANCELBUILDREQUEST(SOCGame ga, StringConnection c, final SOCCancelBuildRequest mes)
+    private void handleCANCELBUILDREQUEST(SOCGame ga, Connection c, final SOCCancelBuildRequest mes)
     {
         ga.takeMonitor();
 
@@ -1744,7 +1744,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handlePUTPIECE(SOCGame ga, StringConnection c, SOCPutPiece mes)
+    private void handlePUTPIECE(SOCGame ga, Connection c, SOCPutPiece mes)
     {
         ga.takeMonitor();
 
@@ -2059,7 +2059,7 @@ public class SOCGameMessageHandler
      * Handle the client's "move piece request" message.
      * Currently, ships are the only pieces that can be moved.
      */
-    private void handleMOVEPIECEREQUEST(SOCGame ga, StringConnection c, final SOCMovePieceRequest mes)
+    private void handleMOVEPIECEREQUEST(SOCGame ga, Connection c, final SOCMovePieceRequest mes)
     {
         final String gaName = ga.getName();
 
@@ -2118,7 +2118,7 @@ public class SOCGameMessageHandler
      * Handle the client's debug Free Placement putpiece request.
      * @since 1.1.12
      */
-    private void handleDEBUGFREEPLACE(final SOCGame ga, final StringConnection c, final SOCDebugFreePlace mes)
+    private void handleDEBUGFREEPLACE(final SOCGame ga, final Connection c, final SOCDebugFreePlace mes)
     {
         if (! ga.isDebugFreePlacement())
             return;
@@ -2218,7 +2218,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handleBUYCARDREQUEST(SOCGame ga, StringConnection c, final SOCBuyCardRequest mes)
+    private void handleBUYCARDREQUEST(SOCGame ga, Connection c, final SOCBuyCardRequest mes)
     {
         ga.takeMonitor();
 
@@ -2347,7 +2347,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handlePLAYDEVCARDREQUEST(SOCGame ga, StringConnection c, final SOCPlayDevCardRequest mes)
+    private void handlePLAYDEVCARDREQUEST(SOCGame ga, Connection c, final SOCPlayDevCardRequest mes)
     {
         ga.takeMonitor();
 
@@ -2532,7 +2532,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
-    private void handlePICKRESOURCES(SOCGame ga, StringConnection c, final SOCPickResources mes)
+    private void handlePICKRESOURCES(SOCGame ga, Connection c, final SOCPickResources mes)
     {
         final String gaName = ga.getName();
         final SOCResourceSet rsrcs = mes.getResources();
@@ -2614,7 +2614,7 @@ public class SOCGameMessageHandler
                                     if (( ! ga.isSeatVacant(i) ) && pl.getNeedToDiscard())
                                     {
                                         // Request to discard half (round down)
-                                        StringConnection con = srv.getConnection(pl.getName());
+                                        Connection con = srv.getConnection(pl.getName());
                                         if (con != null)
                                             con.put(SOCDiscardRequest.toCmd(gaName, pl.getResources().getTotal() / 2));
                                     }
@@ -2688,7 +2688,7 @@ public class SOCGameMessageHandler
      * @param mes   the message
      * @since 1.0.0
      */
-    private void handleMONOPOLYPICK(SOCGame ga, StringConnection c, final SOCMonopolyPick mes)
+    private void handleMONOPOLYPICK(SOCGame ga, Connection c, final SOCMonopolyPick mes)
     {
         ga.takeMonitor();
 
@@ -2746,7 +2746,7 @@ public class SOCGameMessageHandler
                             continue;
                         int picked = monoPicks[pn];
                         String viName = ga.getPlayer(pn).getName();
-                        StringConnection viCon = srv.getConnection(viName);
+                        Connection viCon = srv.getConnection(viName);
                         if (viCon != null)
                             srv.messageToPlayerKeyedSpecial
                                 (viCon, ga,
@@ -2792,7 +2792,7 @@ public class SOCGameMessageHandler
      * @param c  the connection sending the message
      * @param mes  the message
      */
-    private void handleINVENTORYITEMACTION(SOCGame ga, StringConnection c, final SOCInventoryItemAction mes)
+    private void handleINVENTORYITEMACTION(SOCGame ga, Connection c, final SOCInventoryItemAction mes)
     {
         if (mes.action != SOCInventoryItemAction.PLAY)
             return;
@@ -2843,7 +2843,7 @@ public class SOCGameMessageHandler
      * @param c  the connection that sent the message
      * @param mes  the message
      */
-    private void handleSETSPECIALITEM(SOCGame ga, StringConnection c, final SOCSetSpecialItem mes)
+    private void handleSETSPECIALITEM(SOCGame ga, Connection c, final SOCSetSpecialItem mes)
     {
         final String gaName = ga.getName();
         final SOCPlayer pl = ga.getPlayer(c.getData());

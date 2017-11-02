@@ -26,7 +26,7 @@ import java.util.Vector;
 import soc.debug.D;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
-import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.Connection;
 
 /**
  * This class holds data the server needs, related to a
@@ -68,7 +68,7 @@ public class SOCGameBoardReset
      * in the new game, but not robot players.
      * Indexed 0 to SOCGame.MAXPLAYERS-1
      */
-    public StringConnection[] humanConns, robotConns;
+    public Connection[] humanConns, robotConns;
 
     /** Was this player position a robot? Indexed 0 to SOCGame.MAXPLAYERS-1 */
     public boolean[] wasRobot;
@@ -80,11 +80,11 @@ public class SOCGameBoardReset
      *
      * @param oldGame Game to reset - {@link soc.game.SOCGame#resetAsCopy()}
      *   will be called.  The old game's state will be changed to RESET_OLD.
-     * @param memberConns Game members (StringConnections),
+     * @param memberConns Game members (Connections),
      *   as retrieved by {@link soc.server.SOCGameListAtServer#getMembers(String)}.
      *   Contents of this vector will be changed to remove any robot members.
      */
-    public SOCGameBoardReset (SOCGame oldGame, Vector<StringConnection> memberConns)
+    public SOCGameBoardReset (SOCGame oldGame, Vector<Connection> memberConns)
     {
         oldGameState = oldGame.getGameState();
         hadRobots = false;
@@ -110,8 +110,8 @@ public class SOCGameBoardReset
         /**
          * Gather connection information, cleanup member list
          */
-        humanConns = new StringConnection[oldGame.maxPlayers];
-        robotConns = new StringConnection[oldGame.maxPlayers];
+        humanConns = new Connection[oldGame.maxPlayers];
+        robotConns = new Connection[oldGame.maxPlayers];
         if (memberConns != null)
         {
             // Grab connection information for humans and robots.
@@ -149,7 +149,8 @@ public class SOCGameBoardReset
      *
      * @param newGame New game (if resetting), or only game
      * @param oldGame Old game (if resetting), or null
-     * @param memberConns Members of old game, from {@link soc.server.SOCGameListAtServer#getMembers(String)}; a Vector of StringConnections
+     * @param memberConns Members of old game, from {@link soc.server.SOCGameListAtServer#getMembers(String)};
+     *                   a Vector of {@link Connection}s
      * @param humanConns New array to fill with human players; indexed 0 to SOCGame.MAXPLAYERS-1.
      *                   humanConns[pn] will be the human player at position pn, or null.
      * @param robotConns New array to fill with robot players; indexed 0 to SOCGame.MAXPLAYERS-1.
@@ -158,17 +159,17 @@ public class SOCGameBoardReset
      * @return The number of human players in newGame
      */
     public static int sortPlayerConnections
-        (SOCGame newGame, SOCGame oldGame, Vector<StringConnection> memberConns,
-         StringConnection[] humanConns, StringConnection[] robotConns)
+        (SOCGame newGame, SOCGame oldGame, Vector<Connection> memberConns,
+         Connection[] humanConns, Connection[] robotConns)
     {
         // This enum is easier than enumerating all connected clients;
         // there is no server-wide mapping of clientname -> connection.
 
         int numHuman = 0;
-        Enumeration<StringConnection> playersEnum = memberConns.elements();
+        Enumeration<Connection> playersEnum = memberConns.elements();
         while (playersEnum.hasMoreElements())
         {
-            StringConnection pCon = playersEnum.nextElement();
+            Connection pCon = playersEnum.nextElement();
             String pname = pCon.getData();
             SOCPlayer p = newGame.getPlayer(pname);
             if (p != null)

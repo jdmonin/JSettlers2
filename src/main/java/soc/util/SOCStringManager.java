@@ -110,7 +110,7 @@ public class SOCStringManager extends StringManager
         super(bundlePath, loc);
     }
 
-    // If you add get methods, for server convenience also add them in StringConnection and classes that implement that.
+    // If you add get methods, for server convenience also add them in Connection and classes implementing that.
 
     /**
      * Resource type-and-count text keys for {@link #getSpecial(SOCGame, String, Object...)}.

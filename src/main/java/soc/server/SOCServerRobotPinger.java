@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -26,19 +26,19 @@ import java.util.Vector;
 
 import soc.disableDebug.D;
 import soc.message.SOCServerPing;
-import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.Connection;
 
 
 /**
- * Pings the robots so that they know that they're connected to an active server.
+ * Pings the robots so they know they're connected to an active server.
  * Sends a {@link SOCServerPing} to each bot every 30 seconds or so.
  *
  * @author Robert S Thomas
  */
 public class SOCServerRobotPinger extends Thread
 {
-    /** A list of robot {@link StringConnection}s to ping, shared with and modified by the server. */
-    private Vector<StringConnection> robotConnections;
+    /** A list of robot {@link Connection}s to ping, shared with and modified by the server. */
+    private Vector<Connection> robotConnections;
 
     /**
      * Sleep time (milliseconds) between pings: 150 seconds.
@@ -65,9 +65,9 @@ public class SOCServerRobotPinger extends Thread
     /**
      * Create a server robot pinger
      *
-     * @param robots  the connections to robots; a Vector of {@link StringConnection}s
+     * @param robots  the connections to robots; a Vector of {@link Connection}s
      */
-    public SOCServerRobotPinger(SOCServer s, Vector<StringConnection> robots)
+    public SOCServerRobotPinger(SOCServer s, Vector<Connection> robots)
     {
         srv = s;
         robotConnections = robots;
@@ -95,7 +95,7 @@ public class SOCServerRobotPinger extends Thread
             {
                 try
                 {
-                    for (StringConnection robotConnection : robotConnections)
+                    for (Connection robotConnection : robotConnections)
                     {
                         if (D.ebugIsEnabled())
                             D.ebugPrintln("(*)(*)(*)(*) PINGING " + robotConnection.getData());

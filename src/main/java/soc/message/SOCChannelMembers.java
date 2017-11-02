@@ -21,7 +21,7 @@
  **/
 package soc.message;
 
-import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.Connection;
 
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -94,10 +94,10 @@ public class SOCChannelMembers extends SOCMessage
      * CHANNELMEMBERS sep channel sep2 members
      *<P>
      * Used from instance method {@link #toCmd()} with Strings,
-     * and from other callers with StringConnections for convenience.
+     * and from other callers with {@link Connection}s for convenience.
      *
      * @param ch  the new channel name
-     * @param ml  the list of members (String or StringConnection)
+     * @param ml  the list of members (String or {@link Connection})
      * @return    the command string
      */
     public static String toCmd(String ch, Vector<?> ml)
@@ -109,9 +109,9 @@ public class SOCChannelMembers extends SOCMessage
             for (Object obj : ml)
             {
                 String msg;
-                if (obj instanceof StringConnection)
+                if (obj instanceof Connection)
                 {
-                    msg = ((StringConnection) obj).getData();
+                    msg = ((Connection) obj).getData();
                 }
                 else if (obj instanceof String)
                 {

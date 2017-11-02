@@ -96,7 +96,7 @@ import soc.message.*;
 import soc.server.SOCServer;
 import soc.server.genericServer.LocalStringConnection;
 import soc.server.genericServer.LocalStringServerSocket;
-import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.Connection;
 
 import soc.util.I18n;
 import soc.util.SOCGameList;
@@ -6712,7 +6712,7 @@ public class SOCPlayerClient
          *<P>
          * Last message is in {@link #lastMessage_P}; any error is in {@link #ex_P}.
          */
-        protected StringConnection prCli = null;
+        protected Connection prCli = null;
 
         public ClientNetwork(SOCPlayerClient c)
         {
@@ -6881,7 +6881,7 @@ public class SOCPlayerClient
          * @param sPort  Server TCP port to connect to; the default server port is {@link ClientNetwork#SOC_PORT_DEFAULT}.
          * @throws IllegalStateException if already connected
          *     or if {@link Version#versionNumber()} returns 0 (packaging error)
-         * @see soc.server.SOCServer#newConnection1(StringConnection)
+         * @see soc.server.SOCServer#newConnection1(Connection)
          */
         public synchronized void connect(String chost, int sPort)
             throws IllegalStateException

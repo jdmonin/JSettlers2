@@ -1,5 +1,5 @@
 /**
- * Local (StringConnection) network system.
+ * JSettlers network message system.
  * This file Copyright (C) 2007-2009,2013,2015-2017 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -29,8 +29,8 @@ import soc.game.SOCGame;  // strictly for passthrough in getLocalizedSpecial, an
 import soc.util.SOCStringManager;
 
 /**
- * StringConnection allows clients and servers to communicate,
- * with no difference between local and actual networked traffic.
+ * {@code Connection} is the client's connection at the server, with a common API for
+ * local ({@link StringConnection}) and actual networked traffic ({@link NetConnection}).
  *
  *<PRE>
  *  1.0.0 - 2007-11-18 - initial release, becoming part of jsettlers v1.1.00
@@ -43,7 +43,9 @@ import soc.util.SOCStringManager;
  *                       wantsHideTimeoutMessage, setHideTimeoutMessage
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed; remove unused import EOFException
  *  1.2.0 - 2017-06-03 - {@link #setData(String)} now takes a String, not Object.
- *  2.0.0 - 2017-06-16 - StringConnection is now a superclass, not an interface.
+ *  2.0.0 - 2017-11-01 - Rename StringConnection -> Connection, NetStringConnection -> NetConnection,
+ *                       LocalStringConnection -> StringConnection.
+ *                       Connection is now a superclass, not an interface.
  *                       For I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and
  *                       {@link #getLocalized(String)}.
  *</PRE>
@@ -51,15 +53,15 @@ import soc.util.SOCStringManager;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @version 2.0.0
  */
-public abstract class StringConnection
+public abstract class Connection
 {
     /**
-     * Because subclass {@link NetStringConnection}'s connection protocol uses {@link DataOutputStream#writeUTF(String)},
+     * Because subclass {@link NetConnection}'s connection protocol uses {@link DataOutputStream#writeUTF(String)},
      * its messages must be no longer than 65535 bytes when encoded into {@code UTF-8}
      * (which is not Java's internal string encoding).
      *<P>
      * This limitation is mentioned here for writing code which may send messages over either type of
-     * {@code StringConnection}. {@link LocalStringConnection} is limited only by java's {@code String} max length.
+     * {@code Connection}. {@link LocalStringConnection} is limited only by java's {@code String} max length.
      *<P>
      * You can check a string's {@code UTF-8} length with {@link String#getBytes(String) str.getBytes("utf-8")}.length.
      * Because of its cost, that's probably best done within the test cases, not production code.
@@ -184,11 +186,11 @@ public abstract class StringConnection
     /**
      * Set the optional name key for this connection.
      *<P>
-     * The StringConnection system uses this data to name the connection,
+     * The genericServer message system uses this data to name the connection,
      * so it should not change once set.
      *<P>
-     * If you call setData after {@link Server#newConnection1(StringConnection)},
-     * please call {@link Server#nameConnection(StringConnection, boolean)} afterwards
+     * If you call setData after {@link Server#newConnection1(Connection)},
+     * please call {@link Server#nameConnection(Connection, boolean)} afterwards
      * to ensure the name is tracked properly at the server.
      *<P>
      * For anything else your application wants to associate with the connection,
@@ -204,7 +206,7 @@ public abstract class StringConnection
      * Set the app-specific non-key data for this connection.
      *<P>
      * This is anything your application wants to associate with the connection.
-     * The StringConnection system itself does not reference or use this data.
+     * The genericServer message system itself does not reference or use this data.
      * You can change it as often as you'd like, or not use it.
      *
      * @param data The new data, or null

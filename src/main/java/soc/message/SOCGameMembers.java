@@ -21,7 +21,7 @@
  **/
 package soc.message;
 
-import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.Connection;
 
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -109,10 +109,10 @@ public class SOCGameMembers extends SOCMessage
      * GAMEMEMBERS sep game sep2 members
      *<P>
      * Used from instance method {@link #toCmd()} with Strings,
-     * and from other callers with StringConnections for convenience.
+     * and from other callers with {@link Connection}s for convenience.
      *
      * @param ga  the game name
-     * @param ml  the list of members (String or StringConnection)
+     * @param ml  the list of members (String or {@link Connection})
      * @return    the command string
      */
     public static String toCmd(String ga, Vector<?> ml)
@@ -124,9 +124,9 @@ public class SOCGameMembers extends SOCMessage
             for (Object obj : ml)
             {
                 String str;
-                if (obj instanceof StringConnection)
+                if (obj instanceof Connection)
                 {
-                    str = ((StringConnection) obj).getData();
+                    str = ((Connection) obj).getData();
                 }
                 else if (obj instanceof String)
                 {

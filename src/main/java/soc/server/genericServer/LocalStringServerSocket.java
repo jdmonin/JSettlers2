@@ -1,6 +1,6 @@
 /**
- * Local (StringConnection) network system.  Version 1.0.5.
- * Copyright (C) 2007-2009,2016 Jeremy D Monin <jeremy@nand.net>.
+ * Local ({@link StringConnection}) network message system.
+ * This file Copyright (C) 2007-2009,2016-2017 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -39,14 +39,17 @@ import java.util.Vector;
  *  1.0.4 - 2008-09-04 - no change in this file
  *  1.0.5 - 2009-05-31 - no change in this file
  *  1.0.5.1- 2009-10-26- no change in this file
+ *  2.0.0 - 2017-11-01 - Rename StringServerSocket -> SOCServerSocket, NetStringServerSocket -> NetServerSocket,
+ *                       LocalStringServerSocket -> StringServerSocket
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
- * @version 1.0.5.1
+ * @version 2.0.0
  */
-public class LocalStringServerSocket implements StringServerSocket
+public class LocalStringServerSocket implements SOCServerSocket
 {
-    protected static Hashtable<String, LocalStringServerSocket> allSockets = new Hashtable<String, LocalStringServerSocket>();
+    protected static Hashtable<String, LocalStringServerSocket> allSockets
+        = new Hashtable<String, LocalStringServerSocket>();
 
     /**
      * Length of queue for accepting new connections; default 100.
@@ -223,7 +226,7 @@ public class LocalStringServerSocket implements StringServerSocket
      *    new clients won't receive any data from us
      * @throws IOException if a network problem occurs (Which won't happen with this local communication)
      */
-    public StringConnection accept() throws SocketException, IOException
+    public Connection accept() throws SocketException, IOException
     {
         if (out_setEOF)
             throw new SocketException("Server socket already at EOF");
