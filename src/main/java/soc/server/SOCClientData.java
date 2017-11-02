@@ -24,7 +24,7 @@ import java.util.TimerTask;
 
 import soc.message.SOCGameOptionGetInfos;  // for javadoc
 import soc.message.SOCMessage;  // for javadoc
-import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.Connection;
 import soc.util.SOCGameList;
 import soc.util.SOCStringManager;  // for javadoc
 
@@ -79,8 +79,8 @@ public class SOCClientData
      * <UL>
      *  <LI> Client has sent a {@link SOCGameOptionGetInfos} request with
      *     {@link SOCGameOptionGetInfos#hasTokenGetI18nDescs() msg.hasTokenGetI18nDescs()}
-     *  <LI> {@link StringConnection#getI18NLocale() c.getI18NLocale()} != {@code null}
-     *  <LI> {@link StringConnection#getVersion() c.getVersion()} &gt;= {@link SOCStringManager#VERSION_FOR_I18N};
+     *  <LI> {@link Connection#getI18NLocale() c.getI18NLocale()} != {@code null}
+     *  <LI> {@link Connection#getVersion() c.getVersion()} &gt;= {@link SOCStringManager#VERSION_FOR_I18N};
      *     this is already implied by the client sending a message with {@code hasTokenGetI18nDescs}.
      * </UL>
      * @see #locale
@@ -105,14 +105,14 @@ public class SOCClientData
     private boolean sentGameList;
 
     /**
-     * If true we've called {@link SOCServer#clientHasLocalizedStrs_gameScenarios(StringConnection)},
+     * If true we've called {@link SOCServer#clientHasLocalizedStrs_gameScenarios(Connection)},
      * storing the result in {@link #localeHasScenStrings}.
      * @since 2.0.00
      */
     public boolean checkedLocaleScenStrings;
 
     /**
-     * If true we've called {@link SOCServer#clientHasLocalizedStrs_gameScenarios(StringConnection)},
+     * If true we've called {@link SOCServer#clientHasLocalizedStrs_gameScenarios(Connection)},
      * and this client's locale is not {@code null} and has at least some localized scenario strings
      * (see that method's javadoc for details).
      * @since 2.0.00
@@ -387,7 +387,7 @@ public class SOCClientData
      * @param con Connection for this timer / this clientdata
      * @since 1.1.06
      */
-    public void setVersionTimer(SOCServer sr, StringConnection con)
+    public void setVersionTimer(SOCServer sr, Connection con)
     {
         cliVersionTask = new SOCCDCliVersionTask (sr, this, con);
         sr.utilTimer.schedule(cliVersionTask, SOCServer.CLI_VERSION_TIMER_FIRE_MS);
@@ -422,9 +422,9 @@ public class SOCClientData
     {
         private SOCServer srv;
         private SOCClientData cliData;
-        private StringConnection cliConn;
+        private Connection cliConn;
 
-        public SOCCDCliVersionTask (SOCServer sr, SOCClientData cd, StringConnection con)
+        public SOCCDCliVersionTask (SOCServer sr, SOCClientData cd, Connection con)
         {
             srv = sr;
             cliData = cd;

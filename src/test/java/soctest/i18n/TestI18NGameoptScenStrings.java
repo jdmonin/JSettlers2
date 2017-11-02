@@ -38,7 +38,7 @@ import soc.game.SOCGameOption;
 import soc.game.SOCScenario;
 import soc.message.SOCLocalizedStrings;
 import soc.message.SOCMessage;
-import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.Connection;
 import soc.util.SOCStringManager;
 
 /**
@@ -46,7 +46,7 @@ import soc.util.SOCStringManager;
  * in their Java classes versus the {@code en_US} properties file used by
  * {@link SOCStringManager#getServerManagerForClient(Locale)};
  * unsendable characters; combined length of all strings versus max allowable size
- * for a {@link SOCLocalizedStrings} message ({@link StringConnection#MAX_MESSAGE_SIZE_UTF8}).
+ * for a {@link SOCLocalizedStrings} message ({@link Connection#MAX_MESSAGE_SIZE_UTF8}).
  *
  * @since 2.0.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -73,7 +73,7 @@ public class TestI18NGameoptScenStrings
     /**
      * Test {@link SOCGameOption} text strings.
      * @see soc.server.SOCServer#localizeKnownOptions(java.util.Locale, boolean)
-     * @see soc.server.SOCServerMessageHandler#handleGAMEOPTIONGETINFOS(soc.server.genericServer.StringConnection, soc.message.SOCGameOptionGetInfos)
+     * @see soc.server.SOCServerMessageHandler#handleGAMEOPTIONGETINFOS(soc.server.genericServer.Connection, soc.message.SOCGameOptionGetInfos)
      */
     @Test
     public void testGameoptsText()
@@ -116,7 +116,7 @@ public class TestI18NGameoptScenStrings
 
     /**
      * Test {@link SOCScenario} text strings: gamescen.*.n, some have gamescen.*.d.
-     * @see soc.server.SOCServer#clientHasLocalizedStrs_gameScenarios(soc.server.genericServer.StringConnection)
+     * @see soc.server.SOCServer#clientHasLocalizedStrs_gameScenarios(soc.server.genericServer.Connection)
      */
     @Test
     public void testScenariosText()
@@ -253,7 +253,7 @@ public class TestI18NGameoptScenStrings
                  + scenBadChar);
         }
 
-        final int MAX = StringConnection.MAX_MESSAGE_SIZE_UTF8;  // alias for brevity
+        final int MAX = Connection.MAX_MESSAGE_SIZE_UTF8;  // alias for brevity
 
         String msg = SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_GAMEOPT, Integer.MAX_VALUE, optsStr);
         int L = msg.getBytes("utf-8").length;
@@ -281,9 +281,9 @@ public class TestI18NGameoptScenStrings
     /**
      * Network compatibility: Test all locales' {@link SOCGameOption} and {@link SOCScenario} description strings for
      * unsendable characters; test combined length of all its strings versus max length of {@link SOCLocalizedStrings}
-     * ({@link StringConnection#MAX_MESSAGE_SIZE_UTF8}).
+     * ({@link Connection#MAX_MESSAGE_SIZE_UTF8}).
      *<P>
-     * If a locale's strings fail versus {@link StringConnection#MAX_MESSAGE_SIZE_UTF8}, the server code should
+     * If a locale's strings fail versus {@link Connection#MAX_MESSAGE_SIZE_UTF8}, the server code should
      * be enhanced to break them into multiple messages when that situation arises.
      *
      * @throws Exception if any locale's props file can't be opened and read

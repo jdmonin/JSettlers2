@@ -45,7 +45,7 @@ import java.util.StringTokenizer;
  * The message data is sent over the network as type ID + data strings
  * built by each SOCMessage subclass's toCmd() method.
  * This is sent over TCP using {@link java.io.DataOutputStream#writeUTF(String)}.
- * Server-launched local AI bots use {@link soc.server.genericServer.LocalStringConnection}
+ * Server-launched local AI bots use {@link soc.server.genericServer.StringConnection}
  * instead of TCP, and skip the UTF encoding/decoding overhead.
  *<P>
  * On the remote end, it's reconstructed to a new instance of the
@@ -56,7 +56,7 @@ import java.util.StringTokenizer;
  *<P>
  * The client receives messages in {@link soc.client.SOCPlayerClient.MessageTreater#treat(SOCMessage, boolean)}.
  * The server receives messages in
- * {@link soc.server.SOCMessageDispatcher#dispatch(String, soc.server.genericServer.StringConnection)}.
+ * {@link soc.server.SOCMessageDispatcher#dispatch(String, soc.server.genericServer.Connection)}.
  *
  *<H3>To create and add a new message type:</H3>
  *<UL>

@@ -48,7 +48,7 @@ import soc.message.*;
 import soc.proto.Data;
 
 import soc.robot.SOCRobotClient;
-import soc.server.genericServer.LocalStringConnection;
+import soc.server.genericServer.StringConnection;
 import soc.util.SOCServerFeatures;
 import soc.util.Version;
 
@@ -109,7 +109,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected Socket s;
     protected DataInputStream in;
     protected DataOutputStream out;
-    protected LocalStringConnection sLocal;  // if strSocketName not null
+    protected StringConnection sLocal;  // if strSocketName not null
 
     /**
      * Server version number, sent soon after connect, or -1 if unknown.

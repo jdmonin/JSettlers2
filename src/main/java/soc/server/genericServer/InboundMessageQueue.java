@@ -28,12 +28,12 @@ import soc.message.SOCMessage;
 /**
  * The single Inbound Message Queue for all messages coming from clients.
  * Stores all unparsed inbound {@link SOCMessage}s received from the server from all
- * connected clients' {@link StringConnection} threads through {@link #push(String, StringConnection)},
+ * connected clients' {@link Connection} threads through {@link #push(String, Connection)},
  * then dispatched to the {@link Server} for parsing and processing.
  *<P>
  * That dispatch is done through this class's single internal {@link Treater} thread, which de-queues
  * the received messages from the queue and forwards them to the {@link Server} by calling
- * {@link Server.InboundMessageDispatcher#dispatch(String, StringConnection)}
+ * {@link Server.InboundMessageDispatcher#dispatch(String, Connection)}
  * for each inbound message.
  *<P>
  * Some dispatched message handlers may want to do work in other Threads without tying up the Treater thread,
@@ -53,8 +53,8 @@ import soc.message.SOCMessage;
  *<UL>
  * <LI> See {@link Server} class javadoc for an overall picture of inbound processing.
  * <LI> See {@link SOCMessage} for details of the client/server protocol messaging.
- * <LI> See {@link StringConnection} for details of the client/server communication.
- * <LI> See {@link Server.InboundMessageDispatcher#dispatch(String, StringConnection)}
+ * <LI> See {@link Connection} for details of the client/server communication.
+ * <LI> See {@link Server.InboundMessageDispatcher#dispatch(String, Connection)}
  *      for details on further message processing.
  *</UL>
  *
@@ -122,7 +122,7 @@ public class InboundMessageQueue
      * @param clientConnection that send the message; will never be {@code null}
      * @see #post(Runnable)
      */
-    public void push(String receivedMessage, StringConnection clientConnection)
+    public void push(String receivedMessage, Connection clientConnection)
     {
         final MessageData md = new MessageData(receivedMessage, clientConnection);
         synchronized (inQueue)
@@ -141,7 +141,7 @@ public class InboundMessageQueue
      * Although {@code post(..)} isn't declared {@code synchronized},
      * it's thread-safe because it synchronizes on the internal queue object.
      * @param run  Runnable code
-     * @see #push(String, StringConnection)
+     * @see #push(String, Connection)
      * @see #isCurrentThreadTreater()
      * @since 1.2.00
      */
@@ -273,7 +273,7 @@ public class InboundMessageQueue
         public final String stringMessage;
 
         /** Client which sent this message */
-        public final StringConnection clientSender;
+        public final Connection clientSender;
 
         /**
          * Or, some code to run on our Treater thread
@@ -281,7 +281,7 @@ public class InboundMessageQueue
          */
         public final Runnable run;
 
-        public MessageData(final String stringMessage, final StringConnection clientSender)
+        public MessageData(final String stringMessage, final Connection clientSender)
         {
             this.stringMessage = stringMessage;
             this.clientSender = clientSender;

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014,2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -28,7 +28,7 @@ import java.util.Vector;
 import soc.debug.D;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
-import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.Connection;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
 import soc.util.Version;
@@ -37,7 +37,7 @@ import soc.util.Version;
 /**
  * A class for creating and tracking the games;
  * contains each game's name, {@link SOCGameOption game options},
- * {@link SOCGame} object, and clients ({@link StringConnection}s).
+ * {@link SOCGame} object, and member client {@link Connection}s.
  *<P>
  * In 1.1.07, parent class SOCGameList was refactored, with
  * some methods moved to this new subclass, such as
@@ -61,8 +61,8 @@ public class SOCGameListAtServer extends SOCGameList
      */
     public static int GAME_TIME_EXPIRE_MINUTES = 90;
 
-    /** synchronized map of game names to Vector of game members ({@link StringConnection}s) */
-    protected Hashtable<String, Vector<StringConnection>> gameMembers;
+    /** synchronized map of game names to Vector of game members ({@link Connection}s) */
+    protected Hashtable<String, Vector<Connection>> gameMembers;
 
     /**
      * constructor
@@ -70,7 +70,7 @@ public class SOCGameListAtServer extends SOCGameList
     public SOCGameListAtServer()
     {
         super();
-        gameMembers = new Hashtable<String, Vector<StringConnection>>();
+        gameMembers = new Hashtable<String, Vector<Connection>>();
     }
 
     /**
@@ -81,7 +81,7 @@ public class SOCGameListAtServer extends SOCGameList
     public synchronized boolean isGameEmpty(String gaName)
     {
         boolean result;
-        Vector<StringConnection> members;
+        Vector<Connection> members;
 
         members = gameMembers.get(gaName);
 
@@ -130,9 +130,9 @@ public class SOCGameListAtServer extends SOCGameList
     /**
      * get a game's members (client connections)
      * @param   gaName  game name
-     * @return  list of members: a Vector of {@link StringConnection}s
+     * @return  list of members: a Vector of {@link Connection}s
      */
-    public synchronized Vector<StringConnection> getMembers(String gaName)
+    public synchronized Vector<Connection> getMembers(String gaName)
     {
         return gameMembers.get(gaName);
     }
@@ -143,9 +143,9 @@ public class SOCGameListAtServer extends SOCGameList
      * @param  conn     the member's connection
      * @return true if memName is a member of the game
      */
-    public synchronized boolean isMember(StringConnection conn, String gaName)
+    public synchronized boolean isMember(Connection conn, String gaName)
     {
-        Vector<StringConnection> members = getMembers(gaName);
+        Vector<Connection> members = getMembers(gaName);
 
         if ((members != null) && (members.contains(conn)))
             return true;
@@ -161,9 +161,9 @@ public class SOCGameListAtServer extends SOCGameList
      * @param  gaName   the name of the game
      * @param  conn     the member's connection; version should already be set
      */
-    public synchronized void addMember(StringConnection conn, String gaName)
+    public synchronized void addMember(Connection conn, String gaName)
     {
-        Vector<StringConnection> members = getMembers(gaName);
+        Vector<Connection> members = getMembers(gaName);
 
         if ((members != null) && (!members.contains(conn)))
         {
@@ -216,9 +216,9 @@ public class SOCGameListAtServer extends SOCGameList
      * @param  gaName   the name of the game
      * @param  conn     the member's connection
      */
-    public synchronized void removeMember(StringConnection conn, String gaName)
+    public synchronized void removeMember(Connection conn, String gaName)
     {
-        Vector<StringConnection> members = getMembers(gaName);
+        Vector<Connection> members = getMembers(gaName);
 
         if ((members != null))
         {
@@ -227,7 +227,7 @@ public class SOCGameListAtServer extends SOCGameList
             // Check version of remaining members
             if (! members.isEmpty())
             {
-                StringConnection c = members.firstElement();
+                Connection c = members.firstElement();
                 int lowVers = c.getVersion();
                 int highVers = lowVers;
 
@@ -254,13 +254,13 @@ public class SOCGameListAtServer extends SOCGameList
      *
      * @param  oldConn  the member's old connection
      * @param  newConn  the member's new connection
-     * @throws IllegalArgumentException  if oldConn's keyname (via {@link StringConnection#getData() getData()})
+     * @throws IllegalArgumentException  if oldConn's keyname (via {@link Connection#getData()})
      *            differs from newConn's keyname
      *
-     * @see #memberGames(StringConnection, String)
+     * @see #memberGames(Connection, String)
      * @since 1.1.08
      */
-    public synchronized void replaceMemberAllGames(StringConnection oldConn, StringConnection newConn)
+    public synchronized void replaceMemberAllGames(Connection oldConn, Connection newConn)
         throws IllegalArgumentException
     {
         if (! oldConn.getData().equals(newConn.getData()))
@@ -270,7 +270,7 @@ public class SOCGameListAtServer extends SOCGameList
         final boolean sameVersion = (oldConn.getVersion() == newConn.getVersion());
         for (String gaName : getGameNames())
         {
-            Vector<StringConnection> members = gameMembers.get(gaName);
+            Vector<Connection> members = gameMembers.get(gaName);
             if ((members != null) && members.contains(oldConn))
             {
                 System.err.println("L221: for game " + gaName + ":");  // JM TEMP
@@ -320,7 +320,7 @@ public class SOCGameListAtServer extends SOCGameList
         if ((SOCGame.boardFactory == null) || ! (SOCGame.boardFactory instanceof SOCBoardLargeAtServer))
             SOCGame.boardFactory = new SOCBoardLargeAtServer.BoardFactoryAtServer();
 
-        Vector<StringConnection> members = new Vector<StringConnection>();
+        Vector<Connection> members = new Vector<Connection>();
         gameMembers.put(gaName, members);
 
         SOCGame game = new SOCGame(gaName, gaOpts);
@@ -412,7 +412,7 @@ public class SOCGameListAtServer extends SOCGameList
         // (Removes game from list before dealing with members, in case of locks)
         super.deleteGame(gaName);
 
-        Vector<StringConnection> members = gameMembers.get(gaName);
+        Vector<Connection> members = gameMembers.get(gaName);
         if (members != null)
         {
             members.removeAllElements();
@@ -432,7 +432,7 @@ public class SOCGameListAtServer extends SOCGameList
      *         or 0 if player isn't in any games.
      * @since 1.1.08
      */
-    public int playerGamesMinVersion(StringConnection plConn)
+    public int playerGamesMinVersion(Connection plConn)
     {
         int minVers = 0;
 
@@ -440,7 +440,7 @@ public class SOCGameListAtServer extends SOCGameList
         {
             for (SOCGame ga : getGamesData())
             {
-                Vector<StringConnection> members = getMembers(ga.getName());
+                Vector<Connection> members = getMembers(ga.getName());
                 if ((members == null) || ! members.contains(plConn))
                     continue;
 
@@ -463,10 +463,10 @@ public class SOCGameListAtServer extends SOCGameList
      * @return The games, in no particular order (past firstGameName),
      *           or a 0-length Vector, if member isn't in any game.
      *
-     * @see #replaceMemberAllGames(StringConnection, StringConnection)
+     * @see #replaceMemberAllGames(Connection, Connection)
      * @since 1.1.08
      */
-    public Vector<SOCGame> memberGames(StringConnection c, final String firstGameName)
+    public Vector<SOCGame> memberGames(Connection c, final String firstGameName)
     {
         Vector<SOCGame> cGames = new Vector<SOCGame>();
 

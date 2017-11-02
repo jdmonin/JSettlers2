@@ -59,6 +59,8 @@ and backport minor new features until `2.0.00` is ready.
 - Server inbound message handling refactored in collaboration with Alessandro D'Ottavio
 - Robot client's inbound-message treat method calls super.treat in the default case,
     so `SOCDisplaylessClient.treat()` handles all messages which don't need robot-specific handling.
+- For clarity rename genericServer classes: StringConnection -> Connection, NetStringConnection -> NetConnection,
+    LocalStringConnection -> StringConnection, etc
 - Minor refactoring
 - Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 - Project dir structure converted to maven layout

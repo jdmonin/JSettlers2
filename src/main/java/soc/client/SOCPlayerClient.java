@@ -96,9 +96,9 @@ import soc.message.*;
 import soc.proto.Data;
 
 import soc.server.SOCServer;
-import soc.server.genericServer.LocalStringConnection;
-import soc.server.genericServer.LocalStringServerSocket;
+import soc.server.genericServer.Connection;
 import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.StringServerSocket;
 
 import soc.util.I18n;
 import soc.util.SOCGameList;
@@ -6714,7 +6714,7 @@ public class SOCPlayerClient
          *<P>
          * Last message is in {@link #lastMessage_P}; any error is in {@link #ex_P}.
          */
-        protected StringConnection prCli = null;
+        protected Connection prCli = null;
 
         public ClientNetwork(SOCPlayerClient c)
         {
@@ -6770,8 +6770,8 @@ public class SOCPlayerClient
             {
                 try
                 {
-                    prCli = LocalStringServerSocket.connectTo(SOCServer.PRACTICE_STRINGPORT);
-                    new SOCPlayerLocalStringReader((LocalStringConnection) prCli);
+                    prCli = StringServerSocket.connectTo(SOCServer.PRACTICE_STRINGPORT);
+                    new SOCPlayerLocalStringReader((StringConnection) prCli);
                     // Reader will start its own thread.
                     // Send VERSION right away (1.1.06 and later)
                     putPractice(SOCVersion.toCmd
@@ -6883,7 +6883,7 @@ public class SOCPlayerClient
          * @param sPort  Server TCP port to connect to; the default server port is {@link ClientNetwork#SOC_PORT_DEFAULT}.
          * @throws IllegalStateException if already connected
          *     or if {@link Version#versionNumber()} returns 0 (packaging error)
-         * @see soc.server.SOCServer#newConnection1(StringConnection)
+         * @see soc.server.SOCServer#newConnection1(Connection)
          */
         public synchronized void connect(String chost, int sPort)
             throws IllegalStateException
@@ -7184,14 +7184,14 @@ public class SOCPlayerClient
          */
         class SOCPlayerLocalStringReader implements Runnable
         {
-            LocalStringConnection locl;
+            StringConnection locl;
 
             /**
              * Start a new thread and listen to practice server.
              *
              * @param prConn Active connection to practice server
              */
-            protected SOCPlayerLocalStringReader (LocalStringConnection prConn)
+            protected SOCPlayerLocalStringReader (StringConnection prConn)
             {
                 locl = prConn;
 

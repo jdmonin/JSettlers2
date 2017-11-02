@@ -53,13 +53,13 @@ import java.util.List;
  * Since {@code getParams()} can't contain empty strings, check contents for {@link #EMPTY}.
  *<P>
  * <B>Max Length:</B> When sending a long list, watch for the 65535-character limit mentioned at
- * {@link soc.server.genericServer.StringConnection#MAX_MESSAGE_SIZE_UTF8}. Remember that limit is
+ * {@link soc.server.genericServer.Connection#MAX_MESSAGE_SIZE_UTF8}. Remember that limit is
  * against the strings' {@code UTF-8} encoding, not the internal encoding used with {@link String#length()}.
  * If unsure, you can test length of the final message string with code like:
  * <pre><code>
  *   final String msg = {@link SOCLocalizedStrings#toCmd(String, int, List) SOCLocalizedStrings.toCmd}(...);
  *   final int len = msg.{@link String#getBytes(String) getBytes("utf-8")}.length;
- *   if (len > {@link soc.server.genericServer.StringConnection#MAX_MESSAGE_SIZE_UTF8 StringConnection.MAX_MESSAGE_SIZE_UTF8})
+ *   if (len > {@link soc.server.genericServer.Connection#MAX_MESSAGE_SIZE_UTF8 Connection.MAX_MESSAGE_SIZE_UTF8})
  *   {
  *       ....
  *   }

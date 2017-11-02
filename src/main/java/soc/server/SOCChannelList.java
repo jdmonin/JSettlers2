@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2016-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@ package soc.server;
 
 import soc.disableDebug.D;
 
-import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.Connection;
 
 import soc.util.MutexFlag;
 
@@ -43,8 +43,8 @@ public class SOCChannelList
     /** key = string, value = Vector of MutexFlags */
     protected Hashtable<String, MutexFlag> channelMutexes;
 
-    /** key = string, value = Vector of StringConnections */
-    protected Hashtable<String,Vector<StringConnection>> channelMembers;
+    /** Clients talking in this channel. key = string, value = Vector of {@link Connection}s */
+    protected Hashtable<String,Vector<Connection>> channelMembers;
 
     /** Each channel's creator/owner name.
      * key = string, value = Vector of Strings.
@@ -61,7 +61,7 @@ public class SOCChannelList
     public SOCChannelList()
     {
         channelMutexes = new Hashtable<String, MutexFlag>();
-        channelMembers = new Hashtable<String, Vector<StringConnection>>();
+        channelMembers = new Hashtable<String, Vector<Connection>>();
         channelOwners = new Hashtable<String, String>();
         inUse = false;
     }
@@ -200,13 +200,13 @@ public class SOCChannelList
      * @param   chName  channel name
      * @return  list of members
      */
-    public synchronized Vector<StringConnection> getMembers(String chName)
+    public synchronized Vector<Connection> getMembers(String chName)
     {
-        Vector<StringConnection> result = channelMembers.get(chName);
+        Vector<Connection> result = channelMembers.get(chName);
 
         if (result == null)
         {
-            result = new Vector<StringConnection>();
+            result = new Vector<Connection>();
         }
 
         return result;
@@ -217,7 +217,7 @@ public class SOCChannelList
      * @param  conn     the member's connection
      * @return  true if memName is a member of the channel
      */
-    public synchronized boolean isMember(StringConnection conn, String chName)
+    public synchronized boolean isMember(Connection conn, String chName)
     {
         Vector<?> members = getMembers(chName);
 
@@ -233,9 +233,9 @@ public class SOCChannelList
      * @param  chName   the name of the channel
      * @param  conn     the member's connection
      */
-    public synchronized void addMember(StringConnection conn, String chName)
+    public synchronized void addMember(Connection conn, String chName)
     {
-        Vector<StringConnection> members = getMembers(chName);
+        Vector<Connection> members = getMembers(chName);
 
         if ((members != null) && (!members.contains(conn)))
         {
@@ -249,9 +249,9 @@ public class SOCChannelList
      * @param  chName   the name of the channel
      * @param  conn     the member's connection
      */
-    public synchronized void removeMember(StringConnection conn, String chName)
+    public synchronized void removeMember(Connection conn, String chName)
     {
-        Vector<StringConnection> members = getMembers(chName);
+        Vector<Connection> members = getMembers(chName);
 
         if ((members != null))
         {
@@ -266,12 +266,12 @@ public class SOCChannelList
      * @param  newConn  the member's new connection
      * @since 1.1.08
      */
-    public synchronized void replaceMemberAllChannels(StringConnection oldConn, StringConnection newConn)
+    public synchronized void replaceMemberAllChannels(Connection oldConn, Connection newConn)
     {
         Enumeration<String> allCh = getChannels();
         while (allCh.hasMoreElements())
         {
-            Vector<StringConnection> members = channelMembers.get(allCh.nextElement());
+            Vector<Connection> members = channelMembers.get(allCh.nextElement());
             if ((members != null) && members.contains(oldConn))
             {
                 members.remove(oldConn);
@@ -295,7 +295,7 @@ public class SOCChannelList
      */
     public synchronized boolean isChannelEmpty(String chName)
     {
-        Vector<StringConnection> members;
+        Vector<Connection> members;
 
         members = channelMembers.get(chName);
 
@@ -320,7 +320,7 @@ public class SOCChannelList
             MutexFlag mutex = new MutexFlag();
             channelMutexes.put(chName, mutex);
 
-            Vector<StringConnection> members = new Vector<StringConnection>();
+            Vector<Connection> members = new Vector<Connection>();
             channelMembers.put(chName, members);
 
             channelOwners.put(chName, chOwner);  // throws NullPointerException

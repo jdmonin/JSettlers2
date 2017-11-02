@@ -1,6 +1,7 @@
 /**
  * Local (StringConnection) network system.
- * This file Copyright (C) 2007-2009,2013,2015-2017 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2007-2010,2012-2013,2016-2017 Jeremy D Monin <jeremy@nand.net>.
+ * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
  * This program is free software; you can redistribute it and/or
@@ -16,388 +17,416 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The maintainer of this program can be reached at jeremy@nand.net
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.server.genericServer;
 
-import java.io.DataOutputStream;  // strictly for javadocs
-import java.text.MessageFormat;
+import java.io.EOFException;
+import java.io.IOException;
+import java.net.ConnectException;
 import java.util.Date;
-import java.util.MissingResourceException;
+import java.util.Vector;
 
-import soc.game.SOCGame;  // strictly for passthrough in getLocalizedSpecial, and javadocs; not used otherwise
-import soc.util.SOCStringManager;
+import soc.disableDebug.D;
 
 /**
- * StringConnection allows clients and servers to communicate,
- * with no difference between local and actual networked traffic.
+ * Symmetric buffered connection sending strings between two local peers.
+ * Uses vectors and thread synchronization, no actual network traffic.
+ * When using this class from the server (not client), after the constructor
+ * call {@link #setServer(Server)}.
+ *<P>
+ * This class has a run method, but you must start the thread yourself.
+ * Constructors will not create or start a thread.
+ *<P>
+ * As used within JSettlers, the structure of this class has much in common
+ * with {@link NetConnection}, as they both subclass {@link Connection}.
+ * If you add something to one class, you should probably add it to the other, or to the superclass instead.
  *
  *<PRE>
  *  1.0.0 - 2007-11-18 - initial release, becoming part of jsettlers v1.1.00
  *  1.0.1 - 2008-06-28 - add getConnectTime
- *  1.0.2 - 2008-07-30 - no change in this file
+ *  1.0.2 - 2008-07-30 - check if s already null in disconnect
  *  1.0.3 - 2008-08-08 - add disconnectSoft, getVersion, setVersion
  *  1.0.4 - 2008-09-04 - add appData
- *  1.0.5 - 2009-05-31 - add isVersionKnown, setVersion(int,bool),
- *                       setVersionTracking, isInputAvailable,
- *                       wantsHideTimeoutMessage, setHideTimeoutMessage
- *  1.0.5.1- 2009-10-26- javadoc warnings fixed; remove unused import EOFException
+ *  1.0.5 - 2009-05-31 - add isVersionKnown, setVersion(int,bool), setVersionTracking,
+ *                       isInputAvailable, callback to processFirstCommand,
+ *                       wantsHideTimeoutMessage, setHideTimeoutMessage;
+ *                       common constructor code moved to init().
+ *  1.0.5.1- 2009-10-26- javadoc warnings fixed
+ *  1.0.5.2- 2010-04-05- add toString for debugging
  *  1.2.0 - 2017-06-03 - {@link #setData(String)} now takes a String, not Object.
- *  2.0.0 - 2017-06-16 - StringConnection is now a superclass, not an interface.
- *                       For I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and
- *                       {@link #getLocalized(String)}.
+ *  2.0.0 - 2017-11-01 - Rename StringConnection -> Connection, NetStringConnection -> NetConnection,
+ *                       LocalStringConnection -> StringConnection.
+ *                       Connection is now a superclass, not an interface.
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @version 2.0.0
  */
-public abstract class StringConnection
+public class StringConnection
+    extends Connection implements Runnable
 {
-    /**
-     * Because subclass {@link NetStringConnection}'s connection protocol uses {@link DataOutputStream#writeUTF(String)},
-     * its messages must be no longer than 65535 bytes when encoded into {@code UTF-8}
-     * (which is not Java's internal string encoding).
-     *<P>
-     * This limitation is mentioned here for writing code which may send messages over either type of
-     * {@code StringConnection}. {@link LocalStringConnection} is limited only by java's {@code String} max length.
-     *<P>
-     * You can check a string's {@code UTF-8} length with {@link String#getBytes(String) str.getBytes("utf-8")}.length.
-     * Because of its cost, that's probably best done within the test cases, not production code.
-     * @since 2.0.0
-     */
-    public final static int MAX_MESSAGE_SIZE_UTF8 = 0xFFFF;
+    /** Unique end-of-file marker object.  Always compare against this with == not string.equals. */
+    protected static String EOF_MARKER = "__EOF_MARKER__" + '\004';
+
+    /** Message contents between the peers on this connection; never contains {@code null} elements. */
+    protected Vector<String> in, out;
+    protected boolean in_reachedEOF;
+    protected boolean out_setEOF;
+    /** Active connection, server has called accept, and not disconnected yet */
+    protected boolean accepted;
+    private StringConnection ourPeer;
 
     /**
-     * The key (client "name") associated with this connection, or {@code null}.
+     * Create a new, unused StringConnection.
      *<P>
-     * Before v1.2.0, this field was an Object and could contain any arbitrary key data.
+     * After construction, call {@link #connect(String)} to use this object.
+     * When using this class from the server (not client)
+     * call {@link #setServer(Server)} before {@code connect(..)}
+     * and before starting any thread.
+     *<P>
+     * This class has a run method, but you must start the thread yourself.
+     * Constructors will not create or start a thread.
      */
-    protected String data;
+    public StringConnection()
+    {
+        in = new Vector<String>();
+        out = new Vector<String>();
+        init();
+    }
 
     /**
-     * The arbitrary app-specific data associated with this connection, or {@code null}.
-     * Not used or referenced by generic server.
-     */
-    protected Object appData;
-
-    /**
-     * The server-side locale for this client connection, for app-specific message formatting, or {@code null}.
-     * Not used or referenced by the generic server layer.
+     * Constructor for an existing peer; we'll share two Vectors for in/out queues.
      *<P>
-     * App-specific connection data ({@link #getAppData()}) can hold a full {@code Locale} object;
-     * see {@link soc.server.SOCClientData} for an example.
+     * When using this class from the server (not client)
+     * call {@link #setServer(Server)} before starting any thread.
+     *<P>
+     * This class has a run method, but you must start the thread yourself.
+     * Constructors will not create or start a thread.
      *
-     * @since 2.0.0
+     * @param peer The peer to use.
+     *
+     * @throws EOFException If peer is at EOF already
+     * @throws IllegalArgumentException if peer is null, or already
+     *   has a peer.
      */
-    protected String localeStr;
+    public StringConnection(StringConnection peer) throws EOFException
+    {
+        if (peer == null)
+            throw new IllegalArgumentException("peer null");
+        if (peer.ourPeer != null)
+            throw new IllegalArgumentException("peer already has a peer");
+        if (peer.isOutEOF() || peer.isInEOF())
+            throw new EOFException("peer EOF at constructor");
+
+        in = peer.out;
+        out = peer.in;
+        peer.ourPeer = this;
+        this.ourPeer = peer;
+        init();
+    }
 
     /**
-     * The server-side string manager for app-specific client message formatting, or {@code null}.
-     * Not used or referenced by the generic server layer.
-     * @since 2.0.0
+     * Constructor common-fields initialization
      */
-    protected SOCStringManager stringMgr;
-
-    protected int remoteVersion;
-    protected boolean remoteVersionKnown;
-    protected boolean remoteVersionTrack;
-    protected boolean hideTimeoutMessage;
+    private void init()
+    {
+        in_reachedEOF = false;
+        out_setEOF = false;
+        accepted = false;
+    }
 
     /**
-     * Is set if server-side. Notifies at EOF (calls removeConnection).
-     * Messages from client will go into ourServer's {@link InboundMessageQueue}.
-     */
-    protected Server ourServer;
-
-    /** Any error encountered, or {@code null} */
-    protected Exception error;
-
-    /** Time of connection to server, or of object creation if that time's not available */
-    protected Date connectTime = new Date();
-
-    /**
-     * @return Hostname of the remote end of the connection
-     */
-    public abstract String host();
-
-    /**
-     * Send data over the connection.
+     * Read the next string sent from the remote end,
+     * blocking if necessary to wait.
      *<P>
-     * <B>Threads:</B> Each implementation must be safe to call from any thread,
-     * and synchronize itself on an appropriate object or field.
+     * Synchronized on in-buffer.
      *
-     * @param str Data to send
+     * @return Next string in the in-buffer; never {@code null}.
+     * @throws EOFException Our input buffer has reached EOF
+     * @throws IllegalStateException Server has not yet accepted our connection
+     */
+    public String readNext() throws EOFException, IllegalStateException
+    {
+        if (! accepted)
+        {
+            error = new IllegalStateException("Not accepted by server yet");
+            throw (IllegalStateException) error;
+        }
+        if (in_reachedEOF)
+        {
+            error = new EOFException();
+            throw (EOFException) error;
+        }
+
+        Object obj;
+
+        synchronized (in)
+        {
+            while (in.isEmpty())
+            {
+                if (in_reachedEOF)
+                {
+                    error = new EOFException();
+                    throw (EOFException) error;
+                }
+
+                try
+                {
+                    in.wait();
+                }
+                catch (InterruptedException e)
+                {
+                    // interruption is normal, not exceptional
+                }
+            }
+            obj = in.elementAt(0);
+            in.removeElementAt(0);
+
+            if (obj == EOF_MARKER)
+            {
+                in_reachedEOF = true;
+                if (ourServer != null)
+                    ourServer.removeConnection(this, false);
+                error = new EOFException();
+                throw (EOFException) error;
+            }
+        }
+        return (String) obj;
+    }
+
+    /**
+     * Send data over the connection.  Does not block.
+     * Ignored if setEOF() has been called.
+     *<P>
+     * <B>Threads:</B> Safe to call from any thread; synchronizes on internal {@code out} queue.
      *
+     * @param dat Data to send
+     *
+     * @throws IllegalArgumentException if {@code dat} is {@code null}
      * @throws IllegalStateException if not yet accepted by server
      */
-    public abstract void put(String str)
-        throws IllegalStateException;
+    public void put(String dat)
+        throws IllegalArgumentException, IllegalStateException
+    {
+        if (dat == null)
+            throw new IllegalArgumentException("null");
 
-    /** For server-side thread which reads and treats incoming messages */
-    public abstract void run();
+        if (! accepted)
+        {
+            error = new IllegalStateException("Not accepted by server yet");
+            throw (IllegalStateException) error;
+        }
+        if (out_setEOF)
+            return;
 
-    /** Are we currently connected and active? */
-    public abstract boolean isConnected();
+        synchronized (out)
+        {
+            out.addElement(dat);
+            out.notifyAll();  // Another thread may have been waiting for input
+        }
+    }
 
-    /** Start ability to read from the net; called only by the server.
-     * (In a network-based subclass, another thread may be started by this method.)
-     *
-     * @return true if able to connect, false if an error occurred.
+    /**
+     * close the socket, discard pending buffered data, set EOF.
+     * Called after conn is removed from server structures.
      */
-    public abstract boolean connect();
+    public void disconnect()
+    {
+        if (! accepted)
+            return;  // <--- Early return: Already disconnected, or never connected ---
 
-    /** Close the socket, set EOF; called after conn is removed from server structures */
-    public abstract void disconnect();
+        D.ebugPrintln("DISCONNECTING " + data);
+        accepted = false;
+        synchronized (out)
+        {
+            // let the remote-end know we're closing
+            out.clear();
+            out.addElement(EOF_MARKER);
+            out_setEOF = true;
+            out.notifyAll();
+        }
+        disconnectSoft();  // clear "in", set its EOF
+    }
 
     /**
      * Accept no further input, allow output to drain, don't immediately close the socket.
      * Once called, {@link #isConnected()} will return false, even if output is still being
      * sent to the other side.
      */
-    public abstract void disconnectSoft();
-
-    /**
-     * The optional name key used to name this connection.
-     *<P>
-     * Before v1.2.0, this returned an {@link Object}; getData is a {@link String} in v1.2.0 and up.
-     *
-     * @return The name key for this connection, or null.
-     * @see #getAppData()
-     */
-    public String getData()
+    public void disconnectSoft()
     {
-        return data;
-    }
+        if (in_reachedEOF)
+            return;  // <--- Early return: Already stopped input and draining output ---
 
-    /**
-     * The optional app-specific changeable data for this connection.
-     * Not used anywhere in the generic server, only in your app.
-     *
-     * @return The app-specific data for this connection.
-     * @see #getData()
-     */
-    public Object getAppData()
-    {
-        return appData;
-    }
+        // Don't check accepted; it'll be false if we're called from
+        // disconnect(), and it's OK to do this part twice.
 
-    /**
-     * Set the optional name key for this connection.
-     *<P>
-     * The StringConnection system uses this data to name the connection,
-     * so it should not change once set.
-     *<P>
-     * If you call setData after {@link Server#newConnection1(StringConnection)},
-     * please call {@link Server#nameConnection(StringConnection, boolean)} afterwards
-     * to ensure the name is tracked properly at the server.
-     *<P>
-     * For anything else your application wants to associate with the connection,
-     * see {@link #setAppData(Object)}.
-     * @param data The new name key, or null
-     */
-    public void setData(String data)
-    {
-        this.data = data;
-    }
-
-    /**
-     * Set the app-specific non-key data for this connection.
-     *<P>
-     * This is anything your application wants to associate with the connection.
-     * The StringConnection system itself does not reference or use this data.
-     * You can change it as often as you'd like, or not use it.
-     *
-     * @param data The new data, or null
-     * @see #setData(String)
-     */
-    public void setAppData(Object data)
-    {
-        appData = data;
-    }
-
-    /**
-     * Get the locale for this connection, as reported to {@link #setI18NStringManager(SOCStringManager, String)}.
-     * @return the locale passed to {@code setI18NStringManager}, which may be {@code null}
-     * @since 2.0.0
-     */
-    public String getI18NLocale()
-    {
-        return localeStr;
-    }
-
-    /**
-     * Set the I18N string manager and locale name for this connection, for server convenience.
-     * Used for {@link #getLocalized(String)}.
-     * @param mgr  String manager, or null
-     * @param loc  Locale name, used only for {@link #getI18NLocale()}
-     * @since 2.0.0
-     */
-    public void setI18NStringManager(SOCStringManager mgr, final String loc)
-    {
-        stringMgr = mgr;
-        localeStr = loc;
-    }
-
-    /**
-     * Get a localized string (having no parameters) with the given key.
-     * Used for convenience at servers whose clients may have different locales.
-     * @param key  Key to use for string retrieval
-     * @return the localized string from the manager's bundle or one of its parents
-     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
-     * @since 2.0.0
-     * @see #getLocalized(String, Object...)
-     * @see #getLocalizedSpecial(SOCGame, String, Object...)
-     */
-    public String getLocalized(final String key)
-        throws MissingResourceException
-    {
-        SOCStringManager sm = stringMgr;
-        if (sm == null)
-            sm = SOCStringManager.getFallbackServerManagerForClient();
-
-        return sm.get(key);
-    }
-
-    /**
-     * Get and format a localized string (with parameters) with the given key.
-     * Used for convenience at servers whose clients may have different locales.
-     * @param key  Key to use for string retrieval
-     * @param arguments  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
-     *                   by calling {@link MessageFormat#format(String, Object...)}.
-     * @return the localized formatted string from the manager's bundle or one of its parents
-     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
-     * @since 2.0.0
-     * @see #getLocalized(String)
-     * @see #getLocalizedSpecial(SOCGame, String, Object...)
-     */
-    public String getLocalized(final String key, final Object ... arguments)
-        throws MissingResourceException
-    {
-        SOCStringManager sm = stringMgr;
-        if (sm == null)
-            sm = SOCStringManager.getFallbackServerManagerForClient();
-
-        return sm.get(key, arguments);
-    }
-
-    /**
-     * Get and format a localized string (with special SoC-specific parameters) with the given key.
-     * Used for convenience at servers whose clients may have different locales.
-     * See {@link SOCStringManager#getSpecial(SOCGame, String, Object...)} for details.
-     * Uses locale/strings from our client connection's {@link SOCStringManager} if set,
-     * {@link SOCStringManager#getFallbackServerManagerForClient()} otherwise.
-     *
-     * @param game  Game object to pass through to {@code SOCStringManager.getSpecial(...)}
-     * @param key  Key to use for string retrieval
-     * @param arguments  Objects to use with <tt>{0}</tt>, <tt>{1,rsrcs}</tt>, etc in the localized string
-     * @return the localized formatted string from the manager's bundle or one of its parents
-     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
-     * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
-     * @since 2.0.0
-     * @see #getLocalized(String)
-     * @see #getLocalized(String, Object...)
-     */
-    public String getLocalizedSpecial(final SOCGame game, final String key, final Object ... arguments)
-        throws MissingResourceException, IllegalArgumentException
-    {
-        SOCStringManager sm = stringMgr;
-        if (sm == null)
-            sm = SOCStringManager.getFallbackServerManagerForClient();
-
-        return sm.getSpecial(game, key, arguments);
-    }
-
-    /**
-     * @return Any error encountered, or null
-     */
-    public Exception getError()
-    {
-        return error;
-    }
-
-    /**
-     * @return Time of connection to server, or of object creation if that time's not available
-     * @see #connect()
-     */
-    public Date getConnectTime()
-    {
-        return connectTime;
-    }
-
-    /**
-     * Give the version number (if known) of the remote end of this connection.
-     * The meaning of this number is application-defined.
-     * @return Version number, or 0 if unknown.
-     */
-    public int getVersion()
-    {
-        return remoteVersion;
-    }
-
-    /**
-     * Set the version number of the remote end of this connection.
-     * The meaning of this number is application-defined.
-     *<P>
-     * <b>Locking:</b> If we're on server side, and {@link #setVersionTracking(boolean)} is true,
-     *  caller should synchronize on {@link Server#unnamedConns}.
-     *
-     * @param version Version number, or 0 if unknown.
-     *                If version is greater than 0, future calls to {@link #isVersionKnown()}
-     *                should return true.
-     */
-    public void setVersion(final int version)
-    {
-        setVersion(version, version > 0);
-    }
-
-    /**
-     * Set the version number of the remote end of this connection.
-     * The meaning of this number is application-defined.
-     *<P>
-     * <b>Locking:</b> If we're on server side, and {@link #setVersionTracking(boolean)} is true,
-     *  caller should synchronize on {@link Server#unnamedConns}.
-     *
-     * @param version Version number, or 0 if unknown.
-     * @param isKnown Should this version be considered confirmed/known by {@link #isVersionKnown()}?
-     * @since 1.0.5
-     */
-    public void setVersion(final int version, final boolean isKnown)
-    {
-        final int prevVers = remoteVersion;
-        remoteVersion = version;
-        remoteVersionKnown = isKnown;
-        if (remoteVersionTrack && (ourServer != null) && (prevVers != version))
+        D.ebugPrintln("DISCONNECTING(SOFT) " + data);
+        synchronized (in)
         {
-            ourServer.clientVersionRem(prevVers);
-            ourServer.clientVersionAdd(version);
+            in.clear();
+            in.addElement(EOF_MARKER);
+            in_reachedEOF = true;
+            in.notifyAll();
         }
     }
 
     /**
-     * Is the version known of the remote end of this connection?
-     * We may have just assumed it, or taken a default.
-     * To confirm the version and set this flag, call {@link #setVersion(int, boolean)}.
-     * @return True if we've confirmed the version, false if it's assumed or default.
-     * @since 1.0.5
+     * Connect to specified stringport. Calling thread waits until accepted.
+     *<P>
+     * Connection must be unnamed (<tt>{@link #getData()} == null</tt>) at this point.
+     *
+     * @param serverSocketName  stringport name to connect to
+     * @throws ConnectException If stringport name is not found, or is EOF,
+     *                          or if its connect/accept queue is full.
+     * @throws IllegalStateException If this object is already connected
      */
-    public boolean isVersionKnown()
+    public void connect(String serverSocketName) throws ConnectException, IllegalStateException
     {
-        return remoteVersionKnown;
+        if (accepted)
+            throw new IllegalStateException("Already accepted by a server");
+
+        StringServerSocket.connectTo(serverSocketName, this);
+        connectTime = new Date();
+
+        // ** connectTo will Thread.wait until accepted by server.
+
+        accepted = true;
     }
 
     /**
-     * For server-side use, should we notify the server when our version
-     * is changed by setVersion calls?
-     * @param doTracking true if we should notify server, false otherwise.
-     *        If true, please call both setVersion and
-     *        {@link Server#clientVersionAdd(int)} before calling setVersionTracking.
-     *        If false, please call {@link Server#clientVersionRem(int)} before
-     *        calling setVersionTracking.
-     * @since 1.0.5
+     * Remember, the peer's in is our out, and vice versa.
+     *
+     * @return Returns our peer, or null if not yet connected.
      */
-    public void setVersionTracking(final boolean doTracking)
+    public StringConnection getPeer()
     {
-        remoteVersionTrack = doTracking;
+        return ourPeer;
+    }
+
+    /**
+     * Is currently accepted by a server
+     *
+     * @return Are we currently connected, accepted, and ready to send/receive data?
+     */
+    public boolean isAccepted()
+    {
+        return accepted;
+    }
+
+    /**
+     * Intended for server to call: Set our accepted flag.
+     * Peer must be non-null to set accepted.
+     * If our EOF is set, will not set accepted, but will not throw exception.
+     * (This happens if the server socket closes while we're in its accept queue.)
+     *
+     * @throws IllegalStateException If we can't be, or already are, accepted
+     */
+    public void setAccepted() throws IllegalStateException
+    {
+        if (ourPeer == null)
+            throw new IllegalStateException("No peer, can't be accepted");
+        if (accepted)
+            throw new IllegalStateException("Already accepted");
+        if (! (out_setEOF || in_reachedEOF))
+            accepted = true;
+    }
+
+    /**
+     * Signal the end of outbound data.
+     * Not the same as closing, because we don't terminate the inbound side.
+     *
+     * Synchronizes on out-buffer.
+     */
+    public void setEOF()
+    {
+        synchronized (out)
+        {
+            // let the remote-end know we're closing
+            out.addElement(EOF_MARKER);
+            out_setEOF = true;
+            out.notifyAll();
+        }
+    }
+
+    /**
+     * Have we received an EOF marker inbound?
+     */
+    public boolean isInEOF()
+    {
+        synchronized (in)
+        {
+            return in_reachedEOF;
+        }
+    }
+
+    /**
+     * Have we closed our outbound side?
+     *
+     * @see #setEOF()
+     */
+    public boolean isOutEOF()
+    {
+        synchronized (out)
+        {
+            return out_setEOF;
+        }
+    }
+
+    /**
+     * Server-side: Reference to the server handling this connection.
+     *
+     * @return The generic server (optional) for this connection
+     */
+    public Server getServer()
+    {
+        return ourServer;
+    }
+
+    /**
+     * Server-side: Set the generic server for this connection.
+     * This is how the code knows it's on the server (not client) side.
+     * If a server is set, its removeConnection method is called if our input reaches EOF,
+     * and it's notified if our version changes.
+     *<P>
+     * Call this before calling run().
+     *
+     * @param srv The new server, or null
+     * @see #setVersionTracking(boolean)
+     */
+    public void setServer(Server srv)
+    {
+        ourServer = srv;
+    }
+
+    /**
+     * Hostname of the remote side of the connection -
+     * Always returns localhost; this method required for
+     * the Connection interface.
+     */
+    public String host()
+    {
+        return "localhost";
+    }
+
+    /**
+     * Local version; nothing special to do to start reading messages.
+     * Call connect(serverSocketName) instead of this method.
+     *
+     * @see #connect(String)
+     *
+     * @return Whether we've connected and been accepted by a SOCServerSocket.
+     */
+    public boolean connect()
+    {
+        return accepted;
+    }
+
+    /** Are we currently connected and active? */
+    public boolean isConnected()
+    {
+        return accepted && ! (out_setEOF || in_reachedEOF);
     }
 
     /**
@@ -405,31 +434,79 @@ public abstract class StringConnection
      * Same idea as {@link java.io.DataInputStream#available()}.
      * @since 1.0.5
      */
-    public abstract boolean isInputAvailable();
-
-    /**
-     * If client connection times out at server, should the server not print a message to console?
-     * This would be desired, for instance, in automated clients, which would reconnect
-     * if they become disconnected.
-     * @see #setHideTimeoutMessage(boolean)
-     * @since 1.0.5
-     */
-    public boolean wantsHideTimeoutMessage()
+    public boolean isInputAvailable()
     {
-        return hideTimeoutMessage;
+        return (! in_reachedEOF) && (0 < in.size());
     }
 
     /**
-     * If client connection times out at server, should the server not print a message to console?
-     * This would be desired, for instance, in automated clients, which would reconnect
-     * if they become disconnected.
-     * @param wantsHide true to hide, false to print, the log message on idle-disconnect
-     * @see #wantsHideTimeoutMessage()
-     * @since 1.0.5
+     * For server-side; continuously read and treat input.
+     * You must create and start the thread.
+     * We are on server side if ourServer != null.
+     *<P>
+     * When starting the thread, {@link #getData()} must be null.
      */
-    public void setHideTimeoutMessage(final boolean wantsHide)
+    public void run()
     {
-        hideTimeoutMessage = wantsHide;
+        Thread.currentThread().setName("connection-srv-localstring");
+
+        if (ourServer == null)
+            return;
+
+        ourServer.addConnection(this);
+            // won't throw IllegalArgumentException, because conn is unnamed at this point; getData() is null
+
+        try
+        {
+            final InboundMessageQueue inQueue = ourServer.inQueue;
+
+            if (! in_reachedEOF)
+            {
+                String firstMsg = readNext();
+                if (! ourServer.processFirstCommand(firstMsg, this)){
+                    inQueue.push(firstMsg, this);
+                }
+
+            }
+
+            while (! in_reachedEOF)
+            {
+                inQueue.push(readNext(), this);  // readNext() blocks until next message is available
+            }
+        }
+        catch (IOException e)
+        {
+            D.ebugPrintln("IOException in StringConnection.run - " + e);
+
+            if (D.ebugOn)
+            {
+                e.printStackTrace(System.out);
+            }
+
+            if (in_reachedEOF)
+            {
+                return;
+            }
+
+            error = e;
+            ourServer.removeConnection(this, false);
+        }
+    }
+
+    /**
+     * For debugging, toString includes connection name key ({@link #getData()}) if available.
+     * @since 1.0.5.2
+     */
+    @Override
+    public String toString()
+    {
+        StringBuffer sb = new StringBuffer("StringConnection[");
+        if (data != null)
+            sb.append(data);
+        else
+            sb.append(super.hashCode());
+        sb.append(']');
+        return sb.toString();
     }
 
 }

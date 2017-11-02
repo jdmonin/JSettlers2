@@ -1,6 +1,6 @@
 /**
- * Local (StringConnection) network system.  Version 1.0.5.
- * Copyright (C) 2007-2009,2016 Jeremy D Monin <jeremy@nand.net>.
+ * JSettlers network message system.
+ * This file Copyright (C) 2007-2009,2016-2017 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -27,29 +27,29 @@ import java.net.Socket;
 import java.net.SocketException;
 
 /**
- * Uses ServerSocket to implement StringServerSocket over a network.
+ * Uses {@link ServerSocket} to implement {@link SOCServerSocket} over a network.
  *<P>
- * Before version 2.0.00 this class was an inner class in {@link Server}.
+ * Before version 2.0.00 this class was an inner class {@code NetStringServerSocket} in {@link Server}.
  *
  * @since 2.0.00
  */
-public class NetStringServerSocket implements StringServerSocket
+public class NetServerSocket implements SOCServerSocket
 {
     private final ServerSocket implServSocket;
     private final Server server;
 
-    public NetStringServerSocket (int port, Server server)
+    public NetServerSocket(int port, Server server)
         throws IOException
     {
         this.implServSocket = new ServerSocket(port);
         this.server = server;
     }
 
-    public StringConnection accept()
+    public Connection accept()
         throws SocketException, IOException
     {
         Socket s = implServSocket.accept();
-        return new NetStringConnection(s, server);
+        return new NetConnection(s, server);
     }
 
     public void close()

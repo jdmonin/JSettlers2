@@ -77,7 +77,7 @@ import java.util.Vector;
  *<P>
  * Some fields are for use at the server only, and are null at the client:
  * {@link #resourceStats}, {@link #pendingMessagesOut}, etc.
- * To get a SOCPlayer client's {@code StringConnection}, use
+ * To get the {@code Connection} to a SOCPlayer's client, use
  * {@code SOCServer.getConnection(player.{@link #getName()}).
  *
  * @author Robert S Thomas

@@ -46,13 +46,13 @@ import soc.server.SOCServer;
  *  This is the real stuff. Server subclasses won't have to care about
  *  reading/writing on the net, data consistency among threads, etc.
  *  The Server listens on either a TCP {@link #port}, or for practice mode,
- *  to a {@link LocalStringServerSocket}.
+ *  to a {@link StringServerSocket}.
  *<P>
  *  Newly connecting clients arrive in {@link #run()},
- *  start a thread for the server side of their {@link NetStringConnection} or {@link LocalStringConnection},
- *  and are integrated into server data via {@link #addConnection(StringConnection)}
+ *  start a thread for the server side of their {@link NetConnection} or {@link StringConnection},
+ *  and are integrated into server data via {@link #addConnection(Connection)}
  *  called from that thread.  If the client's connection is accepted in
- *  {@link #newConnection1(StringConnection)}, the per-client thread enters a while-loop and
+ *  {@link #newConnection1(Connection)}, the per-client thread enters a while-loop and
  *  will place each inbound message into a server-wide {@link #inQueue},
  *  which is processed in a server-wide single thread called the "treater".
  *<P>
@@ -60,11 +60,11 @@ import soc.server.SOCServer;
  *  including too many connections versus {@link #getNamedConnectionCount()}.
  *<P>
  *  To handle inbound messages from the clients, the server-wide "treater" thread
- *  of {@link InboundMessageQueue} will call {@link InboundMessageDispatcher#dispatch(String, StringConnection)}
+ *  of {@link InboundMessageQueue} will call {@link InboundMessageDispatcher#dispatch(String, Connection)}
  *  for each message in the shared {@link #inQueue}.
  *<P>
  *  The first processed message over the connection will be from the server to the client,
- *  in {@link #newConnection1(StringConnection)} or {@link #newConnection2(StringConnection)}.
+ *  in {@link #newConnection1(Connection)} or {@link #newConnection2(Connection)}.
  *  You can send out to the client there, but can't yet receive messages from it,
  *  until after newConnection2 returns.
  *  The client should ideally be named and versioned in newConnection1, but this
@@ -84,7 +84,7 @@ import soc.server.SOCServer;
 public abstract class Server extends Thread implements Serializable, Cloneable
 {
 
-    StringServerSocket ss;
+    SOCServerSocket ss;
 
     /**
      * Dispatcher for all inbound messages from clients.
@@ -95,10 +95,13 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     boolean up = false;
     protected Exception error = null;
 
-    /** TCP port number, or -1 for local/practice mode ({@link LocalStringServerSocket}, etc). */
+    /**
+     * TCP port number for {@link NetServerSocket}, or -1 for
+     * local/practice mode ({@link StringServerSocket}).
+     */
     protected int port;
 
-    /** {@link LocalStringServerSocket} name, or {@code null} for network mode. */
+    /** {@link StringServerSocket} name, or {@code null} for network mode. */
     protected String strSocketName;
 
     /**
@@ -125,27 +128,27 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     protected int numberCurrentConnections = 0;
 
-    /** The named connections: {@link StringConnection#getData()} != {@code null}.
+    /** The named connections: {@link Connection#getData()} != {@code null}.
      *<BR>
      * <B>Locks:</B> Adding/removing/naming/versioning of connections synchronizes on {@link #unnamedConns}.
      * @see #connNames
      * @see #unnamedConns
      */
-    protected Hashtable<Object, StringConnection> conns = new Hashtable<Object, StringConnection>();
+    protected Hashtable<Object, Connection> conns = new Hashtable<Object, Connection>();
 
     /** the newly connected, unnamed client connections;
      *  Adding/removing/naming/versioning of connections synchronizes on this Vector.
      *  @see #conns
      */
-    protected Vector<StringConnection> unnamedConns = new Vector<StringConnection>();
+    protected Vector<Connection> unnamedConns = new Vector<Connection>();
 
     /**
      * Map for case-insensitive lookup of connection names in {@link #conns}.
      *<P>
-     *<B>Key:</B> {@link StringConnection#getData() c.getData()}
+     *<B>Key:</B> {@link Connection#getData() c.getData()}
      * {@link String#toLowerCase(Locale) .toLowerCase}({@link Locale#US}).
      *<BR>
-     *<B>Value:</B> {@link StringConnection#getData() c.getData()} with its actual case
+     *<B>Value:</B> {@link Connection#getData() c.getData()} with its actual case
      *<P>
      * <B>Locks:</B> Adding/removing/naming/versioning of connections synchronizes on {@link #unnamedConns}.
      * @since 1.2.00
@@ -154,7 +157,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * The queue of messages received from all clients to dispatch, and/or Runnable tasks to run, in the
-     * {@code Treater} thread which calls {@link Server.InboundMessageDispatcher#dispatch(String, StringConnection)}.
+     * {@code Treater} thread which calls {@link Server.InboundMessageDispatcher#dispatch(String, Connection)}.
      *<P>
      * Before v2.0.00, this was a {@link Vector}.
      */
@@ -162,7 +165,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * Versions of currently connected clients, according to
-     * {@link StringConnection#getVersion()}.
+     * {@link Connection#getVersion()}.
      * Key = Integer(version). Value = ConnVersionCounter.
      * Synchronized on {@link #unnamedConns}, like many other
      * client-related structures.
@@ -200,10 +203,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * messages are not printed, so long as your app removes them.
      * This is only used if {@link D#ebugIsEnabled()} is true.
      *<P>
-     * <em>Keys:</em> The {@link StringConnection} object is used as the key
-     *    within {@link #addConnection(StringConnection)} (for the rejoining message).
-     *    The {@link StringConnection#getData() connection keyname} is used as the key
-     *    within {@link #removeConnection(StringConnection, boolean)} (for the leaving message);
+     * <em>Keys:</em> The {@link Connection} object is used as the key
+     *    within {@link #addConnection(Connection)} (for the rejoining message).
+     *    The {@link Connection#getData() connection keyname} is used as the key
+     *    within {@link #removeConnection(Connection, boolean)} (for the leaving message);
      *    if this is null, the message is printed immediately and not added to this map.
      *<br>
      * <em>Values:</em> A {@link Server.ConnExcepDelayedPrintTask} which will
@@ -249,7 +252,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
         try
         {
-            ss = new NetStringServerSocket(port, this);
+            ss = new NetServerSocket(port, this);
         }
         catch (IOException e)
         {
@@ -278,7 +281,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         this.inboundMsgDispatcher = imd;
         this.inQueue = new InboundMessageQueue(imd);
 
-        ss = new LocalStringServerSocket(stringSocketName);
+        ss = new StringServerSocket(stringSocketName);
         setName("server-localstring-" + stringSocketName);  // Thread name for debugging
 
         initMisc();
@@ -302,11 +305,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *<P>
      * Before v1.2.00 this method was protected and took an Object, not String, for {@code connKey}.
      *
-     * @param connKey Case-sensitive client name key, from {@link StringConnection#getData()}; if null, returns null
+     * @param connKey Case-sensitive client name key, from {@link Connection#getData()}; if that's null, returns null
      * @return The connection with this name, or null if none
      * @see #getConnection(String, boolean)
      */
-    public StringConnection getConnection(final String connKey)
+    public Connection getConnection(final String connKey)
     {
         if (connKey != null)
             return conns.get(connKey);
@@ -316,13 +319,13 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * Given a connection's name key, return the connected client; optionally case-insensitive.
-     * @param connKey Client name key, from {@link StringConnection#getData()}; if null, returns null
+     * @param connKey Client name key, from {@link Connection#getData()}; if that's null, returns null
      * @param isCaseSensitive  Use case-insensitive lookup for {@code connKey}?
      * @return The connection with this name, or null if none
      * @see #getConnection(String)
      * @since 1.2.00
      */
-    public StringConnection getConnection(String connKey, final boolean isCaseSensitive)
+    public Connection getConnection(String connKey, final boolean isCaseSensitive)
     {
         if ((! isCaseSensitive) && (connKey != null))
             synchronized(unnamedConns)
@@ -336,10 +339,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             return null;
     }
     /**
-     * @return the list of named connections: StringConnections where {@link StringConnection#getData()}
+     * @return the list of named connections: {@link Connection}s where {@link Connection#getData()}
      *         is not null
      */
-    protected Enumeration<StringConnection> getConnections()
+    protected Enumeration<Connection> getConnections()
     {
         return conns.elements();
     }
@@ -367,7 +370,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * Get the current number of named connections to the server.
-     * @return the count of named connections: StringConnections where {@link StringConnection#getData()}
+     * @return the count of named connections: {@link Connection}s where {@link Connection#getData()}
      *         is not null
      * @see #getCurrentConnectionCount()
      */
@@ -379,7 +382,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * Get the current number of connections (both named and unnamed) to the server.
      * @return the count of connections, both unnamed and named
-     *         ({@link StringConnection#getData()} not null).
+     *         ({@link Connection#getData()} not null).
      * @since 1.1.13
      * @see #getNamedConnectionCount()
      */
@@ -424,20 +427,20 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     // we could limit the number of accepted connections here
                     // Currently it's limited in SOCServer.newConnection1 by checking connectionCount()
                     // which is more modular.
-                    StringConnection connection = ss.accept();
+                    Connection connection = ss.accept();
                     if (port != -1)
                     {
-                        new Thread((NetStringConnection) connection).start();
+                        new Thread((NetConnection) connection).start();
                     }
                     else
                     {
-                        LocalStringConnection localConnection = (LocalStringConnection) connection;
+                        StringConnection localConnection = (StringConnection) connection;
                         localConnection.setServer(this);
 
                         new Thread(localConnection).start();
                     }
 
-                    //addConnection(new StringConnection());
+                    //addConnection(new Connection());
                 }
             }
             catch (IOException e)
@@ -453,9 +456,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             {
                 ss.close();
                 if (strSocketName == null)
-                    ss = new NetStringServerSocket(port, this);
+                    ss = new NetServerSocket(port, this);
                 else
-                    ss = new LocalStringServerSocket(strSocketName);
+                    ss = new StringServerSocket(strSocketName);
             }
             catch (IOException e)
             {
@@ -476,9 +479,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @param con Connection (client) sending this message
      * @return true if processed here, false if this message should be
      *     queued up and processed as normal by
-     *     {@link Server.InboundMessageDispatcher#dispatch(String, StringConnection)}.
+     *     {@link Server.InboundMessageDispatcher#dispatch(String, Connection)}.
      */
-    public boolean processFirstCommand(String str, StringConnection con)
+    public boolean processFirstCommand(String str, Connection con)
     {
         return false;
     }
@@ -501,7 +504,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * placeholder for doing things when a new connection comes, part 1 -
      * decide whether to accept.
      * Unless you override this method, always returns true.
-     * This is called within {@link #addConnection(StringConnection)}.
+     * This is called within {@link #addConnection(Connection)}.
      *<P>
      * If the connection is accepted, it's added to a list ({@link #unnamedConns}
      * or {@link #conns}), and also added to the version collection.
@@ -509,40 +512,40 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * This method is called within a per-client thread.
      * You can send to client, but can't yet receive messages from them.
      *<P>
-     * Should send a message to the client in either {@link #newConnection1(StringConnection)}
-     * or {@link #newConnection2(StringConnection)}.
+     * Should send a message to the client in either {@link #newConnection1(Connection)}
+     * or {@link #newConnection2(Connection)}.
      * You may also name the connection here by calling
-     * {@link StringConnection#setData(String) c.setData(name)},
+     * {@link Connection#setData(String) c.setData(name)},
      * which will help add to conns or unnamedConns.
      * This is also where the version should be set.
      *<P>
-     * Note that {@link #addConnection(StringConnection)} won't close the channel or
+     * Note that {@link #addConnection(Connection)} won't close the channel or
      * take other action to disconnect a rejected client.
      *<P>
      * SYNCHRONIZATION NOTE: During the call to newConnection1, the monitor lock of
      * {@link #unnamedConns} is held.  Thus, defer as much as possible until
-     * {@link #newConnection2(StringConnection)} (after the connection is accepted).
+     * {@link #newConnection2(Connection)} (after the connection is accepted).
      *
      * @param c incoming connection to evaluate and act on
      * @return true to accept and continue, false if you have rejected this connection;
-     *         if false, addConnection will call {@link StringConnection#disconnectSoft()}.
+     *         if false, addConnection will call {@link Connection#disconnectSoft()}.
      *
-     * @see #addConnection(StringConnection)
-     * @see #newConnection2(StringConnection)
-     * @see #nameConnection(StringConnection, boolean)
+     * @see #addConnection(Connection)
+     * @see #newConnection2(Connection)
+     * @see #nameConnection(Connection, boolean)
      */
-    protected boolean newConnection1(StringConnection c) { return true; }
+    protected boolean newConnection1(Connection c) { return true; }
 
     /** placeholder for doing things when a new connection comes, part 2 -
      *  has been accepted and added to a connection list.
-     *  Unlike {@link #newConnection1(StringConnection)},
+     *  Unlike {@link #newConnection1(Connection)},
      *  no connection-list locks are held when this method is called.
-     *  This is called within {@link #addConnection(StringConnection)}.
+     *  This is called within {@link #addConnection(Connection)}.
      *<P>
      *  This method is called within a per-client thread.
      *  You can send to client, but can't yet receive messages from them.
      */
-    protected void newConnection2(StringConnection c) {}
+    protected void newConnection2(Connection c) {}
 
     /** placeholder for doing things when a connection is closed.
      *  Called after connection is removed from conns collection
@@ -550,9 +553,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *<P>
      * This method is called within a per-client thread.
      *
-     * @see #removeConnectionCleanup(StringConnection)
+     * @see #removeConnectionCleanup(Connection)
      */
-    protected void leaveConnection(StringConnection c) {}
+    protected void leaveConnection(Connection c) {}
 
     /** The server is being cleanly stopped, disconnect all the connections.
      * Calls {@link #serverDown()} before disconnect; if your child class has more work
@@ -568,7 +571,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
         serverDown();
 
-        for (Enumeration<StringConnection> e = conns.elements(); e.hasMoreElements();)
+        for (Enumeration<Connection> e = conns.elements(); e.hasMoreElements();)
         {
             e.nextElement().disconnect();
         }
@@ -579,9 +582,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * Remove a connection from the system, and then optionally call the cleanup callback.
-     * The callback {@link #leaveConnection(StringConnection)} will be called,
-     * after calling {@link StringConnection#disconnect()} on c.
-     * If {@code doCleanup}, the callback {@link #removeConnectionCleanup(StringConnection)}
+     * The callback {@link #leaveConnection(Connection)} will be called,
+     * after calling {@link Connection#disconnect()} on c.
+     * If {@code doCleanup}, the callback {@link #removeConnectionCleanup(Connection)}
      * will be called afterwards.
      *<P>
      *<B>Locks:</B> Synchronized on list of connections.
@@ -589,9 +592,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * The add to {@link #cliConnDisconPrintsPending} is unsynchronized.
      *
      * @param c Connection to remove; will call its disconnect() method and remove it from the server state.
-     * @param doCleanup  If true, will also call {@link #removeConnectionCleanup(StringConnection)}.
+     * @param doCleanup  If true, will also call {@link #removeConnectionCleanup(Connection)}.
      */
-    public void removeConnection(final StringConnection c, final boolean doCleanup)
+    public void removeConnection(final Connection c, final boolean doCleanup)
     {
         final String cKey = c.getData();  // client player name
 
@@ -599,7 +602,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         {
             if (cKey != null)
             {
-                final StringConnection cKeyConn = conns.get(cKey);
+                final Connection cKeyConn = conns.get(cKey);
                 if (null == cKeyConn)
                 {
                     // Was not a member
@@ -653,30 +656,30 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * Do cleanup after removing a connection. This is a generic stub that subclass servers can override.
      *
-     * @see #leaveConnection(StringConnection)
+     * @see #leaveConnection(Connection)
      */
-    protected void removeConnectionCleanup(StringConnection c) {}
+    protected void removeConnectionCleanup(Connection c) {}
 
     /**
      * Add a connection to the system.
      * Called within a per-client thread.
-     * {@link StringConnection#connect()} is called at the start of this method.
+     * {@link Connection#connect()} is called at the start of this method.
      *<P>
      * App-specific work should be done by overriding
-     * {@link #newConnection1(StringConnection)} and
-     * {@link #newConnection2(StringConnection)}.
+     * {@link #newConnection1(Connection)} and
+     * {@link #newConnection2(Connection)}.
      * The connection naming and version is checked here (after newConnection1).
      *<P>
      * <b>Locking:</b> Synchronized on unnamedConns, although
      * named conns (getData not null) are added to conns, not unnamedConns.
      * The add to {@link #cliConnDisconPrintsPending} is unsynchronized.
      *
-     * @param c Connecting client; its name key ({@link StringConnection#getData()}) may be null.
+     * @param c Connecting client; its name key ({@link Connection#getData()}) may be null.
      * @throws IllegalArgumentException if there's already a connection using {@code c}'s name key (case-insensitive)
-     * @see #nameConnection(StringConnection, boolean)
-     * @see #removeConnection(StringConnection, boolean)
+     * @see #nameConnection(Connection, boolean)
+     * @see #removeConnection(Connection, boolean)
      */
-    public void addConnection(StringConnection c)
+    public void addConnection(Connection c)
         throws IllegalArgumentException
     {
         boolean connAccepted;
@@ -738,19 +741,19 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * Can be called once per connection (once named, cannot be changed).
      * Synchronized on {@link #unnamedConns}.
      *<P>
-     * If you name the connection inside {@link #newConnection1(StringConnection)},
+     * If you name the connection inside {@link #newConnection1(Connection)},
      * you don't need to call nameConnection, because it hasn't yet been added
      * to a connection list.
      *
-     * @param c Connected client; its name key ({@link StringConnection#getData()}) must not be null
+     * @param c Connected client; its name key ({@link Connection#getData()}) must not be null
      * @param isReplacing  Are we replacing / taking over a current connection?
      * @throws IllegalArgumentException If c isn't already connected, if c.getData() returns null,
      *          nameConnection has previously been called for this connection, or there's already
      *          a connection with this name (case-insensitive) and {@code ! isReplacing}
-     * @see #addConnection(StringConnection)
+     * @see #addConnection(Connection)
      * @see #getConnection(String, boolean)
      */
-    public void nameConnection(StringConnection c, final boolean isReplacing)
+    public void nameConnection(Connection c, final boolean isReplacing)
         throws IllegalArgumentException
     {
         String cKey = c.getData();
@@ -781,7 +784,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * <b>Locks:</b> Caller should synchronize on {@link #unnamedConns},
      *   and call just before incrementing {@link #numberCurrentConnections}.
      *
-     * @param cvers Client version number, from {@link StringConnection#getVersion()}.
+     * @param cvers Client version number, from {@link Connection#getVersion()}.
      * @see #clientVersionRem(int)
      * @see #getMinConnectedCliVersion()
      * @see #getMaxConnectedCliVersion()
@@ -821,7 +824,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *   right after decrementing numberCurrentConnections (in case a consistency-check
      *   is called from here).
      *
-     * @param cvers Client version number, from {@link StringConnection#getVersion()}.
+     * @param cvers Client version number, from {@link Connection#getVersion()}.
      * @see #clientVersionAdd(int)
      * @see #getMinConnectedCliVersion()
      * @see #getMaxConnectedCliVersion()
@@ -896,7 +899,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * Is a client with this version number currently connected?
-     * @param cvers Client version number, from {@link StringConnection#getVersion()}.
+     * @param cvers Client version number, from {@link Connection#getVersion()}.
      * @return  True if a client of this version is currently connected,
      *    according to calls to {@link #clientVersionAdd(int)}
      *    and {@link #clientVersionRem(int)}
@@ -931,7 +934,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
         // same enums as broadcast()
 
-        for (Enumeration<StringConnection> e = getConnections(); e.hasMoreElements();)
+        for (Enumeration<Connection> e = getConnections(); e.hasMoreElements();)
         {
             cvers = e.nextElement().getVersion();
 
@@ -950,7 +953,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             lastVers = cvers;
         }
 
-        for (Enumeration<StringConnection> e = unnamedConns.elements(); e.hasMoreElements();)
+        for (Enumeration<Connection> e = unnamedConns.elements(); e.hasMoreElements();)
         {
             cvers = e.nextElement().getVersion();
 
@@ -1094,11 +1097,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         if (m == null)
             throw new IllegalArgumentException("null");
 
-        for (Enumeration<StringConnection> e = getConnections(); e.hasMoreElements();)
+        for (Enumeration<Connection> e = getConnections(); e.hasMoreElements();)
         {
             e.nextElement().put(m);
         }
-        for (Enumeration<StringConnection> e = unnamedConns.elements(); e.hasMoreElements();)
+        for (Enumeration<Connection> e = unnamedConns.elements(); e.hasMoreElements();)
         {
             e.nextElement().put(m);
         }
@@ -1113,7 +1116,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * If vmin > vmax, do nothing.
      *
      * @param m SOCmessage string, generated by {@link soc.message.SOCMessage#toCmd()}
-     * @param vmin Minimum version, as returned by {@link StringConnection#getVersion()},
+     * @param vmin Minimum version, as returned by {@link Connection#getVersion()},
      *             or {@link Integer#MIN_VALUE}
      * @param vmax Maximum version, or {@link Integer#MAX_VALUE}
      * @since 1.1.06
@@ -1129,16 +1132,16 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         if (vmin > vmax)
             return;
 
-        for (Enumeration<StringConnection> e = getConnections(); e.hasMoreElements();)
+        for (Enumeration<Connection> e = getConnections(); e.hasMoreElements();)
         {
-            StringConnection c = e.nextElement();
+            Connection c = e.nextElement();
             int cvers = c.getVersion();
             if ((cvers >= vmin) && (cvers <= vmax))
                 c.put(m);
         }
-        for (Enumeration<StringConnection> e = unnamedConns.elements(); e.hasMoreElements();)
+        for (Enumeration<Connection> e = unnamedConns.elements(); e.hasMoreElements();)
         {
-            StringConnection c = e.nextElement();
+            Connection c = e.nextElement();
             int cvers = c.getVersion();
             if ((cvers >= vmin) && (cvers <= vmax))
                 c.put(m);
@@ -1174,7 +1177,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
          * bugs in server or game code it calls.
          *<P>
          * The first message from a client is treated by
-         * {@link #processFirstCommand(String, StringConnection)} instead.
+         * {@link #processFirstCommand(String, Connection)} instead.
          *<P>
          *<B>Security Note:</B> When there is a choice, always use local information
          * over information from the message.  For example, use the nickname from the connection to get the player
@@ -1188,7 +1191,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
          *    initialization method needs to be called first;
          *    see dispatcher class javadoc
          */
-        abstract public void dispatch(String str, StringConnection con)
+        abstract public void dispatch(String str, Connection con)
             throws IllegalStateException;
     }
 
@@ -1274,7 +1277,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * This object represents one client-connect or disconnect
      * debug-print announcement within {@link Server#cliConnDisconPrintsPending}.
-     * When a client is {@link Server#removeConnection(StringConnection, boolean) removed}
+     * When a client is {@link Server#removeConnection(Connection, boolean) removed}
      * due to an error, the error message print is delayed briefly, in case the client
      * is doing a disconnect/reconnect (as some robot clients do).
      * This gives the server a chance to suppress the 2 left/rejoined messages if the
@@ -1283,11 +1286,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * It's up to the server application (extending this generic Server) to recognize
      * that the arrived client is the same as the departed one, and remove both
      * messages from the pending vector.  This is typically done via the client's username
-     * or nickname, as stored in {@link StringConnection#getData()}.
+     * or nickname, as stored in {@link Connection#getData()}.
      *
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 1.1.07
-     * @see Server#addConnection(StringConnection).
+     * @see Server#addConnection(Connection)
      * @see Server#CLI_DISCON_PRINT_TIMER_FIRE_MS
      */
     protected class ConnExcepDelayedPrintTask extends TimerTask
@@ -1297,20 +1300,20 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
         /** Key for {@link #cliConnDisconPrintsPending};
          *  non-null unless {@link #isArriveNotDepart}; if so,
-         *  connection name from {@link StringConnection#getData()}
+         *  connection name from {@link Connection#getData()}
          *<P>
          * Before v1.2.00, this field was {@code connData}.
          */
         public String connName;
 
-        /** @see StringConnection#host() */
+        /** @see Connection#host() */
         public String connHost;
 
         /** Arrival, not a departure */
         public boolean isArriveNotDepart;
 
         /** Key for {@link #cliConnDisconPrintsPending}; null unless isArriveNotDepart */
-        public StringConnection arrivingConn;
+        public Connection arrivingConn;
 
         /** Time at which this message was constructed, via {@link System#currentTimeMillis()} */
         public long thrownAt;
@@ -1324,13 +1327,13 @@ public abstract class Server extends Thread implements Serializable, Cloneable
          * @param ex  Exception to print after the delay; may be null
          * @param c   Connection being disconnected; may not be null,
          *              and unless isArrival,
-         *              {@link StringConnection#getData() c.getData()}
+         *              {@link Connection#getData() c.getData()}
          *              may not be null.
          *
          * @throws IllegalArgumentException if c or c.getData is null
          * @see D#ebugIsEnabled()
          */
-        public ConnExcepDelayedPrintTask(boolean isArrival, Throwable ex, StringConnection c)
+        public ConnExcepDelayedPrintTask(boolean isArrival, Throwable ex, Connection c)
             throws IllegalArgumentException
         {
             if (! D.ebugIsEnabled())

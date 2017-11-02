@@ -23,16 +23,16 @@ import soc.debug.D;
 import soc.game.SOCGame;
 import soc.message.SOCMessage;
 import soc.message.SOCMessageForGame;
+import soc.server.genericServer.Connection;
 import soc.server.genericServer.Server;
-import soc.server.genericServer.StringConnection;
 
 /**
  * Server class to dispatch all inbound messages.
  * Sole exception: The first message from a client is dispatched by
- * {@link SOCServer#processFirstCommand(String, StringConnection)} instead.
+ * {@link SOCServer#processFirstCommand(String, Connection)} instead.
  *<P>
  * Once server is initialized, call {@link #setServer(SOCServer, SOCGameListAtServer)}
- * before calling {@link #dispatch(String, StringConnection)}.
+ * before calling {@link #dispatch(String, Connection)}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -72,7 +72,7 @@ public class SOCMessageDispatcher
 
     /**
      * Set our SOCServer and game list references, necessary before
-     * {@link #dispatch(String, StringConnection)} can be called.
+     * {@link #dispatch(String, Connection)} can be called.
      *
      * @param srv  This dispatcher's server
      * @param srvHandler  Server message handler for {@code srv}
@@ -99,7 +99,7 @@ public class SOCMessageDispatcher
      * @throws IllegalStateException if not ready to dispatch because
      *    {@link #setServer(SOCServer, SOCGameListAtServer)} hasn't been called.
      */
-    public void dispatch(final String str, final StringConnection con)
+    public void dispatch(final String str, final Connection con)
         throws IllegalStateException
     {
         if (srv == null)

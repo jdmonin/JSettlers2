@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2014,2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - getGameNames, parameterize types
  *
  * This program is free software; you can redistribute it and/or
@@ -39,7 +39,7 @@ import java.util.Set;
  *<P>
  * In 1.1.07, moved from soc.server to soc.util package for client's use.
  * Some methods moved to new subclass {@link soc.server.SOCGameListAtServer}.
- * That subclass also tracks each game's clients ({@link soc.server.genericServer.StringConnection}s).
+ * That subclass also tracks each game's client ({@link soc.server.genericServer.Connection Connection}s).
  *<P>
  * The client-side addGame methods allow game names to have a prefix which marks them
  * as unjoinable by the client ({@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}).

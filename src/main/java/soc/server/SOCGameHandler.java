@@ -93,7 +93,7 @@ import soc.message.SOCStartGame;
 import soc.message.SOCStatusMessage;
 import soc.message.SOCTurn;
 import soc.proto.Data;
-import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.Connection;
 import soc.util.IntPair;
 import soc.util.SOCGameList;
 import soc.util.Version;
@@ -160,7 +160,7 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * Debug command prefix for scenario-related debugging. Used with
-     * {@link #processDebugCommand_scenario(StringConnection, String, String)}.
+     * {@link #processDebugCommand_scenario(Connection, String, String)}.
      * @since 2.0.00
      */
     private static final String DEBUG_CMD_PFX_SCENARIO = "*SCEN* ";
@@ -210,7 +210,7 @@ public class SOCGameHandler extends GameHandler
     }
 
     // javadoc inherited from GameHandler
-    public boolean processDebugCommand(StringConnection debugCli, String gaName, final String dcmd, final String dcmdU)
+    public boolean processDebugCommand(Connection debugCli, String gaName, final String dcmd, final String dcmdU)
     {
         if (dcmdU.startsWith("RSRCS:"))
         {
@@ -261,7 +261,7 @@ public class SOCGameHandler extends GameHandler
      * @since 1.1.12
      */
     final void processDebugCommand_freePlace
-        (StringConnection c, final String gaName, final String arg)
+        (Connection c, final String gaName, final String arg)
     {
         SOCGame ga = srv.gameList.getGameData(gaName);
         if (ga == null)
@@ -365,7 +365,7 @@ public class SOCGameHandler extends GameHandler
      * @since 2.0.00
      */
     private final void processDebugCommand_scenario
-        (final StringConnection c, final String gaName, final String argStr)
+        (final Connection c, final String gaName, final String argStr)
     {
         if (argStr.length() == 0)
             return;
@@ -473,7 +473,7 @@ public class SOCGameHandler extends GameHandler
      * @return true if it is the player's turn;
      *         false if another player's turn, or if this player isn't in the game
      */
-    final boolean checkTurn(StringConnection c, SOCGame ga)
+    final boolean checkTurn(Connection c, SOCGame ga)
     {
         if ((c == null) || (ga == null))
             return false;
@@ -510,7 +510,7 @@ public class SOCGameHandler extends GameHandler
      * start of a player's own turn, if permitted.  (Added in 1.1.09)
      *<P>
      * A simplified version of this logic (during initial placement) is used in
-     * {@link SOCGameMessageHandler#handlePUTPIECE(SOCGame, StringConnection, SOCPutPiece)}.
+     * {@link SOCGameMessageHandler#handlePUTPIECE(SOCGame, Connection, SOCPutPiece)}.
      *
      * @param ga Game to end turn
      * @param pl Current player in <tt>ga</tt>, or null. Not needed except in SPECIAL_BUILDING.
@@ -604,13 +604,13 @@ public class SOCGameHandler extends GameHandler
      * </UL>
      * @param ga Game to force end turn
      * @param plName Current player's name. Needed because if they have been disconnected by
-     *               {@link #leaveGame(SOCGame, StringConnection)},
+     *               {@link #leaveGame(SOCGame, Connection)},
      *               their name within game object is already null.
      * @return true if the turn was ended and game is still active;
      *          false if we find that all players have left and
      *          the gamestate has been changed here to {@link SOCGame#OVER}.
      *
-     * @see #endGameTurnOrForce(SOCGame, int, String, StringConnection, boolean)
+     * @see #endGameTurnOrForce(SOCGame, int, String, Connection, boolean)
      * @see SOCGame#forceEndTurn()
      */
     private final boolean forceEndGameTurn(SOCGame ga, final String plName)
@@ -656,7 +656,7 @@ public class SOCGameHandler extends GameHandler
                     reportRsrcGainLoss(gaName, resGainLoss, false, false, cpn, -1, null, null);
                 }
             } else {
-                StringConnection c = srv.getConnection(plName);
+                Connection c = srv.getConnection(plName);
                 if ((c != null) && c.isConnected())
                     reportRsrcGainLoss(gaName, resGainLoss, true, true, cpn, -1, null, c);
                 int totalRes = resGainLoss.getTotal();
@@ -677,7 +677,7 @@ public class SOCGameHandler extends GameHandler
 
         if (itemCard != null)
         {
-            StringConnection c = srv.getConnection(plName);
+            Connection c = srv.getConnection(plName);
             if ((c != null) && c.isConnected())
             {
                 if (itemCard instanceof SOCDevCard)
@@ -791,7 +791,7 @@ public class SOCGameHandler extends GameHandler
      * Among other messages, player names are sent via SITDOWN, and pieces on board
      * sent by PUTPIECE.  See comments here for further details.
      * If <tt>isTakingOver</tt>, some details are sent by calling
-     * {@link #sitDown_sendPrivateInfo(SOCGame, StringConnection, int)}.
+     * {@link #sitDown_sendPrivateInfo(SOCGame, Connection, int)}.
      * The group of messages sent here ends with GAMEMEMBERS, SETTURN and GAMESTATE.
      * Then, the entire game is sent a JOINGAME for the new game member.
      *<P>
@@ -808,11 +808,11 @@ public class SOCGameHandler extends GameHandler
      *                      is defunct because of a network problem.
      *                      If <tt>isTakingOver</tt>, don't send anything to other players.
      *
-     * @see SOCServer#connectToGame(StringConnection, String, Map)
-     * @see SOCServer#createOrJoinGameIfUserOK(StringConnection, String, String, String, Map)
+     * @see SOCServer#connectToGame(Connection, String, Map)
+     * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, Map)
      */
     @SuppressWarnings("unchecked")
-    public void joinGame(SOCGame gameData, StringConnection c, final boolean isReset, final boolean isTakingOver)
+    public void joinGame(SOCGame gameData, Connection c, final boolean isReset, final boolean isTakingOver)
     {
         boolean hasRobot = false;  // If game's already started, true if any bot is seated (can be taken over)
         String gameName = gameData.getName();
@@ -1294,7 +1294,7 @@ public class SOCGameHandler extends GameHandler
          */
         try
         {
-            Vector<StringConnection> gameMembers = srv.gameList.getMembers(gameName);
+            Vector<Connection> gameMembers = srv.gameList.getMembers(gameName);
             membersCommand = SOCGameMembers.toCmd(gameName, gameMembers);
         }
         catch (Exception e)
@@ -1339,13 +1339,13 @@ public class SOCGameHandler extends GameHandler
      * {@link SOCBoardLarge#getAddedLayoutPart(String)} which defines special edges
      * (currently {@code "CE"}, {@code "VE"}).
      *<P>
-     * Called as part of {@link #joinGame(SOCGame, StringConnection, boolean, boolean)}.
+     * Called as part of {@link #joinGame(SOCGame, Connection, boolean, boolean)}.
      * @param game   Game being joined
      * @param board  Game's board layout
      * @param c      Client joining
      */
     private final void joinGame_sendBoardSpecialEdgeChanges
-        (final SOCGame game, final SOCBoardLarge board, final StringConnection c)
+        (final SOCGame game, final SOCBoardLarge board, final Connection c)
     {
         final String gaName = game.getName();
 
@@ -1414,7 +1414,7 @@ public class SOCGameHandler extends GameHandler
     }
 
     // javadoc inherited from GameHandler
-    public void sitDown_sendPrivateInfo(final SOCGame ga, final StringConnection c, final int pn)
+    public void sitDown_sendPrivateInfo(final SOCGame ga, final Connection c, final int pn)
     {
         final String gaName = ga.getName();
         final SOCPlayer pl = ga.getPlayer(pn);
@@ -1496,7 +1496,7 @@ public class SOCGameHandler extends GameHandler
     }
 
     // javadoc inherited from GameHandler. Return true if game is empty and should be ended.
-    public boolean leaveGame(SOCGame ga, StringConnection c)
+    public boolean leaveGame(SOCGame ga, Connection c)
     {
         final String gm = ga.getName();
         final String plName = c.getData();  // Retain name, since will become null within game obj.
@@ -1581,11 +1581,11 @@ public class SOCGameHandler extends GameHandler
          */
         if ( (! gameHasHumanPlayer) && ! srv.gameList.isGameEmpty(gm))
         {
-            Enumeration<StringConnection> membersEnum = srv.gameList.getMembers(gm).elements();
+            Enumeration<Connection> membersEnum = srv.gameList.getMembers(gm).elements();
 
             while (membersEnum.hasMoreElements())
             {
-                StringConnection member = membersEnum.nextElement();
+                Connection member = membersEnum.nextElement();
 
                 //D.ebugPrintln("*** "+member.data+" is a member of "+gm);
                 boolean nameMatch = false;
@@ -1664,11 +1664,11 @@ public class SOCGameHandler extends GameHandler
                      * is not already requested to play in this game
                      */
                     boolean nameMatch = false;
-                    StringConnection robotConn = null;
+                    Connection robotConn = null;
 
                     final int[] robotIndexes = srv.robotShuffleForJoin();  // Shuffle to distribute load
 
-                    Vector<StringConnection> requests = srv.robotJoinRequests.get(gm);
+                    Vector<Connection> requests = srv.robotJoinRequests.get(gm);
 
                     for (int idx = 0; idx < srv.robots.size(); idx++)
                     {
@@ -1696,11 +1696,11 @@ public class SOCGameHandler extends GameHandler
 
                         if ((!nameMatch) && (requests != null))
                         {
-                            Enumeration<StringConnection> requestsEnum = requests.elements();
+                            Enumeration<Connection> requestsEnum = requests.elements();
 
                             while (requestsEnum.hasMoreElements())
                             {
-                                StringConnection tempCon = requestsEnum.nextElement();
+                                Connection tempCon = requestsEnum.nextElement();
 
                                 // D.ebugPrintln("CHECKING " + robotConn + " == " + tempCon);
 
@@ -1739,7 +1739,7 @@ public class SOCGameHandler extends GameHandler
                          */
                         if (requests == null)
                         {
-                            requests = new Vector<StringConnection>();
+                            requests = new Vector<Connection>();
                             requests.addElement(robotConn);
                             srv.robotJoinRequests.put(gm, requests);
                         }
@@ -1812,12 +1812,12 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * State {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}:
      * To announce the player must pick a resource to gain from the gold hex initial placement,
-     * please call {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, StringConnection, SOCGame.RollResult)}.
+     * please call {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, Connection, SOCGame.RollResult)}.
      *<P>
      * State {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}:
      * If a gold hex is rolled, does not say who
      * must pick resources to gain (because of timing).  Please call
-     * {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, StringConnection, SOCGame.RollResult)}
+     * {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, Connection, SOCGame.RollResult)}
      * after sending the resource gain text ("x gets 1 sheep").
      *<P>
      * <b>Note:</b> If game is now {@link SOCGame#OVER OVER} and the {@link SOCGame#isBotsOnly} flag is set,
@@ -1876,7 +1876,7 @@ public class SOCGameHandler extends GameHandler
                 && ga.isGameOptionSet(SOCGameOption.K_SC_3IP))
             {
                 // reminder to player before their 2nd, 3rd settlements
-                StringConnection con = srv.getConnection(player.getName());
+                Connection con = srv.getConnection(player.getName());
                 if (con != null)
                 {
                     srv.messageToPlayerKeyed(con, gname, "prompt.gameopt._SC_3IP.part1");
@@ -1958,7 +1958,7 @@ public class SOCGameHandler extends GameHandler
             /**
              * ask the current player to choose a player to steal from
              */
-            StringConnection con = srv.getConnection(ga.getPlayer(ga.getCurrentPlayerNumber()).getName());
+            Connection con = srv.getConnection(ga.getPlayer(ga.getCurrentPlayerNumber()).getName());
             if (con != null)
             {
                 con.put(SOCChoosePlayerRequest.toCmd(gname, choices));
@@ -2003,7 +2003,7 @@ public class SOCGameHandler extends GameHandler
      * @since 2.0.00
      */
     final void sendGameState_sendGoldPickAnnounceText
-        (SOCGame ga, final String gname, StringConnection playerCon, SOCGame.RollResult roll)
+        (SOCGame ga, final String gname, Connection playerCon, SOCGame.RollResult roll)
     {
         final int ignoreRollPirateVictory;
         if ((roll != null) && ga.isGameOptionSet(SOCGameOption.K_SC_PIRI) && (roll.sc_piri_fleetAttackRsrcs != null))
@@ -2054,7 +2054,7 @@ public class SOCGameHandler extends GameHandler
 
                 if (! singlePlayerGetsPickRequest)
                 {
-                    StringConnection plCon = srv.getConnection(ga.getPlayer(pn).getName());
+                    Connection plCon = srv.getConnection(ga.getPlayer(pn).getName());
                     if (plCon != null)
                         srv.messageToPlayer(plCon, new SOCSimpleRequest
                             (gname, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, num[pn]));
@@ -2181,7 +2181,7 @@ public class SOCGameHandler extends GameHandler
                     continue;
 
                 SOCPlayer pl = ga.getPlayer(i);
-                StringConnection plConn = srv.getConnection(pl.getName());
+                Connection plConn = srv.getConnection(pl.getName());
                 SOCClientData cd;
                 if (plConn != null)
                 {
@@ -2298,14 +2298,14 @@ public class SOCGameHandler extends GameHandler
         /**
          * send the game data messages
          */
-        StringConnection peCon = srv.getConnection(peName);
-        StringConnection viCon = srv.getConnection(viName);
+        Connection peCon = srv.getConnection(peName);
+        Connection viCon = srv.getConnection(viName);
         srv.messageToPlayer(peCon, gainRsrc);
         srv.messageToPlayer(peCon, loseRsrc);
         srv.messageToPlayer(viCon, gainRsrc);
         srv.messageToPlayer(viCon, loseRsrc);
         // Don't send generic message to pe or vi
-        Vector<StringConnection> exceptions = new Vector<StringConnection>(2);
+        Vector<Connection> exceptions = new Vector<Connection>(2);
         exceptions.addElement(peCon);
         exceptions.addElement(viCon);
         gainUnknown = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, SOCPlayerElement.UNKNOWN, 1);
@@ -2419,13 +2419,13 @@ public class SOCGameHandler extends GameHandler
      * @see #reportTrade(SOCGame, int, int)
      * @see #reportBankTrade(SOCGame, SOCResourceSet, SOCResourceSet)
      * @see #reportRsrcGainGold(SOCGame, SOCPlayer, int, SOCResourceSet, boolean, boolean)
-     * @see SOCGameMessageHandler#handleDISCARD(SOCGame, StringConnection, SOCDiscard)
-     * @see SOCGameMessageHandler#handlePICKRESOURCES(SOCGame, StringConnection, SOCPickResources)
-     * @see SOCGameMessageHandler#handleROLLDICE(SOCGame, StringConnection, SOCRollDice)
+     * @see SOCGameMessageHandler#handleDISCARD(SOCGame, Connection, SOCDiscard)
+     * @see SOCGameMessageHandler#handlePICKRESOURCES(SOCGame, Connection, SOCPickResources)
+     * @see SOCGameMessageHandler#handleROLLDICE(SOCGame, Connection, SOCRollDice)
      */
     void reportRsrcGainLoss
         (final String gaName, final ResourceSet resourceSet, final boolean isLoss, boolean isNews,
-         final int mainPlayer, final int tradingPlayer, StringBuffer message, StringConnection playerConn)
+         final int mainPlayer, final int tradingPlayer, StringBuffer message, Connection playerConn)
     {
         final int losegain  = isLoss ? SOCPlayerElement.LOSE : SOCPlayerElement.GAIN;  // for pnA
         final int gainlose  = isLoss ? SOCPlayerElement.GAIN : SOCPlayerElement.LOSE;  // for pnB
@@ -2749,7 +2749,7 @@ public class SOCGameHandler extends GameHandler
      * this is a debugging command that gives resources to a player.
      * Format: rsrcs: #cl #or #sh #wh #wo playername
      */
-    private final void debugGiveResources(StringConnection c, String mes, SOCGame game)
+    private final void debugGiveResources(Connection c, String mes, SOCGame game)
     {
         StringTokenizer st = new StringTokenizer(mes.substring(6));
         int[] resources = new int[Data.ResourceType.WOOD_VALUE + 1];
@@ -2820,7 +2820,7 @@ public class SOCGameHandler extends GameHandler
      *  For card-types numbers, see {@link SOCDevCardConstants}
      *  or {@link #DEBUG_COMMANDS_HELP_DEV_TYPES}.
      */
-    private final void debugGiveDevCard(StringConnection c, String mes, SOCGame game)
+    private final void debugGiveDevCard(Connection c, String mes, SOCGame game)
     {
         StringTokenizer st = new StringTokenizer(mes.substring(5));
         String name = "";
@@ -2899,7 +2899,7 @@ public class SOCGameHandler extends GameHandler
      * @return  {@link SOCPlayer} with this name or number, or {@code null} if an error was sent to the user
      * @since 1.1.20
      */
-    private SOCPlayer debug_getPlayer(final StringConnection c, final SOCGame ga, final String name)
+    private SOCPlayer debug_getPlayer(final Connection c, final SOCGame ga, final String name)
     {
         if (name.length() == 0)
         {
@@ -3027,7 +3027,7 @@ public class SOCGameHandler extends GameHandler
      *          the gamestate has been changed here to {@link SOCGame#OVER OVER}.
      */
     boolean endGameTurnOrForce
-        (SOCGame ga, final int plNumber, final String plName, StringConnection plConn,
+        (SOCGame ga, final int plNumber, final String plName, Connection plConn,
          final boolean hasMonitorFromGameList)
     {
         boolean gameStillActive = true;
@@ -3198,7 +3198,7 @@ public class SOCGameHandler extends GameHandler
      *     player status; see {@link SOCGame#playerDiscardOrGainRandom(int, boolean)} for details
      */
     private final void forceGamePlayerDiscardOrGain
-        (final SOCGame cg, final int cpn, final StringConnection c, final String plName, final int pn)
+        (final SOCGame cg, final int cpn, final Connection c, final String plName, final int pn)
         throws IllegalStateException
     {
         final boolean isDiscard = (cg.getGameState() == SOCGame.WAITING_FOR_DISCARDS);
@@ -3388,7 +3388,7 @@ public class SOCGameHandler extends GameHandler
                 sendPlayerEventsBitmask = false;
                 sendSVP = false;
                 IntPair edge_cardType = (IntPair) obj;
-                StringConnection c = srv.getConnection(plName);
+                Connection c = srv.getConnection(plName);
                 ga.pendingMessagesOut.add(new UnlocalizedString
                     ("action.built.sc_ftri.dev", plName));  // "{0} gets a Development Card as a gift from the Lost Tribe."
                 srv.messageToPlayer(c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, edge_cardType.getB()));
@@ -3424,7 +3424,7 @@ public class SOCGameHandler extends GameHandler
                     // Removal happens during ship piece placement, which is followed at server with sendGameState.
                     // When sendGameState gives the new state, client will prompt current player to place now.
                     // We just need to send the client PLACING_EXTRA, for the port type and not-cancelable flag.
-                    StringConnection c = srv.getConnection(plName);
+                    Connection c = srv.getConnection(plName);
                     srv.messageToPlayer(c, new SOCInventoryItemAction
                         (gaName, pn, SOCInventoryItemAction.PLACING_EXTRA, -portType, false, false, false));
                 } else {
@@ -3493,8 +3493,8 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * Adds the message to {@link SOCGame#pendingMessagesOut}; note that
      * right now, that field is checked only in
-     * {@link SOCGameMessageHandler#handlePUTPIECE(SOCGame, StringConnection, SOCPutPiece)}
-     * and {@link SOCGameMessageHandler#handleMOVEPIECEREQUEST(SOCGame, StringConnection, SOCMovePieceRequest)},
+     * {@link SOCGameMessageHandler#handlePUTPIECE(SOCGame, Connection, SOCPutPiece)}
+     * and {@link SOCGameMessageHandler#handleMOVEPIECEREQUEST(SOCGame, Connection, SOCMovePieceRequest)},
      * because no other method currently awards SVP.
      * @param ga  Game
      * @param pl  Player
@@ -3563,7 +3563,7 @@ public class SOCGameHandler extends GameHandler
             final int L = pq.size();
             if (L >= 0)
             {
-                final StringConnection c = srv.getConnection(p.getName());
+                final Connection c = srv.getConnection(p.getName());
                 if (c != null)
                     for (int i = 0; i < L; ++i)
                         c.put(((SOCMessage) pq.get(i)).toCmd());

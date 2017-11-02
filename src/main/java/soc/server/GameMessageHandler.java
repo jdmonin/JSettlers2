@@ -21,7 +21,7 @@ package soc.server;
 
 import soc.game.SOCGame;
 import soc.message.SOCMessageForGame;
-import soc.server.genericServer.StringConnection;
+import soc.server.genericServer.Connection;
 
 /**
  * Server interface to handle inbound game-specific messages for a type of game;
@@ -50,7 +50,7 @@ public interface GameMessageHandler
      * @param c    Client sending {@code msg}. Never null.
      * @return  true if processed, false if ignored or unknown message type
      */
-    public abstract boolean dispatch(SOCGame ga, SOCMessageForGame mes, StringConnection c)
+    public abstract boolean dispatch(SOCGame ga, SOCMessageForGame mes, Connection c)
         throws Exception;
 
 }
