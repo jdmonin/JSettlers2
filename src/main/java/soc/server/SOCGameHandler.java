@@ -2253,7 +2253,7 @@ public class SOCGameHandler extends GameHandler
      *
      * @param ga  the game
      * @param pe  the perpetrator
-     * @param vi  the the victim
+     * @param vi  the victim
      * @param rsrc  type of resource stolen, as in {@link SOCResourceConstants#SHEEP},
      *              or {@link SOCResourceConstants#CLOTH_STOLEN_LOCAL} for cloth
      *              (scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}).

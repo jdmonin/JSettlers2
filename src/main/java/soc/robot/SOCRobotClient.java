@@ -1462,7 +1462,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * add one the the number of clean brain kills
+     * add one to the number of clean brain kills
      */
     public void addCleanKill()
     {

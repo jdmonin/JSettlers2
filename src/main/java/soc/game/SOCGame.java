@@ -3924,7 +3924,7 @@ public class SOCGame implements Serializable, Cloneable
         int i;
         int j;
 
-        // Standard set of of knights
+        // Standard set of knights
         for (i = 0; i < 14; i++)
         {
             devCardDeck[i] = SOCDevCardConstants.KNIGHT;
