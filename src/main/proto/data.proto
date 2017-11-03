@@ -24,10 +24,10 @@ syntax = "proto3";
 option java_package = "soc.proto";
 option optimize_for = LITE_RUNTIME;  // omit unused features, produce smaller/cleaner generated code
 
-// Protobuf Data structures. For messages see message.proto
+// Protobuf Data structures. For messages see message.proto, game_message.proto
 
 //
-// Game Data
+// Game and Board Data
 //
 
 /* Structs here are suffixed "Data" since we eventually want them used in the java code. Many struct names will then get
@@ -43,4 +43,76 @@ enum ResourceType {
     WHEAT = 4;
     WOOD = 5;
     UNKNOWN = 6; // TODO: shares a slot with GOLD in some instances
+}
+
+
+//
+// State and Conditions
+//
+
+
+/* Game state constants for {@code SOCGame}.
+ * For general docs about game states see {@link soc.game.SOCGame#NEW}.
+ * Per-state docs may eventually be transferred here from SOCGame.
+ */
+enum GameState {
+    NEW = 0;       // New game
+    READY = 1;     // Ready to start playing
+    READY_RESET_WAIT_ROBOT_DISMISS = 4;  // Game reset: Waiting for bots to leave old game
+    START1A = 5;   // Players place 1st settlement
+    START1B = 6;   // Players place 1st road
+    START2A = 10;  // Players place 2nd settlement
+    STARTS_WAITING_FOR_PICK_GOLD_RESOURCE = 14;  // Gold Hex resource pick during initial placement
+    START2B = 11;  // Players place 2nd road
+    START3A = 12;  // Players place 3rd settlement ({@link SOCGameOption#K_SC_3IP _SC_3IP})
+    START3B = 13;  // Players place 3rd road
+    PLAY = 15;     // Roll or play card
+    PLAY1 = 20;    // Done rolling
+    PLACING_ROAD = 30;
+    PLACING_SETTLEMENT = 31;
+    PLACING_CITY = 32;
+    PLACING_ROBBER = 33;
+    PLACING_PIRATE = 34;
+    PLACING_SHIP = 35;
+    PLACING_FREE_ROAD1 = 40;
+    PLACING_FREE_ROAD2 = 41;
+    PLACING_INV_ITEM = 42;
+    WAITING_FOR_DISCARDS = 50;
+    WAITING_FOR_ROB_CHOOSE_PLAYER = 51;
+    WAITING_FOR_DISCOVERY = 52;
+    WAITING_FOR_MONOPOLY = 53;
+    WAITING_FOR_ROBBER_OR_PIRATE = 54;
+    WAITING_FOR_ROB_CLOTH_OR_RESOURCE = 55;
+    WAITING_FOR_PICK_GOLD_RESOURCE = 56;
+    SPECIAL_BUILDING = 100;
+    OVER = 1000;  // The game is over
+    RESET_OLD = 1001;  // Old game object, a new game with same name exists
+}
+
+/* Seat lock states for locking/unlocking.
+ * Note different meanings while game is forming
+ * (GameState NEW) versus already active.
+ */
+enum SeatLockState {
+    /* Seat not locked.
+     * If game is forming, if this seat is empty when the game starts, a bot can sit here.
+     * If game is active, a newly-joining player can take over a bot in this seat.
+     */
+    UNLOCKED = 0;
+
+    /* Seat is locked.
+     * If game is forming, a bot will not sit here when the game starts.
+     * If game is active, a newly-joining player can't take over a bot in this seat.
+     */
+    LOCKED = 1;
+
+    /* If this active game is reset, a robot will not take this seat, it will be left vacant.
+     * Useful for resetting a game to play again with fewer robots, if a robot is currently sitting here.
+     * Not a valid seat lock state if game is still forming.
+     *<P>
+     * This feature was added in v2.0.00; before that version, the seat lock state was
+     * boolean (UNLOCKED or LOCKED).  Game resets included all robots unless their seat
+     * was LOCKED at the time of reset.
+     */
+    CLEAR_ON_RESET = 2;
 }

@@ -1,0 +1,121 @@
+/**
+ * Java Settlers - An online multiplayer version of the game Settlers of Catan
+ * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * The maintainer of this program can be reached at jsettlers@nand.net
+ */
+
+syntax = "proto3";
+
+option java_package = "soc.proto";
+option optimize_for = LITE_RUNTIME;  // omit unused features, produce smaller/cleaner generated code
+
+import public "data.proto";
+
+
+// Messages during play of a specific game, dispatched at server by a GameMessageHandler.
+//
+// GameMessages are grouped by category. See the bottom of this file
+// for GameMessageFromServer and FromClient, which use OneOf union groups.
+// Those main GameMessage types are themselves sent as a OneOf field
+// of the main Message.FromServer and Message.FromClient types.
+//
+
+
+//
+// Current Turn and State
+//
+
+/* From client, this message means that a player wants to start the game;
+ * from server, it means that a game has just started, leaving state {@code NEW}.
+ *<P>
+ * If a client joins a game in progress it won't be sent a {@code SOCStartGame} message,
+ * only the game's current {@code GameState} and other parts of the game's and
+ * players' current status.
+ */
+message StartGame {
+    GameState state = 1;  // new state; ignored from client
+}
+
+/* End of the current player's turn, start of a new turn.
+ * Client should end current turn, clear dice, set current player number, reset votes, etc.
+ * New player's client should check the state field to inform that player's options and actions.
+ *<P>
+ * Sent at game state {@link Data.GameState#OVER} to confirm the winning player,
+ * who will already be the current player.
+ *<P>
+ * Also can be sent to a client joining a game in progress, to set only the current player number.
+ * In this case {@code state} will be empty or 0. Before v3.0.00 this usage was a separate
+ * {@code SOCSetTurn} message type.
+ */
+message Turn {
+    uint32 player_number = 1;  // new current player's seat number
+    GameState state = 2;  // new state, or empty/0 when joining game in progress
+}
+
+/* The current state of the game, sent when it changes.
+ *<P>
+ * Messages which change the current turn or player, like {@link Turn}
+ * and {@link StartGame}, include the new turn's state as a field because
+ * the current player and game state are both changing.
+ *<P>
+ * For some states, such as {@link Data.GameState#WAITING_FOR_ROB_CHOOSE_PLAYER},
+ * another message (such as {@link ChoosePlayerRequest}) will
+ * follow to prompt the current player.  For others, such as
+ * {@link Data.GameState#WAITING_FOR_DISCOVERY} or
+ * {@link Data.GameState#WAITING_FOR_ROBBER_OR_PIRATE}, sending this
+ * State message implies that the player must decide and respond.
+ *<P>
+ * For {@link Data.GameState#WAITING_FOR_ROBBER_OR_PIRATE}, the player should
+ * respond with {@link ChoosePlayer}; see that message's javadoc.
+ *<P>
+ * Before v3.0.00 this message was {@code GameState}.
+ */
+message State {
+    GameState state = 1;
+}
+
+/* Player wants to end their turn. */
+message EndTurn {
+    // no detail fields are needed
+}
+
+
+//
+// GameMessageFromServer, FromClient: For encode/decode, a GameMessage type
+// containing all other message types using OneOf. These main GameMessageFromServer
+// and FromClient types are sent as a OneOf in the main Message.FromServer and FromClient.
+//
+
+
+message GameMessageFromServer {
+    string ga_name = 1;      // Name of game
+    oneof msg {
+        // turn and state
+        StartGame start_game = 2;
+        Turn turn = 3;
+        State game_state = 4;
+    }
+}
+
+message GameMessageFromClient {
+    string ga_name = 1;      // Name of game
+    oneof msg {
+        // turn and state
+        StartGame start_game = 2;
+        EndTurn end_turn = 3;
+    }
+}

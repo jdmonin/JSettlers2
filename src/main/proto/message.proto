@@ -571,6 +571,15 @@ message SitDown {
     bool is_robot = 4;   // True if this player is a robot
 }
 
+/* From client, request to lock or unlock a seat.
+ * From server, announcement of a seat lock status change.
+ */
+message SetSeatLock {
+    string ga_name = 1;  // Name of game having this seat
+    uint32 seat_number = 2;
+    SeatLockState state = 3;  // New state
+}
+
 /* This message contains a text message or announcement from the server
  * for a SoC game.  Sent by {@link soc.server.SOCServer server}.
  * Player chat text is sent as {@link GameText} instead.
@@ -658,26 +667,22 @@ message DeleteGame {
 
 
 //
-// Game data messages during play
-//
-
-
-// These should be placed in another include file (game_message.proto?)
+// Game data messages during play.
+// These are grouped into in their own include file:
 //    - for namespacing
 //    - for dispatching to a GameHandler, not SOCServer
 //    - for maintainability
 //    - so generated .class file isn't huge
 //    - to possibly support multiple game types later
+//
 
-// TODO StartGame
-
-// TODO GameState
+import public "game_message.proto";
 
 
 //
-// FromServer, FromClient: For encode/decode, Message type containing all other message types.
-// OneOf is used to group categories and then individual messages,
-// for structure and to avoid having dozens of sequential field numbers.
+// FromServer, FromClient: For encode/decode, Message type containing all other
+// message types using OneOf. The GameMessage.FromServer and .FromClient types
+// seen here are themselves OneOf union message types.
 //
 
 
@@ -707,13 +712,17 @@ message FromServer {
         JoinGame ga_join = 17;
         GameMembers ga_members = 18;
         SitDown sit_down = 19;
-        GameServerText server_text = 20;
-        GamePlayerText player_text = 21;
-        BotTimingPing bot_timing_ping = 22;
-        BotAdminPing bot_admin_ping = 23;
-        BotDismiss bot_dismiss = 24;
-        LeaveGame ga_leave = 25;
-        DeleteGame ga_delete = 26;
+        SetSeatLock set_seat_lock = 20;
+        GameServerText server_text = 21;
+        GamePlayerText player_text = 22;
+        BotTimingPing bot_timing_ping = 23;
+        BotAdminPing bot_admin_ping = 24;
+        BotDismiss bot_dismiss = 25;
+        LeaveGame ga_leave = 26;
+        DeleteGame ga_delete = 27;
+
+        // within a game
+        GameMessageFromServer game_message = 28;
     }
 }
 
@@ -736,7 +745,11 @@ message FromClient {
         RobotJoinGameRequest robot_join_req = 10;
         JoinGame ga_join = 11;
         SitDown sit_down = 12;
-        GamePlayerText player_text = 13;
-        LeaveGame ga_leave = 14;
+        SetSeatLock set_seat_lock = 13;
+        GamePlayerText player_text = 14;
+        LeaveGame ga_leave = 15;
+
+        // within a game
+        GameMessageFromClient game_message = 16;
     }
 }

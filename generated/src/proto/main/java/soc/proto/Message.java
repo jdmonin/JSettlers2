@@ -13126,6 +13126,588 @@ public final class Message {
     }
   }
 
+  public interface SetSeatLockOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:SetSeatLock)
+      com.google.protobuf.MessageLiteOrBuilder {
+
+    /**
+     * <pre>
+     * Name of game having this seat
+     * </pre>
+     *
+     * <code>optional string ga_name = 1;</code>
+     */
+    java.lang.String getGaName();
+    /**
+     * <pre>
+     * Name of game having this seat
+     * </pre>
+     *
+     * <code>optional string ga_name = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getGaNameBytes();
+
+    /**
+     * <code>optional uint32 seat_number = 2;</code>
+     */
+    int getSeatNumber();
+
+    /**
+     * <pre>
+     * New state
+     * </pre>
+     *
+     * <code>optional .SeatLockState state = 3;</code>
+     */
+    int getStateValue();
+    /**
+     * <pre>
+     * New state
+     * </pre>
+     *
+     * <code>optional .SeatLockState state = 3;</code>
+     */
+    soc.proto.Data.SeatLockState getState();
+  }
+  /**
+   * <pre>
+   * From client, request to lock or unlock a seat.
+   * From server, announcement of a seat lock status change.
+   * </pre>
+   *
+   * Protobuf type {@code SetSeatLock}
+   */
+  public  static final class SetSeatLock extends
+      com.google.protobuf.GeneratedMessageLite<
+          SetSeatLock, SetSeatLock.Builder> implements
+      // @@protoc_insertion_point(message_implements:SetSeatLock)
+      SetSeatLockOrBuilder {
+    private SetSeatLock() {
+      gaName_ = "";
+    }
+    public static final int GA_NAME_FIELD_NUMBER = 1;
+    private java.lang.String gaName_;
+    /**
+     * <pre>
+     * Name of game having this seat
+     * </pre>
+     *
+     * <code>optional string ga_name = 1;</code>
+     */
+    public java.lang.String getGaName() {
+      return gaName_;
+    }
+    /**
+     * <pre>
+     * Name of game having this seat
+     * </pre>
+     *
+     * <code>optional string ga_name = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getGaNameBytes() {
+      return com.google.protobuf.ByteString.copyFromUtf8(gaName_);
+    }
+    /**
+     * <pre>
+     * Name of game having this seat
+     * </pre>
+     *
+     * <code>optional string ga_name = 1;</code>
+     */
+    private void setGaName(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  
+      gaName_ = value;
+    }
+    /**
+     * <pre>
+     * Name of game having this seat
+     * </pre>
+     *
+     * <code>optional string ga_name = 1;</code>
+     */
+    private void clearGaName() {
+      
+      gaName_ = getDefaultInstance().getGaName();
+    }
+    /**
+     * <pre>
+     * Name of game having this seat
+     * </pre>
+     *
+     * <code>optional string ga_name = 1;</code>
+     */
+    private void setGaNameBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+      
+      gaName_ = value.toStringUtf8();
+    }
+
+    public static final int SEAT_NUMBER_FIELD_NUMBER = 2;
+    private int seatNumber_;
+    /**
+     * <code>optional uint32 seat_number = 2;</code>
+     */
+    public int getSeatNumber() {
+      return seatNumber_;
+    }
+    /**
+     * <code>optional uint32 seat_number = 2;</code>
+     */
+    private void setSeatNumber(int value) {
+      
+      seatNumber_ = value;
+    }
+    /**
+     * <code>optional uint32 seat_number = 2;</code>
+     */
+    private void clearSeatNumber() {
+      
+      seatNumber_ = 0;
+    }
+
+    public static final int STATE_FIELD_NUMBER = 3;
+    private int state_;
+    /**
+     * <pre>
+     * New state
+     * </pre>
+     *
+     * <code>optional .SeatLockState state = 3;</code>
+     */
+    public int getStateValue() {
+      return state_;
+    }
+    /**
+     * <pre>
+     * New state
+     * </pre>
+     *
+     * <code>optional .SeatLockState state = 3;</code>
+     */
+    public soc.proto.Data.SeatLockState getState() {
+      soc.proto.Data.SeatLockState result = soc.proto.Data.SeatLockState.forNumber(state_);
+      return result == null ? soc.proto.Data.SeatLockState.UNRECOGNIZED : result;
+    }
+    /**
+     * <pre>
+     * New state
+     * </pre>
+     *
+     * <code>optional .SeatLockState state = 3;</code>
+     */
+    private void setStateValue(int value) {
+        state_ = value;
+    }
+    /**
+     * <pre>
+     * New state
+     * </pre>
+     *
+     * <code>optional .SeatLockState state = 3;</code>
+     */
+    private void setState(soc.proto.Data.SeatLockState value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
+      
+      state_ = value.getNumber();
+    }
+    /**
+     * <pre>
+     * New state
+     * </pre>
+     *
+     * <code>optional .SeatLockState state = 3;</code>
+     */
+    private void clearState() {
+      
+      state_ = 0;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!gaName_.isEmpty()) {
+        output.writeString(1, getGaName());
+      }
+      if (seatNumber_ != 0) {
+        output.writeUInt32(2, seatNumber_);
+      }
+      if (state_ != soc.proto.Data.SeatLockState.UNLOCKED.getNumber()) {
+        output.writeEnum(3, state_);
+      }
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!gaName_.isEmpty()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(1, getGaName());
+      }
+      if (seatNumber_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(2, seatNumber_);
+      }
+      if (state_ != soc.proto.Data.SeatLockState.UNLOCKED.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(3, state_);
+      }
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    public static soc.proto.Message.SetSeatLock parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data);
+    }
+    public static soc.proto.Message.SetSeatLock parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data, extensionRegistry);
+    }
+    public static soc.proto.Message.SetSeatLock parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data);
+    }
+    public static soc.proto.Message.SetSeatLock parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, data, extensionRegistry);
+    }
+    public static soc.proto.Message.SetSeatLock parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, input);
+    }
+    public static soc.proto.Message.SetSeatLock parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, input, extensionRegistry);
+    }
+    public static soc.proto.Message.SetSeatLock parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return parseDelimitedFrom(DEFAULT_INSTANCE, input);
+    }
+    public static soc.proto.Message.SetSeatLock parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return parseDelimitedFrom(DEFAULT_INSTANCE, input, extensionRegistry);
+    }
+    public static soc.proto.Message.SetSeatLock parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, input);
+    }
+    public static soc.proto.Message.SetSeatLock parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageLite.parseFrom(
+          DEFAULT_INSTANCE, input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(soc.proto.Message.SetSeatLock prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+
+    /**
+     * <pre>
+     * From client, request to lock or unlock a seat.
+     * From server, announcement of a seat lock status change.
+     * </pre>
+     *
+     * Protobuf type {@code SetSeatLock}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageLite.Builder<
+          soc.proto.Message.SetSeatLock, Builder> implements
+        // @@protoc_insertion_point(builder_implements:SetSeatLock)
+        soc.proto.Message.SetSeatLockOrBuilder {
+      // Construct using soc.proto.Message.SetSeatLock.newBuilder()
+      private Builder() {
+        super(DEFAULT_INSTANCE);
+      }
+
+
+      /**
+       * <pre>
+       * Name of game having this seat
+       * </pre>
+       *
+       * <code>optional string ga_name = 1;</code>
+       */
+      public java.lang.String getGaName() {
+        return instance.getGaName();
+      }
+      /**
+       * <pre>
+       * Name of game having this seat
+       * </pre>
+       *
+       * <code>optional string ga_name = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getGaNameBytes() {
+        return instance.getGaNameBytes();
+      }
+      /**
+       * <pre>
+       * Name of game having this seat
+       * </pre>
+       *
+       * <code>optional string ga_name = 1;</code>
+       */
+      public Builder setGaName(
+          java.lang.String value) {
+        copyOnWrite();
+        instance.setGaName(value);
+        return this;
+      }
+      /**
+       * <pre>
+       * Name of game having this seat
+       * </pre>
+       *
+       * <code>optional string ga_name = 1;</code>
+       */
+      public Builder clearGaName() {
+        copyOnWrite();
+        instance.clearGaName();
+        return this;
+      }
+      /**
+       * <pre>
+       * Name of game having this seat
+       * </pre>
+       *
+       * <code>optional string ga_name = 1;</code>
+       */
+      public Builder setGaNameBytes(
+          com.google.protobuf.ByteString value) {
+        copyOnWrite();
+        instance.setGaNameBytes(value);
+        return this;
+      }
+
+      /**
+       * <code>optional uint32 seat_number = 2;</code>
+       */
+      public int getSeatNumber() {
+        return instance.getSeatNumber();
+      }
+      /**
+       * <code>optional uint32 seat_number = 2;</code>
+       */
+      public Builder setSeatNumber(int value) {
+        copyOnWrite();
+        instance.setSeatNumber(value);
+        return this;
+      }
+      /**
+       * <code>optional uint32 seat_number = 2;</code>
+       */
+      public Builder clearSeatNumber() {
+        copyOnWrite();
+        instance.clearSeatNumber();
+        return this;
+      }
+
+      /**
+       * <pre>
+       * New state
+       * </pre>
+       *
+       * <code>optional .SeatLockState state = 3;</code>
+       */
+      public int getStateValue() {
+        return instance.getStateValue();
+      }
+      /**
+       * <pre>
+       * New state
+       * </pre>
+       *
+       * <code>optional .SeatLockState state = 3;</code>
+       */
+      public Builder setStateValue(int value) {
+        copyOnWrite();
+        instance.setStateValue(value);
+        return this;
+      }
+      /**
+       * <pre>
+       * New state
+       * </pre>
+       *
+       * <code>optional .SeatLockState state = 3;</code>
+       */
+      public soc.proto.Data.SeatLockState getState() {
+        return instance.getState();
+      }
+      /**
+       * <pre>
+       * New state
+       * </pre>
+       *
+       * <code>optional .SeatLockState state = 3;</code>
+       */
+      public Builder setState(soc.proto.Data.SeatLockState value) {
+        copyOnWrite();
+        instance.setState(value);
+        return this;
+      }
+      /**
+       * <pre>
+       * New state
+       * </pre>
+       *
+       * <code>optional .SeatLockState state = 3;</code>
+       */
+      public Builder clearState() {
+        copyOnWrite();
+        instance.clearState();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:SetSeatLock)
+    }
+    protected final Object dynamicMethod(
+        com.google.protobuf.GeneratedMessageLite.MethodToInvoke method,
+        Object arg0, Object arg1) {
+      switch (method) {
+        case NEW_MUTABLE_INSTANCE: {
+          return new soc.proto.Message.SetSeatLock();
+        }
+        case IS_INITIALIZED: {
+          return DEFAULT_INSTANCE;
+        }
+        case MAKE_IMMUTABLE: {
+          return null;
+        }
+        case NEW_BUILDER: {
+          return new Builder();
+        }
+        case VISIT: {
+          Visitor visitor = (Visitor) arg0;
+          soc.proto.Message.SetSeatLock other = (soc.proto.Message.SetSeatLock) arg1;
+          gaName_ = visitor.visitString(!gaName_.isEmpty(), gaName_,
+              !other.gaName_.isEmpty(), other.gaName_);
+          seatNumber_ = visitor.visitInt(seatNumber_ != 0, seatNumber_,
+              other.seatNumber_ != 0, other.seatNumber_);
+          state_ = visitor.visitInt(state_ != 0, state_,    other.state_ != 0, other.state_);
+          if (visitor == com.google.protobuf.GeneratedMessageLite.MergeFromVisitor
+              .INSTANCE) {
+          }
+          return this;
+        }
+        case MERGE_FROM_STREAM: {
+          com.google.protobuf.CodedInputStream input =
+              (com.google.protobuf.CodedInputStream) arg0;
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry =
+              (com.google.protobuf.ExtensionRegistryLite) arg1;
+          try {
+            boolean done = false;
+            while (!done) {
+              int tag = input.readTag();
+              switch (tag) {
+                case 0:
+                  done = true;
+                  break;
+                default: {
+                  if (!input.skipField(tag)) {
+                    done = true;
+                  }
+                  break;
+                }
+                case 10: {
+                  String s = input.readStringRequireUtf8();
+
+                  gaName_ = s;
+                  break;
+                }
+                case 16: {
+
+                  seatNumber_ = input.readUInt32();
+                  break;
+                }
+                case 24: {
+                  int rawValue = input.readEnum();
+
+                  state_ = rawValue;
+                  break;
+                }
+              }
+            }
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw new RuntimeException(e.setUnfinishedMessage(this));
+          } catch (java.io.IOException e) {
+            throw new RuntimeException(
+                new com.google.protobuf.InvalidProtocolBufferException(
+                    e.getMessage()).setUnfinishedMessage(this));
+          } finally {
+          }
+        }
+        case GET_DEFAULT_INSTANCE: {
+          return DEFAULT_INSTANCE;
+        }
+        case GET_PARSER: {
+          if (PARSER == null) {    synchronized (soc.proto.Message.SetSeatLock.class) {
+              if (PARSER == null) {
+                PARSER = new DefaultInstanceBasedParser(DEFAULT_INSTANCE);
+              }
+            }
+          }
+          return PARSER;
+        }
+      }
+      throw new UnsupportedOperationException();
+    }
+
+
+    // @@protoc_insertion_point(class_scope:SetSeatLock)
+    private static final soc.proto.Message.SetSeatLock DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new SetSeatLock();
+      DEFAULT_INSTANCE.makeImmutable();
+    }
+
+    public static soc.proto.Message.SetSeatLock getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static volatile com.google.protobuf.Parser<SetSeatLock> PARSER;
+
+    public static com.google.protobuf.Parser<SetSeatLock> parser() {
+      return DEFAULT_INSTANCE.getParserForType();
+    }
+  }
+
   public interface GameServerTextOrBuilder extends
       // @@protoc_insertion_point(interface_extends:GameServerText)
       com.google.protobuf.MessageLiteOrBuilder {
@@ -16100,39 +16682,53 @@ public final class Message {
     soc.proto.Message.SitDown getSitDown();
 
     /**
-     * <code>optional .GameServerText server_text = 20;</code>
+     * <code>optional .SetSeatLock set_seat_lock = 20;</code>
+     */
+    soc.proto.Message.SetSeatLock getSetSeatLock();
+
+    /**
+     * <code>optional .GameServerText server_text = 21;</code>
      */
     soc.proto.Message.GameServerText getServerText();
 
     /**
-     * <code>optional .GamePlayerText player_text = 21;</code>
+     * <code>optional .GamePlayerText player_text = 22;</code>
      */
     soc.proto.Message.GamePlayerText getPlayerText();
 
     /**
-     * <code>optional .BotTimingPing bot_timing_ping = 22;</code>
+     * <code>optional .BotTimingPing bot_timing_ping = 23;</code>
      */
     soc.proto.Message.BotTimingPing getBotTimingPing();
 
     /**
-     * <code>optional .BotAdminPing bot_admin_ping = 23;</code>
+     * <code>optional .BotAdminPing bot_admin_ping = 24;</code>
      */
     soc.proto.Message.BotAdminPing getBotAdminPing();
 
     /**
-     * <code>optional .BotDismiss bot_dismiss = 24;</code>
+     * <code>optional .BotDismiss bot_dismiss = 25;</code>
      */
     soc.proto.Message.BotDismiss getBotDismiss();
 
     /**
-     * <code>optional .LeaveGame ga_leave = 25;</code>
+     * <code>optional .LeaveGame ga_leave = 26;</code>
      */
     soc.proto.Message.LeaveGame getGaLeave();
 
     /**
-     * <code>optional .DeleteGame ga_delete = 26;</code>
+     * <code>optional .DeleteGame ga_delete = 27;</code>
      */
     soc.proto.Message.DeleteGame getGaDelete();
+
+    /**
+     * <pre>
+     * within a game
+     * </pre>
+     *
+     * <code>optional .GameMessageFromServer game_message = 28;</code>
+     */
+    soc.proto.GameMessage.GameMessageFromServer getGameMessage();
 
     public soc.proto.Message.FromServer.MsgCase getMsgCase();
   }
@@ -16169,13 +16765,15 @@ public final class Message {
       GA_JOIN(17),
       GA_MEMBERS(18),
       SIT_DOWN(19),
-      SERVER_TEXT(20),
-      PLAYER_TEXT(21),
-      BOT_TIMING_PING(22),
-      BOT_ADMIN_PING(23),
-      BOT_DISMISS(24),
-      GA_LEAVE(25),
-      GA_DELETE(26),
+      SET_SEAT_LOCK(20),
+      SERVER_TEXT(21),
+      PLAYER_TEXT(22),
+      BOT_TIMING_PING(23),
+      BOT_ADMIN_PING(24),
+      BOT_DISMISS(25),
+      GA_LEAVE(26),
+      GA_DELETE(27),
+      GAME_MESSAGE(28),
       MSG_NOT_SET(0);
       private final int value;
       private MsgCase(int value) {
@@ -16210,13 +16808,15 @@ public final class Message {
           case 17: return GA_JOIN;
           case 18: return GA_MEMBERS;
           case 19: return SIT_DOWN;
-          case 20: return SERVER_TEXT;
-          case 21: return PLAYER_TEXT;
-          case 22: return BOT_TIMING_PING;
-          case 23: return BOT_ADMIN_PING;
-          case 24: return BOT_DISMISS;
-          case 25: return GA_LEAVE;
-          case 26: return GA_DELETE;
+          case 20: return SET_SEAT_LOCK;
+          case 21: return SERVER_TEXT;
+          case 22: return PLAYER_TEXT;
+          case 23: return BOT_TIMING_PING;
+          case 24: return BOT_ADMIN_PING;
+          case 25: return BOT_DISMISS;
+          case 26: return GA_LEAVE;
+          case 27: return GA_DELETE;
+          case 28: return GAME_MESSAGE;
           case 0: return MSG_NOT_SET;
           default: return null;
         }
@@ -17266,358 +17866,480 @@ public final class Message {
       }
     }
 
-    public static final int SERVER_TEXT_FIELD_NUMBER = 20;
+    public static final int SET_SEAT_LOCK_FIELD_NUMBER = 20;
     /**
-     * <code>optional .GameServerText server_text = 20;</code>
+     * <code>optional .SetSeatLock set_seat_lock = 20;</code>
+     */
+    public soc.proto.Message.SetSeatLock getSetSeatLock() {
+      if (msgCase_ == 20) {
+         return (soc.proto.Message.SetSeatLock) msg_;
+      }
+      return soc.proto.Message.SetSeatLock.getDefaultInstance();
+    }
+    /**
+     * <code>optional .SetSeatLock set_seat_lock = 20;</code>
+     */
+    private void setSetSeatLock(soc.proto.Message.SetSeatLock value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
+      msg_ = value;
+      msgCase_ = 20;
+    }
+    /**
+     * <code>optional .SetSeatLock set_seat_lock = 20;</code>
+     */
+    private void setSetSeatLock(
+        soc.proto.Message.SetSeatLock.Builder builderForValue) {
+      msg_ = builderForValue.build();
+      msgCase_ = 20;
+    }
+    /**
+     * <code>optional .SetSeatLock set_seat_lock = 20;</code>
+     */
+    private void mergeSetSeatLock(soc.proto.Message.SetSeatLock value) {
+      if (msgCase_ == 20 &&
+          msg_ != soc.proto.Message.SetSeatLock.getDefaultInstance()) {
+        msg_ = soc.proto.Message.SetSeatLock.newBuilder((soc.proto.Message.SetSeatLock) msg_)
+            .mergeFrom(value).buildPartial();
+      } else {
+        msg_ = value;
+      }
+      msgCase_ = 20;
+    }
+    /**
+     * <code>optional .SetSeatLock set_seat_lock = 20;</code>
+     */
+    private void clearSetSeatLock() {
+      if (msgCase_ == 20) {
+        msgCase_ = 0;
+        msg_ = null;
+      }
+    }
+
+    public static final int SERVER_TEXT_FIELD_NUMBER = 21;
+    /**
+     * <code>optional .GameServerText server_text = 21;</code>
      */
     public soc.proto.Message.GameServerText getServerText() {
-      if (msgCase_ == 20) {
+      if (msgCase_ == 21) {
          return (soc.proto.Message.GameServerText) msg_;
       }
       return soc.proto.Message.GameServerText.getDefaultInstance();
     }
     /**
-     * <code>optional .GameServerText server_text = 20;</code>
+     * <code>optional .GameServerText server_text = 21;</code>
      */
     private void setServerText(soc.proto.Message.GameServerText value) {
       if (value == null) {
         throw new NullPointerException();
       }
       msg_ = value;
-      msgCase_ = 20;
+      msgCase_ = 21;
     }
     /**
-     * <code>optional .GameServerText server_text = 20;</code>
+     * <code>optional .GameServerText server_text = 21;</code>
      */
     private void setServerText(
         soc.proto.Message.GameServerText.Builder builderForValue) {
       msg_ = builderForValue.build();
-      msgCase_ = 20;
+      msgCase_ = 21;
     }
     /**
-     * <code>optional .GameServerText server_text = 20;</code>
+     * <code>optional .GameServerText server_text = 21;</code>
      */
     private void mergeServerText(soc.proto.Message.GameServerText value) {
-      if (msgCase_ == 20 &&
+      if (msgCase_ == 21 &&
           msg_ != soc.proto.Message.GameServerText.getDefaultInstance()) {
         msg_ = soc.proto.Message.GameServerText.newBuilder((soc.proto.Message.GameServerText) msg_)
             .mergeFrom(value).buildPartial();
       } else {
         msg_ = value;
       }
-      msgCase_ = 20;
+      msgCase_ = 21;
     }
     /**
-     * <code>optional .GameServerText server_text = 20;</code>
+     * <code>optional .GameServerText server_text = 21;</code>
      */
     private void clearServerText() {
-      if (msgCase_ == 20) {
+      if (msgCase_ == 21) {
         msgCase_ = 0;
         msg_ = null;
       }
     }
 
-    public static final int PLAYER_TEXT_FIELD_NUMBER = 21;
+    public static final int PLAYER_TEXT_FIELD_NUMBER = 22;
     /**
-     * <code>optional .GamePlayerText player_text = 21;</code>
+     * <code>optional .GamePlayerText player_text = 22;</code>
      */
     public soc.proto.Message.GamePlayerText getPlayerText() {
-      if (msgCase_ == 21) {
+      if (msgCase_ == 22) {
          return (soc.proto.Message.GamePlayerText) msg_;
       }
       return soc.proto.Message.GamePlayerText.getDefaultInstance();
     }
     /**
-     * <code>optional .GamePlayerText player_text = 21;</code>
+     * <code>optional .GamePlayerText player_text = 22;</code>
      */
     private void setPlayerText(soc.proto.Message.GamePlayerText value) {
       if (value == null) {
         throw new NullPointerException();
       }
       msg_ = value;
-      msgCase_ = 21;
+      msgCase_ = 22;
     }
     /**
-     * <code>optional .GamePlayerText player_text = 21;</code>
+     * <code>optional .GamePlayerText player_text = 22;</code>
      */
     private void setPlayerText(
         soc.proto.Message.GamePlayerText.Builder builderForValue) {
       msg_ = builderForValue.build();
-      msgCase_ = 21;
+      msgCase_ = 22;
     }
     /**
-     * <code>optional .GamePlayerText player_text = 21;</code>
+     * <code>optional .GamePlayerText player_text = 22;</code>
      */
     private void mergePlayerText(soc.proto.Message.GamePlayerText value) {
-      if (msgCase_ == 21 &&
+      if (msgCase_ == 22 &&
           msg_ != soc.proto.Message.GamePlayerText.getDefaultInstance()) {
         msg_ = soc.proto.Message.GamePlayerText.newBuilder((soc.proto.Message.GamePlayerText) msg_)
             .mergeFrom(value).buildPartial();
       } else {
         msg_ = value;
       }
-      msgCase_ = 21;
+      msgCase_ = 22;
     }
     /**
-     * <code>optional .GamePlayerText player_text = 21;</code>
+     * <code>optional .GamePlayerText player_text = 22;</code>
      */
     private void clearPlayerText() {
-      if (msgCase_ == 21) {
+      if (msgCase_ == 22) {
         msgCase_ = 0;
         msg_ = null;
       }
     }
 
-    public static final int BOT_TIMING_PING_FIELD_NUMBER = 22;
+    public static final int BOT_TIMING_PING_FIELD_NUMBER = 23;
     /**
-     * <code>optional .BotTimingPing bot_timing_ping = 22;</code>
+     * <code>optional .BotTimingPing bot_timing_ping = 23;</code>
      */
     public soc.proto.Message.BotTimingPing getBotTimingPing() {
-      if (msgCase_ == 22) {
+      if (msgCase_ == 23) {
          return (soc.proto.Message.BotTimingPing) msg_;
       }
       return soc.proto.Message.BotTimingPing.getDefaultInstance();
     }
     /**
-     * <code>optional .BotTimingPing bot_timing_ping = 22;</code>
+     * <code>optional .BotTimingPing bot_timing_ping = 23;</code>
      */
     private void setBotTimingPing(soc.proto.Message.BotTimingPing value) {
       if (value == null) {
         throw new NullPointerException();
       }
       msg_ = value;
-      msgCase_ = 22;
+      msgCase_ = 23;
     }
     /**
-     * <code>optional .BotTimingPing bot_timing_ping = 22;</code>
+     * <code>optional .BotTimingPing bot_timing_ping = 23;</code>
      */
     private void setBotTimingPing(
         soc.proto.Message.BotTimingPing.Builder builderForValue) {
       msg_ = builderForValue.build();
-      msgCase_ = 22;
+      msgCase_ = 23;
     }
     /**
-     * <code>optional .BotTimingPing bot_timing_ping = 22;</code>
+     * <code>optional .BotTimingPing bot_timing_ping = 23;</code>
      */
     private void mergeBotTimingPing(soc.proto.Message.BotTimingPing value) {
-      if (msgCase_ == 22 &&
+      if (msgCase_ == 23 &&
           msg_ != soc.proto.Message.BotTimingPing.getDefaultInstance()) {
         msg_ = soc.proto.Message.BotTimingPing.newBuilder((soc.proto.Message.BotTimingPing) msg_)
             .mergeFrom(value).buildPartial();
       } else {
         msg_ = value;
       }
-      msgCase_ = 22;
+      msgCase_ = 23;
     }
     /**
-     * <code>optional .BotTimingPing bot_timing_ping = 22;</code>
+     * <code>optional .BotTimingPing bot_timing_ping = 23;</code>
      */
     private void clearBotTimingPing() {
-      if (msgCase_ == 22) {
+      if (msgCase_ == 23) {
         msgCase_ = 0;
         msg_ = null;
       }
     }
 
-    public static final int BOT_ADMIN_PING_FIELD_NUMBER = 23;
+    public static final int BOT_ADMIN_PING_FIELD_NUMBER = 24;
     /**
-     * <code>optional .BotAdminPing bot_admin_ping = 23;</code>
+     * <code>optional .BotAdminPing bot_admin_ping = 24;</code>
      */
     public soc.proto.Message.BotAdminPing getBotAdminPing() {
-      if (msgCase_ == 23) {
+      if (msgCase_ == 24) {
          return (soc.proto.Message.BotAdminPing) msg_;
       }
       return soc.proto.Message.BotAdminPing.getDefaultInstance();
     }
     /**
-     * <code>optional .BotAdminPing bot_admin_ping = 23;</code>
+     * <code>optional .BotAdminPing bot_admin_ping = 24;</code>
      */
     private void setBotAdminPing(soc.proto.Message.BotAdminPing value) {
       if (value == null) {
         throw new NullPointerException();
       }
       msg_ = value;
-      msgCase_ = 23;
+      msgCase_ = 24;
     }
     /**
-     * <code>optional .BotAdminPing bot_admin_ping = 23;</code>
+     * <code>optional .BotAdminPing bot_admin_ping = 24;</code>
      */
     private void setBotAdminPing(
         soc.proto.Message.BotAdminPing.Builder builderForValue) {
       msg_ = builderForValue.build();
-      msgCase_ = 23;
+      msgCase_ = 24;
     }
     /**
-     * <code>optional .BotAdminPing bot_admin_ping = 23;</code>
+     * <code>optional .BotAdminPing bot_admin_ping = 24;</code>
      */
     private void mergeBotAdminPing(soc.proto.Message.BotAdminPing value) {
-      if (msgCase_ == 23 &&
+      if (msgCase_ == 24 &&
           msg_ != soc.proto.Message.BotAdminPing.getDefaultInstance()) {
         msg_ = soc.proto.Message.BotAdminPing.newBuilder((soc.proto.Message.BotAdminPing) msg_)
             .mergeFrom(value).buildPartial();
       } else {
         msg_ = value;
       }
-      msgCase_ = 23;
+      msgCase_ = 24;
     }
     /**
-     * <code>optional .BotAdminPing bot_admin_ping = 23;</code>
+     * <code>optional .BotAdminPing bot_admin_ping = 24;</code>
      */
     private void clearBotAdminPing() {
-      if (msgCase_ == 23) {
+      if (msgCase_ == 24) {
         msgCase_ = 0;
         msg_ = null;
       }
     }
 
-    public static final int BOT_DISMISS_FIELD_NUMBER = 24;
+    public static final int BOT_DISMISS_FIELD_NUMBER = 25;
     /**
-     * <code>optional .BotDismiss bot_dismiss = 24;</code>
+     * <code>optional .BotDismiss bot_dismiss = 25;</code>
      */
     public soc.proto.Message.BotDismiss getBotDismiss() {
-      if (msgCase_ == 24) {
+      if (msgCase_ == 25) {
          return (soc.proto.Message.BotDismiss) msg_;
       }
       return soc.proto.Message.BotDismiss.getDefaultInstance();
     }
     /**
-     * <code>optional .BotDismiss bot_dismiss = 24;</code>
+     * <code>optional .BotDismiss bot_dismiss = 25;</code>
      */
     private void setBotDismiss(soc.proto.Message.BotDismiss value) {
       if (value == null) {
         throw new NullPointerException();
       }
       msg_ = value;
-      msgCase_ = 24;
+      msgCase_ = 25;
     }
     /**
-     * <code>optional .BotDismiss bot_dismiss = 24;</code>
+     * <code>optional .BotDismiss bot_dismiss = 25;</code>
      */
     private void setBotDismiss(
         soc.proto.Message.BotDismiss.Builder builderForValue) {
       msg_ = builderForValue.build();
-      msgCase_ = 24;
+      msgCase_ = 25;
     }
     /**
-     * <code>optional .BotDismiss bot_dismiss = 24;</code>
+     * <code>optional .BotDismiss bot_dismiss = 25;</code>
      */
     private void mergeBotDismiss(soc.proto.Message.BotDismiss value) {
-      if (msgCase_ == 24 &&
+      if (msgCase_ == 25 &&
           msg_ != soc.proto.Message.BotDismiss.getDefaultInstance()) {
         msg_ = soc.proto.Message.BotDismiss.newBuilder((soc.proto.Message.BotDismiss) msg_)
             .mergeFrom(value).buildPartial();
       } else {
         msg_ = value;
       }
-      msgCase_ = 24;
+      msgCase_ = 25;
     }
     /**
-     * <code>optional .BotDismiss bot_dismiss = 24;</code>
+     * <code>optional .BotDismiss bot_dismiss = 25;</code>
      */
     private void clearBotDismiss() {
-      if (msgCase_ == 24) {
+      if (msgCase_ == 25) {
         msgCase_ = 0;
         msg_ = null;
       }
     }
 
-    public static final int GA_LEAVE_FIELD_NUMBER = 25;
+    public static final int GA_LEAVE_FIELD_NUMBER = 26;
     /**
-     * <code>optional .LeaveGame ga_leave = 25;</code>
+     * <code>optional .LeaveGame ga_leave = 26;</code>
      */
     public soc.proto.Message.LeaveGame getGaLeave() {
-      if (msgCase_ == 25) {
+      if (msgCase_ == 26) {
          return (soc.proto.Message.LeaveGame) msg_;
       }
       return soc.proto.Message.LeaveGame.getDefaultInstance();
     }
     /**
-     * <code>optional .LeaveGame ga_leave = 25;</code>
+     * <code>optional .LeaveGame ga_leave = 26;</code>
      */
     private void setGaLeave(soc.proto.Message.LeaveGame value) {
       if (value == null) {
         throw new NullPointerException();
       }
       msg_ = value;
-      msgCase_ = 25;
+      msgCase_ = 26;
     }
     /**
-     * <code>optional .LeaveGame ga_leave = 25;</code>
+     * <code>optional .LeaveGame ga_leave = 26;</code>
      */
     private void setGaLeave(
         soc.proto.Message.LeaveGame.Builder builderForValue) {
       msg_ = builderForValue.build();
-      msgCase_ = 25;
+      msgCase_ = 26;
     }
     /**
-     * <code>optional .LeaveGame ga_leave = 25;</code>
+     * <code>optional .LeaveGame ga_leave = 26;</code>
      */
     private void mergeGaLeave(soc.proto.Message.LeaveGame value) {
-      if (msgCase_ == 25 &&
+      if (msgCase_ == 26 &&
           msg_ != soc.proto.Message.LeaveGame.getDefaultInstance()) {
         msg_ = soc.proto.Message.LeaveGame.newBuilder((soc.proto.Message.LeaveGame) msg_)
             .mergeFrom(value).buildPartial();
       } else {
         msg_ = value;
       }
-      msgCase_ = 25;
+      msgCase_ = 26;
     }
     /**
-     * <code>optional .LeaveGame ga_leave = 25;</code>
+     * <code>optional .LeaveGame ga_leave = 26;</code>
      */
     private void clearGaLeave() {
-      if (msgCase_ == 25) {
+      if (msgCase_ == 26) {
         msgCase_ = 0;
         msg_ = null;
       }
     }
 
-    public static final int GA_DELETE_FIELD_NUMBER = 26;
+    public static final int GA_DELETE_FIELD_NUMBER = 27;
     /**
-     * <code>optional .DeleteGame ga_delete = 26;</code>
+     * <code>optional .DeleteGame ga_delete = 27;</code>
      */
     public soc.proto.Message.DeleteGame getGaDelete() {
-      if (msgCase_ == 26) {
+      if (msgCase_ == 27) {
          return (soc.proto.Message.DeleteGame) msg_;
       }
       return soc.proto.Message.DeleteGame.getDefaultInstance();
     }
     /**
-     * <code>optional .DeleteGame ga_delete = 26;</code>
+     * <code>optional .DeleteGame ga_delete = 27;</code>
      */
     private void setGaDelete(soc.proto.Message.DeleteGame value) {
       if (value == null) {
         throw new NullPointerException();
       }
       msg_ = value;
-      msgCase_ = 26;
+      msgCase_ = 27;
     }
     /**
-     * <code>optional .DeleteGame ga_delete = 26;</code>
+     * <code>optional .DeleteGame ga_delete = 27;</code>
      */
     private void setGaDelete(
         soc.proto.Message.DeleteGame.Builder builderForValue) {
       msg_ = builderForValue.build();
-      msgCase_ = 26;
+      msgCase_ = 27;
     }
     /**
-     * <code>optional .DeleteGame ga_delete = 26;</code>
+     * <code>optional .DeleteGame ga_delete = 27;</code>
      */
     private void mergeGaDelete(soc.proto.Message.DeleteGame value) {
-      if (msgCase_ == 26 &&
+      if (msgCase_ == 27 &&
           msg_ != soc.proto.Message.DeleteGame.getDefaultInstance()) {
         msg_ = soc.proto.Message.DeleteGame.newBuilder((soc.proto.Message.DeleteGame) msg_)
             .mergeFrom(value).buildPartial();
       } else {
         msg_ = value;
       }
-      msgCase_ = 26;
+      msgCase_ = 27;
     }
     /**
-     * <code>optional .DeleteGame ga_delete = 26;</code>
+     * <code>optional .DeleteGame ga_delete = 27;</code>
      */
     private void clearGaDelete() {
-      if (msgCase_ == 26) {
+      if (msgCase_ == 27) {
+        msgCase_ = 0;
+        msg_ = null;
+      }
+    }
+
+    public static final int GAME_MESSAGE_FIELD_NUMBER = 28;
+    /**
+     * <pre>
+     * within a game
+     * </pre>
+     *
+     * <code>optional .GameMessageFromServer game_message = 28;</code>
+     */
+    public soc.proto.GameMessage.GameMessageFromServer getGameMessage() {
+      if (msgCase_ == 28) {
+         return (soc.proto.GameMessage.GameMessageFromServer) msg_;
+      }
+      return soc.proto.GameMessage.GameMessageFromServer.getDefaultInstance();
+    }
+    /**
+     * <pre>
+     * within a game
+     * </pre>
+     *
+     * <code>optional .GameMessageFromServer game_message = 28;</code>
+     */
+    private void setGameMessage(soc.proto.GameMessage.GameMessageFromServer value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
+      msg_ = value;
+      msgCase_ = 28;
+    }
+    /**
+     * <pre>
+     * within a game
+     * </pre>
+     *
+     * <code>optional .GameMessageFromServer game_message = 28;</code>
+     */
+    private void setGameMessage(
+        soc.proto.GameMessage.GameMessageFromServer.Builder builderForValue) {
+      msg_ = builderForValue.build();
+      msgCase_ = 28;
+    }
+    /**
+     * <pre>
+     * within a game
+     * </pre>
+     *
+     * <code>optional .GameMessageFromServer game_message = 28;</code>
+     */
+    private void mergeGameMessage(soc.proto.GameMessage.GameMessageFromServer value) {
+      if (msgCase_ == 28 &&
+          msg_ != soc.proto.GameMessage.GameMessageFromServer.getDefaultInstance()) {
+        msg_ = soc.proto.GameMessage.GameMessageFromServer.newBuilder((soc.proto.GameMessage.GameMessageFromServer) msg_)
+            .mergeFrom(value).buildPartial();
+      } else {
+        msg_ = value;
+      }
+      msgCase_ = 28;
+    }
+    /**
+     * <pre>
+     * within a game
+     * </pre>
+     *
+     * <code>optional .GameMessageFromServer game_message = 28;</code>
+     */
+    private void clearGameMessage() {
+      if (msgCase_ == 28) {
         msgCase_ = 0;
         msg_ = null;
       }
@@ -17683,25 +18405,31 @@ public final class Message {
         output.writeMessage(19, (soc.proto.Message.SitDown) msg_);
       }
       if (msgCase_ == 20) {
-        output.writeMessage(20, (soc.proto.Message.GameServerText) msg_);
+        output.writeMessage(20, (soc.proto.Message.SetSeatLock) msg_);
       }
       if (msgCase_ == 21) {
-        output.writeMessage(21, (soc.proto.Message.GamePlayerText) msg_);
+        output.writeMessage(21, (soc.proto.Message.GameServerText) msg_);
       }
       if (msgCase_ == 22) {
-        output.writeMessage(22, (soc.proto.Message.BotTimingPing) msg_);
+        output.writeMessage(22, (soc.proto.Message.GamePlayerText) msg_);
       }
       if (msgCase_ == 23) {
-        output.writeMessage(23, (soc.proto.Message.BotAdminPing) msg_);
+        output.writeMessage(23, (soc.proto.Message.BotTimingPing) msg_);
       }
       if (msgCase_ == 24) {
-        output.writeMessage(24, (soc.proto.Message.BotDismiss) msg_);
+        output.writeMessage(24, (soc.proto.Message.BotAdminPing) msg_);
       }
       if (msgCase_ == 25) {
-        output.writeMessage(25, (soc.proto.Message.LeaveGame) msg_);
+        output.writeMessage(25, (soc.proto.Message.BotDismiss) msg_);
       }
       if (msgCase_ == 26) {
-        output.writeMessage(26, (soc.proto.Message.DeleteGame) msg_);
+        output.writeMessage(26, (soc.proto.Message.LeaveGame) msg_);
+      }
+      if (msgCase_ == 27) {
+        output.writeMessage(27, (soc.proto.Message.DeleteGame) msg_);
+      }
+      if (msgCase_ == 28) {
+        output.writeMessage(28, (soc.proto.GameMessage.GameMessageFromServer) msg_);
       }
     }
 
@@ -17788,31 +18516,39 @@ public final class Message {
       }
       if (msgCase_ == 20) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(20, (soc.proto.Message.GameServerText) msg_);
+          .computeMessageSize(20, (soc.proto.Message.SetSeatLock) msg_);
       }
       if (msgCase_ == 21) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(21, (soc.proto.Message.GamePlayerText) msg_);
+          .computeMessageSize(21, (soc.proto.Message.GameServerText) msg_);
       }
       if (msgCase_ == 22) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(22, (soc.proto.Message.BotTimingPing) msg_);
+          .computeMessageSize(22, (soc.proto.Message.GamePlayerText) msg_);
       }
       if (msgCase_ == 23) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(23, (soc.proto.Message.BotAdminPing) msg_);
+          .computeMessageSize(23, (soc.proto.Message.BotTimingPing) msg_);
       }
       if (msgCase_ == 24) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(24, (soc.proto.Message.BotDismiss) msg_);
+          .computeMessageSize(24, (soc.proto.Message.BotAdminPing) msg_);
       }
       if (msgCase_ == 25) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(25, (soc.proto.Message.LeaveGame) msg_);
+          .computeMessageSize(25, (soc.proto.Message.BotDismiss) msg_);
       }
       if (msgCase_ == 26) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(26, (soc.proto.Message.DeleteGame) msg_);
+          .computeMessageSize(26, (soc.proto.Message.LeaveGame) msg_);
+      }
+      if (msgCase_ == 27) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(27, (soc.proto.Message.DeleteGame) msg_);
+      }
+      if (msgCase_ == 28) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(28, (soc.proto.GameMessage.GameMessageFromServer) msg_);
       }
       memoizedSerializedSize = size;
       return size;
@@ -18732,13 +19468,53 @@ public final class Message {
       }
 
       /**
-       * <code>optional .GameServerText server_text = 20;</code>
+       * <code>optional .SetSeatLock set_seat_lock = 20;</code>
+       */
+      public soc.proto.Message.SetSeatLock getSetSeatLock() {
+        return instance.getSetSeatLock();
+      }
+      /**
+       * <code>optional .SetSeatLock set_seat_lock = 20;</code>
+       */
+      public Builder setSetSeatLock(soc.proto.Message.SetSeatLock value) {
+        copyOnWrite();
+        instance.setSetSeatLock(value);
+        return this;
+      }
+      /**
+       * <code>optional .SetSeatLock set_seat_lock = 20;</code>
+       */
+      public Builder setSetSeatLock(
+          soc.proto.Message.SetSeatLock.Builder builderForValue) {
+        copyOnWrite();
+        instance.setSetSeatLock(builderForValue);
+        return this;
+      }
+      /**
+       * <code>optional .SetSeatLock set_seat_lock = 20;</code>
+       */
+      public Builder mergeSetSeatLock(soc.proto.Message.SetSeatLock value) {
+        copyOnWrite();
+        instance.mergeSetSeatLock(value);
+        return this;
+      }
+      /**
+       * <code>optional .SetSeatLock set_seat_lock = 20;</code>
+       */
+      public Builder clearSetSeatLock() {
+        copyOnWrite();
+        instance.clearSetSeatLock();
+        return this;
+      }
+
+      /**
+       * <code>optional .GameServerText server_text = 21;</code>
        */
       public soc.proto.Message.GameServerText getServerText() {
         return instance.getServerText();
       }
       /**
-       * <code>optional .GameServerText server_text = 20;</code>
+       * <code>optional .GameServerText server_text = 21;</code>
        */
       public Builder setServerText(soc.proto.Message.GameServerText value) {
         copyOnWrite();
@@ -18746,7 +19522,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .GameServerText server_text = 20;</code>
+       * <code>optional .GameServerText server_text = 21;</code>
        */
       public Builder setServerText(
           soc.proto.Message.GameServerText.Builder builderForValue) {
@@ -18755,7 +19531,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .GameServerText server_text = 20;</code>
+       * <code>optional .GameServerText server_text = 21;</code>
        */
       public Builder mergeServerText(soc.proto.Message.GameServerText value) {
         copyOnWrite();
@@ -18763,7 +19539,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .GameServerText server_text = 20;</code>
+       * <code>optional .GameServerText server_text = 21;</code>
        */
       public Builder clearServerText() {
         copyOnWrite();
@@ -18772,13 +19548,13 @@ public final class Message {
       }
 
       /**
-       * <code>optional .GamePlayerText player_text = 21;</code>
+       * <code>optional .GamePlayerText player_text = 22;</code>
        */
       public soc.proto.Message.GamePlayerText getPlayerText() {
         return instance.getPlayerText();
       }
       /**
-       * <code>optional .GamePlayerText player_text = 21;</code>
+       * <code>optional .GamePlayerText player_text = 22;</code>
        */
       public Builder setPlayerText(soc.proto.Message.GamePlayerText value) {
         copyOnWrite();
@@ -18786,7 +19562,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .GamePlayerText player_text = 21;</code>
+       * <code>optional .GamePlayerText player_text = 22;</code>
        */
       public Builder setPlayerText(
           soc.proto.Message.GamePlayerText.Builder builderForValue) {
@@ -18795,7 +19571,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .GamePlayerText player_text = 21;</code>
+       * <code>optional .GamePlayerText player_text = 22;</code>
        */
       public Builder mergePlayerText(soc.proto.Message.GamePlayerText value) {
         copyOnWrite();
@@ -18803,7 +19579,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .GamePlayerText player_text = 21;</code>
+       * <code>optional .GamePlayerText player_text = 22;</code>
        */
       public Builder clearPlayerText() {
         copyOnWrite();
@@ -18812,13 +19588,13 @@ public final class Message {
       }
 
       /**
-       * <code>optional .BotTimingPing bot_timing_ping = 22;</code>
+       * <code>optional .BotTimingPing bot_timing_ping = 23;</code>
        */
       public soc.proto.Message.BotTimingPing getBotTimingPing() {
         return instance.getBotTimingPing();
       }
       /**
-       * <code>optional .BotTimingPing bot_timing_ping = 22;</code>
+       * <code>optional .BotTimingPing bot_timing_ping = 23;</code>
        */
       public Builder setBotTimingPing(soc.proto.Message.BotTimingPing value) {
         copyOnWrite();
@@ -18826,7 +19602,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .BotTimingPing bot_timing_ping = 22;</code>
+       * <code>optional .BotTimingPing bot_timing_ping = 23;</code>
        */
       public Builder setBotTimingPing(
           soc.proto.Message.BotTimingPing.Builder builderForValue) {
@@ -18835,7 +19611,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .BotTimingPing bot_timing_ping = 22;</code>
+       * <code>optional .BotTimingPing bot_timing_ping = 23;</code>
        */
       public Builder mergeBotTimingPing(soc.proto.Message.BotTimingPing value) {
         copyOnWrite();
@@ -18843,7 +19619,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .BotTimingPing bot_timing_ping = 22;</code>
+       * <code>optional .BotTimingPing bot_timing_ping = 23;</code>
        */
       public Builder clearBotTimingPing() {
         copyOnWrite();
@@ -18852,13 +19628,13 @@ public final class Message {
       }
 
       /**
-       * <code>optional .BotAdminPing bot_admin_ping = 23;</code>
+       * <code>optional .BotAdminPing bot_admin_ping = 24;</code>
        */
       public soc.proto.Message.BotAdminPing getBotAdminPing() {
         return instance.getBotAdminPing();
       }
       /**
-       * <code>optional .BotAdminPing bot_admin_ping = 23;</code>
+       * <code>optional .BotAdminPing bot_admin_ping = 24;</code>
        */
       public Builder setBotAdminPing(soc.proto.Message.BotAdminPing value) {
         copyOnWrite();
@@ -18866,7 +19642,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .BotAdminPing bot_admin_ping = 23;</code>
+       * <code>optional .BotAdminPing bot_admin_ping = 24;</code>
        */
       public Builder setBotAdminPing(
           soc.proto.Message.BotAdminPing.Builder builderForValue) {
@@ -18875,7 +19651,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .BotAdminPing bot_admin_ping = 23;</code>
+       * <code>optional .BotAdminPing bot_admin_ping = 24;</code>
        */
       public Builder mergeBotAdminPing(soc.proto.Message.BotAdminPing value) {
         copyOnWrite();
@@ -18883,7 +19659,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .BotAdminPing bot_admin_ping = 23;</code>
+       * <code>optional .BotAdminPing bot_admin_ping = 24;</code>
        */
       public Builder clearBotAdminPing() {
         copyOnWrite();
@@ -18892,13 +19668,13 @@ public final class Message {
       }
 
       /**
-       * <code>optional .BotDismiss bot_dismiss = 24;</code>
+       * <code>optional .BotDismiss bot_dismiss = 25;</code>
        */
       public soc.proto.Message.BotDismiss getBotDismiss() {
         return instance.getBotDismiss();
       }
       /**
-       * <code>optional .BotDismiss bot_dismiss = 24;</code>
+       * <code>optional .BotDismiss bot_dismiss = 25;</code>
        */
       public Builder setBotDismiss(soc.proto.Message.BotDismiss value) {
         copyOnWrite();
@@ -18906,7 +19682,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .BotDismiss bot_dismiss = 24;</code>
+       * <code>optional .BotDismiss bot_dismiss = 25;</code>
        */
       public Builder setBotDismiss(
           soc.proto.Message.BotDismiss.Builder builderForValue) {
@@ -18915,7 +19691,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .BotDismiss bot_dismiss = 24;</code>
+       * <code>optional .BotDismiss bot_dismiss = 25;</code>
        */
       public Builder mergeBotDismiss(soc.proto.Message.BotDismiss value) {
         copyOnWrite();
@@ -18923,7 +19699,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .BotDismiss bot_dismiss = 24;</code>
+       * <code>optional .BotDismiss bot_dismiss = 25;</code>
        */
       public Builder clearBotDismiss() {
         copyOnWrite();
@@ -18932,13 +19708,13 @@ public final class Message {
       }
 
       /**
-       * <code>optional .LeaveGame ga_leave = 25;</code>
+       * <code>optional .LeaveGame ga_leave = 26;</code>
        */
       public soc.proto.Message.LeaveGame getGaLeave() {
         return instance.getGaLeave();
       }
       /**
-       * <code>optional .LeaveGame ga_leave = 25;</code>
+       * <code>optional .LeaveGame ga_leave = 26;</code>
        */
       public Builder setGaLeave(soc.proto.Message.LeaveGame value) {
         copyOnWrite();
@@ -18946,7 +19722,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .LeaveGame ga_leave = 25;</code>
+       * <code>optional .LeaveGame ga_leave = 26;</code>
        */
       public Builder setGaLeave(
           soc.proto.Message.LeaveGame.Builder builderForValue) {
@@ -18955,7 +19731,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .LeaveGame ga_leave = 25;</code>
+       * <code>optional .LeaveGame ga_leave = 26;</code>
        */
       public Builder mergeGaLeave(soc.proto.Message.LeaveGame value) {
         copyOnWrite();
@@ -18963,7 +19739,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .LeaveGame ga_leave = 25;</code>
+       * <code>optional .LeaveGame ga_leave = 26;</code>
        */
       public Builder clearGaLeave() {
         copyOnWrite();
@@ -18972,13 +19748,13 @@ public final class Message {
       }
 
       /**
-       * <code>optional .DeleteGame ga_delete = 26;</code>
+       * <code>optional .DeleteGame ga_delete = 27;</code>
        */
       public soc.proto.Message.DeleteGame getGaDelete() {
         return instance.getGaDelete();
       }
       /**
-       * <code>optional .DeleteGame ga_delete = 26;</code>
+       * <code>optional .DeleteGame ga_delete = 27;</code>
        */
       public Builder setGaDelete(soc.proto.Message.DeleteGame value) {
         copyOnWrite();
@@ -18986,7 +19762,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .DeleteGame ga_delete = 26;</code>
+       * <code>optional .DeleteGame ga_delete = 27;</code>
        */
       public Builder setGaDelete(
           soc.proto.Message.DeleteGame.Builder builderForValue) {
@@ -18995,7 +19771,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .DeleteGame ga_delete = 26;</code>
+       * <code>optional .DeleteGame ga_delete = 27;</code>
        */
       public Builder mergeGaDelete(soc.proto.Message.DeleteGame value) {
         copyOnWrite();
@@ -19003,11 +19779,71 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .DeleteGame ga_delete = 26;</code>
+       * <code>optional .DeleteGame ga_delete = 27;</code>
        */
       public Builder clearGaDelete() {
         copyOnWrite();
         instance.clearGaDelete();
+        return this;
+      }
+
+      /**
+       * <pre>
+       * within a game
+       * </pre>
+       *
+       * <code>optional .GameMessageFromServer game_message = 28;</code>
+       */
+      public soc.proto.GameMessage.GameMessageFromServer getGameMessage() {
+        return instance.getGameMessage();
+      }
+      /**
+       * <pre>
+       * within a game
+       * </pre>
+       *
+       * <code>optional .GameMessageFromServer game_message = 28;</code>
+       */
+      public Builder setGameMessage(soc.proto.GameMessage.GameMessageFromServer value) {
+        copyOnWrite();
+        instance.setGameMessage(value);
+        return this;
+      }
+      /**
+       * <pre>
+       * within a game
+       * </pre>
+       *
+       * <code>optional .GameMessageFromServer game_message = 28;</code>
+       */
+      public Builder setGameMessage(
+          soc.proto.GameMessage.GameMessageFromServer.Builder builderForValue) {
+        copyOnWrite();
+        instance.setGameMessage(builderForValue);
+        return this;
+      }
+      /**
+       * <pre>
+       * within a game
+       * </pre>
+       *
+       * <code>optional .GameMessageFromServer game_message = 28;</code>
+       */
+      public Builder mergeGameMessage(soc.proto.GameMessage.GameMessageFromServer value) {
+        copyOnWrite();
+        instance.mergeGameMessage(value);
+        return this;
+      }
+      /**
+       * <pre>
+       * within a game
+       * </pre>
+       *
+       * <code>optional .GameMessageFromServer game_message = 28;</code>
+       */
+      public Builder clearGameMessage() {
+        copyOnWrite();
+        instance.clearGameMessage();
         return this;
       }
 
@@ -19166,51 +20002,65 @@ public final class Message {
                   other.msg_);
               break;
             }
-            case SERVER_TEXT: {
+            case SET_SEAT_LOCK: {
               msg_ = visitor.visitOneofMessage(
                   msgCase_ == 20,
                   msg_,
                   other.msg_);
               break;
             }
-            case PLAYER_TEXT: {
+            case SERVER_TEXT: {
               msg_ = visitor.visitOneofMessage(
                   msgCase_ == 21,
                   msg_,
                   other.msg_);
               break;
             }
-            case BOT_TIMING_PING: {
+            case PLAYER_TEXT: {
               msg_ = visitor.visitOneofMessage(
                   msgCase_ == 22,
                   msg_,
                   other.msg_);
               break;
             }
-            case BOT_ADMIN_PING: {
+            case BOT_TIMING_PING: {
               msg_ = visitor.visitOneofMessage(
                   msgCase_ == 23,
                   msg_,
                   other.msg_);
               break;
             }
-            case BOT_DISMISS: {
+            case BOT_ADMIN_PING: {
               msg_ = visitor.visitOneofMessage(
                   msgCase_ == 24,
                   msg_,
                   other.msg_);
               break;
             }
-            case GA_LEAVE: {
+            case BOT_DISMISS: {
               msg_ = visitor.visitOneofMessage(
                   msgCase_ == 25,
                   msg_,
                   other.msg_);
               break;
             }
-            case GA_DELETE: {
+            case GA_LEAVE: {
               msg_ = visitor.visitOneofMessage(
                   msgCase_ == 26,
+                  msg_,
+                  other.msg_);
+              break;
+            }
+            case GA_DELETE: {
+              msg_ = visitor.visitOneofMessage(
+                  msgCase_ == 27,
+                  msg_,
+                  other.msg_);
+              break;
+            }
+            case GAME_MESSAGE: {
+              msg_ = visitor.visitOneofMessage(
+                  msgCase_ == 28,
                   msg_,
                   other.msg_);
               break;
@@ -19514,8 +20364,22 @@ public final class Message {
                   break;
                 }
                 case 162: {
-                  soc.proto.Message.GameServerText.Builder subBuilder = null;
+                  soc.proto.Message.SetSeatLock.Builder subBuilder = null;
                   if (msgCase_ == 20) {
+                    subBuilder = ((soc.proto.Message.SetSeatLock) msg_).toBuilder();
+                  }
+                  msg_ =
+                       input.readMessage(soc.proto.Message.SetSeatLock.parser(), extensionRegistry);
+                  if (subBuilder != null) {
+                    subBuilder.mergeFrom((soc.proto.Message.SetSeatLock) msg_);
+                    msg_ = subBuilder.buildPartial();
+                  }
+                  msgCase_ = 20;
+                  break;
+                }
+                case 170: {
+                  soc.proto.Message.GameServerText.Builder subBuilder = null;
+                  if (msgCase_ == 21) {
                     subBuilder = ((soc.proto.Message.GameServerText) msg_).toBuilder();
                   }
                   msg_ =
@@ -19524,12 +20388,12 @@ public final class Message {
                     subBuilder.mergeFrom((soc.proto.Message.GameServerText) msg_);
                     msg_ = subBuilder.buildPartial();
                   }
-                  msgCase_ = 20;
+                  msgCase_ = 21;
                   break;
                 }
-                case 170: {
+                case 178: {
                   soc.proto.Message.GamePlayerText.Builder subBuilder = null;
-                  if (msgCase_ == 21) {
+                  if (msgCase_ == 22) {
                     subBuilder = ((soc.proto.Message.GamePlayerText) msg_).toBuilder();
                   }
                   msg_ =
@@ -19538,12 +20402,12 @@ public final class Message {
                     subBuilder.mergeFrom((soc.proto.Message.GamePlayerText) msg_);
                     msg_ = subBuilder.buildPartial();
                   }
-                  msgCase_ = 21;
+                  msgCase_ = 22;
                   break;
                 }
-                case 178: {
+                case 186: {
                   soc.proto.Message.BotTimingPing.Builder subBuilder = null;
-                  if (msgCase_ == 22) {
+                  if (msgCase_ == 23) {
                     subBuilder = ((soc.proto.Message.BotTimingPing) msg_).toBuilder();
                   }
                   msg_ =
@@ -19552,12 +20416,12 @@ public final class Message {
                     subBuilder.mergeFrom((soc.proto.Message.BotTimingPing) msg_);
                     msg_ = subBuilder.buildPartial();
                   }
-                  msgCase_ = 22;
+                  msgCase_ = 23;
                   break;
                 }
-                case 186: {
+                case 194: {
                   soc.proto.Message.BotAdminPing.Builder subBuilder = null;
-                  if (msgCase_ == 23) {
+                  if (msgCase_ == 24) {
                     subBuilder = ((soc.proto.Message.BotAdminPing) msg_).toBuilder();
                   }
                   msg_ =
@@ -19566,12 +20430,12 @@ public final class Message {
                     subBuilder.mergeFrom((soc.proto.Message.BotAdminPing) msg_);
                     msg_ = subBuilder.buildPartial();
                   }
-                  msgCase_ = 23;
+                  msgCase_ = 24;
                   break;
                 }
-                case 194: {
+                case 202: {
                   soc.proto.Message.BotDismiss.Builder subBuilder = null;
-                  if (msgCase_ == 24) {
+                  if (msgCase_ == 25) {
                     subBuilder = ((soc.proto.Message.BotDismiss) msg_).toBuilder();
                   }
                   msg_ =
@@ -19580,12 +20444,12 @@ public final class Message {
                     subBuilder.mergeFrom((soc.proto.Message.BotDismiss) msg_);
                     msg_ = subBuilder.buildPartial();
                   }
-                  msgCase_ = 24;
+                  msgCase_ = 25;
                   break;
                 }
-                case 202: {
+                case 210: {
                   soc.proto.Message.LeaveGame.Builder subBuilder = null;
-                  if (msgCase_ == 25) {
+                  if (msgCase_ == 26) {
                     subBuilder = ((soc.proto.Message.LeaveGame) msg_).toBuilder();
                   }
                   msg_ =
@@ -19594,12 +20458,12 @@ public final class Message {
                     subBuilder.mergeFrom((soc.proto.Message.LeaveGame) msg_);
                     msg_ = subBuilder.buildPartial();
                   }
-                  msgCase_ = 25;
+                  msgCase_ = 26;
                   break;
                 }
-                case 210: {
+                case 218: {
                   soc.proto.Message.DeleteGame.Builder subBuilder = null;
-                  if (msgCase_ == 26) {
+                  if (msgCase_ == 27) {
                     subBuilder = ((soc.proto.Message.DeleteGame) msg_).toBuilder();
                   }
                   msg_ =
@@ -19608,7 +20472,21 @@ public final class Message {
                     subBuilder.mergeFrom((soc.proto.Message.DeleteGame) msg_);
                     msg_ = subBuilder.buildPartial();
                   }
-                  msgCase_ = 26;
+                  msgCase_ = 27;
+                  break;
+                }
+                case 226: {
+                  soc.proto.GameMessage.GameMessageFromServer.Builder subBuilder = null;
+                  if (msgCase_ == 28) {
+                    subBuilder = ((soc.proto.GameMessage.GameMessageFromServer) msg_).toBuilder();
+                  }
+                  msg_ =
+                       input.readMessage(soc.proto.GameMessage.GameMessageFromServer.parser(), extensionRegistry);
+                  if (subBuilder != null) {
+                    subBuilder.mergeFrom((soc.proto.GameMessage.GameMessageFromServer) msg_);
+                    msg_ = subBuilder.buildPartial();
+                  }
+                  msgCase_ = 28;
                   break;
                 }
               }
@@ -19734,14 +20612,28 @@ public final class Message {
     soc.proto.Message.SitDown getSitDown();
 
     /**
-     * <code>optional .GamePlayerText player_text = 13;</code>
+     * <code>optional .SetSeatLock set_seat_lock = 13;</code>
+     */
+    soc.proto.Message.SetSeatLock getSetSeatLock();
+
+    /**
+     * <code>optional .GamePlayerText player_text = 14;</code>
      */
     soc.proto.Message.GamePlayerText getPlayerText();
 
     /**
-     * <code>optional .LeaveGame ga_leave = 14;</code>
+     * <code>optional .LeaveGame ga_leave = 15;</code>
      */
     soc.proto.Message.LeaveGame getGaLeave();
+
+    /**
+     * <pre>
+     * within a game
+     * </pre>
+     *
+     * <code>optional .GameMessageFromClient game_message = 16;</code>
+     */
+    soc.proto.GameMessage.GameMessageFromClient getGameMessage();
 
     public soc.proto.Message.FromClient.MsgCase getMsgCase();
   }
@@ -19771,8 +20663,10 @@ public final class Message {
       ROBOT_JOIN_REQ(10),
       GA_JOIN(11),
       SIT_DOWN(12),
-      PLAYER_TEXT(13),
-      GA_LEAVE(14),
+      SET_SEAT_LOCK(13),
+      PLAYER_TEXT(14),
+      GA_LEAVE(15),
+      GAME_MESSAGE(16),
       MSG_NOT_SET(0);
       private final int value;
       private MsgCase(int value) {
@@ -19800,8 +20694,10 @@ public final class Message {
           case 10: return ROBOT_JOIN_REQ;
           case 11: return GA_JOIN;
           case 12: return SIT_DOWN;
-          case 13: return PLAYER_TEXT;
-          case 14: return GA_LEAVE;
+          case 13: return SET_SEAT_LOCK;
+          case 14: return PLAYER_TEXT;
+          case 15: return GA_LEAVE;
+          case 16: return GAME_MESSAGE;
           case 0: return MSG_NOT_SET;
           default: return null;
         }
@@ -20494,20 +21390,20 @@ public final class Message {
       }
     }
 
-    public static final int PLAYER_TEXT_FIELD_NUMBER = 13;
+    public static final int SET_SEAT_LOCK_FIELD_NUMBER = 13;
     /**
-     * <code>optional .GamePlayerText player_text = 13;</code>
+     * <code>optional .SetSeatLock set_seat_lock = 13;</code>
      */
-    public soc.proto.Message.GamePlayerText getPlayerText() {
+    public soc.proto.Message.SetSeatLock getSetSeatLock() {
       if (msgCase_ == 13) {
-         return (soc.proto.Message.GamePlayerText) msg_;
+         return (soc.proto.Message.SetSeatLock) msg_;
       }
-      return soc.proto.Message.GamePlayerText.getDefaultInstance();
+      return soc.proto.Message.SetSeatLock.getDefaultInstance();
     }
     /**
-     * <code>optional .GamePlayerText player_text = 13;</code>
+     * <code>optional .SetSeatLock set_seat_lock = 13;</code>
      */
-    private void setPlayerText(soc.proto.Message.GamePlayerText value) {
+    private void setSetSeatLock(soc.proto.Message.SetSeatLock value) {
       if (value == null) {
         throw new NullPointerException();
       }
@@ -20515,20 +21411,20 @@ public final class Message {
       msgCase_ = 13;
     }
     /**
-     * <code>optional .GamePlayerText player_text = 13;</code>
+     * <code>optional .SetSeatLock set_seat_lock = 13;</code>
      */
-    private void setPlayerText(
-        soc.proto.Message.GamePlayerText.Builder builderForValue) {
+    private void setSetSeatLock(
+        soc.proto.Message.SetSeatLock.Builder builderForValue) {
       msg_ = builderForValue.build();
       msgCase_ = 13;
     }
     /**
-     * <code>optional .GamePlayerText player_text = 13;</code>
+     * <code>optional .SetSeatLock set_seat_lock = 13;</code>
      */
-    private void mergePlayerText(soc.proto.Message.GamePlayerText value) {
+    private void mergeSetSeatLock(soc.proto.Message.SetSeatLock value) {
       if (msgCase_ == 13 &&
-          msg_ != soc.proto.Message.GamePlayerText.getDefaultInstance()) {
-        msg_ = soc.proto.Message.GamePlayerText.newBuilder((soc.proto.Message.GamePlayerText) msg_)
+          msg_ != soc.proto.Message.SetSeatLock.getDefaultInstance()) {
+        msg_ = soc.proto.Message.SetSeatLock.newBuilder((soc.proto.Message.SetSeatLock) msg_)
             .mergeFrom(value).buildPartial();
       } else {
         msg_ = value;
@@ -20536,29 +21432,29 @@ public final class Message {
       msgCase_ = 13;
     }
     /**
-     * <code>optional .GamePlayerText player_text = 13;</code>
+     * <code>optional .SetSeatLock set_seat_lock = 13;</code>
      */
-    private void clearPlayerText() {
+    private void clearSetSeatLock() {
       if (msgCase_ == 13) {
         msgCase_ = 0;
         msg_ = null;
       }
     }
 
-    public static final int GA_LEAVE_FIELD_NUMBER = 14;
+    public static final int PLAYER_TEXT_FIELD_NUMBER = 14;
     /**
-     * <code>optional .LeaveGame ga_leave = 14;</code>
+     * <code>optional .GamePlayerText player_text = 14;</code>
      */
-    public soc.proto.Message.LeaveGame getGaLeave() {
+    public soc.proto.Message.GamePlayerText getPlayerText() {
       if (msgCase_ == 14) {
-         return (soc.proto.Message.LeaveGame) msg_;
+         return (soc.proto.Message.GamePlayerText) msg_;
       }
-      return soc.proto.Message.LeaveGame.getDefaultInstance();
+      return soc.proto.Message.GamePlayerText.getDefaultInstance();
     }
     /**
-     * <code>optional .LeaveGame ga_leave = 14;</code>
+     * <code>optional .GamePlayerText player_text = 14;</code>
      */
-    private void setGaLeave(soc.proto.Message.LeaveGame value) {
+    private void setPlayerText(soc.proto.Message.GamePlayerText value) {
       if (value == null) {
         throw new NullPointerException();
       }
@@ -20566,20 +21462,20 @@ public final class Message {
       msgCase_ = 14;
     }
     /**
-     * <code>optional .LeaveGame ga_leave = 14;</code>
+     * <code>optional .GamePlayerText player_text = 14;</code>
      */
-    private void setGaLeave(
-        soc.proto.Message.LeaveGame.Builder builderForValue) {
+    private void setPlayerText(
+        soc.proto.Message.GamePlayerText.Builder builderForValue) {
       msg_ = builderForValue.build();
       msgCase_ = 14;
     }
     /**
-     * <code>optional .LeaveGame ga_leave = 14;</code>
+     * <code>optional .GamePlayerText player_text = 14;</code>
      */
-    private void mergeGaLeave(soc.proto.Message.LeaveGame value) {
+    private void mergePlayerText(soc.proto.Message.GamePlayerText value) {
       if (msgCase_ == 14 &&
-          msg_ != soc.proto.Message.LeaveGame.getDefaultInstance()) {
-        msg_ = soc.proto.Message.LeaveGame.newBuilder((soc.proto.Message.LeaveGame) msg_)
+          msg_ != soc.proto.Message.GamePlayerText.getDefaultInstance()) {
+        msg_ = soc.proto.Message.GamePlayerText.newBuilder((soc.proto.Message.GamePlayerText) msg_)
             .mergeFrom(value).buildPartial();
       } else {
         msg_ = value;
@@ -20587,10 +21483,132 @@ public final class Message {
       msgCase_ = 14;
     }
     /**
-     * <code>optional .LeaveGame ga_leave = 14;</code>
+     * <code>optional .GamePlayerText player_text = 14;</code>
+     */
+    private void clearPlayerText() {
+      if (msgCase_ == 14) {
+        msgCase_ = 0;
+        msg_ = null;
+      }
+    }
+
+    public static final int GA_LEAVE_FIELD_NUMBER = 15;
+    /**
+     * <code>optional .LeaveGame ga_leave = 15;</code>
+     */
+    public soc.proto.Message.LeaveGame getGaLeave() {
+      if (msgCase_ == 15) {
+         return (soc.proto.Message.LeaveGame) msg_;
+      }
+      return soc.proto.Message.LeaveGame.getDefaultInstance();
+    }
+    /**
+     * <code>optional .LeaveGame ga_leave = 15;</code>
+     */
+    private void setGaLeave(soc.proto.Message.LeaveGame value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
+      msg_ = value;
+      msgCase_ = 15;
+    }
+    /**
+     * <code>optional .LeaveGame ga_leave = 15;</code>
+     */
+    private void setGaLeave(
+        soc.proto.Message.LeaveGame.Builder builderForValue) {
+      msg_ = builderForValue.build();
+      msgCase_ = 15;
+    }
+    /**
+     * <code>optional .LeaveGame ga_leave = 15;</code>
+     */
+    private void mergeGaLeave(soc.proto.Message.LeaveGame value) {
+      if (msgCase_ == 15 &&
+          msg_ != soc.proto.Message.LeaveGame.getDefaultInstance()) {
+        msg_ = soc.proto.Message.LeaveGame.newBuilder((soc.proto.Message.LeaveGame) msg_)
+            .mergeFrom(value).buildPartial();
+      } else {
+        msg_ = value;
+      }
+      msgCase_ = 15;
+    }
+    /**
+     * <code>optional .LeaveGame ga_leave = 15;</code>
      */
     private void clearGaLeave() {
-      if (msgCase_ == 14) {
+      if (msgCase_ == 15) {
+        msgCase_ = 0;
+        msg_ = null;
+      }
+    }
+
+    public static final int GAME_MESSAGE_FIELD_NUMBER = 16;
+    /**
+     * <pre>
+     * within a game
+     * </pre>
+     *
+     * <code>optional .GameMessageFromClient game_message = 16;</code>
+     */
+    public soc.proto.GameMessage.GameMessageFromClient getGameMessage() {
+      if (msgCase_ == 16) {
+         return (soc.proto.GameMessage.GameMessageFromClient) msg_;
+      }
+      return soc.proto.GameMessage.GameMessageFromClient.getDefaultInstance();
+    }
+    /**
+     * <pre>
+     * within a game
+     * </pre>
+     *
+     * <code>optional .GameMessageFromClient game_message = 16;</code>
+     */
+    private void setGameMessage(soc.proto.GameMessage.GameMessageFromClient value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
+      msg_ = value;
+      msgCase_ = 16;
+    }
+    /**
+     * <pre>
+     * within a game
+     * </pre>
+     *
+     * <code>optional .GameMessageFromClient game_message = 16;</code>
+     */
+    private void setGameMessage(
+        soc.proto.GameMessage.GameMessageFromClient.Builder builderForValue) {
+      msg_ = builderForValue.build();
+      msgCase_ = 16;
+    }
+    /**
+     * <pre>
+     * within a game
+     * </pre>
+     *
+     * <code>optional .GameMessageFromClient game_message = 16;</code>
+     */
+    private void mergeGameMessage(soc.proto.GameMessage.GameMessageFromClient value) {
+      if (msgCase_ == 16 &&
+          msg_ != soc.proto.GameMessage.GameMessageFromClient.getDefaultInstance()) {
+        msg_ = soc.proto.GameMessage.GameMessageFromClient.newBuilder((soc.proto.GameMessage.GameMessageFromClient) msg_)
+            .mergeFrom(value).buildPartial();
+      } else {
+        msg_ = value;
+      }
+      msgCase_ = 16;
+    }
+    /**
+     * <pre>
+     * within a game
+     * </pre>
+     *
+     * <code>optional .GameMessageFromClient game_message = 16;</code>
+     */
+    private void clearGameMessage() {
+      if (msgCase_ == 16) {
         msgCase_ = 0;
         msg_ = null;
       }
@@ -20635,10 +21653,16 @@ public final class Message {
         output.writeMessage(12, (soc.proto.Message.SitDown) msg_);
       }
       if (msgCase_ == 13) {
-        output.writeMessage(13, (soc.proto.Message.GamePlayerText) msg_);
+        output.writeMessage(13, (soc.proto.Message.SetSeatLock) msg_);
       }
       if (msgCase_ == 14) {
-        output.writeMessage(14, (soc.proto.Message.LeaveGame) msg_);
+        output.writeMessage(14, (soc.proto.Message.GamePlayerText) msg_);
+      }
+      if (msgCase_ == 15) {
+        output.writeMessage(15, (soc.proto.Message.LeaveGame) msg_);
+      }
+      if (msgCase_ == 16) {
+        output.writeMessage(16, (soc.proto.GameMessage.GameMessageFromClient) msg_);
       }
     }
 
@@ -20697,11 +21721,19 @@ public final class Message {
       }
       if (msgCase_ == 13) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(13, (soc.proto.Message.GamePlayerText) msg_);
+          .computeMessageSize(13, (soc.proto.Message.SetSeatLock) msg_);
       }
       if (msgCase_ == 14) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(14, (soc.proto.Message.LeaveGame) msg_);
+          .computeMessageSize(14, (soc.proto.Message.GamePlayerText) msg_);
+      }
+      if (msgCase_ == 15) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(15, (soc.proto.Message.LeaveGame) msg_);
+      }
+      if (msgCase_ == 16) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(16, (soc.proto.GameMessage.GameMessageFromClient) msg_);
       }
       memoizedSerializedSize = size;
       return size;
@@ -21341,13 +22373,53 @@ public final class Message {
       }
 
       /**
-       * <code>optional .GamePlayerText player_text = 13;</code>
+       * <code>optional .SetSeatLock set_seat_lock = 13;</code>
+       */
+      public soc.proto.Message.SetSeatLock getSetSeatLock() {
+        return instance.getSetSeatLock();
+      }
+      /**
+       * <code>optional .SetSeatLock set_seat_lock = 13;</code>
+       */
+      public Builder setSetSeatLock(soc.proto.Message.SetSeatLock value) {
+        copyOnWrite();
+        instance.setSetSeatLock(value);
+        return this;
+      }
+      /**
+       * <code>optional .SetSeatLock set_seat_lock = 13;</code>
+       */
+      public Builder setSetSeatLock(
+          soc.proto.Message.SetSeatLock.Builder builderForValue) {
+        copyOnWrite();
+        instance.setSetSeatLock(builderForValue);
+        return this;
+      }
+      /**
+       * <code>optional .SetSeatLock set_seat_lock = 13;</code>
+       */
+      public Builder mergeSetSeatLock(soc.proto.Message.SetSeatLock value) {
+        copyOnWrite();
+        instance.mergeSetSeatLock(value);
+        return this;
+      }
+      /**
+       * <code>optional .SetSeatLock set_seat_lock = 13;</code>
+       */
+      public Builder clearSetSeatLock() {
+        copyOnWrite();
+        instance.clearSetSeatLock();
+        return this;
+      }
+
+      /**
+       * <code>optional .GamePlayerText player_text = 14;</code>
        */
       public soc.proto.Message.GamePlayerText getPlayerText() {
         return instance.getPlayerText();
       }
       /**
-       * <code>optional .GamePlayerText player_text = 13;</code>
+       * <code>optional .GamePlayerText player_text = 14;</code>
        */
       public Builder setPlayerText(soc.proto.Message.GamePlayerText value) {
         copyOnWrite();
@@ -21355,7 +22427,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .GamePlayerText player_text = 13;</code>
+       * <code>optional .GamePlayerText player_text = 14;</code>
        */
       public Builder setPlayerText(
           soc.proto.Message.GamePlayerText.Builder builderForValue) {
@@ -21364,7 +22436,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .GamePlayerText player_text = 13;</code>
+       * <code>optional .GamePlayerText player_text = 14;</code>
        */
       public Builder mergePlayerText(soc.proto.Message.GamePlayerText value) {
         copyOnWrite();
@@ -21372,7 +22444,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .GamePlayerText player_text = 13;</code>
+       * <code>optional .GamePlayerText player_text = 14;</code>
        */
       public Builder clearPlayerText() {
         copyOnWrite();
@@ -21381,13 +22453,13 @@ public final class Message {
       }
 
       /**
-       * <code>optional .LeaveGame ga_leave = 14;</code>
+       * <code>optional .LeaveGame ga_leave = 15;</code>
        */
       public soc.proto.Message.LeaveGame getGaLeave() {
         return instance.getGaLeave();
       }
       /**
-       * <code>optional .LeaveGame ga_leave = 14;</code>
+       * <code>optional .LeaveGame ga_leave = 15;</code>
        */
       public Builder setGaLeave(soc.proto.Message.LeaveGame value) {
         copyOnWrite();
@@ -21395,7 +22467,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .LeaveGame ga_leave = 14;</code>
+       * <code>optional .LeaveGame ga_leave = 15;</code>
        */
       public Builder setGaLeave(
           soc.proto.Message.LeaveGame.Builder builderForValue) {
@@ -21404,7 +22476,7 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .LeaveGame ga_leave = 14;</code>
+       * <code>optional .LeaveGame ga_leave = 15;</code>
        */
       public Builder mergeGaLeave(soc.proto.Message.LeaveGame value) {
         copyOnWrite();
@@ -21412,11 +22484,71 @@ public final class Message {
         return this;
       }
       /**
-       * <code>optional .LeaveGame ga_leave = 14;</code>
+       * <code>optional .LeaveGame ga_leave = 15;</code>
        */
       public Builder clearGaLeave() {
         copyOnWrite();
         instance.clearGaLeave();
+        return this;
+      }
+
+      /**
+       * <pre>
+       * within a game
+       * </pre>
+       *
+       * <code>optional .GameMessageFromClient game_message = 16;</code>
+       */
+      public soc.proto.GameMessage.GameMessageFromClient getGameMessage() {
+        return instance.getGameMessage();
+      }
+      /**
+       * <pre>
+       * within a game
+       * </pre>
+       *
+       * <code>optional .GameMessageFromClient game_message = 16;</code>
+       */
+      public Builder setGameMessage(soc.proto.GameMessage.GameMessageFromClient value) {
+        copyOnWrite();
+        instance.setGameMessage(value);
+        return this;
+      }
+      /**
+       * <pre>
+       * within a game
+       * </pre>
+       *
+       * <code>optional .GameMessageFromClient game_message = 16;</code>
+       */
+      public Builder setGameMessage(
+          soc.proto.GameMessage.GameMessageFromClient.Builder builderForValue) {
+        copyOnWrite();
+        instance.setGameMessage(builderForValue);
+        return this;
+      }
+      /**
+       * <pre>
+       * within a game
+       * </pre>
+       *
+       * <code>optional .GameMessageFromClient game_message = 16;</code>
+       */
+      public Builder mergeGameMessage(soc.proto.GameMessage.GameMessageFromClient value) {
+        copyOnWrite();
+        instance.mergeGameMessage(value);
+        return this;
+      }
+      /**
+       * <pre>
+       * within a game
+       * </pre>
+       *
+       * <code>optional .GameMessageFromClient game_message = 16;</code>
+       */
+      public Builder clearGameMessage() {
+        copyOnWrite();
+        instance.clearGameMessage();
         return this;
       }
 
@@ -21526,16 +22658,30 @@ public final class Message {
                   other.msg_);
               break;
             }
-            case PLAYER_TEXT: {
+            case SET_SEAT_LOCK: {
               msg_ = visitor.visitOneofMessage(
                   msgCase_ == 13,
                   msg_,
                   other.msg_);
               break;
             }
-            case GA_LEAVE: {
+            case PLAYER_TEXT: {
               msg_ = visitor.visitOneofMessage(
                   msgCase_ == 14,
+                  msg_,
+                  other.msg_);
+              break;
+            }
+            case GA_LEAVE: {
+              msg_ = visitor.visitOneofMessage(
+                  msgCase_ == 15,
+                  msg_,
+                  other.msg_);
+              break;
+            }
+            case GAME_MESSAGE: {
+              msg_ = visitor.visitOneofMessage(
+                  msgCase_ == 16,
                   msg_,
                   other.msg_);
               break;
@@ -21741,8 +22887,22 @@ public final class Message {
                   break;
                 }
                 case 106: {
-                  soc.proto.Message.GamePlayerText.Builder subBuilder = null;
+                  soc.proto.Message.SetSeatLock.Builder subBuilder = null;
                   if (msgCase_ == 13) {
+                    subBuilder = ((soc.proto.Message.SetSeatLock) msg_).toBuilder();
+                  }
+                  msg_ =
+                       input.readMessage(soc.proto.Message.SetSeatLock.parser(), extensionRegistry);
+                  if (subBuilder != null) {
+                    subBuilder.mergeFrom((soc.proto.Message.SetSeatLock) msg_);
+                    msg_ = subBuilder.buildPartial();
+                  }
+                  msgCase_ = 13;
+                  break;
+                }
+                case 114: {
+                  soc.proto.Message.GamePlayerText.Builder subBuilder = null;
+                  if (msgCase_ == 14) {
                     subBuilder = ((soc.proto.Message.GamePlayerText) msg_).toBuilder();
                   }
                   msg_ =
@@ -21751,12 +22911,12 @@ public final class Message {
                     subBuilder.mergeFrom((soc.proto.Message.GamePlayerText) msg_);
                     msg_ = subBuilder.buildPartial();
                   }
-                  msgCase_ = 13;
+                  msgCase_ = 14;
                   break;
                 }
-                case 114: {
+                case 122: {
                   soc.proto.Message.LeaveGame.Builder subBuilder = null;
-                  if (msgCase_ == 14) {
+                  if (msgCase_ == 15) {
                     subBuilder = ((soc.proto.Message.LeaveGame) msg_).toBuilder();
                   }
                   msg_ =
@@ -21765,7 +22925,21 @@ public final class Message {
                     subBuilder.mergeFrom((soc.proto.Message.LeaveGame) msg_);
                     msg_ = subBuilder.buildPartial();
                   }
-                  msgCase_ = 14;
+                  msgCase_ = 15;
+                  break;
+                }
+                case 130: {
+                  soc.proto.GameMessage.GameMessageFromClient.Builder subBuilder = null;
+                  if (msgCase_ == 16) {
+                    subBuilder = ((soc.proto.GameMessage.GameMessageFromClient) msg_).toBuilder();
+                  }
+                  msg_ =
+                       input.readMessage(soc.proto.GameMessage.GameMessageFromClient.parser(), extensionRegistry);
+                  if (subBuilder != null) {
+                    subBuilder.mergeFrom((soc.proto.GameMessage.GameMessageFromClient) msg_);
+                    msg_ = subBuilder.buildPartial();
+                  }
+                  msgCase_ = 16;
                   break;
                 }
               }
