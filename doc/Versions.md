@@ -18,7 +18,6 @@ and backport minor new features until `2.0.00` is ready.
 ## `2.0.00` (build JM2018xxxx)
 - Large board (sea board) support
 - Game Scenario and special-rules support
-- "House rules" dev card types (New game option `DH`)
 - Discovery/Year of Plenty card: Dialog box includes current resource counts (like Discard's dialog)
 - More efficient game-setup messages over network
 - I18N framework in place, started by Luis A. Ramirez; thank you Luis. Jeremy wrote more I18N utilities (package net.nand.util.i18n).
