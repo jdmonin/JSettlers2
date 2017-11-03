@@ -490,16 +490,6 @@ public class SOCGameOption
                 ("SC", 2000, 2000, 8, false, FLAG_DROP_IF_UNUSED, "Game Scenario: #");
         opt.put("SC", sc);
 
-        // Not Implemented: DH:
-        /*
-        opt.put("DH", new SOCGameOption
-                ("DH", 2000, 2000, false, true, "Experimental: Dev Cards for house rules (swap/destroy)"));
-                // TODO no robot players for DH
-         *
-         * Game opt "DH" was suggested by a contributor, who would implement it.
-         * For now that keyname is reserved for when this happens.
-         */
-
         // Game scenario options (rules and events)
 
         //      I18N note: NewGameOptionsFrame.showScenarioInfoDialog() assumes these

@@ -165,11 +165,6 @@ public class SOCGame implements Serializable, Cloneable
      */
     public static final int READY = 1; // Ready to start playing
 
-    public static final int SETOPTIONS_EXCL = 2; // Future use: Game owner setting options, no one can yet connect
-    public static final int SETOPTIONS_INCL = 3; // Future use: Game owner setting options, but anyone can connect
-        // These are still unused in 1.1.07, even though we now have game options,
-        // because the options are set before the SOCGame is created.
-
     /**
      * This game object has just been created by a reset, but the old game contains robot players,
      * so we must wait for them to leave before re-inviting anyone to continue the reset process.
@@ -245,7 +240,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Valid only when game scenario option {@link SOCGameOption#K_SC_3IP _SC_3IP} is set.
      */
-    public static final int START3A = 12;
+    public static final int START3A = 12;  // Players place 3rd settlement
 
     /**
      * Players place third road.  Next state is {@link #START3A} to place previous
@@ -451,22 +446,6 @@ public class SOCGame implements Serializable, Cloneable
      * @since 2.0.00
      */
     public static final int WAITING_FOR_PICK_GOLD_RESOURCE = 56;
-
-    /**
-     * Waiting for player to choose a settlement to destroy, or
-     * a city to downgrade (Dev card {@link SOCDevCardConstants#DESTROY}).
-     * Used with game option <tt>"DH"</tt> which is reserved but currently not implemented.
-     * @since 2.0.00
-     */
-    public static final int WAITING_FOR_DESTROY = 57;
-
-    /**
-     * Waiting for player to choose a settlement or city to swap
-     * with another player (Dev card {@link SOCDevCardConstants#SWAP}).
-     * Used with game option <tt>"DH"</tt> which is reserved but currently not implemented.
-     * @since 2.0.00
-     */
-    public static final int WAITING_FOR_SWAP = 58;
 
     /**
      * The 6-player board's Special Building Phase.
@@ -3946,23 +3925,10 @@ public class SOCGame implements Serializable, Cloneable
         int i;
         int j;
 
-        if (isGameOptionSet("DH"))  // House Rules dev cards -- reserved but currently not implemented
+        // Standard set of knights
+        for (i = 0; i < 14; i++)
         {
-            // Some knights become other card types
-            for (i = 0; i < 4; i++)
-                devCardDeck[i] = SOCDevCardConstants.SWAP;
-            for (i = 4; i < 8; i++)
-                devCardDeck[i] = SOCDevCardConstants.DESTROY;
-            for (i = 8; i < 14; i++)
-                devCardDeck[i] = SOCDevCardConstants.KNIGHT;
-
-        } else {
-
-            // Standard set of of knights
-            for (i = 0; i < 14; i++)
-            {
-                devCardDeck[i] = SOCDevCardConstants.KNIGHT;
-            }
+            devCardDeck[i] = SOCDevCardConstants.KNIGHT;
         }
 
         for (i = 14; i < 16; i++)
@@ -4523,20 +4489,6 @@ public class SOCGame implements Serializable, Cloneable
 
         case WAITING_FOR_PICK_GOLD_RESOURCE:
             return forceEndTurnChkDiscardOrGain(currentPlayerNumber, false);  // sets gameState, picks randomly
-
-        case WAITING_FOR_DESTROY:
-            gameState = PLAY1;
-            itemCard = new SOCDevCard(SOCDevCardConstants.DESTROY, false);
-            players[currentPlayerNumber].getInventory().addItem(itemCard);
-            return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
-
-        case WAITING_FOR_SWAP:
-            gameState = PLAY1;
-            itemCard = new SOCDevCard(SOCDevCardConstants.SWAP, false);
-            players[currentPlayerNumber].getInventory().addItem(itemCard);
-            return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
 
         default:
             throw new IllegalStateException("Internal error in force, un-handled gamestate: "
