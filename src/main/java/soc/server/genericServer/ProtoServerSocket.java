@@ -1,8 +1,6 @@
 /**
  * JSettlers network message system.
- * This file Copyright (C) 2007-2009,2016-2017 Jeremy D Monin <jeremy@nand.net>.
- * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
+ * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,37 +26,25 @@ import java.net.SocketException;
 
 /**
  * Uses {@link ServerSocket} to implement {@link SOCServerSocket} over a network
- * and send and receive {@link SOCMessages} with client {@link NetConnection}s.
- *<P>
- * To send and receive Protobuf messages instead, use subclass {@link ProtoServerSocket}.
- *<P>
- * Before version 2.0.00 this class was an inner class {@code NetStringServerSocket} in {@link Server}.
+ * and send and receive Protobuf with client {@link ProtoConnection}s.
  *
- * @since 2.0.00
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 3.0.00
  */
-public class NetServerSocket implements SOCServerSocket
+public class ProtoServerSocket extends NetServerSocket  // which implements SOCServerSocket
 {
-    protected final ServerSocket implServSocket;
-    protected final Server server;
-
-    public NetServerSocket(int port, Server server)
+    public ProtoServerSocket(int port, Server server)
         throws IOException
     {
-        this.implServSocket = new ServerSocket(port);
-        this.server = server;
+        super(port, server);
     }
 
+    @Override
     public Connection accept()
         throws SocketException, IOException
     {
         Socket s = implServSocket.accept();
-        return new NetConnection(s, server);
-    }
-
-    public void close()
-        throws IOException
-    {
-        implServSocket.close();
+        return new ProtoConnection(s, server);
     }
 
 }

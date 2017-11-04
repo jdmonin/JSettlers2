@@ -914,7 +914,10 @@ new stable versions.  Most work on 1.x.xx is backported from 2.0; changeset
 comments often mention a hash from a master commit.  Version 2.0.00 was
 split off right after releasing version 1.1.13.
 
-v3 is the experimental branch with major architectural changes.
+v3 is the experimental branch with major architectural changes.  
+**Protobuf**: Until the server, client, and bots are completely converted
+to use protobuf internally, temporary SOCMessage.toMsg/toProto methods
+will convert back and forth as needed.
 
 Once 2.0.00 is out, we'll follow the usual jsettlers model: Because
 jsettlers2.x.xx is mature at this point, Each minor release is a

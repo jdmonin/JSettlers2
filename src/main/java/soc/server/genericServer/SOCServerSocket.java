@@ -34,10 +34,10 @@ import java.net.SocketException;
  *  1.0.5.1- 2009-10-26- remove unused import EOFException
  *  2.0.0 - 2017-11-01 - Rename StringServerSocket -> SOCServerSocket, NetStringServerSocket -> NetServerSocket,
  *                       LocalStringServerSocket -> StringServerSocket
+ *  3.0.0 - 2017-11-04 - ProtoServerSocket subclass for protobuf
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
- * @version 2.0.0
  */
 public interface SOCServerSocket
 {

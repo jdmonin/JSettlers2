@@ -44,7 +44,6 @@ import java.util.Vector;
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
- * @version 2.0.0
  */
 public class StringServerSocket implements SOCServerSocket
 {

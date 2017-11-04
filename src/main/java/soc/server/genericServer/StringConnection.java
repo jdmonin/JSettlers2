@@ -62,7 +62,6 @@ import soc.message.SOCMessage;
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
- * @version 2.0.0
  */
 public class StringConnection
     extends Connection implements Runnable

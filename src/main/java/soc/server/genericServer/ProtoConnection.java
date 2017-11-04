@@ -1,9 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2010,2013,2016-2017 Jeremy D Monin <jeremy@nand.net>
- * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
+ * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,93 +22,62 @@ package soc.server.genericServer;
 
 import soc.disableDebug.D;
 import soc.message.SOCMessage;
+import soc.proto.Message;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.Serializable;
+import java.io.InputStream;
 import java.net.Socket;
 import java.util.Date;
 import java.util.Vector;
 
 
-/** A TCP client's connection at a server.
- *  Reads from the net, writes atomically to the net and
- *  holds the connection data
+/**
+ * A protobuf TCP client's connection at a server.
+ * Reads from the net, writes atomically to the net and
+ * holds the connection data.
  *<P>
- * This class has a run method, but you must start the thread yourself.
+ * This Runnable class has a run method, but you must start the thread yourself.
  * Constructors will not create or start a thread.
  *<P>
- * As used within JSettlers, the structure of this class has much in common
- * with {@link StringConnection}, as they both subclass {@link Connection}.
- * If you add something to one class, you should probably add it to the other, or to the superclass instead.
- *<P>
- * Refactored in v2.0.0 to extend {@link Connection} instead of Thread.
- *<P>
- * Before JSettlers v2.0.00, this class was called {@code Connection}.
+ * Added in v3.0.00 by copying and subclassing NetConnection, so some methods
+ * have code or javadocs from earlier versions.
  *
- * @author <A HREF="http://www.nada.kth.se/~cristi">Cristian Bogdan</A>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 3.0.00
  */
 @SuppressWarnings("serial")
-public class NetConnection
-    extends Connection implements Runnable, Serializable, Cloneable
+public final class ProtoConnection
+    extends NetConnection  // which implements Runnable, Serializable, Cloneable
 {
-    static int putters = 0;
-    static Object puttersMonitor = new Object();
-    protected final static int TIMEOUT_VALUE = 3600000; // approx. 1 hour
+    private InputStream in = null;
+    private DataOutputStream out = null;  // TODO bare OutputStream for Proto
 
-    /**
-     * Input from client to receive and decode SOCMessage strings.
-     * Not used by {@link ProtoConnection} subclass.
-     */
-    private DataInputStream in = null;
-
-    /**
-     * Output to client to encode and send SOCMessage strings.
-     * Not used by {@link ProtoConnection} subclass.
-     */
-    private DataOutputStream out = null;
-
-    Socket s = null;
-
-    /** Hostname of the remote end of the connection, for {@link #host()} */
-    protected String hst;
-
-    protected boolean connected = false;
-    /** @see #disconnectSoft() */
-    protected boolean inputConnected = false;
-    private Vector<String> outQueue = new Vector<String>();
+    /** Messages from server to client, sent in {@link Putter} thread. */
+    private Vector<String> outQueue = new Vector<String>();  // TODO proto Message.FromServer instead
 
     /** initialize the connection data */
-    NetConnection(Socket so, Server sve)
+    ProtoConnection(Socket so, Server sve)
     {
-        hst = so.getInetAddress().getHostName();
-        ourServer = sve;
-        s = so;
+        super(so, sve);
     }
 
     /**
      * Get our connection thread name for debugging.  Also used by {@link #toString()}.
-     * @return "connection-" + <em>remotehostname-portnumber</em>, or "connection-(null)-" + {@link #hashCode()}
+     * @return "protoconn-" + <em>remotehostname-portnumber</em>, or "protoconn-(null)-" + {@link #hashCode()}
      * @since 2.0.0
      */
+    @Override
     public String getName()
     {
         if ((hst != null) && (s != null))
-            return "connection-" + hst + "-" + Integer.toString(s.getPort());
+            return "protoconn-" + hst + "-" + Integer.toString(s.getPort());
         else
-            return "connection-(null)-" + Integer.toString(hashCode());
+            return "protoconn-(null)-" + Integer.toString(hashCode());
     }
 
     /**
-     * @return Hostname of the remote end of the connection
-     */
-    public String host()
-    {
-        return hst;
-    }
-
-    /** Set up to reading from the net, start a new Putter thread to send to the net; called only by the server.
+     * Set up to read from the net, start a new Putter thread to send to the net; called only by the server.
      * If successful, also sets connectTime to now.
      * Before calling {@code connect()}, be sure to make a new {@link Thread}{@code (this)} and {@code start()} it
      * for the inbound reading thread.
@@ -130,8 +97,8 @@ public class NetConnection
         try
         {
             s.setSoTimeout(TIMEOUT_VALUE);
-            in = new DataInputStream(s.getInputStream());
-            out = new DataOutputStream(s.getOutputStream());
+            in = s.getInputStream();
+            out = new DataOutputStream(s.getOutputStream());  // TODO raw OutputStream for proto
             connected = true;
             inputConnected = true;
             connectTime = new Date();
@@ -143,7 +110,7 @@ public class NetConnection
         }
         catch (Exception e)
         {
-            D.ebugPrintln("IOException in Connection.connect (" + hst + ") - " + e);
+            D.ebugPrintln("Exception in ProtoConnection.connect (" + hst + ") - " + e);
 
             if (D.ebugOn)
             {
@@ -163,6 +130,7 @@ public class NetConnection
      * Is input available now, without blocking?
      * Same idea as {@link java.io.DataInputStream#available()}.
      */
+    @Override
     public boolean isInputAvailable()
     {
         try
@@ -191,8 +159,8 @@ public class NetConnection
 
             if (inputConnected)
             {
-                String firstMsg = in.readUTF();
-                final SOCMessage msgObj = SOCMessage.toMsg(firstMsg);  // parse
+                Message.FromClient firstMsg = Message.FromClient.parseDelimitedFrom(in);
+                final SOCMessage msgObj = SOCMessage.toMsg(firstMsg);  // convert
                 if (! ourServer.processFirstCommand(msgObj, this))
                 {
                     if (msgObj != null)
@@ -202,16 +170,15 @@ public class NetConnection
 
             while (inputConnected)
             {
-                // readUTF max message size is 65535 chars, modified utf-8 format
-                final String msgStr = in.readUTF();  // readUTF() blocks until next message is available
-                final SOCMessage msgObj = SOCMessage.toMsg(msgStr);
+                final Message.FromClient msgProto = Message.FromClient.parseDelimitedFrom(in);
+                final SOCMessage msgObj = SOCMessage.toMsg(msgProto);
                 if (msgObj != null)
                     inQueue.push(msgObj, this);
             }
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception in NetConnection.run (" + hst + ") - " + e);
+            D.ebugPrintln("Exception in ProtoConnection.run (" + hst + ") - " + e);
 
             if (D.ebugOn)
             {
@@ -240,7 +207,7 @@ public class NetConnection
      *
      * @param str Data to send
      */
-    public void put(String str)
+    public final void put(String str)  // TODO proto Message.FromServer instead
     {
         synchronized (outQueue)
         {
@@ -260,7 +227,7 @@ public class NetConnection
      * @return True if sent, false if error
      *         (and sets {@link #error})
      */
-    private boolean putForReal(final String str)
+    private boolean putForReal(final String str)  // TODO proto Message.FromServer instead
     {
         boolean rv = putAux(str);
 
@@ -287,7 +254,7 @@ public class NetConnection
      * @return true for success, false and disconnects on failure
      *         (and sets {@link #error})
      */
-    private final boolean putAux(final String str)
+    private final boolean putAux(final String str)  // TODO proto Message.FromServer instead
     {
         if ((error != null) || ! connected)
         {
@@ -296,13 +263,11 @@ public class NetConnection
 
         try
         {
-            //D.ebugPrintln("trying to put "+str+" to "+data);
             out.writeUTF(str);
-                // throws UTFDataFormatException (an IOException) if string length > 65535 in UTF-8
         }
         catch (IOException e)
         {
-            D.ebugPrintln("IOException in Connection.putAux (" + hst + ") - " + e);
+            D.ebugPrintln("IOException in ProtoConnection.putAux (" + hst + ") - " + e);
 
             if (D.ebugOn)
             {
@@ -315,7 +280,7 @@ public class NetConnection
         }
         catch (Exception ex)
         {
-            D.ebugPrintln("generic exception in connection putaux");
+            D.ebugPrintln("generic exception in ProtoConnection.putAux");
 
             if (D.ebugOn)
             {
@@ -329,82 +294,16 @@ public class NetConnection
     }
 
     /** close the socket, stop the reader; called after conn is removed from server structures */
+    @Override
     public void disconnect()
     {
-        if (! connected)
-            return;  // <--- Early return: Already disconnected ---
-
-        D.ebugPrintln("DISCONNECTING " + data);
-        connected = false;
-        inputConnected = false;
-
-        /*                if(Thread.currentThread()!=reader && reader!=null && reader.isAlive())
-           reader.stop();*/
-        try
-        {
-            if (s != null)
-                s.close();
-        }
-        catch (IOException e)
-        {
-            D.ebugPrintln("IOException in Connection.disconnect (" + hst + ") - " + e);
-
-            if (D.ebugOn)
-            {
-                e.printStackTrace(System.out);
-            }
-
-            error = e;
-        }
-
-        s = null;
+        super.disconnect();
         in = null;
         out = null;
     }
 
-    /**
-     * Accept no further input, allow output to drain, don't immediately close the socket.
-     * Once called, {@link #isConnected()} will return false, even if output is still being
-     * sent to the other side.
-     */
-    public void disconnectSoft()
-    {
-        if (! inputConnected)
-            return;
-
-        D.ebugPrintln("DISCONNECTING(SOFT) " + data);
-        inputConnected = false;
-    }
-
-    /**
-     * Are we currently connected and active?
-     */
-    public boolean isConnected()
-    {
-        return connected && inputConnected;
-    }
-
-    /**
-     * For debugging, toString includes data.toString and {@link #getName()}.
-     * @since 1.0.5.2
-     */
-    public String toString()
-    {
-        StringBuffer sb = new StringBuffer("Connection[");
-        if (data != null)
-            sb.append(data);
-        else
-            sb.append(super.hashCode());
-        sb.append('-');
-        sb.append(getName());  // connection-hostname-portnumber
-        sb.append(']');
-        return sb.toString();
-    }
-
-    /**
-     * Connection inner class thread to send {@link NetConnection#outQueue} messages to the net.
-     * Not used by {@link ProtoConnection} subclass, which has protobuf messages in its outQueue.
-     */
+    // TODO proto to client
+    /** Connection inner class thread to send {@link NetConnection#outQueue} messages to the net. */
     class Putter extends Thread
     {
         //public boolean putting = true;

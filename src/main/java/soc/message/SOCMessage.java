@@ -26,6 +26,8 @@ import java.util.Enumeration;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
+import soc.proto.Message;
+
 
 /**
  * Messages used for game data, events, and chatting on a channel.
@@ -624,6 +626,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * @param s  String to convert
      * @return   converted String to a SOCMessage, or null if the string is garbled,
      *           or is an unknown command id
+     * @see #toMsg(soc.proto.Message.FromClient)
      */
     public static SOCMessage toMsg(String s)
     {
@@ -1021,4 +1024,53 @@ public abstract class SOCMessage implements Serializable, Cloneable
             return null;
         }
     }
+
+    /**
+     * Convert a Protobuf message from client into a SOCMessage.
+     * This method is temporary until SOCServer completely uses protobuf.
+     * If the message type id is unknown, type is printed to System.err.
+     *
+     * @param msg  Message to convert
+     * @return  {@code msg} converted to a SOCMessage,
+     *     or {@code null} if the message is an unknown command id
+     *     or invalid data causes an error constructing the SOCMessage
+     * @since 3.0.00
+     * @see #toMsg(String)
+     */
+    public static SOCMessage toMsg(final Message.FromClient msg)
+    {
+        final int typ = msg.getMsgCase().getNumber();
+        try
+        {
+            switch (typ)
+            {
+            case Message.FromClient.VERS_FIELD_NUMBER:
+                {
+                    Message.Version m = msg.getVers();
+                    return new SOCVersion
+                        (m.getVersNum(), m.getVersStr(), m.getVersBuild(), m.getCliLocale());
+                }
+
+            case Message.FromClient.IM_A_ROBOT_FIELD_NUMBER:
+                {
+                    Message.ImARobot m = msg.getImARobot();
+                    return new SOCImARobot(m.getNickname(), m.getCookie(), m.getRbClass());
+                }
+
+            // TODO recognize the rest
+
+            default:
+                System.err.println("Unhandled FromClient message type in SOCMessage.toMsg: " + typ);
+                return null;
+            }
+        }
+        catch (Exception e)
+        {
+            System.err.println("toMsg(FromClient) ERROR - " + e);
+            e.printStackTrace();
+
+            return null;
+        }
+    }
+
 }
