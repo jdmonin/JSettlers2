@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
@@ -85,6 +86,17 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 {
 
     SOCServerSocket ss;
+
+    /**
+     * Any optional properties to configure and run the server. Never null, may be empty.
+     *<P>
+     * Before v2.0.00 this field was in {@code SOCServer}; see {@link SOCServer#PROPS_LIST}.
+     *
+     * @see #getConfigBoolProperty(String, boolean)
+     * @see #getConfigIntProperty(String, int)
+     * @since 1.1.09
+     */
+    final protected Properties props;
 
     /**
      * Dispatcher for all inbound messages from clients.
@@ -238,13 +250,21 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     public static int CLI_CONN_PRINT_TIMER_FIRE_MS = 1000;
 
-    /** start listening to the given port */
-    public Server(final int port, final InboundMessageDispatcher imd)
+    /**
+     * a Server which will start listening to the given TCP port.
+     * @param port  TCP port to bind to
+     * @param props  Optional properties to configure and run the server.
+     *       If null, the properties field will be created empty.
+     */
+    public Server(final int port, final InboundMessageDispatcher imd, Properties props)
         throws IllegalArgumentException
     {
         if (imd == null)
             throw new IllegalArgumentException("imd null");
 
+        if (props == null)
+            props = new Properties();
+        this.props = props;
         this.port = port;
         this.strSocketName = null;
         this.inboundMsgDispatcher = imd;
@@ -267,8 +287,13 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         // Most other fields are set by initializers in their declaration.
     }
 
-    /** start listening to the given local string port (practice game) */
-    public Server(final String stringSocketName, final InboundMessageDispatcher imd)
+    /**
+     * A Server which will start listening to the given local string port (practice game).
+     * @param stringSocketName  Arbitrary name for string "port" to use
+     * @param props  Optional properties to configure and run the server.
+     *       If null, the properties field will be created empty.
+     */
+    public Server(final String stringSocketName, final InboundMessageDispatcher imd, Properties props)
         throws IllegalArgumentException
     {
         if (stringSocketName == null)
@@ -276,6 +301,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         if (imd == null)
             throw new IllegalArgumentException("imd null");
 
+        if (props == null)
+            props = new Properties();
+        this.props = props;
         this.port = -1;
         this.strSocketName = stringSocketName;
         this.inboundMsgDispatcher = imd;
@@ -366,6 +394,68 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     public String getLocalSocketName()
     {
         return strSocketName;
+    }
+
+    /**
+     * Get and parse an integer config property, or use its default instead.
+     *<P>
+     * Before v2.0.00 this method was {@code SOCServer.init_getIntProperty(..)}.
+     *
+     * @param pName  Property name
+     * @param pDefault  Default value to use if not found or not parsable
+     * @return The property's parsed integer value, or <tt>pDefault</tt>
+     * @since 1.1.10
+     * @see #getConfigBoolProperty(String, boolean)
+     */
+    public final int getConfigIntProperty(final String pName, final int pDefault)
+    {
+        try
+        {
+            String mcs = props.getProperty(pName);
+            if (mcs != null)
+                return Integer.parseInt(mcs);
+        }
+        catch (NumberFormatException e) { }
+
+        return pDefault;
+    }
+
+    /**
+     * Get and parse a boolean config property, or use its default instead.
+     * True values are: T Y 1.
+     * False values are: F N 0.
+     * Not case-sensitive.
+     * Any other value will be ignored and get <tt>pDefault</tt>.
+     *<P>
+     * Before v2.0.00 this method was {@code SOCServer.init_getBoolProperty(..)}.
+     *
+     * @param pName  Property name
+     * @param pDefault  Default value to use if not found or not parsable
+     * @return The property's parsed value, or <tt>pDefault</tt>
+     * @since 1.1.14
+     * @see #getConfigIntProperty(String, int)
+     */
+    public final boolean getConfigBoolProperty(final String pName, final boolean pDefault)
+    {
+        try
+        {
+            String mcs = props.getProperty(pName);
+            if (mcs == null)
+                return pDefault;
+            if (mcs.equalsIgnoreCase("Y") || mcs.equalsIgnoreCase("T"))
+                return true;
+            else if (mcs.equalsIgnoreCase("N") || mcs.equalsIgnoreCase("F"))
+                return false;
+
+            final int iv = Integer.parseInt(mcs);
+            if (iv == 0)
+                return false;
+            else if (iv == 1)
+                return true;
+        }
+        catch (NumberFormatException e) { }
+
+        return pDefault;
     }
 
     /**

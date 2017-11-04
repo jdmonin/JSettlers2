@@ -135,19 +135,23 @@ import java.util.Vector;
  *<LI> Timer threads are used to check for inactive robots and idle games: See
  *     {@link SOCGameTimeoutChecker} and {@link SOCGameHandler#endTurnIfInactive(SOCGame, long)}.
  *</UL>
- *<P>
- * The server supports several <b>debug commands</b> when {@link #isDebugUserEnabled()}, and
+ *
+ *<H3>Properties and features:</H3>
+ * Java properties (starting with {@code "jsettlers."}) were added in 1.1.09, with constant names
+ * starting with {@code PROP_JSETTLERS_} and listed in {@link #PROPS_LIST}.
+ * Some properties activate optional {@link #features} of the server.
+ *
+ *<H3>Debug Commands:</H3>
+ * The server supports several debug commands when {@link #isDebugUserEnabled()}, and
  * when sent as chat messages by a user named {@code "debug"} or by the only human in a practice game.
  * See {@link #processDebugCommand(Connection, String, String, String)} and
  * {@link SOCServerMessageHandler#handleGAMETEXTMSG(Connection, SOCGameTextMsg)}
  * for details.
- *<P>
+ *
+ *<H3>Other Notes:</H3>
  * The version check timer is set in {@link SOCClientData#setVersionTimer(SOCServer, Connection)}.
  * Before 1.1.06 the server's currently active game and channel lists were sent beforehand,
  * and client version was then sent in reply to server's version.
- *<P>
- * Java <B>properties</B> (starting with {@code "jsettlers."}) were added in 1.1.09, with constant names
- * starting with {@code PROP_JSETTLERS_} and listed in {@link #PROPS_LIST}.
  */
 @SuppressWarnings("serial")
 public class SOCServer extends Server
@@ -640,18 +644,6 @@ public class SOCServer extends Server
     private boolean allowDebugUser;
 
     /**
-     * Properties for the server, or empty if that constructor wasn't used.
-     * Property names are held in PROP_* and SOCDBHelper.PROP_* constants.
-     * Some properties activate optional {@link #features}.
-     * @see #SOCServer(int, Properties)
-     * @see #PROPS_LIST
-     * @see #getConfigBoolProperty(String, boolean)
-     * @see #getConfigIntProperty(String, int)
-     * @since 1.1.09
-     */
-    private Properties props;
-
-    /**
      * True if {@link #props} contains a property which is used to run the server in Utility Mode
      * instead of Server Mode.  In Utility Mode the server reads its properties, initializes its
      * database connection if any, and performs one task such as a password reset or table/index creation.
@@ -659,7 +651,7 @@ public class SOCServer extends Server
      *<P>
      * For a list of Utility Mode properties, see {@link #hasUtilityModeProperty()}.
      *<P>
-     * This flag is set early in {@link #initSocServer(String, String, Properties)};
+     * This flag is set early in {@link #initSocServer(String, String)};
      * if you add a property which sets Utility Mode, update that code.
      * @see #utilityModeMessage
      * @since 1.1.20
@@ -1053,10 +1045,10 @@ public class SOCServer extends Server
     public SOCServer(int p, int mc, String databaseUserName, String databasePassword)
         throws SocketException, EOFException, SQLException, IllegalStateException
     {
-        super(p, new SOCMessageDispatcher());
+        super(p, new SOCMessageDispatcher(), null);
 
         maxConnections = mc;
-        initSocServer(databaseUserName, databasePassword, null);
+        initSocServer(databaseUserName, databasePassword);
     }
 
     /**
@@ -1072,7 +1064,7 @@ public class SOCServer extends Server
      *<P>
      * If a db URL or other DB properties are specified in {@code props}, but {@code SOCServer}
      * can't successfully connect to that database, this constructor throws {@code SQLException};
-     * for details see {@link #initSocServer(String, String, Properties)}.
+     * for details see {@link #initSocServer(String, String)}.
      * Other constructors can't set those properties, and will instead
      * continue {@code SOCServer} startup and run without any database.
      *<P>
@@ -1092,7 +1084,11 @@ public class SOCServer extends Server
      *
      * @param p    the TCP port that the server listens on
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
-     *       and any other desired properties. If {@code props} contains game option default values
+     *       and any other desired properties.
+     *       <P>
+     *       Property names are held in PROP_* and SOCDBHelper.PROP_* constants; see {@link #PROPS_LIST}.
+     *       <P>
+     *       If {@code props} contains game option default values
      *       (see below) with non-uppercase gameopt names, cannot be read-only: Startup will
      *       replace keys such as {@code "jsettlers.gameopt.vp"} with their canonical
      *       uppercase equivalent: {@code "jsettlers.gameopt.VP"}
@@ -1133,17 +1129,18 @@ public class SOCServer extends Server
     public SOCServer(final int p, Properties props)
         throws SocketException, EOFException, SQLException, IllegalArgumentException, IllegalStateException
     {
-        super(p, new SOCMessageDispatcher());
-        if (props != null)
-            this.props = props;  // needed for getConfig*Property; initSocServer will set this field again
+        super(p, new SOCMessageDispatcher(), props);
+        props = this.props;  // if was null, use empty props created by super constructor
 
         maxConnections = getConfigIntProperty(PROP_JSETTLERS_CONNECTIONS, SOC_MAXCONN_DEFAULT);
         allowDebugUser = getConfigBoolProperty(PROP_JSETTLERS_ALLOW_DEBUG, false);
         CLIENT_MAX_CREATE_GAMES = getConfigIntProperty(PROP_JSETTLERS_CLI_MAXCREATEGAMES, CLIENT_MAX_CREATE_GAMES);
         CLIENT_MAX_CREATE_CHANNELS = getConfigIntProperty(PROP_JSETTLERS_CLI_MAXCREATECHANNELS, CLIENT_MAX_CREATE_CHANNELS);
+
         String dbuser = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "socuser");
         String dbpass = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "socpass");
-        initSocServer(dbuser, dbpass, props);
+
+        initSocServer(dbuser, dbpass);
     }
 
     /**
@@ -1175,10 +1172,10 @@ public class SOCServer extends Server
     public SOCServer(String s, int mc, String databaseUserName, String databasePassword)
         throws SocketException, EOFException, SQLException, IllegalStateException
     {
-        super(s, new SOCMessageDispatcher());
+        super(s, new SOCMessageDispatcher(), null);
 
         maxConnections = mc;
-        initSocServer(databaseUserName, databasePassword, null);
+        initSocServer(databaseUserName, databasePassword);
     }
 
     /**
@@ -1215,24 +1212,6 @@ public class SOCServer extends Server
      *
      * @param databaseUserName Used for DB connect - not retained
      * @param databasePassword Used for DB connect - not retained
-     * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
-     *       and any other desired properties. If {@code props} contains game option default values
-     *       (see below) with non-uppercase gameopt names, cannot be read-only: Startup will
-     *       replace keys such as {@code "jsettlers.gameopt.vp"} with their canonical
-     *       uppercase equivalent: {@code "jsettlers.gameopt.VP"}
-     *       <P>
-     *       If {@code props} is null, the properties will be created empty
-     *       and no bots will be started ({@link #PROP_JSETTLERS_STARTROBOTS} == 0).
-     *       If {@code props} != null but doesn't contain {@link #PROP_JSETTLERS_STARTROBOTS},
-     *       the default value {@link #SOC_STARTROBOTS_DEFAULT} will be used.
-     *       <P>
-     *       {@code props} may contain game option default values (property names starting
-     *       with {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}).
-     *       Calls {@link #parseCmdline_GameOption(SOCGameOption, String, HashMap)}
-     *       for each one found, to set its default (current) value. If a default scenario is
-     *       specified (game option {@code "SC"}), the scenario may include game options which
-     *       conflict with those in {@code props}: Consider calling {@link #checkScenarioOpts(Map, boolean, String)}
-     *       to check for that and warn the user.
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now;
      *       thrown in Utility Mode ({@link #hasUtilityModeProp}).
@@ -1246,7 +1225,7 @@ public class SOCServer extends Server
      * @throws IllegalStateException  If {@link Version#versionNumber()} returns 0 (packaging error)
      * @since 1.1.00
      */
-    private void initSocServer(String databaseUserName, String databasePassword, Properties props)
+    private void initSocServer(String databaseUserName, String databasePassword)
         throws SocketException, EOFException, SQLException, IllegalArgumentException, IllegalStateException
     {
         Version.printVersionText(System.err, "Java Settlers Server ");
@@ -1264,24 +1243,21 @@ public class SOCServer extends Server
         final boolean validate_config_mode = getConfigBoolProperty(PROP_JSETTLERS_TEST_VALIDATE__CONFIG, false);
         final boolean wants_upg_schema = getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA, false);
         boolean db_test_bcrypt_mode = false;
-        if (props != null)
+
+        final String val = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
+        if (val != null)
         {
-            final String val = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
-            if (val != null)
-            {
-                db_test_bcrypt_mode = (val.equalsIgnoreCase("test"));
-                if (db_test_bcrypt_mode)
-                    // make sure DBH.initialize won't try to parse "test" as an integer
-                    props.remove(SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
-            }
+            db_test_bcrypt_mode = (val.equalsIgnoreCase("test"));
+            if (db_test_bcrypt_mode)
+                // make sure DBH.initialize won't try to parse "test" as an integer
+                props.remove(SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
         }
 
         // Set this flag as early as possible
         hasUtilityModeProp = validate_config_mode || test_mode_with_db || wants_upg_schema || db_test_bcrypt_mode ||
-           ((props != null)
-            && ((null != props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP))
-                || props.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_SETTINGS)
-                || (null != props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET))));
+            (null != props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP))
+            || props.containsKey(SOCDBHelper.PROP_JSETTLERS_DB_SETTINGS)
+            || (null != props.getProperty(SOCDBHelper.PROP_IMPL_JSETTLERS_PW_RESET));
 
         if (test_mode_with_db)
             System.err.println("* DB Test Mode: Will run tests and exit.");
@@ -1297,32 +1273,26 @@ public class SOCServer extends Server
             throw new SocketException(errMsg);
         }
 
-        if (props == null)
+        // Add any default properties if not specified.
+
+        if (! props.containsKey(PROP_JSETTLERS_STARTROBOTS))
+            props.setProperty(PROP_JSETTLERS_STARTROBOTS, Integer.toString(SOC_STARTROBOTS_DEFAULT));
+
+        // Set game option defaults from any jsettlers.gameopt.* properties found.
+        // If problems found, throws IllegalArgumentException with details.
+        // Ignores unknown scenario ("SC"), see init_checkScenarioOpts for that.
+        init_propsSetGameopts(props);
+
+        int v = getConfigIntProperty(PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT, -1);
+        if (v != -1)
         {
-            props = new Properties();
-        } else {
-            // Add any default properties if not specified.
-
-            if (! props.containsKey(PROP_JSETTLERS_STARTROBOTS))
-                props.setProperty(PROP_JSETTLERS_STARTROBOTS, Integer.toString(SOC_STARTROBOTS_DEFAULT));
-
-            // Set game option defaults from any jsettlers.gameopt.* properties found.
-            // If problems found, throws IllegalArgumentException with details.
-            // Ignores unknown scenario ("SC"), see init_checkScenarioOpts for that.
-            init_propsSetGameopts(props);
-
-            int v = getConfigIntProperty(PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT, -1);
-            if (v != -1)
-            {
-                if ((v >= 0) && (v <= 100))
-                    SOCRobotBrain.BOTS_ONLY_FAST_PAUSE_FACTOR = .01f * v;
-                else
-                    throw new IllegalArgumentException
-                        ("Error: Property out of range (0 to 100): " + PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT);
-            }
+            if ((v >= 0) && (v <= 100))
+                SOCRobotBrain.BOTS_ONLY_FAST_PAUSE_FACTOR = .01f * v;
+            else
+                throw new IllegalArgumentException
+                    ("Error: Property out of range (0 to 100): " + PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT);
         }
 
-        this.props = props;
         ((SOCMessageDispatcher) inboundMsgDispatcher).setServer(this, srvMsgHandler, gameList);
 
         if (allowDebugUser)
@@ -1741,74 +1711,6 @@ public class SOCServer extends Server
                 ("** To create users, you must list admin names in property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + ".");
         }
 
-    }
-
-    /**
-     * Get and parse an integer config property, or use its default instead.
-     *<P>
-     * Before v2.0.00, this method was <tt>init_getIntProperty</tt>.
-     *
-     * @param pName  Property name
-     * @param pDefault  Default value to use if not found or not parsable
-     * @return The property's parsed integer value, or <tt>pDefault</tt>
-     * @since 1.1.10
-     * @see #getConfigBoolProperty(String, boolean)
-     */
-    public final int getConfigIntProperty(final String pName, final int pDefault)
-    {
-        if (props == null)
-            return pDefault;
-
-        try
-        {
-            String mcs = props.getProperty(pName, Integer.toString(pDefault));
-            if (mcs != null)
-                return Integer.parseInt(mcs);
-        }
-        catch (NumberFormatException e) { }
-
-        return pDefault;
-    }
-
-    /**
-     * Get and parse a boolean config property, or use its default instead.
-     * True values are: T Y 1.
-     * False values are: F N 0.
-     * Not case-sensitive.
-     * Any other value will be ignored and get <tt>pDefault</tt>.
-     *<P>
-     * Before v2.0.00, this method was <tt>init_getBoolProperty</tt>.
-     *
-     * @param pName  Property name
-     * @param pDefault  Default value to use if not found or not parsable
-     * @return The property's parsed value, or <tt>pDefault</tt>
-     * @since 1.1.14
-     * @see #getConfigIntProperty(String, int)
-     */
-    public final boolean getConfigBoolProperty(final String pName, final boolean pDefault)
-    {
-        if (props == null)
-            return pDefault;
-
-        try
-        {
-            String mcs = props.getProperty(pName);
-            if (mcs == null)
-                return pDefault;
-            if (mcs.equalsIgnoreCase("Y") || mcs.equalsIgnoreCase("T"))
-                return true;
-            else if (mcs.equalsIgnoreCase("N") || mcs.equalsIgnoreCase("F"))
-                return false;
-
-            final int iv = Integer.parseInt(mcs);
-            if (iv == 0)
-                return false;
-            else if (iv == 1)
-                return true;
-        }
-        catch (NumberFormatException e) { }
-
-        return pDefault;
     }
 
     /**
@@ -7371,7 +7273,7 @@ public class SOCServer extends Server
      * {@link #PROP_JSETTLERS_PORT} and {@link #PROP_JSETTLERS_CONNECTIONS}.
      *<P>
      * Does not use a {@link #PROP_JSETTLERS_STARTROBOTS} default, that's
-     * handled in {@link #initSocServer(String, String, Properties)}.
+     * handled in {@link #initSocServer(String, String)}.
      *<P>
      * Sets {@link #hasStartupPrintAndExit} if appropriate.
      *

@@ -43,7 +43,8 @@ import java.util.Vector;
  *<P>
  * As used within JSettlers, the structure of this class has much in common
  * with {@link StringConnection}, as they both subclass {@link Connection}.
- * If you add something to one class, you should probably add it to the other, or to the superclass instead.
+ * If you add something to one class you should probably add it to the other,
+ * or to the superclass instead.
  *<P>
  * Refactored in v2.0.0 to extend {@link Connection} instead of Thread.
  *<P>
@@ -55,8 +56,6 @@ import java.util.Vector;
 public class NetConnection
     extends Connection implements Runnable, Serializable, Cloneable
 {
-    static int putters = 0;
-    static Object puttersMonitor = new Object();
     protected final static int TIMEOUT_VALUE = 3600000; // approx. 1 hour
 
     /**
@@ -79,6 +78,8 @@ public class NetConnection
     protected boolean connected = false;
     /** @see #disconnectSoft() */
     protected boolean inputConnected = false;
+
+    /** Messages from server to client, sent in {@link Putter} thread */
     private Vector<String> outQueue = new Vector<String>();
 
     /** initialize the connection data */
@@ -203,7 +204,7 @@ public class NetConnection
             while (inputConnected)
             {
                 // readUTF max message size is 65535 chars, modified utf-8 format
-                final String msgStr = in.readUTF();  // readUTF() blocks until next message is available
+                final String msgStr = in.readUTF();  // blocks until next message is available
                 final SOCMessage msgObj = SOCMessage.toMsg(msgStr);
                 if (msgObj != null)
                     inQueue.push(msgObj, this);
@@ -302,7 +303,7 @@ public class NetConnection
         }
         catch (IOException e)
         {
-            D.ebugPrintln("IOException in Connection.putAux (" + hst + ") - " + e);
+            D.ebugPrintln("IOException in NetConnection.putAux (" + hst + ") - " + e);
 
             if (D.ebugOn)
             {
@@ -315,7 +316,7 @@ public class NetConnection
         }
         catch (Exception ex)
         {
-            D.ebugPrintln("generic exception in connection putaux");
+            D.ebugPrintln("generic exception in NetConnection.putAux");
 
             if (D.ebugOn)
             {

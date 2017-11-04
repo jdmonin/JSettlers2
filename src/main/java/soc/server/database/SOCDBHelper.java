@@ -3408,7 +3408,7 @@ public class SOCDBHelper
      * but does not need to be the owner of the currently existing tables. That is, tests
      * can run as the {@code socuser} user and not {@code postgres} or mysql {@code root} user.
      *<P>
-     * Called from {@link SOCServer#initSocServer(String, String, Properties)}
+     * Called from {@link SOCServer#initSocServer(String, String)}
      * if {@link SOCServer#PROP_JSETTLERS_TEST_DB} flag is set.
      *<P>
      * <B>Security note:</B> To run some tests, the DB connect username must have authorization grants to
