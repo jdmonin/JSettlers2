@@ -57,7 +57,7 @@ import soc.server.genericServer.Connection;
  *
  *<H4>Message Flow:</H4>
  *<UL>
- * <LI> Inbound game messages arrive here from {@link SOCMessageDispatcher#dispatch(String, Connection)}.
+ * <LI> Inbound game messages arrive here from {@link SOCMessageDispatcher#dispatch(SOCMessage, Connection)}.
  * <LI> Each specific message class is identified in
  *      {@link #dispatch(SOCGame, SOCMessageForGame, Connection) dispatch(..)}
  *      which calls handler methods such as {@link #handleBANKTRADE(SOCGame, Connection, SOCBankTrade)}.
@@ -93,7 +93,7 @@ public class SOCGameMessageHandler
 
     /**
      * Dispatch any request or event coming from a client player for a specific game.
-     * This method is called from {@link SOCMessageDispatcher#dispatch(String, Connection)} when the message is
+     * This method is called from {@link SOCMessageDispatcher#dispatch(SOCMessage, Connection)} when the message is
      * recognized as a game-related request, command, or event.
      *<P>
      * Some game messages (such as player sits down, or board reset voting) are handled the same for all game types.

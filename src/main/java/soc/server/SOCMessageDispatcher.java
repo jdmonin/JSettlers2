@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,10 +29,10 @@ import soc.server.genericServer.Server;
 /**
  * Server class to dispatch all inbound messages.
  * Sole exception: The first message from a client is dispatched by
- * {@link SOCServer#processFirstCommand(String, Connection)} instead.
+ * {@link SOCServer#processFirstCommand(SOCMessage, Connection)} instead.
  *<P>
  * Once server is initialized, call {@link #setServer(SOCServer, SOCGameListAtServer)}
- * before calling {@link #dispatch(String, Connection)}.
+ * before calling {@link #dispatch(SOCMessage, Connection)}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -72,7 +72,7 @@ public class SOCMessageDispatcher
 
     /**
      * Set our SOCServer and game list references, necessary before
-     * {@link #dispatch(String, Connection)} can be called.
+     * {@link #dispatch(SOCMessage, Connection)} can be called.
      *
      * @param srv  This dispatcher's server
      * @param srvHandler  Server message handler for {@code srv}
@@ -99,20 +99,17 @@ public class SOCMessageDispatcher
      * @throws IllegalStateException if not ready to dispatch because
      *    {@link #setServer(SOCServer, SOCGameListAtServer)} hasn't been called.
      */
-    public void dispatch(final String str, final Connection con)
+    public void dispatch(final SOCMessage mes, final Connection con)
         throws IllegalStateException
     {
         if (srv == null)
             throw new IllegalStateException("Not ready to dispatch: call setServer first");
+        if (mes == null)
+            return;
 
         try
         {
-            final SOCMessage mes = SOCMessage.toMsg(str);
-
             // D.ebugPrintln(c.getData()+" - "+mes);
-
-            if (mes == null)
-                return;
 
             if (mes instanceof SOCMessageForGame)
             {

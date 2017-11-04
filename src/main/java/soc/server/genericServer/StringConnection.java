@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.Vector;
 
 import soc.disableDebug.D;
+import soc.message.SOCMessage;
 
 /**
  * Symmetric buffered connection sending strings between two local peers.
@@ -463,20 +464,25 @@ public class StringConnection
             if (! in_reachedEOF)
             {
                 String firstMsg = readNext();
-                if (! ourServer.processFirstCommand(firstMsg, this)){
-                    inQueue.push(firstMsg, this);
+                final SOCMessage msgObj = SOCMessage.toMsg(firstMsg);  // parse
+                if (! ourServer.processFirstCommand(msgObj, this))
+                {
+                    if (msgObj != null)
+                        inQueue.push(msgObj, this);
                 }
-
             }
 
             while (! in_reachedEOF)
             {
-                inQueue.push(readNext(), this);  // readNext() blocks until next message is available
+                final String msgStr = readNext();  // readNext() blocks until next message is available
+                final SOCMessage msgObj = SOCMessage.toMsg(msgStr);
+                if (msgObj != null)
+                    inQueue.push(msgObj, this);
             }
         }
-        catch (IOException e)
+        catch (Exception e)
         {
-            D.ebugPrintln("IOException in StringConnection.run - " + e);
+            D.ebugPrintln("Exception in StringConnection.run - " + e);
 
             if (D.ebugOn)
             {

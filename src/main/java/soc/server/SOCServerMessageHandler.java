@@ -92,7 +92,7 @@ public class SOCServerMessageHandler
      * Process any inbound message which isn't handled by {@link SOCGameMessageHandler}:
      * Coming from a client, not for a specific game.
      *<P>
-     * This method is called from {@link SOCMessageDispatcher#dispatch(String, Connection)}.
+     * This method is called from {@link SOCMessageDispatcher#dispatch(SOCMessage, Connection)}.
      * Caller of this method will catch any thrown Exceptions.
      *<P>
      *<B>Note:</B> When there is a choice, always use local information

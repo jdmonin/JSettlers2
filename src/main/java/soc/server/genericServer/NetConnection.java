@@ -23,6 +23,7 @@
 package soc.server.genericServer;
 
 import soc.disableDebug.D;
+import soc.message.SOCMessage;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -182,19 +183,26 @@ public final class NetConnection
             if (inputConnected)
             {
                 String firstMsg = in.readUTF();
-                if (! ourServer.processFirstCommand(firstMsg, this))
-                    inQueue.push(firstMsg, this);
+                final SOCMessage msgObj = SOCMessage.toMsg(firstMsg);  // parse
+                if (! ourServer.processFirstCommand(msgObj, this))
+                {
+                    if (msgObj != null)
+                        inQueue.push(msgObj, this);
+                }
             }
 
             while (inputConnected)
             {
                 // readUTF max message size is 65535 chars, modified utf-8 format
-                inQueue.push(in.readUTF(), this);  // readUTF() blocks until next message is available
+                final String msgStr = in.readUTF();  // readUTF() blocks until next message is available
+                final SOCMessage msgObj = SOCMessage.toMsg(msgStr);
+                if (msgObj != null)
+                    inQueue.push(msgObj, this);
             }
         }
-        catch (IOException e)
+        catch (Exception e)
         {
-            D.ebugPrintln("IOException in Connection.run (" + hst + ") - " + e);
+            D.ebugPrintln("Exception in NetConnection.run (" + hst + ") - " + e);
 
             if (D.ebugOn)
             {

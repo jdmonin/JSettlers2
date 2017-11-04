@@ -56,7 +56,7 @@ import java.util.StringTokenizer;
  *<P>
  * The client receives messages in {@link soc.client.SOCPlayerClient.MessageTreater#treat(SOCMessage, boolean)}.
  * The server receives messages in
- * {@link soc.server.SOCMessageDispatcher#dispatch(String, soc.server.genericServer.Connection)}.
+ * {@link soc.server.SOCMessageDispatcher#dispatch(SOCMessage, soc.server.genericServer.Connection)}.
  *
  *<H3>To create and add a new message type:</H3>
  *<UL>
@@ -216,7 +216,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int PLAYERELEMENT = 1024;
     public static final int GAMESTATE = 1025;
     public static final int TURN = 1026;
-    public static final int SETUPDONE = 1027;
+    // public static final int SETUPDONE = 1027;   // unused; SOCSetupDone removed in v2.0.00 cleanup
     public static final int DICERESULT = 1028;
     public static final int DISCARDREQUEST = 1029;
     public static final int ROLLDICEREQUEST = 1030;
@@ -779,9 +779,6 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case TURN:
                 return SOCTurn.parseDataStr(data);
-
-            case SETUPDONE:
-                return SOCSetupDone.parseDataStr(data);
 
             case DICERESULT:
                 return SOCDiceResult.parseDataStr(data);
