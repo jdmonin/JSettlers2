@@ -78,14 +78,44 @@ import soc.server.SOCServer;
  *<P>
  *  @author Original author: <A HREF="http://www.nada.kth.se/~cristi">Cristian Bogdan</A> <br>
  *  Lots of mods (version "1.7") by Robert S. Thomas and Jay Budzik <br>
- *  Local (StringConnection) network system by Jeremy D Monin &lt;jeremy@nand.net&gt; <br>
- *  Version-tracking system, javadocs, and other minor mods by Jeremy D Monin &lt;jeremy@nand.net&gt;
+ *  Local (StringConnection) network system, Protobuf support, version-tracking system,
+ *  javadocs, and other minor mods by Jeremy D Monin  &lt;jeremy@nand.net&gt; <br>
  */
 @SuppressWarnings("serial")  // not expecting to persist an instance between versions
 public abstract class Server extends Thread implements Serializable, Cloneable
 {
 
+    /**
+     * Boolean property {@code server.protobuf} to enable Protobuf over TCP.
+     * This property is ignored in Practice mode.
+     * See {@link #PROP_SERVER_PROTOBUF_PORT}.
+     * @since 3.0.00
+     */
+    public static final String PROP_SERVER_PROTOBUF = "server.protobuf";
+
+    /**
+     * Int property {@code server.protobuf.port} to specify the optional Protobuf port the
+     * server binds to and listens on. Default is 4000 ({@link #PORT_DEFAULT_PROTOBUF}).
+     * Ignored unless {@link #PROP_SERVER_PROTOBUF} is set.
+     * @since 3.0.00
+     */
+    public static final String PROP_SERVER_PROTOBUF_PORT = "server.protobuf.port";
+
+    /** Default (4000) for {@link #PROP_SERVER_PROTOBUF_PORT}. */
+    public static final int PORT_DEFAULT_PROTOBUF = 4000;
+
+    /**
+     * Main server socket: a {@link NetServerSocket} or (in Practice mode) {@link StringServerSocket}.
+     * @see #protoSS
+     */
     SOCServerSocket ss;
+
+    /**
+     * Optional Protobuf server socket, in addition to a NetServerSocket {@link #ss}.
+     * In Practice mode (main server socket is a {@link StringServerSocket}), this is always null.
+     * @since 3.0.00
+     */
+    ProtoServerSocket protoSS;
 
     /**
      * Any optional properties to configure and run the server. Never null, may be empty.
@@ -108,10 +138,18 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     protected Exception error = null;
 
     /**
-     * TCP port number for {@link NetServerSocket}, or -1 for
-     * local/practice mode ({@link StringServerSocket}).
+     * TCP port number for {@link NetServerSocket} for classic {@link SOCMessage}s,
+     * or -1 for Practice mode ({@link StringServerSocket}).
+     * @see #protoPort
      */
     protected int port;
+
+    /**
+     * TCP portnumber for {@link ProtoServerSocket}, or 0 if not used.
+     * Default is 4000 ({@link #PORT_DEFAULT_PROTOBUF}).
+     * @see {@link #port}
+     */
+    protected int protoPort;
 
     /** {@link StringServerSocket} name, or {@code null} for network mode. */
     protected String strSocketName;
@@ -270,13 +308,27 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         this.inboundMsgDispatcher = imd;
         this.inQueue = new InboundMessageQueue(imd);
 
+        if (getConfigBoolProperty(PROP_SERVER_PROTOBUF, false))
+        {
+            protoPort = getConfigIntProperty(PROP_SERVER_PROTOBUF_PORT, PORT_DEFAULT_PROTOBUF);
+            try
+            {
+                protoSS = new ProtoServerSocket(protoPort, this);
+            }
+            catch (IOException e)
+            {
+                System.err.println("Could not listen to Protobuf TCP port " + port + ": " + e);
+                error = e;
+            }
+        }
+
         try
         {
             ss = new NetServerSocket(port, this);
         }
         catch (IOException e)
         {
-            System.err.println("Could not listen to port " + port + ": " + e);
+            System.err.println("Could not listen to TCP port " + port + ": " + e);
             error = e;
         }
 
@@ -289,6 +341,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * A Server which will start listening to the given local string port (practice game).
+     * Will not also start on TCP port or Protobuf port.
      * @param stringSocketName  Arbitrary name for string "port" to use
      * @param props  Optional properties to configure and run the server.
      *       If null, the properties field will be created empty.
@@ -379,11 +432,22 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @return the TCP port number we're listening on, if any,
      *   or null if using local string ports instead.
      * @see #getLocalSocketName()
+     * @see #getProtoPort()
      * @since 1.1.12
      */
     public int getPort()
     {
         return port;
+    }
+
+    /**
+     * @return the TCP port number we're listening on for Protobuf, if any, or 0 if not in use.
+     * @see #getPort()
+     * @since 3.0.00
+     */
+    public final int getProtoPort()
+    {
+        return protoPort;
     }
 
     /**

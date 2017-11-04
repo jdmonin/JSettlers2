@@ -22,6 +22,13 @@
 # TCP port number for server to listen for client connections.
 # jsettlers.port=8880
 
+# Experimental: Also listen on a port for Protobuf? (default N)
+# server.protobuf=N
+
+# Experimental: TCP port number for server to listen for Protobuf client connections
+# (default 4000, ignored unless server.protobuf=Y)
+# server.protobuf.port=4000
+
 # Maximum connection count, including robots: The number of client players
 # who can connect is (jsettlers.connections - jsettlers.startrobots).
 # This default value's goal is to prevent overloading the server's capacity;

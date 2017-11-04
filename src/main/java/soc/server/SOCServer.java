@@ -425,6 +425,9 @@ public class SOCServer extends Server
     public static final String[] PROPS_LIST =
     {
         PROP_JSETTLERS_PORT,     "TCP port number for server to listen for client connections",
+        PROP_SERVER_PROTOBUF,    "Experimental: Also listen on a port for Protobuf? (if Y)",
+        PROP_SERVER_PROTOBUF_PORT,    "Experimental: TCP port number for server to listen for Protobuf client connections (default "
+            + PORT_DEFAULT_PROTOBUF + ")",
         PROP_JSETTLERS_CONNECTIONS,   "Maximum connection count, including robots (default " + SOC_MAXCONN_DEFAULT + ")",
         PROP_JSETTLERS_STARTROBOTS,   "Number of robots to create at startup (default " + SOC_STARTROBOTS_DEFAULT + ")",
         PROP_JSETTLERS_ACCOUNTS_OPEN, "Permit open self-registration of new user accounts? (if Y and using a DB)",
@@ -1623,7 +1626,11 @@ public class SOCServer extends Server
         {
             System.err.print("The server is ready.");
             if (port > 0)
+            {
                 System.err.print(" Listening on port " + port);
+                if (protoPort > 0)
+                    System.err.print(", protobuf listening on port " + protoPort);
+            }
             System.err.println();
 
             if (SOCDBHelper.isInitialized() && SOCDBHelper.doesSchemaUpgradeNeedBGTasks())
