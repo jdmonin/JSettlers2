@@ -22,7 +22,6 @@
 package soc.server.genericServer;
 
 import java.io.EOFException;
-import java.io.IOException;
 import java.net.ConnectException;
 import java.util.Date;
 import java.util.Vector;
@@ -41,7 +40,8 @@ import soc.message.SOCMessage;
  *<P>
  * As used within JSettlers, the structure of this class has much in common
  * with {@link NetConnection}, as they both subclass {@link Connection}.
- * If you add something to one class, you should probably add it to the other, or to the superclass instead.
+ * If you add something to one class you should probably add it to the other,
+ * or to the superclass instead.
  *
  *<PRE>
  *  1.0.0 - 2007-11-18 - initial release, becoming part of jsettlers v1.1.00
@@ -474,7 +474,7 @@ public class StringConnection
 
             while (! in_reachedEOF)
             {
-                final String msgStr = readNext();  // readNext() blocks until next message is available
+                final String msgStr = readNext();  // blocks until next message is available
                 final SOCMessage msgObj = SOCMessage.toMsg(msgStr);
                 if (msgObj != null)
                     inQueue.push(msgObj, this);
