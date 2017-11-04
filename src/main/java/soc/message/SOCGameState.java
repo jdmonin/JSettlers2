@@ -31,8 +31,9 @@ import soc.game.SOCGame;  // for javadoc's use
  * another message (such as {@link SOCChoosePlayerRequest}) will
  * follow to prompt the current player.  For others, such as
  * {@link SOCGame#WAITING_FOR_DISCOVERY} or
- * {@link SOCGame#WAITING_FOR_ROBBER_OR_PIRATE}, it's implied
- * that the player must decide and respond.
+ * {@link SOCGame#WAITING_FOR_ROBBER_OR_PIRATE}, sending this
+ * {@code SOCGameState} message implies that the player must
+ * decide and respond.
  *<P>
  * For {@link SOCGame#WAITING_FOR_ROBBER_OR_PIRATE}, the player should
  * respond with {@link SOCChoosePlayer}; see that message's javadoc.
