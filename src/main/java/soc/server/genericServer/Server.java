@@ -37,7 +37,7 @@ import java.util.TreeMap;
 import java.util.Vector;
 
 import soc.debug.D; // JM
-import soc.message.SOCMessage;  // for javadocs only
+import soc.message.SOCMessage;
 import soc.server.SOCServer;
 
 
@@ -60,7 +60,7 @@ import soc.server.SOCServer;
  *  including too many connections versus {@link #getNamedConnectionCount()}.
  *<P>
  *  To handle inbound messages from the clients, the server-wide "treater" thread
- *  of {@link InboundMessageQueue} will call {@link InboundMessageDispatcher#dispatch(String, Connection)}
+ *  of {@link InboundMessageQueue} will call {@link InboundMessageDispatcher#dispatch(SOCMessage, Connection)}
  *  for each message in the shared {@link #inQueue}.
  *<P>
  *  The first processed message over the connection will be from the server to the client,
@@ -157,7 +157,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * The queue of messages received from all clients to dispatch, and/or Runnable tasks to run, in the
-     * {@code Treater} thread which calls {@link Server.InboundMessageDispatcher#dispatch(String, Connection)}.
+     * {@code Treater} thread which calls {@link Server.InboundMessageDispatcher#dispatch(SOCMessage, Connection)}.
      *<P>
      * Before v2.0.00, this was a {@link Vector}.
      */
@@ -475,13 +475,14 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * This default implementation does nothing and returns false;
      * override it in your app if needed.
      *
-     * @param str Contents of first message from the client
+     * @param mes Contents of first message from the client,
+     *     or {@code null} if that message couldn't be parsed
      * @param con Connection (client) sending this message
      * @return true if processed here, false if this message should be
      *     queued up and processed as normal by
-     *     {@link Server.InboundMessageDispatcher#dispatch(String, Connection)}.
+     *     {@link Server.InboundMessageDispatcher#dispatch(SOCMessage, Connection)}.
      */
-    public boolean processFirstCommand(String str, Connection con)
+    public boolean processFirstCommand(SOCMessage mes, Connection con)
     {
         return false;
     }
@@ -1177,21 +1178,21 @@ public abstract class Server extends Thread implements Serializable, Cloneable
          * bugs in server or game code it calls.
          *<P>
          * The first message from a client is treated by
-         * {@link #processFirstCommand(String, Connection)} instead.
+         * {@link #processFirstCommand(SOCMessage, Connection)} instead.
          *<P>
          *<B>Security Note:</B> When there is a choice, always use local information
          * over information from the message.  For example, use the nickname from the connection to get the player
          * information rather than the player information from the message.  This makes it harder to send false
          * messages making players do things they didn't want to do.
          *
-         * @param str Contents of message from the client. Will never be {@code null}.
-         *    {@code SOCServer}'s implementation parses this with {@link SOCMessage#toMsg(String)}.
+         * @param mes Message from the client. Will never be {@code null}.
+         *    Has been parsed by {@link SOCMessage#toMsg(String)}.
          * @param con Connection (client) sending this message. Will never be {@code null}.
          * @throws IllegalStateException if not ready to dispatch because some
          *    initialization method needs to be called first;
          *    see dispatcher class javadoc
          */
-        abstract public void dispatch(String str, Connection con)
+        abstract public void dispatch(SOCMessage mes, Connection con)
             throws IllegalStateException;
     }
 

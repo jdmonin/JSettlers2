@@ -53,7 +53,8 @@ and backport minor new features until `2.0.00` is ready.
 - SOCBoard refactoring thanks to Ruud Poutsma
 - Major client refactoring (separate UI from network interface) thanks to Paul Bilnoski;
     Paul's UI split preserves the spirit and flow of the code, with a more logical layered structure.
-- Server inbound message handling refactored in collaboration with Alessandro D'Ottavio
+- Server inbound message handling refactored in collaboration with Alessandro D'Ottavio,
+    and SOCMessage parsing moved from single-threaded Treater to per-client Connection thread
 - Robot client's inbound-message treat method calls super.treat in the default case,
     so `SOCDisplaylessClient.treat()` handles all messages which don't need robot-specific handling.
 - For clarity rename genericServer classes: StringConnection -> Connection, NetStringConnection -> NetConnection,

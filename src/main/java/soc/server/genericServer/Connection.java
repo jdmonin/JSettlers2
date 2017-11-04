@@ -46,6 +46,7 @@ import soc.util.SOCStringManager;
  *  2.0.0 - 2017-11-01 - Rename StringConnection -> Connection, NetStringConnection -> NetConnection,
  *                       LocalStringConnection -> StringConnection.
  *                       Connection is now a superclass, not an interface.
+ *                       SOCMessage parsing moved from single-threaded Treater to per-client Connection thread.
  *                       For I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and
  *                       {@link #getLocalized(String)}.
  *</PRE>

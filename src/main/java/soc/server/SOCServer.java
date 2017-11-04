@@ -4575,14 +4575,13 @@ public class SOCServer extends Server
      * @param con Connection (client) sending this message.
      * @return true if processed here (VERSION), false if this message should be
      *         queued up and processed as normal by
-     *         {@link SOCMessageDispatcher#dispatch(String, Connection)}.
+     *         {@link SOCMessageDispatcher#dispatch(SOCMessage, Connection)}.
      */
     @Override
-    public boolean processFirstCommand(String str, Connection con)
+    public boolean processFirstCommand(final SOCMessage mes, Connection con)
     {
         try
         {
-            SOCMessage mes = SOCMessage.toMsg(str);
             if ((mes != null) && (mes.getType() == SOCMessage.VERSION))
             {
                 srvMsgHandler.handleVERSION(con, (SOCVersion) mes);
