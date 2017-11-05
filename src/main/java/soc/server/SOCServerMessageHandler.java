@@ -958,7 +958,7 @@ public class SOCServerMessageHandler
                     channelList.releaseMonitor();
                 }
 
-                srv.broadcast(SOCDeleteChannel.toCmd(chName));
+                srv.broadcast(new SOCDeleteChannel(chName));
 
                 return;
             }
@@ -1493,7 +1493,7 @@ public class SOCServerMessageHandler
             }
 
             channelList.releaseMonitor();
-            srv.broadcast(SOCNewChannel.toCmd(ch));
+            srv.broadcast(new SOCNewChannel(ch));
             c.put(SOCChannelMembers.toCmd(ch, channelList.getMembers(ch)));
             if (D.ebugOn)
                 D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch + " at "
@@ -1549,7 +1549,7 @@ public class SOCServerMessageHandler
 
         if (destroyedChannel)
         {
-            srv.broadcast(SOCDeleteChannel.toCmd(mes.getChannel()));
+            srv.broadcast(new SOCDeleteChannel(mes.getChannel()));
         }
     }
 
@@ -1683,7 +1683,7 @@ public class SOCServerMessageHandler
 
         if (gameDestroyed)
         {
-            srv.broadcast(SOCDeleteGame.toCmd(gaName));
+            srv.broadcast(new SOCDeleteGame(gaName));
         }
         else
         {

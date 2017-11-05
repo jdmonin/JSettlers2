@@ -252,6 +252,31 @@ public class NetConnection
     }
 
     /**
+     * Send this data over the connection. Adds it to the {@link #outQueue}
+     * to be sent by the Putter thread.
+     *<P>
+     * Because the connection protocol uses {@link DataOutputStream#writeUTF(String)},
+     * {@link SOCMessage#toCmd() msg.toCmd()} must be no longer than 65535 bytes when
+     * encoded into {@code UTF-8} (which is not Java's internal string encoding):
+     * See {@link Connection#MAX_MESSAGE_SIZE_UTF8}.
+     *<P>
+     * <B>Threads:</B> Safe to call from any thread; synchronizes on internal {@code outQueue}.
+     *<P>
+     * Before v3.0.00 this method was {@code put(String)}.
+     *
+     * @param msg  Message to send
+     * @since 3.0.00
+     */
+    public void put(SOCMessage msg)
+    {
+        synchronized (outQueue)
+        {
+            outQueue.addElement(msg.toCmd());
+            outQueue.notify();
+        }
+    }
+
+    /**
      * Data is added asynchronously (sitting in {@link #outQueue}).
      * This method is called when it's dequeued and sent over
      * the connection to the remote end.

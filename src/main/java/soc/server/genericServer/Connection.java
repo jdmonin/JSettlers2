@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.MissingResourceException;
 
 import soc.game.SOCGame;  // strictly for passthrough in getLocalizedSpecial, and javadocs; not used otherwise
+import soc.message.SOCMessage;
 import soc.util.SOCStringManager;
 
 /**
@@ -134,6 +135,22 @@ public abstract class Connection
      * @throws IllegalStateException if not yet accepted by server
      */
     public abstract void put(String str)
+        throws IllegalStateException;
+
+    /**
+     * Send a message over the connection.
+     *<P>
+     * <B>Threads:</B> Each implementation must be safe to call from any thread,
+     * and synchronize itself on an appropriate object or field.
+     *<P>
+     * Before v3.0.00 this method was {@code put(String)}.
+     *
+     * @param msg Message to send
+     *
+     * @throws IllegalStateException if not yet accepted by server
+     * @since 3.0.00
+     */
+    public abstract void put(SOCMessage msg)
         throws IllegalStateException;
 
     /** For server-side thread which reads and treats incoming messages */

@@ -2118,7 +2118,7 @@ public class SOCServer extends Server
      * @param isBotsOnly  True if the game's only players are bots, no humans and no owner
      * @param hasGameListMonitor  True if caller holds the {@link SOCGameList#takeMonitor()} lock already.
      *                If true, this method won't take or release that monitor.  Otherwise will take it before creating
-     *                the game, and release it before calling {@link #broadcast(String)}.
+     *                the game, and release it before calling {@link #broadcast(SOCMessage)}.
      * @return  Newly created game, or null if game name exists or an unexpected error occurs during creation
      * @since 2.0.00
      */
@@ -2164,7 +2164,7 @@ public class SOCServer extends Server
             if ((gVers <= cversMin) && (gaOpts == null))
             {
                 // All clients can join it, and no game options: use simplest message
-                broadcast(SOCNewGame.toCmd(gaName));
+                broadcast(new SOCNewGame(gaName));
 
             } else {
                 // Send messages, based on clients' version
@@ -2191,7 +2191,7 @@ public class SOCServer extends Server
                 {
                     // All cli can understand msg with version/options included
                     broadcast
-                        (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, -2));
+                        (new SOCNewGameWithOptions(gaName, gaOpts, gVers, -2));
                 } else {
                     // Only some can understand msg with version/options included;
                     // send at most 1 message to each connected client, split by client version.
@@ -2231,17 +2231,17 @@ public class SOCServer extends Server
                             {
                                 if (isCliVersionConnected(cv))
                                     broadcastToVers
-                                      (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, cv),
+                                      (new SOCNewGameWithOptions(gaName, gaOpts, gVers, cv),
                                        cv, cv);
                             }
                             // Now send to newer clients, no changes needed
                             broadcastToVers
-                              (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, -2),
+                              (new SOCNewGameWithOptions(gaName, gaOpts, gVers, -2),
                                gVersMinGameOptsNoChange, Integer.MAX_VALUE);
                         } else {
                             // No clients need backwards-compatible option value changes.
                             broadcastToVers
-                              (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, -2),
+                              (new SOCNewGameWithOptions(gaName, gaOpts, gVers, -2),
                                SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS, Integer.MAX_VALUE);
                         }
 
@@ -2260,7 +2260,7 @@ public class SOCServer extends Server
                     if (gVers <= newgameSimpleMsgMaxCliVers)
                     {
                         // To older clients who can join, announce game without its options/version
-                        broadcastToVers(SOCNewGame.toCmd(gaName), gVers, newgameSimpleMsgMaxCliVers);
+                        broadcastToVers(new SOCNewGame(gaName), gVers, newgameSimpleMsgMaxCliVers);
                         newgameSimpleMsgCantJoinVers = gVers - 1;
                     } else {
                         // No older clients can join.  This game's already been announced to
@@ -2275,7 +2275,7 @@ public class SOCServer extends Server
                         sb.append(SOCGames.MARKER_THIS_GAME_UNJOINABLE);
                         sb.append(gaName);
                         broadcastToVers
-                            (SOCNewGame.toCmd(sb.toString()),
+                            (new SOCNewGame(sb.toString()),
                              SOCGames.VERSION_FOR_UNJOINABLE, newgameSimpleMsgCantJoinVers);
                     }
                 }
@@ -2542,7 +2542,7 @@ public class SOCServer extends Server
     /**
      * Destroy a game and then broadcast its deletion, including lock handling.
      * Calls {@link SOCGameList#takeMonitor()}, {@link #destroyGame(String)},
-     * {@link SOCGameList#releaseMonitor()}, and {@link #broadcast(String) broadcast}({@link SOCDeleteGame}).
+     * {@link SOCGameList#releaseMonitor()}, and {@link #broadcast(SOCMessage) broadcast}({@link SOCDeleteGame}).
      * @param gaName  Game name to destroy
      * @param descForStackTrace  Activity description in case of exception thrown from destroyGame;
      *     will debug-print a mesasge "Exception in " + desc, followed by a stack trace.
@@ -2562,7 +2562,7 @@ public class SOCServer extends Server
         }
 
         gameList.releaseMonitor();
-        broadcast(SOCDeleteGame.toCmd(gaName));
+        broadcast(new SOCDeleteGame(gaName));
     }
 
     /**
@@ -2768,7 +2768,7 @@ public class SOCServer extends Server
          */
         for (String ga : toDestroy)
         {
-            broadcast(SOCDeleteChannel.toCmd(ga));
+            broadcast(new SOCDeleteChannel(ga));
         }
     }
 
@@ -2831,7 +2831,7 @@ public class SOCServer extends Server
         for (String ga : toDestroy)
         {
             D.ebugPrintln("** Broadcasting SOCDeleteGame " + ga);
-            broadcast(SOCDeleteGame.toCmd(ga));
+            broadcast(new SOCDeleteGame(ga));
         }
     }
 
@@ -4641,7 +4641,7 @@ public class SOCServer extends Server
                     sb.append((char) (33 + rand.nextInt(126 - 33)));
                 srvShutPassword = sb.toString();
                 System.err.println("** Shutdown password generated: " + srvShutPassword);
-                broadcast(SOCBCastTextMsg.toCmd(debugCli.getData() + " WANTS TO STOP THE SERVER"));
+                broadcast(new SOCBCastTextMsg(debugCli.getData() + " WANTS TO STOP THE SERVER"));
                 messageToPlayer(debugCli, ga, "Send stop command again with the password.");
             }
 
@@ -4657,7 +4657,7 @@ public class SOCServer extends Server
             ///
             /// broadcast to all chat channels and games
             ///
-            broadcast(SOCBCastTextMsg.toCmd(dcmd.substring(8)));
+            broadcast(new SOCBCastTextMsg(dcmd.substring(8)));
         }
         else if (dcmdU.startsWith("*BOTLIST*"))
         {
@@ -4850,7 +4850,7 @@ public class SOCServer extends Server
         {
             System.out.println("stopServer: " + stopMsg);
             System.out.println();
-            broadcast(SOCBCastTextMsg.toCmd(stopMsg));
+            broadcast(new SOCBCastTextMsg(stopMsg));
         }
 
         /// give time for messages to drain (such as urgent text messages

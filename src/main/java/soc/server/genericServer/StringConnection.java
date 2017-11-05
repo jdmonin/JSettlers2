@@ -228,6 +228,42 @@ public class StringConnection
     }
 
     /**
+     * Send a message over the connection. Does not block.
+     * Ignored if {@link #setEOF()} has been called.
+     *<P>
+     * <B>Threads:</B> Safe to call from any thread; synchronizes on internal {@code out} queue.
+     *<P>
+     * Before v3.0.00 this method was {@code put(String)}.
+     *
+     * @param msg Message to send
+     *
+     * @throws IllegalArgumentException if {@code msg} is {@code null}
+     * @throws IllegalStateException if not yet accepted by server
+     * @since 3.0.00
+     */
+    public void put(SOCMessage msg)
+        throws IllegalArgumentException, IllegalStateException
+    {
+        if (msg == null)
+            throw new IllegalArgumentException("null");
+
+        if (! accepted)
+        {
+            error = new IllegalStateException("Not accepted by server yet");
+            throw (IllegalStateException) error;
+        }
+        if (out_setEOF)
+            return;
+
+        final String dat = msg.toCmd();
+        synchronized (out)
+        {
+            out.addElement(dat);
+            out.notifyAll();  // Another thread may have been waiting for input
+        }
+    }
+
+    /**
      * close the socket, discard pending buffered data, set EOF.
      * Called after conn is removed from server structures.
      */
