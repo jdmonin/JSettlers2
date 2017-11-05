@@ -26,6 +26,8 @@ import java.util.Enumeration;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
+import soc.game.SOCGame;
+import soc.proto.GameMessage;
 import soc.proto.Message;
 
 
@@ -626,7 +628,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * @param s  String to convert
      * @return   converted String to a SOCMessage, or null if the string is garbled,
      *           or is an unknown command id
-     * @see #toMsg(soc.proto.Message.FromClient)
+     * @see #toMsg(Message.FromClient)
      */
     public static SOCMessage toMsg(String s)
     {
@@ -1044,11 +1046,37 @@ public abstract class SOCMessage implements Serializable, Cloneable
         {
             switch (typ)
             {
+            // auth
+
             case Message.FromClient.VERS_FIELD_NUMBER:
                 {
                     Message.Version m = msg.getVers();
                     return new SOCVersion
                         (m.getVersNum(), m.getVersStr(), m.getVersBuild(), m.getCliLocale());
+                }
+
+            case Message.FromClient.AUTH_REQ_FIELD_NUMBER:
+                {
+                    Message.AuthRequest m = msg.getAuthReq();
+                    final String role;
+                    final int authScheme;
+                    switch (m.getRole())
+                    {
+                    case GAME_PLAYER:
+                        role = "G";  break;
+                    case USER_ADMIN:
+                        role = "UA";  break;
+                    default:
+                        role = "?";
+                    }
+                    switch (m.getAuthScheme())
+                    {
+                    case CLIENT_PLAINTEXT:
+                        authScheme = SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT;  break;
+                    default:
+                        authScheme = 0;
+                    }
+                    return new SOCAuthRequest(role, m.getNickname(), m.getPassword(), authScheme, "");
                 }
 
             case Message.FromClient.IM_A_ROBOT_FIELD_NUMBER:
@@ -1057,16 +1085,140 @@ public abstract class SOCMessage implements Serializable, Cloneable
                     return new SOCImARobot(m.getNickname(), m.getCookie(), m.getRbClass());
                 }
 
-            // TODO recognize the rest
+            case Message.FromClient.SERVER_PING_FIELD_NUMBER:
+                {
+                    Message.ServerPing m = msg.getServerPing();
+                    return new SOCServerPing(m.getSleepTime());
+                }
+
+            case Message.FromClient.LEAVE_ALL_FIELD_NUMBER:
+                return new SOCLeaveAll();
+
+            // channels
+
+            case Message.FromClient.CH_JOIN_FIELD_NUMBER:
+                {
+                    Message.JoinChannel m = msg.getChJoin();
+                    return new SOCJoinChannel(m.getMemberName(), "", "", m.getChName());
+                }
+
+            case Message.FromClient.CH_TEXT_FIELD_NUMBER:
+                {
+                    Message.ChannelText m = msg.getChText();
+                    return new SOCTextMsg(m.getChName(), m.getNickname(), m.getText());
+                }
+
+            case Message.FromClient.CH_LEAVE_FIELD_NUMBER:
+                {
+                    Message.LeaveChannel m = msg.getChLeave();
+                    return new SOCLeaveChannel("", "", m.getChName());
+                }
+
+            // games
+
+            case Message.FromClient.GA_NEW_FIELD_NUMBER:
+                {
+                    Message._GameWithOptions ga = msg.getGaNew().getGame();
+                    return new SOCNewGameWithOptionsRequest("", "", "", ga.getGaName(), ga.getOpts());
+                }
+
+            case Message.FromClient.GA_JOIN_FIELD_NUMBER:
+                {
+                    Message.JoinGame m = msg.getGaJoin();
+                    return new SOCJoinGame(m.getMemberName(), "", "", m.getGaName());
+                }
+
+            case Message.FromClient.SIT_DOWN_FIELD_NUMBER:
+                {
+                    Message.SitDown m = msg.getSitDown();
+                    return new SOCSitDown(m.getGaName(), "", m.getSeatNumber(), m.getIsRobot());
+                }
+
+            case Message.FromClient.SET_SEAT_LOCK_FIELD_NUMBER:
+                {
+                    Message.SetSeatLock m = msg.getSetSeatLock();
+                    SOCGame.SeatLockState st;
+                    switch (m.getState())
+                    {
+                    case LOCKED:
+                        st = SOCGame.SeatLockState.LOCKED;  break;
+                    case CLEAR_ON_RESET:
+                        st = SOCGame.SeatLockState.CLEAR_ON_RESET;  break;
+                    default:  // UNLOCKED
+                        st = SOCGame.SeatLockState.UNLOCKED;
+                    }
+                    return new SOCSetSeatLock(m.getGaName(), m.getSeatNumber(), st);
+                }
+
+            case Message.FromClient.GA_PLAYER_TEXT_FIELD_NUMBER:
+                {
+                    Message.GamePlayerText m = msg.getGaPlayerText();
+                    return new SOCGameTextMsg(m.getGaName(), "", m.getText());
+                }
+
+            case Message.FromClient.GA_LEAVE_FIELD_NUMBER:
+                {
+                    Message.LeaveGame m = msg.getGaLeave();
+                    return new SOCLeaveGame("", "", m.getGaName());
+                }
+
+            // within a game
+
+            case Message.FromClient.GAME_MESSAGE_FIELD_NUMBER:
+                return toMsgForGame(msg.getGameMessage());
 
             default:
-                System.err.println("Unhandled FromClient message type in SOCMessage.toMsg: " + typ);
+                System.err.println("Unhandled FromClient type in SOCMessage.toMsg: " + typ);
                 return null;
             }
         }
         catch (Exception e)
         {
             System.err.println("toMsg(FromClient) ERROR - " + e);
+            e.printStackTrace();
+
+            return null;
+        }
+    }
+
+    /**
+     * Convert a Protobuf game message from client into a SOCMessage.
+     * This method is temporary until SOCServer completely uses protobuf.
+     * If the message type id is unknown, type is printed to System.err.
+     *
+     * @param msg  Message to convert
+     * @return  {@code msg} converted to a SOCMessage,
+     *     or {@code null} if the message is an unknown command id
+     *     or invalid data causes an error constructing the SOCMessage
+     * @since 3.0.00
+     */
+    private static SOCMessage toMsgForGame(final GameMessage.GameMessageFromClient msg)
+    {
+        final String gaName = msg.getGaName();
+        if (gaName == null)
+            return null;
+
+        final int typ = msg.getMsgCase().getNumber();
+        try
+        {
+            switch (typ)
+            {
+            // turn and state
+
+            case GameMessage.GameMessageFromClient.START_GAME_FIELD_NUMBER:
+                    return new SOCStartGame(gaName);
+
+            case GameMessage.GameMessageFromClient.END_TURN_FIELD_NUMBER:
+                    return new SOCEndTurn(gaName);
+
+            default:
+                System.err.println("Unhandled GameMessageFromClient type in SOCMessage.toMsg: " + typ);
+                return null;
+            }
+        }
+        catch (Exception e)
+        {
+            System.err.println("toMsg(GameMessageFromClient) ERROR - " + e);
             e.printStackTrace();
 
             return null;

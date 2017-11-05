@@ -681,8 +681,8 @@ import public "game_message.proto";
 
 //
 // FromServer, FromClient: For encode/decode, Message type containing all other
-// message types using OneOf. The GameMessage.FromServer and .FromClient types
-// seen here are themselves OneOf union message types.
+// message types using OneOf. The GameMessageFromServer and GameMessageFromClient
+// types seen here are themselves OneOf union message types.
 //
 
 
@@ -710,19 +710,20 @@ message FromServer {
         Games games = 15;
         NewGame ga_new = 16;
         JoinGame ga_join = 17;
-        GameMembers ga_members = 18;
-        SitDown sit_down = 19;
-        SetSeatLock set_seat_lock = 20;
-        GameServerText server_text = 21;
-        GamePlayerText player_text = 22;
-        BotTimingPing bot_timing_ping = 23;
-        BotAdminPing bot_admin_ping = 24;
-        BotDismiss bot_dismiss = 25;
-        LeaveGame ga_leave = 26;
-        DeleteGame ga_delete = 27;
+        RobotJoinGameRequest robot_join_req = 18;
+        GameMembers ga_members = 19;
+        SitDown sit_down = 20;
+        SetSeatLock set_seat_lock = 21;
+        GameServerText server_text = 22;
+        GamePlayerText player_text = 23;
+        BotTimingPing bot_timing_ping = 24;
+        BotAdminPing bot_admin_ping = 25;
+        BotDismiss bot_dismiss = 26;
+        LeaveGame ga_leave = 27;
+        DeleteGame ga_delete = 28;
 
         // within a game
-        GameMessageFromServer game_message = 28;
+        GameMessageFromServer game_message = 29;
     }
 }
 
@@ -742,14 +743,13 @@ message FromClient {
 
         // games
         NewGame ga_new = 9;
-        RobotJoinGameRequest robot_join_req = 10;
-        JoinGame ga_join = 11;
-        SitDown sit_down = 12;
-        SetSeatLock set_seat_lock = 13;
-        GamePlayerText player_text = 14;
-        LeaveGame ga_leave = 15;
+        JoinGame ga_join = 10;
+        SitDown sit_down = 11;
+        SetSeatLock set_seat_lock = 12;
+        GamePlayerText ga_player_text = 13;
+        LeaveGame ga_leave = 14;
 
         // within a game
-        GameMessageFromClient game_message = 16;
+        GameMessageFromClient game_message = 15;
     }
 }
