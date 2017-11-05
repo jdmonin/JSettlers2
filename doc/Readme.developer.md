@@ -7,6 +7,7 @@
 - Setup instructions for JSettlers as an Eclipse project
 - Build Setup and Results
 - Recommended debug/run configurations for testing
+- Using protobuf (optional)
 - To configure a sqlite database for testing
 - Current partially-done work
 - To do: The current TODO list
@@ -50,6 +51,10 @@ Communication is described in soc.message.SOCMessage. Robots talk with the
 server like normal human clients. Most robot messages are per-game; instead
 of being handled in SOCRobotClient, these are handled in a loop in
 SOCRobotBrain.run().
+
+v3 uses Protobuf to communicate, see `src/main/proto/message.proto` for
+the `FromServer` and `FromClient` main message types. For more details see
+the "Network Communication and interop" section below.
 
 Game options and scenario rules are controlled through SOCGameOption;
 see initAllOptions javadoc for a list. Options have flags for their properties
@@ -296,6 +301,10 @@ In my IDE's JSettlers project, I've created these debug/run configurations:
             arguments: -o N7=t7 -o RD=y -Djsettlers.startrobots=7
                 -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
 
+        socserver-protobuf (_optional_): soc.server.SOCServer
+            arguments: -o N7=t7 -o RD=y -Djsettlers.startrobots=7 -Dserver.protobuf=Y
+                -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
+
         socserver-sqlite (_optional_): soc.server.SOCServer
             arguments: -o N7=t7 -o RD=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
                 -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y
@@ -314,6 +323,47 @@ server configuration arguments, and create these Java application configs:
 For automated functional testing, the project also includes the script
 `src/test/bin/test_func_srv_startup_params.py`; run and update this script if
 you are developing anything related to game options or jsettlers properties.
+
+
+## Using protobuf (currently optional; work in progress)
+
+Right now protobuf support is a work in progress in the v3 branch.
+Until its conversion is complete, use the SOCMessage network described
+in the "Network Communication and interop" section. Here are some brief
+notes:
+
+- Development and the JSettlers build require `protobuf-lite-3.0.1.jar`.
+  Running `gradle test` can download it for you, or see above under
+  "Setup instructions for JSettlers as an Eclipse project" for a URL.
+- `build.gradle` can generate Java classes from the *.proto files.
+  There are no protobuf tasks in the Ant `build.xml`, you'll need to use gradle
+  if you make changes to *.proto. If you don't need to change any proto files,
+  you can use the pre-generated message class sources included in the repo at
+  `/generated/src/proto/main/java`.
+- Running `gradle compileJava` will automatically run `protoc` if any *.proto files have changed.
+- Currently the server JAR can't automatically locate the protobuf-lite JAR.
+  If you aren't running Protobuf on the server, this won't cause an error.
+- To run the JSettlers server JAR with protobuf support, instead of the usual
+  `-jar` command line argument (which ignores CLASSPATH), use this style:
+
+      export CLASSPATH=$CLASSPATH:/path/to/protobuf-lite-3.0.1.jar  # <-- run this just once
+      java -cp $CLASSPATH:JSettlersServer.jar soc.server.SOCServer -Dserver.protobuf=Y
+
+  On Windows, place `protobuf-lite-3.0.1.jar` in the same folder as the
+  JSettlers JAR and run a command prompt in that folder:
+
+      java -cp protobuf-lite-3.0.1.jar;JSettlersServer.jar soc.server.SOCServer -Dserver.protobuf=Y
+
+  Once the server starts up, you should see a line like this in the console:
+
+      The server is ready. Listening on port 8880, protobuf listening on port 4000
+
+- The server's default protobuf port is 4000. To change it, after `-Dserver.protobuf=Y` add:
+
+      -Dserver.protobuf.port=12345
+
+- As usual, you can add the `server.protobuf` and `server.protobuf.port` properties to
+  a `jsserver.properties` file instead of always having them on the server command line.
 
 
 ## To configure a sqlite database for testing
@@ -363,10 +413,7 @@ jsettlers JAR from the command line, not running inside the IDE.
 
 ## Current partially-done work
 
-- Refactor SOCMessage classes to use templates
-- Some SOCMessage classes (SOCGames, SOCJoinGameRequest) accept objects like
-  SOCGame and parse/create them; over-the-network communication will always be
-  strings only.
+- Conversion from SOCMessage classes to Protobuf: Server, robots, client
 - Search the source for `/*18N*/` and externalize those strings; see "I18N"
   section below
 
@@ -591,6 +638,13 @@ for popular languages), looking for the message types they need to work with
 "Overall Structure" above and class javadocs of `SOCMessage`,
 `SOCDisplaylessPlayerClient`, `SOCRobotClient`,
 `soc.server.genericServer.Server`, and `SOCServer`.
+
+**protobuf** conversion is under way in the experimental v3 branch.
+The `FromServer` and `FromClient` message types are sent over TCP using
+Message.writeDelimitedTo(..) and Message.parseDelimitedFrom(..); see also
+`src/main/java/soc/server/genericServer/ProtoConnection.java`. Until the
+server, client, and bots are converted to use protobuf internally, temporary
+SOCMessage.toMsg/toProto methods will convert back and forth as needed.
 
 
 ## Coding Style
@@ -914,10 +968,8 @@ new stable versions.  Most work on 1.x.xx is backported from 2.0; changeset
 comments often mention a hash from a master commit.  Version 2.0.00 was
 split off right after releasing version 1.1.13.
 
-v3 is the experimental branch with major architectural changes.  
-**Protobuf**: Until the server, client, and bots are completely converted
-to use protobuf internally, temporary SOCMessage.toMsg/toProto methods
-will convert back and forth as needed.
+v3 is the experimental branch with major architectural changes.
+Protobuf replaces the homegrown SOCMessage protocol.
 
 Once 2.0.00 is out, we'll follow the usual jsettlers model: Because
 jsettlers2.x.xx is mature at this point, Each minor release is a
