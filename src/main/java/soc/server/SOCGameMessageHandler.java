@@ -676,7 +676,7 @@ public class SOCGameMessageHandler
                                 // Request to discard half (round down)
                                 Connection con = srv.getConnection(pp.getName());
                                 if (con != null)
-                                    con.put(SOCDiscardRequest.toCmd(gn, pp.getResources().getTotal() / 2));
+                                    con.put(new SOCDiscardRequest(gn, pp.getResources().getTotal() / 2));
                             }
                         }
                     }
@@ -695,7 +695,7 @@ public class SOCGameMessageHandler
                                     srv.messageToGame(gn, new SOCPlayerElement
                                         (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
                                     con.put
-                                        (SOCSimpleRequest.toCmd
+                                        (new SOCSimpleRequest
                                             (gn, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, numPick, 0));
                                 }
                             }
@@ -1091,7 +1091,7 @@ public class SOCGameMessageHandler
                 final SOCShip adjac = ga.canAttackPirateFortress();
                 if ((! clientIsPN) || (pn != cpn) || (adjac == null) || (adjac.getPlayerNumber() != cpn))
                 {
-                    c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
+                    c.put(new SOCSimpleRequest(gaName, -1, reqtype, 0, 0));
                     return;  // <--- early return: deny ---
                 }
 
@@ -1170,7 +1170,7 @@ public class SOCGameMessageHandler
         }
 
         if (replyDecline)
-            c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
+            c.put(new SOCSimpleRequest(gaName, -1, reqtype, 0, 0));
     }
 
 
@@ -1399,7 +1399,7 @@ public class SOCGameMessageHandler
                     final int cpn = ga.getCurrentPlayerNumber();
                     final SOCPlayer cpl = ga.getPlayer(cpn);
                     if (cpl.isRobot())
-                        c.put(SOCSimpleAction.toCmd(gaName, cpn, SOCSimpleAction.TRADE_SUCCESSFUL, 0, 0));
+                        c.put(new SOCSimpleAction(gaName, cpn, SOCSimpleAction.TRADE_SUCCESSFUL, 0, 0));
                 }
                 else
                 {
@@ -2616,7 +2616,7 @@ public class SOCGameMessageHandler
                                         // Request to discard half (round down)
                                         Connection con = srv.getConnection(pl.getName());
                                         if (con != null)
-                                            con.put(SOCDiscardRequest.toCmd(gaName, pl.getResources().getTotal() / 2));
+                                            con.put(new SOCDiscardRequest(gaName, pl.getResources().getTotal() / 2));
                                     }
                                 }
                             }
@@ -3034,7 +3034,7 @@ public class SOCGameMessageHandler
 
         if (sendDenyReply)
             c.put(new SOCSetSpecialItem
-                (gaName, SOCSetSpecialItem.OP_DECLINE, typeKey, gi, pi, mes.playerNumber).toCmd());
+                (gaName, SOCSetSpecialItem.OP_DECLINE, typeKey, gi, pi, mes.playerNumber));
     }
 
 }

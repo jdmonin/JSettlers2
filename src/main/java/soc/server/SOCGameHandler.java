@@ -826,8 +826,8 @@ public class SOCGameHandler extends GameHandler
                 srv.sendGameScenarioInfo(gameScen, null, c, false);
 
             // Now, join game
-            c.put(SOCJoinGameAuth.toCmd(gameName));
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCJoinGameAuth(gameName));
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_OK, c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
         }
 
@@ -848,7 +848,7 @@ public class SOCGameHandler extends GameHandler
                     final boolean isRobot = pl.isRobot();
                     if (isRobot)
                         hasRobot = true;
-                    c.put(SOCSitDown.toCmd(gameName, plName, i, isRobot));
+                    c.put(new SOCSitDown(gameName, plName, i, isRobot));
                 }
             }
 
@@ -862,7 +862,7 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToPlayer(c, new SOCSetSeatLock(gameName, i, SOCGame.SeatLockState.LOCKED));  // old client
         }
 
-        c.put(getBoardLayoutMessage(gameData).toCmd());
+        c.put(getBoardLayoutMessage(gameData));
         //    No need to catch IllegalArgumentException:
         //    Since game is already started, getBoardLayoutMessage has previously
         //    been called for the creating player, and the board encoding is OK.
@@ -899,9 +899,9 @@ public class SOCGameHandler extends GameHandler
 
             if (lan == null)
             {
-                c.put(SOCPotentialSettlements.toCmd(gameName, -1, new Vector<Integer>(psList)));
+                c.put(new SOCPotentialSettlements(gameName, -1, new Vector<Integer>(psList)));
             } else {
-                c.put(SOCPotentialSettlements.toCmd
+                c.put(new SOCPotentialSettlements
                     (gameName, -1, pan, lan, SOCBoardLargeAtServer.getLegalSeaEdges(gameData, -1)));
             }
 
@@ -909,7 +909,7 @@ public class SOCGameHandler extends GameHandler
                 lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
 
             if (gameData.isGameOptionSet(SOCGameOption.K_SC_CLVI))
-                c.put(SOCPlayerElement.toCmd
+                c.put(new SOCPlayerElement
                     (gameName, -1, SOCPlayerElement.SET,
                      SOCPlayerElement.SCENARIO_CLOTH_COUNT, ((SOCBoardLarge) (gameData.getBoard())).getCloth()));
         }
@@ -945,7 +945,7 @@ public class SOCGameHandler extends GameHandler
          * just before SOCGameState and the "joined the game" text.
          * This earlier send has been tested against 1.1.07 (released 2009-10-31).
          */
-        c.put(SOCSetTurn.toCmd(gameName, gameData.getCurrentPlayerNumber()));
+        c.put(new SOCSetTurn(gameName, gameData.getCurrentPlayerNumber()));
 
         /**
          * Send the game's Special Item info, if any, if game has started:
@@ -986,7 +986,7 @@ public class SOCGameHandler extends GameHandler
                     final SOCSpecialItem si = gsi.get(gi);
                     if (si == null)
                     {
-                        c.put(new SOCSetSpecialItem(gameName, SOCSetSpecialItem.OP_CLEAR, tkey, gi, -1, -1).toCmd());
+                        c.put(new SOCSetSpecialItem(gameName, SOCSetSpecialItem.OP_CLEAR, tkey, gi, -1, -1));
                         continue;
                     }
 
@@ -1008,7 +1008,7 @@ public class SOCGameHandler extends GameHandler
                         }
                     }
 
-                    c.put(new SOCSetSpecialItem(gameData, SOCSetSpecialItem.OP_SET, tkey, gi, pi, si).toCmd());
+                    c.put(new SOCSetSpecialItem(gameData, SOCSetSpecialItem.OP_SET, tkey, gi, pi, si));
 
                     if (pi != -1)
                     {
@@ -1094,10 +1094,10 @@ public class SOCGameHandler extends GameHandler
 
                 if (piece.getType() == SOCPlayingPiece.CITY)
                 {
-                    c.put(SOCPutPiece.toCmd(gameName, i, SOCPlayingPiece.SETTLEMENT, piece.getCoordinates()));
+                    c.put(new SOCPutPiece(gameName, i, SOCPlayingPiece.SETTLEMENT, piece.getCoordinates()));
                 }
 
-                c.put(SOCPutPiece.toCmd(gameName, i, piece.getType(), piece.getCoordinates()));
+                c.put(new SOCPutPiece(gameName, i, piece.getType(), piece.getCoordinates()));
             }
 
             // _SC_PIRI: special-case piece not part of getPieces
@@ -1108,10 +1108,10 @@ public class SOCGameHandler extends GameHandler
                     final int coord = piece.getCoordinates(),
                               str   = piece.getStrength();
 
-                    c.put(SOCPutPiece.toCmd(gameName, i, piece.getType(), coord));
+                    c.put(new SOCPutPiece(gameName, i, piece.getType(), coord));
 
                     if (str != SOCFortress.STARTING_STRENGTH)
-                        c.put(SOCPieceValue.toCmd(gameName, coord, str, 0));
+                        c.put(new SOCPieceValue(gameName, coord, str, 0));
                 }
             }
 
@@ -1150,9 +1150,9 @@ public class SOCGameHandler extends GameHandler
 
                 if (lan == null)
                 {
-                    c.put(SOCPotentialSettlements.toCmd(gameName, i, new Vector<Integer>(psList)));
+                    c.put(new SOCPotentialSettlements(gameName, i, new Vector<Integer>(psList)));
                 } else {
-                    c.put(SOCPotentialSettlements.toCmd
+                    c.put(new SOCPotentialSettlements
                         (gameName, i, pan, lan, SOCBoardLargeAtServer.getLegalSeaEdges(gameData, i)));
                     lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
                 }
@@ -1161,20 +1161,20 @@ public class SOCGameHandler extends GameHandler
             /**
              * send coords of the last settlement
              */
-            c.put(SOCLastSettlement.toCmd(gameName, i, pl.getLastSettlementCoord()));
+            c.put(new SOCLastSettlement(gameName, i, pl.getLastSettlementCoord()));
 
             /**
              * send number of playing pieces in hand
              */
-            c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.ROADS, pl.getNumPieces(SOCPlayingPiece.ROAD)));
-            c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SETTLEMENTS, pl.getNumPieces(SOCPlayingPiece.SETTLEMENT)));
-            c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.CITIES, pl.getNumPieces(SOCPlayingPiece.CITY)));
+            c.put(new SOCPlayerElement(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.ROADS, pl.getNumPieces(SOCPlayingPiece.ROAD)));
+            c.put(new SOCPlayerElement(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SETTLEMENTS, pl.getNumPieces(SOCPlayingPiece.SETTLEMENT)));
+            c.put(new SOCPlayerElement(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.CITIES, pl.getNumPieces(SOCPlayingPiece.CITY)));
             if (gameData.hasSeaBoard)
-                c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP)));
+                c.put(new SOCPlayerElement(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP)));
 
-            c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.UNKNOWN, pl.getResources().getTotal()));
+            c.put(new SOCPlayerElement(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.UNKNOWN, pl.getResources().getTotal()));
 
-            c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.NUMKNIGHTS, pl.getNumKnights()));
+            c.put(new SOCPlayerElement(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.NUMKNIGHTS, pl.getNumKnights()));
 
             final int numDevCards = pl.getInventory().getTotal();
             final int unknownType;
@@ -1182,10 +1182,10 @@ public class SOCGameHandler extends GameHandler
                 unknownType = SOCDevCardConstants.UNKNOWN;
             else
                 unknownType = SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
-            final String cardUnknownCmd = SOCDevCardAction.toCmd(gameName, i, SOCDevCardAction.ADDOLD, unknownType);
+            final SOCMessage cardUnknownMsg = new SOCDevCardAction(gameName, i, SOCDevCardAction.ADDOLD, unknownType);
             for (int j = 0; j < numDevCards; j++)
             {
-                c.put(cardUnknownCmd);
+                c.put(cardUnknownMsg);
             }
 
             if (gameSITypes != null)
@@ -1210,14 +1210,14 @@ public class SOCGameHandler extends GameHandler
                         if (si == null)
                         {
                             c.put(new SOCSetSpecialItem
-                                    (gameName, SOCSetSpecialItem.OP_CLEAR, tkey, -1, pi, i).toCmd());
+                                    (gameName, SOCSetSpecialItem.OP_CLEAR, tkey, -1, pi, i));
                             continue;
                         }
 
                         if ((iList != null) && (iList.size() > pi) && (iList.get(pi) == si))
                             continue;  // already sent (shared with game)
 
-                        c.put(new SOCSetSpecialItem(gameData, SOCSetSpecialItem.OP_SET, tkey, -1, pi, si).toCmd());
+                        c.put(new SOCSetSpecialItem(gameData, SOCSetSpecialItem.OP_SET, tkey, -1, pi, si));
                     }
                 }
             }
@@ -1225,18 +1225,18 @@ public class SOCGameHandler extends GameHandler
             if (i == 0)
             {
                 // per-game data, send once
-                c.put(SOCFirstPlayer.toCmd(gameName, gameData.getFirstPlayer()));
+                c.put(new SOCFirstPlayer(gameName, gameData.getFirstPlayer()));
 
-                c.put(SOCDevCardCount.toCmd(gameName, gameData.getNumDevCards()));
+                c.put(new SOCDevCardCount(gameName, gameData.getNumDevCards()));
             }
 
-            c.put(SOCChangeFace.toCmd(gameName, i, pl.getFaceId()));
+            c.put(new SOCChangeFace(gameName, i, pl.getFaceId()));
 
             if (i == 0)
             {
                 // per-game data, send once
 
-                c.put(SOCDiceResult.toCmd(gameName, gameData.getCurrentDice()));
+                c.put(new SOCDiceResult(gameName, gameData.getCurrentDice()));
             }
         }
 
@@ -1251,7 +1251,7 @@ public class SOCGameHandler extends GameHandler
             lrPlayerNum = lrPlayer.getPlayerNumber();
         }
 
-        c.put(SOCLongestRoad.toCmd(gameName, lrPlayerNum));
+        c.put(new SOCLongestRoad(gameName, lrPlayerNum));
 
         ///
         /// send who has largest army
@@ -1267,7 +1267,7 @@ public class SOCGameHandler extends GameHandler
             laPlayerNum = -1;
         }
 
-        c.put(SOCLargestArmy.toCmd(gameName, laPlayerNum));
+        c.put(new SOCLargestArmy(gameName, laPlayerNum));
 
         /**
          * If we're rejoining and taking over a seat after a network problem,
@@ -1284,7 +1284,7 @@ public class SOCGameHandler extends GameHandler
             }
         }
 
-        String membersCommand = null;
+        Vector<String> memberNames = null;
         srv.gameList.takeMonitorForGame(gameName);
 
         /**
@@ -1295,19 +1295,24 @@ public class SOCGameHandler extends GameHandler
         try
         {
             Vector<Connection> gameMembers = srv.gameList.getMembers(gameName);
-            membersCommand = SOCGameMembers.toCmd(gameName, gameMembers);
+            int n = gameMembers.size();
+            memberNames = new Vector<String>(n);
+            for (int i = 0; i < n; ++i)
+                memberNames.add(gameMembers.get(i).getData());
         }
         catch (Exception e)
         {
             D.ebugPrintln("Exception in SGH.joinGame (gameMembers) - " + e);
+        } finally {
+            srv.gameList.releaseMonitorForGame(gameName);
         }
 
-        srv.gameList.releaseMonitorForGame(gameName);
-        if (membersCommand != null)
-            c.put(membersCommand);
+        if (memberNames != null)
+            c.put(new SOCGameMembers(gameName, memberNames));
+
         // before v2.0.00, current player number (SETTURN) was sent here,
         // between membersCommand and GAMESTATE.
-        c.put(SOCGameState.toCmd(gameName, gameData.getGameState()));
+        c.put(new SOCGameState(gameName, gameData.getGameState()));
         if (D.ebugOn)
             D.ebugPrintln("*** " + c.getData() + " joined the game " + gameName + " at "
                 + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
@@ -1371,7 +1376,7 @@ public class SOCGameHandler extends GameHandler
 
                 if (seType != edgeSEType)
                     // removed (type 0) or changed type
-                    c.put(SOCSimpleAction.toCmd(gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, edge, seType));
+                    c.put(new SOCSimpleAction(gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, edge, seType));
             }
         }
 
@@ -1409,7 +1414,7 @@ public class SOCGameHandler extends GameHandler
 
             if (! found)
                 // added since start of game
-                c.put(SOCSimpleAction.toCmd(gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, edge, seType));
+                c.put(new SOCSimpleAction(gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, edge, seType));
         }
     }
 
@@ -1732,7 +1737,7 @@ public class SOCGameHandler extends GameHandler
                             ga.setSeatLock(playerNumber, SOCGame.SeatLockState.UNLOCKED);
                             srv.messageToGameWithMon(gm, new SOCSetSeatLock(gm, playerNumber, SOCGame.SeatLockState.UNLOCKED));
                         }
-                        robotConn.put(SOCRobotJoinGameRequest.toCmd(gm, playerNumber, ga.getGameOptions()));
+                        robotConn.put(new SOCRobotJoinGameRequest(gm, playerNumber, ga.getGameOptions()));
 
                         /**
                          * record the request
@@ -1961,7 +1966,7 @@ public class SOCGameHandler extends GameHandler
             Connection con = srv.getConnection(ga.getPlayer(ga.getCurrentPlayerNumber()).getName());
             if (con != null)
             {
-                con.put(SOCChoosePlayerRequest.toCmd(gname, choices));
+                con.put(new SOCChoosePlayerRequest(gname, choices));
             }
 
             break;
@@ -3566,7 +3571,7 @@ public class SOCGameHandler extends GameHandler
                 final Connection c = srv.getConnection(p.getName());
                 if (c != null)
                     for (int i = 0; i < L; ++i)
-                        c.put(((SOCMessage) pq.get(i)).toCmd());
+                        c.put(((SOCMessage) pq.get(i)));
 
                 pq.clear();
             }
