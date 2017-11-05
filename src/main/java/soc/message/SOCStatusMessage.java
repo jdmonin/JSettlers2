@@ -454,40 +454,16 @@ public class SOCStatusMessage extends SOCMessage
      *     such as with {@link #SV_OK_SET_NICKNAME}, and the client must reauthenticate instead;
      *     the exception is thrown to prevent continued server processing as if the fallback was successful.
      * @since 1.1.07
+     * @see #statusFallbackForVersion(int, int)
      */
     public static String toCmd(int sv, final int cliVers, final String st)
         throws IllegalArgumentException
     {
-        if (! statusValidAtVersion(sv, cliVers))
-        {
-            boolean reject = false;
-            switch(sv)
-            {
-            case SV_OK_DEBUG_MODE_ON:
-                sv = SV_OK;
-                break;
-            case SV_PW_REQUIRED:
-                sv = SV_PW_WRONG;
-                break;
-            case SV_ACCT_CREATED_OK_FIRST_ONE:
-                sv = SV_ACCT_CREATED_OK;
-                break;
-            case SV_OK_SET_NICKNAME:
-                reject = true;
-                break;
-            default:
-                if (cliVers >= 1106)
-                    sv = SV_NOT_OK_GENERIC;
-                else
-                    sv = SV_OK;
-            }
-            if (reject)
-                throw new IllegalArgumentException("No fallback for sv " + sv + " at client v" + cliVers);
-
+        int fallSV = sv = statusFallbackForVersion(sv, cliVers);
+        if (fallSV != sv)
             return toCmd(sv, cliVers, st);  // ensure fallback value is valid at client's version
-        } else {
+        else
             return toCmd(sv, st);
-        }
     }
 
     /**
@@ -495,7 +471,8 @@ public class SOCStatusMessage extends SOCMessage
      * A different fallback value can be sent instead if the client is new enough to understand it; for
      * example instead of {@link #SV_ACCT_CREATED_OK_FIRST_ONE}, send {@link #SV_ACCT_CREATED_OK}.
      *<P>
-     * Server calls {@link #toCmd(int, int, String)} to check client version and send a compatible status value.
+     * See {@link #statusFallbackForVersion(int, int)} to check client version and find a compatible status value,
+     * as the server may need to do with older clients.
      *
      * @param statusValue  status value (from constants defined here, such as {@link #SV_OK})
      * @param cliVersion Client's version, same format as {@link soc.util.Version#versionNumber()};
@@ -534,6 +511,51 @@ public class SOCStatusMessage extends SOCMessage
                 return (statusValue <= SV_OK_DEBUG_MODE_ON);
             }
         }
+    }
+
+    /**
+     * Is this status value defined at this version? Check client version and if not, find a compatible status value.
+     * @param sv  the status value; should be a constant such as {@link #SV_OK}.
+     * @param cliVersion Client's version, same format as {@link soc.util.Version#versionNumber()}
+     * @return {@code sv} if valid at {@code cliVersion}, or the most applicable status for that version.
+     * @throws IllegalArgumentException If a {@code sv} has no successful fallback at {@code cliVersion},
+     *     such as with {@link #SV_OK_SET_NICKNAME}, and the client must reauthenticate instead;
+     *     the exception is thrown to prevent continued server processing as if the fallback was successful.
+     * @see #statusValidAtVersion(int, int)
+     * @since 2.0.00
+     */
+    public static int statusFallbackForVersion(int sv, int cliVersion)
+    {
+        if (! statusValidAtVersion(sv, cliVersion))
+        {
+            boolean reject = false;
+
+            switch(sv)
+            {
+            case SV_OK_DEBUG_MODE_ON:
+                sv = SV_OK;
+                break;
+            case SV_PW_REQUIRED:
+                sv = SV_PW_WRONG;
+                break;
+            case SV_ACCT_CREATED_OK_FIRST_ONE:
+                sv = SV_ACCT_CREATED_OK;
+                break;
+            case SV_OK_SET_NICKNAME:
+                reject = true;
+                break;
+            default:
+                if (cliVersion >= 1106)
+                    sv = SV_NOT_OK_GENERIC;
+                else
+                    sv = SV_OK;
+            }
+
+            if (reject)
+                throw new IllegalArgumentException("No fallback for sv " + sv + " at client v" + cliVersion);
+        }
+
+        return sv;
     }
 
     /**
