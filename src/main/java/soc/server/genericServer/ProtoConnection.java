@@ -149,7 +149,7 @@ public final class ProtoConnection
      */
     public void run()
     {
-        Thread.currentThread().setName(getName());  // connection-remotehostname-portnumber
+        Thread.currentThread().setName(getName());  // protoconn-remotehostname-portnumber
         ourServer.addConnection(this);
             // won't throw IllegalArgumentException, because conn is unnamed at this point; getData() is null
 
@@ -160,6 +160,8 @@ public final class ProtoConnection
             if (inputConnected)
             {
                 Message.FromClient firstMsg = Message.FromClient.parseDelimitedFrom(in);
+                System.err.println("Received proto type# " + firstMsg.getMsgCase().getNumber());
+                    // TODO remove soon or use a debug-traffic flag
                 final SOCMessage msgObj = SOCMessage.toMsg(firstMsg);  // convert
                 if (! ourServer.processFirstCommand(msgObj, this))
                 {
@@ -171,6 +173,8 @@ public final class ProtoConnection
             while (inputConnected)
             {
                 final Message.FromClient msgProto = Message.FromClient.parseDelimitedFrom(in);
+                System.err.println("Received proto type# " + msgProto.getMsgCase().getNumber());
+                    // TODO remove or use a debug-traffic flag
                 final SOCMessage msgObj = SOCMessage.toMsg(msgProto);
                 if (msgObj != null)
                     inQueue.push(msgObj, this);
@@ -302,7 +306,7 @@ public final class ProtoConnection
         out = null;
     }
 
-    // TODO proto to client
+    // TODO send proto to client
     /** Connection inner class thread to send {@link NetConnection#outQueue} messages to the net. */
     class Putter extends Thread
     {
@@ -314,9 +318,9 @@ public final class ProtoConnection
             /* thread name for debug */
             String cn = host();
             if (cn != null)
-                setName("putter-" + cn + "-" + Integer.toString(s.getPort()));
+                setName("putter-proto-" + cn + "-" + Integer.toString(s.getPort()));
             else
-                setName("putter-(null)-" + Integer.toString(hashCode()));
+                setName("putter-proto-(null)-" + Integer.toString(hashCode()));
         }
 
         public void run()

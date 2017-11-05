@@ -31,7 +31,7 @@ import java.net.SocketException;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 3.0.00
  */
-public class ProtoServerSocket extends NetServerSocket  // which implements SOCServerSocket
+public class ProtoServerSocket extends NetServerSocket
 {
     public ProtoServerSocket(int port, Server server)
         throws IOException
@@ -39,6 +39,10 @@ public class ProtoServerSocket extends NetServerSocket  // which implements SOCS
         super(port, server);
     }
 
+    /**
+     * {@inheritDoc}
+     * Returns a new {@link ProtoConnection}.
+     */
     @Override
     public Connection accept()
         throws SocketException, IOException

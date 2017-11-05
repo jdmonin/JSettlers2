@@ -113,6 +113,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * Optional Protobuf server socket, in addition to a NetServerSocket {@link #ss}.
      * In Practice mode (main server socket is a {@link StringServerSocket}), this is always null.
+     * @see #startProtoAcceptThread()
      * @since 3.0.00
      */
     ProtoServerSocket protoSS;
@@ -553,8 +554,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * Run method for Server:
      * Start a single "treater" thread for processing inbound messages,
-     * call the {@link #serverUp()} callback, then wait for new connections
-     * and set them up in their own threads.
+     * call the {@link #serverUp()} callback, then loop to wait for new connections
+     * and set them up in their own threads. If the optional Protobuf port is bound,
+     * also start its loop's thread to wait for and set up new connections.
      */
     @Override
     public void run()
@@ -571,6 +573,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         inQueue.startMessageProcessing();
 
         serverUp();  // Any processing for child class to do after serversocket is bound, before the main loop begins
+
+        if (protoSS != null)
+            startProtoAcceptThread();
 
         while (isUp())
         {
@@ -622,6 +627,54 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 error = e;
             }
         }
+    }
+
+    /**
+     * For the optional protobuf server port {@link #protoSS}, run an accept() loop
+     * with the same logic as the loop in {@link #run()}.
+     * @since 3.0.00
+     */
+    private void startProtoAcceptThread()
+    {
+        Thread t = new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                while (isUp())
+                {
+                    try
+                    {
+                        while (isUp())
+                        {
+                            ProtoConnection connection = (ProtoConnection) protoSS.accept();
+                            new Thread(connection).start();
+                        }
+                    }
+                    catch (IOException e)
+                    {
+                        error = e;
+                        D.ebugPrintln("Exception " + e + " during protobuf accept");
+                    }
+
+                    try
+                    {
+                        protoSS.close();
+                        protoSS = new ProtoServerSocket(protoPort, Server.this);
+                    }
+                    catch (IOException e)
+                    {
+                        System.err.println("Could not listen to Protobuf TCP port " + port + ": " + e);
+                        up = false;
+                        inQueue.stopMessageProcessing();
+                        error = e;
+                    }
+                }
+
+            }
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
     /**
