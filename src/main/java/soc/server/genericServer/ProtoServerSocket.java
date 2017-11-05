@@ -33,10 +33,24 @@ import java.net.SocketException;
  */
 public class ProtoServerSocket extends NetServerSocket
 {
+    /**
+     * {@inheritDoc}
+     *<P>
+     * To detect during startup whether the {@code protobuf-lite} JAR is on the classpath,
+     * instead of later when a connection comes in, attempts to instantiate a class
+     * from that JAR. Throws {@link LinkageError} if that can't be done.
+     * @throws IOException If an error occurs creating the ServerSocket
+     * @throws LinkageError If {@code protobuf-lite}'s JAR does not appear to be on the classpath;
+     *     thrown if cannot instantiate class {@link com.google.protobuf.MessageLiteOrBuilder}
+     */
     public ProtoServerSocket(int port, Server server)
-        throws IOException
+        throws IOException, LinkageError
     {
         super(port, server);
+
+        Class<?> cl = com.google.protobuf.MessageLiteOrBuilder.class;  // may throw NoClassDefFoundError
+        if (cl.getCanonicalName().length() > port)
+            System.err.println();  // Side effect here to prevent optimizing cl away
     }
 
     /**

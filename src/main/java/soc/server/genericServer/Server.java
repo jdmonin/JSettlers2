@@ -136,7 +136,12 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     protected final InboundMessageDispatcher inboundMsgDispatcher;
 
     boolean up = false;
-    protected Exception error = null;
+
+    /**
+     * Any exception or error during operation.
+     * Before v3.0.00 this field's type was {@link Exception}.
+     */
+    protected Throwable error = null;
 
     /**
      * TCP port number for {@link NetServerSocket} for classic {@link SOCMessage}s,
@@ -319,6 +324,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             catch (IOException e)
             {
                 System.err.println("Could not listen to Protobuf TCP port " + port + ": " + e);
+                error = e;
+            }
+            catch (LinkageError e)
+            {
+                System.err.println("Error: Could not load Protobuf-lite JAR, check classpath: " + e);
                 error = e;
             }
         }
@@ -665,6 +675,14 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     catch (IOException e)
                     {
                         System.err.println("Could not listen to Protobuf TCP port " + port + ": " + e);
+                        up = false;
+                        inQueue.stopMessageProcessing();
+                        error = e;
+                    }
+                    catch (LinkageError e)
+                    {
+                        // unlikely at this point, server is already up and running
+                        System.err.println("Check protobuf JAR: Could not re-bind to Protobuf TCP port " + port + ": " + e);
                         up = false;
                         inQueue.stopMessageProcessing();
                         error = e;
