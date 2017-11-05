@@ -23,8 +23,9 @@ package soc.message;
 
 import soc.server.genericServer.Connection;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 
 /**
@@ -58,7 +59,7 @@ public class SOCGameMembers extends SOCMessage
     /**
      * List of members
      */
-    private Vector<String> members;
+    private List<String> members;
 
     /**
      * Name of game
@@ -71,7 +72,7 @@ public class SOCGameMembers extends SOCMessage
      * @param ga  name of game
      * @param ml  list of members
      */
-    public SOCGameMembers(String ga, Vector<String> ml)
+    public SOCGameMembers(String ga, List<String> ml)
     {
         messageType = GAMEMEMBERS;
         members = ml;
@@ -81,7 +82,7 @@ public class SOCGameMembers extends SOCMessage
     /**
      * @return the list of member names; each element is a String with the member's nickname
      */
-    public Vector<String> getMembers()
+    public List<String> getMembers()
     {
         return members;
     }
@@ -115,7 +116,7 @@ public class SOCGameMembers extends SOCMessage
      * @param ml  the list of members (String or {@link Connection})
      * @return    the command string
      */
-    public static String toCmd(String ga, Vector<?> ml)
+    public static String toCmd(String ga, List<?> ml)
     {
         String cmd = GAMEMEMBERS + sep + ga;
 
@@ -154,7 +155,7 @@ public class SOCGameMembers extends SOCMessage
     public static SOCGameMembers parseDataStr(String s)
     {
         String ga;
-        Vector<String> ml = new Vector<String>();
+        List<String> ml = new ArrayList<String>();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
@@ -162,9 +163,7 @@ public class SOCGameMembers extends SOCMessage
             ga = st.nextToken();
 
             while (st.hasMoreTokens())
-            {
-                ml.addElement(st.nextToken());
-            }
+                ml.add(st.nextToken());
         }
         catch (Exception e)
         {
@@ -184,7 +183,7 @@ public class SOCGameMembers extends SOCMessage
         sb.append(game);
         sb.append("|members=");
         if (members != null)
-            enumIntoStringBuf(members.elements(), sb);
+            sb.append(members.toString());  // "[joe,bob,lily,...]"
         return sb.toString();
     }
 

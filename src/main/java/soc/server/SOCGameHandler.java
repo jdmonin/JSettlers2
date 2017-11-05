@@ -2580,7 +2580,7 @@ public class SOCGameHandler extends GameHandler
             }
 
             if (lan == null)
-                srv.messageToGameWithMon(gaName, new SOCPotentialSettlements(gaName, -1, new Vector<Integer>(psList)));
+                srv.messageToGameWithMon(gaName, new SOCPotentialSettlements(gaName, -1, new ArrayList<Integer>(psList)));
             else
                 srv.messageToGameWithMon(gaName, new SOCPotentialSettlements(gaName, -1, pan, lan, legalSeaEdges));
 
