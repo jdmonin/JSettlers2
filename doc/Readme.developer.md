@@ -885,6 +885,13 @@ When preparing to release a new version, testing should include:
             - On a 2.0.xx server, have 2.0.xx client create game with a scenario (1.x.xx can't join),
               1.x.xx client should see it in gamelist with "(cannot join)" prefix.
               Start another 1.x.xx client and connect, should see in list with that same prefix
+    - v2.0.00+: StatusMessage "status value" fallback at older versions
+        - Start a 2.0.00 or newer server with `-Djsettlers.allow.debug=Y`
+        - Start a 2.0.00 client with vm property `-Djsettlers.debug.traffic=Y`
+        - That client's initial connection to the server should see at console: `SOCStatusMessage:sv=21`  
+          (which is SV_OK_DEBUG_MODE_ON added in 2.0.00)
+        - Start a 1.2.00 client with same vm property `-Djsettlers.debug.traffic=Y`
+        - That client's initial connection should get sv == 0, should see at console: `SOCStatusMessage:status=Debugging is On`
     - Command line and jsserver.properties
         - Server and client: `-h` / `--help` / `-?`, `--version`
         - Server: Unknown args `-x -z` should print both, then not continue startup

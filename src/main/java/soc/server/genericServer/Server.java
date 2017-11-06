@@ -384,9 +384,13 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * Minor init tasks from both constructors.
      * Set up the recurring schedule of {@link #cliVersionsConnected} here.
+     * If <tt>{@link #error} != null</tt> already, do nothing.
      */
     private void initMisc()
     {
+        if (error != null)
+            return;
+
         // recurring schedule the version set's consistency-chk
         ConnVersionSetCheckerTask cvChkTask = new ConnVersionSetCheckerTask(this);
         utilTimer.schedule(cvChkTask, 0L, SOCServer.CLI_VERSION_SET_CONSIS_CHECK_MINUTES * 60 * 1000);
@@ -441,7 +445,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * @return the TCP port number we're listening on, if any,
-     *   or null if using local string ports instead.
+     *   or -1 if using local string ports instead.
      * @see #getLocalSocketName()
      * @see #getProtoPort()
      * @since 1.1.12

@@ -23,7 +23,6 @@ package soc.client;
 
 import soc.baseclient.SOCDisplaylessPlayerClient;  // for javadocs only
 
-import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -259,7 +258,7 @@ public interface PlayerClientListener
      * The current game members (players and observers) are listed, and the game is about to start.
      * @param names  Game member names; to see if each is a player, call {@link SOCGame#getPlayer(String)}.
      */
-    void membersListed(Collection<String> names);
+    void membersListed(List<String> names);
     void boardLayoutUpdated();
     void boardUpdated();
 

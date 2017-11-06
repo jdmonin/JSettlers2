@@ -130,7 +130,7 @@ public abstract class Connection
      * <B>Threads:</B> Each implementation must be safe to call from any thread,
      * and synchronize itself on an appropriate object or field.
      *
-     * @param str Data to send
+     * @param str Data to send, from {@link SOCMessage#toCmd()}
      *
      * @throws IllegalStateException if not yet accepted by server
      */

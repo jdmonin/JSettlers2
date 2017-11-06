@@ -21,12 +21,11 @@
  **/
 package soc.message;
 
-import java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 /**
  * This message contains a list of potential settlements.
@@ -77,7 +76,7 @@ public class SOCPotentialSettlements extends SOCMessage
     /**
      * List of potential settlements
      */
-    private Vector<Integer> psList;
+    private List<Integer> psList;
 
     /**
      * How many land areas are on this board?
@@ -135,7 +134,7 @@ public class SOCPotentialSettlements extends SOCMessage
      *   version 2.0.00 ({@link #VERSION_FOR_PLAYERNUM_ALL}),
      *   <tt>ps</tt> also is the list of legal settlements.
      */
-    public SOCPotentialSettlements(String ga, int pn, Vector<Integer> ps)
+    public SOCPotentialSettlements(String ga, int pn, List<Integer> ps)
     {
         messageType = POTENTIALSETTLEMENTS;
         game = ga;
@@ -189,9 +188,9 @@ public class SOCPotentialSettlements extends SOCMessage
         {
             if (lan[pan] == null)
                 throw new IllegalArgumentException();
-            psList = new Vector<Integer>(lan[pan]);
+            psList = new ArrayList<Integer>(lan[pan]);
         } else {
-            psList = new Vector<Integer>();
+            psList = new ArrayList<Integer>();
         }
         areaCount = lan.length - 1;
         landAreasLegalNodes = lan;
@@ -231,14 +230,14 @@ public class SOCPotentialSettlements extends SOCMessage
     /**
      * @return the list of potential settlements
      */
-    public Vector<Integer> getPotentialSettlements()
+    public List<Integer> getPotentialSettlements()
     {
         return psList;
     }
 
     /**
      * POTENTIALSETTLEMENTS formatted command, for a message with 1 or multiple land areas.
-     * Format will be either {@link #toCmd(String, int, Vector)}
+     * Format will be either {@link #toCmd(String, int, List)}
      * or {@link #toCmd(String, int, int, HashSet[], int[][])}.
      *
      * @return the command String
@@ -262,7 +261,7 @@ public class SOCPotentialSettlements extends SOCMessage
      * @param ps  the list of potential settlements
      * @return    the command string
      */
-    public static String toCmd(String ga, int pn, Vector<Integer> ps)
+    public static String toCmd(String ga, int pn, List<Integer> ps)
     {
         String cmd = POTENTIALSETTLEMENTS + sep + ga + sep2 + pn;
 
@@ -391,7 +390,7 @@ public class SOCPotentialSettlements extends SOCMessage
     {
         String ga;
         int pn;
-        Vector<Integer> ps = new Vector<Integer>();
+        List<Integer> ps = new ArrayList<Integer>();
         HashSet<Integer>[] las = null;
         int pan = 0;
         int[][] legalSeaEdges = null;
@@ -412,7 +411,7 @@ public class SOCPotentialSettlements extends SOCMessage
                     hadNA = true;
                     break;
                 }
-                ps.addElement(new Integer(Integer.parseInt(tok)));
+                ps.add(new Integer(Integer.parseInt(tok)));
             }
 
             if (hadNA)
@@ -532,11 +531,8 @@ public class SOCPotentialSettlements extends SOCMessage
     {
         StringBuffer s = new StringBuffer
             ("SOCPotentialSettlements:game=" + game + "|playerNum=" + playerNumber + "|list=");
-        Enumeration<Integer> senum = psList.elements();
-
-        while (senum.hasMoreElements())
+        for (Integer number : psList)
         {
-            Integer number = senum.nextElement();
             s.append(Integer.toHexString(number.intValue()));
             s.append(' ');
         }

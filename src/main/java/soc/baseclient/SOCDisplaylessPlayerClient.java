@@ -62,6 +62,7 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -1965,7 +1966,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga == null)
             return;
 
-        final Vector<Integer> vset = mes.getPotentialSettlements();
+        final List<Integer> vset = mes.getPotentialSettlements();
         final HashSet<Integer>[] las = mes.landAreasLegalNodes;
         final int[] loneSettles;  // must set for players after pl.setPotentialAndLegalSettlements, if not null
         final int[][] legalSeaEdges = mes.legalSeaEdges;  // usually null, except in _SC_PIRI

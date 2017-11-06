@@ -76,7 +76,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -1963,7 +1962,7 @@ public class SOCPlayerInterface extends Frame
      *
      * @param members Game member names from {@link soc.message.SOCGameMembers#getMembers()} (added in 1.1.12)
      */
-    public void began(Vector<String> members)
+    public void began(List<String> members)
     {
         textInput.setEditable(true);
         textInput.setText("");
@@ -1980,7 +1979,7 @@ public class SOCPlayerInterface extends Frame
         List<String> obs = null;
         for (int i = members.size() - 1; i >= 0; --i)
         {
-            final String mname = members.elementAt(i);
+            final String mname = members.get(i);
             if (null != game.getPlayer(mname))
                 continue;
             if (mname.equals(client.getNickname()))
@@ -3681,12 +3680,12 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * The current game members (players and observers) are listed, and the
-         * game is about to start.  Calls {@link SOCPlayerInterface#began(Vector)}.
+         * game is about to start.  Calls {@link SOCPlayerInterface#began(List)}.
          * @param names  Game member names; to see if each is a player, call {@link SOCGame#getPlayer(String)}.
          */
-        public void membersListed(Collection<String> names)
+        public void membersListed(List<String> names)
         {
-            pi.began(new Vector<String>(names));
+            pi.began(names);
         }
 
         public void boardLayoutUpdated()
