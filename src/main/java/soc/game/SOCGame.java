@@ -1649,9 +1649,11 @@ public class SOCGame implements Serializable, Cloneable
         {
             for (int i = 0; i < maxPlayers; i++)
             {
-                if ((! isSeatVacant(i)) && nn.equals(players[i].getName()))
+                if (! isSeatVacant(i))
                 {
-                    return players[i];
+                    SOCPlayer pl = players[i];  // may be null during end-of-game cleanup or reset
+                    if ((pl != null) && nn.equals(pl.getName()))
+                        return players[i];
                 }
             }
         }
