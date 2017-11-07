@@ -21,9 +21,9 @@
  **/
 package soc.message;
 
-import java.util.Enumeration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import soc.game.SOCGame;
 
@@ -76,7 +76,7 @@ public class SOCGames extends SOCMessage
     /**
      * List of games (Strings)
      */
-    private Vector<String> games;
+    private List<String> games;
 
     /**
      * Create a Games Message.
@@ -85,16 +85,16 @@ public class SOCGames extends SOCMessage
      *         Mark unjoinable games with the prefix
      *         {@link #MARKER_THIS_GAME_UNJOINABLE}.
      */
-    public SOCGames(Vector<String> ga)
+    public SOCGames(List<String> ga)
     {
         messageType = GAMES;
         games = ga;
     }
 
     /**
-     * @return the list of games, a vector of Strings
+     * @return the list of game names
      */
-    public Vector<String> getGames()
+    public List<String> getGames()
     {
         return games;
     }
@@ -113,36 +113,32 @@ public class SOCGames extends SOCMessage
     /**
      * GAMES sep games
      *
-     * @param ga  the list of games, as a mixed-content vector of Strings and/or {@link SOCGame}s;
+     * @param ga  the game names, as a mixed-content list of Strings and/or {@link SOCGame}s;
      *            if a client can't join a game, it should be a String prefixed with
      *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
      * @return    the command string
      */
-    public static String toCmd(Vector<?> ga)
+    public static String toCmd(List<?> ga)
     {
-        String cmd = GAMES + sep;
+        StringBuilder cmd = new StringBuilder();
+        cmd.append(GAMES);
+        cmd.append(sep);
 
-        try
+        boolean first = true;
+        for (Object ob : ga)
         {
-            Enumeration<?> gaEnum = ga.elements();
-            Object ob = gaEnum.nextElement();
-            if (ob instanceof SOCGame)
-                cmd += ((SOCGame) ob).getName();
+            if (! first)
+                cmd.append(sep2);
             else
-                cmd += (String) ob;
+                first = false;
 
-            while (gaEnum.hasMoreElements())
-            {
-                ob = gaEnum.nextElement();
-                if (ob instanceof SOCGame)
-                    cmd += sep2 + ((SOCGame) ob).getName();
-                else
-                    cmd += sep2 + (String) ob;
-            }
+            if (ob instanceof SOCGame)
+                cmd.append(((SOCGame) ob).getName());
+            else
+                cmd.append(ob.toString());  // ob's almost certainly a String already
         }
-        catch (Exception e) {}
 
-        return cmd;
+        return cmd.toString();
     }
 
     /**
@@ -153,14 +149,14 @@ public class SOCGames extends SOCMessage
      */
     public static SOCGames parseDataStr(String s)
     {
-        Vector<String> ga = new Vector<String>();
+        ArrayList<String> ga = new ArrayList<String>();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
         {
             while (st.hasMoreTokens())
             {
-                ga.addElement(st.nextToken());
+                ga.add(st.nextToken());
             }
         }
         catch (Exception e)
@@ -181,7 +177,7 @@ public class SOCGames extends SOCMessage
     {
         StringBuffer sb = new StringBuffer("SOCGames:games=");
         if (games != null)
-            enumIntoStringBuf(games.elements(), sb);
+            sb.append(games);  // "[game1, game2, ...]"
         return sb.toString();
     }
 }

@@ -3892,8 +3892,7 @@ public class SOCServer extends Server
         {
             if (getNamedConnectionCount() >= maxConnections)
             {
-                SOCRejectConnection rcCommand = new SOCRejectConnection("Too many connections, please try another server.");
-                c.put(rcCommand.toCmd());
+                c.put(new SOCRejectConnection("Too many connections, please try another server.").toCmd());
             }
         }
         catch (Exception e)
@@ -3922,8 +3921,7 @@ public class SOCServer extends Server
              */
             if (hostMatch)
             {
-                SOCRejectConnection rcCommand = new SOCRejectConnection("Can't connect to the server more than once from one machine.");
-                c.put(rcCommand.toCmd());
+                c.put(new SOCRejectConnection("Can't connect to the server more than once from one machine.").toCmd());
             }
             else
             {
@@ -4689,8 +4687,7 @@ public class SOCServer extends Server
                     botFound = true;
                     messageToGame(ga, "> SENDING RESET COMMAND TO " + botName);
 
-                    SOCAdminReset resetCmd = new SOCAdminReset();
-                    robotConn.put(resetCmd.toCmd());
+                    robotConn.put(new SOCAdminReset().toCmd());
 
                     break;
                 }

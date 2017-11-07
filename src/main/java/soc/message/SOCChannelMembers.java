@@ -23,8 +23,9 @@ package soc.message;
 
 import soc.server.genericServer.Connection;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 
 /**
@@ -43,7 +44,7 @@ public class SOCChannelMembers extends SOCMessage
     /**
      * List of members
      */
-    private Vector<String> members;
+    private List<String> members;
 
     /**
      * Name of channel
@@ -56,7 +57,7 @@ public class SOCChannelMembers extends SOCMessage
      * @param ch  name of chat channel
      * @param ml  list of members
      */
-    public SOCChannelMembers(String ch, Vector<String> ml)
+    public SOCChannelMembers(String ch, List<String> ml)
     {
         messageType = CHANNELMEMBERS;
         members = ml;
@@ -66,7 +67,7 @@ public class SOCChannelMembers extends SOCMessage
     /**
      * @return the list of members
      */
-    public Vector<String> getMembers()
+    public List<String> getMembers()
     {
         return members;
     }
@@ -100,7 +101,7 @@ public class SOCChannelMembers extends SOCMessage
      * @param ml  the list of members (String or {@link Connection})
      * @return    the command string
      */
-    public static String toCmd(String ch, Vector<?> ml)
+    public static String toCmd(String ch, List<?> ml)
     {
         String cmd = CHANNELMEMBERS + sep + ch;
 
@@ -138,7 +139,7 @@ public class SOCChannelMembers extends SOCMessage
     public static SOCChannelMembers parseDataStr(String s)
     {
         String ch;
-        Vector<String> ml = new Vector<String>();
+        ArrayList<String> ml = new ArrayList<String>();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
@@ -147,7 +148,7 @@ public class SOCChannelMembers extends SOCMessage
 
             while (st.hasMoreTokens())
             {
-                ml.addElement(st.nextToken());
+                ml.add(st.nextToken());
             }
         }
         catch (Exception e)
@@ -168,7 +169,7 @@ public class SOCChannelMembers extends SOCMessage
         sb.append(channel);
         sb.append("|members=");
         if (members != null)
-            enumIntoStringBuf(members.elements(), sb);
+            sb.append(members);  // "[joe, bob, lily, ...]"
         return sb.toString();
     }
 }

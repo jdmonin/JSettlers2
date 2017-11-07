@@ -555,9 +555,7 @@ public class SOCServerMessageHandler
             flags = SOCLocalizedStrings.FLAG_TYPE_UNKNOWN;
         }
 
-        if (rets == null)
-            rets = new ArrayList<String>();
-        c.put(SOCLocalizedStrings.toCmd(type, flags, rets));
+        c.put(SOCLocalizedStrings.toCmd(type, flags, rets));  // null "rets" is ok
     }
 
     /**

@@ -4063,13 +4063,13 @@ public class SOCPlayerClient
         // SOCGames.MARKER_THIS_GAME_UNJOINABLE.
         // We'll recognize and remove it in methods called from here.
 
-        Collection<String> gameNamesEnum = mes.getGames();
+        List<String> gameNames = mes.getGames();
 
         if (! isPractice)  // practiceServer's gameoption data is set up in handleVERSION
         {
             if (serverGames == null)
                 serverGames = new SOCGameList();
-            serverGames.addGames(gameNamesEnum, Version.versionNumber());
+            serverGames.addGames(gameNames, Version.versionNumber());
 
             // No more game-option info will be received,
             // because that's always sent before game names are sent.
@@ -4078,10 +4078,10 @@ public class SOCPlayerClient
             tcpServGameOpts.noMoreOptions(false);
 
             // Reset enum for addToGameList call; serverGames.addGames has consumed it.
-            gameNamesEnum = mes.getGames();
+            gameNames = mes.getGames();
         }
 
-        for (String gn : gameNamesEnum)
+        for (String gn : gameNames)
         {
             addToGameList(gn, null, false);
         }
