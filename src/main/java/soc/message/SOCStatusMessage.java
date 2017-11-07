@@ -43,9 +43,10 @@ import soc.util.SOCServerFeatures;  // for javadocs only
  * without trying to parse anything.
  *
  * <H5>Status value back-compatibility:</H5>
- * The server-called method {@link #toCmd(int, int, String)} checks client version compatibility
- * to avoid sending newly defined status codes/values to clients too old to understand them;
- * older "fallback" status values are sent instead. See individual status values' javadocs.
+ * The server-called constructor {@link #SOCStatusMessage(int, int, String)} checks client version
+ * compatibility to avoid sending newly defined status codes/values to clients too old to understand them;
+ * older "fallback" status values are sent instead. See {@link #statusFallbackForVersion(int, int)} and
+ * individual status values' javadocs.
  *
  * <H3>"Debug Is On" notification:</H3>
  * In version 1.1.17 and newer, a server with debug commands enabled will send
@@ -279,7 +280,7 @@ public class SOCStatusMessage extends SOCMessage
     /**
      * Client has connected successfully ({@link #SV_OK}) and the server's Debug Mode is on.
      * Versions older than 2.0.00 get {@link #SV_OK} instead;
-     * see {@link #toCmd(int, int, String)}.
+     * see {@link #statusFallbackForVersion(int, int)}.
      * @since 2.0.00
      */
     public static final int SV_OK_DEBUG_MODE_ON = 21;
@@ -356,7 +357,7 @@ public class SOCStatusMessage extends SOCMessage
     /**
      * Create a StatusMessage message, with a nonzero status value.
      * Does not check that {@code sv} is compatible with the client it's sent to;
-     * for that use {@link #toCmd(int, int, String)} instead.
+     * for that use {@link #SOCStatusMessage(int, int, String)} instead.
      *
      * @param sv  status value (from constants defined here, such as {@link #SV_OK})
      * @param st  the status message text.
@@ -369,6 +370,30 @@ public class SOCStatusMessage extends SOCMessage
         messageType = STATUSMESSAGE;
         status = st;
         svalue = sv;
+    }
+
+    /**
+     * Create a StatusMessage message with a nonzero status value {@code sv}
+     * which is compatible with the client version {@code cliVers} it's sent to.
+     * See {@link #statusFallbackForVersion(int, int)} for specific status fallbacks
+     * and more info.
+     *<P>
+     * Before v3.0.00 this constructor was a static {@code toCmd(..)} method.
+     *
+     * @param sv  status value (from constants defined here, such as {@link #SV_OK})
+     * @param cliVers Client's version, same format as {@link soc.util.Version#versionNumber()}
+     * @param st  the status message text.
+     *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
+     *            in your string, and they will be passed on for the receiver to parse.
+     * @throws IllegalArgumentException If a {@code sv} has no successful fallback at {@code cliVers},
+     *     such as with {@link #SV_OK_SET_NICKNAME}, and the client must reauthenticate instead;
+     *     the exception is thrown to prevent continued server processing as if the fallback was successful.
+     * @since 3.0.00
+     * @see #SOCStatusMessage(int, String)
+     */
+    public SOCStatusMessage(int sv, int cliVers, String st)
+    {
+        this(statusFallbackForVersion(sv, cliVers), st);
     }
 
     /**
@@ -400,12 +425,12 @@ public class SOCStatusMessage extends SOCMessage
     /**
      * STATUSMESSAGE sep [svalue sep2] status -- does not include backwards compatibility.
      * This method is best for sending status values {@link #SV_OK} or {@link #SV_NOT_OK_GENERIC}.
-     * for other newer status values, call {@link #toCmd(int, int, String)} instead.
+     * for other newer status values, call {@link #SOCStatusMessage(int, int, String)} instead.
      *
      * @param sv  the status value; if 0 or less, is not output.
      *            Should be a constant such as {@link #SV_OK}.
      *            Remember that not all client versions recognize every status;
-     *            see {@link #toCmd(int, int, String)}.
+     *            see {@link #statusFallbackForVersion(int, int)}.
      * @param st  the status message text.
      *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
      *            in your string, and they will be passed on for the receiver to parse.
@@ -423,47 +448,6 @@ public class SOCStatusMessage extends SOCMessage
         }
         sb.append(st);
         return sb.toString();
-    }
-
-    /**
-     * STATUSMESSAGE sep [svalue sep2] status -- includes backwards compatibility.
-     * Calls {@link #statusValidAtVersion(int, int)}. if {@code sv} isn't recognized in
-     * that client version, will send {@link #SV_NOT_OK_GENERIC} or another "fallback"
-     * value defined in the client. See individual status values' javadocs for details.
-     *<UL>
-     * <LI> {@link #SV_OK_DEBUG_MODE_ON} falls back to {@link #SV_OK}
-     * <LI> {@link #SV_PW_REQUIRED} falls back to {@link #SV_PW_WRONG}
-     * <LI> {@link #SV_ACCT_CREATED_OK_FIRST_ONE} falls back to {@link #SV_ACCT_CREATED_OK}
-     * <LI> {@link #SV_OK_SET_NICKNAME} has no successful fallback, the client must be
-     *      sent {@link #SV_NAME_NOT_FOUND} and must reauthenticate; throws {@link IllegalArgumentException}
-     * <LI> All others fall back to {@link #SV_NOT_OK_GENERIC}
-     * <LI> In case the fallback value is also not recognized at the client,
-     *      {@code toCmd(..)} will fall back again to something more generic
-     * <LI> Clients before v1.1.06 will be sent the status text {@code st} only,
-     *      without the {@code sv} parameter which was added in 1.1.06
-     *</UL>
-     *
-     * @param sv  the status value; if 0 or less, is not output.
-     *            Should be a constant such as {@link #SV_OK}.
-     * @param cliVers Client's version, same format as {@link soc.util.Version#versionNumber()}
-     * @param st  the status message text.
-     *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
-     *            in your string, and they will be passed on for the receiver to parse.
-     * @return the command string
-     * @throws IllegalArgumentException If a {@code sv} has no successful fallback at {@code cliVers},
-     *     such as with {@link #SV_OK_SET_NICKNAME}, and the client must reauthenticate instead;
-     *     the exception is thrown to prevent continued server processing as if the fallback was successful.
-     * @since 1.1.07
-     * @see #statusFallbackForVersion(int, int)
-     */
-    public static String toCmd(int sv, final int cliVers, final String st)
-        throws IllegalArgumentException
-    {
-        int fallSV = sv = statusFallbackForVersion(sv, cliVers);
-        if (fallSV != sv)
-            return toCmd(sv, cliVers, st);  // ensure fallback value is valid at client's version
-        else
-            return toCmd(sv, st);
     }
 
     /**
@@ -515,6 +499,21 @@ public class SOCStatusMessage extends SOCMessage
 
     /**
      * Is this status value defined at this version? Check client version and if not, find a compatible status value.
+     *<P>
+     * See individual status values' javadocs for details.
+     *<UL>
+     * <LI> {@link #SV_OK_DEBUG_MODE_ON} falls back to {@link #SV_OK}
+     * <LI> {@link #SV_PW_REQUIRED} falls back to {@link #SV_PW_WRONG}
+     * <LI> {@link #SV_ACCT_CREATED_OK_FIRST_ONE} falls back to {@link #SV_ACCT_CREATED_OK}
+     * <LI> {@link #SV_OK_SET_NICKNAME} has no successful fallback, the client must be
+     *      sent {@link #SV_NAME_NOT_FOUND} and must reauthenticate; throws {@link IllegalArgumentException}
+     * <LI> All others fall back to {@link #SV_NOT_OK_GENERIC}
+     * <LI> In case the fallback value is also not recognized at the client,
+     *      {@code toCmd(..)} will fall back again to something more generic
+     * <LI> Clients before v1.1.06 will be sent the status text {@code st} only,
+     *      without the {@code sv} parameter which was added in 1.1.06
+     *</UL>
+     *
      * @param sv  the status value; should be a constant such as {@link #SV_OK}.
      * @param cliVersion Client's version, same format as {@link soc.util.Version#versionNumber()}
      * @return {@code sv} if valid at {@code cliVersion}, or the most applicable status for that version.

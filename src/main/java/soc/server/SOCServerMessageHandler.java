@@ -397,7 +397,7 @@ public class SOCServerMessageHandler
                 {
                     if (! srv.isUserDBUserAdmin(mesUser))
                     {
-                        c.put(SOCStatusMessage.toCmd
+                        c.put(new SOCStatusMessage
                                 (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVersion,
                                  c.getLocalized("account.create.not_auth")));
                                     // "Your account is not authorized to create accounts."
@@ -418,7 +418,7 @@ public class SOCServerMessageHandler
                     srv.nameConnection(c, false);
                 } catch (SQLException e) {
                     // unlikely, we've just queried db in authOrRejectClientUser
-                    c.put(SOCStatusMessage.toCmd
+                    c.put(new SOCStatusMessage
                             (SOCStatusMessage.SV_PROBLEM_WITH_DB, c.getVersion(),
                             "Problem connecting to database, please try again later."));
                     return;
@@ -428,10 +428,10 @@ public class SOCServerMessageHandler
 
         final String txt = c.getLocalized("member.welcome");  // "Welcome to Java Settlers of Catan!"
         if (0 == (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME))
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                 (SOCStatusMessage.SV_OK, txt));
         else
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                 (SOCStatusMessage.SV_OK_SET_NICKNAME, c.getData() + SOCMessage.sep2_char + txt));
     }
 
@@ -467,7 +467,7 @@ public class SOCServerMessageHandler
         if (rejectReason != null)
         {
             if (rejectReason.equals(SOCServer.MSG_NICKNAME_ALREADY_IN_USE))
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(), rejectReason));
             c.put(new SOCRejectConnection(rejectReason).toCmd());
             c.disconnectSoft();
@@ -1422,7 +1422,7 @@ public class SOCServerMessageHandler
         if ( (! SOCMessage.isSingleLineAndSafe(ch))
              || "*".equals(ch))
         {
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
                      SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
               // "This game name is not permitted, please choose a different name."
@@ -1437,7 +1437,7 @@ public class SOCServerMessageHandler
             && (SOCServer.CLIENT_MAX_CREATE_CHANNELS >= 0)
             && (SOCServer.CLIENT_MAX_CREATE_CHANNELS <= ((SOCClientData) c.getAppData()).getcurrentCreatedChannels()))
         {
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_NEWCHANNEL_TOO_MANY_CREATED, cliVers,
                      SOCStatusMessage.MSG_SV_NEWCHANNEL_TOO_MANY_CREATED
                      + Integer.toString(SOCServer.CLIENT_MAX_CREATE_CHANNELS)));
@@ -1452,10 +1452,10 @@ public class SOCServerMessageHandler
         c.put(SOCJoinChannelAuth.toCmd(msgUser, ch));
         final String txt = c.getLocalized("member.welcome");  // "Welcome to Java Settlers of Catan!"
         if (! mustSetUsername)
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                 (SOCStatusMessage.SV_OK, txt));
         else
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                 (SOCStatusMessage.SV_OK_SET_NICKNAME, c.getData() + SOCMessage.sep2_char + txt));
 
         /**

@@ -4980,7 +4980,7 @@ public class SOCServer extends Server
          */
         if (msgUser.length() > PLAYER_NAME_MAX_LENGTH)
         {
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
                      SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));
             return;
@@ -5003,26 +5003,26 @@ public class SOCServer extends Server
             {
                 isTakingOver = true;
             } else {
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                          MSG_NICKNAME_ALREADY_IN_USE));
                 return;
             }
         } else if (nameTimeout == -2)
         {
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_NAME_NOT_ALLOWED, cliVers,
                      c.getLocalized("account.auth.nickname_not_allowed")));  // "This nickname is not allowed."
             return;
         } else if (nameTimeout <= -1000)
         {
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                      checkNickname_getVersionText(-nameTimeout)));
             return;
         } else if (nameTimeout > 0)
         {
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                      (allowTakeover) ? checkNickname_getRetryText(nameTimeout) : MSG_NICKNAME_ALREADY_IN_USE));
             return;
@@ -5035,7 +5035,7 @@ public class SOCServer extends Server
         {
             if (msgPass.length() == 0)
             {
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_PW_REQUIRED, cliVers,
                          "This server requires user accounts and passwords."));
                 return;
@@ -5049,7 +5049,7 @@ public class SOCServer extends Server
         {
             final String txt  // I18N TODO: Check client; might already substitute text based on SV value
                 = /*I*/"Incorrect password for '" + msgUser + "'." /*18N*/;
-            c.put(SOCStatusMessage.toCmd(SOCStatusMessage.SV_PW_WRONG, c.getVersion(), txt));
+            c.put(new SOCStatusMessage(SOCStatusMessage.SV_PW_WRONG, c.getVersion(), txt));
             return;
         }
 
@@ -5086,7 +5086,7 @@ public class SOCServer extends Server
         }
         catch (SQLException sqle)
         {
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_PROBLEM_WITH_DB, c.getVersion(),
                      "Problem connecting to database, please try again later."));
 
@@ -5117,7 +5117,7 @@ public class SOCServer extends Server
 
             final String txt  // I18N TODO: Check client; might already substitute text based on SV value
                 = /*I*/"Incorrect password for '" + msgUser + "'." /*18N*/;
-            final String msg = SOCStatusMessage.toCmd(SOCStatusMessage.SV_PW_WRONG, c.getVersion(), txt);
+            final SOCStatusMessage msg = new SOCStatusMessage(SOCStatusMessage.SV_PW_WRONG, c.getVersion(), txt);
             if (hadDelay)
                 c.put(msg);
             else
@@ -5135,7 +5135,7 @@ public class SOCServer extends Server
         if (mustSetUsername && (cliVers < 1200))
         {
             // Case differs: must reject if client too old for SOCStatusMessage.SV_OK_SET_NICKNAME
-            final String msg = SOCStatusMessage.toCmd
+            final SOCStatusMessage msg = new SOCStatusMessage
                 (SOCStatusMessage.SV_NAME_NOT_FOUND, cliVers,
                  "Nickname is case-sensitive: Use " + authUsername);
             if (hadDelay)
@@ -5303,7 +5303,7 @@ public class SOCServer extends Server
         // Warn if debug commands are allowed.
         // This will be displayed in the client's status line (v1.1.17 and newer).
         if (allowDebugUser)
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_OK_DEBUG_MODE_ON, cvers,
                      c.getLocalized("member.welcome.debug")));  // "Debugging is On.  Welcome to Java Settlers of Catan!"
 
@@ -5573,7 +5573,7 @@ public class SOCServer extends Server
         if ( (! SOCMessage.isSingleLineAndSafe(gameName))
              || "*".equals(gameName))
         {
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
                      SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
               // "This game name is not permitted, please choose a different name."
@@ -5582,7 +5582,7 @@ public class SOCServer extends Server
         }
         if (gameName.length() > GAME_NAME_MAX_LENGTH)
         {
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
                      SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(GAME_NAME_MAX_LENGTH)));
             // Please choose a shorter name; maximum length: 30
@@ -5601,7 +5601,7 @@ public class SOCServer extends Server
             && (CLIENT_MAX_CREATE_GAMES >= 0)
             && (CLIENT_MAX_CREATE_GAMES <= ((SOCClientData) c.getAppData()).getCurrentCreatedGames()))
         {
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_NEWGAME_TOO_MANY_CREATED, cliVers,
                      SOCStatusMessage.MSG_SV_NEWGAME_TOO_MANY_CREATED + Integer.toString(CLIENT_MAX_CREATE_GAMES)));
             // Too many of your games still active; maximum: 5
@@ -5619,7 +5619,7 @@ public class SOCServer extends Server
         {
             if (gameList.isGame(gameName))
             {
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                       (SOCStatusMessage.SV_NEWGAME_ALREADY_EXISTS, cliVers,
                        SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS));
                 // "A game with this name already exists, please choose a different name."
@@ -5632,7 +5632,7 @@ public class SOCServer extends Server
             final StringBuilder optProblems = SOCGameOption.adjustOptionsToKnown(gameOpts, null, true);
             if (optProblems != null)
             {
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                       (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN, cliVers,
                        "Unknown game option(s) were requested, cannot create this game. " + optProblems));
 
@@ -5654,7 +5654,7 @@ public class SOCServer extends Server
         try
         {
             if (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME))
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_OK_SET_NICKNAME,
                      c.getData() + SOCMessage.sep2_char +
                      c.getLocalized("member.welcome")));  // "Welcome to Java Settlers of Catan!"
@@ -5672,7 +5672,7 @@ public class SOCServer extends Server
                 Vector<SOCGame> allConnGames = gameList.memberGames(c, gameName);
                 if (allConnGames.size() == 0)
                 {
-                    c.put(SOCStatusMessage.toCmd(SOCStatusMessage.SV_OK,
+                    c.put(new SOCStatusMessage(SOCStatusMessage.SV_OK,
                             /*I*/"You've taken over the connection, but aren't in any games."/*18N*/ ));
                 } else {
                     // Send list backwards: requested game will be sent last.
@@ -5700,7 +5700,7 @@ public class SOCServer extends Server
         {
             // Let them know they can't join; include the game's version.
             // This cli asked to created it, otherwise gameOpts would be null.
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
               (SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW, cliVers,
                 "Cannot create game with these options; requires version "
                 + Integer.toString(e.gameOptsVersion)
@@ -5714,7 +5714,7 @@ public class SOCServer extends Server
                 D.ebugPrintStackTrace(e, "Exception in createOrJoinGameIfUserOK");
             } else {
                 // Let them know they can't join; include the game's version.
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                   (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION, cliVers,
                     "Cannot join game; requires version "
                     + Integer.toString(game.getClientVersionMinRequired())
@@ -6399,7 +6399,7 @@ public class SOCServer extends Server
             // Send same SV_ status code as previous versions (before 1.1.19) which didn't check db.isInitialized
             // but instead fell through and sent "Account not created due to error."
 
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_ACCT_NOT_CREATED_ERR, cliVers,
                      c.getLocalized("account.common.no_accts")));  // "This server does not use accounts and passwords."
             return;
@@ -6411,7 +6411,7 @@ public class SOCServer extends Server
 
         if ((databaseUserAdmins == null) && ! isOpenReg)
         {
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVers,
                      c.getLocalized("account.create.not_auth")));  // "Your account is not authorized to create accounts."
 
@@ -6441,7 +6441,7 @@ public class SOCServer extends Server
 
             if (cliVers < SOCAuthRequest.VERSION_FOR_AUTHREQUEST)
             {
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION,  // cli knows this status value: defined in 1.1.06
                          cliVers, c.getLocalized
                              ("account.create.client_version_minimum",
@@ -6460,7 +6460,7 @@ public class SOCServer extends Server
             }
             catch (SQLException e)
             {
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_PROBLEM_WITH_DB, cliVers,
                          c.getLocalized("account.create.error_db_conn")));
                              // "Problem connecting to database, please try again later."
@@ -6469,7 +6469,7 @@ public class SOCServer extends Server
 
             if (count > 0)
             {
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_PW_WRONG, cliVers, c.getLocalized("account.common.must_auth")));
                              // "You must log in with a username and password before you can create accounts."
                 return;
@@ -6485,7 +6485,7 @@ public class SOCServer extends Server
 
         if (! SOCMessage.isSingleLineAndSafe(userName))
         {
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
                      SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
             return;
@@ -6510,7 +6510,7 @@ public class SOCServer extends Server
             {
                 // Requester not on user-admins list.
 
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVers,
                          c.getLocalized("account.create.not_auth")));  // "Your account is not authorized to create accounts."
 
@@ -6538,7 +6538,7 @@ public class SOCServer extends Server
             final String dbUserName = SOCDBHelper.getUser(userName);
             if (dbUserName != null)
             {
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                          c.getLocalized("account.create.already_exists", dbUserName)));
                              // "The nickname "{0}" is already in use."
@@ -6553,7 +6553,7 @@ public class SOCServer extends Server
         catch (SQLException sqle)
         {
             // Indicates a db problem: don't continue
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_PROBLEM_WITH_DB, cliVers,
                      c.getLocalized("account.create.error_db_conn")));
                          // "Problem connecting to database, please try again later."
@@ -6583,7 +6583,7 @@ public class SOCServer extends Server
             final int stat = (isDBCountedEmpty)
                 ? SOCStatusMessage.SV_ACCT_CREATED_OK_FIRST_ONE
                 : SOCStatusMessage.SV_ACCT_CREATED_OK;
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (stat, cliVers,
                      c.getLocalized("account.create.created", userName)));  // "Account created for "{0}"."
 
@@ -6598,7 +6598,7 @@ public class SOCServer extends Server
                 ((pwTooLong)
                  ? "account.common.password_too_long"  // "That password is too long."
                  : "account.create.error");  // "Account not created due to error."
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_ACCT_NOT_CREATED_ERR, cliVers, errText));
         }
     }
