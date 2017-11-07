@@ -1870,7 +1870,7 @@ public class SOCServer extends Server
         {
             if (! channelList.isMember(c, ch))
             {
-                c.put(SOCChannelMembers.toCmd(ch, channelList.getMembers(ch)));
+                c.put(new SOCChannelMembers(ch, channelList.getMembers(ch)));
                 if (D.ebugOn)
                     D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch + " at "
                         + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
@@ -2522,7 +2522,7 @@ public class SOCServer extends Server
             while (conEnum.hasMoreElements())
             {
                 Connection con = conEnum.nextElement();
-                con.put(SOCRobotDismiss.toCmd(gm));
+                con.put(new SOCRobotDismiss(gm));
             }
         }
 
@@ -2843,8 +2843,6 @@ public class SOCServer extends Server
      */
     public void messageToChannel(String ch, SOCMessage mes)
     {
-        final String mesCmd = mes.toCmd();
-
         channelList.takeMonitorForChannel(ch);
 
         try
@@ -2861,7 +2859,7 @@ public class SOCServer extends Server
 
                     if (c != null)
                     {
-                        c.put(mesCmd);
+                        c.put(mes);
                     }
                 }
             }
@@ -2889,8 +2887,6 @@ public class SOCServer extends Server
 
         if (v != null)
         {
-            final String mesCmd = mes.toCmd();
-
             Enumeration<Connection> menum = v.elements();
 
             while (menum.hasMoreElements())
@@ -2899,7 +2895,7 @@ public class SOCServer extends Server
 
                 if (c != null)
                 {
-                    c.put(mesCmd);
+                    c.put(mes);
                 }
             }
         }
@@ -2917,7 +2913,7 @@ public class SOCServer extends Server
             return;
 
         //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", c.getData()));
-        c.put(mes.toCmd());
+        c.put(mes);
     }
 
     /**
@@ -2937,9 +2933,9 @@ public class SOCServer extends Server
             return;
 
         if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
-            c.put(SOCGameServerText.toCmd(ga, txt));
+            c.put(new SOCGameServerText(ga, txt));
         else
-            c.put(SOCGameTextMsg.toCmd(ga, SERVERNAME, txt));
+            c.put(new SOCGameTextMsg(ga, SERVERNAME, txt));
     }
 
     /**
@@ -2962,9 +2958,9 @@ public class SOCServer extends Server
             return;
 
         if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
-            c.put(SOCGameServerText.toCmd(gaName, c.getLocalized(key)));
+            c.put(new SOCGameServerText(gaName, c.getLocalized(key)));
         else
-            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key)));
+            c.put(new SOCGameTextMsg(gaName, SERVERNAME, c.getLocalized(key)));
     }
 
     /**
@@ -2993,9 +2989,9 @@ public class SOCServer extends Server
             return;
 
         if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
-            c.put(SOCGameServerText.toCmd(gaName, c.getLocalized(key, args)));
+            c.put(new SOCGameServerText(gaName, c.getLocalized(key, args)));
         else
-            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key, args)));
+            c.put(new SOCGameTextMsg(gaName, SERVERNAME, c.getLocalized(key, args)));
     }
 
     /**
@@ -3026,9 +3022,9 @@ public class SOCServer extends Server
             return;
 
         if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
-            c.put(SOCGameServerText.toCmd(ga.getName(), c.getLocalizedSpecial(ga, key, args)));
+            c.put(new SOCGameServerText(ga.getName(), c.getLocalizedSpecial(ga, key, args)));
         else
-            c.put(SOCGameTextMsg.toCmd(ga.getName(), SERVERNAME, c.getLocalizedSpecial(ga, key, args)));
+            c.put(new SOCGameTextMsg(ga.getName(), SERVERNAME, c.getLocalizedSpecial(ga, key, args)));
     }
 
     /**
@@ -3078,8 +3074,6 @@ public class SOCServer extends Server
      */
     public void messageToGame(String ga, SOCMessage mes)
     {
-        final String mesCmd = mes.toCmd();
-
         gameList.takeMonitorForGame(ga);
 
         try
@@ -3098,7 +3092,7 @@ public class SOCServer extends Server
                     if (c != null)
                     {
                         //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", c.getData()));
-                        c.put(mesCmd);
+                        c.put(mes);
                     }
                 }
             }
@@ -3137,7 +3131,7 @@ public class SOCServer extends Server
      */
     public void messageToGame(final String ga, final String txt)
     {
-        final String gameServTxtMsg = SOCGameServerText.toCmd(ga, txt);
+        final SOCGameServerText gameServTxtMsg = new SOCGameServerText(ga, txt);
 
         gameList.takeMonitorForGame(ga);
 
@@ -3157,7 +3151,7 @@ public class SOCServer extends Server
                         if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
                             c.put(gameServTxtMsg);
                         else
-                            c.put(SOCGameTextMsg.toCmd(ga, SERVERNAME, txt));
+                            c.put(new SOCGameTextMsg(ga, SERVERNAME, txt));
                     }
                 }
             }
@@ -3509,7 +3503,8 @@ public class SOCServer extends Server
         {
                 Iterator<Connection> miter = members.iterator();
 
-                String gameTextMsg = null, gameTxtLocale = null;  // as rendered for previous client during loop
+                SOCGameServerText gameTextMsg = null;  // as rendered for previous client during loop
+                String gameTxtLocale = null;
                 while (miter.hasNext())
                 {
                     Connection c = miter.next();
@@ -3524,10 +3519,10 @@ public class SOCServer extends Server
                         || (hasMultiLocales && ! cliLocale.equals(gameTxtLocale)))
                     {
                         if (fmtSpecial)
-                            gameTextMsg = SOCGameServerText.toCmd
+                            gameTextMsg = new SOCGameServerText
                                 (gaName, c.getLocalizedSpecial(ga, key, params));
                         else
-                            gameTextMsg = SOCGameServerText.toCmd
+                            gameTextMsg = new SOCGameServerText
                                 (gaName, (params != null) ? c.getLocalized(key, params) : c.getLocalized(key));
                         gameTxtLocale = cliLocale;
                     }
@@ -3537,10 +3532,10 @@ public class SOCServer extends Server
                     else
                         // old client (this is uncommon) needs a different message type
                         if (fmtSpecial)
-                            c.put(SOCGameTextMsg.toCmd
+                            c.put(new SOCGameTextMsg
                                 (gaName, SERVERNAME, c.getLocalizedSpecial(ga, key, params)));
                         else
-                            c.put(SOCGameTextMsg.toCmd
+                            c.put(new SOCGameTextMsg
                                 (gaName, SERVERNAME,
                                  (params != null) ? c.getLocalized(key, params) : c.getLocalized(key)));
                 }
@@ -3575,7 +3570,6 @@ public class SOCServer extends Server
             return;
 
         //D.ebugPrintln("M2G - "+mes);
-        final String mesCmd = mes.toCmd();
         Enumeration<Connection> menum = v.elements();
 
         while (menum.hasMoreElements())
@@ -3585,7 +3579,7 @@ public class SOCServer extends Server
             if (c != null)
             {
                 //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", c.getData()));
-                c.put(mesCmd);
+                c.put(mes);
             }
         }
     }
@@ -3641,7 +3635,6 @@ public class SOCServer extends Server
             if (v != null)
             {
                 //D.ebugPrintln("M2GE - "+mes);
-                final String mesCmd = mes.toCmd();
                 Enumeration<Connection> menum = v.elements();
 
                 while (menum.hasMoreElements())
@@ -3651,7 +3644,7 @@ public class SOCServer extends Server
                     if ((con != null) && (!ex.contains(con)))
                     {
                         //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", con.getData()));
-                        con.put(mesCmd);
+                        con.put(mes);
                     }
                 }
             }
@@ -3690,7 +3683,6 @@ public class SOCServer extends Server
             if (v != null)
             {
                 //D.ebugPrintln("M2GE - "+mes);
-                final String mesCmd = mes.toCmd();
                 Enumeration<Connection> menum = v.elements();
 
                 while (menum.hasMoreElements())
@@ -3700,7 +3692,7 @@ public class SOCServer extends Server
                         continue;
 
                     //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", con.getData()));
-                    con.put(mesCmd);
+                    con.put(mes);
                 }
             }
         }
@@ -3768,7 +3760,6 @@ public class SOCServer extends Server
             Vector<Connection> v = gameList.getMembers(gn);
             if (v != null)
             {
-                String mesCmd = null;  // lazy init, will be mes.toCmd()
                 Enumeration<Connection> menum = v.elements();
 
                 while (menum.hasMoreElements())
@@ -3782,9 +3773,7 @@ public class SOCServer extends Server
                         continue;
 
                     //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", con.getData()));
-                    if (mesCmd == null)
-                        mesCmd = mes.toCmd();
-                    con.put(mesCmd);
+                    con.put(mes);
                 }
             }
         }
@@ -3892,7 +3881,7 @@ public class SOCServer extends Server
         {
             if (getNamedConnectionCount() >= maxConnections)
             {
-                c.put(new SOCRejectConnection("Too many connections, please try another server.").toCmd());
+                c.put(new SOCRejectConnection("Too many connections, please try another server."));
             }
         }
         catch (Exception e)
@@ -3921,7 +3910,7 @@ public class SOCServer extends Server
              */
             if (hostMatch)
             {
-                c.put(new SOCRejectConnection("Can't connect to the server more than once from one machine.").toCmd());
+                c.put(new SOCRejectConnection("Can't connect to the server more than once from one machine."));
             }
             else
             {
@@ -3969,7 +3958,7 @@ public class SOCServer extends Server
             feats = new SOCServerFeatures(features);
             feats.add(SOCServerFeatures.FEAT_OPEN_REG);  // no accounts: don't require a password from SOCAccountClient
         }
-        c.put(SOCVersion.toCmd
+        c.put(new SOCVersion
             (Version.versionNumber(), Version.version(), Version.buildnum(), feats.getEncodedList()));
 
         // CHANNELS
@@ -3992,7 +3981,7 @@ public class SOCServer extends Server
 
         channelList.releaseMonitor();
 
-        c.put(SOCChannels.toCmd(cl));
+        c.put(new SOCChannels(cl));
 
         // GAMES
 
@@ -4064,7 +4053,7 @@ public class SOCServer extends Server
             // Let the old one know it's disconnected now,
             // in case it ever does get its connection back.
             if (oldConn.getVersion() >= 1108)
-                oldConn.put(SOCServerPing.toCmd(-1));
+                oldConn.put(new SOCServerPing(-1));
         }
 
         numberOfUsers++;
@@ -4250,9 +4239,9 @@ public class SOCServer extends Server
             {
                 // send the full list as 1 message
                 if (cliVers >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
-                    c.put(SOCGamesWithOptions.toCmd(gl, cliVers));
+                    c.put(new SOCGamesWithOptions(gl, cliVers));
                 else
-                    c.put(SOCGames.toCmd(gl));
+                    c.put(new SOCGames(gl));
             } else {
                 // send deltas only
                 for (int i = 0; i < gl.size(); ++i)
@@ -4267,13 +4256,13 @@ public class SOCServer extends Server
                     if (cliCouldKnow)
                     {
                         // first send delete, if it's on their list already
-                        c.put(SOCDeleteGame.toCmd(gaName));
+                        c.put(new SOCDeleteGame(gaName));
                     }
                     // announce as 'new game' to client
                     if ((ob instanceof SOCGame) && (cliVers >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
-                        c.put(SOCNewGameWithOptions.toCmd((SOCGame) ob, cliVers));
+                        c.put(new SOCNewGameWithOptions((SOCGame) ob, cliVers));
                     else
-                        c.put(SOCNewGame.toCmd(gaName));
+                        c.put(new SOCNewGame(gaName));
                 }
             }
         }
@@ -4421,7 +4410,7 @@ public class SOCServer extends Server
         {
             // Already-connected client should respond to ping.
             // If not, consider them disconnected.
-            oldc.put(SOCServerPing.toCmd(timeoutNeeded));
+            oldc.put(new SOCServerPing(timeoutNeeded));
         }
 
         return timeoutNeeded;
@@ -4668,7 +4657,7 @@ public class SOCServer extends Server
             {
                 Connection robotConn = robotsEnum.nextElement();
                 messageToGame(ga, "> Robot: " + robotConn.getData());
-                robotConn.put(SOCAdminPing.toCmd((ga)));
+                robotConn.put(new SOCAdminPing((ga)));
             }
         }
         else if (dcmdU.startsWith("*RESETBOT* "))
@@ -4687,7 +4676,7 @@ public class SOCServer extends Server
                     botFound = true;
                     messageToGame(ga, "> SENDING RESET COMMAND TO " + botName);
 
-                    robotConn.put(new SOCAdminReset().toCmd());
+                    robotConn.put(new SOCAdminReset());
 
                     break;
                 }
@@ -5289,7 +5278,7 @@ public class SOCServer extends Server
 
         if (rejectMsg != null)
         {
-            c.put(new SOCRejectConnection(rejectMsg).toCmd());
+            c.put(new SOCRejectConnection(rejectMsg));
             c.disconnectSoft();
             System.out.println(rejectLogMsg);
             return false;
@@ -5885,7 +5874,7 @@ public class SOCServer extends Server
                 if (robotSeatsConns[i] != null)
                 {
                     D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotSeatsConns[i].getData());
-                    robotSeatsConns[i].put(SOCRobotJoinGameRequest.toCmd(gname, i, gopts));
+                    robotSeatsConns[i].put(new SOCRobotJoinGameRequest(gname, i, gopts));
                 }
             }
         }
@@ -6348,7 +6337,7 @@ public class SOCServer extends Server
 
         if (scSend != null)
         {
-            c.put(new SOCScenarioInfo(scSend, nm, desc).toCmd());
+            c.put(new SOCScenarioInfo(scSend, nm, desc));
         } else {
             List<String> scenStrs = new ArrayList<String>();
             scenStrs.add(scKey);
@@ -6360,7 +6349,7 @@ public class SOCServer extends Server
                 scenStrs.add(SOCLocalizedStrings.MARKER_KEY_UNKNOWN);
             }
 
-            c.put(SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, 0, scenStrs));
+            c.put(new SOCLocalizedStrings(SOCLocalizedStrings.TYPE_SCENARIO, 0, scenStrs));
         }
 
         // Remember what we sent it

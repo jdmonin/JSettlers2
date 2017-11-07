@@ -23,7 +23,6 @@ package soc.message;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
@@ -34,7 +33,7 @@ import soc.util.SOCGameList;
  * their {@link soc.game.SOCGameOption game options}.
  * It's constructed and sent for each connecting client
  * which can understand game options (1.1.07 and newer),
- * by calling {@link #toCmd(Vector, int)}.
+ * by calling {@link #SOCGamesWithOptions(List, int)}.
  *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't create games.
@@ -57,14 +56,44 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      * but doesn't parse the game option strings into {@link soc.game.SOCGameOption}
      * objects; call {@link soc.game.SOCGameOption#parseOptionsToMap(String)} for that.
      *<P>
-     * There is no server-side constructor, because the server
-     * instead calls {@link #toCmd(Vector, int)}.
+     * The server instead calls {@link #SOCGamesWithOptions(List, int)}.
      *
      * @param gl  Game list; can be empty, but not null
      */
     protected SOCGamesWithOptions(List<String> gl)
     {
         super(GAMESWITHOPTIONS, "-", gl);
+    }
+
+    /**
+     * Constructor from a set of game objects; used at server side.
+     *<P>
+     * Before v3.0.00 this was a static {@code toCmd(..)} method.
+     *
+     * @param ga  the list of games, as a mixed-content vector of Strings and/or {@link SOCGame}s;
+     *            if a client can't join a game, it should be a String prefixed with
+     *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+     * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
+     *            If any game's options need adjustment for an older client, cliVers triggers that.
+     * @return    the command string
+     */
+    public SOCGamesWithOptions(List<?> ga, final int cliVers)
+    {
+        this(new ArrayList<String>());  // pa field gets the new ArrayList
+
+        // build by iteration
+        for (int i = 0; i < ga.size(); ++i)
+        {
+            Object ob = ga.get(i);
+            if (ob instanceof SOCGame)
+            {
+                pa.add(((SOCGame) ob).getName());
+                pa.add(SOCGameOption.packOptionsToString(((SOCGame) ob).getGameOptions(), false, cliVers));
+            } else {
+                pa.add((String) ob);
+                pa.add("-");
+            }
+        }
     }
 
     /**
@@ -118,37 +147,6 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
             return null;  // must have an even # of strings
 
         return new SOCGamesWithOptions(gl);
-    }
-
-    /**
-     * Build the command string from a set of games; used at server side.
-     * @param ga  the list of games, as a mixed-content vector of Strings and/or {@link SOCGame}s;
-     *            if a client can't join a game, it should be a String prefixed with
-     *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
-     * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
-     *            If any game's options need adjustment for an older client, cliVers triggers that.
-     * @return    the command string
-     */
-    public static String toCmd(Vector<?> ga, final int cliVers)
-    {
-        // build by iteration
-        StringBuffer sb = new StringBuffer(Integer.toString(SOCMessage.GAMESWITHOPTIONS));
-        for (int i = 0; i < ga.size(); ++i)
-        {
-            sb.append(sep);
-            Object ob = ga.elementAt(i);
-            if (ob instanceof SOCGame)
-            {
-                sb.append(((SOCGame) ob).getName());
-                sb.append(sep);
-                sb.append(SOCGameOption.packOptionsToString(((SOCGame) ob).getGameOptions(), false, cliVers));
-            } else {
-                sb.append((String) ob);
-                sb.append(sep);
-                sb.append("-");
-            }
-        }
-        return sb.toString();
     }
 
 }

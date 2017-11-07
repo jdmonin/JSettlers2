@@ -101,6 +101,25 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     }
 
     /**
+     * Create a SOCNewGameWithOptions message to send to a specific client version,
+     * with the game's options and minimum required version info taken from its {@code game} object.
+     *<P>
+     * Before v3.0.00 this constructor was a static {@code toCmd(..)} method.
+     *
+     * @param game  the game
+     * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
+     *            If any game's options need adjustment for an older client, cliVers triggers that.
+     *            Use -2 if the client version doesn't matter.
+     * @since 3.0.00
+     */
+    public SOCNewGameWithOptions(final SOCGame game, final int cliVers)
+    {
+        this(game.getName(),
+            SOCGameOption.packOptionsToString(game.getGameOptions(), false, cliVers),
+            game.getClientVersionMinRequired());
+    }
+
+    /**
      * Create a SOCNewGameWithOptions message to send to a specific client version, adjusting options if necessary.
      * Calls {@link SOCGameOption#packOptionsToString(Map, boolean, int) SGO.packOptionsToString(opts, false, cliVers)}.
      *<P>
@@ -154,24 +173,6 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     {
         return NEWGAMEWITHOPTIONS + sep + ga + sep2 + Integer.toString(minVers) + sep2
                + (((optstr != null) && (optstr.length() > 0)) ? optstr : "-");
-    }
-
-    /**
-     * NEWGAMEWITHOPTIONS sep game sep2 minVers sep2 optionstring
-     *<P>
-     * Game's options and minimum required version will be extracted from game.
-     *
-     * @param ga  the game
-     * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
-     *            If any game's options need adjustment for an older client, cliVers triggers that.
-     *            Use -2 if the client version doesn't matter.
-     * @return the command string
-     */
-    public static String toCmd(final SOCGame ga, final int cliVers)
-    {
-        return toCmd(ga.getName(),
-            SOCGameOption.packOptionsToString(ga.getGameOptions(), false, cliVers),
-            ga.getClientVersionMinRequired());
     }
 
     /**

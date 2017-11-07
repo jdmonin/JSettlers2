@@ -24,6 +24,7 @@ package soc.message;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.Vector;
 
 import soc.game.SOCGame;
 
@@ -92,6 +93,26 @@ public class SOCGames extends SOCMessage
     }
 
     /**
+     * Create a Games message at the server.
+     *
+     * @param ga  the game names, as a mixed-content list of Strings and/or {@link SOCGame}s;
+     *            if a client can't join a game, it should be a String prefixed with
+     *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+     * @since 3.0.00
+     */
+    public SOCGames(Vector<Object> ga)
+    {
+        this(new ArrayList<String>());  // games field gets new ArrayList
+
+        for (Object ob : ga)
+            if (ob instanceof SOCGame)
+                games.add(((SOCGame) ob).getName());
+            else
+                games.add(ob.toString());  // ob's almost certainly a String already
+    }
+
+
+    /**
      * @return the list of game names
      */
     public List<String> getGames()
@@ -118,7 +139,7 @@ public class SOCGames extends SOCMessage
      *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
      * @return    the command string
      */
-    public static String toCmd(List<?> ga)
+    public static String toCmd(List<String> ga)
     {
         StringBuilder cmd = new StringBuilder();
         cmd.append(GAMES);
@@ -132,10 +153,7 @@ public class SOCGames extends SOCMessage
             else
                 first = false;
 
-            if (ob instanceof SOCGame)
-                cmd.append(((SOCGame) ob).getName());
-            else
-                cmd.append(ob.toString());  // ob's almost certainly a String already
+            cmd.append(ob);
         }
 
         return cmd.toString();

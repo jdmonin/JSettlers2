@@ -26,6 +26,7 @@ import soc.server.genericServer.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.Vector;
 
 
 /**
@@ -62,6 +63,24 @@ public class SOCChannelMembers extends SOCMessage
         messageType = CHANNELMEMBERS;
         members = ml;
         channel = ch;
+    }
+
+    /**
+     * Create a Channel Members message.
+     *
+     * @param ch  name of chat channel
+     * @param mcl  list of member client Connections;
+     *     will use {@link Connection#getData()} for member names
+     * @since 3.0.00
+     */
+    public SOCChannelMembers(String ch, Vector<Connection> mcl)
+    {
+        messageType = CHANNELMEMBERS;
+        channel = ch;
+        ArrayList<String> ml = new ArrayList<String>();
+        for (Connection c : mcl)
+            ml.add(c.getData());
+        members = ml;
     }
 
     /**

@@ -85,8 +85,6 @@ public class SOCServerRobotPinger extends Thread
     @Override
     public void run()
     {
-        final String pingCmdStr = ping.toCmd();
-
         while (alive)
         {
             boolean retry = false;
@@ -99,7 +97,7 @@ public class SOCServerRobotPinger extends Thread
                     {
                         if (D.ebugIsEnabled())
                             D.ebugPrintln("(*)(*)(*)(*) PINGING " + robotConnection.getData());
-                        robotConnection.put(pingCmdStr);
+                        robotConnection.put(ping);
                     }
                 } catch (ConcurrentModificationException e) {
                     retry = true;

@@ -353,14 +353,14 @@ public class SOCServerMessageHandler
             if (cliVersion <= 0)
             {
                 // unlikely: AUTHREQUEST was added in 1.1.19, version message timing was stable years earlier
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_NOT_OK_GENERIC, "AUTHREQUEST: Send version first"));  // I18N OK: rare error
                 return;
             }
 
             if (mes.authScheme != SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT)
             {
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_NOT_OK_GENERIC, "AUTHREQUEST: Auth scheme unknown: " + mes.authScheme));
                         // I18N OK: rare error
                 return;
@@ -469,7 +469,7 @@ public class SOCServerMessageHandler
             if (rejectReason.equals(SOCServer.MSG_NICKNAME_ALREADY_IN_USE))
                 c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(), rejectReason));
-            c.put(new SOCRejectConnection(rejectReason).toCmd());
+            c.put(new SOCRejectConnection(rejectReason));
             c.disconnectSoft();
 
             return;  // <--- Early return: rejected ---
@@ -496,7 +496,7 @@ public class SOCServerMessageHandler
         if (params == null)
             params = SOCServer.ROBOT_PARAMS_DEFAULT;  // fallback in case of SQLException
 
-        c.put(SOCUpdateRobotParams.toCmd(params));
+        c.put(new SOCUpdateRobotParams(params));
     }
 
 
@@ -555,7 +555,7 @@ public class SOCServerMessageHandler
             flags = SOCLocalizedStrings.FLAG_TYPE_UNKNOWN;
         }
 
-        c.put(SOCLocalizedStrings.toCmd(type, flags, rets));  // null "rets" is ok
+        c.put(new SOCLocalizedStrings(type, flags, rets));  // null "rets" is OK
     }
 
     /**
@@ -582,7 +582,7 @@ public class SOCServerMessageHandler
             return;
 
         final boolean hideLongNameOpts = (c.getVersion() < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES);
-        c.put(SOCGameOptionGetDefaults.toCmd
+        c.put(new SOCGameOptionGetDefaults
               (SOCGameOption.packKnownOptionsToString(true, hideLongNameOpts)));
     }
 
@@ -720,7 +720,7 @@ public class SOCServerMessageHandler
                     opt = SOCGameOption.trimEnumForVersion(opt, cliVers);
                 }
 
-                c.put(new SOCGameOptionInfo(opt, cliVers, localDesc).toCmd());
+                c.put(new SOCGameOptionInfo(opt, cliVers, localDesc));
             }
         }
 
@@ -741,11 +741,11 @@ public class SOCServerMessageHandler
             }
 
             c.put(new SOCLocalizedStrings
-                (SOCLocalizedStrings.TYPE_GAMEOPT, SOCLocalizedStrings.FLAG_SENT_ALL, strs).toCmd());
+                (SOCLocalizedStrings.TYPE_GAMEOPT, SOCLocalizedStrings.FLAG_SENT_ALL, strs));
         }
 
         // mark end of list, even if list was empty
-        c.put(SOCGameOptionInfo.OPTINFO_NO_MORE_OPTS.toCmd());  // GAMEOPTIONINFO("-")
+        c.put(SOCGameOptionInfo.OPTINFO_NO_MORE_OPTS);  // GAMEOPTIONINFO("-")
     }
 
     /**
@@ -799,7 +799,7 @@ public class SOCServerMessageHandler
                 if ((sc == null) || (sc.minVersion > cliVers))
                     // unknown scenario, or too new; send too-new ones in case client encounters one as a listed game's
                     // scenario (server also sends too-new SOCGameOptions as unknowns, with the same intention)
-                    c.put(new SOCScenarioInfo(scKey, true).toCmd());
+                    c.put(new SOCScenarioInfo(scKey, true));
                 else if (! changes.contains(sc))
                     changes.add(sc);
             }
@@ -810,7 +810,7 @@ public class SOCServerMessageHandler
                 if (sc.minVersion <= cliVers)
                     srv.sendGameScenarioInfo(null, sc, c, false);
                 else
-                    c.put(new SOCScenarioInfo(sc.key, true).toCmd());
+                    c.put(new SOCScenarioInfo(sc.key, true));
 
         final SOCClientData scd = (SOCClientData) c.getAppData();
 
@@ -840,14 +840,14 @@ public class SOCServerMessageHandler
                 else
                     scenStrs = scKeys;  // re-use the empty list object
 
-                c.put(SOCLocalizedStrings.toCmd
+                c.put(new SOCLocalizedStrings
                         (SOCLocalizedStrings.TYPE_SCENARIO, SOCLocalizedStrings.FLAG_SENT_ALL, scenStrs));
             }
 
             scd.sentAllScenarioStrings = true;
         }
 
-        c.put(new SOCScenarioInfo(null, null, null).toCmd());  // send end of list
+        c.put(new SOCScenarioInfo(null, null, null));  // send end of list
 
         if (hasAnyChangedMarker)
         {
@@ -1447,7 +1447,7 @@ public class SOCServerMessageHandler
         /**
          * Tell the client that everything is good to go
          */
-        c.put(SOCJoinChannelAuth.toCmd(msgUser, ch));
+        c.put(new SOCJoinChannelAuth(msgUser, ch));
         final String txt = c.getLocalized("member.welcome");  // "Welcome to Java Settlers of Catan!"
         if (! mustSetUsername)
             c.put(new SOCStatusMessage
@@ -1492,7 +1492,7 @@ public class SOCServerMessageHandler
 
             channelList.releaseMonitor();
             srv.broadcast(new SOCNewChannel(ch));
-            c.put(SOCChannelMembers.toCmd(ch, channelList.getMembers(ch)));
+            c.put(new SOCChannelMembers(ch, channelList.getMembers(ch)));
             if (D.ebugOn)
                 D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch + " at "
                     + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
@@ -1838,7 +1838,7 @@ public class SOCServerMessageHandler
                      * boot the robot out of the game
                      */
                     Connection robotCon = srv.getConnection(seatedPlayer.getName());
-                    robotCon.put(SOCRobotDismiss.toCmd(gaName));
+                    robotCon.put(new SOCRobotDismiss(gaName));
 
                     /**
                      * this connection has to wait for the robot to leave
@@ -1882,7 +1882,7 @@ public class SOCServerMessageHandler
              */
             if (mes.isRobot())
             {
-                c.put(SOCRobotDismiss.toCmd(gaName));
+                c.put(new SOCRobotDismiss(gaName));
             } else if (gameAlreadyStarted) {
                 srv.messageToPlayerKeyed(c, gaName, "member.sit.game.started");
                     // "This game has already started; to play you must take over a robot."
@@ -2190,7 +2190,7 @@ public class SOCServerMessageHandler
                 // Put it to a vote
                 srv.messageToGameKeyed(ga, false, "resetboard.vote.request", c.getData());
                     // "requests a board reset - other players please vote."
-                String vrCmd = SOCResetBoardVoteRequest.toCmd(gaName, reqPN);
+                SOCMessage vrCmd = new SOCResetBoardVoteRequest(gaName, reqPN);
 
                 ga.resetVoteBegin(reqPN);
 
