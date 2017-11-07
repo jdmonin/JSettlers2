@@ -183,7 +183,7 @@ public class SOCGameMembers extends SOCMessage
         sb.append(game);
         sb.append("|members=");
         if (members != null)
-            sb.append(members.toString());  // "[joe,bob,lily,...]"
+            sb.append(members);  // "[joe, bob, lily,...]"
         return sb.toString();
     }
 
