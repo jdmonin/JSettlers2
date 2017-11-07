@@ -1061,7 +1061,8 @@ public class SOCGameHandler extends GameHandler
                 ArrayList<SOCPlayer.SpecialVPInfo> svpis = pl.getSpecialVPInfo();
                 if (svpis != null)
                     for (SOCPlayer.SpecialVPInfo svpi : svpis)
-                        srv.messageToPlayer(c, new SOCSVPTextMessage(gameName, i, svpi.svp, c.getLocalized(svpi.desc)));
+                        srv.messageToPlayer(c, new SOCSVPTextMessage
+                            (gameName, i, svpi.svp, c.getLocalized(svpi.desc), true));
             }
 
             itm = pl.getScenarioPlayerEvents();

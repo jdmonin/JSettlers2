@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,11 +35,14 @@ public interface SOCKeyedMessage
     public abstract String getKey();
 
     /**
-     * Construct a message ready to be sent, like {@link SOCMessage#toCmd()}, with text localized by the server.
+     * Construct a localized copy of this message to be sent to clients.
+     *<P>
+     * Before v3.0.00 this method was {@code String toCmd(localizedText)}.
+     *
      * @param localizedText  Text field contents localized by the server, from {@link #getKey()} and the
      *     client's locale, or {@code null} if {@code getKey() == null}
      * @return  A message formatted like {@link SOCMessage#toCmd()}
      */
-    public abstract String toCmd(final String localizedText);
+    public abstract SOCMessage localize(final String localizedText);
 
 }

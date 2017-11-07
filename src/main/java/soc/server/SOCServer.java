@@ -3211,7 +3211,10 @@ public class SOCServer extends Server
                 Enumeration<Connection> menum = v.elements();
 
                 final String msgKey = msg.getKey();
-                String gameLocalMsg = null, localText = null, gameTxtLocale = null;  // as rendered during prev. iter.
+                SOCMessage gameLocalMsg = null;  // as rendered during prev. iter.
+                String localText = null;  // as rendered during prev. iter.
+                String gameTxtLocale = null;
+
                 while (menum.hasMoreElements())
                 {
                     Connection c = menum.nextElement();
@@ -3234,7 +3237,7 @@ public class SOCServer extends Server
                                 rsrcMissing = true;
                             }
 
-                        gameLocalMsg = msg.toCmd(localText);
+                        gameLocalMsg = msg.localize(localText);
                         gameTxtLocale = cliLocale;
                     }
 

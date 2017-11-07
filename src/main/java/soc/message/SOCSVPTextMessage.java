@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2014,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -63,7 +63,14 @@ public class SOCSVPTextMessage extends SOCMessage
     public final String desc;
 
     /**
-     * Create a new SVPTEXTMSG message.
+     * True if this message's {@link #desc} is localized text (for a specific client/locale),
+     * false if it's an I18N string key (for server, to be localized to a game's member clients).
+     * @since 3.0.00
+     */
+    public final boolean isLocalized;
+
+    /**
+     * Create a new non-localized SVPTEXTMSG message at the server.
      *
      * @param ga  the game name
      * @param pn  Player number
@@ -78,6 +85,26 @@ public class SOCSVPTextMessage extends SOCMessage
     public SOCSVPTextMessage(final String ga, final int pn, final int svp, final String desc)
         throws IllegalArgumentException
     {
+        this(ga, pn, svp, desc, false);
+    }
+
+    /**
+     * Create a new localized or non-localized SVPTEXTMSG message.
+     *
+     * @param ga  the game name
+     * @param pn  Player number
+     * @param svp  Number of Special Victory Points (SVP) awarded
+     * @param desc  Description of the player's action that led to the SVP.
+     *     At the server this is an I18N string key which the server must localize before sending,
+     *     at the client it's localized text sent from the server. This allows new SVP actions
+     *     and descriptions without client changes.
+     * @param isLocal  True if description is localized, false if not
+     * @throws IllegalArgumentException if <tt>desc</tt> is null or
+     *     fails {@link SOCMessage#isSingleLineAndSafe(String, boolean) SOCMessage.isSingleLineAndSafe(desc, true)}
+     */
+    public SOCSVPTextMessage(final String ga, final int pn, final int svp, final String desc, final boolean isLocal)
+        throws IllegalArgumentException
+    {
         if ((desc == null) || ! isSingleLineAndSafe(desc, true))
             throw new IllegalArgumentException("desc");
 
@@ -86,6 +113,7 @@ public class SOCSVPTextMessage extends SOCMessage
         this.pn = pn;
         this.svp = svp;
         this.desc = desc;
+        isLocalized = isLocal;
     }
 
     /**
@@ -131,13 +159,13 @@ public class SOCSVPTextMessage extends SOCMessage
         return desc;
     }
 
-    public String toCmd(final String localizedText)
+    public SOCMessage localize(final String localizedText)
     {
-        return toCmd(messageType, game, pn, svp, localizedText);
+        return new SOCSVPTextMessage(game, pn, svp, localizedText, true);
     }
 
     /**
-     * Parse the command string into a SOCSVPTextMessage message.
+     * Parse the command string into a localized SOCSVPTextMessage message at the client.
      *
      * @param s   the String to parse; format: game sep2 pn sep2 svp sep2 desc
      * @return    a SOCSVPTextMessage message, or null if parsing errors
@@ -167,7 +195,7 @@ public class SOCSVPTextMessage extends SOCMessage
             return null;
         }
 
-        return new SOCSVPTextMessage(ga, pn, svp, desc);
+        return new SOCSVPTextMessage(ga, pn, svp, desc, true);
     }
 
     /**
