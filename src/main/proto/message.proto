@@ -465,10 +465,10 @@ message DeleteChannel {
 //
 
 
-/* For use in Games and NewGame; not sent as a standalone message type */
+/* For use in Games, NewGame, and BotJoinGameRequest; not sent as a standalone message type */
 message _GameWithOptions {
     string ga_name = 1;
-    string opts = 2;      // From {@link SOCGameOption#packOptionsToString(Map, boolean)}
+    string opts = 2;      // From {@link SOCGameOption#packOptionsToString(Map, boolean)}; unpack with {@link SOCGameOption#parseOptionsToMap(String)}
     bool unjoinable = 3;  // True if client is too old or is too limited to be able to play that game
 }
 
@@ -500,8 +500,8 @@ message NewGame {
  * Before 2.0.00, this class was called {@code SOCJoinGameRequest};
  * renamed to clarify versus {@link SOCJoinGame}.
  */
-message RobotJoinGameRequest {
-    string ga_name = 1;      // Name of game
+message BotJoinGameRequest {
+    _GameWithOptions game = 1;  // Name and options; bot doesn't necessarily keep list of all of server's games
     uint32 seat_number = 2;  // Where the robot should sit
 }
 
@@ -527,7 +527,7 @@ message RobotJoinGameRequest {
  * Before v3.0.00 this message was handled by {@code SOCJoinGameRequest} and {@code SOCJoinGameAuth}.
  * Before v2.0.00 this message was {@code SOCJoinAuth}.
  * @see JoinChannel
- * @see RobotJoinGameRequest
+ * @see BotJoinGameRequest
  */
 message JoinGame {
     string ga_name = 1;      // Name of game being joined
@@ -542,7 +542,7 @@ message JoinGame {
  * GAMEMEMBERS thus tells the client that the server is ready for its input.
  *<P>
  * Robots use GAMEMEMBERS as their cue to sit down at the game, if they've been
- * asked to sit from {@link RobotJoinGameRequest}. In order for the robot to be certain
+ * asked to sit from {@link BotJoinGameRequest}. In order for the robot to be certain
  * it has all details about a game, bots should take no action before receiving GAMEMEMBERS.
  *<P>
  * When forming a new game, clients will be sent the sequence as described above, and
@@ -710,7 +710,7 @@ message FromServer {
         Games games = 15;
         NewGame ga_new = 16;
         JoinGame ga_join = 17;
-        RobotJoinGameRequest robot_join_req = 18;
+        BotJoinGameRequest bot_join_req = 18;
         GameMembers ga_members = 19;
         SitDown sit_down = 20;
         SetSeatLock set_seat_lock = 21;

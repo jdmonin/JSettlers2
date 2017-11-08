@@ -175,6 +175,7 @@ public final class ProtoConnection
                 final Message.FromClient msgProto = Message.FromClient.parseDelimitedFrom(in);
                 if (msgProto == null)
                 {
+                    // EOF
                     inputConnected = false;
                     ourServer.removeConnection(this, true);
                     break;

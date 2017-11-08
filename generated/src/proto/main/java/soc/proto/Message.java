@@ -9440,7 +9440,7 @@ public final class Message {
 
     /**
      * <pre>
-     * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}
+     * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}; unpack with {&#64;link SOCGameOption#parseOptionsToMap(String)}
      * </pre>
      *
      * <code>optional string opts = 2;</code>
@@ -9448,7 +9448,7 @@ public final class Message {
     java.lang.String getOpts();
     /**
      * <pre>
-     * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}
+     * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}; unpack with {&#64;link SOCGameOption#parseOptionsToMap(String)}
      * </pre>
      *
      * <code>optional string opts = 2;</code>
@@ -9467,7 +9467,7 @@ public final class Message {
   }
   /**
    * <pre>
-   * For use in Games and NewGame; not sent as a standalone message type 
+   * For use in Games, NewGame, and BotJoinGameRequest; not sent as a standalone message type 
    * </pre>
    *
    * Protobuf type {@code _GameWithOptions}
@@ -9531,7 +9531,7 @@ public final class Message {
     private java.lang.String opts_;
     /**
      * <pre>
-     * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}
+     * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}; unpack with {&#64;link SOCGameOption#parseOptionsToMap(String)}
      * </pre>
      *
      * <code>optional string opts = 2;</code>
@@ -9541,7 +9541,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}
+     * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}; unpack with {&#64;link SOCGameOption#parseOptionsToMap(String)}
      * </pre>
      *
      * <code>optional string opts = 2;</code>
@@ -9552,7 +9552,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}
+     * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}; unpack with {&#64;link SOCGameOption#parseOptionsToMap(String)}
      * </pre>
      *
      * <code>optional string opts = 2;</code>
@@ -9567,7 +9567,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}
+     * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}; unpack with {&#64;link SOCGameOption#parseOptionsToMap(String)}
      * </pre>
      *
      * <code>optional string opts = 2;</code>
@@ -9578,7 +9578,7 @@ public final class Message {
     }
     /**
      * <pre>
-     * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}
+     * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}; unpack with {&#64;link SOCGameOption#parseOptionsToMap(String)}
      * </pre>
      *
      * <code>optional string opts = 2;</code>
@@ -9732,7 +9732,7 @@ public final class Message {
 
     /**
      * <pre>
-     * For use in Games and NewGame; not sent as a standalone message type 
+     * For use in Games, NewGame, and BotJoinGameRequest; not sent as a standalone message type 
      * </pre>
      *
      * Protobuf type {@code _GameWithOptions}
@@ -9790,7 +9790,7 @@ public final class Message {
 
       /**
        * <pre>
-       * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}
+       * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}; unpack with {&#64;link SOCGameOption#parseOptionsToMap(String)}
        * </pre>
        *
        * <code>optional string opts = 2;</code>
@@ -9800,7 +9800,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}
+       * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}; unpack with {&#64;link SOCGameOption#parseOptionsToMap(String)}
        * </pre>
        *
        * <code>optional string opts = 2;</code>
@@ -9811,7 +9811,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}
+       * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}; unpack with {&#64;link SOCGameOption#parseOptionsToMap(String)}
        * </pre>
        *
        * <code>optional string opts = 2;</code>
@@ -9824,7 +9824,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}
+       * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}; unpack with {&#64;link SOCGameOption#parseOptionsToMap(String)}
        * </pre>
        *
        * <code>optional string opts = 2;</code>
@@ -9836,7 +9836,7 @@ public final class Message {
       }
       /**
        * <pre>
-       * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}
+       * From {&#64;link SOCGameOption#packOptionsToString(Map, boolean)}; unpack with {&#64;link SOCGameOption#parseOptionsToMap(String)}
        * </pre>
        *
        * <code>optional string opts = 2;</code>
@@ -10808,27 +10808,26 @@ public final class Message {
     }
   }
 
-  public interface RobotJoinGameRequestOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:RobotJoinGameRequest)
+  public interface BotJoinGameRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:BotJoinGameRequest)
       com.google.protobuf.MessageLiteOrBuilder {
 
     /**
      * <pre>
-     * Name of game
+     * Name and options; bot doesn't necessarily keep list of all of server's games
      * </pre>
      *
-     * <code>optional string ga_name = 1;</code>
+     * <code>optional ._GameWithOptions game = 1;</code>
      */
-    java.lang.String getGaName();
+    boolean hasGame();
     /**
      * <pre>
-     * Name of game
+     * Name and options; bot doesn't necessarily keep list of all of server's games
      * </pre>
      *
-     * <code>optional string ga_name = 1;</code>
+     * <code>optional ._GameWithOptions game = 1;</code>
      */
-    com.google.protobuf.ByteString
-        getGaNameBytes();
+    soc.proto.Message._GameWithOptions getGame();
 
     /**
      * <pre>
@@ -10849,80 +10848,89 @@ public final class Message {
    * renamed to clarify versus {&#64;link SOCJoinGame}.
    * </pre>
    *
-   * Protobuf type {@code RobotJoinGameRequest}
+   * Protobuf type {@code BotJoinGameRequest}
    */
-  public  static final class RobotJoinGameRequest extends
+  public  static final class BotJoinGameRequest extends
       com.google.protobuf.GeneratedMessageLite<
-          RobotJoinGameRequest, RobotJoinGameRequest.Builder> implements
-      // @@protoc_insertion_point(message_implements:RobotJoinGameRequest)
-      RobotJoinGameRequestOrBuilder {
-    private RobotJoinGameRequest() {
-      gaName_ = "";
+          BotJoinGameRequest, BotJoinGameRequest.Builder> implements
+      // @@protoc_insertion_point(message_implements:BotJoinGameRequest)
+      BotJoinGameRequestOrBuilder {
+    private BotJoinGameRequest() {
     }
-    public static final int GA_NAME_FIELD_NUMBER = 1;
-    private java.lang.String gaName_;
+    public static final int GAME_FIELD_NUMBER = 1;
+    private soc.proto.Message._GameWithOptions game_;
     /**
      * <pre>
-     * Name of game
+     * Name and options; bot doesn't necessarily keep list of all of server's games
      * </pre>
      *
-     * <code>optional string ga_name = 1;</code>
+     * <code>optional ._GameWithOptions game = 1;</code>
      */
-    public java.lang.String getGaName() {
-      return gaName_;
-    }
-    /**
-     * <pre>
-     * Name of game
-     * </pre>
-     *
-     * <code>optional string ga_name = 1;</code>
-     */
-    public com.google.protobuf.ByteString
-        getGaNameBytes() {
-      return com.google.protobuf.ByteString.copyFromUtf8(gaName_);
+    public boolean hasGame() {
+      return game_ != null;
     }
     /**
      * <pre>
-     * Name of game
+     * Name and options; bot doesn't necessarily keep list of all of server's games
      * </pre>
      *
-     * <code>optional string ga_name = 1;</code>
+     * <code>optional ._GameWithOptions game = 1;</code>
      */
-    private void setGaName(
-        java.lang.String value) {
+    public soc.proto.Message._GameWithOptions getGame() {
+      return game_ == null ? soc.proto.Message._GameWithOptions.getDefaultInstance() : game_;
+    }
+    /**
+     * <pre>
+     * Name and options; bot doesn't necessarily keep list of all of server's games
+     * </pre>
+     *
+     * <code>optional ._GameWithOptions game = 1;</code>
+     */
+    private void setGame(soc.proto.Message._GameWithOptions value) {
       if (value == null) {
-    throw new NullPointerException();
-  }
-  
-      gaName_ = value;
+        throw new NullPointerException();
+      }
+      game_ = value;
+      
+      }
+    /**
+     * <pre>
+     * Name and options; bot doesn't necessarily keep list of all of server's games
+     * </pre>
+     *
+     * <code>optional ._GameWithOptions game = 1;</code>
+     */
+    private void setGame(
+        soc.proto.Message._GameWithOptions.Builder builderForValue) {
+      game_ = builderForValue.build();
+      
     }
     /**
      * <pre>
-     * Name of game
+     * Name and options; bot doesn't necessarily keep list of all of server's games
      * </pre>
      *
-     * <code>optional string ga_name = 1;</code>
+     * <code>optional ._GameWithOptions game = 1;</code>
      */
-    private void clearGaName() {
+    private void mergeGame(soc.proto.Message._GameWithOptions value) {
+      if (game_ != null &&
+          game_ != soc.proto.Message._GameWithOptions.getDefaultInstance()) {
+        game_ =
+          soc.proto.Message._GameWithOptions.newBuilder(game_).mergeFrom(value).buildPartial();
+      } else {
+        game_ = value;
+      }
       
-      gaName_ = getDefaultInstance().getGaName();
     }
     /**
      * <pre>
-     * Name of game
+     * Name and options; bot doesn't necessarily keep list of all of server's games
      * </pre>
      *
-     * <code>optional string ga_name = 1;</code>
+     * <code>optional ._GameWithOptions game = 1;</code>
      */
-    private void setGaNameBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  checkByteStringIsUtf8(value);
+    private void clearGame() {  game_ = null;
       
-      gaName_ = value.toStringUtf8();
     }
 
     public static final int SEAT_NUMBER_FIELD_NUMBER = 2;
@@ -10962,8 +10970,8 @@ public final class Message {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!gaName_.isEmpty()) {
-        output.writeString(1, getGaName());
+      if (game_ != null) {
+        output.writeMessage(1, getGame());
       }
       if (seatNumber_ != 0) {
         output.writeUInt32(2, seatNumber_);
@@ -10975,9 +10983,9 @@ public final class Message {
       if (size != -1) return size;
 
       size = 0;
-      if (!gaName_.isEmpty()) {
+      if (game_ != null) {
         size += com.google.protobuf.CodedOutputStream
-          .computeStringSize(1, getGaName());
+          .computeMessageSize(1, getGame());
       }
       if (seatNumber_ != 0) {
         size += com.google.protobuf.CodedOutputStream
@@ -10987,60 +10995,60 @@ public final class Message {
       return size;
     }
 
-    public static soc.proto.Message.RobotJoinGameRequest parseFrom(
+    public static soc.proto.Message.BotJoinGameRequest parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return com.google.protobuf.GeneratedMessageLite.parseFrom(
           DEFAULT_INSTANCE, data);
     }
-    public static soc.proto.Message.RobotJoinGameRequest parseFrom(
+    public static soc.proto.Message.BotJoinGameRequest parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return com.google.protobuf.GeneratedMessageLite.parseFrom(
           DEFAULT_INSTANCE, data, extensionRegistry);
     }
-    public static soc.proto.Message.RobotJoinGameRequest parseFrom(byte[] data)
+    public static soc.proto.Message.BotJoinGameRequest parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return com.google.protobuf.GeneratedMessageLite.parseFrom(
           DEFAULT_INSTANCE, data);
     }
-    public static soc.proto.Message.RobotJoinGameRequest parseFrom(
+    public static soc.proto.Message.BotJoinGameRequest parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return com.google.protobuf.GeneratedMessageLite.parseFrom(
           DEFAULT_INSTANCE, data, extensionRegistry);
     }
-    public static soc.proto.Message.RobotJoinGameRequest parseFrom(java.io.InputStream input)
+    public static soc.proto.Message.BotJoinGameRequest parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageLite.parseFrom(
           DEFAULT_INSTANCE, input);
     }
-    public static soc.proto.Message.RobotJoinGameRequest parseFrom(
+    public static soc.proto.Message.BotJoinGameRequest parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageLite.parseFrom(
           DEFAULT_INSTANCE, input, extensionRegistry);
     }
-    public static soc.proto.Message.RobotJoinGameRequest parseDelimitedFrom(java.io.InputStream input)
+    public static soc.proto.Message.BotJoinGameRequest parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return parseDelimitedFrom(DEFAULT_INSTANCE, input);
     }
-    public static soc.proto.Message.RobotJoinGameRequest parseDelimitedFrom(
+    public static soc.proto.Message.BotJoinGameRequest parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return parseDelimitedFrom(DEFAULT_INSTANCE, input, extensionRegistry);
     }
-    public static soc.proto.Message.RobotJoinGameRequest parseFrom(
+    public static soc.proto.Message.BotJoinGameRequest parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageLite.parseFrom(
           DEFAULT_INSTANCE, input);
     }
-    public static soc.proto.Message.RobotJoinGameRequest parseFrom(
+    public static soc.proto.Message.BotJoinGameRequest parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -11051,7 +11059,7 @@ public final class Message {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(soc.proto.Message.RobotJoinGameRequest prototype) {
+    public static Builder newBuilder(soc.proto.Message.BotJoinGameRequest prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
 
@@ -11065,14 +11073,14 @@ public final class Message {
      * renamed to clarify versus {&#64;link SOCJoinGame}.
      * </pre>
      *
-     * Protobuf type {@code RobotJoinGameRequest}
+     * Protobuf type {@code BotJoinGameRequest}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessageLite.Builder<
-          soc.proto.Message.RobotJoinGameRequest, Builder> implements
-        // @@protoc_insertion_point(builder_implements:RobotJoinGameRequest)
-        soc.proto.Message.RobotJoinGameRequestOrBuilder {
-      // Construct using soc.proto.Message.RobotJoinGameRequest.newBuilder()
+          soc.proto.Message.BotJoinGameRequest, Builder> implements
+        // @@protoc_insertion_point(builder_implements:BotJoinGameRequest)
+        soc.proto.Message.BotJoinGameRequestOrBuilder {
+      // Construct using soc.proto.Message.BotJoinGameRequest.newBuilder()
       private Builder() {
         super(DEFAULT_INSTANCE);
       }
@@ -11080,61 +11088,70 @@ public final class Message {
 
       /**
        * <pre>
-       * Name of game
+       * Name and options; bot doesn't necessarily keep list of all of server's games
        * </pre>
        *
-       * <code>optional string ga_name = 1;</code>
+       * <code>optional ._GameWithOptions game = 1;</code>
        */
-      public java.lang.String getGaName() {
-        return instance.getGaName();
+      public boolean hasGame() {
+        return instance.hasGame();
       }
       /**
        * <pre>
-       * Name of game
+       * Name and options; bot doesn't necessarily keep list of all of server's games
        * </pre>
        *
-       * <code>optional string ga_name = 1;</code>
+       * <code>optional ._GameWithOptions game = 1;</code>
        */
-      public com.google.protobuf.ByteString
-          getGaNameBytes() {
-        return instance.getGaNameBytes();
+      public soc.proto.Message._GameWithOptions getGame() {
+        return instance.getGame();
       }
       /**
        * <pre>
-       * Name of game
+       * Name and options; bot doesn't necessarily keep list of all of server's games
        * </pre>
        *
-       * <code>optional string ga_name = 1;</code>
+       * <code>optional ._GameWithOptions game = 1;</code>
        */
-      public Builder setGaName(
-          java.lang.String value) {
+      public Builder setGame(soc.proto.Message._GameWithOptions value) {
         copyOnWrite();
-        instance.setGaName(value);
+        instance.setGame(value);
+        return this;
+        }
+      /**
+       * <pre>
+       * Name and options; bot doesn't necessarily keep list of all of server's games
+       * </pre>
+       *
+       * <code>optional ._GameWithOptions game = 1;</code>
+       */
+      public Builder setGame(
+          soc.proto.Message._GameWithOptions.Builder builderForValue) {
+        copyOnWrite();
+        instance.setGame(builderForValue);
         return this;
       }
       /**
        * <pre>
-       * Name of game
+       * Name and options; bot doesn't necessarily keep list of all of server's games
        * </pre>
        *
-       * <code>optional string ga_name = 1;</code>
+       * <code>optional ._GameWithOptions game = 1;</code>
        */
-      public Builder clearGaName() {
+      public Builder mergeGame(soc.proto.Message._GameWithOptions value) {
         copyOnWrite();
-        instance.clearGaName();
+        instance.mergeGame(value);
         return this;
       }
       /**
        * <pre>
-       * Name of game
+       * Name and options; bot doesn't necessarily keep list of all of server's games
        * </pre>
        *
-       * <code>optional string ga_name = 1;</code>
+       * <code>optional ._GameWithOptions game = 1;</code>
        */
-      public Builder setGaNameBytes(
-          com.google.protobuf.ByteString value) {
-        copyOnWrite();
-        instance.setGaNameBytes(value);
+      public Builder clearGame() {  copyOnWrite();
+        instance.clearGame();
         return this;
       }
 
@@ -11173,14 +11190,14 @@ public final class Message {
         return this;
       }
 
-      // @@protoc_insertion_point(builder_scope:RobotJoinGameRequest)
+      // @@protoc_insertion_point(builder_scope:BotJoinGameRequest)
     }
     protected final Object dynamicMethod(
         com.google.protobuf.GeneratedMessageLite.MethodToInvoke method,
         Object arg0, Object arg1) {
       switch (method) {
         case NEW_MUTABLE_INSTANCE: {
-          return new soc.proto.Message.RobotJoinGameRequest();
+          return new soc.proto.Message.BotJoinGameRequest();
         }
         case IS_INITIALIZED: {
           return DEFAULT_INSTANCE;
@@ -11193,9 +11210,8 @@ public final class Message {
         }
         case VISIT: {
           Visitor visitor = (Visitor) arg0;
-          soc.proto.Message.RobotJoinGameRequest other = (soc.proto.Message.RobotJoinGameRequest) arg1;
-          gaName_ = visitor.visitString(!gaName_.isEmpty(), gaName_,
-              !other.gaName_.isEmpty(), other.gaName_);
+          soc.proto.Message.BotJoinGameRequest other = (soc.proto.Message.BotJoinGameRequest) arg1;
+          game_ = visitor.visitMessage(game_, other.game_);
           seatNumber_ = visitor.visitInt(seatNumber_ != 0, seatNumber_,
               other.seatNumber_ != 0, other.seatNumber_);
           if (visitor == com.google.protobuf.GeneratedMessageLite.MergeFromVisitor
@@ -11223,9 +11239,16 @@ public final class Message {
                   break;
                 }
                 case 10: {
-                  String s = input.readStringRequireUtf8();
+                  soc.proto.Message._GameWithOptions.Builder subBuilder = null;
+                  if (game_ != null) {
+                    subBuilder = game_.toBuilder();
+                  }
+                  game_ = input.readMessage(soc.proto.Message._GameWithOptions.parser(), extensionRegistry);
+                  if (subBuilder != null) {
+                    subBuilder.mergeFrom(game_);
+                    game_ = subBuilder.buildPartial();
+                  }
 
-                  gaName_ = s;
                   break;
                 }
                 case 16: {
@@ -11248,7 +11271,7 @@ public final class Message {
           return DEFAULT_INSTANCE;
         }
         case GET_PARSER: {
-          if (PARSER == null) {    synchronized (soc.proto.Message.RobotJoinGameRequest.class) {
+          if (PARSER == null) {    synchronized (soc.proto.Message.BotJoinGameRequest.class) {
               if (PARSER == null) {
                 PARSER = new DefaultInstanceBasedParser(DEFAULT_INSTANCE);
               }
@@ -11261,20 +11284,20 @@ public final class Message {
     }
 
 
-    // @@protoc_insertion_point(class_scope:RobotJoinGameRequest)
-    private static final soc.proto.Message.RobotJoinGameRequest DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:BotJoinGameRequest)
+    private static final soc.proto.Message.BotJoinGameRequest DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new RobotJoinGameRequest();
+      DEFAULT_INSTANCE = new BotJoinGameRequest();
       DEFAULT_INSTANCE.makeImmutable();
     }
 
-    public static soc.proto.Message.RobotJoinGameRequest getDefaultInstance() {
+    public static soc.proto.Message.BotJoinGameRequest getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static volatile com.google.protobuf.Parser<RobotJoinGameRequest> PARSER;
+    private static volatile com.google.protobuf.Parser<BotJoinGameRequest> PARSER;
 
-    public static com.google.protobuf.Parser<RobotJoinGameRequest> parser() {
+    public static com.google.protobuf.Parser<BotJoinGameRequest> parser() {
       return DEFAULT_INSTANCE.getParserForType();
     }
   }
@@ -11343,7 +11366,7 @@ public final class Message {
    * Before v3.0.00 this message was handled by {&#64;code SOCJoinGameRequest} and {&#64;code SOCJoinGameAuth}.
    * Before v2.0.00 this message was {&#64;code SOCJoinAuth}.
    * &#64;see JoinChannel
-   * &#64;see RobotJoinGameRequest
+   * &#64;see BotJoinGameRequest
    * </pre>
    *
    * Protobuf type {@code JoinGame}
@@ -11608,7 +11631,7 @@ public final class Message {
      * Before v3.0.00 this message was handled by {&#64;code SOCJoinGameRequest} and {&#64;code SOCJoinGameAuth}.
      * Before v2.0.00 this message was {&#64;code SOCJoinAuth}.
      * &#64;see JoinChannel
-     * &#64;see RobotJoinGameRequest
+     * &#64;see BotJoinGameRequest
      * </pre>
      *
      * Protobuf type {@code JoinGame}
@@ -11894,7 +11917,7 @@ public final class Message {
    * GAMEMEMBERS thus tells the client that the server is ready for its input.
    *&lt;P&gt;
    * Robots use GAMEMEMBERS as their cue to sit down at the game, if they've been
-   * asked to sit from {&#64;link RobotJoinGameRequest}. In order for the robot to be certain
+   * asked to sit from {&#64;link BotJoinGameRequest}. In order for the robot to be certain
    * it has all details about a game, bots should take no action before receiving GAMEMEMBERS.
    *&lt;P&gt;
    * When forming a new game, clients will be sent the sequence as described above, and
@@ -12158,7 +12181,7 @@ public final class Message {
      * GAMEMEMBERS thus tells the client that the server is ready for its input.
      *&lt;P&gt;
      * Robots use GAMEMEMBERS as their cue to sit down at the game, if they've been
-     * asked to sit from {&#64;link RobotJoinGameRequest}. In order for the robot to be certain
+     * asked to sit from {&#64;link BotJoinGameRequest}. In order for the robot to be certain
      * it has all details about a game, bots should take no action before receiving GAMEMEMBERS.
      *&lt;P&gt;
      * When forming a new game, clients will be sent the sequence as described above, and
@@ -16672,9 +16695,9 @@ public final class Message {
     soc.proto.Message.JoinGame getGaJoin();
 
     /**
-     * <code>optional .RobotJoinGameRequest robot_join_req = 18;</code>
+     * <code>optional .BotJoinGameRequest bot_join_req = 18;</code>
      */
-    soc.proto.Message.RobotJoinGameRequest getRobotJoinReq();
+    soc.proto.Message.BotJoinGameRequest getBotJoinReq();
 
     /**
      * <code>optional .GameMembers ga_members = 19;</code>
@@ -16768,7 +16791,7 @@ public final class Message {
       GAMES(15),
       GA_NEW(16),
       GA_JOIN(17),
-      ROBOT_JOIN_REQ(18),
+      BOT_JOIN_REQ(18),
       GA_MEMBERS(19),
       SIT_DOWN(20),
       SET_SEAT_LOCK(21),
@@ -16812,7 +16835,7 @@ public final class Message {
           case 15: return GAMES;
           case 16: return GA_NEW;
           case 17: return GA_JOIN;
-          case 18: return ROBOT_JOIN_REQ;
+          case 18: return BOT_JOIN_REQ;
           case 19: return GA_MEMBERS;
           case 20: return SIT_DOWN;
           case 21: return SET_SEAT_LOCK;
@@ -17771,20 +17794,20 @@ public final class Message {
       }
     }
 
-    public static final int ROBOT_JOIN_REQ_FIELD_NUMBER = 18;
+    public static final int BOT_JOIN_REQ_FIELD_NUMBER = 18;
     /**
-     * <code>optional .RobotJoinGameRequest robot_join_req = 18;</code>
+     * <code>optional .BotJoinGameRequest bot_join_req = 18;</code>
      */
-    public soc.proto.Message.RobotJoinGameRequest getRobotJoinReq() {
+    public soc.proto.Message.BotJoinGameRequest getBotJoinReq() {
       if (msgCase_ == 18) {
-         return (soc.proto.Message.RobotJoinGameRequest) msg_;
+         return (soc.proto.Message.BotJoinGameRequest) msg_;
       }
-      return soc.proto.Message.RobotJoinGameRequest.getDefaultInstance();
+      return soc.proto.Message.BotJoinGameRequest.getDefaultInstance();
     }
     /**
-     * <code>optional .RobotJoinGameRequest robot_join_req = 18;</code>
+     * <code>optional .BotJoinGameRequest bot_join_req = 18;</code>
      */
-    private void setRobotJoinReq(soc.proto.Message.RobotJoinGameRequest value) {
+    private void setBotJoinReq(soc.proto.Message.BotJoinGameRequest value) {
       if (value == null) {
         throw new NullPointerException();
       }
@@ -17792,20 +17815,20 @@ public final class Message {
       msgCase_ = 18;
     }
     /**
-     * <code>optional .RobotJoinGameRequest robot_join_req = 18;</code>
+     * <code>optional .BotJoinGameRequest bot_join_req = 18;</code>
      */
-    private void setRobotJoinReq(
-        soc.proto.Message.RobotJoinGameRequest.Builder builderForValue) {
+    private void setBotJoinReq(
+        soc.proto.Message.BotJoinGameRequest.Builder builderForValue) {
       msg_ = builderForValue.build();
       msgCase_ = 18;
     }
     /**
-     * <code>optional .RobotJoinGameRequest robot_join_req = 18;</code>
+     * <code>optional .BotJoinGameRequest bot_join_req = 18;</code>
      */
-    private void mergeRobotJoinReq(soc.proto.Message.RobotJoinGameRequest value) {
+    private void mergeBotJoinReq(soc.proto.Message.BotJoinGameRequest value) {
       if (msgCase_ == 18 &&
-          msg_ != soc.proto.Message.RobotJoinGameRequest.getDefaultInstance()) {
-        msg_ = soc.proto.Message.RobotJoinGameRequest.newBuilder((soc.proto.Message.RobotJoinGameRequest) msg_)
+          msg_ != soc.proto.Message.BotJoinGameRequest.getDefaultInstance()) {
+        msg_ = soc.proto.Message.BotJoinGameRequest.newBuilder((soc.proto.Message.BotJoinGameRequest) msg_)
             .mergeFrom(value).buildPartial();
       } else {
         msg_ = value;
@@ -17813,9 +17836,9 @@ public final class Message {
       msgCase_ = 18;
     }
     /**
-     * <code>optional .RobotJoinGameRequest robot_join_req = 18;</code>
+     * <code>optional .BotJoinGameRequest bot_join_req = 18;</code>
      */
-    private void clearRobotJoinReq() {
+    private void clearBotJoinReq() {
       if (msgCase_ == 18) {
         msgCase_ = 0;
         msg_ = null;
@@ -18457,7 +18480,7 @@ public final class Message {
         output.writeMessage(17, (soc.proto.Message.JoinGame) msg_);
       }
       if (msgCase_ == 18) {
-        output.writeMessage(18, (soc.proto.Message.RobotJoinGameRequest) msg_);
+        output.writeMessage(18, (soc.proto.Message.BotJoinGameRequest) msg_);
       }
       if (msgCase_ == 19) {
         output.writeMessage(19, (soc.proto.Message.GameMembers) msg_);
@@ -18569,7 +18592,7 @@ public final class Message {
       }
       if (msgCase_ == 18) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(18, (soc.proto.Message.RobotJoinGameRequest) msg_);
+          .computeMessageSize(18, (soc.proto.Message.BotJoinGameRequest) msg_);
       }
       if (msgCase_ == 19) {
         size += com.google.protobuf.CodedOutputStream
@@ -19453,42 +19476,42 @@ public final class Message {
       }
 
       /**
-       * <code>optional .RobotJoinGameRequest robot_join_req = 18;</code>
+       * <code>optional .BotJoinGameRequest bot_join_req = 18;</code>
        */
-      public soc.proto.Message.RobotJoinGameRequest getRobotJoinReq() {
-        return instance.getRobotJoinReq();
+      public soc.proto.Message.BotJoinGameRequest getBotJoinReq() {
+        return instance.getBotJoinReq();
       }
       /**
-       * <code>optional .RobotJoinGameRequest robot_join_req = 18;</code>
+       * <code>optional .BotJoinGameRequest bot_join_req = 18;</code>
        */
-      public Builder setRobotJoinReq(soc.proto.Message.RobotJoinGameRequest value) {
+      public Builder setBotJoinReq(soc.proto.Message.BotJoinGameRequest value) {
         copyOnWrite();
-        instance.setRobotJoinReq(value);
+        instance.setBotJoinReq(value);
         return this;
       }
       /**
-       * <code>optional .RobotJoinGameRequest robot_join_req = 18;</code>
+       * <code>optional .BotJoinGameRequest bot_join_req = 18;</code>
        */
-      public Builder setRobotJoinReq(
-          soc.proto.Message.RobotJoinGameRequest.Builder builderForValue) {
+      public Builder setBotJoinReq(
+          soc.proto.Message.BotJoinGameRequest.Builder builderForValue) {
         copyOnWrite();
-        instance.setRobotJoinReq(builderForValue);
+        instance.setBotJoinReq(builderForValue);
         return this;
       }
       /**
-       * <code>optional .RobotJoinGameRequest robot_join_req = 18;</code>
+       * <code>optional .BotJoinGameRequest bot_join_req = 18;</code>
        */
-      public Builder mergeRobotJoinReq(soc.proto.Message.RobotJoinGameRequest value) {
+      public Builder mergeBotJoinReq(soc.proto.Message.BotJoinGameRequest value) {
         copyOnWrite();
-        instance.mergeRobotJoinReq(value);
+        instance.mergeBotJoinReq(value);
         return this;
       }
       /**
-       * <code>optional .RobotJoinGameRequest robot_join_req = 18;</code>
+       * <code>optional .BotJoinGameRequest bot_join_req = 18;</code>
        */
-      public Builder clearRobotJoinReq() {
+      public Builder clearBotJoinReq() {
         copyOnWrite();
-        instance.clearRobotJoinReq();
+        instance.clearBotJoinReq();
         return this;
       }
 
@@ -20093,7 +20116,7 @@ public final class Message {
                   other.msg_);
               break;
             }
-            case ROBOT_JOIN_REQ: {
+            case BOT_JOIN_REQ: {
               msg_ = visitor.visitOneofMessage(
                   msgCase_ == 18,
                   msg_,
@@ -20448,14 +20471,14 @@ public final class Message {
                   break;
                 }
                 case 146: {
-                  soc.proto.Message.RobotJoinGameRequest.Builder subBuilder = null;
+                  soc.proto.Message.BotJoinGameRequest.Builder subBuilder = null;
                   if (msgCase_ == 18) {
-                    subBuilder = ((soc.proto.Message.RobotJoinGameRequest) msg_).toBuilder();
+                    subBuilder = ((soc.proto.Message.BotJoinGameRequest) msg_).toBuilder();
                   }
                   msg_ =
-                       input.readMessage(soc.proto.Message.RobotJoinGameRequest.parser(), extensionRegistry);
+                       input.readMessage(soc.proto.Message.BotJoinGameRequest.parser(), extensionRegistry);
                   if (subBuilder != null) {
-                    subBuilder.mergeFrom((soc.proto.Message.RobotJoinGameRequest) msg_);
+                    subBuilder.mergeFrom((soc.proto.Message.BotJoinGameRequest) msg_);
                     msg_ = subBuilder.buildPartial();
                   }
                   msgCase_ = 18;

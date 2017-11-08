@@ -160,10 +160,11 @@ public class SOCRobotJoinGameRequest extends SOCMessage
     @Override
     protected Message.FromServer toProtoFromServer()
     {
+        Message._GameWithOptions.Builder ga = Message._GameWithOptions.newBuilder()
+            .setGaName(game).setOpts(SOCGameOption.packOptionsToString(opts, false));
         return Message.FromServer.newBuilder()
-            .setRobotJoinReq(Message.RobotJoinGameRequest.newBuilder()
-                .setGaName(game).setSeatNumber(playerNumber)
-                // TODO needs opts
+            .setBotJoinReq(Message.BotJoinGameRequest.newBuilder()
+                .setGame(ga).setSeatNumber(playerNumber)
                 ).build();
     }
 

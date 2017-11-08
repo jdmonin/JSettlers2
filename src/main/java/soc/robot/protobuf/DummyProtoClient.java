@@ -146,13 +146,13 @@ public class DummyProtoClient
             }
             break;
 
-        case Message.FromServer.ROBOT_JOIN_REQ_FIELD_NUMBER:
+        case Message.FromServer.BOT_JOIN_REQ_FIELD_NUMBER:
             {
-                Message.RobotJoinGameRequest m = msg.getRobotJoinReq();
+                Message.BotJoinGameRequest m = msg.getBotJoinReq();
                 System.out.println
-                    ("  RobotJoinGameRequest('" + m.getGaName() + "', " + m.getSeatNumber() + ")");
+                    ("  RobotJoinGameRequest('" + m.getGame().getGaName() + "', " + m.getSeatNumber() + ")");
 
-                // TODO disconnect: send LeaveAll
+                // TODO respond with disconnect, including send LeaveAll: Not complete enough to play in a game
             }
             break;
         }
