@@ -217,7 +217,7 @@ public final class ProtoConnection
      */
     public final void put(SOCMessage msg)  // TODO proto Message.FromServer instead
     {
-        final String str = msg.toCmd();
+        final String str = msg.makeCmd();
         synchronized (outQueue)
         {
             outQueue.addElement(str);

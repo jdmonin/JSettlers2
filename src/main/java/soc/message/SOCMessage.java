@@ -442,6 +442,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
     protected int messageType;
 
     /**
+     * Cached result from {@link #toCmd()} for use by later calls to {@link #makeCmd()}.
+     * @since 3.0.00
+     */
+    protected String msg;
+
+    /**
      * @return  the message type
      */
     public int getType()
@@ -484,8 +490,30 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * For multi-messages (@link SOCMessageMulti}, multiple {@link #sep} tokens
      * are allowed.  Multi-messages are parsed with:
      * static SOCMessageSubclass parseDataStr(String[])
+     *<P>
+     * <B>Note:</B> Server code should not call {@code toCmd()};
+     * instead call {@link #makeCmd()} which caches the result from {@code toCmd()}
+     * in case this message will be sent to several clients.
      */
     public abstract String toCmd();
+
+    /**
+     * Contents of this message as a String that can be transferred by a client or server and
+     * parsed there by {@code parseDataStr(..)}. Constructed by calling {@link #toCmd()} once,
+     * then cached to return in later calls.
+     * @since 3.0.00
+     */
+    public final String makeCmd()
+    {
+        String cachedMsg = msg;
+        if (cachedMsg == null)
+        {
+            cachedMsg = toCmd();
+            msg = cachedMsg;
+        }
+
+        return cachedMsg;
+    }
 
     /** Simple human-readable representation, used for debug purposes. */
     @Override

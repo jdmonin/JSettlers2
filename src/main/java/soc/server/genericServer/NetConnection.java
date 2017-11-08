@@ -249,7 +249,7 @@ public class NetConnection
     {
         synchronized (outQueue)
         {
-            outQueue.addElement(msg.toCmd());
+            outQueue.addElement(msg.makeCmd());
             outQueue.notify();
         }
     }

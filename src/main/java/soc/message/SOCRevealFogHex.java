@@ -57,20 +57,6 @@ public class SOCRevealFogHex extends SOCMessageTemplate3i
     }
 
     /**
-     * REVEALFOGHEX sep game sep2 hexcoord sep2 hextype sep2 dicenum
-     *
-     * @param ga  the name of the game
-     * @param hexCoord  Coordinate of the land hex to reveal
-     * @param hexType   Revealed hex type, same value as {@link SOCBoard#getHexTypeFromCoord(int)}
-     * @param diceNum   Revealed hex dice number, same value as {@link SOCBoard#getNumberOnHexFromCoord(int)}, or 0
-     * @return the command string
-     */
-    public static String toCmd(final String ga, final int hexCoord, final int hexType, final int diceNum)
-    {
-        return SOCMessageTemplate3i.toCmd(REVEALFOGHEX, ga, hexCoord, hexType, diceNum);
-    }
-
-    /**
      * Parse the command string into a SOCRevealFogHex message.
      *
      * @param s   the String to parse; format: game sep2 hexcoord sep2 hextype sep2 dicenum

@@ -220,21 +220,6 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
     }
 
     /**
-     * {@link SOCMessage#SIMPLEACTION SIMPLEACTION} sep game sep2 playernumber sep2 acttype sep2 value1 sep2 value2
-     *
-     * @param ga  the name of the game
-     * @param pn  the player acting or acted on, or -1 if this action isn't about a specific player
-     * @param acttype  the action type; below 1000 is general, 1000+ is specific to one kind of game
-     * @param value1  First optional detail value, or 0
-     * @param value2  Second optional detail value, or 0
-     * @return the command string
-     */
-    public static String toCmd(final String ga, final int pn, final int acttype, final int value1, final int value2)
-    {
-        return SOCMessageTemplate4i.toCmd(SIMPLEACTION, ga, pn, acttype, value1, value2);
-    }
-
-    /**
      * Parse the command String into a SOCSimpleAction message
      *
      * @param s   the String to parse: {@link SOCMessage#SIMPLEACTION SIMPLEACTION}

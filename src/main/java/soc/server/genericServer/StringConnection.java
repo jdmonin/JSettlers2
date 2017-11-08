@@ -257,7 +257,7 @@ public class StringConnection
         if (out_setEOF)
             return;
 
-        final String dat = msg.toCmd();
+        final String dat = msg.makeCmd();
         synchronized (out)
         {
             out.addElement(dat);

@@ -54,20 +54,6 @@ public class SOCPieceValue extends SOCMessageTemplate3i
     }
 
     /**
-     * PIECEVALUE sep game sep2 coord sep2 pv1 sep2 pv2
-     *
-     * @param ga  the name of the game
-     * @param coord  Coordinate of the piece to be updated
-     * @param pv1    New value for the piece
-     * @param pv2    New secondary value (if piece has 2 value fields), or 0
-     * @return the command string
-     */
-    public static String toCmd(final String ga, final int coord, final int pv1, final int pv2)
-    {
-        return SOCMessageTemplate3i.toCmd(PIECEVALUE, ga, coord, pv1, pv2);
-    }
-
-    /**
      * Parse the command string into a SOCPieceValue message.
      *
      * @param s   the String to parse; format: game sep2 coord sep2 pv1 sep2 pv2

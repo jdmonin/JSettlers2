@@ -68,20 +68,6 @@ public class SOCRemovePiece extends SOCMessageTemplate3i
     }
 
     /**
-     * REMOVEPIECE sep game sep2 pn sep2 ptype sep2 co
-     *
-     * @param ga  the name of the game
-     * @param pn  player number owning the piece
-     * @param ptype  type of playing piece, such as {@link soc.game.SOCPlayingPiece#SHIP}
-     * @param co  coordinates of the piece to remove
-     * @return the command string
-     */
-    public static String toCmd(final String ga, final int pn, final int ptype, final int co)
-    {
-        return SOCMessageTemplate3i.toCmd(REMOVEPIECE, ga, pn, ptype, co);
-    }
-
-    /**
      * Parse the command string into a SOCRemovePiece message.
      *
      * @param s   the String to parse; format: game sep2 pn sep2 ptype sep2 co
