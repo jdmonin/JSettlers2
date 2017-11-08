@@ -79,7 +79,9 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      */
     public SOCGamesWithOptions(List<?> ga, final int cliVers)
     {
-        this(new ArrayList<String>());  // pa field gets the new ArrayList
+        this(null);
+        game = null;  // prevent toCmd() from adding unwanted "-" before game list
+        pa = new ArrayList<String>();
 
         // build by iteration
         for (int i = 0; i < ga.size(); ++i)
