@@ -20,6 +20,7 @@
  **/
 package soc.message;
 
+import soc.proto.Message;
 import soc.util.SOCRobotParameters;
 
 import java.util.StringTokenizer;
@@ -120,6 +121,20 @@ public class SOCUpdateRobotParams extends SOCMessage
         }
 
         return new SOCUpdateRobotParams(new SOCRobotParameters(mgl, me, ebf, af, laf, dcm, tm, st, tf));
+    }
+
+    @Override
+    public Message.FromServer toProtoFromServer()
+    {
+        return Message.FromServer.newBuilder()
+            .setBotUpdateParams(Message.BotUpdateParams.newBuilder()
+                .setMaxGameLength(params.getMaxGameLength()).setMaxEta(params.getMaxETA())
+                .setEtaBonusFactor(params.getETABonusFactor()).setAdversarialFactor(params.getAdversarialFactor())
+                .setLeaderAdversarialFactor(params.getLeaderAdversarialFactor())
+                .setDevCardMultiplier(params.getDevCardMultiplier())
+                .setThreatMultiplier(params.getThreatMultiplier())
+                .setStrategyType(params.getStrategyType())
+                .setTradeFlag(1 == params.getTradeFlag())).build();
     }
 
     /**

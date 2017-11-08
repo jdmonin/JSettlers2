@@ -26,6 +26,8 @@ import java.util.Enumeration;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
+import com.google.protobuf.GeneratedMessageLite;
+
 import soc.game.SOCGame;
 import soc.proto.GameMessage;
 import soc.proto.Message;
@@ -445,7 +447,13 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * Cached result from {@link #toCmd()} for use by later calls to {@link #makeCmd()}.
      * @since 3.0.00
      */
-    protected String msg;
+    protected String cachedCmd;
+
+    /**
+     * Cached result from {@link #toProto()} for use by later calls to {@link #makeProto()}.
+     * @since 3.0.00
+     */
+    protected GeneratedMessageLite<?,?> cachedProto;
 
     /**
      * @return  the message type
@@ -501,18 +509,68 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * Contents of this message as a String that can be transferred by a client or server and
      * parsed there by {@code parseDataStr(..)}. Constructed by calling {@link #toCmd()} once,
      * then cached to return in later calls.
+     * @see #makeProto(boolean)
      * @since 3.0.00
      */
     public final String makeCmd()
     {
-        String cachedMsg = msg;
-        if (cachedMsg == null)
+        String cmd = cachedCmd;
+        if (cmd == null)
         {
-            cachedMsg = toCmd();
-            msg = cachedMsg;
+            cmd = toCmd();
+            cachedCmd = cmd;
         }
 
-        return cachedMsg;
+        return cmd;
+    }
+
+    /**
+     * Contents of this message in Protobuf format,
+     * as a OneOf field of {@link Message.FromClient}.
+     * This default stub implementation returns {@code null};
+     * subclasses should override to use Protobuf
+     * if clients should send that message class.
+     * @since 3.0.00
+     */
+    protected Message.FromClient toProtoFromClient()
+    {
+        return null;
+    }
+
+    /**
+     * Contents of this message in Protobuf format,
+     * as a OneOf field of {@link Message.FromServer}.
+     * This default stub implementation returns {@code null};
+     * subclasses should override to use Protobuf
+     * if servers should send that message class.
+     * @since 3.0.00
+     */
+    protected Message.FromServer toProtoFromServer()
+    {
+        return null;
+    }
+
+    /**
+     * Contents of this message in Protobuf format. Constructed by calling
+     * {@link #toProto()} once, then cached to return in later calls.
+     * @param fromServer  True to cache from {@link #toProtoFromServer()},
+     *     false to use {@link #toProtoFromClient()}.
+     *     Caching assumes this parameter won't change because the caller will
+     *     always be a server class or a client class.
+     * @return a Protobuf message, either {@link Message.FromServer} or {@link Message.FromClient}
+     * @see #makeCmd()
+     * @since 3.0.00
+     */
+    public final GeneratedMessageLite<?,?> makeProto(final boolean fromServer)
+    {
+        GeneratedMessageLite<?,?> proto = cachedProto;
+        if (proto == null)
+        {
+            proto = (fromServer) ? toProtoFromServer() : toProtoFromClient();
+            cachedProto = proto;
+        }
+
+        return proto;
     }
 
     /** Simple human-readable representation, used for debug purposes. */

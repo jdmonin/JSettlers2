@@ -24,9 +24,9 @@ import soc.disableDebug.D;
 import soc.message.SOCMessage;
 import soc.proto.Message;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Date;
 import java.util.Vector;
@@ -51,10 +51,10 @@ public final class ProtoConnection
     extends NetConnection  // which implements Runnable, Serializable, Cloneable
 {
     private InputStream in = null;
-    private DataOutputStream out = null;  // TODO bare OutputStream for Proto
+    private OutputStream out = null;
 
     /** Messages from server to client, sent in {@link Putter} thread. */
-    private Vector<String> outQueue = new Vector<String>();  // TODO proto Message.FromServer instead
+    private Vector<Message.FromServer> outQueue = new Vector<Message.FromServer>();
 
     /** initialize the connection data */
     ProtoConnection(Socket so, Server sve)
@@ -98,7 +98,7 @@ public final class ProtoConnection
         {
             s.setSoTimeout(TIMEOUT_VALUE);
             in = s.getInputStream();
-            out = new DataOutputStream(s.getOutputStream());  // TODO raw OutputStream for proto
+            out = s.getOutputStream();
             connected = true;
             inputConnected = true;
             connectTime = new Date();
@@ -173,6 +173,13 @@ public final class ProtoConnection
             while (inputConnected)
             {
                 final Message.FromClient msgProto = Message.FromClient.parseDelimitedFrom(in);
+                if (msgProto == null)
+                {
+                    inputConnected = false;
+                    ourServer.removeConnection(this, true);
+                    break;
+                }
+
                 System.err.println("Received proto type# " + msgProto.getMsgCase().getNumber());
                     // TODO remove or use a debug-traffic flag
                 final SOCMessage msgObj = SOCMessage.toMsg(msgProto);
@@ -200,13 +207,8 @@ public final class ProtoConnection
     }
 
     /**
-     * Send this message over the connection. Adds it to the {@link #outQueue}
-     * to be sent by the Putter thread.
-     *<P>
-     * Because the connection protocol uses {@link DataOutputStream#writeUTF(String)},
-     * {@link SOCMessage#toCmd() msg.toCmd()} must be no longer than 65535 bytes when
-     * encoded into {@code UTF-8} (which is not Java's internal string encoding):
-     * See {@link Connection#MAX_MESSAGE_SIZE_UTF8}.
+     * Send this server message over the connection to the client.
+     * Adds it to the {@link #outQueue} to be sent by the Putter thread.
      *<P>
      * <B>Threads:</B> Safe to call from any thread; synchronizes on internal {@code outQueue}.
      *<P>
@@ -215,12 +217,21 @@ public final class ProtoConnection
      * @param msg  Message to send
      * @since 3.0.00
      */
-    public final void put(SOCMessage msg)  // TODO proto Message.FromServer instead
+    public final void put(SOCMessage msg)  // TODO later: pure proto: Message.FromServer instead
     {
-        final String str = msg.makeCmd();
+        final Message.FromServer pmsg = (Message.FromServer) msg.makeProto(true);
+        if (pmsg == null)
+        {
+            if (D.ebugIsEnabled())
+                D.ebugPrintln("proto: " + data + ": null proto for put(" + msg.getClassNameShort() + ")");
+            return;
+        }
+
+        if (D.ebugIsEnabled())
+            D.ebugPrintln("proto: " + data + ": put(" + msg.getClassNameShort() + ")");
         synchronized (outQueue)
         {
-            outQueue.addElement(str);
+            outQueue.addElement(pmsg);
             outQueue.notify();
         }
     }
@@ -235,9 +246,9 @@ public final class ProtoConnection
      * @return True if sent, false if error
      *         (and sets {@link #error})
      */
-    private boolean putForReal(final String str)  // TODO proto Message.FromServer instead
+    private boolean putForReal(final Message.FromServer pmsg)
     {
-        boolean rv = putAux(str);
+        boolean rv = putAux(pmsg);
 
         if (! rv)
         {
@@ -262,7 +273,7 @@ public final class ProtoConnection
      * @return true for success, false and disconnects on failure
      *         (and sets {@link #error})
      */
-    private final boolean putAux(final String str)  // TODO proto Message.FromServer instead
+    private final boolean putAux(final Message.FromServer pmsg)
     {
         if ((error != null) || ! connected)
         {
@@ -271,7 +282,10 @@ public final class ProtoConnection
 
         try
         {
-            out.writeUTF(str);
+            if (D.ebugIsEnabled())
+                D.ebugPrintln("proto: " + data + " sending out: typ = " + pmsg.getMsgCase().getNumber());
+            pmsg.writeDelimitedTo(out);
+            out.flush();
         }
         catch (IOException e)
         {
@@ -310,7 +324,6 @@ public final class ProtoConnection
         out = null;
     }
 
-    // TODO send proto to client
     /** Connection inner class thread to send {@link NetConnection#outQueue} messages to the net. */
     class Putter extends Thread
     {
@@ -331,7 +344,7 @@ public final class ProtoConnection
         {
             while (connected)
             {
-                String c = null;
+                Message.FromServer pmsg = null;
 
                 if (D.ebugIsEnabled())
                     D.ebugPrintln("** " + data + " is at the top of the putter loop");
@@ -339,15 +352,12 @@ public final class ProtoConnection
                 synchronized (outQueue)
                 {
                     if (outQueue.size() > 0)
-                    {
-                        c = outQueue.elementAt(0);
-                        outQueue.removeElementAt(0);
-                    }
+                        pmsg = outQueue.remove(0);
                 }
 
-                if (c != null)
+                if (pmsg != null)
                 {
-                    /* boolean rv = */ putForReal(c);
+                    /* boolean rv = */ putForReal(pmsg);
 
                     // rv ignored because handled by putForReal
                 }
@@ -369,7 +379,7 @@ public final class ProtoConnection
                 }
             }
 
-            D.ebugPrintln("putter not putting connected==false : " + data);
+            D.ebugPrintln("putter not putting; connected==false : " + data);
         }
     }
 }

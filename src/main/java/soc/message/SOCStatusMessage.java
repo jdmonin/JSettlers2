@@ -20,6 +20,7 @@
  **/
 package soc.message;
 
+import soc.proto.Message;
 import soc.util.SOCServerFeatures;  // for javadocs only
 
 
@@ -590,6 +591,14 @@ public class SOCStatusMessage extends SOCMessage
             s = s.substring(i + 1);
         }
         return new SOCStatusMessage(sv, s);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        return Message.FromServer.newBuilder()
+            .setStatusText(Message.ServerStatusText.newBuilder()
+                .setSvValue(svalue).setText(status)).build();
     }
 
     /**

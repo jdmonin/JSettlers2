@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGameOption;
+import soc.proto.Message;
 
 
 /**
@@ -154,6 +155,16 @@ public class SOCRobotJoinGameRequest extends SOCMessage
 
         Map<String,SOCGameOption> opts = SOCGameOption.parseOptionsToMap(optstr);
         return new SOCRobotJoinGameRequest(ga, pn, opts);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        return Message.FromServer.newBuilder()
+            .setRobotJoinReq(Message.RobotJoinGameRequest.newBuilder()
+                .setGaName(game).setSeatNumber(playerNumber)
+                // TODO needs opts
+                ).build();
     }
 
     /**
