@@ -200,28 +200,6 @@ public final class ProtoConnection
     }
 
     /**
-     * Send this data over the connection.  Adds it to the {@link #outQueue}
-     * to be sent by the Putter thread.
-     *<P>
-     * Because the connection protocol uses {@link DataOutputStream#writeUTF(String)},
-     * {@code str} must be no longer than 65535 bytes when encoded into {@code UTF-8}
-     * (which is not Java's internal string encoding): See {@link Connection#MAX_MESSAGE_SIZE_UTF8}.
-     *<P>
-     * <B>Threads:</B> Safe to call from any thread; synchronizes on internal {@code outQueue}.
-     *
-     * @param str Data to send
-     */
-    public final void put(String str)  // TODO proto Message.FromServer instead
-    {
-        synchronized (outQueue)
-        {
-            // D.ebugPrintln("Adding " + str + " to outQueue for " + data);
-            outQueue.addElement(str);
-            outQueue.notify();
-        }
-    }
-
-    /**
      * Send this message over the connection. Adds it to the {@link #outQueue}
      * to be sent by the Putter thread.
      *<P>

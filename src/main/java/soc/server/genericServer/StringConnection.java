@@ -196,8 +196,10 @@ public class StringConnection
     }
 
     /**
-     * Send data over the connection.  Does not block.
+     * Send a message from client to server over the connection.  Does not block.
      * Ignored if setEOF() has been called.
+     *<P>
+     * Server calls {@link #put(SOCMessage)} instead.
      *<P>
      * <B>Threads:</B> Safe to call from any thread; synchronizes on internal {@code out} queue.
      *
