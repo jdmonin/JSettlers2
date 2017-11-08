@@ -302,7 +302,8 @@ In my IDE's JSettlers project, I've created these debug/run configurations:
                 -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
 
         socserver-protobuf (_optional_): soc.server.SOCServer
-            arguments: -o N7=t7 -o RD=y -Djsettlers.startrobots=7 -Dserver.protobuf=Y
+            arguments: -o N7=t7 -o RD=y -Djsettlers.startrobots=7
+                -Dserver.protobuf=Y -Djsettlers.bots.cookie=PRO
                 -Djsettlers.allow.debug=Y 8880 20 dbuser dbpass
 
         socserver-sqlite (_optional_): soc.server.SOCServer
@@ -364,6 +365,14 @@ notes:
 
 - As usual, you can add the `server.protobuf` and `server.protobuf.port` properties to
   a `jsserver.properties` file instead of always having them on the server command line.
+- For very basic testing, see the sample protobuf robot client class `soc.robot.protobuf.DummyProtoClient`.
+     - So that the standalone proto bot can connect, start the server with the flag property to print its random
+       cookie: `-Djsettlers.bots.showcookie=Y` or set a specific cookie like `-Djsettlers.bots.cookie=PRO`.
+     - Start the sample client with a command line like:
+
+           java -cp $CLASSPATH:JSettlers.jar soc.robot.protobuf.DummyProtoClient localhost PRO
+
+     - This sample client can connect but can't participate in games at this point.
 
 
 ## To configure a sqlite database for testing

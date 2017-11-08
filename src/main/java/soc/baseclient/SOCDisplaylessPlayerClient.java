@@ -64,7 +64,6 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 
 /**
@@ -99,6 +98,25 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @since 1.2.00
      */
     public static final String PROP_JSETTLERS_DEBUG_TRAFFIC = "jsettlers.debug.traffic";
+
+    /**
+     * Flag property {@code jsettlers.protobuf} to use Protobuf over TCP.
+     * This property is ignored in Practice mode.
+     * See {@link #PROP_JSETTLERS_PROTOBUF_PORT}.
+     * @since 3.0.00
+     */
+    public static final String PROP_JSETTLERS_PROTOBUF = "jsettlers.protobuf";
+
+    /**
+     * Int property {@code jsettlers.protobuf.port} to specify the optional Protobuf port the
+     * client connects to. Default is 4000 ({@link #PORT_DEFAULT_PROTOBUF}).
+     * Ignored unless {@link #PROP_JSETTLERS_PROTOBUF} is set.
+     * @since 3.0.00
+     */
+    public static final String PROP_JSETTLERS_PROTOBUF_PORT = "jsettlers.protobuf.port";
+
+    /** Default (4000) for {@link #PROP_JSETTLERS_PROTOBUF_PORT}. */
+    public static final int PORT_DEFAULT_PROTOBUF = 4000;
 
     protected static String STATSPREFEX = "  [";
     protected String doc;
