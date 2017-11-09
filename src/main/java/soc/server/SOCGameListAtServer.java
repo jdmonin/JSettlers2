@@ -21,7 +21,9 @@
  **/
 package soc.server;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -466,9 +468,9 @@ public class SOCGameListAtServer extends SOCGameList
      * @see #replaceMemberAllGames(Connection, Connection)
      * @since 1.1.08
      */
-    public Vector<SOCGame> memberGames(Connection c, final String firstGameName)
+    public List<SOCGame> memberGames(Connection c, final String firstGameName)
     {
-        Vector<SOCGame> cGames = new Vector<SOCGame>();
+        List<SOCGame> cGames = new ArrayList<SOCGame>();
 
         synchronized(gameData)
         {
@@ -480,7 +482,7 @@ public class SOCGameListAtServer extends SOCGameList
                 {
                     Vector<?> members = getMembers(firstGameName);
                     if ((members != null) && members.contains(c))
-                        cGames.addElement(firstGame);
+                        cGames.add(firstGame);
                 }
             }
 
@@ -492,7 +494,7 @@ public class SOCGameListAtServer extends SOCGameList
                 if ((members == null) || ! members.contains(c))
                     continue;
 
-                cGames.addElement(ga);
+                cGames.add(ga);
             }
         }
 

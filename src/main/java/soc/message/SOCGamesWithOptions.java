@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2011,2013-2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011,2013-2017 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -129,14 +129,14 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      *            If any game's options need adjustment for an older client, cliVers triggers that.
      * @return    the command string
      */
-    public static String toCmd(Vector<?> ga, final int cliVers)
+    public static String toCmd(List<?> ga, final int cliVers)
     {
         // build by iteration
         StringBuffer sb = new StringBuffer(Integer.toString(SOCMessage.GAMESWITHOPTIONS));
         for (int i = 0; i < ga.size(); ++i)
         {
             sb.append(sep);
-            Object ob = ga.elementAt(i);
+            Object ob = ga.get(i);
             if (ob instanceof SOCGame)
             {
                 sb.append(((SOCGame) ob).getName());

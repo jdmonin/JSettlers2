@@ -3994,7 +3994,7 @@ public class SOCServer extends Server
          * the waiting message is something other than VERSION,
          * server callback {@link #processFirstCommand} will set up the version TimerTask
          * using {@link SOCClientData#setVersionTimer}.
-         * The version timer will call {@link #sendGameList} when it expires.
+         * The version timer will call {@link SOCServer#sendGameList} when it expires.
          * If no input awaits us right now, set up the timer here.
          */
         if (! c.isInputAvailable())
@@ -4162,7 +4162,7 @@ public class SOCServer extends Server
         boolean cliCanKnow = (cliVers >= SOCGames.VERSION_FOR_UNJOINABLE);
         final boolean cliCouldKnow = (prevVers >= SOCGames.VERSION_FOR_UNJOINABLE);
 
-        Vector<Object> gl = new Vector<Object>();  // contains Strings and/or SOCGames;
+        ArrayList<Object> gl = new ArrayList<Object>();  // contains Strings and/or SOCGames;
                                    // strings are names of unjoinable games,
                                    // with the UNJOINABLE prefix.
         gameList.takeMonitor();
@@ -4220,14 +4220,14 @@ public class SOCServer extends Server
 
                 if (cliVers >= gameVers)
                 {
-                    gl.addElement(g);  // Can join
+                    gl.add(g);  // Can join
                 } else if (cliCanKnow)
                 {
                     //  Cannot join, but can see it
                     StringBuffer sb = new StringBuffer();
                     sb.append(SOCGames.MARKER_THIS_GAME_UNJOINABLE);
                     sb.append(g.getName());
-                    gl.addElement(sb.toString());
+                    gl.add(sb.toString());
                 }
                 // else
                 //   can't join, and won't see it
@@ -4247,7 +4247,7 @@ public class SOCServer extends Server
                 // send deltas only
                 for (int i = 0; i < gl.size(); ++i)
                 {
-                    Object ob = gl.elementAt(i);
+                    Object ob = gl.get(i);
                     String gaName;
                     if (ob instanceof SOCGame)
                         gaName = ((SOCGame) ob).getName();
@@ -5659,7 +5659,7 @@ public class SOCServer extends Server
                  * For each game, calls joinGame to send JOINGAMEAUTH
                  * and the entire state of the game to client.
                  */
-                Vector<SOCGame> allConnGames = gameList.memberGames(c, gameName);
+                List<SOCGame> allConnGames = gameList.memberGames(c, gameName);
                 if (allConnGames.size() == 0)
                 {
                     c.put(SOCStatusMessage.toCmd(SOCStatusMessage.SV_OK,
@@ -5667,7 +5667,7 @@ public class SOCServer extends Server
                 } else {
                     // Send list backwards: requested game will be sent last.
                     for (int i = allConnGames.size() - 1; i >= 0; --i)
-                        joinGame(allConnGames.elementAt(i), c, false, true);
+                        joinGame(allConnGames.get(i), c, false, true);
                 }
             }
             else if (connectToGame(c, gameName, gameOpts))  // join or create the game
