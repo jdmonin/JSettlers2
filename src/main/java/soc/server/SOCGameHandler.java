@@ -1639,120 +1639,7 @@ public class SOCGameHandler extends GameHandler
                  * just in case, check game-version vs robots-version,
                  * like at new-game (readyGameAskRobotsJoin).
                  */
-                foundNoRobots = false;
-
-                srv.messageToGameKeyed(ga, false, "member.bot.join.fetching");  // "Fetching a robot player..."
-
-                if (srv.robots.isEmpty())
-                {
-                    srv.messageToGameKeyed(ga, false, "member.bot.join.no.bots.server");
-                        // "No robot can join the game, there are no robots on this server."
-                    foundNoRobots = true;
-                }
-                else if (ga.getClientVersionMinRequired() > Version.versionNumber())
-                {
-                    srv.messageToGameKeyed
-                        (ga, false, "member.bot.join.interror.version", ga.getClientVersionMinRequired());
-                        // "Internal error: The robots can't join this game; game's version {0} is newer than the robots.
-                    foundNoRobots = true;
-                }
-                else
-                {
-                    /**
-                     * request a robot that isn't already playing this game or
-                     * is not already requested to play in this game
-                     */
-                    boolean nameMatch = false;
-                    Connection robotConn = null;
-
-                    final int[] robotIndexes = srv.robotShuffleForJoin();  // Shuffle to distribute load
-
-                    Vector<Connection> requests = srv.robotJoinRequests.get(gm);
-
-                    for (int idx = 0; idx < srv.robots.size(); idx++)
-                    {
-                        robotConn = srv.robots.get(robotIndexes[idx]);
-                        nameMatch = false;
-
-                        for (int i = 0; i < ga.maxPlayers; i++)
-                        {
-                            SOCPlayer pl = ga.getPlayer(i);
-
-                            if (pl != null)
-                            {
-                                String pname = pl.getName();
-
-                                // D.ebugPrintln("CHECKING " + (String) robotConn.getData() + " == " + pname);
-
-                                if ((pname != null) && (pname.equals(robotConn.getData())))
-                                {
-                                    nameMatch = true;
-
-                                    break;
-                                }
-                            }
-                        }
-
-                        if ((!nameMatch) && (requests != null))
-                        {
-                            Enumeration<Connection> requestsEnum = requests.elements();
-
-                            while (requestsEnum.hasMoreElements())
-                            {
-                                Connection tempCon = requestsEnum.nextElement();
-
-                                // D.ebugPrintln("CHECKING " + robotConn + " == " + tempCon);
-
-                                if (tempCon == robotConn)
-                                {
-                                    nameMatch = true;
-                                }
-
-                                break;
-                            }
-                        }
-
-                        if (!nameMatch)
-                        {
-                            break;
-                        }
-                    }
-
-                    if (!nameMatch)
-                    {
-                        /**
-                         * make the request
-                         */
-                        D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotConn.getData());
-
-                        if (ga.getSeatLock(playerNumber) != SOCGame.SeatLockState.UNLOCKED)
-                        {
-                            // make sure bot can sit
-                            ga.setSeatLock(playerNumber, SOCGame.SeatLockState.UNLOCKED);
-                            srv.messageToGameWithMon(gm, new SOCSetSeatLock(gm, playerNumber, SOCGame.SeatLockState.UNLOCKED));
-                        }
-                        robotConn.put(SOCBotJoinGameRequest.toCmd(gm, playerNumber, ga.getGameOptions()));
-
-                        /**
-                         * record the request
-                         */
-                        if (requests == null)
-                        {
-                            requests = new Vector<Connection>();
-                            requests.addElement(robotConn);
-                            srv.robotJoinRequests.put(gm, requests);
-                        }
-                        else
-                        {
-                            requests.addElement(robotConn);
-                        }
-                    }
-                    else
-                    {
-                        srv.messageToGameKeyed(ga, false, "member.bot.join.cantfind");  // "*** Can't find a robot! ***"
-                        foundNoRobots = true;
-                    }
-                }
+                foundNoRobots = ! findRobotAskJoinGame(ga, playerNumber);
             }  // if (should try to find a robot)
 
             /**
@@ -1776,6 +1663,137 @@ public class SOCGameHandler extends GameHandler
         }
 
         return ! (gameHasHumanPlayer || gameHasObserver);
+    }
+
+    /**
+     * When a human player has left a game, look for a robot player which can
+     * take their seat and continue the game.  If found the bot will be added to
+     * {@link SOCServer#robotJoinRequests} and sent a {@link SOCBotJoinGameRequest}.
+     * @param ga   Game to look in
+     * @param seatNumber  Seat number to fill
+     * @return true if an available bot was found
+     * @since 2.0.00
+     */
+    private boolean findRobotAskJoinGame(final SOCGame ga, final int seatNumber)
+    {
+        srv.messageToGameKeyed(ga, false, "member.bot.join.fetching");  // "Fetching a robot player..."
+
+        if (srv.robots.isEmpty())
+        {
+            srv.messageToGameKeyed(ga, false, "member.bot.join.no.bots.server");
+                // "No robot can join the game, there are no robots on this server."
+
+            return false;  // <--- Early return: No bot available ---
+        }
+        else if (ga.getClientVersionMinRequired() > Version.versionNumber())
+        {
+            srv.messageToGameKeyed
+                (ga, false, "member.bot.join.interror.version", ga.getClientVersionMinRequired());
+                // "Internal error: The robots can't join this game; game's version {0} is newer than the robots.
+
+            return false;  // <--- Early return: No bot available ---
+        }
+
+        /**
+         * request a robot that isn't already playing this game or
+         * is not already requested to play in this game
+         */
+        boolean nameMatch = false;
+        Connection robotConn = null;
+        final String gaName = ga.getName();
+
+        final int[] robotIndexes = srv.robotShuffleForJoin();  // Shuffle to distribute load
+
+        Vector<Connection> requests = srv.robotJoinRequests.get(gaName);
+
+        for (int idx = 0; idx < srv.robots.size(); idx++)
+        {
+            robotConn = srv.robots.get(robotIndexes[idx]);
+            nameMatch = false;
+
+            for (int i = 0; i < ga.maxPlayers; i++)
+            {
+                SOCPlayer pl = ga.getPlayer(i);
+
+                if (pl != null)
+                {
+                    String pname = pl.getName();
+
+                    // D.ebugPrintln("CHECKING " + (String) robotConn.getData() + " == " + pname);
+
+                    if ((pname != null) && pname.equals(robotConn.getData()))
+                    {
+                        nameMatch = true;
+
+                        break;
+                    }
+                }
+            }
+
+            if ((! nameMatch) && (requests != null))
+            {
+                Enumeration<Connection> requestsEnum = requests.elements();
+
+                while (requestsEnum.hasMoreElements())
+                {
+                    Connection tempCon = requestsEnum.nextElement();
+
+                    // D.ebugPrintln("CHECKING " + robotConn + " == " + tempCon);
+
+                    if (tempCon == robotConn)
+                    {
+                        nameMatch = true;
+                    }
+
+                    break;
+                }
+            }
+
+            if (! nameMatch)
+            {
+                break;
+            }
+        }
+
+        if (! nameMatch)
+        {
+            /**
+             * make the request
+             */
+            D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotConn.getData());
+
+            if (ga.getSeatLock(seatNumber) != SOCGame.SeatLockState.UNLOCKED)
+            {
+                // make sure bot can sit
+                ga.setSeatLock(seatNumber, SOCGame.SeatLockState.UNLOCKED);
+                srv.messageToGameWithMon
+                    (gaName, new SOCSetSeatLock(gaName, seatNumber, SOCGame.SeatLockState.UNLOCKED));
+            }
+
+            /**
+             * record the request
+             */
+            if (requests == null)
+            {
+                requests = new Vector<Connection>();
+                requests.addElement(robotConn);
+                srv.robotJoinRequests.put(gaName, requests);
+            }
+            else
+            {
+                requests.addElement(robotConn);
+            }
+
+            robotConn.put(SOCBotJoinGameRequest.toCmd(gaName, seatNumber, ga.getGameOptions()));
+        }
+        else
+        {
+            srv.messageToGameKeyed(ga, false, "member.bot.join.cantfind");  // "*** Can't find a robot! ***"
+
+            return false;  // <--- Early return: No bot available ---
+        }
+
+        return true;
     }
 
     /**
