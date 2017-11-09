@@ -836,7 +836,7 @@ When preparing to release a new version, testing should include:
         - Bots should arrive, game should start
         - Server console should have lines like:  
           `robot 3 leaving at JoinGameRequest('g', 3): jsettlers.bots.test.quit_at_joinreq`  
-          `srv.leaveConnection('robot 3') found waiting ga: 'g' (3)  
+          `srv.leaveConnection('robot 3') found waiting ga: 'g' (3)`  
           If not, start another game and try again
     - v2.0.00+: StatusMessage "status value" fallback at older versions
         - Start a 2.0.00 or newer server with `-Djsettlers.allow.debug=Y`
