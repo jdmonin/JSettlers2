@@ -55,7 +55,7 @@ public class SOCRejectConnection extends SOCMessage
     }
 
     /**
-     * <REJECTCONNECTION>
+     * REJECTCONNECTION sep text
      *
      * @return the command String
      */
@@ -65,7 +65,7 @@ public class SOCRejectConnection extends SOCMessage
     }
 
     /**
-     * TEXTMSG sep text
+     * REJECTCONNECTION sep text
      *
      * @param tm  the text message
      * @return    the command string

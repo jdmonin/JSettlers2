@@ -35,7 +35,7 @@ import java.util.StringTokenizer;
  * and what's sent as other message types.
  *<P>
  * Text messages from clients in chat channels (not in games)
- * use {@link SOCTextMsg} instead.
+ * use {@link SOCChannelTextMsg} instead.
  *
  * @author Robert S Thomas
  */

@@ -30,7 +30,7 @@ import java.util.StringTokenizer;
  * with others which will fill in the game state.
  *<P>
  * For robots, they must discard game state and ask to re-join.
- * Robot client treats as a {@link SOCRobotJoinGameRequest}: Asks to join the new game.
+ * Robot client treats as a {@link SOCBotJoinGameRequest}: Asks to join the new game.
  *<P>
  * Follows {@link SOCResetBoardRequest} and {@link SOCResetBoardVote} messages.
  * For details of messages sent, see

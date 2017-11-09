@@ -155,8 +155,11 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * Before v2.0.00 this constant was {@code JOIN}.
      */
     public static final int JOINCHANNEL = 1004;
-    /** {@link SOCTextMsg}: A text message in a channel. */
-    public static final int TEXTMSG = 1005;
+    /**
+     * {@link SOCChannelTextMsg}: A text message in a channel.
+     * Before v2.0.00 this constant was {@code TEXTMSG}.
+     */
+    public static final int CHANNELTEXTMSG = 1005;
     /**
      * {@link SOCLeaveChannel}: Leaving a channel.
      * Before v2.0.00 this constant was {@code LEAVE}.
@@ -208,10 +211,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int IMAROBOT = 1022;
 
     /**
-     * {@link SOCRobotJoinGameRequest}: Ask a robot client to join a game.
+     * {@link SOCBotJoinGameRequest}: Ask a robot client to join a game.
      * Was JOINGAMEREQUEST before v2.0.00.
      */
-    public static final int ROBOTJOINGAMEREQUEST = 1023;
+    public static final int BOTJOINGAMEREQUEST = 1023;
 
     public static final int PLAYERELEMENT = 1024;
     public static final int GAMESTATE = 1025;
@@ -714,8 +717,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case JOINCHANNEL:
                 return SOCJoinChannel.parseDataStr(data);
 
-            case TEXTMSG:
-                return SOCTextMsg.parseDataStr(data);
+            case CHANNELTEXTMSG:
+                return SOCChannelTextMsg.parseDataStr(data);
 
             case LEAVECHANNEL:
                 return SOCLeaveChannel.parseDataStr(data);
@@ -768,8 +771,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case IMAROBOT:
                 return SOCImARobot.parseDataStr(data);
 
-            case ROBOTJOINGAMEREQUEST:
-                return SOCRobotJoinGameRequest.parseDataStr(data);
+            case BOTJOINGAMEREQUEST:
+                return SOCBotJoinGameRequest.parseDataStr(data);
 
             case PLAYERELEMENT:
                 return SOCPlayerElement.parseDataStr(data);

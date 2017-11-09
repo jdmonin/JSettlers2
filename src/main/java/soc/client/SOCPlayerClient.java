@@ -2733,7 +2733,7 @@ public class SOCPlayerClient
         {
             if (!doLocalCommand(ch, mes))
             {
-                client.net.putNet(SOCTextMsg.toCmd(ch, client.nickname, mes));
+                client.net.putNet(SOCChannelTextMsg.toCmd(ch, client.nickname, mes));
             }
         }
 
@@ -3214,8 +3214,8 @@ public class SOCPlayerClient
             /**
              * text message to a chat channel
              */
-            case SOCMessage.TEXTMSG:
-                handleTEXTMSG((SOCTextMsg) mes);
+            case SOCMessage.CHANNELTEXTMSG:
+                handleCHANNELTEXTMSG((SOCChannelTextMsg) mes);
 
                 break;
 
@@ -4028,7 +4028,7 @@ public class SOCPlayerClient
      * @param mes  the message
      * @see #handleGAMETEXTMSG(SOCGameTextMsg)
      */
-    protected void handleTEXTMSG(SOCTextMsg mes)
+    protected void handleCHANNELTEXTMSG(SOCChannelTextMsg mes)
     {
         gameDisplay.messageReceived(mes.getChannel(), mes.getNickname(), mes.getText());
     }
@@ -4222,7 +4222,7 @@ public class SOCPlayerClient
      *
      * @param mes  the message
      * @see #handleGAMESERVERTEXT(SOCGameServerText)
-     * @see #handleTEXTMSG(SOCTextMsg)
+     * @see #handleCHANNELTEXTMSG(SOCChannelTextMsg)
      */
     protected void handleGAMETEXTMSG(SOCGameTextMsg mes)
     {

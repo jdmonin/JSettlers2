@@ -160,8 +160,8 @@ public class SOCServerMessageHandler
         /**
          * text message to a channel (includes channel debug commands)
          */
-        case SOCMessage.TEXTMSG:
-            handleTEXTMSG(c, (SOCTextMsg) mes);
+        case SOCMessage.CHANNELTEXTMSG:
+            handleCHANNELTEXTMSG(c, (SOCChannelTextMsg) mes);
             break;
 
         /**
@@ -924,13 +924,15 @@ public class SOCServerMessageHandler
 
     /**
      * Handle text message to a channel, including {@code *KILLCHANNEL*} channel debug command.
+     *<P>
      * Was part of {@code SOCServer.processCommand(..)} before v1.2.00.
+     * Before v2.0.00 this method was {@code handleTEXTMSG}.
      *
      * @param c  the connection
      * @param mes  the message
      * @since 1.2.00
      */
-    void handleTEXTMSG(final Connection c, final SOCTextMsg mes)
+    void handleCHANNELTEXTMSG(final Connection c, final SOCChannelTextMsg mes)
     {
         final String chName = mes.getChannel();
 
@@ -938,7 +940,7 @@ public class SOCServerMessageHandler
         {
             if (mes.getText().startsWith("*KILLCHANNEL*"))
             {
-                srv.messageToChannel(chName, new SOCTextMsg
+                srv.messageToChannel(chName, new SOCChannelTextMsg
                     (chName, SOCServer.SERVERNAME,
                      "********** " + c.getData() + " KILLED THE CHANNEL **********"));
 

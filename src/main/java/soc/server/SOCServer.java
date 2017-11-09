@@ -5875,7 +5875,7 @@ public class SOCServer extends Server
                 if (robotSeatsConns[i] != null)
                 {
                     D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotSeatsConns[i].getData());
-                    robotSeatsConns[i].put(SOCRobotJoinGameRequest.toCmd(gname, i, gopts));
+                    robotSeatsConns[i].put(SOCBotJoinGameRequest.toCmd(gname, i, gopts));
                 }
             }
         }

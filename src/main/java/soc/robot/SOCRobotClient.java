@@ -65,7 +65,7 @@ import java.util.Vector;
  * when starting the server.
  *<P>
  * Once a bot has connected to the server, it waits to be asked to join games via
- * {@link SOCRobotJoinGameRequest ROBOTJOINREQUEST} messages. When it receives that
+ * {@link SOCBotJoinGameRequest BOTJOINREQUEST} messages. When it receives that
  * message type, the bot replies with {@link SOCJoinGame JOINGAME} and the server
  * responds with {@link SOCJoinGameAuth JOINGAMEAUTH}. That message handler creates
  * a {@link SOCRobotBrain} to play the game it is joining.
@@ -205,7 +205,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * Some games may have no options, so will have no entry here,
      * although they will have an entry in {@link #games} once joined.
      * Key = game name, Value = map of game's {@link SOCGameOption}s.
-     * Entries are added in {@link #handleROBOTJOINGAMEREQUEST(SOCRobotJoinGameRequest)}.
+     * Entries are added in {@link #handleBOTJOINGAMEREQUEST(SOCBotJoinGameRequest)}.
      * Since the robot and server are the same version, the
      * set of "known options" will always be in sync.
      */
@@ -567,8 +567,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             /**
              * the server is requesting that we join a game
              */
-            case SOCMessage.ROBOTJOINGAMEREQUEST:
-                handleROBOTJOINGAMEREQUEST((SOCRobotJoinGameRequest) mes);
+            case SOCMessage.BOTJOINGAMEREQUEST:
+                handleBOTJOINGAMEREQUEST((SOCBotJoinGameRequest) mes);
                 break;
 
             /**
@@ -660,6 +660,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.CHANGEFACE:
             case SOCMessage.CHANNELMEMBERS:
             case SOCMessage.CHANNELS:        // If bot ever uses CHANNELS, update SOCChannels class javadoc
+            case SOCMessage.CHANNELTEXTMSG:
             case SOCMessage.DELETECHANNEL:
             case SOCMessage.GAMES:
             case SOCMessage.GAMESERVERTEXT:  // SOCGameServerText contents are ignored by bots
@@ -671,7 +672,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.NEWCHANNEL:
             case SOCMessage.NEWGAME:
             case SOCMessage.SETSEATLOCK:
-            case SOCMessage.TEXTMSG:
                 break;  // ignore this message type
 
             /**
@@ -759,9 +759,9 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      *
      * @see #handleRESETBOARDAUTH(SOCResetBoardAuth)
      */
-    protected void handleROBOTJOINGAMEREQUEST(SOCRobotJoinGameRequest mes)
+    protected void handleBOTJOINGAMEREQUEST(SOCBotJoinGameRequest mes)
     {
-        D.ebugPrintln("**** handleROBOTJOINGAMEREQUEST ****");
+        D.ebugPrintln("**** handleBOTJOINGAMEREQUEST ****");
         final String gaName = mes.getGame();
         final Map<String,SOCGameOption> gaOpts = mes.getOptions();
         if (gaOpts != null)
@@ -1360,12 +1360,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      *<P>
      * Take robotbrain out of old game, don't yet put it in new game.
      * Let server know we've done so, by sending LEAVEGAME via {@link #leaveGame(SOCGame, String, boolean, boolean)}.
-     * Server will soon send a ROBOTJOINGAMEREQUEST if we should join the new game.
+     * Server will soon send a BOTJOINGAMEREQUEST if we should join the new game.
      *
      * @param mes  the message
      *
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
-     * @see #handleROBOTJOINGAMEREQUEST(SOCRobotJoinGameRequest)
+     * @see #handleBOTJOINGAMEREQUEST(SOCBotJoinGameRequest)
      */
     @Override
     protected void handleRESETBOARDAUTH(SOCResetBoardAuth mes)

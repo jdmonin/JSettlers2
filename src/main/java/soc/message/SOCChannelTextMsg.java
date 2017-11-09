@@ -27,10 +27,12 @@ import java.util.StringTokenizer;
  * This message contains a text message sent to a chat channel.
  *<P>
  * Text messages from clients in games use {@link SOCGameTextMsg} instead.
+ *<P>
+ * Before v2.0.00 this message class was {@code SOCTextMsg}.
  *
  * @author Robert S Thomas
  */
-public class SOCTextMsg extends SOCMessage
+public class SOCChannelTextMsg extends SOCMessage
 {
     private static final long serialVersionUID = 100L;  // last structural change v1.0.0 or earlier
 
@@ -50,20 +52,20 @@ public class SOCTextMsg extends SOCMessage
     private String nickname;
 
     /**
-     * Text message
+     * Text message contents
      */
     private String text;
 
     /**
-     * Create a TextMsg message.
+     * Create a ChannelTextMsg message.
      *
      * @param ch  name of chat channel
      * @param nn  nickname of sender
      * @param tm  text message
      */
-    public SOCTextMsg(String ch, String nn, String tm)
+    public SOCChannelTextMsg(String ch, String nn, String tm)
     {
-        messageType = TEXTMSG;
+        messageType = CHANNELTEXTMSG;
         channel = ch;
         nickname = nn;
         text = tm;
@@ -94,7 +96,7 @@ public class SOCTextMsg extends SOCMessage
     }
 
     /**
-     * TEXTMSG sep channel sep2 nickname sep2 text
+     * CHANNELTEXTMSG sep channel sep2 nickname sep2 text
      *
      * @return the command String
      */
@@ -104,7 +106,7 @@ public class SOCTextMsg extends SOCMessage
     }
 
     /**
-     * TEXTMSG sep channel sep2 nickname sep2 text
+     * CHANNELTEXTMSG sep channel sep2 nickname sep2 text
      *
      * @param ch  the channel name
      * @param nn  the nickname
@@ -113,16 +115,16 @@ public class SOCTextMsg extends SOCMessage
      */
     public static String toCmd(String ch, String nn, String tm)
     {
-        return TEXTMSG + sep + ch + sep2 + nn + sep2 + tm;
+        return CHANNELTEXTMSG + sep + ch + sep2 + nn + sep2 + tm;
     }
 
     /**
-     * Parse the command String into a TextMsg message
+     * Parse the command String into a ChannelTextMsg message
      *
      * @param s   the String to parse
-     * @return    a TextMsg message, or null if the data is garbled
+     * @return    a ChannelTextMsg message, or null if the data is garbled
      */
-    public static SOCTextMsg parseDataStr(String s)
+    public static SOCChannelTextMsg parseDataStr(String s)
     {
         String ch;
         String nn;
@@ -141,7 +143,7 @@ public class SOCTextMsg extends SOCMessage
             return null;
         }
 
-        return new SOCTextMsg(ch, nn, tm);
+        return new SOCChannelTextMsg(ch, nn, tm);
     }
 
     /**
@@ -149,7 +151,7 @@ public class SOCTextMsg extends SOCMessage
      */
     public String toString()
     {
-        String s = "SOCTextMsg:channel=" + channel + "|nickname=" + nickname + "|text=" + text;
+        String s = "SOCChannelTextMsg:channel=" + channel + "|nickname=" + nickname + "|text=" + text;
 
         return s;
     }

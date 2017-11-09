@@ -43,6 +43,7 @@ import soc.debug.D;
 import soc.game.*;
 import soc.message.SOCBoardLayout;
 import soc.message.SOCBoardLayout2;
+import soc.message.SOCBotJoinGameRequest;
 import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCChangeFace;
 import soc.message.SOCChoosePlayerRequest;
@@ -63,7 +64,6 @@ import soc.message.SOCJoinGame;
 import soc.message.SOCJoinGameAuth;
 import soc.message.SOCKeyedMessage;
 import soc.message.SOCLocalizedStrings;
-import soc.message.SOCRobotJoinGameRequest;
 import soc.message.SOCLargestArmy;
 import soc.message.SOCLastSettlement;
 import soc.message.SOCLeaveGame;
@@ -1731,7 +1731,7 @@ public class SOCGameHandler extends GameHandler
                             ga.setSeatLock(playerNumber, SOCGame.SeatLockState.UNLOCKED);
                             srv.messageToGameWithMon(gm, new SOCSetSeatLock(gm, playerNumber, SOCGame.SeatLockState.UNLOCKED));
                         }
-                        robotConn.put(SOCRobotJoinGameRequest.toCmd(gm, playerNumber, ga.getGameOptions()));
+                        robotConn.put(SOCBotJoinGameRequest.toCmd(gm, playerNumber, ga.getGameOptions()));
 
                         /**
                          * record the request
