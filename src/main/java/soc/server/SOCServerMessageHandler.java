@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -1801,9 +1802,9 @@ public class SOCServerMessageHandler
          */
         boolean isBotJoinRequest = false;
         {
-            Vector<Connection> joinRequests = srv.robotJoinRequests.get(gaName);
+            Hashtable<Connection, Object> joinRequests = srv.robotJoinRequests.get(gaName);
             if (joinRequests != null)
-                isBotJoinRequest = joinRequests.removeElement(c);
+                isBotJoinRequest = (null != joinRequests.remove(c));
         }
 
         /**

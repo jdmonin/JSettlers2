@@ -202,4 +202,23 @@ public abstract class GameHandler
      */
     public abstract boolean leaveGame(SOCGame ga, Connection c);
 
+    /**
+     * When a human player has left an active game, or a game is starting and a
+     * bot from that game's {@link SOCServer#robotJoinRequests} has disconnected,
+     * look for a robot player which can take a seat and continue the game.
+     *<P>
+     * If found the bot should be added to {@link SOCServer#robotJoinRequests} and
+     * should be sent a JoinGameRequest message. Otherwise the game should be sent a
+     * ServerText message explaining failure to find any robot; human players
+     * might need to leave the game and start a new one.
+     * @param ga   Game to look in
+     * @param reqInfo  Info related to the join request, such as the seat number to fill.
+     *     If {@code ! gameIsActive}, this comes from {@link SOCServer#robotJoinRequests}
+     *     via {@link SOCServer#leaveConnection(Connection)}.
+     * @param gameIsActive  True if for active game, not a game still starting
+     * @return true if an available bot was found
+     */
+    public abstract boolean findRobotAskJoinGame
+        (SOCGame ga, Object reqInfo, boolean gameIsActive);
+
 }

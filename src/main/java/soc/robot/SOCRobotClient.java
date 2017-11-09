@@ -46,6 +46,7 @@ import java.net.Socket;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Vector;
 
 
@@ -97,6 +98,21 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     public static final String CURRENT_PLANS = "CURRENT_PLANS";
     public static final String CURRENT_RESOURCES = "RESOURCES";
+
+    /**
+     * For server testing, system property {@code "jsettlers.bots.test.quit_at_joinreq"} to
+     * randomly disconnect from the server when asked to join a game. If set, value is
+     * the disconnect percentage 0-100.
+     * @since 2.0.00
+     */
+    public static final String PROP_JSETTLERS_BOTS_TEST_QUIT_AT_JOINREQ = "jsettlers.bots.test.quit_at_joinreq";
+
+    /**
+     * For server testing, random disconnect percentage from property
+     * {@link #PROP_JSETTLERS_BOTS_TEST_QUIT_AT_JOINREQ}. Defaults to 0.
+     * @since 2.0.00
+     */
+    private static int testQuitAtJoinreqPercent = 0;
 
     /**
      * For debugging/regression testing, randomly pause responding
@@ -271,6 +287,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         password = pw;
         cookie = co;
         strSocketName = null;
+
+        String val = System.getProperty(PROP_JSETTLERS_BOTS_TEST_QUIT_AT_JOINREQ);
+        if (val != null)
+            try
+            {
+                testQuitAtJoinreqPercent = Integer.parseInt(val);
+            }
+            catch (NumberFormatException e) {}
     }
 
     /**
@@ -762,7 +786,21 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     protected void handleBOTJOINGAMEREQUEST(SOCBotJoinGameRequest mes)
     {
         D.ebugPrintln("**** handleBOTJOINGAMEREQUEST ****");
+
         final String gaName = mes.getGame();
+
+        if ((testQuitAtJoinreqPercent != 0) && (new Random().nextInt(100) < testQuitAtJoinreqPercent))
+        {
+            System.err.println
+                (" -- " + nickname + " leaving at JoinGameRequest('" + gaName + "', " + mes.getPlayerNumber()
+                 + "): " + PROP_JSETTLERS_BOTS_TEST_QUIT_AT_JOINREQ);
+            put(new SOCLeaveAll().toCmd());
+
+            try { Thread.sleep(200); } catch (InterruptedException e) {}  // wait for send/receive
+            disconnect();
+            return;  // <--- Disconnected from server ---
+        }
+
         final Map<String,SOCGameOption> gaOpts = mes.getOptions();
         if (gaOpts != null)
             gameOptions.put(gaName, gaOpts);

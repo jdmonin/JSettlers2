@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -1639,7 +1640,7 @@ public class SOCGameHandler extends GameHandler
                  * just in case, check game-version vs robots-version,
                  * like at new-game (readyGameAskRobotsJoin).
                  */
-                foundNoRobots = ! findRobotAskJoinGame(ga, playerNumber);
+                foundNoRobots = ! findRobotAskJoinGame(ga, Integer.valueOf(playerNumber), true);
             }  // if (should try to find a robot)
 
             /**
@@ -1666,17 +1667,27 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * When a human player has left a game, look for a robot player which can
-     * take their seat and continue the game.  If found the bot will be added to
-     * {@link SOCServer#robotJoinRequests} and sent a {@link SOCBotJoinGameRequest}.
+     * When a human player has left an active game, or a game is starting and a
+     * bot from that game's {@link SOCServer#robotJoinRequests} has disconnected,
+     * look for a robot player which can take a seat and continue the game.
+     *<P>
+     * If found the bot will be added to {@link SOCServer#robotJoinRequests} and
+     * sent a {@link SOCBotJoinGameRequest}. Otherwise the game will be sent a
+     * {@link SOCGameServerText} explaining failure to find any robot; human players
+     * might need to leave the game and start a new one.
      * @param ga   Game to look in
-     * @param seatNumber  Seat number to fill
+     * @param seatNumberObj  Seat number to fill, as an {@link Integer} object.
+     *     If {@code ! gameIsActive}, this comes from {@link SOCServer#robotJoinRequests}
+     *     via {@link SOCServer#leaveConnection(Connection)}.
+     * @param gameIsActive  True if for active game, not a game still starting
      * @return true if an available bot was found
      * @since 2.0.00
      */
-    private boolean findRobotAskJoinGame(final SOCGame ga, final int seatNumber)
+    public boolean findRobotAskJoinGame
+        (final SOCGame ga, Object seatNumberObj, final boolean gameIsActive)
     {
-        srv.messageToGameKeyed(ga, false, "member.bot.join.fetching");  // "Fetching a robot player..."
+        if (gameIsActive)
+            srv.messageToGameKeyed(ga, false, "member.bot.join.fetching");  // "Fetching a robot player..."
 
         if (srv.robots.isEmpty())
         {
@@ -1694,64 +1705,47 @@ public class SOCGameHandler extends GameHandler
             return false;  // <--- Early return: No bot available ---
         }
 
-        /**
-         * request a robot that isn't already playing this game or
-         * is not already requested to play in this game
-         */
-        boolean nameMatch = false;
-        Connection robotConn = null;
+        Connection robotConn = null;  // the bot selected to join
+        boolean nameMatch = true;  // false if can select a bot that isn't already playing in or requested in this game
         final String gaName = ga.getName();
+        Hashtable<Connection, Object> requestedBots = srv.robotJoinRequests.get(gaName);
 
-        final int[] robotIndexes = srv.robotShuffleForJoin();  // Shuffle to distribute load
-
-        Vector<Connection> requests = srv.robotJoinRequests.get(gaName);
-
-        for (int idx = 0; idx < srv.robots.size(); idx++)
+        if (! (seatNumberObj instanceof Integer))  // should not happen; check just in case
         {
-            robotConn = srv.robots.get(robotIndexes[idx]);
-            nameMatch = false;
+            seatNumberObj = null;
+            // nameMatch remains true; will announce can't find a bot
+        } else {
 
+            /**
+             * request a robot that isn't already playing this game or
+             * is not already requested to play in this game
+             */
+
+            final HashSet<String> gameBots = new HashSet<String>();
             for (int i = 0; i < ga.maxPlayers; i++)
             {
                 SOCPlayer pl = ga.getPlayer(i);
-
                 if (pl != null)
                 {
                     String pname = pl.getName();
-
-                    // D.ebugPrintln("CHECKING " + (String) robotConn.getData() + " == " + pname);
-
-                    if ((pname != null) && pname.equals(robotConn.getData()))
-                    {
-                        nameMatch = true;
-
-                        break;
-                    }
+                    if (pname != null)
+                        gameBots.add(pname);
                 }
             }
 
-            if ((! nameMatch) && (requests != null))
+            final int[] robotIndexes = srv.robotShuffleForJoin();  // Shuffle to distribute load
+
+            for (int idx = 0; idx < srv.robots.size(); idx++)
             {
-                Enumeration<Connection> requestsEnum = requests.elements();
+                robotConn = srv.robots.get(robotIndexes[idx]);
 
-                while (requestsEnum.hasMoreElements())
-                {
-                    Connection tempCon = requestsEnum.nextElement();
+                nameMatch = gameBots.contains(robotConn.getData());
 
-                    // D.ebugPrintln("CHECKING " + robotConn + " == " + tempCon);
+                if ((! nameMatch) && (requestedBots != null))
+                    nameMatch = requestedBots.containsKey(robotConn);
 
-                    if (tempCon == robotConn)
-                    {
-                        nameMatch = true;
-                    }
-
+                if (! nameMatch)
                     break;
-                }
-            }
-
-            if (! nameMatch)
-            {
-                break;
             }
         }
 
@@ -1761,6 +1755,8 @@ public class SOCGameHandler extends GameHandler
              * make the request
              */
             D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotConn.getData());
+
+            final int seatNumber = ((Integer) seatNumberObj).intValue();
 
             if (ga.getSeatLock(seatNumber) != SOCGame.SeatLockState.UNLOCKED)
             {
@@ -1773,15 +1769,15 @@ public class SOCGameHandler extends GameHandler
             /**
              * record the request
              */
-            if (requests == null)
+            if (requestedBots == null)
             {
-                requests = new Vector<Connection>();
-                requests.addElement(robotConn);
-                srv.robotJoinRequests.put(gaName, requests);
+                requestedBots = new Hashtable<Connection, Object>();
+                requestedBots.put(robotConn, seatNumberObj);
+                srv.robotJoinRequests.put(gaName, requestedBots);
             }
             else
             {
-                requests.addElement(robotConn);
+                requestedBots.put(robotConn, seatNumberObj);
             }
 
             robotConn.put(SOCBotJoinGameRequest.toCmd(gaName, seatNumber, ga.getGameOptions()));
