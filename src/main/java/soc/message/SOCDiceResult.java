@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2013,2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,6 +41,10 @@ import java.util.StringTokenizer;
  * {@link SOCPlayerElement SOCPlayerElement(SET, resType, amount)} messages
  * for all their new resource counts.  Before v2.0.00, those were sent to each
  * player in the game after a roll, not just those who gained resources.
+ * Afterwards the current player (any client version) is sent their currently
+ * held amounts for each resource as a group of <tt>SOCPlayerElement(pn, {@link #SET}, ...)</tt>
+ * messages. Then, for each player who gained resources, their total {@link SOCResourceCount}
+ * is sent to the game.
  *
  * @author Robert S. Thomas
  */

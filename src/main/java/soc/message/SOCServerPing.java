@@ -39,6 +39,7 @@ package soc.message;
  * one {@link SOCTimingPing} per second in their active games.
  *
  * @author Robert S Thomas
+ * @see SOCAdminPing
  */
 public class SOCServerPing extends SOCMessage
 {

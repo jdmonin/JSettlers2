@@ -24,8 +24,8 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message tells the client where the last settlement was places
- * Used for robots during init set up
+ * This message tells the client where the last settlement was placed.
+ * Used for robots during initial placement at the start of a game.
  *
  * @author Robert S Thomas
  */
