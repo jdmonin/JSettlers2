@@ -20,7 +20,8 @@ package soc.message;
 /**
  * This indicates that a {@link SOCMessage} type contains a keyed text field which needs
  * to be localized while sending to clients.  This is different from {@link SOCGameTextMsg}
- * because this message type also contains non-text data fields.
+ * because this message type also contains non-text data fields: See {@link SOCSVPTextMessage}
+ * for an example.
  *
  * @since 2.0.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;

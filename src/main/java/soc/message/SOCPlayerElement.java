@@ -33,10 +33,16 @@ import java.util.StringTokenizer;
  * any action ({@link #SET}, {@link #GAIN}, {@link #LOSE}).
  *
  *<H3>Message Sequence:</H3>
- * For a bank trade (server response to player's {@link SOCBankTrade}),
- * all the {@link #LOSE} messages come before the {@link #GAIN}s. For trade between
- * players ({@link SOCAcceptOffer}), the {@code LOSE}s and {@code GAIN}s are
- * interspersed to simplify server code.
+ *<UL>
+ * <LI> For a bank trade (server response to player's {@link SOCBankTrade}),
+ *   all the {@link #LOSE} messages come before the {@link #GAIN}s.
+ * <LI> For trade between players ({@link SOCAcceptOffer}), the {@code LOSE}s and {@code GAIN}s
+ *   are interspersed to simplify server code.
+ * <LI> For dice rolls, after {@link SOCDiceResult} any clients older than v2.0.00 are sent {@link #GAIN}
+ *   for each resource type gained by each player from the roll. Newer clients are instead sent
+ *   {@link SOCDiceResultResources}. Afterwards the current player (any client version) is sent their currently
+ *   held amounts for each resource as a group of <tt>SOCPlayerElement(pn, {@link #SET}, ...)</tt> messages.
+ *</UL>
  *<P>
  * Resource loss can be expected and good (buying pieces or trading with other players)
  * or unexpected and bad (monopoly, robber, discards). v1.2.00 and newer have sound effects

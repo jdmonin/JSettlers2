@@ -51,6 +51,8 @@ and backport minor new features until `2.0.00` is ready.
 	- Standalone bot clients shut down properly if they can't reconnect to server after 3 retries
 	- Example `soc.robot.sample3p.Sample3PBrain extending SOCRobotBrain`, `Sample3PClient extending SOCRobotClient`
 	- Some private SOCRobotClient fields made protected for use by bot developer 3rd-party subclasses
+	- If bot disconnects after server asks it to join a game that's starting,
+	  server looks for another bot so the game won't hang
 - Java 5 features, including parameterized types (thank you Paul Bilnoski)
 - SOCBoard refactoring thanks to Ruud Poutsma
 - Major client refactoring (separate UI from network interface) thanks to Paul Bilnoski;

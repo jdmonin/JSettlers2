@@ -24,7 +24,6 @@ package soc.message;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import soc.game.SOCGame;
 
@@ -98,9 +97,11 @@ public class SOCGames extends SOCMessage
      * @param ga  the game names, as a mixed-content list of Strings and/or {@link SOCGame}s;
      *            if a client can't join a game, it should be a String prefixed with
      *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+     * @param ignoredBoolean  This param is unused, but helps the compiler distinguish this constructor
+     *            from the client-side one.
      * @since 3.0.00
      */
-    public SOCGames(Vector<Object> ga)
+    public SOCGames(List<Object> ga, boolean ignoredBoolean)
     {
         this(new ArrayList<String>());  // games field gets new ArrayList
 

@@ -876,10 +876,20 @@ public class SOCServer extends Server
     private final SOCServerMessageHandler srvMsgHandler = new SOCServerMessageHandler(this, gameList, channelList);
 
     /**
-     * table of requests for robots to join games
+     * Holds current requests for robots to join games:<BR>
+     * Key = Game name, value = Synchronized Hashtable with requested bot {@link Connection}s
+     * and arbitrary related data; {@link SOCGameHandler} stores the bot's in-game seat number
+     * there as an {@link Integer}.
+     *<P>
+     * Before v2.0.00 the per-game value was a {@code Vector<Connection>}
+     * without per-bot related data.
+     *
+     * @see #readyGameAskRobotsJoin(SOCGame, Connection[], int)
+     * @see #leaveConnection(Connection)
+     * @see GameHandler#findRobotAskJoinGame(SOCGame, Object, boolean)
      */
-    final Hashtable<String, Vector<Connection>> robotJoinRequests
-        = new Hashtable<String, Vector<Connection>>();
+    final Hashtable<String, Hashtable<Connection, Object>> robotJoinRequests
+        = new Hashtable<String, Hashtable<Connection, Object>>();
 
     /**
      * table of requests for robots to leave games
@@ -3810,6 +3820,10 @@ public class SOCServer extends Server
      * Calls {@link #leaveAllChannels(Connection)}
      * and {@link #leaveAllGames(Connection)}.
      *<P>
+     * If {@code c} is a robot, looks for any games waiting for that bot to join
+     * in order to start the game. If any found, tries to find another bot instead
+     * by calling {@link GameHandler#findRobotAskJoinGame(SOCGame, Object, boolean)}.
+     *<P>
      * This method is called within a per-client thread,
      * after connection is removed from conns collection
      * and version collection, and after c.disconnect() has been called.
@@ -3836,6 +3850,43 @@ public class SOCServer extends Server
                 robots.removeElement(c);
                 if (! scd.isBuiltInRobot)
                     robots3p.removeElement(c);
+            }
+
+            /**
+             * Are any games waiting for this robot to join?
+             * If so, try to find other bots to join those games
+             */
+            final Map<String, Object> waitingGames = new HashMap<String, Object>();  // <gaName, join-req-related info>
+            synchronized(robotJoinRequests)
+            {
+                for (Map.Entry<String, Hashtable<Connection, Object>> gaReqs : robotJoinRequests.entrySet())
+                {
+                    final Hashtable<Connection, Object> rConns = gaReqs.getValue();
+                    Object reqInfo = rConns.remove(c);
+                    if (reqInfo != null)
+                    {
+                        if (null != System.getProperty(SOCRobotClient.PROP_JSETTLERS_BOTS_TEST_QUIT_AT_JOINREQ))
+                            System.err.println
+                                ("srv.leaveConnection('" + c.getData() + "') found waiting ga: '"
+                                 + gaReqs.getKey() + "' (" + reqInfo + ")");
+                        waitingGames.put(gaReqs.getKey(), reqInfo);
+                    }
+                }
+            }
+
+            if (! waitingGames.isEmpty())
+            {
+                for (Map.Entry<String, Object> wReq : waitingGames.entrySet())
+                {
+                    final String gaName = wReq.getKey();
+                    SOCGame ga = getGame(gaName);
+                    if (ga != null)
+                    {
+                        GameHandler gh = gameList.getGameTypeHandler(gaName);
+                        if (gh != null)
+                            gh.findRobotAskJoinGame(ga, wReq.getValue(), false);
+                    }
+                }
             }
         }
     }
@@ -3993,7 +4044,7 @@ public class SOCServer extends Server
          * the waiting message is something other than VERSION,
          * server callback {@link #processFirstCommand} will set up the version TimerTask
          * using {@link SOCClientData#setVersionTimer}.
-         * The version timer will call {@link #sendGameList} when it expires.
+         * The version timer will call {@link SOCServer#sendGameList} when it expires.
          * If no input awaits us right now, set up the timer here.
          */
         if (! c.isInputAvailable())
@@ -4161,7 +4212,7 @@ public class SOCServer extends Server
         boolean cliCanKnow = (cliVers >= SOCGames.VERSION_FOR_UNJOINABLE);
         final boolean cliCouldKnow = (prevVers >= SOCGames.VERSION_FOR_UNJOINABLE);
 
-        Vector<Object> gl = new Vector<Object>();  // contains Strings and/or SOCGames;
+        ArrayList<Object> gl = new ArrayList<Object>();  // contains Strings and/or SOCGames;
                                    // strings are names of unjoinable games,
                                    // with the UNJOINABLE prefix.
         gameList.takeMonitor();
@@ -4219,14 +4270,14 @@ public class SOCServer extends Server
 
                 if (cliVers >= gameVers)
                 {
-                    gl.addElement(g);  // Can join
+                    gl.add(g);  // Can join
                 } else if (cliCanKnow)
                 {
                     //  Cannot join, but can see it
                     StringBuffer sb = new StringBuffer();
                     sb.append(SOCGames.MARKER_THIS_GAME_UNJOINABLE);
                     sb.append(g.getName());
-                    gl.addElement(sb.toString());
+                    gl.add(sb.toString());
                 }
                 // else
                 //   can't join, and won't see it
@@ -4241,12 +4292,12 @@ public class SOCServer extends Server
                 if (cliVers >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
                     c.put(new SOCGamesWithOptions(gl, cliVers));
                 else
-                    c.put(new SOCGames(gl));
+                    c.put(new SOCGames(gl, false));
             } else {
                 // send deltas only
                 for (int i = 0; i < gl.size(); ++i)
                 {
-                    Object ob = gl.elementAt(i);
+                    Object ob = gl.get(i);
                     String gaName;
                     if (ob instanceof SOCGame)
                         gaName = ((SOCGame) ob).getName();
@@ -5658,7 +5709,7 @@ public class SOCServer extends Server
                  * For each game, calls joinGame to send JOINGAMEAUTH
                  * and the entire state of the game to client.
                  */
-                Vector<SOCGame> allConnGames = gameList.memberGames(c, gameName);
+                List<SOCGame> allConnGames = gameList.memberGames(c, gameName);
                 if (allConnGames.size() == 0)
                 {
                     c.put(new SOCStatusMessage(SOCStatusMessage.SV_OK,
@@ -5666,7 +5717,7 @@ public class SOCServer extends Server
                 } else {
                     // Send list backwards: requested game will be sent last.
                     for (int i = allConnGames.size() - 1; i >= 0; --i)
-                        joinGame(allConnGames.elementAt(i), c, false, true);
+                        joinGame(allConnGames.get(i), c, false, true);
                 }
             }
             else if (connectToGame(c, gameName, gameOpts))  // join or create the game
@@ -5753,9 +5804,9 @@ public class SOCServer extends Server
 
     /**
      * Fill all the unlocked empty seats with robots, by asking them to join.
-     * Builds a Vector of {@link Connection}s of robots asked to join,
-     * and adds it to the robotJoinRequests table.
-     * Game state should be READY.
+     * Builds a set of the {@link Connection}s of robots asked to join,
+     * and adds it to the {@code robotJoinRequests} table.
+     * Game state should be {@code READY}.
      *<P>
      * At most {@link SOCGame#getAvailableSeatCount()} robots will
      * be asked. If third-party bots are connected to the server,
@@ -5796,7 +5847,9 @@ public class SOCServer extends Server
             throw new IllegalStateException("SOCGame version somehow newer than server and robots, it's "
                     + ga.getClientVersionMinRequired());
 
-        Vector<Connection> robotRequests = null;
+        // These bots will be asked to join.
+        // Key = bot Connection, value = seat number as {@link Integer} like in SOCServer.robotJoinRequests
+        Hashtable<Connection, Object> robotsRequested = null;
 
         int[] robotIndexes = null;
         if (robotSeats == null)
@@ -5826,7 +5879,8 @@ public class SOCServer extends Server
             {
                 /**
                  * fetch a robot player; game will start when all bots have arrived.
-                 * Similar to SOCGameHandler.leaveGame, where a player has left and must be replaced by a bot.
+                 * Similar to SOCGameHandler.findRobotAskJoinGame (called from SGH.leaveGame),
+                 * where a player has left and must be replaced by a bot.
                  */
                 if (idx < robots.size())
                 {
@@ -5850,23 +5904,23 @@ public class SOCServer extends Server
                     /**
                      * record the request
                      */
-                    if (robotRequests == null)
-                        robotRequests = new Vector<Connection>();
-                    robotRequests.addElement(robotConn);
+                    if (robotsRequested == null)
+                        robotsRequested = new Hashtable<Connection, Object>();
+                    robotsRequested.put(robotConn, Integer.valueOf(i));
                 }
             }
         }
 
-        if (robotRequests != null)
+        if (robotsRequested != null)
         {
             // request third-party bots, if available and wanted
             final int reqPct3p = getConfigIntProperty(PROP_JSETTLERS_BOTS_PERCENT3P, 0);
             if (reqPct3p > 0)
-                readyGameAskRobotsMix3p(reqPct3p, robotRequests, robotSeatsConns);
+                readyGameAskRobotsMix3p(reqPct3p, robotsRequested, robotSeatsConns);
 
             // we know robotRequests isn't empty,
             // so add to the request table
-            robotJoinRequests.put(gname, robotRequests);
+            robotJoinRequests.put(gname, robotsRequested);
 
             // now, make the requests
             for (int i = 0; i < ga.maxPlayers; ++i)
@@ -5874,7 +5928,7 @@ public class SOCServer extends Server
                 if (robotSeatsConns[i] != null)
                 {
                     D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotSeatsConns[i].getData());
-                    robotSeatsConns[i].put(new SOCRobotJoinGameRequest(gname, i, gopts));
+                    robotSeatsConns[i].put(new SOCBotJoinGameRequest(gname, i, gopts));
                 }
             }
         }
@@ -5888,17 +5942,19 @@ public class SOCServer extends Server
      * bots are only added to, not removed from, the bots requested for the new game.
      *
      * @param reqPct3p  Requested third-party bot percentage, from {@link #PROP_JSETTLERS_BOTS_PERCENT3P}
-     * @param robotRequests  List of randomly-selected bots joining the game; third-party bots may be swapped into here
+     * @param robotsRequested  Set of randomly-selected bots joining the game; third-party bots may be
+     *        swapped into here. Key = bot Connection, value = seat number as {@link Integer}
+     *        like in {@link #robotJoinRequests}
      * @param robotSeatsConns  Array of player positions (seats) to be occupied by bots; all non-null elements
-     *        are bots in {@code robotRequests}; third-party bots may be swapped into here
+     *        are bots in {@code robotsRequested}; third-party bots may be swapped into here
      * @since 2.0.00
      */
     private void readyGameAskRobotsMix3p
-        (final int reqPct3p, final Vector<Connection> robotRequests, final Connection[] robotSeatsConns)
+        (final int reqPct3p, final Hashtable<Connection, Object> robotsRequested, final Connection[] robotSeatsConns)
     {
         // TODO this algorithm isn't elegant or very efficient
 
-        final int numBotsReq = robotRequests.size();
+        final int numBotsReq = robotsRequested.size();
         final int num3pReq = Math.round((numBotsReq * reqPct3p) / 100f);
         int curr3pReq = 0;
         boolean[] curr3pSeat = new boolean[robotSeatsConns.length];
@@ -5955,10 +6011,11 @@ public class SOCServer extends Server
             Connection bot3p = unused3p.remove((s > 1) ? rand.nextInt(s) : 0);
 
             // update structures
-            synchronized(robotRequests)
+            Integer iObj = Integer.valueOf(iNon);
+            synchronized(robotsRequested)
             {
-                robotRequests.remove(robotSeatsConns[iNon]);
-                robotRequests.add(bot3p);
+                robotsRequested.remove(robotSeatsConns[iNon]);
+                robotsRequested.put(bot3p, iObj);
             }
             robotSeatsConns[iNon] = bot3p;
             curr3pSeat[iNon] = true;
@@ -6637,7 +6694,7 @@ public class SOCServer extends Server
      * @param robot  true if this player is a robot
      * @param isReset Game is a board-reset of an existing game
      */
-    void sitDown(SOCGame ga, Connection c, int pn, boolean robot, boolean isReset)
+    void sitDown(final SOCGame ga, Connection c, int pn, boolean robot, boolean isReset)
     {
         if ((c == null) || (ga == null))
             return;
@@ -6676,27 +6733,25 @@ public class SOCServer extends Server
 
             D.ebugPrintln("*** sent SOCSitDown message to game ***");
 
-            recordGameEvent(gaName, sitMessage.toCmd());
+            recordGameEvent(gaName, sitMessage);
 
-            Vector<Connection> requests;
+            Hashtable<Connection, Object> requestedBots;
             if (! isReset)
             {
-                requests = robotJoinRequests.get(gaName);
-            }
-            else
-            {
-                requests = null;  // Game already has all players from old game
+                requestedBots = robotJoinRequests.get(gaName);
+            } else {
+                requestedBots = null;  // Game already has all players from old game
             }
 
-            if (requests != null)
+            if (requestedBots != null)
             {
                 /**
                  * if the request list is empty and the game hasn't started yet,
                  * then start the game
                  */
-                if (requests.isEmpty() && (ga.getGameState() < SOCGame.START1A))
+                if (requestedBots.isEmpty() && (ga.getGameState() < SOCGame.START1A))
                 {
-                    GameHandler hand = gameList.getGameTypeHandler(ga.getName());
+                    GameHandler hand = gameList.getGameTypeHandler(gaName);
                     if (hand != null)
                         hand.startGame(ga);
                 }
@@ -6704,7 +6759,7 @@ public class SOCServer extends Server
                 /**
                  * if the request list is empty, remove the empty list
                  */
-                if (requests.isEmpty())
+                if (requestedBots.isEmpty())
                 {
                     robotJoinRequests.remove(gaName);
                 }
@@ -7006,18 +7061,20 @@ public class SOCServer extends Server
     }
 
     /**
-     * record events that happen during the game
+     * Record events that happen during the game. This stub can be overridden.
+     *<P>
+     * Before v2.0.00 {@link event} was a String from {@link SOCMessage#toCmd()}.
      *
      * @param gameName   the name of the game
-     * @param event      the event
+     * @param event      the event data
      */
-    protected void recordGameEvent(String gameName, String event)
+    protected void recordGameEvent(String gameName, SOCMessage event)
     {
         /*
            FileWriter fw = (FileWriter)gameDataFiles.get(gameName);
            if (fw != null) {
            try {
-           fw.write(event+"\n");
+           fw.write(event.toCmd()+"\n");
            //D.ebugPrintln("WROTE |"+event+"|");
            } catch (Exception e) {
            D.ebugPrintln(e.toString());

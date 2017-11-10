@@ -894,6 +894,14 @@ When preparing to release a new version, testing should include:
             - On a 2.0.xx server, have 2.0.xx client create game with a scenario (1.x.xx can't join),
               1.x.xx client should see it in gamelist with "(cannot join)" prefix.
               Start another 1.x.xx client and connect, should see in list with that same prefix
+    - Server robustness: Bot disconnect/reconnect during game start
+        - Start server with vm properties: `-Djsettlers.bots.test.quit_at_joinreq=30` `-Djsettlers.debug.traffic=Y`
+        - Connect and start a 6-player game
+        - Bots should arrive, game should start
+        - Server console should have lines like:  
+          `robot 3 leaving at JoinGameRequest('g', 3): jsettlers.bots.test.quit_at_joinreq`  
+          `srv.leaveConnection('robot 3') found waiting ga: 'g' (3)`  
+          If not, start another game and try again
     - v2.0.00+: StatusMessage "status value" fallback at older versions
         - Start a 2.0.00 or newer server with `-Djsettlers.allow.debug=Y`
         - Start a 2.0.00 client with vm property `-Djsettlers.debug.traffic=Y`

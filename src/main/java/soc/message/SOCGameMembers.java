@@ -37,7 +37,7 @@ import java.util.StringTokenizer;
  * GAMEMEMBERS thus tells the client that the server is ready for its input.
  *<P>
  * Robots use GAMEMEMBERS as their cue to sit down at the game, if they've been
- * asked to sit from {@link SOCRobotJoinGameRequest ROBOTJOINGAMEREQUEST}.
+ * asked to sit from {@link SOCBotJoinGameRequest BOTJOINGAMEREQUEST}.
  * In order for the robot to be certain it has all details about a game,
  * bots should take no action before receiving GAMEMEMBERS.
  *<P>

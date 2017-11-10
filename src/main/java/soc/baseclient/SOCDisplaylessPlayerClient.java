@@ -449,10 +449,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
-             * text message
+             * channel text message
              */
-            case SOCMessage.TEXTMSG:
-                handleTEXTMSG((SOCTextMsg) mes);
+            case SOCMessage.CHANNELTEXTMSG:
+                handleCHANNELTEXTMSG((SOCChannelTextMsg) mes);
                 break;
 
             /**
@@ -957,7 +957,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * handle a text message
      * @param mes  the message
      */
-    protected void handleTEXTMSG(SOCTextMsg mes) {}
+    protected void handleCHANNELTEXTMSG(SOCChannelTextMsg mes) {}
 
     /**
      * handle the "leave channel" message
@@ -2406,7 +2406,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void chSend(String ch, String mes)
     {
-        put(SOCTextMsg.toCmd(ch, nickname, mes));
+        put(SOCChannelTextMsg.toCmd(ch, nickname, mes));
     }
 
     /**

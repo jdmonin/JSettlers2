@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -160,8 +161,8 @@ public class SOCServerMessageHandler
         /**
          * text message to a channel (includes channel debug commands)
          */
-        case SOCMessage.TEXTMSG:
-            handleTEXTMSG(c, (SOCTextMsg) mes);
+        case SOCMessage.CHANNELTEXTMSG:
+            handleCHANNELTEXTMSG(c, (SOCChannelTextMsg) mes);
             break;
 
         /**
@@ -924,13 +925,15 @@ public class SOCServerMessageHandler
 
     /**
      * Handle text message to a channel, including {@code *KILLCHANNEL*} channel debug command.
+     *<P>
      * Was part of {@code SOCServer.processCommand(..)} before v1.2.00.
+     * Before v2.0.00 this method was {@code handleTEXTMSG}.
      *
      * @param c  the connection
      * @param mes  the message
      * @since 1.2.00
      */
-    void handleTEXTMSG(final Connection c, final SOCTextMsg mes)
+    void handleCHANNELTEXTMSG(final Connection c, final SOCChannelTextMsg mes)
     {
         final String chName = mes.getChannel();
 
@@ -938,7 +941,7 @@ public class SOCServerMessageHandler
         {
             if (mes.getText().startsWith("*KILLCHANNEL*"))
             {
-                srv.messageToChannel(chName, new SOCTextMsg
+                srv.messageToChannel(chName, new SOCChannelTextMsg
                     (chName, SOCServer.SERVERNAME,
                      "********** " + c.getData() + " KILLED THE CHANNEL **********"));
 
@@ -992,7 +995,7 @@ public class SOCServerMessageHandler
         //createNewGameEventRecord();
         //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
         final String gaName = gameTextMsgMes.getGame();
-        srv.recordGameEvent(gaName, gameTextMsgMes.toCmd());
+        srv.recordGameEvent(gaName, gameTextMsgMes);
 
         SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
@@ -1686,9 +1689,9 @@ public class SOCServerMessageHandler
         else
         {
             /*
-               SOCLeaveGame leaveMessage = new SOCLeaveGame(c.getData(), c.host(), mes.getGame());
-               messageToGame(mes.getGame(), leaveMessage);
-               recordGameEvent(mes.getGame(), leaveMessage.toCmd());
+               SOCLeaveGame leaveMessage = new SOCLeaveGame(c.getData(), c.host(), gaName);
+               messageToGame(gaName, leaveMessage);
+               recordGameEvent(gaName, leaveMessage);
              */
         }
 
@@ -1799,9 +1802,9 @@ public class SOCServerMessageHandler
          */
         boolean isBotJoinRequest = false;
         {
-            Vector<Connection> joinRequests = srv.robotJoinRequests.get(gaName);
+            Hashtable<Connection, Object> joinRequests = srv.robotJoinRequests.get(gaName);
             if (joinRequests != null)
-                isBotJoinRequest = joinRequests.removeElement(c);
+                isBotJoinRequest = (null != joinRequests.remove(c));
         }
 
         /**

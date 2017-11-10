@@ -44,7 +44,7 @@ import soc.proto.Message;
  * @author Robert S Thomas
  * @see SOCJoinGameAuth
  */
-public class SOCRobotJoinGameRequest extends SOCMessage
+public class SOCBotJoinGameRequest extends SOCMessage
     implements SOCMessageForGame
 {
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
@@ -66,15 +66,15 @@ public class SOCRobotJoinGameRequest extends SOCMessage
     private Map<String,SOCGameOption> opts = null;
 
     /**
-     * Create a RobotJoinGameRequest message.
+     * Create a BotJoinGameRequest message.
      *
      * @param ga  name of game
      * @param pn  the seat number
      * @param opts {@link SOCGameOption game options}, or null
      */
-    public SOCRobotJoinGameRequest(String ga, int pn, Map<String,SOCGameOption> opts)
+    public SOCBotJoinGameRequest(String ga, int pn, Map<String,SOCGameOption> opts)
     {
-        messageType = ROBOTJOINGAMEREQUEST;
+        messageType = BOTJOINGAMEREQUEST;
         game = ga;
         playerNumber = pn;
         this.opts = opts;
@@ -106,7 +106,7 @@ public class SOCRobotJoinGameRequest extends SOCMessage
     }
 
     /**
-     * ROBOTJOINGAMEREQUEST sep game sep2 playerNumber
+     * BOTJOINGAMEREQUEST sep game sep2 playerNumber
      *
      * @return the command String
      */
@@ -117,24 +117,24 @@ public class SOCRobotJoinGameRequest extends SOCMessage
     }
 
     /**
-     * ROBOTJOINGAMEREQUEST sep game sep2 playerNumber sep2 optionstring
+     * BOTJOINGAMEREQUEST sep game sep2 playerNumber sep2 optionstring
      *
      * @param ga  the game name
      * @return    the command string
      */
     public static String toCmd(String ga, int pn, Map<String,SOCGameOption> opts)
     {
-        return ROBOTJOINGAMEREQUEST + sep + ga + sep2 + pn + sep2
+        return BOTJOINGAMEREQUEST + sep + ga + sep2 + pn + sep2
             + SOCGameOption.packOptionsToString(opts, false);
     }
 
     /**
-     * Parse the command String into a RobotJoinGameRequest message
+     * Parse the command String into a BotJoinGameRequest message
      *
      * @param s   the String to parse
-     * @return    a RobotJoinGameRequest message, or null if the data is garbled
+     * @return    a BotJoinGameRequest message, or null if the data is garbled
      */
-    public static SOCRobotJoinGameRequest parseDataStr(String s)
+    public static SOCBotJoinGameRequest parseDataStr(String s)
     {
         String ga; // the game name
         int pn; // the seat number
@@ -154,7 +154,7 @@ public class SOCRobotJoinGameRequest extends SOCMessage
         }
 
         Map<String,SOCGameOption> opts = SOCGameOption.parseOptionsToMap(optstr);
-        return new SOCRobotJoinGameRequest(ga, pn, opts);
+        return new SOCBotJoinGameRequest(ga, pn, opts);
     }
 
     @Override
@@ -174,7 +174,7 @@ public class SOCRobotJoinGameRequest extends SOCMessage
     @Override
     public String toString()
     {
-        String s = "SOCRobotJoinRequest:game=" + game + "|playerNumber=" + playerNumber;
+        String s = "SOCBotJoinRequest:game=" + game + "|playerNumber=" + playerNumber;
         if (opts != null)
             s += "|opts=(non-null)";
         else
