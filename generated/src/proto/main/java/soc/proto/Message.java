@@ -7982,7 +7982,7 @@ public final class Message {
    *&lt;P&gt;
    * &#64;see GameText
    *&lt;P&gt;
-   * Before v3.0.00 this message was {&#64;code SOCTextMsg}.
+   * Before v2.0.00 this message was {&#64;code SOCTextMsg}.
    * </pre>
    *
    * Protobuf type {@code ChannelText}
@@ -8283,7 +8283,7 @@ public final class Message {
      *&lt;P&gt;
      * &#64;see GameText
      *&lt;P&gt;
-     * Before v3.0.00 this message was {&#64;code SOCTextMsg}.
+     * Before v2.0.00 this message was {&#64;code SOCTextMsg}.
      * </pre>
      *
      * Protobuf type {@code ChannelText}
