@@ -6734,7 +6734,7 @@ public class SOCServer extends Server
 
             D.ebugPrintln("*** sent SOCSitDown message to game ***");
 
-            recordGameEvent(gaName, sitMessage.toCmd());
+            recordGameEvent(gaName, sitMessage);
 
             Hashtable<Connection, Object> requestedBots;
             if (! isReset)
@@ -7062,18 +7062,20 @@ public class SOCServer extends Server
     }
 
     /**
-     * record events that happen during the game
+     * Record events that happen during the game. This stub can be overridden.
+     *<P>
+     * Before v2.0.00 {@link event} was a String from {@link SOCMessage#toCmd()}.
      *
      * @param gameName   the name of the game
-     * @param event      the event
+     * @param event      the event data
      */
-    protected void recordGameEvent(String gameName, String event)
+    protected void recordGameEvent(String gameName, SOCMessage event)
     {
         /*
            FileWriter fw = (FileWriter)gameDataFiles.get(gameName);
            if (fw != null) {
            try {
-           fw.write(event+"\n");
+           fw.write(event.toCmd()+"\n");
            //D.ebugPrintln("WROTE |"+event+"|");
            } catch (Exception e) {
            D.ebugPrintln(e.toString());

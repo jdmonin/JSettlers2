@@ -995,7 +995,7 @@ public class SOCServerMessageHandler
         //createNewGameEventRecord();
         //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
         final String gaName = gameTextMsgMes.getGame();
-        srv.recordGameEvent(gaName, gameTextMsgMes.toCmd());
+        srv.recordGameEvent(gaName, gameTextMsgMes);
 
         SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
@@ -1689,9 +1689,9 @@ public class SOCServerMessageHandler
         else
         {
             /*
-               SOCLeaveGame leaveMessage = new SOCLeaveGame(c.getData(), c.host(), mes.getGame());
-               messageToGame(mes.getGame(), leaveMessage);
-               recordGameEvent(mes.getGame(), leaveMessage.toCmd());
+               SOCLeaveGame leaveMessage = new SOCLeaveGame(c.getData(), c.host(), gaName);
+               messageToGame(gaName, leaveMessage);
+               recordGameEvent(gaName, leaveMessage);
              */
         }
 

@@ -1225,7 +1225,7 @@ public class SOCGameMessageHandler
                 SOCMakeOffer makeOfferMessage = new SOCMakeOffer(gaName, remadeOffer);
                 srv.messageToGame(gaName, makeOfferMessage);
 
-                srv.recordGameEvent(gaName, makeOfferMessage.toCmd());
+                srv.recordGameEvent(gaName, makeOfferMessage);
 
                 /**
                  * clear all the trade messages because a new offer has been made
@@ -1265,7 +1265,7 @@ public class SOCGameMessageHandler
             final String gaName = ga.getName();
             ga.getPlayer(c.getData()).setCurrentOffer(null);
             srv.messageToGame(gaName, new SOCClearOffer(gaName, ga.getPlayer(c.getData()).getPlayerNumber()));
-            srv.recordGameEvent(mes.getGame(), mes.toCmd());
+            srv.recordGameEvent(gaName, mes);
 
             /**
              * clear all the trade messages
@@ -1305,7 +1305,7 @@ public class SOCGameMessageHandler
         SOCRejectOffer rejectMessage = new SOCRejectOffer(gaName, player.getPlayerNumber());
         srv.messageToGame(gaName, rejectMessage);
 
-        srv.recordGameEvent(gaName, rejectMessage.toCmd());
+        srv.recordGameEvent(gaName, rejectMessage);
     }
 
     /**
@@ -1334,7 +1334,7 @@ public class SOCGameMessageHandler
                     ga.makeTrade(offeringNumber, acceptingNumber);
                     handler.reportTrade(ga, offeringNumber, acceptingNumber);
 
-                    srv.recordGameEvent(mes.getGame(), mes.toCmd());
+                    srv.recordGameEvent(gaName, mes);
 
                     /**
                      * clear all offers

@@ -1553,7 +1553,7 @@ public class SOCGameHandler extends GameHandler
 
         SOCLeaveGame leaveMessage = new SOCLeaveGame(plName, "-", gm);
         srv.messageToGameWithMon(gm, leaveMessage);
-        srv.recordGameEvent(gm, leaveMessage.toCmd());
+        srv.recordGameEvent(gm, leaveMessage);
 
         if (D.ebugOn)
             D.ebugPrintln("*** " + plName + " left the game " + gm + " at "
@@ -2696,7 +2696,7 @@ public class SOCGameHandler extends GameHandler
 
         SOCTurn turnMessage = new SOCTurn(gname, pn);
         srv.messageToGame(gname, turnMessage);
-        srv.recordGameEvent(gname, turnMessage.toCmd());
+        srv.recordGameEvent(gname, turnMessage);
 
         if (sendRollPrompt)
             srv.messageToGame(gname, new SOCRollDicePrompt(gname, pn));
