@@ -147,8 +147,7 @@ public class DummyProtoClient
             return;
 
         final int typ = msg.getMsgCase().getNumber();
-        System.out.println("Got message from server: type " + typ);
-            // TODO print a timestamp too?
+        // TODO print a timestamp too?
 
         switch (typ)
         {
@@ -196,6 +195,11 @@ public class DummyProtoClient
                 connected = false;
             }
             break;
+
+        // anything else
+
+        default:
+            System.out.println("  treat(): No handler for server message type " + typ);
         }
     }
 

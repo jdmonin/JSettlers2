@@ -172,6 +172,8 @@ class DummyProtoClient(object):
             return
         if typ in self._msg_from_server_treaters:
             self._msg_from_server_treaters[typ](self, msg)
+        else:
+            print("  treat(): No handler for server message type " + str(typ));
 
     # based on same as read_delimited_message()
     def write_delimited_message(self, msg):
