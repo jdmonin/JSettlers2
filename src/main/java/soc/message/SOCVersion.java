@@ -206,9 +206,13 @@ public class SOCVersion extends SOCMessage
     @Override
     protected Message.FromServer toProtoFromServer()
     {
+        Message.Version.Builder vb = Message.Version.newBuilder()
+            .setVersNum(versNum).setVersStr(versStr)
+            .setVersBuild(versBuild);
+        if (localeOrFeats != null)
+            vb.setSrvFeats(localeOrFeats);
         return Message.FromServer.newBuilder()
-            .setVers(Message.Version.newBuilder()
-                .setVersNum(versNum).setVersStr(versStr).setVersBuild(versBuild)).build();
+            .setVers(vb).build();
     }
 
     /**
