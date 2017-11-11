@@ -41,6 +41,7 @@ protobuf {
         all().each { task ->
             task.builtins {
                 remove java
+                python { }  // will run protoc -python_out=... only if src/main/python/ has files
             }
             task.plugins {
                 javalite {
@@ -65,3 +66,4 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.google.protobuf:protobuf-lite:3.0.1'
 }
+

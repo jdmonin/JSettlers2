@@ -341,13 +341,15 @@ notes:
   if you make changes to *.proto. If you don't need to change any proto files,
   you can use the pre-generated message class sources included in the repo at
   `/generated/src/proto/main/java`.
-- Running `gradle compileJava` will automatically run `protoc` if any *.proto files have changed.
+- Running `gradle compileJava` or `gradle test` will automatically run `protoc`
+  if any *.proto files have changed.
 - Currently the server JAR can't automatically locate the protobuf-lite JAR.
   If you aren't running Protobuf on the server, this won't cause an error.
 - To run the JSettlers server JAR with protobuf support, instead of the usual
   `-jar` command line argument (which ignores CLASSPATH), use this style:
 
       export CLASSPATH=$CLASSPATH:/path/to/protobuf-lite-3.0.1.jar  # <-- run this just once
+
       java -cp $CLASSPATH:JSettlersServer.jar soc.server.SOCServer -Dserver.protobuf=Y
 
   On Windows, place `protobuf-lite-3.0.1.jar` in the same folder as the
@@ -372,8 +374,25 @@ notes:
 
            java -cp $CLASSPATH:JSettlers.jar soc.robot.protobuf.DummyProtoClient localhost PRO
 
-     - This sample client can connect but can't participate in games at this point.
+     - This sample client connects like a bot but can't participate in games at this point.
+- For interop with other languages, see the python sample protobuf client `DummyProtoClient`.
+     - The gradle build creates protobuf python classes under `/generated/src/proto/main/python`
+       alongside the java ones; those should work with python 2 or 3.
+     - Like the java `DummyProtoClient`, this sample python client connects like a bot but can't join games.
+       It includes functions to implement `Message.writeDelimitedTo` and `Message.parseDelimitedFrom`
+       since those are included only with protobuf's java runtime, not other languages.
+     - The sample client is written in Python 3.
+     - To install the protobuf python runtime, run:  
+       `pip3 install protobuf`  
+     - DummyProtoClient was tested with python protobuf runtime v3.4.0. To print your installed runtime version, run:  
+       `python3 -c "import google.protobuf; print(google.protobuf.__version__)"`
+     - To run DummyProtoClient, your `PYTHONPATH` must include the `/generated/src/proto/main/python`
+       and `/src/main/python` subdirectories witin the repo. If your shell supports environment variables,
+       from the repo's top-level directory you could run DummyProtoClient like:
 
+           export PYTHONPATH=${PYTHONPATH}:$PWD/generated/src/proto/main/python:$PWD/src/main/python
+
+           src/main/python/soc/robot/dummy_proto_client.py localhost PRO
 
 ## To configure a sqlite database for testing
 
