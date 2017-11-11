@@ -360,6 +360,10 @@ message ServerPing {
     int32 sleep_time = 1;
 }
 
+//
+// Robots
+//
+
 /* From server, the robot client should update its
  * {@link soc.robot.SOCRobotParameters} to these values.
  *<P>
@@ -691,42 +695,44 @@ import public "game_message.proto";
 
 message FromServer {
     oneof msg {
-        // auth
+        // auth/connect
         Version vers = 1;
         RejectConnection reject_connection = 2;
         ServerStatusText status_text = 3;
         BroadcastText broadcast_text = 4;
         ServerPing server_ping = 5;
-        BotUpdateParams bot_update_params = 6;
-        BotAdminReset bot_admin_reset = 7;
+
+        // any message within a specific game
+        GameMessageFromServer game_message = 15;  // below 16 to save a byte per message
+
+        // robots
+        BotUpdateParams bot_update_params = 20;
+        BotAdminReset bot_admin_reset = 21;
 
         // channels
-        Channels channels = 8;
-        NewChannel ch_new = 9;
-        JoinChannel ch_join = 10;
-        ChannelMembers ch_members = 11;
-        ChannelText ch_text = 12;
-        LeaveChannel ch_leave = 13;
-        DeleteChannel ch_delete = 14;
+        Channels channels = 100;
+        NewChannel ch_new = 101;
+        JoinChannel ch_join = 102;
+        ChannelMembers ch_members = 103;
+        ChannelText ch_text = 104;
+        LeaveChannel ch_leave = 105;
+        DeleteChannel ch_delete = 106;
 
         // games
-        Games games = 15;
-        NewGame ga_new = 16;
-        JoinGame ga_join = 17;
-        BotJoinGameRequest bot_join_req = 18;
-        GameMembers ga_members = 19;
-        SitDown sit_down = 20;
-        SetSeatLock set_seat_lock = 21;
-        GameServerText server_text = 22;
-        GamePlayerText player_text = 23;
-        BotTimingPing bot_timing_ping = 24;
-        BotAdminPing bot_admin_ping = 25;
-        BotDismiss bot_dismiss = 26;
-        LeaveGame ga_leave = 27;
-        DeleteGame ga_delete = 28;
-
-        // within a game
-        GameMessageFromServer game_message = 29;
+        Games games = 200;
+        NewGame ga_new = 201;
+        JoinGame ga_join = 202;
+        BotJoinGameRequest bot_join_req = 203;
+        GameMembers ga_members = 204;
+        SitDown sit_down = 205;
+        SetSeatLock set_seat_lock = 206;
+        GameServerText server_text = 207;
+        GamePlayerText player_text = 208;
+        BotTimingPing bot_timing_ping = 209;
+        BotAdminPing bot_admin_ping = 210;
+        BotDismiss bot_dismiss = 211;
+        LeaveGame ga_leave = 212;
+        DeleteGame ga_delete = 213;
     }
 }
 
@@ -739,20 +745,21 @@ message FromClient {
         ServerPing server_ping = 4;
         LeaveAll leave_all = 5;
 
+        // any message within a specific game
+        GameMessageFromClient game_message = 15;  // below 16 to save a byte per message
+
         // channels
-        JoinChannel ch_join = 6;
-        ChannelText ch_text = 7;
-        LeaveChannel ch_leave = 8;
+        JoinChannel ch_join = 100;
+        ChannelText ch_text = 101;
+        LeaveChannel ch_leave = 102;
 
         // games
-        NewGame ga_new = 9;
-        JoinGame ga_join = 10;
-        SitDown sit_down = 11;
-        SetSeatLock set_seat_lock = 12;
-        GamePlayerText ga_player_text = 13;
-        LeaveGame ga_leave = 14;
+        NewGame ga_new = 200;
+        JoinGame ga_join = 201;
+        SitDown sit_down = 202;
+        SetSeatLock set_seat_lock = 203;
+        GamePlayerText ga_player_text = 204;
+        LeaveGame ga_leave = 205;
 
-        // within a game
-        GameMessageFromClient game_message = 15;
     }
 }

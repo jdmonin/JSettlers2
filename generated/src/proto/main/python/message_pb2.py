@@ -24,7 +24,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='message.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\rmessage.proto\x1a\ndata.proto\x1a\x12game_message.proto\"h\n\x07Version\x12\x10\n\x08vers_num\x18\x01 \x01(\r\x12\x10\n\x08vers_str\x18\x02 \x01(\t\x12\x12\n\nvers_build\x18\x03 \x01(\t\x12\x12\n\ncli_locale\x18\x04 \x01(\t\x12\x11\n\tsrv_feats\x18\x05 \x01(\t\">\n\x08ImARobot\x12\x10\n\x08nickname\x18\x01 \x01(\t\x12\x0e\n\x06\x63ookie\x18\x02 \x01(\t\x12\x10\n\x08rb_class\x18\x03 \x01(\t\"\xfd\x01\n\x0b\x41uthRequest\x12#\n\x04role\x18\x01 \x01(\x0e\x32\x15.AuthRequest.AuthRole\x12\x10\n\x08nickname\x18\x02 \x01(\t\x12\x10\n\x08password\x18\x03 \x01(\t\x12,\n\x0b\x61uth_scheme\x18\x04 \x01(\x0e\x32\x17.AuthRequest.AuthScheme\"?\n\x08\x41uthRole\x12\x12\n\x0eUNSENT_DEFAULT\x10\x00\x12\x0f\n\x0bGAME_PLAYER\x10\x01\x12\x0e\n\nUSER_ADMIN\x10\x02\"6\n\nAuthScheme\x12\x12\n\x0eUNUSED_DEFAULT\x10\x00\x12\x14\n\x10\x43LIENT_PLAINTEXT\x10\x01\"\'\n\x10RejectConnection\x12\x13\n\x0breason_text\x18\x01 \x01(\t\"\xf7\x04\n\x10ServerStatusText\x12\x0c\n\x04text\x18\x01 \x01(\t\x12)\n\x02sv\x18\x02 \x01(\x0e\x32\x1d.ServerStatusText.StatusValue\x12\x0f\n\x07\x64\x65tails\x18\x03 \x03(\t\"\x98\x04\n\x0bStatusValue\x12\x06\n\x02OK\x10\x00\x12\x12\n\x0eNOT_OK_GENERIC\x10\x01\x12\x12\n\x0eNAME_NOT_FOUND\x10\x02\x12\x0c\n\x08PW_WRONG\x10\x03\x12\x0f\n\x0bNAME_IN_USE\x10\x04\x12\x1a\n\x16\x43\x41NT_JOIN_GAME_VERSION\x10\x05\x12\x13\n\x0fPROBLEM_WITH_DB\x10\x06\x12\x13\n\x0f\x41\x43\x43T_CREATED_OK\x10\x07\x12\x18\n\x14\x41\x43\x43T_NOT_CREATED_ERR\x10\x08\x12\x1a\n\x16NEWGAME_OPTION_UNKNOWN\x10\t\x12\x1f\n\x1bNEWGAME_OPTION_VALUE_TOONEW\x10\n\x12\x1a\n\x16NEWGAME_ALREADY_EXISTS\x10\x0b\x12\x19\n\x15NEWGAME_NAME_REJECTED\x10\x0c\x12\x19\n\x15NEWGAME_NAME_TOO_LONG\x10\r\x12\x1c\n\x18NEWGAME_TOO_MANY_CREATED\x10\x0e\x12\x1f\n\x1bNEWCHANNEL_TOO_MANY_CREATED\x10\x0f\x12\x0f\n\x0bPW_REQUIRED\x10\x10\x12\x1b\n\x17\x41\x43\x43T_NOT_CREATED_DENIED\x10\x11\x12\x1d\n\x19\x41\x43\x43T_CREATED_OK_FIRST_ONE\x10\x12\x12\x14\n\x10NAME_NOT_ALLOWED\x10\x13\x12\x13\n\x0fOK_SET_NICKNAME\x10\x14\x12\x14\n\x10OK_DEBUG_MODE_ON\x10\x15\"\x1d\n\rBroadcastText\x12\x0c\n\x04text\x18\x01 \x01(\t\"\n\n\x08LeaveAll\" \n\nServerPing\x12\x12\n\nsleep_time\x18\x01 \x01(\x05\"\xf7\x01\n\x0f\x42otUpdateParams\x12\x17\n\x0fmax_game_length\x18\x01 \x01(\r\x12\x0f\n\x07max_eta\x18\x02 \x01(\r\x12\x18\n\x10\x65ta_bonus_factor\x18\x03 \x01(\x02\x12\x1a\n\x12\x61\x64versarial_factor\x18\x04 \x01(\x02\x12!\n\x19leader_adversarial_factor\x18\x05 \x01(\x02\x12\x1b\n\x13\x64\x65v_card_multiplier\x18\x06 \x01(\x02\x12\x19\n\x11threat_multiplier\x18\x07 \x01(\x02\x12\x15\n\rstrategy_type\x18\x08 \x01(\r\x12\x12\n\ntrade_flag\x18\t \x01(\x08\"\x0f\n\rBotAdminReset\"\x19\n\x08\x43hannels\x12\r\n\x05names\x18\x01 \x03(\t\"\x1d\n\nNewChannel\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\"3\n\x0bJoinChannel\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\x12\x13\n\x0bmember_name\x18\x02 \x01(\t\"2\n\x0e\x43hannelMembers\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\x12\x0f\n\x07members\x18\x02 \x03(\t\">\n\x0b\x43hannelText\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\x12\x10\n\x08nickname\x18\x02 \x01(\t\x12\x0c\n\x04text\x18\x03 \x01(\t\"1\n\x0cLeaveChannel\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\x12\x10\n\x08nickname\x18\x02 \x01(\t\" \n\rDeleteChannel\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\"E\n\x10_GameWithOptions\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x0c\n\x04opts\x18\x02 \x01(\t\x12\x12\n\nunjoinable\x18\x03 \x01(\x08\"(\n\x05Games\x12\x1f\n\x04game\x18\x01 \x03(\x0b\x32\x11._GameWithOptions\"*\n\x07NewGame\x12\x1f\n\x04game\x18\x01 \x01(\x0b\x32\x11._GameWithOptions\"J\n\x12\x42otJoinGameRequest\x12\x1f\n\x04game\x18\x01 \x01(\x0b\x32\x11._GameWithOptions\x12\x13\n\x0bseat_number\x18\x02 \x01(\r\"0\n\x08JoinGame\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x13\n\x0bmember_name\x18\x02 \x01(\t\"/\n\x0bGameMembers\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x0f\n\x07members\x18\x02 \x03(\t\"R\n\x07SitDown\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x0f\n\x07pl_name\x18\x02 \x01(\t\x12\x13\n\x0bseat_number\x18\x03 \x01(\r\x12\x10\n\x08is_robot\x18\x04 \x01(\x08\"R\n\x0bSetSeatLock\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x13\n\x0bseat_number\x18\x02 \x01(\r\x12\x1d\n\x05state\x18\x03 \x01(\x0e\x32\x0e.SeatLockState\"/\n\x0eGameServerText\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x0c\n\x04text\x18\x02 \x01(\t\"A\n\x0eGamePlayerText\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x10\n\x08nickname\x18\x02 \x01(\t\x12\x0c\n\x04text\x18\x03 \x01(\t\" \n\rBotTimingPing\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\"\x1f\n\x0c\x42otAdminPing\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\"\x1d\n\nBotDismiss\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\".\n\tLeaveGame\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x10\n\x08nickname\x18\x02 \x01(\t\"\x1d\n\nDeleteGame\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\"\xc1\x08\n\nFromServer\x12\x18\n\x04vers\x18\x01 \x01(\x0b\x32\x08.VersionH\x00\x12.\n\x11reject_connection\x18\x02 \x01(\x0b\x32\x11.RejectConnectionH\x00\x12(\n\x0bstatus_text\x18\x03 \x01(\x0b\x32\x11.ServerStatusTextH\x00\x12(\n\x0e\x62roadcast_text\x18\x04 \x01(\x0b\x32\x0e.BroadcastTextH\x00\x12\"\n\x0bserver_ping\x18\x05 \x01(\x0b\x32\x0b.ServerPingH\x00\x12-\n\x11\x62ot_update_params\x18\x06 \x01(\x0b\x32\x10.BotUpdateParamsH\x00\x12)\n\x0f\x62ot_admin_reset\x18\x07 \x01(\x0b\x32\x0e.BotAdminResetH\x00\x12\x1d\n\x08\x63hannels\x18\x08 \x01(\x0b\x32\t.ChannelsH\x00\x12\x1d\n\x06\x63h_new\x18\t \x01(\x0b\x32\x0b.NewChannelH\x00\x12\x1f\n\x07\x63h_join\x18\n \x01(\x0b\x32\x0c.JoinChannelH\x00\x12%\n\nch_members\x18\x0b \x01(\x0b\x32\x0f.ChannelMembersH\x00\x12\x1f\n\x07\x63h_text\x18\x0c \x01(\x0b\x32\x0c.ChannelTextH\x00\x12!\n\x08\x63h_leave\x18\r \x01(\x0b\x32\r.LeaveChannelH\x00\x12#\n\tch_delete\x18\x0e \x01(\x0b\x32\x0e.DeleteChannelH\x00\x12\x17\n\x05games\x18\x0f \x01(\x0b\x32\x06.GamesH\x00\x12\x1a\n\x06ga_new\x18\x10 \x01(\x0b\x32\x08.NewGameH\x00\x12\x1c\n\x07ga_join\x18\x11 \x01(\x0b\x32\t.JoinGameH\x00\x12+\n\x0c\x62ot_join_req\x18\x12 \x01(\x0b\x32\x13.BotJoinGameRequestH\x00\x12\"\n\nga_members\x18\x13 \x01(\x0b\x32\x0c.GameMembersH\x00\x12\x1c\n\x08sit_down\x18\x14 \x01(\x0b\x32\x08.SitDownH\x00\x12%\n\rset_seat_lock\x18\x15 \x01(\x0b\x32\x0c.SetSeatLockH\x00\x12&\n\x0bserver_text\x18\x16 \x01(\x0b\x32\x0f.GameServerTextH\x00\x12&\n\x0bplayer_text\x18\x17 \x01(\x0b\x32\x0f.GamePlayerTextH\x00\x12)\n\x0f\x62ot_timing_ping\x18\x18 \x01(\x0b\x32\x0e.BotTimingPingH\x00\x12\'\n\x0e\x62ot_admin_ping\x18\x19 \x01(\x0b\x32\r.BotAdminPingH\x00\x12\"\n\x0b\x62ot_dismiss\x18\x1a \x01(\x0b\x32\x0b.BotDismissH\x00\x12\x1e\n\x08ga_leave\x18\x1b \x01(\x0b\x32\n.LeaveGameH\x00\x12 \n\tga_delete\x18\x1c \x01(\x0b\x32\x0b.DeleteGameH\x00\x12.\n\x0cgame_message\x18\x1d \x01(\x0b\x32\x16.GameMessageFromServerH\x00\x42\x05\n\x03msg\"\x93\x04\n\nFromClient\x12\x18\n\x04vers\x18\x01 \x01(\x0b\x32\x08.VersionH\x00\x12 \n\x08\x61uth_req\x18\x02 \x01(\x0b\x32\x0c.AuthRequestH\x00\x12\x1f\n\nim_a_robot\x18\x03 \x01(\x0b\x32\t.ImARobotH\x00\x12\"\n\x0bserver_ping\x18\x04 \x01(\x0b\x32\x0b.ServerPingH\x00\x12\x1e\n\tleave_all\x18\x05 \x01(\x0b\x32\t.LeaveAllH\x00\x12\x1f\n\x07\x63h_join\x18\x06 \x01(\x0b\x32\x0c.JoinChannelH\x00\x12\x1f\n\x07\x63h_text\x18\x07 \x01(\x0b\x32\x0c.ChannelTextH\x00\x12!\n\x08\x63h_leave\x18\x08 \x01(\x0b\x32\r.LeaveChannelH\x00\x12\x1a\n\x06ga_new\x18\t \x01(\x0b\x32\x08.NewGameH\x00\x12\x1c\n\x07ga_join\x18\n \x01(\x0b\x32\t.JoinGameH\x00\x12\x1c\n\x08sit_down\x18\x0b \x01(\x0b\x32\x08.SitDownH\x00\x12%\n\rset_seat_lock\x18\x0c \x01(\x0b\x32\x0c.SetSeatLockH\x00\x12)\n\x0ega_player_text\x18\r \x01(\x0b\x32\x0f.GamePlayerTextH\x00\x12\x1e\n\x08ga_leave\x18\x0e \x01(\x0b\x32\n.LeaveGameH\x00\x12.\n\x0cgame_message\x18\x0f \x01(\x0b\x32\x16.GameMessageFromClientH\x00\x42\x05\n\x03msgB\r\n\tsoc.protoH\x03P\x00P\x01\x62\x06proto3')
+  serialized_pb=_b('\n\rmessage.proto\x1a\ndata.proto\x1a\x12game_message.proto\"h\n\x07Version\x12\x10\n\x08vers_num\x18\x01 \x01(\r\x12\x10\n\x08vers_str\x18\x02 \x01(\t\x12\x12\n\nvers_build\x18\x03 \x01(\t\x12\x12\n\ncli_locale\x18\x04 \x01(\t\x12\x11\n\tsrv_feats\x18\x05 \x01(\t\">\n\x08ImARobot\x12\x10\n\x08nickname\x18\x01 \x01(\t\x12\x0e\n\x06\x63ookie\x18\x02 \x01(\t\x12\x10\n\x08rb_class\x18\x03 \x01(\t\"\xfd\x01\n\x0b\x41uthRequest\x12#\n\x04role\x18\x01 \x01(\x0e\x32\x15.AuthRequest.AuthRole\x12\x10\n\x08nickname\x18\x02 \x01(\t\x12\x10\n\x08password\x18\x03 \x01(\t\x12,\n\x0b\x61uth_scheme\x18\x04 \x01(\x0e\x32\x17.AuthRequest.AuthScheme\"?\n\x08\x41uthRole\x12\x12\n\x0eUNSENT_DEFAULT\x10\x00\x12\x0f\n\x0bGAME_PLAYER\x10\x01\x12\x0e\n\nUSER_ADMIN\x10\x02\"6\n\nAuthScheme\x12\x12\n\x0eUNUSED_DEFAULT\x10\x00\x12\x14\n\x10\x43LIENT_PLAINTEXT\x10\x01\"\'\n\x10RejectConnection\x12\x13\n\x0breason_text\x18\x01 \x01(\t\"\xf7\x04\n\x10ServerStatusText\x12\x0c\n\x04text\x18\x01 \x01(\t\x12)\n\x02sv\x18\x02 \x01(\x0e\x32\x1d.ServerStatusText.StatusValue\x12\x0f\n\x07\x64\x65tails\x18\x03 \x03(\t\"\x98\x04\n\x0bStatusValue\x12\x06\n\x02OK\x10\x00\x12\x12\n\x0eNOT_OK_GENERIC\x10\x01\x12\x12\n\x0eNAME_NOT_FOUND\x10\x02\x12\x0c\n\x08PW_WRONG\x10\x03\x12\x0f\n\x0bNAME_IN_USE\x10\x04\x12\x1a\n\x16\x43\x41NT_JOIN_GAME_VERSION\x10\x05\x12\x13\n\x0fPROBLEM_WITH_DB\x10\x06\x12\x13\n\x0f\x41\x43\x43T_CREATED_OK\x10\x07\x12\x18\n\x14\x41\x43\x43T_NOT_CREATED_ERR\x10\x08\x12\x1a\n\x16NEWGAME_OPTION_UNKNOWN\x10\t\x12\x1f\n\x1bNEWGAME_OPTION_VALUE_TOONEW\x10\n\x12\x1a\n\x16NEWGAME_ALREADY_EXISTS\x10\x0b\x12\x19\n\x15NEWGAME_NAME_REJECTED\x10\x0c\x12\x19\n\x15NEWGAME_NAME_TOO_LONG\x10\r\x12\x1c\n\x18NEWGAME_TOO_MANY_CREATED\x10\x0e\x12\x1f\n\x1bNEWCHANNEL_TOO_MANY_CREATED\x10\x0f\x12\x0f\n\x0bPW_REQUIRED\x10\x10\x12\x1b\n\x17\x41\x43\x43T_NOT_CREATED_DENIED\x10\x11\x12\x1d\n\x19\x41\x43\x43T_CREATED_OK_FIRST_ONE\x10\x12\x12\x14\n\x10NAME_NOT_ALLOWED\x10\x13\x12\x13\n\x0fOK_SET_NICKNAME\x10\x14\x12\x14\n\x10OK_DEBUG_MODE_ON\x10\x15\"\x1d\n\rBroadcastText\x12\x0c\n\x04text\x18\x01 \x01(\t\"\n\n\x08LeaveAll\" \n\nServerPing\x12\x12\n\nsleep_time\x18\x01 \x01(\x05\"\xf7\x01\n\x0f\x42otUpdateParams\x12\x17\n\x0fmax_game_length\x18\x01 \x01(\r\x12\x0f\n\x07max_eta\x18\x02 \x01(\r\x12\x18\n\x10\x65ta_bonus_factor\x18\x03 \x01(\x02\x12\x1a\n\x12\x61\x64versarial_factor\x18\x04 \x01(\x02\x12!\n\x19leader_adversarial_factor\x18\x05 \x01(\x02\x12\x1b\n\x13\x64\x65v_card_multiplier\x18\x06 \x01(\x02\x12\x19\n\x11threat_multiplier\x18\x07 \x01(\x02\x12\x15\n\rstrategy_type\x18\x08 \x01(\r\x12\x12\n\ntrade_flag\x18\t \x01(\x08\"\x0f\n\rBotAdminReset\"\x19\n\x08\x43hannels\x12\r\n\x05names\x18\x01 \x03(\t\"\x1d\n\nNewChannel\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\"3\n\x0bJoinChannel\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\x12\x13\n\x0bmember_name\x18\x02 \x01(\t\"2\n\x0e\x43hannelMembers\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\x12\x0f\n\x07members\x18\x02 \x03(\t\">\n\x0b\x43hannelText\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\x12\x10\n\x08nickname\x18\x02 \x01(\t\x12\x0c\n\x04text\x18\x03 \x01(\t\"1\n\x0cLeaveChannel\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\x12\x10\n\x08nickname\x18\x02 \x01(\t\" \n\rDeleteChannel\x12\x0f\n\x07\x63h_name\x18\x01 \x01(\t\"E\n\x10_GameWithOptions\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x0c\n\x04opts\x18\x02 \x01(\t\x12\x12\n\nunjoinable\x18\x03 \x01(\x08\"(\n\x05Games\x12\x1f\n\x04game\x18\x01 \x03(\x0b\x32\x11._GameWithOptions\"*\n\x07NewGame\x12\x1f\n\x04game\x18\x01 \x01(\x0b\x32\x11._GameWithOptions\"J\n\x12\x42otJoinGameRequest\x12\x1f\n\x04game\x18\x01 \x01(\x0b\x32\x11._GameWithOptions\x12\x13\n\x0bseat_number\x18\x02 \x01(\r\"0\n\x08JoinGame\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x13\n\x0bmember_name\x18\x02 \x01(\t\"/\n\x0bGameMembers\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x0f\n\x07members\x18\x02 \x03(\t\"R\n\x07SitDown\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x0f\n\x07pl_name\x18\x02 \x01(\t\x12\x13\n\x0bseat_number\x18\x03 \x01(\r\x12\x10\n\x08is_robot\x18\x04 \x01(\x08\"R\n\x0bSetSeatLock\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x13\n\x0bseat_number\x18\x02 \x01(\r\x12\x1d\n\x05state\x18\x03 \x01(\x0e\x32\x0e.SeatLockState\"/\n\x0eGameServerText\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x0c\n\x04text\x18\x02 \x01(\t\"A\n\x0eGamePlayerText\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x10\n\x08nickname\x18\x02 \x01(\t\x12\x0c\n\x04text\x18\x03 \x01(\t\" \n\rBotTimingPing\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\"\x1f\n\x0c\x42otAdminPing\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\"\x1d\n\nBotDismiss\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\".\n\tLeaveGame\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x10\n\x08nickname\x18\x02 \x01(\t\"\x1d\n\nDeleteGame\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\"\xcf\x08\n\nFromServer\x12\x18\n\x04vers\x18\x01 \x01(\x0b\x32\x08.VersionH\x00\x12.\n\x11reject_connection\x18\x02 \x01(\x0b\x32\x11.RejectConnectionH\x00\x12(\n\x0bstatus_text\x18\x03 \x01(\x0b\x32\x11.ServerStatusTextH\x00\x12(\n\x0e\x62roadcast_text\x18\x04 \x01(\x0b\x32\x0e.BroadcastTextH\x00\x12\"\n\x0bserver_ping\x18\x05 \x01(\x0b\x32\x0b.ServerPingH\x00\x12.\n\x0cgame_message\x18\x0f \x01(\x0b\x32\x16.GameMessageFromServerH\x00\x12-\n\x11\x62ot_update_params\x18\x14 \x01(\x0b\x32\x10.BotUpdateParamsH\x00\x12)\n\x0f\x62ot_admin_reset\x18\x15 \x01(\x0b\x32\x0e.BotAdminResetH\x00\x12\x1d\n\x08\x63hannels\x18\x64 \x01(\x0b\x32\t.ChannelsH\x00\x12\x1d\n\x06\x63h_new\x18\x65 \x01(\x0b\x32\x0b.NewChannelH\x00\x12\x1f\n\x07\x63h_join\x18\x66 \x01(\x0b\x32\x0c.JoinChannelH\x00\x12%\n\nch_members\x18g \x01(\x0b\x32\x0f.ChannelMembersH\x00\x12\x1f\n\x07\x63h_text\x18h \x01(\x0b\x32\x0c.ChannelTextH\x00\x12!\n\x08\x63h_leave\x18i \x01(\x0b\x32\r.LeaveChannelH\x00\x12#\n\tch_delete\x18j \x01(\x0b\x32\x0e.DeleteChannelH\x00\x12\x18\n\x05games\x18\xc8\x01 \x01(\x0b\x32\x06.GamesH\x00\x12\x1b\n\x06ga_new\x18\xc9\x01 \x01(\x0b\x32\x08.NewGameH\x00\x12\x1d\n\x07ga_join\x18\xca\x01 \x01(\x0b\x32\t.JoinGameH\x00\x12,\n\x0c\x62ot_join_req\x18\xcb\x01 \x01(\x0b\x32\x13.BotJoinGameRequestH\x00\x12#\n\nga_members\x18\xcc\x01 \x01(\x0b\x32\x0c.GameMembersH\x00\x12\x1d\n\x08sit_down\x18\xcd\x01 \x01(\x0b\x32\x08.SitDownH\x00\x12&\n\rset_seat_lock\x18\xce\x01 \x01(\x0b\x32\x0c.SetSeatLockH\x00\x12\'\n\x0bserver_text\x18\xcf\x01 \x01(\x0b\x32\x0f.GameServerTextH\x00\x12\'\n\x0bplayer_text\x18\xd0\x01 \x01(\x0b\x32\x0f.GamePlayerTextH\x00\x12*\n\x0f\x62ot_timing_ping\x18\xd1\x01 \x01(\x0b\x32\x0e.BotTimingPingH\x00\x12(\n\x0e\x62ot_admin_ping\x18\xd2\x01 \x01(\x0b\x32\r.BotAdminPingH\x00\x12#\n\x0b\x62ot_dismiss\x18\xd3\x01 \x01(\x0b\x32\x0b.BotDismissH\x00\x12\x1f\n\x08ga_leave\x18\xd4\x01 \x01(\x0b\x32\n.LeaveGameH\x00\x12!\n\tga_delete\x18\xd5\x01 \x01(\x0b\x32\x0b.DeleteGameH\x00\x42\x05\n\x03msg\"\x99\x04\n\nFromClient\x12\x18\n\x04vers\x18\x01 \x01(\x0b\x32\x08.VersionH\x00\x12 \n\x08\x61uth_req\x18\x02 \x01(\x0b\x32\x0c.AuthRequestH\x00\x12\x1f\n\nim_a_robot\x18\x03 \x01(\x0b\x32\t.ImARobotH\x00\x12\"\n\x0bserver_ping\x18\x04 \x01(\x0b\x32\x0b.ServerPingH\x00\x12\x1e\n\tleave_all\x18\x05 \x01(\x0b\x32\t.LeaveAllH\x00\x12.\n\x0cgame_message\x18\x0f \x01(\x0b\x32\x16.GameMessageFromClientH\x00\x12\x1f\n\x07\x63h_join\x18\x64 \x01(\x0b\x32\x0c.JoinChannelH\x00\x12\x1f\n\x07\x63h_text\x18\x65 \x01(\x0b\x32\x0c.ChannelTextH\x00\x12!\n\x08\x63h_leave\x18\x66 \x01(\x0b\x32\r.LeaveChannelH\x00\x12\x1b\n\x06ga_new\x18\xc8\x01 \x01(\x0b\x32\x08.NewGameH\x00\x12\x1d\n\x07ga_join\x18\xc9\x01 \x01(\x0b\x32\t.JoinGameH\x00\x12\x1d\n\x08sit_down\x18\xca\x01 \x01(\x0b\x32\x08.SitDownH\x00\x12&\n\rset_seat_lock\x18\xcb\x01 \x01(\x0b\x32\x0c.SetSeatLockH\x00\x12*\n\x0ega_player_text\x18\xcc\x01 \x01(\x0b\x32\x0f.GamePlayerTextH\x00\x12\x1f\n\x08ga_leave\x18\xcd\x01 \x01(\x0b\x32\n.LeaveGameH\x00\x42\x05\n\x03msgB\r\n\tsoc.protoH\x03P\x00P\x01\x62\x06proto3')
   ,
   dependencies=[data__pb2.DESCRIPTOR,game__message__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -1472,169 +1472,169 @@ _FROMSERVER = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='bot_update_params', full_name='FromServer.bot_update_params', index=5,
-      number=6, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='bot_admin_reset', full_name='FromServer.bot_admin_reset', index=6,
-      number=7, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='channels', full_name='FromServer.channels', index=7,
-      number=8, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ch_new', full_name='FromServer.ch_new', index=8,
-      number=9, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ch_join', full_name='FromServer.ch_join', index=9,
-      number=10, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ch_members', full_name='FromServer.ch_members', index=10,
-      number=11, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ch_text', full_name='FromServer.ch_text', index=11,
-      number=12, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ch_leave', full_name='FromServer.ch_leave', index=12,
-      number=13, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ch_delete', full_name='FromServer.ch_delete', index=13,
-      number=14, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='games', full_name='FromServer.games', index=14,
+      name='game_message', full_name='FromServer.game_message', index=5,
       number=15, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='ga_new', full_name='FromServer.ga_new', index=15,
-      number=16, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ga_join', full_name='FromServer.ga_join', index=16,
-      number=17, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='bot_join_req', full_name='FromServer.bot_join_req', index=17,
-      number=18, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ga_members', full_name='FromServer.ga_members', index=18,
-      number=19, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sit_down', full_name='FromServer.sit_down', index=19,
+      name='bot_update_params', full_name='FromServer.bot_update_params', index=6,
       number=20, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='set_seat_lock', full_name='FromServer.set_seat_lock', index=20,
+      name='bot_admin_reset', full_name='FromServer.bot_admin_reset', index=7,
       number=21, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='server_text', full_name='FromServer.server_text', index=21,
-      number=22, type=11, cpp_type=10, label=1,
+      name='channels', full_name='FromServer.channels', index=8,
+      number=100, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='player_text', full_name='FromServer.player_text', index=22,
-      number=23, type=11, cpp_type=10, label=1,
+      name='ch_new', full_name='FromServer.ch_new', index=9,
+      number=101, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='bot_timing_ping', full_name='FromServer.bot_timing_ping', index=23,
-      number=24, type=11, cpp_type=10, label=1,
+      name='ch_join', full_name='FromServer.ch_join', index=10,
+      number=102, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='bot_admin_ping', full_name='FromServer.bot_admin_ping', index=24,
-      number=25, type=11, cpp_type=10, label=1,
+      name='ch_members', full_name='FromServer.ch_members', index=11,
+      number=103, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='bot_dismiss', full_name='FromServer.bot_dismiss', index=25,
-      number=26, type=11, cpp_type=10, label=1,
+      name='ch_text', full_name='FromServer.ch_text', index=12,
+      number=104, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='ga_leave', full_name='FromServer.ga_leave', index=26,
-      number=27, type=11, cpp_type=10, label=1,
+      name='ch_leave', full_name='FromServer.ch_leave', index=13,
+      number=105, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='ga_delete', full_name='FromServer.ga_delete', index=27,
-      number=28, type=11, cpp_type=10, label=1,
+      name='ch_delete', full_name='FromServer.ch_delete', index=14,
+      number=106, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='game_message', full_name='FromServer.game_message', index=28,
-      number=29, type=11, cpp_type=10, label=1,
+      name='games', full_name='FromServer.games', index=15,
+      number=200, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ga_new', full_name='FromServer.ga_new', index=16,
+      number=201, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ga_join', full_name='FromServer.ga_join', index=17,
+      number=202, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='bot_join_req', full_name='FromServer.bot_join_req', index=18,
+      number=203, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ga_members', full_name='FromServer.ga_members', index=19,
+      number=204, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='sit_down', full_name='FromServer.sit_down', index=20,
+      number=205, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='set_seat_lock', full_name='FromServer.set_seat_lock', index=21,
+      number=206, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='server_text', full_name='FromServer.server_text', index=22,
+      number=207, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='player_text', full_name='FromServer.player_text', index=23,
+      number=208, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='bot_timing_ping', full_name='FromServer.bot_timing_ping', index=24,
+      number=209, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='bot_admin_ping', full_name='FromServer.bot_admin_ping', index=25,
+      number=210, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='bot_dismiss', full_name='FromServer.bot_dismiss', index=26,
+      number=211, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ga_leave', full_name='FromServer.ga_leave', index=27,
+      number=212, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ga_delete', full_name='FromServer.ga_delete', index=28,
+      number=213, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -1655,7 +1655,7 @@ _FROMSERVER = _descriptor.Descriptor(
       index=0, containing_type=None, fields=[]),
   ],
   serialized_start=2600,
-  serialized_end=3689,
+  serialized_end=3703,
 )
 
 
@@ -1702,71 +1702,71 @@ _FROMCLIENT = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='ch_join', full_name='FromClient.ch_join', index=5,
-      number=6, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ch_text', full_name='FromClient.ch_text', index=6,
-      number=7, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ch_leave', full_name='FromClient.ch_leave', index=7,
-      number=8, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ga_new', full_name='FromClient.ga_new', index=8,
-      number=9, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ga_join', full_name='FromClient.ga_join', index=9,
-      number=10, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='sit_down', full_name='FromClient.sit_down', index=10,
-      number=11, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='set_seat_lock', full_name='FromClient.set_seat_lock', index=11,
-      number=12, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ga_player_text', full_name='FromClient.ga_player_text', index=12,
-      number=13, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='ga_leave', full_name='FromClient.ga_leave', index=13,
-      number=14, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='game_message', full_name='FromClient.game_message', index=14,
+      name='game_message', full_name='FromClient.game_message', index=5,
       number=15, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ch_join', full_name='FromClient.ch_join', index=6,
+      number=100, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ch_text', full_name='FromClient.ch_text', index=7,
+      number=101, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ch_leave', full_name='FromClient.ch_leave', index=8,
+      number=102, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ga_new', full_name='FromClient.ga_new', index=9,
+      number=200, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ga_join', full_name='FromClient.ga_join', index=10,
+      number=201, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='sit_down', full_name='FromClient.sit_down', index=11,
+      number=202, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='set_seat_lock', full_name='FromClient.set_seat_lock', index=12,
+      number=203, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ga_player_text', full_name='FromClient.ga_player_text', index=13,
+      number=204, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ga_leave', full_name='FromClient.ga_leave', index=14,
+      number=205, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -1786,8 +1786,8 @@ _FROMCLIENT = _descriptor.Descriptor(
       name='msg', full_name='FromClient.msg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=3692,
-  serialized_end=4223,
+  serialized_start=3706,
+  serialized_end=4243,
 )
 
 _AUTHREQUEST.fields_by_name['role'].enum_type = _AUTHREQUEST_AUTHROLE
@@ -1805,6 +1805,7 @@ _FROMSERVER.fields_by_name['reject_connection'].message_type = _REJECTCONNECTION
 _FROMSERVER.fields_by_name['status_text'].message_type = _SERVERSTATUSTEXT
 _FROMSERVER.fields_by_name['broadcast_text'].message_type = _BROADCASTTEXT
 _FROMSERVER.fields_by_name['server_ping'].message_type = _SERVERPING
+_FROMSERVER.fields_by_name['game_message'].message_type = game__message__pb2._GAMEMESSAGEFROMSERVER
 _FROMSERVER.fields_by_name['bot_update_params'].message_type = _BOTUPDATEPARAMS
 _FROMSERVER.fields_by_name['bot_admin_reset'].message_type = _BOTADMINRESET
 _FROMSERVER.fields_by_name['channels'].message_type = _CHANNELS
@@ -1828,7 +1829,6 @@ _FROMSERVER.fields_by_name['bot_admin_ping'].message_type = _BOTADMINPING
 _FROMSERVER.fields_by_name['bot_dismiss'].message_type = _BOTDISMISS
 _FROMSERVER.fields_by_name['ga_leave'].message_type = _LEAVEGAME
 _FROMSERVER.fields_by_name['ga_delete'].message_type = _DELETEGAME
-_FROMSERVER.fields_by_name['game_message'].message_type = game__message__pb2._GAMEMESSAGEFROMSERVER
 _FROMSERVER.oneofs_by_name['msg'].fields.append(
   _FROMSERVER.fields_by_name['vers'])
 _FROMSERVER.fields_by_name['vers'].containing_oneof = _FROMSERVER.oneofs_by_name['msg']
@@ -1844,6 +1844,9 @@ _FROMSERVER.fields_by_name['broadcast_text'].containing_oneof = _FROMSERVER.oneo
 _FROMSERVER.oneofs_by_name['msg'].fields.append(
   _FROMSERVER.fields_by_name['server_ping'])
 _FROMSERVER.fields_by_name['server_ping'].containing_oneof = _FROMSERVER.oneofs_by_name['msg']
+_FROMSERVER.oneofs_by_name['msg'].fields.append(
+  _FROMSERVER.fields_by_name['game_message'])
+_FROMSERVER.fields_by_name['game_message'].containing_oneof = _FROMSERVER.oneofs_by_name['msg']
 _FROMSERVER.oneofs_by_name['msg'].fields.append(
   _FROMSERVER.fields_by_name['bot_update_params'])
 _FROMSERVER.fields_by_name['bot_update_params'].containing_oneof = _FROMSERVER.oneofs_by_name['msg']
@@ -1913,14 +1916,12 @@ _FROMSERVER.fields_by_name['ga_leave'].containing_oneof = _FROMSERVER.oneofs_by_
 _FROMSERVER.oneofs_by_name['msg'].fields.append(
   _FROMSERVER.fields_by_name['ga_delete'])
 _FROMSERVER.fields_by_name['ga_delete'].containing_oneof = _FROMSERVER.oneofs_by_name['msg']
-_FROMSERVER.oneofs_by_name['msg'].fields.append(
-  _FROMSERVER.fields_by_name['game_message'])
-_FROMSERVER.fields_by_name['game_message'].containing_oneof = _FROMSERVER.oneofs_by_name['msg']
 _FROMCLIENT.fields_by_name['vers'].message_type = _VERSION
 _FROMCLIENT.fields_by_name['auth_req'].message_type = _AUTHREQUEST
 _FROMCLIENT.fields_by_name['im_a_robot'].message_type = _IMAROBOT
 _FROMCLIENT.fields_by_name['server_ping'].message_type = _SERVERPING
 _FROMCLIENT.fields_by_name['leave_all'].message_type = _LEAVEALL
+_FROMCLIENT.fields_by_name['game_message'].message_type = game__message__pb2._GAMEMESSAGEFROMCLIENT
 _FROMCLIENT.fields_by_name['ch_join'].message_type = _JOINCHANNEL
 _FROMCLIENT.fields_by_name['ch_text'].message_type = _CHANNELTEXT
 _FROMCLIENT.fields_by_name['ch_leave'].message_type = _LEAVECHANNEL
@@ -1930,7 +1931,6 @@ _FROMCLIENT.fields_by_name['sit_down'].message_type = _SITDOWN
 _FROMCLIENT.fields_by_name['set_seat_lock'].message_type = _SETSEATLOCK
 _FROMCLIENT.fields_by_name['ga_player_text'].message_type = _GAMEPLAYERTEXT
 _FROMCLIENT.fields_by_name['ga_leave'].message_type = _LEAVEGAME
-_FROMCLIENT.fields_by_name['game_message'].message_type = game__message__pb2._GAMEMESSAGEFROMCLIENT
 _FROMCLIENT.oneofs_by_name['msg'].fields.append(
   _FROMCLIENT.fields_by_name['vers'])
 _FROMCLIENT.fields_by_name['vers'].containing_oneof = _FROMCLIENT.oneofs_by_name['msg']
@@ -1946,6 +1946,9 @@ _FROMCLIENT.fields_by_name['server_ping'].containing_oneof = _FROMCLIENT.oneofs_
 _FROMCLIENT.oneofs_by_name['msg'].fields.append(
   _FROMCLIENT.fields_by_name['leave_all'])
 _FROMCLIENT.fields_by_name['leave_all'].containing_oneof = _FROMCLIENT.oneofs_by_name['msg']
+_FROMCLIENT.oneofs_by_name['msg'].fields.append(
+  _FROMCLIENT.fields_by_name['game_message'])
+_FROMCLIENT.fields_by_name['game_message'].containing_oneof = _FROMCLIENT.oneofs_by_name['msg']
 _FROMCLIENT.oneofs_by_name['msg'].fields.append(
   _FROMCLIENT.fields_by_name['ch_join'])
 _FROMCLIENT.fields_by_name['ch_join'].containing_oneof = _FROMCLIENT.oneofs_by_name['msg']
@@ -1973,9 +1976,6 @@ _FROMCLIENT.fields_by_name['ga_player_text'].containing_oneof = _FROMCLIENT.oneo
 _FROMCLIENT.oneofs_by_name['msg'].fields.append(
   _FROMCLIENT.fields_by_name['ga_leave'])
 _FROMCLIENT.fields_by_name['ga_leave'].containing_oneof = _FROMCLIENT.oneofs_by_name['msg']
-_FROMCLIENT.oneofs_by_name['msg'].fields.append(
-  _FROMCLIENT.fields_by_name['game_message'])
-_FROMCLIENT.fields_by_name['game_message'].containing_oneof = _FROMCLIENT.oneofs_by_name['msg']
 DESCRIPTOR.message_types_by_name['Version'] = _VERSION
 DESCRIPTOR.message_types_by_name['ImARobot'] = _IMAROBOT
 DESCRIPTOR.message_types_by_name['AuthRequest'] = _AUTHREQUEST

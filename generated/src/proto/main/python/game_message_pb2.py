@@ -21,12 +21,43 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='game_message.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x12game_message.proto\x1a\ndata.proto\"&\n\tStartGame\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"8\n\x04Turn\x12\x15\n\rplayer_number\x18\x01 \x01(\r\x12\x19\n\x05state\x18\x02 \x01(\x0e\x32\n.GameState\"\"\n\x05State\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"\t\n\x07\x45ndTurn\"\x86\x01\n\x15GameMessageFromServer\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12 \n\nstart_game\x18\x02 \x01(\x0b\x32\n.StartGameH\x00\x12\x15\n\x04turn\x18\x03 \x01(\x0b\x32\x05.TurnH\x00\x12\x1c\n\ngame_state\x18\x04 \x01(\x0b\x32\x06.StateH\x00\x42\x05\n\x03msg\"o\n\x15GameMessageFromClient\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12 \n\nstart_game\x18\x02 \x01(\x0b\x32\n.StartGameH\x00\x12\x1c\n\x08\x65nd_turn\x18\x03 \x01(\x0b\x32\x08.EndTurnH\x00\x42\x05\n\x03msgB\r\n\tsoc.protoH\x03P\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x12game_message.proto\x1a\ndata.proto\"\"\n\x05State\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"&\n\tStartGame\x12\x19\n\x05state\x18\x01 \x01(\x0e\x32\n.GameState\"8\n\x04Turn\x12\x15\n\rplayer_number\x18\x01 \x01(\r\x12\x19\n\x05state\x18\x02 \x01(\x0e\x32\n.GameState\"\t\n\x07\x45ndTurn\"\x86\x01\n\x15GameMessageFromServer\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12\x1c\n\ngame_state\x18\x02 \x01(\x0b\x32\x06.StateH\x00\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x15\n\x04turn\x18\x65 \x01(\x0b\x32\x05.TurnH\x00\x42\x05\n\x03msg\"o\n\x15GameMessageFromClient\x12\x0f\n\x07ga_name\x18\x01 \x01(\t\x12 \n\nstart_game\x18\x64 \x01(\x0b\x32\n.StartGameH\x00\x12\x1c\n\x08\x65nd_turn\x18\x65 \x01(\x0b\x32\x08.EndTurnH\x00\x42\x05\n\x03msgB\r\n\tsoc.protoH\x03P\x00\x62\x06proto3')
   ,
   dependencies=[data__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
+
+
+_STATE = _descriptor.Descriptor(
+  name='State',
+  full_name='State',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='state', full_name='State.state', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=34,
+  serialized_end=68,
+)
 
 
 _STARTGAME = _descriptor.Descriptor(
@@ -55,8 +86,8 @@ _STARTGAME = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=34,
-  serialized_end=72,
+  serialized_start=70,
+  serialized_end=108,
 )
 
 
@@ -93,38 +124,7 @@ _TURN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=74,
-  serialized_end=130,
-)
-
-
-_STATE = _descriptor.Descriptor(
-  name='State',
-  full_name='State',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='state', full_name='State.state', index=0,
-      number=1, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=132,
+  serialized_start=110,
   serialized_end=166,
 )
 
@@ -168,22 +168,22 @@ _GAMEMESSAGEFROMSERVER = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='start_game', full_name='GameMessageFromServer.start_game', index=1,
+      name='game_state', full_name='GameMessageFromServer.game_state', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='turn', full_name='GameMessageFromServer.turn', index=2,
-      number=3, type=11, cpp_type=10, label=1,
+      name='start_game', full_name='GameMessageFromServer.start_game', index=2,
+      number=100, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='game_state', full_name='GameMessageFromServer.game_state', index=3,
-      number=4, type=11, cpp_type=10, label=1,
+      name='turn', full_name='GameMessageFromServer.turn', index=3,
+      number=101, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -224,14 +224,14 @@ _GAMEMESSAGEFROMCLIENT = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='start_game', full_name='GameMessageFromClient.start_game', index=1,
-      number=2, type=11, cpp_type=10, label=1,
+      number=100, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='end_turn', full_name='GameMessageFromClient.end_turn', index=2,
-      number=3, type=11, cpp_type=10, label=1,
+      number=101, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -255,21 +255,21 @@ _GAMEMESSAGEFROMCLIENT = _descriptor.Descriptor(
   serialized_end=427,
 )
 
+_STATE.fields_by_name['state'].enum_type = data__pb2._GAMESTATE
 _STARTGAME.fields_by_name['state'].enum_type = data__pb2._GAMESTATE
 _TURN.fields_by_name['state'].enum_type = data__pb2._GAMESTATE
-_STATE.fields_by_name['state'].enum_type = data__pb2._GAMESTATE
+_GAMEMESSAGEFROMSERVER.fields_by_name['game_state'].message_type = _STATE
 _GAMEMESSAGEFROMSERVER.fields_by_name['start_game'].message_type = _STARTGAME
 _GAMEMESSAGEFROMSERVER.fields_by_name['turn'].message_type = _TURN
-_GAMEMESSAGEFROMSERVER.fields_by_name['game_state'].message_type = _STATE
+_GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
+  _GAMEMESSAGEFROMSERVER.fields_by_name['game_state'])
+_GAMEMESSAGEFROMSERVER.fields_by_name['game_state'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
 _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMSERVER.fields_by_name['start_game'])
 _GAMEMESSAGEFROMSERVER.fields_by_name['start_game'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
 _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMSERVER.fields_by_name['turn'])
 _GAMEMESSAGEFROMSERVER.fields_by_name['turn'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
-_GAMEMESSAGEFROMSERVER.oneofs_by_name['msg'].fields.append(
-  _GAMEMESSAGEFROMSERVER.fields_by_name['game_state'])
-_GAMEMESSAGEFROMSERVER.fields_by_name['game_state'].containing_oneof = _GAMEMESSAGEFROMSERVER.oneofs_by_name['msg']
 _GAMEMESSAGEFROMCLIENT.fields_by_name['start_game'].message_type = _STARTGAME
 _GAMEMESSAGEFROMCLIENT.fields_by_name['end_turn'].message_type = _ENDTURN
 _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg'].fields.append(
@@ -278,12 +278,19 @@ _GAMEMESSAGEFROMCLIENT.fields_by_name['start_game'].containing_oneof = _GAMEMESS
 _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg'].fields.append(
   _GAMEMESSAGEFROMCLIENT.fields_by_name['end_turn'])
 _GAMEMESSAGEFROMCLIENT.fields_by_name['end_turn'].containing_oneof = _GAMEMESSAGEFROMCLIENT.oneofs_by_name['msg']
+DESCRIPTOR.message_types_by_name['State'] = _STATE
 DESCRIPTOR.message_types_by_name['StartGame'] = _STARTGAME
 DESCRIPTOR.message_types_by_name['Turn'] = _TURN
-DESCRIPTOR.message_types_by_name['State'] = _STATE
 DESCRIPTOR.message_types_by_name['EndTurn'] = _ENDTURN
 DESCRIPTOR.message_types_by_name['GameMessageFromServer'] = _GAMEMESSAGEFROMSERVER
 DESCRIPTOR.message_types_by_name['GameMessageFromClient'] = _GAMEMESSAGEFROMCLIENT
+
+State = _reflection.GeneratedProtocolMessageType('State', (_message.Message,), dict(
+  DESCRIPTOR = _STATE,
+  __module__ = 'game_message_pb2'
+  # @@protoc_insertion_point(class_scope:State)
+  ))
+_sym_db.RegisterMessage(State)
 
 StartGame = _reflection.GeneratedProtocolMessageType('StartGame', (_message.Message,), dict(
   DESCRIPTOR = _STARTGAME,
@@ -298,13 +305,6 @@ Turn = _reflection.GeneratedProtocolMessageType('Turn', (_message.Message,), dic
   # @@protoc_insertion_point(class_scope:Turn)
   ))
 _sym_db.RegisterMessage(Turn)
-
-State = _reflection.GeneratedProtocolMessageType('State', (_message.Message,), dict(
-  DESCRIPTOR = _STATE,
-  __module__ = 'game_message_pb2'
-  # @@protoc_insertion_point(class_scope:State)
-  ))
-_sym_db.RegisterMessage(State)
 
 EndTurn = _reflection.GeneratedProtocolMessageType('EndTurn', (_message.Message,), dict(
   DESCRIPTOR = _ENDTURN,

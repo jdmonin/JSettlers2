@@ -111,7 +111,7 @@ class DummyProtoClient(object):
     # All FromServer message treater functions; see msg_from_server_treaters.
     # The ordering of these declarations follows that within message.proto message FromServer.
 
-    # auth
+    # auth/connect
 
     def _treat_vers(self, msg):
         print("  Version(" + str(msg.vers.vers_num) + ", '"
@@ -121,6 +121,8 @@ class DummyProtoClient(object):
     def _treat_status_text(self, msg):
         print("  ServerStatusText(" + str(msg.status_text.sv)
             + ", " + repr(msg.status_text.text) + ")" )
+
+    # robots
 
     def _treat_bot_update_params(self, msg):
         print("  BotUpdateParams(strat=" + str(msg.bot_update_params.strategy_type)
@@ -143,9 +145,11 @@ class DummyProtoClient(object):
     # The ordering within this declaration follows that of message.proto message FromServer.
 
     _msg_from_server_treaters = {
-        # auth
+        # auth/connect
         'vers': _treat_vers,
         'status_text': _treat_status_text,
+
+        # robots
         'bot_update_params': _treat_bot_update_params,
 
         # games

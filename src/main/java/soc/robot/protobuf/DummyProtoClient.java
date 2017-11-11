@@ -152,6 +152,9 @@ public class DummyProtoClient
 
         switch (typ)
         {
+
+        // auth/connect
+
         case Message.FromServer.VERS_FIELD_NUMBER:
             {
                 Message.Version m = msg.getVers();
@@ -169,6 +172,8 @@ public class DummyProtoClient
             }
             break;
 
+        // robots
+
         case Message.FromServer.BOT_UPDATE_PARAMS_FIELD_NUMBER:
             {
                 Message.BotUpdateParams m = msg.getBotUpdateParams();
@@ -176,6 +181,8 @@ public class DummyProtoClient
                     ("  BotUpdateParams(strat=" + m.getStrategyType() + ", tf=" + m.getTradeFlag() + ", ...)");
             }
             break;
+
+        // games
 
         case Message.FromServer.BOT_JOIN_REQ_FIELD_NUMBER:
             {

@@ -36,7 +36,33 @@ import public "data.proto";
 
 
 //
-// Current Turn and State
+// Game State
+//
+
+/* The current state of the game, sent when it changes.
+ *<P>
+ * Messages which change the current turn or player, like {@link Turn}
+ * and {@link StartGame}, include the new turn's state as a field because
+ * the current player and game state are both changing.
+ *<P>
+ * For some states, such as {@link Data.GameState#WAITING_FOR_ROB_CHOOSE_PLAYER},
+ * another message (such as {@link ChoosePlayerRequest}) will
+ * follow to prompt the current player.  For others, such as
+ * {@link Data.GameState#WAITING_FOR_DISCOVERY} or
+ * {@link Data.GameState#WAITING_FOR_ROBBER_OR_PIRATE}, sending this
+ * State message implies that the player must decide and respond.
+ *<P>
+ * For {@link Data.GameState#WAITING_FOR_ROBBER_OR_PIRATE}, the player should
+ * respond with {@link ChoosePlayer}; see that message's javadoc.
+ *<P>
+ * Before v3.0.00 this message was {@code GameState}.
+ */
+message State {
+    GameState state = 1;
+}
+
+//
+// Current Turn
 //
 
 /* From client, this message means that a player wants to start the game;
@@ -66,28 +92,6 @@ message Turn {
     GameState state = 2;  // new state, or empty/0 when joining game in progress
 }
 
-/* The current state of the game, sent when it changes.
- *<P>
- * Messages which change the current turn or player, like {@link Turn}
- * and {@link StartGame}, include the new turn's state as a field because
- * the current player and game state are both changing.
- *<P>
- * For some states, such as {@link Data.GameState#WAITING_FOR_ROB_CHOOSE_PLAYER},
- * another message (such as {@link ChoosePlayerRequest}) will
- * follow to prompt the current player.  For others, such as
- * {@link Data.GameState#WAITING_FOR_DISCOVERY} or
- * {@link Data.GameState#WAITING_FOR_ROBBER_OR_PIRATE}, sending this
- * State message implies that the player must decide and respond.
- *<P>
- * For {@link Data.GameState#WAITING_FOR_ROBBER_OR_PIRATE}, the player should
- * respond with {@link ChoosePlayer}; see that message's javadoc.
- *<P>
- * Before v3.0.00 this message was {@code GameState}.
- */
-message State {
-    GameState state = 1;
-}
-
 /* Player wants to end their turn. */
 message EndTurn {
     // no detail fields are needed
@@ -104,18 +108,20 @@ message EndTurn {
 message GameMessageFromServer {
     string ga_name = 1;      // Name of game
     oneof msg {
-        // turn and state
-        StartGame start_game = 2;
-        Turn turn = 3;
-        State game_state = 4;
+        // state
+        State game_state = 2;
+
+        // turn
+        StartGame start_game = 100;
+        Turn turn = 101;
     }
 }
 
 message GameMessageFromClient {
     string ga_name = 1;      // Name of game
     oneof msg {
-        // turn and state
-        StartGame start_game = 2;
-        EndTurn end_turn = 3;
+        // turn
+        StartGame start_game = 100;
+        EndTurn end_turn = 101;
     }
 }
