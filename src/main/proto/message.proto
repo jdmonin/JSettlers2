@@ -30,6 +30,9 @@ import public "data.proto";
 // Messages are grouped by category. See the bottom of this file
 // for FromServer and FromClient, which use OneOf union groups.
 //
+// When planning changes to these message types, see section
+// "Updating A Message Type" of https://developers.google.com/protocol-buffers/docs/proto3
+//
 
 
 //

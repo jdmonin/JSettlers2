@@ -18,6 +18,7 @@
 
 import socket
 import sys
+import traceback
 import google.protobuf
 from google.protobuf.internal import encoder, decoder
 import message_pb2
@@ -39,12 +40,23 @@ class DummyProtoClient(object):
         srv: Server hostname (FQDN) or IP string ("127.0.0.1" etc)
         port: TCP port; default protobuf port for JSettlers is PORT_DEFAULT_PROTOBUF
         cookie: Server's required robot cookie (weak shared secret)
+        sock: Socket connected to the server
+        connected: Are we connected to the server, with no errors sending or decoding messages?
         """
         self.srv = srv
         self.port = port
         self.cookie = cookie
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((srv, port))
+        self.connected = False  # set true in auth_and_run
+
+    def disconnect(self, send_leave_all=True):
+        """Clear our 'connected' flag field. Optionally send a LeaveAll message first."""
+        if self.connected and send_leave_all:
+            msg = message_pb2.FromClient()
+            msg.leave_all.SetInParent()  # send LeaveAll message, which has no fields of its own
+            self.write_delimited_message(msg)
+        self.connected = False
 
     def close(self):
         """Close the socket connection. Ignores any IOException because this is a test client."""
@@ -59,10 +71,13 @@ class DummyProtoClient(object):
         then loop to receive replies and treat(msg) until a break.
         No error-checking/exception-handling is done because this is a test client.
         """
+
+        self.connected = True
+
         msg = message_pb2.FromClient()
         msg.vers.vers_num = 3000
         msg.vers.vers_str = '3.0.00'
-        msg.vers.vers_build= 'DUMMYBUILD'
+        msg.vers.vers_build = 'DUMMYBUILD'
         self.write_delimited_message(msg)
 
         msg = message_pb2.FromClient()
@@ -72,9 +87,26 @@ class DummyProtoClient(object):
         self.write_delimited_message(msg)
 
         # Loop to read any proto messages from the server, until ^C
-        while msg is not None:
-            msg = self.read_delimited_message()
-            self.treat(msg)
+        print("Entering message receive loop; ^C to exit");
+        while self.connected:
+            try:
+                msg = self.read_delimited_message()
+            except KeyboardInterrupt as e:
+                print("Disconnecting from server")
+                self.disconnect()
+                msg = None  # clear previous iteration
+            except Exception as e:
+                print("Error receiving/parsing message: " + str(e), file=sys.stderr)
+                self.disconnect(False)
+            if msg is not None:
+                try:
+                    self.treat(msg)
+                except Exception as e:
+                    print("Error in treat(" + str(msg.WhichOneof("msg")) + "): " + str(e), file=sys.stderr)
+                    traceback.print_tb(e.__traceback__)
+            else:
+                # EOF
+                self.disconnect(False)
 
     # All FromServer message treater functions; see msg_from_server_treaters.
     # The ordering of these declarations follows that within message.proto message FromServer.
@@ -96,10 +128,11 @@ class DummyProtoClient(object):
 
     # games
 
-    def _treat_ga_join(self, msg):
-        print("  BotJoinGameRequest('" + m.ga_join.game.ga_name + "', "
-            + msg.ga_join.seat_number + ")" )
-        # TODO respond with disconnect, including send LeaveAll: Not complete enough to play in a game
+    def _treat_bot_join_req(self, msg):
+        print("  BotJoinGameRequest('" + msg.bot_join_req.game.ga_name + "', "
+            + str(msg.bot_join_req.seat_number) + ")" )
+        print("  -- DISCONNECTING, this bot can't join games");
+        self.disconnect()
 
     # within a game
 
@@ -116,7 +149,7 @@ class DummyProtoClient(object):
         'bot_update_params': _treat_bot_update_params,
 
         # games
-        'ga_join': _treat_ga_join,
+        'bot_join_req': _treat_bot_join_req,
 
         # within a game
         'game_message': _treat_game_message,

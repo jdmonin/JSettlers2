@@ -56,6 +56,12 @@ public class DummyProtoClient
 
     private final Socket sock;
 
+    /** Stream for writing delimited messages to {@link #sock} */
+    private final OutputStream sockOut;
+
+    /** Are we connected to the server, with no errors sending or decoding messages? */
+    protected boolean connected = false;
+
     /**
      * This constructor creates a barely-useful proto client.
      * After creation, call {@link #authAndRun()} to communicate.
@@ -72,6 +78,7 @@ public class DummyProtoClient
         this.srvPort = srvPort;
         this.cookie = cookie;
         sock = new Socket(srvHost, srvPort);
+        sockOut = sock.getOutputStream();
     }
 
     /**
@@ -81,31 +88,52 @@ public class DummyProtoClient
     public void authAndRun()
         throws Exception
     {
-        Message.FromClient msg1 = Message.FromClient.newBuilder()
+        final Message.FromClient msgVers = Message.FromClient.newBuilder()
             .setVers(Message.Version.newBuilder()
                 .setVersNum(Version.versionNumber()).setVersStr(Version.version())
                 .setVersBuild(Version.buildnum())).build();
-        Message.FromClient msg2 = Message.FromClient.newBuilder()
+        final Message.FromClient msgImARobot = Message.FromClient.newBuilder()
             .setImARobot(Message.ImARobot.newBuilder()
                 .setNickname(BOTNAME).setCookie(cookie)
                 .setRbClass(getClass().getName())).build();
 
-        final OutputStream os = sock.getOutputStream();
+        connected = true;
         System.out.println("Sending Version and ImARobot");
-        msg1.writeDelimitedTo(os);
-        msg2.writeDelimitedTo(os);
-        os.flush();
+        put(msgVers);
+        put(msgImARobot);
 
         // Loop to read any proto messages from the server, until ^C
 
         final InputStream is = sock.getInputStream();
 
         System.out.println("Entering message receive loop; ^C to exit");
-        do
+        Message.FromServer smsg = null;
+        while (connected)
         {
-            Message.FromServer smsg = Message.FromServer.parseDelimitedFrom(is);  // may throw IOException
-            treat(smsg);
-        } while (true);
+            try
+            {
+                smsg = Message.FromServer.parseDelimitedFrom(is);  // may throw IOException
+            } catch (IOException e) {
+                System.err.println("Error receiving/parsing message: " + e);
+                connected = false;
+                smsg = null;
+            }
+
+            if (smsg != null)
+            {
+                try
+                {
+                    treat(smsg);
+                } catch (Exception e) {
+                    System.err.println("Exception in treat(" + smsg.getClass().getSimpleName() + "): " + e);
+                    e.printStackTrace();
+                }
+            } else {
+                connected = false;
+                System.out.println("null message from parseDelimitedFrom, exiting");
+
+            }
+        };
 
     }
 
@@ -154,10 +182,29 @@ public class DummyProtoClient
                 Message.BotJoinGameRequest m = msg.getBotJoinReq();
                 System.out.println
                     ("  BotJoinGameRequest('" + m.getGame().getGaName() + "', " + m.getSeatNumber() + ")");
-
-                // TODO respond with disconnect, including send LeaveAll: Not complete enough to play in a game
+                System.out.println
+                    ("  -- DISCONNECTING, this bot can't join games");
+                put(Message.FromClient.newBuilder()
+                    .setLeaveAll(Message.LeaveAll.newBuilder()).build());
+                connected = false;
             }
             break;
+        }
+    }
+
+    /**
+     * Send a message to our connected server.
+     * If an {@link IOException} occurs, writes to {@link System#err} and sets {@link #connected} false.
+     */
+    public void put(Message.FromClient msg)
+    {
+        try
+        {
+            msg.writeDelimitedTo(sockOut);
+            sockOut.flush();
+        } catch (IOException e) {
+            System.err.println("Error sending message in put(" + msg.getClass().getSimpleName() + "): " + e);
+            connected = false;
         }
     }
 
