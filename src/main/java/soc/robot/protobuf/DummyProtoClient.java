@@ -29,9 +29,12 @@ import soc.proto.Message;
 import soc.util.Version;
 
 /**
- * A simple bot protobuf client that connects to a server, can
+ * A sample bot protobuf client that connects to a server, can
  * send and receive a few basic messages, but can't play in games.
  * Currently if the bot receives a join game request, that game will hang.
+ *<P>
+ * This sample client has rough feature parity with {@code src/main/python/soc/robot/dummy_proto_client.py}.
+ *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 3.0.00
  */
@@ -51,15 +54,15 @@ public class DummyProtoClient
     /** Server's required bot cookie (weak shared secret) */
     public final String cookie;
 
-    private final Socket s;
+    private final Socket sock;
 
     /**
      * This constructor creates a barely-useful proto client.
-     * After creation, call {@link #sendThenReceive()} to communicate.
+     * After creation, call {@link #authAndRun()} to communicate.
      * @param srvHost  Server hostname (FQDN) or IP string ("127.0.0.1" etc)
      * @param srvPort  TCP port; default protobuf port for JSettlers
      *     is {@link SOCDisplaylessPlayerClient#PORT_DEFAULT_PROTOBUF}
-     * @param cookie  Server's required bot cookie (weak shared secret)
+     * @param cookie  Server's required robot cookie (weak shared secret)
      */
     public DummyProtoClient
         (final String srvHost, final int srvPort, final String cookie)
@@ -68,14 +71,14 @@ public class DummyProtoClient
         this.srvHost = srvHost;
         this.srvPort = srvPort;
         this.cookie = cookie;
-        s = new Socket(srvHost, srvPort);
+        sock = new Socket(srvHost, srvPort);
     }
 
     /**
-     * Encode and send opening protobuf messages to a server, then loop to receive any until a break.
-     * @param s  Open socket to a server; do not close this socket
+     * Encode and send opening protobuf messages to the connected server, then loop to receive
+     * replies and {@link #treat(soc.proto.Message.FromServer)} until a break.
      */
-    public void sendThenReceive()
+    public void authAndRun()
         throws Exception
     {
         Message.FromClient msg1 = Message.FromClient.newBuilder()
@@ -87,7 +90,7 @@ public class DummyProtoClient
                 .setNickname(BOTNAME).setCookie(cookie)
                 .setRbClass(getClass().getName())).build();
 
-        final OutputStream os = s.getOutputStream();
+        final OutputStream os = sock.getOutputStream();
         System.out.println("Sending Version and ImARobot");
         msg1.writeDelimitedTo(os);
         msg2.writeDelimitedTo(os);
@@ -95,7 +98,7 @@ public class DummyProtoClient
 
         // Loop to read any proto messages from the server, until ^C
 
-        final InputStream is = s.getInputStream();
+        final InputStream is = sock.getInputStream();
 
         System.out.println("Entering message receive loop; ^C to exit");
         do
@@ -107,7 +110,7 @@ public class DummyProtoClient
     }
 
     /**
-     * Treat the incoming messages.
+     * Treat an incoming message from the server.
      * Messages of unknown type are ignored.
      */
     protected void treat(final Message.FromServer msg)
@@ -126,7 +129,7 @@ public class DummyProtoClient
                 Message.Version m = msg.getVers();
                 System.out.println
                     ("  Version(" + m.getVersNum() + ", '" + m.getVersStr()
-                     + "', '" + m.getVersBuild() + "', '" + m.getCliLocale() + "')");
+                     + "', '" + m.getVersBuild() + "', '" + m.getSrvFeats() + "')");
             }
             break;
 
@@ -150,7 +153,7 @@ public class DummyProtoClient
             {
                 Message.BotJoinGameRequest m = msg.getBotJoinReq();
                 System.out.println
-                    ("  RobotJoinGameRequest('" + m.getGame().getGaName() + "', " + m.getSeatNumber() + ")");
+                    ("  BotJoinGameRequest('" + m.getGame().getGaName() + "', " + m.getSeatNumber() + ")");
 
                 // TODO respond with disconnect, including send LeaveAll: Not complete enough to play in a game
             }
@@ -166,7 +169,7 @@ public class DummyProtoClient
     {
         try
         {
-            s.close();
+            sock.close();
         } catch (IOException e) {}
     }
 
@@ -201,7 +204,7 @@ public class DummyProtoClient
         try
         {
             dpc = new DummyProtoClient(srvHost, srvPort, cookie);
-            dpc.sendThenReceive();
+            dpc.authAndRun();
         } catch (Exception e) {
             System.err.println("Error at client: " + e);
             e.printStackTrace();

@@ -11,6 +11,7 @@
 #    sh$ src/main/python/soc/robot/dummy_proto_client.py localhost PRO
 #
 # Since this is for testing only, error conditions will throw an exception instead of being caught.
+# This sample client has rough feature parity with src/main/java/soc/robot/protobuf/DummyProtoClient.java.
 #
 # See bottom of file for main() function.
 
@@ -35,6 +36,9 @@ class DummyProtoClient(object):
         """
         Set fields and try to connect to srv on the given TCP port.
         To actually communicate with the server, you must call auth_and_run().
+        srv: Server hostname (FQDN) or IP string ("127.0.0.1" etc)
+        port: TCP port; default protobuf port for JSettlers is PORT_DEFAULT_PROTOBUF
+        cookie: Server's required robot cookie (weak shared secret)
         """
         self.srv = srv
         self.port = port
