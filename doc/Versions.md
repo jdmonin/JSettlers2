@@ -32,6 +32,7 @@ and backport minor new features until `2.0.00` is ready.
 - Some game options are meant to be set by the server during game creation, not requested by the client.
   Their option keynames all start with '_' and are hidden in the New Game options window.
 - Player's inventory can hold more than just development cards
+- Server closes connections to rejected clients or bots
 - For AI/Robot development:
 	- The server can run bot-only games with new startup option:  
 	  `-Djsettlers.bots.botgames.total=7`
@@ -63,6 +64,7 @@ and backport minor new features until `2.0.00` is ready.
     so `SOCDisplaylessClient.treat()` handles all messages which don't need robot-specific handling.
 - For clarity rename genericServer classes: StringConnection -> Connection, NetStringConnection -> NetConnection,
     LocalStringConnection -> StringConnection, etc
+- Game state renamed for clarity: SOCGame.PLAY -> ROLL_OR_CARD; PLAY1 not renamed; SOCRobotBrain.expectPLAY -> expectROLL_OR_CARD
 - Minor refactoring
 - Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 - Project dir structure converted to maven layout

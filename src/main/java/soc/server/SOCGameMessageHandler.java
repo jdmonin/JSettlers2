@@ -2641,7 +2641,7 @@ public class SOCGameMessageHandler
                                     handler.sendTurn(ga, true);
                                 break;
 
-                            case SOCGame.PLAY:
+                            case SOCGame.ROLL_OR_CARD:
                                 // The last initial road was placed
                                 final boolean toldRoll = handler.sendGameState(ga, false);
                                 if (! handler.checkTurn(c, ga))

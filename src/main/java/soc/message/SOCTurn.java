@@ -34,7 +34,7 @@ import java.util.StringTokenizer;
  *<P>
  * The server won't send a TURN message after the final road or ship is placed at the
  * end of initial placement and start of regular gameplay, only a {@link SOCGameState}
- * message (state START2 -> PLAY).
+ * message (state START2 -> ROLL_OR_CARD).
  *
  * @author Robert S. Thomas
  * @see SOCSetTurn

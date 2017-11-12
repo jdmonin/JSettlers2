@@ -2021,7 +2021,7 @@ public class SOCHandPanel extends Panel
      * Called from client when server sends {@link soc.message.SOCMessage#TURN}.
      * Called also at start of game by {@link SOCPlayerInterface#updateAtGameState()},
      * because the server sends no TURN between the last road (gamestate START2B)
-     * and the first player's turn (state PLAY).
+     * and the first player's turn (state ROLL_OR_CARD).
      * @since 1.1.00
      */
     public void updateAtTurn()
@@ -2059,7 +2059,7 @@ public class SOCHandPanel extends Panel
         if (playerIsClient)
         {
             final int gs = game.getGameState();
-            boolean normalTurnStarting = (gs == SOCGame.PLAY || gs == SOCGame.PLAY1);
+            boolean normalTurnStarting = (gs == SOCGame.ROLL_OR_CARD || gs == SOCGame.PLAY1);
             clearOffer(normalTurnStarting);  // Zero the square panel numbers, etc. (TODO) better descr.
                 // at any player's turn, not just when playerIsCurrent.
             if (! playerIsCurrent)
@@ -2167,7 +2167,7 @@ public class SOCHandPanel extends Panel
         if (playerTradingDisabled)
             return;
 
-        final boolean enaOfferBut = notAllZero && ((gs == SOCGame.PLAY) || (gs == SOCGame.PLAY1));
+        final boolean enaOfferBut = notAllZero && ((gs == SOCGame.ROLL_OR_CARD) || (gs == SOCGame.PLAY1));
         offerBut.setEnabled(enaOfferBut);
         if (offerButTip != null)
         {
@@ -2791,7 +2791,7 @@ public class SOCHandPanel extends Panel
     private void updateRollDoneBankButtons()
     {
         final int gs = game.getGameState();
-        rollBut.setEnabled(gs == SOCGame.PLAY);
+        rollBut.setEnabled(gs == SOCGame.ROLL_OR_CARD);
         doneBut.setEnabled((gs == SOCGame.PLAY1) || (gs == SOCGame.SPECIAL_BUILDING)
             || (gs <= SOCGame.START3B) || doneButIsRestart);
         bankBut.setEnabled(gs == SOCGame.PLAY1);
@@ -3263,7 +3263,7 @@ public class SOCHandPanel extends Panel
      *<P>
      * Note that because of the order of network messages,
      * after this player's turn, there's a brief time when
-     * the state becomes PLAY again, before the current player
+     * the state becomes ROLL_OR_CARD again, before the current player
      * is changed to the next player.  So, it appears that
      * this player can roll again, but they cannot.
      * To guard against this, use {@link #isClientAndCurrentlyCanRoll()} instead.

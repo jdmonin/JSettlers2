@@ -3103,7 +3103,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     //
                     //D.ebugPrintln(")))) legalSettlements["+Integer.toHexString(settlementNode)+"] = true");
                     //
-                    if (game.getGameState() < SOCGame.PLAY)
+                    if (game.getGameState() < SOCGame.ROLL_OR_CARD)
                     {
                         potentialSettlements.add(settleNodeInt);
 

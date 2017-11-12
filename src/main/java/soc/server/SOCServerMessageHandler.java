@@ -442,6 +442,8 @@ public class SOCServerMessageHandler
      * Their version is checked here, must equal server's version.
      * For stability and control, the cookie in this message must
      * match this server's {@link SOCServer#robotCookie}.
+     * Otherwise the bot is rejected and they're disconnected by calling
+     * {@link SOCServer#removeConnection(Connection, boolean)}.
      *<P>
      * Bot tuning parameters are sent here to the bot, from
      * {@link SOCDBHelper#retrieveRobotParams(String, boolean) SOCDBHelper.retrieveRobotParams(botName, true)}.
@@ -450,7 +452,8 @@ public class SOCServerMessageHandler
      * for {@link SOCClientData} flags and fields set for the bot's connection
      * and for other misc work done, such as {@link Server#cliConnDisconPrintsPending} updates.
      *<P>
-     * Before connecting here, bots are named and started in {@link SOCServer#setupLocalRobots(int, int)}.
+     * The server's built-in bots are named and started in {@link SOCServer#setupLocalRobots(int, int)},
+     * then must authenticate with this message just like external or third-party bots.
      *
      * @param c  the connection that sent the message
      * @param mes  the message
@@ -472,6 +475,7 @@ public class SOCServerMessageHandler
                         (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(), rejectReason));
             c.put(new SOCRejectConnection(rejectReason));
             c.disconnectSoft();
+            srv.removeConnection(c, true);
 
             return;  // <--- Early return: rejected ---
         }
@@ -1008,7 +1012,7 @@ public class SOCServerMessageHandler
             // To avoid disruptions by game observers, only players can chat after initial placement.
             // To help form the game, non-seated members can also participate in the chat until then.
 
-            final boolean canChat = (ga.getGameState() < SOCGame.PLAY) && gameList.isMember(c, gaName);
+            final boolean canChat = (ga.getGameState() < SOCGame.ROLL_OR_CARD) && gameList.isMember(c, gaName);
             if (! canChat)
             {
                 srv.messageToPlayerKeyed(c, gaName, "member.chat.not_observers");  // "Observers can't chat during the game."

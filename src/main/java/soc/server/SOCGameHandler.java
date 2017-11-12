@@ -749,7 +749,7 @@ public class SOCGameHandler extends GameHandler
 
         /**
          * For initial placements, we don't end turns as normal.
-         * (Player number may go forward or backwards, new state isn't PLAY, etc.)
+         * (Player number may go forward or backwards, new state isn't ROLL_OR_CARD, etc.)
          * Update clients' gamestate, but don't call endGameTurn.
          */
         final int forceRes = res.getResult();
@@ -918,7 +918,7 @@ public class SOCGameHandler extends GameHandler
         /**
          * _SC_FTRI: If game has started, send any changed Special Edges.
          */
-        if (gameData.hasSeaBoard && (gameData.getGameState() >= SOCGame.PLAY))
+        if (gameData.hasSeaBoard && (gameData.getGameState() >= SOCGame.ROLL_OR_CARD))
         {
             final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
             boolean sendEdgeChanges = bl.hasSpecialEdges();
@@ -1916,7 +1916,7 @@ public class SOCGameHandler extends GameHandler
                 player.getName());
             break;
 
-        case SOCGame.PLAY:
+        case SOCGame.ROLL_OR_CARD:
             srv.messageToGameKeyed(ga, true, "prompt.turn.to.roll.dice", player.getName());  // "It's Joe's turn to roll the dice."
             promptedRoll = true;
             if (sendRollPrompt)

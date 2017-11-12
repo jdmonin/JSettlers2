@@ -167,6 +167,7 @@ public class SOCServer extends Server
 
     /**
      * Default number of bots to start (7; {@link #PROP_JSETTLERS_STARTROBOTS} property).
+     * Since 30% of bots are smart, this will start 5 fast and 2 smart robots.
      * @since 1.1.19
      */
     public static final int SOC_STARTROBOTS_DEFAULT = 7;
@@ -282,13 +283,15 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC = "jsettlers.bots.botgames.wait_sec";
 
     /**
-     * Property <tt>jsettlers.startrobots</tt> to start some robots when the server starts.
+     * Property <tt>jsettlers.startrobots</tt> to start some robots when the server's threads start.
      * (The default is {@link #SOC_STARTROBOTS_DEFAULT}.)
      *<P>
      * 30% will be "smart" robots, the other 70% will be "fast" robots.
      * Remember that robots count against the {@link #PROP_JSETTLERS_CONNECTIONS max connections} limit.
      *<P>
      * Before v1.1.19 the default was 0, no robots were started by default.
+     * Before v2.0.00 no bots were started unless the server constructor was
+     * given a non-null {@link Properties}.
      * @since 1.1.09
      * @see #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL
      */
@@ -1037,8 +1040,8 @@ public class SOCServer extends Server
      * Most server threads are started here; you must start its main thread yourself.
      * Optionally connect to a database for user info and game stats.
      *<P>
-     * No bots will be started here ({@link #PROP_JSETTLERS_STARTROBOTS} == 0),
-     * call {@link #setupLocalRobots(int, int)} if bots are wanted.
+     * The default number of bots will be started here ({@link #SOC_STARTROBOTS_DEFAULT})
+     * since this constructor has no {@link Properties} to override that.
      *<P>
      * In 1.1.07 and later, will also print game options to stderr if
      * any option defaults require a minimum client version, or if
@@ -1106,10 +1109,10 @@ public class SOCServer extends Server
      *       replace keys such as {@code "jsettlers.gameopt.vp"} with their canonical
      *       uppercase equivalent: {@code "jsettlers.gameopt.VP"}
      *       <P>
-     *       If {@code props} is null, the properties will be created empty
-     *       and no bots will be started ({@link #PROP_JSETTLERS_STARTROBOTS} == 0).
-     *       If {@code props} != null but doesn't contain {@link #PROP_JSETTLERS_STARTROBOTS},
-     *       the default value {@link #SOC_STARTROBOTS_DEFAULT} will be used.
+     *       If {@code props} is null, the properties will be created empty.
+     *       <P>
+     *       Unless {@code props} contains {@link #PROP_JSETTLERS_STARTROBOTS} == 0,
+     *       the default number {@link #SOC_STARTROBOTS_DEFAULT} of bots will be started.
      *       <P>
      *       {@code props} may contain game option default values (property names starting
      *       with {@link #PROP_JSETTLERS_GAMEOPT_PREFIX}).
@@ -1161,8 +1164,8 @@ public class SOCServer extends Server
      * Most server threads are started here; you must start its main thread yourself.
      * Optionally connect to a database for user info and game stats.
      *<P>
-     * No bots will be started here ({@link #PROP_JSETTLERS_STARTROBOTS} == 0),
-     * call {@link #setupLocalRobots(int, int)} if bots are wanted.
+     * The default number of bots will be started here ({@link #SOC_STARTROBOTS_DEFAULT})
+     * since this constructor has no {@link Properties} to override that.
      *<P>
      * In 1.1.07 and later, will also print game options to stderr if
      * any option defaults require a minimum client version, or if
@@ -1734,7 +1737,7 @@ public class SOCServer extends Server
      * Callback to take care of things when server comes up, after the server socket
      * is bound and listening, in the server's main thread.
      *<P>
-     * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, starts those {@link SOCRobotClient}s now
+     * Unlss {@link #PROP_JSETTLERS_STARTROBOTS} is 0, starts those {@link SOCRobotClient}s now
      * by calling {@link #setupLocalRobots(int, int)}. If {@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}
      * is specified, waits briefly and then calls {@link #startRobotOnlyGames(boolean)}.
      *<P>
@@ -1756,10 +1759,11 @@ public class SOCServer extends Server
          * If we have any STARTROBOTS, start them up now.
          * Each bot will have its own thread and {@link SOCRobotClient}.
          */
-        if ((props != null) && (props.containsKey(PROP_JSETTLERS_STARTROBOTS)))
+        if (props.containsKey(PROP_JSETTLERS_STARTROBOTS))
         {
             try
             {
+                // 0 bots is OK with the logic here
                 final int rcount = Integer.parseInt(props.getProperty(PROP_JSETTLERS_STARTROBOTS));
                 final int hcount = maxConnections - rcount;  // max human client connection count
                 int fast30 = (int) (0.30f * rcount);
@@ -5230,7 +5234,8 @@ public class SOCServer extends Server
 
     /**
      * Set client's version and locale, and check against minimum required version {@link #CLI_VERSION_MIN}.
-     * If version is too low, send {@link SOCRejectConnection REJECTCONNECTION}.
+     * If version is too low, send {@link SOCRejectConnection REJECTCONNECTION}
+     * and call {@link #removeConnection(Connection, boolean)}.
      * If we haven't yet sent the game list, send now.
      * If we've already sent the game list, send changes based on true version.
      *<P>
@@ -5332,7 +5337,9 @@ public class SOCServer extends Server
             c.put(new SOCRejectConnection(rejectMsg));
             c.disconnectSoft();
             System.out.println(rejectLogMsg);
-            return false;
+            removeConnection(c, true);
+
+            return false;  // <--- Early return: Rejected client ---
         }
 
         // Send game list?
@@ -6847,7 +6854,7 @@ public class SOCServer extends Server
 
         // If game is still initial-placing or was over, we'll shuffle the robots
         final boolean resetWithShuffledBots =
-            (reBoard.oldGameState < SOCGame.PLAY) || (reBoard.oldGameState == SOCGame.OVER);
+            (reBoard.oldGameState < SOCGame.ROLL_OR_CARD) || (reBoard.oldGameState == SOCGame.OVER);
 
         /**
          * Player connection data:
@@ -6904,7 +6911,7 @@ public class SOCServer extends Server
     void resetBoardAndNotify_finish(SOCGameBoardReset reBoard, SOCGame reGame)
     {
         final boolean resetWithShuffledBots =
-            (reBoard.oldGameState < SOCGame.PLAY) || (reBoard.oldGameState == SOCGame.OVER);
+            (reBoard.oldGameState < SOCGame.ROLL_OR_CARD) || (reBoard.oldGameState == SOCGame.OVER);
         Connection[] huConns = reBoard.humanConns;
 
         /**
