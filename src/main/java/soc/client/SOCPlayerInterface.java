@@ -430,7 +430,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Flag to ensure interface will be updated later when the first actual turn
      * begins (state changes from {@link SOCGame#START2B} or {@link SOCGame#START3B}
-     * to {@link SOCGame#PLAY}). Initially set in {@link #startGame()} while leaving
+     * to {@link SOCGame#ROLL_OR_CARD}). Initially set in {@link #startGame()} while leaving
      * state {@link SOCGame#NEW}. Checked/cleared in {@link #updateAtGameState()}.
      */
     protected boolean gameIsStarting;
@@ -2349,7 +2349,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Update interface after game state has changed.
-     * For example, if the client is current player, and state changed from PLAY to PLAY1,
+     * For example, if the client is current player, and state changed from ROLL_OR_CARD to PLAY1,
      * (Dice has been rolled, or card played), enable the player's Done and Bank buttons.
      * Or, if the player must discard resources or pick free resources from the gold hex,
      * calls {@link #discardOrPickTimerSet(boolean)}.
@@ -2401,8 +2401,8 @@ public class SOCPlayerInterface extends Frame
 
         // Update our interface at start of first turn;
         // The server won't send a TURN message after the
-        // final road/ship is placed (state START2 -> PLAY).
-        if (gameIsStarting && (gs >= SOCGame.PLAY))
+        // final road/ship is placed (state START2 -> ROLL_OR_CARD).
+        if (gameIsStarting && (gs >= SOCGame.ROLL_OR_CARD))
         {
             gameIsStarting = false;
             if (clientHand != null)

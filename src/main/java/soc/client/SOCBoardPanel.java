@@ -3583,7 +3583,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *             3 for bottom-right, 4 for bottom-left, 5 for middle-left.
      * @param diceResult Roll result to show, if rolled.
      *                   To show, diceResult must be at least 2,
-     *                   and gamestate not SOCGame.PLAY.
+     *                   and gamestate not SOCGame.ROLL_OR_CARD.
      */
     private final void drawArrow(Graphics g, int pnum, int diceResult)
     {
@@ -3694,7 +3694,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Draw Dice result number
          */
-        if ((diceResult >= 2) && (gameState != SOCGame.PLAY) && (gameState != SOCGame.SPECIAL_BUILDING))
+        if ((diceResult >= 2) && (gameState != SOCGame.ROLL_OR_CARD) && (gameState != SOCGame.SPECIAL_BUILDING))
         {
             if (isScaled)
             {
@@ -5104,7 +5104,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     mode = GAME_OVER;
                     break;
 
-                case SOCGame.PLAY:
+                case SOCGame.ROLL_OR_CARD:
                     mode = TURN_STARTING;
                     if (game.isGameOptionSet("N7"))
                     {

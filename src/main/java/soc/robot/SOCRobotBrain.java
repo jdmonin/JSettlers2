@@ -375,12 +375,14 @@ public class SOCRobotBrain extends Thread
     protected boolean expectSTART3B;
 
     /**
-     * true if we're expecting the PLAY state
+     * true if we're expecting the {@link SOCGame#ROLL_OR_CARD ROLL_OR_CARD} state.
+     *<P>
+     * Before v2.0.00 this field was {@code expectPLAY} because that state was named {@code PLAY}.
      */
-    protected boolean expectPLAY;
+    protected boolean expectROLL_OR_CARD;
 
     /**
-     * true if we're expecting the PLAY1 state
+     * true if we're expecting the {@link SOCGame#PLAY1 PLAY1} state.
      */
     protected boolean expectPLAY1;
 
@@ -689,7 +691,7 @@ public class SOCRobotBrain extends Thread
         expectSTART1B = false;
         expectSTART2A = false;
         expectSTART2B = false;
-        expectPLAY = false;
+        expectROLL_OR_CARD = false;
         expectPLAY1 = false;
         expectPLACING_ROAD = false;
         expectPLACING_SETTLEMENT = false;
@@ -948,7 +950,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Print brain variables and status for this game to a list of {@link String}s.
-     * Includes all of the expect and waitingFor fields (<tt>expectPLAY</tt>,
+     * Includes all of the expect and waitingFor fields (<tt>expectROLL_OR_CARD</tt>,
      * <tt>waitingForGameState</tt>, etc.)
      * Also prints the game state, and the messages received by this brain
      * during the previous and current turns.
@@ -986,7 +988,7 @@ public class SOCRobotBrain extends Thread
             "waitingForGameState", "waitingForOurTurn", "waitingForTradeMsg", "waitingForDevCard",
             "waitingForTradeResponse", "waitingForSC_PIRI_FortressRequest",
             "moveRobberOnSeven", "expectSTART1A", "expectSTART1B", "expectSTART2A", "expectSTART2B", "expectSTART3A", "expectSTART3B",
-            "expectPLAY", "expectPLAY1", "expectPLACING_ROAD", "expectPLACING_SETTLEMENT", "expectPLACING_CITY", "expectPLACING_SHIP",
+            "expectROLL_OR_CARD", "expectPLAY1", "expectPLACING_ROAD", "expectPLACING_SETTLEMENT", "expectPLACING_CITY", "expectPLACING_SHIP",
             "expectPLACING_ROBBER", "expectPLACING_FREE_ROAD1", "expectPLACING_FREE_ROAD2", "expectPLACING_INV_ITEM",
             "expectPUTPIECE_FROM_START1A", "expectPUTPIECE_FROM_START1B", "expectPUTPIECE_FROM_START2A", "expectPUTPIECE_FROM_START2B",
             "expectPUTPIECE_FROM_START3A", "expectPUTPIECE_FROM_START3B",
@@ -997,7 +999,7 @@ public class SOCRobotBrain extends Thread
             waitingForGameState, waitingForOurTurn, waitingForTradeMsg, waitingForDevCard,
             waitingForTradeResponse, waitingForSC_PIRI_FortressRequest,
             moveRobberOnSeven, expectSTART1A, expectSTART1B, expectSTART2A, expectSTART2B, expectSTART3A, expectSTART3B,
-            expectPLAY, expectPLAY1, expectPLACING_ROAD, expectPLACING_SETTLEMENT, expectPLACING_CITY, expectPLACING_SHIP,
+            expectROLL_OR_CARD, expectPLAY1, expectPLACING_ROAD, expectPLACING_SETTLEMENT, expectPLACING_CITY, expectPLACING_SHIP,
             expectPLACING_ROBBER, expectPLACING_FREE_ROAD1, expectPLACING_FREE_ROAD2, expectPLACING_INV_ITEM,
             expectPUTPIECE_FROM_START1A, expectPUTPIECE_FROM_START1B, expectPUTPIECE_FROM_START2A, expectPUTPIECE_FROM_START2B,
             expectPUTPIECE_FROM_START3A, expectPUTPIECE_FROM_START3B,
@@ -1168,7 +1170,7 @@ public class SOCRobotBrain extends Thread
                         //
                         // remove any expected states
                         //
-                        expectPLAY = false;
+                        expectROLL_OR_CARD = false;
                         expectPLAY1 = false;
                         expectPLACING_ROAD = false;
                         expectPLACING_SETTLEMENT = false;
@@ -1276,7 +1278,7 @@ public class SOCRobotBrain extends Thread
                         {
                         handlePLAYERELEMENT((SOCPlayerElement) mes);
 
-                        // If this during the PLAY state, also updates the
+                        // If this during the ROLL_OR_CARD state, also updates the
                         // negotiator's is-selling flags.
 
                         // If our player is losing a resource needed for the buildingPlan,
@@ -1482,13 +1484,13 @@ public class SOCRobotBrain extends Thread
 
                     debugInfo();
 
-                    if ((game.getGameState() == SOCGame.PLAY) && ! waitingForGameState)
+                    if ((game.getGameState() == SOCGame.ROLL_OR_CARD) && ! waitingForGameState)
                     {
                         rollOrPlayKnightOrExpectDice();
 
                         // On our turn, ask client to roll dice or play a knight;
                         // on other turns, update flags to expect dice result.
-                        // Clears expectPLAY to false.
+                        // Clears expectROLL_OR_CARD to false.
                         // Sets either expectDICERESULT, or expectPLACING_ROBBER and waitingForGameState.
                     }
 
@@ -1510,7 +1512,7 @@ public class SOCRobotBrain extends Thread
 
                         if ((! waitingForOurTurn) && ourTurn)
                         {
-                            if (! ((expectPLAY || expectPLAY1) && (counter < 4000)))
+                            if (! ((expectROLL_OR_CARD || expectPLAY1) && (counter < 4000)))
                             {
                                 if (moveRobberOnSeven)
                                 {
@@ -1525,10 +1527,10 @@ public class SOCRobotBrain extends Thread
                                     waitingForGameState = true;
                                     counter = 0;
 
-                                    if (oldGameState == SOCGame.PLAY)
+                                    if (oldGameState == SOCGame.ROLL_OR_CARD)
                                     {
                                         // robber moved from playing knight card before dice roll
-                                        expectPLAY = true;
+                                        expectROLL_OR_CARD = true;
                                     }
                                     else if (oldGameState == SOCGame.PLAY1)
                                     {
@@ -1625,7 +1627,7 @@ public class SOCRobotBrain extends Thread
 
                             /**
                              * It's not our turn.  We're not doing anything else right now.
-                             * Gamestate has passed PLAY, so we know what resources to expect.
+                             * Gamestate has passed ROLL_OR_CARD, so we know what resources to expect.
                              * Do we want to Special Build?  Check the same conditions as during our turn.
                              * Make a plan if we don't have one,
                              * and if we haven't given up building attempts this turn.
@@ -1671,7 +1673,7 @@ public class SOCRobotBrain extends Thread
 
                         if ((! waitingForOurTurn) && ourTurn)
                         {
-                            if (! (expectPLAY && (counter < 4000)))
+                            if (! (expectROLL_OR_CARD && (counter < 4000)))
                             {
                                 counter = 0;
 
@@ -1770,7 +1772,7 @@ public class SOCRobotBrain extends Thread
                                              *
                                             waitingForGameState = true;
                                             counter = 0;
-                                            expectPLAY = true;
+                                            expectROLL_OR_CARD = true;
                                             waitingForOurTurn = true;
 
                                             doneTrading = (robotParameters.getTradeFlag() != 1);
@@ -1839,7 +1841,7 @@ public class SOCRobotBrain extends Thread
                         // For initial placement of our own pieces, also checks
                         // and clears expectPUTPIECE_FROM_START1A,
                         // and sets expectSTART1B, etc.  The final initial putpiece
-                        // clears expectPUTPIECE_FROM_START2B and sets expectPLAY.
+                        // clears expectPUTPIECE_FROM_START2B and sets expectROLL_OR_CARD.
 
                         break;
 
@@ -2081,7 +2083,7 @@ public class SOCRobotBrain extends Thread
      * Bot is ending its turn; reset state control fields to act during other players' turns.
      *<UL>
      * <LI> {@link #waitingForGameState} = true
-     * <LI> {@link #expectPLAY} = true
+     * <LI> {@link #expectROLL_OR_CARD} = true
      * <LI> {@link #waitingForOurTurn} = true
      * <LI> {@link #doneTrading} = false only if {@link #robotParameters} allow trade
      * <LI> {@link #counter} = 0
@@ -2098,7 +2100,7 @@ public class SOCRobotBrain extends Thread
     {
         waitingForGameState = true;
         counter = 0;
-        expectPLAY = true;
+        expectROLL_OR_CARD = true;
         waitingForOurTurn = true;
 
         doneTrading = (robotParameters.getTradeFlag() != 1);
@@ -2544,9 +2546,9 @@ public class SOCRobotBrain extends Thread
      * On our turn, ask client to roll dice or play a knight;
      * on other turns, update flags to expect dice result.
      *<P>
-     * Call when gameState {@link SOCGame#PLAY} && ! {@link #waitingForGameState}.
+     * Call when gameState {@link SOCGame#ROLL_OR_CARD} && ! {@link #waitingForGameState}.
      *<P>
-     * Clears {@link #expectPLAY} to false.
+     * Clears {@link #expectROLL_OR_CARD} to false.
      * Sets either {@link #expectDICERESULT}, or {@link #expectPLACING_ROBBER} and {@link #waitingForGameState}.
      *<P>
      * In scenario {@code _SC_PIRI}, don't play a Knight card before dice roll, because the scenario has
@@ -2558,7 +2560,7 @@ public class SOCRobotBrain extends Thread
      */
     private void rollOrPlayKnightOrExpectDice()
     {
-        expectPLAY = false;
+        expectROLL_OR_CARD = false;
 
         if ((! waitingForOurTurn) && ourTurn)
         {
@@ -2617,7 +2619,7 @@ public class SOCRobotBrain extends Thread
      *     except possibly {@link #waitingForSpecialBuild}
      *<LI> <tt>expect...</tt> flags all false ({@link #expectPLACING_ROAD}, etc)
      *<LI> ! {@link #waitingForOurTurn}
-     *<LI> ! ({@link #expectPLAY} && (counter < 4000))
+     *<LI> ! ({@link #expectROLL_OR_CARD} && (counter < 4000))
      *</UL>
      *<P>
      * May set any of these flags:
@@ -3311,7 +3313,7 @@ public class SOCRobotBrain extends Thread
      *<P>
      * For initial placement of our own pieces, this method also checks
      * and clears expectPUTPIECE_FROM_START1A, and sets expectSTART1B, etc.
-     * The final initial putpiece clears expectPUTPIECE_FROM_START2B and sets expectPLAY.
+     * The final initial putpiece clears expectPUTPIECE_FROM_START2B and sets expectROLL_OR_CARD.
      *<P>
      * For initial settlements, won't track here:
      * Delay tracking until the corresponding road is placed,
@@ -3413,7 +3415,7 @@ public class SOCRobotBrain extends Thread
         {
             expectPUTPIECE_FROM_START2B = false;
             if (! game.isGameOptionSet(SOCGameOption.K_SC_3IP))
-                expectPLAY = true;    // wait for regular game play to start; other players might still place first
+                expectROLL_OR_CARD = true;    // wait for regular game play to start; other players might still place first
             else
                 expectSTART3A = true;
         }
@@ -3431,7 +3433,7 @@ public class SOCRobotBrain extends Thread
             && (coord == ourPlayerData.getLastRoadCoord()))
         {
             expectPUTPIECE_FROM_START3B = false;
-            expectPLAY = true;
+            expectROLL_OR_CARD = true;
         }
 
     }
@@ -3587,7 +3589,7 @@ public class SOCRobotBrain extends Thread
      * Handle a PLAYERELEMENT for this game.
      * Update a player's amount of a resource or a building type.
      *<P>
-     * If this during the {@link SOCGame#PLAY} state, then update the
+     * If this during the {@link SOCGame#ROLL_OR_CARD} state, then update the
      * {@link SOCRobotNegotiator}'s is-selling flags.
      *<P>
      * If our player is losing a resource needed for the {@link #buildingPlan},
@@ -3695,9 +3697,9 @@ public class SOCRobotBrain extends Thread
         }
 
         ///
-        /// if this during the PLAY state, then update the is selling flags
+        /// if this during the ROLL_OR_CARD state, then update the is selling flags
         ///
-        if (game.getGameState() == SOCGame.PLAY)
+        if (game.getGameState() == SOCGame.ROLL_OR_CARD)
         {
             negotiator.resetIsSelling();
         }
@@ -5126,8 +5128,8 @@ public class SOCRobotBrain extends Thread
            //D.ebugPrintln("expectSTART2A");
            if (expectSTART2B)
            //D.ebugPrintln("expectSTART2B");
-           if (expectPLAY)
-           //D.ebugPrintln("expectPLAY");
+           if (expectROLL_OR_CARD)
+           //D.ebugPrintln("expectROLL_OR_CARD");
            if (expectPLAY1)
            //D.ebugPrintln("expectPLAY1");
            if (expectPLACING_ROAD)

@@ -6851,7 +6851,7 @@ public class SOCServer extends Server
 
         // If game is still initial-placing or was over, we'll shuffle the robots
         final boolean resetWithShuffledBots =
-            (reBoard.oldGameState < SOCGame.PLAY) || (reBoard.oldGameState == SOCGame.OVER);
+            (reBoard.oldGameState < SOCGame.ROLL_OR_CARD) || (reBoard.oldGameState == SOCGame.OVER);
 
         /**
          * Player connection data:
@@ -6908,7 +6908,7 @@ public class SOCServer extends Server
     void resetBoardAndNotify_finish(SOCGameBoardReset reBoard, SOCGame reGame)
     {
         final boolean resetWithShuffledBots =
-            (reBoard.oldGameState < SOCGame.PLAY) || (reBoard.oldGameState == SOCGame.OVER);
+            (reBoard.oldGameState < SOCGame.ROLL_OR_CARD) || (reBoard.oldGameState == SOCGame.OVER);
         Connection[] huConns = reBoard.humanConns;
 
         /**

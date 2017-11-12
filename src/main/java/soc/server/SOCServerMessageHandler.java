@@ -1011,7 +1011,7 @@ public class SOCServerMessageHandler
             // To avoid disruptions by game observers, only players can chat after initial placement.
             // To help form the game, non-seated members can also participate in the chat until then.
 
-            final boolean canChat = (ga.getGameState() < SOCGame.PLAY) && gameList.isMember(c, gaName);
+            final boolean canChat = (ga.getGameState() < SOCGame.ROLL_OR_CARD) && gameList.isMember(c, gaName);
             if (! canChat)
             {
                 srv.messageToPlayerKeyed(c, gaName, "member.chat.not_observers");  // "Observers can't chat during the game."

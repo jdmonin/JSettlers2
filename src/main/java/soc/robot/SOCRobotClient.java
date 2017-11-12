@@ -460,7 +460,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                             final int cpn = gm.getCurrentPlayerNumber();
                             SOCPlayer rpl = gm.getPlayer(nickname);
                             if ((rpl != null) && (cpn == rpl.getPlayerNumber())
-                                && (gm.getGameState() >= SOCGame.PLAY))
+                                && (gm.getGameState() >= SOCGame.ROLL_OR_CARD))
                             {
                                 // we're current player, pause us
                                 debugRandomPauseActive = true;
