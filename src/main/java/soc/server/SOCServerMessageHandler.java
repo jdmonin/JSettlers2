@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.TimerTask;
 import java.util.Vector;
 
 import soc.debug.D;
@@ -475,7 +476,16 @@ public class SOCServerMessageHandler
                         (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(), rejectReason));
             c.put(new SOCRejectConnection(rejectReason).toCmd());
             c.disconnectSoft();
-            srv.removeConnection(c, true);
+
+            // make an effort to send reject message before closing socket
+            final Connection rc = c;
+            srv.miscTaskTimer.schedule(new TimerTask()
+            {
+                public void run()
+                {
+                    srv.removeConnection(rc, true);
+                }
+            }, 300);
 
             return;  // <--- Early return: rejected ---
         }
