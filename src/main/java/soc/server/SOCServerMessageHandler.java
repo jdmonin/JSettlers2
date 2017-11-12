@@ -452,7 +452,8 @@ public class SOCServerMessageHandler
      * for {@link SOCClientData} flags and fields set for the bot's connection
      * and for other misc work done, such as {@link Server#cliConnDisconPrintsPending} updates.
      *<P>
-     * Before connecting here, bots are named and started in {@link SOCServer#setupLocalRobots(int, int)}.
+     * The server's built-in bots are named and started in {@link SOCServer#setupLocalRobots(int, int)},
+     * then must authenticate with this message just like external or third-party bots.
      *
      * @param c  the connection that sent the message
      * @param mes  the message

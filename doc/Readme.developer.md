@@ -850,8 +850,10 @@ When preparing to release a new version, testing should include:
         - Server: Unknown args `-x -z` should print both, then not continue startup
         - Start client w/ no args, start client with host & port on command line
         - Game option defaults on command line, in `jsserver.properties`: `-oVP=t11 -oN7=t5 -oRD=y`
-        - Server prop for no chat channels (`jsettlers.client.maxcreatechannels=0`):
+        - Server prop for no chat channels (`jsettlers.client.maxcreatechannels=0`):  
           Client main panel should not see channel create/join/list controls
+        - Start server with prop `jsettlers.startrobots=0`:  
+          Connect client and try to start a game, should see "No robots on this server" in game text area
 - Database setup and Account Admins list
     - SOCAccountClient with a server not using a DB: At connect, should see a message like "This server does not use accounts"
         - To launch SOCAccountClient, use: `java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880`

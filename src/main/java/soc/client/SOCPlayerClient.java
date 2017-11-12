@@ -6749,10 +6749,6 @@ public class SOCPlayerClient
                     practiceServer = new SOCServer(SOCServer.PRACTICE_STRINGPORT, SOCServer.SOC_MAXCONN_DEFAULT, null, null);
                     practiceServer.setPriority(5);  // same as in SOCServer.main
                     practiceServer.start();
-
-                    // We need some opponents.
-                    // Let the server randomize whether we get smart or fast ones.
-                    practiceServer.setupLocalRobots(5, 2);
                 }
                 catch (Throwable th)
                 {
@@ -6829,10 +6825,6 @@ public class SOCPlayerClient
                 localTCPServer = new SOCServer(tport, SOCServer.SOC_MAXCONN_DEFAULT, null, null);
                 localTCPServer.setPriority(5);  // same as in SOCServer.main
                 localTCPServer.start();
-
-                // We need some opponents.
-                // Let the server randomize whether we get smart or fast ones.
-                localTCPServer.setupLocalRobots(5, 2);
             }
             catch (Throwable th)
             {
