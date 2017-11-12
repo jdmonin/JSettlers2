@@ -20,6 +20,8 @@
  **/
 package soc.message;
 
+import soc.proto.Message;
+
 
 /**
  * This reply from server means this client currently isn't allowed to connect.
@@ -84,6 +86,16 @@ public class SOCRejectConnection extends SOCMessage
     public static SOCRejectConnection parseDataStr(String s)
     {
         return new SOCRejectConnection(s);
+    }
+
+    @Override
+    protected Message.FromServer toProtoFromServer()
+    {
+        Message.RejectConnection.Builder b = Message.RejectConnection.newBuilder();
+        if (text != null)
+            b.setReasonText(text);
+        return Message.FromServer.newBuilder()
+            .setRejectConnection(b).build();
     }
 
     /**

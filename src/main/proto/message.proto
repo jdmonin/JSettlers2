@@ -105,7 +105,7 @@ message AuthRequest {
 
 /* This client currently isn't allowed to connect. */
 message RejectConnection {
-    string reason_text = 1;
+    string reason_text = 1;  // may be empty
 }
 
 /* Server text message that shows in a status box on the client.

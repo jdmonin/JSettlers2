@@ -163,6 +163,17 @@ public class DummyProtoClient
             }
             break;
 
+        case Message.FromServer.REJECT_CONNECTION_FIELD_NUMBER:
+            {
+                Message.RejectConnection m = msg.getRejectConnection();
+                System.out.println
+                    ("  RejectConnection('" + m.getReasonText() + "')");
+                System.out.println
+                    ("-- wait for server to close our connection");
+                // let server disconnect us, to test its ability to cleanly do so
+            }
+            break;
+
         case Message.FromServer.STATUS_TEXT_FIELD_NUMBER:
             {
                 Message.ServerStatusText m = msg.getStatusText();

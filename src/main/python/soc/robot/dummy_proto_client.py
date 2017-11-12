@@ -118,6 +118,11 @@ class DummyProtoClient(object):
             + msg.vers.vers_str + "', '" + msg.vers.vers_build + "', "
             + repr(msg.vers.srv_feats) + ")" )
 
+    def _treat_reject_connection(self, msg):
+        print("  RejectConnection(" + repr(msg.reject_connection.reason_text) + ")" )
+        print("  -- wait for server to close our connection")
+        # let server disconnect us, to test its ability to cleanly do so
+
     def _treat_status_text(self, msg):
         print("  ServerStatusText(" + str(msg.status_text.sv)
             + ", " + repr(msg.status_text.text) + ")" )
@@ -147,6 +152,7 @@ class DummyProtoClient(object):
     _msg_from_server_treaters = {
         # auth/connect
         'vers': _treat_vers,
+        'reject_connection': _treat_reject_connection,
         'status_text': _treat_status_text,
 
         # robots

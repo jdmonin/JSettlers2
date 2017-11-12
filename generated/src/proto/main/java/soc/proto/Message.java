@@ -2503,10 +2503,18 @@ public final class Message {
       com.google.protobuf.MessageLiteOrBuilder {
 
     /**
+     * <pre>
+     * may be empty
+     * </pre>
+     *
      * <code>optional string reason_text = 1;</code>
      */
     java.lang.String getReasonText();
     /**
+     * <pre>
+     * may be empty
+     * </pre>
+     *
      * <code>optional string reason_text = 1;</code>
      */
     com.google.protobuf.ByteString
@@ -2530,12 +2538,20 @@ public final class Message {
     public static final int REASON_TEXT_FIELD_NUMBER = 1;
     private java.lang.String reasonText_;
     /**
+     * <pre>
+     * may be empty
+     * </pre>
+     *
      * <code>optional string reason_text = 1;</code>
      */
     public java.lang.String getReasonText() {
       return reasonText_;
     }
     /**
+     * <pre>
+     * may be empty
+     * </pre>
+     *
      * <code>optional string reason_text = 1;</code>
      */
     public com.google.protobuf.ByteString
@@ -2543,6 +2559,10 @@ public final class Message {
       return com.google.protobuf.ByteString.copyFromUtf8(reasonText_);
     }
     /**
+     * <pre>
+     * may be empty
+     * </pre>
+     *
      * <code>optional string reason_text = 1;</code>
      */
     private void setReasonText(
@@ -2554,6 +2574,10 @@ public final class Message {
       reasonText_ = value;
     }
     /**
+     * <pre>
+     * may be empty
+     * </pre>
+     *
      * <code>optional string reason_text = 1;</code>
      */
     private void clearReasonText() {
@@ -2561,6 +2585,10 @@ public final class Message {
       reasonText_ = getDefaultInstance().getReasonText();
     }
     /**
+     * <pre>
+     * may be empty
+     * </pre>
+     *
      * <code>optional string reason_text = 1;</code>
      */
     private void setReasonTextBytes(
@@ -2680,12 +2708,20 @@ public final class Message {
 
 
       /**
+       * <pre>
+       * may be empty
+       * </pre>
+       *
        * <code>optional string reason_text = 1;</code>
        */
       public java.lang.String getReasonText() {
         return instance.getReasonText();
       }
       /**
+       * <pre>
+       * may be empty
+       * </pre>
+       *
        * <code>optional string reason_text = 1;</code>
        */
       public com.google.protobuf.ByteString
@@ -2693,6 +2729,10 @@ public final class Message {
         return instance.getReasonTextBytes();
       }
       /**
+       * <pre>
+       * may be empty
+       * </pre>
+       *
        * <code>optional string reason_text = 1;</code>
        */
       public Builder setReasonText(
@@ -2702,6 +2742,10 @@ public final class Message {
         return this;
       }
       /**
+       * <pre>
+       * may be empty
+       * </pre>
+       *
        * <code>optional string reason_text = 1;</code>
        */
       public Builder clearReasonText() {
@@ -2710,6 +2754,10 @@ public final class Message {
         return this;
       }
       /**
+       * <pre>
+       * may be empty
+       * </pre>
+       *
        * <code>optional string reason_text = 1;</code>
        */
       public Builder setReasonTextBytes(
