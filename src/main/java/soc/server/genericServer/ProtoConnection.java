@@ -320,9 +320,29 @@ public final class ProtoConnection
     @Override
     public void disconnect()
     {
+        if (out != null)
+            try
+            {
+                out.flush();
+            }
+            catch (IOException e) {}
+
         super.disconnect();
+
         in = null;
         out = null;
+    }
+
+    @Override
+    public void disconnectSoft()
+    {
+        super.disconnectSoft();
+
+        try
+        {
+            if (out != null)
+                out.flush();
+        } catch (IOException e) {}
     }
 
     /** Connection inner class thread to send {@link NetConnection#outQueue} messages to the net. */
