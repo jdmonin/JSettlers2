@@ -346,6 +346,12 @@ public class NetConnection
            reader.stop();*/
         try
         {
+            if (out != null)
+                try
+                {
+                    out.flush();
+                }
+                catch (IOException e) {}
             if (s != null)
                 s.close();
         }
@@ -378,6 +384,13 @@ public class NetConnection
 
         D.ebugPrintln("DISCONNECTING(SOFT) " + data);
         inputConnected = false;
+
+        if (out != null)
+            try
+            {
+                out.flush();
+            }
+            catch (IOException e) {}
     }
 
     /**

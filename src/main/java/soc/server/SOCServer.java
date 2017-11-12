@@ -1009,6 +1009,13 @@ public class SOCServer extends Server
     private Timer replyAuthTimer = new Timer(true);  // use daemon thread
 
     /**
+     * Timer to queue and soon run miscellaneous short-duration {@link Runnable} tasks
+     * without tying up any single-threaded part of the server.
+     * @since 2.0.00
+     */
+    final Timer miscTaskTimer = new Timer(true);  // use daemon thread
+
+    /**
      * server robot pinger
      */
     SOCServerRobotPinger serverRobotPinger;
@@ -5337,7 +5344,16 @@ public class SOCServer extends Server
             c.put(new SOCRejectConnection(rejectMsg));
             c.disconnectSoft();
             System.out.println(rejectLogMsg);
-            removeConnection(c, true);
+
+            // make an effort to send reject message before closing socket
+            final Connection rc = c;
+            miscTaskTimer.schedule(new TimerTask()
+            {
+                public void run()
+                {
+                    removeConnection(rc, true);
+                }
+            }, 300);
 
             return false;  // <--- Early return: Rejected client ---
         }
