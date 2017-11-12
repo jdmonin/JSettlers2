@@ -30,6 +30,7 @@ and backport minor new features until `2.0.00` is ready.
 - Some game options are meant to be set by the server during game creation, not requested by the client.
   Their option keynames all start with '_' and are hidden in the New Game options window.
 - Player's inventory can hold more than just development cards
+- Server closes connections to rejected clients or bots
 - For AI/Robot development:
 	- The server can run bot-only games with new startup option:  
 	  `-Djsettlers.bots.botgames.total=7`

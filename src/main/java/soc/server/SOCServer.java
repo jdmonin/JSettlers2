@@ -5231,7 +5231,8 @@ public class SOCServer extends Server
 
     /**
      * Set client's version and locale, and check against minimum required version {@link #CLI_VERSION_MIN}.
-     * If version is too low, send {@link SOCRejectConnection REJECTCONNECTION}.
+     * If version is too low, send {@link SOCRejectConnection REJECTCONNECTION}
+     * and call {@link #removeConnection(Connection, boolean)}.
      * If we haven't yet sent the game list, send now.
      * If we've already sent the game list, send changes based on true version.
      *<P>
@@ -5333,7 +5334,9 @@ public class SOCServer extends Server
             c.put(new SOCRejectConnection(rejectMsg).toCmd());
             c.disconnectSoft();
             System.out.println(rejectLogMsg);
-            return false;
+            removeConnection(c, true);
+
+            return false;  // <--- Early return: Rejected client ---
         }
 
         // Send game list?

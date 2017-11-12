@@ -442,6 +442,8 @@ public class SOCServerMessageHandler
      * Their version is checked here, must equal server's version.
      * For stability and control, the cookie in this message must
      * match this server's {@link SOCServer#robotCookie}.
+     * Otherwise the bot is rejected and they're disconnected by calling
+     * {@link SOCServer#removeConnection(Connection, boolean)}.
      *<P>
      * Bot tuning parameters are sent here to the bot, from
      * {@link SOCDBHelper#retrieveRobotParams(String, boolean) SOCDBHelper.retrieveRobotParams(botName, true)}.
@@ -472,6 +474,7 @@ public class SOCServerMessageHandler
                         (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(), rejectReason));
             c.put(new SOCRejectConnection(rejectReason).toCmd());
             c.disconnectSoft();
+            srv.removeConnection(c, true);
 
             return;  // <--- Early return: rejected ---
         }
