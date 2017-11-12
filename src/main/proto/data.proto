@@ -66,7 +66,7 @@ enum GameState {
     START2B = 11;  // Players place 2nd road
     START3A = 12;  // Players place 3rd settlement ({@link SOCGameOption#K_SC_3IP _SC_3IP})
     START3B = 13;  // Players place 3rd road
-    PLAY = 15;     // Roll or play card
+    ROLL_OR_CARD = 15;  // Roll or play card
     PLAY1 = 20;    // Done rolling
     PLACING_ROAD = 30;
     PLACING_SETTLEMENT = 31;

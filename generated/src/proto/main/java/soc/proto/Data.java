@@ -239,9 +239,9 @@ public final class Data {
      * Roll or play card
      * </pre>
      *
-     * <code>PLAY = 15;</code>
+     * <code>ROLL_OR_CARD = 15;</code>
      */
-    PLAY(15),
+    ROLL_OR_CARD(15),
     /**
      * <pre>
      * Done rolling
@@ -422,9 +422,9 @@ public final class Data {
      * Roll or play card
      * </pre>
      *
-     * <code>PLAY = 15;</code>
+     * <code>ROLL_OR_CARD = 15;</code>
      */
-    public static final int PLAY_VALUE = 15;
+    public static final int ROLL_OR_CARD_VALUE = 15;
     /**
      * <pre>
      * Done rolling
@@ -543,7 +543,7 @@ public final class Data {
         case 11: return START2B;
         case 12: return START3A;
         case 13: return START3B;
-        case 15: return PLAY;
+        case 15: return ROLL_OR_CARD;
         case 20: return PLAY1;
         case 30: return PLACING_ROAD;
         case 31: return PLACING_SETTLEMENT;

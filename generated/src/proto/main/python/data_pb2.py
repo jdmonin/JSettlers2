@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='data.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\ndata.proto*`\n\x0cResourceType\x12\x10\n\x0cNOT_YET_USED\x10\x00\x12\x08\n\x04\x43LAY\x10\x01\x12\x07\n\x03ORE\x10\x02\x12\t\n\x05SHEEP\x10\x03\x12\t\n\x05WHEAT\x10\x04\x12\x08\n\x04WOOD\x10\x05\x12\x0b\n\x07UNKNOWN\x10\x06*\x9d\x05\n\tGameState\x12\x07\n\x03NEW\x10\x00\x12\t\n\x05READY\x10\x01\x12\"\n\x1eREADY_RESET_WAIT_ROBOT_DISMISS\x10\x04\x12\x0b\n\x07START1A\x10\x05\x12\x0b\n\x07START1B\x10\x06\x12\x0b\n\x07START2A\x10\n\x12)\n%STARTS_WAITING_FOR_PICK_GOLD_RESOURCE\x10\x0e\x12\x0b\n\x07START2B\x10\x0b\x12\x0b\n\x07START3A\x10\x0c\x12\x0b\n\x07START3B\x10\r\x12\x08\n\x04PLAY\x10\x0f\x12\t\n\x05PLAY1\x10\x14\x12\x10\n\x0cPLACING_ROAD\x10\x1e\x12\x16\n\x12PLACING_SETTLEMENT\x10\x1f\x12\x10\n\x0cPLACING_CITY\x10 \x12\x12\n\x0ePLACING_ROBBER\x10!\x12\x12\n\x0ePLACING_PIRATE\x10\"\x12\x10\n\x0cPLACING_SHIP\x10#\x12\x16\n\x12PLACING_FREE_ROAD1\x10(\x12\x16\n\x12PLACING_FREE_ROAD2\x10)\x12\x14\n\x10PLACING_INV_ITEM\x10*\x12\x18\n\x14WAITING_FOR_DISCARDS\x10\x32\x12!\n\x1dWAITING_FOR_ROB_CHOOSE_PLAYER\x10\x33\x12\x19\n\x15WAITING_FOR_DISCOVERY\x10\x34\x12\x18\n\x14WAITING_FOR_MONOPOLY\x10\x35\x12 \n\x1cWAITING_FOR_ROBBER_OR_PIRATE\x10\x36\x12%\n!WAITING_FOR_ROB_CLOTH_OR_RESOURCE\x10\x37\x12\"\n\x1eWAITING_FOR_PICK_GOLD_RESOURCE\x10\x38\x12\x14\n\x10SPECIAL_BUILDING\x10\x64\x12\t\n\x04OVER\x10\xe8\x07\x12\x0e\n\tRESET_OLD\x10\xe9\x07*=\n\rSeatLockState\x12\x0c\n\x08UNLOCKED\x10\x00\x12\n\n\x06LOCKED\x10\x01\x12\x12\n\x0e\x43LEAR_ON_RESET\x10\x02\x42\r\n\tsoc.protoH\x03\x62\x06proto3')
+  serialized_pb=_b('\n\ndata.proto*`\n\x0cResourceType\x12\x10\n\x0cNOT_YET_USED\x10\x00\x12\x08\n\x04\x43LAY\x10\x01\x12\x07\n\x03ORE\x10\x02\x12\t\n\x05SHEEP\x10\x03\x12\t\n\x05WHEAT\x10\x04\x12\x08\n\x04WOOD\x10\x05\x12\x0b\n\x07UNKNOWN\x10\x06*\xa5\x05\n\tGameState\x12\x07\n\x03NEW\x10\x00\x12\t\n\x05READY\x10\x01\x12\"\n\x1eREADY_RESET_WAIT_ROBOT_DISMISS\x10\x04\x12\x0b\n\x07START1A\x10\x05\x12\x0b\n\x07START1B\x10\x06\x12\x0b\n\x07START2A\x10\n\x12)\n%STARTS_WAITING_FOR_PICK_GOLD_RESOURCE\x10\x0e\x12\x0b\n\x07START2B\x10\x0b\x12\x0b\n\x07START3A\x10\x0c\x12\x0b\n\x07START3B\x10\r\x12\x10\n\x0cROLL_OR_CARD\x10\x0f\x12\t\n\x05PLAY1\x10\x14\x12\x10\n\x0cPLACING_ROAD\x10\x1e\x12\x16\n\x12PLACING_SETTLEMENT\x10\x1f\x12\x10\n\x0cPLACING_CITY\x10 \x12\x12\n\x0ePLACING_ROBBER\x10!\x12\x12\n\x0ePLACING_PIRATE\x10\"\x12\x10\n\x0cPLACING_SHIP\x10#\x12\x16\n\x12PLACING_FREE_ROAD1\x10(\x12\x16\n\x12PLACING_FREE_ROAD2\x10)\x12\x14\n\x10PLACING_INV_ITEM\x10*\x12\x18\n\x14WAITING_FOR_DISCARDS\x10\x32\x12!\n\x1dWAITING_FOR_ROB_CHOOSE_PLAYER\x10\x33\x12\x19\n\x15WAITING_FOR_DISCOVERY\x10\x34\x12\x18\n\x14WAITING_FOR_MONOPOLY\x10\x35\x12 \n\x1cWAITING_FOR_ROBBER_OR_PIRATE\x10\x36\x12%\n!WAITING_FOR_ROB_CLOTH_OR_RESOURCE\x10\x37\x12\"\n\x1eWAITING_FOR_PICK_GOLD_RESOURCE\x10\x38\x12\x14\n\x10SPECIAL_BUILDING\x10\x64\x12\t\n\x04OVER\x10\xe8\x07\x12\x0e\n\tRESET_OLD\x10\xe9\x07*=\n\rSeatLockState\x12\x0c\n\x08UNLOCKED\x10\x00\x12\n\n\x06LOCKED\x10\x01\x12\x12\n\x0e\x43LEAR_ON_RESET\x10\x02\x42\r\n\tsoc.protoH\x03\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -114,7 +114,7 @@ _GAMESTATE = _descriptor.EnumDescriptor(
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='PLAY', index=10, number=15,
+      name='ROLL_OR_CARD', index=10, number=15,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
@@ -201,7 +201,7 @@ _GAMESTATE = _descriptor.EnumDescriptor(
   containing_type=None,
   options=None,
   serialized_start=113,
-  serialized_end=782,
+  serialized_end=790,
 )
 _sym_db.RegisterEnumDescriptor(_GAMESTATE)
 
@@ -227,8 +227,8 @@ _SEATLOCKSTATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=784,
-  serialized_end=845,
+  serialized_start=792,
+  serialized_end=853,
 )
 _sym_db.RegisterEnumDescriptor(_SEATLOCKSTATE)
 
@@ -250,7 +250,7 @@ STARTS_WAITING_FOR_PICK_GOLD_RESOURCE = 14
 START2B = 11
 START3A = 12
 START3B = 13
-PLAY = 15
+ROLL_OR_CARD = 15
 PLAY1 = 20
 PLACING_ROAD = 30
 PLACING_SETTLEMENT = 31
