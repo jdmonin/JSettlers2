@@ -533,6 +533,7 @@ public class SOCServer extends Server
 
     /**
      * Force robot to end their turn after this many seconds of inactivity.
+     * Keeps the game moving if bot is stuck or indecisive because of a bug.
      * Default is 8. Can override this for third-party bots by setting
      * {@link #PROP_JSETTLERS_BOTS_TIMEOUT_TURN}.
      *
@@ -1018,7 +1019,8 @@ public class SOCServer extends Server
     SOCServerRobotPinger serverRobotPinger;
 
     /**
-     * game timeout checker
+     * Game timeout and and turn timeout checker. Forces end of turn if a robot is
+     * too slow to act. See its class javadoc and {@link SOCForceEndTurnThread}.
      */
     SOCGameTimeoutChecker gameTimeoutChecker;
 

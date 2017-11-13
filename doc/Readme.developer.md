@@ -111,9 +111,14 @@ If you want to inspect the game object state at the server or robot:
   at that point
 - To inspect game state at robot, breakpoint `SOCRobotClient.treat` and send a
   text message like `*BOTLIST*` or `robot2:current-plans`
+- To trace robot decisions and actions for incoming messages, set a breakpoint
+  in `SOCRobotBrain.run` at `turnEventsCurrent.addElement(mes);`
 - On Linux/Unix JVMs, you can print a stack trace / thread dump at the server by
   sending `SIGQUIT (kill -QUIT pidnumber)` . In deadlocks the thread dump won't
   show what has an object locked, but may show what's waiting on the object.
+- If you've set breakpoints in any robot code, temporarily increase
+  `SOCServer.ROBOT_FORCE_ENDTURN_SECONDS` so the bot's turns won't be ended early
+  for inactivity while you're debugging.
 
 Some game options are meant to be set by the server during game creation,
 not requested by the client.  Their option keynames all start with '_'.
@@ -282,7 +287,7 @@ In my IDE's JSettlers project, I've created these debug/run configurations:
                 -Djsettlers.accounts.admins=adm 8880 20 dbuser dbpass
             working directory: filesystem: JSettlers2/target
 
-  The server will start 7 bots with the above configuration.  If you need to
+The server will start 7 bots with the above configuration.  If you need to
 stop and start your own bots, then add `-Djsettlers.bots.cookie=cook` to the
 server configuration arguments, and create these Java application configs:
 
