@@ -1860,9 +1860,11 @@ public class SOCGameHandler extends GameHandler
         if (ga == null)
             return false;
 
+        final int gaState = ga.getGameState();
         final String gname = ga.getName();
         boolean promptedRoll = false;
-        if (ga.getGameState() == SOCGame.OVER)
+
+        if (gaState == SOCGame.OVER)
         {
             /**
              * Before sending state "OVER", enforce current player number.
@@ -1870,7 +1872,8 @@ public class SOCGameHandler extends GameHandler
              */
             srv.messageToGame(gname, new SOCSetTurn(gname, ga.getCurrentPlayerNumber()));
         }
-        srv.messageToGame(gname, new SOCGameState(gname, ga.getGameState()));
+
+        srv.messageToGame(gname, new SOCGameState(gname, gaState));
 
         SOCPlayer player = null;
 
@@ -1879,13 +1882,13 @@ public class SOCGameHandler extends GameHandler
             player = ga.getPlayer(ga.getCurrentPlayerNumber());
         }
 
-        switch (ga.getGameState())
+        switch (gaState)
         {
         case SOCGame.START1A:
         case SOCGame.START2A:
         case SOCGame.START3A:
             srv.messageToGameKeyed(ga, true, "prompt.turn.to.build.stlmt",  player.getName());  // "It's Joe's turn to build a settlement."
-            if ((ga.getGameState() >= SOCGame.START2A)
+            if ((gaState >= SOCGame.START2A)
                 && ga.isGameOptionSet(SOCGameOption.K_SC_3IP))
             {
                 // reminder to player before their 2nd, 3rd settlements

@@ -1815,8 +1815,9 @@ public class SOCGameMessageHandler
                             srv.gameList.releaseMonitorForGame(gaName);
 
                             boolean toldRoll = handler.sendGameState(ga, false);
-                            if ((ga.getGameState() == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
-                                || (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
+                            int newState = ga.getGameState();
+                            if ((newState == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
+                                || (newState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
                             {
                                 // gold hex revealed from fog (scenario SC_FOG)
                                 handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
@@ -1826,6 +1827,12 @@ public class SOCGameMessageHandler
                             {
                                 // Player changed (or play started), announce new player.
                                 handler.sendTurn(ga, true);
+                            }
+                            else if (player.isRobot() && ga.isInitialPlacementRoundDone(gameState))
+                            {
+                                // Player didn't change, but bot must be prompted to
+                                // place its next settlement or roll its first turn.
+                                handler.sendTurn(ga, false);
                             }
                             else if (toldRoll)
                             {
@@ -1987,8 +1994,9 @@ public class SOCGameMessageHandler
                             srv.gameList.releaseMonitorForGame(gaName);
 
                             boolean toldRoll = handler.sendGameState(ga, false);
-                            if ((ga.getGameState() == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
-                                || (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
+                            int newState = ga.getGameState();
+                            if ((newState == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
+                                || (newState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
                             {
                                 // gold hex revealed from fog (scenario SC_FOG)
                                 handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
@@ -1998,6 +2006,12 @@ public class SOCGameMessageHandler
                             {
                                 // Player changed (or play started), announce new player.
                                 handler.sendTurn(ga, true);
+                            }
+                            else if (player.isRobot() && ga.isInitialPlacementRoundDone(gameState))
+                            {
+                                // Player didn't change, but bot must be prompted to
+                                // place its next settlement or roll its first turn.
+                                handler.sendTurn(ga, false);
                             }
                             else if (toldRoll)
                             {
@@ -2642,7 +2656,7 @@ public class SOCGameMessageHandler
                                 break;
 
                             case SOCGame.ROLL_OR_CARD:
-                                // The last initial road was placed
+                                // The last initial road or ship was placed
                                 final boolean toldRoll = handler.sendGameState(ga, false);
                                 if (! handler.checkTurn(c, ga))
                                     // Announce new player (after START3A)

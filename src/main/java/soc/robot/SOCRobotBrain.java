@@ -1829,6 +1829,11 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.PUTPIECE:
                         /**
                          * this is for player tracking
+                         *
+                         * For initial placement of our own pieces, also checks
+                         * and clears expectPUTPIECE_FROM_START1A,
+                         * and sets expectSTART1B, etc.  The final initial putpiece
+                         * clears expectPUTPIECE_FROM_START2B and sets expectROLL_OR_CARD.
                          */
                         {
                             final SOCPutPiece mpp = (SOCPutPiece) mes;
@@ -1837,11 +1842,6 @@ public class SOCRobotBrain extends Thread
                             final int pieceType = mpp.getPieceType();
                             handlePUTPIECE_updateTrackers(pn, coord, pieceType);
                         }
-
-                        // For initial placement of our own pieces, also checks
-                        // and clears expectPUTPIECE_FROM_START1A,
-                        // and sets expectSTART1B, etc.  The final initial putpiece
-                        // clears expectPUTPIECE_FROM_START2B and sets expectROLL_OR_CARD.
 
                         break;
 
@@ -2452,6 +2452,7 @@ public class SOCRobotBrain extends Thread
                     expectPUTPIECE_FROM_START1B = true;
                     counter = 0;
                     waitingForGameState = true;
+                    waitingForOurTurn = true;  // ignore next player's GameState(START1A) message seen before Turn(nextPN)
                     pause(1500);
                     planAndPlaceInitRoad();
                 }
@@ -2482,6 +2483,7 @@ public class SOCRobotBrain extends Thread
                     expectPUTPIECE_FROM_START2B = true;
                     counter = 0;
                     waitingForGameState = true;
+                    waitingForOurTurn = true;  // ignore next player's GameState(START2A) message seen before Turn(nextPN)
                     pause(1500);
                     planAndPlaceInitRoad();
                 }
@@ -2512,6 +2514,7 @@ public class SOCRobotBrain extends Thread
                     expectPUTPIECE_FROM_START3B = true;
                     counter = 0;
                     waitingForGameState = true;
+                    waitingForOurTurn = true;  // ignore next player's GameState(START3A) message seen before Turn(nextPN)
                     pause(1500);
                     planAndPlaceInitRoad();
                 }

@@ -28,12 +28,18 @@ import java.util.StringTokenizer;
  * Client should end current turn, clear dice, set current player number, reset votes, etc.
  *<P>
  * This message is always preceded by a {@link SOCGameState} with the new turn's state.  There may
- * be a few minor messages (such as {@link SOCSetPlayedDevCard}) sent between them.  Client should
+ * be a few minor messages like {@link SOCSetPlayedDevCard} sent between them.  Client should
  * set current game state based on that GAMESTATE message.  Then, when this TURN message changes the
  * player number, the game will have a known state to inform the new player's options and actions.
  *<P>
- * The server won't send a TURN message after the final road or ship is placed at the
- * end of initial placement and start of regular gameplay, only a {@link SOCGameState}
+ * In v2.0.00 and newer, is also sent to robot players during initial placement when a round ends
+ * and the direction of play changes, and bot has just placed a road or ship and should now place
+ * the next settlement or roll the dice as first player. (In earlier versions with fewer possible
+ * state transitions, the client's SOCGame had enough info to advance the gamestate and player
+ * number.)
+ *<P>
+ * The server won't send a TURN message to human players after the final road or ship is placed
+ * at the end of initial placement and start of regular gameplay, only a {@link SOCGameState}
  * message (state START2 -> ROLL_OR_CARD).
  *
  * @author Robert S. Thomas
