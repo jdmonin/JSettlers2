@@ -23,12 +23,18 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message from server informs all players whose turn it is,
- * so they may roll the dice, or take other action allowable at that time.
+ * This message from server to game reminds the current player that their turn is starting
+ * and they may roll the dice, or take other action allowable at that time.
  * For example, the player's hand panel can start an auto-roll countdown timer.
  *<P>
- * If the player is rolling the dice, they will respond with {@link SOCRollDice},
+ * If the player is rolling the dice they will respond with {@link SOCRollDice},
  * or {@link SOCPlayDevCardRequest} to play a development card instead.
+ *<P>
+ * This message was most useful before v2.0.00, because v1.x.xx servers didn't
+ * send a {@link SOCTurn} message at the start of the first player's normal turn
+ * after initial placement.
+ *<P>
+ * If the client is older than v1.1.00 (1.0.6 for example) it will ignore this prompt.
  *
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.00

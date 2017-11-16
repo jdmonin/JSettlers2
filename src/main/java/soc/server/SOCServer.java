@@ -536,6 +536,7 @@ public class SOCServer extends Server
 
     /**
      * Force robot to end their turn after this many seconds of inactivity.
+     * Keeps the game moving if bot is stuck or indecisive because of a bug.
      * Default is 8. Can override this for third-party bots by setting
      * {@link #PROP_JSETTLERS_BOTS_TIMEOUT_TURN}.
      *
@@ -1021,7 +1022,8 @@ public class SOCServer extends Server
     SOCServerRobotPinger serverRobotPinger;
 
     /**
-     * game timeout checker
+     * Game timeout and and turn timeout checker. Forces end of turn if a robot is
+     * too slow to act. See its class javadoc and {@link SOCForceEndTurnThread}.
      */
     SOCGameTimeoutChecker gameTimeoutChecker;
 
@@ -6766,27 +6768,14 @@ public class SOCServer extends Server
                 requestedBots = null;  // Game already has all players from old game
             }
 
-            if (requestedBots != null)
-            {
-                /**
-                 * if the request list is empty and the game hasn't started yet,
-                 * then start the game
-                 */
-                if (requestedBots.isEmpty() && (ga.getGameState() < SOCGame.START1A))
-                {
-                    GameHandler hand = gameList.getGameTypeHandler(gaName);
-                    if (hand != null)
-                        hand.startGame(ga);
-                }
+            boolean willStartGame = (requestedBots != null) && requestedBots.isEmpty()
+                && (ga.getGameState() < SOCGame.START1A);
 
-                /**
-                 * if the request list is empty, remove the empty list
-                 */
-                if (requestedBots.isEmpty())
-                {
-                    robotJoinRequests.remove(gaName);
-                }
-            }
+            /**
+             * if the request list is now empty, remove it from request tracking
+             */
+            if ((requestedBots != null) && requestedBots.isEmpty())
+                robotJoinRequests.remove(gaName);
 
             /**
              * send all the private information
@@ -6795,6 +6784,13 @@ public class SOCServer extends Server
             GameHandler hand = gameList.getGameTypeHandler(gaName);
             if (hand != null)
                 hand.sitDown_sendPrivateInfo(ga, c, pn);
+
+            /**
+             * if the request list is now empty and the game hasn't started yet,
+             * then start the game
+             */
+            if (willStartGame && (hand != null))
+                hand.startGame(ga);    // <--- Everyone's here, start the game ---
         }
         catch (Throwable e)
         {

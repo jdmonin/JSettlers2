@@ -211,7 +211,7 @@ public class SOCGame implements Serializable, Cloneable
      * For settlements not revealed from fog:
      * Next game state is {@link #START2B} to place 2nd road.
      * If game scenario option {@link SOCGameOption#K_SC_3IP _SC_3IP} is set,
-     * next game state is {@link #START3B}.
+     * next game state can be {@link #START3B}.
      *<P>
      * Valid only when {@link #hasSeaBoard}, settlement adjacent to {@link SOCBoardLarge#GOLD_HEX},
      * or gold revealed from {@link SOCBoardLarge#FOG_HEX} by a placed road, ship, or settlement.
@@ -2035,12 +2035,20 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * This method is generally called at the client, due to messages from the server
      * based on the server's complete game data.
+     *<P>
+     * At the client if this is the first time {@code gs) == {@link #ROLL_OR_CARD} during this game,
+     * and state is currently in initial placement ({@link #START1A} to {@link #START3B}),
+     * calls {@link #updateAtGameFirstTurn()}.
      *
      * @param gs  the game state
      * @see #checkForWinner()
      */
     public void setGameState(final int gs)
     {
+        final boolean cliFirstRegularTurn =
+            (gs == ROLL_OR_CARD) && (! isAtServer) && (gameState >= START1A) && (gameState <= START3B);
+                // not if gameState == 0, to prevent updateAtGameFirstTurn() when joining an already-started game
+
         if ((gs == ROLL_OR_CARD) && (gameState == SPECIAL_BUILDING))
             oldGameState = PLAY1;  // Needed for isSpecialBuilding() to work at client
         else
@@ -2049,6 +2057,9 @@ public class SOCGame implements Serializable, Cloneable
         gameState = gs;
         if ((gameState == OVER) && (playerWithWin == -1))
             checkForWinner();
+
+        if (cliFirstRegularTurn)
+            updateAtGameFirstTurn();
     }
 
     /**
@@ -2074,10 +2085,36 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @return true if in Initial Placement
      * @since 1.1.12
+     * @see #isInitialPlacementRoundDone(int)
      */
     public final boolean isInitialPlacement()
     {
         return (gameState >= START1A) && (gameState <= STARTS_WAITING_FOR_PICK_GOLD_RESOURCE);
+    }
+
+    /**
+     * During {@link #isInitialPlacement()}, has a round of initial placement finished?
+     * First round goes clockwise to place each player's first settlement and road/ship.
+     * Second round reverses the direction of play to go counterclockwise for the second
+     * settlements and roads/ships. (In some scenarios there's a third round going clockwise again.)
+     * Then, the first turn of normal play starts with state {@link #ROLL_OR_CARD}.
+     *<P>
+     * Useful for prompting a robot player to place its next settlement
+     * or roll its first normal turn.
+     *<P>
+     * True at state change from {@link #START1B} to {@link #START2A},
+     * {@link #START2B} to {@link #START3A} or to {@link #ROLL_OR_CARD},
+     * {@link #START3B} to {@link #ROLL_OR_CARD}.
+     * @param prevState Previous game state, such as {@link #START1B}
+     * @return  True if a round has finished
+     * @since 2.0.00
+     */
+    public final boolean isInitialPlacementRoundDone(final int prevState)
+    {
+        return ((prevState == START1B) && (gameState == START2A))
+            || ((prevState == START2B) && (gameState == START3A))
+            || (((prevState == START2B) || (prevState == START3B))
+                && (gameState == ROLL_OR_CARD));
     }
 
     /**
@@ -2920,7 +2957,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Put this piece on the board and update all related game state.
-     * May change current player and gamestate.
+     * May change current player (at server) and gamestate.
      * Calls {@link #checkForWinner()}; gamestate may become {@link #OVER}.
      *<P>
      * For example, if game state when called is {@link #START2A} (or {@link #START3A} in
@@ -2953,9 +2990,11 @@ public class SOCGame implements Serializable, Cloneable
      * sets gamestate to {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
      *<P>
      * Calls {@link #checkForWinner()} and otherwise advances turn or state.
+     * At the client, {@link #advanceTurnStateAfterPutPiece()} won't change the current player;
+     * the server will send a message when the current player changes.
      *<P>
      * After the final initial road or ship placement, clears all players' potential settlements by
-     * calling {@link #advanceTurnStateAfterPutPiece()} which calls {@link #updateAtGameFirstTurn()}.
+     * calling {@link #advanceTurnStateAfterPutPiece()} which at the server calls {@link #updateAtGameFirstTurn()}.
      *
      *<H3>Valid placements:</H3>
      * Because <tt>pp</tt> is not checked for validity, please call methods such as
@@ -3299,14 +3338,15 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * After placing a piece on the board, update the state of
-     * the game, and possibly current player, for play to continue.
+     * the game, and possibly current player at server, for play to continue.
      *<P>
      * Called at server and at each client by {@link #putPieceCommon(SOCPlayingPiece, boolean)}.
      * At clients, the PUTPIECE message that triggers that call will soon be
      * followed by a GAMESTATE message to confirm the new state.
      *<P>
-     * In {@link #START2B} or {@link #START3B} after the last initial road/ship placement, calls
-     * {@link #updateAtGameFirstTurn()} and then {@link #updateAtTurn()}.
+     * During {@link #isInitialPlacement()}, only the server advances game state; when client's game calls
+     * this method it returns immediately. In {@link #START2B} or {@link #START3B} after the last initial
+     * road/ship placement, this method calls {@link #updateAtGameFirstTurn()} which includes {@link #updateAtTurn()}.
      *<P>
      * Also used in {@link #forceEndTurn()} to continue the game
      * after a cancelled piece placement in {@link #START1A}..{@link #START3B} .
@@ -3315,13 +3355,16 @@ public class SOCGame implements Serializable, Cloneable
      * This method is not called after placing a {@link SOCInventoryItem} on the board, which
      * happens only with some scenario options such as {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
      *
-     * @return true if the turn advances, false if all players have left and
+     * @return true if game is still active, false if all players have left and
      *          the gamestate has been changed here to {@link #OVER}.
      */
     private boolean advanceTurnStateAfterPutPiece()
     {
         if (currentPlayerNumber < 0)
             return true;  // Game hasn't started yet
+
+        if ((gameState < ROLL_OR_CARD) && ! isAtServer)
+            return true;  // Only server advances state during initial placement
 
         //D.ebugPrintln("CHANGING GAME STATE FROM "+gameState);
 
@@ -3345,7 +3388,7 @@ public class SOCGame implements Serializable, Cloneable
             {
                 oldGameState = START1B;
                 gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE;
-            } else  {
+            } else {
                 int tmpCPN = currentPlayerNumber + 1;
                 if (tmpCPN >= maxPlayers)
                 {
@@ -3426,7 +3469,6 @@ public class SOCGame implements Serializable, Cloneable
                         // Don't clear forcingEndTurn flag, if it's set.
                         gameState = ROLL_OR_CARD;
                         updateAtGameFirstTurn();
-                        updateAtTurn();
                     } else {
                         // Begin third placement.
                         gameState = START3A;
@@ -3455,7 +3497,7 @@ public class SOCGame implements Serializable, Cloneable
             {
                 oldGameState = START3B;
                 gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE;
-            } else  {
+            } else {
                 // who places next? same algorithm as advanceTurn.
                 int tmpCPN = currentPlayerNumber + 1;
                 if (tmpCPN >= maxPlayers)
@@ -3485,7 +3527,6 @@ public class SOCGame implements Serializable, Cloneable
                     currentPlayerNumber = firstPlayerNumber;
                     gameState = ROLL_OR_CARD;
                     updateAtGameFirstTurn();
-                    updateAtTurn();
                 }
                 else
                 {
@@ -4158,9 +4199,12 @@ public class SOCGame implements Serializable, Cloneable
      *     players won't have roads to any node 2 away from their settlements, so they will have no
      *     new potential settlements yet.  Does call each player's
      *     {@link SOCPlayer#addLegalSettlement(int, boolean) pl.addLegalSettlement(coord, true)}.
+     *    <P>
+     *     Calls {@link #updateAtTurn()}.
      *</UL>
      *<P>
-     * Called at server and client by {@link #advanceTurnStateAfterPutPiece()}, before {@link #updateAtTurn()}.
+     * Called at server by {@link #advanceTurnStateAfterPutPiece()}, and at client by first
+     * {@link #setGameState(int) setGameState}({@link #ROLL_OR_CARD}).
      *<P>
      * Before v2.0.00, this was in various places.  The players' potential settlements were cleared by
      * {@code putPiece} after placing their last initial road.  If a bot's initial placement turn was
@@ -4222,6 +4266,12 @@ public class SOCGame implements Serializable, Cloneable
                 scenarioEventListener.gameEvent
                     (this, SOCScenarioGameEvent.SGE_STARTPLAY_BOARD_SPECIAL_NODES_EMPTIED, null);
         }
+
+        // Begin play.
+        // Player number is unchanged; "virtual" endTurn here.
+        // This code formerly in advanceTurnStateAfterPutPiece() when last initial piece has been placed.
+
+        updateAtTurn();
     }
 
     /**
@@ -5311,14 +5361,15 @@ public class SOCGame implements Serializable, Cloneable
      * Gain them, check if other players must still pick, and set
      * gameState to {@link #WAITING_FOR_PICK_GOLD_RESOURCE}
      * or oldGameState (usually {@link #PLAY1}) accordingly.
-     * (Or, during initial placement, usually {@link #START2B} or {@link #START3B}, after initial settlement at gold.)
+     * (Or, during initial placement, usually {@link #START2B} or {@link #START3B} after initial settlement at gold,
+     * or {@link #START1A} or {@link #START2A} after placing a ship to a fog hex reveals gold.)
      * During normal play, the oldGameState might sometimes be {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
      *<P>
-     * Assumes {@link #canPickGoldHexResources(int, ResourceSet)} already called to validate.
+     * Assumes {@link #canPickGoldHexResources(int, ResourceSet)} was already called to validate.
      *<P>
      * During initial placement from {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE},
      * calls {@link #advanceTurnStateAfterPutPiece()}.
-     * the current player won't change if the gold pick was for the player's final initial settlement.
+     * The current player won't change if the gold pick was for the player's final initial settlement.
      * If the gold pick was for placing a road or ship that revealed a gold hex from {@link SOCBoardLarge#FOG_HEX fog},
      * the player will probably change here, since the player changes after most inital roads or ships.
      *<P>
@@ -5327,12 +5378,17 @@ public class SOCGame implements Serializable, Cloneable
      * Called at server only; clients will instead get <tt>SOCPlayerElement</tt> messages
      * for the resources picked and the "need to pick" flag, and will call
      * {@link SOCPlayer#getResources()}<tt>.add</tt> and {@link SOCPlayer#setNeedToPickGoldHexResources(int)}.
+     * Server will send out messages for new game state and any change of current player
+     * from {@link #advanceTurnStateAfterPutPiece()}.
      *
      * @param pn   the number of the player
      * @param rs   the resources that are being picked
+     * @return  {@link #getGameState()} from before the gold-revealing placement if called during initial placement
+     *     ({@link #START1A}, START2A, etc; can be {@link #START1B} or START2B if ship was placed to a fog hex),
+     *     otherwise {@link #PLAY1}
      * @since 2.0.00
      */
-    public void pickGoldHexResources(final int pn, final SOCResourceSet rs)
+    public int pickGoldHexResources(final int pn, final SOCResourceSet rs)
     {
         players[pn].getResources().add(rs);
         players[pn].setNeedToPickGoldHexResources(0);
@@ -5341,9 +5397,10 @@ public class SOCGame implements Serializable, Cloneable
         // initial placement?
         if (gameState == STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
         {
-            gameState = oldGameState;  // usually START2A or START3A, for initial settlement at gold without fog
+            final int prevGS = oldGameState;
+            gameState = prevGS;  // usually START2A or START3A, for initial settlement at gold without fog
             advanceTurnStateAfterPutPiece();  // player may change if was START1B, START2B, START3B
-            return;
+            return prevGS;
         }
 
         if ((oldGameState == PLAY1) || (oldGameState == SPECIAL_BUILDING) || (oldGameState == PLACING_FREE_ROAD2))
@@ -5375,6 +5432,8 @@ public class SOCGame implements Serializable, Cloneable
                 }
             }
         }
+
+        return PLAY1;
     }
 
     /**
@@ -8315,8 +8374,7 @@ public class SOCGame implements Serializable, Cloneable
                 if (! has3rdInitPlace)
                 {
                     gameState = ROLL_OR_CARD;
-                    updateAtGameFirstTurn();
-                    updateAtTurn();  // "virtual" endTurn here,
+                    updateAtGameFirstTurn();  // "virtual" endTurn here,
                       // just like advanceTurnStateAfterPutPiece().
                 } else {
                     gameState = START3A;
@@ -8326,8 +8384,7 @@ public class SOCGame implements Serializable, Cloneable
             {
                 currentPlayerNumber = firstPlayerNumber;
                 gameState = ROLL_OR_CARD;
-                updateAtGameFirstTurn();
-                updateAtTurn();  // "virtual" endTurn here,
+                updateAtGameFirstTurn();  // "virtual" endTurn here,
                   // just like advanceTurnStateAfterPutPiece().
             }
         }

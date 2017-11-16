@@ -1815,26 +1815,16 @@ public class SOCGameMessageHandler
                             srv.gameList.releaseMonitorForGame(gaName);
 
                             boolean toldRoll = handler.sendGameState(ga, false);
-                            if ((ga.getGameState() == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
-                                || (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
+                            int newState = ga.getGameState();
+                            if ((newState == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
+                                || (newState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
                             {
                                 // gold hex revealed from fog (scenario SC_FOG)
                                 handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
 
-                            if (! handler.checkTurn(c, ga))
-                            {
-                                // Player changed (or play started), announce new player.
-                                handler.sendTurn(ga, true);
-                            }
-                            else if (toldRoll)
-                            {
-                                // When play starts, or after placing 2nd free road,
-                                // announce even though player unchanged,
-                                // to trigger auto-roll for the player.
-                                // If the client is too old (1.0.6), it will ignore the prompt.
-                                srv.messageToGame(gaName, new SOCRollDicePrompt (gaName, pn));
-                            }
+                            // If needed, call sendTurn or send SOCRollDicePrompt
+                            handler.sendTurnAtInitialPlacement(ga, player, c, gameState, toldRoll);
                         }
                         else
                         {
@@ -1987,26 +1977,16 @@ public class SOCGameMessageHandler
                             srv.gameList.releaseMonitorForGame(gaName);
 
                             boolean toldRoll = handler.sendGameState(ga, false);
-                            if ((ga.getGameState() == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
-                                || (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
+                            int newState = ga.getGameState();
+                            if ((newState == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
+                                || (newState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
                             {
                                 // gold hex revealed from fog (scenario SC_FOG)
                                 handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
 
-                            if (! handler.checkTurn(c, ga))
-                            {
-                                // Player changed (or play started), announce new player.
-                                handler.sendTurn(ga, true);
-                            }
-                            else if (toldRoll)
-                            {
-                                // When play starts, or after placing 2nd free road,
-                                // announce even though player unchanged,
-                                // to trigger auto-roll for the player.
-                                // If the client is too old (1.0.6), it will ignore the prompt.
-                                srv.messageToGame(gaName, new SOCRollDicePrompt (gaName, pn));
-                            }
+                            // If needed, call sendTurn or send SOCRollDicePrompt
+                            handler.sendTurnAtInitialPlacement(ga, player, c, gameState, toldRoll);
                         }
                         else
                         {
@@ -2587,7 +2567,7 @@ public class SOCGameMessageHandler
                     final boolean fromInitPlace = ga.isInitialPlacement();
                     final boolean fromPirateFleet = ga.isPickResourceIncludingPirateFleet(pn);
 
-                    ga.pickGoldHexResources(pn, rsrcs);
+                    int prevState = ga.pickGoldHexResources(pn, rsrcs);
 
                     /**
                      * tell everyone what the player gained
@@ -2623,7 +2603,7 @@ public class SOCGameMessageHandler
                         } else {
                             // send state, and current player if changed
 
-                            switch (gstate)
+                            switch (ga.getGameState())
                             {
                             case SOCGame.START1B:
                             case SOCGame.START2B:
@@ -2635,23 +2615,11 @@ public class SOCGameMessageHandler
                             case SOCGame.START1A:
                             case SOCGame.START2A:
                             case SOCGame.START3A:
-                                // Player probably changed, announce new player if so
-                                handler.sendGameState(ga, false);
-                                if (! handler.checkTurn(c, ga))
-                                    handler.sendTurn(ga, true);
-                                break;
-
                             case SOCGame.ROLL_OR_CARD:
-                                // The last initial road was placed
+                                // Current player probably changed, announce new player if so
+                                // with sendTurn and/or SOCRollDicePrompt
                                 final boolean toldRoll = handler.sendGameState(ga, false);
-                                if (! handler.checkTurn(c, ga))
-                                    // Announce new player (after START3A)
-                                    handler.sendTurn(ga, true);
-                                else if (toldRoll)
-                                    // When play starts, or after placing 2nd free road,
-                                    // announce even though player unchanged,
-                                    // to trigger auto-roll for the player.
-                                    srv.messageToGame(gaName, new SOCRollDicePrompt(gaName, ga.getCurrentPlayerNumber()));
+                                handler.sendTurnAtInitialPlacement(ga, player, c, prevState, toldRoll);
                                 break;
                             }
                         }

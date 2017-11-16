@@ -2400,7 +2400,7 @@ public class SOCPlayerInterface extends Frame
         }
 
         // Update our interface at start of first turn;
-        // The server won't send a TURN message after the
+        // server doesn't send non-bot clients a TURN message after the
         // final road/ship is placed (state START2 -> ROLL_OR_CARD).
         if (gameIsStarting && (gs >= SOCGame.ROLL_OR_CARD))
         {

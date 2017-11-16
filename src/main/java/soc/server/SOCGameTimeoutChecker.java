@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010,2015-2016 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2015-2017 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,12 @@ package soc.server;
  * by calling {@link SOCServer#checkForExpiredTurns(long)},
  * and every 5 minutes to check for games that have expired
  * with {@link SOCServer#checkForExpiredGames(long)}.
+ *<P>
+ * Keeps the game moving if a robot is stuck or indecisive because of a bug.
  *
  * @author Robert S Thomas
+ * @see SOCServer#ROBOT_FORCE_ENDTURN_SECONDS
+ * @see SOCServer#GAME_TIME_EXPIRE_CHECK_MINUTES
  */
 public class SOCGameTimeoutChecker extends Thread
 {
