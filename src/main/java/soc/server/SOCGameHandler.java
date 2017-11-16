@@ -2678,6 +2678,51 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
+     * After a player action during initial placement: If current player changed,
+     * an initial-placement round ended ({@link SOCGame#isInitialPlacementRoundDone(int)}),
+     * or regular game play started, announce the new player with
+     * {@link #sendTurn(SOCGame, boolean)} or send {@link SOCRollDicePrompt}
+     * to trigger auto-roll for the new player's client.
+     *<P>
+     * Call after an initial road/ship placement's {@link soc.game.SOCGame#putPiece(SOCPlayingPiece)},
+     * or after a player has chosen free resources from a gold hex with
+     * {@link soc.game.SOCGame#pickGoldHexResources(int, SOCResourceSet)},
+     * and only after {@link #sendGameState(SOCGame, boolean)}.
+     *
+     * @param ga  The game
+     * @param pl  Player who did the gold pick or piece placement action
+     * @param c   {@code pl}'s connection
+     * @param prevGameState  {@link soc.game.SOCGame#getGameState()} before piece placement,
+     *     or for gold pick action the pre-reveal game state returned from {@code ga.pickGoldHexResources(..)}
+     * @param toldRoll  True if {@link #sendGameState(SOCGame, boolean)} sent roll prompt text,
+     *     and so this method should send {@link SOCRollDicePrompt} if normal play is now starting
+     * @since 2.0.00
+     */
+    void sendTurnAtInitialPlacement
+        (SOCGame ga, SOCPlayer pl, Connection c, final int prevGameState, final boolean toldRoll)
+    {
+        if (! checkTurn(c, ga))
+        {
+            // Player changed (or normal play started), announce new player
+            sendTurn(ga, true);
+        }
+        else if (pl.isRobot() && ga.isInitialPlacementRoundDone(prevGameState))
+        {
+            // Player didn't change, but bot must be prompted to
+            // place its next settlement or roll its first turn
+            sendTurn(ga, false);
+        }
+        else if (toldRoll)
+        {
+            // When normal play starts, or after placing 2nd free road,
+            // announce even though player unchanged,
+            // to trigger auto-roll for the player client
+            final String gaName = ga.getName();
+            srv.messageToGame(gaName, new SOCRollDicePrompt (gaName, pl.getPlayerNumber()));
+        }
+    }
+
+    /**
      * send {@link SOCTurn whose turn it is}. Optionally also send a prompt to roll.
      * If the client is too old (1.0.6), it will ignore the prompt.
      *<P>

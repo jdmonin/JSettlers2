@@ -210,7 +210,7 @@ public class SOCGame implements Serializable, Cloneable
      * For settlements not revealed from fog:
      * Next game state is {@link #START2B} to place 2nd road.
      * If game scenario option {@link SOCGameOption#K_SC_3IP _SC_3IP} is set,
-     * next game state is {@link #START3B}.
+     * next game state can be {@link #START3B}.
      *<P>
      * Valid only when {@link #hasSeaBoard}, settlement adjacent to {@link SOCBoardLarge#GOLD_HEX},
      * or gold revealed from {@link SOCBoardLarge#FOG_HEX} by a placed road, ship, or settlement.
@@ -5360,10 +5360,11 @@ public class SOCGame implements Serializable, Cloneable
      * Gain them, check if other players must still pick, and set
      * gameState to {@link #WAITING_FOR_PICK_GOLD_RESOURCE}
      * or oldGameState (usually {@link #PLAY1}) accordingly.
-     * (Or, during initial placement, usually {@link #START2B} or {@link #START3B}, after initial settlement at gold.)
+     * (Or, during initial placement, usually {@link #START2B} or {@link #START3B} after initial settlement at gold,
+     * or {@link #START1A} or {@link #START2A} after placing a ship to a fog hex reveals gold.)
      * During normal play, the oldGameState might sometimes be {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
      *<P>
-     * Assumes {@link #canPickGoldHexResources(int, ResourceSet)} already called to validate.
+     * Assumes {@link #canPickGoldHexResources(int, ResourceSet)} was already called to validate.
      *<P>
      * During initial placement from {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE},
      * calls {@link #advanceTurnStateAfterPutPiece()}.
@@ -5381,9 +5382,12 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn   the number of the player
      * @param rs   the resources that are being picked
+     * @return  {@link #getGameState()} from before the gold-revealing placement if called during initial placement
+     *     ({@link #START1A}, START2A, etc; can be {@link #START1B} or START2B if ship was placed to a fog hex),
+     *     otherwise {@link #PLAY1}
      * @since 2.0.00
      */
-    public void pickGoldHexResources(final int pn, final SOCResourceSet rs)
+    public int pickGoldHexResources(final int pn, final SOCResourceSet rs)
     {
         players[pn].getResources().add(rs);
         players[pn].setNeedToPickGoldHexResources(0);
@@ -5392,9 +5396,10 @@ public class SOCGame implements Serializable, Cloneable
         // initial placement?
         if (gameState == STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
         {
-            gameState = oldGameState;  // usually START2A or START3A, for initial settlement at gold without fog
+            final int prevGS = oldGameState;
+            gameState = prevGS;  // usually START2A or START3A, for initial settlement at gold without fog
             advanceTurnStateAfterPutPiece();  // player may change if was START1B, START2B, START3B
-            return;
+            return prevGS;
         }
 
         if ((oldGameState == PLAY1) || (oldGameState == SPECIAL_BUILDING) || (oldGameState == PLACING_FREE_ROAD2))
@@ -5426,6 +5431,8 @@ public class SOCGame implements Serializable, Cloneable
                 }
             }
         }
+
+        return PLAY1;
     }
 
     /**
