@@ -102,7 +102,8 @@ practice games, no other username can use debug commands.
 To print the contents of messages sent between the server and client, start the
 client with vm argument `-Djsettlers.debug.traffic=Y` (this goes before `-jar` if using
 the command line). This works for the player client and the robot client, including
-bots started as part of the SOCServer.
+bots started as part of the SOCServer. For each message, robot clients will print its
+direction `IN -` (from server) or `OUT -` (from bot) + their name + ` - ` + message data.
 
 If you want to inspect the game object state at the server or robot:
 
