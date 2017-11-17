@@ -101,6 +101,16 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected String doc;
     protected String lastMessage;
 
+    /**
+     * Time when next {@link SOCServerPing} is expected at, based on
+     * previous ping's {@link SOCServerPing#getSleepTime()}, or 0.
+     * Repetitive pings' {@link #debugTraffic} prints should be hidden
+     * when the bot is otherwise idle. Receiving other in-game message types
+     * resets this to 0.
+     * @since 2.0.00
+     */
+    protected long nextServerPingExpectedAt;
+
     protected String host;
     protected int port;
     protected String strSocketName;  // For robots in local practice games
@@ -364,12 +374,21 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (mes == null)
             return;  // Msg parsing error
 
-        if ((debugTraffic || D.ebugIsEnabled()) && ! didDebugPrintAlready)
+        if ((debugTraffic || D.ebugIsEnabled()) && (! didDebugPrintAlready)
+            && ! ((mes instanceof SOCServerPing) && (nextServerPingExpectedAt != 0)
+                  && (Math.abs(System.currentTimeMillis() - nextServerPingExpectedAt) <= 66000)))
+                          // within 66 seconds of the expected time; see handleSERVERPING
+        {
             soc.debug.D.ebugPrintln("IN - " + nickname + " - " + mes.toString());
+        }
+
+        final int typ = mes.getType();
+        if (mes instanceof SOCMessageForGame)
+            nextServerPingExpectedAt = 0;  // bot not idle, is in a game
 
         try
         {
-            switch (mes.getType())
+            switch (typ)
             {
             /**
              * server's version message
@@ -833,7 +852,19 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleSERVERPING(SOCServerPing mes)
     {
+        final long now = System.currentTimeMillis();
+        boolean hidePingDebug = (debugTraffic && (nextServerPingExpectedAt != 0))
+            && (Math.abs(now - nextServerPingExpectedAt) <= 66000);  // within 66 seconds of expected time)
+
+        nextServerPingExpectedAt = now + mes.getSleepTime();
+
+        if (hidePingDebug)
+            debugTraffic = false;
+
         put(mes.toCmd());
+
+        if (hidePingDebug)
+            debugTraffic = true;
 
         /*
            D.ebugPrintln("(*)(*) ServerPing message = "+mes);
