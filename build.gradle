@@ -9,8 +9,7 @@ buildscript {
     }
 }
 
-/*ext.jsettlersVersion = '2.0.00' */
-version = '2.0.00'
+version = '2.0.00'  // same as in src/main/resources/resources/version.info
 
 mainClassName = "soc.client.SOCPlayerClient"
 
@@ -18,6 +17,7 @@ compileJava {
     sourceCompatibility = '1.5'
     targetCompatibility = '1.5'
 }
+
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'  // override the system's default encoding
         // To test that this has an effect, use 'Cp1252' instead here and expect "unmappable character" errors in StringUtil.java
@@ -27,6 +27,10 @@ tasks.withType(Jar) {
     includeEmptyDirs = false
 }
 
+jar.enabled = false  // prevent default jsettlers.git-<version>.jar artifact creation
+distZip.enabled = false   // TODO revisit later, with more control over contents
+distTar.enabled = false   // TODO revisit later, with more control over contents
+
 task serverJar(type: Jar) {
     baseName = 'JSettlersServer'
     version = project.version
@@ -35,8 +39,6 @@ task serverJar(type: Jar) {
             'Main-Class': 'soc.server.SOCServer'
         )
     }
-    // ? .output.classesDir ?
-    // or, include("soc/baseclient/**") ?
     from(sourceSets.main.output) {
         include "net/nand/util/i18n/mgr/**"
         include "soc/baseclient/**"
