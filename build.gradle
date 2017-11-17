@@ -1,5 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'com.google.protobuf'
+apply plugin: 'war'  // for jsettlers-webapp servlet
 apply plugin: 'application'
 apply plugin: 'idea'
 
@@ -62,8 +63,22 @@ repositories {
 //    }
 //}
 
+// The .WAR built here is socserver.war, not anything for an HTML5 web app/client:
+// The html5 client will be a separate build.
+war {
+    archiveName = 'socserver.war'  // no version, for constant prefix at deploy
+    // includes src/main/webapp by default
+    rootSpec.exclude("**/*.class")  // works, but empty dirs
+    rootSpec.exclude("**/*.proto")
+    rootSpec.exclude("**/protobuf*.jar")
+    rootSpec.exclude("**/soc/**")  // want only socweb, not soc, classes
+    rootSpec.exclude("**/resources/**")
+    // TODO exclude empty dirs
+}
+
 dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.google.protobuf:protobuf-lite:3.0.1'
+    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'  // Java EE 7
 }
 

@@ -56,6 +56,10 @@ v3 uses Protobuf to communicate, see `src/main/proto/message.proto` for
 the `FromServer` and `FromClient` main message types. For more details see
 the "Network Communication and interop" section below.
 
+The v3 web app server runs in a Java servlet container such as Jetty or Tomcat.
+This is currently optional. Web app HTML content is under src/main/webapp and
+servlets are under src/main/java/socweb/ .
+
 Game options and scenario rules are controlled through SOCGameOption;
 see initAllOptions javadoc for a list. Options have flags for their properties
 ("hidden internal option", "drop if not set", etc). All scenario-related
