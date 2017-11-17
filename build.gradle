@@ -1,0 +1,35 @@
+// First attempt at build.gradle for the java 7 web app
+
+// Requires jsettlers-server.jar available (TBD)
+
+apply plugin: 'war'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // TBD: jsettlers-server
+    providedCompile 'javax.servlet:servlet-api:3.1'  // Java EE 7
+    // testCompile 'junit:junit:4.12'
+}
+
+compileJava {
+    sourceCompatibility = '1.7'
+    targetCompatibility = '1.7'
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'  // override the system's default encoding
+}
+
+tasks.withType(Jar) {
+    includeEmptyDirs = false
+}
+

@@ -12,7 +12,8 @@ computer-controlled opponents. Initially created as an AI research
 project.
 
 The client is browser-based in HTML5. The server is a Java web app
-hosted in a servlet container like Jetty, including the html5 website.
+hosted in a servlet container like Jetty or Tomcat, including the
+html5 website.
 
 The server can optionally use a database to store player account
 information and game stats (details below).  A client java app to
@@ -52,22 +53,12 @@ https://github.com/jdmonin/jsettlers-webapp/blob/master/Readme.md .
 To play JSettlers in a browser, you will need one new enough for HTML5
 and Javascript version ES6.
 
-To run the server, you will need a Java servlet container such as Jetty
-and the `jsettlers-server` JAR v2.0.00 or newer from
-https://github.com/jdmonin/JSettlers2/releases .
+To run the server, you will need Java 7, a Java servlet container
+such as Jetty or Tomcat, and the `jsettlers-server` JAR v2.0.00 or newer
+from https://github.com/jdmonin/JSettlers2/releases .
 
-To Play JSettlers locally you need the Java Runtime 5 or above.
-`JSettlers-full.jar` can connect directly to any server over the Internet.
-
-To host a JSettlers server that provides a web applet for clients, you will
-need an http server such as Apache's httpd, available from http://httpd.apache.org.
-
-The JSettlers-full.jar file can also run locally as a server, without
-needing a web server.  The applet is considered more convenient,
-because you know everyone will have the same version.
-
-To build JSettlers-WebApp from source, you will need Java JDK 1.7 or newer and Gradle,
-or an IDE such as Eclipse which understands Gradle's build format.
+To build JSettlers-WebApp from source, you will need Java JDK 1.7 or newer
+and Gradle, or an IDE such as Eclipse which understands Gradle's build format.
 See [doc/Readme.developer.md](doc/Readme.developer.md) for details.
 
 
