@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
+<!--
+ This file is part of the Java Settlers Web App.
+
+ This file Copyright (C) 2017 Jeremy D Monin (jeremy@nand.net)
+
+ Open-source license: TBD
+ -->
+
 <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
