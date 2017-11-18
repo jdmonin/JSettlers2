@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     // TBD: jsettlers-server
-    providedCompile 'javax.servlet:servlet-api:3.1'  // Java EE 7
+    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'  // Java EE 7
     // testCompile 'junit:junit:4.12'
 }
 
@@ -31,5 +31,9 @@ tasks.withType(JavaCompile) {
 
 tasks.withType(Jar) {
     includeEmptyDirs = false
+}
+
+war {
+    archiveName = 'jsweb.war'  // no version, for bookmark-friendly prefix at deploy
 }
 
