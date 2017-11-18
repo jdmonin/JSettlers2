@@ -66,6 +66,16 @@ See [doc/Readme.developer.md](doc/Readme.developer.md) for details.
 
 TBD
 
+### Web App Deployment
+
+- Place `jsweb.war` into your web app server's `webapps` directory
+
+- The web app URL will be `http://localhost:8080/jsweb/` if your
+  web app server runs on port 8080
+
+- If `/jsweb/` does not show a JSettlers Web App page, check your
+  web app server's logs or restart its service
+
 ### Server Startup
 
 ### Parameters and game option defaults:
