@@ -210,6 +210,24 @@ such as:
 
     * Config Validation Mode: No problems found.
 
+### Server Web App Deployment (Optional)
+
+This deploys the optional part of the JSettlers Server which runs on a
+java web app server. This does not deploy the `/jsweb/` client web app,
+which is a separate build.
+
+- If you've started the JSettlers Server from the instructions in the
+  previous sections, make sure it isn't currenly running. Deploying the
+  JSettlers Server web app will also start the server on its default port.
+
+- Place `socserver.war` into your web app server's `webapps` directory
+
+- The web app URL will be `http://localhost:8080/socserver/` if your
+  web app server runs on port 8080
+
+- If `/socserver/` does not show a JSettlers Web App Server page, check your
+  web app server's logs or restart its service
+
 ### Connect a client
 
 Now, double-click JSettlers.jar to launch the client.  If you'd
