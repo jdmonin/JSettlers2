@@ -53,15 +53,16 @@ public class SOCGameListAtServer extends SOCGameList
 {
     /**
      * Number of minutes after which a game (created on the list) is expired.
-     * Default is 90.
+     * Default is 120.
      *<P>
-     * Before v2.0.00 this field was named {@code GAME_EXPIRE_MINUTES}.
+     * Before v2.0.00 this field was named {@code GAME_EXPIRE_MINUTES}
+     * and the default was 90.
      *
      * @see #createGame(String, String, String, Map, GameHandler)
      * @see SOCGame#setExpiration(long)
      * @see SOCServer#checkForExpiredGames(long)
      */
-    public static int GAME_TIME_EXPIRE_MINUTES = 90;
+    public static int GAME_TIME_EXPIRE_MINUTES = 120;
 
     /** synchronized map of game names to Vector of game members ({@link Connection}s) */
     protected Hashtable<String, Vector<Connection>> gameMembers;
