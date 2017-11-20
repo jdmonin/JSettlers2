@@ -498,21 +498,21 @@ public class SOCServer extends Server
     public static final int CLI_VERSION_TIMER_FIRE_MS = 1200;
 
     /**
-     * If game will expire in this or fewer minutes, warn the players. Default is 10.
+     * If game will expire in this or fewer minutes, warn the players. Default is 15.
      * Must be at least twice the sleep-time in {@link SOCGameTimeoutChecker#run()}.
      * The game expiry time is set at game creation in
      * {@link SOCGameListAtServer#createGame(String, String, String, Map, GameHandler)}.
      *<P>
      * If you update this field, also update {@link #GAME_TIME_EXPIRE_CHECK_MINUTES}.
      *<P>
-     * Before v2.0.00 this field was named {@code GAME_EXPIRE_WARN_MINUTES}.
+     * Before v2.0.00 this field was named {@code GAME_EXPIRE_WARN_MINUTES} and its default was 10.
      *
      * @see #checkForExpiredGames(long)
      * @see SOCGameTimeoutChecker#run()
      * @see SOCGameListAtServer#GAME_TIME_EXPIRE_MINUTES
      * @see #GAME_TIME_EXPIRE_ADDTIME_MINUTES
      */
-    public static int GAME_TIME_EXPIRE_WARN_MINUTES = 10;
+    public static int GAME_TIME_EXPIRE_WARN_MINUTES = 15;
 
     /**
      * Sleep time (minutes) between checks for expired games in {@link SOCGameTimeoutChecker#run()}.
@@ -520,7 +520,7 @@ public class SOCServer extends Server
      * so the user has time to react after seeing the warning.
      * @since 1.2.00
      */
-    public static int GAME_TIME_EXPIRE_CHECK_MINUTES = GAME_TIME_EXPIRE_WARN_MINUTES / 2;
+    public static int GAME_TIME_EXPIRE_CHECK_MINUTES = 5;
 
     /**
      * Amount of time to add (30 minutes) when the {@code *ADDTIME*} command is used by a player.
@@ -7120,8 +7120,8 @@ public class SOCServer extends Server
 
         gameList.takeMonitor();
 
-        // Add 2 extra minutes because of coarse 5-minute granularity in SOCGameTimeoutChecker.run()
-        long warn_ms = (2 + GAME_TIME_EXPIRE_WARN_MINUTES) * 60L * 1000L;
+        // Add 3 extra minutes because of coarse 5-minute granularity in SOCGameTimeoutChecker.run()
+        long warn_ms = (3 + GAME_TIME_EXPIRE_WARN_MINUTES) * 60L * 1000L;
 
         try
         {
