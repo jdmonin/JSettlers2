@@ -68,14 +68,12 @@ repositories {
 war {
     archiveName = 'socserver.war'  // no version, for constant prefix at deploy
     // includes src/main/webapp by default
-    rootSpec.exclude("**/org/**/*.class")  // works, but empty dirs
-    rootSpec.exclude("**/net/nand/**/*.class")  // works, but empty dirs
-    rootSpec.exclude("**/soc/*.class")  // works, but empty dirs
-    rootSpec.exclude("**/*.proto")
+    classpath = classpath - sourceSets.main.output  // excludes *.class: we'll include jsserver jar instead
+    from(sourceSets.main.output) {
+        into ("WEB-INF/classes")
+        include "socweb/server/**"
+    }
     rootSpec.exclude("**/protobuf*.jar")
-    rootSpec.exclude("**/soc/**")  // want only socweb, not soc, classes
-    rootSpec.exclude("**/resources/**")
-    // TODO exclude empty dirs
 }
 
 dependencies {
