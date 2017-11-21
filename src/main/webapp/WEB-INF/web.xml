@@ -37,24 +37,12 @@
     <listener><listener-class>socweb.server.Main</listener-class></listener>
 
     <!--
+    Other servlet paths:
 
-    Examples: (don't expect these names or paths to be final)
+    These are in socweb.server package; search for @WebServlet
 
-    <servlet>
-        <servlet-name>JSettlersServerServlet</servlet-name>
-        <servlet-class>socweb.server.example.RunServer</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+    - /api/*  socweb.server.API
 
-    <servlet>
-        <servlet-name>PlayServlet</servlet-name>
-        <servlet-class>socweb.server.example.Play</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>PlayServlet</servlet-name>
-        <url-pattern>/play</url-pattern>
-    </servlet-mapping>
     -->
 
 </web-app>
