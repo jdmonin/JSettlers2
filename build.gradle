@@ -125,8 +125,11 @@ war {
     // includes src/main/webapp by default
     classpath = classpath - sourceSets.main.output  // excludes *.class: we'll include jsserver jar instead
     from(sourceSets.main.output) {
-        into ("WEB-INF/classes")
+        into "WEB-INF/classes"
         include "socweb/server/**"
+    }
+    from(serverJar) {
+        into "WEB-INF/lib"
     }
     rootSpec.exclude("**/protobuf*.jar")
 }

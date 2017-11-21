@@ -28,6 +28,8 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import soc.util.Version;
+
 /**
  * Main class to run web app's SOCServer as a background thread.
  */
@@ -68,6 +70,7 @@ public class Main implements ServletContextListener
         public void run()
         {
             ctx.log("Runner starting.");
+            ctx.log("JSettlers Server version " + Version.version() + " build " + Version.buildnum());
 
             boolean uninterrupted = true;
             while (uninterrupted)
