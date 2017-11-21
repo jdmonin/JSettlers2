@@ -112,6 +112,8 @@ client with vm argument `-Djsettlers.debug.traffic=Y` (this goes before `-jar` i
 the command line). This works for the player client and the robot client, including
 bots started as part of the SOCServer. For each message, robot clients will print its
 direction `IN -` (from server) or `OUT -` (from bot) + their name + ` - ` + message data.
+When a bot client appears idle and isn't receiving messages for any particular active game,
+it won't print SOCServerPings.
 
 If you want to inspect the game object state at the server or robot:
 
@@ -996,6 +998,8 @@ When preparing to release a new version, testing should include:
         - In your IDE, pause the debugged client to simulate network connection loss
         - Start a new client and connect as that same username; should allow after appropriate number of seconds
     - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
+    - Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
+      should let you add time in 30-minute intervals up to original limit + 30 minutes
 - Platform-specific: Recent and less-recent OSX and Windows; oldest JRE (1.7) and new JRE
     - Keyboard shortcuts including game-reset dialog's esc/enter keys, FaceChooserFrame arrow keys
     - Sound, including 2 clients in same game for overlapping piece-place sound

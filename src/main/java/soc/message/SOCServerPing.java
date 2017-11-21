@@ -67,7 +67,10 @@ public class SOCServerPing extends SOCMessage
      * For human clients, the value to send back to the server,
      * or -1 if server is telling a client it's being disconnected
      * because a new client is replacing it, or for bots (informational)
-     * the amount of time server will sleep waiting to send the next ping.
+     * the amount of milliseconds server will sleep waiting to send the next ping.
+     *<P>
+     * The server's ping thread typically wakes and sends that next ping
+     * about 60 seconds earlier than indicated by {@code getSleepTime()}.
      * @return the sleep time
      */
     public int getSleepTime()

@@ -14,16 +14,71 @@ buildscript {
     }
 }
 
+version = '2.0.00'  // same as in src/main/resources/resources/version.info
+
 mainClassName = "soc.client.SOCPlayerClient"
 
 compileJava {
   sourceCompatibility = '1.7'
   targetCompatibility = '1.7'
 }
+
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'  // override the system's default encoding
         // To test that this has an effect, use 'Cp1252' instead here and expect "unmappable character" errors in StringUtil.java
 }
+
+tasks.withType(Jar) {
+    includeEmptyDirs = false
+}
+
+jar.enabled = false  // prevent default jsettlers.git-<version>.jar artifact creation
+distZip.enabled = false   // TODO revisit later, with more control over contents
+distTar.enabled = false   // TODO revisit later, with more control over contents
+
+task serverJar(type: Jar) {
+    baseName = 'JSettlersServer'
+    version = project.version
+    manifest {
+        attributes(
+            'Main-Class': 'soc.server.SOCServer'
+        )
+    }
+    from(sourceSets.main.output) {
+        include "net/nand/util/i18n/mgr/**"
+        include "soc/baseclient/**"
+        include "soc/debug/**"
+        include "soc/disableDebug/**"
+        include "soc/game/**"
+        include "soc/message/**"
+        include "soc/robot/**"
+        include "soc/server/**"
+        include "soc/util/**"
+    }
+    from(sourceSets.main.resources) {
+        include "resources/version.info"
+        include "resources/strings/server/**"
+    }
+}
+
+task fullJar(type: Jar) {
+    baseName = 'JSettlers'
+    version = project.version
+    manifest {
+        attributes(
+            'Main-Class': 'soc.client.SOCPlayerClient'
+        )
+    }
+    from(sourceSets.main.output) {
+        include "net/nand/util/i18n/mgr/**"
+        include "soc/**"
+    }
+    from(sourceSets.main.resources) {
+        include "**"
+    }
+}
+
+// TODO i18neditor (see build.xml build-i18neditor)
 
 // see https://github.com/google/protobuf-gradle-plugin
 protobuf {
@@ -80,5 +135,9 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.google.protobuf:protobuf-lite:3.0.1'
     providedCompile 'javax.servlet:javax.servlet-api:3.1.0'  // Java EE 7
+}
+
+artifacts {
+    archives serverJar, fullJar
 }
 

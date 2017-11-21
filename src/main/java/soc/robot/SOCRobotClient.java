@@ -504,8 +504,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             // we still need to process mes.
         }
 
-        if (debugTraffic || D.ebugIsEnabled())
+        if ((debugTraffic || D.ebugIsEnabled())
+            && ! ((mes instanceof SOCServerPing) && (nextServerPingExpectedAt != 0)
+                  && (Math.abs(System.currentTimeMillis() - nextServerPingExpectedAt) <= 66000)))
+                          // within 66 seconds of the expected time; see displaylesscli.handleSERVERPING
+        {
             soc.debug.D.ebugPrintln("IN - " + nickname + " - " + mes);
+        }
 
         try
         {
