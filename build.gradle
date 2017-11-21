@@ -14,7 +14,7 @@ buildscript {
     }
 }
 
-version = '2.0.00'  // same as in src/main/resources/resources/version.info
+version = '3.0.00'  // same as in src/main/resources/resources/version.info
 
 mainClassName = "soc.client.SOCPlayerClient"
 
