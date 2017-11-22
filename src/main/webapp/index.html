@@ -68,7 +68,8 @@ function submitLogin()
 
     nickname = nick;
 
-    var wsURL = "ws://" + window.location.host + window.location.pathname;
+    var wsProto = (window.location.protocol == "https:") ? "wss://" : "ws://";
+    var wsURL = wsProto + window.location.host + window.location.pathname;
     if (wsURL.charAt(wsURL.length - 1) != "/")
         wsURL += "/";
     wsURL += "apisock";
