@@ -21,11 +21,113 @@
 
 <head>
   <title>JSettlers-WebApp Server Demo</title>
+  <meta charset="UTF-8">
 </head>
 <body>
 
-<H3>JSettlers Web App Server</H3>
+<H3>JSettlers Web App Server - WebSocket Chat Demo</H3>
 
-TBD here
+<div id="login_form">
+  <form name="login" action="javascript:submitLogin()">
+    <label for="nick"><B>Nickname:</B></label>
+    <input name="nick" size=20 />
+     &nbsp; &nbsp;
+    <button type="submit" name="conn">Connect</button>
+  </form>
+</div>
+
+<div id="chat_form">
+  <HR noshade />
+
+  <form name="send" action="javascript:sendLine()">
+    <input name="txt" size=60 />
+     &nbsp; &nbsp;
+    <button type="submit">Send</button>
+  </form>
+</div>
+
+<div id="messagesArea" />
+
+<script>
+
+nickname = null;
+wsConn = null;
+messagesArea = document.getElementById("messagesArea");
+
+function submitLogin()
+{
+    if (wsConn != null)
+	return true;
+
+    var nick = document.forms.login.nick.value.trim();
+    if (0 == nick.length)
+    {
+	alert("Please enter a nickname.");
+	return true;
+    }
+
+    nickname = nick;
+
+    var wsURL = "ws://" + window.location.host + window.location.pathname;
+    if (wsURL.charAt(wsURL.length - 1) != "/")
+        wsURL += "/";
+    wsURL += "apisock";
+    showMessage("Conecting to " + wsURL);
+
+    wsConn = new WebSocket(wsURL);
+
+    wsConn.onopen = function(event)
+    {
+	console.log("at onOpen");
+	if (event.data === undefined)
+	    return;
+
+	showMessage(event.data);  // server's initial reply
+	document.forms.login.conn.disabled = true;
+	document.forms.send.txt.focus();
+    }
+
+    wsConn.onmessage = function(event)
+    {
+	showMessage(event.data);
+    }
+
+    wsConn.onclose = function(closeEvent)
+    {
+	wsConn = null;
+	showMessage("Disconnected.");
+	console.log("at onClose. Code " + closeEvent.code + " reason " + closeEvent.reason);
+    }
+
+    wsConn.onerror = function(event)
+    {
+	showMessage("Websocket received error.");
+    }
+}
+
+function sendLine(frm)
+{
+    var txfield = document.forms.send.txt;
+    var txt = txfield.value.trim();
+    if (0 == txt.length)
+	return true;
+    if (wsConn == null)
+    {
+	alert("Not connected.");
+	return true;
+    }
+
+    txfield.value = "";
+    wsConn.send(nickname + ": " + txt);
+}
+
+function showMessage(txt)
+{
+    messagesArea.appendChild(document.createTextNode(txt));
+    messagesArea.appendChild(document.createElement("br"));
+}
+
+
+</script>
 
 </body></html>

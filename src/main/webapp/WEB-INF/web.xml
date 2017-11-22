@@ -39,9 +39,11 @@
     <!--
     Other servlet paths:
 
-    These are in socweb.server package; search for @WebServlet
+    These are in socweb.server package; search for @WebServlet or @ServerEndpoint
 
-    - /api/*  socweb.server.API
+    - /api/*  socweb.server.API - JSON
+
+    - /apisock   socweb.server.WSEndpoint - WebSocket upgrade endpoint
 
     -->
 

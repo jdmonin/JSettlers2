@@ -27,13 +27,17 @@ import java.util.concurrent.Executors;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletRequestEvent;
+import javax.servlet.ServletRequestListener;
+import javax.servlet.http.HttpServletRequest;
 
 import soc.util.Version;
 
 /**
  * Main class to run web app's SOCServer as a background thread.
  */
-public class Main implements ServletContextListener
+public class Main implements ServletContextListener, ServletRequestListener
 {
     /** Context attribute to find the server later */
     public static final String CONTEXT_ATTRIB_SERVER = "socweb.server";
@@ -63,6 +67,23 @@ public class Main implements ServletContextListener
         // TODO any server shutdown needed
         srvRunner.shutdownNow();  // TODO is .shutdown() too polite?
     }
+
+    /**
+     * When a new request arrives, use {@link HttpServletRequest#getSession()}
+     * create a session for it if needed, so won't be null after WebSocket upgrade.
+     */
+    public void requestInitialized(ServletRequestEvent e)
+    {
+        // Needed per https://stackoverflow.com/questions/20240591/websocket-httpsession-returns-null
+        // and https://stackoverflow.com/questions/17936440/accessing-httpsession-from-httpservletrequest-in-a-web-socket-serverendpoint
+        // for JSR356 (updated Nov 2016) websocket connections.
+
+        ServletRequest sr = e.getServletRequest();
+        if (sr instanceof HttpServletRequest)
+            ((HttpServletRequest) sr).getSession();
+    }
+
+    public void requestDestroyed(ServletRequestEvent e) {}
 
     /** Main thread for SOCServer */
     public class Runner implements Runnable
