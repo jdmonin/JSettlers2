@@ -32,6 +32,7 @@ import javax.servlet.ServletRequestEvent;
 import javax.servlet.ServletRequestListener;
 import javax.servlet.http.HttpServletRequest;
 
+import soc.server.SOCServer;
 import soc.util.Version;
 
 /**
@@ -39,8 +40,8 @@ import soc.util.Version;
  */
 public class Main implements ServletContextListener, ServletRequestListener
 {
-    /** Context attribute to find the server later */
-    public static final String CONTEXT_ATTRIB_SERVER = "socweb.server";
+    /** The SOCServer started here; shared by all servlets in the web app context. */
+    static SOCServer srv;
 
     private ServletContext ctx;
 
@@ -49,22 +50,22 @@ public class Main implements ServletContextListener, ServletRequestListener
      */
     private ExecutorService srvRunner;
 
-    private Runnable runner;  // Stand-in for SOCServer until ready
-
     public void contextInitialized(ServletContextEvent e)
     {
         srvRunner = Executors.newSingleThreadExecutor();
-        runner = new Runner();
         ctx = e.getServletContext();
         ctx.log("Main: contextInitialized");
-        ctx.setAttribute(CONTEXT_ATTRIB_SERVER, runner);
-        srvRunner.submit(runner);
+        srvRunner.submit(new Runner());
     }
 
     public void contextDestroyed(ServletContextEvent e)
     {
-        e.getServletContext().setAttribute(CONTEXT_ATTRIB_SERVER, null);
-        // TODO any server shutdown needed
+        if (srv != null)
+        {
+            srv.stopServer();
+            srv = null;
+            // TODO wait for any server shutdown needed?
+        }
         srvRunner.shutdownNow();  // TODO is .shutdown() too polite?
     }
 
@@ -85,27 +86,38 @@ public class Main implements ServletContextListener, ServletRequestListener
 
     public void requestDestroyed(ServletRequestEvent e) {}
 
-    /** Main thread for SOCServer */
+    /**
+     * Main thread for SOCServer; constructs one, sets {@link Main#srv}, calls {@link SOCServer#run()}.
+     * If {@code srv} is already set somehow, does nothing.
+     */
     public class Runner implements Runnable
     {
         public void run()
         {
-            ctx.log("Runner starting.");
-            ctx.log("JSettlers Server version " + Version.version() + " build " + Version.buildnum());
-
-            boolean uninterrupted = true;
-            while (uninterrupted)
+            if (srv != null)
             {
-                ctx.log("Ping at " + System.currentTimeMillis());
-                try
-                {
-                    Thread.sleep(10000);
-                } catch (InterruptedException e) {
-                    uninterrupted = false;
-                }
+                ctx.log("Runner not starting: Internal error, Main.srv already != null");
+                return;
             }
 
-            ctx.log("Interrupted: Runner shutting down.");
+            ctx.log("SOCServer Runner starting.");
+            ctx.log("JSettlers Server version " + Version.version() + " build " + Version.buildnum());
+            try
+            {
+                srv = new SOCServer(SOCServer.SOC_PORT_DEFAULT, null);  // TODO how to specify properties
+            } catch (Exception e) {
+                srv = null;
+                ctx.log("SOCServer startup failed", e);
+                return;
+            }
+
+            try
+            {
+                srv.run();
+            } finally {
+                srv = null;
+                ctx.log("SOCServer Runner shutting down.");
+            }
         }
     }
 

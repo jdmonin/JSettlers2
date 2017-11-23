@@ -50,7 +50,7 @@ import soc.util.SOCStringManager;
  *                       SOCMessage parsing moved from single-threaded Treater to per-client Connection thread.
  *                       For I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and
  *                       {@link #getLocalized(String)}.
- *  3.0.0 - 2017-11-04 - ProtoConnection subclass for protobuf
+ *  3.0.0 - 2017-11-23 - ProtoConnection, ProtoJSONConnection subclasses for protobuf
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;

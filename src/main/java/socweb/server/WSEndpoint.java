@@ -32,51 +32,84 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+import soc.server.genericServer.ProtoJSONConnection;
+
 
 /**
- * Web Socket endpoint.
+ * Web Socket endpoint for {@link ProtoJSONConnection}.
+ * Has one instance per client session (that is, per active WebSocket client).
  */
 @ServerEndpoint(value="/apisock")
 public class WSEndpoint
+    implements ProtoJSONConnection.ClientSession
 {
+    /** Our client session, from {@link #onOpen(Session, EndpointConfig)} */
+    private Session session;
+
+    /** Our connection into SOCServer; null after {@link #onClose(CloseReason)} */
+    private ProtoJSONConnection conn;
 
     @OnOpen
     public void onOpen(final Session s, final EndpointConfig ec)
     {
-        // TODO add to some set of unnamed connections, to be named at auth
         System.err.println("L47 WebSocket Connected");
-        try
-        {
-            s.getBasicRemote().sendText("Welcome!");
-        } catch (IOException e) {
-            System.err.println("- open can't reply: " + e);
-        }
+        session = s;
+        conn = new ProtoJSONConnection(this, Main.srv);
+        conn.connect();  // adds to srv's set of unnamed connections, to be named at auth
+        // TODO error handling: log and disconnect (with explanation) if Main.srv is null or connnect() returns false
     }
 
     @OnMessage
-    public void onMessage(final String msg, final Session s)
+    public void onMessage(final String msg)
     {
         System.err.println("WS Received: " + msg);
-        try
+        if (conn != null)
+            conn.processFromClient(msg);
+    }
+
+    /** Remove from SOCServer's set of connections. */
+    @OnClose
+    public void onClose(final CloseReason cr)
+    {
+        System.err.println("L72 WebSocket Closed");
+        session = null;
+        if (conn != null)
         {
-            s.getBasicRemote().sendText("Echo: " + msg);
-        } catch (IOException e) {
-            System.err.println("- onMessage can't reply: " + e);
+            conn.closeInput();
+            conn = null;
         }
     }
 
-    @OnClose
-    public void onClose(final Session s, final CloseReason cr)
+    @OnError
+    public void onError(final Throwable th)
     {
-        // TODO remove from set of connections
-        System.err.println("L72 WebSocket Closed");
+        System.err.println("WebSocket error for " + session);
+        if (conn != null)
+            conn.hasError(th);
+        th.printStackTrace(System.err);
     }
 
-    @OnError
-    public void onError(final Session s, final Throwable th)
+    // for ProtoJSONConnection.ClientSession callbacks
+
+    public boolean isConnected()
     {
-        System.err.println("WebSocket error for " + s);
-        th.printStackTrace(System.err);
+        return (session != null) && session.isOpen();
+    }
+
+    public void sendJSON(final String objAsJson)
+        throws IOException
+    {
+        session.getBasicRemote().sendText(objAsJson);
+    }
+
+    public void closeSession()
+        throws IOException
+    {
+        if (session == null)
+            return;
+
+        session.close();
+        session = null;
     }
 
 }

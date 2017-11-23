@@ -43,18 +43,13 @@ public class API extends HttpServlet
 
     private ServletContext ctx;
 
-    /** Our SOCServer, from {@link #ctx} attribute {@link Main#CONTEXT_ATTRIB_SERVER} */
-    private Runnable runner;  // Stand-in for SOCServer until ready
-
     @Override
     public void init() {
         ctx = getServletContext();
-        runner = (Runnable) ctx.getAttribute(Main.CONTEXT_ATTRIB_SERVER);
     }
 
     @Override
     public void destroy() {
-        runner = null;
         ctx = null;
     }
 
