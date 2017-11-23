@@ -24,9 +24,6 @@ import soc.message.SOCMessage;
 import soc.proto.Message;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
 import java.util.Date;
 import java.util.Vector;
 
@@ -42,7 +39,8 @@ import com.google.protobuf.util.JsonFormat;
  * This non-Runnable class has no run method to read inbound data:
  * Instead, the web app server handles that using these calls:
  *<UL>
- * <LI> When the connection is ready for use: {@link #connect()}
+ * <LI> When the connection is ready for use: Make a new {@code ProtoJSONConnection}.
+ *      Constructor calls its {@link Server} parameter which in turn calls {@link #connect()}.
  * <LI> When a message arrives: {@link #processFromClient(String)}
  * <LI> If an error occurs: {@link #hasError(Throwable)}
  * <LI> When the client closes its connection: {@link #closeInput()}
@@ -53,7 +51,6 @@ import com.google.protobuf.util.JsonFormat;
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 3.0.00
  */
-@SuppressWarnings("serial")
 public final class ProtoJSONConnection
     extends Connection
 {
@@ -77,17 +74,23 @@ public final class ProtoJSONConnection
 
     /**
      * Initialize the connection data.
+     * Also calls {@link Server#addConnection(Connection) srv.addConnection(this)}.
      * @throws IllegalArgumentException if {@code sess} or {@code srv} is null
      */
     public ProtoJSONConnection(ClientSession sess, Server srv)
         throws IllegalArgumentException
     {
         super();
-        if ((sess == null) || (srv == null))
-            throw new IllegalArgumentException("null param");
+        if (sess == null)
+            throw new IllegalArgumentException("null session");
+        if (srv == null)
+            throw new IllegalArgumentException("null server");
         cliSession = sess;
         ourServer = srv;
         inQueue = srv.inQueue;
+
+        ourServer.addConnection(this);
+            // won't throw IllegalArgumentException, because conn is unnamed at this point; getData() is null
     }
 
     /**
@@ -117,7 +120,6 @@ public final class ProtoJSONConnection
     /**
      * Set up to read from the net, start a new Putter thread to send to the net; called only by the server.
      * If successful, also sets connectTime to now.
-     * Also calls {@link Server#addConnection(Connection) ourServer.addConnection(this)}.
      *<P>
      * Connection must be unnamed (<tt>{@link #getData()} == null</tt>) at this point.
      *
@@ -133,9 +135,6 @@ public final class ProtoJSONConnection
 
         try
         {
-            ourServer.addConnection(this);
-                // won't throw IllegalArgumentException, because conn is unnamed at this point; getData() is null
-
             connected = true;
             inputConnected = true;
             connectTime = new Date();

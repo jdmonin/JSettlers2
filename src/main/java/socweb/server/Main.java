@@ -105,9 +105,9 @@ public class Main implements ServletContextListener, ServletRequestListener
             try
             {
                 srv = new SOCServer(SOCServer.SOC_PORT_DEFAULT, null);  // TODO how to specify properties
-            } catch (Exception e) {
+            } catch (Throwable th) {
                 srv = null;
-                ctx.log("SOCServer startup failed", e);
+                ctx.log("SOCServer startup failed", th);
                 return;
             }
 

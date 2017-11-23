@@ -51,6 +51,7 @@ task serverJar(type: Jar) {
         include "soc/disableDebug/**"
         include "soc/game/**"
         include "soc/message/**"
+        include "soc/proto/**"
         include "soc/robot/**"
         include "soc/server/**"
         include "soc/util/**"
